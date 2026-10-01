@@ -1,0 +1,34 @@
+== positive fixture ==
+FAIL  corpus                             clean corpus does not pass
+
+== planted violations ==
+== contractor profile (OW-WAR-0140) ==
+ok: 14 frozen modules preserved; 21 objects copied without hard links
+ok    frozen-module copy controls                  all modules preserved; Git objects not hard-linked
+ok    core profiles as data move no digest         CT-WAR-0001's IR is byte-identical with profiles/{delivery,decision}.toml
+ok    a loosened core profile is refused           profile.invalid, redefines core profile delivery (exit 1)
+ok    the seam rewrote no committed IR             no generated/WAR.json changed in e995a450b12d
+ok    a contractor Work Order validates            CT-WAR-0002: nine atoms, profile contractor
+ok    without contractor.acceptance: refused       manifest.invalid: profile contractor requires a contractor.acceptance atom
+ok    an unknown profile: refused                  manifest.invalid: unknown profile "experiment"
+ok    without profiles/contractor.toml: unknown    manifest.invalid: unknown profile "contractor"
+ok    required contractor.terms on delivery: refused UnknownRequiredRole, as before the registry
+ok    optional contractor.terms on delivery: kept  manifest.valid
+ok    contractor IR = delivery IR, less the named  profile, schema id, contractor.* entries, their digests
+ok    any other IR difference fails the comparison a changed title is caught
+ok    no term string in the core IR                no FIXTURE-*, compensation or kf:// in either IR
+ok    a term copied into a core field is found     FIXTURE-WO-0001 in identity.title
+ok    the seam left the frozen core alone          14 modules unchanged by it; it touched role.rs, manifest.rs
+ok    an invoice field on a core struct: caught    ir.rs Identity differs from the committed module
+ok    a human holding resolver may accept          PASS: is a human holding resolver
+ok    an agent is refused by kind                  ERROR: is agent-kind
+ok    no resolver: refused by name                 ERROR: does not hold `resolver`
+ok    the performer is refused (§27.2)            ERROR: is the performer
+ok    an actor the register lacks: refused         ERROR: has no assignment
+ok    no new ActorRole variant                     Performer Verifier Authorizer Resolver RiskAcceptor Judge 
+ok    a planted Acceptor role is seen              Acceptor Performer Verifier Authorizer Resolver RiskAcceptor Judge 
+ok    a kf:// invoice reference is UNKNOWN         no Knowledge Fabric reachable
+ok    a war:// reference here resolves             PASS, not a blanket UNKNOWN
+ok    a reference role citing nothing is named     profile.reference-missing (§22.3: link, not copy)
+
+26 passed, 1 failed

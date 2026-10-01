@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0130"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, 1260 passed/0 failed, receipt digest sha256:58ae5d9a...) prints, in its captured stdout excerpt (lines 956-988), the three named plant checks from conformance/plants.d/69-idempotency.sh (D-008, untruncated) that correspond exactly to OBL-003's evidence bullets: 'requires_war >=99 refuses — compat.war-too-old (exit 2), >=99 and war 1.0.0-alpha.2 named, no Warrant read' (matching D-008's iv_requires '>=99' block, which asserts exit 2, the rule name, both version strings, and absence of any 'IV-WAR-' finding); 'requires_war = this war passes — =1.0.0-alpha.2: status unchanged from no key (exit 0)' (D-008's iv_requires \"=$IV_VERSION\" block, which diffs byte-for-byte against IV_BASE, the no-key baseline); and 'a v9 record is UNKNOWN — compat.newer-record, no PASS, no new ERROR (0)' paired with its negative control 'a v1 record is not newer — compat.newer-record silent' (D-008's sed-to-v9 block, which checks the line is UNKNOWN not PASS/ERROR and that the ERROR count is unchanged from the v1 baseline). D-004 (compat.rs, full file, not truncated) shows the implementation backing these: the `TOO_OLD` = 'compat.war-too-old' constant, `check_version` producing a refusal naming both `req` and `running`, and `newer_records` emitting `Diagnostic::unknown(\"compat.newer-record\", ...)`, confirmed by its own tests `requires_war_refuses_an_older_war_naming_both_versions` and `a_newer_major_is_unknown_and_an_unrelated_schema_is_ignored`. D-006 (repo.rs excerpt) shows `Repository::discover` calling `compat::check(&config, &path)` immediately after config parse and before `load_profiles`/any record load, matching 'before any Warrant finding is printed'. D-013 (lib.rs excerpt) shows the top-level dispatch mapping any error containing `repo::compat::TOO_OLD` to `EXIT_NOT_READY`, wiring the exit-2 behavior the plant observed. D-007 (docs/COMPATIBILITY.md, untruncated) documents the same requires_war/compat.newer-record mechanism, consistent with scope (option B, no claim on option C). No item in the bundle contradicts this; the obligation_evidence entry for OBL-003 shows every relevant term ('requires_war', 'compat.war-too-old', 'oh.war/verification/v9', 'compat.newer-record', 'war check') shown in full across D-004/D-005/D-006/D-007/D-008/D-013 and the gate stdout with no cut_from truncation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

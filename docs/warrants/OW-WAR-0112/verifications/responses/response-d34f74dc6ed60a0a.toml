@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0112"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "Most of the obligation's evidence is well supported: D-016 (remedy.rs) carries the full source and the test `no_auto_remedy_is_a_signing_act`, which walks TABLE and asserts no Auto remedy carries a SIGNING_VERBS verb or `--ssh-sign`; the fallback `classify()` function in the same source is deterministic and never returns Auto for a signing verb, so 'no automatic remedy signs' is supported both by test and by direct code inspection. The ops.conformance.plants@1.1.0 gate run's stdout tail contains the plant line 'ok check --json carries each remedy drift: human war correct (signs with war sign OS-WAR-0001/D-001); stale: auto war compile; REMEDIES: block', which matches the obligation's required `war check --json` facts for a planted drift (kind=human, argv `war correct <alias> <D-id>`, purpose naming `war sign <alias>/<D-id> --ssh-sign`) and a planted stale projection (kind=auto, `war compile`). The software.repo.war-check@1.0.0 gate run's stdout excerpt independently shows a real `REMEDIES:` block on this corpus, ending 'WELL-FORMED …', confirming `war check` ends with that block. However, the obligation's evidence also requires '`89-schemas.sh` passes with `SCHEMA_PACK_VERSION` unchanged', and neither `89-schemas.sh` nor the literal string `SCHEMA_PACK_VERSION` appears anywhere in the bundle; obligation_evidence explicitly marks `89-schemas.sh` as not carried ('no deliverable of OW-WAR-0112 and no file at this path'). The battery excerpt does show adjacent 'ok' lines for `schemas.current`, `schemas.missing` and a drifted `schemas/pack.json` case, and D-020's embedded digest for the report schema matches D-019's own sha256 exactly, which is consistent with a correctly regenerated pack — but nothing in the bundle states the pack's version number was unchanged from before this Warrant's edits, and that fact cannot be inferred without a prior baseline that was not shown. Because one specific, named piece of the obligation's evidence is neither shown nor derivable from what is carried, the claim is not fully established even though the remedy-behavior portions are strongly supported."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

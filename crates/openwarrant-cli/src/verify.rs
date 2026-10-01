@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war verify` — the independent-verification seam (SAS §46, §38.5, §75.2).
 //!
 //! # Two halves, and why this command cannot verify anything itself
@@ -236,64 +236,236 @@ pub fn ingest(
         return Ok(report);
     }
 
+    // OW-WAR-0137: on a Warrant whose authorization signed an assignment,
+    // only the assigned verifier's verdict is recorded, and only while the
+    // register still grants that actor `verifier`. An assignment that is not
+    // the one signed refuses the whole response with nothing written.
+    // Unassigned Warrants take none of this path.
+    let assigned: Option<Vec<String>> = match crate::authorize::assignment_standing(repo, &dir)?
+        .for_act(crate::authorize::assignment::Act::Verify)
+    {
+        Ok(list) => list.map(<[String]>::to_vec),
+        Err(finding) => {
+            report.push(Diagnostic::error(
+                finding.rule,
+                response_path.to_string(),
+                format!("{alias}: {}", finding.message),
+            ));
+            report.note("the assignment refused the response whole; nothing was written");
+            return Ok(report);
+        }
+    };
+    let register = match &assigned {
+        Some(_) => Some(repo.load_authority_register()?),
+        None => None,
+    };
+    let not_assigned = |v: &Verification| -> Option<(&'static str, String)> {
+        let (list, register) = (assigned.as_ref()?, register.as_ref()?);
+        let actor = &v.verifier.actor;
+        if !list.contains(actor) {
+            return Some((
+                "verify.not-assigned",
+                format!(
+                    "{}: {actor:?} is not the assigned verifier of {alias}; the assignment the \
+                     authorizer signed names {}. Not recorded",
+                    v.obligation,
+                    list.join(", ")
+                ),
+            ));
+        }
+        let entry = register.actor(actor);
+        if !entry.is_some_and(|e| e.holds(openwarrant_core::ActorRole::Verifier)) {
+            return Some((
+                "verify.role-missing",
+                format!(
+                    "{}: {actor:?} is assigned and does not hold `verifier` in \
+                     docs/authority/roles.toml. An assignment narrows who may verify; it never \
+                     grants the role. Not recorded",
+                    v.obligation
+                ),
+            ));
+        }
+        // Two vocabularies: the register's `policy_service` is a verdict's
+        // `service`. Anything else must match by name.
+        let same_kind = |e: &openwarrant_core::authority::RoleAssignment| {
+            matches!(
+                (e.actor_kind, v.verifier.kind),
+                (
+                    openwarrant_core::ActorKind::Human,
+                    openwarrant_core::verification::ActorKind::Human
+                ) | (
+                    openwarrant_core::ActorKind::Agent,
+                    openwarrant_core::verification::ActorKind::Agent
+                ) | (
+                    openwarrant_core::ActorKind::PolicyService,
+                    openwarrant_core::verification::ActorKind::Service
+                )
+            )
+        };
+        if entry.is_some_and(|e| !same_kind(e)) {
+            return Some((
+                "verify.kind-mismatch",
+                format!(
+                    "{}: the verdict says {actor:?} is {:?} and the register says otherwise. \
+                     Not recorded",
+                    v.obligation, v.verifier.kind
+                ),
+            ));
+        }
+        None
+    };
+
     let vdir = dir.join("verifications");
     let mut written = 0usize;
     let mut refused = 0usize;
+    let mut replayed = 0usize;
 
+    // OW-WAR-0130 (§67.4): every admissible verdict is rendered and its
+    // journal key looked up BEFORE the first write. A verdict already
+    // recorded by the same verifier, whose record still holds exactly these
+    // bytes, replays: nothing is written and the act exits 0. One recorded
+    // by a different actor is a conflicting reuse of the key, and it refuses
+    // the whole response with nothing written.
+    struct Planned<'a> {
+        v: &'a Verification,
+        path: Utf8PathBuf,
+        rendered: String,
+        actor: String,
+        payload: String,
+        replay: bool,
+    }
+    let mut planned: Vec<Planned<'_>> = Vec::new();
+    let mut conflicts = 0usize;
     for v in &response.verifications {
-        match v.admissible_for(&assurance) {
-            Ok(()) => {
-                fs::create_dir_all(&vdir).map_err(|source| RepoError::Io {
-                    context: format!("could not create {vdir}"),
-                    source,
-                })?;
-                let path = vdir.join(format!("{}.toml", v.obligation));
-                let rendered = toml::to_string_pretty(v).map_err(|e| RepoError::Io {
-                    context: format!("could not serialize verification for {}", v.obligation),
-                    source: std::io::Error::other(e.to_string()),
-                })?;
-                let record_digest = openwarrant_compiler::digest::sha256_hex(rendered.as_bytes());
-                fs::write(&path, rendered).map_err(|source| RepoError::Io {
-                    context: format!("could not write {path}"),
-                    source,
-                })?;
-                written += 1;
-                if let Some(vm) = &one.validated {
-                    crate::journal_cmd::record(
-                        &dir,
-                        &vm.uuid.to_string(),
-                        crate::journal_cmd::VERIFICATION_RECORDED,
-                        &format!("{}://{}", v.verifier.kind, v.verifier.actor),
-                        // The record's own digest is in the payload so that a
-                        // re-verification reaching the same disposition on new
-                        // evidence is a new event, not a refused duplicate.
-                        &format!(
-                            "{{\"obligation\":\"{}\",\"disposition\":\"{}\",\"record_digest\":\"sha256:{}\"}}",
-                            v.obligation, v.disposition, record_digest
-                        ),
-                    )?;
-                }
-                report.push(Diagnostic::pass(
-                    "verify.recorded",
-                    format!(
-                        "{}: {} by {}",
-                        v.obligation, v.disposition, v.verifier.actor
-                    ),
-                ));
-            }
-            Err(why) => {
-                // NOT written. A refused verdict must not become a file that
-                // later reads as a verification.
-                refused += 1;
-                report.push(Diagnostic::error(
-                    "verify.inadmissible",
-                    response_path.to_string(),
-                    why.to_string(),
-                ));
-            }
+        if v.admissible_for(&assurance).is_err() || not_assigned(v).is_some() {
+            continue;
         }
+        let path = vdir.join(format!("{}.toml", v.obligation));
+        let rendered = toml::to_string_pretty(v).map_err(|e| RepoError::Io {
+            context: format!("could not serialize verification for {}", v.obligation),
+            source: std::io::Error::other(e.to_string()),
+        })?;
+        let record_digest = openwarrant_compiler::digest::sha256_hex(rendered.as_bytes());
+        let actor = format!("{}://{}", v.verifier.kind, v.verifier.actor);
+        // The record's own digest is in the payload so that a re-verification
+        // reaching the same disposition on new evidence is a new event, not a
+        // refused duplicate.
+        let payload = format!(
+            "{{\"obligation\":\"{}\",\"disposition\":\"{}\",\"record_digest\":\"sha256:{}\"}}",
+            v.obligation, v.disposition, record_digest
+        );
+        let replay = match crate::journal_cmd::already_recorded(
+            &dir,
+            crate::journal_cmd::VERIFICATION_RECORDED,
+            &payload,
+            &actor,
+        )? {
+            crate::journal_cmd::Prior::Fresh => false,
+            crate::journal_cmd::Prior::Equivalent { .. } => {
+                fs::read(&path).is_ok_and(|on_disk| on_disk == rendered.as_bytes())
+            }
+            crate::journal_cmd::Prior::Conflict { recorded_by } => {
+                conflicts += 1;
+                report.push(crate::journal_cmd::conflict(
+                    repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                    crate::journal_cmd::VERIFICATION_RECORDED,
+                    &recorded_by,
+                    &actor,
+                ));
+                false
+            }
+        };
+        planned.push(Planned {
+            v,
+            path,
+            rendered,
+            actor,
+            payload,
+            replay,
+        });
+    }
+    if conflicts > 0 {
+        report.note(format!(
+            "{conflicts} verdict(s) conflict with the journal; the response is refused whole and \
+             nothing was written"
+        ));
+        return Ok(report);
     }
 
+    for v in &response.verifications {
+        let why = match v.admissible_for(&assurance) {
+            Err(why) => why.to_string(),
+            Ok(()) => {
+                if let Some((rule, why)) = not_assigned(v) {
+                    refused += 1;
+                    report.push(Diagnostic::error(rule, response_path.to_string(), why));
+                }
+                continue;
+            }
+        };
+        // NOT written. A refused verdict must not become a file that later
+        // reads as a verification.
+        refused += 1;
+        report.push(Diagnostic::error(
+            "verify.inadmissible",
+            response_path.to_string(),
+            why,
+        ));
+    }
+
+    for p in planned {
+        let v = p.v;
+        if p.replay {
+            replayed += 1;
+            report.push(Diagnostic::pass(
+                "verify.replayed",
+                format!(
+                    "{}: {} by {} is already recorded with these exact bytes → {}; an \
+                     equivalent retry replays and writes nothing",
+                    v.obligation,
+                    v.disposition,
+                    v.verifier.actor,
+                    repo.relative(&p.path)
+                ),
+            ));
+            continue;
+        }
+        fs::create_dir_all(&vdir).map_err(|source| RepoError::Io {
+            context: format!("could not create {vdir}"),
+            source,
+        })?;
+        // OW-WAR-0121: temp, fsync, rename. A crash leaves the prior verdict
+        // whole, never half of either; a symlink in the record's place is
+        // refused by name.
+        if let Err(storage) = crate::compile::atomic::write(&p.path, &p.rendered) {
+            report.push(storage.diagnostic());
+            refused += 1;
+            continue;
+        }
+        written += 1;
+        if let Some(vm) = &one.validated {
+            crate::journal_cmd::record(
+                &dir,
+                &vm.uuid.to_string(),
+                crate::journal_cmd::VERIFICATION_RECORDED,
+                &p.actor,
+                &p.payload,
+            )?;
+        }
+        report.push(Diagnostic::pass(
+            "verify.recorded",
+            format!(
+                "{}: {} by {}",
+                v.obligation, v.disposition, v.verifier.actor
+            ),
+        ));
+    }
+
+    if replayed > 0 {
+        report.note(format!(
+            "{replayed} verification(s) replayed, nothing written for them"
+        ));
+    }
     report.note(format!(
         "{written} verification(s) recorded, {refused} refused. A refused verdict is \
          not written to disk at all — recording it would let an inadmissible verdict \

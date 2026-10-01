@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, exit_result pass, 1214 passed/0 failed, tested commit 39d30f3d) printed to stdout each of the required checks against a scratch program bound to 127.0.0.2 (non-loopback): 'OBL-001 --lan with no certificate ... exit 1, nothing bound' and '--lan with a certificate, no key ... exit 1' (refusal before binding); 'OBL-001 plain HTTP to the LAN port' -> 'no HTTP response, no body (no-http 7 bytes)'; 'OBL-001 a wrong Host over TLS' -> 421 and 'the loopback Host over TLS' -> 421; 'OBL-001 a foreign Origin over TLS' -> 403 and 'an http:// Origin over TLS' -> 403; 'OBL-001 HSTS and the CSP on every response' -> '200, 401, 404, 421'; and 'OBL-001 bound only to the given address' -> '127.0.0.2:33891 only, of pid 1107431's listeners'. These lines correspond exactly to the assertions written in conformance/plants.d/59-webui-lan.sh (D-007, sha256 b3f7ced5...), whose excerpted body constructs the same scenario (a non-127.0.0.1 bind, cert/key refusal via `ui.lan-needs-tls`, a raw-socket plain-HTTP probe, Host/Origin checks, an `ss`-based bind check) named in OBL-001's scope and evidence list. The TLS termination and refusal-before-bind logic are also visible directly in D-001 (webui/mod.rs, `Lan::prepare` refusing without cert+key before any listener exists) and D-002 (tls.rs, handshake-only `accept()` that returns no HTTP on failure). No evidence in the bundle contradicts any of the five required behaviors, so within the obligation's stated scope (a scratch program on 127.0.0.2) the claim is established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

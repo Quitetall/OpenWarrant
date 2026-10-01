@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The test 'migrate::tests::attempting_to_promote_a_completion_line_is_refused' passed, demonstrating that promoting a completion line is refused, and the code comments confirm no path exists for producing resolutions, ensuring the count of promoted resolutions remains zero."
+disposition = "not_established"
+evidence = "obligation_evidence explicitly marks the required refusal name 'LegacyCompletionPromoted' as shown_in: [] — it does not appear anywhere in the bundle, though the obligation requires refusal specifically 'by LegacyCompletionPromoted.' D-001's test attempting_to_promote_a_completion_line_is_refused only asserts the error text contains the substring 'HISTORICAL' on one synthetic ADR via require_evidence_to_promote() (whose concrete error type lives in the uncarried openwarrant_core::migration crate), not that the named variant fires, and never touches the real corpus. The corpus-level claim (OBS-003, 'the artifact records 82 historical claims and 0 promoted resolutions... exits 1 with LegacyCompletionPromoted naming 0057-training-campaign-plan.md') traces to EV-001/EV-003, both with the placeholder digest 'sha256:pending-receipt-binding,' and the sole gate run executed `war check --generated`, not `war migrate --attempt-promotion`. No checkable evidence of the required real-corpus negative control is present."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

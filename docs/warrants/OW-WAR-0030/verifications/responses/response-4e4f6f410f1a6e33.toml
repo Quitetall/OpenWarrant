@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0030"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "crates/openwarrant-cli/src/export.rs's `absent_reason` function unconditionally returns a fixed absence reason for 'actions and relevant audit receipts', 'runtime receipt refs', 'artifacts', and 'resolution and standing' for every call, with no branch that checks whether such records exist for the given Warrant — the file's own module doc says these category labels are 'insufficient preservation evidence.' This directly contradicts OBL-001's scope ('for sections that exist') and the Basis atom's stated prerequisite that resolution records exist (OW-WAR-0022 resolved). The sole test `every_required_content_is_classified` only asserts each of the 15 §68.2 contents has either a supplier or a stated absence reason; it never asserts that a populated section is actually emitted, so it cannot and does not establish completeness — it documents the omission instead. No gate-run excerpt in the bundle checks export completeness either."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "refuted"
+evidence = "export.rs's `round_trip` function, when called with `reconnect: true` — the only setting under which bytes are actually reconnected per §68.3 — returns immediately with `RepoError::Message('legacy round-trip cannot verify preserved bytes: --reconnect is a claim, not an import...')` without calling `assemble` or comparing any bytes. The passing test `a_reconnected_round_trip_with_equal_digests_verifies` never invokes `round_trip` or `assemble`; it hand-builds a `RoundTrip{original_digest:'sha256:a', reexport_digest:'sha256:a', evidence_reconnected:true,...}` and calls `.verify()`, exercising only the comparator, not an actual export→import→re-export cycle. `an_unreconnected_round_trip_is_refused_as_vacuous` confirms the refusal path but is not evidence of stability. No gate run in the bundle exercises a real reconnected trip. The code itself shows the reconnected path cannot currently succeed for real data, so RQ-083's byte-stability claim is refuted, not merely unproven."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "Neither export.rs nor its three tests (`every_required_content_is_classified`, `an_unreconnected_round_trip_is_refused_as_vacuous`, `a_reconnected_round_trip_with_equal_digests_verifies`) mention superseded, disputed, or annulled records. The `software.repo.war-check@1.0.0` gate run's shown excerpts (manifest/deliverable-digest/traceability/journal/authority/gate/milestone/obligation checks for OW-WAR-0030, plus repo-wide pass/warn totals and NOT-CHECKED list) contain no check bearing on historical-record retention, and obligation_evidence lists no named_paths or terms for OBL-003. The bundle carries nothing, present or truncated, that speaks to RQ-084 in either direction, so the claim is undecidable from this evidence rather than false."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

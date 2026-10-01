@@ -1,12 +1,11 @@
 obligation = "OBL-004"
-disposition = "not_established"
-evidence = "The measured evidence does not list the seven plants for §91.4 test 24 and §91.5 tests 30-35, and the list of 138 plants does not include any for OW-WAR-0043."
+disposition = "refuted"
+evidence = "atoms/60-assurance.md's JDG-001 states directly that of the seven plants OBL-004 requires (§91.4 test 24; §91.5 tests 30–35), only one exists — §91.5 test 31, evidenced by EV-004/OBS-004 ('removing the child line from OW-WAR-0001's committed view is rejected by relations.child-listed') — and names the other six as unbuilt: test 24 needs an undecided permission-plant shape, tests 30/32 need comparisons nothing computes, tests 33/34 are blocked on a currency-transition that doesn't exist, and test 35 needs an adoption relation the manifest lacks, all corroborated by the matching 'Known gap' entries in atoms/20-basis.md. obligation_evidence further confirms conformance/ is absent from this bundle entirely. The Warrant's own assurance record thus affirmatively shows six of seven required plants do not exist, refuting the claim rather than leaving it merely unproven."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

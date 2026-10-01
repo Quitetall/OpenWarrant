@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "gate_runs and plants are both empty, so there is no cargo xtask gate run, CLI test output, or browser scenario evidence in the bundle. obligation_evidence for OBL-004 carries no named_paths or terms, leaving no test run IDs, plant references, or gate logs to confirm the claimed independent review and repository checks."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

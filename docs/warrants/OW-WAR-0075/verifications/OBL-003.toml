@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's scope is qualification of the exact OBL-001/OBL-002 result via independent reproduction/review and secure human acceptance, but OBL-001 and OBL-002 are themselves not_established for lack of carried evidence, so there is no established result to qualify. The assurance atom (60-assurance.md, '## Gate Adequacy') states these observations 'are NOT RUN until attached evidence proves them' and 'no disposition is declared here.' No independent reproduction record or human acceptance record for this exact subject appears in the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

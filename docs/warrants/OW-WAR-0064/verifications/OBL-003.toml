@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The obligation needs two paired plant results (uncorrected drift refused; corrected drift accepted) but no deliverable or plant-run output is carried in the bundle beyond the single reference to conformance/plants.d/64-corrections.sh line 30, whose shown text is only a stderr message about retargeting plants, not a pass/fail result. The gate run's stdout excerpts never mention `deliverable.digest-drift` in connection with OW-WAR-0064's own corrections, and the same run's WARN on assurance.executed-attacks confirms no attacks were executed. Absent that evidence, the claim is undecided."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

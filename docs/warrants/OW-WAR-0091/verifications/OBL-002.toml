@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "deliverables is empty, plants is an empty array, and obligation_evidence for OBL-002 carries no named_paths or terms, so no refusal fixtures, malformed/over-limit input tests, or unchanged-prior-output-on-failed-write evidence appears anywhere in the bundle. The war-check gate excerpts (e.g. PASS manifest.valid, PASS journal.append-only) test the Warrant's own record structure, not the release boundary's handling of invalid inputs, so the bundle gives no basis to decide this obligation."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

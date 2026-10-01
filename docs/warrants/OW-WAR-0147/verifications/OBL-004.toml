@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The ops.conformance.plants@1.1.0 gate run (GR-ops.conformance.plants@1.1.0, verdict pass, bound to the current contract/tree per software.repo.war-check@1.0.0's PASS evidence.admissible line) executes the D-013 45-tickets.sh block and its stdout excerpt (lines 155-171) prints 'ok a hand-edited checklist is honoured reordered, reworded, added: read as written; done moved 2 lines (its own, the new id)', which is the plant's assertion that `war ready` returns exactly 'Third|First, reworded by a person|Second|Added by hand' (the reordered/reworded/id-less hand edit read back in file order) and that its byte-diff of the checklist before/after `war done` shows exactly two moved lines matching the ticked line and the newly-named id-less line. The same excerpt prints 'ok check: a malformed checklist is named malformed box, duplicate id, two unknown blockers; in the corpus check too', confirming the plant's assertions that `war check` exits 2 with `ticket.checklist-malformed` (an odd `[y]` box), `ticket.item-duplicate`, and `ticket.blocker-unknown` exactly twice (an `after i-nope` and an `after t-nope`). The obligation's remaining evidence item — `ticket.blocker-cycle`, which it states is proved by unit test rather than the plant — is established by direct trace of D-004 (present, untruncated): the test `every_fault_is_named_with_its_line` supplies items i-000a (after i-000b, line 9) and i-000b (after i-000a, line 10) and asserts `ticket.blocker-cycle` at both lines; tracing `Checklist::check_references`'s DFS over the `edges` map deterministically yields exactly that pair of faults (stack starting at the sibling, cycling back to the origin id, pushing a fault at `item.line + 1` for each), matching the assertions. D-004 also carries the LF/CRLF/no-final-newline/nested/starred/fence/link fixtures the scope names (`DOC` constant and `crlf_and_a_missing_final_newline_survive_a_write`), and no test exercises a Markdown construct outside that scope's list. Every clause of OBL-004's evidence is thus decided by executed, current-tree gate output or by deterministic source inspection of a fully carried deliverable."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

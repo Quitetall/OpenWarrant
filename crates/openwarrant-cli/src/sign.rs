@@ -30,7 +30,11 @@
 //!   which exists only if the key was loaded with `ssh-add -c`. Without `-c`
 //!   the AI agent's shell can reach the same socket and sign as the human, and
 //!   `war` cannot tell the two apart. That is the one thing the operator must
-//!   get right, and the docs say so where the key is configured.
+//!   get right, and the docs say so where the key is configured. A security
+//!   key (`sk-`) is the exception (OW-WAR-0138): its signature carries the
+//!   authenticator's presence flag, `war` reads it after verification and
+//!   records it, and `[policy] require_user_presence` refuses any signature
+//!   that does not show it. `docs/AUTHENTICATION.md` is the contract.
 //! - **It shows what is being signed, not the TOML.** Title, revision, what
 //!   changed (for an amendment), obligations, every residual risk with its
 //!   consequence, the digest. Those are the things the signer is accepting.
@@ -107,10 +111,29 @@ pub enum Pending {
         /// was recorded without, so the outcome comes from the record rather
         /// than from §38.6 or a flag.
         recorded: Option<RecordedOutcome>,
+        /// OW-WAR-0137 — `None` when no assignment narrows this act. `Ok`
+        /// carries the narrowing already applied to `request.eligible_resolvers`;
+        /// `Err` names why nobody may resolve (the list is then empty).
+        assignment: Option<Result<authorize::assignment::Narrowed, authorize::assignment::Finding>>,
     },
     Accept {
         version: String,
         request: AcceptRequest,
+    },
+    /// OW-ADR-0023 — a proposed roadmap revision awaits one signature.
+    AcceptRoadmap {
+        revision: u32,
+        request: crate::roadmap_cmd::AcceptRequest,
+    },
+    /// OW-ADR-0029 — a proposed class of routine work awaits the one
+    /// signature that makes it a standing authorization.
+    AcceptStanding {
+        request: crate::standing_cmd::AcceptRequest,
+    },
+    /// OW-ADR-0029 — a signed class, offered for revocation only under
+    /// `--revoke`; never part of a sweep.
+    RevokeStanding {
+        request: crate::standing_cmd::RevokeRequest,
     },
     /// OW-WAR-0064 — a resolved Warrant's delivered artifact has moved and a
     /// human must say why, or restore it.
@@ -122,6 +145,14 @@ pub enum Pending {
         /// verified signature: the act then repeats the record, so the reason
         /// and the kind come from it and `--kind` is not asked for again.
         recorded: Option<RecordedCorrection>,
+    },
+    /// OW-WAR-0136 Q-001 (a) — a Gate Definition version invalidated. Never
+    /// found by [`pending`]: nothing in the records asks for it. It exists when
+    /// a human names the gate and the grounds (`war sign <gate>@<version>
+    /// --grounds …`).
+    Invalidate {
+        gate: String,
+        request: crate::invalidation::InvalidationRequest,
     },
 }
 
@@ -153,6 +184,21 @@ pub struct AmendmentSummary {
     pub changes: Vec<(String, String, String)>,
 }
 
+/// Whether an ingest records or only judges.
+///
+/// `DryRun` runs every refusal an ingest would run — schema, digest, register,
+/// role, amendment count, deliverable set, judgment admissibility — against a
+/// drafted, UNSIGNED response, and stops at the point the real path would
+/// write. It writes no record, appends no journal line, and reaches no key.
+/// The report names the exact rule the real ingest would refuse with, or
+/// `<act>.would-record`, so an agent can learn "this will be refused because
+/// X" without spending a human's dialog to find out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IngestMode {
+    Record,
+    DryRun,
+}
+
 /// What the signer chose, beyond `y`.
 #[derive(Debug, Clone)]
 pub struct Options {
@@ -173,6 +219,12 @@ pub struct Options {
     /// Render the screen and stop: no prompt, no terminal needed, nothing
     /// written. For reading what a signature would say from anywhere.
     pub show: bool,
+    /// Draft the response and run the act's ingest in [`IngestMode::DryRun`]:
+    /// every refusal, no write, no key. The draft lives in a temp directory
+    /// for the duration of the check and is removed; nothing lands under
+    /// `docs/authority/responses/`. For an agent to troubleshoot an act before
+    /// asking a human to sign it.
+    pub dry_run: bool,
     /// Sign the response file with the actor's ssh key via `ssh-keygen -Y
     /// sign`, verified at once against `docs/authority/allowed_signers`. No
     /// terminal needed: the human act is the agent's confirmation dialog
@@ -182,6 +234,9 @@ pub struct Options {
     pub verify: bool,
     /// For a correction: what kind of change it admits (OW-WAR-0064).
     pub kind: Option<openwarrant_core::correction::CorrectionKind>,
+    /// OW-ADR-0029: the acts offered are revocations of signed classes, not
+    /// the pending queue. A sweep never revokes.
+    pub revoke: bool,
 }
 
 impl Default for Options {
@@ -190,6 +245,7 @@ impl Default for Options {
     /// independence, and `None` would claim the signer did the work.
     fn default() -> Self {
         Self {
+            dry_run: false,
             actor: None,
             meaning: None,
             outcome: None,
@@ -201,6 +257,7 @@ impl Default for Options {
             ssh_sign: false,
             verify: false,
             kind: None,
+            revoke: false,
         }
     }
 }
@@ -223,6 +280,18 @@ fn tool_version() -> String {
 }
 
 /// Everything awaiting a signature, in alias order, SAS revisions last.
+/// The index in `cell`, built from `repo` the first time it is asked for.
+fn ownership_of<'a>(
+    cell: &'a std::cell::OnceCell<crate::ownership::Ownership>,
+    repo: &Repository,
+) -> Result<&'a crate::ownership::Ownership, RepoError> {
+    if let Some(index) = cell.get() {
+        return Ok(index);
+    }
+    let index = crate::ownership::Ownership::index(repo)?;
+    Ok(cell.get_or_init(|| index))
+}
+
 pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
     // Loaded once, up front, and NOT swallowed. Every per-Warrant request
     // below reads the register, and their errors are skipped so one broken
@@ -234,6 +303,9 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
         RepoError::Message(format!("docs/authority/roles.toml will not load; nothing can be signed or listed until it does: {e}"))
     })?;
     let mut out = Vec::new();
+    // The ownership index, built on the first correction request and shared
+    // by the rest (`correct::request_with`).
+    let ownership = std::cell::OnceCell::new();
     let mut dirs = repo.warrant_dirs()?;
     dirs.sort();
     for dir in dirs {
@@ -310,9 +382,10 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             )
             .is_signed();
             if !signed
-                && let Ok(request) = resolution_cmd::request(repo, &alias)
+                && let Ok(mut request) = resolution_cmd::request(repo, &alias)
                 && request.contract_digest == existing.resolution.contract_digest
             {
+                let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
                 let profile = one
                     .validated
                     .as_ref()
@@ -326,6 +399,7 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                         common: existing.resolution.common_outcome,
                         profile: existing.resolution.profile_outcome.clone(),
                     }),
+                    assignment,
                 });
             }
             // The only other act a resolved Warrant admits is a correction, and
@@ -376,7 +450,10 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                     {
                         continue;
                     }
-                    if let Ok(request) = crate::correct::request(repo, &alias, &deliverable_id) {
+                    if let Ok(index) = ownership_of(&ownership, repo)
+                        && let Ok(request) =
+                            crate::correct::request_with(repo, &alias, &deliverable_id, index)
+                    {
                         supplied.insert(deliverable_id.clone());
                         out.push(Pending::Correct {
                             alias: alias.clone(),
@@ -397,7 +474,8 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                 .iter()
                 .filter(|d| d.content_addressed && !supplied.contains(&d.id))
             {
-                if let Ok(request) = crate::correct::request(repo, &alias, &d.id)
+                if let Ok(index) = ownership_of(&ownership, repo)
+                    && let Ok(request) = crate::correct::request_with(repo, &alias, &d.id, index)
                     && request.drift
                 {
                     out.push(Pending::Correct {
@@ -410,10 +488,11 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             }
             continue;
         }
-        let Ok(request) = resolution_cmd::request(repo, &alias) else {
+        let Ok(mut request) = resolution_cmd::request(repo, &alias) else {
             continue;
         };
         if request.requirements_met {
+            let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
             let profile = one
                 .validated
                 .as_ref()
@@ -424,6 +503,7 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                 request,
                 profile,
                 recorded: None,
+                assignment,
             });
         }
     }
@@ -453,7 +533,208 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             });
         }
     }
+    if let Some(request) = crate::roadmap_cmd::pending_request(repo)? {
+        out.push(Pending::AcceptRoadmap {
+            revision: request.revision,
+            request,
+        });
+    }
+    for request in crate::standing_cmd::pending_acceptances(repo)? {
+        out.push(Pending::AcceptStanding { request });
+    }
     Ok(out)
+}
+
+/// The acts `war sign` offers under these options: the pending queue, or —
+/// under `--revoke` — a revocation for every signed, unrevoked class and
+/// nothing else, so a revocation is always named and never swept.
+pub fn pending_for(repo: &Repository, opts: &Options) -> Result<Vec<Pending>, RepoError> {
+    if opts.revoke {
+        return Ok(crate::standing_cmd::revocable(repo)?
+            .into_iter()
+            .map(|request| Pending::RevokeStanding { request })
+            .collect());
+    }
+    pending(repo)
+}
+
+/// OW-WAR-0137 — narrow a resolve act's eligible list by the Warrant's
+/// assignment, in place. The list only ever shrinks: it is filtered by
+/// [`authorize::assignment::narrow`], or emptied when the assignment is not
+/// the one the authorizer signed. Nobody is ever pushed onto it.
+fn narrow_resolvers(
+    repo: &Repository,
+    dir: &Utf8Path,
+    eligible: &mut Vec<String>,
+) -> Result<
+    Option<Result<authorize::assignment::Narrowed, authorize::assignment::Finding>>,
+    RepoError,
+> {
+    use authorize::assignment::{Act, narrow};
+    let standing = authorize::assignment_standing(repo, dir)?;
+    Ok(match standing.for_act(Act::Resolve) {
+        Ok(None) => None,
+        Ok(Some(assigned)) => {
+            let n = narrow(eligible, assigned);
+            eligible.clone_from(&n.eligible);
+            Some(Ok(n))
+        }
+        Err(finding) => {
+            eligible.clear();
+            Some(Err(finding))
+        }
+    })
+}
+
+/// Who signs `p`: [`choose_actor`] over the narrowed list, with the reason a
+/// signer was refused named by rule — `sign.not-assigned` for an eligible
+/// actor the assignment leaves out, `assignment.role-revoked` when every
+/// assigned actor has since lost the role, the standing's own rule when the
+/// assignment is not what the authorizer signed, `sign.who` otherwise.
+pub(crate) fn who(p: &Pending, opts: &Options) -> Result<String, (&'static str, String)> {
+    let assignment = match p {
+        Pending::Resolve { assignment, .. } => assignment.as_ref(),
+        _ => None,
+    };
+    // OW-ADR-0029: a class act names WHY a register holder may not sign it —
+    // an agent by kind, the performer as SelfAct — rather than only that
+    // the name is not on the eligible list.
+    let refused_signers = match p {
+        Pending::AcceptStanding { request } => Some(&request.refused_signers),
+        Pending::RevokeStanding { request } => Some(&request.refused_signers),
+        _ => None,
+    };
+    if let (Some(list), Some(a)) = (refused_signers, &opts.actor)
+        && let Some((_, why)) = list.iter().find(|(who, _)| who == a)
+    {
+        return Err(("standing.not-permitted", format!("{a}: {why}")));
+    }
+    match assignment {
+        None => choose_actor(eligible(p), opts).map_err(|why| ("sign.who", why)),
+        Some(Err(finding)) => Err((finding.rule, finding.message.clone())),
+        Some(Ok(n)) => {
+            if let Some(a) = &opts.actor
+                && !n.eligible.contains(a)
+                && n.before.contains(a)
+            {
+                return Err((
+                    "sign.not-assigned",
+                    format!(
+                        "{a} holds the role and is not assigned to {}; the assignment the \
+                         authorizer signed names {}. An assignment narrows who may sign",
+                        role(p),
+                        assigned_names(n)
+                    ),
+                ));
+            }
+            if n.eligible.is_empty() && !n.revoked.is_empty() {
+                return Err((
+                    "assignment.role-revoked",
+                    format!(
+                        "the assigned {} ({}) no longer hold(s) the role in \
+                         docs/authority/roles.toml, so nobody may sign. Nobody else is \
+                         substituted: restore the role, or amend the assignment and \
+                         re-authorize",
+                        role(p),
+                        n.revoked.join(", ")
+                    ),
+                ));
+            }
+            choose_actor(&n.eligible, opts).map_err(|why| ("sign.who", why))
+        }
+    }
+}
+
+fn assigned_names(n: &authorize::assignment::Narrowed) -> String {
+    let mut all: Vec<&str> = n
+        .eligible
+        .iter()
+        .chain(n.revoked.iter())
+        .map(String::as_str)
+        .collect();
+    all.sort_unstable();
+    all.join(", ")
+}
+
+/// Whether `p` is assigned to `actor` by name (not merely open to them).
+fn assigned_to(p: &Pending, actor: &str) -> bool {
+    matches!(p, Pending::Resolve { assignment: Some(Ok(n)), .. } if n.eligible.iter().any(|e| e == actor))
+}
+
+/// OW-WAR-0137 — one person's queue: the acts `actor` may sign now, acts
+/// assigned to them by name first. Built from [`pending`], so it can only
+/// ever be a subset of what the register and the assignments allow.
+pub fn queue(repo: &Repository, actor: &str) -> Result<Vec<Pending>, RepoError> {
+    let mut mine: Vec<Pending> = pending(repo)?
+        .into_iter()
+        .filter(|p| eligible(p).iter().any(|e| e == actor))
+        .collect();
+    // Stable: within each group, the order `pending` gives.
+    mine.sort_by_key(|p| !assigned_to(p, actor));
+    Ok(mine)
+}
+
+/// `war sign --list --json`: one entry per pending act, the same list the
+/// text shows. `assigned` names who an assignment chose (empty when none);
+/// `blocked_by` is the rule that lets nobody sign; under `--as`,
+/// `assigned_to_actor` says whether the act is theirs by name.
+#[must_use]
+pub fn list_json(list: &[Pending], actor: Option<&str>) -> serde_json::Value {
+    let acts: Vec<serde_json::Value> = list
+        .iter()
+        .map(|p| {
+            let (target, act) = match p {
+                Pending::Authorize { alias, .. } => (alias.clone(), "authorize"),
+                Pending::Resolve { alias, .. } => (alias.clone(), "resolve"),
+                Pending::Accept { version, .. } => (format!("SAS-{version}"), "accept"),
+                Pending::AcceptRoadmap { revision, .. } => {
+                    (crate::roadmap_cmd::subject(*revision), "accept_roadmap")
+                }
+                Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => {
+                    (target_of(p), act_name(p))
+                }
+                Pending::Correct {
+                    alias,
+                    deliverable_id,
+                    ..
+                } => (format!("{alias}/{deliverable_id}"), "correct"),
+                Pending::Invalidate { gate, .. } => (gate.clone(), "invalidate"),
+            };
+            let (assigned, blocked_by) = match p {
+                Pending::Resolve {
+                    assignment: Some(Ok(n)),
+                    ..
+                } => (n.eligible.iter().chain(&n.revoked).cloned().collect(), None),
+                Pending::Resolve {
+                    assignment: Some(Err(f)),
+                    ..
+                } => (Vec::new(), Some(f.rule)),
+                _ => (Vec::<String>::new(), None),
+            };
+            let mut v = serde_json::json!({
+                "target": target,
+                "act": act,
+                "role": role(p),
+                "eligible": eligible(p),
+                "assigned": assigned,
+                "blocked_by": blocked_by,
+                "line": line(p),
+            });
+            if let Some(a) = actor {
+                v["assigned_to_actor"] = serde_json::Value::Bool(assigned_to(p, a));
+            }
+            v
+        })
+        .collect();
+    serde_json::json!({ "actor": actor, "acts": acts })
+}
+
+/// `war sign --list`, for everyone or for one actor.
+pub fn list_for(repo: &Repository, actor: Option<&str>) -> Result<Vec<Pending>, RepoError> {
+    match actor {
+        Some(a) => queue(repo, a),
+        None => pending(repo),
+    }
 }
 
 /// The most recent `amendments/AM-*.yaml`, read line-wise for its `reason`
@@ -462,22 +743,15 @@ fn read_latest_amendment(dir: &Utf8Path) -> Option<AmendmentSummary> {
     read_amendments(dir).pop()
 }
 
-/// Every amendment under `amendments/`, oldest first (slice D1 reads all).
+/// Every amendment under `amendments/`, oldest first (slice D1 reads all),
+/// in `crate::amendment_id`'s order: ordinal, then `effective_time`, then
+/// name — so `AM-004-1f3a` and `AM-004-c07e` from two branches both show,
+/// and `AM-1000` follows `AM-999`. `.yaml` only, as before.
 pub(crate) fn read_amendments(dir: &Utf8Path) -> Vec<AmendmentSummary> {
-    let amendments = dir.join("amendments");
-    let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(&amendments)
-        .ok()
-        .map(|rd| {
-            rd.filter_map(Result::ok)
-                .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
-                .filter(|p| p.extension() == Some("yaml"))
-                .collect()
-        })
-        .unwrap_or_default();
-    files.sort();
-    files
+    crate::amendment_id::files(dir)
         .into_iter()
-        .filter_map(|path| read_amendment(&path))
+        .filter(|f| f.path.extension() == Some("yaml"))
+        .filter_map(|f| read_amendment(&f.path))
         .collect()
 }
 
@@ -514,6 +788,21 @@ pub fn list(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
 /// Render one pending act as a line for the list.
 #[must_use]
 pub fn line(p: &Pending) -> String {
+    let base = line_of(p);
+    match p {
+        Pending::Resolve {
+            assignment: Some(Ok(n)),
+            ..
+        } => format!("{base}  [assigned: {}]", assigned_names(n)),
+        Pending::Resolve {
+            assignment: Some(Err(f)),
+            ..
+        } => format!("{base}  [{}]", f.rule),
+        _ => base,
+    }
+}
+
+fn line_of(p: &Pending) -> String {
     match p {
         Pending::Authorize {
             alias,
@@ -546,6 +835,11 @@ pub fn line(p: &Pending) -> String {
             },
             request.title
         ),
+        Pending::AcceptRoadmap { revision, request } => format!(
+            "roadmap  rev {revision}  accept  {} phase(s): {}",
+            request.phase_count,
+            request.diff.summary()
+        ),
         Pending::Accept { version, request } => format!(
             "SAS {version}  accept  {} requirement(s){}",
             request.requirement_count,
@@ -555,6 +849,21 @@ pub fn line(p: &Pending) -> String {
                 ""
             }
         ),
+        Pending::AcceptStanding { request } => format!(
+            "{}  accept  standing authorization, {} glob(s){}",
+            target_of(p),
+            request.class.as_ref().map_or(0, |c| c.paths.len()),
+            if request.refusals.is_empty() {
+                String::new()
+            } else {
+                format!("  [REFUSED: {}]", request.refusals.len())
+            }
+        ),
+        Pending::RevokeStanding { request } => format!(
+            "{}  revoke  standing authorization, {} Warrant(s) covered so far",
+            target_of(p),
+            request.covered.len()
+        ),
         Pending::Correct {
             alias,
             deliverable_id,
@@ -563,6 +872,10 @@ pub fn line(p: &Pending) -> String {
         } => format!(
             "{alias}/{deliverable_id}  correct  {} drifted (correction {})  {}",
             request.target_ref, request.next_sequence, request.title
+        ),
+        Pending::Invalidate { gate, request } => format!(
+            "{gate}  invalidate  would dispute {} resolution(s)",
+            request.disputes.len()
         ),
     }
 }
@@ -626,6 +939,44 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 &request.contract_digest[..16],
                 request.contract_coverage.join(", ")
             ));
+            // OW-ADR-0021: the signature grants ownership of these paths.
+            // Listed in full — a signer who cannot see what they grant is
+            // signing a digest, and a digest hides a path as well as it
+            // protects one.
+            if request.deliverables.is_empty() {
+                s.push_str("│ Grants ownership of: nothing declared\n");
+            } else {
+                // OW-ADR-0021's words, then every path: "Grants ownership of:".
+                s.push_str(&format!(
+                    "│ Grants ownership of: {} path(s)  ·  set {}\n",
+                    request.deliverables.len(),
+                    request
+                        .deliverable_set_digest
+                        .strip_prefix("sha256:")
+                        .map_or("", |d| &d[..12])
+                ));
+                for d in &request.deliverables {
+                    s.push_str(&format!("│   {}  {}\n", d.id, d.target_ref));
+                }
+            }
+            // OW-WAR-0137: who reviews is part of what is signed.
+            if let Some(a) = &request.assignment {
+                s.push_str(&format!(
+                    "│ assigns review  ·  {}\n",
+                    request
+                        .assignment_digest
+                        .strip_prefix("sha256:")
+                        .map_or("", |d| &d[..12])
+                ));
+                for (act, who) in [("verify", &a.verify), ("resolve", &a.resolve)] {
+                    if !who.is_empty() {
+                        s.push_str(&format!("│   {act}: {}\n", who.join(", ")));
+                    }
+                }
+            }
+            for f in &request.assignment_findings {
+                s.push_str(&format!("│   REFUSED {f}\n"));
+            }
         }
         Pending::Resolve { alias, request, .. } => {
             s.push_str(&format!(
@@ -657,6 +1008,18 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 &request.contract_digest[..16]
             ));
         }
+        Pending::AcceptRoadmap { revision, request } => {
+            s.push_str(&format!(
+                "┌ roadmap revision {revision} · accept · sha256:{}\n│ predecessor {}  ·  {} phase(s)\n│ {}\n",
+                &request.sha256[..16],
+                request.predecessor.map_or("none".to_owned(), |p| p.to_string()),
+                request.phase_count,
+                request.diff.summary()
+            ));
+            if let Some(n) = &request.note {
+                s.push_str(&format!("│ the proposer says: {n}\n"));
+            }
+        }
         Pending::Accept { version, request } => {
             s.push_str(&format!(
                 "┌ SAS {version} · accept · sha256:{}\n│ predecessor {}  ·  {} requirement(s)  ·  architecture-changing: {}\n",
@@ -671,6 +1034,61 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 request.diff.removed.len(),
                 request.diff.retitled.len()
             ));
+        }
+        Pending::AcceptStanding { request } => {
+            s.push_str(&format!(
+                "┌ {} · accept a STANDING AUTHORIZATION · sha256:{}\n│ {}\n",
+                request.reference,
+                &request.sha256[..16],
+                request.file
+            ));
+            if let Some(c) = &request.class {
+                for (i, line) in wrap(&c.meaning, 70).into_iter().enumerate() {
+                    s.push_str(&format!(
+                        "│ {}{line}\n",
+                        if i == 0 { "meaning: " } else { "         " }
+                    ));
+                }
+                s.push_str(&format!(
+                    "│ {} at {} · gates: {}\n│ per stage ≤ {} tokens, ≤ {} s · ≤ {} stage(s), ≤ {} deliverable(s)\n│ expires {} · covers at most {} Warrant(s)\n",
+                    c.profile,
+                    c.assurance,
+                    c.gates.join(", "),
+                    c.budget.budget_tokens,
+                    c.budget.wall_time_seconds,
+                    c.budget.max_stages,
+                    c.budget.max_deliverables,
+                    c.expires_at,
+                    c.max_warrants
+                ));
+            }
+            // What the signature grants, glob by glob, with what each
+            // matches today: a signer who cannot see a class's reach is
+            // signing a digest.
+            s.push_str("│ Covers:\n");
+            for (glob, matched) in &request.covers {
+                s.push_str(&format!("│   {glob}  ({} file(s) today)\n", matched.len()));
+                for m in matched {
+                    s.push_str(&format!("│     {m}\n"));
+                }
+            }
+            for r in &request.refusals {
+                s.push_str(&format!("│   REFUSED {r}\n"));
+            }
+            s.push_str(
+                "│ each Warrant inside it is authorized in your name with no further act; each is still resolved by you\n",
+            );
+        }
+        Pending::RevokeStanding { request } => {
+            s.push_str(&format!(
+                "┌ {} · REVOKE a standing authorization · sha256:{}\n│ it covers nothing new after this; {} record(s) made under it stand (§31)\n",
+                request.reference,
+                &request.sha256[..16],
+                request.covered.len()
+            ));
+            for a in &request.covered {
+                s.push_str(&format!("│   {a}\n"));
+            }
         }
         Pending::Correct {
             alias,
@@ -709,6 +1127,34 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
             }
             s.push_str(
                 "│ the pin in deliverables.toml is not edited; the superseded digest stays on record\n",
+            );
+        }
+        Pending::Invalidate { gate, request } => {
+            s.push_str(&format!(
+                "┌ {gate} · invalidate · {}\n│ definition {}  ·  {}\n",
+                request.lifecycle, request.definition_file, request.definition_digest
+            ));
+            for (i, line) in wrap(&request.grounds, 72).into_iter().enumerate() {
+                s.push_str(&format!(
+                    "│ {}{line}\n",
+                    if i == 0 { "grounds: " } else { "         " }
+                ));
+            }
+            s.push_str(&format!(
+                "│ disputes {} resolution(s), leaves {} standing\n",
+                request.disputes.len(),
+                request.unaffected.len()
+            ));
+            for d in &request.disputes {
+                s.push_str(&format!(
+                    "│   {}  resolved by {}  via {}\n",
+                    d.warrant,
+                    d.resolved_by,
+                    d.via.join("; ")
+                ));
+            }
+            s.push_str(
+                "│ no resolution.toml and not the definition file is edited; standing is read from the disputes\n",
             );
         }
     }
@@ -799,7 +1245,7 @@ fn drafted_correction_reason(repo: &Repository, alias: &str, target_ref: &str) -
 /// The reason a correction will record: the signer's words when they typed
 /// any, else the draft from the record. `None` for every other act, whose
 /// meaning is templated inside `draft`.
-fn reason_for(repo: &Repository, p: &Pending, opts: &Options) -> Option<String> {
+pub(crate) fn reason_for(repo: &Repository, p: &Pending, opts: &Options) -> Option<String> {
     if let Some(m) = opts.meaning.as_deref().filter(|m| !m.trim().is_empty()) {
         return Some(m.to_owned());
     }
@@ -864,6 +1310,11 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 independence: opts.independence,
                 judgment,
                 signed_via: Some(opts.channel().to_owned()),
+                deliverable_set_digest: Some(request.deliverable_set_digest.clone()),
+                // OW-WAR-0137: echoed only when the Warrant assigns anyone, so
+                // the signature covers who reviews exactly as it was listed.
+                assignment_digest: (!request.assignment_digest.is_empty())
+                    .then(|| request.assignment_digest.clone()),
             };
             Ok(Drafted::Authorize(response))
         }
@@ -872,6 +1323,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
             request,
             profile,
             recorded,
+            ..
         } => {
             // A signature supplied for a recorded resolution repeats that
             // record's outcome. Re-deciding it here would let a signature say
@@ -930,6 +1382,27 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 effective_time: now.to_owned(),
             }))
         }
+        Pending::AcceptRoadmap { revision, request } => {
+            Ok(Drafted::AcceptRoadmap(crate::roadmap_cmd::AcceptResponse {
+                schema: crate::roadmap_cmd::ACCEPT_RESPONSE_SCHEMA.to_owned(),
+                revision: *revision,
+                sha256: request.sha256.clone(),
+                accepted_by: actor.to_owned(),
+                acting_role: "authorizer".to_owned(),
+                meaning: format!(
+                    "Accepting roadmap revision {revision} at this digest means the signer adopts \
+                     it as the program's order of work: {} phase(s); against revision {}: {}. \
+                     Warrants are held to these phases until it is superseded.{extra} {}",
+                    request.phase_count,
+                    request
+                        .predecessor
+                        .map_or("none".to_owned(), |p| p.to_string()),
+                    request.diff.summary(),
+                    provenance()
+                ),
+                effective_time: now.to_owned(),
+            }))
+        }
         Pending::Accept { version, request } => {
             if request.adr_required && opts.adr_ref.is_none() {
                 return Err(format!(
@@ -958,6 +1431,60 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 adr_ref: opts.adr_ref.clone(),
             }))
         }
+        Pending::AcceptStanding { request } => {
+            if !request.refusals.is_empty() {
+                return Err(format!(
+                    "{}: the class is refused ({}); a refused class is not drafted for a \
+                     signature",
+                    request.reference,
+                    request.refusals.join("; ")
+                ));
+            }
+            let (expires, max) = request.class.as_ref().map_or((String::new(), 0), |c| {
+                (c.expires_at.clone(), c.max_warrants)
+            });
+            Ok(Drafted::AcceptStanding(
+                crate::standing_cmd::AcceptResponse {
+                    schema: crate::standing_cmd::ACCEPT_RESPONSE_SCHEMA.to_owned(),
+                    id: request.id.clone(),
+                    revision: request.revision,
+                    sha256: request.sha256.clone(),
+                    accepted_by: actor.to_owned(),
+                    acting_role: "authorizer".to_owned(),
+                    meaning: format!(
+                        "Signing standing authorization {} at this digest means the signer \
+                     authorizes, in their own name, every Warrant `war standing apply` finds \
+                     inside every term of this class, until {expires} or {max} Warrant(s), \
+                     whichever comes first, or until revoked. It resolves nothing: each covered \
+                     Warrant is still resolved by a human.{extra} {}",
+                        request.reference,
+                        provenance()
+                    ),
+                    effective_time: now.to_owned(),
+                    signed_via: Some(opts.channel().to_owned()),
+                },
+            ))
+        }
+        Pending::RevokeStanding { request } => Ok(Drafted::RevokeStanding(
+            crate::standing_cmd::RevokeResponse {
+                schema: crate::standing_cmd::REVOKE_RESPONSE_SCHEMA.to_owned(),
+                id: request.id.clone(),
+                revision: request.revision,
+                sha256: request.sha256.clone(),
+                revoked_by: actor.to_owned(),
+                acting_role: "authorizer".to_owned(),
+                meaning: format!(
+                    "Revoking standing authorization {} means it covers no Warrant applied \
+                     after this moment. The {} record(s) already made under it stand (§31).\
+                     {extra} {}",
+                    request.reference,
+                    request.covered.len(),
+                    provenance()
+                ),
+                effective_time: now.to_owned(),
+                signed_via: Some(opts.channel().to_owned()),
+            },
+        )),
         Pending::Correct {
             alias,
             deliverable_id,
@@ -1010,6 +1537,35 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 signed_via: Some(opts.channel().to_owned()),
             }))
         }
+        Pending::Invalidate { gate, request } => {
+            // The grounds are the signer's words, never drafted: they are the
+            // whole of what an invalidation says, and every dispute repeats them.
+            if request.grounds.trim().is_empty() {
+                return Err(format!("{gate}: an invalidation needs --grounds <text>"));
+            }
+            Ok(Drafted::Invalidate(
+                crate::invalidation::InvalidationResponse {
+                    schema: crate::invalidation::RESPONSE_SCHEMA.to_owned(),
+                    gate: gate.clone(),
+                    definition_digest: request.definition_digest.clone(),
+                    grounds: request.grounds.clone(),
+                    disputes: request.disputes.iter().map(|d| d.warrant.clone()).collect(),
+                    invalidated_by: actor.to_owned(),
+                    acting_role: "resolver".to_owned(),
+                    meaning: format!(
+                        "Invalidating Gate Definition {gate} at this digest means the signer \
+                         judges it unsound for the grounds given, and disputes the {} \
+                         resolution(s) named here, which rest on it directly or through a \
+                         parent (§45). No resolution, receipt or definition is edited; each \
+                         dispute stays open until it is resolved or the resolution annulled. {}",
+                        request.disputes.len(),
+                        provenance()
+                    ),
+                    effective_time: now.to_owned(),
+                    signed_via: Some(opts.channel().to_owned()),
+                },
+            ))
+        }
     }
 }
 
@@ -1020,6 +1576,10 @@ pub enum Drafted {
     Resolve(ResolutionResponse),
     Accept(AcceptResponse),
     Correct(crate::correct::CorrectionResponse),
+    AcceptRoadmap(crate::roadmap_cmd::AcceptResponse),
+    Invalidate(crate::invalidation::InvalidationResponse),
+    AcceptStanding(crate::standing_cmd::AcceptResponse),
+    RevokeStanding(crate::standing_cmd::RevokeResponse),
 }
 
 impl Drafted {
@@ -1028,12 +1588,16 @@ impl Drafted {
             Self::Authorize(r) => toml::to_string_pretty(r),
             Self::Resolve(r) => toml::to_string_pretty(r),
             Self::Accept(r) => toml::to_string_pretty(r),
+            Self::AcceptRoadmap(r) => toml::to_string_pretty(r),
             Self::Correct(r) => toml::to_string_pretty(r),
+            Self::Invalidate(r) => toml::to_string_pretty(r),
+            Self::AcceptStanding(r) => toml::to_string_pretty(r),
+            Self::RevokeStanding(r) => toml::to_string_pretty(r),
         };
         r.map_err(|e| RepoError::Message(format!("could not render the response: {e}")))
     }
 
-    fn file_stem(&self) -> String {
+    pub(crate) fn file_stem(&self) -> String {
         match self {
             Self::Authorize(r) => crate::authority_check::response_stem(
                 crate::authority_check::Act::Authorize,
@@ -1051,17 +1615,37 @@ impl Drafted {
                 crate::authority_check::Act::Correct,
                 &format!("{}.{}", r.warrant, r.deliverable_id),
             ),
+            Self::AcceptRoadmap(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::AcceptRoadmap,
+                &crate::roadmap_cmd::subject(r.revision),
+            ),
+            Self::Invalidate(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::Invalidate,
+                &r.gate,
+            ),
+            Self::AcceptStanding(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::AcceptStanding,
+                &crate::standing_cmd::subject(&r.id, r.revision),
+            ),
+            Self::RevokeStanding(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::RevokeStanding,
+                &crate::standing_cmd::subject(&r.id, r.revision),
+            ),
         }
     }
 
     /// The digest this response binds to — what distinguishes "the same act
     /// again" from "an earlier revision's record".
-    fn digest(&self) -> &str {
+    pub(crate) fn digest(&self) -> &str {
         match self {
             Self::Authorize(r) => &r.contract_digest,
             Self::Resolve(r) => &r.contract_digest,
             Self::Accept(r) => &r.sha256,
+            Self::AcceptRoadmap(r) => &r.sha256,
             Self::Correct(r) => &r.new_digest,
+            Self::Invalidate(r) => &r.definition_digest,
+            Self::AcceptStanding(r) => &r.sha256,
+            Self::RevokeStanding(r) => &r.sha256,
         }
     }
 }
@@ -1073,7 +1657,7 @@ pub fn at_a_terminal() -> bool {
 }
 
 /// Who may sign, from the register — refusing to guess between two.
-fn choose_actor(eligible: &[String], opts: &Options) -> Result<String, String> {
+pub(crate) fn choose_actor(eligible: &[String], opts: &Options) -> Result<String, String> {
     if let Some(a) = &opts.actor {
         if eligible.iter().any(|e| e == a) {
             return Ok(a.clone());
@@ -1101,50 +1685,97 @@ fn choose_actor(eligible: &[String], opts: &Options) -> Result<String, String> {
     }
 }
 
-fn eligible(p: &Pending) -> &[String] {
+pub(crate) fn eligible(p: &Pending) -> &[String] {
     match p {
         Pending::Authorize { request, .. } => &request.eligible_authorizers,
         Pending::Resolve { request, .. } => &request.eligible_resolvers,
         Pending::Accept { request, .. } => &request.eligible_acceptors,
+        Pending::AcceptRoadmap { request, .. } => &request.eligible_acceptors,
         Pending::Correct { request, .. } => &request.eligible_correctors,
+        Pending::Invalidate { request, .. } => &request.eligible_invalidators,
+        Pending::AcceptStanding { request } => &request.eligible_acceptors,
+        Pending::RevokeStanding { request } => &request.eligible_acceptors,
     }
 }
 
-fn role(p: &Pending) -> &'static str {
+pub(crate) fn role(p: &Pending) -> &'static str {
     match p {
-        Pending::Authorize { .. } | Pending::Accept { .. } | Pending::Correct { .. } => {
-            "authorizer"
-        }
-        Pending::Resolve { .. } => "resolver",
+        Pending::Authorize { .. }
+        | Pending::Accept { .. }
+        | Pending::AcceptRoadmap { .. }
+        | Pending::AcceptStanding { .. }
+        | Pending::RevokeStanding { .. }
+        | Pending::Correct { .. } => "authorizer",
+        Pending::Resolve { .. } | Pending::Invalidate { .. } => "resolver",
     }
 }
 
 /// Which pending act a target names. A Warrant alias may have an authorization
 /// AND a resolution pending in sequence; the first is what is signed now. A
 /// correction is named `<alias>/<deliverable-id>`.
-fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending> {
+pub(crate) fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending> {
     all.iter().find(|p| match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias == target,
         Pending::Accept { version, .. } => version == target || format!("SAS-{version}") == target,
+        Pending::AcceptRoadmap { revision, .. } => {
+            target == "roadmap" || target == crate::roadmap_cmd::subject(*revision)
+        }
         Pending::Correct {
             alias,
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}") == target,
+        Pending::Invalidate { gate, .. } => gate == target,
+        // `standing:<id>@<rev>`, or `standing:<id>` for its only pending
+        // revision.
+        Pending::AcceptStanding { request } => {
+            standing_target(target, &request.id, request.revision)
+        }
+        Pending::RevokeStanding { request } => {
+            standing_target(target, &request.id, request.revision)
+        }
     })
+}
+
+fn standing_target(target: &str, id: &str, revision: u32) -> bool {
+    target == crate::standing_cmd::target(id, revision)
+        || target == format!("standing:{id}")
+        || target == openwarrant_core::standing::reference(id, revision)
+}
+
+/// The act's word in `--list --json` and in a batch.
+pub(crate) const fn act_name(p: &Pending) -> &'static str {
+    match p {
+        Pending::Authorize { .. } => "authorize",
+        Pending::Resolve { .. } => "resolve",
+        Pending::Accept { .. } => "accept",
+        Pending::AcceptRoadmap { .. } => "accept-roadmap",
+        Pending::AcceptStanding { .. } => "accept-standing",
+        Pending::RevokeStanding { .. } => "revoke-standing",
+        Pending::Correct { .. } => "correct",
+        Pending::Invalidate { .. } => "invalidate",
+    }
 }
 
 /// The token `war sign <target>` takes for one pending act — the inverse of
 /// [`select`], so a diagnostic can hand the operator a command that runs.
-fn target_of(p: &Pending) -> String {
+pub(crate) fn target_of(p: &Pending) -> String {
     match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias.clone(),
         Pending::Accept { version, .. } => version.clone(),
+        Pending::AcceptRoadmap { .. } => "roadmap".to_owned(),
         Pending::Correct {
             alias,
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}"),
+        Pending::Invalidate { gate, .. } => gate.clone(),
+        Pending::AcceptStanding { request } => {
+            crate::standing_cmd::target(&request.id, request.revision)
+        }
+        Pending::RevokeStanding { request } => {
+            crate::standing_cmd::target(&request.id, request.revision)
+        }
     }
 }
 
@@ -1168,7 +1799,226 @@ fn confirm(prompt: &str) -> Result<bool, RepoError> {
     Ok(a == "y" || a == "yes")
 }
 
-fn write_response(repo: &Repository, drafted: &Drafted) -> Result<Utf8PathBuf, RepoError> {
+/// `war sign … --dry-run`: judge every chosen act as its ingest would, write
+/// nothing, sign nothing.
+///
+/// The drafted response goes to a temp directory — never to
+/// `docs/authority/responses/`, where a `.draft.toml` reads as a pending act —
+/// and is removed on every path out. The ingest runs in `DryRun` mode, so the
+/// diagnostics are the real ones with the real rule names; only the write is
+/// withheld. A SAS acceptance is the exception: its ingest lives in a file
+/// this Warrant does not govern, so it reports what `pending` already
+/// established (eligibility, the `--adr` requirement) and says the rest is
+/// unchecked rather than pretending.
+/// Removes a scratch directory, and everything in it, when dropped.
+struct RemoveOnDrop(camino::Utf8PathBuf);
+
+impl Drop for RemoveOnDrop {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// `war sign --all --dry-run` over a queue the caller has already read.
+///
+/// The same judgement [`run`] reaches for no target, `all` and `dry_run`:
+/// none of `run`'s earlier refusals applies to that combination (no
+/// `--verify`, `--revoke` or tty requirement, no invalidation without a
+/// target), so it is `pending` then [`dry_run`] over every act. `war next`
+/// holds the queue it derived its actions from; reading it a second time to
+/// judge them cost a whole `pending` sweep (t-280c). The caller passes the
+/// queue it read in this process with nothing written since.
+pub fn dry_run_all(repo: &Repository, all: &[Pending]) -> Result<Report, RepoError> {
+    let opts = Options {
+        dry_run: true,
+        all: true,
+        ..Options::default()
+    };
+    let mut report = Report::default();
+    let chosen: Vec<&Pending> = all.iter().collect();
+    if chosen.is_empty() {
+        report.push(Diagnostic::pass(
+            "sign.nothing-pending",
+            "nothing awaits a signature",
+        ));
+        return Ok(report);
+    }
+    dry_run(repo, &chosen, &opts, report)
+}
+
+fn dry_run(
+    repo: &Repository,
+    chosen: &[&Pending],
+    opts: &Options,
+    mut report: Report,
+) -> Result<Report, RepoError> {
+    let tmp = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+        .map_err(|p| RepoError::Message(format!("non-UTF-8 temp dir {p:?}")))?
+        .join(format!("war-dry-run-{}", std::process::id()));
+    std::fs::create_dir_all(&tmp).map_err(|source| RepoError::Io {
+        context: format!("could not create {tmp}"),
+        source,
+    })?;
+    // Removed on every way out, an early `?` included: a render, write or
+    // ingest error used to return past the cleanup below and leave a
+    // `.draft.toml` in the temp directory (three were found, 2026-09-25).
+    let _cleanup = RemoveOnDrop(tmp.clone());
+    for p in chosen {
+        let actor = match who(p, opts) {
+            Ok(a) => a,
+            Err((rule, why)) => {
+                report.push(Diagnostic::error(rule, line(p), why));
+                continue;
+            }
+        };
+        if matches!(
+            p,
+            Pending::Resolve {
+                assignment: Some(_),
+                ..
+            }
+        ) {
+            report.push(Diagnostic::pass(
+                "sign.signer",
+                format!("{}: signs as {actor}, as assigned", line(p)),
+            ));
+        }
+        let now = crate::gate_cmd::receipt::now_rfc3339_public();
+        let mut per_act = opts.clone();
+        if matches!(p, Pending::Correct { .. }) {
+            per_act.meaning = reason_for(repo, p, opts);
+        }
+        let drafted = match draft(p, &actor, &per_act, &now) {
+            Ok(d) => d,
+            Err(why) => {
+                // Same shape as the real sweep: under `--all` an act that needs
+                // a decision the batch cannot make is one act waiting on its
+                // own answer, not a failure of the dry run.
+                if opts.all {
+                    report.push(Diagnostic::warn(
+                        "sign.needs-decision",
+                        line(p),
+                        format!("{why} — not judged by this dry run; run it alone with that flag"),
+                    ));
+                } else {
+                    report.push(Diagnostic::error("sign.not-draftable", line(p), why));
+                }
+                continue;
+            }
+        };
+        let path = tmp.join(format!("{}.draft.toml", drafted.file_stem()));
+        crate::compile::atomic::write(&path, drafted.render()?)?;
+        let judged = match p {
+            Pending::Authorize { alias, .. } => {
+                authorize::ingest_with(repo, alias, &path, IngestMode::DryRun)
+            }
+            Pending::Resolve { alias, .. } => {
+                resolution_cmd::ingest_with(repo, alias, &path, IngestMode::DryRun)
+            }
+            Pending::Correct {
+                alias,
+                deliverable_id,
+                ..
+            } => {
+                crate::correct::ingest_with(repo, alias, deliverable_id, &path, IngestMode::DryRun)
+            }
+            Pending::AcceptRoadmap { revision, .. } => {
+                crate::roadmap_cmd::accept_ingest_with(repo, *revision, &path, IngestMode::DryRun)
+            }
+            Pending::Invalidate { gate, .. } => {
+                crate::invalidation::ingest_with(repo, gate, &path, IngestMode::DryRun)
+            }
+            Pending::AcceptStanding { request } => crate::standing_cmd::accept_ingest_with(
+                repo,
+                &request.id,
+                request.revision,
+                &path,
+                IngestMode::DryRun,
+            ),
+            Pending::RevokeStanding { request } => crate::standing_cmd::revoke_ingest_with(
+                repo,
+                &request.id,
+                request.revision,
+                &path,
+                IngestMode::DryRun,
+            ),
+            Pending::Accept { version, request } => {
+                let mut r = Report::default();
+                if request.adr_required && opts.adr_ref.is_none() {
+                    r.push(Diagnostic::error(
+                        "sas.adr-required",
+                        line(p),
+                        format!(
+                            "SAS {version} is architecture-changing; §101.3 needs `--adr <ADR>` \
+                             and the real ingest refuses without it"
+                        ),
+                    ));
+                } else {
+                    r.push(Diagnostic::pass(
+                        "sas.would-accept",
+                        format!(
+                            "SAS {version}: eligible signer, {}; the acceptance ingest itself is \
+                             not exercised by a dry run (its file is outside OW-WAR-0112)",
+                            if request.adr_required {
+                                "ADR named"
+                            } else {
+                                "no ADR required"
+                            }
+                        ),
+                    ));
+                }
+                Ok(r)
+            }
+        };
+        let _ = std::fs::remove_file(&path);
+        match judged {
+            Ok(r) => {
+                let ready = r.is_ready();
+                for d in r.diagnostics {
+                    report.push(d);
+                }
+                for n in r.notes {
+                    report.note(n);
+                }
+                report.push(if ready {
+                    Diagnostic::pass(
+                        "sign.would-record",
+                        format!(
+                            "{} — every refusal passed; the signature is the only thing missing. \
+                             Nothing written",
+                            line(p)
+                        ),
+                    )
+                } else {
+                    Diagnostic::error(
+                        "sign.would-refuse",
+                        line(p),
+                        "the ingest would refuse this act for the reason(s) above; fix them before \
+                         asking a human to sign. Nothing written"
+                            .to_owned(),
+                    )
+                });
+            }
+            Err(e) => report.push(Diagnostic::error(
+                "sign.dry-run-failed",
+                line(p),
+                format!("could not judge this act: {e}"),
+            )),
+        }
+    }
+    let _ = std::fs::remove_dir(&tmp);
+    report.note(
+        "Dry run: every act was drafted and judged as its ingest would judge it, and none was \
+         recorded, journalled or signed. A pass here says the paperwork is right, not that \
+         anyone agreed.",
+    );
+    Ok(report)
+}
+
+pub(crate) fn write_response(
+    repo: &Repository,
+    drafted: &Drafted,
+) -> Result<Utf8PathBuf, RepoError> {
     let dir = repo.root.join("docs/authority/responses");
     std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
         context: format!("could not create {dir}"),
@@ -1177,11 +2027,10 @@ fn write_response(repo: &Repository, drafted: &Drafted) -> Result<Utf8PathBuf, R
     // Written under a DRAFT name. Only a `y` renames it to `.response.toml`,
     // so a crash, a Ctrl-C, or an `$EDITOR` that never returned leaves a file
     // that says "draft" in its name rather than one that reads as signed.
+    // OW-WAR-0121: temp, fsync, rename, so the draft a signature is made over
+    // is whole, and a symlink in its place is refused rather than followed.
     let path = dir.join(format!("{}.draft.toml", drafted.file_stem()));
-    std::fs::write(&path, drafted.render()?).map_err(|source| RepoError::Io {
-        context: format!("could not write {path}"),
-        source,
-    })?;
+    crate::compile::atomic::write(&path, drafted.render()?)?;
     Ok(path)
 }
 
@@ -1198,7 +2047,7 @@ fn write_response(repo: &Repository, drafted: &Drafted) -> Result<Utf8PathBuf, R
 /// history: it is renamed to carry its digest, never overwritten. The
 /// responses directory is committed precisely so that signed decisions
 /// travel; a rename that lost one would undo that.
-fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), String> {
+pub(crate) fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), String> {
     if !final_path.is_file() {
         return Ok(());
     }
@@ -1216,15 +2065,20 @@ fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), Strin
     // was missing, so a SECOND correction of the same deliverable always hit the
     // "carries no digest" refusal below — the draft was discarded and the
     // signature the human had just given went with it. Three of them, 2026-09-12.
-    let prior = ["contract_digest", "sha256", "new_digest"]
-        .iter()
-        .find_map(|k| value.get(k).and_then(toml::Value::as_str))
-        .ok_or_else(|| {
-            format!(
-                "{final_path} exists but carries no contract_digest, sha256 or new_digest; \
+    let prior = [
+        "contract_digest",
+        "sha256",
+        "new_digest",
+        "definition_digest",
+    ]
+    .iter()
+    .find_map(|k| value.get(k).and_then(toml::Value::as_str))
+    .ok_or_else(|| {
+        format!(
+            "{final_path} exists but carries no contract_digest, sha256 or new_digest; \
                  not touched — move it aside by hand"
-            )
-        })?;
+        )
+    })?;
     if prior == current_digest {
         // Same digest, and the question is whether anything signed it. A
         // response carrying a verified signature is a decision: refuse, because
@@ -1334,30 +2188,145 @@ pub(crate) fn pubkey_for_principal(
     }
 }
 
-/// Sign `file` as `principal` and verify the result. Returns the `.sig` path.
+/// Why a signature was not made, with the rule it reports under.
+///
+/// `Display` is `<rule>: <why>`, so a caller that only formats the refusal
+/// (the batch path) still names the rule.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct SignRefusal {
+    pub rule: &'static str,
+    pub why: String,
+}
+
+impl SignRefusal {
+    fn new(rule: &'static str, why: impl Into<String>) -> Self {
+        Self {
+            rule,
+            why: why.into(),
+        }
+    }
+}
+
+impl std::fmt::Display for SignRefusal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.rule, self.why)
+    }
+}
+
+/// A signature `war sign` made and verified, and what it shows about the key.
+#[derive(Debug, Clone)]
+pub(crate) struct Signed {
+    pub sig: Utf8PathBuf,
+    /// Read from the signature blob AFTER `ssh-keygen -Y verify` accepted it
+    /// (OW-WAR-0138 U-002: `ssh-keygen` accepts an `sk` signature without the
+    /// presence flag and does not report the flag).
+    pub parsed: openwarrant_core::presence::SshSig,
+}
+
+impl Signed {
+    pub(crate) fn presence(&self) -> openwarrant_core::presence::Presence {
+        self.parsed.presence()
+    }
+}
+
+/// Every principal an `allowed_signers` text binds to this exact key blob.
+fn principals_for_key(allowed_signers: &str, blob: &[u8]) -> Vec<String> {
+    let mut out = Vec::new();
+    for l in allowed_signers
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+    {
+        let fields: Vec<&str> = l.split_whitespace().collect();
+        let Some(principals) = fields.first() else {
+            continue;
+        };
+        let bound = fields.windows(2).skip(1).any(|w| {
+            !w[0].contains('=')
+                && openwarrant_core::presence::public_key_blob(w[0], w[1]).is_ok_and(|b| b == blob)
+        });
+        if bound {
+            out.extend(principals.split(',').map(str::to_owned));
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// The key a signature was made with must be the key `allowed_signers` binds
+/// to the principal the actor was resolved to — checked from the signature's
+/// own bytes, BEFORE `ssh-keygen -Y verify` is asked (OW-WAR-0138).
+///
+/// Without a protected store the actor-to-principal binding is `roles.toml`,
+/// and `ssh-keygen -Y sign -f <that principal's key>` makes the signature, so
+/// through an honest `ssh-keygen` this cannot differ; `-Y verify -I` would
+/// refuse the difference anyway, under a less exact name. It refuses what an
+/// honest signer never produces: a signature by some other key presented for
+/// this actor, however it was made.
+fn key_bound_to_principal(
+    allowed_signers: &str,
+    principal: &str,
+    bound_line: &str,
+    parsed: &openwarrant_core::presence::SshSig,
+) -> Result<(), String> {
+    let mut f = bound_line.split_whitespace();
+    let (Some(kt), Some(b64)) = (f.next(), f.next()) else {
+        return Err(format!("the key line for {principal:?} is malformed"));
+    };
+    let bound = openwarrant_core::presence::public_key_blob(kt, b64)
+        .map_err(|e| format!("the key allowed_signers binds to {principal:?}: {e}"))?;
+    if parsed.public_key == bound {
+        return Ok(());
+    }
+    let others = principals_for_key(allowed_signers, &parsed.public_key);
+    Err(format!(
+        "the signature was made by a {} key (sha256 {}) that allowed_signers binds to {}; the \
+         actor signing is bound to principal {principal:?}, whose key is a {kt} key (sha256 {}). \
+         A signature by another key is not a signature by this actor",
+        parsed.key_type,
+        &openwarrant_compiler::sha256_hex(&parsed.public_key)[..16],
+        if others.is_empty() {
+            "no principal".to_owned()
+        } else {
+            format!("{others:?}")
+        },
+        &openwarrant_compiler::sha256_hex(&bound)[..16],
+    ))
+}
+
+/// Sign `file` as `principal` and verify the result.
 ///
 /// The private key is never touched here: `ssh-keygen -Y sign -f <pubkey>`
 /// asks the agent for it, and an agent loaded with `ssh-add -c` asks the human
 /// through a confirmation dialog no shell can answer. `war` cannot check that
 /// `-c` was used — that is the one thing the operator must get right, and the
-/// docs say so. Verification against the allowed_signers file happens before
-/// anything is renamed, so a signature that does not verify writes nothing.
-fn ssh_sign_file(
+/// docs say so. A security key is the exception: its signature carries the
+/// authenticator's presence flag, which [`Signed::presence`] reads.
+/// Verification against the allowed_signers file happens before anything is
+/// renamed, so a signature that does not verify writes nothing.
+///
+/// This makes and checks the signature; it applies no policy. An act is
+/// signed through [`ssh_sign_act`], which does.
+pub(crate) fn ssh_sign_file(
     allowed_signers: &Utf8Path,
     principal: &str,
     file: &Utf8Path,
-) -> Result<Utf8PathBuf, String> {
+) -> Result<Signed, SignRefusal> {
+    let refused = |why: String| SignRefusal::new("sign.ssh-refused", why);
     let text = std::fs::read_to_string(allowed_signers).map_err(|e| {
-        format!("{allowed_signers}: {e}. --ssh-sign needs that file, written by a human")
+        refused(format!(
+            "{allowed_signers}: {e}. --ssh-sign needs that file, written by a human"
+        ))
     })?;
     let pubkey = pubkey_for_principal(&text, principal)
-        .map_err(|why| format!("{allowed_signers}: {why}"))?;
+        .map_err(|why| refused(format!("{allowed_signers}: {why}")))?;
     // Unique per process so two signers of one file cannot delete each other's
     // key mid-sign, and named so a stray one (crash between write and cleanup)
     // reads as a temp file, not an authority artifact.
     let pub_path = Utf8PathBuf::from(format!("{file}.{}.tmp.pub", std::process::id()));
-    std::fs::write(&pub_path, format!("{pubkey} {principal}\n"))
-        .map_err(|e| format!("could not write {pub_path}: {e}"))?;
+    crate::compile::atomic::write(&pub_path, format!("{pubkey} {principal}\n"))
+        .map_err(|e| refused(format!("could not write {pub_path}: {e}")))?;
     let sign = std::process::Command::new("ssh-keygen")
         .args(["-Y", "sign", "-f"])
         .arg(&pub_path)
@@ -1365,25 +2334,136 @@ fn ssh_sign_file(
         .arg(file)
         .output();
     let _ = std::fs::remove_file(&pub_path);
-    let out = sign.map_err(|e| format!("could not run ssh-keygen: {e}"))?;
+    let out = sign.map_err(|e| refused(format!("could not run ssh-keygen: {e}")))?;
     if !out.status.success() {
-        return Err(format!(
+        return Err(refused(format!(
             "ssh-keygen -Y sign refused ({}): {}",
             out.status,
             String::from_utf8_lossy(&out.stderr).trim()
-        ));
+        )));
     }
     let sig = sig_path(file);
     if !sig.is_file() {
-        return Err(format!(
+        return Err(refused(format!(
             "ssh-keygen reported success but {sig} does not exist"
-        ));
+        )));
+    }
+    // Read the signature's own key before asking `ssh-keygen` whether it
+    // verifies: a signature that is unreadable, or by another key than the
+    // one bound to this principal, is refused by what it is.
+    let parsed = match std::fs::read_to_string(&sig)
+        .map_err(|e| e.to_string())
+        .and_then(|t| openwarrant_core::presence::parse_armored(&t).map_err(|e| e.to_string()))
+    {
+        Ok(p) => p,
+        Err(why) => {
+            let _ = std::fs::remove_file(&sig);
+            return Err(refused(format!(
+                "{sig} could not be read as a signature: {why}"
+            )));
+        }
+    };
+    if let Err(why) = key_bound_to_principal(&text, principal, &pubkey, &parsed) {
+        let _ = std::fs::remove_file(&sig);
+        return Err(SignRefusal::new("sign.actor-key-mismatch", why));
     }
     if let Err(why) = ssh_verify_file(allowed_signers, principal, file) {
         let _ = std::fs::remove_file(&sig);
-        return Err(why);
+        return Err(refused(why));
     }
-    Ok(sig)
+    Ok(Signed { sig, parsed })
+}
+
+/// Sign an act's file as `actor`, under this repository's policy.
+///
+/// The actor is resolved to a principal ([`crate::authority_check::signer_for`]:
+/// the register, or with `[authority] store` the store's binding, kind and
+/// the role each of `acts` needs), the signature is made and verified
+/// ([`ssh_sign_file`]), and then, with `[policy] require_user_presence` set, a
+/// signature that does not show a person at the key is refused
+/// `sign.presence-required` and its `.sig` removed — before the caller renames
+/// anything into place. Presence is read, never inferred: an ordinary key and
+/// a security key without its presence flag are both unverified
+/// (OW-WAR-0138). With a store, the head the grant was read at must still be
+/// the head once the key has signed, or the act is refused
+/// `authority.stale-head`.
+pub(crate) fn ssh_sign_act(
+    repo: &Repository,
+    actor: &str,
+    acts: &[crate::authority_check::Act],
+    file: &Utf8Path,
+) -> Result<Signed, SignRefusal> {
+    let signer = crate::authority_check::signer_for(repo, actor, acts)
+        .map_err(|(rule, why)| SignRefusal::new(rule, why))?;
+    let signed = ssh_sign_file(&signer.allowed, &signer.principal, file)?;
+    if let Some(head) = &signer.head {
+        let now = crate::authority_check::store_head(repo);
+        if now.as_ref().ok().and_then(Option::as_ref) != Some(head) {
+            let _ = std::fs::remove_file(&signed.sig);
+            return Err(match now {
+                Err(why) => SignRefusal::new(
+                    "authority.verify-unavailable",
+                    format!("{why}; the signature is removed and nothing was recorded"),
+                ),
+                Ok(moved) => SignRefusal::new(
+                    "authority.stale-head",
+                    format!(
+                        "the grant was read at {head} and the store is now at {}; a grant at \
+                         one head is not a grant at another. The signature is removed and \
+                         nothing was recorded",
+                        moved.unwrap_or_else(|| "no store".to_owned())
+                    ),
+                ),
+            });
+        }
+    }
+    if repo.config.policy.require_user_presence
+        && signed.presence() != openwarrant_core::presence::Presence::Verified
+    {
+        let _ = std::fs::remove_file(&signed.sig);
+        return Err(SignRefusal::new(
+            "sign.presence-required",
+            format!(
+                "[policy] require_user_presence is set{} and this signature does not show a \
+                 person at the key ({}). Sign with a security key (`sk-` key type) and touch \
+                 it; nothing was recorded",
+                if signer.via.is_empty() {
+                    String::new()
+                } else {
+                    format!(" by {}", signer.via)
+                },
+                signed.parsed.describe()
+            ),
+        ));
+    }
+    Ok(signed)
+}
+
+/// The authority act a pending item is, for the grant a store must hold.
+pub(crate) const fn act_of(p: &Pending) -> crate::authority_check::Act {
+    use crate::authority_check::Act;
+    match p {
+        Pending::Authorize { .. } => Act::Authorize,
+        Pending::Resolve { .. } => Act::Resolve,
+        Pending::Accept { .. } => Act::Accept,
+        Pending::Correct { .. } => Act::Correct,
+        Pending::AcceptRoadmap { .. } => Act::AcceptRoadmap,
+        Pending::Invalidate { .. } => Act::Invalidate,
+        Pending::AcceptStanding { .. } => Act::AcceptStanding,
+        Pending::RevokeStanding { .. } => Act::RevokeStanding,
+    }
+}
+
+/// Under `[policy] require_user_presence`, the terminal path is refused: it
+/// makes no signature, so nothing could show presence.
+fn tty_path_refusal(require_user_presence: bool, opts: &Options) -> Option<SignRefusal> {
+    (require_user_presence && !opts.ssh_sign).then(|| {
+        SignRefusal::new(
+            "sign.presence-required",
+            "[policy] require_user_presence is set, and a terminal confirmation makes no \
+             signature for presence to be read from; use --ssh-sign with a security key",
+        )
+    })
 }
 
 /// `ssh-keygen -Y verify` of `file` against its `.sig` sidecar.
@@ -1415,11 +2495,76 @@ fn ssh_verify_file(
 
 /// What an ssh-signed act attests to: the record it wrote and the response
 /// that carried the signature, with the response's own fields as predicate.
+/// The record an act writes — the file its attestation names beside the
+/// response. The batch attests every one of these in one envelope.
+pub(crate) fn record_of(repo: &Repository, p: &Pending) -> Result<Utf8PathBuf, String> {
+    Ok(match p {
+        Pending::Authorize { alias, .. } => repo
+            .warrant_dir(alias)
+            .map_err(|e| e.to_string())?
+            .join("authorization.toml"),
+        Pending::Resolve { alias, .. } => repo
+            .warrant_dir(alias)
+            .map_err(|e| e.to_string())?
+            .join("resolution.toml"),
+        Pending::Correct {
+            alias,
+            deliverable_id,
+            ..
+        } => {
+            let cdir = repo
+                .warrant_dir(alias)
+                .map_err(|e| e.to_string())?
+                .join("corrections");
+            let seq = |f: &Utf8PathBuf| -> u32 {
+                f.file_stem()
+                    .and_then(|st| st.rsplit('-').next())
+                    .and_then(|n| n.parse().ok())
+                    .unwrap_or(u32::MAX)
+            };
+            let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(&cdir)
+                .map_err(|e| format!("{cdir}: {e}"))?
+                .filter_map(Result::ok)
+                .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+                .filter(|f| {
+                    f.file_name().is_some_and(|n| {
+                        n.starts_with(&format!("{deliverable_id}-")) && n.ends_with(".toml")
+                    })
+                })
+                .collect();
+            files.sort_by_key(seq);
+            files
+                .pop()
+                .ok_or_else(|| format!("no correction file under {cdir}"))?
+        }
+        Pending::Accept { version, .. } => repo
+            .root
+            .join(&repo.config.paths.sas)
+            .join("revisions")
+            .join(format!("{version}.toml")),
+        Pending::AcceptRoadmap { revision, .. } => {
+            let loaded = crate::roadmap_cmd::load(repo)
+                .map_err(|e| e.to_string())?
+                .ok_or("no roadmap record")?;
+            crate::roadmap_cmd::revision_path(&loaded, *revision)
+        }
+        Pending::Invalidate { gate, .. } => crate::invalidation::record_path(repo, gate),
+        // The class file is the record: the signed response binds its bytes.
+        Pending::AcceptStanding { request } => {
+            crate::standing_cmd::record_path(repo, &request.id, request.revision)
+        }
+        Pending::RevokeStanding { request } => {
+            crate::standing_cmd::record_path(repo, &request.id, request.revision)
+        }
+    })
+}
+
 fn attest_after(
     repo: &Repository,
     p: &Pending,
     actor: &str,
     response: &Utf8Path,
+    signed: Option<&Signed>,
 ) -> Result<Utf8PathBuf, String> {
     let (act, target, record): (&str, String, Utf8PathBuf) = match p {
         Pending::Authorize { alias, .. } => (
@@ -1472,6 +2617,16 @@ fn attest_after(
                 .ok_or_else(|| format!("no correction file under {cdir}"))?;
             ("correct", alias.clone(), newest)
         }
+        Pending::AcceptRoadmap { revision, .. } => {
+            let loaded = crate::roadmap_cmd::load(repo)
+                .map_err(|e| e.to_string())?
+                .ok_or("no roadmap record")?;
+            (
+                "roadmap-accept",
+                crate::roadmap_cmd::subject(*revision),
+                crate::roadmap_cmd::revision_path(&loaded, *revision),
+            )
+        }
         Pending::Accept { version, .. } => (
             "sas-accept",
             version.clone(),
@@ -1479,6 +2634,21 @@ fn attest_after(
                 .join(&repo.config.paths.sas)
                 .join("revisions")
                 .join(format!("{version}.toml")),
+        ),
+        Pending::Invalidate { gate, .. } => (
+            "invalidate",
+            gate.clone(),
+            crate::invalidation::record_path(repo, gate),
+        ),
+        Pending::AcceptStanding { request } => (
+            "standing-accept",
+            crate::standing_cmd::subject(&request.id, request.revision),
+            crate::standing_cmd::record_path(repo, &request.id, request.revision),
+        ),
+        Pending::RevokeStanding { request } => (
+            "standing-revoke",
+            crate::standing_cmd::subject(&request.id, request.revision),
+            crate::standing_cmd::record_path(repo, &request.id, request.revision),
         ),
     };
     let response_text =
@@ -1492,6 +2662,19 @@ fn attest_after(
             serde_json::Value::String(actor.to_owned()),
         );
         map.insert("act".to_owned(), serde_json::Value::String(act.to_owned()));
+        // OW-WAR-0138: presence as the response's signature shows it. The
+        // attestation is signed, so this is a signed record of it; the
+        // `.sig` beside the response remains the evidence it is read from.
+        if let Some(s) = signed {
+            map.insert(
+                "presence".to_owned(),
+                serde_json::Value::String(s.presence().as_str().to_owned()),
+            );
+            map.insert(
+                "signing_key_type".to_owned(),
+                serde_json::Value::String(s.parsed.key_type.clone()),
+            );
+        }
     }
     let mut extra = Vec::new();
     if let Some(d) = response_toml
@@ -1502,20 +2685,52 @@ fn attest_after(
     {
         extra.push((format!("contract:{target}"), d.to_owned()));
     }
+    // OW-ADR-0021: the deliverable set the signer granted is a subject too,
+    // so a foreign verifier sees what was granted, not only what was signed.
+    if let Some(d) = response_toml
+        .get("deliverable_set_digest")
+        .and_then(toml::Value::as_str)
+        .map(|d| d.strip_prefix("sha256:").unwrap_or(d))
+        .filter(|d| d.len() == 64)
+    {
+        extra.push((format!("deliverables:{target}"), d.to_owned()));
+    }
+    let mut files = vec![
+        Utf8PathBuf::from(repo.relative(&record)),
+        Utf8PathBuf::from(repo.relative(response)),
+    ];
+    // OW-WAR-0136: a resolution's custody. Every receipt it relied on, and
+    // that receipt's run, stdout and stderr, is a subject too, so a receipt
+    // replaced after signing by another that reseals is caught by digest —
+    // the seal alone cannot catch it. After the record and the response, so
+    // the documented first two subjects keep their places.
+    if act == "resolve" {
+        files.extend(crate::attest::relied_on_files(repo, &target)?);
+    }
+    // An invalidation's disputes are what it did: each is a subject, at the
+    // digest the record lists, so a dispute edited afterwards is caught.
+    if act == "invalidate" {
+        let text = std::fs::read_to_string(&record).map_err(|e| format!("{record}: {e}"))?;
+        let rec: crate::invalidation::InvalidationRecord =
+            toml::from_str(&text).map_err(|e| format!("{record}: {e}"))?;
+        files.extend(rec.disputes.iter().map(|d| Utf8PathBuf::from(&d.path)));
+    }
     let a = crate::attest::Attestable {
         act,
         target: &target,
-        files: vec![
-            Utf8PathBuf::from(repo.relative(&record)),
-            Utf8PathBuf::from(repo.relative(response)),
-        ],
+        files,
         extra_subjects: extra,
         predicate,
         actor,
     };
     let written = crate::attest::emit(repo, &a).map_err(|e| e.to_string())?;
-    // A Warrant act is journalled; a SAS acceptance has no journal.
-    if act != "sas-accept" {
+    // A Warrant act is journalled; a SAS, roadmap or class act has no journal.
+    // An invalidation journals each dispute in its Warrant at ingest; the
+    // gate itself has no journal.
+    if !matches!(
+        act,
+        "sas-accept" | "roadmap-accept" | "invalidate" | "standing-accept" | "standing-revoke"
+    ) {
         let dir = repo.warrant_dir(&target).map_err(|e| e.to_string())?;
         if let Some(uuid) = repo
             .load_warrant(&dir)
@@ -1527,7 +2742,15 @@ fn attest_after(
                 &uuid,
                 "attestation.recorded",
                 &format!("human://{actor}"),
-                &serde_json::json!({"act": act, "path": repo.relative(&written)}).to_string(),
+                &match signed {
+                    Some(s) => serde_json::json!({
+                        "act": act,
+                        "path": repo.relative(&written),
+                        "presence": s.presence().as_str(),
+                    }),
+                    None => serde_json::json!({"act": act, "path": repo.relative(&written)}),
+                }
+                .to_string(),
             )
             .map_err(|e| e.to_string())?;
         }
@@ -1565,7 +2788,7 @@ pub(crate) fn allowed_signers_path(repo: &Repository) -> Utf8PathBuf {
 /// A `.sig` whose `.toml` is gone signs nothing, and to anyone listing the
 /// directory it reads like a signature that went missing. Both go together on
 /// every path that abandons a draft.
-fn discard_draft(draft: &Utf8Path) {
+pub(crate) fn discard_draft(draft: &Utf8Path) {
     let _ = std::fs::remove_file(draft);
     let sig = sig_path(draft);
     if sig.is_file() {
@@ -1573,7 +2796,7 @@ fn discard_draft(draft: &Utf8Path) {
     }
 }
 
-fn signed_path(draft: &Utf8Path) -> Utf8PathBuf {
+pub(crate) fn signed_path(draft: &Utf8Path) -> Utf8PathBuf {
     let name = draft
         .file_name()
         .unwrap_or_default()
@@ -1622,7 +2845,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
     if opts.verify {
         return verify_existing(repo, target, opts);
     }
-    if !opts.show && !opts.ssh_sign && !at_a_terminal() {
+    if !opts.show && !opts.dry_run && !opts.ssh_sign && !at_a_terminal() {
         report.push(Diagnostic::error(
             "sign.no-tty",
             "war sign".to_owned(),
@@ -1633,7 +2856,41 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         ));
         return Ok(report);
     }
-    let all = pending(repo)?;
+    if !opts.show
+        && !opts.dry_run
+        && let Some(r) = tty_path_refusal(repo.config.policy.require_user_presence, opts)
+    {
+        report.push(Diagnostic::error(r.rule, "war sign".to_owned(), r.why));
+        return Ok(report);
+    }
+    if opts.revoke && (opts.all || target.is_none()) {
+        report.push(Diagnostic::error(
+            "standing.revoke-needs-target",
+            "war sign --revoke".to_owned(),
+            "a revocation names its class: `war sign standing:<id>@<revision> --revoke`. \
+             Nothing is revoked by a sweep"
+                .to_owned(),
+        ));
+        return Ok(report);
+    }
+    let mut all = pending_for(repo, opts)?;
+    // OW-WAR-0136: an invalidation is pending only when a human names the
+    // gate — nothing in the records asks for one — so it is built here, from
+    // the gate and the grounds, and never offered to `--all`.
+    if let Some(t) = target
+        && select(&all, t).is_none()
+        && crate::invalidation::is_gate_ref(t)
+    {
+        match crate::invalidation::pending(repo, t, opts.meaning.as_deref())? {
+            Ok(p) => all.push(p),
+            Err(refused) => {
+                for d in refused.diagnostics {
+                    report.push(d);
+                }
+                return Ok(report);
+            }
+        }
+    }
     let chosen: Vec<&Pending> = match (target, opts.all) {
         (Some(t), _) => match select(&all, t) {
             Some(p) => vec![p],
@@ -1670,7 +2927,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
     }
     if opts.show {
         for p in chosen {
-            let actor = choose_actor(eligible(p), opts).unwrap_or_else(|_| "<signer>".to_owned());
+            let actor = who(p, opts).unwrap_or_else(|_| "<signer>".to_owned());
             let reason = reason_for(repo, p, opts);
             println!(
                 "{}",
@@ -1683,12 +2940,15 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         }
         return Ok(report);
     }
+    if opts.dry_run {
+        return dry_run(repo, &chosen, opts, report);
+    }
 
     for p in chosen {
-        let actor = match choose_actor(eligible(p), opts) {
+        let actor = match who(p, opts) {
             Ok(a) => a,
-            Err(why) => {
-                report.push(Diagnostic::error("sign.who", line(p), why));
+            Err((rule, why)) => {
+                report.push(Diagnostic::error(rule, line(p), why));
                 continue;
             }
         };
@@ -1729,6 +2989,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         if opts.edit {
             edit(&draft_path)?;
         }
+        let mut signed_with: Option<Signed> = None;
         let confirmed = if opts.ssh_sign {
             // No prompt: the confirmation is the agent's dialog. The screen is
             // still printed so the signer sees what the dialog is for.
@@ -1740,19 +3001,22 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                 "└ Signing as {actor} ({}) with ssh — confirm in the agent's dialog",
                 role(p)
             );
-            let principal = match principal_of(repo, &actor) {
-                Ok(pr) => pr,
-                Err(why) => {
-                    discard_draft(&draft_path);
-                    report.push(Diagnostic::error("sign.ssh-principal", line(p), why));
-                    continue;
+            match ssh_sign_act(repo, &actor, &[act_of(p)], &draft_path) {
+                Ok(s) => {
+                    // OW-WAR-0138: what the signature shows, read from its
+                    // bytes. The response cannot carry it — the signature is
+                    // over the response — so it goes in this report, the
+                    // attestation's predicate and the journal.
+                    report.push(Diagnostic::pass(
+                        "sign.presence",
+                        format!("{}: {}", line(p), s.parsed.describe()),
+                    ));
+                    signed_with = Some(s);
+                    true
                 }
-            };
-            match ssh_sign_file(&allowed_signers_path(repo), &principal, &draft_path) {
-                Ok(_) => true,
-                Err(why) => {
+                Err(r) => {
                     discard_draft(&draft_path);
-                    report.push(Diagnostic::error("sign.ssh-refused", line(p), why));
+                    report.push(Diagnostic::error(r.rule, line(p), r.why));
                     continue;
                 }
             }
@@ -1814,6 +3078,23 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             (Pending::Authorize { alias, .. }, _) => authorize::ingest(repo, alias, &path),
             (Pending::Resolve { alias, .. }, _) => resolution_cmd::ingest(repo, alias, &path),
             (Pending::Accept { version, .. }, _) => sas::accept_ingest(repo, version, &path),
+            (Pending::AcceptRoadmap { revision, .. }, _) => {
+                crate::roadmap_cmd::accept_ingest_with(repo, *revision, &path, IngestMode::Record)
+            }
+            (Pending::AcceptStanding { request }, _) => crate::standing_cmd::accept_ingest_with(
+                repo,
+                &request.id,
+                request.revision,
+                &path,
+                IngestMode::Record,
+            ),
+            (Pending::RevokeStanding { request }, _) => crate::standing_cmd::revoke_ingest_with(
+                repo,
+                &request.id,
+                request.revision,
+                &path,
+                IngestMode::Record,
+            ),
             (
                 Pending::Correct {
                     alias,
@@ -1822,6 +3103,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                 },
                 _,
             ) => crate::correct::ingest(repo, alias, deliverable_id, &path),
+            (Pending::Invalidate { gate, .. }, _) => crate::invalidation::ingest(repo, gate, &path),
         };
         let ingested = match ingested {
             Ok(r) => r,
@@ -1848,7 +3130,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             // OW-ADR-0015: an ssh-signed act is attested with the same key.
             // The act stands whether or not this succeeds; a refusal here is
             // a WARN naming why, never a reason to undo an ingested record.
-            match attest_after(repo, p, &actor, &path) {
+            match attest_after(repo, p, &actor, &path, signed_with.as_ref()) {
                 Ok(written) => report.push(Diagnostic::pass(
                     "attest.emitted",
                     format!(
@@ -1931,8 +3213,25 @@ fn verify_existing(
             .load_sas_revisions()
             .map(|revs| revs.iter().any(|r| r.version == bare))
             .unwrap_or(false);
-    let stem = if is_sas {
+    // OW-ADR-0029: `standing:<id>@<rev>` names a class's acceptance, or its
+    // revocation under `--revoke`.
+    let class = t
+        .strip_prefix("standing:")
+        .and_then(|r| r.split_once('@'))
+        .and_then(|(id, rev)| rev.parse::<u32>().ok().map(|n| (id, n)));
+    let stem = if let Some((id, rev)) = class {
+        crate::authority_check::response_stem(
+            if opts.revoke {
+                crate::authority_check::Act::RevokeStanding
+            } else {
+                crate::authority_check::Act::AcceptStanding
+            },
+            &crate::standing_cmd::subject(id, rev),
+        )
+    } else if is_sas {
         format!("SAS-{bare}")
+    } else if crate::invalidation::is_gate_ref(t) {
+        crate::authority_check::response_stem(crate::authority_check::Act::Invalidate, t)
     } else {
         t.to_owned()
     };
@@ -1965,10 +3264,17 @@ fn verify_existing(
     // The signer is read from the SIGNED bytes — each response type names
     // exactly one of these — never from a flag. A `--as` here would let the
     // caller pick whichever principal makes the signature verify.
-    let actor = ["authorizer", "resolved_by", "accepted_by", "corrected_by"]
-        .iter()
-        .find_map(|k| value.get(k).and_then(toml::Value::as_str))
-        .map(str::to_owned);
+    let actor = [
+        "authorizer",
+        "resolved_by",
+        "accepted_by",
+        "corrected_by",
+        "invalidated_by",
+        "revoked_by",
+    ]
+    .iter()
+    .find_map(|k| value.get(k).and_then(toml::Value::as_str))
+    .map(str::to_owned);
     let Some(actor) = actor else {
         report.push(Diagnostic::error(
             "sign.who",
@@ -1992,22 +3298,40 @@ fn verify_existing(
         ));
         return Ok(report);
     }
-    let principal = match principal_of(repo, &actor) {
-        Ok(pr) => pr,
-        Err(why) => {
-            report.push(Diagnostic::error(
-                "sign.ssh-principal",
-                path.to_string(),
-                why,
-            ));
+    // OW-WAR-0138: the binding this repository uses — the store's when one
+    // is configured, with no fallback to the register.
+    let signer = match crate::authority_check::signer_for(repo, &actor, &[]) {
+        Ok(s) => s,
+        Err((rule, why)) => {
+            report.push(Diagnostic::error(rule, path.to_string(), why));
             return Ok(report);
         }
     };
-    match ssh_verify_file(&allowed_signers_path(repo), &principal, &path) {
-        Ok(()) => report.push(Diagnostic::pass(
-            "sign.verified",
-            format!("{t}: signature verifies as {principal} ({actor}) under {SSH_NAMESPACE}"),
-        )),
+    let principal = signer.principal.clone();
+    match ssh_verify_file(&signer.allowed, &principal, &path) {
+        Ok(()) => {
+            report.push(Diagnostic::pass(
+                "sign.verified",
+                format!("{t}: signature verifies as {principal} ({actor}) under {SSH_NAMESPACE}"),
+            ));
+            // OW-WAR-0138: read only after `ssh-keygen` accepted the bytes.
+            // An unreadable blob is reported, never promoted to a presence.
+            match std::fs::read_to_string(sig_path(&path))
+                .map_err(|e| e.to_string())
+                .and_then(|s| {
+                    openwarrant_core::presence::parse_armored(&s).map_err(|e| e.to_string())
+                }) {
+                Ok(parsed) => report.push(Diagnostic::pass(
+                    "sign.presence",
+                    format!("{t}: {}", parsed.describe()),
+                )),
+                Err(why) => report.push(Diagnostic::warn(
+                    "sign.presence-unreadable",
+                    path.to_string(),
+                    format!("the signature verifies and its blob could not be read: {why}"),
+                )),
+            }
+        }
         Err(why) => report.push(Diagnostic::error(
             "sign.not-verified",
             path.to_string(),
@@ -2115,7 +3439,41 @@ mod tests {
         assert!(
             ssh_sign_file(&allowed, "nobody", &renamed)
                 .unwrap_err()
+                .why
                 .contains("no key for principal")
+        );
+        // OW-WAR-0138: the signature names the key that made it, and it is
+        // the key allowed_signers binds to the principal. Another key —
+        // here a second throwaway bound to "other" — is refused by name,
+        // and the refusal says whom that key IS bound to.
+        let signed = std::fs::read_to_string(sig_path(&renamed)).unwrap();
+        let parsed = openwarrant_core::presence::parse_armored(&signed).unwrap();
+        assert_eq!(
+            parsed.presence(),
+            openwarrant_core::presence::Presence::Unverified,
+            "an ordinary key is never verified"
+        );
+        let text = std::fs::read_to_string(&allowed).unwrap();
+        let line = pubkey_for_principal(&text, "tester").unwrap();
+        key_bound_to_principal(&text, "tester", &line, &parsed).expect("its own key");
+        let other = dir.join("other");
+        assert!(
+            std::process::Command::new("ssh-keygen")
+                .args(["-q", "-t", "ed25519", "-N", "", "-C", "other", "-f"])
+                .arg(&other)
+                .status()
+                .unwrap()
+                .success()
+        );
+        let other_pub = std::fs::read_to_string(dir.join("other.pub")).unwrap();
+        let both = format!("{text}other {other_pub}");
+        let other_line = pubkey_for_principal(&both, "other").unwrap();
+        let why = key_bound_to_principal(&both, "other", &other_line, &parsed).unwrap_err();
+        assert!(why.contains("[\"tester\"]"), "{why}");
+        assert!(why.contains("\"other\""), "{why}");
+        assert_eq!(
+            principals_for_key(&both, &parsed.public_key),
+            vec!["tester"]
         );
         // No temp .pub left behind by any of the above.
         let leftovers = std::fs::read_dir(&dir)
@@ -2127,12 +3485,32 @@ mod tests {
         std::fs::remove_dir_all(dir).unwrap();
     }
 
+    /// OW-WAR-0138: under the policy, the terminal path is refused (it makes
+    /// no signature to read presence from); the ssh path goes on to the
+    /// signature; with the policy off, neither is refused here.
+    #[test]
+    fn the_terminal_path_is_refused_only_under_the_presence_policy() {
+        let tty = Options::default();
+        let ssh = Options {
+            ssh_sign: true,
+            ..Options::default()
+        };
+        let r = tty_path_refusal(true, &tty).expect("refused");
+        assert_eq!(r.rule, "sign.presence-required");
+        assert!(r.to_string().starts_with("sign.presence-required: "));
+        assert!(tty_path_refusal(true, &ssh).is_none());
+        assert!(tty_path_refusal(false, &tty).is_none());
+        assert!(tty_path_refusal(false, &ssh).is_none());
+    }
+
     fn authorize_pending(risks: usize) -> Pending {
         Pending::Authorize {
             alias: "OW-WAR-0001".to_owned(),
             revision: 1,
             amendment: None,
             request: AuthorizationRequest {
+                deliverables: vec![],
+                deliverable_set_digest: String::new(),
                 schema: authorize::REQUEST_SCHEMA.to_owned(),
                 warrant: "OW-WAR-0001".to_owned(),
                 title: "t".to_owned(),
@@ -2153,6 +3531,9 @@ mod tests {
                     })
                     .collect(),
                 eligible_authorizers: vec!["Brian Lam".to_owned()],
+                assignment: None,
+                assignment_digest: String::new(),
+                assignment_findings: vec![],
             },
         }
     }
@@ -2231,6 +3612,7 @@ mod tests {
             alias: "OW-WAR-0002".to_owned(),
             profile: "delivery".to_owned(),
             recorded: None,
+            assignment: None,
             request: ResolutionRequest {
                 schema: resolution_cmd::REQUEST_SCHEMA.to_owned(),
                 warrant: "OW-WAR-0002".to_owned(),
@@ -2271,6 +3653,80 @@ mod tests {
         assert_eq!(r.profile_outcome, "not_satisfied");
     }
 
+    /// OW-WAR-0137 — `who` over a resolve act that an assignment narrowed.
+    /// The narrowed list is a subset of the register's by construction; these
+    /// pin the refusal each wrong signer meets, by rule.
+    #[test]
+    fn an_assignment_narrows_the_signer_and_names_why() {
+        use authorize::assignment::{Finding, narrow};
+        let resolve = |assignment: Option<Result<&[&str], &'static str>>| {
+            let names = |v: &[&str]| v.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
+            let before = names(&["Ada", "Ben"]);
+            let n = match &assignment {
+                Some(Ok(list)) => Some(Ok(narrow(&before, &names(list)))),
+                Some(Err(rule)) => Some(Err(Finding {
+                    rule,
+                    message: String::new(),
+                })),
+                None => None,
+            };
+            let eligible = match &n {
+                Some(Ok(n)) => n.eligible.clone(),
+                Some(Err(_)) => vec![],
+                None => before.clone(),
+            };
+            Pending::Resolve {
+                alias: "OW-X".to_owned(),
+                profile: "delivery".to_owned(),
+                recorded: None,
+                assignment: n,
+                request: ResolutionRequest {
+                    schema: resolution_cmd::REQUEST_SCHEMA.to_owned(),
+                    warrant: "OW-X".to_owned(),
+                    title: "t".to_owned(),
+                    contract_digest: "cd".repeat(32),
+                    contract_revision: 1,
+                    requirements_met: true,
+                    unmet: vec![],
+                    would_resolve_satisfied: Some(true),
+                    established: vec![],
+                    unestablished: vec![],
+                    permitted_outcomes: vec!["satisfied".to_owned()],
+                    gate_run_refs: vec![],
+                    judgment_refs: vec![],
+                    residual_risk_refs: vec![],
+                    eligible_resolvers: eligible,
+                },
+            }
+        };
+        let as_ = |a: &str| Options {
+            actor: Some(a.to_owned()),
+            ..Options::default()
+        };
+        let ben: &[&str] = &["Ben"];
+        let p = resolve(Some(Ok(ben)));
+        assert_eq!(who(&p, &Options::default()), Ok("Ben".to_owned()));
+        assert_eq!(who(&p, &as_("Ada")).unwrap_err().0, "sign.not-assigned");
+        assert_eq!(who(&p, &as_("Mallory")).unwrap_err().0, "sign.who");
+        // Cy holds no role: nobody may sign, and nobody is substituted.
+        let cy: &[&str] = &["Cy"];
+        let p = resolve(Some(Ok(cy)));
+        assert!(eligible(&p).is_empty());
+        assert_eq!(
+            who(&p, &Options::default()).unwrap_err().0,
+            "assignment.role-revoked"
+        );
+        assert_eq!(who(&p, &as_("Ada")).unwrap_err().0, "sign.not-assigned");
+        let p = resolve(Some(Err("assignment.moved")));
+        assert_eq!(who(&p, &as_("Ben")).unwrap_err().0, "assignment.moved");
+        // Unassigned: exactly as before.
+        let p = resolve(None);
+        let (rule, why) = who(&p, &Options::default()).unwrap_err();
+        assert_eq!(rule, "sign.who");
+        assert!(why.contains("Ada, Ben"), "{why}");
+        assert_eq!(who(&p, &as_("Ada")), Ok("Ada".to_owned()));
+    }
+
     #[test]
     fn a_draft_and_its_signed_name_share_a_stem_and_never_a_suffix() {
         let d = camino::Utf8PathBuf::from("/r/docs/authority/responses/OW-WAR-0064.draft.toml");
@@ -2299,6 +3755,8 @@ mod tests {
         // shape, with judgments after the scalar, so a serializer that moves
         // things around still parses.
         let real = AuthorizationResponse {
+            deliverable_set_digest: None,
+            assignment_digest: None,
             schema: authorize::RESPONSE_SCHEMA.to_owned(),
             warrant: "OW-WAR-0040".to_owned(),
             contract_digest: "aabb".to_owned(),

@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The plant '[OW-WAR-0063] a requirement reference §106 does not contain' in conformance/plant.sh was rejected by traceability.unknown-requirement (138 passed, 0 failed), and the committed corpus passes war check --generated (exit 0), confirming the control exists in check_traceability and the real corpus has no false positives."
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-cli/src/check.rs, check_traceability) shows the traceability.unknown-requirement rule now implemented against known_requirements parsed from §106, so the control exists in code. But D-003 (conformance/plants.d/00-corpus.sh) is truncated, and obligation_evidence marks the term 'traceability.unknown-requirement' as cut_from D-003 — present in that file but not shown to the verifier — while the specific plant text 'a requirement reference §106 does not contain' naming RQ-999 never appears in either the deliverable's shown text or the separately supplied plants excerpts (which surface only an unrelated 'an implements entry with no contribution stated' plant at line 1204 and a corrections snippet). The bundle's only gate run, GR-software.repo.war-check@1.0.0, is a plain `war check --generated` over the unmutated OW-WAR-0063 tree with no plant mutation applied. Per §39.3 code plus an unexecuted, unseen plant is a plan, not an executed attack, so the refusal this obligation claims is not shown to have occurred."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

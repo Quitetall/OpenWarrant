@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but since neither OBL-001 nor OBL-002 is established in this bundle (no deliverable bytes, no runtime evidence, empty obligation_evidence terms/named_paths), there is no exact qualified result for such review to attach to. No independent-review record, baseline comparison, or human-acceptance artifact appears anywhere in the bundle beyond bare assertion in the atom text."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

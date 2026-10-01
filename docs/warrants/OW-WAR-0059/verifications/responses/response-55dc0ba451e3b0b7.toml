@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The obligation requires two pieces of evidence: (1) a unit test flipping a sealed receipt's verdict, refused by admissibility as 'not recomputing', and (2) a plant doing the same to a committed receipt, refused by `war check` as `evidence.receipt-invalid`. D-001 (crates/openwarrant-cli/src/evidence.rs) fully carries and shows the unit test `an_edited_receipt_does_not_reseal`, which flips a receipt's verdict and asserts admissibility's error contains 'does not recompute' — satisfying part (1). Part (2), however, is not carried in this bundle: `plants` is an empty array, and obligation_evidence's term list shows `evidence.receipt-invalid` appearing only in D-001 (the diagnostic's definition) and the atoms, not in the `software.repo.war-check@1.0.0` gate run's stdout, whose shown excerpts contain no such rule firing. The only assertion that a plant triggered `evidence.receipt-invalid` comes from prior_verifications (a claim by verifier lamu:mimo-v2.5-pro), which is an account rather than bundle evidence of the plant's actual execution or output. Since the plant transcript/output is not shown, it is not evidence either way, so the obligation cannot be fully established from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

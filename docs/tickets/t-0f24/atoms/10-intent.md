@@ -1,0 +1,3 @@
+# A refused 'war standing propose' may have written into docs/ (seen once)
+
+69-standing.sh 'propose refuses **' failed on OW-WAR-0123's evidence run (three batteries at once, 2026-09-26): the refusal happened (exit 2, ERROR standing.never-coverable naming `**`), so the failing condition must be the third — the scratch corpus's docs/ tree digest changed across the refused propose ('nothing written'). If propose writes anything before refusing, that is a real bug (a refusal must write nothing). The plant's failure message does not say which condition failed or what moved. First make the plant name the moved paths; then find what wrote them.

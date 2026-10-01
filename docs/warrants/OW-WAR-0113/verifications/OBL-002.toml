@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = '''D-038 (conformance/plants.d/69-current.sh) contains a python assertion block explicitly run 'on this corpus (read only)' — using relative path '.', i.e. the actual repository under verification, not the scratch corpus used by the preceding tests — which asserts that in the real docs/generated/CURRENT.md every current Warrant's atom bodies appear verbatim, that OW-WAR-0073 is named exactly once in the prose as '- OW-WAR-0073 → OW-WAR-0112' with no heading of its own and no paragraph text outside a current atom, and that OW-WAR-0073's intent atom appears verbatim in the real docs/generated/HISTORY.md. The GR-ops.conformance.plants@1.1.0 stdout reports this exact block passing on the real corpus ('ok CURRENT.md on this corpus every current atom verbatim; 0073 one lineage line'), paired with a negative control proving the check is not vacuous ('ok the verbatim test can fail'), plus separate scratch-corpus checks for the remaining clauses: 'ok a hand edit to CURRENT.md is drift rejected by generated.drift (CURRENT.md)', 'ok history off writes no history no HISTORY.md, nothing compared' with its negative control 'ok a failing check is not "no history"', 'ok a hand edit to HISTORY.md is drift rejected by generated.drift (HISTORY.md)', and 'ok four documents point at CURRENT.md README, QUICKSTART, AGENTS, TUI: read it first'. The four-documents claim is independently corroborated by the carried deliverable bytes themselves: D-034 (README.md) states 'Read first: [the current state](docs/generated/CURRENT.md)', D-035 (QUICKSTART.md) states 'Read `docs/generated/CURRENT.md` first', D-036 (AGENTS.md) states 'First, always: read [`docs/generated/CURRENT.md`]', and D-037 (docs/TUI.md) documents the app's Help pane listing it first. D-011 (the real HISTORY.md) independently shows '## Lineage\n\n- OW-WAR-0073 → OW-WAR-0112', consistent with the plant's assertion. The overall plant battery concluded '1270 passed, 0 failed' with no failing line touching any OBL-002 clause, and obligation_evidence for OBL-002 shows every named path (current.rs, history.rs, compile.rs, CURRENT.md, HISTORY.md, the four pointing docs) was carried with no cut_from on the relevant terms. All six evidentiary clauses of OBL-002's stated evidence are therefore directly shown true by name in the bundle.'''
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

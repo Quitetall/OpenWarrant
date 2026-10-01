@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0112"
+
+[[verifications]]
+obligation = "OBL-007"
+disposition = "established"
+evidence = "D-039 (sas_repin.rs) implements the full claim: `run()` builds a Plan per candidate, refuses `sas.repin-unknown-requirement` before any write when a manifest implements a row the latest SAS revision lacks, aggregates refusals into `sas.repin-refused` (all-or-nothing, nothing written on any failure), checks `load_resolution` and emits `sas.repin-resolved` for resolved Warrants, and under `--dry-run` only pushes `sas.repin-would-write` diagnostics with no filesystem writes; `render()` emits `sas_revision:`/`predecessor_sas_revision:` fields, confirmed line-wise by the unit test `the_rendered_amendment_carries_the_pin_check_reads`, with ordinal minting confirmed by `the_next_id_counts_past_the_highest_existing_one`. D-040 (88-sas-repin.sh) is the named plant exercising this against the real corpus (OW-WAR-0047 authorized/unresolved, OW-WAR-0062/0063 resolved), including the `== sas repin (OW-WAR-0112) ==` block invoking the actual tool. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, and shown current/bound to this Warrant's contract by the `PASS evidence.admissible` line for ops.conformance.plants@1.1.0 in the software.repo.war-check@1.0.0 stdout) shows the specific outcomes: 'a re-pin that loses an implemented row rejected by sas.repin-unknown-requirement (9.9.9)', 'repin writes the amendment; rev 3 pending rejected by rev 3 (authorize)' (confirming `war sign --list` then names the next authorization revision), 'the written re-pin checks clean pinned to 1.1.1, the warning gone', 'repin of a resolved Warrant refused, nothing written', and 'repin --all --dry-run 112 candidate(s), nothing written'. Every clause of OBL-007's evidence, within its stated scope (sas_repin.rs, amendments/, 88-sas-repin.sh), is corroborated by these named deliverables and the passing, bound gate run, consistent with the prior claude-verifier's established disposition."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

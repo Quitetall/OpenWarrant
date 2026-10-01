@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject_digests matching the authorized contract 659119be...) includes the '== teams: review assignment (OW-WAR-0137) ==' section (stdout lines 543-590) run against the scratch program (TT-WAR-0001 assigned Ada/verify, Ben/resolve; TT-WAR-0002 unassigned), which reproduces each evidence bullet: 'an eligible resolver who is not assigned' -> sign.not-assigned (exit 2) matches the Ada-not-assigned case; 'no --as selects the assigned resolver' -> sign.signer: Ben matches the no-flag case; 'unassigned: both eligible, as before' -> 'more than one eligible signer (Ada, Ben)' and 'with no --as, --json lists both, as before' match the no-assignment case; 'sign --list --as Ada omits Ben's act'/'sign --list --as Ben lists it, assigned first' plus their --json analogues ('the same, under --json, for Ada/Ben') match the --list --as bullet exactly, and 'inbox --as Ada/Ben ...' plus their --json analogues cover war inbox --as. The 'Cy holds no role, nobody eligible, nobody substituted' bullet is not run through the scratch program itself (no Cy scenario in conformance/plants.d/57-teams.sh, D-008), but the equivalent narrowing-to-empty-with-no-substitution behavior is exercised there via the role-revoked case ('a revoked assignee makes nobody eligible' -> assignment.role-revoked, and 'and nobody else is added' -> sign.not-assigned) and is directly unit-tested in D-003's `an_assignment_narrows_the_signer_and_names_why` test, which names Cy explicitly, asserts `eligible(&p)` is empty, and that `who()` refuses with assignment.role-revoked for the default case and sign.not-assigned for --as Ada, plus confirms `choose_actor`/`who` behavior for the unassigned case (both Ada and Ben eligible, --as Ada succeeds). Together the passing gate run and the D-003 unit test cover every evidence item in OBL-002's scope, so the claim is established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

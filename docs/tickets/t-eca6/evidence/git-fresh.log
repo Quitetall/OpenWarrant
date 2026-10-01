@@ -1,0 +1,38 @@
+18:25:45.839741 read-cache.c:2378       performance: 0.000970467 s:  read cache .git/index
+18:25:45.840870 preload-index.c:175     performance: 0.001096580 s:  preload index
+18:25:45.946364 unpack-trees.c:2016     performance: 0.105430570 s:    traverse_trees
+18:25:45.958789 unpack-trees.c:444      performance: 0.000000360 s:    check_updates
+18:25:45.958803 unpack-trees.c:2113     performance: 0.117914987 s:   unpack_trees
+18:25:45.958987 diff-lib.c:667          performance: 0.118099697 s:  diff-index
+18:25:45.958992 trace.c:416             performance: 0.120610545 s: git command: git -C /tmp/ow-index-perf-qe8suwf7/r diff --name-only -z 9729d66838274661a8b7382db6ef1108887babec --
+18:25:45.961705 read-cache.c:2378       performance: 0.000632274 s:  read cache .git/index
+18:25:45.962156 name-hash.c:619         performance: 0.000397764 s:  initialize name hash
+18:25:45.968952 trace.c:416             performance: 0.007970502 s: git command: git -C /tmp/ow-index-perf-qe8suwf7/r ls-files --others --exclude-standard -z
+18:25:46.767620 read-cache.c:2378       performance: 0.000779037 s:  read cache .git/index
+18:25:46.768603 preload-index.c:175     performance: 0.000962276 s:  preload index
+18:25:46.816785 unpack-trees.c:2016     performance: 0.048125022 s:    traverse_trees
+18:25:46.886555 unpack-trees.c:444      performance: 0.000000651 s:    check_updates
+18:25:46.886570 unpack-trees.c:2113     performance: 0.117954581 s:   unpack_trees
+18:25:46.886939 diff-lib.c:667          performance: 0.118324042 s:  diff-index
+18:25:46.886944 trace.c:416             performance: 0.120512374 s: git command: git -C /tmp/ow-index-perf-qe8suwf7/r diff --name-only -z 2b24c062778e0d87732c7f85873cd25ceb8fbad3 --
+18:25:46.950831 read-cache.c:2378       performance: 0.000980382 s:  read cache .git/index
+18:25:46.951920 preload-index.c:175     performance: 0.001057131 s:  preload index
+18:25:46.984479 unpack-trees.c:2016     performance: 0.032512300 s:    traverse_trees
+18:25:47.066563 unpack-trees.c:444      performance: 0.000000283 s:    check_updates
+18:25:47.066576 unpack-trees.c:2113     performance: 0.114645328 s:   unpack_trees
+18:25:47.066981 diff-lib.c:667          performance: 0.115051352 s:  diff-index
+18:25:47.066987 trace.c:416             performance: 0.117539736 s: git command: git -C /tmp/ow-index-perf-qe8suwf7/r diff --name-only -z e68d1caf85390eea75caab55aea5f3b968ef329f --
+18:25:47.180431 read-cache.c:2378       performance: 0.000657287 s:  read cache .git/index
+18:25:47.181883 preload-index.c:175     performance: 0.001429322 s:  preload index
+18:25:47.208517 unpack-trees.c:2016     performance: 0.026576269 s:    traverse_trees
+18:25:47.300033 unpack-trees.c:444      performance: 0.000000817 s:    check_updates
+18:25:47.300050 unpack-trees.c:2113     performance: 0.118154294 s:   unpack_trees
+18:25:47.300503 diff-lib.c:667          performance: 0.118608365 s:  diff-index
+18:25:47.300511 trace.c:416             performance: 0.121015272 s: git command: git -C /tmp/ow-index-perf-qe8suwf7/r diff --name-only -z f476a029566e80b2e41bfd355ef80edaa508bfa9 --
+18:25:47.557631 read-cache.c:2378       performance: 0.000687943 s:  read cache .git/index
+18:25:47.559033 preload-index.c:175     performance: 0.001379535 s:  preload index
+18:25:47.639605 unpack-trees.c:2016     performance: 0.080513796 s:    traverse_trees
+18:25:47.674351 unpack-trees.c:444      performance: 0.000000331 s:    check_updates
+18:25:47.674366 unpack-trees.c:2113     performance: 0.115319250 s:   unpack_trees
+18:25:47.674628 diff-lib.c:667          performance: 0.115582513 s:  diff-index
+18:25:47.674633 trace.c:416             performance: 0.117961378 s: git command: git -C /tmp/ow-index-perf-qe8suwf7/r diff --name-only -z e54ccac17a000db9430a08ded5ae9ad1923067b0 --

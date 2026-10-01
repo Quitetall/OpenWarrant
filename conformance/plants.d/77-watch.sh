@@ -15,8 +15,20 @@ plant_cmd "a proposed revision appears in the pending set" "0.1.0-draft.9" "acce
 # is printed as a `+` line. The revision is proposed after the first poll.
 # The first snapshot builds every pending request (a second or two on this
 # corpus); the proposal lands after it, and the loop runs long enough to see it.
-WATCH_OUT=$( ( sleep 4; "$WAR" sas propose 0.1.0-draft.9 >/dev/null 2>&1 ) & "$WAR" watch --interval 200 --ticks 40 2>/dev/null )
+#
+# The proposal waits for the watch's first snapshot to be PRINTED, not for a
+# fixed four seconds: on a corpus with forty pending acts the first snapshot
+# takes longer than that, the proposal landed inside it, and the loop — right
+# not to call an act "new" that was there when it looked — printed no `+`.
+WATCH_FILE=$(mktemp)
+"$WAR" watch --interval 200 --ticks 60 > "$WATCH_FILE" 2>/dev/null &
+WATCH_PID=$!
+for _ in $(seq 1 200); do [[ -s "$WATCH_FILE" ]] && break; sleep 0.1; done
+"$WAR" sas propose 0.1.0-draft.9 >/dev/null 2>&1
+wait "$WATCH_PID"
 WATCH_STATUS=$?
+WATCH_OUT=$(cat "$WATCH_FILE")
+command rm -f "$WATCH_FILE"
 restore
 if [[ $WATCH_STATUS -eq 0 ]] && grep -Fq -- '+ ' <<< "$WATCH_OUT" && grep -Fq -- '0.1.0-draft.9' <<< "$WATCH_OUT"; then
     printf 'ok    %-34s the loop printed the new act and exited\n' "watch prints what appeared"

@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, receipt digest sha256:1ff9011...) executed the battery including conformance/plants.d/57-assurance-mark.sh (D-005, sha256 matches the carried deliverable). The carried stdout excerpt (lines 484-511) shows, for the OBL-002 mark on scratch Warrant MK-WAR-0001, exactly the three cases OBL-005's evidence names: 'an unchanged mark verifies ... mark.verified (exit 0)' (the required control against an always-failing --verify), 'an edited resolution ... mark.stale names `resolution` (exit 2)', and 'an in-scope change ... mark.stale names `candidate` (exit 2)', plus corroborating out-of-scope-change and hand-edited-mark controls, all marked 'ok'. D-005's own script text implements these cases directly (mk_stale 'an edited resolution' resolution; mk_stale 'an in-scope change' candidate; the unchanged-check block requiring mark.verified and absence of mark.stale), and D-002's verify() function (mark.rs) implements the matching logic — labelling a moved binding as 'candidate' specifically when the failing check is acceptance.unchanged (BL-005), diffing recomputed fields against the recorded JSON otherwise, and emitting mark.verified only when nothing moved. The battery's overall summary (1270 passed, 0 failed) and exit_result 'pass' confirm none of these assertions failed. Together the plant source, the mark.rs implementation it exercises, and the actual printed pass/fail lines from the executed gate run establish the claim within OBL-005's stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

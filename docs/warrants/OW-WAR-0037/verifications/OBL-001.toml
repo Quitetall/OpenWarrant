@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "The test `show::tests::identical_documents_produce_no_changes` verifies that identical IRs produce no semantic changes, and the `semantic_diff` function in `crates/openwarrant-cli/src/show.rs` compares canonical JSON trees, ensuring that rendering differences do not affect the diff."
+evidence = """D-001 (crates/openwarrant-cli/src/show.rs) is carried in full, truncated:false, 547 lines. Its `diff()` function builds both comparison sides purely from canonical IR — reading `generated/WAR.json` as `from` and calling `openwarrant_compiler::render::canonical_json(&ir)` for a freshly-lowered `to` — and passes only these `serde_json::Value` trees into `semantic_diff`/`walk`, which recurses over JSON structure and never touches `render::render_view`'s Markdown output. Consequently two revisions differing only in rendering collapse to identical canonical JSON under this code path, and the in-file test `identical_documents_produce_no_changes` demonstrates that identical JSON documents yield an empty change list, with `diff()` then emitting `Diagnostic::pass("diff.identical", ...)`. This is fully decidable from the shown source and tests within the stated scope."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,0 +1,28 @@
+{
+  "case": "known dispatch id with false contract digest",
+  "exit": 0,
+  "report": {
+    "schema": "oh.war/report/v1",
+    "command": "submit",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "submission.recorded",
+        "file": null,
+        "message": "docs/warrants/IX-WAR-0003/submissions/01a0f494-6a78-73a3-8ec2-8f94b8358643.json: submission for dispatch 01a0f494-6a78-73a3-8ec2-8f94b8358643 requests `verify`"
+      }
+    ],
+    "notes": [],
+    "counts": {
+      "pass": 1,
+      "warn": 0,
+      "unknown": 0,
+      "error": 0,
+      "worst": "pass"
+    },
+    "verdict": "well_formed",
+    "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+    "exit_code": 0
+  },
+  "submission_written": true
+}

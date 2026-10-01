@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0068"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The obligation's own evidence field requires a recorded run where grilling answers land in plan/request.json, but obligation_evidence for OBL-001 states this path is explicitly absent ('no deliverable of OW-WAR-0068 and no file at this path: not carried'). The bundle only carries D-004 (war-grill/SKILL.md) and D-005 (war-spec/SKILL.md), which are method descriptions, plus D-003 (context_select.rs) showing code that would carry CONTEXT.md in a Dispatch manifest when present — but no actual Dispatch manifest deliverable or war-spec proposal artifact is in the bundle to confirm §74.4 steps 1-4 were run. No gate run or plant result demonstrates any of these three required facts actually occurred; only source and skill prose are shown, so the claim of 'landing records, not chat' cannot be confirmed from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-002 (frontier.rs) implements the four StageState values and blocking-edge logic, and D-010 (conformance/plants.d/90-skills.sh) contains plant *source* asserting 'an unblocked stage is OPEN', 'a stage behind an incomplete milestone is blocked', and the glossary-riding-in-Dispatch checks, but the bundle's top-level 'plants' array is empty and gate_runs only contains the software.repo.war-check@1.0.0 receipt, whose visible (tail-truncated) stdout covers OW-WAR-0138 through OW-WAR-0147 plus repo-wide identity/composition checks — it never shows an OW-WAR-0068-specific milestones.valid/obligations.valid line, and explicitly states under NOT CHECKED that 'war check does not invoke' gates, so no plant execution evidence is present. D-007 (war-review/SKILL.md) and D-008 (war-map/SKILL.md) describe the two-axis review and blocking_unknown fog methodology as intended process, not an actual review or map artifact that named both axes or recorded blocking_unknown assumptions read by war check. No frontier run output or actual review/map record is in the bundle to corroborate the described designs."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 shows the term 'war eval' appearing only in the atoms (the work-order text at atoms/40-work-order.md item 8), never in any deliverable, and the term '.claude/skills/**' is shown nowhere in the bundle at all (empty shown_in). No eval task files or baseline results for grill/spec/tickets are among the deliverables (D-001 through D-010 are CONTEXT.md, frontier.rs, context_select.rs, four SKILL.md files, docs/SKILLS.md, and the plants script). D-010 contains only the em-dash refusal plant's shell-script source ('an em-dash in a skill is refused by file and line', invoking a local xtask build), with no corresponding gate run or plant execution record in this bundle showing it actually ran and passed. Without eval-task deliverables or an executed em-dash-refusal result, the claim that the superset is measured cannot be established from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0004"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence explicitly marks the named path 'docs/warrants/' as not carried, so no generated WAR.md/WAR.json bytes for any of the five Warrants are in the bundle. The carried deliverables are only compiler source (D-001 render.rs, D-002 compile.rs), not executed-test or rendered-file evidence. The one gate run, GR-software.repo.war-check@1.0.0, has truncated stdout; the sole excerpt naming a Warrant's drift status (lines 81-101) shows 'PASS generated.drift OW-WAR-0004: 2 generated view(s) match a fresh compilation' — evidence only for OW-WAR-0004, not the other four Warrants the obligation's scope names. Absent that coverage, the claim cannot be established for its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 (verdict: pass) has a visible excerpt (stdout lines 81-101) containing the line 'PASS generated.drift OW-WAR-0004: 2 generated view(s) match a fresh compilation'. Per atoms/20-basis.md, the drift check works by comparing the committed generated views against a fresh compilation from the same Basis, which is exactly the property OBL-002 states (recompiling an unmodified tree produces no change): the committed files, product of an earlier compile, matched a newly performed compile byte-for-byte. This is a recorded, executed-gate result (not merely source code) and is not contradicted by the evidence.stale-binding WARN in the same excerpt, which flags staleness only in paths 'outside the evidence records, projections, authority records, verification records and ticket bookkeeping' — i.e. explicitly not the projections this obligation concerns."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle's 'plants' array is empty, and no gate run, test result, or excerpt shows a single-byte mutation of a committed generated parent followed by a `war check --generated` invocation that exits non-zero and names the file. The one recorded gate run, GR-software.repo.war-check@1.0.0, ran against the tree as committed (subject_digests include tree:e54ccac17a000db9430a08ded5ae9ad1923067b0) and its only relevant visible line is 'PASS generated.drift OW-WAR-0004: 2 generated view(s) match a fresh compilation' — a clean, unmutated pass, which demonstrates the opposite condition from what OBL-003 requires evidence of. No deliverable or atom in the bundle records a planted-drift trial or its outcome."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

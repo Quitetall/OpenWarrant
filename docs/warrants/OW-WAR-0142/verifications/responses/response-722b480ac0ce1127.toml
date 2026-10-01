@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, receipt sha256:120fa74f759ead3b6cc46b841c39d78b89fddbf736c805380f0cf86ce242df70, final tally '1260 passed, 0 failed') carries a stdout excerpt (lines 989-1034) of the '== standing authorization (OW-WAR-0142) ==' section that runs exactly the scoped scenario: the SB scratch corpus, one signed fixture class, and planted Warrants. It shows 'inside the class: authorized' with 'its digest, the signer, standing://routine@1, its set; check passes', and named refusals with 'nothing written' for every planted term-violator: outside-class path, assurance controlled, profile decision, an adr atom, accepted residual risk, an uncited gate, both budget ceilings, expiry, and max_warrants; it also shows 'edited outside the class: ERROR — standing.outside-class, not PASS' and 'applied after revocation — standing.revoked, nothing written' with 'an earlier record stands (§31)'. Deliverable D-014 (conformance/plants.d/69-standing.sh), the gate's own source, is carried with matching excerpts showing the underlying assertions are substantive rather than printed labels: the positive case greps the written authorization.toml for the exact contract_digest, `authorizer = \"Plant Signer\"`, `policy_basis = \"standing://routine@1\"` and `target_ref = \"src/a.rs\"` plus a clean `war check`, and the `st_refused` helper independently diffs the Warrant directory's tree hash before and after each refusal to confirm nothing was written. Together the passing receipt and the corresponding plant source establish, within the stated scope, both the positive coverage claim and the refusal claim for `war standing apply`."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

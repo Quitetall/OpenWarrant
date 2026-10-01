@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-002's OBL-003 section performs two consecutive `war verify --bundle` runs after clearing prior bundle files, counts the resulting bundle-*.json files (BO_N), points verifier_argv at a copy of conformance/fixtures/verifier/establishes-all.sh, runs `war verify --run`, and checks the output contains 'verify.recorded'. The bundled ops.conformance.plants@1.1.0 gate run's stdout excerpt (line 196) shows 'ok    one digest, and the verifier ingests   one bundle file after two runs; verify.recorded', a passing literal execution result directly matching OBL-003's evidence text ('one bundle file after two runs (one digest), and the fake verifier's response is ingested as before'). obligation_evidence for OBL-003 confirms conformance/plants.d/47-bundle-output.sh (D-002) is carried, and notes conformance/fixtures/verifier/establishes-all.sh exists in the repository tree (named_paths, absent reason 'a repository path that is not a deliverable...: not carried', i.e. present but simply not a bundled deliverable), consistent with the plant's use of it."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

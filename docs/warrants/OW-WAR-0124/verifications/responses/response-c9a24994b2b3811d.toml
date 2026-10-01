@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "D-005 (guided.rs, untruncated, 847 lines) contains source for with_history_the_step_after_program_is_baseline, without_history_baseline_is_skipped, an_existing_authority_file_is_never_written_again, and the_agent_is_a_performer_and_nothing_else, and the assertions in each are consistent with OBL-006's claims (Baseline follows Program with exactly one Effect::Adopt, Baseline skipped with no history). The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) does show, in its '== brownfield adoption (OW-WAR-0124) ==' section, the lines 'ok    0124 leaves the authority steps    1 commit(s): six regions byte-identical before and after' and 'ok    a touched authority step is seen   a line planted in render_roles is reported, and nothing else' — this establishes the diff/grep-based half of the obligation (render_roles, render_allowed_signers, the Signer/KeyLoaded arms and the two named tests byte-identical, and the planted-line refusal control fires). However, neither gate run in the bundle (GR-ops.conformance.plants@1.1.0, which runs `bash conformance/plant-isolated.sh` exercising CLI-level plants such as `--baseline HEAD~1` and `--baseline 0000000`, or GR-software.repo.war-check@1.0.0, a static manifest/pin check) shows a `cargo test` invocation or any output naming with_history_the_step_after_program_is_baseline, without_history_baseline_is_skipped, an_existing_authority_file_is_never_written_again, or the_agent_is_a_performer_and_nothing_else as executed and passing. The plants output demonstrates CLI-flag behavior (`war init --baseline ...`), not the guided-conversation Machine/Effect semantics the obligation's scope names ('init::guided unit tests with canned answers'). Because OBL-006's evidence list is conjunctive and the byte-identity/refusal check is only one of its required items, and the remaining items rest on source inspection rather than any shown test execution, the obligation is not established by the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

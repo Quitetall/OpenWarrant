@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "The tests `milestones::tests::typed_ports_parse` and `milestones::tests::parses_a_valid_graph` in `crates/openwarrant-core/src/milestones.rs` pass, asserting field-by-field parsing of milestones, stages, and typed ports."
+evidence = "D-001 (milestones.rs) is carried whole (truncated:false, 785 lines) and defines Milestone, Stage, Port, ExecutorKind and ResponsibilityTier with a parse() function that extracts each field via scalar/list helpers and a dedicated ports() closure that splits 'name:type' into Port{name, type_name}. Its own tests parses_a_valid_graph (asserts milestones.len, stages.len, executor_kind, responsibility_tier, referenced_obligations), typed_ports_parse (asserts inputs[0].name/type_name and outputs[0].name), and tier_and_executor_kind_are_orthogonal assert on these exact fields one by one, matching the obligation's evidence bar of field-by-field assertion including ports. Gate run GR-software.repo.war-check@1.0.0 additionally shows 'PASS milestones.valid OW-WAR-0007: 4 milestone(s), 4 stage(s), acyclic with no dangling refs', confirming the parser also operates correctly against this repository's actual milestones.yaml."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

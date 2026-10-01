@@ -1,0 +1,12 @@
+schema = "oh.war/rationale/v1"
+
+# §36 — the basis atom's blocking unknown, in a form the tool reads.
+# `judgment_ref` is empty: nobody has answered it.
+
+[[assumption]]
+id = "A-001"
+statement = "The form a native-held deliverable's target_ref takes is decided."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner answers Q-001 in 20-basis.md: external://<system>/<external_id>, a scheme per kind, or kf:// references only."
+consequence_if_false = "Nothing can be parsed or refused; STAGE-001 and everything after it wait."
+judgment_ref = ""

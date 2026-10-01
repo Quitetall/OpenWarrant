@@ -25,14 +25,15 @@
 #   risk_acceptor  accepts organizational residual risk        (§27.2)
 #   judge          records a judgment                         (§42)
 #
-# `actor_kind` is one of `human`, `agent`, `policy_service`, and it is not a
-# label — it changes what the actor may do:
+# `actor_kind` is one of `human`, `agent`, `policyservice` — one word, as the
+# loader and the frozen authorization schema read it (`policy_service` is
+# refused) — and it is not a label; it changes what the actor may do:
 #
 #   agent           may never authorize, accept residual risk, resolve, or make
 #                   a judgment. §27.1 permits RECOMMENDING a judgment; recording
 #                   one as made is a different act. Granting an agent these
 #                   roles does not make it eligible — the refusal is on kind.
-#   policy_service  may resolve, but ONLY a basic Warrant whose obligations are
+#   policyservice   may resolve, but ONLY a basic Warrant whose obligations are
 #                   all mechanical, with no residual-risk judgment needed, an
 #                   identity distinct from the performer, and `policy.
 #                   allow_automated_resolution = true` in openwarrant.toml.

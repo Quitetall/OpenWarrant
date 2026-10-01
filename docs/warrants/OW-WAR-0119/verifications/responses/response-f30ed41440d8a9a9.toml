@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0119"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, exit_result pass, 1214 passed/0 failed) shows in its stdout excerpt (lines 223-273) the exact plant assertions from D-004 (conformance/plants.d/51-identity.sh): 'ok a copied Warrant keeps its UUID error identity.duplicate-uuid (exit 2)' confirms the ID_UUID/ID-WAR-0001/ID-WAR-0002 case exits non-zero naming both aliases; 'ok two ADRs with one adr_uuid error identity.duplicate-uuid (exit 2)' confirms the ID-ADR-0901/ID-ADR-0902 case; 'ok two ADRs, two adr_uuids no error identity.duplicate-uuid', 'ok clean program: no duplicate-uuid no error identity.duplicate-uuid', and 'ok corpus: no duplicate-uuid error no error identity.duplicate-uuid' together confirm the clean-program and corpus negative claims. These plant lines correspond one-to-one with the id_expect/id_none calls in D-004 for OBL-001 (naming ID_UUID, ID-WAR-0001, ID-WAR-0002, ID-ADR-0901, ID-ADR-0902), and are corroborated by the duplicate_warrants/duplicate_adrs implementation and its passing unit tests a_copied_warrant_shares_its_uuid_and_is_refused_by_name and two_adrs_with_one_uuid_are_refused_and_distinct_ones_pass in D-001."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

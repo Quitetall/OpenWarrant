@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0084"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists no named_paths and no terms, so no legacy-adapter or lineage/digest source, test, or run output over exact historical source bytes is carried anywhere in this bundle. The sole gate run, GR-software.repo.war-check@1.0.0, is a structural repo-check whose own NOT CHECKED section states 'gate execution — war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' and its stdout excerpts contain only manifest/identity/milestone/journal checks, none touching the legacy adapter or digest boundary named in scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No refusal fixtures, test names, stderr, or gate output addressing malformed/incomplete/conflicting/over-limit/authority-confused inputs appear anywhere in the bundle; deliverables is empty and OBL-002's obligation_evidence carries no named_paths or terms. The single gate run (software.repo.war-check@1.0.0) performs only corpus-wide structural checks (e.g. PASS manifest.valid, PASS journal.append-only, PASS identity.atom-mismatch for OW-WAR-0084) and never exercises the adapter's input-validation boundary, so no observed refusal is shown for this obligation's scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There is no independent reproduction/review artifact, no baseline-condition record, and no signed human-acceptance record for this exact result in the bundle; deliverables and obligation_evidence for OBL-003 are both empty. atoms/20-basis.md and atoms/60-assurance.md themselves state the RC.3 candidate is 'unverified' and that 'these implementation observations are NOT RUN until attached evidence proves them,' and the war-check stdout confirms '143 of 143 Warrant(s) have no disposed obligations,' matching OW-WAR-0084 — qualification evidence is absent, not merely unshown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 targets subject_digests including contract:sha256:253369a99...ec81d, which matches this bundle's authorized_contract_digest, and its verdict/exit_result are 'pass'. The stdout excerpt (lines 1261-1274, 2576) shows OW-WAR-0084-specific PASS results for manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift, and identity.atom-mismatch ('4 atom(s) name this Warrant's UUID'); the only OW-WAR-0084 WARNs (evidence.stale-binding, sas.pin-superseded) flag staleness/re-pin procedure, not structural invalidity. This directly matches OBL-004's scope ('this Warrant's authored records/references') and its cited gate."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

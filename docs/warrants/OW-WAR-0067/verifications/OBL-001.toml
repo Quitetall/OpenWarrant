@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "conformance/plants.d/90-skills.sh:9 directly asserts that OW-WAR-0067 STAGE-001 status is 'OPEN' — per atoms/45-milestones.yaml, STAGE-001 is 'Relicense to Apache-2.0 (RELICENSING.md steps 1-6)', the stage feeding M1/OBL-001. An OPEN (unblocked-but-not-done) status means the relicense act has not occurred, directly contradicting the claim 'the tree is relicensed.' This is corroborated by obligation_evidence for OBL-001: Cargo.toml is marked not carried, LICENSE/NOTICE/docs/authority/allowed_signers appear only as text inside the atoms (work-order prose) rather than as actual deliverable bytes, and the two required gate-evidence terms ('cargo xtask gate' and 'war attest --all') both have shown_in: [] — absent from the bundle entirely. The gate run GR-software.repo.war-check@1.0.0's stdout also explicitly notes 'war check does not invoke [gates]', so it cannot substitute as the acceptance-gate evidence the obligation names."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

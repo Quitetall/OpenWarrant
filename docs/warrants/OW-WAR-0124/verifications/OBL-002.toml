@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-006 (telemetry.rs) implements the required behavior: untracked_candidates() appends '<baseline>..HEAD' to the git log range only when repo.config.adoption is set, matches commit subjects against '{namespace}-WAR-' (the repository's own configured namespace, not a fixed OW- prefix), and history_read() reports the baseline used or 'all history'. D-008 (conformance/plants.d/59-adoption.sh), in its '--- OBL-002: untracked work counts from the baseline, in ACME ---' section, drives war telemetry on the ACME scratch repo (AD_A) right after init, after one uncited commit, after a commit citing ACME-WAR-0001, and after one citing only OW-WAR-0001, checking ad_candidates() and the printed baseline range each time. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows the corresponding excerpted lines succeeding exactly as the obligation's evidence bullets require: 'ok 0 candidates right after init read from ae64d3839edb461ab7b5e5526b0c65e1070f5447..HEAD', 'ok one uncited commit is 1 candidate 1', 'ok an ACME-WAR citation is tracked still 1', 'ok an OW-WAR citation is not tracked 2', plus the companion negative control 'ok no baseline reads all history 5, named as all history', within an overall '1270 passed, 0 failed' tally. obligation_evidence lists all three OBL-002 terms ('war telemetry', 'ACME-WAR-0001', 'OW-WAR-0001') as fully shown with no cut_from, so nothing needed to decide this was cut by the budget."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The test 'traceability::tests::no_links_means_unaddressed' verifies that requirements with no links are marked as unaddressed, and the derive_all function in traceability.rs computes statuses for all requirements, enabling the Overview to list uncovered ones by identifier."
+disposition = "not_established"
+evidence = "OBL-003's evidence requirement is that 'the Overview lists the uncovered ones by identifier,' but no Overview document is among the bundle's deliverables (only D-001, traceability.rs, is carried), and obligation_evidence for OBL-003 shows empty named_paths and empty terms, meaning no path or content relevant to this obligation was carried at all. The gate stdout's NOT CHECKED section confirms no coverage-gap report is being verified by war-check. Absent any Overview text or coverage-report evidence, the claim cannot be established."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

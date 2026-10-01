@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "All five scope files are carried (D-011 check.rs, D-007 pins.rs, D-008 correct.rs, D-009 resolution_cmd.rs, D-010 guard-pins.sh) and every sub-claim is backed by an actual gate-run line rather than assertion. Historical-pin-passes is shown in gate run GR-software.repo.war-check@1.0.0's stdout ('PASS deliverable.superseded-by OW-WAR-0005: D-001 pinned crates/openwarrant-cli/src/check.rs ... OW-WAR-0142/D-009 (authorized ...) now governs that path'); the specific successor alias is OW-WAR-0142 rather than OW-WAR-0112 named in the obligation's evidence prose, but D-013's plant (98-ownership.sh) explicitly matches any later authorized owner by regex and its own comment notes 'which later Warrant owns check.rs moves as Warrants are authorized ... the plant holds the rule, not today's owner', so this is expected corpus drift, not a failure of the rule. GR-ops.conformance.plants@1.1.0's stdout corroborates with 'ok later owner makes the pin historical OW-WAR-0005/D-001 historical under a later owner' and 'ok pins agree with the check 0005 historical, 0112 current'. Undeclared-edit-still-drifts is shown by 'ok a deliverable digest that no longer matches rejected by deliverable.digest-drift (OW-WAR-0061: D-001 records sha256:dead)', and D-011's check.rs excerpt shows the message template naming both remedies verbatim ('declare it as a deliverable of a Warrant and have that Warrant authorized ...; or record why it moved: war correct'). correction.historical firing is shown by 'ok correction of a historical pin refused, nothing written', matching D-008's logic. The hook is directly exercised: 'ok the hook denies a current pin deny, names war correct OS-WAR-0001 D-001' and 'ok the hook permits a historical pin superseded-by OS-WAR-0002; the edit it denied is let through', matching D-010's guard-pins.sh. History readability is shown by 'ok pins --history, oldest first OS-WAR-0001 (historical) then OS-WAR-0002 (current)', matching D-007's pins::history. The locator requirement is shown by 'ok a resolution carries its locator [locator] commit_sha = 36f973ee2ed3… (40 lowercase hex, the resolved HEAD)', matching D-009's Locator struct and schema D-041. Both cited gates report verdict pass ('1270 passed, 0 failed' for GR-ops.conformance.plants@1.1.0; GR-software.repo.war-check@1.0.0 pass). Together this establishes every element of OBL-002's statement within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

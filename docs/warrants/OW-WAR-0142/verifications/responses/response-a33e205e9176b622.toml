@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "established"
+evidence = "D-012 (ownership.rs) implements `in_flight_owner`, which returns the current owner only when its alias differs and it is unresolved, backed by unit test `a_covered_warrant_may_not_take_a_path_from_work_in_flight` covering both the block and its lifting once `resolved` is set. D-014 (69-standing.sh) plants both halves on the scratch corpus: section SB creates an unresolved, individually-signed Warrant owning src/shared.rs then has a covered Warrant declare the same path, asserting `standing.in-flight-owner` names the owner with the directory byte-identical before/after; section SC resolves SC_A[0] via `st_resolvable` then has a covered Warrant take that same path, asserting `standing.recorded` and a `deliverable.superseded-by` line naming SC_A[0] with no digest-drift error. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) actually executed these plants, and the bundle's stdout excerpt (lines 995-1040) shows both outcomes verbatim: 'ok a path owned by work in flight standing.in-flight-owner names SB-WAR-0017, nothing written' and 'ok a resolved owner's path is taken standing.recorded; SC-WAR-0002's pin reads deliverable.superseded-by'. obligation_evidence confirms neither `standing.in-flight-owner` nor `deliverable.superseded-by` was cut_from the shown material. Code, planted integration scenario and executed gate output together establish both the refusal and the positive-control halves of the obligation within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

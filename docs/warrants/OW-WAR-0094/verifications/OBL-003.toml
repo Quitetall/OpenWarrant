@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence for OBL-003 lists no named_paths or terms, so docs/releases/remaining-build-scope.md and any skill drafting reference content are entirely absent from the bundle. Only atoms/10-intent.md's statement of intent ('record model-neutral local/cloud skill drafting in the roadmap') is present, which is insufficient to verify that commands match actual SDK/drafting seams or that no credentials/paid calls appear."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

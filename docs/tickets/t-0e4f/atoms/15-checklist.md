@@ -1,0 +1,4 @@
+# Checklist
+
+- [x] RESP from mktemp inside the plant's own temp dir (i-5edb) — done by claude, 2026-09-26: 64-corrections: RESP=$(mktemp "$CO_TMP/correction.XXXXXX") inside CO_TMP=$(mktemp -d), removed at the end (cca49c63). The ticket said 64 was the only fixed /tmp path; it was not: 71-plan (--out proposal.json) and 90-skills (--emit dispatch.json) wrote one too, both moved to mktemp -d dirs.
+- [x] A check in lib.sh or a plant that refuses fixed /tmp paths in plants.d (i-c794) — done by claude, 2026-09-26: lib.sh plant_fixed_tmp_paths + run_plant_files: a plants.d file naming a path that starts at /tmp/ (outside comments, not a mktemp XXX template, not ${TMPDIR:-/tmp}, not a nested .../tmp/) is FAILED by name and line and not run. 99-fixed-tmp.sh: accepted (a clean file runs and counts) and refused (51-fixed.sh FAILED at line 2, never ran, totals 1/1). Against the pre-fix plants the scan names exactly 64, 71, 90; after, none.

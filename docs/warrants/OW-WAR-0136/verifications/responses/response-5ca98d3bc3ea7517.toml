@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0136"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Deliverable D-007 (conformance/plants.d/58-invalidation.sh, excerpt lines 393-417 and 616-640) contains the exact assertions OBL-004 requires: a byte-identity check via iv_history plus a sha256sum comparison of G's definition file, an attest --all --verify exit-0 check with no ERROR lines and a check that the invalidation's own attestation file exists (compgen over docs/gates/invalidations/attestations/), followed by a check on unresolved Warrant E that war check emits 'WARN evidence.gate-invalidated' naming docs/gates/invalidations/plant.g@1.0.0.toml, that PASS evidence.admissible no longer appears for G, and that 'war resolve E --dry-run' exits non-zero. The recorded gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0, verdict pass) prints, in its stdout excerpt, the corresponding 'ok' lines verbatim — 'ok nothing historical is rewritten resolutions, receipts, runs, attestations, G's definition byte-identical; attest --all verifies' and 'ok G's receipt is inadmissible on E evidence.gate-invalidated names the invalidation; IV-WAR-0005 no longer resolvable' — inside a run that totals '1214 passed, 0 failed'. The source of the checks and the recorded execution of those same checks agree, so within the obligation's scratch-corpus scope both evidence bullets are shown to hold; the obligation_evidence note that no literal 'resolution.toml' file is carried is immaterial since the corpus is ephemeral scratch state verified only through the plant's own recorded assertions, which the bundle does carry."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

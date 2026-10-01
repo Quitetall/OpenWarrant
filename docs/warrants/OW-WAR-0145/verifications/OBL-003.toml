@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = """Gate run GR-software.repo.war-check@1.0.0 (an actual `./target/debug/war check --generated` run on this repository after OW-WAR-0145's deliverables and signed authorization are already in effect, per its own 'PASS deliverable.digests OW-WAR-0145' and 'PASS authority.signed OW-WAR-0145' lines) shows at excerpt line 3 'PASS gate.registered ops.conformance.plants@1.1.0: local candidate, qualified against its declared fault model', and its summary line reports '2053 pass · 224 warn · 0 unknown · 0 error', satisfying the registration and zero-error requirements directly; D-002 (docs/gates/ops.conformance.plants@1.1.0.yaml) is carried in full and declares `mutating: "false"` for this exact registered gate/version. The byte-identical-@1.0.0 requirement is corroborated by the same GR-ops.conformance.plants@1.1.0 excerpt's 'ok    1.0.0 is byte-identical            sha256:467b90edd95a, as before 4c99de1c' together with its paired negative control 'ok    a changed 1.0.0 is seen            one byte more is a different digest', which shows the comparison is discriminating rather than vacuous."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

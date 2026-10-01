@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0146"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-002 (conformance/plants.d/47-bundle-output.sh) contains three bo_ok/bo_fail checks that directly implement OBL-001's three evidence bullets: comparing run['stdout']['sha256'] and run['stdout']['text'] against the recorded stdout file, checking truncated=true with the whole-file digest preserved after lowering max_excerpt_bytes to 64, and checking captured=false with no 'text' key after removing the stdout file. The bundled gate run 'ops.conformance.plants@1.1.0' (run_id GR-ops.conformance.plants@1.1.0, receipt verdict pass) carries an excerpt (lines 191-198) headed '== bundled gate output (OW-WAR-0146) ==' printing 'ok' for exactly these three checks verbatim ('the gate's stdout is in the bundle ... captured, text is the file's, digest ...', 'a long output is cut, not re-digested ... truncated at 64 bytes, whole-file digest', 'a missing output is not silence ... captured false, no text'), matching D-002's printf format precisely, confirming this is a real execution of the current D-002 bytes (sha256 0883b653...) rather than an assertion. The bundle document itself also structurally embodies the feature: its own gate_runs entries carry captured/sha256/bytes/truncated/text/excerpts fields, produced by D-001's code. No FAIL lines appear near this section."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "OBL-002's stated scope (editing stdout after the receipt records a digest) is unreachable under the frozen GateReceipt schema shown in D-001's own unit test (a_carried_receipt_does_not_depend_on_where_the_checkout_sits), which has no stdout_digest field and per the Basis/Work Order 'receipts' are a frozen surface never modified. The obligation's own evidence text accounts for this: 'Where the receipt records no stdout digest, the plant says so and asserts only that the field is absent.' D-002's OBL-002 section checks exactly this ('stdout_digest' not in receipt, and 'mismatch' not in run['stdout']), and the ops.conformance.plants@1.1.0 gate run's stdout excerpt (line 195) shows 'ok    no digest recorded, no mismatch    the receipt records none; the field is absent', a passing, literal execution result matching this fallback requirement exactly. No gate run in the bundle shows a failure or contrary result for this check."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-002's OBL-003 section performs two consecutive `war verify --bundle` runs after clearing prior bundle files, counts the resulting bundle-*.json files (BO_N), points verifier_argv at a copy of conformance/fixtures/verifier/establishes-all.sh, runs `war verify --run`, and checks the output contains 'verify.recorded'. The bundled ops.conformance.plants@1.1.0 gate run's stdout excerpt (line 196) shows 'ok    one digest, and the verifier ingests   one bundle file after two runs; verify.recorded', a passing literal execution result directly matching OBL-003's evidence text ('one bundle file after two runs (one digest), and the fake verifier's response is ingested as before'). obligation_evidence for OBL-003 confirms conformance/plants.d/47-bundle-output.sh (D-002) is carried, and notes conformance/fixtures/verifier/establishes-all.sh exists in the repository tree (named_paths, absent reason 'a repository path that is not a deliverable...: not carried', i.e. present but simply not a bundled deliverable), consistent with the plant's use of it."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

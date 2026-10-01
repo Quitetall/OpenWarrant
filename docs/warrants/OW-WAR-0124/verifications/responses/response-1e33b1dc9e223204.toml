@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) carries the lines 'ok    0124 leaves the authority steps    1 commit(s): six regions byte-identical before and after' and 'ok    a touched authority step is seen   a line planted in render_roles is reported, and nothing else' in its '== brownfield adoption (OW-WAR-0124) ==' section, which does establish the diff/grep-based portion of OBL-006's evidence: that render_roles, render_allowed_signers, the Signer/KeyLoaded arms, and the two named tests are byte-identical across the cited commit, and that a planted line in render_roles is detected. However, the obligation also requires that, with history, the step after Program is Baseline and confirming yields exactly one Effect writing [adoption], that Baseline is skipped with no history, and that the two named unit tests (an_existing_authority_file_is_never_written_again, the_agent_is_a_performer_and_nothing_else) actually pass. D-005 (guided.rs, untruncated) shows the source of with_history_the_step_after_program_is_baseline, without_history_baseline_is_skipped, and the two named tests with assertions consistent with these claims, but neither gate run in the bundle invokes `cargo test` or otherwise shows unit-test execution output (GR-ops.conformance.plants@1.1.0 runs `bash conformance/plant-isolated.sh`; GR-software.repo.war-check@1.0.0 runs `./target/debug/war check --generated`, a static/manifest check). No test-pass log for these specific Rust unit tests appears anywhere in the bundle, so the claim that they 'pass' — as opposed to merely being present and plausible in source — is not established by execution evidence. Since OBL-006's evidence is conjunctive and this part rests only on source inspection, the obligation as a whole remains not_established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

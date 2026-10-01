@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0093"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty, and obligation_evidence for OBL-001 lists no named_paths or terms carried; only atoms/40-work-order.md and atoms/60-assurance.md state the requirement (create/persist exact source, revision history, restart survival, unchanged old bytes) as authored intent, with no HTTP/QA fixture output shown to confirm it happened."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are carried in this bundle, and obligation_evidence for OBL-002 shows no named_paths or terms; the refusal behaviors described in atoms/40-work-order.md and atoms/60-assurance.md (bad token, foreign Host/Origin, stale writes, corrupt input, etc.) are only asserted requirements with no test run or fixture output evidencing them."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires a full legacy-Warrant reconciliation inventory (per atoms/10-intent.md and atoms/40-work-order.md's docs/releases/ deliverable), but the bundle carries no docs/releases/ file, gate run, or plant, and obligation_evidence lists no named_paths for OBL-003, so no inventory or its accuracy can be checked."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "OBL-004 requires evidence of a separate review context and repository gate with no self-issued Verified mark; gate_runs and plants are both empty, prior_verifications shows only a prior not_established assessment from the same class of automated verifier rather than an independent repository gate, and obligation_evidence carries no named_paths for OBL-004, leaving nothing to confirm independent review occurred."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,122 @@
+[
+  {
+    "run": 0,
+    "variant": "baseline",
+    "exit_code": 0,
+    "elapsed_seconds": 2.981,
+    "user_cpu_seconds": 2.443,
+    "system_cpu_seconds": 0.551,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 0,
+    "variant": "optimized",
+    "exit_code": 0,
+    "elapsed_seconds": 2.689,
+    "user_cpu_seconds": 2.179,
+    "system_cpu_seconds": 0.508,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 1,
+    "variant": "optimized",
+    "exit_code": 0,
+    "elapsed_seconds": 2.455,
+    "user_cpu_seconds": 2.019,
+    "system_cpu_seconds": 0.451,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 1,
+    "variant": "baseline",
+    "exit_code": 0,
+    "elapsed_seconds": 2.79,
+    "user_cpu_seconds": 2.299,
+    "system_cpu_seconds": 0.472,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 2,
+    "variant": "baseline",
+    "exit_code": 0,
+    "elapsed_seconds": 2.655,
+    "user_cpu_seconds": 2.243,
+    "system_cpu_seconds": 0.437,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 2,
+    "variant": "optimized",
+    "exit_code": 0,
+    "elapsed_seconds": 2.649,
+    "user_cpu_seconds": 2.151,
+    "system_cpu_seconds": 0.51,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 3,
+    "variant": "optimized",
+    "exit_code": 0,
+    "elapsed_seconds": 2.443,
+    "user_cpu_seconds": 2.02,
+    "system_cpu_seconds": 0.454,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 3,
+    "variant": "baseline",
+    "exit_code": 0,
+    "elapsed_seconds": 2.675,
+    "user_cpu_seconds": 2.277,
+    "system_cpu_seconds": 0.399,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 4,
+    "variant": "baseline",
+    "exit_code": 0,
+    "elapsed_seconds": 2.764,
+    "user_cpu_seconds": 2.161,
+    "system_cpu_seconds": 0.455,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 4,
+    "variant": "optimized",
+    "exit_code": 0,
+    "elapsed_seconds": 2.385,
+    "user_cpu_seconds": 1.974,
+    "system_cpu_seconds": 0.366,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 5,
+    "variant": "optimized",
+    "exit_code": 0,
+    "elapsed_seconds": 2.34,
+    "user_cpu_seconds": 1.94,
+    "system_cpu_seconds": 0.41,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  },
+  {
+    "run": 5,
+    "variant": "baseline",
+    "exit_code": 0,
+    "elapsed_seconds": 2.656,
+    "user_cpu_seconds": 2.235,
+    "system_cpu_seconds": 0.433,
+    "sha256": "02baeaecec51d496cf17a1ce90811fcc5b51af25595bc2e9630b34ed386b8410",
+    "identical_bytes": true
+  }
+]

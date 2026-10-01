@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables[], gate_runs[], and plants[] are all empty and obligation_evidence for OBL-001 lists no named_paths and no terms, only the generic selection string. Only the five authored atoms (atoms/10-intent.md, atoms/20-basis.md, atoms/40-work-order.md, atoms/45-milestones.yaml, atoms/60-assurance.md) are present, describing the planned study design and required prerequisites; none contain consent confirmations or session records for P1, P2, or P3, so the existence of three real consenting participants cannot be decided from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-0f24` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-0f24"
+uuid = "01a0dd28-4f71-7a62-bbd5-ff45bfae10ad"
+title = "A refused 'war standing propose' may have written into docs/ (seen once)"
+profile = "ticket"
+priority = 2
+created_at = "2026-09-26T10:00:01Z"
+created_by = "claude"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

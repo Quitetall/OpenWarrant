@@ -89,8 +89,12 @@ pub fn act_of(p: &Pending) -> &'static str {
     match p {
         Pending::Authorize { .. } => "authorize",
         Pending::Resolve { .. } => "resolve",
-        Pending::Accept { .. } => "accept",
+        Pending::Accept { .. } | Pending::AcceptRoadmap { .. } | Pending::AcceptStanding { .. } => {
+            "accept"
+        }
+        Pending::RevokeStanding { .. } => "revoke",
         Pending::Correct { .. } => "correct",
+        Pending::Invalidate { .. } => "invalidate",
     }
 }
 
@@ -99,16 +103,20 @@ pub fn target_of(p: &Pending) -> String {
     match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias.clone(),
         Pending::Accept { version, .. } => version.clone(),
+        Pending::AcceptRoadmap { .. } => "roadmap".to_owned(),
         Pending::Correct {
             alias,
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}"),
+        Pending::Invalidate { gate, .. } => gate.clone(),
+        Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => sign::target_of(p),
     }
 }
 
-/// Read the whole board from the records. No writes, no prompts.
-pub fn board(repo: &Repository) -> Result<Board, RepoError> {
+/// The review rows, without evaluating stages a caller already has.
+/// Uses the same authority and question evaluators as the full console.
+pub fn review_rows(repo: &Repository) -> Result<(Vec<Act>, Vec<Question>), RepoError> {
     let acts: Vec<Act> = sign::pending(repo)?
         .iter()
         .enumerate()
@@ -137,6 +145,12 @@ pub fn board(repo: &Repository) -> Result<Board, RepoError> {
             })
             .collect()
     })?;
+    Ok((acts, questions))
+}
+
+/// Read the whole board from the records. No writes, no prompts.
+pub fn board(repo: &Repository) -> Result<Board, RepoError> {
+    let (acts, questions) = review_rows(repo)?;
     let stages: Vec<Stage> = crate::frontier::run(repo, None)
         .map(|(_, f)| {
             f.rows
@@ -449,6 +463,7 @@ fn sign_checked(
         let preset = reason.and_then(|r| r.preset.clone());
         let extra = reason.and_then(|r| r.extra.clone());
         let mut opts = sign::Options {
+            dry_run: false,
             actor: None,
             meaning: compose_meaning(preset.as_ref(), extra.as_deref()),
             outcome: None,
@@ -460,6 +475,7 @@ fn sign_checked(
             ssh_sign: true,
             verify: false,
             kind: None,
+            revoke: false,
         };
         if a.act == "correct" {
             let Some(word) = reason.and_then(|r| r.kind.clone()) else {

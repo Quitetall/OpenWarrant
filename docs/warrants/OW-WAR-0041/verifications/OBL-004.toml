@@ -1,12 +1,11 @@
 obligation = "OBL-004"
 disposition = "established"
-evidence = "The test `telemetry::tests::no_success_metric_claims_a_direction` passes, confirming that the telemetry baseline artifact states no delta for any §100 metric, as required by the obligation."
+evidence = """D-002's success_metrics object (full, untruncated) lists all sixteen §100 metrics named in D-001's SUCCESS_METRICS constant, each valued as the literal string "no baseline" with no numeric delta anywhere in the artifact, directly matching the obligation's evidence requirement and atom 60-assurance.md's JDG-001 ('all sixteen §100 metrics record no baseline... one measurement cannot support one')."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

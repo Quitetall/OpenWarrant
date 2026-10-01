@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0133"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh) implements the OBL-002 scenarios verbatim: 'a committed run counts' (records evidence over plant.reads@1.0.0, then asserts `war check` shows evidence.admissible naming the inputs rule and `war resolve --dry-run` reports the requirement-5-met line), 'a changed deliverable' (mutates src/lib.txt, commits, and asserts evidence.stale-binding naming the moved inputs digest plus requirement-5-unmet), and the control 'an unrelated commit leaves it' (a commit touching nothing the inputs rule reads must stay evidence.admissible/requirement-5-met and explicitly asserts the absence of evidence.stale-binding) — this control is exactly what closes the Gate Adequacy counterexample that 'a rule that refuses every receipt' would otherwise satisfy the obligation. The gate run for gate://ops.conformance.plants@1.1.0 cited by OBL-002 is verdict pass, its subject_digests bind it to this contract's current tree/deliverables (not stale itself), and its stdout excerpts quote the corresponding lines directly: 'ok a committed run counts evidence.admissible under the inputs rule; requirement 5 met', 'ok a changed deliverable rejected by evidence.stale-binding naming inputs:sha256:c66fce…; requirement 5 unmet', and 'ok an unrelated commit leaves it evidence.admissible; requirement 5 still met', with the tail of the same stdout stream reporting the battery-wide '1270 passed, 0 failed' (no FAILED line for these plants, unlike other genuinely failing plants shown elsewhere in the same excerpts). The tree-fallback case (Q-001(a)) is also shown passing: 'ok the tree fallback admissible after its record commit; stale-binding naming tree:… after any other'. obligation_evidence for OBL-002 confirms none of the deciding terms ('war check', 'war resolve --dry-run', 'evidence.stale-binding') were cut by the budget across D-002/D-005/D-006/D-010 and both gate stdouts, so the evidence is not merely truncated-past-relevance. Docs/RESOLVING.md (D-006) and evidence.rs (D-002, tests like `a_moved_source_is_a_record_not_evidence`) corroborate the same rule textually and in unit tests, consistent with the plant's runtime behavior."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0136"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "The bundle carries D-009 (docs/gates/ops.exit-demo@1.0.0.yaml) and the software.repo.war-check@1.0.0 run shows 'PASS gate.registered ... ops.exit-demo@1.0.0: local candidate, qualified against its declared fault model', confirming only that the gate definition exists and is registered. Nothing in the bundle shows the four specific facts OBL-006 requires: no resolution record or attestation for 'the one Warrant resolved against' ops.exit-demo@1.0.0 appears anywhere (not in deliverables, not in either gate run's stdout excerpts), no custody-audit record naming an actor distinct from that resolution's performer, and no invalidation or dispute record for ops.exit-demo@1.0.0 is shown. Critically, obligation_evidence for OBL-006 lists the term 'war attest --verify --all' with shown_in: [] — that command's output, needed to show the 29 existing resolutions still verify and remain undisputed, is absent from the bundle entirely. The software.repo.war-check@1.0.0 stdout excerpts (largely OW-WAR-0136 authorization/traceability WARN/PASS lines, e.g. 'WARN deliverable.undeclared-at-authorization', 'WARN evidence.stale-binding', 'WARN sas.pin-superseded') do not touch on the demo resolution, its dispute, or the 29-resolution check. Since none of the required evidence is carried, and nothing shown contradicts the claim either, this is not established rather than refuted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "The measured evidence includes passing tests, plant violations, and a war-check receipt, but no artifact or test demonstrates the verbatim request, returned proposal, §74.4 eight-step trace, or resulting Warrant required for this obligation."
+disposition = "refuted"
+evidence = "JDG-001 in atoms/60-assurance.md groups OBL-002 with OBL-001 as open specifically because 'No agent has been invoked,' and the same atom's Gate Adequacy section states 'this Warrant has not been executed,' meaning no interview producing an agent-authored Draft Proposal, no §74.4 eight-step trace, and no application has taken place. obligation_evidence for OBL-002 shows only the generic term 'war check' surfaced in the gate stdout, with no verbatim request, no returned proposal, and no eight-step trace anywhere in the bundle; deliverables is empty. The gate stdout is corpus-wide structural validation ('PASS traceability.refs', 'PASS obligations.valid') and explicitly disclaims verifying that any acceptance gate or run occurred. The authored record's own statement that the run never happened refutes the claim that 'one vague sentence produced an applied draft.'"
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

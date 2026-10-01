@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The provided evidence includes a single gate run receipt and CI steps, but no artifact or measurement demonstrates a CI run on both `x86_64-unknown-linux-gnu` and `aarch64-apple-darwin` triples producing byte-identical canonical JSON compared by digest across hosts."
+evidence = """deliverables is empty and obligation_evidence for OBL-001 shows the required triples (x86_64-unknown-linux-gnu, aarch64-apple-darwin) only with shown_in:["atoms"] — i.e. named in atoms/20-basis.md as a needed run, not evidenced as an executed one. The single gate run GR-software.repo.war-check@1.0.0 is a `war check --generated` invocation whose own NOT CHECKED section states 'war check does not invoke [gates]... nothing here is evidence that a Warrant's acceptance gates were run', and its visible stdout excerpts (lines 801-819, 2606, 2773, 2853) cover manifest validity, traceability, journal, SAS pin, milestones — never a two-host canonical-IR byte comparison. No CI run, digest comparison, or updated caveat text from OW-WAR-0003/OW-WAR-0005 is carried anywhere in the bundle."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,0 +1,2 @@
+ok: clone index prepared once; caller index unchanged; clone removed
+ok: failed refresh refuses before battery; caller preserved; clone removed

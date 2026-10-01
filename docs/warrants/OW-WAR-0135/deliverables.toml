@@ -1,0 +1,139 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# The ADR number is the next free one at delivery; 0024 is claimed by
+# OW-WAR-0126's draft. Renumbering before authorization is an edit, not an
+# amendment.
+
+[[deliverable]]
+id = "D-001"
+title = "The assurance mark decision: baseline v1, issuance, what it binds"
+kind = "file"
+target_ref = "docs/adr/atoms/OW-ADR-0025-assurance-mark.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e90c0d4ccaacb46405b01571541610cfc0e450e2cdf1b0970811a88604a6598c"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "Evaluate a resolved Warrant against a baseline; emit or refuse the mark"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mark.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2813ad08138cffb1212dc6c14c16238565e05013926c81b3783196ec2f113c65"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The war mark command"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "Baseline v1 as data, versioned"
+kind = "file"
+target_ref = "docs/assurance/baseline-v1.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d51e6453b96e641cf4f5095e3121026f39c1d6df0a787c6ef3fc9cefec1ca7d5"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "The mark plants"
+kind = "file"
+target_ref = "conformance/plants.d/57-assurance-mark.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:86081f359bf00b0b00c2c86b4f26496b5e24fc65dbee2db90526a99d15ce8645"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "What the mark says, and what it does not"
+kind = "file"
+target_ref = "docs/ASSURANCE_MARK.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f91c1224c364a2c6536c4fedf5f6ea34c3aef176cfde6b44b393237ae932f0a9"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

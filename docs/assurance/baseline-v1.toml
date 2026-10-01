@@ -1,0 +1,79 @@
+# The assurance mark's baseline, version 1, as data (OW-ADR-0025).
+#
+# PROPOSED. The owner has not answered OW-WAR-0135 Q-001 or Q-002, and this
+# file governs nothing until OW-ADR-0025 is accepted and `status` below
+# becomes "accepted" in the same change. A baseline whose status is not
+# "accepted" earns no mark.
+#
+# Each requirement evaluates to met, unmet, or UNKNOWN. A mark exists only
+# when every requirement is met; UNKNOWN is never met (Law 15). `evidence`
+# names the record or finding that answers the requirement, `unmet` when
+# that record says no, and `unknown` when no record can answer. `check` is
+# the name `war mark` evaluates it by; a name the tool does not implement
+# is UNKNOWN, never met and never dropped.
+#
+# Changing a requirement is a new baseline version, never an edit of v1.
+
+schema = "oh.war/assurance-baseline/v1"
+id = "v1"
+status = "proposed"
+adr = "OW-ADR-0025"
+
+# §46.3 minimum every verdict in BL-003 is judged at, whatever the Warrant's
+# own assurance_level. Proposed "controlled"; the owner may choose "basic"
+# (Q-002).
+independence_floor = "controlled"
+
+[[requirement]]
+id = "BL-001"
+title = "Resolved satisfied, standing valid"
+check = "resolution.satisfied"
+statement = "The Warrant has a resolution whose common_outcome is satisfied and whose standing is valid."
+evidence = "docs/warrants/<alias>/resolution.toml: [resolution] common_outcome, standing (§56.2)."
+unmet = "No resolution.toml (Q47: implementation finished, unreviewed), an outcome other than satisfied, or a standing other than valid."
+unknown = "Never: the record exists or it does not, and its absence is the answer."
+
+[[requirement]]
+id = "BL-002"
+title = "A human signed the resolution, and it is attested"
+check = "resolution.attested"
+statement = "A resolve attestation verifies against allowed_signers and its subjects match the resolution on disk, and resolved_by_ref names an actor whose kind in roles.toml is human."
+evidence = "docs/warrants/<alias>/attestations/resolve-<n>.dsse.json, verified as `war attest verify` does (OW-ADR-0015); docs/authority/roles.toml."
+unmet = "No resolve attestation (a TTY signature has no key), a signature or subject digest that does not verify, or a resolver that is not a human (§27.2; no delegated act, Q8-Q9)."
+unknown = "ssh-keygen is unavailable, so the signature cannot be checked."
+
+[[requirement]]
+id = "BL-003"
+title = "Every obligation established by an admissible independent verdict"
+check = "obligations.independently_established"
+statement = "Every obligation declared in 60-assurance.md has a verification whose disposition is established and which is admissible at independence_floor."
+evidence = "docs/warrants/<alias>/verifications/<OBL>.toml, judged by Verification::admissible_for (§46.3, RQ-053)."
+unmet = "An obligation with no verdict, a disposition other than established, a verifier equal to the performer, or independence below the floor."
+unknown = "Never: each verdict file exists or it does not."
+
+[[requirement]]
+id = "BL-004"
+title = "The resolution names the commit it accepted, and the bytes were committed"
+check = "resolution.located"
+statement = "The resolution carries a [locator] with a forty-hex commit_sha and worktree_clean = true."
+evidence = "docs/warrants/<alias>/resolution.toml: [locator] commit_sha, worktree_clean (OW-ADR-0021, §56.2)."
+unmet = "worktree_clean = false: the bytes the resolution bound are not the ones at commit_sha."
+unknown = "No [locator] (resolved before OW-ADR-0021), or a commit_sha that is not forty lowercase hex."
+
+[[requirement]]
+id = "BL-005"
+title = "The candidate is still the tree the human accepted"
+check = "acceptance.unchanged"
+statement = "No in-scope path moved between the locator's commit and the tree marked."
+evidence = "acceptance::assess, the finding `war pins --candidate` reports (OW-WAR-0134)."
+unmet = "acceptance.candidate-moved: an in-scope path or a pinned deliverable moved."
+unknown = "acceptance.unknown: no locator, or a commit git cannot read."
+
+[[requirement]]
+id = "BL-006"
+title = "Every relied-on gate run is admissible"
+check = "evidence.admissible"
+statement = "Every receipt in the resolution's gate_run_refs is admissible against the resolution's contract digest."
+evidence = "The receipts named by gate_run_refs, judged by evidence::admissibility (OW-WAR-0133)."
+unmet = "A receipt that is missing, invalid, not a pass, or stale against the contract."
+unknown = "A receipt whose reuse cannot be judged: its gate's definition is not registered, or the fixtures it declares are not named in it."

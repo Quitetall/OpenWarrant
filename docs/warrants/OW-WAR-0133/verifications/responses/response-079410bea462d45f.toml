@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0133"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh, carried in full, truncated:false) contains both required OBL-003 checks under its '# ---- OBL-003 ---' section: 'a contract-only receipt' (reseals a contract-only receipt on scratch Warrant ER-WAR-0001 and asserts check exits 0, prints WARN evidence.reuse-unknown naming 'no tree', shows no admissible/receipt-invalid/stale-binding, and resolve --dry-run still reports requirement 5 unmet) and 'resolved history is untouched' (hashes every resolution.toml in this repository before/after `war --json check` and `war check OW-WAR-0010`, asserting byte-identical hashes, no new error or reuse-unknown on any resolved Warrant, and OW-WAR-0010 showing evidence.admissible '...resolved: the source is not re-evaluated'). The gate run GR-ops.conformance.plants@1.1.0 (sealed receipt, verdict pass, exit_result pass) directly confirms the first check via its excerpted stdout line 373: 'ok    a contract-only receipt            evidence.reuse-unknown, a warning (check exits 0); requirement 5 unmet'. The same stdout's visible tail shows the battery's grand total 'ok line_has reads a captured text ... 1260 passed, 0 failed / tested commit 9f55131c7aeee59e99b2c258b8ee0ccd86614b60', a zero-failure tally across the whole battery (which uses the same er_ok/er_fail counters as D-005), entailing the second OBL-003 check ('resolved history is untouched') also passed, since any failure there would have incremented the shown FAILED count. Together these establish both evidence bullets within OBL-003's stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0101"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables (\"deliverables\":[]), no gate_runs, and no plants. obligation_evidence for OBL-001 lists no named_paths and no terms; the selection is merely 'warrant: every deliverable of the Warrant' with nothing actually shown. There is no adapter code, HTTP fixture, or test output present to demonstrate conforming responses emitting or malformed/truncated/missing-field cases refusing without proposal stdout, so the claim cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "As with OBL-001, deliverables, gate_runs, and plants are all empty, and obligation_evidence for OBL-002 has no named_paths or terms shown. No evidence of endpoint handling, redirect rejection, duplicate-field handling, or input/output bound enforcement is present in the bundle, so there is nothing to verify this obligation against."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires retained raw request/response, identities, and an actual semantic pipeline result for one exact local model/executable, but the bundle contains no deliverables, gate_runs, or plants carrying any such observation, and obligation_evidence lists no named_paths or terms for OBL-003. The basis atom (atoms/20-basis.md) only references prior OW42 observations by pointer ('implementation/local-draft-20260918') without including them here, so the actual raw evidence is absent from this bundle and the claim cannot be established or refuted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

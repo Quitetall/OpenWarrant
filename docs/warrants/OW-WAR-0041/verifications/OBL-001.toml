@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "The artifact artifacts/telemetry-baseline.json names commit 8da1ca1 and records values or 'not_measurable_yet' for all eighteen §94 measures, as required by the deliverable D-002."
+evidence = """D-002 (artifacts/telemetry-baseline.json, untruncated, sha256 020600c4...) names commit "6e08dd6" and gives every measure in D-001's TELEMETRY_MEASURES list either a numeric value with a stated method or an explicit not_measurable_yet reason, satisfying the 'recorded artifact naming the commit and the value of every measure' requirement. The warrant-scope deliverable set carries only D-001 (telemetry.rs) and D-002 (the baseline itself) — no deliverable in this bundle alters an assurance default or amendment policy — and atom 40-work-order.md's Non-goals ('No tuning... measuring is this Warrant') and 20-basis.md's Constraints ('A metric with no baseline is not a metric') corroborate that this delivery is the measurement act, not a tuning act, consistent with a baseline taken before tuning."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

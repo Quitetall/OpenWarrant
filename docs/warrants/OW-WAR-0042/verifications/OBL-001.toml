@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The basis atom explicitly states that no drafting agent is available on this host, and no recorded exchange showing a canonical request on stdin and a canonical Draft Proposal on stdout from a separate process is present in the provided artifacts, such as the §44.6 receipts or test outputs."
+disposition = "refuted"
+evidence = "atoms/20-basis.md records as a 'Blocking unknown' that 'No drafting agent speaks oh.war/agent-drafter/v1 today' and that Katana 'is not cloned on this host.' atoms/60-assurance.md's JDG-001 (author QuiteTall, admissibility controlled_measurement) states directly: 'No agent has been invoked' and the Gate Adequacy section's 'Executed attacks: none yet — this Warrant has not been executed.' The obligation_evidence entry for OBL-001 carries no named_paths and no terms, and deliverables is an empty list, so no recorded stdin/stdout exchange with a separate drafting process is carried. The single gate run (GR-software.repo.war-check@1.0.0) performs only structural checks on the atoms (e.g. 'PASS manifest.valid', 'PASS identity.atom-mismatch') and its own NOT CHECKED footer states 'war check does not invoke [gates], so nothing here is evidence that a Warrant's acceptance gates were run.' Since the Warrant's own authored record affirmatively states the required exchange never occurred, the claim is refuted rather than merely unproven."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

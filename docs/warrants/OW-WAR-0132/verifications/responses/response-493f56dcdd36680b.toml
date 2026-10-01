@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0132"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0, verdict pass, 1270 passed/0 failed) has stdout excerpts (lines 262-270) showing five plant results from conformance/plants.d/52-hotline-defaults.sh (D-006) that map one-to-one onto OBL-001's four evidence bullets: 'a blocking question blocks' (STAGE-001 blocked waiting_on Q-001; STAGE-002 open) matches the war-ask/frontier bullet; 'perform on a question-blocked stage' (rejected by perform.question-open (Q-001); no marker, no Dispatch) matches the refusal-with-no-spawn bullet, with the plant's own hd_marked/hd_packets checks (visible in D-006's untruncated text) requiring the marker file absent and zero dispatch packets before printing 'ok'; '--all performs the other stage' (STAGE-002 answered; STAGE-001 not started) matches the 'only its stage' bullet; 'a non-blocking question' (STAGE-001 open and performed despite Q-001) confirms the rule is not blanket; and 'an answered question unblocks' (STAGE-001 open after Q-001 answered; performed) matches the final bullet. The mechanism behind these results is shown in the fully carried, untruncated frontier.rs (D-001), whose open_blocking()/run() sets StageState::Blocked with waiting_on containing unanswered blocking-question ids, and in perform.rs (D-002) excerpts lines 881-935 (hotline_admitted), which push the perform.question-open diagnostic and set clear=false before any Dispatch is compiled (confirmed by the code path returning before the `compile(...)` call at lines 275-300). docs/HOTLINE.md (D-005) and the plant script text (D-006) corroborate the scratch-corpus, fixture-performer setup the scope requires. All terms obligation_evidence lists for OBL-001 are marked shown with no cut_from entries, so no budget truncation withheld anything needed to decide this obligation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0085"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence for OBL-001 lists no named_paths or terms; no sdk_probe.rs run, no conformance/sdk/run_phase1.py receipt, no CLI/driver transcript, and no docs/reviews/phase-1.md content appear anywhere in the bundle. The only evidence item, gate run GR-software.repo.war-check@1.0.0, is a repository-manifest structural check and its own stdout excerpt states 'war check does not invoke [a gate], so nothing here is evidence that a Warrant's acceptance gates were run.' No inputs, outputs, exit codes, or fixture revisions for S01–S08/SDK-01–24/FOOTER-01–08 are shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "plants is empty and deliverables is empty, so there is no observed named refusal, no unchanged-prior-output-on-failed-write record, and no mutation-of-real-content test anywhere in the bundle. The war-check gate's stdout excerpts only contain repository/manifest-level checks (e.g. evidence.stale-binding, sas.pin-superseded, authority.signed) unrelated to SDK/CLI input-validation behavior, so the boundary-refusal claim cannot be assessed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No independent reproduction/review, baseline-condition record, or secure human-acceptance record for OW-WAR-0085's exact result appears in the bundle; prior_verifications are all 'not_established' for OBL-001/002 which OBL-003 depends on. The war-check gate stdout explicitly states '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' and flags outstanding remedy 'human war sas repin OW-WAR-0085', confirming no qualification/acceptance evidence exists."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0's excerpts show OW-WAR-0085-specific structural PASS results (manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, bonsai-scope.valid, generated.drift, identity.atom-mismatch) with subject_digests matching this Warrant's authorized_contract_digest, satisfying the 'structural check' half of the evidence requirement. However OBL-004 also requires 'existing planted refusals,' and the plants array is empty, so that half is entirely absent, leaving the obligation not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

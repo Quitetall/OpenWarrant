@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0103"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle contains only the five authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) describing intent, basis, work order and acceptance criteria. There are no deliverables, gate_runs, or plants in the bundle (all empty arrays), so no regression test output, CLI transcripts, or fixture results are present to show the pre-fix/post-fix behavior for questions, answers, watch and console. The claim is only asserted in atoms/60-assurance.md's OBL-001 evidence description, not demonstrated by any executed artifact."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No gate_runs or deliverables are carried in this bundle to show real stdio JSON-RPC war_questions/war_answers behavior against the fixture. atoms/60-assurance.md states the expected evidence (healthy record visible beside malformed companion, exit status/MCP error flag, answers refuse) but this is only the acceptance criterion text, not an actual MCP session transcript or gate output."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No gate_runs (empty array) are present in the bundle, so there is no evidence of targeted suites, clippy, generated checks, or a full repository gate having been executed. atoms/40-work-order.md and atoms/60-assurance.md only specify what should be checked, not the results of any such check."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

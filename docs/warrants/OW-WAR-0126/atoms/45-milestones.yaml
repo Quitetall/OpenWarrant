@@ -1,0 +1,16 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The authority split, recorded as a proposed ADR the owner can accept or reject"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Draft OW-ADR-0024 from the owner's answers to Q-001, Q-002 and Q-003"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["20-basis.md#Questions for the owner", "40-work-order.md#Deliverables"]
+    budget_tokens: 8000

@@ -8,8 +8,29 @@ For a user prompt using `war` as an OpenWarrant intent cue, read the
 [war router](.claude/skills/war/SKILL.md). Bare `war` means read-only overview.
 Explicit execution requests permit scoped unverified work subject to named gates.
 
+## Tickets: the default work loop
+
+For ordinary work, use tickets ([docs/TICKETS.md](docs/TICKETS.md)): run
+`war prime` first, then `war ready`, `war claim <item>`, do it,
+`war done <item> --note "..."`, and `war note <ticket> "..."` for context the
+next agent needs. Nothing in that loop needs a signature; never ask the human
+to sign during it. Warrants are the opt-in authority layer a ticket enters only
+through `war promote`, and the records this repository governs itself with.
+
+**When a ticket needs sign-off**, the performer rules of the
+[legacy Warrant workflow](docs/agents/legacy-warrant-workflow.md) bind in full:
+never verify your own work, never write a disposition you did not receive,
+never edit a file under `generated/`, never change a document to make a tool
+happy. They apply whenever the authority layer is used, and never make a
+signature a step of the ticket loop.
+
 ## Read the context needed for this task
 
+- **First, always:** read [`docs/generated/CURRENT.md`](docs/generated/CURRENT.md),
+  the master document `war compile` writes (OW-ADR-0022): every current Warrant
+  expanded, the SAS in force, accepted decisions, who governs each path, who may
+  sign and the queue already judged by the dry run. A replaced Warrant is one
+  line of lineage there; its text is in `docs/generated/HISTORY.md`.
 - **Product or SDK design:** read the [current SAS draft](docs/sas/drafts/1.0.0-rc.3/README.md),
   then the linked companion for the feature. RC.3 is an unaccepted candidate;
   the draft does not establish implemented behavior or rewrite signed history.
@@ -59,8 +80,8 @@ limits. Agent completion cannot award the common assurance mark: that requires
 independent evidence and secure human acceptance of the exact result.
 
 This repository still contains legacy records and CLI enforcement. Human-only
-legacy authorization, resolution, SAS acceptance and correction acts remain human
-acts. Use the linked legacy workflow for them. These instructions do not migrate
+legacy authorization, resolution, SAS acceptance, correction and gate
+invalidation acts remain human acts. Use the linked legacy workflow for them. These instructions do not migrate
 records, unlock unsupported prototype commands or accept SAS RC.3.
 
 ## Preserve truthful records
@@ -83,6 +104,18 @@ interruptions. At a work stop, return the configured completion word and concise
 links to generated progress, implementation notes, document trail and next steps.
 Use actual tracker output; report missing generation support instead of fabricating
 state. Completion does not imply qualification, merge, deployment or Stable release.
+
+Never run bare `war`: at a terminal — a pty inside a harness included — it
+opens the full-screen app and waits for keys. An agent reads `war status
+--json`, `war next --json`, `war check --json`; the app is a human's.
+
+Before a handoff that asks a human to sign, run `war sign <target> --dry-run`
+(or `war sign --all --dry-run` for the queue). It drafts the response and runs
+the act's ingest with the write withheld: every refusal the real signature
+would meet, by its rule name, or `<act>.would-record`. Nothing is written and
+no key is touched. Report which acts would record and which would be refused,
+and fix the refusals first — a human's dialog is not the place to discover
+`authorize.no-amendment`.
 
 For work or architecture changes, follow the user's stop-now or next-work-stop
 decision and retain required old rules until the affected writer stops. Harness

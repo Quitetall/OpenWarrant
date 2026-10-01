@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0116"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "GR-ops.conformance.plants@1.1.0's stdout carries both 63-webui.sh and 63-webui-verified.sh (D-011, D-012) results, together covering every clause OBL-001 names: 'an API call without the token' 401, 'an API call with a wrong token' 401, 'a foreign Host (DNS rebinding)' 400, 'an act with no Origin' 403, 'a foreign Origin' 403, 'an act by a non-POST method' 405 (D-011, PUT) plus D-012's explicit 'an act by PUT' 405 and 'an act by DELETE' 405, 'an oversized request' 431, 'the CSP' — no unsafe-inline, frame-ancestors none, 'bound to loopback' 127.0.0.1:<port> only via ss, and 'the web UI holds no authority' — no key, socket or signing call, matching the grep 63-webui.sh runs against webui/. Critically, the gap the prior verification found — no test of GET /api/act — is closed here: D-012's stderr-checked assertions 'the act state without the token' 401 and 'a GET on /api/act only reads {\"state\":\"idle\"} 200, twice; no act started' (WU_ACTS==0, i.e. no '^war ui: act ' line logged) directly establish the obligation's 'a GET on /api/act 401 without the token and, with it, answering the act state and starting no act' clause. D-001's excerpted match arms (lines 1135-1159 POST handling, 1195-1225 the catch-all '(_, \"/api/act\") if req.method != \"GET\" => 405' and the dedicated 'GET' arm returning the ActState) corroborate the code path the plants exercised. D-005 shows progress_viewer/server.rs now delegates entirely to webui::run, consistent with the scope. Every named check in OBL-001's evidence clause is thus shown passing by name in this run, not merely asserted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

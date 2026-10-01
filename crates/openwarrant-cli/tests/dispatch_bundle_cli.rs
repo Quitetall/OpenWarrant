@@ -373,7 +373,13 @@ fn optional_atom(root: &Path, section: bool) {
     let p = dir.join("manifest.toml");
     let old = fs::read_to_string(&p).unwrap();
     fs::write(&p,format!("{old}\n[[atoms]]\nordinal = 70\nrole = \"lab.protocol\"\npath = \"atoms/70-note.md\"\nrequired = false\n")).unwrap();
-    fs::write(dir.join("atoms/70-note.md"),"---\nschema: oh.war/atom/v1\nrole: lab.protocol\n---\n\n# Notes\n\n## Selected\n\nExact useful context.\n\n## Other\n\nBackground.\n").unwrap();
+    let uuid = old
+        .lines()
+        .find_map(|l| l.strip_prefix("uuid = "))
+        .unwrap()
+        .trim_matches('"')
+        .to_owned();
+    fs::write(dir.join("atoms/70-note.md"),format!("---\nschema: oh.war/atom/v1\nwarrant_uuid: {uuid}\nrole: lab.protocol\norder: 70\n---\n\n# Notes\n\n## Selected\n\nExact useful context.\n\n## Other\n\nBackground.\n")).unwrap();
     let graph = dir.join("atoms/45-milestones.yaml");
     let text = fs::read_to_string(&graph).unwrap();
     let declaration = if section {

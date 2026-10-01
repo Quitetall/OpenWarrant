@@ -25,7 +25,13 @@
 //! `plan.applied`, so an applied draft carries its own provenance — which is
 //! the evidence OW-WAR-0042 asked for and could not get.
 
-use std::collections::BTreeSet;
+// OW-WAR-0141: the intake half, a child of this module because the module
+// list in `lib.rs` is not that Warrant's to change (the precedent is
+// `repo.rs`'s `compat`).
+#[path = "intake.rs"]
+pub mod intake;
+
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
@@ -325,6 +331,12 @@ pub struct Applied {
     pub operations_applied: usize,
     pub adrs_proposed: Vec<String>,
     pub pipeline: ApplicationPipeline,
+    /// Who stood in §74.4's review step: a person (`reviewed`) or the
+    /// repository's `[intake] policy_approval` (`policy`).
+    pub review: Review,
+    /// The ticket this Warrant was drafted from, when there was one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub intake: Option<intake::IntakeRecord>,
 }
 
 fn frontmatter(uuid: &str, role: &str, ordinal: u32) -> String {
@@ -343,6 +355,32 @@ pub fn apply(
     request: &Request,
     run: Option<&DrafterRun>,
     proposal_json: &str,
+) -> Result<(Applied, Report), RepoError> {
+    apply_with(
+        repo,
+        proposal,
+        pipeline,
+        request,
+        run,
+        proposal_json,
+        Review::Reviewed,
+        None,
+    )
+}
+
+/// [`apply`], naming who stood in the review step and the ticket, if any,
+/// the request came from. The ticket's record lands at `plan/intake.json`
+/// beside `plan/request.json`; nothing else about the application changes.
+#[allow(clippy::too_many_arguments)]
+pub fn apply_with(
+    repo: &Repository,
+    proposal: &DraftProposalV2,
+    pipeline: &mut ApplicationPipeline,
+    request: &Request,
+    run: Option<&DrafterRun>,
+    proposal_json: &str,
+    review: Review,
+    intake_record: Option<&intake::IntakeRecord>,
 ) -> Result<(Applied, Report), RepoError> {
     pipeline
         .may_apply()
@@ -490,6 +528,12 @@ pub fn apply(
         serde_json::to_string_pretty(request).unwrap_or_default(),
     )?;
     write("proposal.json", proposal_json.to_owned())?;
+    if let Some(record) = intake_record {
+        write(
+            intake::RECORD_FILE,
+            serde_json::to_string_pretty(record).unwrap_or_default(),
+        )?;
+    }
     if let Some(r) = run {
         write(
             "drafter.json",
@@ -533,7 +577,7 @@ pub fn apply(
     }
     write(
         "pipeline.json",
-        serde_json::to_string_pretty(&*pipeline).unwrap_or_default(),
+        serde_json::to_string_pretty(&PipelineRecord { pipeline, review }).unwrap_or_default(),
     )?;
     crate::journal_cmd::record(
         &dir,
@@ -557,6 +601,8 @@ pub fn apply(
             operations_applied: applied,
             adrs_proposed: adrs,
             pipeline: pipeline.clone(),
+            review,
+            intake: intake_record.cloned(),
         },
         report,
     ))
@@ -635,4 +681,287 @@ pub fn scratch_note(path: &Utf8Path) -> String {
     format!(
         "# proposal written to {path}; review it, then `war plan --proposal {path} --reviewed --apply`"
     )
+}
+
+// ---------------------------------------------------------------------------
+// Intake (OW-WAR-0141): a ticket or a sentence, handed to the same gauntlet.
+// ---------------------------------------------------------------------------
+
+/// Who stood in §74.4's step 6, "require review or policy approval".
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Review {
+    /// `--reviewed`: the caller says a person read the semantic diff.
+    Reviewed,
+    /// `[intake] policy_approval = true` on an intake apply. Nobody read the
+    /// proposal, and the record says so; the human's review is the
+    /// authorization of the contract, which still waits for them.
+    Policy,
+    /// Neither. `--apply` is refused at §74.4's review step.
+    None,
+}
+
+impl Review {
+    #[must_use]
+    pub const fn completes_the_step(self) -> bool {
+        !matches!(self, Self::None)
+    }
+}
+
+/// `plan/pipeline.json`: the gauntlet's state, and who stood in its review.
+#[derive(Serialize)]
+struct PipelineRecord<'a> {
+    #[serde(flatten)]
+    pipeline: &'a ApplicationPipeline,
+    review: Review,
+}
+
+/// What `war plan` was handed in place of, or as, a sentence.
+#[derive(Debug, Clone)]
+pub struct Intake {
+    /// The sentence the draft request carries.
+    pub sentence: String,
+    /// `github-<n>` or `sentence-<digest>`: where a question waits.
+    pub key: String,
+    pub issue: Option<intake::Issue>,
+    /// `--issue` (fetched) rather than `--issue-file`.
+    pub fetched: bool,
+    /// Answers a human already gave to this input's questions, by id.
+    pub answers: BTreeMap<String, String>,
+}
+
+impl Intake {
+    #[must_use]
+    pub fn record(&self) -> Option<intake::IntakeRecord> {
+        self.issue.as_ref().map(intake::Issue::record)
+    }
+}
+
+/// Read the input: `--issue <id>`, `--issue-file <path>`, or the sentence.
+/// Nothing is written here; a refusal leaves the tree as it was.
+pub fn resolve_intake(
+    repo: &Repository,
+    sentence: &str,
+    issue: Option<&str>,
+    issue_file: Option<&Utf8Path>,
+) -> Result<Option<Intake>, RepoError> {
+    if (issue.is_some() || issue_file.is_some()) && !sentence.trim().is_empty() {
+        return Err(RepoError::Message(
+            "plan.intake-and-sentence: give a sentence or an issue, not both; the issue's title \
+             and body are the request"
+                .to_owned(),
+        ));
+    }
+    let (issue, fetched) = match (issue, issue_file) {
+        (Some(_), Some(_)) => {
+            return Err(RepoError::Message(
+                "plan.intake-twice: --issue and --issue-file name two inputs; give one".to_owned(),
+            ));
+        }
+        (Some(id), None) => (Some(intake::fetch(repo, id)?), true),
+        (None, Some(path)) => (Some(intake::read_file(path)?), false),
+        (None, None) => (None, false),
+    };
+    let (sentence, key) = match &issue {
+        Some(i) => (i.sentence(), i.key()),
+        None if sentence.trim().is_empty() => return Ok(None),
+        None => (sentence.to_owned(), intake::sentence_key(sentence)),
+    };
+    let answers = if intake::existing_dir(repo, &key).is_some() {
+        crate::questions::load(repo, &key)?
+            .into_iter()
+            .filter_map(|q| q.answer.map(|a| (q.id, a.answer)))
+            .collect()
+    } else {
+        BTreeMap::new()
+    };
+    Ok(Some(Intake {
+        sentence,
+        key,
+        issue,
+        fetched,
+        answers,
+    }))
+}
+
+/// Who stands in the review step. An intake apply — a proposal from the
+/// configured drafter, or one carrying a ticket — is under policy when the
+/// repository says so, and then `--reviewed` is not recorded: a claim that a
+/// person read a proposal nobody read is the false record U-001 forbids.
+pub fn review_of(
+    repo: &Repository,
+    intake: Option<&Intake>,
+    drafted: bool,
+    reviewed: bool,
+) -> Result<Review, RepoError> {
+    let intake_path = intake.is_some_and(|i| i.issue.is_some() || drafted);
+    if intake_path && repo.intake_policy()?.is_some_and(|p| p.policy_approval) {
+        return Ok(Review::Policy);
+    }
+    Ok(if reviewed {
+        Review::Reviewed
+    } else {
+        Review::None
+    })
+}
+
+/// The command that drafts this input again once its questions are
+/// answered. The answers are read from `docs/intake/<key>/questions/`, so
+/// the command carries none of them.
+pub fn redraft_command(repo: &Repository, i: &Intake, request: &Request) -> String {
+    let input = match (&i.issue, i.fetched) {
+        (Some(issue), true) => format!("--issue {}", issue.number),
+        (Some(_), false) => format!(
+            "--issue-file {}",
+            intake::shell_quote(&format!(
+                "{}/{}/{}",
+                intake::STORE,
+                i.key,
+                intake::ISSUE_FILE
+            ))
+        ),
+        (None, _) => intake::shell_quote(i.sentence.trim()),
+    };
+    let mut cmd = format!("war plan {input}");
+    if request.profile != "delivery" {
+        cmd.push_str(&format!(
+            " --profile {}",
+            intake::shell_quote(&request.profile)
+        ));
+    }
+    if request.assurance != "basic" {
+        cmd.push_str(&format!(
+            " --assurance {}",
+            intake::shell_quote(&request.assurance)
+        ));
+    }
+    let policy = repo
+        .intake_policy()
+        .ok()
+        .flatten()
+        .is_some_and(|p| p.policy_approval);
+    cmd.push_str(if policy {
+        " --draft --apply"
+    } else {
+        " --draft --reviewed --apply"
+    });
+    cmd
+}
+
+pub const INTAKE_QUESTIONS_SCHEMA: &str = "oh.war/intake-questions/v1";
+
+/// What a thin input produced: questions, and no Warrant.
+#[derive(Debug, Clone, Serialize)]
+pub struct Asked {
+    pub schema: &'static str,
+    pub key: String,
+    pub dir: String,
+    pub questions: Vec<String>,
+    pub redraft: String,
+}
+
+/// §74.6 on the intake path (U-002). When the drafter answered with a
+/// blocker nobody has answered yet, the question goes to
+/// `docs/intake/<key>/` — beside the request and, for a ticket, its intake
+/// record — and no alias is allocated: a Warrant with nothing in it is the
+/// invented Warrant this path exists to prevent. `war questions`, `war
+/// answer` and `war next` read it from there.
+///
+/// `None` when this is not that case, and the caller reports the error as
+/// it always did.
+pub fn record_questions(
+    repo: &Repository,
+    intake: Option<&Intake>,
+    run: Option<&DrafterRun>,
+    request: &Request,
+    proposal_json: &str,
+    error: &RepoError,
+) -> Result<Option<(Report, Asked)>, RepoError> {
+    let Some(i) = intake else {
+        return Ok(None);
+    };
+    if run.is_none() && i.issue.is_none() {
+        return Ok(None);
+    }
+    if !error.to_string().starts_with("plan.interview-required") {
+        return Ok(None);
+    }
+    let proposal: DraftProposalV2 = serde_json::from_str(proposal_json)
+        .map_err(|e| RepoError::Message(format!("draft proposal did not parse: {e}")))?;
+    let open: Vec<_> =
+        openwarrant_core::drafting::minimum_question_set(&proposal.unresolved_questions)
+            .into_iter()
+            .filter(|q| !i.answers.contains_key(&q.id))
+            .collect();
+    if open.is_empty() {
+        return Ok(None);
+    }
+    if let Some(bad) = open.iter().find(|q| !intake::valid_question_id(&q.id)) {
+        return Err(RepoError::Message(format!(
+            "plan.question-id: the drafter's question id {:?} is not a file name (letters, \
+             digits, `-`, `_`). Nothing was written",
+            bad.id
+        )));
+    }
+    let dir = intake::store_dir(repo, &i.key);
+    std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
+        context: format!("could not create {dir}"),
+        source,
+    })?;
+    let write = |name: &str, body: String| -> Result<(), RepoError> {
+        let p = dir.join(name);
+        std::fs::write(&p, body).map_err(|source| RepoError::Io {
+            context: format!("could not write {p}"),
+            source,
+        })
+    };
+    write(
+        "request.json",
+        serde_json::to_string_pretty(request).unwrap_or_default(),
+    )?;
+    if let Some(issue) = &i.issue {
+        write(
+            intake::RECORD_FILE,
+            serde_json::to_string_pretty(&issue.record()).unwrap_or_default(),
+        )?;
+        write(
+            intake::ISSUE_FILE,
+            serde_json::to_string_pretty(issue).unwrap_or_default(),
+        )?;
+    }
+    let redraft = redraft_command(repo, i, request);
+    let asker = format!(
+        "agent://{}",
+        run.map_or_else(|| repo.performer(), |r| r.name.clone())
+    );
+    let mut report = Report::default();
+    let mut ids = Vec::new();
+    for q in &open {
+        let path =
+            crate::questions::record_intake(repo, &i.key, &q.id, &q.question, &asker, &redraft)?;
+        report.push(Diagnostic::warn(
+            "plan.question-recorded",
+            repo.relative(&path),
+            format!(
+                "{}/{}: {} — no Warrant was drafted and no alias allocated",
+                i.key, q.id, q.question
+            ),
+        ));
+        ids.push(q.id.clone());
+    }
+    report.note(format!(
+        "A human answers: `war answer {} <id> \"<answer>\" --as <actor>`. Then the input is \
+         drafted again with its answers: `{redraft}`",
+        i.key
+    ));
+    Ok(Some((
+        report,
+        Asked {
+            schema: INTAKE_QUESTIONS_SCHEMA,
+            key: i.key.clone(),
+            dir: repo.relative(&dir),
+            questions: ids,
+            redraft,
+        },
+    )))
 }

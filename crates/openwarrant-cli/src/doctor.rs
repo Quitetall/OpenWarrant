@@ -21,7 +21,11 @@ fn unavailable(report: &mut Report, component: &str, error: RepoError) {
     });
 }
 
-pub fn run(alias: Option<&str>, generated: bool) -> (Report, Value) {
+pub fn run(
+    root: Option<camino::Utf8PathBuf>,
+    alias: Option<&str>,
+    generated: bool,
+) -> (Report, Value) {
     let mut report = Report::default();
     let mut result = json!({
         "schema": "oh.war/doctor/v1", "read_only": true,
@@ -29,8 +33,14 @@ pub fn run(alias: Option<&str>, generated: bool) -> (Report, Value) {
         "execution_authorized": false, "remedies": [],
         "scope": "legacy-record-diagnostics-and-configuration"
     });
+    // Which binary is answering, before anything it says can be read. An
+    // operator debugging `war` needs this line first: one name on PATH can
+    // hide a wrapper, a stale debug build, or three frozen snapshots.
+    let install = crate::install::observe();
+    report.diagnostics.extend(install.report().diagnostics);
+    result["install"] = install.json();
     report.note("Doctor reports records and configuration only. Admission and protected authority are UNKNOWN; no execution permission or assurance is issued.");
-    let repo = match Repository::discover(None) {
+    let repo = match Repository::discover(root) {
         Ok(repo) => repo,
         Err(error) => {
             unavailable(&mut report, "repository", error);

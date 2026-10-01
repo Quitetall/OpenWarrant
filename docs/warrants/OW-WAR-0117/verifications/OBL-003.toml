@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "GR-ops.conformance.plants@1.1.0's stdout line 'ok the verifier holds no tool --tools '', no MCP, restricted, no session, empty cwd' reflects D-003's argv-inspection block, which greps the recorded fake-claude argv for --no-session-persistence, --strict-mcp-config, --restricted, empty --tools, and --disallowedTools naming Bash/Read/Write/Edit, failing (VF_MISSING) if any is absent. D-001's own argv construction (--disallowedTools listing Bash,Edit,Write,...Read... and --no-session-persistence) matches what the plant checks, and the gate run's overall verdict is pass with none of these checks failing."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

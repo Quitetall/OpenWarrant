@@ -22,6 +22,89 @@ use crate::repo::RepoError;
 
 // ---- parameter shapes -----------------------------------------------------
 
+/// Who a ticket tool acts as. A name for coordination between agents; it
+/// authorizes nothing (OW-WAR-0147).
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct CreateParams {
+    /// What this work accomplishes, in one sentence.
+    pub title: String,
+    /// Checklist items, one line each. May be empty: `war_add` adds later.
+    #[serde(default)]
+    pub items: Vec<String>,
+    /// Context, decisions, links: Markdown for the ticket's description.
+    #[serde(default)]
+    pub body: Option<String>,
+    /// 0 (most urgent) to 4; default 2.
+    #[serde(default)]
+    pub priority: Option<u8>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct ActorParams {
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct ClaimParams {
+    /// An item (`i-...`, `t-.../i-...`) or a whole ticket (`t-...`); a unique prefix works.
+    pub target: String,
+    /// Take a claim older than the TTL (`[tickets] claim_ttl_minutes`). Journalled.
+    #[serde(default)]
+    pub steal: bool,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct DoneParams {
+    /// The claimed item (or a ticket with nothing left open).
+    pub target: String,
+    /// What was done, written on the item's line for the next reader.
+    #[serde(default)]
+    pub note: Option<String>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct AddParams {
+    /// The ticket.
+    pub ticket: String,
+    /// The item, one line.
+    pub text: String,
+    /// What the item waits on: items of this ticket, tickets, or `t-x/i-y`.
+    #[serde(default)]
+    pub after: Vec<String>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct NoteParams {
+    /// The ticket (or one of its items).
+    pub target: String,
+    /// The note, Markdown.
+    pub text: String,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct PrimeParams {
+    /// One ticket in full; omit for every open ticket.
+    #[serde(default)]
+    pub ticket: Option<String>,
+}
+
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct NoParams {}
 
@@ -50,7 +133,7 @@ pub struct StatusParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct ShowParams {
-    /// Local alias.
+    /// Local alias, or a ticket id (`t-...`): a ticket renders as its document.
     pub alias: String,
     /// View name: `full_warrant` (default), `status`, or another `war show --view`.
     #[serde(default = "default_view")]
@@ -120,8 +203,19 @@ pub struct VersionParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct PlanRequestParams {
-    /// The vague request, verbatim — one sentence is enough.
+    /// The vague request, verbatim — one sentence is enough. Empty when an
+    /// issue is given instead.
+    #[serde(default)]
     pub sentence: String,
+    /// An issue file (`gh issue view <n> --json number,title,body,url`
+    /// output), relative to the repository root (OW-WAR-0141). Its title and
+    /// body are the request.
+    #[serde(default)]
+    pub issue_file: Option<String>,
+    /// An issue number, fetched through `[intake] fetch_argv`. Refused,
+    /// starting nothing, when no `[intake]` table is configured.
+    #[serde(default)]
+    pub issue: Option<String>,
     /// `delivery` or `decision`.
     #[serde(default = "default_profile")]
     pub profile: String,
@@ -144,9 +238,18 @@ fn default_assurance() -> String {
 pub struct PlanProposalParams {
     /// The `oh.war/draft-proposal/v2` document, as JSON text.
     pub proposal_json: String,
-    /// The sentence the proposal answers (recorded under plan/).
+    /// The sentence the proposal answers (recorded under plan/). Empty when
+    /// an issue is given instead.
     #[serde(default)]
     pub sentence: String,
+    /// The issue file the proposal answers, relative to the repository root
+    /// (OW-WAR-0141). An applied Warrant records it in `plan/intake.json`.
+    #[serde(default)]
+    pub issue_file: Option<String>,
+    /// The issue number the proposal answers, fetched through
+    /// `[intake] fetch_argv`.
+    #[serde(default)]
+    pub issue: Option<String>,
     /// `delivery` or `decision`.
     #[serde(default = "default_profile")]
     pub profile: String,
@@ -156,9 +259,47 @@ pub struct PlanProposalParams {
     /// Interview answers by question id.
     #[serde(default)]
     pub answers: BTreeMap<String, String>,
-    /// §74.4 step 6: a human has reviewed this proposal. Required true to apply.
+    /// §74.4 step 6: a human has reviewed this proposal. Required true to
+    /// apply, unless the proposal answers an issue and `[intake]
+    /// policy_approval` is set, when the review is recorded as `policy`.
     #[serde(default)]
     pub reviewed: bool,
+}
+
+/// OW-WAR-0141: the intake input of a war_plan_* call, read as `war plan`
+/// reads it. An issue file is resolved against the repository root.
+fn intake_of(
+    repo: &crate::repo::Repository,
+    sentence: &str,
+    issue: Option<&str>,
+    issue_file: Option<&str>,
+) -> Result<Option<crate::plan::Intake>, RepoError> {
+    let file = issue_file.map(|f| {
+        let f = camino::Utf8Path::new(f);
+        if f.is_absolute() {
+            f.to_owned()
+        } else {
+            repo.root.join(f)
+        }
+    });
+    crate::plan::resolve_intake(repo, sentence, issue, file.as_deref())
+}
+
+/// The sentence and answers a call drafts from: the issue's, when it names
+/// one, with the answers already given to that input's intake questions.
+fn drafted_from(
+    intake: Option<&crate::plan::Intake>,
+    sentence: &str,
+    answers: &BTreeMap<String, String>,
+) -> (String, BTreeMap<String, String>) {
+    let mut answers = answers.clone();
+    let Some(i) = intake else {
+        return (sentence.to_owned(), answers);
+    };
+    for (id, text) in &i.answers {
+        answers.entry(id.clone()).or_insert_with(|| text.clone());
+    }
+    (i.sentence.clone(), answers)
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
@@ -212,6 +353,22 @@ pub struct EvidenceParams {
     /// One gate key to run; omit for every gate the assurance atom cites.
     #[serde(default)]
     pub gate: Option<String>,
+    /// The Bonsai evidence document the Bonsai gate's receipt binds,
+    /// `file:<path>#sha256:<digest>`; required for that gate only.
+    #[serde(default)]
+    pub evidence_ref: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct DeliverParams {
+    /// Local alias.
+    pub alias: String,
+    /// Deliverable ids (`D-001`); omit for every deliverable declared.
+    #[serde(default)]
+    pub ids: Vec<String>,
+    /// Report what would be recorded and write nothing.
+    #[serde(default)]
+    pub dry_run: bool,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
@@ -228,6 +385,25 @@ pub struct SignShowParams {
 }
 
 // ---- result shaping -------------------------------------------------------
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct StandingShowParams {
+    /// A class id, `standing://<id>@<rev>` or `standing:<id>@<rev>`; omit for every class.
+    #[serde(default)]
+    pub id: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct StandingApplyParams {
+    /// Local alias of the Warrant to check against its class.
+    pub alias: String,
+    /// The class, `standing://<id>@<rev>`; defaults to the manifest's `[standing] ref`.
+    #[serde(default)]
+    pub class: Option<String>,
+    /// Run every refusal and write nothing.
+    #[serde(default)]
+    pub dry_run: bool,
+}
 
 type ToolResult = Result<CallToolResult, McpError>;
 
@@ -282,6 +458,12 @@ fn self_exec(repo_root: &camino::Utf8Path, args: &[&str]) -> Result<(String, i32
         .map_err(|e| RepoError::Message(format!("cannot locate the war binary: {e}")))?;
     let out = std::process::Command::new(exe)
         .arg("--json")
+        // `--root` is what actually names the repository; `current_dir` stays
+        // because the child's OWN subprocesses — a gate's argv — resolve their
+        // relative paths against it. Before the flag existed, moving the
+        // process was the only way to say which tree this was about.
+        .arg("--root")
+        .arg(repo_root.as_str())
         .args(args)
         .current_dir(repo_root)
         .output()
@@ -376,10 +558,13 @@ impl WarServer {
 
     #[tool(
         name = "war_show",
-        description = "Render a Warrant view (`war show <alias> --view <view>`). Read-only.",
+        description = "Render a Warrant view (`war show <alias> --view <view>`), or a ticket (`war show t-...`) as the document a person reads. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_show(&self, Parameters(p): Parameters<ShowParams>) -> ToolResult {
+        if crate::ticket::is_ticket_ref(&p.alias) {
+            return self.ticket("show", None, |s| crate::ticket::show(s, &p.alias));
+        }
         value_of(
             "show",
             crate::show::run(&self.repo, &p.alias, &p.view)
@@ -485,6 +670,20 @@ impl WarServer {
             crate::pins::list(&self.repo, p.resolved_only),
             "pins listed",
         )
+    }
+
+    #[tool(
+        name = "war_standing_show",
+        description = "Standing authorizations (OW-ADR-0029): each class's state, signer, expiry, count used, and what each glob matches today (`war standing show`). Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_standing_show(&self, Parameters(p): Parameters<StandingShowParams>) -> ToolResult {
+        match crate::standing_cmd::show(&self.repo, p.id.as_deref()) {
+            Ok((report, views)) => {
+                envelope("standing", &report, Some(crate::output::value(&views)))
+            }
+            Err(e) => refused("standing", &e),
+        }
     }
 
     #[tool(
@@ -621,19 +820,31 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_request",
-        description = "Emit the Draft Request (`oh.war/draft-request/v1`) for a vague sentence: the corpus, ADRs and answers a drafter needs (`war plan \"<sentence>\"`). Writes nothing.",
+        description = "Emit the Draft Request (`oh.war/draft-request/v1`) for a vague sentence, or for an issue (`issue_file`, or `issue` through `[intake] fetch_argv`): the corpus, ADRs and answers a drafter needs (`war plan \"<sentence>\"`, `war plan --issue-file <f>`). Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_plan_request(&self, Parameters(p): Parameters<PlanRequestParams>) -> ToolResult {
+        let intake = match intake_of(
+            &self.repo,
+            &p.sentence,
+            p.issue.as_deref(),
+            p.issue_file.as_deref(),
+        ) {
+            Ok(i) => i,
+            Err(e) => return refused("plan.request", &e),
+        };
+        let (sentence, answers) = drafted_from(intake.as_ref(), &p.sentence, &p.answers);
+        if sentence.trim().is_empty() {
+            return refused(
+                "plan.request",
+                &RepoError::Message(
+                    "war_plan_request needs a sentence, an issue_file or an issue".to_owned(),
+                ),
+            );
+        }
         value_of(
             "plan.request",
-            crate::plan::request(
-                &self.repo,
-                &p.sentence,
-                &p.profile,
-                &p.assurance,
-                &p.answers,
-            ),
+            crate::plan::request(&self.repo, &sentence, &p.profile, &p.assurance, &answers),
             "draft request emitted; answer it with an `oh.war/draft-proposal/v2` document",
         )
     }
@@ -644,12 +855,31 @@ impl WarServer {
         annotations(read_only_hint = true)
     )]
     fn war_plan_validate(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {
-        let answered: BTreeSet<String> = p.answers.keys().cloned().collect();
+        let intake = match intake_of(
+            &self.repo,
+            &p.sentence,
+            p.issue.as_deref(),
+            p.issue_file.as_deref(),
+        ) {
+            Ok(i) => i,
+            Err(e) => return refused("plan.validate", &e),
+        };
+        let (_, answers) = drafted_from(intake.as_ref(), &p.sentence, &p.answers);
+        let answered: BTreeSet<String> = answers.keys().cloned().collect();
+        let review = match crate::plan::review_of(&self.repo, intake.as_ref(), false, p.reviewed) {
+            Ok(r) => r,
+            Err(e) => return refused("plan.validate", &e),
+        };
         let known = match crate::plan::known_refs(&self.repo) {
             Ok(k) => k,
             Err(e) => return refused("plan.validate", &e),
         };
-        match crate::plan::validate_v2(&p.proposal_json, p.reviewed, &answered, &known) {
+        match crate::plan::validate_v2(
+            &p.proposal_json,
+            review.completes_the_step(),
+            &answered,
+            &known,
+        ) {
             Ok((_, pipeline)) => {
                 let mut report = Report::default();
                 report.push(Diagnostic::pass(
@@ -754,6 +984,98 @@ impl WarServer {
         )
     }
 
+    // -- the ticket loop (OW-WAR-0147): no signature, no human act --
+
+    #[tool(
+        name = "war_prime",
+        description = "Read this first (`war prime`): open tickets with their remaining items, who holds which claim, recent notes, done work compacted. Markdown in result.markdown. Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_prime(&self, Parameters(p): Parameters<PrimeParams>) -> ToolResult {
+        self.ticket("prime", None, |s| {
+            crate::ticket::prime(s, p.ticket.as_deref())
+        })
+    }
+
+    #[tool(
+        name = "war_ready",
+        description = "What can start now (`war ready`): open, unclaimed, unblocked ticket items, most urgent and oldest first. Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_ready(&self, Parameters(p): Parameters<ActorParams>) -> ToolResult {
+        self.ticket("ready", p.actor.as_deref(), crate::ticket::ready)
+    }
+
+    #[tool(
+        name = "war_tickets",
+        description = "Every ticket with its state (open, in progress, done) and progress (`war tickets`). Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_tickets(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
+        self.ticket("tickets", None, crate::ticket::tickets)
+    }
+
+    #[tool(
+        name = "war_create",
+        description = "Create a ticket (`war create`): a title, optional checklist items and description. Workable at once; nothing is signed. Returns the ticket id (t-...).",
+        annotations(read_only_hint = false)
+    )]
+    fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
+        let args = crate::ticket::CreateArgs {
+            title: p.title,
+            items: p.items,
+            body: p.body,
+            priority: p.priority,
+        };
+        self.ticket("create", p.actor.as_deref(), |s| {
+            crate::ticket::create(s, &args)
+        })
+    }
+
+    #[tool(
+        name = "war_claim",
+        description = "Claim an item or a whole ticket (`war claim`) so no other agent works it: atomic, journalled, refused by name when someone else holds it. `steal` takes a claim past its TTL.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_claim(&self, Parameters(p): Parameters<ClaimParams>) -> ToolResult {
+        self.ticket("claim", p.actor.as_deref(), |s| {
+            crate::ticket::claim_cmd(s, &p.target, p.steal)
+        })
+    }
+
+    #[tool(
+        name = "war_done",
+        description = "Finish a claimed item (`war done`): ticks its checkbox in the ticket's checklist with who, when and an optional note, journals it, releases the claim.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
+        self.ticket("done", p.actor.as_deref(), |s| {
+            crate::ticket::done(s, &p.target, p.note.as_deref())
+        })
+    }
+
+    #[tool(
+        name = "war_add",
+        description = "Append an item to a ticket's checklist (`war add`), optionally waiting on other items or tickets (`after`).",
+        annotations(read_only_hint = false)
+    )]
+    fn war_add(&self, Parameters(p): Parameters<AddParams>) -> ToolResult {
+        self.ticket("add", p.actor.as_deref(), |s| {
+            crate::ticket::add(s, &p.ticket, &p.text, &p.after)
+        })
+    }
+
+    #[tool(
+        name = "war_note",
+        description = "Append a dated note to a ticket (`war note`): the durable context the next agent or person reads in `war prime`.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
+        self.ticket("note", p.actor.as_deref(), |s| {
+            crate::ticket::note(s, &p.target, &p.text)
+        })
+    }
+
     #[tool(
         name = "war_evidence_record",
         description = "Run the gates the Warrant's assurance atom cites and mint §44.6 receipts into gate-runs/ (`war evidence record`).",
@@ -762,7 +1084,44 @@ impl WarServer {
     fn war_evidence_record(&self, Parameters(p): Parameters<EvidenceParams>) -> ToolResult {
         report_of(
             "evidence",
-            crate::evidence::record(&self.repo, &p.alias, p.gate.as_deref()),
+            crate::evidence::record(
+                &self.repo,
+                &p.alias,
+                p.gate.as_deref(),
+                p.evidence_ref.as_deref(),
+            ),
+        )
+    }
+
+    #[tool(
+        name = "war_deliver",
+        description = "Declare a Warrant's deliverables delivered (`war deliver`): record §37.2 provenance on each — the sha256 of the file now, how it was made, the build of war that recorded it — and set content_addressed. Refuses a resolved Warrant, a missing file, and a path a later authorized Warrant governs (OW-ADR-0021); any refusal writes nothing. Run it before `war_evidence_record`: deliverables.toml is bound into every tree-bound receipt.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_deliver(&self, Parameters(p): Parameters<DeliverParams>) -> ToolResult {
+        report_of(
+            "deliver",
+            crate::deliver::run(
+                &self.repo,
+                &p.alias,
+                &crate::deliver::Options {
+                    ids: &p.ids,
+                    dry_run: p.dry_run,
+                    ..Default::default()
+                },
+            ),
+        )
+    }
+
+    #[tool(
+        name = "war_standing_apply",
+        description = "The coverage check of a standing authorization (`war standing apply`): a Warrant inside a class a human signed is authorized in that human's name; one outside is refused by the term it breaks and nothing is written. Accepting, revoking or signing a class is not a tool.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_standing_apply(&self, Parameters(p): Parameters<StandingApplyParams>) -> ToolResult {
+        report_of(
+            "standing",
+            crate::standing_cmd::apply(&self.repo, &p.alias, p.class.as_deref(), p.dry_run),
         )
     }
 
@@ -805,11 +1164,27 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_apply",
-        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war new` and the seven §74.3 operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true.",
+        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war new` and the seven §74.3 operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true, or the proposal answers an issue (`issue_file`/`issue`) under `[intake] policy_approval`; an issue-linked Warrant records plan/intake.json. Authorizes nothing.",
         annotations(read_only_hint = false)
     )]
     fn war_plan_apply(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {
-        if !p.reviewed {
+        // OW-WAR-0141: an issue in place of the sentence, read before anything
+        // is written; a refusal here leaves the tree as it was.
+        let intake = match intake_of(
+            &self.repo,
+            &p.sentence,
+            p.issue.as_deref(),
+            p.issue_file.as_deref(),
+        ) {
+            Ok(i) => i,
+            Err(e) => return refused("plan.apply", &e),
+        };
+        let (sentence, answers) = drafted_from(intake.as_ref(), &p.sentence, &p.answers);
+        let review = match crate::plan::review_of(&self.repo, intake.as_ref(), false, p.reviewed) {
+            Ok(r) => r,
+            Err(e) => return refused("plan.apply", &e),
+        };
+        if !review.completes_the_step() {
             return refused(
                 "plan.apply",
                 &RepoError::Message(
@@ -819,38 +1194,82 @@ impl WarServer {
                 ),
             );
         }
-        let answered: BTreeSet<String> = p.answers.keys().cloned().collect();
+        let answered: BTreeSet<String> = answers.keys().cloned().collect();
         let known = match crate::plan::known_refs(&self.repo) {
             Ok(k) => k,
             Err(e) => return refused("plan.apply", &e),
         };
+        let request =
+            match crate::plan::request(&self.repo, &sentence, &p.profile, &p.assurance, &answers) {
+                Ok(r) => r,
+                Err(e) => return refused("plan.apply", &e),
+            };
         let (proposal, mut pipeline) =
             match crate::plan::validate_v2(&p.proposal_json, true, &answered, &known) {
                 Ok(v) => v,
-                Err(e) => return refused("plan.apply", &e),
+                // A thin issue: its question waits under docs/intake/, as on
+                // the CLI path, and no alias is allocated.
+                Err(e) => match crate::plan::record_questions(
+                    &self.repo,
+                    intake.as_ref(),
+                    None,
+                    &request,
+                    &p.proposal_json,
+                    &e,
+                ) {
+                    Ok(Some((report, asked))) => {
+                        return envelope(
+                            "plan.interview",
+                            &report,
+                            Some(crate::output::value(&asked)),
+                        );
+                    }
+                    Ok(None) => return refused("plan.apply", &e),
+                    Err(e) => return refused("plan.apply", &e),
+                },
             };
-        let request = match crate::plan::request(
-            &self.repo,
-            &p.sentence,
-            &p.profile,
-            &p.assurance,
-            &p.answers,
-        ) {
-            Ok(r) => r,
-            Err(e) => return refused("plan.apply", &e),
-        };
-        match crate::plan::apply(
+        let record = intake.as_ref().and_then(crate::plan::Intake::record);
+        match crate::plan::apply_with(
             &self.repo,
             &proposal,
             &mut pipeline,
             &request,
             None,
             &p.proposal_json,
+            review,
+            record.as_ref(),
         ) {
             Ok((applied, report)) => {
                 envelope("plan.apply", &report, Some(crate::output::value(&applied)))
             }
             Err(e) => refused("plan.apply", &e),
+        }
+    }
+}
+
+impl WarServer {
+    /// Run one ticket command against this repository's ticket store and
+    /// answer with its envelope; a refusal is a tool outcome, as elsewhere.
+    fn ticket(
+        &self,
+        command: &str,
+        actor: Option<&str>,
+        run: impl FnOnce(&crate::ticket::Store) -> Result<crate::ticket::Outcome, RepoError>,
+    ) -> ToolResult {
+        let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| run(&s));
+        match outcome {
+            Ok(o) => {
+                let text = crate::output::envelope(command, &o.report, Some(o.result));
+                let value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+                    McpError::internal_error(format!("envelope is not JSON: {e}"), None)
+                })?;
+                Ok(if o.report.is_ready() {
+                    CallToolResult::structured(value)
+                } else {
+                    CallToolResult::structured_error(value)
+                })
+            }
+            Err(e) => refused(command, &e),
         }
     }
 }

@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = """The same GR-ops.conformance.plants@1.1.0 stdout (pass, 1260 passed/0 failed overall) shows, in the 62-verifier.sh block, 'ok an answer that is garbage 2 not_established', 'ok an answer that is skip 1 not_established', 'ok an answer that is probably 2 not_established', 'ok an unknown disposition is dropped no "probably" in the response', and 'ok a failing verifier records nothing verify.verifier-failed (exit 2), no record moved'. Together these cover non-JSON, omitted-obligation, and unknown-disposition answers each yielding not_established, and a failing claude exit causing war verify --run to write nothing, matching OBL-002's evidence exactly; D-003's script defines these exact checks (vf modes garbage/skip/probably/fail) and obligation_evidence marks the relevant terms ('not_established', 'war verify --run', 'probably') as fully shown, not cut."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

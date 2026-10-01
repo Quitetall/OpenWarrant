@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0088"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists no named_paths or terms, so no adapter source, CLI dispatch code, document_draft.rs test file, or conformance/integration/interactive/ output is present to show field selection, edit/preview behavior, draft retention on cancel/failure, or identical validated output for equivalent inputs. The only gate run present (GR-software.repo.war-check@1.0.0) is a structural repo check whose own stdout explicitly states under NOT CHECKED that 'war check does not invoke [gate --run], so nothing here is evidence that a Warrant's acceptance gates were run,' and the plants array is empty, so the required cargo test / conformance/integration/interactive/run.py entry points named in atoms/60-assurance.md are not evidenced anywhere in this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate output, or plants in the bundle show any refusal fixture, exit code, or unchanged-output-on-failed-write for the interactive authoring boundary; obligation_evidence for OBL-002 carries no named_paths or terms. The single gate run is the structural war-check over the whole repo tree, not a run of the named test/refusal fixtures for this boundary, so positive or negative behavior of the boundary is not observed anywhere in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The gate run's own stdout (GR-software.repo.war-check@1.0.0) states in its NOT CHECKED section that '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' which includes OW-WAR-0088, and prior_verifications is empty. There is no independent reproduction/review, baseline comparison, or secure human acceptance record for this exact result anywhere in the bundle, so qualification of OBL-001/002 cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The gate_runs entry for software.repo.war-check@1.0.0 has receipt-level verdict 'pass', but its stdout is truncated (truncated: true, showing only a tail) and the visible tail begins at OW-WAR-0138's checks onward — the specific PASS/WARN lines for OW-WAR-0088's manifest.valid, deliverable.digests, obligations.valid, milestones.valid etc. are not shown. The only OW-WAR-0088-specific text visible is in the REMEDIES list ('auto war evidence record OW-WAR-0088', 'human war sas repin OW-WAR-0088'), which are WARN-level remediation pointers, not the underlying check lines, and the plants array is empty so no planted-refusal evidence for structural validity is included. Per the bundle's own rule, bytes not shown are not evidence either way, so OW-WAR-0088's structural validity cannot be confirmed from this excerpt."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

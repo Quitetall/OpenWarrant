@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = """crates/openwarrant-cli/src/next.rs (D-015) shows Action.judged set for every 'war sign' target via judge(), defaulting an unmatched dry-run result to Judged::WouldRefuse{rule:"sign.dry-run-failed"} rather than None, and order() sorting Human/WouldRecord before Human/WouldRefuse before Agent, backed by its own tests an_agent_is_never_handed_a_signing_act_and_humans_come_first and a_verdict_names_the_ingest_rule_not_the_summary. crates/openwarrant-cli/src/tui/mod.rs (D-016) help_rows renders `a.judged.as_ref().map(|j| format!(" [{}]", j.word()))` beside each action, carrying the verdict into the app's Help pane. conformance/plants.d/69-current.sh (D-038, present in full, not truncated) runs the exact OBL-003 scenario on a scratch corpus: it authorizes CU-WAR-0002, moves its signed contract so re-authorization would be refused, invokes `war next --json` and `war next`, and asserts programmatically that every 'war sign' action carries a judged verdict (would_record/would_refuse with a rule), that the refused act (CU-WAR-0002, rule authorize.no-amendment) sorts after the recordable ones, and separately diffs `git status --porcelain` before/after (finding it unchanged), checks no ssh-agent/SSH_AUTH_SOCK material is named, and confirms the dry-run temp directory is left empty. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) has its stdout excerpt showing the literal lines 'ok every signing act is judged the refusable one last, its rule beside the command' and 'ok war next writes nothing tree unchanged, no draft left, no key named' amid '1270 passed, 0 failed', and the companion software.repo.war-check@1.0.0 run's PASS evidence.admissible line confirms this receipt is bound to the current contract digest (de4f417c...) and tree (9729d66...), so the plant is shown to have actually executed against this Warrant's subject, not merely to exist as a script."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

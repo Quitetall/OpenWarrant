@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0004"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (render.rs) shows `generated_header` emitting the §17.1 fields (WAR, compilation basis, contract revision, source manifest) into `full_warrant`, and lists `the_generated_header_is_present_and_complete`, but the bundle carries no result for that test. `canonical_json` emits only the canonical IR plus a newline, with no header. Whether WAR.json carries those four fields depends on IR contents that are not shown. GR-software.repo.war-check@1.0.0 passed `war check --generated`, but it has selected_test_count 0 and its stdout is not included. The generated files themselves are absent, so the bundle does not show that the five Warrants each have both views with headers. The prior verification is not independent evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-001 lists `rendering_is_byte_identical_across_runs`, and D-002 (compile.rs) writes only when the bytes differ. Both are consistent with the claim, but no test result is in the bundle. Nothing shows two consecutive `war compile` runs over an unmodified tree followed by `git diff --exit-code` exiting 0. The only gate run, GR-software.repo.war-check@1.0.0, is `war check --generated`, which compares committed views to a fresh compilation once. It is a different procedure from the obligation's evidence, and its stdout is not included either. The claim is plausible from the code but not demonstrated."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle has no conformance plants (`plants` is empty) and no test that mutates a committed parent. The drift-check implementation is not in the deliverables: compile.rs only exposes `projections` for comparison, and the `war check` comparison code is absent. The sole gate run passed on an unmutated tree, so it shows only that no drift was found there. It does not show a non-zero exit or a named file on a one-byte mutation. The prior verifier also reached not_established for this reason."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

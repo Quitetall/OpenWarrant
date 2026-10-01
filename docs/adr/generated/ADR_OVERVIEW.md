@@ -28,7 +28,16 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0017](docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md) | ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 | `accepted` | yes | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 | [OW-ADR-0018](docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md) | ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox | `proposed` | no | `war://01a09762-3fa2-7dd0-b794-0190b44fe879` |
 | [OW-ADR-0019](docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md) | ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority | `proposed` | no | `war://01a0983e-32d7-7473-b6e1-fbef061a1e5f` |
-| [OW-ADR-0020](docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md) | ADR OW-0020: ratatui and crossterm for the terminal dashboard | `proposed` | no | `war://01a0983e-32db-7240-9a9d-cef5e5b41a38` |
+| [OW-ADR-0020](docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md) | ADR OW-0020: ratatui and crossterm for the terminal dashboard | `accepted` | yes | `war://01a0983e-32db-7240-9a9d-cef5e5b41a38`<br>`war://01a0ca4a-0c02-7cd3-b49d-786377a1aa06` |
+| [OW-ADR-0021](docs/adr/atoms/OW-ADR-0021-pin-ownership.md) | ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it | `proposed` | no | `war://01a0ca4a-0c02-7cd3-b49d-786377a1aa06` |
+| [OW-ADR-0022](docs/adr/atoms/OW-ADR-0022-current-by-relation.md) | ADR OW-0022: Two projections, current by relation; atoms are the only authored thing | `proposed` | no | `war://01a0cc13-dd90-71b1-9fc5-9989932b3bae` |
+| [OW-ADR-0023](docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md) | ADR OW-0023: The roadmap is a record — one per program, beside the SAS | `proposed` | no | `war://01a0cd26-1b69-7123-a9fe-da2516447ada` |
+| [OW-ADR-0024](docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md) | ADR OW-0024: Knowledge Fabric owns a registered Warrant's lifecycle; what stays local, and what each human act becomes | `proposed` | no | `war://01a0d04c-5f41-7a13-9d41-14fd18657244` |
+| [OW-ADR-0025](docs/adr/atoms/OW-ADR-0025-assurance-mark.md) | ADR OW-0025: The assurance mark — baseline v1, how a mark comes to exist, and what it binds | `proposed` | no | `war://01a0d04c-602f-7321-ad70-864c543b2927` |
+| [OW-ADR-0026](docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md) | ADR OW-0026: A deliverable a native system holds is a reference, never a repository file | `proposed` | no | `war://01a0d04c-5f55-7171-906f-45d79a408ce3` |
+| [OW-ADR-0027](docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md) | ADR OW-0027: The Knowledge Fabric compiler interface — who compiles, and the process contract between them | `proposed` | no | `war://01a0d04c-5f6e-7d90-8eed-cf0953b77657` |
+| [OW-ADR-0028](docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md) | ADR OW-0028: SAS sections are atoms — identity now, authored source later | `proposed` | no | `war://01a0d04c-5f26-7ba0-a64b-2618b983ba43` |
+| [OW-ADR-0029](docs/adr/atoms/OW-ADR-0029-standing-authorization.md) | ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work | `proposed` | no | `war://01a0d289-1e89-7990-8b2c-5a43577b5ce5` |
 
 ## Proposed
 
@@ -42,7 +51,15 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0016** ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release
 - **OW-ADR-0018** ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox
 - **OW-ADR-0019** ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority
-- **OW-ADR-0020** ADR OW-0020: ratatui and crossterm for the terminal dashboard
+- **OW-ADR-0021** ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it
+- **OW-ADR-0022** ADR OW-0022: Two projections, current by relation; atoms are the only authored thing
+- **OW-ADR-0023** ADR OW-0023: The roadmap is a record — one per program, beside the SAS
+- **OW-ADR-0024** ADR OW-0024: Knowledge Fabric owns a registered Warrant's lifecycle; what stays local, and what each human act becomes
+- **OW-ADR-0025** ADR OW-0025: The assurance mark — baseline v1, how a mark comes to exist, and what it binds
+- **OW-ADR-0026** ADR OW-0026: A deliverable a native system holds is a reference, never a repository file
+- **OW-ADR-0027** ADR OW-0027: The Knowledge Fabric compiler interface — who compiles, and the process contract between them
+- **OW-ADR-0028** ADR OW-0028: SAS sections are atoms — identity now, authored source later
+- **OW-ADR-0029** ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 
 ## Accepted and Current
 
@@ -54,6 +71,7 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0006** ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown — 2026-08-19
 - **OW-ADR-0008** ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text — 2026-08-22
 - **OW-ADR-0017** ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0
+- **OW-ADR-0020** ADR OW-0020: ratatui and crossterm for the terminal dashboard
 
 ## Rejected, Withdrawn, or Falsified
 
@@ -1718,7 +1736,9 @@ the rendering rule, each with the conformance test that demonstrates it.
 
 ## Status
 
-Proposed. Accepted when the owner authorizes OW-WAR-0073.
+Accepted. The owner authorized OW-WAR-0073 (revision 1) with this ADR in its
+basis, and OW-WAR-0112 — which supersedes 0073 and executes the dashboard as
+`war` with no arguments — cites it and was authorized on 2026-09-22.
 
 ## Context
 
@@ -1769,3 +1789,1653 @@ are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
 - If a future ratatui release pulls an executor, `OW-ADR-0014` is engaged and
   the version is pinned or the library replaced; the boundary test is what
   makes that visible rather than silent.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0021-pin-ownership.md · uuid: 01a0ca4b-0458-79f2-b7f1-77302bb98192 -->
+
+# ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it
+
+## Status
+
+Proposed by the performer under OW-WAR-0112. Adopted when the owner accepts
+SAS revision 1.1.0: this revision retitles a §106 row, which §101.3 makes
+architecture-changing, and this ADR is the record that revision carries.
+
+## Context
+
+RQ-036 says a delivered artifact of a resolved WAR changes only through a
+recorded correction. Applied to a living codebase it produced, by 2026-09-22,
+52 resolved pins over 47 paths, 27 corrections already signed, 22 more
+waiting, four files pinned by two Warrants each, and a rule under which the
+oldest code is the most expensive to touch: every later Warrant that
+legitimately edits a file has to buy a human-signed correction from every
+earlier Warrant that once delivered it. A one-line fix to `resolve.rs` costs a
+signature. A relicense of seventeen headers cost twenty-one.
+
+OW-ADR-0012 gave the correction act for repair after the fact. It never
+claimed to be the mechanism for authorized new work, and it is not one: a
+correction attests that an artifact moved for a reason, after the fact, under
+the old Warrant's name. New work is authorized under a new Warrant's name,
+before the fact. Using the first to account for the second is why the wall
+grows with the repository's age.
+
+The owner answered this on 2026-09-13, recorded in
+`docs/design/openwarrant-friction.md` as Q2: *preserve the historical
+delivered version and its evidence; let the new Warrant govern the new
+version, with explicit lineage.* Corrections against every older delivery
+were not selected. That answer needs a controlled change to RQ-036; this ADR
+is it.
+
+Two facts shape the mechanism.
+
+Deliverables are not inside the contract digest: eight of §28.5's seventeen
+elements are covered today and `deliverables` is not among them, so
+`deliverables.toml` can be edited after signing. Ownership therefore cannot
+be read from that file alone; something the human signed has to name the
+paths.
+
+And `war pins --refresh` rewrites content digests during ordinary work — that
+is its job while a Warrant is open. So the thing an authorizer grants is the
+**set of declared paths**, not their bytes. The bytes are what the resolution
+will bind, later, as it does today.
+
+## Decision
+
+1. **Ownership is granted at authorization.** The authorization request lists
+   every declared deliverable as `(id, target_ref)` and a digest of that set
+   (RFC 8785 over the sorted pairs). The response the human signs echoes the
+   set digest. The record stores the set. Ingestion refuses a response whose
+   set digest no longer matches the manifest (`authorize.stale-deliverables`):
+   what was drafted is what was signed. Widening the set after authorization
+   is a material amendment under §31 and a re-authorization, or a new Warrant.
+   The signing screen prints the paths under "Grants ownership of:", so a
+   signer sees what they grant.
+
+2. **The current owner of a path is the most recently authorized Warrant
+   whose recorded set names it** — ordered by authorization effective time,
+   then by alias on a tie; ignoring Warrants whose currency is `superseded`
+   and resolutions whose standing is annulled. An authorization recorded
+   before this ADR carries no set and owns nothing; it gains ownership only
+   through a fresh signature over a request that lists the paths. The rule is
+   not retroactive.
+
+3. **Drift is an error only for a path no authorized Warrant currently
+   governs.** For a resolved Warrant W and a declared path P whose bytes no
+   longer match W's chain head: if a later authorized owner O exists, W's pin
+   is *historical* and `war check` passes it as `deliverable.superseded-by`,
+   naming O; if none exists, the change is unaccounted and
+   `deliverable.digest-drift` stands, with two remedies named — declare the
+   path in a Warrant and have that Warrant authorized, or record why it moved
+   with `war correct`. A pin on an unresolved Warrant is a note, not a
+   promise, exactly as today (`deliverable.pin-stale`).
+
+4. **Historical means recorded and verifiable, not deleted.** The earlier
+   Warrant's `deliverables.toml` and correction chain are untouched; its
+   resolution keeps binding them; `war pins --history <path>` renders the
+   lineage oldest to newest. A resolution records a commit locator at ingest
+   so the delivered bytes can be re-hashed from history; resolutions recorded
+   before this ADR report `UNKNOWN` for that question rather than a guess.
+
+5. **OW-ADR-0012 stands, narrowed.** The correction act remains the only way
+   to move a path that no later authorized Warrant declares, and the only way
+   to repair a resolved delivery in place. A correction against a historical
+   pin is refused (`correction.historical`): there is nothing to correct.
+
+6. **RQ-036 is retitled, not removed:** *A delivered artifact changes only
+   under a later authorized Warrant that declares it, or through a recorded
+   correction.* One row is added, RQ-037: *Ownership of a delivered path is
+   recorded at authorization and belongs to the latest such authorization.*
+   §37 gains a subsection stating the rule; §28.4 records that an
+   authorization covers the declared set; §56.2's record gains an optional
+   locator. No row is removed and none is renumbered (§34.1, §34.4).
+
+## Why not the alternatives
+
+- **Put deliverables inside the contract digest.** Every authorized digest in
+  the corpus moves and every existing authorization reads as stale — roughly
+  a hundred re-signatures for a fact no signer disputed.
+- **A separate ownership act.** A third signature for what authorization
+  already means: "this Warrant may do this work on these files."
+- **Keep corrections as the mechanism.** Twenty-two pending today, one more
+  per touched file per earlier Warrant, forever. The owner refused this for
+  Q2, and the arithmetic refuses it on its own.
+- **Ownership on resolution rather than authorization.** Recreates the wall
+  for the whole life of the work: every edit during an authorized Warrant
+  would still need a correction from the earlier one.
+
+## Consequences
+
+- The first authorized Warrant that declares `check.rs`, `diagnostic.rs` and
+  `resolve.rs` is OW-WAR-0112. The pins of OW-WAR-0005 and OW-WAR-0046 on
+  those paths become historical the moment it is authorized, and their two
+  pending corrections are no longer offered. The twenty remaining relicense
+  corrections are edits under no Warrant; they still drift and are still
+  signed as corrections. The rule does not launder the past.
+- Old code is touched by declaring it. A Warrant that lists a path in its
+  deliverables and is signed may edit that path with no further act, however
+  many earlier Warrants once delivered it.
+- The pin guard denies edits to current resolved pins only. A historical pin
+  is editable under the owning Warrant's authority.
+- An authorizer now signs over which paths a Warrant may govern. A request
+  that hides a path is caught by the set digest; a path added to the manifest
+  after signing is reported as declared-but-unowned.
+- Ownership is ordered by a locally stamped effective time (§67.2 calls it
+  provisional). Two authorizations signed out of order would flip an owner;
+  ingestion refuses an authorization whose effective time precedes an
+  existing owner of the same path.
+- A pseudo-terminal defeats the terminal gate that the guided `war init`
+  (OW-WAR-0112 M4) uses before writing the authority files, exactly as it
+  defeats `war sign`'s plain path — THREAT_MODEL entry 2's residual, accepted
+  once more in the same words.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0022-current-by-relation.md · uuid: 01a0cc14-ce2f-7628-8a3a-ff64a526cd91 -->
+
+# ADR OW-0022: Two projections, current by relation; atoms are the only authored thing
+
+## Status
+
+Proposed by the performer under OW-WAR-0113. Adopted when the owner
+authorizes that Warrant; nothing here changes a §106 row, so no SAS revision
+carries it (§101.3).
+
+## Context
+
+The repository is built the way SAS §7 (Law 1) says — atoms are authored,
+parents are projections — and then stops one level short. To learn what is
+authoritative *now* a reader opens four generated files
+(`CORPUS_STATUS.md`, `WARRANT_OVERVIEW.md`, `ADR_OVERVIEW.md`,
+`NORMATIVE.md`), sees superseded Warrants in the same table as current ones,
+and follows `supersedes` by hand. The owner asked for one master document
+that is current by construction, and for the number of authored things —
+and of "presentable" things — to be as small as the facts allow
+(2026-09-22).
+
+Two facts from the corpus shape the decision:
+
+- **Currency written into a manifest moves a signature.** OW-WAR-0073 was
+  marked `currency = "superseded"` on 2026-09-22 and its revision-1
+  contract digest moved (`manifest_digest` is in the preimage,
+  `ir.rs`). §21.2's "canonical currency becomes superseded" must therefore
+  be a fact *derived* from the successor's `supersedes` relation, never a
+  field edited into the predecessor — the predecessor is immutable (§21.2,
+  RQ-084).
+- **`war new` writes `TODO`.** Every authored atom in this corpus was
+  written from a blank heading; the same five questions are answered in
+  different shapes 108 times. §8 wants typed authored atoms rather than
+  arbitrary model-written files.
+
+## Decision
+
+1. **Two projections, and only two, are presentable.**
+   - `docs/generated/CURRENT.md` — the **master document**: every current
+     subject fully expanded, atom by atom in role order, verbatim; the SAS
+     revision in force by its normative statements; accepted ADRs; who
+     governs each path (the ownership index, OW-ADR-0021); who may sign;
+     and the queue, each signing command annotated by the dry run. A
+     superseded, annulled or replaced subject appears as **one line of
+     lineage** (`OW-WAR-0073 → OW-WAR-0112`) and nothing else, unless a
+     current atom references it — and a reference is a link, never text.
+   - `docs/generated/HISTORY.md` — **optional**, on by
+     `[generated] history = true`: every subject that ever existed,
+     lineage chains, superseded atoms expanded, the state timeline. It is
+     the audit trail RQ-084 promises, kept out of the master document.
+   Every other generated view is an input to these two or a machine
+   projection (JSON); none is a document a person is asked to read first.
+2. **Currency is a relation, not a field.** `currency(S)` is *superseded*
+   iff an authorized subject declares `supersedes → S`; *annulled* iff its
+   resolution standing says so; *deprecated* only through a
+   `deprecates` relation on a successor; otherwise *current*. A manifest
+   that writes `currency = "superseded"` or `"annulled"` is refused
+   (`relations.currency-authored`): those are facts about a successor, and
+   the predecessor's bytes are under a signature. `deprecated` as a bare
+   field is tolerated for legacy manifests and reported.
+3. **An atom is the complete answer to one question about one subject,
+   under one jurisdiction.** Roles are a closed set per profile (§16);
+   subjects are open. One atom per (subject, role) unless the profile
+   marks the role repeatable, and then explicitly ordered (§16.2). No empty
+   atoms: a role with nothing to say is omitted (§16.1). Atoms reference
+   other subjects by identity, never by copying their text. The atom's
+   `jurisdiction` is the only statement of how it may change: `authored`
+   while unsigned, `bound` after, `generated` by `compile` alone.
+4. **Only authored atoms are edited; their relation to a projection is
+   their role.** The profile maps each role to the sections of the two
+   projections that render it. An atom therefore carries its relation to
+   the projections by construction — by naming a role — and a role no
+   projection renders is refused (`atom.role-unprojected`). An explicit
+   per-atom `projections:` list was rejected: it would be a second place
+   to keep the same fact.
+5. **Presets make authored atoms typed.** `war new <title> --preset
+   <name>` writes each atom from a preset under
+   `crates/openwarrant-cli/templates/presets/<name>/`: the headings the
+   projection will render, each with the question it answers, and nothing
+   to delete. `war check` reports a heading left unanswered
+   (`atom.preset-unanswered`). Presets are the tool's; the answers are the
+   author's; the projection is the reader's.
+
+## Why not the alternatives
+
+- **Keep four overviews and add a fifth "current" one.** The fifth would be
+  the one nobody re-checks. Two projections with disjoint jobs — what is,
+  and what was — are the minimum that answers both questions; the four
+  become inputs.
+- **A hand-written CURRENT.md.** A document that claims currency by
+  assertion is the thing `roadmap.status-claim` already refuses for
+  "resolved". A claim of currency must be computed or it is a date.
+- **A `currency` field, set by the tool on supersession.** It is the
+  predecessor's manifest — the tool would be editing a signed record. The
+  relation lives on the successor, which is the record that is *being*
+  signed.
+- **Free-form atoms with a lint.** §8 asks for typed authored atoms. A
+  preset is the type; a lint on prose is a guess.
+
+## Consequences
+
+- OW-WAR-0073's manifest mark is reverted; its revision-1 signature stands;
+  `relations.currency` reads the derivation and passes. The basis bullet
+  in OW-WAR-0112's `20-basis.md:47` that claimed the mark was digest-neutral
+  was wrong; that atom is bound, so this ADR records the correction rather
+  than an edit.
+- `CORPUS_STATUS.md`, `WARRANT_OVERVIEW.md` and `ADR_OVERVIEW.md` remain
+  as machine-adjacent views (the app and `war status` read the JSON forms);
+  `README.md` and `QUICKSTART.md` point a reader at `CURRENT.md` first.
+- `war next` and the app's Help pane hand a human a signing command only
+  after the dry run has judged it.
+- New Warrants are made from presets; the `TODO` skeleton is retired. The
+  first preset set is small on purpose: `feature`, `fix`, `decision`.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md · uuid: 01a0cd26-1b7a-73ba-a8d7-052a823a068e -->
+
+# ADR OW-0023: The roadmap is a record — one per program, beside the SAS
+
+## Status
+
+Proposed by the performer under OW-WAR-0114. Adopted when the owner
+authorizes that Warrant. Moving §98's phases out of the SAS text is a later
+SAS revision with its own acceptance; this ADR does not change a §106 row.
+
+## Context
+
+On 2026-09-23 the repository had four roadmaps and none of them was a
+record:
+
+- `roadmap://` refs on Warrants, whose spelling is checked and whose target
+  is never looked up. The phase range is a constant, `MAX_PHASE = 10`.
+- SAS §98, parsed at run time for titles and Exit criteria, with a stale
+  fallback table in `status.rs`.
+- `docs/roadmap/view.json`, an authored tree only `war progress` reads, from
+  a hard-coded path, and that `war check` never validates.
+- `PRODUCTION_ROADMAP.md`, which code reads only to count `**resolved**`.
+
+Two further plans lived in drafts: the four-phase SDK plan (rc.3
+`roadmap.json`) and `rc2-implementation-roadmap.json`. 40 of 110 Warrants
+named no phase, and the gaps listed on 2026-09-23 were assigned nowhere.
+
+§6.3 separates the Roadmap from the SAS and says scheduling changes SHALL
+NOT require architecture changes. With the phases written into §98, every
+re-plan was a SAS revision.
+
+The closest thing the tool already models is a Warrant's own milestones
+graph: milestones with `depends_on` and exits, and stages that do the
+work. A roadmap is that graph one level up. §6.10 says it in the SAS's own
+words: "a program has exactly one SAS … its phases are the program's
+milestones."
+
+## Decision
+
+1. **One roadmap per program, beside the SAS.** The SAS says what the
+   system is. The roadmap says in what order it is built: sequencing,
+   dependency, priority and phase (§6.3). A Warrant is one bounded piece.
+2. **It is its own subject kind, made of atoms.** `docs/roadmap/roadmap.toml`
+   (`oh.war/roadmap/v1`) is the manifest.
+   - `atoms/10-intent.md` holds why the program exists and the outcome of
+     the whole.
+   - `atoms/20-phases.yaml` holds one typed entry per phase: `id`, `title`,
+     `outcome`, `exit`, `depends_on`, `priority`.
+3. **The roadmap owns the phases.** §98 becomes a pointer to the record, in
+   the next SAS revision. After that, re-planning never touches the SAS.
+4. **It holds no member list and no status.**
+   - Membership is a relation: a Warrant's `[[roadmap]]` ref names its
+     phase (OW-ADR-0022, currency by relation).
+   - Achievement is derived: a phase is achieved when its `exit`-slugged
+     Warrant resolves satisfied.
+   - A roadmap is never "resolved".
+5. **Revisions are signed, and the signature is cheap.** Each accepted
+   revision is recorded under `docs/roadmap/revisions/`, the SAS revision
+   flow reused. The cost to a human is one act:
+   - **Human-initiated:** `war roadmap` at a terminal, or the app's Roadmap
+     pane, edits phases by keystroke. One `war sign roadmap --ssh-sign`
+     dialog accepts, showing a phase-level diff. No file is opened and no
+     document is read.
+   - **Agent-initiated:** `war roadmap propose` writes the atoms. The
+     queue shows `accept roadmap rev N+1` with its diff and its dry-run
+     verdict: one line, one dialog.
+   - **Moving a Warrant between phases needs no roadmap signature.** It
+     changes the Warrant's ref, not the roadmap.
+6. **The roadmap renders into the master document** (`CURRENT.md`,
+   OW-ADR-0022) as its Roadmap section: phases in dependency order, each
+   with its exit, members and rungs. Earlier revisions go to `HISTORY.md`.
+   No separate roadmap document is presented. The four legacy roadmaps
+   become one line of lineage each.
+
+## Why not the alternatives
+
+- **A parent Warrant with a `program` profile.** A Warrant is one outcome
+  that resolves. A roadmap has many phases and never finishes. §20.5's
+  parent resolution rule would either never fire or fire wrongly.
+- **Keep the phases in §98.** This would contradict §6.3's SHALL NOT every
+  time the plan moves.
+- **An unsigned planning file.** The plan could then shift under signed
+  work without anyone agreeing to it. The owner chose signatures, on
+  condition that they cost nearly nothing, and they do.
+- **A member list on each phase.** That would be a second place to keep the
+  fact a Warrant's ref already states, and the one that drifts.
+
+## Consequences
+
+- `roadmap.unknown-phase` replaces the hard-coded phase range: a ref must
+  name a phase the accepted roadmap has.
+- `roadmap.unassigned` warns on a current Warrant with no ref. Its remedy
+  is the automatic `war roadmap assign` while the Warrant is unsigned, and
+  an amendment after.
+- The eleven §98 phases, the four-phase SDK plan and every 2026-09-23 gap
+  are reconciled once, in OW-WAR-0114, into one accepted phase set.
+- A program without a roadmap record keeps today's behaviour (§98 parsed)
+  until it adopts one.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md · uuid: 01a0e507-828e-761b-9320-a3b1a54f1e32 -->
+
+# ADR OW-0024: Knowledge Fabric owns a registered Warrant's lifecycle; what stays local, and what each human act becomes
+
+## Status
+
+Proposed by the performer under OW-WAR-0126. **Not decided.** The three
+blocking questions of that Warrant (`20-basis.md`, "Questions for the
+owner") have no recorded answer: `war questions OW-WAR-0126` reports none
+answered, and `rationale.toml` carries an empty `judgment_ref` for each.
+
+- **Q-001**, how the tool knows a Warrant is registered;
+- **Q-002**, what a local human act does on a registered Warrant;
+- **Q-003**, whether a local authorization made before registration carries
+  into Knowledge Fabric (a question for the owner **and** KF's owner).
+
+OW-WAR-0126's work order says the performer drafts after those answers. This
+draft was written before them, at the owner's request, so that the answers
+have a concrete text to accept, amend or reject. Every section that depends
+on an answer states the options, recommends one, and says it is not decided.
+The act table below is written **under the recommended answers**; each row
+says what changes under the options not recommended. When the owner answers,
+the Decision section is rewritten to the answers, the options not taken stay
+as the record of the choice, and status moves to `accepted` by the owner's
+act, not the performer's. Until then this ADR governs nothing
+(`AdrStatus::is_current` is false for `proposed`,
+[adr.rs](../../../crates/openwarrant-core/src/adr.rs)).
+
+## How claims are cited
+
+- **SAS** sections are cited as `§n.m` of
+  [the SAS](../../sas/WAR_Software_Architecture_Specification.md) at revision
+  1.2.0 (sha256 `85f5e7ef…`, `docs/sas/revisions/1.2.0.toml`, state
+  `proposed`; 1.1.1 is the accepted revision). The sections cited were
+  read in the 1.2.0 text this repository carries; no comparison with 1.1.1
+  is claimed.
+- **OpenWarrant code** is cited by path in this repository at the commit
+  this ADR is committed on.
+- **Knowledge Fabric** is cited as `KF@3d3c871e:<path>`: the file at that
+  path in the Knowledge Fabric repository at commit
+  `3d3c871e44e9c62d36ed2d70eaeb46a9a86c9aed`, the commit OW-WAR-0126's basis
+  names. KF is another repository, so these are code spans, not links; a
+  reviewer checks them with `git show 3d3c871e:<path>` there. A statement
+  about KF that has no such citation is in "Open questions for KF's owner"
+  and nowhere else.
+
+## Context
+
+What the SAS already decides, and this ADR does not re-decide:
+
+- §11 (table): Knowledge Fabric owns authorization, lifecycle, role
+  authority, judgments and resolution. OpenWarrant owns WAR schemas, the
+  canonical IR, validation, file-native authoring, the CLI, compilation and
+  projections.
+- §11.1: registering does not transfer source authority; Git may remain the
+  Source Holder of authored atoms.
+- §11.2: OpenWarrant SHALL NOT own a second institutional database. "When a
+  WAR is registered, Knowledge Fabric owns authoritative lifecycle and
+  controlled actions."
+- §12.4: a WAR may remain valid as a local draft before allocation; it "may
+  not claim globally authorized or effective state until registered through
+  Knowledge Fabric". §12.6: offline creation keeps working.
+- §66.2: before registration the local journal is draft history; after it,
+  KF actions are authoritative and the journal "becomes a cache of action
+  requests and receipts and SHALL not become a competing ledger".
+- §67: the 32 controlled action names, the §67.1 envelope, §67.2
+  server-assigned `recorded_at`, §67.3 optimistic concurrency, §67.4
+  idempotency.
+- §72.4: "The CLI SHALL not bypass KF authority."
+- §27.2: an agent authorizes, resolves and annuls nothing.
+
+What exists in this repository:
+
+- Every human act is local. `war sign` performs it and writes a signed
+  record in Git; the kinds are the `Pending` variants of
+  [sign.rs](../../../crates/openwarrant-cli/src/sign.rs) (`act_name`:
+  `authorize`, `resolve`, `accept`, `accept-roadmap`, `accept-standing`,
+  `revoke-standing`, `correct`, `invalidate`), and `war sign --batch` signs
+  many at once ([batch_cmd.rs](../../../crates/openwarrant-cli/src/batch_cmd.rs),
+  OW-ADR-0019). `war check` believes the records through
+  [authority_check.rs](../../../crates/openwarrant-cli/src/authority_check.rs).
+- The §67 seam half exists: `war kf health` and `war kf act`
+  ([kf.rs](../../../crates/openwarrant-cli/src/kf.rs), OW-WAR-0028) post one
+  typed action, only under `--confirm-write`. The 32 names are
+  [seam.rs](../../../crates/openwarrant-core/src/seam.rs)'s four vocabularies.
+- Nothing in the tool knows a Warrant is registered. There is no
+  `war register`. The manifest's `enterprise_id` must be empty: a non-empty
+  value is refused as `ManifestError::FabricatedEnterpriseId`
+  ([manifest.rs](../../../crates/openwarrant-core/src/manifest.rs)), which
+  `war check` reports as `manifest.invalid`. Views render an empty one as
+  `*not allocated*` ([render.rs](../../../crates/openwarrant-compiler/src/render.rs)).
+- OW-WAR-0029 (registration, allocation, federation) and OW-WAR-0044 (the
+  Phase 4 exit) are authorized and not delivered. OW-WAR-0029's
+  `deliverables.toml` declares `identity.rs` and names no registration
+  record file.
+
+What Knowledge Fabric holds, cited:
+
+- One `warrant` object per OpenWarrant UUIDv7; `create_warrant_draft` takes
+  the UUID and refuses a non-v7 value or an existing identity; the phase is
+  the lifecycle state along §24.7; the `warrants` group owns all 32 §67
+  names "spelled as OpenWarrant's seam spells them"
+  (`KF@3d3c871e:docs/decisions/0019-warrants-as-institutional-record.md`,
+  "Decision").
+- KF records the contract digest, Compilation Basis and canonical IR as
+  OpenWarrant computed them and does not recompute; authored atoms never
+  enter its database (same file, "Contract revisions are immutable
+  snapshots").
+- `submit_warrant` takes `contract_digest`, `compilation_basis` (each a
+  64-hex sha256) and `canonical_ir`; `authorize_warrant_contract` refuses a
+  `contract_digest` that is not the proposed one, and records the
+  **authorizer as the actor posting the action** (`request.actorId`), with
+  `authorization_meaning` and `policy_basis` from the payload
+  (`KF@3d3c871e:packages/warrants/src/index.ts`, `submitWarrant`,
+  `authorizeWarrantContract`). The payload has no field for a signature
+  made elsewhere.
+- `resolve_warrant` takes an `outcome` and sets it
+  (`KF@3d3c871e:packages/warrants/src/index.ts`, `resolveWarrant`).
+
+## What stays local, always
+
+For every Warrant, registered or not. None of these is a human act, and none
+is a lifecycle transition KF owns under §11:
+
+| record or act | where it lives | after registration |
+|---|---|---|
+| drafting atoms, `war new`, `war plan` | the repository (Git is Source Holder, §11.1) | unchanged; §11.1 |
+| `war check` | deterministic, offline (RQ-074) | unchanged; it additionally reads the registration signal (below) |
+| `war compile`, projections, `generated/` | the repository (§11, OpenWarrant owns projections) | unchanged |
+| the journal (`journal.jsonl`) | the repository | kept; per §66.2 it is a cache of action requests and receipts, never a competing ledger |
+| gate runs and evidence receipts | local candidates (OW-ADR-0005) | unchanged; posting one is `attach_warrant_gate_run` / `register_warrant_evidence`, a separate act this ADR does not require |
+| request halves: `war authorize`, `war resolve`, `war verify` (bundle), `war amend`, `war correct` | documents a human would sign; they write no record | unchanged as documents; their §67 counterparts are named in the act table |
+
+## The act table
+
+"Before registration" is today's behaviour, for every row: **this ADR changes
+nothing an unregistered Warrant does** (§12.6, RQ-070, OW-WAR-0126 A-002).
+The only change before registration is a label (next section), and a label
+is a rendering, not an act.
+
+"After registration" is under the recommended answers (Q-001 (a), Q-002 (a),
+Q-003 (b)). *Refused (forwarded)* means the tool writes no record, exits
+non-zero, and prints the §67 action request a human posts with `war kf act`
+under their own KF role. *Refused (no KF path)* means no §67 action exists,
+and the tool names that as a KF gap. Rule ids are proposed and **to build**
+by the follow-on delivery Warrant; none exists in the tool today.
+
+| act (`act_name`) | before registration | after registration | §67 action (`seam.rs` name) | refusal: rule id, and the input that triggers it |
+|---|---|---|---|---|
+| `authorize`, revision 1 | unchanged from today: a local, signed authorization, labelled local (§12.4) | refused (forwarded) | `submit_warrant`, then `authorize_warrant_contract` | `kf.registered-act-refused`: `war sign <alias>` (or `--ssh-sign`) with an authorization pending, `<alias>` registered |
+| `authorize`, revision N+1 under an amendment | unchanged from today | refused (forwarded) | `propose_warrant_amendment`, then `authorize_warrant_amendment` (or `reject_warrant_amendment`) | `kf.registered-act-refused`: `war sign <alias>` with an amendment's revision pending, `<alias>` registered |
+| `authorize` through a standing class (OW-ADR-0029, `war standing apply`) | unchanged from today | refused (forwarded) | `submit_warrant`, then `authorize_warrant_contract` | `kf.registered-act-refused`: `war standing apply <alias>`, `<alias>` registered |
+| `resolve` (a new resolution, or the signature an unsigned recorded one lacks) | unchanged from today | refused (forwarded) | `resolve_warrant` (the agent's request half is `request_warrant_resolution`) | `kf.registered-act-refused`: `war sign <alias>` with a resolution pending, `<alias>` registered |
+| verification ingest (`war verify --response`; not a `war sign` act, listed because OW-WAR-0126's work order names it) | unchanged from today | refused (forwarded) | `record_warrant_judgment` (proposed mapping; see open question KF-3) | `kf.registered-act-refused`: `war verify <alias> --response <file>`, `<alias>` registered |
+| `correct` (OW-ADR-0012) | unchanged from today | refused (no KF path) | none: no §67 action exists | `kf.registered-no-kf-path`: `war sign <alias>/<D-id>` with a correction pending, `<alias>` registered |
+| the batch act (`war sign --batch`, OW-ADR-0019) | unchanged from today | refused when any member is refused | none for the batch itself; each member maps as its own row | the member's own rule (`kf.registered-act-refused` or `kf.registered-no-kf-path`), reported through batch step 3, where one refusal refuses the batch and nothing is signed ([batch_cmd.rs](../../../crates/openwarrant-cli/src/batch_cmd.rs)): `war sign --batch --ssh-sign` whose pending set includes an act on a registered Warrant |
+| `accept` (SAS acceptance) | unchanged from today | unchanged: it targets a SAS revision, not a Warrant | none | none; not changed by this ADR |
+| `accept-roadmap` | unchanged from today | unchanged: it targets the roadmap record, not a Warrant | none | none; not changed by this ADR |
+| `accept-standing`, `revoke-standing` | unchanged from today | unchanged: they target a class, not a Warrant; *applying* a class to a registered Warrant is the standing row above | none | none; not changed by this ADR |
+| `invalidate` (a Gate Definition version) | unchanged from today | unchanged by this ADR (see open question OW-2) | none | none; not changed by this ADR |
+
+Every name in the §67 column is one of `seam.rs`'s 32: `submit_warrant`,
+`authorize_warrant_contract`, `propose_warrant_amendment`,
+`authorize_warrant_amendment` and `reject_warrant_amendment` (contract group);
+`record_warrant_judgment` and `request_warrant_resolution` (evidence group);
+`resolve_warrant` (terminal group). No name is added.
+
+**What each refusal does.** Both rules are errors. `kf.registered-act-refused`
+writes nothing and prints the §67 request: the action name, the target
+Warrant UUID, and the payload fields the action takes (for
+`authorize_warrant_contract`: `contract_digest`, `authorization_meaning`,
+`policy_basis`, per `KF@3d3c871e:packages/warrants/src/index.ts`). The tool
+does not post it: posting is `war kf act ... --confirm-write`, run by the
+human under their own KF actor and role headers, so KF records that human
+as the authorizer. `kf.registered-no-kf-path` writes nothing and names the
+missing §67 action as a gap for KF's owner.
+
+**A registration signal that does not verify** (Q-001 (a)): `war check`
+reports `kf.registration-invalid` on the Warrant, and every row above is
+refused for it with that rule until the signal verifies or is removed by a
+commit a human can see. Law 15: an unverifiable registration is neither
+"registered" nor "not registered", and the tool does not guess in either
+direction. Trigger: a registration record in the Warrant directory whose
+receipt does not verify.
+
+**Under the options not recommended.** Q-002 (b): the authorize, amendment,
+standing and resolve rows become "signed locally, then forwarded" and the
+refusal becomes the post's failure, reported after a local record already
+exists; that is two records of one act, and §66.2 forbids the local one
+being a competing ledger. Q-002 (c): every "after" cell reads "unchanged",
+which §11.2 and §72.4 rule out; listed for completeness. Q-001 (c): the
+refusal fires only when KF answers, and offline every act is UNKNOWN,
+against §12.6.
+
+## Labels before registration (§12.4)
+
+Before registration a local authorization is real authority in this
+repository and claims nothing institutional. Proposed labels, **to build**
+in `war status`, `war show`, `WAR.md` and `docs/generated/CURRENT.md`:
+
+- authorized, unregistered: `authorized (local; not registered with
+  Knowledge Fabric)`;
+- resolved, unregistered: `resolved (local; not registered with Knowledge
+  Fabric)`;
+- registered: the phase KF reports, prefixed `KF:`, beside the local record
+  it replaced.
+
+A view never writes "authorized" or "resolved" alone for an unregistered
+Warrant. This extends the existing `*not allocated*` rendering of an empty
+enterprise identifier ([render.rs](../../../crates/openwarrant-compiler/src/render.rs)),
+which is today's only §12.4 label.
+
+## Q-001 — how the tool knows a Warrant is registered (not decided)
+
+### (a) A registration receipt file in the Warrant directory — recommended
+
+KF's receipt for `create_warrant_draft` (and, once allocated, the enterprise
+identifier) is written beside the Warrant and checked by `war check` the way
+a signature is. It works offline (§12.6) and is visible in `git log`. Its
+file name, schema and what it is verified against are **OW-WAR-0029's to
+deliver**; this ADR refers to "OW-WAR-0029's registration record" and
+invents neither. Whether KF's receipt can be verified at all is open
+question KF-1.
+
+Consequence: a forged receipt makes the tool refuse *more* (local acts on
+that Warrant); deleting a genuine one makes it refuse *less*. The second is
+the direction that matters, and it is a commit that removes a file, which
+review of that commit can see. Residual risk R-003.
+
+### (b) A non-empty `enterprise_id` in the manifest, only with such a receipt beside it
+
+Rejected in the recommendation: it is (a) plus a manifest field, and it
+requires relaxing today's `manifest.invalid` refusal of a locally set
+`enterprise_id` (`FabricatedEnterpriseId`, §12.4, §91.3 test 20) to "refused
+unless a receipt is beside it". Registration and allocation are also two
+events: the identifier is allocated by a separate
+`allocate_enterprise_identifier`
+(`KF@3d3c871e:docs/decisions/0019-warrants-as-institutional-record.md`,
+"What this does not decide"), so an `enterprise_id` marks allocation, not
+registration.
+
+### (c) Ask KF at each act
+
+Rejected in the recommendation: every act needs the network, so offline
+every act is UNKNOWN, against §12.6 and RQ-070.
+
+## Q-002 — what a local human act does on a registered Warrant (not decided)
+
+### (a) Refuse locally and print the §67 request — recommended
+
+One authority per act. The human posts the request with `war kf act` and KF
+records them as the actor. This is the table above.
+
+### (b) Sign locally, then post the matching §67 action
+
+Rejected in the recommendation: two records of one act, with a window in
+which the local one exists and KF's does not (a failed post). §66.2 says the
+local journal SHALL not become a competing ledger; a signed local record
+that KF never received would be one. It also records the poster, not the
+signer, as KF's authorizer unless the signer posts
+(`KF@3d3c871e:packages/warrants/src/index.ts`, `authorizeWarrantContract`).
+
+### (c) Keep signing locally and let KF mirror it
+
+Contradicts §11.2 and §72.4. Listed only because the Warrant lists it.
+
+## Q-003 — does a pre-registration local authorization carry over (not decided; the owner's and KF's owner's)
+
+### (b) No: KF authorizes afresh; the local record stays as history — recommended
+
+On registration the repository submits the contract (`submit_warrant` with
+the contract digest OpenWarrant computed) and a human authorizes it in KF
+(`authorize_warrant_contract`). The local `authorization.toml` stays, labelled
+local, and its digest can be matched to KF's revision because both carry the
+same contract digest. The KF authorizer may be the same person.
+
+Reason: at `KF@3d3c871e:packages/warrants/src/index.ts`, KF's authorizer is
+whoever posts the action and the payload has no field for a signature made
+elsewhere. Carrying a local authorization over would record the poster as
+authorizer, or need a KF change (open question KF-2).
+
+### (a) Yes, submitted as the authorized revision with its signature as evidence
+
+Not recommended while KF-2 is open. If KF's owner adds a field or evidence
+path for a foreign signature, (a) avoids a second signature for the same
+digest. Then the authorize row's registration path becomes "submit, then
+post the local signature as evidence".
+
+### (c) KF decides by organization policy
+
+Possible under §11 (KF owns authorization). It moves the decision to KF
+policy rather than settling it here, and the follow-on Warrant would then
+need that policy's name to plant against.
+
+The same question applies to a resolution recorded locally before
+registration. Under (b), it stays local history and KF resolves afresh.
+
+## Decision
+
+*Pending Q-001, Q-002 and Q-003.* If the recommendations are taken: the
+records and acts in "What stays local, always" stay local; the act table
+holds as written, with the rules `kf.registered-act-refused`,
+`kf.registered-no-kf-path` and `kf.registration-invalid`; views label local
+authority as in "Labels before registration"; the registration signal is
+OW-WAR-0029's registration record, checked like a signature; and a
+pre-registration authorization does not carry over.
+
+## Consequences (if the recommendations are taken)
+
+- An unregistered Warrant behaves exactly as today, apart from labels.
+- A follow-on delivery Warrant can plant each rule by its input: register a
+  fixture Warrant (with OW-WAR-0029's record), run the act, and observe the
+  rule id and that no record was written. It cannot start before OW-WAR-0029
+  delivers the record, because the input that triggers every rule is that
+  record.
+- The correction act has no KF path. A registered Warrant's delivered file
+  that drifts can be reported (`deliverable.digest-drift`) but not corrected
+  until KF's owner adds an action (KF-4).
+- No human act kind is added or removed. After registration, the acts the
+  table forwards are exercised in KF for that Warrant, by a human under a KF
+  role.
+
+## Open questions for KF's owner
+
+- **KF-1.** Are action receipts signed or otherwise verifiable by a party
+  that is not KF's database? Q-001 (a) needs something to check.
+- **KF-2.** Can `authorize_warrant_contract` (or `register_warrant_evidence`)
+  carry a signature made outside KF, and record the signer rather than the
+  poster? This decides whether Q-003 (a) is possible.
+- **KF-3.** Is `record_warrant_judgment` the action for an obligation's
+  verification verdict, or is `register_warrant_evidence` (§40.2) closer? The
+  `work.warrant_judgment` columns were not compared against OpenWarrant's
+  verification record.
+- **KF-4.** Should §67 gain an action for correcting a resolved Warrant's
+  delivered artifact (OW-ADR-0012), and one for a batch signature?
+
+## Open questions for the owner, outside Q-001 to Q-003
+
+- **OW-1.** The SAS text at revision 1.2.0 carries no §27.6 (the batch act);
+  OW-ADR-0019 proposed it. This ADR cites OW-ADR-0019 and `batch_cmd.rs`
+  for the batch act instead.
+- **OW-2.** §11 lists the "institutional Gate Registry" as KF's. Whether
+  `invalidate` moves to KF for gates a registered Warrant binds is not a
+  Warrant lifecycle act and is left out of this ADR.
+
+## Residual risks
+
+- R-001 (from OW-WAR-0126): KF's action names or payloads change before the
+  follow-on implementation. Every KF statement here names commit
+  `3d3c871e`, so drift is visible by diff.
+- R-002 (from OW-WAR-0126): this ADR is accepted before OW-WAR-0029 delivers,
+  and its record differs from what Q-001 (a) assumes. The follow-on Warrant
+  then supersedes this ADR rather than editing it.
+- R-003: under Q-001 (a), deleting a genuine registration record re-enables
+  local acts. Mitigation is review of the commit that deletes it; the tool
+  alone cannot tell "never registered" from "record removed" without asking
+  KF.
+
+## Rejected alternatives
+
+Listed under each question above: Q-001 (b) and (c), Q-002 (b) and (c),
+Q-003 (a) and (c), each with its reason. They are the recommendation's
+rejections, not the owner's, until the owner answers.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0025-assurance-mark.md · uuid: 01a0d678-e727-742f-a0fb-77f9324d9ffc -->
+
+# ADR OW-0025: The assurance mark — baseline v1, how a mark comes to exist, and what it binds
+
+## Status
+
+Proposed by the performer under OW-WAR-0135. **Not decided.** Two blocking
+questions of that Warrant have no recorded answer from the owner:
+
+- **Q-001**, whether a mark is issued or derived (options (a), (b), (c)
+  below);
+- **Q-002**, the contents of baseline v1, in particular the independence
+  floor and whether "fixtures before implementation" is a v1 requirement.
+
+Until the owner answers them and accepts this ADR, it records options and a
+recommendation, and it governs nothing. `docs/assurance/baseline-v1.toml`
+carries `status = "proposed"` for the same reason. When the owner answers,
+the Decision section is rewritten to the answer, the options not taken stay
+below as the record of the choice, and the baseline file's status becomes
+`accepted` in the same change. OW-WAR-0135's M2 (`war mark`) does not start
+before that.
+
+## Context
+
+The product spec promises an optional assurance mark
+(`docs/design/openwarrant-product-spec.md`, "Optional assurance and
+autonomous work") and leaves its engineering contract open ("Engineering
+contracts still to specify": the exact versioned baseline and its evidence,
+issuance, validation, and binding). What it has decided:
+
+- **Q44.** A mark covers one accepted Warrant result, tied to its exact code
+  revision and stated scope. Not a release, not a repository.
+- **Q45.** OpenWarrant defines a versioned baseline. A repository may
+  strengthen it, but not weaken it and keep the same mark.
+- **Q46.** A human reviews the outcome, the verification findings and the
+  remaining risks, and explicitly accepts the exact result. Independent
+  verification supplies the technical review. The human act does not claim
+  every line was read.
+- **Q47.** "Implementation finished, unreviewed" carries no mark.
+- **Q43.** Later qualification keeps the real history. A practice that was
+  not followed stays unmet; qualifying later does not make it met.
+- **C10, Q10.** Permission to run is not acceptance. Delegated authority
+  does not earn the mark.
+- **Q49.** The bundled default policy requires a mark before merging into
+  main. Enforcing that is repository policy, not this ADR.
+
+SAS 1.1.0 does not mention a mark. The records a mark would rest on already
+exist, and each is signed or checked by something that is not the mark:
+
+| record | what it already says | who guards it |
+|---|---|---|
+| `resolution.toml` | outcome, standing, contract digest, the human resolver, the meaning signed (§56.2) | the human act (§27.2), `resolution.stale` |
+| `attestations/resolve-<n>.dsse.json` | an in-toto Statement over the resolution, SSHSIG-signed with the resolver's key | `war attest verify` (OW-ADR-0015) |
+| `verifications/<OBL>.toml` | each obligation's disposition and the verifier's independence | `admissible_for` (§46.3, RQ-053) |
+| `[locator]` in `resolution.toml` | the commit the delivered bytes were at, and whether they were committed | OW-ADR-0021 |
+| `war pins --candidate` | whether the candidate still is the tree the human accepted | `acceptance.candidate-moved` (OW-WAR-0134) |
+| `gate-runs/*.receipt.json` | a gate ran, bound to this contract, and passed | `evidence.admissible` (OW-WAR-0133) |
+
+So a mark could be computed today by anyone, meaning anything. This ADR
+fixes what it means.
+
+## Q-001 — issued or derived
+
+### (a) Derived — recommended
+
+`war mark <alias>` computes the mark from records that already exist. No
+new human act: the signed resolution *is* Q46's acceptance. Anyone can
+recompute a mark; nobody can grant one. The mark adds no authority. It is a
+reading of authority already exercised, against a named baseline.
+
+- Consequence: the four human act kinds stay four, and SAS 1.1.0 needs no
+  change for the mark to exist in this repository.
+- Consequence: a mark can exist only where a human-signed, attested
+  resolution exists. There is no path to a mark that skips the human act,
+  because the mark has no input of its own.
+
+### (b) Issued — rejected in the recommendation
+
+A fifth human act, "mark", signed after resolution, with its own
+attestation. It adds a signature over the same decision the resolution
+already records, a new act kind in `roles.toml`, and a SAS revision
+(§27.2's list and §106). The friction is real and the information is none:
+the human who would sign it has already signed the resolution's meaning.
+If the owner selects (b), it is escalated as a SAS revision, not built
+under OW-WAR-0135 (its Frozen Surfaces).
+
+### (c) Derived, and written down — recommended as a cache only
+
+As (a), and `war mark <alias> --record` writes the statement to
+`docs/warrants/<alias>/mark-<baseline>.json`, so it can be committed and
+cited by digest. A written mark is never trusted: `war mark --verify`
+recomputes it from the records and compares. A hand-written or stale file
+therefore earns nothing; it is a claim to be checked.
+
+**Recommendation: (a), with (c)'s file as a cache that `--verify`
+recomputes.** Without an answer, M2 writes nothing.
+
+## Q-002 — baseline v1 (proposed)
+
+Each requirement is evaluated to exactly one of three results:
+
+- **met**: the named record exists and says what the requirement asks;
+- **unmet**: the record exists and says otherwise, or the record's absence
+  is itself the answer (no resolution is Q47's "unreviewed", not a gap in
+  the evidence);
+- **UNKNOWN**: no record can answer the question. Law 15: UNKNOWN is never
+  met. It refuses the mark and is reported by name, separately from unmet.
+
+A mark exists only when every requirement is met. The data form is
+`docs/assurance/baseline-v1.toml`; the tool reads it, and does not
+hard-code the list.
+
+| id | requirement | evidence | unmet when | UNKNOWN when |
+|---|---|---|---|---|
+| BL-001 | The Warrant is resolved `satisfied`, standing `valid` | `resolution.toml`: `common_outcome`, `standing` | no resolution (Q47), any other outcome, or a standing other than `valid` | never: the file either exists or not |
+| BL-002 | A human signed the resolution, and it is attested | `attestations/resolve-<n>.dsse.json`, verified as `war attest verify` does; `resolved_by_ref` names an actor whose kind in `roles.toml` is human | no attestation (a TTY signature has no key), the signature or a subject digest does not verify, or the actor is not a human | `ssh-keygen` is unavailable, so the signature cannot be checked |
+| BL-003 | Every declared obligation is established by an admissible independent verdict | `verifications/<OBL>.toml` per obligation in `60-assurance.md`, judged by `admissible_for` at the floor below | an obligation has no verdict, a verdict other than `established`, a verifier equal to the performer (RQ-053), or independence below the floor | never |
+| BL-004 | The resolution names the commit it accepted, and the delivered bytes were committed there | `[locator]` in `resolution.toml`: `commit_sha`, `worktree_clean` | `worktree_clean = false` | no `[locator]` (resolved before OW-ADR-0021), or a `commit_sha` that is not forty lowercase hex |
+| BL-005 | The candidate is still the tree the human accepted | `acceptance::assess` (OW-WAR-0134) at the tree marked | `acceptance.candidate-moved` | `acceptance.unknown` (no locator, or a commit git cannot read) |
+| BL-006 | Every gate run the resolution relied on is admissible | each `gate_run_refs` receipt, judged by `evidence::admissibility` against the resolution's contract digest (OW-WAR-0133) | a receipt is missing, invalid, not a pass, or stale against the contract | its reuse cannot be judged (`evidence::Standing::ReuseUnknown`: the gate's definition is not registered, or the fixtures it declares are not named in the receipt) |
+
+**The independence floor (BL-003).** Proposed: `controlled` (§46.3: a blind
+process or agent review), applied to every verdict whatever the Warrant's
+own `assurance_level`. A `basic` Warrant can still earn the mark, but only
+if its verdicts would have been admissible at `controlled`. The owner may
+choose `basic` instead; then a verifier that is merely distinct from the
+performer suffices, and the mark says less. Either way the floor is named in
+the baseline file, so the mark names it too. Per R-002, a mark at
+`controlled` never claims a human reviewed the code.
+
+**Considered and not in v1.**
+
+- *Fixtures before implementation* (Q43). No record today shows the order
+  in which fixtures and implementation were written, so it would be
+  UNKNOWN for every Warrant and v1 could never be earned. It stays out of
+  v1 rather than in and always UNKNOWN. A repository that wants it adds it
+  (below), and its marks are then UNKNOWN on it until a record exists.
+- *Human review of the full diff* (Q46's optional strengthening). A
+  repository extension, not the baseline.
+- *Delegated acts* (Q8–Q9). Out of v1. No delegated act earns the mark:
+  BL-002 requires a human actor, and a §27.3 policy resolution has none.
+
+## What a mark binds
+
+A mark is an `oh.war/mark/v1` statement. Every field is a value the
+records already hold, or a digest of a file in the tree, so it can be
+recomputed later and compared:
+
+| field | value |
+|---|---|
+| `warrant` | alias and uuid |
+| `baseline` | `id` (`v1`), the sha256 of the baseline file, and each repository extension's id and sha256 |
+| `resolution` | the path and sha256 of `resolution.toml` |
+| `attestation` | the path and sha256 of the verifying `resolve-<n>.dsse.json` |
+| `commit` | `locator.commit_sha` |
+| `contract_digest` | `resolution.contract_digest` |
+| `obligations` | the obligation ids in scope, each with the sha256 of its verdict file |
+| `requirements` | each requirement id, `met` |
+
+The statement carries no timestamp and no tool build, so recomputing it
+over unchanged records yields the same bytes. `war mark --verify`
+recomputes each field and names every one that moved: an edited
+resolution names `resolution`; an in-scope source change names the
+candidate (BL-005); an unchanged tree verifies.
+
+A mark is about one resolution of one Warrant at one commit. It says
+nothing about any other Warrant, the release that contains it, or the
+repository (Q44).
+
+## Strengthening, and not weakening
+
+A repository declares its baseline in `openwarrant.toml`:
+
+```toml
+[mark]
+baseline = "v1"
+extra = "docs/assurance/repository.toml"   # optional
+```
+
+- The extra file holds requirements in the same form as the baseline's,
+  with ids that do not collide with it. A mark under a strengthened
+  baseline names the baseline **and** the extension (`v1` plus the
+  extension's digest). It is a v1 mark and more, and says both.
+- Removing a v1 requirement, or relaxing one (a lower independence floor,
+  a requirement marked optional), is a different mark. The tool refuses to
+  call it v1 and names each removed or relaxed requirement. A repository
+  may run such a baseline under its own name; it may not name it `v1`.
+- A baseline whose `status` is not `accepted` earns no mark: the tool
+  refuses and says the baseline is not in force.
+
+## Decision
+
+*Pending Q-001 and Q-002.* If the recommendation is taken: (a) with (c)'s
+cache, baseline v1 as the table above with the `controlled` floor, and the
+strengthening rule above. The baseline's contents are fixed by this ADR and
+its data file together; a later change to either is a new baseline version
+and a new ADR (or a revision of this one), never an edit of `v1`.
+
+## Consequences (if the recommendation is taken)
+
+- The mark needs no new human act and no SAS change. It cannot exist over a
+  resolution a human did not sign, because BL-001 and BL-002 read the
+  signed record and its attestation, and nothing else can stand in for
+  them.
+- Every resolution recorded before attestations (OW-ADR-0015) or before
+  the locator (OW-ADR-0021) earns no mark: BL-002 is unmet, BL-004 is
+  UNKNOWN. That includes all 29 resolutions recorded today that lack a
+  `[locator]`. This is Q43 working as intended: the records do not show
+  the history a mark would claim. Such a Warrant qualifies later only
+  through a new resolution with the records v1 reads.
+- R-001: a derived mark is only as strong as the resolution under it. A
+  resolution signed on an agent's wording earns the same mark. The mark
+  says what the human act was, not that it was careful.
+- Enforcing "mark before merge" (Q49) is repository policy. The mark is
+  computable; OW-WAR-0134's CI step is where enforcement would go.
+- Making the mark normative beyond this repository is a SAS revision that
+  adds an RQ, proposed as a follow-up and not part of this ADR.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md · uuid: 01a0e507-38bd-7ea8-8105-f79353bea9ad -->
+
+# ADR OW-0026: A deliverable a native system holds is a reference, never a repository file
+
+## Status
+
+Proposed by the performer under OW-WAR-0127. **Not decided.** That
+Warrant's blocking question Q-001 (U-001, rationale A-001) has no recorded
+answer from the owner: `judgment_ref` is empty and `war answers` lists no
+answer. Until the owner answers it and accepts this ADR, it records options
+and a recommendation, and it governs nothing. No code classifies a native
+reference yet, and OW-WAR-0127's work order says the performer starts the
+code only after Q-001 is answered.
+
+When the owner answers, the Decision section is rewritten to the answer and
+the options not taken stay below as the record of the choice. If the answer
+is not (a), the plant `conformance/plants.d/61-native-authority.sh`, which
+writes its native reference in form (a), is rewritten to the chosen form in
+the same change. The plant counts nothing while this ADR is not `accepted`:
+it prints each case as UNKNOWN, with what it observed.
+
+## Context
+
+RQ-065: native systems retain artifact authority. §11 names them: CAD,
+datasets, instruments, invoices, payments, QMS records. §13 gives `external`
+as a Source Holder kind, and §13.2 says a bound fact held elsewhere is not
+edited inside the Warrant. §37.1 shows `target_ref` as a URI (`git://...`).
+
+Every reader of a deliverable today joins `target_ref` to the repository
+root: `resolve.rs` (§56.1 requirements 2 and 3), `check.rs` (drift),
+`pins.rs` (refresh), `correct.rs`, `bundle.rs`, `status.rs`. Declared as
+`external://dataset-registry/ds-42` in a scratch program, the reference is
+read as the path `<root>/external:/dataset-registry/ds-42`:
+
+- absent there, `war check` warns `deliverable.target-unreadable` ("No such
+  file or directory"). A question nobody could ask here reads as a failure.
+- present there, `war pins --refresh` rewrites the recorded digest from
+  those bytes, `war correct` reports them as the current digest, `war status`
+  calls the digest `drift`, §56.1 requirement 2 is met, and the verification
+  bundle carries the file's text as the deliverable. OpenWarrant has taken
+  over an artifact it does not hold.
+
+`crates/openwarrant-core/src/seam.rs` already states the rule for seams: the
+other system owns its own facts, and OpenWarrant records references to them.
+This ADR applies it to deliverables.
+
+## Q-001 — the form of a native reference
+
+### (a) `external://<system>/<external_id>` — recommended
+
+One scheme. `<system>` names the holder; `<external_id>` is whatever the
+holder calls the artifact, opaque to OpenWarrant. It mirrors Knowledge
+Fabric's `content.external_locator` (`system`, `external_id`) at commit
+`3d3c871e`, and §13's `external` Source Holder kind.
+
+- One classifier: a `target_ref` whose scheme is `external` is native;
+  every other value parses as it does today. OBL-006's "every existing
+  deliverable classifies as a repository path" then holds by construction,
+  because none of the 238 existing deliverables starts with `external://`.
+- The holder is in the reference and in provenance, so the tool can see
+  both. Whether it refuses a mismatch between them is a further rule the
+  work order does not list; if the owner wants it, it is an amendment.
+
+### (b) One scheme per kind (`dataset://…`, `cad://…`) — not recommended
+
+The holder is named only in provenance. The set of schemes is open, so the
+classifier needs a registry of them, or must treat any `scheme://` as native.
+The first is U-003's list in another form; the second makes a typo or a
+future `git://` (the form §37.1 shows) native by accident. A kind is also
+not a holder: two dataset registries would share a scheme.
+
+### (c) `kf://` references only — not recommended
+
+A native artifact must first be registered in Knowledge Fabric. That makes
+RQ-065 depend on a component a repository may not run, and moves the
+question to OW-WAR-0126 (RQ-060), which OW-WAR-0127 lists as a non-goal. A
+`kf://` reference can still be expressed later as a holder under (a).
+
+**Recommendation: (a).** Without an answer, nothing is parsed.
+
+## What every form shares (the work order, whatever the answer)
+
+These follow from OW-WAR-0127's work order and do not depend on Q-001:
+
+- **Recognized in one place.** `deliverable.rs` classifies a `target_ref`
+  as a repository path or a native reference. No other file parses one.
+- **A native reference carries its holder.** Validation refuses, each as a
+  named `DeliverableError`: no provenance or `provenance_required = false`;
+  a Source Holder that is empty or `git`; `content_addressed = true` with no
+  content digest.
+- **Nothing reads, rewrites or corrects it.** No command joins a native
+  reference to the root. `pins --refresh` leaves its recorded digest as it
+  is; `war pins` and `war status` say "held by <system>"; `war correct`
+  refuses it by name and writes nothing; drift checking skips it and says so
+  once per Warrant.
+- **Unknown is not failure and not pass (Law 15).** §56.1 requirements 2 and
+  3 are booleans and stay so (a frozen surface). A required native
+  deliverable leaves them unmet, with an UNKNOWN diagnostic naming the
+  holder, never "does not exist".
+- **The verifier is told what it cannot see.** The bundle carries the
+  reference, holder and recorded digest, marked not read, and no bytes.
+
+## A-002 — a native reference is in the signed set
+
+A native deliverable belongs in the deliverable set the authorizer signs
+(`deliverable_set_digest`), so the authorizer sees what the Warrant claims
+to produce. §37.5's ownership of a *path* does not apply to it: there is no
+path, and OW-ADR-0021's `owned` set names repository paths only. Proposed:
+a native reference is listed in the authorization's set and never in
+`owned`. Confidence: medium; the owner may choose to keep it out of the set.
+
+## R-003 — a repository file declared native
+
+A performer could declare a repository file as native to escape pinning.
+The holder must be a non-`git` system, so a record that says a repository
+file is held elsewhere is a false record, not a loophole in the rule. The
+refusal is limited to what the tool can see: it cannot tell that
+`external://dataset-registry/ds-42` is in fact a file someone committed.
+
+## Open, not decided here
+
+- **Q-002 (U-002):** how a native artifact's presence and digest can ever be
+  established here, so a Warrant with a required native deliverable can
+  resolve: (a) a verifier-run gate whose receipt records what it fetched
+  (§44.6); (b) the holder's own receipt, attached as evidence; (c) not yet.
+  Until answered, such a Warrant stays unresolvable, as OW-WAR-0127 leaves
+  it. Recorded for the owner; no recommendation is needed for this ADR.
+- **U-003:** whether `openwarrant.toml` must list the native systems a
+  repository may name. Default proposed here: no list. Under (a) a list
+  would be a check on `<system>`; under (b) it is required.
+
+## Decision
+
+*Pending Q-001.* If the recommendation is taken: form (a),
+`external://<system>/<external_id>`, with the shared rules above, A-002 as
+proposed, and Q-002 and U-003 open.
+
+## Consequences (if the recommendation is taken)
+
+- No existing record changes. Every deliverable today is a repository path,
+  parses as one, and pins and owns as before (OBL-006).
+- A Warrant with a required native deliverable cannot resolve until Q-002 is
+  answered. That is the honest state: nothing here can observe the bytes.
+- Rolling back is removing the classifier and its refusals; a Warrant
+  drafted with a native reference meanwhile is then reported by `war check`
+  as `deliverable.target-unreadable`, by name: a warning today, not the
+  refusal the work order's Rollback section expects.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md · uuid: 01a0e507-828f-7727-9c09-678a8e680fb9 -->
+
+# ADR OW-0027: The Knowledge Fabric compiler interface — who compiles, and the process contract between them
+
+## Status
+
+Proposed by the performer under OW-WAR-0128. **Not decided.** The three
+blocking questions of that Warrant (`20-basis.md`, "Questions for the
+owners") have no recorded answer: `war questions OW-WAR-0128` reports none
+answered, and `rationale.toml` carries an empty `judgment_ref` for each.
+
+- **Q-001**, who runs the OpenWarrant compiler: the owner **and** KF's owner;
+- **Q-002**, which component is "the Knowledge Fabric Compiler": KF's owner;
+- **Q-003**, whether KF may hold authored atom bytes to compile them: KF's
+  owner.
+
+OW-WAR-0128's work order says the performer drafts after those answers. This
+draft was written before them, at the owner's request, so the answers have a
+concrete text to accept, amend or reject. Each question below states the
+options, recommends one, and says it is not decided. The interface,
+[kf-compiler.md](../../integrations/kf-compiler.md), is written under the
+recommended answers and says what changes under the others. When the owners
+answer, the Decision section is rewritten to the answers, the options not
+taken stay as the record of the choice, and status moves to `accepted` by
+the owner's act, not the performer's. Two of the three questions are KF's
+owner's: acceptance of this ADR in this repository does not answer them for
+Knowledge Fabric.
+
+Knowledge Fabric is cited as `KF@3d3c871e:<path>`, the file at that path in
+the Knowledge Fabric repository at commit
+`3d3c871e44e9c62d36ed2d70eaeb46a9a86c9aed`. A KF behaviour without such a
+citation appears only as a question for KF's owner, in
+[kf-compiler.md](../../integrations/kf-compiler.md) ("Open questions for
+KF").
+
+## Context
+
+- The product spec names the composition "Knowledge Fabric Compiler →
+  OpenWarrant compiler → Knowledge Fabric Compiler → consuming workflow" and
+  says the interface and the responsibility for each input and output
+  "remain to be designed"
+  ([product spec](../../design/openwarrant-product-spec.md)).
+- The SAS gives an illustrative §81 `compile(request) -> result` with nine
+  inputs (§81.1) and nine outputs (§81.2); §83.1 says KF SHOULD invoke an
+  exact pinned OpenWarrant binary through canonical JSON; §83.2 lists pins;
+  §83.3 the sandbox; §65 the digest domains; §69 versioning; §75.2 the
+  process seam ([the SAS](../../sas/WAR_Software_Architecture_Specification.md)).
+- KF records the contract digest, Compilation Basis and canonical IR "as
+  OpenWarrant computed them", does not recompute, and never stores authored
+  atoms (`KF@3d3c871e:docs/decisions/0019-warrants-as-institutional-record.md`).
+  KF's compiler runtime is a document compiler, and v1.0 carries no Liminal
+  compiler
+  (`KF@3d3c871e:docs/decisions/0002-liminal-backed-document-compiler.md`,
+  `KF@3d3c871e:docs/decisions/0010-liminal-compiler-deferred.md`).
+- On the OpenWarrant side, `lower` is a pure function of in-memory bytes
+  ([lower.rs](../../../crates/openwarrant-compiler/src/lower.rs)); `war compile`
+  wraps it with repository discovery and writes
+  ([compile.rs](../../../crates/openwarrant-cli/src/compile.rs)); no request or
+  result type for §81 exists.
+
+The product spec reads "KF supplies the inputs"; KF ADR 0019 reads "the
+repository computes, KF records". This ADR does not reconcile them by
+choosing silently; Q-001 is that reconciliation, and it is the owners'.
+
+## Q-001 — who runs the OpenWarrant compiler (not decided)
+
+### (c) Both: the repository compiles, KF recompiles to check — recommended
+
+The repository compiles and submits as KF ADR 0019 built it
+(`submit_warrant` with contract digest, Compilation Basis and canonical IR,
+`KF@3d3c871e:packages/warrants/src/index.ts`). KF's compiler invokes the
+pinned binary over the same bytes and compares digests before recording.
+
+- For: the only option in which both documents hold with one change. The
+  record is still what OpenWarrant computed in the repository (ADR 0019),
+  and KF supplies inputs and consumes the output (the product spec). KF
+  stops recording a digest it cannot check.
+- Against: KF ADR 0019's "does not recompute" must become "does not
+  recompute as the authority; may recompute to check". That is a KF
+  decision, and it needs Q-003 (a) or (b).
+
+### (a) The repository compiles; KF only records
+
+What exists. The v1 "interface" is then the `submit_warrant` payload, and
+the §81 process contract is not needed yet. Not recommended: KF records a
+contract digest nobody on its side can reproduce, and the product spec's
+composition is not met.
+
+### (b) KF compiles over bytes it fetched
+
+§83.1's shape and the product spec's reading. Not recommended alone: KF
+becomes the compiler of record, which contradicts ADR 0019's authority
+statement, and a repository-side `war compile` then produces a digest that
+is not the one recorded. The process contract is the same as under (c).
+
+## Q-002 — what the Knowledge Fabric Compiler is (not decided; KF's owner)
+
+### (a) KF's existing compiler runtime, with an OpenWarrant adapter beside the Liminal one — recommended
+
+KF's pinned Liminal process adapter already refuses a mismatched executable
+or `Cargo.lock` digest, sandboxes with bubblewrap (`--unshare-all`,
+`--clearenv`), writes one canonical request and passes `--protocol`, and
+bounds input, output and diagnostics
+(`KF@3d3c871e:packages/documents/src/liminal-adapter/executable.ts`,
+`KF@3d3c871e:packages/documents/src/liminal-adapter/sandbox.ts`,
+`KF@3d3c871e:packages/documents/src/liminal-adapter/compiler-io.ts`,
+`KF@3d3c871e:packages/documents/src/liminal-adapter/limits.ts`). That is most of §83.2
+and §83.3 already built once. Whether the OpenWarrant adapter can share the
+runtime's `DocumentCompilerAdapter` interface is open (KF-2 in
+`kf-compiler.md`).
+
+### (b) A new KF component
+
+Rebuilds the pinning and sandbox that (a) reuses. Not recommended unless
+KF's owner finds the document runtime cannot carry a Warrant.
+
+### (c) A workflow outside KF that calls both
+
+Moves pinning and sandboxing outside the system that records the result,
+so KF would record what an unpinned caller says it ran. Not recommended.
+
+## Q-003 — may KF hold authored atom bytes (not decided; KF's owner)
+
+### (a) Transiently, for one compilation, never stored — recommended
+
+Keeps ADR 0019's "authored atoms never enter this database" true, and is
+what Q-001 (b) or (c) needs.
+
+### (b) Stored, with Git still the Source Holder
+
+Changes ADR 0019, and §11.1 then needs care: a stored copy must not read as
+a Holder transfer. Not recommended.
+
+### (c) No
+
+Then only Q-001 (a) remains, and this interface's process contract waits.
+
+## Protocol names (U-004)
+
+`oh.war/compilation-request/v1` and `oh.war/compilation-result/v1`, proposed;
+a refusal is an `oh.war/report/v1` envelope, as `war sdk` already emits
+([sdk.rs](../../../crates/openwarrant-cli/src/sdk.rs)). The owner may rename
+them. A breaking change after acceptance is a major version and an ADR
+(§69.3).
+
+## Decision
+
+*Pending Q-001, Q-002 and Q-003.* If the recommendations are taken: Q-001
+(c), Q-002 (a), Q-003 (a); the protocol names above; and the interface in
+[kf-compiler.md](../../integrations/kf-compiler.md) — every §81.1 input and
+§81.2 output dispositioned as carried or deferred with its reason, the
+process contract with fourteen named refusals, the §83.2 pins, and every
+digest named with algorithm and domain.
+
+## Consequences (if the recommendations are taken)
+
+- OpenWarrant builds `war compile --protocol oh.war/compilation-request/v1`
+  over the existing pure `lower`, and plants each refusal by its triggering
+  input. No existing record schema or `oh.war/report/v1` changes.
+- KF builds an OpenWarrant adapter and the digest comparison, and revises
+  ADR 0019's "does not recompute" sentence. Those are KF's Warrants, not
+  OpenWarrant's.
+- `raw-bytes` digests (manifest and atom sources) stay as `lower` computes
+  them; moving them to §65.2 preimages is a separate, breaking decision
+  (OW-1 in `kf-compiler.md`).
+- R-001 (from OW-WAR-0128): one side builds something else after acceptance.
+  Every element of the interface names its owner and whether it exists, so
+  the gap shows in review.
+- R-002 (from OW-WAR-0128): §81 is illustrative, and a later SAS revision may
+  fix another shape. This ADR is then superseded, not edited.
+
+## Rejected alternatives
+
+Listed under each question above: Q-001 (a) and (b), Q-002 (b) and (c),
+Q-003 (b) and (c), each with its reason. They are the recommendation's
+rejections, not the owners', until the owners answer.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md · uuid: 01a0d3cd-27e1-7e4c-a236-7a3bbdb86f88 -->
+
+# ADR OW-0028: SAS sections are atoms — identity now, authored source later
+
+## Status
+
+Proposed by the performer under OW-WAR-0125. Authorizing that Warrant adopts
+step one below, as OW-ADR-0022 is adopted with OW-WAR-0113. Nothing here
+changes the SAS: the §105 wording at the end is a **proposal** for a
+separate SAS revision, which is the owner's act under §101 (U-001).
+
+## Context
+
+The SAS is one Markdown file, governed as a whole. A revision record
+(`docs/sas/revisions/<version>.toml`) pins the file's sha256 and a snapshot
+of §106. Nothing smaller than the document has an identity or a digest, so:
+
+- sixteen amendments cite a section in `governing_adr_or_policy`
+  (`sas://WAR-SAS-43.5`, `-43`, `-46.3`, `-59`, `-96.2`, `-101`), and by
+  2026-09-24 twenty-seven more cite `sas://WAR-SAS-44.8`. §105 lists only
+  `sas://<requirement-id>`, and `traceability.rs` reads only requirement
+  references. A citation of a section that does not exist passed;
+- a Warrant pinned to `0.1.0-draft.1` rests on the whole document at that
+  digest, and nothing can say whether the sections it relies on changed
+  since. Between `0.1.0-draft.1` and `1.1.0`, 10 of 124 units changed, and
+  none of the cited sections did;
+- `war sas diff` compared §106 only, so a revision that rewrote §62 without
+  touching §106 showed no change.
+
+OW-WAR-0113 set SAS atomization aside ("the prose stays one file under
+§101"); OW-WAR-0114 placed it at `roadmap://OW-PHASE-3/sas-atoms`.
+
+## Decision
+
+1. **A section is a unit of the pinned document, found outside code
+   fences.** The units are the preamble (everything before the first
+   boundary), each `# Part <n>` and `# Appendix <x>` heading with the prose
+   up to the next boundary, and each numbered `## <n>.` section with its
+   `### <n>.<m>` subsections. A boundary is one of those heading forms at
+   column zero outside a fenced block; `###` and deeper stay inside their
+   section. A heading inside a fence is an example, not a section. Joined
+   in order, the units are the document byte for byte, so a revision's
+   sha256 remains the digest of the join and a section's sha256 is a digest
+   of part of it.
+2. **A section's identity is its number as written in the accepted
+   revision:** `<NS>-SAS-<n>` for a numbered section, `<NS>-SAS-<n>.<m>`
+   for a subsection, where `<NS>` is the namespace the revision's §106 rows
+   carry (`WAR`). It is cited as `sas://<NS>-SAS-<n>` or
+   `sas://<NS>-SAS-<n>.<m>`. Once a revision carrying a number is accepted,
+   that number is **never renumbered or reused** for other content, for
+   the reason §106 ids are append-only: every citation of it would silently
+   change meaning. A section may be added, amended or withdrawn (its
+   heading kept, its prose saying so); it may not move. The structural
+   units (`preamble`, `part-<n>`, `appendix-<x>`) have digests and no
+   citation form.
+3. **Step one — sections derived from the pinned document (OW-WAR-0125).**
+   The document stays the authored source under §101. `war compile`
+   derives `docs/sas/generated/SECTIONS.json` and `SECTIONS.md` from the
+   document in force, naming its sha256 and revision, drift-checked like
+   `NORMATIVE.*`. `war check` resolves each section citation in an
+   amendment against the revision its Warrant is pinned to
+   (`sas.section-ref`, an error when it names nothing) and compares the
+   cited section's digest there with the latest accepted revision
+   (`sas.section-current`: pass, warning when changed, UNKNOWN when history
+   no longer holds the bytes). An older revision's bytes are read from
+   Git by the digest its record pins; nothing is fetched. `war sas diff`
+   names the sections a candidate adds, removes or changes.
+4. **Step two — sections become the authored source (a later Warrant).**
+   Each section becomes an atom, and the document becomes their generated
+   projection, compiled and drift-checked as a Warrant's parent is (Law 1).
+   That moves where the SAS is written and how §101 governs it, so it waits
+   for the owner to accept this ADR, and is carried by its own Warrant.
+   The rule against renumbering (2) is enforced there, where a section has
+   an authored identity to hold; step one reports a broken citation and
+   does not yet refuse a renumbering revision.
+
+## Proposed SAS text (a proposal, not a change)
+
+**This is proposed wording for a separate SAS revision. It is not part of
+the SAS until the owner proposes and accepts a revision carrying it
+(§101.2, §101.3). OW-WAR-0125 changes no SAS byte.**
+
+In §105, after `sas://<requirement-id>`:
+
+```text
+sas://<NS>-SAS-<section>
+```
+
+and, after the list:
+
+> A section reference names a numbered section (`<n>`) or subsection
+> (`<n>.<m>`) of the SAS revision the citing record is pinned to, by the
+> number that revision gives it. Section numbers are stable: an accepted
+> revision SHALL NOT renumber a section or reuse a number for other
+> content.
+
+## Why not the alternatives
+
+- **Keep citing requirements only.** The corpus already cites sections,
+  forty-three times, because the reason for an amendment is often a
+  paragraph (§44.8's binding rule), not a row of §106. Refusing the form
+  would push those citations back into unchecked prose.
+- **Make sections the authored source now.** It moves the SAS's source and
+  its §101 governance in the same change that first gives sections an
+  identity; the identity should be shown to hold on the five recorded
+  revisions before anything is built on it.
+- **Record section digests in the revision record.** It would change
+  `oh.war/sas-revision/v1` and every record under it, for facts that are
+  already derivable from the bytes the record pins.
+
+## Consequences
+
+- Section citations are checked, and a citation of nothing is an error.
+- A Warrant can learn that a section it relied on changed, without the
+  all-or-nothing `sas.pin-superseded` warning being the only signal.
+- In a shallow clone, every Warrant pinned to an older revision reports
+  `sas.section-current` UNKNOWN (R-002): the bytes are not there, and a
+  pass would be a guess. A checkout that runs `war check` over this corpus
+  needs the SAS's history.
+- A revision that renumbers a section breaks every citation of it; step one
+  reports each one (R-001), step two refuses the revision.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0029-standing-authorization.md · uuid: 01a0d28c-78b1-7a3c-895f-4750ab98eb27 -->
+
+# ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
+
+## Status
+
+Proposed by the performer under OW-WAR-0142. **Not decided.** The owner
+chooses A, B or C by answering OW-WAR-0142 Q-001. Until then this ADR
+records options and a recommendation, and it governs nothing. If the answer
+is A, the ADR is adopted when the owner accepts the SAS revision it
+carries (SAS 1.2.0, additive; see "What A changes in the SAS"). If the
+answer is B or C, the Decision section is rewritten to that answer and
+the options not taken stay below as the record of the choice.
+
+## Context
+
+On 2026-09-24 the owner compared `war` with a Jira ticket: *"nobody's gonna
+run that command to just do work when they could just prompt or hit a jira
+ticket ... Reduced friction? Compare us to jira tickets."*
+
+A Jira ticket costs about a minute and no signature, and nothing waits on
+anyone before work starts. A Warrant costs two human acts:
+
+- an **authorization** before work (§28.4), two dialogs: the response and
+  its attestation;
+- a **resolution** after work (§56), two more dialogs.
+
+Batching (OW-WAR-0072, `docs/SIGNING.md`) makes N acts cost two dialogs.
+It does not remove the wait. A batch holds one role, so authorizations
+and resolutions are two batches. Every change still waits for the
+authorize batch before it can start. The wait makes a Warrant slower than a
+ticket, whatever the batch saves in dialogs.
+
+Most of this repository's changes are routine: a bounded edit to named
+code paths, checked by the battery and by the blind verifier (OW-WAR-0117),
+at `basic` assurance. For these, the authorization adds no information the
+human did not already give for the previous twenty such changes.
+
+These texts constrain the answer:
+
+- **§27.2.** An agent SHALL NOT authorize its own proposed WAR, resolve its
+  own delivery, accept residual risk, or change a gate definition it is
+  judged by. `docs/authority/roles.toml` refuses these to an agent by
+  *kind*, whatever roles it holds.
+- **§28.4 and §37.5.** An authorization records the contract digest,
+  authorizer, acting role, meaning, effective time, policy basis and the
+  declared deliverable paths *"as the authorizer saw it"*.
+- **§28.7.** An authorized contract is never patched.
+- **§30.** The autonomy envelope. §30.2 is the precedent: *"A narrow policy
+  may pre-authorize"* certain revisions of an authorized contract. *"The
+  governing policy or ADR made the normative decision. The instance still
+  creates an immutable revision and audit event."* §30.3 lists what always
+  needs a manual revision, including scope expansion, security boundary
+  change, new production dependency, gate weakening and accepted residual
+  risk. §30.4: an executor SHALL NOT improvise normative semantics.
+- **§27.3.** A policy service MAY resolve a basic mechanical WAR. The owner
+  has ruled that out for this work: *a resolution is never automatic*.
+- **OW-ADR-0021.** A path belongs to the latest authorized Warrant that
+  declares it. Ownership is granted by the signed deliverable set.
+
+## Options
+
+Costs are for one routine change. A "round" is however many changes the
+owner reviews at one sitting (N). A dialog is one ssh-agent confirmation.
+
+| | before work | after work | dialogs per round | waits before work? | reads per change |
+|---|---|---|---|---|---|
+| Jira ticket | none | none (no verification) | 0 | no | 1 |
+| today, one act at a time | authorize (2) | resolve (2) | 4N | yes | 2 |
+| **B** batching + presets only | one authorize batch (2) | one resolve batch (2) | 4 | **yes** | 2 |
+| **A** standing authorization | nothing | one resolve batch (2) | 2, plus 2 per class signed | no | 1 |
+| **C** SAS revision of §27.2 | nothing | one resolve batch (2) | 2 | no | 1 |
+
+### A — a standing authorization record, checked for every Warrant against its class
+
+The owner signs one `oh.war/standing-authorization/v1` record. It names a
+**class** of work, and its terms are closed. A term the record does not
+state is refused, never guessed (§30.4):
+
+- **paths.** Globs a covered Warrant may declare as deliverables.
+- **profile.** `delivery` only.
+- **assurance.** At most `basic`.
+- **gates.** Each obligation must cite one of the class's gates. The class
+  must include `gate://ops.conformance.plants@1.0.0` and
+  `gate://software.repo.war-check@1.0.0`, and a blind verification is
+  required before resolution.
+- **budget.** A ceiling on each stage's `budget_tokens` and
+  `wall_time_seconds`, and on the number of stages and deliverables in one
+  Warrant.
+- **bounds on the class itself.** An expiry (`expires_at`) and a count (at
+  most `max_warrants` covered Warrants), after which it covers nothing.
+- **meaning.** The owner's own words for what the signature grants.
+
+The class record carries no term for residual risk, for an ADR atom or for
+resolution. So a covered Warrant cannot carry an
+`accepted_residual_risk` assumption or an `adr` atom, and it cannot be
+resolved by anything but a human act.
+
+**The paths no class may cover.** This set is non-waivable. It is compiled
+into the tool, not read from any file the class or an agent can edit:
+
+- the authority files: `docs/authority/**`, `openwarrant.toml`,
+  `docs/sas/**`, `docs/roadmap/**` and `docs/adr/**`;
+- the gates and their fixtures: `docs/gates/**` and `conformance/**`;
+- the guards: `.claude/hooks/**` and `.claude-plugin/**`;
+- dependency manifests: `Cargo.toml` and `Cargo.lock` at any depth. A new
+  production dependency is §30.3;
+- the code that decides authority: `standing.rs`, `authorize.rs`,
+  `sign.rs`, `batch_cmd.rs`, `authority_check.rs`, `attest.rs`,
+  `verify.rs`, `resolve.rs`, `resolution_cmd.rs` and `ownership.rs`. The
+  class cannot cover the code that checks it. Editing the coverage check
+  would widen every class, so it is a security-boundary change (§30.3);
+- every Warrant's `authorization*.toml`, `deliverables.toml` of a resolved
+  Warrant, and `generated/**`.
+
+`check.rs` stays coverable, although it calls the coverage check.
+Removing that call fails `conformance/plants.d/69-standing.sh`. No class
+can touch that plant, and the battery runs before any resolution.
+
+A class whose globs name, or match, any of these is refused when it is
+proposed and again when it is signed.
+
+**How a Warrant is covered.** An agent writes a Warrant with
+`[standing] ref = "standing://<id>@<revision>"`. `war standing apply
+<alias>` then runs the coverage check. The check is deterministic, needs
+no model and no network, and compares the compiled contract with the
+class, term by term. The result is one of two:
+
+- **Covered.** It writes the same `authorization.toml` a signed response
+  writes: an immutable authorized Contract Revision for this Warrant's exact
+  contract digest (§28.4, §28.7). The record carries:
+  - the human who signed the class as `authorizer`;
+  - `policy_basis = "standing://<id>@<revision>"`;
+  - the class's digest;
+  - the Warrant's own deliverable set.
+
+  One audit event is journaled, as §30.2 asks of the instance.
+- **Refused.** The refusal names the term the Warrant breaks, and nothing
+  is written.
+
+`war check` does not trust the record. It re-derives the record on every
+run:
+
+- the class signature verifies against `allowed_signers` as a human's;
+- the class was unexpired and under its count when the record's
+  effective time was stamped;
+- the Warrant, as authorized, is inside the class.
+
+**What the agent can and cannot do.** The agent drafts, performs, runs
+the battery and asks the blind verifier. It cannot sign the class:
+`roles.toml` refuses an agent by kind. It cannot widen the class: the
+class is a signed record, and changing one byte breaks its signature. A
+wider class is a new revision with a new human signature, and it covers
+only Warrants applied after it. §31 rules out reinterpreting earlier ones.
+It cannot resolve: resolution stays the existing human act, batched.
+
+**Cost per routine change:**
+
+- before work: none;
+- after work: one line in a resolve batch, 2 dialogs per round;
+- once per class: the class signature, 2 dialogs.
+
+**What A changes in the SAS.** A does not change who may perform the acts
+§27.2 reserves. The authorizer of every covered Warrant is the human who
+signed its class. The tension is with two other sentences:
+
+- §28.4 and §37.5 say the authorization records the contract digest and
+  deliverable set *as the authorizer saw it*. Under A, the authorizer saw
+  the class, not the instance.
+
+So A carries an additive revision, SAS 1.2.0:
+
+- a new §28.8 *Standing authorization*: a human authorization may cover a
+  closed class of contracts. Each instance still records an immutable
+  authorized revision with its own digest and set, and names the class
+  it was checked against;
+- one clause in §37.5: under a standing authorization, the set is what
+  the class bounded;
+- one §106 row: *A standing authorization covers only contracts inside
+  its signed class, and never an authority path.*
+
+No row is removed or renumbered. The revision is architecture-changing
+under §101.3, and this ADR is the record it carries. Accepting it is the
+owner's separate act.
+
+### B — no standing authorization: batching and one-click signing only
+
+B builds nothing new. The routine flow is written down:
+
+- a preset authorize meaning (preset 4 exists);
+- `war sign --batch` over the round's authorizations;
+- work;
+- the blind verifier;
+- a batch over the round's resolutions (preset 5 exists).
+
+**Cost per routine change:** 4 dialogs per round, spread over N changes.
+Each change is read twice. **Every change waits for the owner before it
+can start.** B keeps the SAS as it is and adds no attack surface. It
+loses the Jira comparison on latency, which is the owner's complaint.
+
+### C — a SAS revision redefining which acts need a human
+
+Change §27.2 itself. Routine work would need no authorization at all, or
+a §27.3-style policy service would authorize it the way it may now resolve.
+The class would be declared in policy (`openwarrant.toml`).
+
+**Cost per routine change:** the same as A. It could fall to zero only if
+resolution were automated too, and the owner has ruled that out.
+
+The cost to the standard is larger. Today every authorized Warrant has a
+human authorizer, and C removes that invariant. The class would move into
+a file an agent can edit, unless it too is signed. Once the class is
+signed, C has the same shape as A, with a weaker sentence in §27.2 as well.
+
+## Recommendation: A
+
+A gives the per-change cost C gives. It keeps §27.2's list and its meaning:
+a human signed, and the record names who. It builds on §30.2's pattern,
+where a policy decides in advance and each instance still gets an
+immutable record and an audit event, and extends that pattern from
+revisions to new instances.
+
+The SAS change A needs is additive and sits beside §28.4. It does not
+touch §27.2. B is the safe fallback. It keeps the wait before work, which
+is the friction the owner named.
+
+## Decision
+
+*Pending Q-001.* If A: the mechanism above. The terms of a class,
+including the never-coverable set, the coverage check and its refusals, are
+fixed by this ADR. A later change to any of them is a new ADR.
+
+## Consequences (if A)
+
+- A routine change starts as soon as the agent can write its Warrant. The
+  owner's work is one line in a resolution batch, after the battery and
+  the blind verifier have run.
+- Revocation is one human act (`war sign standing:<id> --revoke`). After
+  it, no new Warrant is covered. Warrants already authorized keep their
+  authorization, because §31 does not reinterpret prior execution. Their
+  resolutions still wait for the owner.
+- Ownership under OW-ADR-0021 is unchanged, with one exception: a
+  standing-authorized Warrant may not declare a path whose current owner is
+  an authorized, unresolved Warrant. Otherwise routine work could silently
+  take a file away from work in flight. Draft: refuse. Q-003 asks the
+  owner.
+- A class only narrows what the owner could already sign one Warrant at a
+  time. The residual risk is a class drawn too wide, such as `src/**`. The
+  expiry and the count bound how long a wide class lasts. Only the owner
+  can judge how wide is too wide, and the signing screen prints every glob
+  and what it matches today.

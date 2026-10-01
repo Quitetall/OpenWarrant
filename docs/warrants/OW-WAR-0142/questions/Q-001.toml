@@ -1,0 +1,16 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization, and `answered_by` is an attribution, not a proof: a
+# signature binds an ACT, and an answer is not one. `war questions
+# --open` lists what awaits an answer. Regenerated when answered, so
+# a comment added below this header does not survive.
+
+schema = "oh.war/question/v1"
+id = "Q-001"
+warrant = "OW-WAR-0142"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-09-24T08:38:02Z"
+question = "How is routine work authorized? A: a standing authorization. You sign one class (paths, basic assurance, named gates, a budget, an expiry and a count), and each Warrant inside it is authorized from that signature, with its own immutable record naming you. Routine change cost: 0 acts before work, one line in a batched resolution after it. Needs an additive SAS 1.2.0 (§28.8, a clause in §37.5, one §106 row); §27.2 does not change. B: no standing authorization, only batching and presets. Cost: 2 batches per round, and every change waits for your authorize batch before it starts. C: a SAS revision of §27.2 so routine work needs no authorization, with the same per-change cost as A, but the invariant that every authorized Warrant has a human authorizer is dropped. OW-ADR-0029 has the full comparison. Answer A, B or C."
+blocking = true
+recommended = "A. It gives the per-change cost C gives and keeps §27.2 intact: you signed, and the record names you. It extends §30.2's pre-authorization pattern from revisions to new instances. B keeps the wait before work, which is the friction you named."

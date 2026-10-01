@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0141"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-011 (conformance/plants.d/54-intake.sh) contains the OBL-002 test block for a thin sentence and a thin issue file, asserting exit 2, docs/intake/{sentence-*,github-21}/ populated with request.json/intake.json and questions/Q-001.toml, and identical before/after directory listings (no docs/warrants/ alias taken); it then asserts `war --json questions --open` and `war --json next` each list exactly one Q-001 with a redraft command starting 'war plan ', that an agent answerer is refused with question.agent, that answering plus re-running the redraft command yields exactly one new Warrant directory with the question no longer open, that claude-drafter.sh's schema text names unresolved_questions and not blockers, and that a proposal carrying a `blockers` field is refused with 'did not parse'. D-006 (the full, untruncated claude-drafter.sh) independently confirms its system prompt schema uses `unresolved_questions` and never mentions a `blockers` field. The gate run ops.conformance.plants@1.1.0 (verdict pass, run GR-ops.conformance.plants@1.1.0) stdout shows each corresponding line passing verbatim: 'a thin input allocates no alias', 'the question is one human answer act', 'an agent cannot answer it', 'answer, re-draft: one Warrant each', 'an answered question leaves war next', 'claude-drafter.sh asks correctly', and 'an invented blockers field fails', all under 1214 passed, 0 failed. Together the plant source (showing exactly what was checked) and the gate output (showing it passed) establish every evidentiary bullet in OBL-002's scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

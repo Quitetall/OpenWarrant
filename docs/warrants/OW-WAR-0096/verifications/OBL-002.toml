@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No CLI binary, key fixture, store fixture, or gate run appears anywhere in the bundle (deliverables: [], gate_runs: [], and OBL-002's obligation_evidence has empty named_paths/terms). The claim of successful approval/reload and refusal of unsigned/forged/replayed/concurrent updates plus the fake-PATH-verifier check exists only as prose in atoms/60-assurance.md, with no evidenced command transcript or test result."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

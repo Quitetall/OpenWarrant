@@ -13,7 +13,8 @@
 //! {
 //!   "schema": "oh.war/report/v1",
 //!   "command": "check",
-//!   "diagnostics": [{"severity": "error", "rule": "…", "file": "…", "message": "…"}],
+//!   "diagnostics": [{"severity": "error", "rule": "…", "file": "…", "message": "…",
+//!                    "remedy": {"kind": "auto" | "human" | "info", "argv": ["war", "…"], "purpose": "…"}}],
 //!   "notes": ["…"],
 //!   "counts": {"pass": 0, "warn": 0, "unknown": 0, "error": 0, "worst": "pass"},
 //!   "verdict": "well_formed" | "not_ready",
@@ -64,6 +65,10 @@ pub(crate) struct WireDiagnostic<'a> {
     rule: &'a str,
     file: Option<&'a str>,
     message: &'a str,
+    /// §76.2, OW-WAR-0112: the command that answers this finding and whose
+    /// act it is. Additive — absent when nothing answers, never null.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    remedy: Option<crate::remedy::Remedy>,
 }
 
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -125,6 +130,7 @@ pub fn envelope(command: &str, report: &Report, result: Option<serde_json::Value
                 rule: &d.rule,
                 file: d.file.as_deref(),
                 message: &d.message,
+                remedy: crate::remedy::remedy_for(d),
             })
             .collect(),
         notes: &report.notes,

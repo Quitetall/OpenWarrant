@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0028"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-cli/src/kf.rs) shows a typed ActionEnvelope struct and a single write method Client::post_action that requires one, alongside a read-only health() call — structurally suggestive of 'typed and enveloped' actions for this file. But the obligation's own evidence bar is 'every state change goes through an action,' a system-wide claim, and the bundle carries only this one deliverable with no test asserting that no other write path exists anywhere in the codebase; the three named tests (an_https_url_is_accepted, a_non_http_url_is_refused, a_short_idempotency_key_never_reaches_the_network) test URL scheme and idempotency-key length only. The gate run GR-software.repo.war-check@1.0.0's own NOT CHECKED section states '`war check` does not invoke [war gate --run], so nothing here is evidence that a Warrant's acceptance gates were run,' so that run is not functional evidence about kf.rs. Absent an executed test or plant demonstrating the universal claim, this is not established from the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002's stated evidence is 'a plant; ideally it does not compile,' but the bundle's top-level plants array is empty ([]), so no plant of any kind — compiling or refused — is carried here. D-001's Client exposes no field or method for a direct status edit (only post_action(action_type, actor, envelope)), which is suggestive but is inspection of the code's shape, not an executed plant showing a direct write attempt failing. The gate run GR-software.repo.war-check@1.0.0 stdout is a repo-wide compliance sweep (manifest/digest/traceability/journal checks) and contains no line addressing a direct-status-write attempt. With the specifically requested evidence type entirely absent from the bundle, this cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "refuted"
+evidence = "The obligation requires optimistic concurrency and idempotency per §67.3/§67.4, evidenced by 'a stale write refused; a duplicated action applied once.' D-001's ActionEnvelope struct (crates/openwarrant-cli/src/kf.rs) carries only target_ids, payload, reason, and idempotency_key — there is no concurrency token, version, or ETag field anywhere in the envelope or in Client::post_action's headers (x-kf-actor, x-kf-acting-role, x-kf-organization only), even though 40-work-order.md's Deliverables item 2 explicitly calls for 'the action envelope with concurrency token and idempotency key.' None of the three tests in D-001 (an_https_url_is_accepted, a_non_http_url_is_refused, a_short_idempotency_key_never_reaches_the_network) exercises a stale write or a duplicate retry; the only idempotency-related check is a client-side string-length guard on the key, not dedup behavior. Since this is the only deliverable carried for the warrant and it visibly lacks any concurrency mechanism required by the frozen envelope surface, the bundle affirmatively shows the concurrency half of the claim does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

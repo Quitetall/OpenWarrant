@@ -1,0 +1,136 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "What changed between the accepted candidate and this one"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/acceptance.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0f4dc207a19dd77b1dfd730b547514344cfbfbf2d4cab9cb82e65e76695e3182"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "war pins --candidate: the finding beside each resolved pin"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/pins.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:86ff81a10c62150c1ac15c527a685326a5266f40096c5581ec0c15d05c08f50a"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The --candidate flag"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "The pull-request step that runs it against the merge candidate"
+kind = "file"
+target_ref = ".github/workflows/ci.yml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:459e38ff572c1c9b70b9ab117c6ca9de6d4e5473be7f8cac813b557d0934db7c"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "The acceptance-validity plants"
+kind = "file"
+target_ref = "conformance/plants.d/56-acceptance-validity.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:18d4959c2f598dcb0db36ad8f4046bba0f33738c663226e6aa731e222fd91f82"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "After you sign: when the accepted candidate changes before merge"
+kind = "file"
+target_ref = "docs/SIGNING.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:de5546cbd2eb69261c91aaffb19e42fe3f58e06f436e56384725aff055b0d684"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

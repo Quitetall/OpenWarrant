@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "OBL-002's stated scope (editing stdout after the receipt records a digest) is unreachable under the frozen GateReceipt schema shown in D-001's own unit test (a_carried_receipt_does_not_depend_on_where_the_checkout_sits), which has no stdout_digest field and per the Basis/Work Order 'receipts' are a frozen surface never modified. The obligation's own evidence text accounts for this: 'Where the receipt records no stdout digest, the plant says so and asserts only that the field is absent.' D-002's OBL-002 section checks exactly this ('stdout_digest' not in receipt, and 'mismatch' not in run['stdout']), and the ops.conformance.plants@1.1.0 gate run's stdout excerpt (line 195) shows 'ok    no digest recorded, no mismatch    the receipt records none; the field is absent', a passing, literal execution result matching this fallback requirement exactly. No gate run in the bundle shows a failure or contrary result for this check."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

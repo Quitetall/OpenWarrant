@@ -1,0 +1,6 @@
+id = "GR-ops.echo@1.0.0"
+gate = "ops.echo@1.0.0"
+askability = "askable"
+execution_status = "completed"
+verdict = "pass"
+reason_code = "passed"

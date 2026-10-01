@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is empty ([]) and plants is empty ([]), so no execution of decode_packet/check_packet_integrity with supplied blobs, no inputs/outputs/exit codes, and no offline-provider export artifact is carried in this bundle. The sole gate run, GR-software.repo.war-check@1.0.0, is a structural metadata check whose own printed stdout excerpt states 'gate execution — war gate --run executes a registered gate (§44), but war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run.' With no runtime evidence for the S05 integrity subset (Phase 1) or T32–T37 packages (Phase 2) carried, OBL-001 cannot be established or refuted from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

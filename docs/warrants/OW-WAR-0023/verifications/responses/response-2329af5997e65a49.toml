@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0023"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "OBL-001's evidence bar requires a compiled Dispatch shown 'readable and complete with the repository absent — tested by moving it, not by inspection.' The only carried deliverable, D-001 (crates/openwarrant-core/src/execution.rs, untruncated), shows tests such as every_section_47_1_field_is_present_by_name, refs_and_api_version_are_required, and a_dispatch_round_trips_through_json, all of which construct or serde-round-trip a StageDispatch value in-process within the same test binary — none relocates a compiled Dispatch outside the repository and reads it standalone. The sole gate run, GR-software.repo.war-check@1.0.0, runs `war check --generated`, and its own excerpted stdout states 'war check does not invoke [gates]' and lists under NOT CHECKED that 'gate execution ... `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' so this gate run cannot stand in for the move-and-read demonstration. The assurance atom (atoms/60-assurance.md) itself concedes in Residual Risk that 'Dispatch completeness is argued rather than demonstrated,' consistent with no such test appearing in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-001's test actor_projections_may_differ_in_form_but_not_in_contract (present in full in the untruncated execution.rs deliverable) constructs a 'human' StageDispatch and a 'katana' projection with differing objective, instructions, and non_goals, and asserts human.same_normative_contract_as(&katana, \"katana\") == Ok(()) — two actor-role-specific projections of one stage, as OBL-002's evidence requires. The same test also asserts that altering contract_digest, contract_revision, or obligation_refs between the two projections is refused via ProjectionAltersContract, confirming representation may differ while the normative contract may not, per §47.3 scope. This matches the 'Executed attacks' entry in atoms/60-assurance.md: 'projected one dispatch for a human and one for Katana with different objectives, instructions and non-goals; accepted, because §47.3 permits representation to differ.'"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires 'a plant requesting an unlisted capability, refused,' but the bundle's top-level plants array is empty, so no such conformance plant is carried. D-001's test_names list contains no test exercising capability denial, and the CapabilityAuthorization struct defined in execution.rs carries only policy_ref and digest with no enforcement/default-deny logic anywhere in the deliverable's text. The assurance atom's 'Executed attacks' list (atoms/60-assurance.md) enumerates attacks on contract_digest/revision/obligation_refs tampering, omitted_subgraphs, and repair evidence, but names nothing about an unlisted-capability request being refused. The single gate run's excerpted stdout concerns unrelated repo-structure checks (manifest, deliverable digests, traceability, journal), giving no evidence of this specific refusal."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

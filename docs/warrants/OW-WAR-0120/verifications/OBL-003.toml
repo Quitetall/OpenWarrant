@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The same excerpt shows 'ok a failing command is unknown check,check-generated,next,status,compile unknown, exit 1', which is D-006's rt_ok line produced only when its embedded Python check (comparing exit_codes to verdict/median_ms for every row in the corrupted-manifest run) finds each failed command marked 'unknown' with no median time and none marked 'within', and the script itself exits 1 — matching D-003's Law-15 handling of non-zero exits."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

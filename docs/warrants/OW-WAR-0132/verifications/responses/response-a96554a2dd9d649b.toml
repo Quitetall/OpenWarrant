@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0132"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-006 (conformance/plants.d/52-hotline-defaults.sh, fully carried, not truncated) contains the exact scoped cases: 'max_recoveries = 1' (three says-nothing.sh runs, asserting hd_endings == 'failed,failed' and the third output matching perform.recovery-limit), 'max_repairs = 1' (three echo-submission.sh runs, asserting hd_endings == 'answered,answered' and the third matching perform.repair-limit), and 'a failed run is not a repair' (echo, says-nothing, echo, asserting hd_endings == 'answered,failed,answered', exit 0, and neither limit rule firing) — each check explicitly compares the journal's recorded perform.ended outcome sequence to the run performed, satisfying the outcomes-match-run evidence point. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) actually executed this battery: its stdout excerpts show the literal result lines 'ok max_recoveries = 1  failed, failed, then rejected by perform.recovery-limit' and 'ok max_repairs = 1  answered, answered, then rejected by perform.repair-limit' (lines 268-269), and the run's final tally, shown in the stdout tail, reads '1214 passed, 0 failed' — since the plant script increments FAILED on any hd_fail (including the unmet-in-excerpts 'a failed run is not a repair' case), a global 0-failed tally corroborates that case passed as well. Together the fully-visible plant logic plus the actual gate execution's matching ok-lines and zero-failure total establish all four evidence points of OBL-004 within its stated scope (war perform on STAGE-001 with the named fixture performers and a scratch config)."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

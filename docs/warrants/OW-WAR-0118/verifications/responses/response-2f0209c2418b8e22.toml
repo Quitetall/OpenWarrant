@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0118"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0's stdout excerpt (lines 217-228) shows the friction plant section '== friction measurement (OW-WAR-0118) ==' with 'ok    every step timed or counted        tool steps in ms, human steps not_measured' and two refusal checks passing ('a timed human step is refused \"time\": 0 → refused' and '\"time\": 4200 → refused'), which are exactly the assertions in D-004's fr_check_record function (SETUP/ROUTINE id lists, the human-step number/zero check, the non-empty asks check). The run's final line ('1260 passed, 0 failed') confirms no failures anywhere including this section, and the receipt's subject_digests bind this run to the same contract digest carried at top level, so the pass applies to this bundle's exact deliverables. D-002 independently shows the concrete structure this checks: every tool step (git-init, init-program, sas-propose, sas-sign, check, compile, authorize, authorize-sign, plus routine acts) with integer times_ms/median_ms/max_ms, and every human step (human-say-who-may-sign, human-accept-sas, human-authorize-first-warrant, human-confirm-routine-signature) with 'time': 'not_measured' and non-empty asks."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same gate-run stdout excerpt shows 'ok    a failed authorize is unknown      step and setup total unknown, exit 1' and 'ok    an erroring resolve --dry-run      exit 1 is unknown, not a not-ready answer', which are the direct outputs of D-004's wrap-authorize and wrap-resolve fixtures (a `war` wrapper on PATH that exits 1 for `authorize`/`resolve` and passes other commands through), matching D-001's step()/tool_step() logic that marks a step and every total containing it 'unknown' and exits 1 on any unaccepted exit code. Both plant assertions read 'ok', and the battery's overall '1260 passed, 0 failed' confirms neither failed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The gate-run excerpt shows all four required checks passing verbatim: 'ok    the repository tree is unchanged   git status --porcelain identical', 'ok    its ssh-agent is gone, sock restored agent 1308152 not running; SSH_AUTH_SOCK back to the sentinel', and 'ok    HOME holds nothing afterwards      no ~/.ssh, no config written'. These correspond exactly to D-004's OBL-003 block (FR_GIT_BEFORE/FR_GIT_AFTER comparison, the ssh_agent pid/stopped/ssh_auth_sock_restored check from the record, and the HOME-emptiness check on `$FR_TMP/home`), run from the repository root as the obligation's scope requires. D-002's own ssh_agent block ({'stopped': true, 'ssh_auth_sock_restored': true}) is consistent with this behavior."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-002 (fully present, not truncated) names build_profile 'release', war.version 'war 1.0.0-alpha.2', and a 40-character commit 'fdd346c54417069593d0f393dc63fe24d70424b8'; D-003's tables (setup, routine, corpus rows) match D-002's medians and maxes exactly, e.g. init-program 3/959, sas-sign 16/68, compile 93/157, corpus next 8064/8698, and D-003 states verbatim 'Setup target: neither met nor missed by this evidence.' The gate-run excerpt additionally confirms 'ok    the baseline is a release record   same steps, same order as a re-run', 'ok    FRICTION.md matches the baseline   every row, human steps not measured', and 'ok    a doc row off by 1 ms is refused   setup/check named' — the exact checks in D-004's OBL-004 block comparing baseline-1.json against a fresh re-run and the doc's tables against the baseline, plus a refusal test perturbing one figure."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

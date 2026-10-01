@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-004"
+band: "manual_revision"
+reason: "CONTINGENT on the owner answering U-001 option A; drafted so the code is ready if A is chosen, and not an answer to U-001. Five files outside the declared set are needed by D-002, D-005 and D-006. (1) authority_cmd.rs: the store module is private to it, so authority_check.rs cannot read a store without it being made crate-visible, and `war authority draft` constructs revisions by struct literal, so the v2 fields (actor, kind, policy) must be draftable there or no v2 revision can be made. (2) authority_cmd/store.rs: its only reader is the operator's guard, which refuses the execution account by design; the read path needs a read-only reader whose guard asks the opposite question (can the execution account write the store). (3) check.rs: `authority.unprotected` and `policy.unprotected-divergence` are `war check` diagnostics, and one call site emits them. (4) repo.rs: the protected policy keys are read by resolution_cmd.rs, sign.rs, bundle.rs and check.rs from the opened configuration; applying the store's values once where the repository is opened is the one place every consumer reads the store's value. (5) crates/openwarrant-core/tests/authority_transition.rs: 0096's tests build Revision and Principal by struct literal, and the v2 fields break them unless they name the new fields. Wording drafted by the performer `claude`. Also, at the owner's request (2026-09-25), docs/authority/roles.toml joins as D-017 for a comment-only correction: its actor_kind explanation said `policy_service`, which the loader refuses; the kind is `policyservice`."
+governing_adr_or_policy: "sas://WAR-SAS-27.2"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue on the contingent branch only. The deliverable set gains D-012 crates/openwarrant-cli/src/authority_cmd.rs (store module crate-visible; v2 drafting flags), D-013 crates/openwarrant-cli/src/authority_cmd/store.rs (a read-only reader and its guard), D-014 crates/openwarrant-cli/src/check.rs (one call emitting the protection diagnostics), D-015 crates/openwarrant-cli/src/repo.rs (the store's policy applied when a repository is opened), and D-016 crates/openwarrant-core/tests/authority_transition.rs, D-017 docs/authority/roles.toml (comments only) (struct literals name the v2 fields). The next revision is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-25"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-011."
+    after: "Also D-012: crates/openwarrant-cli/src/authority_cmd.rs, the store module crate-visible and v2 drafting; D-013: crates/openwarrant-cli/src/authority_cmd/store.rs, a read-only store reader; D-014: crates/openwarrant-cli/src/check.rs, the protection diagnostics emitted; D-015: crates/openwarrant-cli/src/repo.rs, the store's policy applied on open; D-016: crates/openwarrant-core/tests/authority_transition.rs, struct literals naming the v2 fields. D-017: docs/authority/roles.toml, the actor_kind comment corrected to `policyservice` (comments only)."
+
+affected_stages: []
+affected_milestones: []

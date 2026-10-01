@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's qualification claim rests on independent reproduction/review and secure human acceptance built atop OBL-001 and OBL-002, neither of which has any supporting evidence in this bundle (deliverables:[], plants:[], and the sole gate run addresses only Warrant-record structure, not Phase 4 qualification or the four phase exits). Atom 60-assurance.md itself states 'Unverified completion records actual OBL-001/002 outcomes and notes qualification gaps' with 'No disposition is declared here.' With no reproduction records, baseline-condition evidence, or acceptance records carried, the bundle does not show qualification holds or fails."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

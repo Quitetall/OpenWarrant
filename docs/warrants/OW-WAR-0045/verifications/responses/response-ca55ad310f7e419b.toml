@@ -1,0 +1,97 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0045"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence for OBL-001 lists the term 'dispatch_digest' with shown_in: [] — nowhere in the bundle. The single gate run present (GR-software.repo.war-check@1.0.0) is the generic corpus-wide 'war check --generated' structural checker, and its own stdout excerpt states under NOT CHECKED that 'war check does not invoke [gate execution], so nothing here is evidence that a Warrant's acceptance gates were run.' No §48.4 Katana receipt, no Dispatch bytes, and no Katana version pin appear anywhere for OW-WAR-0045, so a real, version-pinned Katana execution cannot be shown from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 carries no named_paths and no terms, and deliverables is empty. There is no artifact showing exact bytes handed to an agent digested against a compiled Dispatch, and no recorded run of a deliberately-omitted input producing a §53.1 BLOCKER. The only gate run is the unrelated corpus-wide structural check (its visible excerpts cover OW-WAR-0138–0147 and global corpus rules, never a Dispatch/agent handoff for OW-WAR-0045)."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence claims the term 'resolve' is shown in the war-check stdout and in atoms, but none of the stdout excerpts actually contain 'resolve' or any Submission/refusal record — they are PASS/WARN lines for other Warrants and global corpus checks. atoms/20-basis.md ('The type cannot express `resolve`; a text request for it is refused by name') is an authored design assumption in the Basis atom, not a record of an executed Submission being refused. No Submission or plant artifact is carried in deliverables, which is empty."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-004 lists both required terms, 'realized_capabilities' and 'UnauthorizedCapabilityRealized', with shown_in: [] — absent from the bundle. deliverables is empty, so no receipt or recorded capability comparison is carried, and the sole gate run addresses repo-manifest/authority/traceability structure across many Warrants rather than §48.3 capability containment for OW-WAR-0045's executed attempt."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-005 explicitly marks the named path 'conformance/' as absent: 'a repository path that is not a deliverable of OW-WAR-0045: not carried.' The required fourteen entries under conformance/ for §91.7 tests 43–51 and §91.9 tests 59–63 are not shown anywhere in the bundle, and the sole gate run's visible stdout contains no per-test conformance-plant output for OW-WAR-0045 (it covers other Warrants and global corpus checks). The gate run's own 'NOT CHECKED' note that '143 of 143 Warrant(s) have no disposed obligations' further indicates no obligation resolution has occurred."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "D-004 (templates/adopt/20-basis.md) and D-008 (conformance/plants.d/59-adoption.sh, fully carried, untruncated) show code that would check the baseline sentence in the rendered basis, an empty `war pins` for src/a.txt|b.txt|c.txt, and `war resolve --dry-run` exiting 2 with 'not established' — but the only run that actually printed the matching 'ok' lines ('the adopt Basis names the baseline and claims nothing before it', 'pins lists no pre-baseline file exit 0', 'pins lists paths where some are pinned this corpus', 'resolve --dry-run: nothing established exit 2') is GR-ops.conformance.plants@1.1.0, whose own receipt.subject_digests record contract:sha256:c08603d7452c7b629128e27bc87d32004b0cc1475f26f649537185f63f1c59de and tree:e54ccac17a000db9430a08ded5ae9ad1923067b0 — neither matches the bundle's authorized_contract_digest sha256:4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895. The only gate run whose subject_digests do match that authorized contract digest is GR-software.repo.war-check@1.0.0, and its own 'PASS evidence.admissible' line for ops.conformance.plants@1.1.0 attests binding to a different tree (tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3) than the one in the plants receipt we were given, and it ran chronologically before (05:52:32Z) the plants receipt we were given was even completed (12:43:14Z). So the 'ok' results cited for this obligation come from a plants run that is not shown to be bound to the currently authorized contract or its tree; the bundle does not establish that this specific execution is evidence about the current warrant's deliverables, so OBL-003 cannot be established from what is shown, and nothing in the bundle contradicts it either."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

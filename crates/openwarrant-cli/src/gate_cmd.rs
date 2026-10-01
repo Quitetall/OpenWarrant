@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war gate list` and `war gate run` — local gate execution (SAS §44).
 //!
 //! # Askability is decided BEFORE execution
@@ -77,10 +77,41 @@ pub fn askability_of(def: &GateDefinition, repo: &Repository) -> Option<ReasonCo
     if !repo.root.is_dir() {
         return Some(ReasonCode::ForeignWorkingDirectory);
     }
+    // A Warrant-scoped gate that was not bound to a Warrant: there is no
+    // subject to ask about, so it is not run — never run with the literal
+    // placeholder, which would ask a different question.
+    if def.argv.iter().any(|a| a == WARRANT_ARG) {
+        return Some(ReasonCode::NotRun);
+    }
     if !tool_is_available(program, repo) {
         return Some(classify_missing(program));
     }
     None
+}
+
+/// The argv item a Warrant-scoped gate writes where the Warrant it is run
+/// for belongs. `war evidence record <alias>` and `war run` replace it with
+/// the alias, so the gate reviews that Warrant and its receipt's `arguments`
+/// name it; run with no Warrant, the gate is not askable (`not_run`).
+///
+/// Why it exists (t-4f521): `document.review@1.0.0`'s static argv reviewed every
+/// Warrant in the corpus, so a receipt bound to one Warrant's contract and
+/// deliverables carried a verdict decided by other Warrants' documents.
+pub const WARRANT_ARG: &str = "<warrant>";
+
+/// `def` with every [`WARRANT_ARG`] item replaced by `alias`. With no alias
+/// the definition is returned as written, and [`askability_of`] refuses it.
+#[must_use]
+pub fn bind_warrant(def: &GateDefinition, alias: Option<&str>) -> GateDefinition {
+    let mut bound = def.clone();
+    if let Some(alias) = alias {
+        for a in &mut bound.argv {
+            if a == WARRANT_ARG {
+                alias.clone_into(a);
+            }
+        }
+    }
+    bound
 }
 
 /// Distinguish the three ways a thing can be absent (§96.4 keeps them apart).
@@ -153,7 +184,8 @@ pub fn persist_run(run: &GateRun, dir: &camino::Utf8Path) -> Result<(), String> 
         std::fs::create_dir_all(parent).map_err(|e| format!("could not create {parent}: {e}"))?;
     }
     let rendered = toml::to_string_pretty(run).map_err(|e| e.to_string())?;
-    std::fs::write(&path, rendered).map_err(|e| format!("could not write {path}: {e}"))
+    // OW-WAR-0121: temp, fsync, rename; a symlink in the run's place refused.
+    crate::compile::atomic::write(&path, rendered).map_err(|r| r.to_string())
 }
 
 /// Run one gate and produce its §44 result.
@@ -328,7 +360,684 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
     }
 }
 
-/// `war gate list` / `war gate run`.
+/// What a receipt says it ran over, beyond the contract (OW-WAR-0133).
+///
+/// # The subjects
+///
+/// A receipt minted before OW-WAR-0133 named one subject, the contract digest,
+/// and so survived every change the contract digest does not see: the source
+/// bytes, the deliverable set, the fixtures. These are the subjects added
+/// beside it — new entries in `subject_digests`, never new receipt fields, so
+/// every receipt already on disk still parses and still reseals:
+///
+/// - `tree:<sha>` — `git rev-parse HEAD^{tree}` when the gate started;
+/// - `worktree:dirty` — present when the working tree differed from that
+///   tree, outside the evidence records, projections, authority records,
+///   verification records and ticket bookkeeping ([`source::Exclusions`]);
+/// - `inputs:sha256:<hex>` — the bytes of every file the Gate Definition's
+///   `inputs` globs match, when it declares any;
+/// - `deliverables:sha256:<hex>` — the bytes of the Warrant's declared
+///   deliverables in `D-` order, added by `war evidence record`, which is the
+///   only caller that knows which Warrant the run is for.
+///
+/// `fixture_digests` is filled from the definition's `fixtures`, one
+/// `<path>#sha256:<hex>` per declared fixture.
+///
+/// # Which subject decides reuse (Q-001, settled as (c) with the (a) fallback)
+///
+/// A gate that declares `inputs` is judged by them: the run holds while those
+/// files digest the same. A gate that declares none falls back to the tree:
+/// the run holds while nothing outside the evidence records, compiled
+/// projections, authority records, verification records and ticket
+/// bookkeeping has changed since the tree it ran over.
+/// The deliverables digest is recorded and advisory —
+/// a gate reads what its inputs say it reads, and a gate that reads more than
+/// it declares keeps a stale pass that the tree subject makes visible (R-001).
+///
+/// # Why a signature does not move the tree (t-22fd)
+///
+/// The tree rule also skips the records a human act writes — authorizations,
+/// judgments, resolutions, responses, batches, attestations, corrections,
+/// disputes, invalidations and answered questions
+/// ([`source::is_authority_record`]). Without that, every signature recorded
+/// after the evidence staled every tree-bound receipt, and a Warrant needed
+/// two sittings: authorize, then — after a re-run — resolve. The records are
+/// not the source a gate ran over; each is verified by its own ingest when it
+/// is written, and the ones a resolution relies on (its authorization,
+/// judgments and the resolver's role) are judged live by the resolution
+/// itself. `war check` and the battery do read them; their receipts say
+/// nothing about authority records written after them, and that is the
+/// stated limit. Declared `inputs` are not narrowed by this: a gate that
+/// declares it reads an authority record is held to it.
+///
+/// # Why a verification does not move the tree (t-fed6)
+///
+/// Nor do the records `war verify` writes under a Warrant's `verifications/`
+/// — each obligation's verdict (`<id>.toml`), the bundle a verifier was
+/// handed (`bundle-<digest16>.json`) and the responses kept under
+/// `responses/` ([`source::is_verification_record`]). They are judgments
+/// about the evidence, not the source a gate ran over: the blind verifier
+/// reads the receipts (in the bundle) and writes its verdicts after them.
+/// Bound to the tree, that write staled every tree-bound receipt, and
+/// recording again changed the receipts the verdicts were made against — a
+/// loop with no fixed point. Each verdict is judged by its own ingest
+/// (admissibility, independence, the register) and live by `war resolve`.
+/// A gate that reads verification records — `document.review@1.0.0`,
+/// `war check` — says nothing about ones written after its receipt: the
+/// stated limit. Anything else under `verifications/` stays bound.
+///
+/// # Why working a ticket does not move the tree (t-5d82)
+///
+/// Nor do the files the ticket loop writes — each ticket's manifest, journal,
+/// intent (where `war note` appends) and checklist (where `war done` ticks),
+/// and the claim locks ([`source::is_ticket_record`]). A ticket is the
+/// working form: never compiled, authorized, verified or resolved, and no
+/// Warrant reads it as source. `war check` does validate a ticket's
+/// structure; a receipt says nothing about ticket files written after it,
+/// the same stated limit as above. Anything else in a ticket's directory,
+/// and a Warrant `war promote` drafts, stays bound.
+///
+/// `inputs` and `fixtures` are read from the definition file here rather than
+/// from `GateDefinition`, whose fields are the core crate's; the definition
+/// reader ignores keys it does not know, so a definition carrying them still
+/// registers everywhere else unchanged.
+pub mod source {
+    use camino::{Utf8Path, Utf8PathBuf};
+    use openwarrant_compiler::sha256_hex;
+    use std::process::Command;
+
+    use crate::repo::Repository;
+
+    /// `tree:<git tree sha>`.
+    pub const TREE: &str = "tree:";
+    /// Present when the tree a run started from was not what the gate saw.
+    pub const DIRTY: &str = "worktree:dirty";
+    /// `inputs:sha256:<hex>` over the files a definition declares it reads.
+    pub const INPUTS: &str = "inputs:sha256:";
+    /// `deliverables:sha256:<hex>` over a Warrant's declared deliverables.
+    pub const DELIVERABLES: &str = "deliverables:sha256:";
+
+    /// What a Gate Definition declares about the files it reads, beyond the
+    /// fields `GateDefinition` carries.
+    #[derive(Debug, Clone, Default, PartialEq, Eq)]
+    pub struct Declared {
+        /// Repository-relative globs (`*`, `?`, `**`) the gate reads.
+        pub inputs: Vec<String>,
+        /// Repository-relative fixture files the gate runs against.
+        pub fixtures: Vec<String>,
+    }
+
+    /// The definition file for `<gate_id>@<version>` and what it declares, or
+    /// `None` when no definition in the registry directory has that key.
+    #[must_use]
+    pub fn declared(repo: &Repository, key: &str) -> Option<Declared> {
+        let key = key.trim_start_matches("gate://");
+        let dir = repo.root.join(&repo.config.paths.gates);
+        let entries = dir.read_dir_utf8().ok()?;
+        let mut paths: Vec<Utf8PathBuf> = entries
+            .filter_map(Result::ok)
+            .map(|e| e.into_path())
+            .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
+            .collect();
+        paths.sort();
+        for path in paths {
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                continue;
+            };
+            let Ok(doc) = openwarrant_core::structured::parse(&text) else {
+                continue;
+            };
+            let id = doc.scalar("gate_id").unwrap_or_default();
+            let version = doc.scalar("version").unwrap_or_default();
+            if format!("{id}@{version}") != key {
+                continue;
+            }
+            let list = |k: &str| {
+                doc.get(k)
+                    .and_then(openwarrant_core::StructuredValue::as_list)
+                    .map(<[String]>::to_vec)
+                    .unwrap_or_default()
+            };
+            return Some(Declared {
+                inputs: list("inputs"),
+                fixtures: list("fixtures"),
+            });
+        }
+        None
+    }
+
+    /// Whether a repository-relative path is an evidence record: a Warrant's
+    /// `gate-runs/` or its `journal.jsonl`.
+    ///
+    /// These are excluded from every source comparison because recording
+    /// evidence writes them. Without the exclusion, committing a receipt
+    /// would move the tree the receipt names, and no tree-bound run could
+    /// ever be admissible once it was committed — the "refuses every
+    /// receipt" rule OBL-002's control exists to catch.
+    #[must_use]
+    pub fn is_evidence_record(path: &str, warrants: &str) -> bool {
+        let Some(rest) = under(path, warrants) else {
+            return false;
+        };
+        let mut parts = rest.splitn(3, '/');
+        let (Some(_alias), Some(second)) = (parts.next(), parts.next()) else {
+            return false;
+        };
+        match parts.next() {
+            Some(_) => second == "gate-runs",
+            None => second == "journal.jsonl",
+        }
+    }
+
+    /// Whether a repository-relative path is a record a human act writes
+    /// (t-22fd), under the configured roots: `warrants`, `sas`, `roadmap`,
+    /// `gates`.
+    ///
+    /// Named file by file, not by directory, where the directory also holds
+    /// what a gate reads: `docs/authority/roles.toml` and `allowed_signers`
+    /// are trust roots a human edits by hand and stay bound, as does a SAS or
+    /// roadmap revision record — accepting one changes the specification the
+    /// corpus is judged against, so it is source, not a record about the
+    /// work. Their acceptance attestations are records.
+    #[must_use]
+    pub fn is_authority_record(
+        path: &str,
+        warrants: &str,
+        sas: &str,
+        roadmap: &str,
+        gates: &str,
+    ) -> bool {
+        const AUTHORITY_DIRS: [&str; 3] = [
+            "docs/authority/responses",
+            "docs/authority/batches",
+            "docs/authority/standing/attestations",
+        ];
+        if AUTHORITY_DIRS.iter().any(|d| under(path, d).is_some()) {
+            return true;
+        }
+        if under(
+            path,
+            &format!("{}/revisions/attestations", sas.trim_end_matches('/')),
+        )
+        .is_some()
+            || under(
+                path,
+                &format!("{}/revisions/attestations", roadmap.trim_end_matches('/')),
+            )
+            .is_some()
+            || under(
+                path,
+                &format!(
+                    "{}/{}",
+                    gates.trim_end_matches('/'),
+                    crate::invalidation::RECORDS_DIR
+                ),
+            )
+            .is_some()
+        {
+            return true;
+        }
+        // `<warrants>/<alias>/<file>` or `<warrants>/<alias>/<dir>/…`.
+        let Some(rest) = under(path, warrants) else {
+            return false;
+        };
+        let mut parts = rest.splitn(3, '/');
+        let (Some(_alias), Some(second)) = (parts.next(), parts.next()) else {
+            return false;
+        };
+        match parts.next() {
+            Some(_) => matches!(
+                second,
+                "attestations" | "corrections" | "disputes" | crate::questions::DIR
+            ),
+            None => {
+                matches!(second, "authorization.toml" | "judgments.toml" | "resolution.toml")
+                    // The superseded authorization kept beside the new one
+                    // (OW-WAR-0144): `authorization.<sha256[..8]>.toml`.
+                    || second
+                        .strip_prefix("authorization.")
+                        .and_then(|r| r.strip_suffix(".toml"))
+                        .is_some_and(|h| {
+                            h.len() == 8 && h.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+                        })
+            }
+        }
+    }
+
+    /// Whether a repository-relative path is a record `war verify` writes
+    /// under a Warrant's `verifications/` (t-fed6):
+    ///
+    /// - `<warrants>/<alias>/verifications/<name>.toml` — one obligation's
+    ///   verdict (`war verify --response`, `--run`); every `*.toml` directly
+    ///   there is read as one ([`crate::repo::Repository::load_verifications`]);
+    /// - `<warrants>/<alias>/verifications/bundle-<16 hex>.json` — the bundle
+    ///   `war verify --bundle` and `--run` hand a verifier;
+    /// - `<warrants>/<alias>/verifications/responses/…` — the whole responses
+    ///   `--run` keeps ([`crate::bundle::RESPONSES_DIR`]).
+    ///
+    /// Named file by file: anything else a person keeps under
+    /// `verifications/` stays bound.
+    #[must_use]
+    pub fn is_verification_record(path: &str, warrants: &str) -> bool {
+        let Some(rest) = under(path, warrants) else {
+            return false;
+        };
+        let mut parts = rest.splitn(3, '/');
+        let (Some(_alias), Some("verifications"), Some(rest)) =
+            (parts.next(), parts.next(), parts.next())
+        else {
+            return false;
+        };
+        if let Some(response) = under(rest, crate::bundle::RESPONSES_DIR) {
+            return !response.is_empty();
+        }
+        if rest.contains('/') {
+            return false;
+        }
+        if let Some(stem) = rest.strip_suffix(".toml") {
+            return !stem.is_empty();
+        }
+        rest.strip_prefix("bundle-")
+            .and_then(|r| r.strip_suffix(".json"))
+            .is_some_and(|h| {
+                h.len() == 16 && h.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+            })
+    }
+
+    /// Whether a repository-relative path is a file the ticket loop writes
+    /// while a ticket is worked (t-5d82): `<tickets>/<t-id>/<file>` for the
+    /// files [`crate::ticket::Bookkeeping`] names (manifest, journal, intent,
+    /// checklist), and a claim lock directly inside the claims directory.
+    ///
+    /// Named file by file: anything else a person keeps in a ticket's
+    /// directory stays bound. Nothing under the Warrants root is a ticket
+    /// record, whatever `[tickets] dir` says.
+    #[must_use]
+    pub fn is_ticket_record(
+        path: &str,
+        tickets: &crate::ticket::Bookkeeping,
+        warrants: &str,
+    ) -> bool {
+        if under(path, warrants).is_some() {
+            return false;
+        }
+        if let Some(claims) = &tickets.claims_dir
+            && under(path, claims).is_some_and(|name| !name.contains('/'))
+        {
+            return true;
+        }
+        let Some(rest) = tickets.dir.as_deref().and_then(|d| under(path, d)) else {
+            return false;
+        };
+        let Some((id, file)) = rest.split_once('/') else {
+            return false;
+        };
+        openwarrant_core::ticket::is_ticket_id(id) && tickets.files.iter().any(|f| f == file)
+    }
+
+    fn under<'a>(path: &'a str, dir: &str) -> Option<&'a str> {
+        let dir = dir.trim_end_matches('/');
+        if dir.is_empty() {
+            return None;
+        }
+        path.strip_prefix(dir).and_then(|r| r.strip_prefix('/'))
+    }
+
+    /// Paths no source comparison reads: evidence records, and the
+    /// projections `war compile` writes.
+    ///
+    /// Projections are excluded for the same reason as records, one step
+    /// removed: the corpus status projects each run's admissibility, so
+    /// committing the projection a receipt produced would move the tree the
+    /// receipt names, and the next compile would project it stale — a
+    /// projection that could never agree with itself. `war check --generated`
+    /// is what holds a projection to its sources; the tree rule does not
+    /// need to.
+    ///
+    /// The tree rule skips three classes more: the records a human act writes
+    /// ([`is_authority_record`]), the records `war verify` writes
+    /// ([`is_verification_record`]) and the files the ticket loop writes
+    /// ([`is_ticket_record`]); [`Exclusions::excludes_from_tree`]. Declared
+    /// inputs do not — a gate that says it reads one is held to it.
+    #[derive(Debug, Clone)]
+    pub struct Exclusions {
+        warrants: String,
+        sas: String,
+        roadmap: String,
+        gates: String,
+        projection_dirs: Vec<String>,
+        /// `None` when the `[tickets]` table cannot be read: then no ticket
+        /// file is skipped, and the tree stays bound to all of them.
+        tickets: Option<crate::ticket::Bookkeeping>,
+    }
+
+    impl Exclusions {
+        #[must_use]
+        pub fn of(repo: &Repository) -> Self {
+            let p = &repo.config.paths;
+            let generated_parent =
+                std::path::Path::new(openwarrant_compiler::current::CURRENT_PATH)
+                    .parent()
+                    .map(|d| d.to_string_lossy().into_owned())
+                    .unwrap_or_default();
+            Self {
+                warrants: p.warrants.to_string(),
+                sas: p.sas.to_string(),
+                roadmap: p.roadmap.to_string(),
+                gates: p.gates.to_string(),
+                projection_dirs: vec![
+                    format!("{}/generated", p.warrants),
+                    format!("{}/generated", p.adrs),
+                    format!("{}/generated", p.sas),
+                    generated_parent,
+                ],
+                tickets: crate::ticket::Store::open(repo, None)
+                    .ok()
+                    .map(|s| s.bookkeeping()),
+            }
+        }
+
+        /// Whether `path` is an evidence record or a compiled projection.
+        #[must_use]
+        pub fn excludes(&self, path: &str) -> bool {
+            if is_evidence_record(path, &self.warrants) {
+                return true;
+            }
+            if self
+                .projection_dirs
+                .iter()
+                .any(|d| under(path, d).is_some())
+            {
+                return true;
+            }
+            // A Warrant's own projections: `<warrants>/<alias>/generated/…`.
+            under(path, &self.warrants).is_some_and(|rest| {
+                let mut parts = rest.splitn(3, '/');
+                matches!(
+                    (parts.next(), parts.next(), parts.next()),
+                    (Some(_), Some("generated"), Some(_))
+                )
+            })
+        }
+
+        /// What the tree rule skips: [`Exclusions::excludes`], the records a
+        /// human act writes, the records `war verify` writes, and the files
+        /// the ticket loop writes. A signature (t-22fd), a verification
+        /// (t-fed6) or a `war claim` / `done` / `note` (t-5d82) after a run
+        /// does not move the tree that run names.
+        #[must_use]
+        pub fn excludes_from_tree(&self, path: &str) -> bool {
+            self.excludes(path)
+                || is_authority_record(path, &self.warrants, &self.sas, &self.roadmap, &self.gates)
+                || is_verification_record(path, &self.warrants)
+                || self
+                    .tickets
+                    .as_ref()
+                    .is_some_and(|t| is_ticket_record(path, t, &self.warrants))
+        }
+    }
+
+    /// The tree reads of one read-only command, remembered (t-eca6).
+    ///
+    /// [`moved_since`] runs two git walks of the whole working tree, and the
+    /// commands that judge evidence ask it once per receipt, several times per
+    /// receipt: 944 walks for one `war next` over 127 receipts, most naming one
+    /// tree. Within a process that runs no gate and writes no source, the
+    /// working tree does not change under it (another process changing it
+    /// mid-command is a race the command never promised to see), so the same
+    /// question has the same answer. [`remember_tree_reads`] turns this on; only
+    /// such a command may call it, once, before its first read. It is off
+    /// otherwise: `observe` must see the tree a gate is about to run over, not
+    /// the one an earlier gate in the same process left.
+    static TREE_READS: TreeReads = std::sync::Mutex::new(None);
+
+    /// Off (`None`), or on with what has been read so far.
+    pub type TreeReads = std::sync::Mutex<Option<std::collections::HashMap<String, Vec<String>>>>;
+
+    /// Remember [`moved_since`]'s git reads for the rest of this process. For
+    /// one-shot read-only commands only (`war next`, `war check`, `war status`).
+    pub fn remember_tree_reads() {
+        let mut memo = TREE_READS
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if memo.is_none() {
+            *memo = Some(std::collections::HashMap::new());
+        }
+    }
+
+    /// Whether [`remember_tree_reads`] is on: this process is a one-shot
+    /// read-only command, and what it reads from the tree does not change
+    /// under it. Other memos (the ownership fingerprint) key off it.
+    #[must_use]
+    pub fn tree_reads_remembered() -> bool {
+        TREE_READS
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .is_some()
+    }
+
+    /// `read()`, or what it returned for `key` earlier in this process when
+    /// [`remember_tree_reads`] is on. An error is never remembered.
+    fn tree_read(
+        key: String,
+        read: impl FnOnce() -> Result<Vec<String>, String>,
+    ) -> Result<Vec<String>, String> {
+        tree_read_in(&TREE_READS, key, read)
+    }
+
+    /// [`tree_read`] over a given memo, so a test can hold its own.
+    pub fn tree_read_in(
+        memo: &TreeReads,
+        key: String,
+        read: impl FnOnce() -> Result<Vec<String>, String>,
+    ) -> Result<Vec<String>, String> {
+        let remembered = memo
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .map(|m| m.get(&key).cloned());
+        match remembered {
+            None => read(),
+            Some(Some(paths)) => Ok(paths),
+            Some(None) => {
+                let paths = read()?;
+                if let Some(m) = memo
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .as_mut()
+                {
+                    m.insert(key, paths.clone());
+                }
+                Ok(paths)
+            }
+        }
+    }
+
+    fn git(root: &Utf8Path, args: &[&str]) -> Result<Vec<u8>, String> {
+        let out = Command::new("git")
+            .arg("-C")
+            .arg(root.as_str())
+            .args(args)
+            .output()
+            .map_err(|e| format!("git could not be run: {e}"))?;
+        if !out.status.success() {
+            return Err(format!(
+                "`git {}` failed: {}",
+                args.join(" "),
+                String::from_utf8_lossy(&out.stderr).trim()
+            ));
+        }
+        Ok(out.stdout)
+    }
+
+    fn nul_paths(bytes: &[u8]) -> Vec<String> {
+        bytes
+            .split(|b| *b == 0)
+            .filter(|p| !p.is_empty())
+            .map(|p| String::from_utf8_lossy(p).into_owned())
+            .collect()
+    }
+
+    /// `git rev-parse HEAD^{tree}`.
+    pub fn head_tree(root: &Utf8Path) -> Result<String, String> {
+        let out = git(root, &["rev-parse", "--verify", "-q", "HEAD^{tree}"])?;
+        let sha = String::from_utf8_lossy(&out).trim().to_owned();
+        if sha.is_empty() {
+            return Err("the repository has no HEAD commit".to_owned());
+        }
+        Ok(sha)
+    }
+
+    /// Paths that differ between `tree` and the working tree, plus untracked
+    /// files that are not ignored — what [`Exclusions::excludes_from_tree`]
+    /// names left out.
+    pub fn moved_since(
+        root: &Utf8Path,
+        tree: &str,
+        ex: &Exclusions,
+    ) -> Result<Vec<String>, String> {
+        let mut moved = tree_read(format!("diff\0{root}\0{tree}"), || {
+            Ok(nul_paths(&git(
+                root,
+                &["diff", "--name-only", "-z", tree, "--"],
+            )?))
+        })?;
+        moved.extend(tree_read(format!("others\0{root}"), || {
+            Ok(nul_paths(&git(
+                root,
+                &["ls-files", "--others", "--exclude-standard", "-z"],
+            )?))
+        })?);
+        moved.retain(|p| !ex.excludes_from_tree(p));
+        moved.sort();
+        moved.dedup();
+        Ok(moved)
+    }
+
+    /// Whether `pattern` matches `path`. `*` and `?` stay within one path
+    /// segment; `**` spans any number of segments, including none.
+    #[must_use]
+    pub fn glob_matches(pattern: &str, path: &str) -> bool {
+        fn segs(pat: &[&str], path: &[&str]) -> bool {
+            match pat.split_first() {
+                None => path.is_empty(),
+                Some((&"**", rest)) => (0..=path.len()).any(|i| segs(rest, &path[i..])),
+                Some((p, rest)) => path
+                    .split_first()
+                    .is_some_and(|(s, tail)| seg(p.as_bytes(), s.as_bytes()) && segs(rest, tail)),
+            }
+        }
+        fn seg(p: &[u8], s: &[u8]) -> bool {
+            match p.split_first() {
+                None => s.is_empty(),
+                Some((b'*', rest)) => (0..=s.len()).any(|i| seg(rest, &s[i..])),
+                Some((b'?', rest)) => !s.is_empty() && seg(rest, &s[1..]),
+                Some((c, rest)) => s.first() == Some(c) && seg(rest, &s[1..]),
+            }
+        }
+        let pat: Vec<&str> = pattern.trim_start_matches("./").split('/').collect();
+        let path: Vec<&str> = path.split('/').collect();
+        segs(&pat, &path)
+    }
+
+    /// `sha256` over `<path>\0<sha256 of bytes>\n` for every tracked or
+    /// untracked-but-not-ignored file the globs match, sorted by path, read
+    /// from the working tree. An excluded path is never an input.
+    pub fn inputs_digest(
+        root: &Utf8Path,
+        globs: &[String],
+        ex: &Exclusions,
+    ) -> Result<String, String> {
+        let mut files = nul_paths(&git(
+            root,
+            &[
+                "ls-files",
+                "--cached",
+                "--others",
+                "--exclude-standard",
+                "-z",
+            ],
+        )?);
+        files.retain(|p| !ex.excludes(p) && globs.iter().any(|g| glob_matches(g, p)));
+        files.sort();
+        files.dedup();
+        let mut preimage = String::new();
+        for f in &files {
+            // A tracked file deleted from the working tree is part of what the
+            // gate would now see: its absence, named.
+            let digest = std::fs::read(root.join(f))
+                .map_or_else(|_| "absent".to_owned(), |b| sha256_hex(&b));
+            preimage.push_str(&format!("{f}\0{digest}\n"));
+        }
+        Ok(format!("{INPUTS}{}", sha256_hex(preimage.as_bytes())))
+    }
+
+    /// `<path>#sha256:<hex>` for each declared fixture. A declared fixture that
+    /// cannot be read is an error: the receipt would otherwise say the gate
+    /// ran against a fixture nobody could name.
+    pub fn fixture_digests(root: &Utf8Path, fixtures: &[String]) -> Result<Vec<String>, String> {
+        fixtures
+            .iter()
+            .map(|f| {
+                std::fs::read(root.join(f))
+                    .map(|b| format!("{f}#sha256:{}", sha256_hex(&b)))
+                    .map_err(|e| format!("declared fixture {f} cannot be read: {e}"))
+            })
+            .collect()
+    }
+
+    /// `deliverables:sha256:<hex>` over `(id, target_ref, sha256 of bytes)` in
+    /// `D-` order. A target that is not a readable file digests as `absent`.
+    #[must_use]
+    pub fn deliverables_digest(root: &Utf8Path, set: &[(String, String)]) -> String {
+        let mut set: Vec<&(String, String)> = set.iter().collect();
+        set.sort();
+        let mut preimage = String::new();
+        for (id, target) in set {
+            let digest = std::fs::read(root.join(target))
+                .map_or_else(|_| "absent".to_owned(), |b| sha256_hex(&b));
+            preimage.push_str(&format!("{id}\0{target}\0{digest}\n"));
+        }
+        format!("{DELIVERABLES}{}", sha256_hex(preimage.as_bytes()))
+    }
+
+    /// What a run is about to observe: its source subjects and fixture
+    /// digests. Taken BEFORE the gate is spawned, so the receipt names the
+    /// source the gate ran over rather than whatever it left behind.
+    #[derive(Debug, Clone, Default, PartialEq, Eq)]
+    pub struct Observed {
+        pub subjects: Vec<String>,
+        pub fixture_digests: Vec<String>,
+    }
+
+    /// Observe the source for `key`. Not being a git repository is not an
+    /// error: the receipt then names no tree and its reuse is `UNKNOWN`
+    /// later, which is the truth. An unreadable declared fixture is an error.
+    pub fn observe(repo: &Repository, key: &str) -> Result<Observed, String> {
+        let ex = Exclusions::of(repo);
+        let declared = declared(repo, key).unwrap_or_default();
+        let mut subjects = Vec::new();
+        if let Ok(tree) = head_tree(&repo.root) {
+            subjects.push(format!("{TREE}{tree}"));
+            if moved_since(&repo.root, &tree, &ex).map_or(true, |m| !m.is_empty()) {
+                subjects.push(DIRTY.to_owned());
+            }
+        }
+        if !declared.inputs.is_empty()
+            && let Ok(d) = inputs_digest(&repo.root, &declared.inputs, &ex)
+        {
+            subjects.push(d);
+        }
+        let fixture_digests = fixture_digests(&repo.root, &declared.fixtures)?;
+        Ok(Observed {
+            subjects,
+            fixture_digests,
+        })
+    }
+}
+
+/// `war gate list` / `war gate run`, for no particular Warrant: a gate whose
+/// argv names [`WARRANT_ARG`] is listed and run as not askable.
 pub fn run(
     repo: &Repository,
     execute: bool,
@@ -337,6 +1046,30 @@ pub fn run(
     subject_digests: &[String],
     raw_evidence_refs: &[String],
     out_dir: Option<&camino::Utf8Path>,
+) -> Result<Report, RepoError> {
+    run_for(
+        repo,
+        execute,
+        only,
+        record,
+        subject_digests,
+        raw_evidence_refs,
+        out_dir,
+        None,
+    )
+}
+
+/// [`run`], for one Warrant: each definition's [`WARRANT_ARG`] is `warrant`.
+#[allow(clippy::too_many_arguments)]
+pub fn run_for(
+    repo: &Repository,
+    execute: bool,
+    only: Option<&str>,
+    record: bool,
+    subject_digests: &[String],
+    raw_evidence_refs: &[String],
+    out_dir: Option<&camino::Utf8Path>,
+    warrant: Option<&str>,
 ) -> Result<Report, RepoError> {
     validate_bonsai_bindings(repo, only, subject_digests, raw_evidence_refs)?;
     let dir = receipts_dir(repo, out_dir);
@@ -351,6 +1084,16 @@ pub fn run(
     for def in &registry.definitions {
         if only.is_some_and(|filter| def.gate_id != filter && def.key() != filter) {
             continue;
+        }
+        let bound = bind_warrant(def, warrant);
+        let def = &bound;
+        if def.argv.iter().any(|a| a == WARRANT_ARG) {
+            report.note(format!(
+                "{}: its argv names {WARRANT_ARG}, so it is asked about one Warrant: \
+                 `war evidence record <alias> --gate {}`",
+                def.key(),
+                def.key()
+            ));
         }
 
         if !execute {
@@ -370,7 +1113,42 @@ pub fn run(
             continue;
         }
 
+        // t-dec1: the Bonsai gate verifies the document its argv names; a
+        // receipt binding a DIFFERENT file's digest would record evidence
+        // about bytes the gate never read.
+        if def.gate_id == BONSAI_EVIDENCE_GATE
+            && let Some(bound) = raw_evidence_refs.first().and_then(|r| bonsai_ref_path(r))
+            && bonsai_gate_reads(def) != Some(bound)
+        {
+            report.push(Diagnostic::error(
+                "gate-run.bonsai-ref-not-read",
+                def.key(),
+                format!(
+                    "the evidence reference names {bound:?}, and the gate reads {} — nothing \
+                     was run. Bind the document the gate verifies",
+                    bonsai_gate_reads(def)
+                        .map_or_else(|| "no --evidence file".to_owned(), |p| format!("{p:?}"))
+                ),
+            ));
+            continue;
+        }
+
         let started_at = receipt::now_rfc3339_public();
+        // OW-WAR-0133: what the gate is about to run over, named before it is
+        // spawned. A recorded run that cannot name a declared fixture is not
+        // run; an unrecorded one is receipted without the source.
+        let observed = match source::observe(repo, &def.key()) {
+            Ok(o) => Some(o),
+            Err(e) if record => {
+                report.push(Diagnostic::error(
+                    "gate-run.receipt-failed",
+                    def.key(),
+                    format!("{e} — nothing was run"),
+                ));
+                continue;
+            }
+            Err(_) => None,
+        };
         let run = run_gate(def, repo, &dir);
         // Coherence is checked on our own output. A runner that emits an
         // incoherent run is a runner that can emit a passing unaskable gate.
@@ -438,7 +1216,7 @@ pub fn run(
         // receipt for it would be minting evidence of something that did not
         // happen.
         if run.execution_status == ExecutionStatus::Completed {
-            match receipt::mint(
+            match receipt::mint_observed(
                 repo,
                 def,
                 &run,
@@ -449,6 +1227,7 @@ pub fn run(
                     raw_evidence_refs,
                 },
                 &dir,
+                observed.as_ref(),
             ) {
                 Ok(path) => report.push(Diagnostic::pass(
                     "gate-run.receipt",
@@ -525,10 +1304,14 @@ fn validate_bonsai_bindings(
             let ok = subject
                 .strip_prefix("contract:sha256:")
                 .is_some_and(is_hex_digest)
+                || subject
+                    .strip_prefix(source::DELIVERABLES)
+                    .is_some_and(is_hex_digest)
                 || subject.starts_with("warrant-corpus:");
             if !ok {
                 return Err(RepoError::Message(format!(
-                    "receipt subject {subject:?} must be contract:sha256:<64 hex> or warrant-corpus:<path>"
+                    "receipt subject {subject:?} must be contract:sha256:<64 hex>, \
+                     deliverables:sha256:<64 hex> or warrant-corpus:<path>"
                 )));
             }
         }
@@ -540,21 +1323,42 @@ fn validate_bonsai_bindings(
         }
         return Ok(());
     }
-    if subject_digests.len() != 1 || raw_evidence_refs.len() != 1 {
-        return Err(RepoError::Message(
-            "Bonsai receipt binding requires exactly one contract subject and one evidence reference"
-                .to_owned(),
-        ));
-    }
-    if !matches!(
-        only,
-        Some(BONSAI_EVIDENCE_GATE) | Some("software.repo.bonsai-evidence@1.0.0")
-    ) {
+    // One contract subject and one evidence reference: the document is
+    // checked against THAT contract. Since OW-WAR-0133 `war evidence record`
+    // binds the deliverable set beside the contract (t-dec1); that subject
+    // is carried beside the pairing, never in place of it, and nothing else
+    // is — the tree, inputs and fixtures are observed by the runner, not
+    // passed in.
+    let contracts: Vec<&String> = subject_digests
+        .iter()
+        .filter(|s| s.starts_with("contract:"))
+        .collect();
+    if contracts.len() != 1 || raw_evidence_refs.len() != 1 {
         return Err(RepoError::Message(format!(
-            "Bonsai receipt bindings are valid only for {BONSAI_EVIDENCE_GATE}@1.0.0"
+            "Bonsai receipt binding requires exactly one contract subject and one evidence \
+             reference; got {} contract subject(s) and {} evidence reference(s){}",
+            contracts.len(),
+            raw_evidence_refs.len(),
+            if raw_evidence_refs.is_empty() {
+                " — pass --evidence-ref file:<path>#sha256:<digest> naming the passing \
+                 `war bonsai check` document"
+            } else {
+                ""
+            }
         )));
     }
-    let subject = &subject_digests[0];
+    if let Some(other) = subject_digests.iter().find(|s| {
+        !s.starts_with("contract:")
+            && !s
+                .strip_prefix(source::DELIVERABLES)
+                .is_some_and(is_hex_digest)
+    }) {
+        return Err(RepoError::Message(format!(
+            "Bonsai receipt subject {other:?} is neither the contract subject nor \
+             deliverables:sha256:<64 hex>, the only subject carried beside it"
+        )));
+    }
+    let subject = contracts[0];
     let Some(contract_digest) = subject.strip_prefix("contract:sha256:") else {
         return Err(RepoError::Message(
             "Bonsai receipt subject must be contract:sha256:<digest>".to_owned(),
@@ -596,6 +1400,30 @@ fn validate_bonsai_bindings(
         ));
     }
     Ok(())
+}
+
+/// Whether `key` (`<id>` or `<id>@<version>`) is the Bonsai evidence gate,
+/// whose receipt binds a document by bytes (§43.5).
+#[must_use]
+pub fn is_bonsai_gate(key: &str) -> bool {
+    key.split('@').next() == Some(BONSAI_EVIDENCE_GATE)
+}
+
+/// The repository path in a `file:<path>#sha256:<digest>` reference.
+fn bonsai_ref_path(reference: &str) -> Option<&str> {
+    reference
+        .strip_prefix("file:")
+        .and_then(|r| r.rsplit_once("#sha256:"))
+        .map(|(path, _)| path)
+}
+
+/// The file the Bonsai gate's argv hands to `--evidence`.
+fn bonsai_gate_reads(def: &GateDefinition) -> Option<&str> {
+    def.argv
+        .iter()
+        .position(|a| a == "--evidence")
+        .and_then(|i| def.argv.get(i + 1))
+        .map(String::as_str)
 }
 
 fn safe_evidence_path(path: &str) -> bool {
@@ -687,6 +1515,12 @@ pub mod receipt {
     ///
     /// The receipt is VALIDATED before it is written. A malformed receipt on
     /// disk is worse than none: it looks like evidence.
+    ///
+    /// No source subjects: this is `war run`'s path, whose receipt is bound
+    /// to exactly one subject, the dispatch digest, and is checked against
+    /// that one subject when a Warrant is preserved. Receipts that count
+    /// toward requirement 5 are minted by `war evidence record` through
+    /// [`mint_observed`].
     pub fn mint(
         repo: &Repository,
         def: &GateDefinition,
@@ -695,6 +1529,23 @@ pub mod receipt {
         exit_result: &str,
         bindings: Bindings<'_>,
         dir: &Utf8Path,
+    ) -> Result<camino::Utf8PathBuf, RepoError> {
+        mint_observed(repo, def, run, started_at, exit_result, bindings, dir, None)
+    }
+
+    /// [`mint`], with the source the run was observed to start from
+    /// (OW-WAR-0133). Its subjects are appended after the caller's, and its
+    /// fixture digests fill `fixture_digests`. `None` records neither.
+    #[allow(clippy::too_many_arguments)]
+    pub fn mint_observed(
+        repo: &Repository,
+        def: &GateDefinition,
+        run: &GateRun,
+        started_at: &str,
+        exit_result: &str,
+        bindings: Bindings<'_>,
+        dir: &Utf8Path,
+        observed: Option<&super::source::Observed>,
     ) -> Result<camino::Utf8PathBuf, RepoError> {
         let Bindings {
             subject_digests,
@@ -720,12 +1571,18 @@ pub mod receipt {
             // §43.5 bindings do not exist in this corpus yet. Recording the
             // gate's own key is honest; inventing a binding digest would not be.
             gate_binding_digest: format!("unbound:{}", def.key()),
-            subject_digests: if subject_digests.is_empty() {
-                vec![format!("warrant-corpus:{}", repo.config.paths.warrants)]
-            } else {
-                subject_digests.to_vec()
+            subject_digests: {
+                let mut s = if subject_digests.is_empty() {
+                    vec![format!("warrant-corpus:{}", repo.config.paths.warrants)]
+                } else {
+                    subject_digests.to_vec()
+                };
+                s.extend(observed.iter().flat_map(|o| o.subjects.iter().cloned()));
+                s
             },
-            fixture_digests: vec![],
+            fixture_digests: observed
+                .map(|o| o.fixture_digests.clone())
+                .unwrap_or_default(),
             runner: "war gate --run".to_owned(),
             runtime_environment: format!(
                 "{} {} / rustc {}",
@@ -762,8 +1619,332 @@ pub mod receipt {
         let path = dir.join(format!("{slug}.receipt.json"));
         let body = serde_json::to_string_pretty(&receipt)
             .map_err(|e| RepoError::Message(format!("{e}")))?;
-        std::fs::write(&path, body + "\n")
-            .map_err(|e| RepoError::Message(format!("cannot write {path}: {e}")))?;
+        // OW-WAR-0121: a receipt is evidence a resolution cites; a crash while
+        // writing it leaves the previous receipt whole, never half of one.
+        crate::compile::atomic::write(&path, body + "\n")?;
         Ok(path)
+    }
+}
+
+#[cfg(test)]
+mod source_tests {
+    use super::source::{
+        TreeReads, glob_matches, is_authority_record, is_evidence_record, is_ticket_record,
+        is_verification_record, tree_read_in,
+    };
+
+    /// t-eca6: off, every question is asked again; on, a tree read is asked
+    /// once and answered from memory after; an error is never remembered.
+    #[test]
+    fn tree_reads_are_remembered_only_when_turned_on() {
+        let calls = std::cell::Cell::new(0);
+        let read = || {
+            calls.set(calls.get() + 1);
+            Ok(vec![format!("moved-{}", calls.get())])
+        };
+        let off: TreeReads = std::sync::Mutex::new(None);
+        assert_eq!(
+            tree_read_in(&off, "k".into(), read),
+            Ok(vec!["moved-1".into()])
+        );
+        assert_eq!(
+            tree_read_in(&off, "k".into(), read),
+            Ok(vec!["moved-2".into()])
+        );
+
+        let on: TreeReads = std::sync::Mutex::new(Some(std::collections::HashMap::new()));
+        calls.set(0);
+        assert_eq!(
+            tree_read_in(&on, "k".into(), read),
+            Ok(vec!["moved-1".into()])
+        );
+        assert_eq!(
+            tree_read_in(&on, "k".into(), read),
+            Ok(vec!["moved-1".into()])
+        );
+        assert_eq!(calls.get(), 1, "the second read came from memory");
+        assert_eq!(
+            tree_read_in(&on, "other".into(), read),
+            Ok(vec!["moved-2".into()])
+        );
+
+        let failing = || Err("git failed".to_owned());
+        assert!(tree_read_in(&on, "err".into(), failing).is_err());
+        assert_eq!(
+            tree_read_in(&on, "err".into(), read),
+            Ok(vec!["moved-3".into()])
+        );
+    }
+
+    #[test]
+    fn globs_keep_star_within_a_segment_and_let_double_star_span() {
+        assert!(glob_matches("src/**", "src/a.rs"));
+        assert!(glob_matches("src/**", "src/deep/er/a.rs"));
+        assert!(glob_matches("src/*.rs", "src/a.rs"));
+        assert!(!glob_matches("src/*.rs", "src/deep/a.rs"));
+        assert!(glob_matches("**/*.md", "README.md"));
+        assert!(glob_matches("docs/?.md", "docs/a.md"));
+        assert!(!glob_matches("src/**", "srcx/a.rs"));
+        assert!(!glob_matches("README.md", "docs/README.md"));
+    }
+
+    #[test]
+    fn only_gate_runs_and_the_journal_are_evidence_records() {
+        let w = "docs/warrants";
+        assert!(is_evidence_record(
+            "docs/warrants/X-WAR-0001/gate-runs/a.json",
+            w
+        ));
+        assert!(is_evidence_record(
+            "docs/warrants/X-WAR-0001/journal.jsonl",
+            w
+        ));
+        assert!(!is_evidence_record(
+            "docs/warrants/X-WAR-0001/atoms/10-intent.md",
+            w
+        ));
+        assert!(!is_evidence_record(
+            "docs/warrants/X-WAR-0001/deliverables.toml",
+            w
+        ));
+        assert!(!is_evidence_record("src/gate-runs/a", w));
+        assert!(!is_evidence_record("docs/warrants/journal.jsonl", w));
+    }
+
+    /// t-22fd: what a human act writes is skipped by the tree rule; what a
+    /// gate reads as source, and the trust roots, are not.
+    #[test]
+    fn authority_records_are_named_file_by_file_and_source_is_not_one() {
+        let a = |p: &str| {
+            is_authority_record(p, "docs/warrants", "docs/sas", "docs/roadmap", "docs/gates")
+        };
+        for p in [
+            "docs/warrants/X-WAR-0001/authorization.toml",
+            "docs/warrants/X-WAR-0001/authorization.0a1b2c3d.toml",
+            "docs/warrants/X-WAR-0001/judgments.toml",
+            "docs/warrants/X-WAR-0001/resolution.toml",
+            "docs/warrants/X-WAR-0001/attestations/authorize-1.dsse.json",
+            "docs/warrants/X-WAR-0001/corrections/D-001-1.toml",
+            "docs/warrants/X-WAR-0001/disputes/DSP-001.toml",
+            "docs/warrants/X-WAR-0001/questions/Q-001.toml",
+            "docs/authority/responses/X-WAR-0001.response.toml",
+            "docs/authority/responses/X-WAR-0001.response.toml.sig",
+            "docs/authority/batches/B-1-abcdef01.json",
+            "docs/authority/batches/attestations/batch-B-1-1.dsse.json",
+            "docs/authority/standing/attestations/standing-accept-c@1-1.dsse.json",
+            "docs/sas/revisions/attestations/sas-accept-1.0.0-1.dsse.json",
+            "docs/roadmap/revisions/attestations/roadmap-accept-r1-1.dsse.json",
+            "docs/gates/invalidations/g@1.0.0.toml",
+        ] {
+            assert!(a(p), "{p} is written by a human act");
+        }
+        for p in [
+            // Source, and what a Warrant is made of.
+            "src/authorization.toml",
+            "crates/x/src/lib.rs",
+            "docs/warrants/X-WAR-0001/manifest.toml",
+            "docs/warrants/X-WAR-0001/deliverables.toml",
+            "docs/warrants/X-WAR-0001/atoms/60-assurance.md",
+            "docs/warrants/X-WAR-0001/authorization.toml.bak",
+            "docs/warrants/X-WAR-0001/authorization.ZZZZZZZZ.toml",
+            "docs/warrants/X-WAR-0001/authorization.0a1b2c3.toml",
+            "docs/warrants/authorization.toml",
+            // Trust roots and governing records: bound.
+            "docs/authority/roles.toml",
+            "docs/authority/allowed_signers",
+            "docs/authority/standing/c@1.toml",
+            "docs/sas/revisions/1.0.0.toml",
+            "docs/sas/SAS.md",
+            "docs/roadmap/revisions/1.toml",
+            "docs/gates/g@1.0.0.yaml",
+        ] {
+            assert!(!a(p), "{p} is not an authority record");
+        }
+    }
+
+    /// t-5d82: what the ticket loop writes is skipped by the tree rule, file
+    /// by file; anything else in a ticket's directory, and every path under
+    /// the Warrants root, is not.
+    #[test]
+    fn ticket_records_are_named_file_by_file_and_nothing_else_is_one() {
+        let b = crate::ticket::Bookkeeping {
+            dir: Some("docs/tickets".to_owned()),
+            claims_dir: Some("var/claims".to_owned()),
+            files: vec![
+                "manifest.toml".to_owned(),
+                "journal.jsonl".to_owned(),
+                "atoms/10-intent.md".to_owned(),
+                "atoms/15-checklist.md".to_owned(),
+            ],
+        };
+        let t = |p: &str| is_ticket_record(p, &b, "docs/warrants");
+        for p in [
+            "docs/tickets/t-5d82/manifest.toml",
+            "docs/tickets/t-5d82/journal.jsonl",
+            "docs/tickets/t-5d82/atoms/10-intent.md",
+            "docs/tickets/t-5d82/atoms/15-checklist.md",
+            "var/claims/t-5d82.lock",
+            "var/claims/t-5d82--i-69e3.lock",
+            "var/claims/.t-5d82.1.2.claim-tmp",
+        ] {
+            assert!(t(p), "{p} is written by the ticket loop");
+        }
+        for p in [
+            "docs/tickets/t-5d82/notes.txt",
+            "docs/tickets/t-5d82/atoms/20-extra.md",
+            "docs/tickets/t-5d82/atoms/generated/x.md",
+            "docs/tickets/README.md",
+            "docs/tickets/manifest.toml",
+            "docs/tickets/not-a-ticket/manifest.toml",
+            "docs/tickets/t-5d82/sub/journal.jsonl",
+            "var/claims/sub/t-5d82.lock",
+            "docs/TICKETS.md",
+            "crates/x/src/lib.rs",
+            "docs/warrants/X-WAR-0001/journal.jsonl",
+        ] {
+            assert!(!t(p), "{p} is not a ticket record");
+        }
+        // A tickets directory configured over the Warrants root names nothing
+        // there; one outside the repository names nothing at all.
+        let over = crate::ticket::Bookkeeping {
+            dir: Some("docs".to_owned()),
+            ..b.clone()
+        };
+        assert!(!is_ticket_record(
+            "docs/warrants/t-abc/manifest.toml",
+            &over,
+            "docs/warrants"
+        ));
+        let outside = crate::ticket::Bookkeeping {
+            dir: None,
+            claims_dir: None,
+            ..b
+        };
+        assert!(!is_ticket_record(
+            "docs/tickets/t-5d82/journal.jsonl",
+            &outside,
+            "docs/warrants"
+        ));
+    }
+
+    /// t-fed6: what `war verify` writes under `verifications/` is skipped by
+    /// the tree rule, file by file; anything else there, and a verification
+    /// directory anywhere but directly in a Warrant, is not.
+    #[test]
+    fn verification_records_are_named_file_by_file_and_nothing_else_is_one() {
+        let v = |p: &str| is_verification_record(p, "docs/warrants");
+        for p in [
+            "docs/warrants/X-WAR-0001/verifications/OBL-001.toml",
+            "docs/warrants/X-WAR-0001/verifications/OBL-000.toml",
+            "docs/warrants/X-WAR-0001/verifications/bundle-e01bd0803ee4ca7e.json",
+            "docs/warrants/X-WAR-0001/verifications/responses/response-e01bd0803ee4ca7e.toml",
+            "docs/warrants/X-WAR-0001/verifications/responses/verdicts.toml",
+        ] {
+            assert!(v(p), "{p} is written by war verify");
+        }
+        for p in [
+            "docs/warrants/X-WAR-0001/verifications/notes.md",
+            "docs/warrants/X-WAR-0001/verifications/bundle-e01bd0803ee4ca7.json",
+            "docs/warrants/X-WAR-0001/verifications/bundle-E01BD0803EE4CA7E.json",
+            "docs/warrants/X-WAR-0001/verifications/bundle-e01bd0803ee4ca7e.json.bak",
+            "docs/warrants/X-WAR-0001/verifications/.toml",
+            "docs/warrants/X-WAR-0001/verifications/sub/OBL-001.toml",
+            "docs/warrants/X-WAR-0001/verifications/responses",
+            "docs/warrants/X-WAR-0001/verifications",
+            "docs/warrants/X-WAR-0001/atoms/60-assurance.md",
+            "docs/warrants/X-WAR-0001/deliverables.toml",
+            "docs/warrants/verifications/OBL-001.toml",
+            "verifications/OBL-001.toml",
+            "crates/x/verifications/OBL-001.toml",
+            "docs/tickets/t-fed6/verifications/OBL-001.toml",
+        ] {
+            assert!(!v(p), "{p} is not a verification record");
+        }
+    }
+}
+
+#[cfg(test)]
+mod warrant_arg_tests {
+    use super::{WARRANT_ARG, askability_of, bind_warrant, run_gate};
+    use crate::diagnostic::Report;
+    use crate::repo::Repository;
+    use openwarrant_core::{Askability, ExecutionStatus, ReasonCode, Verdict};
+
+    fn this_repo() -> Repository {
+        let root = camino::Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        Repository::open(root).expect("this repository opens")
+    }
+
+    fn definition(repo: &Repository, key: &str) -> openwarrant_core::gate::GateDefinition {
+        let mut report = Report::default();
+        let registry = crate::check::load_gate_registry(repo, &mut report);
+        registry
+            .definitions
+            .iter()
+            .find(|d| d.key() == key)
+            .unwrap_or_else(|| panic!("{key} is registered"))
+            .clone()
+    }
+
+    fn scratch_dir(name: &str) -> camino::Utf8PathBuf {
+        let dir = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-warrant-arg-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        dir
+    }
+
+    /// document.review@1.1.0 is asked about the Warrant it is run for, and
+    /// about no other; 1.0.0, which names no Warrant, is bound unchanged.
+    #[test]
+    fn a_warrant_scoped_gate_names_the_warrant_it_is_run_for() {
+        let repo = this_repo();
+        let def = definition(&repo, "document.review@1.1.0");
+        assert!(def.argv.iter().any(|a| a == WARRANT_ARG));
+        let bound = bind_warrant(&def, Some("OW-WAR-0138"));
+        assert_eq!(
+            bound.argv,
+            ["./target/debug/war", "document", "review", "OW-WAR-0138"]
+        );
+        assert_eq!(bound.digest, def.digest, "binding is not a new definition");
+        assert_ne!(askability_of(&bound, &repo), Some(ReasonCode::NotRun));
+
+        let old = definition(&repo, "document.review@1.0.0");
+        assert_eq!(bind_warrant(&old, Some("OW-WAR-0138")).argv, old.argv);
+    }
+
+    /// The refusal: run for no Warrant, the gate is not askable (`not_run`)
+    /// and nothing is spawned — not even its stream files are created.
+    #[test]
+    fn a_warrant_scoped_gate_run_for_no_warrant_is_not_run() {
+        let repo = this_repo();
+        let def = definition(&repo, "document.review@1.1.0");
+        let unbound = bind_warrant(&def, None);
+        assert_eq!(unbound.argv, def.argv);
+        assert_eq!(askability_of(&unbound, &repo), Some(ReasonCode::NotRun));
+        let dir = scratch_dir("unbound");
+        let run = run_gate(&unbound, &repo, &dir);
+        assert_eq!(run.askability, Askability::NotAskable);
+        assert_eq!(run.execution_status, ExecutionStatus::NotRun);
+        assert_eq!(run.verdict, Verdict::Unknown);
+        assert_eq!(run.reason_code, Some(ReasonCode::NotRun));
+        run.validate().expect("a coherent run");
+        assert!(!dir.exists(), "nothing was spawned, so nothing was written");
+    }
+
+    /// The spawn: the bound argv is what runs. `echo <warrant>` bound to an
+    /// alias writes the alias, and never the placeholder.
+    #[test]
+    fn the_bound_argv_is_what_is_spawned() {
+        let repo = this_repo();
+        let mut def = definition(&repo, "document.review@1.1.0");
+        def.argv = vec!["echo".into(), WARRANT_ARG.into()];
+        let dir = scratch_dir("spawn");
+        let run = run_gate(&bind_warrant(&def, Some("OW-WAR-0138")), &repo, &dir);
+        assert_eq!(run.execution_status, ExecutionStatus::Completed);
+        assert_eq!(run.verdict, Verdict::Pass);
+        let out = std::fs::read_to_string(dir.join("document_review_1_1_0.stdout.txt")).unwrap();
+        assert_eq!(out, "OW-WAR-0138\n");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

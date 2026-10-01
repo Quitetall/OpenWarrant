@@ -1,0 +1,16 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "An askable battery gate: a disposable clone, the committed tree"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "plant-isolated.sh, the @1.1.0 definition, 48-isolated-battery.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 8000

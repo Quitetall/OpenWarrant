@@ -306,8 +306,8 @@ rule that has been misread in practice.
 | Level | Object | What it is | Written by | Governed by | Read by |
 |---|---|---|---|---|---|
 | Vision | product or system vision | why the system should exist; not a record this system compiles | a person | nothing here | everyone |
-| **Release** | an **accepted SAS revision** (`docs/sas/revisions/<version>.toml`) | the contract for a WHOLE PROGRAM: what the software is and shall become, with stable requirement ids (§106) and phased Objectives (§98) | a person or agent proposes; a human accepts (§101.2) | §101 | `war sas`, the corpus projection's Release axis |
-| **Objective** | a §98 phase, `roadmap://<PREFIX>-PHASE-<N>` | a stage of the Roadmap with an Exit sentence; achieved when its `exit`-slugged Warrant resolves satisfied | the SAS | §98 | the corpus projection's Objective axis |
+| **Release** | an **accepted SAS revision** (`docs/sas/revisions/<version>.toml`) | the contract for a WHOLE PROGRAM: what the software is and shall become, with stable requirement ids (§106); its phased Objectives are the roadmap record's (§98) | a person or agent proposes; a human accepts (§101.2) | §101 | `war sas`, the corpus projection's Release axis |
+| **Objective** | a roadmap phase, `roadmap://<PREFIX>-PHASE-<N>` | a stage of the Roadmap with an Exit sentence; achieved when its `exit`-slugged Warrant resolves satisfied | the roadmap record, a human accepting each revision (OW-ADR-0023) | §98 | the corpus projection's Objective axis |
 | **Requirement** | a §106 row, `sas://<PREFIX>-SAS-RQ-<NNN>` | one stable, append-only architectural requirement; a Warrant implements it partially or completely | the SAS | §34, §101 | `war check`, the requirement ladder |
 | **Warrant** | a WAR (`docs/warrants/<alias>/`) | the contract for ONE BOUNDED INTERVENTION inside a program: intent, basis, work order, milestones, obligations; authorized, executed, verified, resolved | a person or agent drafts; a human authorizes (§28.4) and resolves (§56) | §16–§56 | `war` |
 | Milestone | `M<n>` in a Warrant's milestones atom | an acceptance checkpoint inside one Warrant, reached when its obligations are established | the Warrant's author | §23 | `war status <alias>` |
@@ -1704,7 +1704,8 @@ Authorization creates an immutable authorized Contract Revision with:
 - authorization meaning;
 - effective time;
 - policy basis;
-- exact Compilation Basis.
+- exact Compilation Basis;
+- the set of declared deliverable paths, as the authorizer saw it (§37.5).
 
 ### 28.5 Contract digest
 
@@ -1737,6 +1738,16 @@ Every revision SHALL identify its predecessor and structured difference.
 ### 28.7 No in-place amendment
 
 An authorized contract is never patched.
+
+### 28.8 Standing authorization
+
+A human authorizer MAY sign a standing authorization: one record naming a closed class of contracts, bounded by the paths a covered WAR may declare, its profile and assurance level, the gates its obligations may cite, a budget per stage, an expiry and a count. The class SHALL state every term; a term it does not state is refused, not defaulted. The class SHALL NOT cover an authority file, a gate or its fixtures, a guard, a dependency manifest, an authorization record, a generated projection, or the code that decides authority, and it SHALL NOT carry a term under which a residual risk is accepted, an ADR is decided, or a WAR is resolved.
+
+A WAR inside the class is authorized from that signature by a deterministic check of its compiled contract against the class, term by term. Each such authorization is an immutable authorized Contract Revision (§28.4, §28.7) carrying the WAR's own contract digest and declared set; its authorizer is the human who signed the class, and its policy basis names the class revision. A WAR outside the class is refused by the term it breaks, and nothing is recorded.
+
+A covered authorization SHALL be re-derived wherever it is relied on — from the class, the class's signature, the time the authorization was recorded, and the WAR as it stands — and SHALL NOT be believed because the record says so.
+
+A wider class is a new revision, signed again, and it covers only WARs checked after it (§31). Revoking a class is a human act; the authorizations recorded before it stand. A standing authorization does not change §27.2: the authorizer of every covered WAR is a human, and resolution remains a human act.
 
 ## 29. Contract content
 
@@ -2268,6 +2279,16 @@ A generated report SHALL NOT replace its source observations or bytes.
 ### 37.4 Performer submission
 
 The submission manifest is normally not a deliverable. It is a claim envelope describing artifacts, blockers, deviations, and requested next action.
+
+### 37.5 Ownership of a delivered path
+
+Authorization of a WAR SHALL record the set of deliverable paths the WAR declares, as the authorizer saw it. A path is governed by the most recently authorized WAR whose recorded set names it; an authorization recorded without a set governs nothing.
+
+A resolved WAR's pin on a path that a later authorized WAR governs is historical: it remains recorded, its resolution keeps binding it, and it SHALL NOT be reported as drift. A change to a path that no authorized WAR currently governs is drift, and moves only through a recorded correction (§34.4, OW-ADR-0012).
+
+Widening a WAR's declared set after authorization is a material amendment (§31). A path declared in the manifest but absent from the recorded set is not governed and SHALL be reported as such.
+
+Under a standing authorization (§28.8) the authorizer saw the class, not the instance: the recorded set is the WAR's declared set as the class's signed paths bounded it.
 
 ## 38. Acceptance argument
 
@@ -3228,7 +3249,12 @@ resolution:
   effective_at: "..."
   recorded_at: "server-assigned"
   standing: "valid"
+locator:
+  commit_sha: "..."
+  worktree_clean: true
 ```
+
+`locator` is optional and MAY be absent on records made before it was specified; when present it names the commit whose tree held the delivered bytes at ingest, so a historical pin (§37.5) can be re-verified from history.
 
 ### 56.3 Falsification
 
@@ -5029,180 +5055,17 @@ The old compiler remains a compatibility oracle during measured parity. After ac
 
 ## 98. Implementation phases
 
-### Phase 0 — Telemetry shim
+The phases are the roadmap record's (OW-ADR-0023).
 
-Deliver:
-
-- WAR UUID and local alias;
-- commit/PR linkage;
-- lightweight event logging;
-- amendment, escalation, and gate-result classification;
-- untracked-work detection.
-
-Exit:
-
-- real distributions for authoring cost, amendment types, and failure causes.
-
-### Phase 1 — File-native WAR compiler
-
-Deliver:
-
-- `war init`;
-- `war new`;
-- manifest;
-- authored atom profile;
-- canonical IR;
-- `war check`;
-- `war compile`;
-- full Markdown parent;
-- canonical JSON;
-- generated drift gate.
-
-Exit:
-
-- OpenWarrant development uses WARs.
-
-### Phase 2 — Agent planner
-
-Deliver:
-
-- `war plan`;
-- interview;
-- Draft Proposal protocol;
-- Katana drafter adapter;
-- semantic diff;
-- proposed ADR generation.
-
-Exit:
-
-- a vague engineering request produces a reviewable valid draft without direct model file mutation.
-
-### Phase 3 — ADR federation
-
-Deliver:
-
-- first-class ADR atoms;
-- local and global identity;
-- ADR Overview;
-- WAR/ADR relations;
-- existing ADR importer.
-
-Exit:
-
-- no managed normative decision exists only inline.
-
-### Phase 4 — Knowledge Fabric registration
-
-Deliver:
-
-- typed KF actions;
-- global allocation;
-- lifecycle;
-- contract revisions;
-- synchronization;
-- audit;
-- preservation.
-
-Exit:
-
-- registered WARs use KF as institutional authority while Git may remain Source Holder.
-
-### Phase 5 — Dispatch and Katana execution
-
-Deliver:
-
-- Preflight;
-- Stage Dispatch;
-- Katana runtime receipt;
-- Stage Submission;
-- attempts;
-- blockers and deviations.
-
-Exit:
-
-- one WAR stage can be compiled, executed by a stateless Katana agent, and returned without authority confusion.
-
-### Phase 6 — Gate Registry and assurance case
-
-Deliver:
-
-- Gate Definitions;
-- qualifications;
-- bindings;
-- runs;
-- evidence;
-- observations;
-- inferences;
-- judgments;
-- adequacy review;
-- resolution.
-
-Exit:
-
-- a delivery can close only through bounded, provenance-preserving proof.
-
-### Phase 7 — BLUT adapter
-
-Deliver:
-
-- named-port stage graph;
-- PlanSpec lowering;
-- resources;
-- artifacts;
-- BLUT lineage receipt.
-
-Exit:
-
-- compatible computational WARs execute without duplicating BLUT.
-
-### Phase 8 — Liminal production compiler
-
-Deliver:
-
-- WAR Liminal profile;
-- exact-source CST/HIR/CIR path as available;
-- Workspace Basis;
-- Jurisdiction;
-- source maps;
-- human and AI targets;
-- adapter parity;
-- cutover.
-
-Exit:
-
-- Liminal is the single production document semantic compiler.
-
-### Phase 9 — High-assurance controls
-
-Deliver as required:
-
-- signatures;
-- audit checkpoints;
-- controlled evidence custody;
-- physical test profile;
-- independent human workflow;
-- invalidation propagation;
-- regulatory mapping.
-
-Exit:
-
-- a resolution is signed, its evidence custody is audited, and one gate invalidation propagates to every dependent resolution, with no step performed by the actor who produced the work.
-
-### Phase 10 — Contractor Work Order profile
-
-Deliver only after separate legal, finance, and QMS decisions:
-
-- contractor profile;
-- Work Order mapping;
-- acceptance;
-- invoices and payments;
-- signatures and legal terms.
-
-The technical WAR core remains unchanged.
-
-Exit:
-
-- a contractor Work Order compiles through the unchanged technical WAR core, and acceptance, invoicing and legal terms live entirely in the profile.
+A program's phases — each with its id, title, outcome, Exit, dependencies and
+priority — are the roadmap record beside this document:
+`docs/roadmap/roadmap.toml` and its phases atom, accepted revision by revision
+under `docs/roadmap/revisions/`. This section does not list them, so
+re-planning is a roadmap revision and never a revision of this document
+(§6.3). A phase's members are the Warrants whose `roadmap://` ref names it,
+and a phase is achieved when its `exit` Warrant resolves satisfied; the record
+states neither fact. The eleven phases this section listed through revision
+1.1.0 are roadmap revision 1, their Exit criteria verbatim.
 
 ## 99. System acceptance criteria
 
@@ -5568,7 +5431,9 @@ The following requirement IDs provide stable traceability for implementation WAR
 | WAR-SAS-RQ-033 | Material amendment creates new revision |
 | WAR-SAS-RQ-034 | Prior attempts retain original contract basis |
 | WAR-SAS-RQ-035 | Readiness requires Preflight |
-| WAR-SAS-RQ-036 | A delivered artifact of a resolved WAR changes only through a recorded correction |
+| WAR-SAS-RQ-036 | A delivered artifact changes only under a later authorized WAR that declares it, or through a recorded correction |
+| WAR-SAS-RQ-037 | Ownership of a delivered path is recorded at authorization and belongs to the latest such authorization |
+| WAR-SAS-RQ-038 | A standing authorization covers only contracts inside its signed class, and never an authority path |
 
 ### Execution
 

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables, gate_runs, and plants are all empty arrays, and obligation_evidence for OBL-001 lists no named_paths and no terms despite the stated selection 'every deliverable of the Warrant'. Only the authored atoms (atoms/10-intent.md, atoms/20-basis.md, atoms/40-work-order.md, atoms/45-milestones.yaml, atoms/60-assurance.md) are present, which describe the intended requirement but show no isolated verifier run binding exact source/revision/checks, nor any refusal cases for self-verification, mutable/stale candidate, missing protection, or malformed result. No bytes of any implementation or gate output are shown, so the claim cannot be decided from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

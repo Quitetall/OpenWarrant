@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-107 Warrant(s) in this repository.
+143 Warrant(s) in this repository.
 
 ## Summary
 
@@ -79,7 +79,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0070](docs/warrants/OW-WAR-0070/manifest.toml) | Add `war inbox` to list Warrants awaiting a human act | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0071](docs/warrants/OW-WAR-0071/manifest.toml) | SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | `authorized` | `current` | `valid` | `basic` | — |
 | [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
-| [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `current` | `valid` | `basic` | 4M / 6S |
+| [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `superseded` | `valid` | `basic` | 4M / 6S |
 | [OW-WAR-0074](docs/warrants/OW-WAR-0074/manifest.toml) | Adopt the exact RC.2 build basis without rewriting history | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0075](docs/warrants/OW-WAR-0075/manifest.toml) | Parse and validate human-first OpenWarrant documents | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0076](docs/warrants/OW-WAR-0076/manifest.toml) | Author and edit human-first OpenWarrant documents | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
@@ -118,66 +118,110 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0109](docs/warrants/OW-WAR-0109/manifest.toml) | Durable agent availability queue and automatic bounded dispatch | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0110](docs/warrants/OW-WAR-0110/manifest.toml) | Generate OpenWarrant TypeScript record types and integrate KF consumption | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0111](docs/warrants/OW-WAR-0111/manifest.toml) | Implement content-bearing preservation archives and honest import round trips | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0112](docs/warrants/OW-WAR-0112/manifest.toml) | war is the app: ownership, a guided start, and remedies | `authorized` | `current` | `valid` | `controlled` | 6M / 11S |
+| [OW-WAR-0113](docs/warrants/OW-WAR-0113/manifest.toml) | Two projections from atoms by relation: the current master document, and the history | `authorized` | `current` | `valid` | `basic` | 6M / 6S |
+| [OW-WAR-0114](docs/warrants/OW-WAR-0114/manifest.toml) | The roadmap becomes a record: one per program, beside the SAS | `authorized` | `current` | `valid` | `basic` | 6M / 8S |
+| [OW-WAR-0115](docs/warrants/OW-WAR-0115/manifest.toml) | The hub: war opens from anywhere, with every project and its progress | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0116](docs/warrants/OW-WAR-0116/manifest.toml) | war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
+| [OW-WAR-0117](docs/warrants/OW-WAR-0117/manifest.toml) | An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0118](docs/warrants/OW-WAR-0118/manifest.toml) | Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0119](docs/warrants/OW-WAR-0119/manifest.toml) | Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0120](docs/warrants/OW-WAR-0120/manifest.toml) | Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0121](docs/warrants/OW-WAR-0121/manifest.toml) | Storage: atomic writes, crash recovery, and migration of retained artifacts | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
+| [OW-WAR-0122](docs/warrants/OW-WAR-0122/manifest.toml) | The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0123](docs/warrants/OW-WAR-0123/manifest.toml) | A child cites the exact revision of its parent, and a moved parent is a finding | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0124](docs/warrants/OW-WAR-0124/manifest.toml) | Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
+| [OW-WAR-0125](docs/warrants/OW-WAR-0125/manifest.toml) | The SAS as atoms: sections as governed records with their own currency | `authorized` | `current` | `valid` | `basic` | 4M / 4S |
+| [OW-WAR-0126](docs/warrants/OW-WAR-0126/manifest.toml) | Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0127](docs/warrants/OW-WAR-0127/manifest.toml) | Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0128](docs/warrants/OW-WAR-0128/manifest.toml) | The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0129](docs/warrants/OW-WAR-0129/manifest.toml) | A Dispatch over its budget is refused, by name, before any agent starts | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0130](docs/warrants/OW-WAR-0130/manifest.toml) | Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | `authorized` | `current` | `valid` | `controlled` | 4M / 5S |
+| [OW-WAR-0131](docs/warrants/OW-WAR-0131/manifest.toml) | Agent and harness adapters per OS: writer handoff and cancellation | `authorized` | `current` | `valid` | `basic` | 3M / 4S |
+| [OW-WAR-0132](docs/warrants/OW-WAR-0132/manifest.toml) | Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | `authorized` | `current` | `valid` | `basic` | 4M / 4S |
+| [OW-WAR-0133](docs/warrants/OW-WAR-0133/manifest.toml) | Evidence reuse after a source change, and the compiler's source, conflict and omission rules | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
+| [OW-WAR-0134](docs/warrants/OW-WAR-0134/manifest.toml) | Acceptance stays valid only for the candidate accepted: a change before merge is a finding | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
+| [OW-WAR-0135](docs/warrants/OW-WAR-0135/manifest.toml) | The assurance mark: a baseline, its issuance, and what it binds | `authorized` | `current` | `valid` | `controlled` | 3M / 4S |
+| [OW-WAR-0136](docs/warrants/OW-WAR-0136/manifest.toml) | Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0137](docs/warrants/OW-WAR-0137/manifest.toml) | Teams: review assignment and a queue shared by more than one person | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
+| [OW-WAR-0138](docs/warrants/OW-WAR-0138/manifest.toml) | Human and session authentication, and policy state protected from the performer | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
+| [OW-WAR-0139](docs/warrants/OW-WAR-0139/manifest.toml) | The web UI beyond this machine: LAN and other devices, authenticated | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
+| [OW-WAR-0140](docs/warrants/OW-WAR-0140/manifest.toml) | The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
+| [OW-WAR-0141](docs/warrants/OW-WAR-0141/manifest.toml) | Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0142](docs/warrants/OW-WAR-0142/manifest.toml) | Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | `authorized` | `current` | `valid` | `basic` | 6M / 7S |
+| [OW-WAR-0143](docs/warrants/OW-WAR-0143/manifest.toml) | war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | `authorized` | `current` | `valid` | `basic` | 4M / 5S |
+| [OW-WAR-0144](docs/warrants/OW-WAR-0144/manifest.toml) | Amending an authorization keeps the superseded one beside it, as a retired response is kept | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0145](docs/warrants/OW-WAR-0145/manifest.toml) | The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0146](docs/warrants/OW-WAR-0146/manifest.toml) | A verification bundle carries what each gate printed, so a blind verifier can see the evidence | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0147](docs/warrants/OW-WAR-0147/manifest.toml) | Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | `draft` | `current` | `valid` | `basic` | 2M / 3S |
 
 ## Claimed SAS requirement coverage
 
-54 distinct requirement(s) are claimed by at least one Warrant.
+62 distinct requirement(s) are claimed by at least one Warrant.
 
 > **Claimed, not verified.** A Warrant declaring `[[implements]]` is an assertion by its author. §34.3 treats requirement status as a separate record; nothing here checks that the requirement is actually met.
 
+- `WAR-SAS-RQ-001` — OW-WAR-0119
+- `WAR-SAS-RQ-002` — OW-WAR-0119
 - `WAR-SAS-RQ-003` — OW-WAR-0029, OW-WAR-0044
 - `WAR-SAS-RQ-004` — OW-WAR-0029, OW-WAR-0044
 - `WAR-SAS-RQ-005` — OW-WAR-0029, OW-WAR-0044
-- `WAR-SAS-RQ-010` — OW-WAR-0002
+- `WAR-SAS-RQ-010` — OW-WAR-0002, OW-WAR-0113
 - `WAR-SAS-RQ-011` — OW-WAR-0002
-- `WAR-SAS-RQ-012` — OW-WAR-0002, OW-WAR-0004, OW-WAR-0057
-- `WAR-SAS-RQ-013` — OW-WAR-0002
+- `WAR-SAS-RQ-012` — OW-WAR-0002, OW-WAR-0004, OW-WAR-0057, OW-WAR-0113
+- `WAR-SAS-RQ-013` — OW-WAR-0002, OW-WAR-0113, OW-WAR-0122, OW-WAR-0140
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
-- `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
-- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063, OW-WAR-0064, OW-WAR-0071
-- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063
+- `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005, OW-WAR-0140, OW-WAR-0147
+- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063, OW-WAR-0064, OW-WAR-0071, OW-WAR-0126, OW-WAR-0128
+- `WAR-SAS-RQ-021` — OW-WAR-0113
+- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063, OW-WAR-0125
+- `WAR-SAS-RQ-023` — OW-WAR-0123
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
-- `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067
+- `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067, OW-WAR-0142, OW-WAR-0144
 - `WAR-SAS-RQ-031` — OW-WAR-0009
-- `WAR-SAS-RQ-032` — OW-WAR-0008
-- `WAR-SAS-RQ-033` — OW-WAR-0009
-- `WAR-SAS-RQ-034` — OW-WAR-0009
+- `WAR-SAS-RQ-032` — OW-WAR-0008, OW-WAR-0113, OW-WAR-0114
+- `WAR-SAS-RQ-033` — OW-WAR-0009, OW-WAR-0112
+- `WAR-SAS-RQ-034` — OW-WAR-0009, OW-WAR-0144
 - `WAR-SAS-RQ-035` — OW-WAR-0011
-- `WAR-SAS-RQ-036` — OW-WAR-0067
+- `WAR-SAS-RQ-036` — OW-WAR-0067, OW-WAR-0112, OW-WAR-0134
+- `WAR-SAS-RQ-037` — OW-WAR-0112, OW-WAR-0142
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
 - `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0069
-- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0065
-- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0069
+- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0065, OW-WAR-0133
+- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0069, OW-WAR-0131, OW-WAR-0132, OW-WAR-0138, OW-WAR-0142
 - `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
+- `WAR-SAS-RQ-046` — OW-WAR-0129
 - `WAR-SAS-RQ-050` — OW-WAR-0016, OW-WAR-0074, OW-WAR-0075, OW-WAR-0076, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0083, OW-WAR-0084, OW-WAR-0085, OW-WAR-0086, OW-WAR-0087, OW-WAR-0088, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091, OW-WAR-0092
 - `WAR-SAS-RQ-051` — OW-WAR-0016
-- `WAR-SAS-RQ-052` — OW-WAR-0017
-- `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059
-- `WAR-SAS-RQ-054` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0059
+- `WAR-SAS-RQ-052` — OW-WAR-0017, OW-WAR-0146
+- `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059, OW-WAR-0117, OW-WAR-0136, OW-WAR-0137, OW-WAR-0146
+- `WAR-SAS-RQ-054` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0059, OW-WAR-0145
 - `WAR-SAS-RQ-055` — OW-WAR-0018, OW-WAR-0046
-- `WAR-SAS-RQ-056` — OW-WAR-0019
-- `WAR-SAS-RQ-057` — OW-WAR-0020, OW-WAR-0046
+- `WAR-SAS-RQ-056` — OW-WAR-0019, OW-WAR-0145
+- `WAR-SAS-RQ-057` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0136
 - `WAR-SAS-RQ-058` — OW-WAR-0022, OW-WAR-0046
-- `WAR-SAS-RQ-059` — OW-WAR-0022, OW-WAR-0059
+- `WAR-SAS-RQ-059` — OW-WAR-0022, OW-WAR-0059, OW-WAR-0133, OW-WAR-0134, OW-WAR-0136
+- `WAR-SAS-RQ-060` — OW-WAR-0126
 - `WAR-SAS-RQ-061` — OW-WAR-0040, OW-WAR-0048
 - `WAR-SAS-RQ-062` — OW-WAR-0026
 - `WAR-SAS-RQ-063` — OW-WAR-0027, OW-WAR-0047
 - `WAR-SAS-RQ-064` — OW-WAR-0001
-- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069, OW-WAR-0072, OW-WAR-0073
-- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068
-- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068
+- `WAR-SAS-RQ-065` — OW-WAR-0127
+- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069, OW-WAR-0072, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116, OW-WAR-0141, OW-WAR-0147
+- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068, OW-WAR-0141
+- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068, OW-WAR-0141
 - `WAR-SAS-RQ-073` — OW-WAR-0036
-- `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055
-- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073
+- `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055, OW-WAR-0112, OW-WAR-0147
+- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116
 - `WAR-SAS-RQ-076` — OW-WAR-0028
 - `WAR-SAS-RQ-077` — OW-WAR-0068
 - `WAR-SAS-RQ-080` — OW-WAR-0003
-- `WAR-SAS-RQ-081` — OW-WAR-0003
+- `WAR-SAS-RQ-081` — OW-WAR-0003, OW-WAR-0128
 - `WAR-SAS-RQ-082` — OW-WAR-0030
 - `WAR-SAS-RQ-083` — OW-WAR-0030
-- `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064
+- `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064, OW-WAR-0113, OW-WAR-0114
 - `WAR-SAS-RQ-085` — OW-WAR-0067, OW-WAR-0071, OW-WAR-0072
 
 ## Relations
@@ -249,6 +293,42 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0071** · roadmap: roadmap://OW-PHASE-9/release
 - **OW-WAR-0072** · roadmap: roadmap://OW-PHASE-9/release
 - **OW-WAR-0073** · roadmap: roadmap://OW-PHASE-9/release
+- **OW-WAR-0112** · roadmap: roadmap://OW-PHASE-1/console
+- **OW-WAR-0113** · roadmap: roadmap://OW-PHASE-1/projections
+- **OW-WAR-0114** · roadmap: roadmap://OW-PHASE-1/roadmap
+- **OW-WAR-0115** · roadmap: roadmap://OW-PHASE-1/console
+- **OW-WAR-0116** · roadmap: roadmap://OW-PHASE-1/console
+- **OW-WAR-0117** · roadmap: roadmap://OW-PHASE-6/verification-pipeline
+- **OW-WAR-0118** · roadmap: roadmap://OW-PHASE-0/friction-baseline
+- **OW-WAR-0119** · roadmap: roadmap://OW-PHASE-1/identity
+- **OW-WAR-0120** · roadmap: roadmap://OW-PHASE-1/retention
+- **OW-WAR-0121** · roadmap: roadmap://OW-PHASE-1/storage
+- **OW-WAR-0122** · roadmap: roadmap://OW-PHASE-1/document-grammar
+- **OW-WAR-0123** · roadmap: roadmap://OW-PHASE-3/parent-revision
+- **OW-WAR-0124** · roadmap: roadmap://OW-PHASE-3/adoption
+- **OW-WAR-0125** · roadmap: roadmap://OW-PHASE-3/sas-atoms
+- **OW-WAR-0126** · roadmap: roadmap://OW-PHASE-4/kf-authority
+- **OW-WAR-0127** · roadmap: roadmap://OW-PHASE-4/native-authority
+- **OW-WAR-0128** · roadmap: roadmap://OW-PHASE-4/kf-compiler
+- **OW-WAR-0129** · roadmap: roadmap://OW-PHASE-5/budget-refusal
+- **OW-WAR-0130** · roadmap: roadmap://OW-PHASE-5/idempotency
+- **OW-WAR-0131** · roadmap: roadmap://OW-PHASE-5/adapters
+- **OW-WAR-0132** · roadmap: roadmap://OW-PHASE-5/hotline-defaults
+- **OW-WAR-0133** · roadmap: roadmap://OW-PHASE-6/evidence-reuse
+- **OW-WAR-0134** · roadmap: roadmap://OW-PHASE-6/acceptance-validity
+- **OW-WAR-0135** · roadmap: roadmap://OW-PHASE-6/assurance-mark
+- **OW-WAR-0136** · roadmap: roadmap://OW-PHASE-9/exit
+- **OW-WAR-0137** · roadmap: roadmap://OW-PHASE-9/teams
+- **OW-WAR-0138** · roadmap: roadmap://OW-PHASE-9/authentication
+- **OW-WAR-0139** · roadmap: roadmap://OW-PHASE-9/web-lan
+- **OW-WAR-0140** · roadmap: roadmap://OW-PHASE-10/contractor-profile
+- **OW-WAR-0141** · roadmap: roadmap://OW-PHASE-2/intake
+- **OW-WAR-0142** · roadmap: roadmap://OW-PHASE-9/standing-authorization
+- **OW-WAR-0143** · roadmap: roadmap://OW-PHASE-9/self-update
+- **OW-WAR-0144** · roadmap: roadmap://OW-PHASE-9/authorization-retention
+- **OW-WAR-0145** · roadmap: roadmap://OW-PHASE-6/askable-battery
+- **OW-WAR-0146** · roadmap: roadmap://OW-PHASE-6/verification-pipeline
+- **OW-WAR-0147** · roadmap: roadmap://OW-PHASE-2/tickets
 
 ## Not reported here
 

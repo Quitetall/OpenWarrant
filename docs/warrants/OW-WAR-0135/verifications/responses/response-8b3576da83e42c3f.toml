@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0135"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "D-001 (docs/adr/atoms/OW-ADR-0025-assurance-mark.md) carries frontmatter status: proposed and its own Status section states 'Proposed by the performer under OW-WAR-0135. Not decided. Two blocking questions of that Warrant have no recorded answer from the owner,' with the Decision section reading 'Pending Q-001 and Q-002.' D-004 (docs/assurance/baseline-v1.toml) likewise carries status = \"proposed\" and states in its header comment that 'this file governs nothing until OW-ADR-0025 is accepted and status below becomes accepted.' OBL-001's evidence requirement explicitly demands 'the ADR is accepted by the owner, not by its author' and 'the ADR states Q-001's answer and the rejected options' — but the ADR only records a recommendation among options (a)/(b)/(c) for Q-001, never an owner-made decision, and is authored/proposed by the performer (agent), not accepted by the owner. Although BL-001 through BL-006 in D-004 do each name their evidence/unmet/unknown conditions (confirmed by the ops.conformance.plants@1.1.0 gate run's stdout line 'baseline v1 names its evidence 6 requirement(s), each with evidence, unmet, unknown'), the bundle affirmatively shows the acceptance and Q-001-decided prongs of OBL-001 are unmet, not merely unshown. This matches the prior verification's disposition of refuted for the same reasons."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

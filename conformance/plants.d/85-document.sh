@@ -33,7 +33,22 @@ plant_cmd "a citation to a missing file is refused" "document.citation-missing" 
     document review OW-WAR-0065
 
 # Corpus-wide, only Warrants that bind to this gate are reviewed; the code
-# Warrants that happen to deliver Markdown are not its contract.
-plant_cmd "the corpus review is scoped to its binders" "document.reviewed-warrants" "1 Warrant(s)" 2 \
+# Warrants that happen to deliver Markdown are not its contract. The expected
+# count is computed here from the records, independently of the tool: every
+# Warrant whose assurance cites the gate AND that declares a Markdown
+# deliverable. (It was a literal "1" until the 2026-09-23 wave bound six more.)
+DOC_BINDERS=$(python3 - <<'PY'
+import glob, os, tomllib
+n = 0
+for a in glob.glob("docs/warrants/*/atoms/60-assurance.md"):
+    d = os.path.dirname(os.path.dirname(a))
+    dl = os.path.join(d, "deliverables.toml")
+    if "gate://document.review" in open(a).read() and os.path.exists(dl):
+        refs = [x.get("target_ref", "") for x in tomllib.load(open(dl, "rb")).get("deliverable", [])]
+        n += any(r.endswith(".md") for r in refs)
+print(n)
+PY
+)
+plant_cmd "the corpus review is scoped to its binders" "document.reviewed-warrants" "$DOC_BINDERS Warrant(s)" 2 \
     "true" \
     document review

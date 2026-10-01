@@ -1,0 +1,40 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0065"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (docs/research/tokenizer-approximation.md) carries a Measurements table plus a single generic line ('Commands: `wc -c <file>`, `wc -w <file>`; the derived columns are the two formulas applied to those counts') rather than a command attached beside each individual figure, so even the first half of the obligation's evidence bar is only partially met. More decisively, the obligation also requires that 'a reviewer re-ran at least one' figure, but gate_runs is an empty array, plants is empty, and obligation_evidence for OBL-001 shows only that D-001 was carried with no named-term evidence of a re-run. The two prior_verifications entries for OBL-001 both record 'not_established' because the verifier returned no usable verdict, which is not itself evidence of a re-run either. With no gate run of gate://document.review@1.0.0 and no reviewer record in the bundle, there is nothing showing a reviewer re-ran any figure."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002's required evidence is that 'an independent reviewer records established for this obligation.' obligation_evidence for OBL-002 lists the term 'established' with both shown_in and cut_from as empty arrays, meaning that record is neither present in the bundle nor cut for budget reasons — it simply does not exist here. gate_runs is empty, so gate://document.review@1.0.0 was never recorded as having run, and prior_verifications shows the earlier verifier also returned 'not_established' for OBL-002 with no usable verdict. There is no basis in the bundle to conclude an independent reviewer ever evaluated the Decision section against the Measurements section."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

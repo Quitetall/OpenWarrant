@@ -53,9 +53,15 @@ eval_expect "no drafter is a named refusal" 1 "eval.no-drafter" \
     eval run --task code-01-changelog --out "$EVAL_TMP/none.json"
 restore
 
-# Determinism: two full runs of the fixture drafter are byte-identical.
+# Determinism: two full runs of the fixture drafter are byte-identical. The
+# second runs its scratch programs under a longer temp path: a bundle is a
+# function of the tree and config, so where the checkout sits must not move
+# its size (t-ade4: a receipt's absolute working_directory, carried, made the
+# same fixture measure 3043 and 3042 tokens as a PID's digits varied).
 "$WAR" eval run --drafter "$EVAL_DRAFTER" --verifier "$EVAL_VERIFIER" --out "$EVAL_TMP/run1.json" >/dev/null 2>&1
-"$WAR" eval run --drafter "$EVAL_DRAFTER" --verifier "$EVAL_VERIFIER" --out "$EVAL_TMP/run2.json" >/dev/null 2>&1
+mkdir -p "$EVAL_TMP/a-longer-temp-directory-than-the-first"
+TMPDIR="$EVAL_TMP/a-longer-temp-directory-than-the-first" \
+    "$WAR" eval run --drafter "$EVAL_DRAFTER" --verifier "$EVAL_VERIFIER" --out "$EVAL_TMP/run2.json" >/dev/null 2>&1
 # A run-kind task's bundle carries its receipt, and a receipt carries
 # wall-clock durations, so its token estimate is not a function of the task;
 # the result says so (`tokens.stable = false`) and the comparison drops those

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-closure-repairs-integration/conformance/controls/contractor-copy.py", line 44, in <module>
+    assert (original_stat.st_dev, original_stat.st_ino) != (copy_stat.st_dev, copy_stat.st_ino), f"clone hard-linked Git object: {obj.name}"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: clone hard-linked Git object: bacf93c16254903c69e171cecd11706719d070

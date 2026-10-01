@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result. The bundle's only signature reference, 'PASS authority.signed ... signed by brian over docs/authority/responses/OW-WAR-0079.response.toml,' attests to signing of an authorization record, not qualification review of a produced deliverable, and no such deliverable or review record is carried in the bundle (deliverables: []). Atom 60-assurance.md itself states 'war check cannot establish runtime behavior or independent verification.' With OBL-001/002 themselves not established and no qualification evidence present, this cannot be decided from the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

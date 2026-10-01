@@ -1,0 +1,96 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The blind, tool-less verifier wrapper"
+kind = "file"
+target_ref = "tools/verifier/claude-verifier.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0117/attempt-1"
+contract_digest = "4861109091a75eebc1df668b8a79e57013e86d17120442930491e972c31afd7a"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:0a7bb8d095ce1cac86209823821340ca5f9f20c6e6cffe59f07f66f6a61e190f"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "[verify] verifier_argv and the declared [independence]"
+kind = "file"
+target_ref = "openwarrant.toml"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0117/attempt-1"
+contract_digest = "4861109091a75eebc1df668b8a79e57013e86d17120442930491e972c31afd7a"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:377ec3711bb86174ba66a6e492aa3439785ffa8b7737a9045efecf5b14b3e893"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The verifier plants"
+kind = "file"
+target_ref = "conformance/plants.d/62-verifier.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0117/attempt-1"
+contract_digest = "6a1248bb04f459899482e1eca1037c8691e7430331bc94c1a7014e6cc20d3cf5"
+input_digests = []
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit fde64f4d2e14, dirty, debug)"
+creation_method = "authored"
+content_digest = "sha256:c01cdd6b2a2b2cbaed372c0433aaef04ce24e3a52ee55ea69dc5004807e1686e"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "How to run the verifier and read what it says"
+kind = "file"
+target_ref = "docs/VERIFICATION.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0117/attempt-1"
+contract_digest = "4861109091a75eebc1df668b8a79e57013e86d17120442930491e972c31afd7a"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:4258060c727ba01e7240e443080e77d16df1c49d59fb6ce41dade42848641979"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

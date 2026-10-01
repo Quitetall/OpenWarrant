@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "OBL-004 similarly has an empty named_paths list and no deliverables are carried, so nothing from the corpus/obligations/evidence/journal panes' implementation, and no plant demonstrating an inadmissible-verification render or a corrupted-record 'named-unreadable' render, appears in the bundle. The gate run's visible excerpts (PASS obligations.valid, PASS journal.append-only, WARN evidence.stale-binding, etc.) are generic `war check` validations of the Warrant corpus records themselves, not evidence that the TUI panes read through status::build/resolve::assess or handle inadmissibility/corruption as claimed. status::build, resolve::assess, and inadmissible are shown_in 'atoms' only. Nothing here establishes or refutes the claim."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

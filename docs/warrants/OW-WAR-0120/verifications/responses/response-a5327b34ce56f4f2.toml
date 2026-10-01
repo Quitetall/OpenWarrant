@@ -1,0 +1,97 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0120"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The only run of gate://ops.conformance.plants@1.1.0 (run GR-ops.conformance.plants@1.1.0, verdict pass) has truncated:true stdout, and its shown text never contains the \"== retention and the scale budget (OW-WAR-0120) ==\" banner or any of 52-retention.sh's (D-006) rt_ok/rt_fail lines for OBL-001 (e.g. \"the synthetic program checks clean\", \"war status counts 6 resolved\", \"a non-empty --out is refused\", \"the repository tree is unchanged\"). obligation_evidence explicitly marks terms central to this obligation (\"--out\", \"git status --porcelain\") as cut_from the ops.conformance.plants@1.1.0 stdout. The trailing \"1214 passed, 0 failed\" summary is visible but the bundle rule that bytes not shown are not evidence either way means that aggregate cannot substitute for the specific, truncated-away proof this obligation's scope requires."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "Same gate run and same truncation problem as OBL-001: the visible portion of ops.conformance.plants@1.1.0's stdout does not contain 52-retention.sh's OBL-002 section (\"the real budget passes at N=12\", \"a 1 ms budget names every command\"), and obligation_evidence lists no terms for OBL-002 as directly shown in that stdout. D-002 (budget.toml) and D-003 (budget.sh) show the mechanism exists and is coded to behave this way, but no gate output in the bundle shows it actually ran and produced the stated exits."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The manifest-corruption scenario's expected output (\"a failing command is unknown\") from 52-retention.sh (D-006) does not appear anywhere in the visible, truncated ops.conformance.plants@1.1.0 stdout, and obligation_evidence gives no shown_in entry tying this obligation's specific check to that stdout. D-003's source code implements the unknown/Law-15 logic correctly, but the bundle carries no run evidence confirming it fired as described within the corrupted-manifest scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-004 (docs/scale/baseline-1000.json, present, not truncated) itself states build_profile \"release\", war.version \"war 1.0.0-alpha.2\", repository.commit \"0afa1ba135579d93c2df31e8ca5c1b4c3762cec9\" (40 hex chars), machine.cpu_model and machine.os populated, and corpus.counted_by \"war status --json\" with warrants=1000 and resolved=500 (>=500). D-005 (docs/RETENTION.md, present, not truncated) reproduces the same commit/binary/machine facts and a budget table whose limit/median/verdict values for every row (check, check-generated, next, status, pins-resolved-only, sign-list, compile, console-json, console-select) match D-004's rows exactly, and both state the budget \"did not hold\", satisfying the requirement that RETENTION.md's numbers match the record."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "refuted"
+evidence = "D-004 (baseline-1000.json), present and untruncated, records \"held\": false with \"over\": [\"check-generated\",\"next\",\"sign-list\",\"compile\",\"console-json\",\"console-select\"] — six of the nine budget.toml rows show verdict \"over\" with medians at or beyond their 10x cap (e.g. check-generated and next at >=100000ms against a 10000ms limit, compile at >=300000ms against 30000ms), on the machine named in that same record. The obligation's own evidence clause states that if any row is over, it is refuted and the record says which — exactly what D-004 shows."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

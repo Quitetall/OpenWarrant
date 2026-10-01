@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The attached receipt GR-software.repo.war-check@1.0.0 is directly flagged by its own stdout excerpt as stale: 'WARN evidence.stale-binding OW-WAR-0083: software.repo.war-check@1.0.0 · the receipt names tree:e54ccac17a000db9430a08ded5ae9ad1923067b0 and 33 path(s) ... have changed since (conformance/plants.d/52-retention.sh, conformance/plants.d/55-evidence-reuse.sh, conformance/plants.d/57-grammar.sh, …) — a run over an earlier source is a record, not evidence about this one', pointing at the same gate-run file (docs/warrants/OW-WAR-0083/gate-runs/software_repo_war-check_1_0_0.run.toml) as our receipt, whose own subject_digests instead lists tree:9729d66838274661a8b7382db6ef1108887babec — a mismatch confirming the stored evidence trail for this exact gate is out of date relative to the state being reported. The war-check output further concedes under NOT CHECKED that 'war check does not invoke gates, so nothing here is evidence that a Warrant's acceptance gates were run,' and the WARN sas.pin-superseded shows the Basis itself is pinned to a superseded SAS revision awaiting re-authorization. Given the tool's own explicit self-disclaimer that this receipt is a stale record and not evidence about the current state, the PASS lines for manifest/obligations/milestones validity cannot be relied on to establish that Warrant records are currently structurally valid."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

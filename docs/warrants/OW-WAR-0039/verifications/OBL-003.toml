@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The plant '[OW-WAR-0020] a relation attached with no reviewer' was attempted and refused by its named rule, exercising the control that no relation is fabricated without review."
+disposition = "not_established"
+evidence = "The bundle's plants array is empty, so no plant record of an auto-attach attempt and its refusal is present, despite OBL-003's stated evidence requirement being exactly 'a plant attempting auto-attachment, refused.' D-001's own doc comment on `attach()` admits the refusal path 'shipped in alpha' and 'no command has ever called it, so the refusal had never run outside a unit test,' and D-001's test_names field is empty, so no test execution is carried either. The gate run's stdout (war check --generated) contains no attach-attempt or refusal record among its excerpted lines, so nothing in the bundle demonstrates the no-fabrication rule was actually exercised."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

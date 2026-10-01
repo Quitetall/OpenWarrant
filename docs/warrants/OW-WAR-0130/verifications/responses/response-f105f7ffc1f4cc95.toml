@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0130"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, exit_result pass, subject_digests binding it to contract sha256:52b38fa1… and tree e54ccac1…) has its captured stdout excerpt (lines 956-988) show the full plant sequence for OW-WAR-0130 succeeding: 'SIGKILL after 2 of 3 records → killed (137), marker B-20260927T125541Z-5aa6bffc, 2 of 3 recorded: a hole', 'war check names the interrupted batch → ERROR batch.interrupted … its paths listed', 'a new batch refuses while interrupted → batch.interrupted (dry run, exit 2)', 'recover restores every listed path → 36 path(s) at their prior sha256 or absent; .refused.json kept', 'after recovery, no batch.interrupted → batch.interrupted silent', and 'an unkilled batch leaves no marker → 3 of 3 recorded, no .recording, no .recording.d', with the run's overall '1260 passed, 0 failed'. These six lines map exactly onto OBL-001's three evidence bullets (naming on kill plus dry-run refusal, byte-identical recovery with .refused.json kept, and no marker left on an unkilled success). The fully carried D-001 (batch_cmd.rs) implements the Marker/Recording/interrupted/recover machinery and the debug-only OPENWARRANT_TEST_BATCH_KILL_AFTER hook the plant relies on, and the fully carried D-008 (conformance/plants.d/69-idempotency.sh) contains the actual plant code (ib_batch, the OPENWARRANT_TEST_BATCH_KILL_AFTER=2 invocation, the ib_docs/ip_tree byte-comparisons, and the sha256-per-listed-path check in the recover step), corroborating that the stdout lines reflect a genuine SIGKILL-after-2-of-3 test rather than an unrelated pass. No contrary evidence or truncation obscures any of the three required checks."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

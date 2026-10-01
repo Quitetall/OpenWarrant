@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists named_paths: [] and terms: [], so none of the work-order artifacts (crates/openwarrant-core/src/document/adapter.rs, conformance/integration/, docs/integrations/sdk.md, or a run.py receipt) are shown. The only gate run present is GR-software.repo.war-check@1.0.0, a structural document check whose own stdout states 'gate execution — war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' and the Assurance atom (60-assurance.md) states these observations are 'NOT RUN until attached evidence proves them.' No plants and no execution trace of the real-provider offline flow, error/capability mapping, or second consumer are shown, so the scoped behavior cannot be judged from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

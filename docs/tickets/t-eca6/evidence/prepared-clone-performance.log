@@ -1,0 +1,3 @@
+{"sample": 0, "exit": 0, "wall_seconds": 3.949, "diff_calls": 5, "diff_seconds": 0.03222831, "output_sha256": "8b5819fadf6ca78763c853c40a0e8518a8ab751ed14b171a5a01dec25eca8dcf"}
+{"sample": 1, "exit": 0, "wall_seconds": 3.92, "diff_calls": 5, "diff_seconds": 0.032884909, "output_sha256": "8b5819fadf6ca78763c853c40a0e8518a8ab751ed14b171a5a01dec25eca8dcf"}
+tested commit f6924ff54d9c42fae7b91e3e5a5f40767e04d595

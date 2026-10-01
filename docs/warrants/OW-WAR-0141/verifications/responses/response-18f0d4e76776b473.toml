@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0141"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "D-011 (conformance/plants.d/54-intake.sh, OBL-005 section) plants exactly the three scenarios the obligation names — a changed resolution.toml on the issue-linked Warrant (IK_M1), an authorization.toml and a manifest.toml change on the same unresolved Warrant (IK_M2/IK_M3), and a resolution.toml on a Warrant with no intake record (IK_M4) — then asserts via ik_check that IK_M1 contains 'Closes #12' exactly once, IK_M2/IK_M3 each contain 'Refs #12' exactly once and never 'Closes', and IK_M4 carries neither trailer. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt shows all three corresponding ik_ok lines: 'a resolution closes its issue Closes #12, exactly once', 'other commits only refer authorization and delivery: Refs #12, never Closes', and 'a Warrant with no issue: no trailer IK-WAR-0001's resolution carries neither'. D-005 (commit.rs, function tracker_refs) implements exactly this rule: it reads plan/intake.json per Warrant, emits 'Closes #{n}' only when that Warrant's resolution.toml is among the changed paths, and 'Refs #{n}' otherwise, once per issue number. The code, the plant that exercises it, and the passing gate output are mutually consistent and fully carried (obligation_evidence shows every cited term — war commit, Closes #N, Refs #N, Closes — shown with no cut_from truncation), so the obligation is established within its stated scratch-program scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

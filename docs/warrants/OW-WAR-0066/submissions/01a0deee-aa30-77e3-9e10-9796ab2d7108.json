@@ -1,0 +1,22 @@
+{
+  "dispatch_id": "01a0deee-aa30-77e3-9e10-9796ab2d7108",
+  "attempt_id": "01a0deee-aa30-77e3-9e10-97891bf857b3",
+  "contract_digest": "498240f8d8d3b51f99f644c21a70ea4f5e4679472b59300c2af2d3a5abcdfbc0",
+  "stage_id": "STAGE-002",
+  "claims": [
+    {
+      "id": "C-001",
+      "statement": "gate://ops.conformance.plants@1.1.0 ran under dispatch 01a0deee-aa30-77e3-9e10-9796ab2d7108 with verdict pass; the receipt is the evidence, this sentence is not"
+    }
+  ],
+  "artifact_refs": [
+    "docs/warrants/OW-WAR-0066/dispatches/01a0deee-aa30-77e3-9e10-9796ab2d7108.json"
+  ],
+  "performer_observations": [],
+  "blockers": [],
+  "deviation_proposals": [],
+  "decision_proposals": [],
+  "discovered_gaps": [],
+  "unresolved_items": [],
+  "requested_next_action": "verify"
+}

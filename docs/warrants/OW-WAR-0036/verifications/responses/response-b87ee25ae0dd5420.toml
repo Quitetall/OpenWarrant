@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0036"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "OBL-001 requires evidence that a decision classifier is shared between OW-WAR-0010 and this Warrant, with a test asserting it. The only two carried deliverables, D-001 (crates/openwarrant-compiler/src/adr_overview.rs, an ADR-overview renderer) and D-002 (crates/openwarrant-core/src/structured.rs, a restricted YAML-subset parser), contain no classifier code and none of their listed test_names (e.g. renders_summary_buckets_and_full_bodies, parses_a_real_milestones_atom) assert anything about a shared classifier function. obligation_evidence for OBL-001 lists no named terms, and the gate run's visible stdout excerpts (lines 592-606, 2598, 2777, 2857) discuss unrelated checks (manifest.valid, journal.append-only, authority.signed, sas.pin-superseded) with no mention of a classifier. Nothing in the bundle decides this claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002 requires 'a plant and its refusal' for §91.4 test 23, but the plants array in the bundle is empty. The single gate run (GR-software.repo.war-check@1.0.0) has truncated stdout; its shown excerpts (lines 592-606 covering OW-WAR-0036's manifest/journal/authority/gate/milestones/obligations/generated.drift checks, plus lines 2598, 2777, 2857) contain no line reporting a decision-detection plant or a refusal of an undocumented normative decision. D-001 and D-002 implement ADR-overview rendering and YAML parsing, not decision detection, so they cannot themselves supply the required plant/refusal. Bytes not shown are not evidence, so the claim cannot be decided."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires 'a plant of an in-envelope choice, which must pass,' but plants is empty in this bundle. Neither carried deliverable implements or tests the normative/execution classifier from the work order (atoms/40-work-order.md) or §19.2's exclusion logic; D-002's test every_milestones_atom_in_this_repository_parses only checks that milestones YAML parses under the restricted grammar, unrelated to whether an in-envelope execution choice avoids being flagged. No line in the gate run's visible excerpts addresses this obligation for OW-WAR-0036. The bundle gives no basis to establish or refute the claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

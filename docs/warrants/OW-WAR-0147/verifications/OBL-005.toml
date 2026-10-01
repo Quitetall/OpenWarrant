@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = """D-013 (conformance/plants.d/45-tickets.sh, untruncated at the relevant lines 164-279, block headed '---------------------------------------------------------------- OBL-005 --') builds exactly the three blocker kinds the scope names — same-ticket (Walls after Foundation TK5_F, Roof after Walls), a whole ticket (Grout-the-tiles after the one-item ticket TK5_T, and Second-coat after the multi-item ticket TK5), and another ticket's item t-x/i-y (Fit-the-trim on TK5_X after TK5/TK5_F) — and for each drives both states: while open, `war claim` on TK5/TK5_W, TK5_X/TK5_XT and TK5_G/TK5_GI each exits 2 with `ticket.blocked ... waits on <target>` naming the right blocker (TK_S/TK_S3/TK_S4 checks), and none of them appear in the pre-unblock `war ready` set (TK_IDS checks); once the same-ticket foundation and the Tiling ticket are done, all three now appear in `war ready` and `war claim` on each exits 0 (TK_IDS2, TK_S2/TK_S5/TK_S6), while the items behind them (Roof, and Second-coat behind the still-open TK5) remain absent from ready. The block also drives `war add "$TK5_X" "Nowhere" --after "$TK5/$TK5_NO"` (a non-existent item of TK5) and asserts exit 2 with `ticket.blocker-unknown` and that no 'Nowhere' line is added (TK_SX/TK_ERRX checks). This whole sequence is reported as a single `tk_ok "blockers keep items out of ready"` on success (with `tk_fail` naming exactly which sub-check failed otherwise), and the gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) stdout confirms it passed: 'ok blockers keep items out of ready same ticket (walls on foundation, roof on walls), another ticket's item (trim on t-a21c/i-389c), a whole ticket (grout on t-1c7e, second coat on t-a21c): out of ready and claim refused while open; ready and taken once done, the item behind still out; an unknown t-x/i-y refused'. obligation_evidence confirms the term 't-x/i-y' is shown (uncut) in D-013 and in the gate stdout, so the cross-ticket-item behavior — the gap a prior verification flagged as unproven — is in fact carried and demonstrated in this bundle."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

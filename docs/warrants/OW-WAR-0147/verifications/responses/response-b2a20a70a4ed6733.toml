@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0147"
+
+[[verifications]]
+obligation = "OBL-009"
+disposition = "established"
+evidence = "conformance/plants.d/45-tickets.sh (D-013)'s timing block runs `create`, `ready`, `claim`, `done`, `add`, `note`, `prime`, `prime <t>`, `show`, `tickets` and `check <t>` on the repository's own working tree via `tk_ms`, asserting each exits 0 and completes in under 2000ms, and its `tk_ok`/`tk_fail` gate on `TK_SLOW` being empty. The gate run GR-ops.conformance.plants@1.1.0's captured stdout shows the resulting line 'ok    each ticket command < 2 s here      create=13ms ready=7ms claim=10ms done=138ms add=10ms note=11ms prime=9ms prime=8ms show=8ms tickets=9ms check=7ms', and the run's overall verdict is pass with the battery total '1214 passed, 0 failed', so the assertion held for exactly the commands OBL-009's scope names. The obligation_evidence entry for OBL-009 confirms every named term ('create' through 'check <t>') is shown in D-006, D-013 and the plants stdout with no cut_from truncation, so nothing needed for the decision was withheld."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

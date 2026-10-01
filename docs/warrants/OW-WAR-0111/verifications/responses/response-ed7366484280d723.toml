@@ -1,0 +1,97 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0111"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty; obligation_evidence for OBL-001 lists no named_paths and no terms despite selection 'every deliverable of the Warrant'. No archive bytes, digests, or category coverage from any fixture or corpus sample are present anywhere in the bundle, so there is no evidence to show exact bytes/digests were preserved or that omission refusals occurred."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables (e.g. exported/imported archive files, CLI output showing re-export) or gate_runs (e.g. a round-trip test execution) are carried in the bundle; obligation_evidence for OBL-002 shows no named_paths or terms. Without any observed import/re-export bytes or KF-instance evidence, the claim of canonical byte/semantic identity or proper refusal on missing evidence cannot be checked."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There are no fixture records, importer output, or gate runs in the bundle demonstrating superseded/disputed/annulled states surviving import or showing that no authority was granted; obligation_evidence lists nothing for OBL-003. The atoms only state the intent/requirement, not evidence that it was met."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No parsing test outputs, gate runs, or plants show behavior on path traversal, duplicate paths, symlinks, digest mismatch, unsupported version, oversize input, or destination overwrite; deliverables and gate_runs arrays are empty and obligation_evidence for OBL-004 carries no named_paths or terms, so none of the required safety refusals or the valid-import success can be verified."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The bundle contains only the five authored atoms (intent, basis, work_order, milestones, assurance) describing what should be built; it carries no CLI deliverable, no gate run showing legacy envelope bytes unchanged, and no KF producer/consumer observation records. obligation_evidence for OBL-005 is empty, so the claim of honest reporting and preserved legacy bytes is asserted in the plan only, not shown by any evidence in this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

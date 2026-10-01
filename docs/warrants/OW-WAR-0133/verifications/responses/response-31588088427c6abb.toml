@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0133"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-007 (crates/openwarrant-cli/src/dispatch.rs) sets `context.conflict_check = ConflictCheck::of(&context)` before the manifest is serialized in `war dispatch`, and D-008 (crates/openwarrant-core/src/context.rs) defines `ConflictCheck{checked, unchecked, found}` with `ConflictCheck::of` recording `SAME_SOURCE_TWO_VERSIONS` as checked, `SEMANTIC_UNCHECKED` as unchecked, and real `source_versions()` findings, backed by the passing unit test `the_conflict_check_names_what_it_ran_for_and_what_it_found`. The plant in D-005 (conformance/plants.d/55-evidence-reuse.sh) exercises exactly the obligation's scope: it runs `war dispatch ER-WAR-0002 STAGE-001 --prototype --emit-context …` on scratch Warrant ER-WAR-0002/STAGE-001, then applies `judge.py`, which requires `conflict_check.checked` to include `same-source-two-versions`, `found` to be a list, and an `unchecked` entry starting with `semantic`; it then strips `conflict_check` from a copy of the same manifest (leaving a bare `conflicts: []`) and asserts the judge rejects it. The recorded gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject_digests bound to the current contract and tree, reported `evidence.admissible` — not stale — in the software.repo.war-check@1.0.0 output) shows both assertions succeeding in its stdout: 'ok the conflict field says what ran … same-source-two-versions checked, found []; semantic named unchecked' and 'ok a bare conflicts: [] … rejected: no statement that a check ran'. obligation_evidence confirms the deciding terms ('war dispatch', 'unchecked', 'conflicts: []') are shown, uncut, across D-005/D-006/D-007/D-008 and the gate stdout. Together the code, the plant, and the passing admissible gate run show the manifest no longer claims an unchecked conflict list as a bare empty list, meeting the obligation's stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

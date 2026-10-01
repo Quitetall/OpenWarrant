@@ -1,0 +1,15 @@
+test_project_inventory_keeps_legacy_and_work_separate (test_workflow.WorkflowTests.test_project_inventory_keeps_legacy_and_work_separate) ... FAIL
+
+======================================================================
+FAIL: test_project_inventory_keeps_legacy_and_work_separate (test_workflow.WorkflowTests.test_project_inventory_keeps_legacy_and_work_separate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-gate-source-profile/apps/openwarrant-web/test_workflow.py", line 184, in test_project_inventory_keeps_legacy_and_work_separate
+    self.assertEqual(status, 200, project)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 503 != 200 : {'error': 'SDK unavailable or timed out', 'qualified': False}
+
+----------------------------------------------------------------------
+Ran 1 test in 12.420s
+
+FAILED (failures=1)

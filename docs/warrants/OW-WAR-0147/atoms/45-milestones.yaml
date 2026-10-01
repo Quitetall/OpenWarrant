@@ -1,0 +1,34 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A ticket is created, claimed and finished with no signature"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+  - id: "M2"
+    title: "The authority layer is opt-in, and agents are told so"
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-006", "OBL-007", "OBL-008", "OBL-009"]
+
+stages:
+  - id: "STAGE-001"
+    title: "working-form profile, ticket.rs parser and ids"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 12000
+  - id: "STAGE-002"
+    title: "ticket commands, claims, check routing, MCP tools, tests"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 20000
+  - id: "STAGE-003"
+    title: "docs, AGENTS template, init line, 45-tickets.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 8000

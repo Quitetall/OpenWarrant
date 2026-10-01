@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0086"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists named_paths: [] and terms: [], so none of the work-order artifacts (crates/openwarrant-core/src/document/adapter.rs, conformance/integration/, docs/integrations/sdk.md, or a run.py receipt) are shown. The only gate run present is GR-software.repo.war-check@1.0.0, a structural document check whose own stdout states 'gate execution — war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' and the Assurance atom (60-assurance.md) states these observations are 'NOT RUN until attached evidence proves them.' No plants and no execution trace of the real-provider offline flow, error/capability mapping, or second consumer are shown, so the scoped behavior cannot be judged from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows named_paths: [] and terms: [], and the top-level plants array is empty, so there is no observed refusal fixture, malformed/over-limit/authority-confused input case, or unchanged-prior-output-on-failed-write evidence anywhere in the bundle. The sole gate run (GR-software.repo.war-check@1.0.0) checks Warrant record structure, not boundary refusal behavior, so nothing supports or contradicts the claim that the boundary refuses invalid inputs."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but since neither OBL-001 nor OBL-002 is established in this bundle (no deliverable bytes, no runtime evidence, empty obligation_evidence terms/named_paths), there is no exact qualified result for such review to attach to. No independent-review record, baseline comparison, or human-acceptance artifact appears anywhere in the bundle beyond bare assertion in the atom text."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 (verdict: pass) has subject_digests including contract:sha256:d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7, matching this bundle's authorized_contract_digest exactly. The visible stdout excerpts (lines 1290-1303 and 2590) show PASS for manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift, and identity.atom-mismatch, all scoped to OW-WAR-0086, with only two WARN-level findings (evidence.stale-binding, sas.pin-superseded, both concerning binding/repin status rather than structural malformation) and the overall tally '2074 pass · 248 warn · 0 unknown · 0 error (worst: WARN)'. This matches OBL-004's narrow scope ('this Warrant's authored records/references; no runtime feature or assurance claim') and its cited gate exactly, so the structural-validity claim is established within that stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

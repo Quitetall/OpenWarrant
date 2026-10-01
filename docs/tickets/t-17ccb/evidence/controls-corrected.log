@@ -1,0 +1,24 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-telemetry-json-report/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.78s
+     Running tests/telemetry_integrity_cli.rs (/mnt/2tb/ow-closure-audit-target/debug/deps/telemetry_integrity_cli-05f5a78e7013cfd2)
+
+running 1 test
+test unobserved_eligibility_is_not_measured_zero ... FAILED
+
+failures:
+
+---- unobserved_eligibility_is_not_measured_zero stdout ----
+
+thread 'unobserved_eligibility_is_not_measured_zero' (204118) panicked at crates/openwarrant-cli/tests/telemetry_integrity_cli.rs:37:5:
+assertion `left == right` failed
+  left: Number(2)
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    unobserved_eligibility_is_not_measured_zero
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test telemetry_integrity_cli`

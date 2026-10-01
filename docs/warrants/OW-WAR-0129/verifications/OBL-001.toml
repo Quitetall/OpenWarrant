@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (crates/openwarrant-compiler/src/dispatch.rs) implements token_account, returning DispatchError::OverBudget naming the three largest items when estimated_tokens>budget_tokens and DispatchError::TokensUnrecorded when no TokenInputs are supplied, and its embedded unit test the_compiler_refuses_over_budget_and_emits_at_budget asserts exactly this for over-budget, at-budget, and unrecorded cases. D-002 (crates/openwarrant-cli/src/dispatch.rs) shows the CLI passes TokenInputs{item_bytes, budget_tokens} into compile_dispatch and maps only DispatchError::OverBudget to the dispatch.over-budget diagnostic, keeping no comparison of its own. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject contract digest matching authorized_contract_digest) printed, on this corpus (OW-WAR-0047/STAGE-002), the passing lines 'the packet carries its token account', 'an over-budget stage is refused    rejected by dispatch.over-budget (largest:)', 'the CLI keeps no budget check      the comparison is the compiler's; the CLI maps OverBudget' (from grepping D-002 for the absent comparison and D-001 for the compiler's own), and 'an in-budget stage is unchanged    same estimate, budget and method as before the move', matching every evidence bullet under OBL-001's scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

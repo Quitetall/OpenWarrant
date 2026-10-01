@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0043"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "atoms/20-basis.md identifies SHA-F = ba9ed833faa9a52940d5e9d424566466e9066867 (LamQuant ADR 0186 clause 5) as the commit 'agreed and frozen for the duration of the import.' atoms/60-assurance.md's EV-001 records the actual command run: `war migrate --corpus /mnt/4tb/LamQuant/docs/decisions --commit 0e0e04a7a6cff7901c073c27cc233d9af9f11664` — a distinct 40-character SHA. The bundle's own atoms therefore show the import was executed against a commit other than the one the Warrant's Basis names as the agreed, frozen one, so the obligation's claim does not hold on this evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-001's only executed test bearing on byte preservation, the_body_is_preserved_byte_for_byte_and_its_digest_recomputes, runs against a single synthetic ADR in a throwaway scratch corpus, not the 173-ADR frozen LamQuant corpus the obligation's scope names. The claim about the real corpus (OBS-001: 'zero preservation failures') traces to EV-001, whose admissibility is performer_report_only and whose digest is the placeholder 'sha256:pending-receipt-binding'; the import artifact artifacts/lamquant-adr-import.json is not among the bundle's carried deliverables, and the sole gate run (GR-software.repo.war-check@1.0.0) executes `war check --generated`, not the migration or a digest comparison over the real corpus. No sealed, checkable measurement over the frozen corpus is present."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence marks the term 'LegacyCompletionPromoted' as shown_in: [] — it appears nowhere in the bundle, even though the obligation specifically requires refusal 'by LegacyCompletionPromoted'. D-001's unit test attempting_to_promote_a_completion_line_is_refused only asserts the error string contains 'HISTORICAL' on one synthetic ADR, not that named error variant, and never touches the real corpus. The required real-corpus evidence (OBS-003/EV-003, naming '0057-training-campaign-plan.md') is performer_report_only with a pending digest, and the sole gate_runs entry runs `war check --generated`, not `war migrate --attempt-promotion`, so no raw output of the required negative control is present."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "atoms/60-assurance.md's own JDG-001 states directly that only one of the seven required plants exists — §91.5 test 31, evidenced by EV-004/OBS-004 (rejected by 'relations.child-listed') — and enumerates the other six (§91.4 test 24, §91.5 tests 30, 32, 33, 34, 35) as unimplemented, matching the 'Known gap' entries in atoms/20-basis.md that each state a missing rule or unresolved decision. obligation_evidence additionally confirms the conformance/ path is not carried by this bundle. The Warrant's own assurance record thus affirmatively shows six of the seven required plants do not exist, refuting the claim that the parent/child and ADR conformance tests are planted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

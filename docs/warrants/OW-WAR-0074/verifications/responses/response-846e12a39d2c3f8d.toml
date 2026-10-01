@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0074"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence for OBL-001 lists no named_paths and no terms. There is no docs/sas/drafts/1.0.0-rc.2/, rc2-adoption-plan.md, adoption ADR, or candidate revision toml shown anywhere in the bundle, and no recomputed manifest digest is shown to compare against the basis atom's cited candidate manifest sha256 201b707e9...cf31. The gate excerpts only show structural PASS lines (manifest.valid, journal.append-only, authority.signed, obligations.valid) plus WARN sas.pin-superseded and WARN evidence.stale-binding; none of these demonstrate that an adoption record actually binds the SAS/format-contract/schemas/fixtures, nor that a human accepted the exact candidate through the approved procedure. Nothing in the bundle carries the required deliverables or acceptance record."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 has no named_paths or terms, plants is empty, and deliverables is empty. None of the three named refusal cases (invalidation on changed companion contract/manifest, rejection of an old 1.0.0 signature as RC.2 acceptance, rejection of a legacy-SAS proposal mislabeled RC.2) appear in the gate excerpts or anywhere else in the bundle. The war-check run summary reports '0 error' and the shown excerpts contain no FAIL line tied to these scenarios, so the counterexample controls cannot be confirmed from what is carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires a separate verifier to reproduce OBL-001/OBL-002's observations and human acceptance/resolution. prior_verifications shows only prior not_established dispositions from an agent-kind verifier (claude-verifier) on all four obligations, and no authority/acceptance record (e.g., a response.toml naming human sign-off on the RC.2 adoption ADR) is carried in this bundle. Since OBL-001 and OBL-002 are not established here and no independent human acceptance artifact is shown, OBL-003 cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 (verdict pass, subject_digests including contract:sha256:df700b5f1d82...556d6f64a matching authorized_contract_digest) shows OW-WAR-0074-specific structural PASS lines (manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift, identity.atom-mismatch at line 2586) plus WARN evidence.stale-binding (33 paths changed since the receipt's tree) and WARN sas.pin-superseded (authorized against SAS 1.0.0 while latest recorded revision is 1.1.1, pending repin). OBL-004's own evidence clause requires 'a named fixture/schema violation is refused in a disposable corpus' to show planted controls are retained; the plants array is empty and the run summary reports '0 error', with no FAIL/refusal of any planted violation shown in the excerpts. Per the assurance atom's explicit adversarial question, a structural pass alone without a demonstrated plant refusal cannot establish this obligation, and the stale-binding warning further undercuts treating this run as evidence about the current deliverable revision."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-002 (fully present, not truncated) names build_profile 'release', war.version 'war 1.0.0-alpha.2', and a 40-character commit 'fdd346c54417069593d0f393dc63fe24d70424b8'; D-003's tables (setup, routine, corpus rows) match D-002's medians and maxes exactly, e.g. init-program 3/959, sas-sign 16/68, compile 93/157, corpus next 8064/8698, and D-003 states verbatim 'Setup target: neither met nor missed by this evidence.' The gate-run excerpt additionally confirms 'ok    the baseline is a release record   same steps, same order as a re-run', 'ok    FRICTION.md matches the baseline   every row, human steps not measured', and 'ok    a doc row off by 1 ms is refused   setup/check named' — the exact checks in D-004's OBL-004 block comparing baseline-1.json against a fresh re-run and the doc's tables against the baseline, plus a refusal test perturbing one figure."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

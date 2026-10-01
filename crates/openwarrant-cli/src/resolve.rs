@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war resolve --dry-run` — evaluate §56.1's thirteen requirements.
 //!
 //! # Why this is a dry run and nothing else, for now
@@ -384,6 +384,48 @@ impl Authority<'_> {
     }
 }
 
+/// OW-ADR-0029 — a Warrant authorized through a standing authorization is
+/// never resolved by §27.3's policy service, whatever the repository's policy
+/// says: a class carries no resolution term, and the owner's rule is that no
+/// resolution is automatic. `Some(why)` when `resolver` is a registered actor
+/// that is not a human and the Warrant's authorization names a class; `None`
+/// otherwise (an unknown resolver is refused by name elsewhere).
+///
+/// # Errors
+/// When the authorization or the register will not read.
+pub fn standing_needs_human(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    resolver: &str,
+) -> Result<Option<String>, RepoError> {
+    let Some(basis) = covered_basis(repo, dir)? else {
+        return Ok(None);
+    };
+    let register = repo.load_authority_register()?;
+    Ok(register
+        .actor(resolver)
+        .filter(|a| a.actor_kind != openwarrant_core::authority::ActorKind::Human)
+        .map(|a| {
+            format!(
+                "{resolver:?} is {} and this Warrant was authorized under the standing \
+                 authorization {basis}. A covered Warrant is resolved by a human, always: a \
+                 class carries no resolution term, and §27.3's policy-service path does not \
+                 apply to it whatever `policy.allow_automated_resolution` says",
+                a.actor_kind
+            )
+        }))
+}
+
+/// The `standing://` reference a Warrant's authorization records, if any.
+fn covered_basis(repo: &Repository, dir: &camino::Utf8Path) -> Result<Option<String>, RepoError> {
+    Ok(repo.load_authorization(dir)?.and_then(|a| {
+        a.revision
+            .authorization
+            .and_then(|x| x.policy_basis)
+            .filter(|b| b.starts_with(openwarrant_core::standing::SCHEME))
+    }))
+}
+
 /// Whether a judgment addresses a given residual risk.
 ///
 /// Matched through the assumption's own `judgment_ref` when it declares one, and
@@ -696,7 +738,14 @@ pub fn assess_with(
     let deliverables = repo.load_deliverables(dir)?;
 
     let performer = repo.performer();
-    let register = repo.load_authority_register()?;
+    let mut register = repo.load_authority_register()?;
+    // OW-ADR-0029: requirement 13 for a covered Warrant asks whether a HUMAN
+    // may resolve it; a policy service never may.
+    if covered_basis(repo, dir)?.is_some() {
+        register
+            .assignments
+            .retain(|a| a.actor_kind == openwarrant_core::authority::ActorKind::Human);
+    }
     let authorization = repo.load_authorization(dir)?;
     let judgments = repo.load_judgments(dir)?;
     let assumptions = repo.load_rationale(dir)?;
@@ -809,6 +858,57 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     }
     let checks = assessment.checks;
     let outcome = assessment.would_resolve_satisfied;
+
+    // OW-ADR-0021: requirement 3 reads exactly as before — the bytes either
+    // are what this Warrant pinned or they are not. But when they are not
+    // BECAUSE a later authorized Warrant declares the path, "not established"
+    // sends the reader to restore a file that is now someone else's. Name the
+    // owner, and the act that fits: this Warrant was never resolved against
+    // this pin, so the pin is out of date, and a refresh records what it
+    // delivered as the tree stands under whose authority.
+    if !checks.artifact_digests_verify
+        && let Ok(set) = repo.load_deliverables(&dir)
+        && let Ok(ownership) = crate::ownership::Ownership::index(repo)
+    {
+        let corrections = repo.load_corrections(&dir).unwrap_or_default();
+        let authorized_at = repo
+            .load_authorization(&dir)
+            .ok()
+            .flatten()
+            .and_then(|a| a.revision.authorization.map(|x| x.effective_time));
+        for d in set.records.iter().filter(|d| d.content_addressed) {
+            let Some(p) = d.provenance.as_ref() else {
+                continue;
+            };
+            let (_, head) = crate::correct::head_for(&corrections, &d.id, &p.content_digest);
+            let Ok(head) = head else {
+                continue;
+            };
+            let want = head.trim_start_matches("sha256:");
+            let unchanged = std::fs::read(repo.root.join(&d.target_ref))
+                .is_ok_and(|b| openwarrant_compiler::sha256_hex(&b) == want);
+            if unchanged {
+                continue;
+            }
+            if let Some(newer) =
+                ownership.newer_than(&d.target_ref, alias, authorized_at.as_deref())
+            {
+                report.push(Diagnostic::warn(
+                    "resolution.deliverable-moved",
+                    repo.relative(&dir.join("deliverables.toml")),
+                    format!(
+                        "{alias}: {} → {} no longer carries the bytes this Warrant pinned; \
+                         {}/{} (authorized {}) governs that path now. Requirement 3 stays \
+                         unmet as written, and nothing here is drift: no resolution binds \
+                         this pin, so `war pins --refresh --alias {alias}` records the bytes \
+                         as they stand and the resolution then says what was delivered under \
+                         whose authority (OW-ADR-0021)",
+                        d.id, d.target_ref, newer.alias, newer.deliverable_id, newer.authorized_at
+                    ),
+                ));
+            }
+        }
+    }
     let unestablished: Vec<&str> = assessment
         .unestablished
         .iter()

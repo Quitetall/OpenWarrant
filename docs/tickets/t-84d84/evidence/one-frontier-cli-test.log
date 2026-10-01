@@ -1,0 +1,10 @@
+    Blocking waiting for file lock on build directory
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-board-read-efficiency/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 57s
+     Running tests/board_cli.rs (/mnt/2tb/ow-submission-binding-target/debug/deps/board_cli-58d04730a9828079)
+
+running 1 test
+test board_is_complete_read_only_and_refuses_corrupt_questions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+

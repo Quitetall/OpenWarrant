@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are present to demonstrate the --serve loopback endpoint's behavior. obligation_evidence for OBL-002 carries no named_paths or terms, so none of the claimed behaviors (refresh on edit, stale-state preservation, unknown-state on invalid reports, Host/Origin/POST/traversal/oversize refusal, GET success) are shown by any file, test output, or run log in this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

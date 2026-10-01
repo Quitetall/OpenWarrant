@@ -1,0 +1,97 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0120"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows an untruncated excerpt at stdout lines 280-291 containing the '== retention and the scale budget (OW-WAR-0120) ==' banner from conformance/plants.d/52-retention.sh (D-006) followed by 'ok the synthetic program checks clean synth-corpus.sh exit 0, war check exit 0', 'ok war status counts 6 resolved, 6 not and 6 resolution records on disk', 'ok a non-empty --out is refused exit 2, its contents untouched', and 'ok the repository tree is unchanged git status --porcelain identical' — the exact four sub-checks OBL-001's evidence clause requires, matching D-006's rt_ok invocations line for line, with the run's subject_digests binding it to this contract (41c9faf7...) and a run-level verdict of pass in a 1270-passed/0-failed battery."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same untruncated excerpt of gate run GR-ops.conformance.plants@1.1.0 (stdout lines 280-291) shows 'ok the real budget passes at N=12 every row within, exit 0' and 'ok a 1 ms budget names every command exit 1, each row OVER BUDGET by name' — D-006's rt_ok outputs for exactly the two required checks, exercising tools/scale/budget.sh (D-003) against the real tools/scale/budget.toml (D-002) and against a 1ms-limit copy, on the 12-Warrant corpus."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The same excerpt shows 'ok a failing command is unknown check,check-generated,next,status,compile unknown, exit 1', which is D-006's rt_ok line produced only when its embedded Python check (comparing exit_codes to verdict/median_ms for every row in the corrupted-manifest run) finds each failed command marked 'unknown' with no median time and none marked 'within', and the script itself exits 1 — matching D-003's Law-15 handling of non-zero exits."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-004 (docs/scale/baseline-1000.json, untruncated) is internally self-consistent and satisfies the first two evidence bullets directly: build_profile 'release', war.version 'war 1.0.0-alpha.2 (unreleased, commit 6bcc01bf04a7)', a 40-character repository.commit, machine.cpu_model and machine.os both present, corpus.counted_by 'war status --json' with warrants=1000 and resolved=500. For the third bullet, D-005's 'answers in brief' and budget table both state 'The budget holds at 1,000 Warrants' / 'The budget held', list all nine rows as 'within' with the same limit_ms/median_ms pairs as D-004's rows (e.g. check 10000/3339, check-generated 10000/9163, compile 30000/6893, console-select 10000/6589), and state the corpus as 1000 Warrants/500 resolved — no discrepancy appears anywhere in the D-005 text supplied in this bundle. This is corroborated by the gate excerpt's 'ok the 1,000 record is a release record 1000 Warrants, >=500 resolved, by war status' and 'ok RETENTION.md matches the record every budget row, and the verdict', the automated checks D-006 runs for exactly this purpose."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "D-004 (docs/scale/baseline-1000.json, untruncated, the exact artifact this obligation cites) records over: [], unknown: [], held: true, and every one of its nine rows (check, check-generated, next, status, pins-resolved-only, sign-list, compile, console-json, console-select — matching all nine commands declared in tools/scale/budget.toml, D-002) has verdict 'within' against its limit_ms, on the machine the record itself names (13th Gen Intel Core i5-13600K, Linux 7.2.6 x86_64, release build 6bcc01bf04a7)."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

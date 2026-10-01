@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-003 (crates/openwarrant-cli/src/dispatch_bundle_cmd.rs) shows judge_tokens called on the parsed StageDispatch before any context/source is read, returning bundle-tokens-unrecorded when dispatch.tokens is None and bundle-over-budget when estimated_tokens>budget_tokens, with Command::Create writing via create_new (so nothing is overwritten and nothing is emitted on an Err short-circuit). D-004's tok_bundle_refused helper and calls construct a Dispatch file edited to be over budget and one with tokens deleted, pointing --context at a nonexistent file to prove the refusal precedes context reads, then confirms the unedited Dispatch bundles. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) printed the passing lines 'bundle over budget is refused    rejected by bundle-over-budget; nothing at --emit', 'bundle with no tokens is refused    rejected by bundle-tokens-unrecorded; nothing at --emit', and 'the unedited Dispatch is bundled    the refusals above are not blanket', matching every evidence bullet under OBL-003's scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

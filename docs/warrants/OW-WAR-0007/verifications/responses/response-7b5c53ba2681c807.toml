@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0007"
+
+[[verifications]]
+obligation = "OBL-000"
+disposition = "not_established"
+evidence = "The bundle's deliverables array (scope: warrant) contains only D-001 (crates/openwarrant-core/src/milestones.rs); no ADR document is present anywhere in the bundle. The only trace of an ADR is the gate run stdout's WARN identity.alias-ref line mentioning 'OW-ADR-0003: governs war://OW-WAR-0007', which implies an ADR exists but shows none of its text, its resolution of the parser question, or any Apache-2.0 licence check. The obligation_evidence entry for OBL-000 shows only the term '.yaml' appearing in D-001/atoms, not an ADR. Absent the ADR's content, the required evidence is not carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (milestones.rs, truncated:false, full 785 lines) defines Milestone, Stage, Port, ExecutorKind and ResponsibilityTier, and its parse() function extracts each field explicitly via scalar/list helpers (id, title, depends_on, stage_refs, obligation_refs, executor_kind, responsibility_tier) plus a dedicated ports() closure splitting 'name:type' into Port{name, type_name}. Its own tests parses_a_valid_graph, typed_ports_parse, and tier_and_executor_kind_are_orthogonal assert on these exact fields field-by-field, including ports and tier/kind orthogonality. Gate run GR-software.repo.war-check@1.0.0 (verdict pass) further shows 'PASS milestones.valid OW-WAR-0007: 4 milestone(s), 4 stage(s), acyclic with no dangling refs' and analogous PASS lines for other real warrants, confirming the parser operates on live corpus data, not only isolated unit fixtures."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "refuted"
+evidence = "OBL-002's scope explicitly includes dangling obligation_refs, but D-001's validate_references() (crates/openwarrant-core/src/milestones.rs) only checks m.stage_refs against stage_ids and m.depends_on against milestone_ids; obligation_refs is parsed via list(record, \"obligation_refs\") and stored on Milestone with no corresponding check against any known-obligation set, and MilestoneError has no DanglingObligationRef variant. The test suite confirms this gap: there is no dangling_obligation_ref test among the thirteen listed test_names. This is corroborated by atoms/60-assurance.md's own adequacy review, which lists only three executed attacks (dangling stage_ref, dependency cycle, milestone carrying a stage-only field) against the obligation's own evidence bar of 'five plants, five observed refusals' — the bundle itself shows the obligation's evidence requirement unmet."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 has receipt exit_result 'pass' and verdict 'pass', with stdout showing the summary '2015 pass · 293 warn · 0 unknown · 0 error (worst: WARN)' and explicit 'PASS milestones.valid OW-WAR-0007: 4 milestone(s), 4 stage(s), acyclic with no dangling refs' plus analogous PASS lines for other warrants (e.g. OW-WAR-0138-0147), satisfying the obligation's literal evidence bar of 'war check exit 0 with the milestone graph reported.' D-001's own test every_milestone_graph_in_this_repository_validates additionally walks docs/warrants at runtime, asserting at least 40 milestone graphs parse, matching the 'enumerated at run time' scope. The WARN evidence.stale-binding line concerns freshness of a separately-recorded evidence binding, not the milestone-validation result itself, and does not negate the exit-0/graph-reported evidence shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There are no deliverables (e.g., API/browser code), gate_runs (e.g., UI test transcripts), or plants tied to this obligation, and obligation_evidence for OBL-003 has empty named_paths and terms. atoms/60-assurance.md merely restates the required evidence description for OBL-003; absent any executed gate or artifact demonstrating findings display, unknown/fail distinction, or the unverified-completion marker, truthfulness of the UI/reports cannot be assessed from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

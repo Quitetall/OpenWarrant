@@ -1,0 +1,31 @@
+:root { --bg:#fbfaf7; --fg:#1d1d1b; --muted:#6b6b66; --line:#e3e0d8; --accent:#2f5d8a; --ok:#2d7a3e; --warn:#9a6b00; --bad:#a8322d; }
+@media (prefers-color-scheme: dark) { :root { --bg:#16171a; --fg:#e6e4df; --muted:#9a9891; --line:#2c2d31; --accent:#7fb0e0; --ok:#6cc27f; --warn:#e0b04a; --bad:#e2766f; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; padding:.75rem 1rem; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); }
+nav { display:flex; flex-wrap:wrap; gap:.25rem; }
+nav a { color:var(--fg); text-decoration:none; padding:.25rem .6rem; border-radius:.3rem; }
+nav a.active { background:var(--accent); color:var(--bg); }
+main { padding:1rem; max-width:72rem; margin:0 auto; }
+h2 { font-size:1.05rem; margin:1.25rem 0 .4rem; }
+h3 { font-size:.95rem; margin:.9rem 0 .3rem; }
+.muted { color:var(--muted); }
+.phase { border:1px solid var(--line); border-radius:.4rem; padding:.6rem .8rem; margin:.6rem 0; }
+.phase .head { display:flex; flex-wrap:wrap; gap:.6rem; align-items:baseline; }
+.badge { font-size:.75rem; padding:.05rem .45rem; border-radius:1rem; border:1px solid var(--line); }
+.badge.ok { color:var(--ok); border-color:var(--ok); }
+.badge.warn { color:var(--warn); border-color:var(--warn); }
+.badge.bad { color:var(--bad); border-color:var(--bad); }
+.table-wrap { overflow-x:auto; }
+table { border-collapse:collapse; width:100%; }
+th, td { text-align:left; padding:.3rem .5rem; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font-weight:600; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.85em; }
+button { font:inherit; padding:.25rem .7rem; border-radius:.3rem; border:1px solid var(--accent); background:var(--accent); color:var(--bg); cursor:pointer; }
+button:disabled { opacity:.5; cursor:default; }
+.bar { height:.5rem; background:var(--line); border-radius:.25rem; overflow:hidden; display:flex; }
+.bar span { display:block; height:100%; }
+.bar .resolved { background:var(--ok); } .bar .ready { background:var(--accent); } .bar .draft { background:var(--warn); }
+footer { position:sticky; bottom:0; background:var(--bg); border-top:1px solid var(--line); padding:.6rem 1rem; }
+footer pre { max-height:12rem; overflow:auto; white-space:pre-wrap; margin:.4rem 0 0; }
+.note { border-left:3px solid var(--warn); padding:.3rem .6rem; margin:.6rem 0; }

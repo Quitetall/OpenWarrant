@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "The passing test 'telemetry::tests::an_untaken_measure_never_serializes_as_zero' directly verifies that untaken measures are not serialized as zero, ensuring they are named as required, and the successful war check and receipt confirm the system operates correctly."
+evidence = """Direct inspection of the full, untruncated D-002 shows every measure that names a property of an instrumented authoring session (clarification count, compute and model cost, context tokens per dispatch/verification, escalation count and class, gate failure cause, human authoring minutes, interview questions, post-resolution escapes, reopenings, replay/repair/restart, time to first usable artifact, wall time) is recorded as {"not_measurable_yet": "<reason>"}, never as a bare 0. The single 0-valued measure, 'auto-authorizable fraction', carries a method string explicitly stating it is a genuine measured zero ('§56.1 requirement 10 is unmet for every Warrant, so none is auto-authorizable'), matching D-001's unmeasurable()/module-doc distinction between an untaken measure and a real zero. No entry in the artifact has neither field, satisfying the obligation's 'grep for = 0' evidence criterion."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

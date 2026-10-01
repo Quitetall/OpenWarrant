@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0147"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The hand-edit path is shown executed and passing in the ops.conformance.plants@1.1.0 gate run (GR-ops.conformance.plants@1.1.0, verdict pass), whose stdout excerpt (lines 155-171) prints 'ok a hand-edited checklist is honoured reordered, reworded, added: read as written; done moved 2 lines (its own, the new id)' — this is the D-013 block that reorders/rewords a `war create`-written checklist, adds an id-less prose line, confirms `war ready` returns exactly 'Third|First, reworded by a person|Second|Added by hand', and diffs the file before/after `war done` to assert exactly two lines moved (the ticked line and the newly-named line). The same excerpt also prints 'ok check: a malformed checklist is named malformed box, duplicate id, two unknown blockers; in the corpus check too', confirming D-013's assertions that `war check` exits 2 and reports `ticket.checklist-malformed` (bad box), `ticket.item-duplicate`, and `ticket.blocker-unknown` twice (an `after` naming no item and one naming no ticket). The remaining evidence item, cycle detection (`ticket.blocker-cycle`, unit test only — obligation_evidence confirms this term is shown only in D-004 and atoms, not in D-013 or any gate stdout), is established by direct inspection of D-004: the test `every_fault_is_named_with_its_line` supplies items i-000a (after i-000b) and i-000b (after i-000a) at lines 9-10, and tracing `Checklist::check_references`'s DFS over the `edges` map deterministically yields a `ticket.blocker-cycle` fault at both line 9 and line 10, exactly matching the test's assertions — the same D-004 file's other unit tests (`crlf_and_a_missing_final_newline_survive_a_write`, `items_are_read_in_file_order_with_their_parts`, `rendering_an_unchanged_item_gives_back_its_line`) cover the CRLF/no-final-newline/nested/starred/fence/link fixtures named in the obligation's scope. Together the executed plant evidence and the deterministic source trace cover every clause of OBL-004's evidence list within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

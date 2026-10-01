@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No gate_runs, deliverables, or plants are present, and obligation_evidence for OBL-002 shows no named_paths or terms. There is no evidence of technical-advice-vs-governing routing, responder authentication checks, missing-responder/pending-blocker/unknown-writer/exhausted-budget refusals, or an independent Warrant executing, so nothing in the bundle supports or contradicts the claim."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

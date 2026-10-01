@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "Delivering revision 2 found four things outside the declared set. (1) OBL-004: the context manifest's `conflicts` field is built in cli dispatch.rs with its type in core context.rs, not in context_select.rs as the basis said. (2) status.rs labels a reuse-unknown run `stale_binding`. (3) war eval's scratch programs never commit, so every receipt they record now reads `worktree:dirty` and four eval plants score `partial`; eval.rs should commit first, and evals/baseline.json be re-recorded. (4) Two 00-corpus plants delete OW-WAR-0010's resolution to stand in for an unresolved Warrant; its contract-only receipt is now reuse-unknown by this Warrant's rule (A-003), so they trip requirement 5 before the rule they test. They are re-pointed at a scratch fixture. The reuse rule itself is unchanged. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-44.6"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-007..D-012 and the work order names them. Revision 3 is authorized against the amended contract. The 28 unresolved Warrants whose contract-only receipts now read reuse-unknown are re-recorded by `war evidence record`, a performer act, after merge."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-24"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-006."
+    after: "Also D-007..D-012: cli dispatch.rs, core context.rs, status.rs, eval.rs, evals/baseline.json, 00-corpus.sh."
+
+affected_stages: []
+affected_milestones: []

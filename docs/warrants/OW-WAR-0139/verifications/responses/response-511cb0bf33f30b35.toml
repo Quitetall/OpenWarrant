@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0139"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, exit_result: pass, 1214 passed / 0 failed) contains stdout lines directly matching both evidence bullets: 'ok OBL-005 loopback headers beside --lan byte-identical to 269d3324', 'ok OBL-005 loopback headers, no --lan byte-identical to 269d3324', 'ok OBL-005 63-webui.sh unmodified its 269d3324 bytes; the battery runs it', and 'ok OBL-005 the comparison can tell the LAN page differs by exactly HSTS' (confirming the comparison is sensitive enough to detect a real difference). obligation_evidence for OBL-005 confirms the terms 'war ui' and '--lan' are shown across D-001, this gate's stdout, and the atoms, and D-001's module doc comment (lines 1-63 excerpt) states loopback is unchanged and LAN is an addition beside it. 63-webui.sh itself is not carried as a deliverable, but the obligation's stated evidence criterion is the gate's pass/fail on that script, which is shown directly in the plant output."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test or measurement in the provided evidence directly verifies that `war check --generated` exits non-zero and names the file for a single-byte mutation of a committed generated parent; the plant battery and receipt only show behavior on the committed tree without mutation."
+evidence = "The bundle's plants array is empty, and no gate run, excerpt, or test result shows a single-byte mutation of a committed generated parent followed by a `war check --generated` invocation that exits non-zero and names the file. The sole gate run's subject_digests record tree:9729d66838274661a8b7382db6ef1108887babec (an unmutated tree), and its only relevant visible line, 'PASS generated.drift OW-WAR-0004: 2 generated view(s) match a fresh compilation', documents a clean pass — the opposite of the planted-drift-refused scenario OBL-003 requires evidence of. No deliverable or atom in the bundle records a planted-drift trial or its outcome, so the obligation cannot be decided from what is shown."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

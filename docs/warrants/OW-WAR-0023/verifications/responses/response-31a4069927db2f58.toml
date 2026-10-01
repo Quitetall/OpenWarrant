@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0023"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "the verifier returned no usable verdict for this obligation"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "OBL-001's evidence requirement is explicit: a compiled Dispatch must be shown readable and complete with the repository absent, tested by moving it, not by inspection. The only deliverable carried, D-001 (crates/openwarrant-core/src/execution.rs), contains tests every_section_47_1_field_is_present_by_name, refs_and_api_version_are_required, and a_dispatch_round_trips_through_json, all of which inspect a StageDispatch value or its serialized JSON in-process — none relocates a compiled Dispatch away from the repository and reads it standalone. The single gate run (GR-software.repo.war-check@1.0.0) invokes `war check --generated`, a repo-consistency checker, and its own truncated stdout notes 'war check does not invoke [gates]' — it is not evidence of this test being executed. This matches the prior verification by lamu:mimo-v2.5-pro, which reached not_established for the identical reason."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires a plant requesting an unlisted capability that is refused. The bundle's plants array is empty ([]), and no test in D-001's test_names list exercises capability denial — CapabilityAuthorization in execution.rs only carries policy_ref/digest fields with no default-deny enforcement logic visible in this file. The assurance atom's 'Executed attacks' section lists attacks on contract_digest, contract_revision, obligation_refs, omitted_subgraphs, and repair evidence, but names no attack planting an unlisted-capability request. This matches the prior verification by lamu:mimo-v2.5-pro, which found no plant or test covering this control."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

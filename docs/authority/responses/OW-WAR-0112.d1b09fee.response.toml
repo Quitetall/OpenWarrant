@@ -1,0 +1,11 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0112"
+contract_digest = "d1b09fee3c98a83e5d0354b294c063b0760a871b6fef97949d88aa3cd22f4cf0"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0112 (war is the app: ownership, a guided start, and remedies) at this contract digest means the signer accepts its intent, scope and 7 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-22T22:30:44Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"
+deliverable_set_digest = "sha256:7b494cba996231953cf857796da2a594ac5707633936d53a01221b8acc696ff4"

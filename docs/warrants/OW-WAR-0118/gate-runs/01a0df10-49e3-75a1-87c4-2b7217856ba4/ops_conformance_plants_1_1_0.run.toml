@@ -1,0 +1,6 @@
+id = "GR-01a0df10-49e3-75a1-87c4-2b7217856ba4"
+gate = "ops.conformance.plants@1.1.0"
+askability = "askable"
+execution_status = "completed"
+verdict = "pass"
+reason_code = "passed"

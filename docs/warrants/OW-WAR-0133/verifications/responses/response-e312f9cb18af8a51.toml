@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0133"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-007 (crates/openwarrant-cli/src/dispatch.rs) computes `context.conflict_check = ConflictCheck::of(&context)` before the manifest is written, and D-008 (crates/openwarrant-core/src/context.rs) defines `ConflictCheck{checked, unchecked, found}` with `ConflictCheck::of` recording `SAME_SOURCE_TWO_VERSIONS` as checked, `SEMANTIC_UNCHECKED` as unchecked, and the actual `source_versions()` findings — so the compiler no longer emits a bare `conflicts: []` without an accompanying statement of what was and wasn't checked. The plant D-005 (conformance/plants.d/55-evidence-reuse.sh) exercises this in scope, compiling `war dispatch ER-WAR-0002 STAGE-001 --prototype --emit-context …` on scratch Warrant ER-WAR-0002 and running `judge.py`, which requires `conflict_check.checked` to contain `same-source-two-versions`, `found` to be a list, and an `unchecked` entry starting with `semantic`; it then strips `conflict_check` from a copy of the same manifest and asserts the judge rejects it, i.e. the plant fails exactly the bare-`conflicts: []`-with-no-statement case the obligation names. The recorded gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0, verdict pass) shows both assertions passing in its stdout excerpt (lines 379-380): 'ok the conflict field says what ran … same-source-two-versions checked, found []; semantic named unchecked' and 'ok a bare conflicts: [] … rejected: no statement that a check ran'. The `software.repo.war-check@1.0.0` output further reports `evidence.admissible` for this run bound to the current contract and tree (not stale), so the passing receipt is live evidence, not a stale record. Together the code (D-007/D-008), the plant (D-005), and the passing, admissible gate run establish the obligation within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

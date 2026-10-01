@@ -445,6 +445,16 @@ fn verify(binary: &Utf8Path, spec_json: &str) -> Result<BlutVerdict, RepoError> 
     })
 }
 
+/// §49.2's pinned stage identity: the Warrant's UUID, never its alias.
+///
+/// It was `war://{alias}` until OW-WAR-0119. An alias is repository-scoped
+/// (§12.3, RQ-002), so a lowering pinned to one named a different Warrant, or
+/// none, in any other repository — the identity §12.7 says a machine
+/// reference uses is the one that means the same thing everywhere.
+fn stage_identity(manifest: &openwarrant_core::ValidatedManifest) -> String {
+    format!("war://{}", manifest.uuid)
+}
+
 /// Lower one Warrant's milestone graph into a `PlanSpec`.
 ///
 /// §49.2's duties, each discharged or explicitly refused:
@@ -462,7 +472,7 @@ pub fn lower(
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
 
-    let Some(basis) = &one.basis else {
+    let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
         return Err(RepoError::Message(format!("{alias} could not be compiled")));
     };
 
@@ -521,7 +531,7 @@ pub fn lower(
         registry_digest: format!("blut@{BLUT_PIN}"),
         port_mappings: lowerable.iter().flat_map(|s| map_ports(s)).collect(),
         backend_identity: format!("blut://backend@{BLUT_PIN}"),
-        stage_identity: format!("war://{alias}"),
+        stage_identity: stage_identity(validated),
         resource_envelope_mapped: true,
         plan_provenance: format!("openwarrant://{alias} lowered against blut@{BLUT_PIN}"),
     };
@@ -627,9 +637,11 @@ pub fn lower(
     report.push(Diagnostic::pass(
         "blut.lowered",
         format!(
-            "{alias}: lowered {} stage(s) against a pinned registry (blut@{})",
+            "{alias}: lowered {} stage(s) against a pinned registry (blut@{}), stage \
+             identity {}",
             spec.nodes.len(),
-            &BLUT_PIN[..12]
+            &BLUT_PIN[..12],
+            lowering.stage_identity
         ),
     ));
 
@@ -703,4 +715,33 @@ pub fn lower(
         verdict.binary
     ));
     Ok(report)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use openwarrant_core::{Manifest, WarUuid};
+
+    /// OW-WAR-0119 OBL-004: the stage identity parses as `war://` followed by
+    /// a UUIDv7 — and is not the alias, which is what it used to be.
+    #[test]
+    fn the_stage_identity_is_the_uuid_and_never_the_alias() {
+        let manifest: Manifest = toml::from_str(include_str!(
+            "../../../docs/warrants/OW-WAR-0047/manifest.toml"
+        ))
+        .expect("OW-WAR-0047's manifest parses");
+        let validated = manifest.validate(None).expect("and validates");
+        let identity = super::stage_identity(&validated);
+        let body = identity
+            .strip_prefix("war://")
+            .unwrap_or_else(|| panic!("{identity} is not a war:// reference"));
+        let uuid = WarUuid::from_str(body)
+            .unwrap_or_else(|e| panic!("{identity} does not name a UUIDv7: {e}"));
+        assert_eq!(uuid, validated.uuid);
+        assert!(
+            !identity.contains("OW-WAR-0047"),
+            "{identity} names the alias"
+        );
+    }
 }

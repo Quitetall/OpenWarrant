@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-007 (conformance/plants.d/58-invalidation.sh) builds exactly the scoped scratch corpus — IV-WAR-0001(A) and IV-WAR-0002(B) resolved on gate G, IV-WAR-0003(C) A's §20.2 child resting on H, IV-WAR-0004(D) resting only on H as the explicit control — and its excerpted python check (lines 576-680) globs docs/warrants/*/disputes/*.toml across the whole corpus and asserts the found set equals exactly {A,B,C}'s DSP-001.toml (D excluded), with all six §56.4 fields non-empty, challenged_resolution matching each resolution's id, and owner matching the signer 'Plant Signer'; a second block then greps `war check` output and asserts resolution.disputed appears only for A, B, C with zero ERROR lines. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, final line '1270 passed, 0 failed') stdout excerpt shows the corresponding plant lines actually passing: 'ok invalidating G reaches A, B, C ... D unaffected', 'ok three disputes, §56.4's six fields IV-WAR-0001, IV-WAR-0002 direct; IV-WAR-0003 through IV-WAR-0001; owner the signer; IV-WAR-0004 none', and 'ok war check: resolution.disputed for IV-WAR-0001, IV-WAR-0002, IV-WAR-0003 and not IV-WAR-0004; 0 errors'. D-004 (resolution_cmd.rs::check_disputes) corroborates that resolution.disputed is only emitted for a dispute record that counts and matches. obligation_evidence confirms both decisive terms ('war check', 'resolution.disputed') are shown uncut in D-007 and the gate stdout, so nothing here is hidden by truncation. This directly and completely satisfies OBL-003's three required evidence items within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

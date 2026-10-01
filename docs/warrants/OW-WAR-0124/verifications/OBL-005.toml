@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = """D-006 (telemetry.rs, carried in full, not truncated) shows the mechanism: `adoption_baseline: Option<String>` is `skip_serializing_if = "Option::is_none"`, `history_read()` returns the literal string "all history (no [adoption] baseline)" when `config.adoption` is `None`, and `untracked_candidates()` runs an unbounded `git log --format=%h %s` with no baseline range when no `[adoption]` entry exists. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1270 passed/0 failed, tested against this repository's own tree) stdout excerpt (lines 719-745) contains the executed plant line 'ok    this repository reads all history  681 candidates, recounted from git log; no adoption_baseline' — an independently recomputed count from git log confirming both that the §95 count matches the rule stated in telemetry.rs and that no adoption_baseline is written, which is exactly the obligation's stated evidence. The same excerpt block also shows the contrasting bounded case from OBL-002's plants ('0 candidates right after init ... read from <baseline>..HEAD'), satisfying the obligation's requested refusal contrast ('no baseline reads all history' vs. the bounded count with [adoption]). obligation_evidence for OBL-005 confirms the terms '[adoption]', 'war telemetry', 'adoption_baseline' and 'git log' are all shown in D-006 and in the ops.conformance.plants stdout with no cut_from truncation, so nothing decisive here was cut by the budget."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

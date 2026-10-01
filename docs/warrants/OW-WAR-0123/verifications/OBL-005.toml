@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = """D-002 (new.rs) implements parent_citation/run_with_parent: it reads the parent's authorization.toml, refuses (before creating anything) an alias whose manifest fails validation, has no authorization.toml, or is not in the Authorized state, and otherwise writes `[[parents]]` with `ref = "war://{uuid}"`, `contract_revision = {revision}` and `contract_digest = "sha256:{digest}"` taken directly from that authorization record; its unit test a_parent_without_an_authorized_revision_is_refused_and_nothing_is_created exercises both the OW-WAR-9999 and draft-parent refusals and asserts the error message contains 'has no authorized revision' with no directory created. D-003 (lib.rs) adds the `--parent <ALIAS>` flag to the New subcommand with matching documentation. D-004 (conformance/plants.d/58-parent-revision.sh), run in scratch clones $F/$PR_P as the obligation's scope requires, contains the OBL-005 assertions: `war new "Plant: exact child" --parent OW-WAR-0001` is checked to write ref=war://$PR_UUID, `contract_revision = 2`, `contract_digest = "sha256:$PR_REV2"` (f29c7d95…) and the resulting child to pass relations.parent-revision; `--parent OW-WAR-9999` and `--parent <a draft>` (both a program draft and a corpus draft) are checked for nonzero exit, an unchanged directory count and clean git status, with the refusal messages named. The ops.conformance.plants@1.1.0 gate run (run_id GR-ops.conformance.plants@1.1.0, verdict pass) shows these exact plant lines succeeding — "new --parent writes the citation OW-WAR-0148 cites revision 2 at f29c7d95…", "new --parent child passes pass relations.parent-revision ×1", "new --parent OW-WAR-9999 refused (exit 1), nothing created", "new --parent <a draft> refused (exit 1), nothing created", "new --parent <a corpus draft> refused (exit 1), nothing created" — within the overall "1260 passed, 0 failed" run. Together these establish both the write-exact-citation half and the refusal half of OBL-005 within its stated scratch-copy scope."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

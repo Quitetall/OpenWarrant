@@ -1,0 +1,851 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer. Under OW-ADR-0021 this SET of
+# (id, target_ref) pairs is what the authorizer signs and what this Warrant
+# then governs; every path it will touch is here, including the ones that
+# do not exist yet (`content_addressed = false` until delivered).
+#
+# `contract_digest` is "unrecorded": no authorized revision exists yet.
+
+# ---- M1: currency by relation ---------------------------------------------
+
+[[deliverable]]
+id = "D-001"
+title = "OW-ADR-0022, the two-projections decision"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0022-current-by-relation.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0113/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:7a8b347bf360856f8a062b31c5d78120ee431ff1ed4f7c3b48ccb15133210623"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "relations.rs: currency derived, the two refusals"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/relations.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:c4249cbe3e81bccc7a3270ef07578cf1ff05d554507a8adcb2c3de3b6e1a5b67"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "ownership.rs reads the derived currency"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ownership.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:06d19174bb3ff69b1f9a2e22fac8b40a5b377bda582821334e10caa5b8d3e94c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "warrant_overview.rs reads the derived currency"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/warrant_overview.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:cb0da1a4bb9dc3d91149f88042a1a082232ce5ca42a564545695a3e19523b3f4"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "OW-WAR-0073's manifest, reverted to its signed bytes"
+kind = "document"
+target_ref = "docs/warrants/OW-WAR-0073/manifest.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:15cd99638326a0ba20307da66f21d31f628f76163868007ea0078923252aa25b"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+# ---- M2: the two projections ---------------------------------------------
+
+[[deliverable]]
+id = "D-006"
+title = "current.rs: the master document"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/current.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e59259f7cb15a2c23565e98bedc2c3516c89501fe2bdd8d114815787a603bcb5"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "history.rs: the optional history"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/history.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:71d0a9e18caa136ce957abbad5488457841ab5bf99475bf75802be75f5a41ff2"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "compile.rs writes and drift-checks both"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0c3d08949f1d2b6194b3e09728c55e2a943ea771c4878123572e5bdcf6cabac8"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "the compiler's module list"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:45cd9ff6ffc154847af8b807ce4ebaa9e67102a169ce99fe08d221822980d3a9"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "docs/generated/CURRENT.md"
+kind = "document"
+target_ref = "docs/generated/CURRENT.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-011"
+title = "docs/generated/HISTORY.md"
+kind = "document"
+target_ref = "docs/generated/HISTORY.md"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-012"
+title = "the [generated] history key"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/config.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-013"
+title = "openwarrant.toml: history = true here"
+kind = "file"
+target_ref = "openwarrant.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:377ec3711bb86174ba66a6e492aa3439785ffa8b7737a9045efecf5b14b3e893"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-014"
+title = "check.rs: atom.role-unprojected, atom.preset-unanswered"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+# ---- M3: the dry run in front of every handed-over command --------------
+
+[[deliverable]]
+id = "D-015"
+title = "next.rs: judged actions"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/next.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4b58cae5885f2d335bf058d4c557b3be09b28c06e8644d494b2e9644803a4cfd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-016"
+title = "the app's Help pane shows the verdict"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:5bcdb797a87bd1de7b820489760197d1e16423b79a0bdf3ad4e9a88278a141d5"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+# ---- M4: presets ----------------------------------------------------------
+
+[[deliverable]]
+id = "D-017"
+title = "preset: feature, intent"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/10-intent.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:79d8e412fd757f213c17b8ab6eb7530557ba9caf0882438d42a13eea4573e4bc"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-018"
+title = "preset: feature, basis"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/20-basis.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2dd82428472b38cef03d43ecd6d6961c6f14538368baf4611291f63ff5270f82"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-019"
+title = "preset: feature, work order"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/40-work-order.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2f52063e34011b9f4f220e95f5f02cc17adb3449ae5e5a0de790aa50f2abbbdf"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-020"
+title = "preset: feature, milestones"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/45-milestones.yaml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:778df9dae508398537e9160bc715dd93c908bebdbaebe190cfc03b0f4e95daa5"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-021"
+title = "preset: feature, assurance"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/60-assurance.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e432b5cb261cbfd0ae70ef7213b2a27d59c6f6ff3897323a33735a1f585af863"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-022"
+title = "preset: fix, intent"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/10-intent.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e7560f804eb25d8ad1cff9d0950fb0872a3529db98b3d978b5dc9e10eb711054"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-023"
+title = "preset: fix, basis"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/20-basis.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:302e0ed96717d090d9cb7813d128713248721545518236c3cb60e19b75c07977"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-024"
+title = "preset: fix, work order"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/40-work-order.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:5b133aefae38df3dea6e3b9662a4c0a79e702ed899f35b5428adbe20fff1689d"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-025"
+title = "preset: fix, milestones"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/45-milestones.yaml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:778df9dae508398537e9160bc715dd93c908bebdbaebe190cfc03b0f4e95daa5"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-026"
+title = "preset: fix, assurance"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/60-assurance.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:1d9f70255430dadfa72ee4ccbcb7e1a79bd18aa2f81c346992fc36464802ba0f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-027"
+title = "preset: decision, intent"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/decision/10-intent.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f06aa3b60969a6aa5b795fabfff4f6c8a4a437bb1bbf0bf899082e41ee1b14a9"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-028"
+title = "preset: decision, basis"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/decision/20-basis.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6e85450f5a237a1b9bee2a5dd3da63069b309264748a0136243253c81e381a97"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-029"
+title = "preset: decision, the decision atom"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/decision/30-decision.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:aa2a503f810fe86920e680e932282c5b4b48832552970e0dc444aba30c31338d"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-030"
+title = "preset: decision, assurance"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/decision/60-assurance.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:5917a0ca91fbcaf62ebbed7dbc736d7968c519191ab4d0709eb97df5ab83cb27"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-031"
+title = "new.rs: --preset, the TODO skeleton retired"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/new.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:221cee082678d7cd2b3ee5b0ce8b4e963c7fd4d6e88be69470070af0269b7bb0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-032"
+title = "lib.rs: the flag"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+# ---- M5: where to read ----------------------------------------------------
+
+[[deliverable]]
+id = "D-033"
+title = "CONTEXT.md: the terms"
+kind = "document"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-034"
+title = "README.md points at CURRENT.md"
+kind = "document"
+target_ref = "README.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:539e76bd5214180159c83380f6a17e79b0e5dbf11e076b29b41eae956c5db0c7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-035"
+title = "QUICKSTART.md points at CURRENT.md"
+kind = "document"
+target_ref = "QUICKSTART.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:83c205b5797666cb18d8d81cc323b6703f14711fe8f3a6e8d004b9d18031b37e"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-036"
+title = "AGENTS.md: read CURRENT.md first"
+kind = "document"
+target_ref = "AGENTS.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:66ae7471b5d0f3866c2fd4899811afb34ec6d8a8d5b652fa195fbd5d452ebb22"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-037"
+title = "docs/TUI.md: Help lists CURRENT.md first"
+kind = "document"
+target_ref = "docs/TUI.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:7c28dac741ac3391bff5dfdcacaab679e913183dd8046bbf06ebf0c9e6a599e9"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-038"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/69-current.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:a1b78b5b205109a0e40a2742acfe28e4234fe01810cb413d180b64f489950aeb"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-039"
+title = "§91.5 test 33 under OW-ADR-0022: a supersession derives currency (AM-002)"
+kind = "file"
+target_ref = "conformance/plants/33-supersession-without-currency.py"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:57934035d345d6afac3f91d01f1e00ba8e61c17c1c3242ac7f3e2a4770ccc536"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-040"
+title = "The corpus plant that runs test 33, re-aimed at the derived rule (AM-002)"
+kind = "file"
+target_ref = "conformance/plants.d/00-corpus.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]

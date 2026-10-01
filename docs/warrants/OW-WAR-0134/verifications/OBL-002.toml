@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = """conformance/plants.d/56-acceptance-validity.sh (D-005) contains the OBL-002 block: after committing a change to README.txt only (out of scope per gate://plant.acceptance@1.0.0's declared `inputs: ["src/**"]`), it runs `war pins --candidate HEAD --json` and asserts exit 0, rule `acceptance.unchanged`, `out_of_scope==["README.txt"]` and no `in_scope` entries, printing 'an out-of-scope change' ok/fail accordingly. The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) stdout excerpt (lines 414-428) shows the actual output line 'ok    an out-of-scope change             unchanged; README.txt out of scope (exit 0)', and the run's tail line '1260 passed, 0 failed' confirms no failure was recorded, so the av_fail branch did not fire. obligation_evidence corroborates that the 'unchanged' term is shown across D-001, D-002 (source), D-005, and the plants stdout. This is exactly the scope and evidence OBL-002 specifies, so the claim is established."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

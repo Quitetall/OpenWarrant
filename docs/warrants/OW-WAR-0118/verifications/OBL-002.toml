@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same gate-run stdout excerpt shows 'ok    a failed authorize is unknown      step and setup total unknown, exit 1' and 'ok    an erroring resolve --dry-run      exit 1 is unknown, not a not-ready answer', which are the direct outputs of D-004's wrap-authorize and wrap-resolve fixtures (a `war` wrapper on PATH that exits 1 for `authorize`/`resolve` and passes other commands through), matching D-001's step()/tool_step() logic that marks a step and every total containing it 'unknown' and exits 1 on any unaccepted exit code. Both plant assertions read 'ok', and the battery's overall '1260 passed, 0 failed' confirms neither failed."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

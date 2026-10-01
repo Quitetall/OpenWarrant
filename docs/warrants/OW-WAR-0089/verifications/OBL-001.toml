@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and the gate run's subject_digests list 'deliverables:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' (the empty-input digest), so no packaged SDK/CLI/skills/license notices, install logs, exit codes, or documented consumer walkthrough are carried in this bundle. plants is empty ([]) and the only gate run, GR-software.repo.war-check@1.0.0 ('war check --generated'), is a structural Warrant-record linter whose stdout excerpts contain no install or walkthrough test output. obligation_evidence for OBL-001 lists no named_paths or terms. There is nothing shown from which to observe the clean-install/consumer-walkthrough behavior OBL-001 requires, so it cannot be decided either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

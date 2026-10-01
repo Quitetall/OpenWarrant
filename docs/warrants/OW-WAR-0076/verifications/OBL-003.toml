@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "atoms/60-assurance.md states directly that 'These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here,' and the bundle carries no independent reproduction, no baseline comparison, and no secure human acceptance record for the exact OBL-001/OBL-002 result — obligation_evidence for OBL-003 again shows named_paths:[] and terms:[]. Since OBL-001 and OBL-002 are themselves not established from this bundle's evidence (see above), and OBL-003's scope is qualification of exactly those, there is nothing here to qualify; the claim is undecidable from what is carried."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -102,12 +102,72 @@ pub struct ResolutionResponse {
 }
 
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+/// Where the delivered bytes were when the resolution was recorded
+/// (OW-ADR-0021, §56.2 `locator`). Optional: records made before this
+/// existed have none and read as UNKNOWN when history is asked for, which is
+/// the honest answer rather than a commit guessed from the log.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Locator {
+    /// `git rev-parse HEAD` at ingest, forty lowercase hex.
+    pub commit_sha: String,
+    /// Whether every declared deliverable was committed at that moment. A
+    /// dirty path means the bytes the resolution bound are NOT the ones at
+    /// `commit_sha`, and `paths_dirty` says which.
+    pub worktree_clean: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub paths_dirty: Vec<String>,
+}
+
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The persisted record: `docs/warrants/<alias>/resolution.toml`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResolutionRecord {
     pub schema: String,
     pub warrant: String,
     pub resolution: Resolution,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub locator: Option<Locator>,
+}
+
+/// The commit the tree is at, and which of `paths` are not committed there.
+/// `None` when git cannot answer — a resolution outside a repository records
+/// no locator rather than a made-up one.
+fn locate(root: &camino::Utf8Path, paths: &[String]) -> Option<Locator> {
+    let head = std::process::Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())?;
+    let commit_sha = String::from_utf8_lossy(&head.stdout).trim().to_owned();
+    if commit_sha.len() != 40
+        || !commit_sha
+            .bytes()
+            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+    {
+        return None;
+    }
+    let mut args = vec![
+        "status".to_owned(),
+        "--porcelain".to_owned(),
+        "--".to_owned(),
+    ];
+    args.extend(paths.iter().cloned());
+    let status = std::process::Command::new("git")
+        .args(&args)
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())?;
+    let paths_dirty: Vec<String> = String::from_utf8_lossy(&status.stdout)
+        .lines()
+        .filter_map(|l| l.get(3..).map(str::to_owned))
+        .collect();
+    Some(Locator {
+        commit_sha,
+        worktree_clean: paths_dirty.is_empty(),
+        paths_dirty,
+    })
 }
 
 fn load_response(path: &Utf8Path) -> Result<ResolutionResponse, RepoError> {
@@ -273,6 +333,18 @@ pub fn request(repo: &Repository, alias: &str) -> Result<ResolutionRequest, Repo
 
 /// `war resolve <alias> --response <file>`: ingest a human's resolution.
 pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report, RepoError> {
+    ingest_with(repo, alias, path, crate::sign::IngestMode::Record)
+}
+
+/// [`ingest`], or the same judgment with the write withheld (see
+/// `sign::IngestMode`). Every §56.1 refusal runs either way; `DryRun` stops
+/// at the record write with `resolution.would-record`.
+pub fn ingest_with(
+    repo: &Repository,
+    alias: &str,
+    path: &Utf8Path,
+    mode: crate::sign::IngestMode,
+) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let refuse = |report: &mut Report, rule: &'static str, why: String| {
         report.push(Diagnostic::error(rule, path.to_string(), why));
@@ -302,6 +374,17 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
     }
 
     let dir = repo.warrant_dir(alias)?;
+    // OW-WAR-0121: the record this act writes, as it is before the act reads
+    // anything else. The write refuses if it moved since (`storage.prestate-
+    // moved`); a symlink in its place is refused now (`storage.symlink-target`).
+    let out = dir.join("resolution.toml");
+    let before = match crate::compile::atomic::prestate(&out) {
+        Ok(b) => b,
+        Err(refused) => {
+            report.push(refused.diagnostic());
+            return Ok(report);
+        }
+    };
     if let Err(e) = openwarrant_core::timestamp::validate_rfc3339_utc(&response.effective_time) {
         refuse(
             &mut report,
@@ -313,6 +396,38 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
             ),
         );
         return Ok(report);
+    }
+    // OW-WAR-0137: on a Warrant whose authorizer signed an assignment, only
+    // the assigned resolver's response is taken — whether it records a
+    // resolution or supplies the signature a recorded one lacks — and an
+    // assignment that is not the one signed lets nobody resolve. Checked
+    // before either path writes anything. Unassigned Warrants skip this.
+    match crate::authorize::assignment_standing(repo, &dir)?
+        .for_act(crate::authorize::assignment::Act::Resolve)
+    {
+        Ok(None) => {}
+        Ok(Some(assigned)) if assigned.contains(&response.resolved_by) => {}
+        Ok(Some(assigned)) => {
+            refuse(
+                &mut report,
+                "resolution.not-assigned",
+                format!(
+                    "{alias}: {:?} is not the assigned resolver; the assignment the authorizer \
+                     signed names {}. An assignment narrows who may resolve",
+                    response.resolved_by,
+                    assigned.join(", ")
+                ),
+            );
+            return Ok(report);
+        }
+        Err(finding) => {
+            refuse(
+                &mut report,
+                finding.rule,
+                format!("{alias}: {}", finding.message),
+            );
+            return Ok(report);
+        }
     }
     if dir.join("resolution.toml").is_file() {
         // One narrow exception to "a resolution is written once": the recorded
@@ -387,6 +502,15 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
                 response.contract_digest, bound.contract_digest
             ),
         );
+        return Ok(report);
+    }
+
+    // OW-ADR-0029: a Warrant authorized through a standing class is resolved
+    // by a human, always. §27.3's policy-service path is refused by name,
+    // before anything else about the resolution is judged, so the refusal
+    // does not depend on whether the thirteen happen to be met.
+    if let Some(why) = crate::resolve::standing_needs_human(repo, &dir, &response.resolved_by)? {
+        refuse(&mut report, "resolve.standing-needs-human", why);
         return Ok(report);
     }
 
@@ -523,18 +647,34 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
         return Ok(report);
     }
 
+    let declared: Vec<String> = repo
+        .load_deliverables(&dir)?
+        .records
+        .iter()
+        .map(|d| d.target_ref.clone())
+        .collect();
     let record = ResolutionRecord {
         schema: RECORD_SCHEMA.to_owned(),
         warrant: alias.to_owned(),
         resolution,
+        locator: locate(&repo.root, &declared),
     };
-    let out = dir.join("resolution.toml");
+    if mode == crate::sign::IngestMode::DryRun {
+        report.push(Diagnostic::pass(
+            "resolution.would-record",
+            format!(
+                "{alias}: {} would be recorded against contract {}; the thirteen hold. Not written",
+                record.resolution.common_outcome, record.resolution.contract_digest
+            ),
+        ));
+        return Ok(report);
+    }
     let body = toml::to_string_pretty(&record)
         .map_err(|e| RepoError::Message(format!("could not render the resolution: {e}")))?;
-    std::fs::write(&out, body).map_err(|source| RepoError::Io {
-        context: format!("could not write {out}"),
-        source,
-    })?;
+    if let Err(refused) = crate::compile::atomic::write_if(&out, body, &before) {
+        report.push(refused.diagnostic());
+        return Ok(report);
+    }
     if let Some(v) = &one.validated {
         crate::journal_cmd::record(
             &dir,
@@ -569,6 +709,7 @@ pub fn check(
     current_contract_digest: Option<&str>,
     report: &mut Report,
 ) {
+    check_disputes(repo, warrant_dir, alias, report);
     let path = warrant_dir.join("resolution.toml");
     match repo.load_resolution(warrant_dir) {
         Ok(None) => {}
@@ -608,5 +749,141 @@ pub fn check(
             repo.relative(&path),
             format!("{alias}: {e} — an unreadable resolution is not an absent one"),
         )),
+    }
+}
+
+/// OW-WAR-0136 — standing read from disputes, never written into the record.
+///
+/// A resolution with an open dispute is `resolution.disputed`: the record is
+/// true history and is not relied on while the dispute stands. A dispute
+/// counts only when the invalidation that wrote it counts — its response
+/// signed by a human holding `resolver` who is not the performer
+/// ([`crate::invalidation::counted_record`]) — and lists this file at the
+/// digest it has now. Anything else is an error on the dispute, and the
+/// resolution's standing is what the resolution says: an unsigned
+/// invalidation never counts.
+pub fn check_disputes(repo: &Repository, warrant_dir: &Utf8Path, alias: &str, report: &mut Report) {
+    let disputes = crate::invalidation::load_disputes(warrant_dir);
+    if disputes.is_empty() {
+        return;
+    }
+    let resolution = repo.load_resolution(warrant_dir).ok().flatten();
+    for (path, parsed) in disputes {
+        let rel = repo.relative(&path);
+        let record = match parsed {
+            Ok(r) => r,
+            Err(e) => {
+                report.push(Diagnostic::error(
+                    "resolution.dispute-malformed",
+                    rel,
+                    format!("{alias}: {e} — an unreadable dispute is not an absent one"),
+                ));
+                continue;
+            }
+        };
+        if record.schema != crate::invalidation::DISPUTE_SCHEMA
+            || record.warrant != alias
+            || record.status != crate::invalidation::OPEN
+        {
+            report.push(Diagnostic::error(
+                "resolution.dispute-malformed",
+                rel,
+                format!(
+                    "{alias}: a dispute is {} of this Warrant with status {:?}; this one is {:?} \
+                     of {:?} with status {:?}. Closing a dispute is a later act, never an edit",
+                    crate::invalidation::DISPUTE_SCHEMA,
+                    crate::invalidation::OPEN,
+                    record.schema,
+                    record.warrant,
+                    record.status
+                ),
+            ));
+            continue;
+        }
+        if let Err(e) = record.dispute.validate() {
+            report.push(Diagnostic::error(
+                "resolution.dispute-malformed",
+                rel,
+                format!("{alias}: §56.4 — {e}"),
+            ));
+            continue;
+        }
+        let Some(resolution) = &resolution else {
+            report.push(Diagnostic::error(
+                "resolution.dispute-orphan",
+                rel,
+                format!("{alias}: disputes a resolution, and {alias} has none"),
+            ));
+            continue;
+        };
+        if record.dispute.challenged_resolution != resolution.resolution.id {
+            report.push(Diagnostic::error(
+                "resolution.dispute-orphan",
+                rel,
+                format!(
+                    "{alias}: disputes {} and the resolution on record is {}",
+                    record.dispute.challenged_resolution, resolution.resolution.id
+                ),
+            ));
+            continue;
+        }
+        let invalidation = match crate::invalidation::counted_record(repo, &record.gate) {
+            None => Err(format!(
+                "it names {} and no invalidation of {} is recorded",
+                record.invalidation, record.gate
+            )),
+            Some(r) => r,
+        };
+        let invalidation = match invalidation {
+            Ok(i) => i,
+            Err(why) => {
+                report.push(Diagnostic::error(
+                    "resolution.dispute-unsigned",
+                    rel,
+                    format!(
+                        "{alias}: this dispute does not count, and the resolution stands as \
+                         recorded — {why}"
+                    ),
+                ));
+                continue;
+            }
+        };
+        let now = std::fs::read(&path)
+            .map(|b| format!("sha256:{}", openwarrant_compiler::sha256_hex(&b)))
+            .unwrap_or_default();
+        match invalidation.disputes.iter().find(|d| d.path == rel) {
+            None => report.push(Diagnostic::error(
+                "resolution.dispute-unlisted",
+                rel,
+                format!(
+                    "{alias}: {} does not list this dispute; a dispute the signed invalidation \
+                     did not write does not count",
+                    record.invalidation
+                ),
+            )),
+            Some(d) if d.sha256 != now || d.warrant != alias => {
+                report.push(Diagnostic::error(
+                    "resolution.dispute-edited",
+                    rel,
+                    format!(
+                        "{alias}: {} recorded this dispute at {} and it is now {now} — edited \
+                         after it was written",
+                        record.invalidation, d.sha256
+                    ),
+                ));
+            }
+            Some(_) => report.push(Diagnostic::warn(
+                "resolution.disputed",
+                rel,
+                format!(
+                    "{alias}: resolution {} is disputed ({}, open): {}. Reliance: {} \
+                     resolution.toml is unchanged; standing is read from the dispute",
+                    resolution.resolution.id,
+                    record.dispute.id,
+                    record.dispute.grounds,
+                    record.dispute.reliance_policy
+                ),
+            )),
+        }
     }
 }

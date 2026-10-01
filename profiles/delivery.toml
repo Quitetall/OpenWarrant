@@ -1,0 +1,21 @@
+# The delivery profile (SAS §16.3), as data (OW-WAR-0140).
+#
+# A core profile: §16.3 fixes its roles, and this file restates them. The
+# registry refuses a copy that differs, so a program cannot loosen `delivery`
+# by editing this file. A new profile EXTENDS a core one; see docs/PROFILES.md.
+schema = "oh.war/profile/v1"
+name = "delivery"
+core = true
+note = "Delivery of a bounded intervention: intent, basis, work order, milestones, assurance."
+
+# §16.3, in §16.1's canonical order. `control` and `relations_and_integrity`
+# are compiler-produced: required, and never authored in a manifest.
+required_roles = [
+    "control",
+    "intent",
+    "basis",
+    "work_order",
+    "milestones",
+    "assurance",
+    "relations_and_integrity",
+]

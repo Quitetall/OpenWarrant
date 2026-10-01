@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty, plants is empty, and obligation_evidence for OBL-001 lists no named_paths and no terms. The sole gate run, GR-software.repo.war-check@1.0.0, is a repository-wide structural/record check whose own stdout explicitly states 'war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' and its PASS/WARN lines (manifest.valid, traceability.refs, journal.append-only, authority.signed, sas.pin-superseded, etc.) concern Warrant record structure, not a typed SDK/provider request/result, source-set selection, dependency closure, or conflict/access-refusal exercise. Nothing in the bundle exercises or observes the OBL-001 scoped behavior, so it cannot be decided."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

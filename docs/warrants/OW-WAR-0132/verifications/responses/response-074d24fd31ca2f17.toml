@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0132"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, 1214 passed/0 failed) shows stdout lines that exactly match the five hd_ok assertions written in conformance/plants.d/52-hotline-defaults.sh (D-006): 'a blocking question blocks STAGE-001 blocked waiting_on Q-001; STAGE-002 open', 'perform on a question-blocked stage rejected by perform.question-open (Q-001); no marker, no Dispatch', '--all performs the other stage STAGE-002 answered; STAGE-001 not started', 'a non-blocking question STAGE-001 open and performed despite Q-001', and 'an answered question unblocks STAGE-001 open after Q-001 answered; performed'. These correspond one-to-one to OBL-001's four evidence bullets (frontier blocking with waiting_on, perform.question-open refusal with no spawn, --all performing the independent stage, non-blocking exemption, and unblocking after answer). The plant script's own comment explains it uses a scratch Warrant HD-WAR-0002 'of the same shape' as OW-WAR-0068 rather than OW-WAR-0068 itself, which is consistent with the obligation's stated scope of 'a scratch corpus, over OW-WAR-0068's open agent stages'. The mechanism is also visible in the carried deliverables: frontier.rs (D-001) computes StageState::Blocked with waiting_on including open blocking question ids, and perform.rs (D-002, hotline_admitted at lines 881-935) emits the perform.question-open refusal before compiling a Dispatch. All required evidence is directly shown, not merely asserted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh, carried in full, truncated:false) implements both OBL-003 checks under its '# ---- OBL-003 ---' section: the 'a contract-only receipt' scenario reseals a contract-only receipt on scratch Warrant ER-WAR-0001 and asserts `war check` exits 0 while printing 'WARN evidence.reuse-unknown ... names no tree', with no evidence.admissible/receipt-invalid/stale-binding line and `resolve --dry-run` still reporting requirement 5 unmet; the 'resolved history is untouched' scenario hashes every `resolution.toml` in this repository before and after running `war --json check` and `war check OW-WAR-0010`, asserting byte-identical hashes, no new error or reuse-unknown diagnostic on any resolved Warrant, and OW-WAR-0010 printing 'evidence.admissible ... resolved: the source is not re-evaluated'. The recorded gate run GR-ops.conformance.plants@1.1.0 (sealed receipt, verdict pass, exit_result pass) directly confirms both ran and passed: its stdout excerpt (lines 365-383) shows 'ok    a contract-only receipt            evidence.reuse-unknown, a warning (check exits 0); requirement 5 unmet' and 'ok    resolved history is untouched      no error or reuse-unknown on a resolved Warrant; resolution.toml bytes unchanged', followed by the battery's zero-failure tally '1270 passed, 0 failed' at commit bb2f6c1b. The second gate run, GR-software.repo.war-check@1.0.0, additionally shows 'PASS evidence.admissible OW-WAR-0133: ops.conformance.plants@1.1.0 · required pass, receipt reseals and is bound to the current contract and to its source', establishing that the gate run producing this stdout is itself current rather than a stale record. Together these satisfy both evidence bullets within OBL-003's stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

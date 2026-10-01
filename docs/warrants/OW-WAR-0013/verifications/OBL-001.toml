@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The unit tests in traceability.rs, such as 'the_sas_example_identifiers_parse' and 'a_roadmap_ref_parses_with_and_without_a_slug', all pass, demonstrating that sas:// and roadmap:// references are parsed and resolved correctly against the defined grammars."
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-core/src/traceability.rs) implements RequirementRef::parse and RoadmapRef::parse, which validate only the URI grammar (uppercase prefix, zero-padded number / phase 0..10 and slug charset) as shown by tests like the_sas_example_identifiers_parse and a_roadmap_ref_parses_with_and_without_a_slug — none of this checks the parsed identifier against a §106 requirement index or the Production Roadmap, which is exactly the 'blocking unknown' left open in atoms/20-basis.md ('whether OpenWarrant parses §106 out of the Markdown, or requires a generated index'). The only related gate line, 'PASS traceability.refs OW-WAR-0013: 1 requirement ref(s) and 1 roadmap ref(s) parse' in the software.repo.war-check@1.0.0 stdout, again reports parsing for a single Warrant, not existence-resolution against an index, and the obligation's scope ('every sas:// and roadmap:// ref in this repository') is far broader than that. No §106 index or resolution logic is present in the carried deliverable, so the claim cannot be established from this bundle."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

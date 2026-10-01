@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "Two clauses of revision 2 need lib.rs, which was not declared, so the performer delivered them in reach and escalated rather than widen the set: (1) OBL-001 names `war sign --batch --recover <id>`; recovery was reached as a target, `war sign --batch recover:<id>`, because the flag is clap's, in lib.rs. (2) OBL-003's evidence says `compat.war-too-old` exits 2; a refusal at repository discovery comes back as a bare error, which lib.rs maps to exit 1. Both are one-line changes in lib.rs. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-69.4"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-013, crates/openwarrant-cli/src/lib.rs: the --recover flag (the recover:<id> target stays as an alias), and exit 2 for compat.war-too-old. Revision 3 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-24"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-012."
+    after: "Also D-013: crates/openwarrant-cli/src/lib.rs, the --recover flag and exit 2 for compat.war-too-old."
+
+affected_stages: []
+affected_milestones: []

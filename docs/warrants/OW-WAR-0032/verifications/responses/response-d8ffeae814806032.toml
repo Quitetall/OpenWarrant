@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0032"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty, so no generated JSON Schema, IR/manifest/Dispatch/Submission/gate schema files, or corpus-validation output tied to OW-WAR-0032 is present. The single gate run (GR-software.repo.war-check@1.0.0, receipt sha256:75e48307...) has a truncated stdout whose visible tail covers only OW-WAR-0138 through OW-WAR-0147 manifest/obligation/journal checks and unrelated doc-drift checks (CURRENT.md, HISTORY.md, CORPUS_STATUS.*); nothing in the shown text validates generated JSON Schema against any corpus. obligation_evidence lists no named_paths or terms for OBL-001 at all, so nothing was carried to decide this."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 names the term 'FormatBasis.digest' but shows it with empty shown_in and empty cut_from — it was never included in the bundle, not even partially. deliverables is empty, so FormatBasis.toml/lock or the assembled pack cannot be inspected, and the gate run's visible stdout tail (OW-WAR-0138–0147 checks) contains no mention of FormatBasis or a pack digest. There is no basis in this bundle to compare a pinned digest against an assembled pack."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires evidence of a plant editing a generated schema by hand and being refused, but the bundle's plants array is empty — no such plant, its output, or a refusal record is present anywhere in the bundle. The gate run stdout tail does not reference a generated-schema hand-edit plant (it discusses unrelated manifest/journal/authority checks for other warrants). No drift-check-on-hand-edit evidence exists in this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "deliverables is empty, so no generated TypeScript type files or KF source importing them are present in the bundle. The only gate evidence (GR-software.repo.war-check@1.0.0) shows a truncated stdout tail covering OW-WAR-0138–OW-WAR-0147 and repo-wide meta-checks (identity, ADR, SAS), with no line addressing TypeScript generation or KF's imports per §83.4. This matches the absence already noted in obligation_evidence, which lists no named_paths or terms for OBL-004."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

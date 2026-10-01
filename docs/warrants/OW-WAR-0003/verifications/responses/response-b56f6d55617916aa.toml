@@ -1,0 +1,97 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0003"
+
+[[verifications]]
+obligation = "OBL-000"
+disposition = "not_established"
+evidence = "ADR atoms/OW-ADR-0001-canonical-json-implementation.md is present, marked status: accepted, decided 2026-08-19, naming serde_jcs 0.2, and canonical.rs calls serde_jcs::to_vec/to_string, matching the decision. But OBL-000's evidence also requires 'cargo deny check licenses' passing with the crate in the graph; obligation_evidence shows the term 'cargo deny check licenses' shown only in atoms (the assurance atom's residual-risk prose), never in gate output. The sole gate run GR-software.repo.war-check@1.0.0 is `war check --generated`, whose stdout's NOT CHECKED section does not mention cargo-deny, and no Cargo.toml/Cargo.lock or deny-tool output is carried. No merge evidence (e.g. a PR/commit record) beyond the ADR atom itself is present either."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-001 explicitly states the named path 'docs/warrants/' is absent: 'a repository path that is not a deliverable of OW-WAR-0003: not carried' — so the bundle does not carry the five Warrants under the delivery profile that this obligation is scoped to. ir.rs pins API_VERSION/KIND and lower.rs assigns them (test api_version_and_kind_are_pinned, D-001), but that test runs against a synthetic fixture in ir.rs's own test module, and lower.rs's tests (lowering_is_deterministic etc.) use a single fabricated manifest, not the five real docs/warrants/ Warrants. The gate run GR-software.repo.war-check@1.0.0 shows generated.drift PASS and other checks over the whole repository corpus, and its NOT CHECKED section states '`war check` does not invoke [gates]' and is a record-only well-formedness check, not evidence that lowering was executed against the specific five delivery-profile Warrants named by the scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "canonical.rs's official_rfc8785_vectors test reads external vectors from conformance/rfc8785/ and asserts byte equality, which is the right design per the obligation's evidence requirement, but the vector files themselves are not carried in the bundle and no test-execution output (pass/fail) for this test is shown anywhere. The only gate run present, GR-software.repo.war-check@1.0.0 (`war check --generated`), explicitly disclaims running gates/tests in its NOT CHECKED section, and obligation_evidence lists no terms shown for OBL-002 at all."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "digest.rs's every_domain_pair_yields_a_distinct_digest test would check the full pairwise set the obligation demands (105 pairs for 15 domains, though DigestDomain::ALL now enumerates 16 named domains including VerificationBundle), and domain_uris_are_unique enforces distinct URIs at the type level, but no test-run output is in the bundle to show these assertions actually executed and passed. The single gate run is `war check --generated`, which per its own NOT CHECKED section does not execute gates or tests, and obligation_evidence lists no terms carried for OBL-003."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The obligation's scope requires two runs differing in process, working directory, environment ordering, and locale. The only relevant tests in the bundle — canonical_output_is_stable_across_two_computations (D-002), digests_are_stable_across_runs (D-002), and lowering_is_deterministic (D-004) — compute both values inside a single process/environment, varying none of the required dimensions, and no execution output for any of them is shown. Atom atoms/60-assurance.md itself states the 'known limitation' that 'two hosts is satisfied here by two runs on one machine' and that OBL-004 'must not be read as proving cross-platform canonicalization,' confirming the bundle carries no evidence of the cross-process/cross-environment comparison the obligation names."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

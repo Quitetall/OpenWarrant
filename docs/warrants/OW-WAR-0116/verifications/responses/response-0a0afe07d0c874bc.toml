@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0116"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "GR-ops.conformance.plants@1.1.0 (verdict pass) carries both 63-webui.sh (D-011) and 63-webui-verified.sh (D-012) results, together covering every named clause of OBL-001's evidence: 'an API call without the token' 401 and 'with a wrong token' 401 (D-011); 'a foreign Host (DNS rebinding)' 400 (D-011); 'a foreign Origin' 403 and 'an act with no Origin' 403 (D-011); every non-GET/POST method on /api/act 405, shown both generically in D-011 ('an act by a non-POST method 405') and explicitly for PUT and DELETE in D-012; the GET /api/act clause is directly closed by D-012's 'the act state without the token 401' plus 'a GET on /api/act only reads {\"state\":\"idle\"} 200, twice; no act started' (its own WU_ACTS counter of logged '^war ui: act ' lines is 0); 'an oversized request' 431 (D-011); the CSP check 'no unsafe-inline, frame-ancestors none' (D-011), corroborated by the CSP constant and the_csp_allows_no_inline_code test named in D-001; 'bound to loopback 127.0.0.1:<port> only' via ss (D-011), matching the obligation's '/proc/net/tcp or ss' alternative; and the source grep 'no key, socket or signing call' (D-011), whose pattern (ssh-keygen|SSH_AUTH_SOCK|sign::run|ssh_sign_file|authorize::ingest|resolution_cmd::ingest) covers the obligation's named terms. The stdout's self-referential line 'one file held by its bytes 63-webui.sh at 0397209b runs' ties this run directly to D-011's own sha256 (0397209b30e60b7…), confirming the exact current plant deliverable was executed, which resolves the otherwise unexplained mismatch between this gate run's subject_digests contract hash (d0c959f7…) and the bundle's authorized_contract_digest (47ce387b…) as most plausibly an atoms-only amendment (AM-001/AM-002, noted in the software.repo.war-check@1.0.0 run) rather than a difference in the tested code. obligation_evidence confirms every literal term (/api/act, unsafe-inline, frame-ancestors 'none', ssh-keygen, SSH_AUTH_SOCK) is shown with no cut_from truncation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

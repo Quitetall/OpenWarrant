@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0135"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (subject_digests include contract:sha256:da9d7ca9...093092f1, matching authorized_contract_digest; verdict pass) ran conformance/plants.d/57-assurance-mark.sh (D-005), whose OBL-005 block records the OBL-002 mark on the scratch Warrant (mk_war mark \"$MK_A\" --record → 'an earned mark is recorded ... mark-v1.json written') and then exercises `--verify` through the mk_stale/mk_ok helpers. The stdout excerpt at lines 483-511 shows, unredacted and un-truncated for this section, all three required behaviors passing: 'an unchanged mark verifies ... mark.verified (exit 0)' (the control against an always-failing --verify), 'an edited resolution ... mark.stale names `resolution` (exit 2)', and 'an in-scope change ... mark.stale names `candidate` (exit 2)' — plus an extra out-of-scope-change control and a hand-edited-mark control, both also passing. D-002 (mark.rs)'s `verify` function implements exactly this behavior (it labels the moved binding 'candidate' when the failing check is `acceptance.unchanged`, matching BL-005), and D-006 (ASSURANCE_MARK.md) documents the same three cases. The plant's labels and the gate run's printed 'ok' lines correspond one-to-one with the obligation's three evidence bullets, so the bundle itself — not just the prior agent verdict — shows the claim holds."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,16 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The bundle carries what each gate printed"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "bundle.rs gate output; 47-bundle-output.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 6000

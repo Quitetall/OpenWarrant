@@ -1,0 +1,19 @@
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0's stdout confirms four of the five evidence clauses via plant conformance/plants.d/97-tui.sh (D-034): 'no terminal, no app exit 2, tui.no-tty, usage, names war status --json, no escape' (bare `war </dev/null`), 'war tui from a pipe exit 2, tui.no-tty', 'war --json refuses by name exit 2, tui.json, names war console/status --json' and the same for `war tui --json`, and 'war --json sdk --request - an envelope (exit 1), not usage, not the app'. The fifth clause — 'every embedded document renders in the Help pane without panic' — exists only as a unit test declared in D-030 (tui/mod.rs, `every_embedded_document_renders_in_the_help_pane`, doc-commented as OBL-006 evidence); no gate run in the bundle (ops.conformance.plants@1.1.0, a shell-based conformance battery, or software.repo.war-check@1.0.0, which only runs `war check --generated`) executes cargo's test suite or reports this test's pass/fail, and D-034's own plant only checks that docs/TUI.md names the nine panes, not that documents render without panicking. Additionally, the only pty-based demonstration that the app actually opens at a terminal is 'a panic restores the terminal' using `war tui --panic-after-setup` (D-034), which exercises `war tui` by name rather than bare `war` with no arguments; that the two share a code path is asserted only in source comments (D-031, D-030), not shown by a terminal run of bare `war`. With part of the obligation's own required evidence unconfirmed by any gate output, the bundle does not establish OBL-006 in full."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

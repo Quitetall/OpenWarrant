@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No independent reproduction/review, baseline-condition record, or secure human-acceptance record for OW-WAR-0085's exact result appears in the bundle; prior_verifications are all 'not_established' for OBL-001/002 which OBL-003 depends on. The war-check gate stdout explicitly states '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' and flags outstanding remedy 'human war sas repin OW-WAR-0085', confirming no qualification/acceptance evidence exists."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

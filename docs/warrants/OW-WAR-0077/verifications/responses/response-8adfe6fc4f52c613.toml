@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0077"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists no named_paths or terms, so no source-identity/snapshot/reference codec output (crates/openwarrant-core/src/document/source.rs) or typed provider-resolution response against source snapshots is shown anywhere in the bundle. The sole gate run, GR-software.repo.war-check@1.0.0, is a repo structural checker whose own stdout states under NOT CHECKED that '`war check` does not invoke [a registered gate], so nothing here is evidence that a Warrant's acceptance gates were run.' 60-assurance.md itself declares these observations 'NOT RUN until attached evidence proves them,' and no such evidence is attached, so the scoped SDK/provider behavior cannot be shown to hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "plants is an empty array and deliverables is empty, so no observed refusal for malformed/incomplete/conflicting/over-limit/authority-confused inputs at the SDK/provider boundary is carried by this bundle. The only gate run present (GR-software.repo.war-check@1.0.0) is a generic manifest/journal/traceability checker, not a boundary-refusal test of the source/provider code, and 60-assurance.md explicitly warns 'Unknown observations cannot pass.' No fixture or conformance output demonstrating a refusal exists in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review plus secure human acceptance of the exact result, conditioned on OBL-001/002, neither of which is supported by any evidence in this bundle. prior_verifications contains only prior agent-verifier verdicts (all not_established), not a secure human acceptance record of this exact result, and the current bundle adds no new deliverable or plant evidence. Qualification of the result therefore cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The gate run GR-software.repo.war-check@1.0.0 shows verdict 'pass' with PASS lines for manifest.valid, obligations.valid, milestones.valid and identity.atom-mismatch, but the same stdout also carries 'WARN evidence.stale-binding ... the receipt names tree:e54ccac17a000db9430a08ded5ae9ad1923067b0 and 33 path(s) ... have changed since ... a run over an earlier source is a record, not evidence about this one' pointing at the very run.toml receipt embedded in this bundle — a tree hash that does not match the receipt's own subject_digests tree (9729d66838274661a8b7382db6ef1108887babec). The tool itself thus disclaims that this run's output is current evidence. Additionally OBL-004's stated evidence requires 'structural check and existing planted refusals,' but plants is empty here, so the planted-refusal component of the obligation's evidence is entirely absent, leaving structural validity not established from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

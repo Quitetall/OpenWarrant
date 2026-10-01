@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverable content or plant transcript is carried (deliverables: []); the sole gate run's stdout excerpt is generic (manifest.valid, journal.append-only, etc.) and does not mention `war correct`, an agent-signed correction, or its refusal. The same stdout explicitly states 'WARN assurance.executed-attacks ... the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; recorded here when run is a plan, not evidence' — a direct statement that no plants, including the agent-signature plant this obligation requires, have been run. There is nothing to establish or refute the claim from."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

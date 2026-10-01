@@ -89,16 +89,83 @@ pub fn parse(text: &str) -> Result<Journal, String> {
     Ok(journal)
 }
 
-/// The Warrant's journal, empty when the file is absent.
+/// An incomplete final write (OW-WAR-0121): the last line has no newline and
+/// does not parse. Only that shape is a torn tail. A bad line with a newline
+/// after it, anywhere, is `journal.malformed` — it was written whole, and
+/// something else is wrong with it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TornTail {
+    /// The byte offset where the unfinished line starts: the file's length
+    /// after `truncate -s <offset>`, which keeps every complete line.
+    pub offset: usize,
+    /// How many bytes the unfinished line holds.
+    pub len: usize,
+    /// The 1-based line number of the unfinished line.
+    pub line: usize,
+}
+
+impl TornTail {
+    /// The message `war check` and a refused append both give, naming the
+    /// exact truncation that removes only the unfinished bytes. `path` is
+    /// spelled as the caller wants the operator to type it.
+    #[must_use]
+    pub fn describe(&self, path: &str) -> String {
+        format!(
+            "journal.torn-tail: line {} ({} byte(s) from offset {}) is an incomplete final \
+             write — no newline, and it does not parse. Every line before it is whole. \
+             `truncate -s {} {path}` removes only the unfinished bytes; war does not run it \
+             for you (OW-WAR-0121 U-001)",
+            self.line, self.len, self.offset, self.offset
+        )
+    }
+}
+
+/// The torn tail of a journal's bytes, if it has one and every line before it
+/// parses. Bytes, not text: a write cut inside a multi-byte character leaves
+/// a tail that is not UTF-8, and that is still a torn tail.
+#[must_use]
+pub fn torn_tail(bytes: &[u8]) -> Option<TornTail> {
+    if bytes.is_empty() || bytes.ends_with(b"\n") {
+        return None;
+    }
+    let offset = bytes.iter().rposition(|&b| b == b'\n').map_or(0, |i| i + 1);
+    let last = &bytes[offset..];
+    if last.iter().all(u8::is_ascii_whitespace)
+        || serde_json::from_slice::<JournalEvent>(last).is_ok()
+    {
+        return None;
+    }
+    // A bad line earlier is malformed whatever the tail looks like, so the
+    // tail is only named when the rest stands.
+    let head = std::str::from_utf8(&bytes[..offset]).ok()?;
+    parse(head).ok()?;
+    Some(TornTail {
+        offset,
+        len: last.len(),
+        line: head.matches('\n').count() + 1,
+    })
+}
+
+/// The Warrant's journal, empty when the file is absent. A torn tail is an
+/// error naming `journal.torn-tail`, never silently dropped: the journal is
+/// read as it is, and repairing it is a person's act.
 pub fn load(warrant_dir: &Utf8Path) -> Result<Journal, RepoError> {
     let path = warrant_dir.join(FILE);
     if !path.is_file() {
         return Ok(Journal::default());
     }
-    let text = std::fs::read_to_string(&path).map_err(|source| RepoError::Io {
+    let bytes = std::fs::read(&path).map_err(|source| RepoError::Io {
         context: format!("could not read {path}"),
         source,
     })?;
+    if let Some(torn) = torn_tail(&bytes) {
+        return Err(RepoError::Message(format!(
+            "{path}: {}",
+            torn.describe(path.as_str())
+        )));
+    }
+    let text = String::from_utf8(bytes)
+        .map_err(|e| RepoError::Message(format!("{path}: not UTF-8 ({e})")))?;
     parse(&text).map_err(|e| RepoError::Message(format!("{path}: {e}")))
 }
 
@@ -130,20 +197,118 @@ pub fn event(
     }
 }
 
-/// Append one event, now, and write ONLY the new line. Refuses a duplicate
-/// idempotency key. Errors are returned, never swallowed: a command whose
-/// effect was recorded but whose journal line was not is a command that
-/// partially happened, and the caller decides what that means.
+/// What [`record`] did (OW-WAR-0130).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Recorded {
+    /// A new line was appended.
+    Recorded,
+    /// The journal already held this key, by this actor: nothing was written.
+    Replayed,
+}
+
+/// What the journal already holds for one event, before a command writes
+/// anything (§67.4). The key is the idempotency key's own preimage — the
+/// event type and payload of this Warrant's journal — so "the same fact" is
+/// decided exactly as [`event`] decides it, never by a second rule.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Prior {
+    /// Not recorded: the act is new.
+    Fresh,
+    /// Recorded by this same actor: an equivalent retry, which replays.
+    Equivalent { occurred_at: String },
+    /// Recorded by someone else: a conflicting reuse of the key, refused.
+    Conflict { recorded_by: String },
+}
+
+/// Whether `event_type` with `payload` is already in the Warrant's journal,
+/// and by whom. A command asks this before its FIRST write, so a retry that
+/// replays writes nothing at all and a conflicting one is refused with
+/// nothing written. A journal that cannot be read is an error, not `Fresh`.
+pub fn already_recorded(
+    warrant_dir: &Utf8Path,
+    event_type: &str,
+    payload: &str,
+    actor_ref: &str,
+) -> Result<Prior, RepoError> {
+    let journal = load(warrant_dir)?;
+    let Some(prior) = journal
+        .events
+        .iter()
+        .find(|e| e.event_type == event_type && e.payload == payload)
+    else {
+        return Ok(Prior::Fresh);
+    };
+    if prior.actor_ref == actor_ref {
+        Ok(Prior::Equivalent {
+            occurred_at: prior.occurred_at.clone(),
+        })
+    } else {
+        Ok(Prior::Conflict {
+            recorded_by: prior.actor_ref.clone(),
+        })
+    }
+}
+
+/// The refusal for a conflicting reuse: the rule, then who holds the key.
+#[must_use]
+pub fn conflict_message(
+    event_type: &str,
+    recorded_by: &str,
+    actor_ref: &str,
+    file: &Utf8Path,
+) -> String {
+    format!(
+        "journal.idempotency-conflict: {file} already records `{event_type}` with this exact \
+         payload by {recorded_by}, and this act is {actor_ref}. The same fact recorded by a \
+         second actor is a conflicting reuse of its idempotency key (§67.4), not a retry; \
+         nothing was written"
+    )
+}
+
+/// `journal.idempotency-conflict` as a diagnostic, for a command that
+/// reports rather than returns its refusals.
+#[must_use]
+pub fn conflict(file: String, event_type: &str, recorded_by: &str, actor_ref: &str) -> Diagnostic {
+    let message = conflict_message(event_type, recorded_by, actor_ref, Utf8Path::new(&file));
+    Diagnostic::error(
+        "journal.idempotency-conflict",
+        file,
+        message.trim_start_matches("journal.idempotency-conflict: "),
+    )
+}
+
+/// Append one event, now, and write ONLY the new line.
+///
+/// OW-WAR-0130 (§67.4): the same key by the same actor is an equivalent
+/// retry and returns [`Recorded::Replayed`] having written nothing; the same
+/// key by a different actor is refused `journal.idempotency-conflict`.
+/// Errors are returned, never swallowed: a command whose effect was recorded
+/// but whose journal line was not is a command that partially happened, and
+/// the caller decides what that means. A command should ask
+/// [`already_recorded`] before its first write, so that it never reaches
+/// here with a conflict after writing its record.
 pub fn record(
     warrant_dir: &Utf8Path,
     warrant_uuid: &str,
     event_type: &str,
     actor_ref: &str,
     payload: &str,
-) -> Result<(), RepoError> {
+) -> Result<Recorded, RepoError> {
+    match already_recorded(warrant_dir, event_type, payload, actor_ref)? {
+        Prior::Equivalent { .. } => return Ok(Recorded::Replayed),
+        Prior::Conflict { recorded_by } => {
+            return Err(RepoError::Message(conflict_message(
+                event_type,
+                &recorded_by,
+                actor_ref,
+                &warrant_dir.join(FILE),
+            )));
+        }
+        Prior::Fresh => {}
+    }
     let occurred_at = crate::gate_cmd::receipt::rfc3339_from_secs(now_secs());
     let ev = event(warrant_uuid, event_type, actor_ref, &occurred_at, payload);
-    append(warrant_dir, ev)
+    append(warrant_dir, ev).map(|()| Recorded::Recorded)
 }
 
 fn append(warrant_dir: &Utf8Path, ev: JournalEvent) -> Result<(), RepoError> {
@@ -167,6 +332,12 @@ fn append(warrant_dir: &Utf8Path, ev: JournalEvent) -> Result<(), RepoError> {
         .map_err(|e| RepoError::Message(format!("could not render the event: {e}")))?;
     use std::io::Write;
     let path = warrant_dir.join(FILE);
+    // A last line written whole but without its newline (by hand, or by an
+    // older tool) parsed above; appending straight after it would fuse two
+    // events into one bad line, so the newline is supplied first.
+    let needs_newline = std::fs::read(&path)
+        .map(|b| b.last().is_some_and(|&c| c != b'\n'))
+        .unwrap_or(false);
     let mut f = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -175,10 +346,16 @@ fn append(warrant_dir: &Utf8Path, ev: JournalEvent) -> Result<(), RepoError> {
             context: format!("could not open {path}"),
             source,
         })?;
-    writeln!(f, "{line}").map_err(|source| RepoError::Io {
-        context: format!("could not append to {path}"),
-        source,
-    })
+    let lead = if needs_newline { "\n" } else { "" };
+    // One write of the whole line, then fsync (OW-WAR-0121): an append that
+    // returned is on disk, and one cut short is a torn tail `war check`
+    // names, not a silent loss.
+    f.write_all(format!("{lead}{line}\n").as_bytes())
+        .and_then(|()| f.sync_all())
+        .map_err(|source| RepoError::Io {
+            context: format!("could not append to {path}"),
+            source,
+        })
 }
 
 /// The state a journal RECORDS, or `None` when it records nothing.
@@ -226,11 +403,38 @@ pub fn check(
     warrant_uuid: Option<&str>,
     report: &mut Report,
 ) {
+    // OW-WAR-0130: a batch killed between its first record and its last left
+    // a marker. Reported under each Warrant whose directory it lists, as an
+    // ERROR: this Warrant's records may hold part of a list nobody signed as
+    // a part. Here because `war check` runs this for every Warrant it checks.
+    for m in crate::batch_cmd::interrupted(repo) {
+        if m.1.roots.is_empty() || crate::batch_cmd::touches(repo, &m.1, warrant_dir) {
+            let mut d = crate::batch_cmd::interrupted_diagnostic(repo, &m);
+            d.message = format!("{alias}: {}", d.message);
+            report.push(d);
+        }
+    }
     let path = warrant_dir.join(FILE);
     if !path.is_file() {
         return;
     }
     let rel = repo.relative(&path);
+    // An incomplete final write is named as exactly that, with the truncation
+    // that removes only it (OW-WAR-0121). Nothing here truncates.
+    if let Ok(bytes) = std::fs::read(&path)
+        && let Some(torn) = torn_tail(&bytes)
+    {
+        report.push(Diagnostic::error(
+            "journal.torn-tail",
+            rel.clone(),
+            format!(
+                "{alias}: {} (the path is relative to the repository root)",
+                torn.describe(&rel)
+                    .trim_start_matches("journal.torn-tail: ")
+            ),
+        ));
+        return;
+    }
     let journal = match load(warrant_dir) {
         Ok(j) => j,
         Err(e) => {
@@ -492,5 +696,32 @@ mod tests {
                 .events
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn only_an_unterminated_unparseable_last_line_is_a_torn_tail() {
+        let a = serde_json::to_string(&event("u", DRAFT_CREATED, "a", "t", "{}")).unwrap();
+        let b = serde_json::to_string(&event("u", AUTHORIZATION_RECORDED, "a", "t", "{}")).unwrap();
+        let half = &b[..b.len() / 2];
+
+        let torn = torn_tail(format!("{a}\n{half}").as_bytes()).expect("torn tail");
+        assert_eq!(torn.offset, a.len() + 1);
+        assert_eq!(torn.len, half.len());
+        assert_eq!(torn.line, 2);
+        assert!(
+            torn.describe("j")
+                .contains(&format!("truncate -s {} j", a.len() + 1))
+        );
+
+        // Whole, terminated, unterminated-but-parseable: none is torn.
+        assert!(torn_tail(format!("{a}\n{b}\n").as_bytes()).is_none());
+        assert!(torn_tail(format!("{a}\n{b}").as_bytes()).is_none());
+        // The same bytes with a newline after them, or between good lines, are
+        // a malformed journal, not a torn one.
+        assert!(torn_tail(format!("{a}\n{half}\n").as_bytes()).is_none());
+        assert!(torn_tail(format!("{a}\n{half}\n{b}").as_bytes()).is_none());
+        assert!(parse(&format!("{a}\n{half}\n{b}\n")).is_err());
+        // A bad middle line and a torn tail: the middle line wins.
+        assert!(torn_tail(format!("{half}\n{a}\n{half}").as_bytes()).is_none());
     }
 }

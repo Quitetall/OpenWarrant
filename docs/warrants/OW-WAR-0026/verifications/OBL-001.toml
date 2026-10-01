@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The test 'seam::tests::the_receipt_holds_a_prompt_ir_digest_and_not_prompt_ir' passed, verifying that KatanaReceipt stores only a prompt_ir_digest and no PromptIR, as enforced by the design in crates/openwarrant-core/src/seam.rs."
+disposition = "refuted"
+evidence = "D-001 (crates/openwarrant-core/src/seam.rs, truncated: false, full 1061 lines, sha256 matches the whole file) is the sole carried deliverable and the only one obligation_evidence attaches to OBL-001. It defines no 'Dispatch' type and no function that compiles a Dispatch into a Katana request; its only §48-relevant type, KatanaReceipt, is validated on the consuming side (KatanaReceipt::validate), not produced from a Dispatch. atoms/40-work-order.md lists 'Dispatch → Katana request mapping' as deliverable #1, and the one deliverable shown does not contain it. The gate run GR-software.repo.war-check@1.0.0's own NOT CHECKED section states 'war check' does not invoke gates/tests, so it supplies no evidence of a mapping existing elsewhere. The claimed mapping does not hold in the evidence shown."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

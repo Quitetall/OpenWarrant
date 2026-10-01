@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = """D-002 (crates/openwarrant-cli/src/repo.rs) shows `header_mismatches` invoked only `if rel.ends_with(".md") && entry.role != "adr"`, matching OBL-001's stated scope of non-ADR .md atoms, and its unit tests (`each_key_is_named_with_both_values_or_as_missing`, `a_header_that_restates_its_manifest_entry_passes`) confirm it reports a missing-key message or a message naming both the found and expected value. D-003 (conformance/plants.d/57-grammar.sh) defines exactly the four plants the obligation names — G-H1 (role changed), G-H2 (warrant_uuid changed), G-H3 (order changed), G-H4 (schema removed) — via the `grammar()` helper, which asserts exit status 2, that rule `atom.header` fired, and that the detail string (naming both values or the missing key) is present. The gate run `ops.conformance.plants@1.1.0` (run_id GR-ops.conformance.plants@1.1.0, verdict pass, and separately marked `PASS evidence.admissible` by the software.repo.war-check@1.0.0 run as bound to the current contract/tree) shows the excerpted stdout (lines 513-562) with all four as `ok`: G-H1 'rejected by atom.header (header's `role` is "intent", but the manifest's role is "basis")', G-H2 naming both `warrant_uuid` values, G-H3 naming both `order` values ('21' vs '20'), and G-H4 'the header has no `schema`'. Together these show, for the scope stated, that a header disagreeing with its manifest is refused with the required key-and-values detail."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

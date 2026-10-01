@@ -1,0 +1,35 @@
+# The ticket profile (OW-WAR-0147), as data: the working form of a delivery
+# Warrant.
+#
+# A ticket is a sentence and a checklist: `war create`, `war claim`, `war done`.
+# It is workable the moment it exists, and nothing in it is a signature, a
+# verification or a resolution. That is what `form = "working"` says: a
+# record of this profile carries only the roles below, lives under
+# docs/tickets/ rather than docs/warrants/, and is never compiled, authorized,
+# verified or resolved as a ticket. A Warrant manifest that names this profile
+# is refused (`WorkingFormProfile`). When someone wants sign-off, `war promote`
+# turns the ticket into a `delivery` Warrant, which then requires every core
+# role of §16.3 exactly as `war new` does. The working form loosens nothing
+# the authority layer reads. docs/TICKETS.md walks the loop.
+schema = "oh.war/profile/v1"
+name = "ticket"
+extends = "delivery"
+
+# Nobody has approved this definition yet: the Warrant that introduces it
+# (OW-WAR-0147) is drafted and unsigned. A ticket does not need approval to
+# be worked — nothing about a ticket is accepted — so this flag gates nothing
+# on the ticket path; it records the definition's standing honestly.
+approved = false
+
+note = "The working form of a delivery Warrant: an intent (the sentence, context, decisions and notes) and a Markdown checklist. Worked with war create / ready / claim / done; promoted into delivery by war promote when someone wants sign-off."
+
+form = "working"
+core_roles = ["intent"]
+
+[[requires]]
+role = "ticket.checklist"
+ordinal = 15
+file = "15-checklist.md"
+stub = """# Checklist
+
+"""
