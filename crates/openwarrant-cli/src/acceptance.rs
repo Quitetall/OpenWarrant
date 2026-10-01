@@ -76,6 +76,8 @@ use serde::Serialize;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{RepoError, Repository};
 
+mod tree;
+
 pub const SCHEMA: &str = "oh.war/acceptance/v1";
 
 /// The rule an in-scope move reports under.
@@ -301,14 +303,15 @@ fn after(later: &str, earlier: &str) -> bool {
 /// re-established every declared obligation on, after the resolution. `None`
 /// when any obligation lacks such a verification at the candidate.
 fn reverified(
-    repo: &Repository,
+    candidate_tree: &tree::Snapshot,
     rel_dir: &str,
     one: &crate::repo::Loaded,
     recorded_at: &str,
     locator: &str,
     candidate: &str,
 ) -> Option<(String, String)> {
-    let root = &repo.root;
+    let repo = &candidate_tree.repository;
+    let root = &candidate_tree.history_root;
     let declared = crate::resolve::declared_obligations(one);
     if declared.is_empty() {
         return None;
@@ -323,6 +326,9 @@ fn reverified(
         candidate,
         &format!("{rel_dir}/{}", crate::journal_cmd::FILE),
     )?;
+    // Recompile and capture with the SAME subject routine, over exact Git
+    // candidate data. No contract digest is inferred from a generated view.
+    let candidate_subject = crate::verify::subject(repo, one).ok()?;
     // (obligation, record digest) ingested after the resolution was recorded.
     let mut ingested: Vec<(String, String)> = Vec::new();
     for line in String::from_utf8_lossy(&journal).lines() {
@@ -349,14 +355,13 @@ fn reverified(
         };
         // A later file write does not bind an old observation to a new
         // candidate. Legacy journal events remain history, never a re-review.
-        // Exact candidate/source comparison is the next subject-binding slice.
         let Some(reviewed) = payload
             .get("reviewed_subject")
             .and_then(|v| serde_json::from_value::<crate::verify::ReviewedSubject>(v.clone()).ok())
         else {
             continue;
         };
-        if reviewed.contract_digest.is_empty() {
+        if reviewed != candidate_subject {
             continue;
         }
         if let (Some(o), Some(d)) = (
@@ -456,6 +461,21 @@ pub fn assess(
             }
         }
     };
+    let candidate_tree = match tree::Snapshot::read(&root, &cand) {
+        Ok(tree) => tree,
+        Err(why) => {
+            report.push(Diagnostic::unknown(
+                UNKNOWN,
+                candidate.to_owned(),
+                format!(
+                    "candidate {}: exact source facts cannot be read: {why}",
+                    short(&cand)
+                ),
+            ));
+            return Ok((report, out));
+        }
+    };
+    let repo = &candidate_tree.repository;
     let registry = gate_inputs(repo);
     let warrants_dir = repo.config.paths.warrants.clone();
 
@@ -533,7 +553,7 @@ pub fn assess(
         }
 
         let from = match reverified(
-            repo,
+            &candidate_tree,
             &rel_dir,
             &one,
             &record.resolution.recorded_at,

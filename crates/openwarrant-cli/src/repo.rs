@@ -1397,7 +1397,7 @@ fn header_mismatches(
 /// directory means the two core profiles and nothing else. A definition the
 /// registry refuses refuses the repository: a Warrant of that profile would
 /// otherwise read as having an unknown profile, which is not what is wrong.
-fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
+pub(crate) fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
     let dir = root.join("profiles");
     if !dir.is_dir() {
         return Ok(ProfileRegistry::builtin());

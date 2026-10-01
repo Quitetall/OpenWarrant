@@ -3456,7 +3456,7 @@ The experimental portable bundle also carries exact required gate-definition and
 
 The configured wrapper reads one private copy of the supplied bundle and echoes its request subject. It must not recapture a newer subject after review, ask a model to invent the binding, or infer it when a legacy request has none.
 
-Before writing any verdict, ingestion rejects a response about a stale subject or undeclared obligation. Current preparation, resolution, progress and assurance-mark evaluation use the same qualification rule. Acceptance must not count unbound legacy journal events as re-review merely because they were recorded later. Git-candidate acceptance must also use the subject at that exact candidate, not whatever is in the current worktree; exact source comparison on that path remains unfinished.
+Before writing any verdict, ingestion rejects a response about a stale subject or undeclared obligation. Current preparation, resolution, progress and assurance-mark evaluation use the same qualification rule. Acceptance must not count unbound legacy journal events as re-review merely because they were recorded later. Git-candidate acceptance uses the same subject capture and compiler against exact candidate Git blobs, including its inventory and declared gate scope. A private data snapshot carries regular source bytes without running candidate code or activating a candidate-selected authority store. Bound observations must match this candidate subject. Full context/declared-input closure and the final gate remain unfinished.
 
 ## Adoption and remaining work
 
@@ -27041,7 +27041,7 @@ assert it with.
 | D-007 | core: module list | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
 | D-008 | core: the phase range from the record | `crates/openwarrant-core/src/traceability.rs` | verified |
 | D-009 | core: status types and the corrected fallback | `crates/openwarrant-core/src/status.rs` | verified |
-| D-010 | cli: the loader | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-010 | cli: the loader | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-011 | cli: war roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | verified |
 | D-012 | cli: the edit machine | `crates/openwarrant-cli/src/roadmap_edit.rs` | verified |
 | D-013 | cli: the four checks | `crates/openwarrant-cli/src/check.rs` | verified |
@@ -29574,7 +29574,7 @@ breaking the corpus.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The grammar of the SAS 1.1.0 atom format: standard and tool conformance, divergences, proposed SAS text | `docs/GRAMMAR.md` | verified |
-| D-002 | atom.header: the atom header checked against its manifest entry | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-002 | atom.header: the atom header checked against its manifest entry | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-003 | The grammar plants: header, reader, positive controls, drift control | `conformance/plants.d/57-grammar.sh` | verified |
 | D-004 | The dispatch-bundle test fixture writes a well-formed atom header (AM-001) | `crates/openwarrant-cli/tests/dispatch_bundle_cli.rs` | verified |
 
@@ -32370,7 +32370,7 @@ nothing about concurrent writers on a shared filesystem.
 | D-003e | The single-act authorization ingest checks before its first write | `crates/openwarrant-cli/src/authorize.rs` | verified |
 | D-004 | compat.rs: requires_war and schema-major recognition | `crates/openwarrant-cli/src/compat.rs` | verified |
 | D-005 | [project] requires_war | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
-| D-006 | Repository::discover runs the compat check once | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-006 | Repository::discover runs the compat check once | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-007 | Reading backward: what an older war does with newer records | `docs/COMPATIBILITY.md` | verified |
 | D-008 | The idempotency, batch-atomicity and version plants | `conformance/plants.d/69-idempotency.sh` | drift |
 | D-013 | `war sign --batch --recover <id>` as a flag, and exit 2 for compat.war-too-old (AM-002) | `crates/openwarrant-cli/src/lib.rs` | drift |
@@ -35468,7 +35468,7 @@ test mode is labeled in every record it produces.
 | D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | verified |
 | D-013 | store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004) | `crates/openwarrant-cli/src/authority_cmd/store.rs` | verified |
 | D-014 | check.rs emits authority.unprotected and policy.unprotected-divergence (AM-004) | `crates/openwarrant-cli/src/check.rs` | verified |
-| D-015 | repo.rs applies the store's protected policy keys on open (AM-004) | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-015 | repo.rs applies the store's protected policy keys on open (AM-004) | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-016 | 0096's transition tests name the v2 fields (AM-004) | `crates/openwarrant-core/tests/authority_transition.rs` | verified |
 | D-017 | roles.toml: the actor_kind comment spells policyservice (AM-004; comments only) | `docs/authority/roles.toml` | verified |
 
@@ -36305,7 +36305,7 @@ through `resolve`, which refuses an agent by kind whatever
 | D-007 | the walked contractor example | `docs/EXAMPLES/04-contractor.md` | verified |
 | D-008 | docs/PROFILES.md | `docs/PROFILES.md` | verified |
 | D-009 | the plants | `conformance/plants.d/56-contractor.sh` | drift |
-| D-010 | the repository loads profiles/ into the registry (AM-003) | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-010 | the repository loads profiles/ into the registry (AM-003) | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-011 | war new --profile resolves through the registry (AM-003) | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-012 | the non-binding contractor fixture (AM-003) | `conformance/fixtures/contractor/work-order.sh` | verified |
 
@@ -36841,7 +36841,7 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 | D-001 | The intake record, its file reader and the optional fetch adapter | `crates/openwarrant-cli/src/intake.rs` | verified |
 | D-002 | war plan --issue / --issue-file, policy review, pre-Warrant questions | `crates/openwarrant-cli/src/plan.rs` | verified |
 | D-003 | Intake questions listed and answered beside Warrant questions | `crates/openwarrant-cli/src/questions.rs` | verified |
-| D-004 | The [intake] table, absent by default | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-004 | The [intake] table, absent by default | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-005 | Closes/Refs trailers for issue-linked Warrants | `crates/openwarrant-cli/src/commit.rs` | verified |
 | D-006 | The drafter asks through unresolved_questions | `conformance/fixtures/drafter/claude-drafter.sh` | verified |
 | D-007 | Intake rows in the friction script | `tools/friction/measure.sh` | verified |

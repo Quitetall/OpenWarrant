@@ -286,13 +286,37 @@ else
 fi
 
 av_verify established "src/core.txt and src/helper.txt read at $AV_MOVED"
-av_commit "re-verified on the moved candidate"
+# The contract moves AFTER review, alongside the verdict commit. Own-record
+# exclusions must not turn that unreviewed contract into an accepted candidate.
+AV_INTENT="$PLANT_ROOT/docs/warrants/$AV_A/atoms/10-intent.md"
+cp "$AV_INTENT" "$AV_TMP/reviewed-intent.md"
+printf '\nA new required outcome was added after the review.\n' >> "$AV_INTENT"
+av_commit "a changed contract alongside a verdict about the older contract"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt'; then
+    av_ok "a changed contract cannot borrow review" "the candidate contract differs from the bound review"
+else
+    av_fail "a changed contract cannot borrow review" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+cp "$AV_TMP/reviewed-intent.md" "$AV_INTENT"
+av_commit "restore the exact reviewed contract"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT" && [[ "$(av_sha)" == "$AV_BEFORE" ]]; then
     av_ok "a re-verification clears it" "acceptance.unchanged (re-verified), resolution untouched"
 else
     av_fail "a re-verification clears it" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+# Candidate facts come from Git, never from a dirty current checkout.
+AV_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+printf '\nOnly the working tree has this unreviewed contract change.\n' >> "$AV_INTENT"
+AV_OUT=$(av_war pins --candidate "$AV_REVIEWED" 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT"; then
+    av_ok "candidate review ignores dirty checkout" "the exact Git candidate remains reviewed"
+else
+    av_fail "candidate review ignores dirty checkout" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+cp "$AV_TMP/reviewed-intent.md" "$AV_INTENT"
+
 printf 'a second change\n' > "$PLANT_ROOT/src/second.txt"
 av_commit "a second in-scope change"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
@@ -302,6 +326,19 @@ if [[ $AV_STATUS -ne 0 ]] && grep -qF 'src/second.txt' <<<"$AV_LINE" && ! grep -
 else
     av_fail "it clears for that candidate only" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+
+# The checkout cannot shrink the candidate's declared gate-input scope.
+AV_GATE="$PLANT_ROOT/docs/gates/plant.acceptance@1.0.0.yaml"
+cp "$AV_GATE" "$AV_TMP/reviewed-gate.yaml"
+sed -i 's|^inputs: .*|inputs: ["README.txt"]|' "$AV_GATE"
+assert_present 'inputs: ["README.txt"]' "$AV_GATE"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/second.txt'; then
+    av_ok "checkout cannot shrink candidate scope" "Git gate inputs still require src/second.txt"
+else
+    av_fail "checkout cannot shrink candidate scope" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+cp "$AV_TMP/reviewed-gate.yaml" "$AV_GATE"
 
 # A pinned deliverable is Q-001 (a): a human re-accepts it; a verifier cannot.
 printf 'rewritten\n' > "$PLANT_ROOT/src/core.txt"
@@ -354,6 +391,7 @@ p = sys.argv[1]; s = open(p).read()
 open(p, "w").write(re.sub(r'\n\[locator\]\n(?:(?!\[).*\n?)*', '\n', s))
 PY
 assert_gone '[locator]' "$AV_RES"
+av_commit "candidate with no recorded locator"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -ne 0 ]] && grep -qE "UNKNOWN +acceptance\.unknown +$AV_A: UNKNOWN \(no locator" <<<"$AV_OUT" \
     && ! grep -qE 'acceptance\.(unchanged|candidate-moved)' <<<"$AV_OUT" && ! grep -qE '^ERROR' <<<"$AV_OUT"; then
@@ -361,9 +399,10 @@ if [[ $AV_STATUS -ne 0 ]] && grep -qE "UNKNOWN +acceptance\.unknown +$AV_A: UNKN
 else
     av_fail "no locator is UNKNOWN" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
-git -C "$PLANT_ROOT" checkout -q -- "docs/warrants/$AV_A/resolution.toml"
+git -C "$PLANT_ROOT" reset -q --hard "$AV_MOVED"
 sed -i 's/^commit_sha = ".*"/commit_sha = "0123456789abcdef0123456789abcdef01234567"/' "$AV_RES"
 assert_present '0123456789abcdef0123456789abcdef01234567' "$AV_RES"
+av_commit "candidate with an unreadable recorded locator"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -ne 0 ]] && grep -qE "UNKNOWN +acceptance\.unknown +$AV_A: UNKNOWN \(commit 0123456789ab not readable" <<<"$AV_OUT" \
     && ! grep -qE 'acceptance\.(unchanged|candidate-moved)' <<<"$AV_OUT" && ! grep -qE '^ERROR' <<<"$AV_OUT"; then
@@ -371,7 +410,7 @@ if [[ $AV_STATUS -ne 0 ]] && grep -qE "UNKNOWN +acceptance\.unknown +$AV_A: UNKN
 else
     av_fail "an unreadable locator is UNKNOWN" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
-git -C "$PLANT_ROOT" checkout -q -- "docs/warrants/$AV_A/resolution.toml"
+git -C "$PLANT_ROOT" reset -q --hard "$AV_MOVED"
 AV_OUT=$(av_war pins --candidate no-such-revision 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -ne 0 ]] && grep -qE 'UNKNOWN +acceptance\.unknown +candidate no-such-revision' <<<"$AV_OUT" && ! grep -q 'acceptance.unchanged' <<<"$AV_OUT"; then
     av_ok "an unreadable candidate is UNKNOWN" "acceptance.unknown, nothing reported unchanged"

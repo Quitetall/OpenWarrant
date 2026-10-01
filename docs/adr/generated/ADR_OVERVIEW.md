@@ -3468,7 +3468,7 @@ The experimental portable bundle also carries exact required gate-definition and
 
 The configured wrapper reads one private copy of the supplied bundle and echoes its request subject. It must not recapture a newer subject after review, ask a model to invent the binding, or infer it when a legacy request has none.
 
-Before writing any verdict, ingestion rejects a response about a stale subject or undeclared obligation. Current preparation, resolution, progress and assurance-mark evaluation use the same qualification rule. Acceptance must not count unbound legacy journal events as re-review merely because they were recorded later. Git-candidate acceptance must also use the subject at that exact candidate, not whatever is in the current worktree; exact source comparison on that path remains unfinished.
+Before writing any verdict, ingestion rejects a response about a stale subject or undeclared obligation. Current preparation, resolution, progress and assurance-mark evaluation use the same qualification rule. Acceptance must not count unbound legacy journal events as re-review merely because they were recorded later. Git-candidate acceptance uses the same subject capture and compiler against exact candidate Git blobs, including its inventory and declared gate scope. A private data snapshot carries regular source bytes without running candidate code or activating a candidate-selected authority store. Bound observations must match this candidate subject. Full context/declared-input closure and the final gate remain unfinished.
 
 ## Adoption and remaining work
 

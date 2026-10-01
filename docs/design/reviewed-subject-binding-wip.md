@@ -14,7 +14,7 @@ The first independence fixture changed transcript blindness at basic assurance, 
 
 ## Remaining work
 
-- Candidate-specific acceptance checks using exact Git source facts.
+- Complete context/evidence closure and qualification of the new exact Git-candidate path under the full gate.
 - Remaining context/evidence and declared gate-input coverage, the existing canonical bundle identity, and complete portable context closure.
 - Unsafe-file and race controls, including multi-obligation processing.
 - Conformance compatibility and complete gate, including regenerated projections.
@@ -30,3 +30,11 @@ Existing verifier conformance observed one real adapter incompatibility: the fix
 At 098dfc4f, workspace tests passed: 1,203 tests across 44 completed suites, zero failures. The isolated 62/84 conformance groups passed all 17 checks with the portable source implementation. This is not a complete gate.
 
 The next acceptance slice reproduced an unbound legacy verdict clearing an in-scope move through `war pins --candidate`, despite ingestion reporting it as historical only. Acceptance now requires a well-formed reviewed-subject binding before counting a later journal event as re-verification. The acceptance fixture captures its actual request before creating a synthetic response; it does not overwrite old review bindings. All 16 acceptance controls pass, including the new refusal, genuine fresh synthetic re-review, moved-pin human correction, retained resolution bytes and UNKNOWN history cases. Twelve CLI regressions and scoped Clippy pass after this change. Exact Git-source comparison of a bound subject is still required; merely having a binding is not the complete candidate check. No owner key, live human act or production independent review was used.
+
+The next candidate slice reproduces a bound verdict clearing a contract changed after review. Acceptance now loads its inventory, contracts, gate-input scope, deliverable declarations, correction records and reviewed subject from exact candidate Git blobs, in one private temporary data tree. It uses the existing subject routine and compiler canonicalization; generated views do not supply contract identity. Git batch-object reads avoid one process per file. Hooks, filters, export substitutions and candidate executables do not run, and candidate configuration does not activate an authority store. Unsafe nodes are not followed; source references cannot escape the temporary tree. Unsupported candidate data is UNKNOWN. This is not an agent execution sandbox or a completed race audit.
+
+All 19 acceptance controls pass, including the changed-contract refusal, a dirty checkout that cannot replace the Git contract or shrink its gate scope, genuine fresh synthetic re-review, moved-pin human correction and UNKNOWN history. Two older locator controls initially failed because their mutations were only in the checkout; their fixtures now commit the deliberate mutation so `--candidate HEAD` asks about the actual damaged Git record. Their asserted refusal is unchanged. Twelve CLI regressions, scoped Clippy and formatting pass after the source change. Full context/declared-input closure, canonical bundle binding and the full final gate remain open.
+
+Main consolidation PR #136 merged as 68cb4eca1c91e17f545761bdc7fcdaab750c7d5a after hosted run 36809646825 passed all 14 gate steps and all 1,277 plants. Its separate merge-candidate check passed 29 findings with no warnings, unknowns or errors. This proves that consolidation candidate, not this later draft branch or all outstanding Warrants. Seventeen open stacked PR heads were checked as ancestors of the resulting main commit; other PR work remains separate.
+
+A read-only full-corpus candidate probe against main 68cb4eca completed in 1.494 seconds but returned UNKNOWN: `candidate atom path escapes its source tree`. This is a compatibility boundary in the new reader, not a passed main-corpus acceptance check. The draft must support safe existing source references before merge. The 19 disposable acceptance controls do not establish that compatibility.
