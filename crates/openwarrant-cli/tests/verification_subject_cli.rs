@@ -490,3 +490,134 @@ fn known_independence_failure_is_not_relabelled_as_unknown_binding() {
             .contains("cannot_modify_gate_fixtures")
     );
 }
+
+#[test]
+fn changed_required_fixture_refuses_the_old_review_without_writes() {
+    let fixture = Fixture::new();
+    let gates = fixture.0.join("docs/gates");
+    fs::create_dir_all(&gates).unwrap();
+    let mut definition = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap();
+    definition.push_str("\nfixtures: [\"fixtures/required.txt\"]\n");
+    fs::write(gates.join("software.repo.war-check@1.0.0.yaml"), definition).unwrap();
+    fs::create_dir_all(fixture.0.join("fixtures")).unwrap();
+    fs::write(
+        fixture.0.join("fixtures/required.txt"),
+        "required expectation",
+    )
+    .unwrap();
+    fixture.bound_response();
+    let first = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(first["exit_code"], 0, "{first}");
+    let before = fixture.review_state();
+    fs::write(
+        fixture.0.join("fixtures/required.txt"),
+        "changed expectation",
+    )
+    .unwrap();
+    let stale = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(
+        stale["exit_code"], 0,
+        "a new fixture is a new question: {stale}"
+    );
+    assert!(
+        stale["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{stale}"
+    );
+    assert_eq!(fixture.review_state(), before);
+    // Restoring fixture bytes does not hide a changed gate question.
+    fs::write(
+        fixture.0.join("fixtures/required.txt"),
+        "required expectation",
+    )
+    .unwrap();
+    let path = gates.join("software.repo.war-check@1.0.0.yaml");
+    let definition = fs::read_to_string(&path).unwrap();
+    assert!(definition.contains("timeout_secs: \"120\""));
+    fs::write(
+        path,
+        definition.replace("timeout_secs: \"120\"", "timeout_secs: \"121\""),
+    )
+    .unwrap();
+    let changed_gate = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(changed_gate["exit_code"], 0, "{changed_gate}");
+    assert!(
+        changed_gate["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{changed_gate}"
+    );
+    assert_eq!(fixture.review_state(), before);
+}
+
+#[test]
+fn changed_contract_refuses_a_bound_old_response_without_writes() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let first = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(first["exit_code"], 0, "{first}");
+    let before = fixture.review_state();
+    let path = fixture
+        .0
+        .join("docs/warrants/IX-WAR-0003/atoms/60-assurance.md");
+    let text = fs::read_to_string(&path).unwrap();
+    assert!(text.contains("the SAS is accepted and pinned"));
+    fs::write(
+        path,
+        text.replace(
+            "the SAS is accepted and pinned",
+            "the new requirement is reviewed",
+        ),
+    )
+    .unwrap();
+    let stale = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(stale["exit_code"], 0, "{stale}");
+    assert!(
+        stale["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{stale}"
+    );
+    assert_eq!(fixture.review_state(), before);
+}

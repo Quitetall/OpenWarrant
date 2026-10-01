@@ -3446,7 +3446,7 @@ A public CLI reproduction on a disposable fixture ingested an independent respon
 
 ## Proposed representation
 
-Add `reviewed_subject` to verification requests. A returned response can echo this exact object. Initially it contains the existing compiled contract digest and a sorted map of repository-relative delivered paths to the ordinary SHA-256 of their actual bytes. A missing artifact is recorded as missing; this does not satisfy the separate existence gate. Malformed declarations cannot produce an empty snapshot.
+Add `reviewed_subject` to verification requests. A returned response can echo this exact object. The experimental snapshot contains the existing compiled contract digest, a sorted map of repository-relative delivered paths to the ordinary SHA-256 of their actual bytes, the bytes of each cited gate definition, and its declared fixture paths and byte digests. Missing gate definitions and missing files remain explicit. Duplicate definitions of a cited gate cannot produce one ambiguous binding. A missing artifact is recorded as missing; this does not satisfy the separate existence gate. Malformed declarations cannot produce an empty snapshot.
 
 Keep the existing core verification record bytes. The existing verification-recorded journal event binds their exact file digest, actor, obligation and reviewed subject. Current qualification requires this event to match the current subject. A legacy response without the new field can be retained, but supplies no current subject binding: qualification is UNKNOWN. Never infer binding from timestamps or alter old dispositions.
 

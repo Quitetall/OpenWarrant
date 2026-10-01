@@ -118,9 +118,10 @@ if subject is not None:
     # invent a binding or recaptures a fresh subject after work has changed.
     print("[reviewed_subject]")
     print("contract_digest = " + json.dumps(subject["contract_digest"]))
-    print("[reviewed_subject.artifacts]")
-    for path, digest in sorted(subject["artifacts"].items()):
-        print(json.dumps(path) + " = " + json.dumps(digest))
+    for field in ("artifacts", "gate_definitions", "fixtures"):
+        print("[reviewed_subject." + field + "]")
+        for path, digest in sorted(subject.get(field, {}).items()):
+            print(json.dumps(path) + " = " + json.dumps(digest))
 for o in bundle["request"]["obligations"]:
     v = verdicts.get(o["id"], {})
     d = v.get("disposition") if v.get("disposition") in allowed else "not_established"

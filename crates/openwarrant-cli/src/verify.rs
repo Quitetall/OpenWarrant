@@ -56,7 +56,8 @@ pub struct VerificationRequest {
     pub reviewed_subject: ReviewedSubject,
 }
 
-/// A review binds the compiled contract and actual delivered file bytes.
+/// A review binds the compiled contract, delivered bytes, cited gate definitions
+/// and their declared fixture bytes. It does not grant approval or authority.
 /// Digests use existing contract canonicalization and ordinary file SHA-256;
 /// no new semantic digest domain or replacement canonicalizer is introduced.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -64,6 +65,10 @@ pub struct VerificationRequest {
 pub struct ReviewedSubject {
     pub contract_digest: String,
     pub artifacts: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub gate_definitions: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub fixtures: BTreeMap<String, String>,
 }
 
 pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedSubject, RepoError> {
@@ -85,67 +90,140 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
         )));
     }
     for delivery in deliveries.records {
-        let relative = camino::Utf8Path::new(&delivery.target_ref);
-        if relative.is_absolute()
-            || relative
-                .components()
-                .any(|c| matches!(c, camino::Utf8Component::ParentDir))
-        {
+        artifacts.insert(
+            delivery.target_ref.clone(),
+            file_digest(repo, &delivery.target_ref)?,
+        );
+    }
+    let cited = crate::resolve::cited_gate_keys(one);
+    let mut gate_definitions: BTreeMap<String, String> = cited
+        .iter()
+        .map(|key| (key.clone(), "missing".to_owned()))
+        .collect();
+    let mut fixtures = BTreeMap::new();
+    let gate_dir = repo.root.join(&repo.config.paths.gates);
+    let paths = match gate_dir.read_dir_utf8() {
+        Ok(entries) => entries
+            .map(|entry| entry.map(|e| e.into_path()))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|source| RepoError::Io {
+                context: format!("could not inspect {gate_dir}"),
+                source,
+            })?,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => vec![],
+        Err(source) => {
+            return Err(RepoError::Io {
+                context: format!("could not inspect {gate_dir}"),
+                source,
+            });
+        }
+    };
+    let mut found = std::collections::BTreeSet::new();
+    for path in paths
+        .into_iter()
+        .filter(|p| matches!(p.extension(), Some("yaml" | "yml")))
+    {
+        let relative = repo.relative(&path);
+        let Some(bytes) = file_bytes(repo, &relative)? else {
+            continue;
+        };
+        let Ok(text) = std::str::from_utf8(&bytes) else {
+            continue;
+        };
+        let Ok(definition) = openwarrant_core::structured::parse(text) else {
+            continue;
+        };
+        let key = format!(
+            "{}@{}",
+            definition.scalar("gate_id").unwrap_or_default(),
+            definition.scalar("version").unwrap_or_default()
+        );
+        if !gate_definitions.contains_key(&key) {
+            continue;
+        }
+        if !found.insert(key.clone()) {
             return Err(RepoError::Message(format!(
-                "verify.subject-unavailable: artifact reference {:?} is not repository-relative",
-                delivery.target_ref
+                "verify.subject-unavailable: duplicate gate definition for {key}"
             )));
         }
-        let path = repo.root.join(relative);
-        let mut walked = repo.root.clone();
-        for component in relative.components() {
-            walked.push(component.as_str());
-            match fs::symlink_metadata(&walked) {
-                Ok(metadata) if metadata.file_type().is_symlink() => {
-                    return Err(RepoError::Message(format!(
-                        "verify.subject-unavailable: symlink at {walked}"
-                    )));
-                }
-                Err(e) if e.kind() == std::io::ErrorKind::NotFound => break,
-                Err(source) => {
-                    return Err(RepoError::Io {
-                        context: format!("could not inspect {walked}"),
-                        source,
-                    });
-                }
-                _ => {}
+        gate_definitions.insert(key, bytes_digest(&bytes));
+        if let Some(declared) = definition
+            .get("fixtures")
+            .and_then(openwarrant_core::StructuredValue::as_list)
+        {
+            for fixture in declared {
+                fixtures.insert(fixture.clone(), file_digest(repo, fixture)?);
             }
         }
-        let digest = match fs::symlink_metadata(&path) {
-            Ok(metadata) if metadata.is_file() => {
-                let bytes = fs::read(&path).map_err(|source| RepoError::Io {
-                    context: format!("could not read {path}"),
-                    source,
-                })?;
-                format!(
-                    "sha256:{}",
-                    openwarrant_compiler::digest::sha256_hex(&bytes)
-                )
-            }
-            Ok(_) => {
-                return Err(RepoError::Message(format!(
-                    "verify.subject-unavailable: {path} is not a regular file"
-                )));
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => "missing".to_owned(),
-            Err(source) => {
-                return Err(RepoError::Io {
-                    context: format!("could not inspect {path}"),
-                    source,
-                });
-            }
-        };
-        artifacts.insert(delivery.target_ref, digest);
     }
     Ok(ReviewedSubject {
         contract_digest,
         artifacts,
+        gate_definitions,
+        fixtures,
     })
+}
+
+fn bytes_digest(bytes: &[u8]) -> String {
+    format!("sha256:{}", openwarrant_compiler::digest::sha256_hex(bytes))
+}
+
+fn file_digest(repo: &Repository, reference: &str) -> Result<String, RepoError> {
+    Ok(file_bytes(repo, reference)?
+        .as_deref()
+        .map(bytes_digest)
+        .unwrap_or_else(|| "missing".to_owned()))
+}
+
+/// Read each observed source once, after refusing traversal, symlinks and
+/// nonregular files. Missing bytes are explicit and never satisfy existence.
+fn file_bytes(repo: &Repository, reference: &str) -> Result<Option<Vec<u8>>, RepoError> {
+    let relative = camino::Utf8Path::new(reference);
+    if relative.is_absolute()
+        || relative
+            .components()
+            .any(|c| matches!(c, camino::Utf8Component::ParentDir))
+    {
+        return Err(RepoError::Message(format!(
+            "verify.subject-unavailable: reference {reference:?} is not repository-relative"
+        )));
+    }
+    let path = repo.root.join(relative);
+    let mut walked = repo.root.clone();
+    for component in relative.components() {
+        walked.push(component.as_str());
+        match fs::symlink_metadata(&walked) {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                return Err(RepoError::Message(format!(
+                    "verify.subject-unavailable: symlink at {walked}"
+                )));
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(source) => {
+                return Err(RepoError::Io {
+                    context: format!("could not inspect {walked}"),
+                    source,
+                });
+            }
+            _ => {}
+        }
+    }
+    match fs::symlink_metadata(&path) {
+        Ok(metadata) if metadata.is_file() => {
+            fs::read(&path).map(Some).map_err(|source| RepoError::Io {
+                context: format!("could not read {path}"),
+                source,
+            })
+        }
+        Ok(_) => Err(RepoError::Message(format!(
+            "verify.subject-unavailable: {path} is not a regular file"
+        ))),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(source) => Err(RepoError::Io {
+            context: format!("could not inspect {path}"),
+            source,
+        }),
+    }
 }
 
 /// Historical verdicts remain readable. Only a matching observed review may
