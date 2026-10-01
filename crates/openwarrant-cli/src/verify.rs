@@ -606,8 +606,29 @@ pub(crate) fn packets_cover(
             return Ok(false);
         }
         let bytes = crate::bundle::store::read(&repo.root, camino::Utf8Path::new(&reference.path))?;
-        let Ok(packet) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
-            return Ok(false);
+        // Canonical identity requires one unambiguous object, including nested
+        // members. A plain Value decoder silently discards duplicate keys.
+        // Nodes cannot outnumber input bytes; retain larger binary fixtures
+        // without inheriting the smaller SDK request budget.
+        let packet = match crate::sdk::wire::decode_value_with_limits(
+            &bytes,
+            bytes.len().saturating_add(1),
+            128,
+        ) {
+            Ok(packet) => packet,
+            Err(error)
+                if error.to_string().contains("resource-limit")
+                    || error.to_string().contains("recursion limit") =>
+            {
+                return Err(RepoError::ObservationUnavailable {
+                    rule: "verify.packet-unavailable",
+                    message: format!(
+                        "retained packet {} exceeds supported processing limits: {error}",
+                        reference.path
+                    ),
+                });
+            }
+            Err(_) => return Ok(false),
         };
         let actual = openwarrant_compiler::sha256_digest(
             openwarrant_compiler::DigestDomain::VerificationBundle,
@@ -1202,9 +1223,23 @@ mod tests {
     }
 
     #[test]
-    fn schemas_are_versioned() {
-        assert!(REQUEST_SCHEMA.ends_with("/v1"));
-        assert!(RESPONSE_SCHEMA.ends_with("/v1"));
-        assert_ne!(REQUEST_SCHEMA, RESPONSE_SCHEMA);
+    fn request_transport_is_never_accepted_as_a_response() {
+        assert_eq!(
+            validate_envelope(&response("OW-WAR-0014", REQUEST_SCHEMA), "OW-WAR-0014"),
+            Err(EnvelopeRefusal::UnknownSchema {
+                found: REQUEST_SCHEMA.into()
+            }),
+        );
+        assert_eq!(
+            validate_envelope(&response("OW-WAR-0014", RESPONSE_SCHEMA), "OW-WAR-0014"),
+            Ok(()),
+        );
+        assert_eq!(
+            validate_envelope(
+                &response("OW-WAR-0014", LEGACY_RESPONSE_SCHEMA),
+                "OW-WAR-0014"
+            ),
+            Ok(()),
+        );
     }
 }

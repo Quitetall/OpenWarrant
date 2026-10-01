@@ -1301,3 +1301,104 @@ fn retained_packet_link_never_writes_its_external_target() {
     assert_eq!(restored["exit_code"], 0, "{restored}");
     assert_eq!(fs::read(&outside).unwrap(), sentinel);
 }
+
+#[test]
+fn ambiguous_packet_object_members_refuse_all_verdicts_before_writes() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let response: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    let path = fixture
+        .0
+        .join(response["reviewed_packets"][0]["path"].as_str().unwrap());
+    let original = fs::read_to_string(&path).unwrap();
+    let member = "\"warrant\":\"IX-WAR-0003\"";
+    assert!(original.contains(member));
+    fs::write(
+        &path,
+        original.replacen(
+            member,
+            "\"warrant\":\"WRONG-SUBJECT\",\"warrant\":\"IX-WAR-0003\"",
+            1,
+        ),
+    )
+    .unwrap();
+    let refused = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.packet-binding"),
+        "{refused}"
+    );
+    for id in ["OBL-001", "OBL-002"] {
+        assert!(
+            !fixture
+                .0
+                .join(format!("docs/warrants/IX-WAR-0003/verifications/{id}.toml"))
+                .exists()
+        );
+    }
+    fs::write(&path, original).unwrap();
+    let restored = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(restored["exit_code"], 0, "{restored}");
+}
+
+#[test]
+fn strict_packet_reader_preserves_large_required_binary_fixtures() {
+    let fixture = Fixture::new();
+    let gates = fixture.0.join("docs/gates");
+    fs::create_dir_all(&gates).unwrap();
+    let mut gate = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap();
+    gate.push_str("\nfixtures: [\"fixtures/large.bin\"]\n");
+    fs::write(gates.join("software.repo.war-check@1.0.0.yaml"), gate).unwrap();
+    fs::create_dir_all(fixture.0.join("fixtures")).unwrap();
+    fs::write(fixture.0.join("fixtures/large.bin"), vec![255u8; 70_000]).unwrap();
+    fixture.bound_response();
+    let response: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    for reference in response["reviewed_packets"].as_array().unwrap() {
+        let packet: serde_json::Value = serde_json::from_slice(
+            &fs::read(fixture.0.join(reference["path"].as_str().unwrap())).unwrap(),
+        )
+        .unwrap();
+        let binary = packet["required_sources"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|s| s["path"] == "fixtures/large.bin")
+            .unwrap();
+        let bytes = binary["bytes"].as_array().unwrap();
+        assert_eq!(bytes.len(), 70_000);
+        assert!(bytes.iter().all(|b| *b == serde_json::json!(255)));
+    }
+    let ingested = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(ingested["exit_code"], 0, "{ingested}");
+    assert_eq!(ingested["counts"]["pass"], 2, "{ingested}");
+}
