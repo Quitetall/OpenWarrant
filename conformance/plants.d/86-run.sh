@@ -80,7 +80,9 @@ PY
     # above: each of them restores the tree, which wipes the journal event a
     # submission must name. Run directly for the same reason.
     "$WAR" run "$RUN_ALIAS" STAGE-001 >/dev/null 2>&1
-    RUN_DID=$(python3 -c "import json,sys,glob; print(json.load(open(glob.glob(sys.argv[1]+'/submissions/*.json')[0]))['dispatch_id'])" "$RUN_DIR")
+    RUN_DID=$(python3 -c 'import json,sys
+ids = [json.loads(e["payload"])["dispatch_id"] for e in map(json.loads, open(sys.argv[1])) if e["type"] == "dispatch.compiled"]
+print(ids[-1])' "$RUN_DIR/journal.jsonl")
     python3 - "$RUN_DIR/submissions/$RUN_DID.json" "$RUN_TMP" <<'PY'
 import json, sys
 s = json.load(open(sys.argv[1])); s["requested_next_action"] = "continue"
