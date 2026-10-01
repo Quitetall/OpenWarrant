@@ -134,6 +134,9 @@ pub struct Repository {
     /// Exact Git-tree inventory for a read-only candidate snapshot. Ordinary
     /// repositories enumerate their own tracked/nonignored source paths.
     pub(crate) source_inventory: Option<Vec<String>>,
+    /// Retained object store and immutable commit for candidate context history.
+    /// Never use the original checkout's mutable HEAD as the history anchor.
+    pub(crate) candidate_history: Option<(Utf8PathBuf, String)>,
     /// Candidate link blobs are data, never materialized filesystem links.
     pub(crate) source_links: std::collections::BTreeMap<String, String>,
 }
@@ -198,6 +201,7 @@ impl Repository {
             config,
             profiles,
             source_inventory: None,
+            candidate_history: None,
             source_links: std::collections::BTreeMap::new(),
         })
     }

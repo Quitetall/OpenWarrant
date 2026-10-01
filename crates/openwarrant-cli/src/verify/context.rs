@@ -50,12 +50,7 @@ pub(crate) fn capture(
     );
     let bytes = match current {
         Ok(bytes) if openwarrant_compiler::sha256_hex(&bytes) == pin.sha256 => bytes,
-        _ if repo.source_inventory.is_some() => {
-            return Err(unavailable(format!(
-                "candidate does not retain SAS {} at sha256:{}",
-                pin.version, pin.sha256
-            )));
-        }
+        _ if repo.source_inventory.is_some() => candidate_revision_bytes(repo, revision)?,
         _ => crate::sas::historical_revision_bytes(repo, revision).map_err(unavailable)?,
     };
     // A history locator is evidence only after the exact bytes match the pin.
@@ -65,4 +60,74 @@ pub(crate) fn capture(
         ));
     }
     Ok(BTreeMap::from([(revision.source.clone(), bytes)]))
+}
+
+/// Candidate history is its retained ancestry, not whichever branch happens
+/// to be checked out now. Read only regular blob objects and verify their
+/// content against the recorded SHA-256 before using them as context.
+fn candidate_revision_bytes(
+    repo: &Repository,
+    revision: &openwarrant_core::SasRevision,
+) -> Result<Vec<u8>, RepoError> {
+    let Some((root, anchor)) = &repo.candidate_history else {
+        return Err(unavailable("candidate has no retained history anchor"));
+    };
+    let log = crate::acceptance::git(
+        root,
+        &[
+            "log",
+            "--full-history",
+            "--format=%H",
+            anchor,
+            "--",
+            &revision.source,
+        ],
+    )
+    .ok_or_else(|| unavailable("candidate ancestry cannot be read locally"))?;
+    for commit in String::from_utf8_lossy(&log).lines() {
+        let Some(entry) = crate::acceptance::git(
+            root,
+            &[
+                "ls-tree",
+                "-z",
+                "--full-tree",
+                commit,
+                "--",
+                &revision.source,
+            ],
+        ) else {
+            continue;
+        };
+        for entry in entry
+            .split(|byte| *byte == 0)
+            .filter(|entry| !entry.is_empty())
+        {
+            let Some(separator) = entry.iter().position(|byte| *byte == b'\t') else {
+                continue;
+            };
+            if &entry[separator + 1..] != revision.source.as_bytes() {
+                continue;
+            }
+            let Ok(metadata) = std::str::from_utf8(&entry[..separator]) else {
+                continue;
+            };
+            let fields: Vec<_> = metadata.split_whitespace().collect();
+            let [mode, "blob", object] = fields.as_slice() else {
+                continue;
+            };
+            if !matches!(*mode, "100644" | "100755") {
+                continue;
+            }
+            let Some(bytes) = crate::acceptance::git(root, &["cat-file", "blob", object]) else {
+                continue;
+            };
+            if openwarrant_compiler::sha256_hex(&bytes) == revision.sha256 {
+                return Ok(bytes);
+            }
+        }
+    }
+    Err(unavailable(format!(
+        "candidate {anchor} does not retain SAS {} at sha256:{} in its ancestors",
+        revision.version, revision.sha256
+    )))
 }

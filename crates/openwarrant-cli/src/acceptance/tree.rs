@@ -110,7 +110,16 @@ impl Blobs {
 
 impl Snapshot {
     pub fn read(root: &Utf8Path, candidate: &str) -> Result<Self, String> {
-        let listing = super::git(root, &["ls-tree", "-rz", "--full-tree", candidate])
+        let commit = super::git(
+            root,
+            &["rev-parse", "--verify", &format!("{candidate}^{{commit}}")],
+        )
+        .ok_or("Git could not resolve the candidate commit")?;
+        let commit = std::str::from_utf8(&commit)
+            .map_err(|_| "invalid candidate commit identity")?
+            .trim()
+            .to_owned();
+        let listing = super::git(root, &["ls-tree", "-rz", "--full-tree", &commit])
             .ok_or("Git could not enumerate the candidate tree")?;
         let temporary = Temporary::create()?;
         let mut blobs = Blobs::open(root)?;
@@ -186,6 +195,7 @@ impl Snapshot {
             config,
             profiles: crate::repo::load_profiles(&temporary.0).map_err(|e| e.to_string())?,
             source_inventory: Some(seen.into_iter().map(|p| p.to_string()).collect()),
+            candidate_history: Some((root.to_owned(), commit)),
             source_links,
         };
         for dir in repository.warrant_dirs().map_err(|e| e.to_string())? {

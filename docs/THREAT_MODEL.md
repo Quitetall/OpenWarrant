@@ -162,3 +162,23 @@ a directory, and exact/oversized regular-file reads. This prevents the observed
 FIFO-open hang and refuses directories without leaking the descriptor. Parent
 paths and control storage still require operator protection; this is not a
 general filesystem sandbox or a guarantee against slow regular-file I/O.
+
+## Draft candidate review context (OW-ADR-0030)
+
+Candidate review must use the SAS revision named by its captured contract. A
+newer file, a different current branch or a Git replacement must not supply a
+different governing rule. Candidate snapshots freeze the resolved commit. If the
+source file no longer matches its pin, the draft reads regular Git blobs only
+from that commit's retained ancestors and checks their full SHA-256 against the
+recorded pin. The shared Git reader disables replacement objects and lazy fetching;
+it does not run candidate code, hooks or filters. Missing context reports an
+unavailable observation rather than substituting the current document.
+
+The acceptance-validity plant advances the SAS after a synthetic bound review;
+the baseline falsely rejected that unchanged context. The historical-reader
+extension is awaiting a green run. The existing public CLI replacement control
+observes refusal of an actually malformed candidate while replacements cannot
+change a valid candidate's bytes. These bounded controls do not prove transitive
+context closure, private-copy custody or protection of a Git object store from
+an account that can rewrite it. Operators must protect retained objects and
+control storage. This draft grants no authority and qualifies no live Warrant.

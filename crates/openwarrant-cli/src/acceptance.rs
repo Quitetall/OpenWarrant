@@ -138,7 +138,7 @@ pub struct Candidate {
 }
 
 /// Run git in `root`; stdout when it succeeded, `None` for anything else.
-fn git(root: &Utf8Path, args: &[&str]) -> Option<Vec<u8>> {
+pub(crate) fn git(root: &Utf8Path, args: &[&str]) -> Option<Vec<u8>> {
     std::process::Command::new("git")
         .args(["--no-pager", "--no-replace-objects"])
         .args(args)
