@@ -1558,9 +1558,23 @@ fn over_budget(report: &mut Report, repo: &Repository, path: &Utf8PathBuf, b: &B
 }
 
 /// `war verify <alias> --bundle`: write them and say what each holds.
-pub fn emit(repo: &Repository, alias: &str, performer: &str) -> Result<Report, RepoError> {
+pub fn emit(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+) -> Result<(Report, serde_json::Value), RepoError> {
     let mut report = Report::default();
-    for (path, bundle, digest) in write(repo, alias, performer)? {
+    let bundles = write(repo, alias, performer)?;
+    let reviewed_subject = bundles.first().map(|(_, b, _)| &b.request.reviewed_subject);
+    let packets: Vec<_> = bundles
+        .iter()
+        .map(|(path, _, digest)| crate::verify::ReviewedPacket {
+            path: repo.relative(path),
+            digest: digest.clone(),
+        })
+        .collect();
+    let index = serde_json::json!({"schema":"oh.war/review-packets/v1", "reviewed_subject":reviewed_subject, "packets":packets});
+    for (path, bundle, digest) in bundles {
         report.push(Diagnostic::pass(
             "verify.bundle",
             format!(
@@ -1572,7 +1586,7 @@ pub fn emit(repo: &Repository, alias: &str, performer: &str) -> Result<Report, R
         ));
         over_budget(&mut report, repo, &path, &bundle);
     }
-    Ok(report)
+    Ok((report, index))
 }
 
 /// The obligations a response answers that its bundle did not carry. A
@@ -1601,10 +1615,12 @@ fn call(
     bundle_path: &Utf8PathBuf,
     root: &Utf8PathBuf,
     timeout: u64,
+    packets: &str,
 ) -> Result<Outcome, RepoError> {
     let mut child = std::process::Command::new(&argv[0])
         .args(&argv[1..])
         .arg(bundle_path.as_str())
+        .env("OPENWARRANT_REVIEWED_PACKETS", packets)
         .current_dir(root)
         .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::piped())
@@ -1705,7 +1721,12 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
             ),
         ));
         over_budget(&mut report, repo, bundle_path, bundle);
-        let stdout = match call(argv, bundle_path, &repo.root, timeout)? {
+        let packets = serde_json::to_string(&vec![crate::verify::ReviewedPacket {
+            path: repo.relative(bundle_path),
+            digest: digest.clone(),
+        }])
+        .map_err(|e| RepoError::Message(e.to_string()))?;
+        let stdout = match call(argv, bundle_path, &repo.root, timeout, &packets)? {
             Outcome::TimedOut => {
                 report.push(Diagnostic::error(
                     "verify.verifier-timeout",

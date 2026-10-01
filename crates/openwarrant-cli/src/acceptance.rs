@@ -374,6 +374,37 @@ fn reverified(
             payload.get("record_digest").and_then(|v| v.as_str()),
             event.get("actor_ref").and_then(|v| v.as_str()),
         ) {
+            let Some(packets) = payload.get("reviewed_packets").and_then(|v| {
+                serde_json::from_value::<Vec<crate::verify::ReviewedPacket>>(v.clone()).ok()
+            }) else {
+                continue;
+            };
+            let Some(performer) = show(
+                root,
+                candidate,
+                &format!("{rel_dir}/verifications/{o}.toml"),
+            )
+            .and_then(|bytes| {
+                toml::from_str::<openwarrant_core::verification::Verification>(
+                    &String::from_utf8_lossy(&bytes),
+                )
+                .ok()
+            })
+            .map(|v| v.performer) else {
+                continue;
+            };
+            if !crate::verify::packets_cover(
+                repo,
+                &one.alias(),
+                &candidate_subject,
+                &packets,
+                &[o.to_owned()],
+                &performer,
+            )
+            .unwrap_or(false)
+            {
+                continue;
+            }
             ingested.push((o.to_owned(), d.to_owned(), actor.to_owned()));
         }
     }

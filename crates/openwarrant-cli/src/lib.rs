@@ -3505,8 +3505,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         } => {
             let repository = open_repo()?;
             if bundle {
-                let report = bundle::emit(&repository, &alias, &performer)?;
-                return Ok(output::finish(mode, "verify.bundle", &report, None));
+                let (report, index) = bundle::emit(&repository, &alias, &performer)?;
+                return Ok(output::finish(mode, "verify.bundle", &report, Some(index)));
             }
             if run {
                 let report = bundle::run(&repository, &alias, &performer)?;

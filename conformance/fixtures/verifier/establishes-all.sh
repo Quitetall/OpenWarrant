@@ -8,6 +8,11 @@ print('schema = "oh.war/verification-response/v1"')
 print('warrant = "%s"' % b["warrant"])
 # Echo only the snapshot actually carried to this fixture. Never recapture
 # repository state after the simulated review.
+import os
+for packet in json.loads(os.environ.get("OPENWARRANT_REVIEWED_PACKETS", "[]")):
+    print("[[reviewed_packets]]")
+    print("path = " + json.dumps(packet["path"]))
+    print("digest = " + json.dumps(packet["digest"]))
 subject = b["request"].get("reviewed_subject")
 if subject is not None:
     print("[reviewed_subject]")

@@ -522,6 +522,20 @@ pub fn current_records(
                         .as_ref()
                         .is_some_and(|v| event.warrant_uuid == v.uuid.to_string())
                     && reviewed == &current
+                    && payload
+                        .get("reviewed_packets")
+                        .and_then(|v| serde_json::from_value::<Vec<ReviewedPacket>>(v.clone()).ok())
+                        .is_some_and(|packets| {
+                            packets_cover(
+                                repo,
+                                &one.alias(),
+                                &current,
+                                &packets,
+                                std::slice::from_ref(&record.obligation),
+                                &record.performer,
+                            )
+                            .unwrap_or(false)
+                        })
                     && payload["obligation"] == record.obligation
                     && payload["record_digest"] == digest
             })
@@ -546,11 +560,81 @@ pub const REQUEST_SCHEMA: &str = "oh.war/verification-request/v1";
 /// What a verifier returns.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VerificationResponse {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub reviewed_packets: Vec<ReviewedPacket>,
     pub schema: String,
     pub warrant: String,
     pub verifications: Vec<Verification>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reviewed_subject: Option<ReviewedSubject>,
+}
+
+/// References to exact retained packets, using the existing canonical domain.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReviewedPacket {
+    pub path: String,
+    pub digest: String,
+}
+
+/// Validate exact packet bytes, subject, actor and obligation coverage. Never
+/// rebuild a packet after review: prior verdicts can legitimately have changed.
+pub(crate) fn packets_cover(
+    repo: &Repository,
+    alias: &str,
+    reviewed: &ReviewedSubject,
+    packets: &[ReviewedPacket],
+    obligations: &[String],
+    performer: &str,
+) -> Result<bool, RepoError> {
+    if packets.is_empty() {
+        return Ok(false);
+    }
+    let directory = repo.relative(&repo.warrant_dir(alias)?.join("verifications"));
+    let mut covered = std::collections::BTreeSet::new();
+    for reference in packets {
+        // The existing canonical bundle digest is bare hexadecimal. Do not
+        // introduce a prefix or another preimage representation here.
+        let hex = &reference.digest;
+        if hex.len() != 64
+            || !hex.bytes().all(|b| b.is_ascii_hexdigit())
+            || reference.path != format!("{directory}/bundle-{}.json", &hex[..16])
+        {
+            return Ok(false);
+        }
+        let Some(bytes) = file_bytes(repo, &reference.path)? else {
+            return Ok(false);
+        };
+        let Ok(packet) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
+            return Ok(false);
+        };
+        let actual = openwarrant_compiler::sha256_digest(
+            openwarrant_compiler::DigestDomain::VerificationBundle,
+            &packet,
+        )
+        .map_err(|e| RepoError::Message(e.to_string()))?;
+        if actual != reference.digest
+            || packet["schema"] != crate::bundle::SCHEMA
+            || packet["warrant"] != alias
+        {
+            return Ok(false);
+        }
+        let Some(request) = packet
+            .get("request")
+            .and_then(|v| serde_json::from_value::<VerificationRequest>(v.clone()).ok())
+        else {
+            return Ok(false);
+        };
+        if request.schema != REQUEST_SCHEMA
+            || request.warrant != alias
+            || request.performer != performer
+            || &request.reviewed_subject != reviewed
+        {
+            return Ok(false);
+        }
+        covered.extend(request.obligations.into_iter().map(|o| o.id));
+    }
+    Ok(obligations.iter().all(|o| covered.contains(o)))
 }
 
 pub const RESPONSE_SCHEMA: &str = "oh.war/verification-response/v1";
@@ -749,6 +833,44 @@ pub fn ingest(
         report.push(Diagnostic::unknown("verify.subject-unbound", response_path.to_string(), "legacy verdicts are retained as historical records, but no reviewed subject was supplied; they cannot qualify current work".to_owned()));
     }
 
+    if !response.reviewed_packets.is_empty() {
+        let valid = if let Some(reviewed) = &response.reviewed_subject {
+            let ids: Vec<_> = response
+                .verifications
+                .iter()
+                .map(|v| v.obligation.clone())
+                .collect();
+            let mut valid = true;
+            for v in &response.verifications {
+                if !packets_cover(
+                    repo,
+                    alias,
+                    reviewed,
+                    &response.reviewed_packets,
+                    &ids,
+                    &v.performer,
+                )? {
+                    valid = false;
+                    break;
+                }
+            }
+            valid
+        } else {
+            false
+        };
+        if !valid {
+            report.push(Diagnostic::error("verify.packet-binding", response_path.to_string(),
+                "packet identity, subject, performer or obligation coverage does not match; nothing was written"));
+            return Ok(report);
+        }
+    } else if response.reviewed_subject.is_some() {
+        report.push(Diagnostic::unknown(
+            "verify.packet-unbound",
+            response_path.to_string(),
+            "subject-only verdicts remain history; no exact review packet was identified",
+        ));
+    }
+
     // OW-WAR-0137: on a Warrant whose authorization signed an assignment,
     // only the assigned verifier's verdict is recorded, and only while the
     // register still grants that actor `verifier`. An assignment that is not
@@ -864,7 +986,7 @@ pub fn ingest(
         // reaching the same disposition on new evidence is a new event, not a
         // refused duplicate.
         let payload = match &response.reviewed_subject {
-            Some(reviewed) => serde_json::to_string(&serde_json::json!({"obligation":v.obligation,"disposition":v.disposition,"record_digest":format!("sha256:{record_digest}"),"reviewed_subject":reviewed})).map_err(|e| RepoError::Message(e.to_string()))?,
+            Some(reviewed) => serde_json::to_string(&serde_json::json!({"obligation":v.obligation,"disposition":v.disposition,"record_digest":format!("sha256:{record_digest}"),"reviewed_subject":reviewed,"reviewed_packets":response.reviewed_packets})).map_err(|e| RepoError::Message(e.to_string()))?,
             None => format!("{{\"obligation\":\"{}\",\"disposition\":\"{}\",\"record_digest\":\"sha256:{}\"}}", v.obligation, v.disposition, record_digest),
         };
         let replay = match crate::journal_cmd::already_recorded(
@@ -1007,6 +1129,7 @@ mod tests {
 
     fn response(warrant: &str, schema: &str) -> VerificationResponse {
         VerificationResponse {
+            reviewed_packets: vec![],
             reviewed_subject: None,
             schema: schema.to_owned(),
             warrant: warrant.to_owned(),

@@ -112,6 +112,11 @@ def q(s):
 distinct = bool(performer_model) and performer_model != model
 print('schema = "oh.war/verification-response/v1"')
 print("warrant = %s" % q(bundle["warrant"]))
+import os
+for packet in json.loads(os.environ.get("OPENWARRANT_REVIEWED_PACKETS", "[]")):
+    print("[[reviewed_packets]]")
+    print("path = " + json.dumps(packet["path"]))
+    print("digest = " + json.dumps(packet["digest"]))
 subject = bundle["request"].get("reviewed_subject")
 if subject is not None:
     # The wrapper echoes the supplied review input, never asks the model to

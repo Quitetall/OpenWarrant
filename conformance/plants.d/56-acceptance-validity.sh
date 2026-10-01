@@ -183,7 +183,7 @@ distinct_model_required = true
 distinct_human_required = false
 VERIFY
 # Capture exactly the subject this synthetic fixture is about to inspect.
-"$WAR" --root . verify "$A" --performer claude --json > "$T/request.json"
+"$WAR" --root . verify "$A" --performer claude --bundle --json > "$T/request.json"
 python3 "$BIND" "$T/request.json" "$T/verified.toml" > "$T/verified-bound.toml"
 "$WAR" --root . verify "$A" --response "$T/verified-bound.toml"
 g add -A; g commit -qm verified
@@ -213,7 +213,7 @@ av_names() { line_has -F "$1" -F "$3" <<<"$2"; }
 av_verify() { # disposition, evidence
     sed -e "s/^disposition = .*/disposition = \"$1\"/" -e "s|^evidence = .*|evidence = \"$2\"|" \
         "$AV_TMP/verified.toml" > "$AV_TMP/reverify.toml"
-    av_war verify "$AV_A" --performer claude --json > "$AV_TMP/request.json"
+    av_war verify "$AV_A" --performer claude --bundle --json > "$AV_TMP/request.json"
     python3 "$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
         "$AV_TMP/request.json" "$AV_TMP/reverify.toml" > "$AV_TMP/reverify-bound.toml"
     av_war verify "$AV_A" --response "$AV_TMP/reverify-bound.toml" >/dev/null 2>&1
@@ -336,12 +336,15 @@ fi
 AV_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
 # Portable review retains the actual recorded evidence, not only its hash.
 AV_OUT=$(av_war verify "$AV_A" --performer claude --bundle --json 2>&1); AV_STATUS=$?
-if [[ $AV_STATUS -eq 0 ]] && python3 - "$PLANT_ROOT" "$AV_A" <<'PY_PACKET'
+if [[ $AV_STATUS -eq 0 ]] && python3 - "$PLANT_ROOT" "$AV_A" "$AV_OUT" <<'PY_PACKET'
 import hashlib, json, sys
 from pathlib import Path
 root, alias = Path(sys.argv[1]), sys.argv[2]
 folder = root / "docs/warrants" / alias
-packets = list((folder / "verifications").glob("bundle-*.json"))
+index = json.loads(sys.argv[3])["result"]["packets"]
+packets = [root / ref["path"] for ref in index]
+# Older retained packets describe earlier inputs, never current bytes.
+assert len(list((folder / "verifications").glob("bundle-*.json"))) >= len(packets)
 assert packets
 evidence = list((folder / "gate-runs").glob("*"))
 inputs = [p for p in (root / "src").glob("*") if p.is_file()]

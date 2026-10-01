@@ -16,6 +16,10 @@ assert "reviewed_subject" not in tomllib.loads(body), "do not overwrite a review
 head, separator, tail = body.partition("[[verifications]]")
 assert separator, "fixture response must contain verdicts"
 print(head)
+for packet in request["result"]["packets"]:
+    print("[[reviewed_packets]]")
+    print("path = " + json.dumps(packet["path"]))
+    print("digest = " + json.dumps(packet["digest"]))
 print("[reviewed_subject]")
 print("contract_digest = " + json.dumps(subject["contract_digest"]))
 for field in ["artifacts", "gate_definitions", "fixtures", "gate_evidence", "gate_inputs", "gate_links"]:

@@ -84,6 +84,19 @@ impl Fixture {
             "reviewed_subject".to_owned(),
             toml::Value::try_from(&request["result"]["reviewed_subject"]).unwrap(),
         );
+        let packets = self.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--bundle",
+            "--json",
+        ]);
+        assert_eq!(packets["exit_code"], 0, "{packets}");
+        response.as_table_mut().unwrap().insert(
+            "reviewed_packets".into(),
+            toml::Value::try_from(&packets["result"]["packets"]).unwrap(),
+        );
         fs::write(path, toml::to_string(&response).unwrap()).unwrap();
     }
     fn review_state(&self) -> Vec<Vec<u8>> {
@@ -255,6 +268,37 @@ fn fresh_bound_review_qualifies_and_exact_replay_preserves_records() {
         before,
         "exact replay must be byte preserving"
     );
+    let response: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    let packet_path = fixture
+        .0
+        .join(response["reviewed_packets"][0]["path"].as_str().unwrap());
+    let retained = fs::read(&packet_path).unwrap();
+    fs::remove_file(&packet_path).unwrap();
+    let progress = fixture.run(&["status", "--json"]);
+    let warrant = progress["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    assert_eq!(
+        warrant["review"]["verification_records"], 2,
+        "history remains"
+    );
+    for obligation in warrant["obligations"].as_array().unwrap() {
+        assert_eq!(
+            obligation["disposition"], "unknown",
+            "missing packet cannot qualify: {obligation}"
+        );
+    }
+    assert_eq!(
+        fixture.review_state(),
+        before,
+        "qualification does not rewrite history"
+    );
+    fs::write(&packet_path, retained).unwrap();
 }
 
 #[test]
@@ -945,4 +989,83 @@ fn internal_link_binds_target_identity_and_selected_dependencies() {
         "{retargeted}"
     );
     assert_eq!(fixture.review_state(), before);
+}
+
+#[test]
+fn wrong_packet_digest_refuses_all_verdicts_before_writing() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let path = fixture.0.with_extension("response.toml");
+    let original_response = fs::read_to_string(&path).unwrap();
+    let mut response: toml::Value = toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
+    response.as_table_mut().unwrap().insert("reviewed_packets".into(), toml::Value::Array(vec![toml::Value::try_from(serde_json::json!({"path":"docs/warrants/IX-WAR-0003/verifications/bundle-invalid.json","digest":"sha256:wrong"})).unwrap()]));
+    fs::write(&path, toml::to_string(&response).unwrap()).unwrap();
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(result["exit_code"], 0, "{result}");
+    assert!(
+        result["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.packet-binding"),
+        "{result}"
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications/OBL-001.toml")
+            .exists()
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications/OBL-002.toml")
+            .exists()
+    );
+    // A well-formed identity must also refuse changed packet contents.
+    fs::write(&path, &original_response).unwrap();
+    let original: toml::Value = toml::from_str(&original_response).unwrap();
+    let packet_path = fixture
+        .0
+        .join(original["reviewed_packets"][0]["path"].as_str().unwrap());
+    let original_packet = fs::read(&packet_path).unwrap();
+    let mut packet: serde_json::Value = serde_json::from_slice(&original_packet).unwrap();
+    packet["scope"] = serde_json::json!("tampered scope");
+    fs::write(&packet_path, serde_json::to_vec(&packet).unwrap()).unwrap();
+    let changed = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert!(
+        changed["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.packet-binding"),
+        "{changed}"
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications/OBL-001.toml")
+            .exists()
+    );
+    fs::write(&packet_path, original_packet).unwrap();
+    let accepted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
 }
