@@ -11,3 +11,13 @@ Performer observations by codex, not independent assurance.
 - Final trace: six tree scans once each; index bytes unchanged. Eight viewer tests pass, including live refresh after edits, stale last-good state on invalid source, unknown reports and access refusals.
 
 The full CI budget remains unestablished. No cache crosses commands or refreshes. No mandatory expectations, required checks, signatures or provider receipts were substituted.
+
+## SHA-256 dependency profile experiment
+
+The observed `check --json` stack at 2.5 seconds was inside `sha2::sha256::x86_sha::compress`, reached through `check_deliverable_digests` and `sha256_hex` (external diagnostic `/mnt/2tb/ow-cpu-sample-2.5.log`). The workspace dev profile now optimizes only the existing sha2 dependency at level 3. This changes neither the hash algorithm, canonicalization, dependency version, nor workspace debug assertions or overflow checks. Cargo test inherits dev's dependency override ([Cargo profiles](https://doc.rust-lang.org/cargo/reference/profiles.html)).
+
+Six balanced pairs compared standalone baseline `/mnt/2tb/war-overview-shared-status` and optimized `/mnt/2tb/war-sha2-optimized` binaries against the same working tree. All twelve calls exited zero with byte-identical reports. Median elapsed time was 2.7195 seconds baseline versus 2.4490 optimized; median user CPU was 2.2600 versus 2.0195 seconds. These are scoped warm local observations. Compiler tests ran concurrently during part of this comparison; this is not an isolated machine benchmark or universal bound. Raw observations are in `sha2-balanced-comparison.json`.
+
+All 76 compiler tests passed, including SHA-256 published vectors. A disposable clone of f6c5e398 exercised the actual CLI with optimized sha2: valid corpus passes; altered OW-WAR-0061 digest is refused by `deliverable.digest-drift`; missing target is refused by `deliverable.target-unreadable`; restoring the original record returns the byte-identical passing report. See `sha2-refusal-results.json`. The live signed record was never changed.
+
+Exact 8813f541 local gate completed all 14 steps with 1,276 battery checks passing (`/mnt/2tb/ow-pr136-8813f541-full-gate-layout-fixed.log`). Hosted web run 36797364835 passed for f6c5e398. Neither observation qualifies the later SHA profile candidate or establishes the full hosted gate budget.

@@ -3264,7 +3264,7 @@ OW-WAR-0002 is where it stops being true.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Cargo workspace and crate split (§78) | `Cargo.toml` | verified |
+| D-001 | Cargo workspace and crate split (§78) | `Cargo.toml` | drift |
 | D-002 | Toolchain pinned exactly | `rust-toolchain.toml` | verified |
 | D-003 | Permissive-only licence gate | `deny.toml` | verified |
 | D-004 | Single aggregate CI gate | `.github/workflows/ci.yml` | verified |

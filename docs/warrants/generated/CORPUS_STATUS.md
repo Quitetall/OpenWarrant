@@ -65,7 +65,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | requirement | Warrants blocked |
 |---|---|
 | every required gate has admissible result | 114 |
-| artifact digests verify | 89 |
+| artifact digests verify | 90 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
 | required judgments exist | 55 |
@@ -152,7 +152,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
-| `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
+| `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | draft | NOT satisfied | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0002` Implement the file-native manifest and atom parser | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0003` Implement the canonical WAR IR and RFC 8785 digesting | draft | NOT satisfied | 0 | 0 of 4 | every required gate has admissible result |
 | `OW-WAR-0004` Implement the generated parent document and drift checking | draft | NOT satisfied | 0 | 1 of 3 | every required gate has admissible result |

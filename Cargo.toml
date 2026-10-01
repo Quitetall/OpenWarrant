@@ -82,3 +82,8 @@ schemars = "1"
 
 [profile.release]
 lto = "thin"
+
+# Debug gates recompute SHA-256 for every delivered artifact. Optimize this
+# dependency without changing the algorithm or the workspace's debug checks.
+[profile.dev.package.sha2]
+opt-level = 3

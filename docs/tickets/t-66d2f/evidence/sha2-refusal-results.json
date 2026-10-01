@@ -1,0 +1,60 @@
+[
+  {
+    "case": "baseline",
+    "exit_code": 0,
+    "rule": null,
+    "matched": []
+  },
+  {
+    "case": "drift",
+    "exit_code": 2,
+    "rule": "deliverable.digest-drift",
+    "matched": [
+      {
+        "severity": "error",
+        "rule": "deliverable.digest-drift",
+        "file": "docs/warrants/OW-WAR-0061/deliverables.toml",
+        "message": "OW-WAR-0061: D-001 records sha256:dead9e89f5611f94201ce3bb6eed5d63875723f66fc41ae796edf7140f45dcbe for docs/roadmap/PHASE1_EXIT.md but the file is now sha256:8f969e89f5611f94201ce3bb6eed5d63875723f66fc41ae796edf7140f45dcbe. A resolution binds this manifest and no later authorized Warrant declares docs/roadmap/PHASE1_EXIT.md, so the artifact moved outside any authorization \u2014 restore it; declare it as a deliverable of a Warrant and have that Warrant authorized (OW-ADR-0021); or record why it moved: `war correct OW-WAR-0061 D-001` (OW-WAR-0064)",
+        "remedy": {
+          "kind": "human",
+          "argv": [
+            "war",
+            "correct",
+            "OW-WAR-0061",
+            "D-001"
+          ],
+          "purpose": "draft the correction that records why a resolved deliverable moved; a human then signs it with `war sign OW-WAR-0061/D-001 --ssh-sign`"
+        }
+      }
+    ]
+  },
+  {
+    "case": "missing",
+    "exit_code": 2,
+    "rule": "deliverable.target-unreadable",
+    "matched": [
+      {
+        "severity": "error",
+        "rule": "deliverable.target-unreadable",
+        "file": "docs/warrants/OW-WAR-0061/deliverables.toml",
+        "message": "OW-WAR-0061: D-001 names docs/roadmap/PHASE1_EXIT.md.nope and it cannot be read: No such file or directory (os error 2). An unreadable artifact is not a verified one",
+        "remedy": {
+          "kind": "informational",
+          "argv": [
+            "war",
+            "pins",
+            "--history",
+            "docs/roadmap/PHASE1_EXIT.md.nope"
+          ],
+          "purpose": "see which Warrant last delivered the path and at which commit its bytes verify"
+        }
+      }
+    ]
+  },
+  {
+    "case": "restored",
+    "exit_code": 0,
+    "rule": null,
+    "matched": []
+  }
+]
