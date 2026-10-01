@@ -114,8 +114,9 @@ pub fn target_of(p: &Pending) -> String {
     }
 }
 
-/// Read the whole board from the records. No writes, no prompts.
-pub fn board(repo: &Repository) -> Result<Board, RepoError> {
+/// The review rows, without evaluating stages a caller already has.
+/// Uses the same authority and question evaluators as the full console.
+pub fn review_rows(repo: &Repository) -> Result<(Vec<Act>, Vec<Question>), RepoError> {
     let acts: Vec<Act> = sign::pending(repo)?
         .iter()
         .enumerate()
@@ -144,6 +145,12 @@ pub fn board(repo: &Repository) -> Result<Board, RepoError> {
             })
             .collect()
     })?;
+    Ok((acts, questions))
+}
+
+/// Read the whole board from the records. No writes, no prompts.
+pub fn board(repo: &Repository) -> Result<Board, RepoError> {
+    let (acts, questions) = review_rows(repo)?;
     let stages: Vec<Stage> = crate::frontier::run(repo, None)
         .map(|(_, f)| {
             f.rows

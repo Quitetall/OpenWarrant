@@ -22,7 +22,7 @@ pub struct Board {
 
 pub fn build(repo: &Repository) -> Result<(Report, Board), RepoError> {
     let (report, frontier) = frontier::run(repo, None)?;
-    let queue = console::board(repo)?;
+    let (approvals, questions) = console::review_rows(repo)?;
     Ok((
         report,
         Board {
@@ -30,8 +30,8 @@ pub fn build(repo: &Repository) -> Result<(Report, Board), RepoError> {
             program: repo.config.project.name.clone(),
             corpus: crate::status::build(repo)?,
             frontier,
-            approvals: queue.acts,
-            questions: queue.questions,
+            approvals,
+            questions,
         },
     ))
 }
