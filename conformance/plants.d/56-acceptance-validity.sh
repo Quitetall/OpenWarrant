@@ -334,7 +334,7 @@ AV_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
 # Portable review retains the actual recorded evidence, not only its hash.
 AV_OUT=$(av_war verify "$AV_A" --performer claude --bundle --json 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -eq 0 ]] && python3 - "$PLANT_ROOT" "$AV_A" <<'PY_PACKET'
-import json, sys
+import hashlib, json, sys
 from pathlib import Path
 root, alias = Path(sys.argv[1]), sys.argv[2]
 folder = root / "docs/warrants" / alias
@@ -344,10 +344,13 @@ evidence = list((folder / "gate-runs").glob("*"))
 inputs = list((root / "src").glob("*"))
 assert len(evidence) >= 4 and len(inputs) >= 2
 expected = [(p, "gate-evidence", "gate_evidence") for p in evidence]
-expected += [(p, "gate-input", "gate_inputs") for p in inputs]
 for packet in packets:
     data = json.loads(packet.read_text())
     sources = {s["path"]: s for s in data["required_sources"]}
+    for file in inputs:
+        path = str(file.relative_to(root))
+        assert data["request"]["reviewed_subject"]["gate_inputs"][path] == "sha256:" + hashlib.sha256(file.read_bytes()).hexdigest()
+        assert path not in sources, "source inventory is not automatic reviewer context"
     for file, kind, binding in expected:
         path = str(file.relative_to(root))
         source = sources[path]
@@ -357,7 +360,7 @@ for packet in packets:
         assert source["sha256"] == data["request"]["reviewed_subject"][binding][path]
 PY_PACKET
 then
-    av_ok "portable packet retains gate evidence" "run, receipt, output and declared input bytes are carried"
+    av_ok "portable packet retains gate evidence" "evidence bytes are carried; source inputs remain exactly bound"
 else
     av_fail "portable packet retains gate evidence" "exit $AV_STATUS; required evidence bytes were not carried"
 fi

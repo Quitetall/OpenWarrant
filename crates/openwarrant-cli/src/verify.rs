@@ -106,6 +106,7 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
         .collect();
     let mut fixtures = BTreeMap::new();
     let mut input_patterns = std::collections::BTreeSet::new();
+    let mut whole_tree = cited.is_empty();
     let gate_dir = repo.root.join(&repo.config.paths.gates);
     let paths = match gate_dir.read_dir_utf8() {
         Ok(entries) => entries
@@ -158,7 +159,10 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
                     "verify.subject-unavailable: {relative} inputs must be a list"
                 ))
             })?;
+            whole_tree |= patterns.is_empty();
             input_patterns.extend(patterns.iter().cloned());
+        } else {
+            whole_tree = true;
         }
         if let Some(declared) = definition
             .get("fixtures")
@@ -169,14 +173,16 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
             }
         }
     }
+    whole_tree |= cited.iter().any(|key| !found.contains(key));
     let mut gate_inputs = BTreeMap::new();
-    if !input_patterns.is_empty() {
+    if whole_tree || !input_patterns.is_empty() {
         let exclusions = crate::gate_cmd::source::Exclusions::of(repo);
         for path in repo.source_paths()? {
-            if !exclusions.excludes(&path)
-                && input_patterns
-                    .iter()
-                    .any(|p| crate::gate_cmd::source::glob_matches(p, &path))
+            if (whole_tree && !exclusions.excludes_from_tree(&path))
+                || (!exclusions.excludes(&path)
+                    && input_patterns
+                        .iter()
+                        .any(|p| crate::gate_cmd::source::glob_matches(p, &path)))
             {
                 let digest = file_digest(repo, &path)?;
                 if repo.source_inventory.is_some() && digest == "missing" {
