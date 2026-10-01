@@ -11,7 +11,7 @@ classification: internal
 
 ## Shared sources and participant boundaries
 
-- OpenWarrant SAS §47, §48.1–48.5, §49.2–49.3, §65; OW-WAR-0026, OW-WAR-0027, OW-WAR-0047 and OW-WAR-0108. Exact binding text remains in the compiled normative projection.
+- Relevant legacy SAS sections: §47, §48.1–48.5, §49.2–49.3 and §65; OW-WAR-0026, OW-WAR-0027, OW-WAR-0047 and OW-WAR-0108. Live `war sas status` reports 1.1.1 accepted and 1.2.0 proposed. The current generated normative projection reflects the proposed 1.2.0 document; generation does not accept that revision or replace an existing signed contract. This shared draft likewise does not activate new provider rules.
 - OpenWarrant cbe9a8a8: `crates/openwarrant-core/src/seam.rs` defines KatanaReceipt and BlutLineageReceipt. These validators check minimum fields and references, not a provider-authenticated seal. `resolve.rs::runtime_receipts_match_the_basis` has no connected store.
 - Katana checkout 0b0ac9dd1cbf69a2628ea214a4e841c5bd2888e1: `crates/katana/src/exec.rs` returns status, session path, answer, tool summaries and token usage. `crates/katana-mekugi/src/lib.rs` owns an append-only event log and BLAKE3 chain. These interfaces do not supply the complete OpenWarrant KatanaReceipt contract. The scoped Rust search found no dispatch_digest, prompt_ir_digest or receipt_digest producer.
 - BLUT checkout 2502a4dd6385b077f21dd500851a99a6ec1795c9: `src/framework/lineage.rs` provides read-only job lineage; job/status/artifact APIs own their observations. This checkout differs from the OW47 runtime engine pin. Do not silently attribute its behavior to the old run. No complete dispatch-bound provider receipt has been observed.
