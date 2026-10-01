@@ -18,6 +18,8 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--current", type=Path, required=True)
 parser.add_argument("--older", type=Path, required=True)
 parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--require-old-refusal", action="store_true",
+                    help="fail if the older reader counts newly bound records as established")
 args = parser.parse_args()
 source = Path(__file__).resolve().parents[3]
 base = Path(tempfile.mkdtemp(prefix="ow-stored-reader-probe-"))
@@ -113,3 +115,21 @@ config.write_text(text.replace(
 observe("minimum_reader")
 print(args.output)
 print(base)
+
+if args.require_old_refusal:
+    def established(phase, reader):
+        status = report["observations"][phase][reader]["status"]["report"]
+        return sum(
+            obligation["disposition"] == "established"
+            for warrant in status.get("result", {}).get("warrants", [])
+            if warrant["alias"] == "IX-WAR-0003"
+            for obligation in warrant["obligations"]
+        )
+
+    assert established("fresh", "current") == 2, "the new reader must admit fresh review"
+    assert established("changed", "current") == 0, "the new reader must refuse stale review"
+    for phase in ("fresh", "changed", "minimum_reader"):
+        observed = report["observations"][phase]["older"]["status"]
+        assert observed["process_exit"] != 0 and established(phase, "older") == 0, (
+            f"older reader must refuse the new record boundary ({phase}): {observed}"
+        )

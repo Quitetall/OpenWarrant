@@ -999,8 +999,8 @@ impl Repository {
                 context: format!("could not read {path}"),
                 source,
             })?;
-            match toml::from_str::<Verification>(&text) {
-                Ok(v) => records.push(v),
+            match crate::verify::record::decode(&text) {
+                Ok(v) => records.push(v.verification),
                 Err(e) => failures.push((relative, e.to_string())),
             }
         }

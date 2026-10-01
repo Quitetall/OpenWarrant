@@ -44,7 +44,7 @@ pub(crate) const FROZEN: &[(&str, u32)] = &[
     ("authorization", 1),
     ("judgments", 1),
     ("resolution", 1),
-    ("verification", 1),
+    ("verification", 2),
     ("correction", 1),
     ("sas-revision", 1),
     ("amendment", 1),
@@ -264,7 +264,7 @@ mod tests {
             Some(("stage-dispatch", 1))
         );
         assert_eq!(parse_schema("something/else"), None);
-        assert_eq!(known_major("verification"), Some(1));
+        assert_eq!(known_major("verification"), Some(2));
         assert_eq!(known_major("verification-response"), None);
 
         let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())

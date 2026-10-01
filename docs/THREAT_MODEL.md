@@ -182,3 +182,17 @@ change a valid candidate's bytes. These bounded controls do not prove transitive
 context closure, private-copy custody or protection of a Git object store from
 an account that can rewrite it. Operators must protect retained objects and
 control storage. This draft grants no authority and qualifies no live Warrant.
+
+
+### Experimental stored-review boundary (OW-ADR-0030)
+
+The installed older alpha.2 executable ignores the minimum-reader configuration
+and counts changed bare verification records as established. The public CLI
+downgrade probe preserves the exact executable hashes and reproduces that
+behavior. The draft v2 stored envelope nests the frozen v1 payload, so bare v1
+readers must refuse it; current qualification also compares envelope bindings
+with the journal and retained packets. Runtime confirmation of that refusal is
+pending the current build. This proposal does not protect unchanged legacy
+repositories from old executables, establish private custody or authorize a
+new schema pack. Pack adoption and preservation of replaced evidence remain
+release requirements.

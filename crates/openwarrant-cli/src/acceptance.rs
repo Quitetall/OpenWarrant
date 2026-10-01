@@ -390,12 +390,11 @@ fn reverified(
                 &format!("{rel_dir}/verifications/{o}.toml"),
             )
             .and_then(|bytes| {
-                toml::from_str::<openwarrant_core::verification::Verification>(
-                    &String::from_utf8_lossy(&bytes),
-                )
-                .ok()
+                crate::verify::record::decode(&String::from_utf8_lossy(&bytes))
+                    .ok()
+                    .filter(|stored| stored.binds(&candidate_subject, &packets))
             })
-            .map(|v| v.performer) else {
+            .map(|v| v.verification.performer) else {
                 continue;
             };
             if !crate::verify::packets_cover(
@@ -418,8 +417,9 @@ fn reverified(
     for id in &declared {
         let path = format!("{rel_dir}/verifications/{id}.toml");
         let bytes = show(root, candidate, &path)?;
-        let v: openwarrant_core::verification::Verification =
-            toml::from_str(&String::from_utf8_lossy(&bytes)).ok()?;
+        let v = crate::verify::record::decode(&String::from_utf8_lossy(&bytes))
+            .ok()?
+            .verification;
         if v.obligation != *id
             || !v.disposition.permits_satisfied()
             || v.admissible_for(&assurance).is_err()

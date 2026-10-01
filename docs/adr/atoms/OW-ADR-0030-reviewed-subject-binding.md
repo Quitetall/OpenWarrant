@@ -56,6 +56,30 @@ Candidate acceptance compares against exact Git-tree data using the same subject
 
 V1-only response readers refuse v2 envelopes. This does not protect stored records from older readers that ignore the new journal binding. A direct synthetic CLI probe of the installed alpha.2 release reproduced stale observations counted as established, including passing the obligation and independence requirements in a resolution dry run. That reader also ignores `project.requires_war`; a minimum-version setting alone does not protect it. The current reader rejects those stale observations. Adoption therefore needs a record-level storage boundary that old bare-record readers cannot misread, alongside the frozen v1 reader and preserved history. Define the new envelope and schema-pack adoption before qualified release; do not silently alter the frozen v1 payload or claim a version setting covers readers that ignore it. The portable probe is `conformance/fixtures/verifier/probe-stored-reader.py`; its results apply to the exact recorded executable digests, not every old tool.
 
+## Proposed stored-record boundary
+
+Newly ingested observations use a distinct `oh.war/verification/v2` envelope.
+The frozen v1 `Verification` payload is nested under `verification`, without
+renaming its fields. The root must not repeat v1's `obligation`, `disposition`,
+`performer`, `evidence` or `verifier`: the observed older reader requires these
+at the root, so a nested payload causes a parse refusal rather than a verdict.
+The envelope carries the response protocol, reviewed subject and exact packet
+references. A v1 response can be retained in this envelope as unbound history;
+it does not gain qualification by being wrapped.
+
+The current reader continues to read existing bare v1 records without rewriting
+them. Current qualification requires a v2 envelope whose bindings agree with
+the journal event, current subject and retained packet bytes. Candidate
+re-verification uses the same record decoder and binding checks. Unknown future
+formats must not fall back to a permissive v1 decoder.
+
+This is an experimental wire-format proposal, not adoption of a schema pack.
+The pack must publish v1 and v2 beside each other, move its format version, and
+support explicit adoption without reinterpreting old contract digests. Until
+that path and history retention are proved, this branch remains unreleasable.
+The regression probe's `--require-old-refusal` checks both fresh current-reader
+qualification and old-reader refusal, so rejecting all reviews cannot pass it.
+
 ## Portable packet binding
 
 Each `reviewed_packets` entry carries a retained repository-relative path and the full existing VerificationBundle digest. The path uses the existing shortened digest filename; qualification checks the full digest. Packet/request schema, exact subject, performer and covered obligations must match. Qualification reads the retained packet; it does not rebuild a different packet after prior verdicts changed.

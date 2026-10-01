@@ -29,6 +29,7 @@
 //! must not become a file that later reads as a verification.
 
 pub(crate) mod context;
+pub(crate) mod record;
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -538,15 +539,17 @@ pub fn current_records(
                         .get("reviewed_packets")
                         .and_then(|v| serde_json::from_value::<Vec<ReviewedPacket>>(v.clone()).ok())
                         .is_some_and(|packets| {
-                            packets_cover(
-                                repo,
-                                &one.alias(),
-                                &current,
-                                &packets,
-                                std::slice::from_ref(&record.obligation),
-                                &record.performer,
-                            )
-                            .unwrap_or(false)
+                            record::decode(&String::from_utf8_lossy(&bytes))
+                                .is_ok_and(|stored| stored.binds(&current, &packets))
+                                && packets_cover(
+                                    repo,
+                                    &one.alias(),
+                                    &current,
+                                    &packets,
+                                    std::slice::from_ref(&record.obligation),
+                                    &record.performer,
+                                )
+                                .unwrap_or(false)
                         })
                     && payload["obligation"] == record.obligation
                     && payload["record_digest"] == digest
@@ -1080,7 +1083,8 @@ pub fn ingest(
             continue;
         }
         let path = vdir.join(format!("{}.toml", v.obligation));
-        let rendered = toml::to_string_pretty(v).map_err(|e| RepoError::Io {
+        let stored = record::StoredVerification::new(v, &response);
+        let rendered = toml::to_string_pretty(&stored).map_err(|e| RepoError::Io {
             context: format!("could not serialize verification for {}", v.obligation),
             source: std::io::Error::other(e.to_string()),
         })?;
