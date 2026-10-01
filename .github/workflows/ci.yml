@@ -41,7 +41,11 @@ jobs:
   gate:
     name: gate
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Full cbe9a8a8 gate: 14 steps and 1,277 plants passed locally; its log
+    # spans about 40 minutes. Hosted run 36799088658 was cancelled at 20
+    # minutes during the battery. Keep the complete gate and a finite limit.
+    # This public repository uses standard hosted runners, not a paid tier.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
