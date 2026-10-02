@@ -1089,12 +1089,10 @@ printf 'schema = "oh.war/rationale/v1"\n' > "$RZ_DIR/rationale.toml"
 rz compile >/dev/null 2>&1
 rz_commit "resolution plants: authorized and delivered"
 rz_record "resolution plants: first record"
-# The review's files are source the tree rule reads, so the receipt is
-# recorded again over the committed, reviewed tree.
+# Verification records are bookkeeping, not source the tree-bound gate reads.
 rz verify "$RZ_W" --performer claude --run >/dev/null 2>&1
 rz compile >/dev/null 2>&1
 rz_commit "resolution plants: verified"
-rz_record "resolution plants: recorded over the verified tree"
 RZ_BASE=$(git -C "$RZ_ROOT" rev-parse HEAD)
 rz_reset() { git -C "$RZ_ROOT" reset --hard -q "$RZ_BASE" && git -C "$RZ_ROOT" clean -fdq; }
 
@@ -1125,13 +1123,12 @@ fi
 rz_reset
 
 # OBL-005. `satisfied` signed over an obligation the verifier did not
-# establish. The disposition is changed, committed, and the receipt recorded
-# again over it — so requirement 5 still holds and §38.6 is what refuses.
+# establish. The disposition is changed and committed; the unchanged receipt
+# still holds, so §38.6 is the control this plant exercises.
 sed -i 's|^disposition = "established"|disposition = "not_established"|' "$RZ_DIR/verifications/OBL-001.toml"
 assert_present 'not_established' "$RZ_DIR/verifications/OBL-001.toml"
 rz compile >/dev/null 2>&1
 rz_commit "resolution plants: OBL-001 not established"
-rz_record "resolution plants: recorded over it"
 printf 'schema = "oh.war/resolution-response/v1"\nwarrant = "%s"\ncontract_digest = "%s"\nresolved_by = "Plant Human"\nacting_role = "resolver"\ncommon_outcome = "satisfied"\nprofile_outcome = "delivered"\nmeaning = "x"\neffective_time = "2026-09-02T00:00:00Z"\n' "$RZ_W" "$RES_DIGEST" > "$MIGRATE_TMP/over-resolve.toml"
 over_out="$(rz resolve "$RZ_W" --response "$MIGRATE_TMP/over-resolve.toml" 2>&1)"; over_status=$?
 if [[ "$over_status" -eq 2 ]] && grep -q "resolution.outcome-unsupported" <<<"$over_out" && grep -q "OBL-001" <<<"$over_out" && [[ ! -f "$RZ_DIR/resolution.toml" ]]; then

@@ -326,13 +326,20 @@ separate_context_compilation = true
 distinct_model_required = true
 distinct_human_required = false
 VERIFY
+# Keep a literal v1 payload for the compatibility controls below.
+python3 - "$IP_TMP/verification.toml" "$IP_TMP/verification-record.toml" <<'PY'
+import sys
+s=open(sys.argv[1]).read();open(sys.argv[2],"w").write(s.split("[[verifications]]\n",1)[1])
+PY
+ia verify "$IA_A" --performer claude --bundle --json > "$IP_TMP/verification-request.json"
+python3 "$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" "$IP_TMP/verification-request.json" "$IP_TMP/verification.toml" > "$IP_TMP/verification-bound.toml"
+command mv "$IP_TMP/verification-bound.toml" "$IP_TMP/verification.toml"
 IA_OUT=$(ia verify "$IA_A" --response "$IP_TMP/verification.toml" 2>&1)
 if grep -qE 'PASS +verify\.recorded' <<<"$IA_OUT" && [[ -f "$IA_DIR/verifications/OBL-001.toml" ]]; then
     ip_ok "war verify records once" "OBL-001 established by plant-verifier"
 else
     ip_fail "war verify records once" "$(ip_errors "$IA_OUT")"
 fi
-cp "$IA_DIR/verifications/OBL-001.toml" "$IP_TMP/verification-record.toml" 2>/dev/null
 ia_retry "war verify retried replays" "verify.replayed" verify "$IA_A" --response "$IP_TMP/verification.toml"
 ia_conflict "war verify by another refuses" "verification.recorded" verify "$IA_A" --response "$IP_TMP/verification.toml"
 # The negative control: the binary from before this change, on the same retry.

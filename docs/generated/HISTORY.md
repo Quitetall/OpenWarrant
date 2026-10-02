@@ -28948,7 +28948,7 @@ would answer the owner's question with a number nobody measured.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The synthetic corpus generator | `tools/scale/synth-corpus.sh` | verified |
+| D-001 | The synthetic corpus generator | `tools/scale/synth-corpus.sh` | drift |
 | D-002 | The declared budget | `tools/scale/budget.toml` | verified |
 | D-003 | The budget gate | `tools/scale/budget.sh` | verified |
 | D-004 | The 1,000-Warrant measurement | `docs/scale/baseline-1000.json` | verified |
@@ -34721,7 +34721,7 @@ this level requires. The author does not record them.
 | D-004 | Standing read from disputes: resolution.disputed in war check | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-005 | A receipt of an invalidated gate is not admissible | `crates/openwarrant-cli/src/evidence.rs` | not_content_addressed |
 | D-006 | The war gate invalidate and war attest --custody flags | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-007 | The Phase 9 exit plants, §91.10 test 75 among them | `conformance/plants.d/58-invalidation.sh` | verified |
+| D-007 | The Phase 9 exit plants, §91.10 test 75 among them | `conformance/plants.d/58-invalidation.sh` | drift |
 | D-008 | Custody, invalidation and dispute: what each act does and who may do it | `docs/INVALIDATION.md` | verified |
 | D-009 | The live demonstration gate, only if Q-002 selects the live corpus | `docs/gates/ops.exit-demo@1.0.0.yaml` | verified |
 | D-010 | The invalidate act's response schema and name, verified on the read path (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
@@ -35121,7 +35121,7 @@ resolver is refused by kind whatever the file says.
 | D-005 | verify ingest checks the assigned verifier and its role | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-006 | docs/TEAMS.md | `docs/TEAMS.md` | verified |
 | D-007 | THREAT_MODEL row: assignment and verdict attribution | `docs/THREAT_MODEL.md` | not_content_addressed |
-| D-008 | the plants | `conformance/plants.d/57-teams.sh` | verified |
+| D-008 | the plants | `conformance/plants.d/57-teams.sh` | drift |
 | D-009 | `war sign --list --as`, `war inbox --as`, `sign --list --json`, the review record after `war show` (AM-003) | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-010 | `war check` names a moved or malformed assignment (AM-003) | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-011 | each Warrant's review record in `war status --json` (AM-003) | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
@@ -37781,7 +37781,7 @@ once, at acceptance, after the blind verifier.
 | D-011 | cli: the batch act carries class acts | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 | D-012 | cli: no covered path taken from work in flight | `crates/openwarrant-cli/src/ownership.rs` | verified |
 | D-013 | cli: a covered Warrant is never resolved by a policy service | `crates/openwarrant-cli/src/resolve.rs` | drift |
-| D-014 | the plants | `conformance/plants.d/69-standing.sh` | verified |
+| D-014 | the plants | `conformance/plants.d/69-standing.sh` | drift |
 | D-015 | docs/SIGNING.md: routine work under a standing authorization | `docs/SIGNING.md` | verified |
 | D-016 | CONTEXT.md: the term | `CONTEXT.md` | verified |
 | D-017 | cli: the class acts and the covered verdict | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
@@ -39089,7 +39089,7 @@ verifier conclude a gate printed nothing wrong.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The bundle carries each gate run's stdout and stderr | `crates/openwarrant-cli/src/bundle.rs` | not_content_addressed |
-| D-002 | The bundle-output plants | `conformance/plants.d/47-bundle-output.sh` | verified |
+| D-002 | The bundle-output plants | `conformance/plants.d/47-bundle-output.sh` | drift |
 
 ### OW-WAR-0147 — Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in
 

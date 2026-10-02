@@ -150,26 +150,15 @@ bb_budget 6000
 
 # Refusing: a verifier answering an obligation its bundle did not carry is
 # not recorded; the fixture that answers only what it was shown is.
-cat > "$PLANT_ROOT/answers-all.sh" <<'SH'
-#!/usr/bin/env bash
-python3 - "$1" <<'PY'
-import json, sys
-b = json.load(open(sys.argv[1]))
-print('schema = "oh.war/verification-response/v1"')
-print('warrant = "%s"' % b["warrant"])
-for o in ["OBL-001", "OBL-002"]:
-    print('\n[[verifications]]\nobligation = "%s"\ndisposition = "established"' % o)
-    print('evidence = "fixture: answers every obligation of the Warrant"')
-    print('performer = "%s"' % b["request"]["performer"])
-    print('[verifications.verifier]\nactor = "fixture-verifier"\nkind = "agent"')
-    print("[verifications.verifier.independence]")
-    for k in ["performer_transcript_blind", "performer_rationale_blind", "separate_writable_workspace",
-              "cannot_modify_subject_artifacts", "cannot_modify_gate_definition",
-              "cannot_modify_gate_fixtures", "separate_context_compilation",
-              "distinct_model_required", "distinct_human_required"]:
-        print("%s = true" % k)
+# Same v2 fixture protocol, but deliberately answer both obligations even
+# when a split packet carries only one. Refuse for scope, not legacy format.
+command cp conformance/fixtures/verifier/establishes-all.sh "$PLANT_ROOT/answers-all.sh"
+python3 - "$PLANT_ROOT/answers-all.sh" <<'PY'
+import sys
+p=sys.argv[1];s=open(p).read();old='for o in b["request"]["obligations"]:'
+assert old in s
+open(p,"w").write(s.replace(old,'for o in [{"id": "OBL-001"}, {"id": "OBL-002"}]:',1))
 PY
-SH
 sed -i "s|^verifier_argv = .*|verifier_argv = [\"bash\", \"$PLANT_ROOT/answers-all.sh\"]|" "$PLANT_ROOT/openwarrant.toml"
 BB_RUN=$("$WAR" --root "$PLANT_ROOT" verify BB-WAR-0001 --performer claude --run 2>&1); BB_STATUS=$?
 BB_REC=$(ls "$BB_W"/verifications/OBL-*.toml 2>/dev/null | wc -l)

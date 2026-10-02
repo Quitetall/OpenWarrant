@@ -31,6 +31,7 @@ IV_TMP=$(mktemp -d)
 # ── Setup, under -euo pipefail: any failing step aborts it, so no plant below
 # scores a half-built corpus. The agent lives only as long as the setup.
 if ! WAR="$REPO_ROOT/$WAR" D="$PLANT_ROOT" T="$IV_TMP" \
+    BIND="$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
     env -u SSH_AUTH_SOCK -u SSH_AGENT_PID bash -euo pipefail > "$IV_TMP/setup.log" 2>&1 <<'SETUP'
 cd "$D"
 g() { git -c user.email=plant@invalid -c user.name=plant "$@"; }
@@ -204,7 +205,9 @@ separate_context_compilation = true
 distinct_model_required = true
 distinct_human_required = false
 VERIFY
-    "$WAR" --root . verify "$a" --response "$T/verified-$a.toml"
+    "$WAR" --root . verify "$a" --performer claude --bundle --json > "$T/request-$a.json"
+    python3 "$BIND" "$T/request-$a.json" "$T/verified-$a.toml" > "$T/bound-$a.toml"
+    "$WAR" --root . verify "$a" --response "$T/bound-$a.toml"
     g add -A; g commit -qm "verified $a"
     [[ "$a" == IV-WAR-0005 ]] && continue
     "$WAR" --root . sign "$a" --ssh-sign --as "Plant Signer" </dev/null
