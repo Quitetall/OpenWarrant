@@ -101,3 +101,29 @@ as usual; the protocol rules above are stricter and win.
 The human rendering of `war check` and `war show`, the progress platform's
 HTML, the skill and plugin files, the conformance battery, gate definitions
 under `docs/gates/`, and this repository's own Warrants.
+
+
+## Proposed reviewed-verification storage (not adopted)
+
+`openwarrant_core::verification_record` exposes the candidate stored v2 types,
+format-selecting decoder and binding comparison. `war schemas` publishes
+`schemas/oh.war/verification/v2.json` beside the frozen v1 schema and checks its
+bytes. The v2 candidate is outside the active `0.2.0` pack. Publication does not
+activate a format, change a contract digest, establish a review or accept ADR
+0030. The public decoder distinguishes unsupported versions from malformed
+records; callers must not treat either result as successful verification.
+
+V1 records remain readable as unbound history without a rewrite. New v2 records
+nest the v1 payload and carry explicit protocol, reviewed subject and packet
+references. Binding comparison checks declared equality only: packet bytes,
+journal provenance, source currency, independent custody and acceptance remain
+separate checks. A v1 record with optional new fields does not gain v2 standing.
+
+Explicit pack adoption remains required before qualified release. Its supported
+path must retain the old pack and signed contract bytes, publish the new pack
+beside them, compile an expressly selected new basis and request the applicable
+contract-revision authorization. An old resolution remains tied to its old
+basis; a new pack or new review cannot reinterpret it. Migration must preserve
+originals, report affected records and obtain required acts, rather than globally
+bumping the compiler constant or regenerating signed deliverable manifests.
+See proposed [ADR 0030](adr/atoms/OW-ADR-0030-reviewed-subject-binding.md).

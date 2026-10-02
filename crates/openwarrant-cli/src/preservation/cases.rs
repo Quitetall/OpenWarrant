@@ -74,13 +74,7 @@ pub(super) fn coverage(
                 }
             }
         } else if local.starts_with("verifications/") && local.ends_with(".toml") {
-            if text()
-                .and_then(|text| {
-                    toml::from_str::<openwarrant_core::verification::Verification>(text)
-                        .map_err(|e| e.to_string())
-                })
-                .is_err()
-            {
+            if text().and_then(crate::verify::record::decode).is_err() {
                 assurance_gaps.insert(format!("{path}: unreadable verification record"));
             }
         } else if local == "resolution.toml" {

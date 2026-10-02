@@ -206,6 +206,24 @@ pub fn error(mode: Mode, message: &str) {
     }
 }
 
+/// A failed observation is UNKNOWN, rather than an invalid-input diagnostic.
+pub fn unavailable(mode: Mode, rule: &str, message: &str) {
+    match mode {
+        Mode::Human => eprintln!("UNKNOWN {rule}: {message}"),
+        Mode::Json => {
+            let mut report = Report::default();
+            report.push(crate::diagnostic::Diagnostic::new(
+                Severity::Unknown,
+                rule,
+                None,
+                message,
+            ));
+            let mut out = std::io::stdout().lock();
+            let _ = writeln!(out, "{}", envelope("error", &report, None));
+        }
+    }
+}
+
 /// A value's canonical JSON as a `serde_json::Value`, for `result`.
 pub fn value<T: Serialize>(v: &T) -> serde_json::Value {
     serde_json::to_value(v).unwrap_or(serde_json::Value::Null)

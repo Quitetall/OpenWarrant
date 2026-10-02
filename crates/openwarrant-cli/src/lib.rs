@@ -1507,6 +1507,12 @@ pub fn entrypoint() -> ExitCode {
         Err(report) => {
             // §76.2: an explicit diagnostic naming what was wrong and where,
             // never a bare "error". Under --json, an envelope on stdout.
+            if let Some(repo::RepoError::ObservationUnavailable { rule, message }) =
+                report.downcast_ref::<repo::RepoError>()
+            {
+                output::unavailable(mode, rule, message);
+                return ExitCode::from(EXIT_NOT_READY);
+            }
             let message = report.to_string();
             output::error(mode, &message);
             // OW-WAR-0130: a `war` the repository does not admit is a refusal
@@ -3499,8 +3505,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         } => {
             let repository = open_repo()?;
             if bundle {
-                let report = bundle::emit(&repository, &alias, &performer)?;
-                return Ok(output::finish(mode, "verify.bundle", &report, None));
+                let (report, index) = bundle::emit(&repository, &alias, &performer)?;
+                return Ok(output::finish(mode, "verify.bundle", &report, Some(index)));
             }
             if run {
                 let report = bundle::run(&repository, &alias, &performer)?;
@@ -3701,9 +3707,14 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             // and the authority records hold for the whole run (t-eca6,
             // t-f815).
             gate_cmd::source::remember_tree_reads();
-            compile::run(&repository, alias.as_deref())?;
+            let summary = compile::run(&repository, alias.as_deref(), mode)?;
             if mode == output::Mode::Json {
-                output::emit(mode, "compile", "", serde_json::json!({"alias": alias}));
+                output::emit(
+                    mode,
+                    "compile",
+                    "",
+                    serde_json::json!({"alias": alias, "written": summary.written, "skipped": summary.skipped}),
+                );
             }
             Ok(EXIT_OK)
         }

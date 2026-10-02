@@ -15,13 +15,13 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 - **SAS revision:** 1.1.1
 - **digest:** `sha256:230e2829d80d11e4ccaf8f893205994ce16314ffe4cd30b2d4d398614133f12e`
-- Revision 1.1.1 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 34 against 1.1.0, 2 against 1.1.1.
+- Revision 1.1.1 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 34 against 1.1.0, 3 against 1.1.1.
 
 **Requirements (63 in §106)** — strictest rung first:
 
 | satisfied | in_progress | claimed | unaddressed | superseded |
 |---|---|---|---|---|
-| **22** | 5 | 33 | 1 | 2 |
+| **0** | 0 | 62 | 1 | 0 |
 
 ## Objectives (SAS §98 phases)
 
@@ -38,7 +38,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-9: High-assurance controls | OW-WAR-0136 | blocked by OW-WAR-0067, OW-WAR-0071, OW-WAR-0072, OW-WAR-0073, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091, OW-WAR-0096, OW-WAR-0136, OW-WAR-0137, OW-WAR-0138, OW-WAR-0139, OW-WAR-0142, OW-WAR-0143, OW-WAR-0144 | 0 | 15 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-10: Contractor Work Order profile | — | not derivable — no member carries the `exit` slug | 0 | 1 | 0 | 0 | 0 |
-| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 0 | 0 | 0 | 0 |
+| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 1 | 0 | 0 | 0 |
 
 - **roadmap://OW-PHASE-0** exit: real distributions for authoring cost, amendment types, and failure causes.
 - **roadmap://OW-PHASE-1** exit: OpenWarrant development uses WARs.
@@ -55,8 +55,9 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 ## Next actionable
 
 - `OW-WAR-0039` / `M1` / `STAGE-001` (roadmap://OW-PHASE-0) — M1 is unblocked; OW-WAR-0039 is draft; roadmap://OW-PHASE-0 is the lowest unachieved Objective
-- `OW-WAR-0041` / `M3` / `STAGE-002` (roadmap://OW-PHASE-0) — M3 is unblocked; OW-WAR-0041 is draft; roadmap://OW-PHASE-0 is the lowest unachieved Objective
+- `OW-WAR-0041` / `M1` / `STAGE-001` (roadmap://OW-PHASE-0) — M1 is unblocked; OW-WAR-0041 is draft; roadmap://OW-PHASE-0 is the lowest unachieved Objective
 - `OW-WAR-0100` / `M1` / `STAGE-001` (roadmap://OW-PHASE-0) — M1 is unblocked; OW-WAR-0100 is draft; roadmap://OW-PHASE-0 is the lowest unachieved Objective
+- `OW-WAR-0118` / `M1` / `STAGE-001` (roadmap://OW-PHASE-0) — M1 is unblocked; OW-WAR-0118 is draft; roadmap://OW-PHASE-0 is the lowest unachieved Objective
 
 ## What blocks resolution, by §56.1 requirement
 
@@ -64,16 +65,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| every required gate has admissible result | 114 |
-| artifact digests verify | 92 |
-| no blocker remains | 86 |
-| no required unknown remains | 86 |
-| required judgments exist | 55 |
-| residual risks have sufficient authority | 55 |
-| required deliverables exist | 53 |
-| exact authorized Contract Revision | 20 |
-| every required obligation is dispositioned | 4 |
-| independence requirements are met | 4 |
+| every required obligation is dispositioned | 144 |
+| independence requirements are met | 144 |
+| every required gate has admissible result | 115 |
+| artifact digests verify | 99 |
+| no blocker remains | 87 |
+| no required unknown remains | 87 |
+| required judgments exist | 56 |
+| residual risks have sufficient authority | 56 |
+| required deliverables exist | 54 |
+| exact authorized Contract Revision | 21 |
 | runtime receipts match the basis | 3 |
 
 ## Requirements (SAS §106, §34.3)
@@ -89,44 +90,44 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-003` | claimed | 0 | OW-WAR-0029 (complete), OW-WAR-0044 (complete) |
 | `WAR-SAS-RQ-004` | claimed | 0 | OW-WAR-0029 (complete), OW-WAR-0044 (complete) |
 | `WAR-SAS-RQ-005` | claimed | 0 | OW-WAR-0029 (complete), OW-WAR-0044 (complete) |
-| `WAR-SAS-RQ-010` | satisfied | 1 | OW-WAR-0002 (complete), OW-WAR-0113 (partial) |
-| `WAR-SAS-RQ-011` | in_progress | 0 | OW-WAR-0002 (partial) |
-| `WAR-SAS-RQ-012` | in_progress | 0 | OW-WAR-0002 (partial), OW-WAR-0004 (complete), OW-WAR-0057 (partial), OW-WAR-0113 (partial) |
-| `WAR-SAS-RQ-013` | satisfied | 1 | OW-WAR-0002 (complete), OW-WAR-0113 (partial), OW-WAR-0122 (partial), OW-WAR-0140 (partial) |
-| `WAR-SAS-RQ-014` | in_progress | 0 | OW-WAR-0003 (partial), OW-WAR-0004 (complete), OW-WAR-0058 (partial) |
-| `WAR-SAS-RQ-015` | satisfied | 2 | OW-WAR-0002 (complete), OW-WAR-0005 (complete), OW-WAR-0140 (partial), OW-WAR-0147 (partial) |
-| `WAR-SAS-RQ-020` | in_progress | 0 | OW-WAR-0036 (complete), OW-WAR-0058 (partial), OW-WAR-0063 (partial), OW-WAR-0064 (partial), OW-WAR-0071 (partial), OW-WAR-0126 (partial), OW-WAR-0128 (partial) |
+| `WAR-SAS-RQ-010` | claimed | 1 | OW-WAR-0002 (complete), OW-WAR-0113 (partial) |
+| `WAR-SAS-RQ-011` | claimed | 0 | OW-WAR-0002 (partial) |
+| `WAR-SAS-RQ-012` | claimed | 0 | OW-WAR-0002 (partial), OW-WAR-0004 (complete), OW-WAR-0057 (partial), OW-WAR-0113 (partial) |
+| `WAR-SAS-RQ-013` | claimed | 1 | OW-WAR-0002 (complete), OW-WAR-0113 (partial), OW-WAR-0122 (partial), OW-WAR-0140 (partial) |
+| `WAR-SAS-RQ-014` | claimed | 0 | OW-WAR-0003 (partial), OW-WAR-0004 (complete), OW-WAR-0058 (partial) |
+| `WAR-SAS-RQ-015` | claimed | 2 | OW-WAR-0002 (complete), OW-WAR-0005 (complete), OW-WAR-0140 (partial), OW-WAR-0147 (partial) |
+| `WAR-SAS-RQ-020` | claimed | 0 | OW-WAR-0036 (complete), OW-WAR-0058 (partial), OW-WAR-0063 (partial), OW-WAR-0064 (partial), OW-WAR-0071 (partial), OW-WAR-0126 (partial), OW-WAR-0128 (partial) |
 | `WAR-SAS-RQ-021` | claimed | 0 | OW-WAR-0113 (partial) |
-| `WAR-SAS-RQ-022` | satisfied | 1 | OW-WAR-0013 (complete), OW-WAR-0055 (complete), OW-WAR-0061 (partial), OW-WAR-0062 (partial), OW-WAR-0063 (partial), OW-WAR-0125 (partial) |
+| `WAR-SAS-RQ-022` | claimed | 1 | OW-WAR-0013 (complete), OW-WAR-0055 (complete), OW-WAR-0061 (partial), OW-WAR-0062 (partial), OW-WAR-0063 (partial), OW-WAR-0125 (partial) |
 | `WAR-SAS-RQ-023` | claimed | 0 | OW-WAR-0123 (partial) |
 | `WAR-SAS-RQ-024` | claimed | 0 | OW-WAR-0006 (complete) |
 | `WAR-SAS-RQ-025` | claimed | 0 | OW-WAR-0006 (complete) |
-| `WAR-SAS-RQ-030` | satisfied | 1 | OW-WAR-0009 (complete), OW-WAR-0067 (partial), OW-WAR-0142 (partial), OW-WAR-0144 (partial) |
-| `WAR-SAS-RQ-031` | satisfied | 1 | OW-WAR-0009 (complete) |
-| `WAR-SAS-RQ-032` | satisfied | 1 | OW-WAR-0008 (complete), OW-WAR-0113 (partial), OW-WAR-0114 (partial) |
-| `WAR-SAS-RQ-033` | satisfied | 1 | OW-WAR-0009 (complete), OW-WAR-0112 (partial) |
-| `WAR-SAS-RQ-034` | satisfied | 1 | OW-WAR-0009 (complete), OW-WAR-0144 (partial) |
+| `WAR-SAS-RQ-030` | claimed | 1 | OW-WAR-0009 (complete), OW-WAR-0067 (partial), OW-WAR-0142 (partial), OW-WAR-0144 (partial) |
+| `WAR-SAS-RQ-031` | claimed | 1 | OW-WAR-0009 (complete) |
+| `WAR-SAS-RQ-032` | claimed | 1 | OW-WAR-0008 (complete), OW-WAR-0113 (partial), OW-WAR-0114 (partial) |
+| `WAR-SAS-RQ-033` | claimed | 1 | OW-WAR-0009 (complete), OW-WAR-0112 (partial) |
+| `WAR-SAS-RQ-034` | claimed | 1 | OW-WAR-0009 (complete), OW-WAR-0144 (partial) |
 | `WAR-SAS-RQ-035` | claimed | 0 | OW-WAR-0011 (complete) |
 | `WAR-SAS-RQ-036` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0112 (complete), OW-WAR-0134 (partial) |
 | `WAR-SAS-RQ-037` | claimed | 0 | OW-WAR-0112 (complete), OW-WAR-0142 (partial) |
 | `WAR-SAS-RQ-038` | unaddressed | 0 | — |
 | `WAR-SAS-RQ-040` | claimed | 0 | OW-WAR-0007 (complete) |
 | `WAR-SAS-RQ-041` | claimed | 0 | OW-WAR-0007 (complete) |
-| `WAR-SAS-RQ-042` | superseded | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession), OW-WAR-0069 (partial) |
-| `WAR-SAS-RQ-043` | superseded | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession), OW-WAR-0065 (partial), OW-WAR-0133 (partial) |
+| `WAR-SAS-RQ-042` | claimed | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession), OW-WAR-0069 (partial) |
+| `WAR-SAS-RQ-043` | claimed | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession), OW-WAR-0065 (partial), OW-WAR-0133 (partial) |
 | `WAR-SAS-RQ-044` | claimed | 0 | OW-WAR-0026 (complete), OW-WAR-0045 (complete), OW-WAR-0069 (partial), OW-WAR-0131 (partial), OW-WAR-0132 (partial), OW-WAR-0138 (partial), OW-WAR-0142 (partial) |
-| `WAR-SAS-RQ-045` | satisfied | 1 | OW-WAR-0024 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (partial) |
+| `WAR-SAS-RQ-045` | claimed | 1 | OW-WAR-0024 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (partial) |
 | `WAR-SAS-RQ-046` | claimed | 0 | OW-WAR-0129 (complete) |
-| `WAR-SAS-RQ-050` | satisfied | 1 | OW-WAR-0016 (complete), OW-WAR-0074 (partial), OW-WAR-0075 (partial), OW-WAR-0076 (partial), OW-WAR-0077 (partial), OW-WAR-0078 (partial), OW-WAR-0079 (partial), OW-WAR-0080 (partial), OW-WAR-0081 (partial), OW-WAR-0082 (partial), OW-WAR-0083 (partial), OW-WAR-0084 (partial), OW-WAR-0085 (partial), OW-WAR-0086 (partial), OW-WAR-0087 (partial), OW-WAR-0088 (partial), OW-WAR-0089 (partial), OW-WAR-0090 (partial), OW-WAR-0091 (partial), OW-WAR-0092 (partial) |
-| `WAR-SAS-RQ-051` | satisfied | 1 | OW-WAR-0016 (complete) |
-| `WAR-SAS-RQ-052` | satisfied | 1 | OW-WAR-0017 (complete), OW-WAR-0146 (partial) |
-| `WAR-SAS-RQ-053` | satisfied | 2 | OW-WAR-0021 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial), OW-WAR-0117 (partial), OW-WAR-0136 (partial), OW-WAR-0137 (partial), OW-WAR-0146 (partial) |
-| `WAR-SAS-RQ-054` | satisfied | 2 | OW-WAR-0020 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial), OW-WAR-0145 (partial) |
-| `WAR-SAS-RQ-055` | satisfied | 2 | OW-WAR-0018 (complete), OW-WAR-0046 (complete) |
-| `WAR-SAS-RQ-056` | satisfied | 1 | OW-WAR-0019 (complete), OW-WAR-0145 (partial) |
-| `WAR-SAS-RQ-057` | satisfied | 2 | OW-WAR-0020 (complete), OW-WAR-0046 (complete), OW-WAR-0136 (partial) |
-| `WAR-SAS-RQ-058` | satisfied | 2 | OW-WAR-0022 (complete), OW-WAR-0046 (complete) |
-| `WAR-SAS-RQ-059` | satisfied | 1 | OW-WAR-0022 (complete), OW-WAR-0059 (complete), OW-WAR-0133 (partial), OW-WAR-0134 (partial), OW-WAR-0136 (partial) |
+| `WAR-SAS-RQ-050` | claimed | 1 | OW-WAR-0016 (complete), OW-WAR-0074 (partial), OW-WAR-0075 (partial), OW-WAR-0076 (partial), OW-WAR-0077 (partial), OW-WAR-0078 (partial), OW-WAR-0079 (partial), OW-WAR-0080 (partial), OW-WAR-0081 (partial), OW-WAR-0082 (partial), OW-WAR-0083 (partial), OW-WAR-0084 (partial), OW-WAR-0085 (partial), OW-WAR-0086 (partial), OW-WAR-0087 (partial), OW-WAR-0088 (partial), OW-WAR-0089 (partial), OW-WAR-0090 (partial), OW-WAR-0091 (partial), OW-WAR-0092 (partial) |
+| `WAR-SAS-RQ-051` | claimed | 1 | OW-WAR-0016 (complete) |
+| `WAR-SAS-RQ-052` | claimed | 1 | OW-WAR-0017 (complete), OW-WAR-0146 (partial) |
+| `WAR-SAS-RQ-053` | claimed | 2 | OW-WAR-0021 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial), OW-WAR-0117 (partial), OW-WAR-0136 (partial), OW-WAR-0137 (partial), OW-WAR-0146 (partial) |
+| `WAR-SAS-RQ-054` | claimed | 2 | OW-WAR-0020 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial), OW-WAR-0145 (partial) |
+| `WAR-SAS-RQ-055` | claimed | 2 | OW-WAR-0018 (complete), OW-WAR-0046 (complete) |
+| `WAR-SAS-RQ-056` | claimed | 1 | OW-WAR-0019 (complete), OW-WAR-0145 (partial) |
+| `WAR-SAS-RQ-057` | claimed | 2 | OW-WAR-0020 (complete), OW-WAR-0046 (complete), OW-WAR-0136 (partial) |
+| `WAR-SAS-RQ-058` | claimed | 2 | OW-WAR-0022 (complete), OW-WAR-0046 (complete) |
+| `WAR-SAS-RQ-059` | claimed | 1 | OW-WAR-0022 (complete), OW-WAR-0059 (complete), OW-WAR-0133 (partial), OW-WAR-0134 (partial), OW-WAR-0136 (partial) |
 | `WAR-SAS-RQ-060` | claimed | 0 | OW-WAR-0126 (partial) |
 | `WAR-SAS-RQ-061` | claimed | 0 | OW-WAR-0040 (complete), OW-WAR-0048 (complete) |
 | `WAR-SAS-RQ-062` | claimed | 0 | OW-WAR-0026 (complete) |
@@ -135,10 +136,10 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-065` | claimed | 0 | OW-WAR-0127 (partial) |
 | `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial), OW-WAR-0072 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial), OW-WAR-0141 (partial), OW-WAR-0147 (partial) |
 | `WAR-SAS-RQ-071` | claimed | 0 | OW-WAR-0035 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial), OW-WAR-0141 (partial) |
-| `WAR-SAS-RQ-072` | satisfied | 1 | OW-WAR-0034 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial), OW-WAR-0141 (partial) |
+| `WAR-SAS-RQ-072` | claimed | 1 | OW-WAR-0034 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial), OW-WAR-0141 (partial) |
 | `WAR-SAS-RQ-073` | claimed | 0 | OW-WAR-0036 (complete) |
-| `WAR-SAS-RQ-074` | satisfied | 1 | OW-WAR-0005 (complete), OW-WAR-0055 (partial), OW-WAR-0112 (partial), OW-WAR-0147 (partial) |
-| `WAR-SAS-RQ-075` | in_progress | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial) |
+| `WAR-SAS-RQ-074` | claimed | 1 | OW-WAR-0005 (complete), OW-WAR-0055 (partial), OW-WAR-0112 (partial), OW-WAR-0147 (partial) |
+| `WAR-SAS-RQ-075` | claimed | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial) |
 | `WAR-SAS-RQ-076` | claimed | 0 | OW-WAR-0028 (complete) |
 | `WAR-SAS-RQ-077` | claimed | 0 | OW-WAR-0068 (partial) |
 | `WAR-SAS-RQ-080` | claimed | 0 | OW-WAR-0003 (complete) |
@@ -148,153 +149,154 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial), OW-WAR-0113 (complete), OW-WAR-0114 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (143) — invalid 0 · draft 114 · ready_to_resolve 0 · would_satisfy 0 · resolved **29**
+## Warrants (144) — invalid 0 · draft 115 · ready_to_resolve 0 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
-| `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | draft | NOT satisfied | 0 | 0 of 3 | artifact digests verify |
-| `OW-WAR-0002` Implement the file-native manifest and atom parser | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
-| `OW-WAR-0003` Implement the canonical WAR IR and RFC 8785 digesting | draft | NOT satisfied | 0 | 0 of 4 | every required gate has admissible result |
-| `OW-WAR-0004` Implement the generated parent document and drift checking | draft | NOT satisfied | 0 | 1 of 3 | every required gate has admissible result |
-| `OW-WAR-0005` Implement deterministic war check and close the Phase 1 bootstrap | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
-| `OW-WAR-0006` Complete ADR federation: relations, supersession, and currency | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
-| `OW-WAR-0007` Parse and validate milestones, stages, and named typed ports | draft | NOT satisfied | 0 | 2 of 4 | every required gate has admissible result |
-| `OW-WAR-0008` Implement the state model: phase, condition, outcome, currency, standing | resolved | would satisfy | 0 | 3 of 3 | — |
-| `OW-WAR-0009` Implement contract revisions and their immutability | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0010` Implement the autonomy envelope and amendment records | resolved | would satisfy | 0 | 3 of 3 | — |
-| `OW-WAR-0011` Implement prerequisites and Preflight | draft | NOT satisfied | 0 | 1 of 3 | every required gate has admissible result |
-| `OW-WAR-0012` Implement the context model, context manifest, and trust classes | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0013` Validate SAS and Roadmap traceability | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
-| `OW-WAR-0014` Implement the rationale model, assumptions, and unknowns | resolved | would satisfy | 0 | 2 of 2 | — |
-| `OW-WAR-0015` Implement deliverables, artifacts, and artifact provenance | resolved | would satisfy | 0 | 2 of 2 | — |
-| `OW-WAR-0016` Implement acceptance obligations and bounded claims | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0017` Implement the epistemic classes: evidence, observation, inference, judgment, resolution | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0018` Implement contract-adequacy review, structurally checked | resolved | would satisfy | 0 | 3 of 3 | — |
-| `OW-WAR-0019` Implement the Gate Registry: definitions, qualification, and bindings | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0020` Implement Gate Run semantics, askability, and invalidation | resolved | would satisfy | 0 | 5 of 5 | artifact digests verify |
-| `OW-WAR-0021` Implement verifier independence | resolved | would satisfy | 0 | 3 of 3 | — |
-| `OW-WAR-0022` Implement resolution, dispute, and annulment | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0023` Implement Stage Dispatch compilation and actor-specific projection | draft | NOT satisfied | 0 | 1 of 3 | every required gate has admissible result |
-| `OW-WAR-0024` Implement Stage Submission and attempt semantics | resolved | would satisfy | 0 | 3 of 3 | — |
-| `OW-WAR-0025` Implement blockers, deviations, decision proposals, and discovered gaps | resolved | would satisfy | 0 | 2 of 2 | — |
-| `OW-WAR-0026` Implement the Katana runtime seam, capabilities, and receipts | draft | NOT satisfied | 1 | 0 of 3 | every required gate has admissible result |
-| `OW-WAR-0027` Implement the BLUT adapter: PlanSpec lowering and lineage receipt | draft | NOT satisfied | 0 | 2 of 3 | every required gate has admissible result |
-| `OW-WAR-0028` Implement Knowledge Fabric typed actions and the controlled-action envelope | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
-| `OW-WAR-0029` Implement KF registration, global identity allocation, and federation | draft | NOT satisfied | 0 | 0 of 4 | every required gate has admissible result |
-| `OW-WAR-0030` Implement portable preservation: one-file export and round trip | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
-| `OW-WAR-0031` Implement the local draft journal | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0032` Generate the schema pack and implement protocol versioning | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0033` Implement the remaining read projections | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0034` Implement the agent protocol and Draft Proposal validation | resolved | would satisfy | 0 | 3 of 3 | — |
-| `OW-WAR-0035` Implement `war plan` and the interview loop | draft | NOT satisfied | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0036` Implement normative-decision detection and proposed-ADR generation | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
-| `OW-WAR-0037` Implement `war diff`: semantic difference between revisions | draft | NOT satisfied | 0 | 1 of 2 | every required gate has admissible result |
-| `OW-WAR-0038` Implement the existing-ADR importer, preserving unknown classes | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0039` Implement telemetry, unit economics, and untracked-work detection | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
-| `OW-WAR-0040` Implement the Liminal adapter and measured parity harness | draft | would satisfy | 1 | 4 of 4 | required deliverables exist |
-| `OW-WAR-0041` Discharge the Phase 0 exit: real telemetry distributions, with a baseline | draft | NOT satisfied | 0 | 3 of 4 | every required gate has admissible result |
-| `OW-WAR-0042` Discharge the Phase 2 exit: a vague request becomes a reviewable draft | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0043` Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing | draft | NOT satisfied | 0 | 0 of 4 | every required gate has admissible result |
-| `OW-WAR-0044` Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder | draft | NOT satisfied | 0 | 0 of 5 | every required gate has admissible result |
-| `OW-WAR-0045` Discharge the Phase 5 exit: a stateless actor executes one Dispatch | draft | NOT satisfied | 0 | 0 of 5 | required deliverables exist |
-| `OW-WAR-0046` Discharge the Phase 6 exit: a delivery closes only through bounded proof | resolved | would satisfy | 0 | 5 of 5 | artifact digests verify |
-| `OW-WAR-0047` Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
-| `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | would satisfy | 1 | 0 of 2 | every required gate has admissible result |
-| `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
-| `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | would satisfy | 0 | 2 of 2 | artifact digests verify |
-| `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | draft | NOT satisfied | 0 | 0 of 4 | artifact digests verify |
-| `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | would satisfy | 0 | 2 of 2 | — |
-| `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | would satisfy | 0 | 1 of 1 | — |
-| `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | would satisfy | 0 | 1 of 1 | artifact digests verify |
-| `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | NOT satisfied | 0 | 0 of 1 | every required gate has admissible result |
-| `OW-WAR-0064` Repair a delivered artifact: the correction act for a resolved Warrant | draft | NOT satisfied | 0 | 0 of 5 | required deliverables exist |
-| `OW-WAR-0065` Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | draft | NOT satisfied | 0 | 0 of 1 | every required gate has admissible result |
-| `OW-WAR-0066` Run: the conformance battery as a service stage | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0067` Release 1.0: the seven acts that close the plan, deferred to the owner's signature | draft | NOT satisfied | 1 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0068` Skills: a strict superset of the Pocock set over the deterministic core | draft | NOT satisfied | 1 | 0 of 3 | artifact digests verify |
-| `OW-WAR-0069` The board, the hotline, and the harness: one system from master record to running agents | draft | NOT satisfied | 1 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0070` Add `war inbox` to list Warrants awaiting a human act | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0071` SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | draft | NOT satisfied | 1 | — | required deliverables exist |
-| `OW-WAR-0072` The batch act: one human signature over many pending acts | draft | NOT satisfied | 1 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0073` war tui: the dashboard in the terminal | draft | NOT satisfied | 1 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0074` Adopt the exact RC.2 build basis without rewriting history | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0075` Parse and validate human-first OpenWarrant documents | draft | NOT satisfied | 1 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0076` Author and edit human-first OpenWarrant documents | draft | NOT satisfied | 2 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0077` Define SDK source types and prove provider resolution integration | draft | NOT satisfied | 2 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0078` Validate condition syntax and prove provider evaluation integration | draft | NOT satisfied | 2 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0079` Prove provider context selection and dependency closure | draft | NOT satisfied | 3 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0080` Prove provider master context and task projections | draft | NOT satisfied | 2 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0081` Inspect packet integrity and prove offline provider packages | draft | NOT satisfied | 3 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0082` Prove provider context budgets and cache invalidation | draft | NOT satisfied | 3 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0083` Evaluate supplied work and assurance records | draft | NOT satisfied | 3 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0084` Preserve legacy history and explicit successor lineage | draft | NOT satisfied | 4 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0085` Prove Phase 1 SDK, CLI and adapted skill scope | draft | NOT satisfied | 9 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0086` Integrate SDK with LAMU and a second minimal consumer | draft | NOT satisfied | 6 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0087` Expose document and record primitives through CLI | draft | NOT satisfied | 8 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0088` Make SDK document authoring interactive and recoverable | draft | NOT satisfied | 2 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0089` Prepare standard and SDK release artifacts | draft | NOT satisfied | 3 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0090` Qualify four-phase release and freeze Stable source set | draft | NOT satisfied | 2 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0091` Publish and verify OpenWarrant Stable 1.0 | draft | NOT satisfied | 2 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0092` View project progress as offline HTML and a locally refreshed dashboard | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0093` Reference workflow package: local API and draft webapp | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0094` Connected-agent execution workflow and model-neutral drafting roadmap | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0095` Three-developer reference workflow qualification study | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0096` Authenticate authority changes through signed transitions and protected activation | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0097` Read-only repository doctor and actionable readiness diagnostics | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0098` Share reference workflow start checks with read-only admission preview | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0099` Preserve frontier integrity when stage history is damaged | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0100` Report unsupported telemetry as unknown without changing historical baselines | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0101` Constrain local drafting responses before semantic validation | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0102` Generate deterministic execution work-stop reports | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0103` Preserve question-store errors across hotline readers | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0104` Complete read-only master board and batch question workflow | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0105` Draft human-first Warrants through configured agent harnesses | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0106` Route workflow questions and resume bounded work after answers | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0107` Independently verify workflow results and repair within limits | draft | NOT satisfied | 0 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0108` Integrate shared BLUT materialization repair and retained OW47 runtime evidence | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0109` Durable agent availability queue and automatic bounded dispatch | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0110` Generate OpenWarrant TypeScript record types and integrate KF consumption | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0111` Implement content-bearing preservation archives and honest import round trips | draft | NOT satisfied | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | NOT satisfied | 0 | 3 of 6 | exact authorized Contract Revision |
-| `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | NOT satisfied | 0 | 4 of 6 | artifact digests verify |
+| `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0002` Implement the file-native manifest and atom parser | resolved | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0003` Implement the canonical WAR IR and RFC 8785 digesting | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0004` Implement the generated parent document and drift checking | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0005` Implement deterministic war check and close the Phase 1 bootstrap | resolved | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0006` Complete ADR federation: relations, supersession, and currency | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0007` Parse and validate milestones, stages, and named typed ports | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0008` Implement the state model: phase, condition, outcome, currency, standing | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0009` Implement contract revisions and their immutability | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0010` Implement the autonomy envelope and amendment records | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0011` Implement prerequisites and Preflight | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0012` Implement the context model, context manifest, and trust classes | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0013` Validate SAS and Roadmap traceability | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0014` Implement the rationale model, assumptions, and unknowns | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0015` Implement deliverables, artifacts, and artifact provenance | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0016` Implement acceptance obligations and bounded claims | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0017` Implement the epistemic classes: evidence, observation, inference, judgment, resolution | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0018` Implement contract-adequacy review, structurally checked | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0019` Implement the Gate Registry: definitions, qualification, and bindings | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0020` Implement Gate Run semantics, askability, and invalidation | resolved | unknown | 0 | 0 of 5 | artifact digests verify |
+| `OW-WAR-0021` Implement verifier independence | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0022` Implement resolution, dispute, and annulment | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0023` Implement Stage Dispatch compilation and actor-specific projection | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0024` Implement Stage Submission and attempt semantics | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0025` Implement blockers, deviations, decision proposals, and discovered gaps | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0026` Implement the Katana runtime seam, capabilities, and receipts | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0027` Implement the BLUT adapter: PlanSpec lowering and lineage receipt | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0028` Implement Knowledge Fabric typed actions and the controlled-action envelope | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0029` Implement KF registration, global identity allocation, and federation | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0030` Implement portable preservation: one-file export and round trip | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0031` Implement the local draft journal | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0032` Generate the schema pack and implement protocol versioning | draft | unknown | 0 | 0 of 4 | required deliverables exist |
+| `OW-WAR-0033` Implement the remaining read projections | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0034` Implement the agent protocol and Draft Proposal validation | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0035` Implement `war plan` and the interview loop | draft | unknown | 0 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0036` Implement normative-decision detection and proposed-ADR generation | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0037` Implement `war diff`: semantic difference between revisions | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0038` Implement the existing-ADR importer, preserving unknown classes | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0039` Implement telemetry, unit economics, and untracked-work detection | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0040` Implement the Liminal adapter and measured parity harness | draft | unknown | 1 | 0 of 4 | required deliverables exist |
+| `OW-WAR-0041` Discharge the Phase 0 exit: real telemetry distributions, with a baseline | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0042` Discharge the Phase 2 exit: a vague request becomes a reviewable draft | draft | unknown | 0 | 0 of 4 | required deliverables exist |
+| `OW-WAR-0043` Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0044` Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
+| `OW-WAR-0045` Discharge the Phase 5 exit: a stateless actor executes one Dispatch | draft | unknown | 0 | 0 of 5 | required deliverables exist |
+| `OW-WAR-0046` Discharge the Phase 6 exit: a delivery closes only through bounded proof | resolved | unknown | 0 | 0 of 5 | artifact digests verify |
+| `OW-WAR-0047` Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | unknown | 0 | 0 of 4 | required deliverables exist |
+| `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | unknown | 0 | 0 of 4 | required deliverables exist |
+| `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | unknown | 1 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | resolved | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | unknown | 0 | 0 of 2 | artifact digests verify |
+| `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | draft | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
+| `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | unknown | 0 | 0 of 1 | artifact digests verify |
+| `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
+| `OW-WAR-0064` Repair a delivered artifact: the correction act for a resolved Warrant | draft | unknown | 0 | 0 of 5 | required deliverables exist |
+| `OW-WAR-0065` Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
+| `OW-WAR-0066` Run: the conformance battery as a service stage | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0067` Release 1.0: the seven acts that close the plan, deferred to the owner's signature | draft | unknown | 1 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0068` Skills: a strict superset of the Pocock set over the deterministic core | draft | unknown | 1 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0069` The board, the hotline, and the harness: one system from master record to running agents | draft | unknown | 1 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0070` Add `war inbox` to list Warrants awaiting a human act | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0071` SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | draft | unknown | 1 | — | required deliverables exist |
+| `OW-WAR-0072` The batch act: one human signature over many pending acts | draft | unknown | 1 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0073` war tui: the dashboard in the terminal | draft | unknown | 1 | 0 of 4 | required deliverables exist |
+| `OW-WAR-0074` Adopt the exact RC.2 build basis without rewriting history | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0075` Parse and validate human-first OpenWarrant documents | draft | unknown | 1 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0076` Author and edit human-first OpenWarrant documents | draft | unknown | 2 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0077` Define SDK source types and prove provider resolution integration | draft | unknown | 2 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0078` Validate condition syntax and prove provider evaluation integration | draft | unknown | 2 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0079` Prove provider context selection and dependency closure | draft | unknown | 3 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0080` Prove provider master context and task projections | draft | unknown | 2 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0081` Inspect packet integrity and prove offline provider packages | draft | unknown | 3 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0082` Prove provider context budgets and cache invalidation | draft | unknown | 3 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0083` Evaluate supplied work and assurance records | draft | unknown | 3 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0084` Preserve legacy history and explicit successor lineage | draft | unknown | 4 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0085` Prove Phase 1 SDK, CLI and adapted skill scope | draft | unknown | 9 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0086` Integrate SDK with LAMU and a second minimal consumer | draft | unknown | 6 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0087` Expose document and record primitives through CLI | draft | unknown | 8 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0088` Make SDK document authoring interactive and recoverable | draft | unknown | 2 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0089` Prepare standard and SDK release artifacts | draft | unknown | 3 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0090` Qualify four-phase release and freeze Stable source set | draft | unknown | 2 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0091` Publish and verify OpenWarrant Stable 1.0 | draft | unknown | 2 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0092` View project progress as offline HTML and a locally refreshed dashboard | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0093` Reference workflow package: local API and draft webapp | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0094` Connected-agent execution workflow and model-neutral drafting roadmap | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0095` Three-developer reference workflow qualification study | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0096` Authenticate authority changes through signed transitions and protected activation | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0097` Read-only repository doctor and actionable readiness diagnostics | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0098` Share reference workflow start checks with read-only admission preview | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0099` Preserve frontier integrity when stage history is damaged | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0100` Report unsupported telemetry as unknown without changing historical baselines | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0101` Constrain local drafting responses before semantic validation | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0102` Generate deterministic execution work-stop reports | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0103` Preserve question-store errors across hotline readers | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0104` Complete read-only master board and batch question workflow | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0105` Draft human-first Warrants through configured agent harnesses | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0106` Route workflow questions and resume bounded work after answers | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0107` Independently verify workflow results and repair within limits | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0108` Integrate shared BLUT materialization repair and retained OW47 runtime evidence | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0109` Durable agent availability queue and automatic bounded dispatch | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0110` Generate OpenWarrant TypeScript record types and integrate KF consumption | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0111` Implement content-bearing preservation archives and honest import round trips | draft | unknown | 0 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 6 | exact authorized Contract Revision |
+| `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | unknown | 0 | 0 of 6 | artifact digests verify |
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 6 | exact authorized Contract Revision |
-| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | NOT satisfied | 0 | 2 of 5 | exact authorized Contract Revision |
-| `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
-| `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
-| `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
-| `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
-| `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
-| `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | would satisfy | 1 | 3 of 3 | exact authorized Contract Revision |
-| `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | would satisfy | 1 | 3 of 3 | exact authorized Contract Revision |
-| `OW-WAR-0124` Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | draft | NOT satisfied | 0 | 0 of 3 | exact authorized Contract Revision |
-| `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | NOT satisfied | 0 | 2 of 4 | exact authorized Contract Revision |
+| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
+| `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | unknown | 0 | 0 of 2 | artifact digests verify |
+| `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0124` Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0126` Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | draft | unknown | 3 | 0 of 1 | exact authorized Contract Revision |
-| `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | exact authorized Contract Revision |
-| `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
-| `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | would satisfy | 0 | 4 of 4 | artifact digests verify |
-| `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | would satisfy | 0 | 3 of 3 | exact authorized Contract Revision |
-| `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | would satisfy | 0 | 3 of 3 | exact authorized Contract Revision |
-| `OW-WAR-0135` The assurance mark: a baseline, its issuance, and what it binds | draft | NOT satisfied | 0 | 0 of 3 | exact authorized Contract Revision |
-| `OW-WAR-0136` Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | draft | NOT satisfied | 0 | 3 of 4 | exact authorized Contract Revision |
-| `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | would satisfy | 0 | 5 of 5 | artifact digests verify |
-| `OW-WAR-0138` Human and session authentication, and policy state protected from the performer | draft | would satisfy | 0 | 5 of 5 | exact authorized Contract Revision |
-| `OW-WAR-0139` The web UI beyond this machine: LAN and other devices, authenticated | draft | would satisfy | 0 | 5 of 5 | exact authorized Contract Revision |
-| `OW-WAR-0140` The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | draft | would satisfy | 0 | 5 of 5 | exact authorized Contract Revision |
-| `OW-WAR-0141` Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0142` Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | draft | NOT satisfied | 0 | 2 of 6 | exact authorized Contract Revision |
-| `OW-WAR-0143` war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | draft | would satisfy | 0 | 4 of 4 | artifact digests verify |
-| `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
-| `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | would satisfy | 0 | 1 of 1 | exact authorized Contract Revision |
-| `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | would satisfy | 0 | 1 of 1 | exact authorized Contract Revision |
-| `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | would satisfy | 0 | 2 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0135` The assurance mark: a baseline, its issuance, and what it binds | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0136` Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
+| `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | unknown | 0 | 0 of 5 | artifact digests verify |
+| `OW-WAR-0138` Human and session authentication, and policy state protected from the performer | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
+| `OW-WAR-0139` The web UI beyond this machine: LAN and other devices, authenticated | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
+| `OW-WAR-0140` The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
+| `OW-WAR-0141` Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0142` Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | draft | unknown | 0 | 0 of 6 | exact authorized Contract Revision |
+| `OW-WAR-0143` war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | draft | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
+| `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
+| `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0148` Shared Katana and BLUT runtime receipt binding contract | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
 
 ## Not reported here
 
