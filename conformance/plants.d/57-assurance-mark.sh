@@ -131,6 +131,7 @@ MK_W="$PLANT_ROOT/docs/warrants/$MK_A"
 MK_BL="$PLANT_ROOT/docs/assurance/baseline-v1.toml"
 
 if ! WAR="$REPO_ROOT/$WAR" D="$PLANT_ROOT" T="$MK_TMP" A="$MK_A" BL="$REPO_ROOT/$AM_BL" \
+    BIND="$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
     env -u SSH_AUTH_SOCK -u SSH_AGENT_PID bash -euo pipefail > "$MK_TMP/setup.log" 2>&1 <<'SETUP'
 cd "$D"
 g() { git -c user.email=plant@invalid -c user.name=plant "$@"; }
@@ -248,6 +249,7 @@ fp=$(ssh-keygen -lf "$T/id_plant.pub" | awk '{print $2}')
 g add -A; g commit -qm authorized
 "$WAR" --root . evidence record "$A"
 g add -A; g commit -qm evidence
+"$WAR" --root . verify "$A" --performer claude --json > "$T/request.json"
 cat > "$T/verified.toml" <<VERIFY
 schema = "oh.war/verification-response/v1"
 warrant = "$A"
@@ -274,7 +276,8 @@ separate_context_compilation = true
 distinct_model_required = true
 distinct_human_required = false
 VERIFY
-"$WAR" --root . verify "$A" --response "$T/verified.toml"
+python3 "$BIND" "$T/request.json" "$T/verified.toml" > "$T/verified-bound.toml"
+"$WAR" --root . verify "$A" --response "$T/verified-bound.toml"
 g add -A; g commit -qm verified
 "$WAR" --root . sign "$A" --ssh-sign --as "Plant Signer" </dev/null
 test -f "$W/resolution.toml"

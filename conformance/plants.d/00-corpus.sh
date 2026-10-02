@@ -833,8 +833,8 @@ plant "Corpus Status JSON edited by hand" "corpus-status.drift" "edited by hand"
 # battery's way of asserting a thing is SAID, not only that a thing is refused.
 plant_cmd "next actionable is never empty" "Next actionable" "STAGE-" 0 ":" status
 # A Warrant with neither a ref nor a placement (OW-ADR-0023) lands in the
-# unassigned objective: invalid 0, draft 1 (its rung). OW-WAR-0050 is placed by the
-# roadmap record; removing its placement is the mutation.
+# unassigned objective. OW-WAR-0050 is placed by the roadmap record; removing
+# its placement is the mutation. Other unassigned drafts may already exist.
 unplace_0050() {
     python3 - <<'PY'
 import pathlib, re
@@ -845,9 +845,37 @@ assert t2 != t
 p.write_text(t2)
 PY
 }
-plant_cmd "a Warrant with no roadmap is listed as unassigned" "unassigned" "belongs to no Objective | 0 | 1 |" 0 \
-    "unplace_0050; ! grep -q 'OW-WAR-0050' docs/roadmap/roadmap.toml" \
-    status
+plant_restore
+if unplace_0050 \
+    && ! grep -q 'OW-WAR-0050' docs/roadmap/roadmap.toml \
+    && plant_war status --json > "$MIGRATE_TMP/unassigned-status.json" \
+    && python3 - "$MIGRATE_TMP/unassigned-status.json" <<'PY'
+import collections, json, sys
+s = json.load(open(sys.argv[1]))["result"]
+groups = [o for o in s["objectives"] if o.get("roadmap_ref") is None]
+assert len(groups) == 1, "missing or duplicate unassigned group"
+group = groups[0]
+assert "OW-WAR-0050" in group["warrants"], "unplaced Warrant was dropped"
+assert all("OW-WAR-0050" not in o["warrants"]
+           for o in s["objectives"] if o.get("roadmap_ref") is not None), \
+    "unplaced Warrant still belongs to an Objective"
+rungs = {w["alias"]: w["rung"] for w in s["warrants"]}
+counts = collections.Counter(rungs[w] for w in group["warrants"])
+assert all(n == counts[rung] for rung, n in group["ladder"].items()), \
+    "unassigned ladder does not count its members"
+assert group["achieved"]["state"] == "not_derivable", \
+    "unassigned work claims an achieved Objective"
+PY
+then
+    printf 'ok    %-34s exact membership and ladder counts\n' \
+        "a Warrant with no roadmap is listed as unassigned"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s unassigned membership or ladder is wrong\n' \
+        "a Warrant with no roadmap is listed as unassigned"
+    FAILED=$((FAILED + 1))
+fi
+plant_restore
 
 # OBL-004. Two runs, byte-identical. A projection that differed between runs
 # would drift-fail on every commit, so this is also what makes OBL-005 usable.

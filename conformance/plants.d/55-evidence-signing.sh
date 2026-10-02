@@ -25,8 +25,9 @@ SK_W="$PLANT_ROOT/docs/warrants/$SK_A"
 
 # ── The agent's work, under -euo pipefail and without any ssh-agent: a gate
 # with no declared inputs (the tree rule decides), one Warrant citing it, the
-# verification, and — last — the recorded evidence, all committed.
+# recorded evidence and verification of that evidence, all committed.
 if ! WAR="$REPO_ROOT/${WAR#./}" D="$PLANT_ROOT" T="$SK_TMP" A="$SK_A" R="$REPO_ROOT" \
+    BIND="$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
     env -u SSH_AUTH_SOCK -u SSH_AGENT_PID bash -euo pipefail > "$SK_TMP/setup.log" 2>&1 <<'SETUP'
 cd "$D"
 g() { git -c user.email=plant@invalid -c user.name=plant "$@"; }
@@ -102,6 +103,10 @@ ssh_principal = "plant"
 ROLES
 "$WAR" --root . compile >/dev/null
 g add -A; g commit -qm "one Warrant citing a tree-bound gate"
+"$WAR" --root . evidence record "$A"
+"$WAR" --root . compile >/dev/null
+g add -A; g commit -qm "evidence"
+"$WAR" --root . verify "$A" --performer claude --json > "$T/request.json"
 cat > "$T/verified.toml" <<VERIFY
 schema = "oh.war/verification-response/v1"
 warrant = "$A"
@@ -128,13 +133,10 @@ separate_context_compilation = true
 distinct_model_required = true
 distinct_human_required = false
 VERIFY
-"$WAR" --root . verify "$A" --response "$T/verified.toml"
+python3 "$BIND" "$T/request.json" "$T/verified.toml" > "$T/verified-bound.toml"
+"$WAR" --root . verify "$A" --response "$T/verified-bound.toml"
 "$WAR" --root . compile >/dev/null
 g add -A; g commit -qm "verified"
-# The agent's last act before the sitting: record, compile, commit.
-"$WAR" --root . evidence record "$A"
-"$WAR" --root . compile >/dev/null
-g add -A; g commit -qm "evidence"
 test -z "$(git status --porcelain)"
 SETUP
 then
