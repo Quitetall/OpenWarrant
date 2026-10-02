@@ -1075,6 +1075,7 @@ pub fn ingest(
         actor: String,
         payload: String,
         replay: bool,
+        before: crate::compile::atomic::Prestate,
     }
     let mut planned: Vec<Planned<'_>> = Vec::new();
     let mut conflicts = 0usize;
@@ -1125,6 +1126,7 @@ pub fn ingest(
             actor,
             payload,
             replay,
+            before: crate::compile::atomic::Prestate::Absent,
         });
     }
     if conflicts > 0 {
@@ -1133,6 +1135,15 @@ pub fn ingest(
              nothing was written"
         ));
         return Ok(report);
+    }
+
+    // Retain every previous record before the first active replacement. If
+    // retention is unavailable, only historical copies may have been added;
+    // none of the active verdicts or their journal events has changed.
+    for p in &mut planned {
+        if !p.replay {
+            p.before = record::retain_previous(repo, &p.path)?;
+        }
     }
 
     for v in &response.verifications {
@@ -1180,7 +1191,7 @@ pub fn ingest(
         // OW-WAR-0121: temp, fsync, rename. A crash leaves the prior verdict
         // whole, never half of either; a symlink in the record's place is
         // refused by name.
-        if let Err(storage) = crate::compile::atomic::write(&p.path, &p.rendered) {
+        if let Err(storage) = crate::compile::atomic::write_if(&p.path, &p.rendered, &p.before) {
             report.push(storage.diagnostic());
             refused += 1;
             continue;

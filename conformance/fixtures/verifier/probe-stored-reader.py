@@ -138,10 +138,16 @@ if args.require_old_refusal:
     assert established("fresh", "current") == 2, "the new reader must admit fresh review"
     assert established("changed", "current") == 0, "the new reader must refuse stale review"
     for phase in ("fresh", "changed", "minimum_reader"):
-        observed = report["observations"][phase]["older"]["status"]
-        assert observed["process_exit"] != 0 and established(phase, "older") == 0, (
-            f"older reader must refuse the new record boundary ({phase}): {observed}"
+        observed = report["observations"][phase]["older"]
+        refusal = observed["resolve"]
+        assert observed["status"]["report"].get("schema") == "oh.war/report/v1", observed
+        assert established(phase, "older") == 0, (
+            f"older reader must not count unsupported records ({phase}): {observed}"
         )
+        assert refusal["process_exit"] != 0 and any(
+            diagnostic["rule"] == "verification.malformed"
+            for diagnostic in refusal["report"].get("diagnostics", [])
+        ), f"resolution must name the record-decoder refusal ({phase}): {refusal}"
 
 if args.require_history_retention:
     # Undo only the setting this disposable probe just introduced. The changed

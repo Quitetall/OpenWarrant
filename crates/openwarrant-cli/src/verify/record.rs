@@ -62,3 +62,47 @@ pub(crate) fn decode(text: &str) -> Result<StoredVerification, String> {
         Some(schema) => Err(format!("unsupported verification record schema {schema:?}")),
     }
 }
+
+/// Preserve the earlier wire bytes before replacing an active record. History
+/// is outside the active loader's non-recursive enumeration. Publication uses
+/// the existing no-follow, no-overwrite retained-evidence primitive.
+pub(crate) fn retain_previous(
+    repo: &crate::repo::Repository,
+    path: &camino::Utf8Path,
+) -> Result<crate::compile::atomic::Prestate, crate::repo::RepoError> {
+    use crate::repo::RepoError;
+    let unavailable = |error: String| RepoError::ObservationUnavailable {
+        rule: "verify.history-unavailable",
+        message: format!(
+            "could not retain earlier verification {path}: {error}; no active record replaced"
+        ),
+    };
+    let relative = path
+        .strip_prefix(&repo.root)
+        .map_err(|error| unavailable(error.to_string()))?;
+    let parent = relative
+        .parent()
+        .ok_or_else(|| unavailable("missing record directory".into()))?;
+    // Check every directory component before the ordinary atomic writer is
+    // allowed to use this path. This is not a sandbox against a same-uid actor.
+    crate::bundle::store::Directory::open(&repo.root, parent)
+        .map_err(|error| unavailable(error.to_string()))?;
+    match std::fs::symlink_metadata(path) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            Ok(crate::compile::atomic::Prestate::Absent)
+        }
+        Err(error) => Err(unavailable(error.to_string())),
+        Ok(_) => {
+            let bytes = crate::bundle::store::read(&repo.root, relative)
+                .map_err(|error| unavailable(error.to_string()))?;
+            let digest = openwarrant_compiler::sha256_hex(&bytes);
+            let history =
+                crate::bundle::store::Directory::open(&repo.root, &parent.join("history"))
+                    .map_err(|error| unavailable(error.to_string()))?;
+            history
+                .retain(&format!("{digest}.toml"), &bytes)
+                .map_err(|error| unavailable(error.to_string()))?;
+            Ok(crate::compile::atomic::Prestate::of(&bytes))
+        }
+    }
+}

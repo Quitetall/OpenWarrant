@@ -196,3 +196,11 @@ pending the current build. This proposal does not protect unchanged legacy
 repositories from old executables, establish private custody or authorize a
 new schema pack. Pack adoption and preservation of replaced evidence remain
 release requirements.
+
+
+The retention draft preserves the prior active record before replacement using
+no-follow descriptor reads and no-overwrite archive publication. Replacement
+checks the captured prestate; retention unavailability aborts before any active
+replacement. Existing archives are not rewritten. The public CLI history
+regression is red on the prior binary; current runtime verification is pending.
+The ordinary atomic writer's remaining same-uid race limits still apply.
