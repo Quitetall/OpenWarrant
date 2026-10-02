@@ -3707,9 +3707,14 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             // and the authority records hold for the whole run (t-eca6,
             // t-f815).
             gate_cmd::source::remember_tree_reads();
-            compile::run(&repository, alias.as_deref())?;
+            let summary = compile::run(&repository, alias.as_deref(), mode)?;
             if mode == output::Mode::Json {
-                output::emit(mode, "compile", "", serde_json::json!({"alias": alias}));
+                output::emit(
+                    mode,
+                    "compile",
+                    "",
+                    serde_json::json!({"alias": alias, "written": summary.written, "skipped": summary.skipped}),
+                );
             }
             Ok(EXIT_OK)
         }

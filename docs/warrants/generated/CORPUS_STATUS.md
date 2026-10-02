@@ -68,7 +68,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 144 |
 | independence requirements are met | 144 |
 | every required gate has admissible result | 115 |
-| artifact digests verify | 97 |
+| artifact digests verify | 98 |
 | no blocker remains | 87 |
 | no required unknown remains | 87 |
 | required judgments exist | 56 |
@@ -156,7 +156,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0002` Implement the file-native manifest and atom parser | resolved | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0003` Implement the canonical WAR IR and RFC 8785 digesting | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
-| `OW-WAR-0004` Implement the generated parent document and drift checking | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0004` Implement the generated parent document and drift checking | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0005` Implement deterministic war check and close the Phase 1 bootstrap | resolved | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0006` Complete ADR federation: relations, supersession, and currency | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0007` Parse and validate milestones, stages, and named typed ports | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
