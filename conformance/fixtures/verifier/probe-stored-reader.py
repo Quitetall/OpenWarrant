@@ -24,9 +24,11 @@ parser.add_argument("--require-history-retention", action="store_true",
                     help="re-review changed work and require the previous record bytes to survive")
 parser.add_argument("--require-history-refusals", action="store_true",
                     help="require collision and link refusals to preserve active records and journal; needs --require-history-retention")
+parser.add_argument("--require-history-scope", action="store_true",
+                    help="require explicit archive inputs and other history files to stay bound; needs --require-history-retention")
 args = parser.parse_args()
-if args.require_history_refusals and not args.require_history_retention:
-    parser.error("--require-history-refusals requires --require-history-retention")
+if (args.require_history_refusals or args.require_history_scope) and not args.require_history_retention:
+    parser.error("history refusal/scope checks require --require-history-retention")
 source = Path(__file__).resolve().parents[3]
 base = Path(tempfile.mkdtemp(prefix="ow-stored-reader-probe-"))
 root = base / "repo"
@@ -225,3 +227,47 @@ if args.require_history_retention:
     for obligation, previous in initial_records.items():
         active = root / "docs/warrants/IX-WAR-0003/verifications" / f"{obligation}.toml"
         assert active.read_bytes() != previous, "a changed subject must have a distinct bound record"
+
+if args.require_history_scope:
+    records = root / "docs/warrants/IX-WAR-0003/verifications"
+    archived = Path(report["retained_history"]["OBL-001"]["path"])
+    archived_relative = archived.relative_to(root).as_posix()
+    original_archive = archived.read_bytes()
+    note = records / "history/notes.md"
+    note.write_text("This is task source, not a retained verification record.\n")
+    nested = records / "history/nested" / archived.name
+    nested.parent.mkdir()
+    nested.write_bytes(original_archive)
+
+    def request_subject():
+        captured = run(readers["current"], "verify", "IX-WAR-0003",
+                       "--performer", "fixture-performer", "--json")
+        assert captured["report"]["exit_code"] == 0, captured
+        return captured["report"]["result"]["reviewed_subject"]
+
+    implicit = request_subject()
+    assert archived_relative not in implicit["gate_inputs"], "implicit source must exclude exact archive output"
+    for other in (note, nested):
+        assert other.relative_to(root).as_posix() in implicit["gate_inputs"], (
+            "other history files must remain in conservative source scope", implicit
+        )
+    gates = root / "docs/gates"
+    gates.mkdir(exist_ok=True)
+    definition = (source / "docs/gates/software.repo.war-check@1.0.0.yaml").read_text()
+    (gates / "explicit-history.yaml").write_text(
+        definition + "\ninputs: " + json.dumps([archived_relative]) + "\n"
+    )
+    explicit = request_subject()
+    assert archived_relative in explicit["gate_inputs"], "explicit gate input must bind archived evidence"
+    archived.write_bytes(original_archive + b"\nchanged explicitly declared input\n")
+    changed = request_subject()
+    assert changed["gate_inputs"][archived_relative] != explicit["gate_inputs"][archived_relative]
+    archived.write_bytes(original_archive)
+    restored = request_subject()
+    assert restored == explicit, "exact source restoration must restore the captured subject"
+    report["history_scope"] = {
+        "archive_path": archived_relative,
+        "implicit": implicit, "explicit": explicit,
+        "changed": changed, "restored": restored,
+    }
+    args.output.write_text(json.dumps(report, indent=2) + "\n")
