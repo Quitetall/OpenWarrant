@@ -554,14 +554,13 @@ impl Subject<'_> {
                 problems.push(format!("{id}: no verdict"));
                 continue;
             };
-            let v: openwarrant_core::verification::Verification =
-                match toml::from_str(&String::from_utf8_lossy(&bytes)) {
-                    Ok(v) => v,
-                    Err(e) => {
-                        problems.push(format!("{id}: {rel} is not a verification: {e}"));
-                        continue;
-                    }
-                };
+            let v = match crate::verify::record::decode(&String::from_utf8_lossy(&bytes)) {
+                Ok(stored) => stored.verification,
+                Err(e) => {
+                    problems.push(format!("{id}: {rel} is not a verification: {e}"));
+                    continue;
+                }
+            };
             if v.obligation != *id {
                 problems.push(format!("{id}: {rel} is about {}", v.obligation));
                 continue;

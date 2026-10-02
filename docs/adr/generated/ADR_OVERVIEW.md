@@ -3520,7 +3520,12 @@ qualification and old-reader refusal, so rejecting all reviews cannot pass it.
 Before replacing an active verification, retain its exact bytes under
 `verifications/history/<raw-sha256>.toml`. The existing journal digest refers
 to these bytes; retaining them introduces no new digest domain or authority.
-History is outside the active-record enumeration. A no-overwrite publication
+History is outside the active-record enumeration. Immediate
+`history/<64-lowercase-hex>.toml` paths are verification bookkeeping for the
+implicit tree scope, like active verdicts; archiving a review must not change
+its own default source binding. Declared inputs still bind these files, and
+other names or nested files in that directory stay in the conservative tree.
+A no-overwrite publication
 must reuse identical bytes and refuse collisions, links or unavailable files.
 If retention fails, do not replace the active record. Unchanged replays must
 remain byte preserving. A changed subject needs distinct bound bytes and a

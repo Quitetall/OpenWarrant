@@ -3508,7 +3508,12 @@ qualification and old-reader refusal, so rejecting all reviews cannot pass it.
 Before replacing an active verification, retain its exact bytes under
 `verifications/history/<raw-sha256>.toml`. The existing journal digest refers
 to these bytes; retaining them introduces no new digest domain or authority.
-History is outside the active-record enumeration. A no-overwrite publication
+History is outside the active-record enumeration. Immediate
+`history/<64-lowercase-hex>.toml` paths are verification bookkeeping for the
+implicit tree scope, like active verdicts; archiving a review must not change
+its own default source binding. Declared inputs still bind these files, and
+other names or nested files in that directory stay in the conservative tree.
+A no-overwrite publication
 must reuse identical bytes and refuse collisions, links or unavailable files.
 If retention fails, do not replace the active record. Unchanged replays must
 remain byte preserving. A changed subject needs distinct bound bytes and a
@@ -33586,7 +33591,7 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
+| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | drift |
 | D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | verified |
 | D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
