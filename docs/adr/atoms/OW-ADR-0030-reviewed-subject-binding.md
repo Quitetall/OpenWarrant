@@ -48,7 +48,7 @@ Input bindings identify the reviewed workspace. They do not grant permission to 
 
 The experimental request/response transport is v2. A v2 response requires the reviewed subject and exact packet references before any verdict write. V1 responses remain historical observations, including those containing optional newer fields. An unsupported future response version reports UNKNOWN; malformed current v2 data is refused.
 
-Existing core verification record bytes stay unchanged. The verification-recorded journal event binds the record digest, actor, Warrant identity, obligation, reviewed subject, packet references and explicit v2 protocol. Protocol labels and reviewed bindings are never inferred from timestamps or optional fields.
+Existing v1 records remain byte preserving on read. New observations store the original verification payload inside an explicit v2 envelope; an older bare-record reader must refuse that envelope. The verification-recorded journal event binds the record digest, actor, Warrant identity, obligation, reviewed subject, packet references and explicit v2 protocol. Protocol labels and reviewed bindings are never inferred from timestamps or optional fields.
 
 Ingestion preflights the whole response: current subject, declared obligation identifiers, packet identity, performer and obligation coverage. Qualification uses that same rule for preparation, resolution, progress and the assurance mark. Legacy or stale observations remain on disk and supply no current qualification. Known independence failures retain their inadmissibility reason.
 
