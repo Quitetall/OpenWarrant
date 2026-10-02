@@ -67,6 +67,10 @@ work=$(mktemp -d)
 err=$(mktemp)
 answer=$(mktemp)
 trap 'rm -rf "$work" "$err" "$answer"' EXIT
+# Review and echo one immutable local copy. Reopening the caller's bundle
+# after the model returns could bind the answer to bytes it never read.
+cp -- "$bundle" "$work/bundle.json"
+bundle="$work/bundle.json"
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 version=$("$claude" --version 2>/dev/null | head -1 || true)
 status=0
@@ -106,8 +110,23 @@ allowed = {"established", "refuted", "not_established"}
 def q(s):
     return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ") + '"'
 distinct = bool(performer_model) and performer_model != model
-print('schema = "oh.war/verification-response/v1"')
+print('schema = "oh.war/verification-response/v2"')
 print("warrant = %s" % q(bundle["warrant"]))
+import os
+for packet in json.loads(os.environ.get("OPENWARRANT_REVIEWED_PACKETS", "[]")):
+    print("[[reviewed_packets]]")
+    print("path = " + json.dumps(packet["path"]))
+    print("digest = " + json.dumps(packet["digest"]))
+subject = bundle["request"].get("reviewed_subject")
+if subject is not None:
+    # The wrapper echoes the supplied review input, never asks the model to
+    # invent a binding or recaptures a fresh subject after work has changed.
+    print("[reviewed_subject]")
+    print("contract_digest = " + json.dumps(subject["contract_digest"]))
+    for field in ("artifacts", "context_sources", "gate_definitions", "fixtures", "gate_evidence", "gate_inputs", "gate_links"):
+        print("[reviewed_subject." + field + "]")
+        for path, digest in sorted(subject.get(field, {}).items()):
+            print(json.dumps(path) + " = " + json.dumps(digest))
 for o in bundle["request"]["obligations"]:
     v = verdicts.get(o["id"], {})
     d = v.get("disposition") if v.get("disposition") in allowed else "not_established"

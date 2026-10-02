@@ -737,6 +737,7 @@ pub fn assess_with(
 ) -> Result<Assessment, RepoError> {
     let dir = &one.dir;
     let verifications = repo.load_verifications(dir)?;
+    let current_verifications = crate::verify::current_records(repo, one, &verifications.records);
     let deliverables = repo.load_deliverables(dir)?;
 
     let performer = repo.performer();
@@ -774,7 +775,7 @@ pub fn assess_with(
     let checks = evaluate(
         repo,
         one,
-        &verifications.records,
+        &current_verifications,
         &deliverables.records,
         &gate_runs,
         &authority,
@@ -788,8 +789,7 @@ pub fn assess_with(
         .map(|v| v.assurance_level.to_string())
         .unwrap_or_else(|| "basic".to_owned());
     let declared = declared_obligations(one);
-    let admissible: Vec<&Verification> = verifications
-        .records
+    let admissible: Vec<&Verification> = current_verifications
         .iter()
         .filter(|v| v.admissible_for(&assurance).is_ok())
         .collect();

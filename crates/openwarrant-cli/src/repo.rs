@@ -58,6 +58,11 @@ impl IntakePolicy {
 
 #[derive(Debug)]
 pub enum RepoError {
+    /// An observation cannot be obtained. Distinct from malformed input.
+    ObservationUnavailable {
+        rule: &'static str,
+        message: String,
+    },
     /// A command-level failure that is not about locating or parsing the
     /// repository — an unknown view name, an uncompilable Warrant. Kept
     /// separate from the structured variants so it cannot absorb them.
@@ -97,6 +102,7 @@ impl fmt::Display for RepoError {
                  Run `war init --namespace <NS>` to create one."
             ),
             Self::Message(m) => write!(f, "{m}"),
+            Self::ObservationUnavailable { rule, message } => write!(f, "{rule}: {message}"),
             Self::NonUtf8Path => write!(f, "the current directory is not valid UTF-8"),
             Self::Io { context, source } => write!(f, "{context}: {source}"),
             Self::ConfigParse { path, source } => write!(f, "{path}: {source}"),
@@ -125,6 +131,14 @@ pub struct Repository {
     /// The profiles this program admits (OW-WAR-0140): the two core ones and
     /// every `profiles/<name>.toml`, read once when the repository opens.
     pub profiles: ProfileRegistry,
+    /// Exact Git-tree inventory for a read-only candidate snapshot. Ordinary
+    /// repositories enumerate their own tracked/nonignored source paths.
+    pub(crate) source_inventory: Option<Vec<String>>,
+    /// Retained object store and immutable commit for candidate context history.
+    /// Never use the original checkout's mutable HEAD as the history anchor.
+    pub(crate) candidate_history: Option<(Utf8PathBuf, String)>,
+    /// Candidate link blobs are data, never materialized filesystem links.
+    pub(crate) source_links: std::collections::BTreeMap<String, String>,
 }
 
 impl Repository {
@@ -186,7 +200,100 @@ impl Repository {
             root,
             config,
             profiles,
+            source_inventory: None,
+            candidate_history: None,
+            source_links: std::collections::BTreeMap::new(),
         })
+    }
+
+    /// One inventory for gate input selection. Snapshot paths belong to the
+    /// candidate, never to the checkout used to ask about that candidate.
+    pub(crate) fn source_paths(&self) -> Result<Vec<String>, RepoError> {
+        if let Some(paths) = &self.source_inventory {
+            return Ok(paths.clone());
+        }
+        let mut command = std::process::Command::new("git");
+        command.current_dir(&self.root).args([
+            "ls-files",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "-z",
+        ]);
+        for variable in [
+            "GIT_DIR",
+            "GIT_WORK_TREE",
+            "GIT_INDEX_FILE",
+            "GIT_COMMON_DIR",
+            "GIT_OBJECT_DIRECTORY",
+            "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+            "GIT_NAMESPACE",
+            "GIT_PREFIX",
+        ] {
+            command.env_remove(variable);
+        }
+        let output = command.output().map_err(|source| RepoError::Io {
+            context: "could not enumerate repository source paths".to_owned(),
+            source,
+        })?;
+        let mut paths = if output.status.success() {
+            std::str::from_utf8(&output.stdout)
+                .map_err(|_| RepoError::Message("non-UTF-8 source path inventory".to_owned()))?
+                .split('\0')
+                .filter(|p| !p.is_empty())
+                .map(str::to_owned)
+                .collect::<Vec<_>>()
+        } else {
+            if self.root.ancestors().any(|p| p.join(".git").exists()) {
+                return Err(RepoError::Message(
+                    "verify.subject-unavailable: Git source inventory cannot be read".to_owned(),
+                ));
+            }
+            // Document-only/prototype repositories need no Git. Enumerate
+            // data paths without following symlinks; selected unsafe nodes
+            // are refused by the same byte reader used for every subject.
+            fn walk(
+                root: &Utf8Path,
+                dir: &Utf8Path,
+                out: &mut Vec<String>,
+            ) -> Result<(), RepoError> {
+                let entries = dir.read_dir_utf8().map_err(|source| RepoError::Io {
+                    context: format!("could not enumerate {dir}"),
+                    source,
+                })?;
+                for entry in entries {
+                    let entry = entry.map_err(|source| RepoError::Io {
+                        context: format!("could not enumerate {dir}"),
+                        source,
+                    })?;
+                    if entry.file_name() == ".git" {
+                        continue;
+                    }
+                    let kind = entry.file_type().map_err(|source| RepoError::Io {
+                        context: format!("could not inspect {}", entry.path()),
+                        source,
+                    })?;
+                    if kind.is_dir() {
+                        walk(root, entry.path(), out)?;
+                    } else {
+                        out.push(
+                            entry
+                                .path()
+                                .strip_prefix(root)
+                                .map_err(|e| RepoError::Message(e.to_string()))?
+                                .to_string(),
+                        );
+                    }
+                }
+                Ok(())
+            }
+            let mut paths = Vec::new();
+            walk(&self.root, &self.root, &mut paths)?;
+            paths
+        };
+        paths.sort();
+        paths.dedup();
+        Ok(paths)
     }
 
     /// The configured warrants directory.
@@ -892,8 +999,8 @@ impl Repository {
                 context: format!("could not read {path}"),
                 source,
             })?;
-            match toml::from_str::<Verification>(&text) {
-                Ok(v) => records.push(v),
+            match crate::verify::record::decode(&text) {
+                Ok(v) => records.push(v.verification),
                 Err(e) => failures.push((relative, e.to_string())),
             }
         }
@@ -1397,7 +1504,7 @@ fn header_mismatches(
 /// directory means the two core profiles and nothing else. A definition the
 /// registry refuses refuses the repository: a Warrant of that profile would
 /// otherwise read as having an unknown profile, which is not what is wrong.
-fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
+pub(crate) fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
     let dir = root.join("profiles");
     if !dir.is_dir() {
         return Ok(ProfileRegistry::builtin());

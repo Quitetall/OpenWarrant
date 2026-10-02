@@ -76,6 +76,8 @@ use serde::Serialize;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{RepoError, Repository};
 
+mod tree;
+
 pub const SCHEMA: &str = "oh.war/acceptance/v1";
 
 /// The rule an in-scope move reports under.
@@ -136,9 +138,11 @@ pub struct Candidate {
 }
 
 /// Run git in `root`; stdout when it succeeded, `None` for anything else.
-fn git(root: &Utf8Path, args: &[&str]) -> Option<Vec<u8>> {
+pub(crate) fn git(root: &Utf8Path, args: &[&str]) -> Option<Vec<u8>> {
     std::process::Command::new("git")
+        .args(["--no-pager", "--no-replace-objects"])
         .args(args)
+        .env("GIT_NO_LAZY_FETCH", "1")
         .current_dir(root)
         .output()
         .ok()
@@ -301,14 +305,15 @@ fn after(later: &str, earlier: &str) -> bool {
 /// re-established every declared obligation on, after the resolution. `None`
 /// when any obligation lacks such a verification at the candidate.
 fn reverified(
-    repo: &Repository,
+    candidate_tree: &tree::Snapshot,
     rel_dir: &str,
     one: &crate::repo::Loaded,
     recorded_at: &str,
     locator: &str,
     candidate: &str,
 ) -> Option<(String, String)> {
-    let root = &repo.root;
+    let repo = &candidate_tree.repository;
+    let root = &candidate_tree.history_root;
     let declared = crate::resolve::declared_obligations(one);
     if declared.is_empty() {
         return None;
@@ -323,8 +328,13 @@ fn reverified(
         candidate,
         &format!("{rel_dir}/{}", crate::journal_cmd::FILE),
     )?;
-    // (obligation, record digest) ingested after the resolution was recorded.
-    let mut ingested: Vec<(String, String)> = Vec::new();
+    // Recompile and capture with the SAME subject routine, over exact Git
+    // candidate data. No contract digest is inferred from a generated view.
+    let candidate_subject = crate::verify::subject(repo, one).ok()?;
+    // (obligation, record digest, verifier) ingested for THIS Warrant after
+    // the resolution was recorded. Identity matches current qualification.
+    let mut ingested: Vec<(String, String, String)> = Vec::new();
+    let warrant_uuid = one.validated.as_ref()?.uuid.to_string();
     for line in String::from_utf8_lossy(&journal).lines() {
         let Ok(event) = serde_json::from_str::<serde_json::Value>(line) else {
             continue;
@@ -332,6 +342,9 @@ fn reverified(
         if event.get("type").and_then(|t| t.as_str())
             != Some(crate::journal_cmd::VERIFICATION_RECORDED)
         {
+            continue;
+        }
+        if event.get("warrant_uuid").and_then(|v| v.as_str()) != Some(&warrant_uuid) {
             continue;
         }
         let Some(at) = event.get("occurred_at").and_then(|t| t.as_str()) else {
@@ -347,11 +360,56 @@ fn reverified(
         else {
             continue;
         };
-        if let (Some(o), Some(d)) = (
+        if payload["verification_protocol"] != crate::verify::RESPONSE_SCHEMA {
+            continue;
+        }
+        // A later file write does not bind an old observation to a new
+        // candidate. Legacy journal events remain history, never a re-review.
+        let Some(reviewed) = payload
+            .get("reviewed_subject")
+            .and_then(|v| serde_json::from_value::<crate::verify::ReviewedSubject>(v.clone()).ok())
+        else {
+            continue;
+        };
+        if reviewed != candidate_subject {
+            continue;
+        }
+        if let (Some(o), Some(d), Some(actor)) = (
             payload.get("obligation").and_then(|v| v.as_str()),
             payload.get("record_digest").and_then(|v| v.as_str()),
+            event.get("actor_ref").and_then(|v| v.as_str()),
         ) {
-            ingested.push((o.to_owned(), d.to_owned()));
+            let Some(packets) = payload.get("reviewed_packets").and_then(|v| {
+                serde_json::from_value::<Vec<crate::verify::ReviewedPacket>>(v.clone()).ok()
+            }) else {
+                continue;
+            };
+            let Some(performer) = show(
+                root,
+                candidate,
+                &format!("{rel_dir}/verifications/{o}.toml"),
+            )
+            .and_then(|bytes| {
+                crate::verify::record::decode(&String::from_utf8_lossy(&bytes))
+                    .ok()
+                    .filter(|stored| stored.binds(&candidate_subject, &packets))
+            })
+            .map(|v| v.verification.performer) else {
+                continue;
+            };
+            if !crate::verify::packets_cover(
+                repo,
+                &one.alias(),
+                &candidate_subject,
+                &packets,
+                &[o.to_owned()],
+                &performer,
+            )
+            .unwrap_or(false)
+            {
+                continue;
+            }
+            ingested.push((o.to_owned(), d.to_owned(), actor.to_owned()));
         }
     }
     let mut parents: Vec<String> = Vec::new();
@@ -359,8 +417,9 @@ fn reverified(
     for id in &declared {
         let path = format!("{rel_dir}/verifications/{id}.toml");
         let bytes = show(root, candidate, &path)?;
-        let v: openwarrant_core::verification::Verification =
-            toml::from_str(&String::from_utf8_lossy(&bytes)).ok()?;
+        let v = crate::verify::record::decode(&String::from_utf8_lossy(&bytes))
+            .ok()?
+            .verification;
         if v.obligation != *id
             || !v.disposition.permits_satisfied()
             || v.admissible_for(&assurance).is_err()
@@ -368,7 +427,11 @@ fn reverified(
             return None;
         }
         let digest = format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes));
-        if !ingested.iter().any(|(o, d)| o == id && *d == digest) {
+        let actor = format!("{}://{}", v.verifier.kind, v.verifier.actor);
+        if !ingested
+            .iter()
+            .any(|(o, d, a)| o == id && *d == digest && *a == actor)
+        {
             return None;
         }
         let wrote = git(root, &["log", "-1", "--format=%H", candidate, "--", &path])?;
@@ -444,6 +507,21 @@ pub fn assess(
             }
         }
     };
+    let candidate_tree = match tree::Snapshot::read(&root, &cand) {
+        Ok(tree) => tree,
+        Err(why) => {
+            report.push(Diagnostic::unknown(
+                UNKNOWN,
+                candidate.to_owned(),
+                format!(
+                    "candidate {}: exact source facts cannot be read: {why}",
+                    short(&cand)
+                ),
+            ));
+            return Ok((report, out));
+        }
+    };
+    let repo = &candidate_tree.repository;
     let registry = gate_inputs(repo);
     let warrants_dir = repo.config.paths.warrants.clone();
 
@@ -521,7 +599,7 @@ pub fn assess(
         }
 
         let from = match reverified(
-            repo,
+            &candidate_tree,
             &rel_dir,
             &one,
             &record.resolution.recorded_at,

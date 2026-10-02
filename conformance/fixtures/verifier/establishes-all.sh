@@ -4,8 +4,23 @@
 python3 - "$1" <<'PY'
 import json, sys
 b = json.load(open(sys.argv[1]))
-print('schema = "oh.war/verification-response/v1"')
+print('schema = "oh.war/verification-response/v2"')
 print('warrant = "%s"' % b["warrant"])
+# Echo only the snapshot actually carried to this fixture. Never recapture
+# repository state after the simulated review.
+import os
+for packet in json.loads(os.environ.get("OPENWARRANT_REVIEWED_PACKETS", "[]")):
+    print("[[reviewed_packets]]")
+    print("path = " + json.dumps(packet["path"]))
+    print("digest = " + json.dumps(packet["digest"]))
+subject = b["request"].get("reviewed_subject")
+if subject is not None:
+    print("[reviewed_subject]")
+    print("contract_digest = " + json.dumps(subject["contract_digest"]))
+    for field in ["artifacts", "context_sources", "gate_definitions", "fixtures", "gate_evidence", "gate_inputs", "gate_links"]:
+        print("[reviewed_subject." + field + "]")
+        for key, value in sorted(subject.get(field, {}).items()):
+            print(json.dumps(key) + " = " + json.dumps(value))
 for o in b["request"]["obligations"]:
     print("")
     print("[[verifications]]")

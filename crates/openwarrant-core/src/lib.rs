@@ -23,6 +23,7 @@ pub mod presence;
 pub mod rationale;
 pub mod traceability;
 pub mod verification;
+pub mod verification_record;
 mod vocab;
 
 pub mod adequacy;

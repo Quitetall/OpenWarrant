@@ -25,6 +25,7 @@ AV_RES="$PLANT_ROOT/docs/warrants/$AV_A/resolution.toml"
 # half-built corpus. The agent lives only as long as the setup: nothing after
 # it signs anything.
 if ! WAR="$REPO_ROOT/$WAR" D="$PLANT_ROOT" T="$AV_TMP" A="$AV_A" \
+    BIND="$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
     env -u SSH_AUTH_SOCK -u SSH_AGENT_PID bash -euo pipefail > "$AV_TMP/setup.log" 2>&1 <<'SETUP'
 cd "$D"
 g() { git -c user.email=plant@invalid -c user.name=plant "$@"; }
@@ -32,6 +33,9 @@ W="docs/warrants/$A"
 mkdir -p src
 printf 'accepted\n' > src/core.txt
 printf 'helper\n' > src/helper.txt
+mkdir -p support
+printf 'linked API context\n' > support/api.txt
+ln -s ../support src/linked
 printf 'notes\n' > README.txt
 cat > docs/gates/plant.acceptance@1.0.0.yaml <<'GATE'
 gate_id: "plant.acceptance"
@@ -123,6 +127,18 @@ effective_time = "2026-01-01T00:00:00Z"
 note = "Exists only while the acceptance-validity plants run."
 ssh_principal = "plant"
 ROLES
+# Real manifests bind ADR atoms stored elsewhere inside the same repository.
+mkdir -p docs/adr/atoms
+printf '# Bound scratch decision\n\nThe scratch contract uses this decision.\n' > docs/adr/atoms/bound.md
+cat >> "$W/manifest.toml" <<'BOUND'
+
+[[atoms]]
+ordinal = 35
+role = "adr"
+path = "../../adr/atoms/bound.md"
+required = true
+BOUND
+"$WAR" --root . sas propose 0.1.0 >/dev/null
 "$WAR" --root . compile >/dev/null
 g add -A; g commit -qm "a Warrant to accept"
 
@@ -167,7 +183,10 @@ separate_context_compilation = true
 distinct_model_required = true
 distinct_human_required = false
 VERIFY
-"$WAR" --root . verify "$A" --response "$T/verified.toml"
+# Capture exactly the subject this synthetic fixture is about to inspect.
+"$WAR" --root . verify "$A" --performer claude --bundle --json > "$T/request.json"
+python3 "$BIND" "$T/request.json" "$T/verified.toml" > "$T/verified-bound.toml"
+"$WAR" --root . verify "$A" --response "$T/verified-bound.toml"
 g add -A; g commit -qm verified
 "$WAR" --root . sign "$A" --ssh-sign --as "Plant Signer" </dev/null
 test -f "$W/resolution.toml"
@@ -195,7 +214,10 @@ av_names() { line_has -F "$1" -F "$3" <<<"$2"; }
 av_verify() { # disposition, evidence
     sed -e "s/^disposition = .*/disposition = \"$1\"/" -e "s|^evidence = .*|evidence = \"$2\"|" \
         "$AV_TMP/verified.toml" > "$AV_TMP/reverify.toml"
-    av_war verify "$AV_A" --response "$AV_TMP/reverify.toml" >/dev/null 2>&1
+    av_war verify "$AV_A" --performer claude --bundle --json > "$AV_TMP/request.json"
+    python3 "$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
+        "$AV_TMP/request.json" "$AV_TMP/reverify.toml" > "$AV_TMP/reverify-bound.toml"
+    av_war verify "$AV_A" --response "$AV_TMP/reverify-bound.toml" >/dev/null 2>&1
 }
 
 # ── Control: the resolution commit itself is not a move ─────────────────────
@@ -205,6 +227,18 @@ if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A" <<<"$
 else
     av_fail "the accepted candidate is unchanged" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+
+# The shared ADR link is allowed, but traversal beyond the candidate tree is not.
+AV_ACCEPTED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+sed -i 's|../../adr/atoms/bound.md|../../../../outside-candidate.md|' "$PLANT_ROOT/docs/warrants/$AV_A/manifest.toml"
+av_commit "an atom reference outside the candidate tree"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && grep -q 'acceptance.unknown' <<<"$AV_OUT" && grep -q 'atom path escapes' <<<"$AV_OUT" && ! grep -q 'acceptance.unchanged' <<<"$AV_OUT"; then
+    av_ok "escaping candidate atom is refused" "acceptance.unknown; no host file is read"
+else
+    av_fail "escaping candidate atom is refused" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+git -C "$PLANT_ROOT" reset -q --hard "$AV_ACCEPTED"
 
 # ── OBL-002: an out-of-scope change leaves acceptance standing ──────────────
 printf 'more notes\n' >> "$PLANT_ROOT/README.txt"
@@ -262,23 +296,178 @@ if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'sr
 else
     av_fail "not re-established does not clear" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+# A retained legacy verdict is history, not review of this candidate. It
+# must not clear the move merely because its file and event were committed later.
+sed 's|^evidence = .*|evidence = "legacy synthetic observation with no subject binding"|' \
+    "$AV_TMP/verified.toml" > "$AV_TMP/legacy.toml"
+AV_LEGACY=$(av_war verify "$AV_A" --response "$AV_TMP/legacy.toml" 2>&1)
+AV_LEGACY_STATUS=$?
+av_commit "retained legacy verdict, not candidate qualification"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_LEGACY_STATUS -ne 0 ]] && grep -q 'verify.subject-unbound' <<<"$AV_LEGACY" \
+    && [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt' \
+    && [[ "$(av_sha)" == "$AV_BEFORE" ]]; then
+    av_ok "unbound history cannot clear a move" "legacy retained; acceptance.candidate-moved; resolution untouched"
+else
+    av_fail "unbound history cannot clear a move" "ingest $AV_LEGACY_STATUS; acceptance $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+
 av_verify established "src/core.txt and src/helper.txt read at $AV_MOVED"
-av_commit "re-verified on the moved candidate"
+# The contract moves AFTER review, alongside the verdict commit. Own-record
+# exclusions must not turn that unreviewed contract into an accepted candidate.
+AV_INTENT="$PLANT_ROOT/docs/warrants/$AV_A/atoms/10-intent.md"
+cp "$AV_INTENT" "$AV_TMP/reviewed-intent.md"
+printf '\nA new required outcome was added after the review.\n' >> "$AV_INTENT"
+av_commit "a changed contract alongside a verdict about the older contract"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt'; then
+    av_ok "a changed contract cannot borrow review" "the candidate contract differs from the bound review"
+else
+    av_fail "a changed contract cannot borrow review" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+cp "$AV_TMP/reviewed-intent.md" "$AV_INTENT"
+av_commit "restore the exact reviewed contract"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT" && [[ "$(av_sha)" == "$AV_BEFORE" ]]; then
     av_ok "a re-verification clears it" "acceptance.unchanged (re-verified), resolution untouched"
 else
     av_fail "a re-verification clears it" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+# A newer source file does not erase the exact SAS this contract pins.
+AV_SAS=$(python3 - "$PLANT_ROOT" <<'PY_SAS'
+import sys, tomllib
+from pathlib import Path
+root = Path(sys.argv[1])
+revision = tomllib.loads((root / "docs/sas/revisions/0.1.0.toml").read_text())
+print(root / revision["source"])
+PY_SAS
+)
+printf '\nNew background in the current document, not the pinned revision.\n' >> "$AV_SAS"
+av_commit "current SAS advances after the bound review"
+AV_HISTORY_CANDIDATE=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+AV_OUT=$(av_war pins --candidate "$AV_HISTORY_CANDIDATE" 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT"; then
+    av_ok "candidate retains its pinned SAS" "exact ancestor bytes; a newer source does not replace the pin"
+else
+    av_fail "candidate retains its pinned SAS" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+# Restore only the disposable source, so later controls remain independent.
+git -C "$PLANT_ROOT" checkout "$AV_RESOLVED" -- "${AV_SAS#"$PLANT_ROOT/"}"
+av_commit "restore current SAS source"
+
+# Candidate facts come from Git, never from a dirty current checkout.
+AV_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+# Portable review retains the actual recorded evidence, not only its hash.
+AV_OUT=$(av_war verify "$AV_A" --performer claude --bundle --json 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -eq 0 ]] && python3 - "$PLANT_ROOT" "$AV_A" "$AV_OUT" <<'PY_PACKET'
+import hashlib, json, sys
+from pathlib import Path
+root, alias = Path(sys.argv[1]), sys.argv[2]
+folder = root / "docs/warrants" / alias
+index = json.loads(sys.argv[3])["result"]["packets"]
+packets = [root / ref["path"] for ref in index]
+# Older retained packets describe earlier inputs, never current bytes.
+assert len(list((folder / "verifications").glob("bundle-*.json"))) >= len(packets)
+assert packets
+evidence = list((folder / "gate-runs").glob("*"))
+inputs = [p for p in (root / "src").glob("*") if p.is_file()]
+inputs.append(root / "support/api.txt")
+assert len(evidence) >= 4 and len(inputs) >= 2
+expected = [(p, "gate-evidence", "gate_evidence") for p in evidence]
+for packet in packets:
+    data = json.loads(packet.read_text())
+    sources = {s["path"]: s for s in data["required_sources"]}
+    assert data["request"]["reviewed_subject"]["gate_links"]["src/linked"] == "../support"
+    for file in inputs:
+        path = str(file.relative_to(root))
+        assert data["request"]["reviewed_subject"]["gate_inputs"][path] == "sha256:" + hashlib.sha256(file.read_bytes()).hexdigest()
+        assert path not in sources, "source inventory is not automatic reviewer context"
+    for file, kind, binding in expected:
+        path = str(file.relative_to(root))
+        source = sources[path]
+        assert source["kind"] == kind and source["present"]
+        carried = source["text"].encode() if "text" in source else bytes(source["bytes"])
+        assert carried == file.read_bytes(), path
+        assert source["sha256"] == data["request"]["reviewed_subject"][binding][path]
+PY_PACKET
+then
+    av_ok "portable packet retains gate evidence" "evidence bytes are carried; source inputs remain exactly bound"
+else
+    av_fail "portable packet retains gate evidence" "exit $AV_STATUS; required evidence bytes were not carried"
+fi
+# A bound review belongs to this Warrant and the verifier named by its record.
+for AV_IDENTITY in actor_ref warrant_uuid; do
+    python3 - "$PLANT_ROOT/docs/warrants/$AV_A/journal.jsonl" "$AV_IDENTITY" <<'PY_IDENTITY'
+import json, sys
+p, field = sys.argv[1:]
+rows = [json.loads(line) for line in open(p) if line.strip()]
+assert any(row.get("type") == "verification.recorded" for row in rows)
+for row in rows:
+    if row.get("type") == "verification.recorded":
+        row[field] = "agent://different-verifier" if field == "actor_ref" else "00000000-0000-0000-0000-000000000000"
+open(p, "w").write("".join(json.dumps(row) + "\n" for row in rows))
+PY_IDENTITY
+    av_commit "a reviewed event with wrong $AV_IDENTITY"
+    AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+    if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt'; then
+        av_ok "wrong $AV_IDENTITY cannot clear review" "the journal identity does not bind this verdict"
+    else
+        av_fail "wrong $AV_IDENTITY cannot clear review" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+    fi
+    git -C "$PLANT_ROOT" reset -q --hard "$AV_REVIEWED"
+done
+# The verifier observed gate output as well as code and definitions.
+python3 - "$PLANT_ROOT/docs/warrants/$AV_A/gate-runs" <<'PY_OUTPUT'
+from pathlib import Path
+import sys
+files = list(Path(sys.argv[1]).glob("*.stdout.txt"))
+assert len(files) == 1, files
+with files[0].open("ab") as stream:
+    stream.write(b"Changed evidence after independent review.\n")
+PY_OUTPUT
+av_commit "changed gate output after review"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt'; then
+    av_ok "changed gate output cannot borrow review" "the raw evidence differs from the reviewed snapshot"
+else
+    av_fail "changed gate output cannot borrow review" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+git -C "$PLANT_ROOT" reset -q --hard "$AV_REVIEWED"
+printf '\nOnly the working tree has this unreviewed contract change.\n' >> "$AV_INTENT"
+AV_OUT=$(av_war pins --candidate "$AV_REVIEWED" 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT"; then
+    av_ok "candidate review ignores dirty checkout" "the exact Git candidate remains reviewed"
+else
+    av_fail "candidate review ignores dirty checkout" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+cp "$AV_TMP/reviewed-intent.md" "$AV_INTENT"
+
 printf 'a second change\n' > "$PLANT_ROOT/src/second.txt"
 av_commit "a second in-scope change"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
 AV_LINE=$(grep 'acceptance.candidate-moved' <<<"$AV_OUT")
-if [[ $AV_STATUS -ne 0 ]] && grep -qF 'src/second.txt' <<<"$AV_LINE" && ! grep -qF 'src/helper.txt' <<<"$AV_LINE"; then
+# A new selected input invalidates the whole earlier review snapshot. Its
+# old observations remain history; comparison may return to the resolution,
+# so the finding can also name the earlier helper change. The new move must
+# still be refused and explicitly named.
+if [[ $AV_STATUS -ne 0 ]] && grep -qF 'src/second.txt' <<<"$AV_LINE"; then
     av_ok "it clears for that candidate only" "a second commit moves it again: src/second.txt"
 else
     av_fail "it clears for that candidate only" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+
+# The checkout cannot shrink the candidate's declared gate-input scope.
+AV_GATE="$PLANT_ROOT/docs/gates/plant.acceptance@1.0.0.yaml"
+cp "$AV_GATE" "$AV_TMP/reviewed-gate.yaml"
+sed -i 's|^inputs: .*|inputs: ["README.txt"]|' "$AV_GATE"
+assert_present 'inputs: ["README.txt"]' "$AV_GATE"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/second.txt'; then
+    av_ok "checkout cannot shrink candidate scope" "Git gate inputs still require src/second.txt"
+else
+    av_fail "checkout cannot shrink candidate scope" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+cp "$AV_TMP/reviewed-gate.yaml" "$AV_GATE"
 
 # A pinned deliverable is Q-001 (a): a human re-accepts it; a verifier cannot.
 printf 'rewritten\n' > "$PLANT_ROOT/src/core.txt"
@@ -331,6 +520,7 @@ p = sys.argv[1]; s = open(p).read()
 open(p, "w").write(re.sub(r'\n\[locator\]\n(?:(?!\[).*\n?)*', '\n', s))
 PY
 assert_gone '[locator]' "$AV_RES"
+av_commit "candidate with no recorded locator"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -ne 0 ]] && grep -qE "UNKNOWN +acceptance\.unknown +$AV_A: UNKNOWN \(no locator" <<<"$AV_OUT" \
     && ! grep -qE 'acceptance\.(unchanged|candidate-moved)' <<<"$AV_OUT" && ! grep -qE '^ERROR' <<<"$AV_OUT"; then
@@ -338,9 +528,10 @@ if [[ $AV_STATUS -ne 0 ]] && grep -qE "UNKNOWN +acceptance\.unknown +$AV_A: UNKN
 else
     av_fail "no locator is UNKNOWN" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
-git -C "$PLANT_ROOT" checkout -q -- "docs/warrants/$AV_A/resolution.toml"
+git -C "$PLANT_ROOT" reset -q --hard "$AV_MOVED"
 sed -i 's/^commit_sha = ".*"/commit_sha = "0123456789abcdef0123456789abcdef01234567"/' "$AV_RES"
 assert_present '0123456789abcdef0123456789abcdef01234567' "$AV_RES"
+av_commit "candidate with an unreadable recorded locator"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -ne 0 ]] && grep -qE "UNKNOWN +acceptance\.unknown +$AV_A: UNKNOWN \(commit 0123456789ab not readable" <<<"$AV_OUT" \
     && ! grep -qE 'acceptance\.(unchanged|candidate-moved)' <<<"$AV_OUT" && ! grep -qE '^ERROR' <<<"$AV_OUT"; then
@@ -348,7 +539,7 @@ if [[ $AV_STATUS -ne 0 ]] && grep -qE "UNKNOWN +acceptance\.unknown +$AV_A: UNKN
 else
     av_fail "an unreadable locator is UNKNOWN" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
-git -C "$PLANT_ROOT" checkout -q -- "docs/warrants/$AV_A/resolution.toml"
+git -C "$PLANT_ROOT" reset -q --hard "$AV_MOVED"
 AV_OUT=$(av_war pins --candidate no-such-revision 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -ne 0 ]] && grep -qE 'UNKNOWN +acceptance\.unknown +candidate no-such-revision' <<<"$AV_OUT" && ! grep -q 'acceptance.unchanged' <<<"$AV_OUT"; then
     av_ok "an unreadable candidate is UNKNOWN" "acceptance.unknown, nothing reported unchanged"
