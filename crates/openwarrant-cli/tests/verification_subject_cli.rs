@@ -1542,31 +1542,95 @@ fn candidate_reads_exact_objects_without_git_replacements() {
     assert_eq!(restored["exit_code"], 0, "{restored}");
 }
 
-
 #[test]
 fn archive_retains_wrapped_verification_without_claiming_current_assurance() {
     let fixture = Fixture::new();
     fixture.bound_response();
-    let ingest = fixture.run(&["verify", "IX-WAR-0003", "--response", "response.toml", "--json"]);
+    let ingest = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
     assert_eq!(ingest["exit_code"], 0, "{ingest}");
-    for args in [vec!["init", "-q"], vec!["add", "."], vec!["-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "Synthetic review history"]] {
-        let output = Command::new("git").current_dir(&fixture.0).args(args).output().unwrap();
-        assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    for args in [
+        vec!["init", "-q"],
+        vec!["add", "."],
+        vec![
+            "-c",
+            "user.name=Fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "commit",
+            "-qm",
+            "Synthetic review history",
+        ],
+    ] {
+        let output = Command::new("git")
+            .current_dir(&fixture.0)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
     }
     let archive = fixture.0.with_extension("archive.json");
-    let exported = fixture.run(&["archive", "export", "IX-WAR-0003", archive.to_str().unwrap(), "--history", "--json"]);
+    let exported = fixture.run(&[
+        "archive",
+        "export",
+        "IX-WAR-0003",
+        archive.to_str().unwrap(),
+        "--history",
+        "--json",
+    ]);
     assert_eq!(exported["exit_code"], 0, "{exported}");
-    assert_eq!(exported["result"]["coverage"]["assurance case"]["state"], "retained", "{exported}");
+    assert_eq!(
+        exported["result"]["coverage"]["assurance case"]["state"], "retained",
+        "{exported}"
+    );
     assert_eq!(exported["result"]["authority_activated"], false);
     let inspected = fixture.run(&["archive", "inspect", archive.to_str().unwrap(), "--json"]);
     assert_eq!(inspected["exit_code"], 0, "{inspected}");
-    assert_eq!(inspected["result"]["coverage"]["assurance case"]["state"], "retained", "{inspected}");
-    let malformed = fixture.0.join("docs/warrants/IX-WAR-0003/verifications/OBL-001.toml");
-    fs::write(malformed, "schema = 'oh.war/verification/v2'\nverification = 'not a record'\n").unwrap();
-    let refused = fixture.run(&["archive", "export", "IX-WAR-0003", fixture.0.with_extension("malformed-archive.json").to_str().unwrap(), "--history", "--json"]);
+    assert_eq!(
+        inspected["result"]["coverage"]["assurance case"]["state"], "retained",
+        "{inspected}"
+    );
+    let malformed = fixture
+        .0
+        .join("docs/warrants/IX-WAR-0003/verifications/OBL-001.toml");
+    fs::write(
+        malformed,
+        "schema = 'oh.war/verification/v2'\nverification = 'not a record'\n",
+    )
+    .unwrap();
+    let refused = fixture.run(&[
+        "archive",
+        "export",
+        "IX-WAR-0003",
+        fixture
+            .0
+            .with_extension("malformed-archive.json")
+            .to_str()
+            .unwrap(),
+        "--history",
+        "--json",
+    ]);
     assert_eq!(refused["exit_code"], 0, "{refused}");
-    assert_eq!(refused["result"]["coverage"]["assurance case"]["state"], "unavailable", "{refused}");
-    assert!(refused["result"]["coverage"]["assurance case"]["reason"].as_str().unwrap().contains("unreadable verification record"), "{refused}");
+    assert_eq!(
+        refused["result"]["coverage"]["assurance case"]["state"], "unavailable",
+        "{refused}"
+    );
+    assert!(
+        refused["result"]["coverage"]["assurance case"]["reason"]
+            .as_str()
+            .unwrap()
+            .contains("unreadable verification record"),
+        "{refused}"
+    );
     let _ = fs::remove_file(archive);
     let _ = fs::remove_file(fixture.0.with_extension("malformed-archive.json"));
 }
