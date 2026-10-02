@@ -419,7 +419,14 @@ command rm -f "$OS_RESP/$OS_B.early.response.toml" "$OS_RESP/$OS_B.early.respons
 # OS-WAR-0001 resolved: evidence over the committed tree, the fixture
 # verifier, and a signed resolution. The record carries a [locator] whose
 # commit is the tree it was resolved at.
-os evidence record "$OS_A" >/dev/null 2>&1; os compile >/dev/null 2>&1; os_commit "evidence"
+# Authorization changes the generated status. Compile before the check gate
+# runs so the first receipt is a passing observation, then review it once.
+os compile >/dev/null 2>&1; os_commit "ready for evidence"
+if ! OS_EVIDENCE=$(os evidence record "$OS_A" 2>&1); then
+    printf '%s\n' "$OS_EVIDENCE" >&2
+    os_setup_failed "the initial evidence gate"
+fi
+os compile >/dev/null 2>&1; os_commit "evidence"
 os verify "$OS_A" --performer claude --run >/dev/null 2>&1; os compile >/dev/null 2>&1; os_commit "verified"
 OS_HEAD=$(git -C "$OS_ROOT" rev-parse HEAD)
 OS_DIGEST=$(os authorize "$OS_A" 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)
