@@ -59,29 +59,7 @@ pub struct VerificationRequest {
     pub reviewed_subject: ReviewedSubject,
 }
 
-/// A review binds the compiled contract, delivered bytes, cited gate definitions
-/// and their declared fixture bytes. It does not grant approval or authority.
-/// Digests use existing contract canonicalization and ordinary file SHA-256;
-/// no new semantic digest domain or replacement canonicalizer is introduced.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ReviewedSubject {
-    pub contract_digest: String,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub context_sources: BTreeMap<String, String>,
-    pub artifacts: BTreeMap<String, String>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub gate_definitions: BTreeMap<String, String>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub fixtures: BTreeMap<String, String>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub gate_evidence: BTreeMap<String, String>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub gate_inputs: BTreeMap<String, String>,
-    /// Exact link target text also distinguishes a link from a regular file.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub gate_links: BTreeMap<String, String>,
-}
+pub use openwarrant_core::verification_record::ReviewedSubject;
 
 pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedSubject, RepoError> {
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
@@ -584,13 +562,7 @@ pub struct VerificationResponse {
     pub reviewed_subject: Option<ReviewedSubject>,
 }
 
-/// References to exact retained packets, using the existing canonical domain.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ReviewedPacket {
-    pub path: String,
-    pub digest: String,
-}
+pub use openwarrant_core::verification_record::ReviewedPacket;
 
 /// Validate exact packet bytes, subject, actor and obligation coverage. Never
 /// rebuild a packet after review: prior verdicts can legitimately have changed.
@@ -1084,7 +1056,7 @@ pub fn ingest(
             continue;
         }
         let path = vdir.join(format!("{}.toml", v.obligation));
-        let stored = record::StoredVerification::new(v, &response);
+        let stored = record::new(v, &response);
         let rendered = toml::to_string_pretty(&stored).map_err(|e| RepoError::Io {
             context: format!("could not serialize verification for {}", v.obligation),
             source: std::io::Error::other(e.to_string()),
