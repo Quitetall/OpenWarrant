@@ -137,6 +137,16 @@ fn file_path(root: &Utf8Path, record: &str) -> Utf8PathBuf {
 pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let (files, pack) = render_all()?;
+    // Candidate publication is separate from the frozen active pack. Adding a
+    // second record format must not silently rebind existing contract digests.
+    let candidate_path = repo.root.join(PACK_DIR).join("oh.war/verification/v2.json");
+    let candidate_text = serde_jcs::to_string(&openwarrant_core::verification_record::schema())
+        .map_err(|error| {
+            RepoError::Message(format!(
+                "could not render candidate verification schema: {error}"
+            ))
+        })?
+        + "\n";
     let mut typescript = crate::schema_typescript::render(&files).map_err(RepoError::Message)?;
     let pack_path = repo.root.join(PACK_DIR).join("pack.json");
     let pack_body = pack_text(&pack)?;
@@ -184,11 +194,13 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             }
         }
     };
+    report.notes.push("verification/v2.json is a candidate publication outside the active 0.2.0 pack; it does not adopt the format or change contract identity".into());
     if check {
         for (record, text) in &files {
             compare(&file_path(&repo.root, record), text, &mut report);
         }
         compare(&pack_path, &pack_body, &mut report);
+        compare(&candidate_path, &candidate_text, &mut report);
         for (name, text) in &typescript {
             compare(
                 &repo.root.join(PACK_DIR).join("typescript").join(name),
@@ -223,6 +235,16 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             source,
         })?;
     }
+    if let Some(parent) = candidate_path.parent() {
+        std::fs::create_dir_all(parent).map_err(|source| RepoError::Io {
+            context: format!("could not create {parent}"),
+            source,
+        })?;
+    }
+    std::fs::write(&candidate_path, &candidate_text).map_err(|source| RepoError::Io {
+        context: format!("could not write {candidate_path}"),
+        source,
+    })?;
     std::fs::write(&pack_path, &pack_body).map_err(|source| RepoError::Io {
         context: format!("could not write {pack_path}"),
         source,

@@ -496,6 +496,15 @@ pub fn revision_bytes(repo: &Repository, revision: &SasRevision) -> Result<Vec<u
     {
         return Ok(bytes);
     }
+    historical_revision_bytes(repo, revision)
+}
+
+/// Recover exact retained bytes without opening the mutable document again.
+/// Shared by ordinary SAS inspection and descriptor-safe review capture.
+pub(crate) fn historical_revision_bytes(
+    repo: &Repository,
+    revision: &SasRevision,
+) -> Result<Vec<u8>, String> {
     let source = revision.source.as_str();
     let log = git(
         repo,

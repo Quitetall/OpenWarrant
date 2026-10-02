@@ -507,9 +507,11 @@ pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[
 ///
 /// # Where this is strict
 ///
-/// A Warrant with a `katana` or `blut` stage needs a receipt, and none exists
-/// anywhere in this repository — Katana has no checkout and nothing has been
-/// dispatched. Those Warrants report unmet, which is correct.
+/// A Warrant with a `katana` or `blut` stage needs a receipt matched to its
+/// compilation basis. The store/import seam is not connected here yet, so
+/// those Warrants report unmet. Retained OW-WAR-0047 observations include an
+/// actual BLUT execution; they are not a dispatch-bound receipt store. Provider
+/// checkouts and historical runs must not be confused with matching receipts.
 ///
 /// Reading the executor kind from the atom is safe because the atom is part of
 /// the Compilation Basis: mis-declaring a Katana stage as `human` to dodge this
@@ -735,6 +737,7 @@ pub fn assess_with(
 ) -> Result<Assessment, RepoError> {
     let dir = &one.dir;
     let verifications = repo.load_verifications(dir)?;
+    let current_verifications = crate::verify::current_records(repo, one, &verifications.records);
     let deliverables = repo.load_deliverables(dir)?;
 
     let performer = repo.performer();
@@ -772,7 +775,7 @@ pub fn assess_with(
     let checks = evaluate(
         repo,
         one,
-        &verifications.records,
+        &current_verifications,
         &deliverables.records,
         &gate_runs,
         &authority,
@@ -786,8 +789,7 @@ pub fn assess_with(
         .map(|v| v.assurance_level.to_string())
         .unwrap_or_else(|| "basic".to_owned());
     let declared = declared_obligations(one);
-    let admissible: Vec<&Verification> = verifications
-        .records
+    let admissible: Vec<&Verification> = current_verifications
         .iter()
         .filter(|v| v.admissible_for(&assurance).is_ok())
         .collect();

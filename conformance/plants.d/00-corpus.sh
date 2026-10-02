@@ -833,8 +833,8 @@ plant "Corpus Status JSON edited by hand" "corpus-status.drift" "edited by hand"
 # battery's way of asserting a thing is SAID, not only that a thing is refused.
 plant_cmd "next actionable is never empty" "Next actionable" "STAGE-" 0 ":" status
 # A Warrant with neither a ref nor a placement (OW-ADR-0023) lands in the
-# unassigned objective: invalid 0, draft 1 (its rung). OW-WAR-0050 is placed by the
-# roadmap record; removing its placement is the mutation.
+# unassigned objective. OW-WAR-0050 is placed by the roadmap record; removing
+# its placement is the mutation. Other unassigned drafts may already exist.
 unplace_0050() {
     python3 - <<'PY'
 import pathlib, re
@@ -845,9 +845,37 @@ assert t2 != t
 p.write_text(t2)
 PY
 }
-plant_cmd "a Warrant with no roadmap is listed as unassigned" "unassigned" "belongs to no Objective | 0 | 1 |" 0 \
-    "unplace_0050; ! grep -q 'OW-WAR-0050' docs/roadmap/roadmap.toml" \
-    status
+plant_restore
+if unplace_0050 \
+    && ! grep -q 'OW-WAR-0050' docs/roadmap/roadmap.toml \
+    && plant_war status --json > "$MIGRATE_TMP/unassigned-status.json" \
+    && python3 - "$MIGRATE_TMP/unassigned-status.json" <<'PY'
+import collections, json, sys
+s = json.load(open(sys.argv[1]))["result"]
+groups = [o for o in s["objectives"] if o.get("roadmap_ref") is None]
+assert len(groups) == 1, "missing or duplicate unassigned group"
+group = groups[0]
+assert "OW-WAR-0050" in group["warrants"], "unplaced Warrant was dropped"
+assert all("OW-WAR-0050" not in o["warrants"]
+           for o in s["objectives"] if o.get("roadmap_ref") is not None), \
+    "unplaced Warrant still belongs to an Objective"
+rungs = {w["alias"]: w["rung"] for w in s["warrants"]}
+counts = collections.Counter(rungs[w] for w in group["warrants"])
+assert all(n == counts[rung] for rung, n in group["ladder"].items()), \
+    "unassigned ladder does not count its members"
+assert group["achieved"]["state"] == "not_derivable", \
+    "unassigned work claims an achieved Objective"
+PY
+then
+    printf 'ok    %-34s exact membership and ladder counts\n' \
+        "a Warrant with no roadmap is listed as unassigned"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s unassigned membership or ladder is wrong\n' \
+        "a Warrant with no roadmap is listed as unassigned"
+    FAILED=$((FAILED + 1))
+fi
+plant_restore
 
 # OBL-004. Two runs, byte-identical. A projection that differed between runs
 # would drift-fail on every commit, so this is also what makes OBL-005 usable.
@@ -1061,12 +1089,10 @@ printf 'schema = "oh.war/rationale/v1"\n' > "$RZ_DIR/rationale.toml"
 rz compile >/dev/null 2>&1
 rz_commit "resolution plants: authorized and delivered"
 rz_record "resolution plants: first record"
-# The review's files are source the tree rule reads, so the receipt is
-# recorded again over the committed, reviewed tree.
+# Verification records are bookkeeping, not source the tree-bound gate reads.
 rz verify "$RZ_W" --performer claude --run >/dev/null 2>&1
 rz compile >/dev/null 2>&1
 rz_commit "resolution plants: verified"
-rz_record "resolution plants: recorded over the verified tree"
 RZ_BASE=$(git -C "$RZ_ROOT" rev-parse HEAD)
 rz_reset() { git -C "$RZ_ROOT" reset --hard -q "$RZ_BASE" && git -C "$RZ_ROOT" clean -fdq; }
 
@@ -1097,13 +1123,24 @@ fi
 rz_reset
 
 # OBL-005. `satisfied` signed over an obligation the verifier did not
-# establish. The disposition is changed, committed, and the receipt recorded
-# again over it — so requirement 5 still holds and §38.6 is what refuses.
-sed -i 's|^disposition = "established"|disposition = "not_established"|' "$RZ_DIR/verifications/OBL-001.toml"
+# establish. The disposition is changed and committed; the unchanged receipt
+# still holds, so §38.6 is the control this plant exercises.
+# Ingest a fresh synthetic negative verdict. Editing a stored record would
+# invalidate its journal digest and test tampering, not the outcome rule.
+rz verify "$RZ_W" --performer claude --bundle --json > "$MIGRATE_TMP/negative-request.json"
+RZ_PACKET=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["result"]["packets"][0]["path"])' "$MIGRATE_TMP/negative-request.json")
+OPENWARRANT_REVIEWED_PACKETS=$(python3 -c 'import json,sys;print(json.dumps(json.load(open(sys.argv[1]))["result"]["packets"]))' "$MIGRATE_TMP/negative-request.json") \
+    bash "$REPO_ROOT/conformance/fixtures/verifier/establishes-all.sh" "$RZ_ROOT/$RZ_PACKET" > "$MIGRATE_TMP/negative-verdict.toml"
+python3 - "$MIGRATE_TMP/negative-verdict.toml" <<'PY'
+import sys
+p=sys.argv[1];s=open(p).read();old='disposition = "established"'
+assert old in s
+open(p,"w").write(s.replace(old,'disposition = "not_established"',1))
+PY
+rz verify "$RZ_W" --response "$MIGRATE_TMP/negative-verdict.toml" >/dev/null 2>&1
 assert_present 'not_established' "$RZ_DIR/verifications/OBL-001.toml"
 rz compile >/dev/null 2>&1
 rz_commit "resolution plants: OBL-001 not established"
-rz_record "resolution plants: recorded over it"
 printf 'schema = "oh.war/resolution-response/v1"\nwarrant = "%s"\ncontract_digest = "%s"\nresolved_by = "Plant Human"\nacting_role = "resolver"\ncommon_outcome = "satisfied"\nprofile_outcome = "delivered"\nmeaning = "x"\neffective_time = "2026-09-02T00:00:00Z"\n' "$RZ_W" "$RES_DIGEST" > "$MIGRATE_TMP/over-resolve.toml"
 over_out="$(rz resolve "$RZ_W" --response "$MIGRATE_TMP/over-resolve.toml" 2>&1)"; over_status=$?
 if [[ "$over_status" -eq 2 ]] && grep -q "resolution.outcome-unsupported" <<<"$over_out" && grep -q "OBL-001" <<<"$over_out" && [[ ! -f "$RZ_DIR/resolution.toml" ]]; then

@@ -1,6 +1,6 @@
 # Checklist
 
-- [ ] Profile actual checker and battery costs without narrowing checks (i-67fd)
-- [ ] Repair demonstrated repeated work and preserve refusal controls (i-9f5a)
+- [x] Profile actual checker and battery costs without narrowing checks (i-67fd) — done by codex, 2026-10-01: Actual checker traces, warm CPU/runtime observations, sampled SHA stack and six balanced same-tree comparisons are retained in evidence/profile-notes.md and sha2-balanced-comparison.json. Profile does not claim the full hosted CI budget has been achieved.
+- [x] Repair demonstrated repeated work and preserve refusal controls (i-9f5a) — done by codex, 2026-10-01: One-shot snapshot memo and shared corpus remove repeated observations; live refresh remains uncached. Exact f6c5e398 hosted web suite passed; optimized SHA outputs are byte-identical and real digest/missing-artifact controls refuse; 76 compiler tests and Clippy passed for cbe9a8a8. Required full CI remains open i-3541.
 - [ ] Observe full exact-source local and hosted gates (i-3541)
 - [x] Keep one-shot project snapshots within HTTP budget without freezing live refresh (i-c2ea) — done by codex, 2026-10-01: Scoped implementation and observations: project HTTP test passes in 4.1 seconds under unchanged ten-second deadline; real overview trace has six distinct reads once each and unchanged index; eight viewer tests pass, including fresh live edits and invalid/unknown-source refusals. Hosted qualification pending.

@@ -62,8 +62,8 @@ restore
 mkdir -p "$EVAL_TMP/a-longer-temp-directory-than-the-first"
 TMPDIR="$EVAL_TMP/a-longer-temp-directory-than-the-first" \
     "$WAR" eval run --drafter "$EVAL_DRAFTER" --verifier "$EVAL_VERIFIER" --out "$EVAL_TMP/run2.json" >/dev/null 2>&1
-# A run-kind task's bundle carries its receipt, and a receipt carries
-# wall-clock durations, so its token estimate is not a function of the task;
+# Packets that carry runtime evidence include receipt timings, so their
+# token estimate is not solely a function of the task;
 # the result says so (`tokens.stable = false`) and the comparison drops those
 # numbers and nothing else.
 eval_stable() {

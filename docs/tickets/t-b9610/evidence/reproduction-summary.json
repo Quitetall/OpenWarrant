@@ -1,0 +1,29 @@
+{
+  "fixture": "/mnt/2tb/ow-stale-verdict-repro-l6oj3njb",
+  "observations": [
+    {
+      "step": "request-before",
+      "exit_code": 0
+    },
+    {
+      "step": "ingest-before",
+      "exit_code": 0
+    },
+    {
+      "step": "prepare-before",
+      "exit_code": 0
+    },
+    {
+      "step": "request-after",
+      "exit_code": 0
+    },
+    {
+      "step": "prepare-after",
+      "exit_code": 0
+    },
+    {
+      "step": "ingest-old-after",
+      "exit_code": 0
+    }
+  ]
+}
