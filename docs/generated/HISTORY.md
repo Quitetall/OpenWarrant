@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 143 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-09-27.
+Everything this repository has recorded, current or not: 144 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-02.
 
 ## Lineage
 
@@ -35,6 +35,7 @@ Everything this repository has recorded, current or not: 143 subject(s), their l
 | 2026-09-25 | 79 | authorization.recorded 34, draft.created 1, sync.receipt_attached 44 |
 | 2026-09-26 | 249 | dispatch.compiled 32, submission.recorded 32, sync.receipt_attached 183, verification.recorded 2 |
 | 2026-09-27 | 1437 | dispatch.compiled 13, submission.recorded 13, sync.receipt_attached 295, verification.recorded 1116 |
+| 2026-10-02 | 2 | draft.created 1, question.asked 1 |
 
 ## Roadmap revisions
 
@@ -3428,6 +3429,96 @@ fixed by this ADR. A later change to any of them is a new ADR.
   expiry and the count bound how long a wide class lasts. Only the owner
   can judge how wide is too wide, and the signing screen prints every glob
   and what it matches today.
+
+### OW-ADR-0031 — ADR OW-0031: Documents are typed records; a document's type selects its capabilities (`proposed`)
+
+[source](../../docs/adr/atoms/OW-ADR-0031-typed-records.md)
+
+# ADR OW-0031: Documents are typed records; a document's type selects its capabilities
+
+## Status
+
+Proposed by the performer under OW-WAR-0148. It governs nothing until the
+owner accepts it.
+
+Whether OpenWarrant may own document semantics at all is that Warrant's
+Q-001 (SAS RQ-061 and RQ-064). Under answer (B), this ADR is narrowed to a
+projection layer beside Liminal, and the options below stay as the record.
+
+## Context
+
+The owner, 2026-10-02: an engineering planning kit on a standalone compiler,
+in which "verification and more is a matter of assigning it to that type of
+document." `main` already has most of the parts:
+
+- profiles as data (`oh.war/profile/v1`, OW-WAR-0140);
+- a working form that is never authorized or verified (OW-WAR-0147);
+- a roadmap that is a record with computed achievement (OW-ADR-0023);
+- currency by relation (OW-ADR-0022).
+
+What it lacks:
+- a name for "what applies to this kind";
+- one compiled model that clients share;
+- addressable records and typed relations beyond those special cases;
+- a binding between a signature and the type it was signed under.
+
+## Decision
+
+Five primitives, and one closed capability set implemented by the kernel.
+
+1. **Record** `{id, type, body, source, revision}`. Identity and revision
+   live on the record. A record's revision is the digest of its own bytes.
+2. **Relation** `{from, kind, to}`.
+   - A closed core set of kinds the kernel computes from: `part_of,
+     depends_on, implements, constrains, evaluates, supersedes`, plus the
+     rationale edges.
+   - Namespaced kinds are carried and drive nothing.
+3. **Type (profile)**, as data. It declares its records, the relations it
+   allows and requires, its capabilities, its declared states and its
+   projections.
+4. **Capability**, from a closed set: `structure, links, claims, acceptance,
+   evidence, verification, authorization, resolution, stages`.
+   - Prerequisites are checked: for example, `verification` needs
+     `evidence`, and `resolution` needs `verification` and `authorization`.
+   - A type selects capabilities. It cannot define one.
+5. **Projection**: a pure function of a selection of the compiled model,
+   never a source.
+
+**States.**
+- The fixed kernel states are `draft, open, in_progress, done, accepted,
+  superseded, authorized, verified, resolved, achieved`. Each is computed or
+  authenticated.
+- A type may declare states that **refine** a fixed state. A declared state
+  holds only while its parent holds, is entered by an authored and journaled
+  event, and never satisfies a check its parent does not.
+
+**Authority stays in the kernel.**
+- A type requires acts; it never supplies one.
+- No profile field creates an act kind, loosens independence, or stands in
+  for a signature, an observed run or an independent verdict.
+
+**The signature covers the type.** A manifest written from this decision on
+pins its profile file's digest. Manifest bytes are already in the contract
+digest, so no existing contract digest moves.
+
+## Options considered
+
+- **Declarable states with free transitions:** rejected. The kernel could no
+  longer tell which states needed a human act.
+- **Every record family in the kernel** (requirement, risk, decision…):
+  rejected. The kernel knows only `obligation` and `item`, the two its
+  capabilities compute on. The rest are profile nouns.
+- **A profile digest field in `WarIr`:** rejected, because it moves every
+  existing contract digest. The pin goes in the manifest instead.
+
+## Consequences
+
+- Per-kind behaviour stops being chosen by profile name. A decision Warrant
+  can resolve.
+- One compiled model (`oh.war/model/v1`) is the interface the CLI, web UI,
+  TUI, MCP and other clients read.
+- New document types (roadmap, ticket, later PRD or test plan) are profile
+  files plus projections. They need no new compiler variant.
 
 ## Subjects
 
@@ -39359,4 +39450,686 @@ the working form is what keeps the contract corpus unchanged.
 | D-019 | Three steps to start | `QUICKSTART.md` | verified |
 | D-020 | Ticket and Claim | `CONTEXT.md` | verified |
 | D-021 | The working form | `docs/PROFILES.md` | verified |
+
+### OW-WAR-0148 — Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel
+
+[manifest](../../docs/warrants/OW-WAR-0148/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+
+Not authorized; no Basis is fixed.
+
+#### Intent — [docs/warrants/OW-WAR-0148/atoms/10-intent.md](../../docs/warrants/OW-WAR-0148/atoms/10-intent.md)
+
+<!-- atom docs/warrants/OW-WAR-0148/atoms/10-intent.md begins -->
+# Intent
+
+## Problem
+
+The owner, 2026-10-02: OpenWarrant should be an engineering planning kit built
+on a standalone compiler and reusable primitives, where "verification and more
+is a matter of assigning it to that type of document." The proposal is
+`/mnt/4tb/openwarrant-semantic-model.md`.
+
+Today that is true only in part, and the gaps show in four places.
+
+- **Capabilities are implicit.** Every directory under `docs/warrants/` gets
+  the whole contract path. That means `check_one`'s rule families (`check.rs`),
+  the 13 §56.1 checks (`resolve.rs:92-224`), `next::derive`'s acts and the
+  `WarrantRung` ladder. A ticket avoids that path only because it lives in
+  another directory. Behaviour is chosen by profile *name* in
+  `sign.rs:1353`, `resolution_cmd.rs:644`, `standing.rs:495` and
+  `ticket/mod.rs:1847`.
+- **A decision Warrant can never resolve.** Check 12
+  (`resolve.rs:521-540`) requires a milestones atom the decision profile does
+  not have, so OW-WAR-0071 is stuck.
+- **There is no shared compiled model.**
+  - `war compile` builds the corpus status about six times.
+  - `resolve::assess` runs in both status and frontier.
+  - The web UI, TUI and MCP server each rebuild everything.
+  - Two builders give different Warrant states for the same Warrant:
+    `status.rs:197-215` and `compile.rs:729-740`.
+- **The signature does not cover the profile.** A Warrant names its profile
+  by string, and the profile file's bytes are not part of anything signed. A
+  profile edited after authorization changes the rules a signed Warrant is
+  held to, and nothing notices.
+
+Records and relations exist only as special cases: obligations, deliverables,
+phases, ticket items and blockers, parents, supersession. No general record
+can be addressed and related, and no command answers "what does this change
+affect?"
+
+## Desired Outcome
+
+- **M1: one compiled corpus model, read by every client.**
+  - It is built once per process.
+  - `war model --json` emits `oh.war/model/v1`: records, relations, states
+    and diagnostics.
+  - `compile`, `check`, `status`, `next`, `console`, the web UI, the TUI and
+    MCP read it.
+  - Their outputs are byte-identical to before, except for the state
+    disagreement, which is fixed.
+  - `war prepare` runs a gate once per commit and shares the run.
+- **M2: a document's type chooses its capabilities.**
+  - `profiles/*.toml` declare `capabilities` from a closed kernel set, and
+    every per-kind behaviour reads them.
+  - A decision Warrant can resolve.
+  - A new Warrant's manifest pins its profile file's digest, so the
+    signature covers its type. A profile changed under a signed Warrant is
+    reported.
+- **M3: records and typed relations.**
+  - Authored record atoms carry stable ids and per-record revisions.
+  - Relations use a closed core set of kinds plus inert namespaced kinds.
+  - `war impact <record>` names what a change to a record affects.
+- **M4: states.** A fixed kernel set, computed or authenticated, plus
+  declared states that refine a fixed state and never stand in for one.
+- **M5: tickets on the kernel, and ticket features.**
+  - Ticket items are records, and blockers are `depends_on` relations.
+  - Ticket types, labels, epics, filters and search are available.
+  - `war create --issue <n>` makes a ticket from a GitHub issue. Write-back
+    on done (comment, close) is approved by the owner (2026-10-02) and
+    opt-in.
+  - A password-reset demonstration compiles a ticket, a roadmap view, a
+    Warrant draft and an agent packet from one set of records, and `war
+    impact` names what a changed requirement affects.
+
+## Non-goals
+
+- **Closing the backlog.** The 113 authorized, unresolved Warrants stay
+  parked. Verification and `war prepare` remain opt-in.
+- **Moving any existing contract digest.** `WarIr`, the digest's inputs and
+  the schema pack version (0.2.0) are unchanged. The profile pin applies
+  only to manifests written after it lands.
+- **PRD, architecture and test-plan document types.** They follow once the
+  ticket, roadmap and Warrant types share records in the demonstration.
+- **Codex's `codex/reviewed-subject-binding`.** It is not touched.
+- **Granting authority by data.** A type can require an act. It can never
+  supply one, loosen independence, or invent an act kind.
+<!-- atom docs/warrants/OW-WAR-0148/atoms/10-intent.md ends -->
+
+#### Basis — [docs/warrants/OW-WAR-0148/atoms/20-basis.md](../../docs/warrants/OW-WAR-0148/atoms/20-basis.md)
+
+<!-- atom docs/warrants/OW-WAR-0148/atoms/20-basis.md begins -->
+# Basis
+
+## Requirements
+
+- **RQ-013** (composition is typed, ordered and deterministic): a type now
+  declares its records, relations and capabilities as data. The composition
+  stays deterministic.
+- **RQ-032** (state decomposed into phase, condition, outcome, currency,
+  standing): the fixed kernel states map onto that decomposition. Declared
+  states refine it and never replace it.
+- **RQ-022** (WARs trace to SAS requirements and roadmap): typed relations
+  generalize the trace, and `war impact` walks it.
+- **RQ-025** (supersession preserves the old WAR and marks it non-current):
+  `supersedes` is a core relation kind, unchanged in meaning.
+- **RQ-015** (a missing required atom fails closed): kept. A missing required
+  record or relation fails closed too.
+- **RQ-074** (`war check` is deterministic and agent-free): every new rule is
+  structural.
+- **RQ-075** (generated views are drift-checked): the compiled model is a
+  generated view, drift-checked like the others.
+
+## Decisions relied on
+
+- **OW-ADR-0021** (ownership by the latest authorized declaration): this
+  Warrant's set governs the files it declares from its authorization.
+- **OW-ADR-0022** (current by relation): supersession becomes one core
+  relation kind. Its derivation is unchanged.
+- **OW-ADR-0023** (the roadmap is a record): the roadmap is the first type
+  that is accepted but not assured.
+- **OW-WAR-0140's profile registry and OW-WAR-0147's working form**: the
+  seams this Warrant generalizes.
+- **OW-ADR-0031**, drafted with this Warrant and `proposed`: it records the
+  model, and becomes binding only when the owner accepts it.
+
+## Assumptions
+
+- **A-001** (high confidence): every per-kind behaviour can be expressed as a
+  capability from the closed set. The hard-coded branches were enumerated on
+  2026-10-02. If one cannot be, it is named, and it escalates rather than
+  gaining a new capability.
+- **A-002** (high confidence): the compiled model can sit on the existing
+  loaders (`load_warrant`, `lower`, `relations::currencies`,
+  `resolve::assess`) without changing how any `CompilationBasis` byte is
+  formed. So no contract digest moves. A byte-identical differential over
+  eight commands on two corpora checks this.
+- **A-003** (medium confidence): recording `profile_digest` in a new
+  manifest is enough to bind the type into the signature, because manifest
+  bytes are already in the contract digest. Old manifests have no field and
+  keep their digests.
+- **Q-001 is a blocking unknown**, recorded with `war ask`. The owner answers
+  it at the signing sitting.
+  - **The conflict:** SAS **RQ-061** says "Liminal owns document semantics
+    and Basis", and **RQ-064** says "OpenWarrant does not duplicate those
+    kernels". A standalone compiler that owns typed document semantics, as
+    the owner directed, contradicts both as written.
+  - **(A)** A SAS revision, proposed with OW-ADR-0031, moves document
+    semantics for OpenWarrant's own records into its compiler and keeps
+    Liminal's role for the documents Liminal holds.
+  - **(B)** This lands as a projection layer beside Liminal, and RQ-061 and
+    RQ-064 are unchanged.
+  - **Recommendation: (A).** The SAS revision is the owner's to accept. This
+    Warrant changes no SAS byte.
+
+## Constraints
+
+- **Frozen:** `WarIr`, the contract digest's inputs, `SCHEMA_PACK_VERSION`
+  0.2.0, the `oh.war/report/v1` envelope, and every signed record's bytes.
+- **Profile file compatibility:** `oh.war/profile/v1` files keep parsing.
+  `form = "working"` maps to the working-form capability default.
+- **Ticket file compatibility:** ticket files on disk stay byte-compatible.
+- **Codex's branch:** `codex/reviewed-subject-binding` is not touched.
+- **Other owners:** files governed by other authorized Warrants are declared
+  here. By OW-ADR-0021 this Warrant governs them from its authorization, and
+  their earlier pins become historical.
+
+## Residual risks
+
+- A rule family left on the "always on" path by mistake. Noticed by: each
+  capability's plant runs a kind without that capability and observes the
+  family not applied.
+- The model drifting from a client's own reading where a client keeps one.
+  Noticed by: the M1 differential and the model's drift check.
+<!-- atom docs/warrants/OW-WAR-0148/atoms/20-basis.md ends -->
+
+#### Work order — [docs/warrants/OW-WAR-0148/atoms/40-work-order.md](../../docs/warrants/OW-WAR-0148/atoms/40-work-order.md)
+
+<!-- atom docs/warrants/OW-WAR-0148/atoms/40-work-order.md begins -->
+# Work Order
+
+## Scope
+
+**Touched:**
+- the CLI's corpus loading and every corpus-level builder and client;
+- the profile registry and every per-kind behaviour;
+- a new record, relation and state layer in core;
+- the ticket store;
+- the intake module;
+- the plants and docs for each of these.
+
+**Left alone:**
+- `WarIr` and the contract digest's inputs;
+- the schema pack version;
+- signed records;
+- SAS text (Q-001 decides whether a revision is proposed; this Warrant writes
+  none);
+- `codex/reviewed-subject-binding`.
+
+## Deliverables
+
+M1, one compiled corpus model:
+1. `crates/openwarrant-cli/src/corpus.rs` (new): `Corpus`, built once per
+   process. It holds every `Loaded`, each Warrant's `lower` result and contract
+   digest, `relations::currencies`, one `resolve::assess` per Warrant, and the
+   roadmap, tickets, ADRs and SAS revisions.
+2. `_with(&Corpus)` variants, with the plain entry points delegating to them:
+   - `status.rs` (`build`, `corpus_status_*`), `frontier.rs`, `sign.rs`
+     (`pending`), `console.rs`, `timeline.rs`, `next.rs`;
+   - `compile.rs` and `check.rs`, which build the corpus once;
+   - one state derivation shared by status and the warrant overview, which
+     fixes the disagreement.
+3. Clients read the corpus: `webui/mod.rs`, `tui/mod.rs`, `mcp/tools.rs`,
+   `mcp/resources.rs`. Each holds one corpus per watch fingerprint.
+4. `crates/openwarrant-cli/src/model.rs` (new) and `war model --json` in
+   `lib.rs`: `oh.war/model/v1` = `{basis_digest, records[], relations[],
+   states[], diagnostics[]}`.
+   - The schema is added to `schemas.rs`, `schemas/oh.war/model/v1.json`, the
+     TypeScript pack and `pack.json`. Additive; the pack version stays 0.2.0.
+5. `crates/openwarrant-cli/src/prepare.rs`: a gate key run once per commit,
+   its receipt recorded for each citing Warrant through `war evidence
+   record`'s path.
+
+M2, capabilities chosen by type:
+
+6. `crates/openwarrant-core/src/role.rs`:
+   - `capabilities` in `oh.war/profile/v1`, from the closed set `structure,
+     links, claims, acceptance, evidence, verification, authorization,
+     resolution, stages`;
+   - prerequisite checks with a `ProfileError` for each refusal;
+   - core defaults (delivery: all; decision: all but `stages`; working form:
+     `structure, links, claims`);
+   - outcome word, falsifiability, standing coverage and promotion target as
+     profile data.
+7. `profiles/delivery.toml`, `decision.toml`, `contractor.toml`,
+   `ticket.toml`: capabilities stated.
+8. Every per-kind behaviour reads capabilities:
+   - `check.rs` (`check_one` rule families) and `resolve.rs` (§56.1 checks).
+     A check whose capability is absent reads "not applicable", named.
+   - `next.rs`, `crates/openwarrant-core/src/status.rs` (`WarrantRung`).
+   - `authorize.rs` and `verify.rs`, which refuse a kind lacking the
+     capability.
+   - `roadmap_cmd.rs`, `sign.rs`, `resolution_cmd.rs`,
+     `crates/openwarrant-core/src/resolution.rs`,
+     `crates/openwarrant-core/src/standing.rs`, `ticket/mod.rs`.
+9. The profile pin:
+   - `crates/openwarrant-cli/src/new.rs` writes `profile_digest` into a new
+     manifest;
+   - `crates/openwarrant-core/src/manifest.rs` reads it;
+   - `repo.rs` `profile_checks` reports `profile.pin-drift`: a warning while
+     unsigned, an error once authorized.
+   - A manifest without the field keeps today's behaviour and today's
+     digest.
+
+M3, records and typed relations:
+
+10. `crates/openwarrant-core/src/record.rs` (new): `oh.war/records/v1`
+    record atoms with `## <ID> · <type>` headings and relation lines, and
+    per-record revisions over the record's byte span.
+11. `crates/openwarrant-core/src/relation.rs` (new): the core kinds
+    (`part_of, depends_on, implements, constrains, evaluates, supersedes`,
+    plus the rationale edges) and inert namespaced kinds. Profiles declare
+    the kinds they allow and require.
+12. `crates/openwarrant-cli/src/impact.rs` (new) and `war impact <record>`.
+
+M4, states:
+
+13. `crates/openwarrant-core/src/lifecycle.rs` (new):
+    - the fixed states, each `computed` or `authenticated`;
+    - `[[states]] name/refines` in profiles;
+    - `war state <id> <name>` (`crates/openwarrant-cli/src/state_cmd.rs`,
+      new), journaled.
+    - A declared state holds only while its parent holds.
+
+M5, tickets on the kernel and ticket features:
+
+14. `crates/openwarrant-core/src/ticket.rs`, `ticket/mod.rs`,
+    `ticket/render.rs`:
+    - items are records, blockers are `depends_on`, `promoted_to` is a
+      relation;
+    - type, labels and epics;
+    - `war tickets --type/--label/--state/--text`, `--search`;
+    - files stay byte-compatible.
+15. `crates/openwarrant-cli/src/intake.rs`:
+    - `war create --issue <n>` through `[intake] fetch_argv`;
+    - `[intake] writeback` (comment and close on done), off unless set, with
+      its own argv. The fetch stays a read. A failed write leaves the ticket
+      done and reports the issue UNKNOWN.
+
+Across all milestones:
+
+16. Plants: `conformance/plants.d/72-model.sh`, `73-capabilities.sh`,
+    `74-records.sh`, `75-states.sh`, `76-ticket-features.sh`,
+    `77-typed-demo.sh` (the password-reset demonstration); `45-tickets.sh`
+    extended. Tests: `crates/openwarrant-cli/tests/model_cli.rs`.
+17. `docs/adr/atoms/OW-ADR-0031-typed-records.md` (proposed),
+    `docs/TYPES.md` (new), `docs/PROFILES.md`, `docs/TICKETS.md`,
+    `CONTEXT.md`.
+
+## Frozen Surfaces
+
+- `crates/openwarrant-compiler/src/ir.rs` and `lower.rs`: no field and no
+  digest input changes.
+- `SCHEMA_PACK_VERSION` (0.2.0) and `DigestDomain`.
+- `oh.war/report/v1`.
+- Every signed record: authorizations, resolutions, responses, batches,
+  attestations.
+- Ticket files on disk, and `oh.war/profile/v1` files: both keep parsing,
+  byte for byte.
+- `codex/reviewed-subject-binding` and every file only it changes.
+
+## Premade Instructions
+
+- **The M1 differential.** Before and after M1 and M2, the old and new
+  binaries' output of `check`, `check --json`, `check --generated`,
+  `status --json`, `next`, `console --json`, `sign --list` and
+  `pins --resolved-only` is byte-identical on this corpus and on
+  `tools/scale/synth-corpus.sh --n 1000 --resolved 500`.
+  - The only difference allowed is the state-disagreement fix, named in the
+    commit.
+  - `tools/scale/budget.sh` still holds.
+- **Batteries.** Every battery runs in a throwaway clone, with
+  `CARGO_TARGET_DIR` and `RUSTC_WRAPPER=` set. Never run it where the owner
+  signs.
+- **Plant rules.** No fixed /tmp paths, and no pipe into a quiet grep. Every
+  claim is paired with an observed refusal.
+- **A type requires, never supplies.** No profile field may create an act
+  kind, loosen independence, or substitute for a signature, an observed run
+  or an independent verdict.
+
+## Autonomy and Escalation
+
+T2. The performer builds M1 through M5 unattended after authorization.
+
+Comes back to the owner:
+- Q-001;
+- any per-kind behaviour that does not fit the closed capability set (A-001);
+- any change that would move an existing contract digest;
+- anything that writes to GitHub beyond the approved comment and close on
+  done.
+
+Verification is opt-in and runs once at the end.
+
+## Rollback
+
+Each milestone is its own commit range.
+- Reverting M5 to M3 removes new modules and leaves ticket files readable.
+- Reverting M2 restores name-based behaviour. Profiles with `capabilities`
+  then fail `deny_unknown_fields`, so revert the profile files with it.
+- Reverting M1 restores per-builder loading.
+
+No signed record changes, so a revert needs no correction act.
+<!-- atom docs/warrants/OW-WAR-0148/atoms/40-work-order.md ends -->
+
+#### Milestones — [docs/warrants/OW-WAR-0148/atoms/45-milestones.yaml](../../docs/warrants/OW-WAR-0148/atoms/45-milestones.yaml)
+
+```yaml
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "One compiled corpus model, read by every client, output unchanged"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "A document's type chooses its capabilities, and the signature covers the type"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003", "OBL-004", "OBL-005"]
+  - id: "M3"
+    title: "Records, typed relations, and what a change affects"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-006", "OBL-007"]
+  - id: "M4"
+    title: "A fixed state set, and declared states that only refine it"
+    depends_on: ["M3"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-008"]
+  - id: "M5"
+    title: "Tickets on the kernel, ticket features, GitHub issues, and the demonstration"
+    depends_on: ["M4"]
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-009", "OBL-010", "OBL-011"]
+
+stages:
+  - id: "STAGE-001"
+    title: "corpus.rs, _with builders, clients on the corpus, war model, prepare once per commit"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 24000
+  - id: "STAGE-002"
+    title: "capabilities in profiles, every per-kind behaviour reads them, profile pin"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 24000
+  - id: "STAGE-003"
+    title: "record atoms, relation kinds, war impact"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 16000
+  - id: "STAGE-004"
+    title: "fixed and declared states, war state"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 12000
+  - id: "STAGE-005"
+    title: "tickets as records, features, --issue and write-back, demonstration, docs"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 20000
+```
+
+#### Assurance — [docs/warrants/OW-WAR-0148/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0148/atoms/60-assurance.md)
+
+<!-- atom docs/warrants/OW-WAR-0148/atoms/60-assurance.md begins -->
+# Assurance
+
+## Acceptance Obligations
+
+### OBL-001 — one compiled model, and every client's output is unchanged
+- **scope:**
+  - this repository and the synthetic 1,000-Warrant corpus from
+    `tools/scale/synth-corpus.sh --n 1000 --resolved 500`;
+  - the commands `check`, `check --json`, `check --generated`,
+    `status --json`, `next`, `console --json`, `sign --list` and
+    `pins --resolved-only`.
+  - No claim about commands not listed.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: the pre-M1 and post-M2 binaries print byte-identical output
+    for every listed command on both corpora. The only exception is the
+    named state fix; for that Warrant, status and the warrant overview now
+    agree.
+  - Accepting: `tools/scale/budget.sh` still holds on the 1,000-Warrant
+    corpus.
+  - Refusing: a doctored output (one byte changed) is reported as a
+    difference by the same comparison.
+
+### OBL-002 — `war model --json` is the shared model, drift-checked
+- **scope:** a scratch program with Warrants, a ticket and a roadmap
+  (`72-model.sh`), and this repository's model.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: `oh.war/model/v1` names every Warrant, obligation,
+    deliverable, stage, question, phase, ticket and item as a record. It
+    names each parent, supersedes, roadmap, implements, blocker and
+    `promoted_to` as a relation.
+  - Accepting: two runs over the same tree give the same `basis_digest` and
+    bytes, and the schema validates it. `war schemas --check` passes with the
+    pack version 0.2.0.
+  - Refusing: a record whose relation names an unknown target is a
+    diagnostic, not a dropped edge.
+
+### OBL-003 — a type's capabilities decide what applies to it
+- **scope:** profiles on a scratch program (`73-capabilities.sh`): the four
+  shipped profiles, and test profiles.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: a decision Warrant reaches `would_satisfy` with all its
+    obligations established. Check 12 reads "not applicable: no `stages`
+    capability", by name.
+  - Refusing: a profile declaring `verification` without `evidence` is
+    refused `profile.capability-prerequisite`. So is one naming an unknown
+    capability.
+  - Refusing: `war sign --dry-run` on a kind without `authorization` is
+    refused by name, and `war next` offers no authorize act for it.
+  - Refusing: a §56.1 check is never reported as met merely because its
+    capability is absent. It reads "not applicable", and a resolution of a
+    kind lacking `resolution` is refused.
+
+### OBL-004 — behaviour once chosen by profile name is profile data
+- **scope:** outcome word, falsifiability, standing coverage and promotion
+  target; a scratch extension profile that sets each.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: each of the four reads the profile's value, and delivery
+    keeps today's values byte for byte (OBL-001).
+  - Refusing: a standing class applied to a profile whose data does not
+    allow standing coverage is refused, as delivery-only is refused today.
+
+### OBL-005 — the signature covers the type
+- **scope:** Warrants made by `war new` after this Warrant, on a scratch
+  program. Pre-existing manifests are covered only by OBL-001's
+  unchanged-output claim.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: a new manifest carries `profile_digest` equal to the profile
+    file's sha256. The Warrant authorizes with a throwaway signer, and
+    `war check` is clean.
+  - Refusing: one byte changed in the profile file afterwards gives
+    `profile.pin-drift`, an error naming the profile and both digests. The
+    same edit before authorization gives a warning.
+  - Accepting: a manifest without `profile_digest` checks exactly as before.
+
+### OBL-006 — records carry identity and their own revision
+- **scope:** `oh.war/records/v1` atoms on a scratch program
+  (`74-records.sh`), including the password-reset records.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: each `## <ID> · <type>` becomes a record. Editing one
+    record's text moves only that record's revision.
+  - Refusing: a duplicate id, a type the governing profile does not
+    declare, and a relation of an undeclared core kind are each refused by
+    rule.
+  - Accepting: a namespaced kind is carried and changes no state, readiness
+    or check.
+
+### OBL-007 — `war impact` names what a change affects
+- **scope:** the password-reset scratch program: records, a ticket, a
+  roadmap phase and a Warrant draft.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: after REQ-pr1 changes, `war impact REQ-pr1` lists the ticket
+    items that implement it, the Warrant that names it, the obligation that
+    evaluates it, the phase's progress, and the projections that select
+    those records.
+  - Refusing: `war impact` on an unknown id is refused by name.
+  - Accepting: evidence recorded before the change stays, bound to the old
+    revision.
+
+### OBL-008 — declared states only refine the fixed states
+- **scope:** a scratch profile declaring `in_review` (refines `in_progress`)
+  and `signed_off` (refines `verified`) (`75-states.sh`).
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: `war state <item> in_review` on a claimed item is journaled
+    and shown. When the item is done, `in_review` no longer holds.
+  - Refusing:
+    - `in_review` on an unclaimed or a done item;
+    - `signed_off` on an obligation not verified;
+    - a declared state whose `refines` is unknown.
+  - Refusing: no declared state ever satisfies a §56.1 check.
+
+### OBL-009 — tickets run on the kernel, unchanged on disk
+- **scope:** `45-tickets.sh` and `tests/tickets_cli.rs` as they stand, plus
+  a copy of a ticket written before this Warrant.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: every existing ticket check passes. A pre-Warrant ticket
+    reads, claims and finishes, and its files differ only in the lines the
+    act wrote.
+  - Accepting: items appear in `war model` as records, and blockers as
+    `depends_on`.
+  - Refusing: a blocked item is still refused claim (`ticket.blocked`).
+
+### OBL-010 — ticket features
+- **scope:** a scratch program (`76-ticket-features.sh`).
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: `war tickets --type`, `--label`, `--state`, `--text` and
+    `--search` each return exactly the planted set. An epic lists its
+    tickets through `part_of`.
+  - Refusing: a label outside a closed label set declared by the profile is
+    refused, and a filter naming an unknown state is refused.
+
+### OBL-011 — GitHub issues in, write-back opt-in, and the demonstration
+- **scope:**
+  - a fake `gh` on PATH that records its argv and environment, on a scratch
+    program;
+  - the password-reset demonstration (`77-typed-demo.sh`).
+  - No claim about the real GitHub service.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - Accepting: `war create --issue 12` makes a ticket from one read. With
+    `[intake] writeback` set, `war done` on its last item runs one comment
+    and one close, with the configured argv.
+  - Refusing: without `writeback`, nothing but the read runs. A
+    `fetch_argv` that writes is still refused before it starts. A failing
+    write leaves the ticket done and reports the issue UNKNOWN.
+  - Accepting: the demonstration compiles a ticket, a roadmap view, a
+    Warrant draft and an agent packet from one set of records. After
+    REQ-pr1 changes, `war impact` names each affected output.
+
+## Gate Adequacy
+
+The level is basic. Every obligation is observed by the battery on scratch
+programs, with a refusal observed beside each acceptance. The claims are
+structural or differential, so a plant that runs the commands is the right
+observer.
+
+**How could this look done and not be?**
+- A capability-gated rule could simply never run: "not applicable" could
+  hide an unwired check. OBL-003 requires the check to be named, and requires
+  a resolution of a kind lacking `resolution` to be refused, not waved
+  through.
+- The model could disagree with the clients' own readings. OBL-001's
+  differential runs over two corpora, including 1,000 Warrants.
+- The pin could be decorative. OBL-005 changes one byte and requires an
+  error.
+- Declared states could leak authority. OBL-008 requires that a refinement
+  of `verified` cannot be entered without `verified`, and that no declared
+  state meets a §56.1 check.
+
+## Residual Risk
+
+- OBL-001's equality holds for the eight commands only. Other commands are
+  covered by their existing plants, not by the differential.
+- The real GitHub service is not exercised. A fake `gh` stands in, so the
+  write-back's real-world behaviour (rate limits, permissions) is observed
+  only when it is used.
+- Accepted by the owner at authorization.
+<!-- atom docs/warrants/OW-WAR-0148/atoms/60-assurance.md ends -->
+
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | The compiled corpus, built once per process | `crates/openwarrant-cli/src/corpus.rs` | not_content_addressed |
+| D-002 | Corpus status from the shared corpus; one state derivation | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
+| D-003 | Frontier from the shared corpus | `crates/openwarrant-cli/src/frontier.rs` | not_content_addressed |
+| D-004 | Pending acts from the corpus; outcome word from profile data | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
+| D-005 | Console from the corpus | `crates/openwarrant-cli/src/console.rs` | not_content_addressed |
+| D-006 | Timeline and pending from the corpus | `crates/openwarrant-cli/src/timeline.rs` | not_content_addressed |
+| D-007 | Next from the corpus; acts offered by capability | `crates/openwarrant-cli/src/next.rs` | not_content_addressed |
+| D-008 | Compile builds the corpus once; shared state derivation | `crates/openwarrant-cli/src/compile.rs` | not_content_addressed |
+| D-009 | Check builds the corpus once; rule families by capability | `crates/openwarrant-cli/src/check.rs` | not_content_addressed |
+| D-010 | Web UI reads one corpus per fingerprint | `crates/openwarrant-cli/src/webui/mod.rs` | not_content_addressed |
+| D-011 | TUI reads one corpus per fingerprint | `crates/openwarrant-cli/src/tui/mod.rs` | not_content_addressed |
+| D-012 | MCP tools read the corpus | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
+| D-013 | MCP resources read the corpus | `crates/openwarrant-cli/src/mcp/resources.rs` | not_content_addressed |
+| D-014 | war model: oh.war/model/v1 | `crates/openwarrant-cli/src/model.rs` | not_content_addressed |
+| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
+| D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
+| D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
+| D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |
+| D-019 | A gate run once per commit, shared by citing Warrants | `crates/openwarrant-cli/src/prepare.rs` | not_content_addressed |
+| D-020 | Capabilities in profile data, prerequisites, defaults | `crates/openwarrant-core/src/role.rs` | not_content_addressed |
+| D-021 | Delivery's capabilities | `profiles/delivery.toml` | not_content_addressed |
+| D-022 | Decision's capabilities (no stages) | `profiles/decision.toml` | not_content_addressed |
+| D-023 | Contractor's capabilities | `profiles/contractor.toml` | not_content_addressed |
+| D-024 | The ticket working form's capabilities | `profiles/ticket.toml` | not_content_addressed |
+| D-025 | §56.1 checks by capability; not applicable by name | `crates/openwarrant-cli/src/resolve.rs` | not_content_addressed |
+| D-026 | WarrantRung by capability | `crates/openwarrant-core/src/status.rs` | not_content_addressed |
+| D-027 | Authorize refuses a kind without the capability | `crates/openwarrant-cli/src/authorize.rs` | not_content_addressed |
+| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | not_content_addressed |
+| D-029 | Unassigned only for kinds that join the roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | not_content_addressed |
+| D-030 | Falsifiability from profile data | `crates/openwarrant-cli/src/resolution_cmd.rs` | not_content_addressed |
+| D-031 | Falsifiability from profile data | `crates/openwarrant-core/src/resolution.rs` | not_content_addressed |
+| D-032 | Standing coverage from profile data | `crates/openwarrant-core/src/standing.rs` | not_content_addressed |
+| D-033 | war new pins the profile digest | `crates/openwarrant-cli/src/new.rs` | not_content_addressed |
+| D-034 | profile_digest read from the manifest | `crates/openwarrant-core/src/manifest.rs` | not_content_addressed |
+| D-035 | profile.pin-drift | `crates/openwarrant-cli/src/repo.rs` | not_content_addressed |
+| D-036 | Record atoms, ids, per-record revisions | `crates/openwarrant-core/src/record.rs` | not_content_addressed |
+| D-037 | Core and namespaced relation kinds | `crates/openwarrant-core/src/relation.rs` | not_content_addressed |
+| D-038 | Modules record, relation, lifecycle | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
+| D-039 | war impact | `crates/openwarrant-cli/src/impact.rs` | not_content_addressed |
+| D-040 | Fixed and declared states | `crates/openwarrant-core/src/lifecycle.rs` | not_content_addressed |
+| D-041 | war state | `crates/openwarrant-cli/src/state_cmd.rs` | not_content_addressed |
+| D-042 | Ticket items as records; type, labels | `crates/openwarrant-core/src/ticket.rs` | not_content_addressed |
+| D-043 | Tickets on the kernel; filters, search, epics; promotion target from data | `crates/openwarrant-cli/src/ticket/mod.rs` | not_content_addressed |
+| D-044 | Ticket rendering with type, labels, epics | `crates/openwarrant-cli/src/ticket/render.rs` | not_content_addressed |
+| D-045 | create --issue; opt-in write-back | `crates/openwarrant-cli/src/intake.rs` | not_content_addressed |
+| D-046 | Model tests | `crates/openwarrant-cli/tests/model_cli.rs` | not_content_addressed |
+| D-047 | Plant: model and differential | `conformance/plants.d/72-model.sh` | not_content_addressed |
+| D-048 | Plant: capabilities and profile pin | `conformance/plants.d/73-capabilities.sh` | not_content_addressed |
+| D-049 | Plant: records, relations, impact | `conformance/plants.d/74-records.sh` | not_content_addressed |
+| D-050 | Plant: states | `conformance/plants.d/75-states.sh` | not_content_addressed |
+| D-051 | Plant: ticket features and GitHub | `conformance/plants.d/76-ticket-features.sh` | not_content_addressed |
+| D-052 | Plant: the password-reset demonstration | `conformance/plants.d/77-typed-demo.sh` | not_content_addressed |
+| D-053 | Plant: tickets on the kernel | `conformance/plants.d/45-tickets.sh` | not_content_addressed |
+| D-054 | OW-ADR-0031, proposed | `docs/adr/atoms/OW-ADR-0031-typed-records.md` | not_content_addressed |
+| D-055 | Types, capabilities, records, relations, states | `docs/TYPES.md` | not_content_addressed |
+| D-056 | Profiles with capabilities and the pin | `docs/PROFILES.md` | not_content_addressed |
+| D-057 | Ticket features and GitHub | `docs/TICKETS.md` | not_content_addressed |
+| D-058 | Glossary: record, relation, capability, declared state | `CONTEXT.md` | not_content_addressed |
 
