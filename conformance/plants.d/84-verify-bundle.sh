@@ -5,6 +5,24 @@
 
 VB=docs/warrants/OW-WAR-0063/verifications
 
+# Keep only this plant's exact prior records and note existing archives. The
+# fixture ingestion may retain these bytes; cleanup must not remove history
+# that was already present before this plant ran.
+VB_SNAPSHOT=$(mktemp -d)
+python3 - "$VB" "$VB_SNAPSHOT" <<'PY_CAPTURE'
+import hashlib, json, pathlib, shutil, sys
+root, snapshot = map(pathlib.Path, sys.argv[1:])
+records = []
+for path in sorted(root.glob("*.toml")):
+    if path.is_symlink():
+        raise SystemExit("fixture record must be a regular file")
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    shutil.copyfile(path, snapshot / path.name)
+    records.append({"name": path.name, "digest": digest,
+                    "already_present": (root / "history" / (digest + ".toml")).exists()})
+(snapshot / "manifest.json").write_text(json.dumps(records))
+PY_CAPTURE
+
 # This repository configures a verifier (OW-WAR-0117), so each plant sets the
 # `[verify] verifier_argv` it needs rather than assuming the table is absent:
 # empty for "none configured", a fixture otherwise. Appending a second
@@ -51,6 +69,32 @@ plant_cmd "a configured verifier is ingested" "verify.recorded" "fixture-verifie
     verify OW-WAR-0063 --performer claude --run
 rm -rf "$VB"/bundle-*.json "$VB"/response-*.toml "$VB"/responses
 git checkout -- "$VB" 2>/dev/null || true
+
+VB_HISTORY_RESULT=$(python3 - "$VB" "$VB_SNAPSHOT" <<'PY_HISTORY'
+import json, pathlib, sys
+root, snapshot = map(pathlib.Path, sys.argv[1:])
+records = json.loads((snapshot / "manifest.json").read_text())
+retained = bool(records)
+for record in records:
+    history = root / "history" / (record["digest"] + ".toml")
+    retained &= history.is_file() and not history.is_symlink() and history.read_bytes() == (snapshot / record["name"]).read_bytes()
+    if not record["already_present"] and (history.exists() or history.is_symlink()):
+        history.unlink()
+if not retained:
+    raise SystemExit("exact prior fixture records were not retained")
+print(f"{len(records)} exact prior records retained; pre-existing history untouched")
+PY_HISTORY
+)
+VB_HISTORY_STATUS=$?
+if [[ "$VB_HISTORY_STATUS" -eq 0 ]]; then
+    printf 'ok    %-34s %s\n' "replacement retains prior records" "$VB_HISTORY_RESULT"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s exact prior fixture records unavailable\n' "replacement retains prior records"
+    FAILED=$((FAILED + 1))
+fi
+rm -rf -- "$VB_SNAPSHOT"
+unset VB_SNAPSHOT
 
 # A verifier that answers as the performer is refused by the seam.
 plant_cmd "a self-verifying verifier is refused" "verify.inadmissible" "claude" 2 \
