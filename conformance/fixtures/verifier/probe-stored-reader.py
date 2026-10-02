@@ -22,7 +22,11 @@ parser.add_argument("--require-old-refusal", action="store_true",
                     help="fail if the older reader counts newly bound records as established")
 parser.add_argument("--require-history-retention", action="store_true",
                     help="re-review changed work and require the previous record bytes to survive")
+parser.add_argument("--require-history-refusals", action="store_true",
+                    help="require collision and link refusals to preserve active records and journal; needs --require-history-retention")
 args = parser.parse_args()
+if args.require_history_refusals and not args.require_history_retention:
+    parser.error("--require-history-refusals requires --require-history-retention")
 source = Path(__file__).resolve().parents[3]
 base = Path(tempfile.mkdtemp(prefix="ow-stored-reader-probe-"))
 root = base / "repo"
@@ -162,6 +166,45 @@ if args.require_history_retention:
         str(base / "request-next.json"), str(base / "fixture.toml"),
     ], timeout=60)
     (base / "rebound.toml").write_bytes(rebound)
+    if args.require_history_refusals:
+        records = root / "docs/warrants/IX-WAR-0003/verifications"
+        history = records / "history"
+        history.mkdir(exist_ok=True)
+        collision = history / (hashlib.sha256(initial_records["OBL-002"]).hexdigest() + ".toml")
+        journal = root / "docs/warrants/IX-WAR-0003/journal.jsonl"
+        before_journal = journal.read_bytes()
+        outside = base / "external-history-target.toml"
+        sentinel = b"occupied retained evidence must not be overwritten\n"
+        outside.write_bytes(sentinel)
+        report["history_refusals"] = {}
+        for kind in ("collision", "link"):
+            if kind == "collision":
+                collision.write_bytes(sentinel)
+            else:
+                collision.symlink_to(outside)
+            refusal = run(readers["current"], "verify", "IX-WAR-0003",
+                          "--response", str(base / "rebound.toml"), "--json")
+            unchanged = all((records / (obligation + ".toml")).read_bytes() == previous
+                            for obligation, previous in initial_records.items())
+            report["history_refusals"][kind] = {
+                "response": refusal, "active_records_unchanged": unchanged,
+                "journal_unchanged": journal.read_bytes() == before_journal,
+                "occupied_bytes_unchanged": collision.read_bytes() == sentinel,
+                "external_bytes_unchanged": outside.read_bytes() == sentinel,
+            }
+            args.output.write_text(json.dumps(report, indent=2) + "\n")
+            assert refusal["process_exit"] != 0 and any(
+                diagnostic["rule"] == "verify.history-unavailable"
+                for diagnostic in refusal["report"].get("diagnostics", [])
+            ), f"retention must refuse occupied or linked evidence: {refusal}"
+            assert unchanged and journal.read_bytes() == before_journal, (
+                "failed retention must not replace active records or append a review", report["history_refusals"][kind]
+            )
+            assert collision.read_bytes() == sentinel and outside.read_bytes() == sentinel
+            if kind == "link":
+                assert collision.is_symlink(), "the refused link must remain unchanged"
+            collision.unlink()
+
     report["re_review"] = run(readers["current"], "verify", "IX-WAR-0003",
                               "--response", str(base / "rebound.toml"), "--json")
     assert report["re_review"]["report"]["exit_code"] == 0, report["re_review"]
