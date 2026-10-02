@@ -421,7 +421,6 @@ command rm -f "$OS_RESP/$OS_B.early.response.toml" "$OS_RESP/$OS_B.early.respons
 # commit is the tree it was resolved at.
 os evidence record "$OS_A" >/dev/null 2>&1; os compile >/dev/null 2>&1; os_commit "evidence"
 os verify "$OS_A" --performer claude --run >/dev/null 2>&1; os compile >/dev/null 2>&1; os_commit "verified"
-os evidence record "$OS_A" >/dev/null 2>&1; os compile >/dev/null 2>&1; os_commit "evidence over the verified tree"
 OS_HEAD=$(git -C "$OS_ROOT" rev-parse HEAD)
 OS_DIGEST=$(os authorize "$OS_A" 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)
 printf 'schema = "oh.war/resolution-response/v1"\nwarrant = "%s"\ncontract_digest = "%s"\nresolved_by = "Plant Human"\nacting_role = "resolver"\ncommon_outcome = "satisfied"\nprofile_outcome = "delivered"\nmeaning = "plant fixture"\neffective_time = "2026-09-22T00:00:00Z"\n' \

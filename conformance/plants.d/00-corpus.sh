@@ -1125,7 +1125,19 @@ rz_reset
 # OBL-005. `satisfied` signed over an obligation the verifier did not
 # establish. The disposition is changed and committed; the unchanged receipt
 # still holds, so §38.6 is the control this plant exercises.
-sed -i 's|^disposition = "established"|disposition = "not_established"|' "$RZ_DIR/verifications/OBL-001.toml"
+# Ingest a fresh synthetic negative verdict. Editing a stored record would
+# invalidate its journal digest and test tampering, not the outcome rule.
+rz verify "$RZ_W" --performer claude --bundle --json > "$MIGRATE_TMP/negative-request.json"
+RZ_PACKET=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["result"]["packets"][0]["path"])' "$MIGRATE_TMP/negative-request.json")
+OPENWARRANT_REVIEWED_PACKETS=$(python3 -c 'import json,sys;print(json.dumps(json.load(open(sys.argv[1]))["result"]["packets"]))' "$MIGRATE_TMP/negative-request.json") \
+    bash "$REPO_ROOT/conformance/fixtures/verifier/establishes-all.sh" "$RZ_ROOT/$RZ_PACKET" > "$MIGRATE_TMP/negative-verdict.toml"
+python3 - "$MIGRATE_TMP/negative-verdict.toml" <<'PY'
+import sys
+p=sys.argv[1];s=open(p).read();old='disposition = "established"'
+assert old in s
+open(p,"w").write(s.replace(old,'disposition = "not_established"',1))
+PY
+rz verify "$RZ_W" --response "$MIGRATE_TMP/negative-verdict.toml" >/dev/null 2>&1
 assert_present 'not_established' "$RZ_DIR/verifications/OBL-001.toml"
 rz compile >/dev/null 2>&1
 rz_commit "resolution plants: OBL-001 not established"

@@ -25849,7 +25849,7 @@ the app shows a `human` remedy and stops.
 | D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | verified |
 | D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | drift |
-| D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
+| D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | drift |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
 | D-015 | The threat-model row | `docs/THREAT_MODEL.md` | drift |
 | D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | drift |
@@ -33600,7 +33600,7 @@ this level requires. The author does not record them.
 | D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | drift |
 | D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | verified |
 | D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | drift |
-| D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | verified |
+| D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | drift |
 | D-011 | The eval baseline, re-recorded (AM-002) | `evals/baseline.json` | verified |
 | D-012 | Two resolution plants re-pointed at a scratch fixture (AM-002) | `conformance/plants.d/00-corpus.sh` | drift |
 | D-013 | run-01-echo: ops.echo@1.1.0, inputs declared (AM-004) | `evals/tasks/run-01-echo/fixture/docs/gates/ops.echo@1.1.0.yaml` | verified |

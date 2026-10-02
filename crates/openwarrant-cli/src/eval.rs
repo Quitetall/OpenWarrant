@@ -145,9 +145,9 @@ pub struct Tokens {
     pub bundle: u64,
     pub total: u64,
     pub method: String,
-    /// False for the run kind: its bundle carries a receipt, and a receipt
-    /// carries wall-clock durations, so the estimate moves by a token or two
-    /// between identical runs. A comparison should drop the numbers then.
+    /// False when packets carry runtime evidence, including receipt timings.
+    /// Its estimate can vary between identical runs; comparisons omit these
+    /// numbers, while the actual task budget still uses the measured total.
     pub stable: bool,
 }
 
@@ -892,12 +892,39 @@ fn run_task(
         let t = finish(&mut r, started);
         return Ok((r, t));
     }
+    // Document review gates need the preliminary independent review. Their
+    // new receipts then require a final blind review of that exact evidence.
+    // Do not overwrite a run task's delivered receipt, or rerecord a code
+    // task merely because verification bookkeeping was added.
+    if task.kind == "document" {
+        let compile = scratch.war(&["compile"])?;
+        r.steps.push(compile.step("compile.after-review"));
+        scratch.commit("eval: after preliminary review, before evidence record")?;
+        let again = scratch.war(&["evidence", "record", &alias])?;
+        r.steps.push(again.step("evidence.record.after-review"));
+        let final_review =
+            scratch.war(&["verify", &alias, "--performer", "eval-performer", "--run"])?;
+        r.steps.push(final_review.step("verify.run.after-evidence"));
+        if let Some(rule) = final_review.refusal() {
+            r.refusals.push(rule);
+            r.score = Score::Refused;
+            let t = finish(&mut r, started);
+            return Ok((r, t));
+        }
+    }
+
     if let Ok(entries) = std::fs::read_dir(warrant_dir.join("verifications")) {
         for e in entries.flatten() {
             let name = e.file_name().to_string_lossy().into_owned();
             if name.starts_with("bundle-") && name.ends_with(".json") {
                 let p = Utf8PathBuf::from_path_buf(e.path()).unwrap_or_default();
                 if let Some(t) = read_json(&p).and_then(|b| {
+                    if b.get("gate_runs")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|runs| !runs.is_empty())
+                    {
+                        r.tokens.stable = false;
+                    }
                     b.get("estimated_tokens")
                         .and_then(serde_json::Value::as_u64)
                 }) {
@@ -905,27 +932,6 @@ fn run_task(
                 }
             }
         }
-    }
-    // A code or document task records again once the review exists: a
-    // document's gate wants the review (C4a rule 3), and for both the review's
-    // files (`verifications/`) are source the tree rule reads (OW-WAR-0133),
-    // so a receipt minted before them names a tree that has since moved — a
-    // record, not evidence. Compiled first (the scaffold's gate is
-    // `war check --generated`), then committed, then recorded.
-    //
-    // Not a run task: its deliverable IS the receipt, pinned by content in
-    // `deliverables.toml`. Recording again would overwrite the pinned bytes,
-    // and the pin itself moves the tree the receipt names, so no order holds
-    // under the tree rule. The run tasks' gate (`ops.echo@1.1.0` in their
-    // fixtures) therefore declares `inputs`, and its receipt is judged by
-    // those, not by the tree (OW-WAR-0133 AM-004); a run gate that declares
-    // none scores `partial` here, and the score says why.
-    if task.kind != "run" {
-        let compile = scratch.war(&["compile"])?;
-        r.steps.push(compile.step("compile.after-review"));
-        scratch.commit("eval: after review, before evidence record")?;
-        let again = scratch.war(&["evidence", "record", &alias])?;
-        r.steps.push(again.step("evidence.record.after-review"));
     }
 
     // 8. What a resolution would say — §38.6, in-process, nothing signed.
