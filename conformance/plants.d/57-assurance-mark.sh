@@ -249,7 +249,7 @@ fp=$(ssh-keygen -lf "$T/id_plant.pub" | awk '{print $2}')
 g add -A; g commit -qm authorized
 "$WAR" --root . evidence record "$A"
 g add -A; g commit -qm evidence
-"$WAR" --root . verify "$A" --performer claude --json > "$T/request.json"
+"$WAR" --root . verify "$A" --performer claude --bundle --json > "$T/request.json"
 cat > "$T/verified.toml" <<VERIFY
 schema = "oh.war/verification-response/v1"
 warrant = "$A"

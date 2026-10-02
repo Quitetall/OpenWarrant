@@ -106,7 +106,7 @@ g add -A; g commit -qm "one Warrant citing a tree-bound gate"
 "$WAR" --root . evidence record "$A"
 "$WAR" --root . compile >/dev/null
 g add -A; g commit -qm "evidence"
-"$WAR" --root . verify "$A" --performer claude --json > "$T/request.json"
+"$WAR" --root . verify "$A" --performer claude --bundle --json > "$T/request.json"
 cat > "$T/verified.toml" <<VERIFY
 schema = "oh.war/verification-response/v1"
 warrant = "$A"
