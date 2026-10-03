@@ -19067,7 +19067,7 @@ anything.
 | D-006 | The generated section index, for reading | `docs/sas/generated/SECTIONS.md` | not_content_addressed |
 | D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | verified |
-| D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | verified |
+| D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | drift |
 | D-010 | The CI gate job fetches full history, so section currency is answered there (AM-002) | `.github/workflows/ci.yml` | drift |
 
 ### OW-PHASE-4 — Knowledge Fabric registration
