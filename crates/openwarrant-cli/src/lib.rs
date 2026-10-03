@@ -50,6 +50,7 @@ pub mod kf;
 pub mod mark;
 pub mod mcp;
 pub mod migrate;
+pub mod model;
 pub mod new;
 pub mod next;
 pub mod notice;
@@ -1329,6 +1330,11 @@ enum Command {
         /// One stage; omit for every stage of the Warrant.
         stage: Option<String>,
     },
+    /// The compiled corpus as one document, `oh.war/model/v1` (OW-WAR-0148):
+    /// every record with its revision and governor, every relation, the
+    /// states the builders derive, and a diagnostic per relation whose target
+    /// is not a record. Read-only; the same tree gives the same bytes.
+    Model,
     /// The stages that can start now (OW-WAR-0068): open, unblocked by
     /// their milestone's `depends_on`, and not yet dispatched. Derived from
     /// the same records a resolution reads; never a status claim.
@@ -2661,6 +2667,27 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 lan,
                 mode,
             )?)
+        }
+        Command::Model => {
+            let repository = open_repo()?;
+            gate_cmd::source::remember_tree_reads();
+            let corpus = corpus::Corpus::new(&repository);
+            let (report, model) = model::run(&corpus)?;
+            match mode {
+                output::Mode::Human => {
+                    for d in &model.diagnostics {
+                        println!("{}  {}  {}", d.rule, d.record, d.message);
+                    }
+                    println!("{}", model::summary(&model));
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "model",
+                    &report,
+                    Some(output::value(&model)),
+                )),
+            }
         }
         Command::Roadmap { command } => {
             let repository = open_repo()?;

@@ -69,6 +69,9 @@ fn entries() -> Vec<Entry> {
         // OW-WAR-0114 (OW-ADR-0023): `roadmap.toml`, as `war roadmap` reads it —
         // the core manifest plus `[[placement]]` and `[[retires]]`.
         entry::<crate::roadmap_cmd::Manifest>("roadmap"),
+        // OW-WAR-0148: the compiled corpus every client reads (`war model`).
+        // Additive: the pack version does not move.
+        entry::<crate::model::Model>("model"),
     ]
 }
 
