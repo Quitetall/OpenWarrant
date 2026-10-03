@@ -283,6 +283,202 @@ impl fmt::Display for CoreProfile {
     }
 }
 
+/// What a document's type makes apply to it (OW-ADR-0031): a closed set the
+/// kernel implements. A profile SELECTS capabilities; it cannot define one,
+/// and a capability never supplies an act — `verification` means "this
+/// cannot read verified without an independent response", not "verified".
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Capability {
+    /// Parse, schema, required roles: today's structural `war check`.
+    Structure,
+    /// Relations resolve: parents, roadmap, traceability.
+    Links,
+    /// Claim, release and done on work items.
+    Claims,
+    /// A revision is in force only once a human accepts it.
+    Acceptance,
+    /// Gate runs and receipts bound to a subject.
+    Evidence,
+    /// Obligations settled by an independent verifier (§51.2, RQ-053).
+    Verification,
+    /// A human signs the contract before work counts.
+    Authorization,
+    /// A human closes it against settled obligations (§56.1).
+    Resolution,
+    /// A milestone graph of dispatchable stages, and §56.1 requirement 12's
+    /// runtime receipts.
+    Stages,
+}
+
+impl Capability {
+    /// The closed set, in declaration order.
+    pub const ALL: [Self; 9] = [
+        Self::Structure,
+        Self::Links,
+        Self::Claims,
+        Self::Acceptance,
+        Self::Evidence,
+        Self::Verification,
+        Self::Authorization,
+        Self::Resolution,
+        Self::Stages,
+    ];
+
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Structure => "structure",
+            Self::Links => "links",
+            Self::Claims => "claims",
+            Self::Acceptance => "acceptance",
+            Self::Evidence => "evidence",
+            Self::Verification => "verification",
+            Self::Authorization => "authorization",
+            Self::Resolution => "resolution",
+            Self::Stages => "stages",
+        }
+    }
+
+    /// A capability by name, or `None` for a name outside the closed set.
+    #[must_use]
+    pub fn parse(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|c| c.as_str() == name)
+    }
+
+    /// What this capability needs beside it (OW-ADR-0031).
+    #[must_use]
+    pub const fn prerequisites(self) -> &'static [Self] {
+        match self {
+            Self::Structure => &[],
+            Self::Links
+            | Self::Claims
+            | Self::Acceptance
+            | Self::Evidence
+            | Self::Authorization
+            | Self::Stages => &[Self::Structure],
+            Self::Verification => &[Self::Evidence],
+            Self::Resolution => &[Self::Verification, Self::Authorization],
+        }
+    }
+
+    const fn bit(self) -> u16 {
+        1 << (self as u16)
+    }
+}
+
+impl fmt::Display for Capability {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// A set of [`Capability`], as a profile selects them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct Capabilities(u16);
+
+impl Capabilities {
+    /// Every capability: the delivery profile's set.
+    pub const ALL: Self = Self::of(&Capability::ALL);
+    /// The working form's set (`form = "working"`, a ticket).
+    pub const WORKING: Self =
+        Self::of(&[Capability::Structure, Capability::Links, Capability::Claims]);
+
+    /// The set holding exactly `caps`.
+    #[must_use]
+    pub const fn of(caps: &[Capability]) -> Self {
+        let mut bits = 0u16;
+        let mut i = 0;
+        while i < caps.len() {
+            bits |= caps[i].bit();
+            i += 1;
+        }
+        Self(bits)
+    }
+
+    #[must_use]
+    pub const fn has(self, cap: Capability) -> bool {
+        self.0 & cap.bit() != 0
+    }
+
+    #[must_use]
+    pub const fn without(self, cap: Capability) -> Self {
+        Self(self.0 & !cap.bit())
+    }
+
+    /// Whether every capability in `self` is also in `other`.
+    #[must_use]
+    pub const fn is_subset_of(self, other: Self) -> bool {
+        self.0 & !other.0 == 0
+    }
+
+    /// The capabilities held, in the closed set's order.
+    pub fn iter(self) -> impl Iterator<Item = Capability> {
+        Capability::ALL.into_iter().filter(move |c| self.has(*c))
+    }
+
+    /// The capabilities of the closed set this one lacks.
+    pub fn absent(self) -> impl Iterator<Item = Capability> {
+        Capability::ALL.into_iter().filter(move |c| !self.has(*c))
+    }
+
+    /// The first selected capability whose prerequisite is not selected.
+    #[must_use]
+    pub fn missing_prerequisite(self) -> Option<(Capability, Capability)> {
+        self.iter().find_map(|c| {
+            c.prerequisites()
+                .iter()
+                .find(|p| !self.has(**p))
+                .map(|p| (c, *p))
+        })
+    }
+}
+
+impl fmt::Display for Capabilities {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let names: Vec<&str> = self.iter().map(Capability::as_str).collect();
+        f.write_str(&names.join(", "))
+    }
+}
+
+/// What a kind is, as data (OW-ADR-0031): its capabilities, and the per-kind
+/// behaviour that was once chosen by matching a profile's name. A core
+/// profile's is fixed here; its file may restate it and may not change it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KindData {
+    pub capabilities: Capabilities,
+    /// The `profile_outcome` a `satisfied` resolution records (§56.2);
+    /// `None` records the common outcome's own word.
+    pub satisfied_outcome: Option<String>,
+    /// §56.3: the profile carries a falsifiable claim, so a resolution of it
+    /// may record `falsified`.
+    pub falsifiable_claims: bool,
+    /// OW-ADR-0029: a standing authorization class may cover this profile.
+    pub standing_coverage: bool,
+}
+
+impl CoreProfile {
+    /// The core profile's kind data (OW-ADR-0031). `delivery` selects every
+    /// capability; `decision` every one but `stages`, so §56.1 requirement 12
+    /// reads "not applicable" for a decision instead of unmet forever.
+    #[must_use]
+    pub fn kind_data(self) -> KindData {
+        match self {
+            Self::Delivery => KindData {
+                capabilities: Capabilities::ALL,
+                satisfied_outcome: Some("delivered".to_owned()),
+                falsifiable_claims: false,
+                standing_coverage: true,
+            },
+            Self::Decision => KindData {
+                capabilities: Capabilities::ALL.without(Capability::Stages),
+                satisfied_outcome: None,
+                falsifiable_claims: false,
+                standing_coverage: false,
+            },
+        }
+    }
+}
+
 /// A composition profile (SAS §16.3): a name a [`ProfileRegistry`] validated.
 ///
 /// Not an enum (OW-WAR-0140, U-002 option A). A profile is its name and the
@@ -439,9 +635,20 @@ pub struct ProfileDefinition {
     /// every core role as before. So a working form loosens nothing a
     /// signature, a verification or a resolution reads.
     pub working_core_roles: Option<Vec<AtomRole>>,
+    /// Its capabilities and the per-kind behaviour once chosen by name
+    /// (OW-ADR-0031). A core profile's is [`CoreProfile::kind_data`]; an
+    /// extension's defaults to its core's (the working form's set for
+    /// `form = "working"`) and may narrow it, never widen it.
+    pub kind: KindData,
 }
 
 impl ProfileDefinition {
+    /// The capabilities this kind selects.
+    #[must_use]
+    pub const fn capabilities(&self) -> Capabilities {
+        self.kind.capabilities
+    }
+
     /// Whether this is a working-form profile (`form = "working"`).
     #[must_use]
     pub const fn is_working_form(&self) -> bool {
@@ -492,6 +699,20 @@ struct ProfileFile {
     /// For `form = "working"` only: the core roles a working record carries.
     #[serde(default)]
     core_roles: Option<Vec<String>>,
+    /// OW-ADR-0031: the capabilities this kind selects, from the closed set.
+    /// Absent: the core profile's, or the working form's for `form =
+    /// "working"`.
+    #[serde(default)]
+    capabilities: Option<Vec<String>>,
+    /// The `profile_outcome` word a `satisfied` resolution records.
+    #[serde(default)]
+    satisfied_outcome: Option<String>,
+    /// §56.3: whether the kind carries a falsifiable claim.
+    #[serde(default)]
+    falsifiable_claims: Option<bool>,
+    /// OW-ADR-0029: whether a standing class may cover the kind.
+    #[serde(default)]
+    standing_coverage: Option<bool>,
 }
 
 /// Why a profile definition was refused. Every refusal names the file.
@@ -566,6 +787,46 @@ pub enum ProfileError {
         role: String,
         ordinal: u32,
     },
+    #[error(
+        "{file}: profile {name} names capability {found:?}, which is not one of the closed \
+         set ({known}). A profile selects capabilities; it cannot define one (OW-ADR-0031)"
+    )]
+    UnknownCapability {
+        file: String,
+        name: String,
+        found: String,
+        known: String,
+    },
+    #[error(
+        "{file}: profile {name} selects `{capability}` without `{needs}`, which it needs \
+         (OW-ADR-0031)"
+    )]
+    CapabilityPrerequisite {
+        file: String,
+        name: String,
+        capability: Capability,
+        needs: Capability,
+    },
+    #[error("{file}: profile {name}: {detail} (OW-ADR-0031)")]
+    BadCapabilities {
+        file: String,
+        name: String,
+        detail: String,
+    },
+}
+
+impl ProfileError {
+    /// The rule a refusal is reported under. Every refusal that is not about
+    /// capabilities keeps the one rule it always had.
+    #[must_use]
+    pub const fn rule(&self) -> &'static str {
+        match self {
+            Self::UnknownCapability { .. } => "profile.capability-unknown",
+            Self::CapabilityPrerequisite { .. } => "profile.capability-prerequisite",
+            Self::BadCapabilities { .. } => "profile.capabilities",
+            _ => "profile.invalid",
+        }
+    }
 }
 
 /// The profiles a program admits (SAS §16.3, §2.2).
@@ -604,6 +865,7 @@ impl ProfileRegistry {
                         reference_roles: Vec::new(),
                         digest: None,
                         working_core_roles: None,
+                        kind: core.kind_data(),
                     },
                 )
             })
@@ -677,6 +939,23 @@ impl ProfileRegistry {
     pub fn is_working_form(&self, profile: &Profile) -> bool {
         self.definition(profile)
             .is_some_and(ProfileDefinition::is_working_form)
+    }
+
+    /// The kind data behind `profile` (OW-ADR-0031): its definition's, or its
+    /// core profile's when the registry holds no definition by that name.
+    #[must_use]
+    pub fn kind(&self, profile: &Profile) -> KindData {
+        self.definition(profile)
+            .map_or_else(|| profile.core().kind_data(), |d| d.kind.clone())
+    }
+
+    /// The capabilities `profile` selects.
+    #[must_use]
+    pub fn capabilities(&self, profile: &Profile) -> Capabilities {
+        self.definition(profile).map_or_else(
+            || profile.core().kind_data().capabilities,
+            ProfileDefinition::capabilities,
+        )
     }
 
     /// The namespaced roles `profile` requires, empty for a core profile.
@@ -776,6 +1055,25 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
                 "required_roles {found:?}, where §16.3 requires {want:?}"
             )));
         }
+        // OW-ADR-0031: a core file may restate its kind data, never change it.
+        let fixed = core.kind_data();
+        let stated = parse_kind(&owned, &raw.name, &fixed, &raw)?;
+        if stated != fixed {
+            return Err(redefined(&format!(
+                "its kind data (capabilities [{}], satisfied_outcome {:?}, \
+                 falsifiable_claims {}, standing_coverage {}) differs from the core's \
+                 (capabilities [{}], satisfied_outcome {:?}, falsifiable_claims {}, \
+                 standing_coverage {})",
+                stated.capabilities,
+                stated.satisfied_outcome,
+                stated.falsifiable_claims,
+                stated.standing_coverage,
+                fixed.capabilities,
+                fixed.satisfied_outcome,
+                fixed.falsifiable_claims,
+                fixed.standing_coverage
+            )));
+        }
         return Ok(ProfileDefinition {
             name: raw.name,
             core,
@@ -786,6 +1084,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             reference_roles: Vec::new(),
             digest,
             working_core_roles: None,
+            kind: fixed,
         });
     }
 
@@ -852,6 +1151,40 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         }
     }
     let working_core_roles = parse_form(&owned, &raw.name, core, &raw)?;
+    let base = if working_core_roles.is_some() {
+        Capabilities::WORKING
+    } else {
+        core.kind_data().capabilities
+    };
+    let defaults = KindData {
+        capabilities: base,
+        satisfied_outcome: None,
+        falsifiable_claims: false,
+        standing_coverage: false,
+    };
+    let kind = parse_kind(&owned, &raw.name, &defaults, &raw)?;
+    if !kind.capabilities.is_subset_of(base) {
+        let beyond: Vec<&str> = kind
+            .capabilities
+            .iter()
+            .filter(|c| !base.has(*c))
+            .map(Capability::as_str)
+            .collect();
+        return Err(ProfileError::BadCapabilities {
+            file: owned,
+            name: raw.name,
+            detail: format!(
+                "selects [{}], which {} does not; an extension narrows its core's \
+                 capabilities ([{base}]) and never widens them",
+                beyond.join(", "),
+                if working_core_roles.is_some() {
+                    "a working form".to_owned()
+                } else {
+                    format!("`{core}`")
+                }
+            ),
+        });
+    }
     Ok(ProfileDefinition {
         name: raw.name,
         core,
@@ -862,6 +1195,92 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         reference_roles: raw.reference_roles,
         digest,
         working_core_roles,
+        kind,
+    })
+}
+
+/// `capabilities`, `satisfied_outcome`, `falsifiable_claims` and
+/// `standing_coverage` (OW-ADR-0031). An absent field is `defaults`'.
+/// Refused: a name outside the closed set, one listed twice, none at all, a
+/// capability without its prerequisite, and per-kind data whose capability
+/// the kind does not select — an outcome word or a falsifiable claim without
+/// `resolution`, standing coverage without `authorization`.
+fn parse_kind(
+    file: &str,
+    name: &str,
+    defaults: &KindData,
+    raw: &ProfileFile,
+) -> Result<KindData, ProfileError> {
+    let bad = |detail: String| ProfileError::BadCapabilities {
+        file: file.to_owned(),
+        name: name.to_owned(),
+        detail,
+    };
+    let capabilities = match raw.capabilities.as_deref() {
+        None => defaults.capabilities,
+        Some([]) => return Err(bad("`capabilities` selects nothing".to_owned())),
+        Some(listed) => {
+            let mut seen = Vec::new();
+            for found in listed {
+                let Some(c) = Capability::parse(found) else {
+                    return Err(ProfileError::UnknownCapability {
+                        file: file.to_owned(),
+                        name: name.to_owned(),
+                        found: found.clone(),
+                        known: Capability::ALL.map(Capability::as_str).join(", "),
+                    });
+                };
+                if seen.contains(&c) {
+                    return Err(bad(format!("capability `{c}` is listed twice")));
+                }
+                seen.push(c);
+            }
+            Capabilities::of(&seen)
+        }
+    };
+    if let Some((capability, needs)) = capabilities.missing_prerequisite() {
+        return Err(ProfileError::CapabilityPrerequisite {
+            file: file.to_owned(),
+            name: name.to_owned(),
+            capability,
+            needs,
+        });
+    }
+    if let Some(word) = raw.satisfied_outcome.as_deref()
+        && !is_profile_name(word)
+    {
+        return Err(bad(format!(
+            "satisfied_outcome {word:?} is not a lowercase word ([a-z][a-z0-9_-]*)"
+        )));
+    }
+    let satisfied_outcome = raw
+        .satisfied_outcome
+        .clone()
+        .or_else(|| defaults.satisfied_outcome.clone());
+    let falsifiable_claims = raw
+        .falsifiable_claims
+        .unwrap_or(defaults.falsifiable_claims);
+    let standing_coverage = raw.standing_coverage.unwrap_or(defaults.standing_coverage);
+    let resolves = capabilities.has(Capability::Resolution);
+    if !resolves && (satisfied_outcome.is_some() || falsifiable_claims) {
+        return Err(bad(
+            "`satisfied_outcome` and `falsifiable_claims` describe a resolution, and the \
+             kind does not select `resolution`"
+                .to_owned(),
+        ));
+    }
+    if standing_coverage && !capabilities.has(Capability::Authorization) {
+        return Err(bad(
+            "`standing_coverage` stands in for one authorization, and the kind does not \
+             select `authorization`"
+                .to_owned(),
+        ));
+    }
+    Ok(KindData {
+        capabilities,
+        satisfied_outcome,
+        falsifiable_claims,
+        standing_coverage,
     })
 }
 
@@ -1137,6 +1556,139 @@ required_roles = ["control", "intent", "relations_and_integrity"]
 "#;
         assert!(matches!(
             ProfileRegistry::with_definitions([("profiles/delivery.toml", loosened.as_slice())]),
+            Err(ProfileError::CoreRedefined { .. })
+        ));
+    }
+
+    /// OW-ADR-0031: the core defaults, and the committed files restate them.
+    #[test]
+    fn core_kinds_select_their_capabilities() {
+        let builtin = ProfileRegistry::builtin();
+        assert_eq!(builtin.capabilities(&Profile::Delivery), Capabilities::ALL);
+        let decision = builtin.capabilities(&Profile::Decision);
+        assert!(!decision.has(Capability::Stages));
+        assert_eq!(decision, Capabilities::ALL.without(Capability::Stages));
+        assert_eq!(
+            builtin
+                .kind(&Profile::Delivery)
+                .satisfied_outcome
+                .as_deref(),
+            Some("delivered")
+        );
+        assert!(builtin.kind(&Profile::Delivery).standing_coverage);
+        assert!(!builtin.kind(&Profile::Decision).standing_coverage);
+        let committed = ProfileRegistry::with_definitions([
+            (
+                "profiles/delivery.toml",
+                include_bytes!("../../../profiles/delivery.toml").as_slice(),
+            ),
+            (
+                "profiles/decision.toml",
+                include_bytes!("../../../profiles/decision.toml").as_slice(),
+            ),
+            (
+                "profiles/ticket.toml",
+                include_bytes!("../../../profiles/ticket.toml").as_slice(),
+            ),
+        ])
+        .expect("the committed files parse");
+        assert_eq!(
+            committed.kind(&Profile::Delivery),
+            builtin.kind(&Profile::Delivery)
+        );
+        assert_eq!(
+            committed.kind(&Profile::Decision),
+            builtin.kind(&Profile::Decision)
+        );
+        let ticket = committed.resolve("ticket").expect("ticket");
+        assert_eq!(committed.capabilities(&ticket), Capabilities::WORKING);
+    }
+
+    fn lab_with(extra: &str) -> Result<ProfileRegistry, ProfileError> {
+        let text = format!(
+            "schema = \"oh.war/profile/v1\"\nname = \"lab\"\nextends = \"delivery\"\n\
+             approved = false\n{extra}"
+        );
+        ProfileRegistry::with_definitions([("profiles/lab.toml", text.as_bytes())])
+    }
+
+    #[test]
+    fn capabilities_are_a_closed_set_with_prerequisites() {
+        let err = lab_with("capabilities = [\"structure\", \"verification\"]\n")
+            .expect_err("verification needs evidence");
+        assert_eq!(err.rule(), "profile.capability-prerequisite");
+        assert!(matches!(
+            err,
+            ProfileError::CapabilityPrerequisite {
+                capability: Capability::Verification,
+                needs: Capability::Evidence,
+                ..
+            }
+        ));
+        let err = lab_with("capabilities = [\"structure\", \"telepathy\"]\n").expect_err("unknown");
+        assert_eq!(err.rule(), "profile.capability-unknown");
+        let err = lab_with("capabilities = [\"links\"]\n").expect_err("links needs structure");
+        assert_eq!(err.rule(), "profile.capability-prerequisite");
+        let err = lab_with("capabilities = []\n").expect_err("selects nothing");
+        assert_eq!(err.rule(), "profile.capabilities");
+        let err = lab_with("capabilities = [\"structure\", \"structure\"]\n").expect_err("twice");
+        assert_eq!(err.rule(), "profile.capabilities");
+        let err = lab_with("capabilities = [\"structure\"]\nsatisfied_outcome = \"done\"\n")
+            .expect_err("an outcome word without resolution");
+        assert_eq!(err.rule(), "profile.capabilities");
+        let err = lab_with("capabilities = [\"structure\"]\nstanding_coverage = true\n")
+            .expect_err("standing coverage without authorization");
+        assert_eq!(err.rule(), "profile.capabilities");
+        // Every refusal not about capabilities keeps its rule.
+        assert_eq!(
+            lab_with("form = \"nonsense\"\n")
+                .expect_err("bad form")
+                .rule(),
+            "profile.invalid"
+        );
+
+        let narrowed = lab_with("capabilities = [\"structure\", \"links\", \"claims\"]\n")
+            .expect("a narrowed extension");
+        let lab = narrowed.resolve("lab").expect("lab");
+        assert_eq!(narrowed.capabilities(&lab), Capabilities::WORKING);
+        // An extension with no `capabilities` inherits its core's, and none
+        // of the core's name-chosen behaviour.
+        let plain = lab_with("").expect("plain");
+        let lab = plain.resolve("lab").expect("lab");
+        assert_eq!(plain.capabilities(&lab), Capabilities::ALL);
+        assert_eq!(plain.kind(&lab).satisfied_outcome, None);
+        assert!(!plain.kind(&lab).standing_coverage);
+        let data = lab_with(
+            "satisfied_outcome = \"concluded\"\nfalsifiable_claims = true\nstanding_coverage = true\n",
+        )
+        .expect("kind data");
+        let lab = data.resolve("lab").expect("lab");
+        let kind = data.kind(&lab);
+        assert_eq!(kind.satisfied_outcome.as_deref(), Some("concluded"));
+        assert!(kind.falsifiable_claims && kind.standing_coverage);
+    }
+
+    #[test]
+    fn an_extension_narrows_and_never_widens() {
+        let wide = "schema = \"oh.war/profile/v1\"\nname = \"memo\"\nextends = \"decision\"\n\
+                    approved = false\ncapabilities = [\"structure\", \"stages\"]\n";
+        let err = ProfileRegistry::with_definitions([("profiles/memo.toml", wide.as_bytes())])
+            .expect_err("decision has no stages");
+        assert_eq!(err.rule(), "profile.capabilities");
+        let working = "schema = \"oh.war/profile/v1\"\nname = \"task\"\nextends = \"delivery\"\n\
+                       approved = false\nform = \"working\"\ncore_roles = [\"intent\"]\n\
+                       capabilities = [\"structure\", \"evidence\"]\n";
+        let err = ProfileRegistry::with_definitions([("profiles/task.toml", working.as_bytes())])
+            .expect_err("a working form never has evidence");
+        assert_eq!(err.rule(), "profile.capabilities");
+        let restated_wrong = "schema = \"oh.war/profile/v1\"\nname = \"decision\"\ncore = true\n\
+            required_roles = [\"control\", \"intent\", \"basis\", \"adr\", \"assurance\", \
+            \"relations_and_integrity\"]\ncapabilities = [\"structure\"]\n";
+        assert!(matches!(
+            ProfileRegistry::with_definitions([(
+                "profiles/decision.toml",
+                restated_wrong.as_bytes()
+            )]),
             Err(ProfileError::CoreRedefined { .. })
         ));
     }

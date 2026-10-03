@@ -127,8 +127,29 @@ pub struct Finding {
 /// The pure part: given the pending human acts and the corpus projection,
 /// derive the table. Separated from I/O so the "an agent never signs"
 /// invariant can be asserted on synthetic inputs.
+///
+/// `profiles` answers what each Warrant's kind selects (OW-ADR-0031): no act
+/// is offered for a capability its kind lacks. A human act arrives here only
+/// when its request could be built, and `war authorize`/`war resolve` refuse
+/// a kind without the capability, so the gate for those is upstream.
 #[must_use]
-pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStatus) -> Next {
+pub fn derive(
+    pending: &[Pending],
+    status: &openwarrant_core::status::CorpusStatus,
+    profiles: &openwarrant_core::role::ProfileRegistry,
+) -> Next {
+    use openwarrant_core::Capability as C;
+    let capabilities = |alias: &str| {
+        status
+            .warrants
+            .iter()
+            .find(|w| w.alias == alias)
+            .and_then(|w| w.profile.as_deref())
+            .and_then(|p| profiles.resolve(p).ok())
+            .map_or(openwarrant_core::Capabilities::ALL, |p| {
+                profiles.capabilities(&p)
+            })
+    };
     let mut actions = Vec::new();
     // Human acts first: they unblock the most.
     for p in pending {
@@ -229,6 +250,9 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
         let already_human = actions
             .iter()
             .any(|a| a.actor == Actor::Human && a.warrant == w.alias);
+        // A kind without `resolution` is never delivered against §56.1, so
+        // nothing stands between it and a human act an agent could clear.
+        let resolvable = capabilities(&w.alias).has(C::Resolution);
         match w.rung {
             R::Invalid => actions.push(Action {
                 actor: Actor::Agent,
@@ -241,7 +265,7 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
             // A pending human act on this Warrant is the unblocker; an agent
             // action beside it would be noise, so Draft is only an agent's when
             // no human act is pending.
-            R::Draft if !already_human => {
+            R::Draft if !already_human && resolvable => {
                 let unmet = w.unmet.join("; ");
                 actions.push(Action {
                     actor: Actor::Agent,
@@ -256,7 +280,7 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
                     judged: None,
                 });
             }
-            R::ReadyToResolve if w.would_resolve_satisfied != Some(true) => {
+            R::ReadyToResolve if w.would_resolve_satisfied != Some(true) && resolvable => {
                 actions.push(Action {
                     actor: Actor::Agent,
                     warrant: w.alias.clone(),
@@ -271,6 +295,9 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
         }
     }
     for s in &status.next_actionable {
+        if !capabilities(&s.warrant).has(C::Stages) {
+            continue;
+        }
         actions.push(Action {
             actor: Actor::Agent,
             warrant: s.warrant.clone(),
@@ -392,7 +419,7 @@ pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
     let repo = corpus.repo();
     let status = corpus.status()?;
     let pending = corpus.pending()?;
-    let mut next = derive(pending, status);
+    let mut next = derive(pending, status, &repo.profiles);
     let (report, frontier) = corpus.frontier()?;
     apply_questions(&mut next, frontier, report);
     // OW-WAR-0141: a question waiting before its Warrant exists is a human's

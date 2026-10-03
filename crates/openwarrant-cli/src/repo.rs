@@ -572,6 +572,9 @@ impl Repository {
         {
             self.profile_checks(dir, &validated, definition, &atoms, &mut report);
         }
+        if let Some(pin) = &manifest.profile_digest {
+            report.push(self.profile_pin(dir, &validated, pin, &relative_manifest));
+        }
 
         let scope_path = dir.join("scope.toml");
         let scope = if scope_path.is_file() {
@@ -974,6 +977,56 @@ impl Repository {
         }
     }
 
+    /// OW-ADR-0031: the profile file a manifest pinned, against the file as
+    /// it stands. Drift is a warning while the Warrant is unsigned — the
+    /// draft can be re-pinned — and an error once a human has authorized it,
+    /// because the signature covered the type the pin names. A manifest
+    /// without the pin never reaches here.
+    fn profile_pin(
+        &self,
+        dir: &Utf8Path,
+        validated: &ValidatedManifest,
+        pin: &str,
+        manifest_file: &str,
+    ) -> Diagnostic {
+        let alias = validated.alias.to_string();
+        let profile = &validated.profile;
+        let current = self
+            .profiles
+            .definition(profile)
+            .and_then(|d| d.digest.clone());
+        if current.as_deref() == Some(pin) {
+            return Diagnostic::pass(
+                "profile.pinned",
+                format!("{alias}: profile {profile} is the file it was composed against ({pin})"),
+            );
+        }
+        let authorized = self
+            .load_authorization(dir)
+            .ok()
+            .flatten()
+            .is_some_and(|a| {
+                a.revision.state == openwarrant_core::contract::RevisionState::Authorized
+            });
+        let message = format!(
+            "{alias}: profile {profile} was pinned at {pin} and profiles/{profile}.toml is now {}. {}",
+            current.as_deref().unwrap_or("absent"),
+            if authorized {
+                "The authorization signed the type as pinned; the type it now names is not \
+                 the one signed. Restore the profile file, or amend the Warrant and \
+                 re-authorize it"
+            } else {
+                "Unsigned, so the draft may be re-pinned to the file as it stands; once \
+                 authorized this is an error"
+            }
+        );
+        if authorized {
+            Diagnostic::error("profile.pin-drift", manifest_file.to_owned(), message)
+        } else {
+            Diagnostic::warn("profile.pin-drift", manifest_file.to_owned(), message)
+        }
+    }
+
     /// What an extending profile asks of its Warrants beyond the manifest
     /// (OW-WAR-0140 M3): which definition it composed against, that its
     /// acceptance authority may perform the existing resolution act, and
@@ -1289,6 +1342,45 @@ pub struct Loaded {
 }
 
 impl Loaded {
+    /// The capabilities this Warrant's kind selects (OW-ADR-0031), read from
+    /// `registry`. A manifest that did not validate has no kind; it gets
+    /// every capability, which is the path every Warrant took before kinds
+    /// had capabilities, so nothing it reports goes quiet.
+    #[must_use]
+    pub fn capabilities(
+        &self,
+        registry: &openwarrant_core::role::ProfileRegistry,
+    ) -> openwarrant_core::Capabilities {
+        self.validated
+            .as_ref()
+            .map_or(openwarrant_core::Capabilities::ALL, |v| {
+                registry.capabilities(&v.profile)
+            })
+    }
+
+    /// `Err` naming the absent capability, by rule, when this Warrant's kind
+    /// does not select `cap`: the refusal `war authorize`, `war verify`, `war
+    /// resolve` and `war sign` give a kind that lacks the act's capability.
+    pub fn require(
+        &self,
+        registry: &openwarrant_core::role::ProfileRegistry,
+        cap: openwarrant_core::Capability,
+    ) -> Result<(), RepoError> {
+        if self.capabilities(registry).has(cap) {
+            return Ok(());
+        }
+        let profile = self
+            .validated
+            .as_ref()
+            .map(|v| v.profile.to_string())
+            .unwrap_or_default();
+        Err(RepoError::Message(capability_absent(
+            &self.alias(),
+            &profile,
+            cap,
+        )))
+    }
+
     /// The local alias, taken from the directory name when the manifest could
     /// not be validated.
     #[must_use]
@@ -1393,6 +1485,24 @@ fn header_mismatches(
     out
 }
 
+/// The words of a `capability.absent` refusal (OW-ADR-0031).
+#[must_use]
+pub fn capability_absent(alias: &str, profile: &str, cap: openwarrant_core::Capability) -> String {
+    format!(
+        "capability.absent: {alias}: profile {profile} does not select the `{cap}` \
+         capability, so nothing of it is {}. Its kind is data: profiles/{profile}.toml \
+         (OW-ADR-0031)",
+        match cap {
+            openwarrant_core::Capability::Authorization => "authorized",
+            openwarrant_core::Capability::Verification => "verified",
+            openwarrant_core::Capability::Resolution => "resolved",
+            openwarrant_core::Capability::Evidence => "recorded as evidence",
+            openwarrant_core::Capability::Stages => "dispatched as a stage",
+            _ => "read under it",
+        }
+    )
+}
+
 /// `profiles/*.toml` under `root`, read into a registry (OW-WAR-0140). No
 /// directory means the two core profiles and nothing else. A definition the
 /// registry refuses refuses the repository: a Warrant of that profile would
@@ -1424,7 +1534,7 @@ fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
     }
     files.sort();
     ProfileRegistry::with_definitions(files.iter().map(|(f, b)| (f.as_str(), b.as_slice())))
-        .map_err(|e| RepoError::Message(format!("profile.invalid: {e}")))
+        .map_err(|e| RepoError::Message(format!("{}: {e}", e.rule())))
 }
 
 /// Every `scheme://…` token in an atom's text, in order, once each.

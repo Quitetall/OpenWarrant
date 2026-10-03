@@ -464,9 +464,19 @@ impl Model {
                             .to_owned()
                     },
                     |c| {
-                        c.as_pairs()
+                        c.states()
                             .iter()
-                            .map(|(name, met)| format!("{} {name}", if *met { "✓" } else { "✗" }))
+                            .map(|(name, state)| match state {
+                                openwarrant_core::resolution::RequirementState::Met => {
+                                    format!("✓ {name}")
+                                }
+                                openwarrant_core::resolution::RequirementState::Unmet => {
+                                    format!("✗ {name}")
+                                }
+                                openwarrant_core::resolution::RequirementState::NotApplicable(
+                                    cap,
+                                ) => format!("– {name} (not applicable: no `{cap}` capability)"),
+                            })
                             .collect::<Vec<_>>()
                             .join("\n")
                     },

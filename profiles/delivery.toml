@@ -19,3 +19,22 @@ required_roles = [
     "assurance",
     "relations_and_integrity",
 ]
+
+# OW-ADR-0031: what applies to a Warrant of this kind, from the kernel's
+# closed set, and the per-kind behaviour once chosen by this profile's name.
+# A core profile restates them; the registry refuses a copy that differs.
+capabilities = [
+    "structure",
+    "links",
+    "claims",
+    "acceptance",
+    "evidence",
+    "verification",
+    "authorization",
+    "resolution",
+    "stages",
+]
+# The `profile_outcome` a `satisfied` resolution records (§56.2).
+satisfied_outcome = "delivered"
+# A standing authorization class may cover a delivery Warrant (OW-ADR-0029).
+standing_coverage = true

@@ -6,6 +6,27 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- A document's type chooses its capabilities (OW-ADR-0031, OW-WAR-0148 M2).
+  `oh.war/profile/v1` gains `capabilities`, from the closed set `structure,
+  links, claims, acceptance, evidence, verification, authorization,
+  resolution, stages`, with prerequisites checked by name
+  (`profile.capability-prerequisite`, `profile.capability-unknown`,
+  `profile.capabilities`), and `satisfied_outcome`, `falsifiable_claims` and
+  `standing_coverage`, which replace the profile-name matches in `war sign`,
+  resolution recording, standing classes and `war promote`. `delivery`
+  selects every capability; `decision` every one but `stages`, so §56.1
+  requirement 12 reads "not applicable: no `stages` capability" for a
+  decision Warrant and OW-WAR-0071 can resolve. A kind lacking a capability
+  is refused the act by name (`capability.absent`), offered nothing for it by
+  `war next`, and its rule families are named `capability.not-applicable`.
+- `oh.war/manifest/v1` gains `profile_digest` (optional, omitted when absent):
+  `war new` writes the sha256 of the profile file a Warrant is composed
+  against, and `war check` reports `profile.pin-drift` — a warning unsigned,
+  an error once authorized. A manifest without it keeps its bytes, digest and
+  checks. `ResolutionChecks` gains `not_applicable`, omitted when empty.
+
 ### Changed
 
 - Verification bundles are bounded (t-9f7e). `oh.war/verification-bundle/v2`

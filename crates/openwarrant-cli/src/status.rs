@@ -185,7 +185,14 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
                 r.resolution.common_outcome
                     == openwarrant_core::resolution::CommonOutcome::Satisfied
             });
-        let rung = WarrantRung::derive(valid, checks.as_ref(), would, resolved);
+        let rung = WarrantRung::derive(
+            valid,
+            checks.as_ref(),
+            would,
+            resolved,
+            one.capabilities(&repo.profiles)
+                .has(openwarrant_core::Capability::Resolution),
+        );
         rung_by_alias.insert(alias.clone(), rung);
         if let Some(v) = one
             .basis

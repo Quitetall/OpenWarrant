@@ -74,6 +74,8 @@ pub enum ManifestError {
         "parent {index} references {reference:?} but declares no contract_revision (SAS §20.2)"
     )]
     ParentWithoutRevision { index: usize, reference: String },
+    #[error("profile_digest {found:?} is not `sha256:` and 64 lowercase hex digits (OW-ADR-0031)")]
+    BadProfileDigest { found: String },
 }
 
 /// Assurance level (SAS §25).
@@ -216,6 +218,13 @@ pub struct Manifest {
     pub enterprise_id: String,
     pub title: String,
     pub profile: String,
+    /// OW-ADR-0031: `sha256:<hex>` of the profile file this Warrant was
+    /// composed against, written by `war new`. Manifest bytes are inside the
+    /// contract digest, so a signature over a manifest carrying it covers the
+    /// type. Absent in every manifest written before it existed, which keeps
+    /// its bytes, its digest and its checks as they were.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_digest: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub assurance_level: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -293,6 +302,16 @@ impl Manifest {
         }
 
         let profile = registry.resolve(&self.profile)?;
+        if let Some(pin) = &self.profile_digest
+            && !pin.strip_prefix("sha256:").is_some_and(|hex| {
+                hex.len() == 64
+                    && hex
+                        .bytes()
+                        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            })
+        {
+            return Err(ManifestError::BadProfileDigest { found: pin.clone() });
+        }
         if registry.is_working_form(&profile) {
             return Err(ManifestError::WorkingFormProfile {
                 core: profile.core().as_str().to_owned(),
@@ -509,6 +528,7 @@ mod tests {
             enterprise_id: String::new(),
             title: "A delivery warrant".to_owned(),
             profile: "delivery".to_owned(),
+            profile_digest: None,
             assurance_level: Some("basic".to_owned()),
             implements: vec![],
             roadmap: vec![],

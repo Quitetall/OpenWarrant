@@ -18,3 +18,18 @@ required_roles = [
     "assurance",
     "relations_and_integrity",
 ]
+
+# OW-ADR-0031: every capability but `stages`. A decision has no milestone
+# graph, so §56.1 requirement 12 (runtime receipts) is not applicable to it,
+# named, rather than unmet forever. A core profile restates its kind data;
+# the registry refuses a copy that differs.
+capabilities = [
+    "structure",
+    "links",
+    "claims",
+    "acceptance",
+    "evidence",
+    "verification",
+    "authorization",
+    "resolution",
+]

@@ -26,6 +26,11 @@ note = "The working form of a delivery Warrant: an intent (the sentence, context
 form = "working"
 core_roles = ["intent"]
 
+# OW-ADR-0031: the working form's capabilities, which `form = "working"`
+# implies anyway: structure, links and claims. Nothing here authorizes,
+# verifies or resolves.
+capabilities = ["structure", "links", "claims"]
+
 [[requires]]
 role = "ticket.checklist"
 ordinal = 15

@@ -277,6 +277,8 @@ pub fn request_for(
     assessment: &dyn Fn() -> Result<crate::resolve::Assessment, RepoError>,
 ) -> Result<ResolutionRequest, RepoError> {
     let dir = one.dir.clone();
+    // OW-ADR-0031: a kind without `resolution` is never resolved.
+    one.require(&repo.profiles, openwarrant_core::Capability::Resolution)?;
     let bound = bind(alias, one, lowered)?;
     let a = assessment()?;
     let register = repo.load_authority_register()?;
@@ -401,6 +403,19 @@ pub fn ingest_with(
     }
 
     let dir = repo.warrant_dir(alias)?;
+    // OW-ADR-0031: a kind without `resolution` is never resolved, whatever a
+    // response says.
+    if let Err(RepoError::Message(why)) = repo
+        .load_warrant(&dir)?
+        .require(&repo.profiles, openwarrant_core::Capability::Resolution)
+    {
+        refuse(
+            &mut report,
+            "capability.absent",
+            why.trim_start_matches("capability.absent: ").to_owned(),
+        );
+        return Ok(report);
+    }
     // OW-WAR-0121: the record this act writes, as it is before the act reads
     // anything else. The write refuses if it moved since (`storage.prestate-
     // moved`); a symlink in its place is refused now (`storage.symlink-target`).
@@ -665,10 +680,12 @@ pub fn ingest_with(
         recorded_at: crate::gate_cmd::receipt::now_rfc3339_public(),
         standing: openwarrant_core::ResolutionStanding::Valid,
     };
+    // §56.3, from the profile's data (OW-ADR-0031): `falsifiable_claims`,
+    // never the resolver's say-so and never the profile's name.
     let falsifiable = one
         .validated
         .as_ref()
-        .is_some_and(|v| matches!(v.profile.as_str(), "experiment" | "feasibility"));
+        .is_some_and(|v| repo.profiles.kind(&v.profile).falsifiable_claims);
     if let Err(e) = resolution.validate(a.checks, falsifiable) {
         refuse(&mut report, "resolution.invalid", format!("{alias}: {e}"));
         return Ok(report);

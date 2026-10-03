@@ -1844,7 +1844,18 @@ pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome,
             c => c,
         })
         .collect();
-    let dir = crate::new::run(repo, &title, openwarrant_core::Profile::Delivery)?;
+    // The promotion target is the profile's data (OW-ADR-0031): the core
+    // profile the ticket's working form `extends`, never a name in the code.
+    let target = repo
+        .profiles
+        .resolve(&t.manifest.profile)
+        .ok()
+        .and_then(|p| repo.profiles.definition(&p).and_then(|d| d.extends))
+        .map_or(
+            openwarrant_core::Profile::Delivery,
+            openwarrant_core::Profile::from_core,
+        );
+    let dir = crate::new::run(repo, &title, target)?;
     let alias = dir.file_name().unwrap_or_default().to_owned();
     let intent_path = dir.join("atoms/10-intent.md");
     let description = render::description(&t.intent);

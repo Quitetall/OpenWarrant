@@ -65,7 +65,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | requirement | Warrants blocked |
 |---|---|
 | every required gate has admissible result | 115 |
-| artifact digests verify | 100 |
+| artifact digests verify | 103 |
 | no blocker remains | 87 |
 | no required unknown remains | 87 |
 | required judgments exist | 56 |
@@ -74,7 +74,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | exact authorized Contract Revision | 20 |
 | every required obligation is dispositioned | 5 |
 | independence requirements are met | 5 |
-| runtime receipts match the basis | 3 |
+| runtime receipts match the basis | 2 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -154,7 +154,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 |---|---|---|---|---|---|
 | `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | draft | NOT satisfied | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0002` Implement the file-native manifest and atom parser | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
-| `OW-WAR-0003` Implement the canonical WAR IR and RFC 8785 digesting | draft | NOT satisfied | 0 | 0 of 4 | every required gate has admissible result |
+| `OW-WAR-0003` Implement the canonical WAR IR and RFC 8785 digesting | draft | NOT satisfied | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0004` Implement the generated parent document and drift checking | draft | NOT satisfied | 0 | 1 of 3 | artifact digests verify |
 | `OW-WAR-0005` Implement deterministic war check and close the Phase 1 bootstrap | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0006` Complete ADR federation: relations, supersession, and currency | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
@@ -173,7 +173,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0019` Implement the Gate Registry: definitions, qualification, and bindings | resolved | would satisfy | 0 | 4 of 4 | — |
 | `OW-WAR-0020` Implement Gate Run semantics, askability, and invalidation | resolved | would satisfy | 0 | 5 of 5 | artifact digests verify |
 | `OW-WAR-0021` Implement verifier independence | resolved | would satisfy | 0 | 3 of 3 | — |
-| `OW-WAR-0022` Implement resolution, dispute, and annulment | resolved | would satisfy | 0 | 4 of 4 | — |
+| `OW-WAR-0022` Implement resolution, dispute, and annulment | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0023` Implement Stage Dispatch compilation and actor-specific projection | draft | NOT satisfied | 0 | 1 of 3 | every required gate has admissible result |
 | `OW-WAR-0024` Implement Stage Submission and attempt semantics | resolved | would satisfy | 0 | 3 of 3 | — |
 | `OW-WAR-0025` Implement blockers, deviations, decision proposals, and discovered gaps | resolved | would satisfy | 0 | 2 of 2 | — |

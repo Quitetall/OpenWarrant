@@ -372,9 +372,15 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             continue;
         };
         let Some(b) = w.basis.as_ref() else { continue };
+        // OW-ADR-0031: a phase is a relation, so a kind without `links` is
+        // never asked to name one.
         if !b.manifest.roadmap.is_empty()
             || placed.contains(&w.alias())
             || superseded.contains(&v.raw.uuid)
+            || !repo
+                .profiles
+                .capabilities(&v.profile)
+                .has(openwarrant_core::Capability::Links)
         {
             continue;
         }

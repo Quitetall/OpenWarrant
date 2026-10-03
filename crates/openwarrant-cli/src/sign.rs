@@ -104,7 +104,10 @@ pub enum Pending {
     Resolve {
         alias: String,
         request: ResolutionRequest,
-        profile: String,
+        /// The `profile_outcome` a `satisfied` resolution of this kind records
+        /// (OW-ADR-0031), from its profile's data — `delivered` for delivery.
+        /// `None` records the common outcome's own word.
+        satisfied_outcome: Option<String>,
         /// Present when a resolution is already recorded for this contract and
         /// carries no verified signature. The act is then not a decision to
         /// resolve — that decision is history — but the signature that decision
@@ -397,15 +400,10 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
                 && request.contract_digest == existing.resolution.contract_digest
             {
                 let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
-                let profile = one
-                    .validated
-                    .as_ref()
-                    .map(|v| v.raw.profile.clone())
-                    .unwrap_or_default();
                 out.push(Pending::Resolve {
                     alias: alias.clone(),
                     request,
-                    profile,
+                    satisfied_outcome: satisfied_outcome(repo, one),
                     recorded: Some(RecordedOutcome {
                         common: existing.resolution.common_outcome,
                         profile: existing.resolution.profile_outcome.clone(),
@@ -508,15 +506,10 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
         };
         if request.requirements_met {
             let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
-            let profile = one
-                .validated
-                .as_ref()
-                .map(|v| v.raw.profile.clone())
-                .unwrap_or_default();
             out.push(Pending::Resolve {
                 alias,
                 request,
-                profile,
+                satisfied_outcome: satisfied_outcome(repo, one),
                 recorded: None,
                 assignment,
             });
@@ -558,6 +551,14 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
         out.push(Pending::AcceptStanding { request });
     }
     Ok(out)
+}
+
+/// The word a `satisfied` resolution of `one`'s kind records, from its
+/// profile's data (OW-ADR-0031).
+fn satisfied_outcome(repo: &Repository, one: &crate::repo::Loaded) -> Option<String> {
+    one.validated
+        .as_ref()
+        .and_then(|v| repo.profiles.kind(&v.profile).satisfied_outcome)
 }
 
 /// The acts `war sign` offers under these options: the pending queue, or —
@@ -1336,7 +1337,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
         Pending::Resolve {
             alias,
             request,
-            profile,
+            satisfied_outcome,
             recorded,
             ..
         } => {
@@ -1365,8 +1366,8 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
             }
             let profile_outcome = match recorded {
                 Some(rec) => rec.profile.clone(),
-                None => match (profile.as_str(), outcome) {
-                    ("delivery", CommonOutcome::Satisfied) => "delivered".to_owned(),
+                None => match (satisfied_outcome, outcome) {
+                    (Some(word), CommonOutcome::Satisfied) => word.clone(),
                     _ => outcome.to_string(),
                 },
             };
@@ -2910,6 +2911,22 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         (Some(t), _) => match select(&all, t) {
             Some(p) => vec![p],
             None => {
+                // OW-ADR-0031: a Warrant whose kind lacks `authorization` has
+                // no act to sign, and says which capability it lacks.
+                if let Ok(dir) = repo.warrant_dir(t)
+                    && let Ok(one) = repo.load_warrant(&dir)
+                    && let Err(RepoError::Message(why)) =
+                        one.require(&repo.profiles, openwarrant_core::Capability::Authorization)
+                {
+                    let (rule, message) =
+                        why.split_once(": ").unwrap_or(("capability.absent", &why));
+                    report.push(Diagnostic::error(
+                        rule.to_owned(),
+                        t.to_owned(),
+                        message.to_owned(),
+                    ));
+                    return Ok(report);
+                }
                 report.push(Diagnostic::error(
                     "sign.nothing-pending",
                     t.to_owned(),
@@ -3625,7 +3642,7 @@ mod tests {
     fn a_resolution_that_cannot_be_satisfied_needs_an_outcome_and_refuses_to_guess() {
         let p = Pending::Resolve {
             alias: "OW-WAR-0002".to_owned(),
-            profile: "delivery".to_owned(),
+            satisfied_outcome: Some("delivered".to_owned()),
             recorded: None,
             assignment: None,
             request: ResolutionRequest {
@@ -3692,7 +3709,7 @@ mod tests {
             };
             Pending::Resolve {
                 alias: "OW-X".to_owned(),
-                profile: "delivery".to_owned(),
+                satisfied_outcome: Some("delivered".to_owned()),
                 recorded: None,
                 assignment: n,
                 request: ResolutionRequest {

@@ -463,6 +463,8 @@ pub fn record(
             "{alias}: the manifest did not validate, so there is no contract to bind a receipt to"
         )));
     };
+    // OW-ADR-0031: a kind without `evidence` binds no receipt.
+    one.require(&repo.profiles, openwarrant_core::Capability::Evidence)?;
     let ir = openwarrant_compiler::lower(basis, validated)
         .map_err(|e| RepoError::Message(format!("{alias}: could not compile contract: {e}")))?;
     let contract_digest = ir

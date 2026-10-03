@@ -474,6 +474,7 @@ stages:
             enterprise_id: String::new(),
             title: "t".to_owned(),
             profile: "delivery".to_owned(),
+            profile_digest: None,
             assurance_level: Some("basic".to_owned()),
             implements: vec![],
             roadmap: vec![],

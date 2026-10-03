@@ -77,7 +77,9 @@ use openwarrant_core::authority::{AuthorityRegister, PolicyResolutionContext};
 use openwarrant_core::deliverable::Deliverable;
 use openwarrant_core::epistemic::Judgment;
 use openwarrant_core::rationale::Assumption;
-use openwarrant_core::resolution::{RESOLUTION_REQUIREMENTS, ResolutionChecks};
+use openwarrant_core::resolution::{
+    NotApplicable, RESOLUTION_REQUIREMENTS, RequirementState, ResolutionChecks,
+};
 use openwarrant_core::verification::Verification;
 
 use crate::authorize::AuthorizationRecord;
@@ -193,7 +195,7 @@ fn evaluate(
         })
     });
 
-    ResolutionChecks {
+    let checks = ResolutionChecks {
         exact_authorized_contract_revision: authority.contract_is_authorized()
             && authorization_signed,
         required_deliverables_exist,
@@ -220,7 +222,44 @@ fn evaluate(
         residual_risks_have_sufficient_authority: authority.residual_risks_are_covered(),
         runtime_receipts_match_the_basis: runtime_receipts_match_the_basis(basis),
         resolver_holds_the_role: authority.a_resolver_is_eligible(&assurance, &declared),
+        not_applicable: NotApplicable::default(),
+    };
+    not_applicable(checks, one.capabilities(&repo.profiles))
+}
+
+/// OW-ADR-0031: mark each requirement whose capability the kind does not
+/// select as not applicable, and set its boolean `false`. It is named, it
+/// does not block, and it never reads met — a decision Warrant has no
+/// `stages`, so requirement 12 is not applicable to it rather than unmet
+/// forever, and rather than vacuously true.
+#[must_use]
+pub fn not_applicable(
+    mut checks: ResolutionChecks,
+    capabilities: openwarrant_core::Capabilities,
+) -> ResolutionChecks {
+    let na = NotApplicable::for_capabilities(capabilities);
+    let flags: [&mut bool; 13] = [
+        &mut checks.exact_authorized_contract_revision,
+        &mut checks.required_deliverables_exist,
+        &mut checks.artifact_digests_verify,
+        &mut checks.every_required_obligation_dispositioned,
+        &mut checks.every_required_gate_has_admissible_result,
+        &mut checks.no_required_unknown_remains,
+        &mut checks.no_blocker_remains,
+        &mut checks.deviations_dispositioned,
+        &mut checks.required_judgments_exist,
+        &mut checks.independence_requirements_met,
+        &mut checks.residual_risks_have_sufficient_authority,
+        &mut checks.runtime_receipts_match_the_basis,
+        &mut checks.resolver_holds_the_role,
+    ];
+    for (i, flag) in flags.into_iter().enumerate() {
+        if na.contains(i) {
+            *flag = false;
+        }
     }
+    checks.not_applicable = na;
+    checks
 }
 
 /// Everything §27, §28.4, §42 and §36.2 need, read once from disk.
@@ -852,6 +891,19 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
+    // OW-ADR-0031: a kind without `resolution` is never resolved, so §56.1
+    // is not asked of it — refused by name, never answered "unmet" or "met".
+    if let Err(RepoError::Message(why)) =
+        one.require(&repo.profiles, openwarrant_core::Capability::Resolution)
+    {
+        let (rule, message) = why.split_once(": ").unwrap_or(("capability.absent", &why));
+        report.push(Diagnostic::error(
+            rule.to_owned(),
+            repo.relative(&dir.join("manifest.toml")),
+            message.to_owned(),
+        ));
+        return Ok(report);
+    }
 
     let assessment = assess(repo, &one)?;
     for (path, why) in &assessment.deliverable_failures {
@@ -928,15 +980,25 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
         .collect();
 
     let unmet = checks.unmet();
+    let not_applicable = checks.not_applicable.named();
 
     if unmet.is_empty() {
         report.push(Diagnostic::pass(
             "resolution.requirements",
-            format!(
-                "{alias}: all {} §56.1 requirements are met",
-                RESOLUTION_REQUIREMENTS.len()
-            ),
+            if not_applicable.is_empty() {
+                format!(
+                    "{alias}: all {} §56.1 requirements are met",
+                    RESOLUTION_REQUIREMENTS.len()
+                )
+            } else {
+                format!(
+                    "{alias}: all {} applicable §56.1 requirements are met; {} not applicable",
+                    RESOLUTION_REQUIREMENTS.len() - not_applicable.len(),
+                    not_applicable.len()
+                )
+            },
         ));
+        push_not_applicable(&mut report, alias, &not_applicable);
         report.note(
             "All thirteen are met, but no resolution has been RECORDED. §56.2's record \
              needs an authorizer, an acting role, and a stated meaning — none of which \
@@ -949,22 +1011,24 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
 
     // Each unmet requirement is named. "9 of 13" tells a reader nothing about
     // whether to worry; the names tell them what to fix.
-    for (group, requirement, met) in checks
-        .as_pairs()
+    for (group, requirement, state) in checks
+        .states()
         .into_iter()
-        .map(|(name, met)| ("§56.1", name, met))
+        .map(|(name, state)| ("§56.1", name, state))
     {
-        if met {
-            report.push(Diagnostic::pass(
+        match state {
+            RequirementState::Met => report.push(Diagnostic::pass(
                 "resolution.requirement-met",
                 format!("{alias}: {group} {requirement}"),
-            ));
-        } else {
-            report.push(Diagnostic::unknown(
+            )),
+            RequirementState::Unmet => report.push(Diagnostic::unknown(
                 "resolution.requirement-unmet",
                 repo.relative(&dir.join("manifest.toml")),
                 format!("{alias}: {group} {requirement} — not established"),
-            ));
+            )),
+            RequirementState::NotApplicable(cap) => {
+                push_not_applicable(&mut report, alias, &[(requirement, cap)]);
+            }
         }
     }
 
@@ -978,6 +1042,22 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     ));
     push_outcome(&mut report, alias, outcome, &unestablished);
     Ok(report)
+}
+
+/// A requirement the kind's capabilities make not applicable, named with the
+/// capability it lacks (OW-ADR-0031). A pass of its own rule, never
+/// `resolution.requirement-met`: nothing about it was established.
+fn push_not_applicable(
+    report: &mut Report,
+    alias: &str,
+    not_applicable: &[(&str, openwarrant_core::Capability)],
+) {
+    for (requirement, cap) in not_applicable {
+        report.push(Diagnostic::pass(
+            "resolution.requirement-not-applicable",
+            format!("{alias}: §56.1 {requirement} — not applicable: no `{cap}` capability"),
+        ));
+    }
 }
 
 /// The obligation ids a Warrant declares, as the parser reads them.
@@ -1265,6 +1345,7 @@ mod tests {
                 enterprise_id: String::new(),
                 title: "t".to_owned(),
                 profile: "delivery".to_owned(),
+                profile_digest: None,
                 assurance_level: Some("basic".to_owned()),
                 implements: vec![],
                 roadmap: vec![],

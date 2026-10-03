@@ -152,6 +152,64 @@ not do:
   `form = "working"`, or an acceptance or reference role (nothing accepts a
   working record). A core profile has no working form.
 
+## Capabilities: what applies to a kind (OW-ADR-0031)
+
+A profile selects `capabilities` from a closed set the kernel implements:
+`structure, links, claims, acceptance, evidence, verification,
+authorization, resolution, stages`. It cannot define one, and a capability
+never supplies an act: `verification` means "nothing of this reads verified
+without an independent response".
+
+| capability | needs | what it makes apply |
+|---|---|---|
+| `structure` | — | parse, roles, every structural rule |
+| `links` | `structure` | traceability, roadmap placement (`roadmap.unassigned`), SAS sections, parents |
+| `claims` | `structure` | claim and done on work items |
+| `acceptance` | `structure` | a revision in force once a human accepts it |
+| `evidence` | `structure` | gate citations, `war evidence record`, §40 records |
+| `verification` | `evidence` | obligations, the adequacy review, `war verify` |
+| `authorization` | `structure` | `war authorize`, `war sign`'s authorize act, the authorization's checks |
+| `resolution` | `verification`, `authorization` | §56.1, `war resolve`, deliverable pins, corrections |
+| `stages` | `structure` | the milestone graph, `war next`'s execute acts, §56.1 requirement 12 |
+
+- `delivery` selects all nine; `decision` all but `stages`, so requirement 12
+  reads "not applicable: no `stages` capability" for a decision; a working
+  form (`form = "working"`) selects `structure, links, claims`. A core file
+  restates its kind data and may not change it.
+- An extension defaults to its core's set (the working form's set for a
+  working form) and may narrow it, never widen it.
+- A kind lacking a capability is refused the act by name
+  (`capability.absent`), `war next` offers it nothing for it, and `war check`
+  names the rule families that do not apply (`capability.not-applicable`).
+  A §56.1 requirement whose capability is absent reads "not applicable",
+  never met, and a kind without `resolution` stays `draft`.
+- Refused: a name outside the set (`profile.capability-unknown`), a
+  capability without its prerequisite (`profile.capability-prerequisite`),
+  none, one twice, or a set wider than the core's
+  (`profile.capabilities`).
+
+What was once chosen by the profile's name is data too:
+
+| field | default | read by |
+|---|---|---|
+| `satisfied_outcome` | `delivered` for `delivery`, none otherwise | the `profile_outcome` `war sign` drafts for `satisfied` |
+| `falsifiable_claims` | `false` | §56.3: whether `falsified` may be recorded |
+| `standing_coverage` | `true` for `delivery`, `false` otherwise | whether a standing class may name the profile |
+| `extends` | — | the profile `war promote` turns a working record into |
+
+`satisfied_outcome` and `falsifiable_claims` need `resolution`;
+`standing_coverage` needs `authorization`.
+
+## The pin: a signature covers the type
+
+`war new` writes `profile_digest = "sha256:…"`, the profile file's digest,
+into a new manifest when the program has that file. The manifest's bytes are
+inside the contract digest, so a signature covers the type. `war check`
+reports `profile.pinned` while the file is unchanged, and `profile.pin-drift`,
+naming the profile and both digests, when it moved: a warning on a draft, an
+error once authorized. A manifest without the field keeps its bytes, its
+digest and its checks.
+
 ## What `war check` reports for an extended profile
 
 | rule | when |
@@ -164,10 +222,10 @@ not do:
 
 ## Open
 
-- **U-003: pinning.** Each definition carries the digest of its bytes, and
-  `war check` reports it. The digest is not yet in the IR, and profile
-  definitions are not in the schema pack. Putting them there moves the pack
-  version once. That is escalated, not decided.
+- **U-003: pinning in the IR.** A new manifest pins its profile file
+  (above); the digest is not in the IR, which would move every existing
+  contract digest. Profile definitions are not in the schema pack. That is
+  escalated, not decided.
 - **The contractor profile** (`profiles/contractor.toml`) is a non-binding
   technical mechanism, `approved = false`. It is not a legal instrument, and
   it is not legal, financial or quality advice. SAS §98 requires separate

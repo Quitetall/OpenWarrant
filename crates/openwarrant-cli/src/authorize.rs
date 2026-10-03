@@ -222,6 +222,8 @@ pub fn request_for(
             "{alias}: the manifest did not validate, so there is no contract to authorize"
         )));
     };
+    // OW-ADR-0031: a kind without `authorization` has no contract to sign.
+    one.require(&repo.profiles, openwarrant_core::Capability::Authorization)?;
 
     let owned;
     let ir = match lowered {
