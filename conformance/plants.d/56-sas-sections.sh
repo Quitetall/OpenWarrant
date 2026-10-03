@@ -129,16 +129,22 @@ out=$("$WAR" check 2>&1)
 refs_pass=$(grep -c -- "^PASS sas.section-ref " <<<"$out")
 refs_bad=$(grep -cE -- "^(ERROR|UNKNOWN|WARN) +sas.section-ref " <<<"$out")
 cur_pass=$(grep -c -- "^PASS sas.section-current " <<<"$out")
-cur_bad=$(grep -cE -- "^(ERROR|UNKNOWN|WARN) +sas.section-current " <<<"$out")
+cur_stale=$(grep -c -- "^WARN sas.section-current " <<<"$out")
+cur_bad=$(grep -cE -- "^(ERROR|UNKNOWN) +sas.section-current " <<<"$out")
 if [[ "$SEC_REFS" -gt 0 && "$refs_pass" -eq "$SEC_REFS" && "$refs_bad" -eq 0 ]]; then
     sec_ok "existing section citations resolve" "$refs_pass of $SEC_REFS pass sas.section-ref"
 else
     sec_fail "existing section citations resolve" "$refs_pass pass, $refs_bad not, of $SEC_REFS"
 fi
-if [[ "$cur_pass" -eq "$SEC_REFS" && "$cur_bad" -eq 0 ]]; then
-    sec_ok "existing section citations current" "$cur_pass of $SEC_REFS pass sas.section-current"
+# OBL-004 says each citation REPORTS its currency, not that every one is
+# current: a SAS revision legitimately moves a cited section, and the stale
+# citation is then a warning that names it (SAS 1.2.0 moved §37.5 under
+# OW-WAR-0114 and 0142). So each citation gets exactly one report, current or
+# stale, and none is an error or unknown.
+if [[ $((cur_pass + cur_stale)) -eq "$SEC_REFS" && "$cur_bad" -eq 0 ]]; then
+    sec_ok "existing section citations report currency" "$cur_pass current, $cur_stale stale (warned), of $SEC_REFS"
 else
-    sec_fail "existing section citations current" "$cur_pass pass, $cur_bad not, of $SEC_REFS"
+    sec_fail "existing section citations report currency" "$cur_pass current, $cur_stale stale, $cur_bad error/unknown, of $SEC_REFS"
 fi
 
 # A Warrant pinned to 0.1.0-draft.1 by its authorization (no re-pinning
