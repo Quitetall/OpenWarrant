@@ -640,6 +640,13 @@ pub struct ProfileDefinition {
     /// extension's defaults to its core's (the working form's set for
     /// `form = "working"`) and may narrow it, never widen it.
     pub kind: KindData,
+    /// The record types this profile composes and the core relation kinds
+    /// its records may use and must use (`[records]`, `[relations]`;
+    /// OW-WAR-0148 M3). Empty when the file declares none, and always for a
+    /// built-in core profile: the kernel knows no profile nouns. A core
+    /// file's declaration is program data, not kind data: it loosens nothing
+    /// an act reads.
+    pub vocabulary: crate::relation::Vocabulary,
 }
 
 impl ProfileDefinition {
@@ -713,6 +720,30 @@ struct ProfileFile {
     /// OW-ADR-0029: whether a standing class may cover the kind.
     #[serde(default)]
     standing_coverage: Option<bool>,
+    /// OW-WAR-0148 M3: `[records] types = [...]`, the record types (profile
+    /// nouns) a record atom governed by this profile may hold.
+    #[serde(default)]
+    records: Option<RecordsTable>,
+    /// OW-WAR-0148 M3: `[relations] allow = [...]` (core kinds) and
+    /// `require = [[from_type, kind, to_type], ...]`.
+    #[serde(default)]
+    relations: Option<RelationsTable>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RecordsTable {
+    #[serde(default)]
+    types: Vec<String>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RelationsTable {
+    #[serde(default)]
+    allow: Vec<String>,
+    #[serde(default)]
+    require: Vec<[String; 3]>,
 }
 
 /// Why a profile definition was refused. Every refusal names the file.
@@ -813,6 +844,12 @@ pub enum ProfileError {
         name: String,
         detail: String,
     },
+    #[error("{file}: profile {name}: [records]/[relations]: {detail} (OW-ADR-0031)")]
+    BadVocabulary {
+        file: String,
+        name: String,
+        detail: String,
+    },
 }
 
 impl ProfileError {
@@ -824,6 +861,7 @@ impl ProfileError {
             Self::UnknownCapability { .. } => "profile.capability-unknown",
             Self::CapabilityPrerequisite { .. } => "profile.capability-prerequisite",
             Self::BadCapabilities { .. } => "profile.capabilities",
+            Self::BadVocabulary { .. } => "profile.records",
             _ => "profile.invalid",
         }
     }
@@ -866,6 +904,7 @@ impl ProfileRegistry {
                         digest: None,
                         working_core_roles: None,
                         kind: core.kind_data(),
+                        vocabulary: crate::relation::Vocabulary::default(),
                     },
                 )
             })
@@ -889,9 +928,12 @@ impl ProfileRegistry {
                     .definitions
                     .insert(definition.name.clone(), definition);
             } else if let Some(core) = registry.definitions.get_mut(&definition.name) {
-                // A core restatement: identical by construction, so it only
-                // contributes the pin of the file it was read from.
+                // A core restatement: identical in its kind data by
+                // construction, so it contributes the pin of the file it was
+                // read from, and the record vocabulary the program declares
+                // (program data, not kind data).
                 core.digest = definition.digest;
+                core.vocabulary = definition.vocabulary;
             }
         }
         Ok(registry)
@@ -956,6 +998,13 @@ impl ProfileRegistry {
             || profile.core().kind_data().capabilities,
             ProfileDefinition::capabilities,
         )
+    }
+
+    /// The record vocabulary of the profile named `name`, if the registry
+    /// admits one by that name (OW-WAR-0148 M3).
+    #[must_use]
+    pub fn vocabulary(&self, name: &str) -> Option<&crate::relation::Vocabulary> {
+        self.definitions.get(name).map(|d| &d.vocabulary)
     }
 
     /// The namespaced roles `profile` requires, empty for a core profile.
@@ -1055,6 +1104,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
                 "required_roles {found:?}, where §16.3 requires {want:?}"
             )));
         }
+        let vocabulary = parse_vocabulary(&owned, &raw.name, &raw)?;
         // OW-ADR-0031: a core file may restate its kind data, never change it.
         let fixed = core.kind_data();
         let stated = parse_kind(&owned, &raw.name, &fixed, &raw)?;
@@ -1085,6 +1135,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             digest,
             working_core_roles: None,
             kind: fixed,
+            vocabulary,
         });
     }
 
@@ -1151,6 +1202,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         }
     }
     let working_core_roles = parse_form(&owned, &raw.name, core, &raw)?;
+    let vocabulary = parse_vocabulary(&owned, &raw.name, &raw)?;
     let base = if working_core_roles.is_some() {
         Capabilities::WORKING
     } else {
@@ -1196,7 +1248,31 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         digest,
         working_core_roles,
         kind,
+        vocabulary,
     })
+}
+
+/// `[records]` and `[relations]` (OW-WAR-0148 M3): checked by
+/// [`crate::relation::Vocabulary::declare`], refused `profile.records`.
+fn parse_vocabulary(
+    file: &str,
+    name: &str,
+    raw: &ProfileFile,
+) -> Result<crate::relation::Vocabulary, ProfileError> {
+    let none = RelationsTable::default();
+    let types = raw
+        .records
+        .as_ref()
+        .map(|r| r.types.as_slice())
+        .unwrap_or_default();
+    let relations = raw.relations.as_ref().unwrap_or(&none);
+    crate::relation::Vocabulary::declare(types, &relations.allow, &relations.require).map_err(
+        |detail| ProfileError::BadVocabulary {
+            file: file.to_owned(),
+            name: name.to_owned(),
+            detail,
+        },
+    )
 }
 
 /// `capabilities`, `satisfied_outcome`, `falsifiable_claims` and
@@ -1610,6 +1686,42 @@ required_roles = ["control", "intent", "relations_and_integrity"]
              approved = false\n{extra}"
         );
         ProfileRegistry::with_definitions([("profiles/lab.toml", text.as_bytes())])
+    }
+
+    /// OW-WAR-0148 M3: a profile declares its record types and relation
+    /// kinds; a bad declaration is refused `profile.records`, and a core
+    /// file's declaration is kept beside its fixed kind data.
+    #[test]
+    fn profiles_declare_their_record_vocabulary() {
+        let r = lab_with(
+            "[records]\ntypes = [\"outcome\", \"requirement\"]\n[relations]\nallow = \
+             [\"implements\"]\nrequire = [[\"requirement\", \"implements\", \"outcome\"]]\n",
+        )
+        .expect("a declared vocabulary parses");
+        let v = r.vocabulary("lab").expect("lab");
+        assert!(v.has_type("requirement") && v.require.len() == 1);
+        assert!(
+            r.vocabulary("delivery")
+                .is_some_and(crate::relation::Vocabulary::is_empty)
+        );
+        let err = lab_with("[records]\ntypes = [\"item\"]\n").expect_err("kernel type");
+        assert_eq!(err.rule(), "profile.records");
+        let err = lab_with("[relations]\nallow = [\"mentions\"]\n").expect_err("unknown kind");
+        assert_eq!(err.rule(), "profile.records");
+        let err = lab_with("[records]\nkinds = []\n").expect_err("unknown field");
+        assert_eq!(err.rule(), "profile.invalid");
+        let core = br#"schema = "oh.war/profile/v1"
+name = "delivery"
+core = true
+required_roles = ["control", "intent", "basis", "work_order", "milestones", "assurance", "relations_and_integrity"]
+
+[records]
+types = ["risk"]
+"#;
+        let r = ProfileRegistry::with_definitions([("profiles/delivery.toml", core.as_slice())])
+            .expect("a core file may declare a vocabulary");
+        assert!(r.vocabulary("delivery").is_some_and(|v| v.has_type("risk")));
+        assert_eq!(r.capabilities(&Profile::Delivery), Capabilities::ALL);
     }
 
     #[test]

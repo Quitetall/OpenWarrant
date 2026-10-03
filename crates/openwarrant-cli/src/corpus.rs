@@ -13,7 +13,8 @@
 //! - `relations::currencies` over the corpus;
 //! - one `resolve::assess` per Warrant;
 //! - the corpus status, the sign queue, the frontier, the ownership index;
-//! - the roadmap record, the tickets, the ADRs and the SAS revisions.
+//! - the roadmap record, the tickets, the ADRs and the SAS revisions;
+//! - the record atoms and the relations documents author (OW-WAR-0148 M3).
 //!
 //! Every derived value is computed on first use and kept for the life of the
 //! corpus: a command that never asks for the frontier never pays for it, and
@@ -136,6 +137,7 @@ pub struct Corpus {
     tickets: OnceLock<Result<Tickets, String>>,
     adrs: OnceLock<Result<AdrCorpus, String>>,
     sas_revisions: OnceLock<Result<Vec<openwarrant_core::SasRevision>, String>>,
+    records: OnceLock<crate::records::Records>,
 }
 
 impl std::fmt::Debug for Corpus {
@@ -169,6 +171,7 @@ impl Corpus {
             tickets: OnceLock::new(),
             adrs: OnceLock::new(),
             sas_revisions: OnceLock::new(),
+            records: OnceLock::new(),
         }
     }
 
@@ -277,6 +280,12 @@ impl Corpus {
         kept(&self.adrs, || self.repo.load_adrs())
     }
 
+    /// The record atoms and every authored relation (OW-WAR-0148 M3), once.
+    /// Infallible: what could not be read is a fault inside, by rule.
+    pub fn records(&self) -> &crate::records::Records {
+        self.records.get_or_init(|| crate::records::load(self))
+    }
+
     /// The recorded SAS revisions, once.
     pub fn sas_revisions(&self) -> Result<&[openwarrant_core::SasRevision], RepoError> {
         kept(&self.sas_revisions, || self.repo.load_sas_revisions()).map(Vec::as_slice)
@@ -327,6 +336,7 @@ pub fn working_tree_fingerprint(repo: &Repository) -> Option<u64> {
     let mut h = std::collections::hash_map::DefaultHasher::new();
     let mut dirs = crate::watch::watched_dirs(repo);
     dirs.push(crate::roadmap_cmd::dir(repo));
+    dirs.push(repo.root.join(crate::records::DIR));
     dirs.extend(crate::ticket::watched(repo));
     crate::watch::fingerprint(&dirs).hash(&mut h);
     let meta = |p: &Utf8Path| {

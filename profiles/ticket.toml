@@ -31,6 +31,12 @@ core_roles = ["intent"]
 # verifies or resolves.
 capabilities = ["structure", "links", "claims"]
 
+# OW-WAR-0148 M3: the core relation kinds a ticket's items may author. An
+# item's `implements REQ-pr1` (in its text) is intended coverage of a record,
+# never satisfaction of it; `war impact REQ-pr1` names the item.
+[relations]
+allow = ["depends_on", "implements", "part_of"]
+
 [[requires]]
 role = "ticket.checklist"
 ordinal = 15

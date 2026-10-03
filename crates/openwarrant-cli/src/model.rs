@@ -19,6 +19,11 @@
 //! - **Revision:** the digest of the record's own bytes where it has them
 //!   (a Warrant's compiled contract, a question's file, an item's line);
 //!   otherwise the digest of the atom or file that holds it.
+//! - **Authored records** (OW-WAR-0148 M3): every record of a record atom
+//!   under `docs/records/`, with its type (a profile noun) and the revision
+//!   of its own byte span; and the relations documents author — record
+//!   atoms' relation lines, obligations' `evaluates`, ticket items'
+//!   `implements` — each with the revision it pins, if any.
 //! - **Relations:** `part_of`, `parent`, `supersedes`, `roadmap`,
 //!   `implements`, `depends_on`, `promoted_to`. A relation whose target is
 //!   not a record here is kept AND reported (`model.relation-target-unknown`):
@@ -94,9 +99,15 @@ pub struct Record {
 pub struct Relation {
     pub from: String,
     /// `part_of`, `parent`, `supersedes`, `roadmap`, `implements`,
-    /// `depends_on` or `promoted_to`.
+    /// `depends_on` or `promoted_to`; from authored relations (OW-WAR-0148
+    /// M3), any core kind or a namespaced one (`x.mentions`), which is
+    /// carried and drives nothing.
     pub kind: String,
     pub to: String,
+    /// The revision of `to` the relation pins (`REQ-pr1@sha256:…`), when it
+    /// pins one. A pin that is not `to`'s revision now reads stale.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub to_revision: Option<String>,
 }
 
 /// A state a builder derives for a record.
@@ -164,10 +175,14 @@ impl Builder {
         });
     }
     fn relate(&mut self, from: &str, kind: &str, to: &str) {
+        self.relate_pinned(from, kind, to, None);
+    }
+    fn relate_pinned(&mut self, from: &str, kind: &str, to: &str, pin: Option<String>) {
         self.relations.insert(Relation {
             from: from.to_owned(),
             kind: kind.to_owned(),
             to: to.to_owned(),
+            to_revision: pin,
         });
     }
     fn state(&mut self, record: &str, kind: &str, value: String, recorded: bool) {
@@ -547,6 +562,26 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             }
         }
         Err(e) => b.diagnose("model.tickets-unreadable", "tickets", e.to_string()),
+    }
+
+    // ---- Record atoms and authored relations (OW-WAR-0148 M3): records
+    // join the others, relations join the existing kinds, and each refusal
+    // is a diagnostic under its own rule.
+    let authored = corpus.records();
+    for r in &authored.records {
+        b.record(
+            r.id.clone(),
+            &r.record_type,
+            r.source.clone(),
+            r.revision.clone(),
+            None,
+        );
+    }
+    for r in &authored.relations {
+        b.relate_pinned(&r.from, r.kind.as_str(), &r.target.id, r.target.pin.clone());
+    }
+    for f in &authored.faults {
+        b.diagnose(f.rule, &format!("{}:{}", f.file, f.line), f.message.clone());
     }
 
     // ---- Every relation names a record, or is reported.

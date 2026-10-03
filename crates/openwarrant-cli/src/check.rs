@@ -384,6 +384,12 @@ pub fn run_with(
     // whose acceptance no longer verifies over its bytes, is an error.
     crate::standing_cmd::check_classes(repo, &mut report);
 
+    // OW-WAR-0148 M3: record atoms and the relations documents author.
+    // Silent where there are none, so such a program checks as it did.
+    if only.is_none() {
+        crate::records::check(shared_corpus, &mut report);
+    }
+
     // Accepting a SAS revision is the act that makes a specification normative
     // for every Warrant that pins it, so it is held to the same rule as an
     // authorization: a human signature over the acceptance response's exact

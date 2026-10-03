@@ -1,0 +1,192 @@
+# Types: records and relations
+
+A document's **type** (its profile, `profiles/<name>.toml`) says what it is
+made of and what applies to it (OW-ADR-0031). This page covers the two
+things a type composes: **records** and the **relations** between them.
+`war impact` (below) is what they are for: one change, and everything it
+reaches.
+
+## Records
+
+A record is the unit of meaning: `{id, type, body, source, revision}`.
+
+- **id** — stable and global: `REQ-pr1`, `OUT-001`, `DEC-auth-2`. The
+  grammar: an uppercase letter, then uppercase letters or digits, then one
+  or more `-<letters or digits>` groups, at most 64 bytes. Unique across the
+  program. Everything binds a record by its id, never by its file.
+- **type** — a noun the governing profile declares (`requirement`,
+  `outcome`, `constraint`, `decision`, `option`). The kernel knows two record
+  types and no others: `obligation` (a Warrant's assurance atom holds them)
+  and `item` (a ticket's checklist holds them), the two its capabilities
+  compute on. Every other type is a profile's.
+- **revision** — `sha256:` of the record's own bytes. Changing one record
+  moves its revision and no other record's.
+
+### Record atoms
+
+Records live in record atoms, `docs/records/<area>/<NN>-<name>.md`, one
+directory per area or feature. Every `*.md` in an area directory is read; a
+file directly in `docs/records/` (a README) is not.
+
+```markdown
+---
+schema: oh.war/records/v1
+profile: delivery
+---
+# Password reset
+
+## OUT-pr1 · outcome
+
+A user who forgot their password regains access without support.
+
+## REQ-pr1 · requirement
+implements OUT-pr1
+
+A reset token expires 15 minutes after issue.
+```
+
+- The frontmatter names the schema and the **profile that governs** every
+  record in the file.
+- A record opens at an unindented `## <ID> · <type>` line (the separator is
+  ` · `, a middle dot between single spaces) and runs to the next one, or to
+  the end of the file. Nested headings, blank lines and prose are part of it.
+- Text between the frontmatter and the first record (a title, a paragraph)
+  belongs to no record and moves no revision.
+- A `## ` line with a `·` that is not that shape is refused, not read as
+  prose: a record that silently failed to open would leave its text inside
+  the record above it.
+
+**Byte spans.** RC.2's unit-span rules
+(`docs/sas/drafts/1.0.0-rc.2/format-contract.md` F2) are the reference, with
+the heading as the marker: a record is the exact UTF-8 byte range `[start,
+end)` from its heading line's first byte to the next heading's first byte (or
+end of file), line endings and all, with no normalization. Inside a fenced
+code block (three or more backticks or tildes, unindented) a heading or a
+relation line is ordinary text; an unclosed fence is refused.
+
+The worked example is `docs/records/password-reset/10-records.md`.
+
+## Relations
+
+A relation is `{from, kind, to}`, and `to` may pin a revision of its target
+(`REQ-pr1@sha256:<64 hex>`).
+
+### Kinds
+
+- **Core**, a closed set the kernel computes from: `part_of`, `depends_on`,
+  `implements` (intended coverage, never satisfaction), `constrains`,
+  `evaluates` (an evaluation targets a record), `supersedes`, and the
+  rationale edges of §35.7: `supports`, `refutes`, `trades_off_against`,
+  `causes`, `qualifies`, `selected_over`.
+- **Namespaced**, `<namespace>.<name>` (`x.mentions`, `contractor.bills`):
+  carried, shown in the model, and **inert**. A namespaced relation drives no
+  state, no readiness and no check, needs no declaration, and `war impact`
+  lists it without walking it. A profile cannot give one kernel meaning.
+- Any other word is refused (`record.relation-kind-unknown`).
+
+### Where relations are authored
+
+| Where | Form | Governed by |
+|---|---|---|
+| a record atom | a line `<kind> <target>[, <target>…]` inside a record, unindented, outside a fence | the atom's profile |
+| a Warrant's assurance atom | `- **evaluates:** REQ-pr1@sha256:<hex>` under an `### OBL-…` heading | the Warrant's profile |
+| a ticket item | `implements REQ-pr1` anywhere in the item's text | the ticket profile, and only where it allows `implements` |
+
+A relation line's targets begin with an uppercase letter or `t-`: a record
+id, a Warrant's own record (`OW-WAR-0148/OBL-001`), a ticket or an item
+(`t-3f2a/i-9c01`). A line without that shape is prose ("Tokens are
+single-use." and "constrains everything" are prose); a line with the shape
+whose target does not parse is refused.
+
+**Pin what you judged.** An obligation's `evaluates` should pin the revision
+it was written against: `war impact REQ-pr1` and `war model --json` show the
+revision now. The pin is in the assurance atom, so the Warrant's contract
+digest covers it and a signature over the contract covers which bytes were
+judged. When the record changes, the verdict stays recorded, bound to the
+revision it judged, and reads **stale**; an unpinned `evaluates` reads
+**unbound** (nobody can say which bytes it judged).
+
+## What a profile declares
+
+Additive tables in `profiles/<name>.toml`; a file without them parses as
+before and declares nothing.
+
+```toml
+[records]
+types = ["outcome", "requirement", "constraint", "decision", "option"]
+
+[relations]
+allow = ["part_of", "depends_on", "implements", "constrains", "evaluates",
+         "supersedes", "selected_over"]
+# Every record of the first type has at least one relation of this kind to a
+# record of the last type.
+require = [["requirement", "implements", "outcome"]]
+```
+
+- `types` are lowercase words, each once; `obligation` and `item` are the
+  kernel's and may not be declared.
+- `allow` names core kinds only (a namespaced kind needs no declaration).
+- `require` triples name a declared type (or a kernel type), an allowed
+  kind, and a declared type.
+- A bad declaration refuses the whole registry, `profile.records`.
+- A core profile's file (`delivery.toml`) may declare a vocabulary: it is
+  program data, not the core's fixed kind data, and loosens nothing an act
+  reads. The built-in core profiles declare none, so a program without
+  `profiles/` admits no record types until it says which.
+
+This repository's `delivery.toml` declares the nouns of the password-reset
+example; `ticket.toml` allows `depends_on`, `implements` and `part_of`.
+
+## What `war check` refuses
+
+Silent for a program with no record atom and no authored relation. Otherwise
+`records.well-formed` names what was read, or, each by rule:
+
+| rule | what |
+|---|---|
+| `record.malformed` | an atom that does not parse: frontmatter, schema, a heading-like line, a relation target, an unclosed fence |
+| `record.profile-unknown` | the frontmatter names no profile of the program |
+| `record.type-undeclared` | a type the governing profile does not declare, or a kernel type in a record atom |
+| `record.duplicate-id` | an id declared again; the first declaration stands |
+| `record.relation-kind-unknown` | a kind neither core nor namespaced |
+| `record.relation-undeclared` | a core kind the governing profile does not allow |
+| `record.relation-malformed` | an `evaluates` bullet naming no record id |
+| `record.relation-required` | a record missing a relation its profile requires |
+| `record.relation-target-unknown` | (a warning) a core relation whose target is no record of the corpus; kept, never dropped |
+
+## The model
+
+`war model --json` (`oh.war/model/v1`) carries record atoms' records beside
+the corpus's own (Warrants, obligations, items, phases…), and their
+relations beside the existing kinds, each with `to_revision` when it pins
+one. Every refusal above is also a model diagnostic under its rule, and an
+unknown target is `model.relation-target-unknown`.
+
+## `war impact <record>`
+
+```text
+war impact REQ-pr1 [--json]
+```
+
+Walks **incoming** relations from the record, transitively (what points at
+it is what its change reaches; what it points at is not), and lists
+(`oh.war/impact/v1`):
+
+- **affected** records, each with the edge that reached it and its depth;
+- **documents** that hold an affected record or name one by id — the
+  Warrant whose basis names `REQ-pr1`, the ticket whose item implements it,
+  the record atom that declares it;
+- **evaluations**: each obligation that `evaluates` an affected record, with
+  its verdict as recorded and whether it reads `current`, `stale` or
+  `unbound`;
+- **phases** the affected Warrants are placed in, whose progress is
+  recomputed from them;
+- **projections** known to include an affected Warrant or phase: its own
+  `generated/` views, the corpus status and overview, the roadmap view.
+  Declared projection targets (M6) join this list with the records each
+  selects; until then a record atom's records are in no projection.
+- **inert**: namespaced relations into any of them, not walked.
+
+An id that is no record of the model is refused, `impact.unknown-record`.
+Nothing is written, and nothing is cleared: a stale verdict is a record of
+what was judged, not a fault to delete.

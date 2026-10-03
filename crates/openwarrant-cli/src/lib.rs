@@ -41,6 +41,7 @@ pub mod evidence;
 pub mod export;
 pub mod frontier;
 pub mod gate_cmd;
+pub mod impact;
 pub mod inbox;
 pub mod init;
 pub mod install;
@@ -67,6 +68,7 @@ pub mod progress;
 pub mod progress_viewer;
 pub mod projects;
 pub mod questions;
+pub mod records;
 pub mod relations;
 pub mod remedy;
 pub mod repo;
@@ -1329,6 +1331,17 @@ enum Command {
         alias: String,
         /// One stage; omit for every stage of the Warrant.
         stage: Option<String>,
+    },
+    /// What a change to one record affects (OW-WAR-0148 M3): the records that
+    /// reach it through incoming relations, transitively; the Warrants,
+    /// tickets and record atoms that hold or name them; the obligations that
+    /// evaluate them, with verdicts bound to the revision they judged (a
+    /// verdict on an older revision stays recorded and reads stale); the
+    /// roadmap phases and generated views they feed. Read-only.
+    Impact {
+        /// A record id of `war model` (`REQ-pr1`, `OW-WAR-0001/OBL-002`,
+        /// `t-3f2a/i-9c01`).
+        record: String,
     },
     /// The compiled corpus as one document, `oh.war/model/v1` (OW-WAR-0148):
     /// every record with its revision and governor, every relation, the
@@ -2667,6 +2680,36 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 lan,
                 mode,
             )?)
+        }
+        Command::Impact { record } => {
+            let repository = open_repo()?;
+            gate_cmd::source::remember_tree_reads();
+            let corpus = corpus::Corpus::new(&repository);
+            let (report, impact) = impact::build(&corpus, &record)?;
+            match mode {
+                output::Mode::Human => {
+                    if let Some(i) = &impact {
+                        print!("{}", impact::render(i));
+                    }
+                    for d in report
+                        .diagnostics
+                        .iter()
+                        .filter(|d| d.severity != diagnostic::Severity::Pass)
+                    {
+                        eprintln!("{d}");
+                    }
+                    if let Some(i) = &impact {
+                        println!("\n{}", impact::summary(i));
+                    }
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "impact",
+                    &report,
+                    impact.as_ref().map(output::value),
+                )),
+            }
         }
         Command::Model => {
             let repository = open_repo()?;

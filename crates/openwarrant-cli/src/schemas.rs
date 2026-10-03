@@ -72,6 +72,9 @@ fn entries() -> Vec<Entry> {
         // OW-WAR-0148: the compiled corpus every client reads (`war model`).
         // Additive: the pack version does not move.
         entry::<crate::model::Model>("model"),
+        // OW-WAR-0148 M3: what a change to one record affects (`war impact`).
+        // Additive: the pack version does not move.
+        entry::<crate::impact::Impact>("impact"),
     ]
 }
 

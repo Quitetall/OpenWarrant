@@ -38,3 +38,24 @@ capabilities = [
 satisfied_outcome = "delivered"
 # A standing authorization class may cover a delivery Warrant (OW-ADR-0029).
 standing_coverage = true
+
+# OW-WAR-0148 M3: the record types (this program's nouns, not the kernel's)
+# a record atom governed by `delivery` may hold, and the core relation kinds
+# its records and obligations may author. Program data, not kind data: it
+# loosens nothing an act reads. docs/TYPES.md walks it; the kernel itself
+# knows only `obligation` and `item`.
+[records]
+types = ["outcome", "requirement", "constraint", "decision", "option"]
+
+[relations]
+allow = [
+    "part_of",
+    "depends_on",
+    "implements",
+    "constrains",
+    "evaluates",
+    "supersedes",
+    "selected_over",
+]
+# Every requirement says which outcome it serves.
+require = [["requirement", "implements", "outcome"]]
