@@ -27,6 +27,7 @@ pub mod compile;
 pub mod console;
 pub mod context_select;
 pub mod contract_history;
+pub mod corpus;
 pub mod correct;
 pub mod deliver;
 pub mod diagnostic;

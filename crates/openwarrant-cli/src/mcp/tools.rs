@@ -531,7 +531,11 @@ impl WarServer {
     fn war_check(&self, Parameters(p): Parameters<CheckParams>) -> ToolResult {
         report_of(
             "check",
-            crate::check::run(&self.repo, p.alias.as_deref(), p.generated),
+            crate::check::run_with(
+                &crate::corpus::held(&self.repo),
+                p.alias.as_deref(),
+                p.generated,
+            ),
         )
     }
 
@@ -550,7 +554,7 @@ impl WarServer {
             ),
             None => value_of(
                 "status",
-                crate::status::build(&self.repo),
+                crate::corpus::held(&self.repo).status().cloned(),
                 "corpus status built",
             ),
         }
@@ -692,7 +696,11 @@ impl WarServer {
         annotations(read_only_hint = true)
     )]
     fn war_next(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
-        value_of("next", crate::next::run(&self.repo), "next action derived")
+        value_of(
+            "next",
+            crate::next::run_with(&crate::corpus::held(&self.repo)),
+            "next action derived",
+        )
     }
 
     // read_only_hint stays true: the journal line a compile appends is the

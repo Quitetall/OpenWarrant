@@ -25,6 +25,30 @@ pub(crate) mod atomic;
 /// like drift.
 #[must_use]
 pub fn children_of(uuid: &str, corpus: &[crate::repo::Loaded]) -> Vec<ChildRef> {
+    let refs: Vec<&crate::repo::Loaded> = corpus.iter().collect();
+    if !refs.iter().any(|one| claims_parent(one, uuid)) {
+        return vec![];
+    }
+    children_of_with(uuid, &refs, &crate::relations::currencies(corpus))
+}
+
+fn claims_parent(one: &crate::repo::Loaded, uuid: &str) -> bool {
+    one.validated.as_ref().is_some_and(|v| {
+        v.raw
+            .parents
+            .iter()
+            .any(|p| p.r#ref.trim_start_matches("war://") == uuid)
+    })
+}
+
+/// [`children_of`] over a currency derivation the caller already holds, so
+/// `war compile` derives it once for the corpus rather than once per parent.
+#[must_use]
+pub fn children_of_with(
+    uuid: &str,
+    corpus: &[&crate::repo::Loaded],
+    currencies: &crate::relations::Currencies,
+) -> Vec<ChildRef> {
     let claimed: Vec<&openwarrant_core::ValidatedManifest> = corpus
         .iter()
         .filter_map(|one| one.validated.as_ref())
@@ -40,7 +64,6 @@ pub fn children_of(uuid: &str, corpus: &[crate::repo::Loaded]) -> Vec<ChildRef> 
     }
     // The child's state is its DERIVED currency (OW-ADR-0022), from the one
     // derivation `war check` reads — never the manifest's field.
-    let currencies = crate::relations::currencies(corpus);
     let mut out: Vec<ChildRef> = claimed
         .into_iter()
         .map(|validated| ChildRef {
@@ -65,9 +88,18 @@ pub fn projections(
     children: &[ChildRef],
 ) -> Result<Vec<(View, String)>, CanonicalError> {
     let ir = lower(basis, validated)?;
+    projections_of(&ir, basis, children)
+}
+
+/// [`projections`] from a contract already lowered (`corpus::Entry::ir`).
+pub fn projections_of(
+    ir: &openwarrant_compiler::WarIr,
+    basis: &CompilationBasis,
+    children: &[ChildRef],
+) -> Result<Vec<(View, String)>, CanonicalError> {
     Ok(vec![
-        (View::FullWarrant, full_warrant(&ir, basis, children)),
-        (View::CanonicalJson, canonical_json(&ir)?),
+        (View::FullWarrant, full_warrant(ir, basis, children)),
+        (View::CanonicalJson, canonical_json(ir)?),
     ])
 }
 
@@ -289,19 +321,27 @@ pub fn atom_body(text: &str) -> &str {
 /// gathering, two renderings; the currency in it is the derivation
 /// `relations::currencies` computes, and the queue is `war next`'s, judged.
 pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentCorpus, RepoError> {
+    master_corpus_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`master_corpus`] over a corpus already loaded.
+pub fn master_corpus_with(
+    corpus: &crate::corpus::Corpus,
+) -> Result<openwarrant_compiler::CurrentCorpus, RepoError> {
     use openwarrant_compiler::current as c;
 
-    let loaded: Vec<crate::repo::Loaded> = repo
-        .warrant_dirs()?
+    let repo = corpus.repo();
+    let loaded: Vec<&crate::repo::Loaded> = corpus
+        .entries()?
         .iter()
-        .filter_map(|d| repo.load_warrant(d).ok())
+        .filter_map(crate::corpus::Entry::ok)
         .collect();
-    let currencies = crate::relations::currencies(&loaded);
-    let status = crate::status::build(repo)?;
+    let currencies = corpus.currencies();
+    let status = corpus.status()?;
 
     // Roadmap phases: the record's order and titles when there is one; the
     // membership is status's, as `war roadmap` reads it.
-    let mut phases: Vec<c::Phase> = match crate::roadmap_cmd::load(repo) {
+    let mut phases: Vec<c::Phase> = match corpus.roadmap() {
         Ok(Some(l)) => l
             .phases
             .in_dependency_order()
@@ -330,7 +370,7 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
     }
 
     let mut subjects = Vec::new();
-    for one in &loaded {
+    for &one in &loaded {
         let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
             continue;
         };
@@ -360,6 +400,10 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
                 (a.revision.state == openwarrant_core::RevisionState::Authorized)
                     .then_some(a.revision.revision)
             }),
+            // The AUTHORIZED record's digest — what the human signed — not
+            // the digest the Warrant compiles to now (status's
+            // `contract_digest`, `corpus::Entry::contract_digest`). The two
+            // differ exactly when the contract moved after signing.
             contract_digest: auth.as_ref().and_then(|a| {
                 (a.revision.state == openwarrant_core::RevisionState::Authorized)
                     .then(|| a.revision.contract_digest.clone())
@@ -402,10 +446,10 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
         });
     }
     subjects.sort_by(|a, b| a.alias.cmp(&b.alias));
-    let roadmap = gather_roadmap(repo, &status, &subjects);
+    let roadmap = gather_roadmap(corpus, status, &subjects);
 
-    let sas = repo.load_sas_revisions().ok().and_then(|revs| {
-        let pin = crate::sas::pin_of(&revs)?.clone();
+    let sas = corpus.sas_revisions().ok().and_then(|revs| {
+        let pin = crate::sas::pin_of(revs)?.clone();
         let (path, bytes) = repo.sas_document().ok()?;
         let sentences = openwarrant_core::normative_sentences(&String::from_utf8_lossy(&bytes));
         Some(c::SasInForce {
@@ -420,20 +464,20 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
         })
     });
 
-    let decisions = repo
-        .load_adrs()?
+    let decisions = corpus
+        .adrs()?
         .records
-        .into_iter()
+        .iter()
         .map(|a| c::Decision {
-            alias: a.local_alias,
-            title: a.title,
+            alias: a.local_alias.clone(),
+            title: a.title.clone(),
             status: a.status.to_string(),
-            source: a.source,
-            body: a.body,
+            source: a.source.clone(),
+            body: a.body.clone(),
         })
         .collect();
 
-    let ownership = crate::ownership::Ownership::index_with(repo, &currencies)?;
+    let ownership = corpus.ownership()?;
     let governed = ownership
         .paths()
         .filter_map(|p| {
@@ -463,7 +507,7 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
         })
         .collect();
 
-    let awaiting = crate::next::run_with(repo, &status)?
+    let awaiting = crate::next::run_with(corpus)?
         .actions
         .into_iter()
         .filter(|a| a.actor == crate::next::Actor::Human)
@@ -479,7 +523,7 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
         })
         .collect();
 
-    let timeline = crate::timeline::build_timeline(repo)?;
+    let timeline = crate::timeline::build_timeline_with(corpus)?;
     let days: Vec<c::Day> = timeline
         .days
         .iter()
@@ -520,13 +564,14 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
 /// plans the record retires. `None` for a program without a record, or one
 /// whose record does not load (`war check` reports why).
 fn gather_roadmap(
-    repo: &Repository,
+    corpus: &crate::corpus::Corpus,
     status: &openwarrant_core::status::CorpusStatus,
     subjects: &[openwarrant_compiler::current::Subject],
 ) -> Option<openwarrant_compiler::current::Roadmap> {
     use openwarrant_compiler::current as c;
 
-    let loaded = crate::roadmap_cmd::load(repo).ok().flatten()?;
+    let repo = corpus.repo();
+    let loaded = corpus.roadmap().ok().flatten()?;
     let (_, view) = crate::roadmap_cmd::view_with(repo, status).ok()?;
     let atom_path = |role: &str| {
         loaded
@@ -604,7 +649,7 @@ fn gather_roadmap(
                 state: word(&v.state),
                 sha256: v.sha256.clone(),
                 predecessor: v.predecessor,
-                record: repo.relative(&crate::roadmap_cmd::revision_path(&loaded, v.revision)),
+                record: repo.relative(&crate::roadmap_cmd::revision_path(loaded, v.revision)),
                 accepted_by: v.acceptance.as_ref().map(|a| a.accepted_by.clone()),
                 effective_time: v.acceptance.as_ref().map(|a| a.effective_time.clone()),
                 note: v.note.clone(),
@@ -641,8 +686,16 @@ fn gather_roadmap(
 pub fn master_documents(
     repo: &Repository,
 ) -> Result<Vec<(camino::Utf8PathBuf, String)>, RepoError> {
+    master_documents_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`master_documents`] over a corpus already loaded.
+pub fn master_documents_with(
+    corpus: &crate::corpus::Corpus,
+) -> Result<Vec<(camino::Utf8PathBuf, String)>, RepoError> {
     use openwarrant_compiler::current::{CURRENT_PATH, HISTORY_PATH};
-    let corpus = master_corpus(repo)?;
+    let repo = corpus.repo();
+    let corpus = master_corpus_with(corpus)?;
     let mut out = vec![(
         repo.root.join(CURRENT_PATH),
         openwarrant_compiler::render_current(&corpus),
@@ -656,38 +709,31 @@ pub fn master_documents(
     Ok(out)
 }
 
-/// Derive a Warrant's state from the record's shape (SAS §24).
-///
-/// Every Warrant derives to `draft`, and that is not a placeholder — it is the
-/// truthful answer. §24.7's `draft → proposed → authorized` chain requires an
-/// AUTHORIZATION, and contract revisions do not exist until OW-WAR-0009. Nothing
-/// in this repository has been authorized by anything, so nothing has left draft.
-///
-/// Deriving a later phase from "the work looks done" is exactly the fabrication
-/// this system exists to prevent: it would let a tool award itself a lifecycle it
-/// never transitioned through. The provenance marker says `derived` so no reader
-/// mistakes this for a recorded transition.
-fn derive_state() -> openwarrant_core::WarrantState {
-    openwarrant_core::WarrantState::draft(openwarrant_core::Provenance::Derived)
-}
-
 /// Compile the Warrant Overview (§17.5 `status`), returning its path and contents.
 pub fn warrant_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String), RepoError> {
+    warrant_overview_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`warrant_overview`] over a corpus already loaded.
+pub fn warrant_overview_with(
+    corpus: &crate::corpus::Corpus,
+) -> Result<(camino::Utf8PathBuf, String), RepoError> {
+    let repo = corpus.repo();
     let mut summaries = Vec::new();
     // Resolve parent UUIDs to aliases where the parent is in this corpus, so the
     // Relations section reads as names rather than as opaque identifiers.
     let mut alias_by_uuid = std::collections::BTreeMap::new();
     let mut loaded = Vec::new();
-    for dir in repo.warrant_dirs()? {
-        let one = repo.load_warrant(&dir)?;
+    for entry in corpus.entries()? {
+        let one = entry.loaded()?;
         if let Some(v) = &one.validated {
             alias_by_uuid.insert(v.uuid.to_string(), v.alias.to_string());
         }
-        loaded.push(one);
+        loaded.push((entry, one));
     }
 
-    let currencies = crate::relations::currencies(&loaded);
-    for one in &loaded {
+    let currencies = corpus.currencies();
+    for &(entry, one) in &loaded {
         // A Warrant that would not validate is OMITTED rather than rendered with
         // blank fields — an entry that looks like a Warrant but describes nothing
         // is worse than a missing one. `war check` reports it separately.
@@ -726,17 +772,15 @@ pub fn warrant_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, Strin
                 .collect(),
             atom_count: basis.atoms.len(),
             source: basis.manifest_source.clone(),
+            // The one derivation `war status` reads (OW-WAR-0148): recorded
+            // from the journal when one exists, else `resolved` from a §56.2
+            // record binding the contract as it compiles now, else `draft`.
             state: {
-                // Recorded from the journal when one exists (OW-WAR-0031).
-                let outcome = repo
-                    .load_resolution(&one.dir)
-                    .ok()
-                    .flatten()
-                    .and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
-                crate::journal_cmd::load(&one.dir)
-                    .ok()
-                    .and_then(|j| crate::journal_cmd::recorded_state(&j, outcome))
-                    .unwrap_or_else(derive_state)
+                let record = repo.load_resolution(&one.dir).ok().flatten();
+                let binds = record.as_ref().is_some_and(|r| {
+                    Some(r.resolution.contract_digest.as_str()) == entry.contract_digest()
+                });
+                crate::status::warrant_state(&one.dir, record.as_ref(), binds)
             },
             currency: currencies.of(validated.alias.as_str()).to_string(),
             milestone_count: basis
@@ -772,15 +816,29 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
 
     // §20.4's child list needs every manifest, so load the corpus once even when
     // only one Warrant was asked for: a parent rendered without its children is
-    // a projection that quietly under-reports the family.
-    let corpus: Vec<crate::repo::Loaded> = repo
-        .warrant_dirs()?
+    // a projection that quietly under-reports the family. The same corpus
+    // serves every corpus-wide projection below (OW-WAR-0148): each Warrant
+    // is loaded, lowered and assessed once for the whole run. Nothing it
+    // derives is asked for until the Warrants' own views are written, so the
+    // corpus-wide projections read the tree as those writes left it.
+    let shared = crate::corpus::Corpus::new(repo);
+    let corpus: Vec<&crate::repo::Loaded> = shared
+        .entries()?
         .iter()
-        .filter_map(|d| repo.load_warrant(d).ok())
+        .filter_map(crate::corpus::Entry::ok)
         .collect();
+    let currencies = shared.currencies();
 
     for dir in &dirs {
-        let loaded = repo.load_warrant(dir)?;
+        let entry = shared.entry_at(dir);
+        let owned;
+        let loaded = match entry {
+            Some(e) => e.loaded()?,
+            None => {
+                owned = repo.load_warrant(dir)?;
+                &owned
+            }
+        };
         let alias = loaded.alias();
 
         let (Some(basis), Some(validated)) = (&loaded.basis, &loaded.validated) else {
@@ -792,8 +850,12 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
             continue;
         };
 
-        let children = children_of(&validated.raw.uuid, &corpus);
-        let views = match projections(basis, validated, &children) {
+        let children = children_of_with(&validated.raw.uuid, &corpus, currencies);
+        let lowered = entry.and_then(|e| e.ir().ok());
+        let views = match lowered.map_or_else(
+            || projections(basis, validated, &children),
+            |ir| projections_of(ir, basis, &children),
+        ) {
             Ok(views) => views,
             Err(err) => {
                 skipped.push(format!("{alias} ({err})"));
@@ -833,13 +895,13 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
     // than per Warrant, and only on a full run.
     if only.is_none() {
         let mut projections = vec![
-            warrant_overview(repo)?,
+            warrant_overview_with(&shared)?,
             adr_overview(repo)?,
-            crate::status::corpus_status_md(repo)?,
-            crate::status::corpus_status_json(repo)?,
-            crate::status::corpus_status_html(repo)?,
-            crate::timeline::corpus_timeline_json(repo)?,
-            crate::timeline::corpus_pending_json(repo)?,
+            crate::status::corpus_status_md_with(&shared)?,
+            crate::status::corpus_status_json_with(&shared)?,
+            crate::status::corpus_status_html_with(&shared)?,
+            crate::timeline::corpus_timeline_json_with(&shared)?,
+            crate::timeline::corpus_pending_json_with(&shared)?,
         ];
         // A repository with no SAS document has nothing to project; one with
         // an unreadable one is refused as it always was, by sas_document.
@@ -849,7 +911,7 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
         }
         // Last: the master document reads what the others read, and the
         // queue it carries is judged by the dry run (OW-ADR-0022).
-        projections.extend(master_documents(repo)?);
+        projections.extend(master_documents_with(&shared)?);
         for (path, contents) in projections {
             if let Some(parent) = path.parent() {
                 fs::create_dir_all(parent).map_err(|source| RepoError::Io {

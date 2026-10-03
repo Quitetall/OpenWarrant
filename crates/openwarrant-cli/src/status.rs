@@ -40,17 +40,55 @@ use openwarrant_core::traceability::{
 };
 use openwarrant_core::{Provenance, WarrantState, milestones};
 
+use crate::corpus::Corpus;
 use crate::diagnostic::Severity;
 use crate::repo::{Loaded, RepoError, Repository};
-use crate::resolve::assess;
 
 /// Build the projection.
 pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
-    let mut loaded: Vec<Loaded> = Vec::new();
-    for dir in repo.warrant_dirs()? {
-        loaded.push(repo.load_warrant(&dir)?);
-    }
-    loaded.sort_by_key(Loaded::alias);
+    build_with(&Corpus::new(repo))
+}
+
+/// A Warrant's §24 state, as every projection reports it (OW-WAR-0148).
+///
+/// Recorded from the journal when one exists (OW-WAR-0031). Otherwise
+/// derived from the records' shape, and labelled so: `resolved` from a §56.2
+/// record that binds the contract as it compiles now, `draft` from anything
+/// else. `war status` and the warrant overview both read this; before, the
+/// overview read every unjournalled Warrant as `draft`, so a resolved
+/// Warrant without a journal was `resolved` on one page and `draft` on the
+/// other.
+#[must_use]
+pub fn warrant_state(
+    dir: &camino::Utf8Path,
+    record: Option<&crate::resolution_cmd::ResolutionRecord>,
+    binds_current_contract: bool,
+) -> WarrantState {
+    let outcome = record.and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
+    crate::journal_cmd::load(dir)
+        .ok()
+        .and_then(|j| crate::journal_cmd::recorded_state(&j, outcome))
+        .unwrap_or_else(|| {
+            if binds_current_contract {
+                WarrantState::resolved_recorded(
+                    outcome.unwrap_or(openwarrant_core::CommonOutcome::None),
+                )
+            } else {
+                WarrantState::draft(Provenance::Derived)
+            }
+        })
+}
+
+/// [`build`] over a corpus already loaded: each Warrant's assessment and
+/// contract digest are the corpus's, computed once.
+pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
+    let repo = corpus.repo();
+    let mut loaded: Vec<(&crate::corpus::Entry, &Loaded)> = corpus
+        .entries()?
+        .iter()
+        .map(|e| e.loaded().map(|l| (e, l)))
+        .collect::<Result<_, _>>()?;
+    loaded.sort_by_key(|(_, l)| l.alias());
 
     // Per-Warrant.
     let mut warrants: Vec<WarrantStatus> = Vec::new();
@@ -60,7 +98,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     let mut pins: std::collections::BTreeMap<String, usize> = Default::default();
     let mut milestones_by_alias: BTreeMap<String, Vec<MilestoneState>> = BTreeMap::new();
 
-    for one in &loaded {
+    for &(entry, one) in &loaded {
         let alias = one.alias();
         let valid = one.validated.is_some() && one.basis.is_some();
         let validity = if valid {
@@ -107,7 +145,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 // Requirement 5 reads the Warrant's own committed `gate-runs/`
                 // (OW-WAR-0059), so this projection and `war resolve` answer
                 // from the same tracked inputs and a fresh clone reproduces it.
-                let a = assess(repo, one)?;
+                let a = entry.assessment(repo)?.clone();
                 (
                     Some(a.checks),
                     a.would_resolve_satisfied,
@@ -194,25 +232,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             rung,
             roadmap,
             implements,
-            state: valid.then(|| {
-                let outcome = record
-                    .as_ref()
-                    .and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
-                // Recorded from the journal when one exists (OW-WAR-0031);
-                // derived from the records' shape otherwise, and labelled so.
-                crate::journal_cmd::load(&one.dir)
-                    .ok()
-                    .and_then(|j| crate::journal_cmd::recorded_state(&j, outcome))
-                    .unwrap_or_else(|| {
-                        if resolved {
-                            WarrantState::resolved_recorded(
-                                outcome.unwrap_or(openwarrant_core::CommonOutcome::None),
-                            )
-                        } else {
-                            WarrantState::draft(Provenance::Derived)
-                        }
-                    })
-            }),
+            state: valid.then(|| warrant_state(&one.dir, record.as_ref(), resolved)),
             unmet: checks
                 .as_ref()
                 .map(|c| c.unmet().into_iter().map(str::to_owned).collect())
@@ -282,14 +302,11 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     // OW-ADR-0023: the roadmap record owns the phases when the program has
     // one. Without it, §98 from the SAS as it stands, and the compiled-in
     // table as the fallback for a repository whose document cannot be read.
-    let roadmap = crate::roadmap_cmd::load(repo).ok().flatten();
-    let prefix = roadmap
-        .as_ref()
-        .map_or(prefix, |r| r.manifest.prefix.clone());
+    let roadmap = corpus.roadmap().ok().flatten();
+    let prefix = roadmap.map_or(prefix, |r| r.manifest.prefix.clone());
     // A signed Warrant that names no phase may be placed by the record
     // (`[[placement]]`), pending its next amendment: read as its first ref.
     let placed: BTreeMap<String, RoadmapRef> = roadmap
-        .as_ref()
         .map(|r| {
             r.manifest
                 .placements
@@ -312,7 +329,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             .cloned()
             .or_else(|| placed.get(&w.alias).cloned())
     };
-    let phases: Vec<(u8, String, Option<String>)> = match roadmap.as_ref() {
+    let phases: Vec<(u8, String, Option<String>)> = match roadmap {
         Some(r) => r
             .phases
             .phases
@@ -888,27 +905,42 @@ pub fn render_review(r: &openwarrant_core::status::ReviewView) -> String {
 
 /// The Markdown projection, with its path.
 pub fn corpus_status_md(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
-    let status = build(repo)?;
+    corpus_status_md_with(&Corpus::new(repo))
+}
+
+/// [`corpus_status_md`] over a corpus already loaded.
+pub fn corpus_status_md_with(corpus: &Corpus) -> Result<(Utf8PathBuf, String), RepoError> {
+    let status = corpus.status()?;
     Ok((
-        repo.corpus_status_md_path(),
-        openwarrant_compiler::render_corpus_status(&status),
+        corpus.repo().corpus_status_md_path(),
+        openwarrant_compiler::render_corpus_status(status),
     ))
 }
 
 /// The canonical JSON projection, with its path.
 pub fn corpus_status_json(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
-    let status = build(repo)?;
-    let json = openwarrant_compiler::corpus_status_json(&status).map_err(|e| {
+    corpus_status_json_with(&Corpus::new(repo))
+}
+
+/// [`corpus_status_json`] over a corpus already loaded.
+pub fn corpus_status_json_with(corpus: &Corpus) -> Result<(Utf8PathBuf, String), RepoError> {
+    let json = openwarrant_compiler::corpus_status_json(corpus.status()?).map_err(|e| {
         RepoError::Message(format!("could not canonicalize the corpus status: {e}"))
     })?;
-    Ok((repo.corpus_status_json_path(), json + "\n"))
+    Ok((corpus.repo().corpus_status_json_path(), json + "\n"))
 }
 
 /// The page, with its path. Built from the same canonical JSON the agent
 /// reads, so the three files cannot disagree.
 pub fn corpus_status_html(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
-    let status = build(repo)?;
-    let json = openwarrant_compiler::corpus_status_json(&status).map_err(|e| {
+    corpus_status_html_with(&Corpus::new(repo))
+}
+
+/// [`corpus_status_html`] over a corpus already loaded.
+pub fn corpus_status_html_with(corpus: &Corpus) -> Result<(Utf8PathBuf, String), RepoError> {
+    let repo = corpus.repo();
+    let status = corpus.status()?;
+    let json = openwarrant_compiler::corpus_status_json(status).map_err(|e| {
         RepoError::Message(format!("could not canonicalize the corpus status: {e}"))
     })?;
     // The platform inlines the sibling projections; a failure to build one
@@ -924,16 +956,16 @@ pub fn corpus_status_html(repo: &Repository) -> Result<(Utf8PathBuf, String), Re
     };
     let timeline = sibling(
         "CORPUS_TIMELINE.json",
-        crate::timeline::corpus_timeline_json(repo),
+        crate::timeline::corpus_timeline_json_with(corpus),
     );
     let pending = sibling(
         "CORPUS_PENDING.json",
-        crate::timeline::corpus_pending_json(repo),
+        crate::timeline::corpus_pending_json_with(corpus),
     );
     Ok((
         repo.corpus_status_html_path(),
         openwarrant_compiler::render_corpus_status_platform(
-            &status,
+            status,
             &json,
             timeline.as_deref(),
             pending.as_deref(),

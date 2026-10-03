@@ -293,6 +293,13 @@ fn ownership_of<'a>(
 }
 
 pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
+    pending_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`pending`] over a corpus already loaded: each Warrant's load, lowered
+/// contract and assessment are the corpus's.
+pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, RepoError> {
+    let repo = corpus.repo();
     // Loaded once, up front, and NOT swallowed. Every per-Warrant request
     // below reads the register, and their errors are skipped so one broken
     // Warrant does not hide the rest — which meant a broken register (a
@@ -306,19 +313,20 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
     // The ownership index, built on the first correction request and shared
     // by the rest (`correct::request_with`).
     let ownership = std::cell::OnceCell::new();
-    let mut dirs = repo.warrant_dirs()?;
-    dirs.sort();
-    for dir in dirs {
+    let mut entries: Vec<&crate::corpus::Entry> = corpus.entries()?.iter().collect();
+    entries.sort_by(|a, b| a.dir.cmp(&b.dir));
+    for entry in entries {
+        let dir = entry.dir.clone();
         let Some(alias) = dir.file_name().map(str::to_owned) else {
             continue;
         };
-        let Ok(one) = repo.load_warrant(&dir) else {
+        let Some(one) = entry.ok() else {
             continue;
         };
         if one.validated.is_none() || one.basis.is_none() {
             continue;
         }
-        let Ok(request) = authorize::request(repo, &alias) else {
+        let Ok(request) = authorize::request_for(repo, &alias, one, entry.ir().ok()) else {
             continue;
         };
         let authorization = repo.load_authorization(&dir)?;
@@ -382,7 +390,10 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             )
             .is_signed();
             if !signed
-                && let Ok(mut request) = resolution_cmd::request(repo, &alias)
+                && let Ok(mut request) =
+                    resolution_cmd::request_for(repo, &alias, one, entry.ir().ok(), &|| {
+                        entry.assessment(repo).cloned()
+                    })
                 && request.contract_digest == existing.resolution.contract_digest
             {
                 let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
@@ -488,7 +499,11 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             }
             continue;
         }
-        let Ok(mut request) = resolution_cmd::request(repo, &alias) else {
+        let Ok(mut request) =
+            resolution_cmd::request_for(repo, &alias, one, entry.ir().ok(), &|| {
+                entry.assessment(repo).cloned()
+            })
+        else {
             continue;
         };
         if request.requirements_met {

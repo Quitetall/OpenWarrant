@@ -25,7 +25,10 @@
 //! carries UNKNOWN `question.no-responder` naming `roles.toml`: neither
 //! waiting normally nor answered (Law 15).
 
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
+
+use camino::{Utf8Path, Utf8PathBuf};
 
 use serde::Serialize;
 
@@ -137,16 +140,62 @@ fn stage_events(dir: &camino::Utf8Path) -> Result<(BTreeSet<String>, BTreeSet<St
 
 /// The frontier of one Warrant, or of every unresolved Warrant.
 pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier), RepoError> {
-    let mut report = Report::default();
-    let dirs = match alias {
+    match alias {
+        // One Warrant: read that one, not the corpus.
+        Some(a) => {
+            let dir = repo.warrant_dir(a)?;
+            frontier_of(
+                repo,
+                vec![dir],
+                &|dir| repo.load_warrant(dir).map(Cow::Owned),
+                &|one| crate::resolve::assess(repo, one).map(|a| a.established),
+            )
+        }
+        None => run_with(&crate::corpus::Corpus::new(repo), None),
+    }
+}
+
+/// [`run`] over a corpus already loaded: each Warrant's assessment is the
+/// corpus's, the same one `war status` reads.
+pub fn run_with(
+    corpus: &crate::corpus::Corpus,
+    alias: Option<&str>,
+) -> Result<(Report, Frontier), RepoError> {
+    let repo = corpus.repo();
+    let dirs: Vec<Utf8PathBuf> = match alias {
         Some(a) => vec![repo.warrant_dir(a)?],
-        None => repo.warrant_dirs()?,
+        None => corpus.entries()?.iter().map(|e| e.dir.clone()).collect(),
     };
+    frontier_of(
+        repo,
+        dirs,
+        &|dir| match corpus.entry_at(dir) {
+            Some(e) => e.loaded().map(Cow::Borrowed),
+            None => repo.load_warrant(dir).map(Cow::Owned),
+        },
+        &|one| match corpus.entry_at(&one.dir) {
+            Some(e) => e.assessment(repo).map(|a| a.established.clone()),
+            None => crate::resolve::assess(repo, one).map(|a| a.established),
+        },
+    )
+}
+
+type LoadFn<'a> = dyn Fn(&Utf8Path) -> Result<Cow<'a, crate::repo::Loaded>, RepoError> + 'a;
+type EstablishedFn<'a> = dyn Fn(&crate::repo::Loaded) -> Result<Vec<String>, RepoError> + 'a;
+
+fn frontier_of<'a>(
+    repo: &Repository,
+    dirs: Vec<Utf8PathBuf>,
+    load: &LoadFn<'a>,
+    established_of: &EstablishedFn<'a>,
+) -> Result<(Report, Frontier), RepoError> {
+    let mut report = Report::default();
     let mut rows = Vec::new();
     // Read once, and only if a blocking question needs it.
     let mut responder: Option<Result<bool, String>> = None;
     for dir in dirs {
-        let one = repo.load_warrant(&dir)?;
+        let one = load(&dir)?;
+        let one: &crate::repo::Loaded = &one;
         let alias = dir.file_name().unwrap_or_default().to_owned();
         if repo.load_resolution(&dir)?.is_some() {
             continue;
@@ -173,10 +222,7 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
         };
         let graph = openwarrant_core::milestones::parse(&text)
             .map_err(|e| RepoError::Message(format!("{alias}: invalid milestones: {e}")))?;
-        let established: BTreeSet<String> = crate::resolve::assess(repo, &one)?
-            .established
-            .into_iter()
-            .collect();
+        let established: BTreeSet<String> = established_of(one)?.into_iter().collect();
         let complete: BTreeMap<&str, bool> = graph
             .milestones
             .iter()

@@ -204,14 +204,35 @@ pub struct JudgmentRecord {
 pub fn request(repo: &Repository, alias: &str) -> Result<AuthorizationRequest, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
+    request_for(repo, alias, &one, None)
+}
+
+/// [`request`] for a Warrant already loaded, with its contract already
+/// lowered when the caller holds it (`corpus::Entry::ir`). `None` lowers it
+/// here, so a contract that does not compile is refused in the same words.
+pub fn request_for(
+    repo: &Repository,
+    alias: &str,
+    one: &crate::repo::Loaded,
+    lowered: Option<&openwarrant_compiler::WarIr>,
+) -> Result<AuthorizationRequest, RepoError> {
+    let dir = one.dir.clone();
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
         return Err(RepoError::Message(format!(
             "{alias}: the manifest did not validate, so there is no contract to authorize"
         )));
     };
 
-    let ir = lower(basis, validated)
-        .map_err(|e| RepoError::Message(format!("{alias}: could not compile contract: {e}")))?;
+    let owned;
+    let ir = match lowered {
+        Some(ir) => ir,
+        None => {
+            owned = lower(basis, validated).map_err(|e| {
+                RepoError::Message(format!("{alias}: could not compile contract: {e}"))
+            })?;
+            &owned
+        }
+    };
     let contract_digest = ir
         .contract_digest()
         .map_err(|e| RepoError::Message(format!("{alias}: could not digest contract: {e}")))?;

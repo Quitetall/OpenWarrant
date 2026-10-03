@@ -197,14 +197,26 @@ struct Bound {
     artifact_manifest_digest: String,
 }
 
-fn bind(alias: &str, one: &crate::repo::Loaded) -> Result<Bound, RepoError> {
+fn bind(
+    alias: &str,
+    one: &crate::repo::Loaded,
+    lowered: Option<&openwarrant_compiler::WarIr>,
+) -> Result<Bound, RepoError> {
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
         return Err(RepoError::Message(format!(
             "{alias}: the manifest did not validate, so there is no contract to resolve"
         )));
     };
-    let ir = openwarrant_compiler::lower(basis, validated)
-        .map_err(|e| RepoError::Message(format!("{alias}: could not compile contract: {e}")))?;
+    let owned;
+    let ir = match lowered {
+        Some(ir) => ir,
+        None => {
+            owned = openwarrant_compiler::lower(basis, validated).map_err(|e| {
+                RepoError::Message(format!("{alias}: could not compile contract: {e}"))
+            })?;
+            &owned
+        }
+    };
     let contract_digest = ir
         .contract_digest()
         .map_err(|e| RepoError::Message(format!("{alias}: could not digest contract: {e}")))?;
@@ -250,8 +262,23 @@ fn bind(alias: &str, one: &crate::repo::Loaded) -> Result<Bound, RepoError> {
 pub fn request(repo: &Repository, alias: &str) -> Result<ResolutionRequest, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
-    let bound = bind(alias, &one)?;
-    let a = assess(repo, &one)?;
+    request_for(repo, alias, &one, None, &|| assess(repo, &one))
+}
+
+/// [`request`] for a Warrant already loaded, with its lowered contract and
+/// its assessment from the caller when it holds them (the corpus). The
+/// contract is bound before the assessment is asked for, as before, so the
+/// first refusal is the same one.
+pub fn request_for(
+    repo: &Repository,
+    alias: &str,
+    one: &crate::repo::Loaded,
+    lowered: Option<&openwarrant_compiler::WarIr>,
+    assessment: &dyn Fn() -> Result<crate::resolve::Assessment, RepoError>,
+) -> Result<ResolutionRequest, RepoError> {
+    let dir = one.dir.clone();
+    let bound = bind(alias, one, lowered)?;
+    let a = assessment()?;
     let register = repo.load_authority_register()?;
     let performer = repo.performer();
     let declared = declared_obligations(&one);
@@ -491,7 +518,7 @@ pub fn ingest_with(
         return Ok(report);
     }
     let one = repo.load_warrant(&dir)?;
-    let bound = bind(alias, &one)?;
+    let bound = bind(alias, &one, None)?;
     if response.contract_digest != bound.contract_digest {
         refuse(
             &mut report,

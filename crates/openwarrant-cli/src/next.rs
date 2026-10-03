@@ -382,28 +382,27 @@ fn is_question(id: &str) -> bool {
 }
 
 pub fn run(repo: &Repository) -> Result<Next, RepoError> {
-    let status = crate::status::build(repo)?;
-    run_with(repo, &status)
+    run_with(&crate::corpus::Corpus::new(repo))
 }
 
-/// [`run`] over a corpus status already built, so a caller that also needs
-/// the status (`war compile`'s master document) builds it once.
-pub fn run_with(
-    repo: &Repository,
-    status: &openwarrant_core::status::CorpusStatus,
-) -> Result<Next, RepoError> {
-    let pending = sign::pending(repo)?;
-    let mut next = derive(&pending, status);
-    let (report, frontier) = crate::frontier::run(repo, None)?;
-    apply_questions(&mut next, &frontier, &report);
+/// [`run`] over a corpus already loaded, so a caller that also needs the
+/// status, the sign queue or the frontier (`war compile`'s master document,
+/// the web UI) builds each once.
+pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
+    let repo = corpus.repo();
+    let status = corpus.status()?;
+    let pending = corpus.pending()?;
+    let mut next = derive(pending, status);
+    let (report, frontier) = corpus.frontier()?;
+    apply_questions(&mut next, frontier, report);
     // OW-WAR-0141: a question waiting before its Warrant exists is a human's
     // act too (`answer`), read from `docs/intake/` by questions.rs.
     next.actions.extend(crate::questions::intake_actions(repo));
     if !next.actions.is_empty() {
         next.nothing = None;
     }
-    judge(repo, &pending, &mut next);
-    ready_tickets(repo, &mut next);
+    judge(repo, pending, &mut next);
+    ready_tickets_with(corpus, &mut next);
     Ok(next)
 }
 
@@ -416,6 +415,19 @@ pub fn ready_tickets(repo: &Repository, next: &mut Next) {
         let (tickets, _faults) = store.load_all()?;
         crate::ticket::ready_rows(&store, &tickets)
     });
+    ready_rows_into(rows, next);
+}
+
+/// [`ready_tickets`] over the corpus's tickets.
+pub fn ready_tickets_with(corpus: &crate::corpus::Corpus, next: &mut Next) {
+    let rows = crate::ticket::Store::open(corpus.repo(), None).and_then(|store| {
+        let (tickets, _faults) = corpus.tickets()?;
+        crate::ticket::ready_rows(&store, tickets)
+    });
+    ready_rows_into(rows, next);
+}
+
+fn ready_rows_into(rows: Result<Vec<crate::ticket::ReadyRow>, RepoError>, next: &mut Next) {
     match rows {
         Ok(rows) => next.ready = rows.iter().map(ReadyItem::of).collect(),
         Err(e) => next.findings.push(Finding {

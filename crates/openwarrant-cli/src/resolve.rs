@@ -733,6 +733,27 @@ pub fn assess_with(
     one: &crate::repo::Loaded,
     evidence: &[crate::evidence::GateEvidence],
 ) -> Result<Assessment, RepoError> {
+    // The digest the Warrant compiles to right now, which requirement 1 compares
+    // the signature against. A Warrant that will not compile yields `None`, and
+    // requirement 1 is then unanswerable rather than satisfied.
+    let current_contract_digest = match (&one.basis, &one.validated) {
+        (Some(basis), Some(validated)) => openwarrant_compiler::lower(basis, validated)
+            .ok()
+            .and_then(|ir| ir.contract_digest().ok()),
+        _ => None,
+    };
+    assess_with_digest(repo, one, evidence, current_contract_digest)
+}
+
+/// [`assess_with`], given the digest the Warrant compiles to now — computed
+/// once by the corpus (`corpus::Entry::contract_digest`) rather than per
+/// caller. `None` exactly when `lower` or the digest fails.
+pub fn assess_with_digest(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    evidence: &[crate::evidence::GateEvidence],
+    current_contract_digest: Option<String>,
+) -> Result<Assessment, RepoError> {
     let dir = &one.dir;
     let verifications = repo.load_verifications(dir)?;
     let deliverables = repo.load_deliverables(dir)?;
@@ -749,15 +770,6 @@ pub fn assess_with(
     let authorization = repo.load_authorization(dir)?;
     let judgments = repo.load_judgments(dir)?;
     let assumptions = repo.load_rationale(dir)?;
-    // The digest the Warrant compiles to right now, which requirement 1 compares
-    // the signature against. A Warrant that will not compile yields `None`, and
-    // requirement 1 is then unanswerable rather than satisfied.
-    let current_contract_digest = match (&one.basis, &one.validated) {
-        (Some(basis), Some(validated)) => openwarrant_compiler::lower(basis, validated)
-            .ok()
-            .and_then(|ir| ir.contract_digest().ok()),
-        _ => None,
-    };
     let authority = Authority {
         register: &register,
         authorization: authorization.as_ref(),
