@@ -1,7 +1,7 @@
 # Checklist
 
-- [ ] capabilities in profile data with prerequisites and core defaults (i-d2fb)
-- [ ] every per-kind behaviour reads capabilities; decision Warrants can resolve (i-e4a0)
-- [ ] outcome word, falsifiability, standing coverage, promotion target as profile data (i-5506)
-- [ ] profile_digest pin and profile.pin-drift (i-2f65)
-- [ ] 73-capabilities.sh, differential still byte-identical (i-6d19)
+- [x] capabilities in profile data with prerequisites and core defaults (i-d2fb) — done by claude, 2026-10-03: role.rs: Capability closed set + prerequisites (profile.capability-prerequisite/-unknown/profile.capabilities); core defaults delivery=all, decision=all but stages, working form=structure,links,claims; core files restate, extensions narrow never widen; profiles/*.toml state them
+- [x] every per-kind behaviour reads capabilities; decision Warrants can resolve (i-e4a0) — done by claude, 2026-10-03: check_one families, resolve::evaluate (not_applicable named, false, never met), next::derive, WarrantRung::derive, authorize/verify/resolve/sign/evidence refuse capability.absent, roadmap.unassigned needs links; OW-WAR-0071 req 12 now not applicable
+- [x] outcome word, falsifiability, standing coverage, promotion target as profile data (i-5506) — done by claude, 2026-10-03: satisfied_outcome (sign.rs), falsifiable_claims (resolution_cmd.rs; old experiment/feasibility name match dropped), standing_coverage (standing.rs parse_in/validate_in, new ProfileNotCoverable keeps rule standing.profile), promotion target from extends (ticket/mod.rs)
+- [x] profile_digest pin and profile.pin-drift (i-2f65) — done by claude, 2026-10-03: manifest profile_digest (optional, skip if none); war new writes profile file sha256 when profiles/<name>.toml exists; profile.pinned / profile.pin-drift warn unsigned, error authorized; schema pack additive, 0.2.0
+- [x] 73-capabilities.sh, differential still byte-identical (i-6d19) — done by claude, 2026-10-03: 73-capabilities.sh 14/14 alone; differential 8 cmds x debug+release: scale-1000 byte-identical, base corpus differs only on OW-WAR-0071 (capability.not-applicable line, req 12 not_applicable); budget within; battery 1298/1 (56-sas-sections 'citations current' fails pre-existing at 01e447ea from SAS 1.3.0)
