@@ -3442,9 +3442,30 @@ fixed by this ADR. A later change to any of them is a new ADR.
 Proposed by the performer under OW-WAR-0148. It governs nothing until the
 owner accepts it.
 
-Whether OpenWarrant may own document semantics at all is that Warrant's
-Q-001 (SAS RQ-061 and RQ-064). Under answer (B), this ADR is narrowed to a
-projection layer beside Liminal, and the options below stay as the record.
+The owner answered that Warrant's Q-001 on 2026-10-02 with (A), refined:
+
+- Liminal owns the generic document substrate: Nodes, Relations, Workspace
+  Basis, Jurisdiction, Holders, synchronization, repair and projection
+  machinery.
+- OpenWarrant owns the WAR domain, as a Liminal-compatible schema and
+  projection layer, together with the code that implements it.
+- Liminal runs OpenWarrant's code, as a plugin or through `oh.war/liminal-v1`,
+  and does not re-implement it.
+
+This is carried by OpenWarrant SAS 1.3.0 (RQ-061, RQ-064, Law 24, §11.3,
+§82) and Liminal SAS 0.1.0-proposed.2 (§100). Both are proposed, and neither
+is in force until the owner accepts it.
+
+## Liminal mapping
+
+The model is shaped so that it exports to Liminal without translation:
+
+| OpenWarrant | Liminal |
+|---|---|
+| record | Node |
+| relation | Relation |
+| record revision | a member of a Workspace Basis |
+| who governs a record | Jurisdiction |
 
 ## Context
 
