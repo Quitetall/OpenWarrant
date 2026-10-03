@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 144 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-02.
+Everything this repository has recorded, current or not: 144 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-03.
 
 ## Lineage
 
@@ -36,6 +36,7 @@ Everything this repository has recorded, current or not: 144 subject(s), their l
 | 2026-09-26 | 249 | dispatch.compiled 32, submission.recorded 32, sync.receipt_attached 183, verification.recorded 2 |
 | 2026-09-27 | 1437 | dispatch.compiled 13, submission.recorded 13, sync.receipt_attached 295, verification.recorded 1116 |
 | 2026-10-02 | 2 | draft.created 1, question.asked 1 |
+| 2026-10-03 | 3 | attestation.recorded 1, authorization.recorded 1, question.answered 1 |
 
 ## Roadmap revisions
 
@@ -25812,7 +25813,7 @@ the app shows a `human` remedy and stops.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | OW-ADR-0021, the ownership decision | `docs/adr/atoms/OW-ADR-0021-pin-ownership.md` | verified |
-| D-002 | The SAS text: RQ-036 retitled, RQ-037, §37.5, §28.4, §56.2 | `docs/sas/WAR_Software_Architecture_Specification.md` | verified |
+| D-002 | The SAS text: RQ-036 retitled, RQ-037, §37.5, §28.4, §56.2 | `docs/sas/WAR_Software_Architecture_Specification.md` | drift |
 | D-003 | OW-WAR-0071 re-targeted to 1.2.0 | `docs/warrants/OW-WAR-0071/amendments/AM-001.yaml` | verified |
 | D-004 | The ownership index | `crates/openwarrant-cli/src/ownership.rs` | verified |
 | D-005 | Authorization records the declared set | `crates/openwarrant-cli/src/authorize.rs` | verified |
@@ -27113,7 +27114,7 @@ assert it with.
 | D-021 | compiler: the Roadmap section of CURRENT.md | `crates/openwarrant-compiler/src/current.rs` | verified |
 | D-022 | schema: oh.war/roadmap/v1 | `schemas/oh.war/roadmap/v1.json` | verified |
 | D-023 | schema pack | `schemas/pack.json` | verified |
-| D-024 | The SAS: §98 points at the record | `docs/sas/WAR_Software_Architecture_Specification.md` | verified |
+| D-024 | The SAS: §98 points at the record | `docs/sas/WAR_Software_Architecture_Specification.md` | drift |
 | D-025 | PRODUCTION_ROADMAP.md retired to lineage | `docs/roadmap/PRODUCTION_ROADMAP.md` | verified |
 | D-026 | view.json retired | `docs/roadmap/view.json` | verified |
 | D-027 | rc2 plan retired | `docs/design/rc2-implementation-roadmap.json` | verified |
@@ -37743,7 +37744,7 @@ once, at acceptance, after the blind verifier.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | OW-ADR-0029, the standing-authorization decision | `docs/adr/atoms/OW-ADR-0029-standing-authorization.md` | verified |
-| D-002 | SAS 1.2.0: §28.8, the §37.5 clause, one §106 row (A only) | `docs/sas/WAR_Software_Architecture_Specification.md` | verified |
+| D-002 | SAS 1.2.0: §28.8, the §37.5 clause, one §106 row (A only) | `docs/sas/WAR_Software_Architecture_Specification.md` | drift |
 | D-003 | core: the class and the coverage check | `crates/openwarrant-core/src/standing.rs` | verified |
 | D-004 | core: module list | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
 | D-005 | schema: oh.war/standing-authorization/v1 | `schemas/oh.war/standing-authorization/v1.json` | verified |
@@ -39453,9 +39454,9 @@ the working form is what keeps the contract corpus unchanged.
 
 ### OW-WAR-0148 — Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel
 
-[manifest](../../docs/warrants/OW-WAR-0148/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0148/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0148/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`14127f58e7867f4a7bd424a34689238325a8658b09aa819030a069eada32c231`), Basis SAS 1.1.1.
 
 #### Intent — [docs/warrants/OW-WAR-0148/atoms/10-intent.md](../../docs/warrants/OW-WAR-0148/atoms/10-intent.md)
 

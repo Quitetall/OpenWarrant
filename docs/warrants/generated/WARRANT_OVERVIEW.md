@@ -154,7 +154,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0145](docs/warrants/OW-WAR-0145/manifest.toml) | The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0146](docs/warrants/OW-WAR-0146/manifest.toml) | A verification bundle carries what each gate printed, so a blind verifier can see the evidence | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0147](docs/warrants/OW-WAR-0147/manifest.toml) | Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | `draft` | `current` | `valid` | `basic` | 2M / 3S |
-| [OW-WAR-0148](docs/warrants/OW-WAR-0148/manifest.toml) | Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | `draft` | `current` | `valid` | `basic` | 5M / 5S |
+| [OW-WAR-0148](docs/warrants/OW-WAR-0148/manifest.toml) | Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | `authorized` | `current` | `valid` | `basic` | 5M / 5S |
 
 ## Claimed SAS requirement coverage
 
