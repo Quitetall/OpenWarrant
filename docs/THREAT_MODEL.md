@@ -186,6 +186,15 @@ control storage. This draft grants no authority and qualifies no live Warrant.
 
 ### Experimental stored-review boundary (OW-ADR-0030)
 
+Unsupported stored verification formats cannot supply current assurance. The
+shared SDK decoder keeps an unsupported schema distinct from malformed supported
+data. Repository observation reports the unsupported schema as `UNKNOWN`; packet
+assembly refuses to silently omit it, and document review retains that diagnostic
+instead of claiming the review is absent. Malformed supported records remain
+errors. Public CLI controls in `verification_subject_cli.rs` exercise future
+versus malformed formats, unchanged records/journal, exact-byte restoration and
+document review. These controls neither authenticate a verdict nor adopt v2.
+
 The installed older alpha.2 executable ignores the minimum-reader configuration
 and counts changed bare verification records as established. The public CLI
 downgrade probe preserves the exact executable hashes and reproduces that

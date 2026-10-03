@@ -1211,6 +1211,122 @@ fn unsupported_future_response_is_unknown_and_v2_missing_bindings_is_invalid() {
 }
 
 #[test]
+fn unsupported_stored_record_is_unknown_while_malformed_supported_record_is_an_error() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let ingested = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(ingested["exit_code"], 0, "{ingested}");
+    let path = fixture
+        .0
+        .join("docs/warrants/IX-WAR-0003/verifications/OBL-001.toml");
+    let original = fs::read(&path).unwrap();
+    let journal_path = fixture.0.join("docs/warrants/IX-WAR-0003/journal.jsonl");
+    let journal = fs::read(&journal_path).unwrap();
+    let baseline = fixture.run(&["resolve", "--dry-run", "IX-WAR-0003", "--json"]);
+
+    fs::write(&path, "schema = \"oh.war/verification/v77\"\n").unwrap();
+    for args in [
+        vec!["resolve", "--dry-run", "IX-WAR-0003", "--json"],
+        vec!["status", "--json"],
+        vec![
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--bundle",
+            "--json",
+        ],
+    ] {
+        let report = fixture.run(&args);
+        assert_eq!(report["counts"]["error"], 0, "{report}");
+        assert_eq!(report["counts"]["unknown"], 1, "{report}");
+        assert!(
+            report["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.record-schema-unsupported"),
+            "{report}"
+        );
+    }
+    assert_eq!(fs::read(&journal_path).unwrap(), journal);
+    assert_eq!(
+        fs::read(&path).unwrap(),
+        b"schema = \"oh.war/verification/v77\"\n"
+    );
+
+    fs::write(&path, "schema = \"oh.war/verification/v2\"\n").unwrap();
+    let malformed = fixture.run(&["resolve", "--dry-run", "IX-WAR-0003", "--json"]);
+    assert!(
+        malformed["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verification.malformed" && d["severity"] == "error"),
+        "{malformed}"
+    );
+    fs::write(&path, original).unwrap();
+    let restored = fixture.run(&["resolve", "--dry-run", "IX-WAR-0003", "--json"]);
+    assert_eq!(
+        restored, baseline,
+        "restoring exact bytes must restore the observation"
+    );
+    assert_eq!(fs::read(&journal_path).unwrap(), journal);
+}
+
+#[test]
+fn document_review_reports_an_unsupported_record_instead_of_an_absent_review() {
+    let fixture = Fixture::new();
+    let dir = fixture.0.join("docs/warrants/IX-WAR-0003");
+    fs::create_dir_all(dir.join("verifications")).unwrap();
+    fs::write(
+        dir.join("verifications/OBL-001.toml"),
+        "schema = \"oh.war/verification/v77\"\n",
+    )
+    .unwrap();
+    fs::write(
+        fixture.0.join("review.md"),
+        "# Fixture document\n\nSynthetic data only.\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("deliverables.toml"),
+        r#"schema = "oh.war/deliverables/v1"
+[[deliverable]]
+id = "D-001"
+title = "Fixture document"
+kind = "document"
+target_ref = "review.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+"#,
+    )
+    .unwrap();
+    let report = fixture.run(&["document", "review", "IX-WAR-0003", "--json"]);
+    let diagnostics = report["diagnostics"].as_array().unwrap();
+    assert!(
+        diagnostics
+            .iter()
+            .any(|d| d["rule"] == "verify.record-schema-unsupported" && d["severity"] == "unknown"),
+        "{report}"
+    );
+    assert!(
+        !diagnostics
+            .iter()
+            .any(|d| d["rule"] == "document.review-absent"),
+        "{report}"
+    );
+}
+
+#[test]
 fn emitting_again_never_replaces_a_retained_packet_with_different_bytes() {
     let fixture = Fixture::new();
     fixture.bound_response();

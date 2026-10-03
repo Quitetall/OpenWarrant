@@ -768,10 +768,9 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
                 .collect()
         })
         .unwrap_or_default();
-    let prior = repo
-        .load_verifications(&dir)
-        .map(|v| v.records)
-        .unwrap_or_default();
+    // An unsupported stored format is an unavailable observation, not an
+    // empty review history that may be silently omitted from the packet.
+    let prior = repo.load_verifications(&dir)?.records;
     let mut heads = vec![alias.to_owned()];
     for f in &files {
         if !f.record.target_ref.starts_with("conformance/") {

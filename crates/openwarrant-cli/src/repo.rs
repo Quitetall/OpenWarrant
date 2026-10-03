@@ -1001,6 +1001,12 @@ impl Repository {
             })?;
             match crate::verify::record::decode(&text) {
                 Ok(v) => records.push(v.verification),
+                Err(openwarrant_core::verification_record::VerificationRecordError::UnsupportedSchema { schema }) => {
+                    return Err(RepoError::ObservationUnavailable {
+                        rule: "verify.record-schema-unsupported",
+                        message: format!("{relative}: unsupported verification record schema {schema:?}; this reader cannot assess it and no verdict from it counts toward assurance"),
+                    });
+                }
                 Err(e) => failures.push((relative, e.to_string())),
             }
         }
