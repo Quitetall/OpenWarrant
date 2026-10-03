@@ -74,7 +74,12 @@ pub(super) fn coverage(
                 }
             }
         } else if local.starts_with("verifications/") && local.ends_with(".toml") {
-            if text().and_then(crate::verify::record::decode).is_err() {
+            if text()
+                .and_then(|text| {
+                    crate::verify::record::decode(text).map_err(|error| error.to_string())
+                })
+                .is_err()
+            {
                 assurance_gaps.insert(format!("{path}: unreadable verification record"));
             }
         } else if local == "resolution.toml" {

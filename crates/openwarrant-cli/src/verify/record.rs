@@ -17,9 +17,11 @@ pub(crate) fn new(
     }
 }
 
-pub(crate) fn decode(text: &str) -> Result<StoredVerification, String> {
+pub(crate) fn decode(
+    text: &str,
+) -> Result<StoredVerification, openwarrant_core::verification_record::VerificationRecordError> {
     use openwarrant_core::verification_record::DecodedVerificationRecord;
-    match openwarrant_core::verification_record::decode(text).map_err(|error| error.to_string())? {
+    match openwarrant_core::verification_record::decode(text)? {
         DecodedVerificationRecord::V2(record) => Ok(*record),
         // The legacy CLI assessment reads one view. It never serializes this
         // unbound adapter value or promotes it to current qualification.
