@@ -14,3 +14,8 @@ asked_at = "2026-10-02T22:26:48Z"
 question = "SAS RQ-061 says Liminal owns document semantics and Basis, and RQ-064 says OpenWarrant does not duplicate those kernels. A standalone compiler owning typed document semantics contradicts both as written. (A) a SAS revision, proposed with OW-ADR-0031, moves document semantics for OpenWarrant's own records into its compiler, keeping Liminal's role for documents Liminal holds; or (B) this lands as a projection layer beside Liminal and RQ-061/RQ-064 stand unchanged?"
 blocking = true
 recommended = "A"
+
+[answer]
+answered_by = "person://Brian Lam"
+answered_at = "2026-10-03T00:24:16Z"
+answer = "A"
