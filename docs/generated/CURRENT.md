@@ -16,7 +16,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 
 ## In force
 
-SAS revision **1.1.1** (accepted), sha256:`230e2829d80d11e4ccaf8f893205994ce16314ffe4cd30b2d4d398614133f12e` — [document](../../docs/sas/WAR_Software_Architecture_Specification.md), [revision record](../../docs/sas/revisions/1.1.1.toml).
+SAS revision **1.3.0** (accepted), sha256:`97c69198140b6312e0f4da4b19a5cd16a87ea288ce83fbc66cacaca4612bfd92` — [document](../../docs/sas/WAR_Software_Architecture_Specification.md), [revision record](../../docs/sas/revisions/1.3.0.toml); accepted under OW-ADR-0031.
 
 531 normative statement(s), each with its section. The statement is what binds; the section is where the reasoning lives.
 
@@ -37184,7 +37184,7 @@ once, at acceptance, after the blind verifier.
 | D-024 | cli: the pack's new member | `crates/openwarrant-cli/src/schemas.rs` | drift |
 | D-025 | schema: the TypeScript projection of the class | `schemas/typescript/standing-authorization.ts` | verified |
 | D-026 | schema: the TypeScript projection manifest | `schemas/typescript/manifest.json` | drift |
-| D-027 | SAS 1.2.0: the proposed revision record (A only) | `docs/sas/revisions/1.2.0.toml` | verified |
+| D-027 | SAS 1.2.0: the proposed revision record (A only) | `docs/sas/revisions/1.2.0.toml` | drift |
 
 #### OW-WAR-0143 — war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version
 
@@ -38839,5 +38839,3 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0145 | `war sign OW-WAR-0145` | would record | revision 2 awaits authorization under AM-001-57c5 |
 | authorize | OW-WAR-0146 | `war sign OW-WAR-0146` | would record | revision 2 awaits authorization under AM-001-4610 |
 | authorize | OW-WAR-0147 | `war sign OW-WAR-0147` | would record | revision 1 awaits authorization |
-| accept | SAS 1.2.0 | `war sign 1.2.0` | would refuse: sign.needs-decision | a proposed SAS revision awaits acceptance |
-| accept | SAS 1.3.0 | `war sign 1.3.0` | would refuse: sign.needs-decision | a proposed SAS revision awaits acceptance |

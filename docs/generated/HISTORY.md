@@ -37790,7 +37790,7 @@ once, at acceptance, after the blind verifier.
 | D-024 | cli: the pack's new member | `crates/openwarrant-cli/src/schemas.rs` | drift |
 | D-025 | schema: the TypeScript projection of the class | `schemas/typescript/standing-authorization.ts` | verified |
 | D-026 | schema: the TypeScript projection manifest | `schemas/typescript/manifest.json` | drift |
-| D-027 | SAS 1.2.0: the proposed revision record (A only) | `docs/sas/revisions/1.2.0.toml` | verified |
+| D-027 | SAS 1.2.0: the proposed revision record (A only) | `docs/sas/revisions/1.2.0.toml` | drift |
 
 ### OW-WAR-0143 — war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version
 

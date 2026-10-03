@@ -2,7 +2,7 @@ schema = "oh.war/sas-revision/v1"
 version = "1.3.0"
 source = "docs/sas/WAR_Software_Architecture_Specification.md"
 sha256 = "97c69198140b6312e0f4da4b19a5cd16a87ea288ce83fbc66cacaca4612bfd92"
-state = "proposed"
+state = "accepted"
 predecessor = "1.1.1"
 architecture_changing = true
 
@@ -70,3 +70,11 @@ WAR-SAS-RQ-082 = "Export includes contract, sources, receipts, assurance, resolu
 WAR-SAS-RQ-083 = "Export-import-export preserves semantic identity"
 WAR-SAS-RQ-084 = "Historical superseded, disputed, and annulled records remain available"
 WAR-SAS-RQ-085 = "Every ssh-signed act leaves an attestation a foreign verifier can check"
+
+[acceptance]
+accepted_by = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Accepting SAS revision 1.3.0 at this digest means the signer adopts it as the governing specification: 63 requirement(s), §106 diff against 1.1.1 of +1 −0 ~2. Every later Warrant traces to this revision until it is superseded. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-10-03T01:29:25Z"
+adr_ref = "OW-ADR-0031"
