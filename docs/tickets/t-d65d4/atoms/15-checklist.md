@@ -1,6 +1,6 @@
 # Checklist
 
-- [ ] record atoms with ids and per-record revisions (i-098e)
-- [ ] core and namespaced relation kinds, declared by profiles (i-6eea)
-- [ ] war impact (i-878d)
-- [ ] 74-records.sh (i-0052)
+- [x] record atoms with ids and per-record revisions (i-098e) — done by claude, 2026-10-03: core/record.rs: oh.war/records/v1; '## <ID> · <type>' opens a record (ID grammar: uppercase head then -alnum groups, <=64 bytes, unique per program); span = heading to next record heading/EOF, fence-aware per RC.2 F2, revision = sha256 of exact bytes; atoms live in docs/records/<area>/*.md with frontmatter schema+profile; example docs/records/password-reset/10-records.md; docs/TYPES.md
+- [x] core and namespaced relation kinds, declared by profiles (i-6eea) — done by claude, 2026-10-03: core/relation.rs: closed core kinds (6 structural + rationale edges), namespaced kinds carried and inert; profiles gain [records] types and [relations] allow/require (profile.records refusal); delivery.toml and ticket.toml declare theirs; records.rs refuses by rule; model Relation gains optional to_revision (additive, pack 0.2.0)
+- [x] war impact (i-878d) — done by claude, 2026-10-03: cli/impact.rs + war impact <record> [--json], oh.war/impact/v1: affected via incoming relations (namespaced listed, not walked), documents holding/naming, evaluations current/stale/unbound with verdict, phases, known projections (M6 adds declared ones); unknown id refused impact.unknown-record
+- [x] 74-records.sh (i-0052) — done by claude, 2026-10-03: conformance/plants.d/74-records.sh: 9 checks pass alone in a throwaway clone (parse, one-edit-one-revision, 6 refusals by rule, namespaced inert, unknown target diagnostic, verdict current then stale after REQ-pr1 change, impact names item/Warrant/OBL-001/phase/views, unknown id refused)
