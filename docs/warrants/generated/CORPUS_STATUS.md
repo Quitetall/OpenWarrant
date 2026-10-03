@@ -65,7 +65,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | requirement | Warrants blocked |
 |---|---|
 | every required gate has admissible result | 115 |
-| artifact digests verify | 93 |
+| artifact digests verify | 100 |
 | no blocker remains | 87 |
 | no required unknown remains | 87 |
 | required judgments exist | 56 |
@@ -155,7 +155,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | draft | NOT satisfied | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0002` Implement the file-native manifest and atom parser | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0003` Implement the canonical WAR IR and RFC 8785 digesting | draft | NOT satisfied | 0 | 0 of 4 | every required gate has admissible result |
-| `OW-WAR-0004` Implement the generated parent document and drift checking | draft | NOT satisfied | 0 | 1 of 3 | every required gate has admissible result |
+| `OW-WAR-0004` Implement the generated parent document and drift checking | draft | NOT satisfied | 0 | 1 of 3 | artifact digests verify |
 | `OW-WAR-0005` Implement deterministic war check and close the Phase 1 bootstrap | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0006` Complete ADR federation: relations, supersession, and currency | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
 | `OW-WAR-0007` Parse and validate milestones, stages, and named typed ports | draft | NOT satisfied | 0 | 2 of 4 | every required gate has admissible result |
@@ -210,7 +210,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | would satisfy | 0 | 1 of 1 | — |
 | `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | would satisfy | 0 | 1 of 1 | artifact digests verify |
-| `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | NOT satisfied | 0 | 0 of 1 | every required gate has admissible result |
+| `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | NOT satisfied | 0 | 0 of 1 | artifact digests verify |
 | `OW-WAR-0064` Repair a delivered artifact: the correction act for a resolved Warrant | draft | NOT satisfied | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0065` Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | draft | NOT satisfied | 0 | 0 of 1 | every required gate has admissible result |
 | `OW-WAR-0066` Run: the conformance battery as a service stage | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
@@ -266,15 +266,15 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | NOT satisfied | 0 | 2 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
-| `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
+| `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | would satisfy | 0 | 2 of 2 | artifact digests verify |
 | `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
-| `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
+| `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | would satisfy | 1 | 3 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | would satisfy | 1 | 3 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0124` Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | draft | NOT satisfied | 0 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | NOT satisfied | 0 | 2 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0126` Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | draft | unknown | 3 | 0 of 1 | exact authorized Contract Revision |
-| `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
@@ -291,7 +291,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0141` Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0142` Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | draft | NOT satisfied | 0 | 2 of 6 | exact authorized Contract Revision |
 | `OW-WAR-0143` war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | draft | would satisfy | 0 | 4 of 4 | artifact digests verify |
-| `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
+| `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | would satisfy | 0 | 2 of 2 | artifact digests verify |
 | `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | would satisfy | 0 | 1 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | would satisfy | 0 | 1 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | would satisfy | 0 | 2 of 2 | exact authorized Contract Revision |

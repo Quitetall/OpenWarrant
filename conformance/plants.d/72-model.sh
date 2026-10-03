@@ -90,8 +90,9 @@ else
 fi
 
 # Determinism: same tree, same bytes, same basis digest.
-MD_DA=$(sed -n 's/.*"basis_digest":"\(sha256:[0-9a-f]*\)".*/\1/p' "$MD_TMP/a.json")
-MD_DB=$(sed -n 's/.*"basis_digest":"\(sha256:[0-9a-f]*\)".*/\1/p' "$MD_TMP/b.json")
+md_basis() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["result"]["basis_digest"])' "$1" 2>/dev/null; }
+MD_DA=$(md_basis "$MD_TMP/a.json")
+MD_DB=$(md_basis "$MD_TMP/b.json")
 if [[ -s "$MD_TMP/a.json" ]] && cmp -s "$MD_TMP/a.json" "$MD_TMP/b.json" && [[ -n "$MD_DA" && "$MD_DA" == "$MD_DB" ]]; then
     md_ok "two runs are byte-identical" "basis $MD_DA"
 else

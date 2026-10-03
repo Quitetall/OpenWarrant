@@ -281,7 +281,7 @@ pub fn request_for(
     let a = assessment()?;
     let register = repo.load_authority_register()?;
     let performer = repo.performer();
-    let declared = declared_obligations(&one);
+    let declared = declared_obligations(one);
     let assumptions = repo.load_rationale(&dir)?;
     let context = PolicyResolutionContext {
         policy_allows: repo.config.policy.allow_automated_resolution,

@@ -172,9 +172,9 @@ pub fn board_with(corpus: &crate::corpus::Corpus) -> Result<Board, RepoError> {
         .map(|(_, f)| {
             f.rows
                 .iter()
+                .filter(|&r| r.state == crate::frontier::StageState::Open)
+                .filter(|&r| r.executor_kind != "human")
                 .cloned()
-                .filter(|r| r.state == crate::frontier::StageState::Open)
-                .filter(|r| r.executor_kind != "human")
                 .map(|r| Stage {
                     command: format!("war dispatch {} {}", r.warrant, r.stage),
                     warrant: r.warrant,

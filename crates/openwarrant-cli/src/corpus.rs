@@ -48,6 +48,9 @@ fn kept<T>(
         .map_err(|e| RepoError::Message(e.clone()))
 }
 
+/// Every readable ticket, and a diagnostic per unreadable one.
+pub type Tickets = (Vec<crate::ticket::Ticket>, Vec<Diagnostic>);
+
 /// One Warrant directory of the corpus.
 #[derive(Debug)]
 pub struct Entry {
@@ -130,7 +133,7 @@ pub struct Corpus {
     frontier: OnceLock<Result<(Report, crate::frontier::Frontier), String>>,
     ownership: OnceLock<Result<crate::ownership::Ownership, String>>,
     roadmap: OnceLock<Result<Option<crate::roadmap_cmd::Loaded>, String>>,
-    tickets: OnceLock<Result<(Vec<crate::ticket::Ticket>, Vec<Diagnostic>), String>>,
+    tickets: OnceLock<Result<Tickets, String>>,
     adrs: OnceLock<Result<AdrCorpus, String>>,
     sas_revisions: OnceLock<Result<Vec<openwarrant_core::SasRevision>, String>>,
 }
@@ -263,7 +266,7 @@ impl Corpus {
 
     /// Every readable ticket and a diagnostic per unreadable one
     /// (`ticket::Store::load_all`), once.
-    pub fn tickets(&self) -> Result<&(Vec<crate::ticket::Ticket>, Vec<Diagnostic>), RepoError> {
+    pub fn tickets(&self) -> Result<&Tickets, RepoError> {
         kept(&self.tickets, || {
             crate::ticket::Store::open(&self.repo, None)?.load_all()
         })
