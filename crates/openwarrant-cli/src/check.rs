@@ -284,6 +284,21 @@ pub fn run(
     // §101 — the SAS is a controlled document. The bytes on disk are held to
     // the latest recorded revision's digest. Until OW-WAR-0058 nothing in code
     // compared them: the digest appeared in six places, all prose.
+    // Reproducing the same lossy extraction is not a completeness check.
+    // This also covers a source whose first revision is not recorded yet.
+    if let Ok((path, bytes)) = repo.sas_document() {
+        let dropped = openwarrant_core::dropped_sections(&String::from_utf8_lossy(&bytes));
+        if dropped.is_empty() {
+            report.push(Diagnostic::pass(
+                "sas-normative.section-labels",
+                "no unsupported numbered SAS heading hides or mislabels a normative body statement",
+            ));
+        } else {
+            for heading in dropped {
+                report.push(Diagnostic::error("sas-normative.section-dropped", repo.relative(&path), format!("unsupported numbered heading {heading:?} hides or mislabels normative rules; recompiling cannot repair their section identity")));
+            }
+        }
+    }
     match repo.load_sas_revisions() {
         Err(err) => report.push(Diagnostic::error(
             "sas.revision-malformed",
