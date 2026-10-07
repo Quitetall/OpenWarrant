@@ -11,9 +11,11 @@
 # repository, spawns nothing and opens no socket (observed with strace).
 # Refused, each by name with nothing written: a path instead of bytes
 # (host.path-not-bytes), an unsupported version (host.version), input over
-# the limit (host.limit). Refusal controls for the comparison itself: a
-# doctored fixture response fails its case, and a doctored observation
-# (a signature verdict flipped) moves the hosted model off the standalone one.
+# the limit (host.limit). Refusal controls for the checks themselves: a
+# doctored fixture response fails its case; a doctored observation (a
+# signature verdict flipped) moves the hosted model off the standalone one;
+# the strace observation sees a standalone `war model` read the repository.
+# Without strace, purity is reported UNKNOWN, never passed.
 
 echo "== war host: oh.war/liminal-v1 (OW-WAR-0148 M8) =="
 H_TMP=$(mktemp -d)
@@ -76,18 +78,17 @@ h_refused "input over the limit is refused" host.limit "$H_TMP/huge"
 command rm -f "$H_TMP/huge"
 
 # --- purity, observed ------------------------------------------------------
-# h_pure <name> <request-file>: under strace, the run executes nothing but
-# itself, opens no socket, and touches no path under this repository, the
-# virtual basis or the scratch directory (the binary's own exec aside).
-h_pure() {
-    local name="$1" req="$2" log="$H_TMP/strace.log" bad
-    if ! command -v strace >/dev/null 2>&1; then
-        printf 'UNKNOWN %-32s strace is not installed; purity is not observed\n' "$name"
-        return
-    fi
+# h_traced <request-file|-> <war args...>: under strace, the lines where the
+# run executed anything but itself, opened a socket, or touched a path under
+# this repository, the virtual basis or the scratch directory (the binary's
+# own exec and load aside). Empty is pure.
+h_traced() {
+    local req="$1" log="$H_TMP/strace.log"
+    shift
+    [[ "$req" == - ]] && req=/dev/null
     (cd "$H_TMP" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID strace -f -qq -o "$log" \
-        -e trace=%file,%process,%network "$H_WAR" host < "$req" > /dev/null) || true
-    bad=$(python3 - "$log" "$REPO_ROOT" "$H_TMP" <<'PY'
+        -e trace=%file,%process,%network "$H_WAR" "$@" < "$req" > /dev/null 2>&1) || true
+    python3 - "$log" "$REPO_ROOT" "$H_TMP" <<'PY'
 import re, sys
 log, repo, tmp = sys.argv[1:]
 bad = []
@@ -109,15 +110,27 @@ for line in open(log):
             bad.append(line.strip())
 print("\n".join(bad[:3]))
 PY
-)
-    if [[ -z "$bad" ]]; then
-        h_ok "$name" "no file of the basis, no process, no socket"
-    else
-        h_fail "$name" "$bad"
-    fi
 }
-h_pure "a hosted compile is pure" "$H_CASES/warrant/request.json"
-h_pure "a refusal is pure" "$H_CASES/refuse-version/request.json"
+if ! command -v strace >/dev/null 2>&1; then
+    printf 'UNKNOWN %-32s strace is not installed; purity is not observed\n' "a hosted run is pure"
+else
+    for h_case in warrant refuse-version; do
+        h_bad=$(h_traced "$H_CASES/$h_case/request.json" host)
+        if [[ -z "$h_bad" ]]; then
+            h_ok "a hosted run is pure ($h_case)" "no file of the basis, no process, no socket"
+        else
+            h_fail "a hosted run is pure ($h_case)" "$h_bad"
+        fi
+    done
+    # Refusal control: the same observation of a standalone `war model` sees
+    # it read this repository.
+    h_bad=$(h_traced - --root "$REPO_ROOT" model)
+    if grep -q "$REPO_ROOT/openwarrant.toml" <<<"$h_bad"; then
+        h_ok "the purity check sees a disk read" "war model reads $REPO_ROOT/openwarrant.toml"
+    else
+        h_fail "the purity check sees a disk read" "nothing seen: $h_bad"
+    fi
+fi
 
 # --- standalone versus hosted ----------------------------------------------
 # h_parity <name> <root>: `war model` there, and its exported request through
@@ -208,4 +221,4 @@ PY
 fi
 
 command rm -rf "$H_TMP"
-unset H_TMP H_WAR H_CASES H_N H_ROOT h_out h_status h_flip h_cmp
+unset H_TMP H_WAR H_CASES H_N H_ROOT h_out h_status h_flip h_cmp h_bad h_case
