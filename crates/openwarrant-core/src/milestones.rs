@@ -248,7 +248,7 @@ pub struct Stage {
     /// the repository default applies.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub budget_tokens: Option<u64>,
-    /// Wall-clock bound for a `service` stage run by `war evidence run` (slice C4b);
+    /// Wall-clock bound for a `service` stage run by `war run` (slice C4b);
     /// absent means the repository default applies.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wall_time_seconds: Option<u64>,

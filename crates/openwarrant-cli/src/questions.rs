@@ -245,7 +245,7 @@ fn write_question(path: &Utf8Path, q: &Question, create_new: bool) -> Result<(),
         "# {SCHEMA}. Asked by an agent, answered by a human (§27.2). An answer\n\
          # informs the work; it is never a disposition, a judgment, or an\n\
          # authorization, and `answered_by` is an attribution, not a proof: a\n\
-         # signature binds an ACT, and an answer is not one. `war plan questions\n\
+         # signature binds an ACT, and an answer is not one. `war questions\n\
          # --open` lists what awaits an answer. Regenerated when answered, so\n\
          # a comment added below this header does not survive.\n\n"
     );

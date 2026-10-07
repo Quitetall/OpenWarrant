@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war plan impact <record>` — what a change to one record affects
+//! `war impact <record>` — what a change to one record affects
 //! (OW-WAR-0148 M3; OW-ADR-0031), as `oh.war/impact/v1`.
 //!
 //! Read from the compiled model (`oh.war/model/v1`) and nothing else but

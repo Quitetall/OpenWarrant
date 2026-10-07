@@ -632,7 +632,7 @@ fn valid_finding(finding: &Value) -> bool {
 /// Read and validate a pass-worthy Bonsai evidence document from this repository.
 ///
 /// This validates evidence syntax and its internal consistency. It does not run
-/// Bonsai; `war admin bonsai check` remains the producer of a fresh observation.
+/// Bonsai; `war bonsai check` remains the producer of a fresh observation.
 pub(crate) fn verify_evidence_file(
     repo: &Repository,
     evidence_path: &Utf8Path,

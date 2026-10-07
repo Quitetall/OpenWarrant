@@ -753,7 +753,7 @@ fn assignment(name: &str, principal: &str, now: &str) -> String {
 
 fn header(name: &str, now: &str) -> String {
     format!(
-        "# Written by `war admin doctor --fix-signing` on {now} from answers typed at a terminal by \
+        "# Written by `war doctor --fix-signing` on {now} from answers typed at a terminal by \
          {name:?}.\n#\n# THE RULE FOR THIS FILE: a tool writes it only from a human's answers at \
          a\n# terminal, once. No command edits it afterwards; every tool in this workspace\n# \
          reads it, and both `war init` and `war admin doctor --fix-signing` refuse to touch\n# one that \

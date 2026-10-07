@@ -4775,7 +4775,7 @@ The structured-atom parser widens the input surface OW-ADR-0002 deliberately nar
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Milestones, stages and named typed ports | `crates/openwarrant-core/src/milestones.rs` | drift |
+| D-001 | Milestones, stages and named typed ports | `crates/openwarrant-core/src/milestones.rs` | verified |
 
 #### OW-WAR-0008 — Implement the state model: phase, condition, outcome, currency, standing
 
@@ -29308,7 +29308,7 @@ and human administrator confirmation of GitHub settings.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Warrant-bound Bonsai evidence adapter | `crates/openwarrant-cli/src/bonsai.rs` | drift |
+| D-001 | Warrant-bound Bonsai evidence adapter | `crates/openwarrant-cli/src/bonsai.rs` | verified |
 | D-002 | Machine scope bound into the compilation basis | `bonsai.toml` | verified |
 
 #### OW-WAR-0059 — Commit gate receipts as evidence and record the first resolutions

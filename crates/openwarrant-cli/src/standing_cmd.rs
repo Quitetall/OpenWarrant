@@ -864,7 +864,7 @@ pub fn apply(
         acting_role: "authorizer".to_owned(),
         meaning: format!(
             "Authorized under the standing authorization {reference} (class sha256:{}), which \
-             {} signed at {}: \"{}\" `war sign standing apply` found this contract inside every \
+             {} signed at {}: \"{}\" `war standing apply` found this contract inside every \
              term of the class; the authorizer of record is the class's signer (SAS §28.8, \
              proposed in 1.2.0). It does not resolve the Warrant.",
             class.sha256,

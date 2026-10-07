@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war sign authorize` — the §28.4 authorization seam.
+//! `war authorize` — the §28.4 authorization seam.
 //!
 //! # Two halves, and why this command cannot sign anything
 //!
-//! `war sign authorize <alias>` EMITS an authorization request. `war sign authorize
+//! `war authorize <alias>` EMITS an authorization request. `war authorize
 //! <alias> --response <file>` INGESTS what a human returned. Nothing in between
-//! decides anything, for the same reason `war evidence verify` is split: §27.2 says an
+//! decides anything, for the same reason `war verify` is split: §27.2 says an
 //! agent SHALL NOT authorize a proposed WAR, and a command that filled in an
 //! authorizer would be doing exactly that with extra steps.
 //!
@@ -30,7 +30,7 @@
 //! [`ContractRevision`]) and, when judgments were returned, `judgments.toml`
 //! (§42). A refused response writes NOTHING. A rejected authorization must not
 //! become a file that later reads as authority, which is the same rule
-//! `war evidence verify` applies to refused verdicts.
+//! `war verify` applies to refused verdicts.
 
 use std::fs;
 

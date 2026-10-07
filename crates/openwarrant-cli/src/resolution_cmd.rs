@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //! §56.2 resolution: the third two-half seam.
 //!
-//! `war sign authorize` (§28.4) and `war sign sas accept` (§101.2) established the shape:
+//! `war authorize` (§28.4) and `war sas accept` (§101.2) established the shape:
 //! an agent may EMIT a request that names exactly what a human would be
 //! signing, and only a human's RESPONSE — ingested through the authority
 //! register, refused for every agent regardless of what it claims — writes a
 //! record. Resolution is the act §27.2 names most plainly ("an agent SHALL NOT
-//! resolve a delivery"), and until this module existed `war sign resolve` could only
+//! resolve a delivery"), and until this module existed `war resolve` could only
 //! report whether the thirteen were met; nothing could record that they were.
 //!
 //! # What ingestion refuses
@@ -258,7 +258,7 @@ fn bind(
     })
 }
 
-/// `war sign resolve <alias>` with no flag: the request.
+/// `war resolve <alias>` with no flag: the request.
 pub fn request(repo: &Repository, alias: &str) -> Result<ResolutionRequest, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
@@ -360,7 +360,7 @@ pub fn request_for(
     })
 }
 
-/// `war sign resolve <alias> --response <file>`: ingest a human's resolution.
+/// `war resolve <alias> --response <file>`: ingest a human's resolution.
 pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report, RepoError> {
     ingest_with(repo, alias, path, crate::sign::IngestMode::Record)
 }

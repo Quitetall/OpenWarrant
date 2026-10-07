@@ -67,8 +67,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 |---|---|
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
-| artifact digests verify | 117 |
 | every required gate has admissible result | 116 |
+| artifact digests verify | 115 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
@@ -159,7 +159,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0004` Implement the generated parent document and drift checking | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0005` Implement deterministic war check and close the Phase 1 bootstrap | resolved | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0006` Complete ADR federation: relations, supersession, and currency | draft | unknown | 0 | 0 of 3 | artifact digests verify |
-| `OW-WAR-0007` Parse and validate milestones, stages, and named typed ports | draft | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0007` Parse and validate milestones, stages, and named typed ports | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
 | `OW-WAR-0008` Implement the state model: phase, condition, outcome, currency, standing | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0009` Implement contract revisions and their immutability | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
 | `OW-WAR-0010` Implement the autonomy envelope and amendment records | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
@@ -202,7 +202,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0047` Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | unknown | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | unknown | 0 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | unknown | 1 | 0 of 2 | artifact digests verify |
+| `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | unknown | 1 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | resolved | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | unknown | 0 | 0 of 2 | artifact digests verify |

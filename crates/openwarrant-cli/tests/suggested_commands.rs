@@ -202,6 +202,31 @@ fn canonical(cmd: &clap::Command, argv: &[String]) -> Result<(), String> {
     Ok(())
 }
 
+/// Text that is written into a file, not printed: a comment `war` puts in a
+/// file it creates (`openwarrant.toml` from `war init`, a child's manifest
+/// from `war new --parent`, a question file's header, a signers file from
+/// the signing wizard) and the meaning an authorization record carries. Those bytes are what the earlier binaries wrote too,
+/// and a manifest's bytes are inside its contract digest, so they keep the
+/// spelling they had; every one of them still runs. (file, the span).
+const WRITTEN_INTO_FILES: &[(&str, &str)] = &[
+    ("openwarrant-cli/src/init/mod.rs", "war perform"),
+    ("openwarrant-cli/src/new.rs", "war new --parent {alias}"),
+    (
+        "openwarrant-cli/src/questions.rs",
+        "war questions\\n# --open",
+    ),
+    (
+        "openwarrant-cli/src/signing_probe.rs",
+        "war doctor --fix-signing",
+    ),
+    // The meaning a standing authorization writes into the Warrant's
+    // authorization record: a record's words, not a suggestion.
+    ("openwarrant-cli/src/standing_cmd.rs", "war standing apply"),
+    // The meaning `war sign` drafts for a standing authorization: the words
+    // a person signs.
+    ("openwarrant-cli/src/sign.rs", "war standing apply"),
+];
+
 /// The files a resolved Warrant pins and no later Warrant governs: their
 /// bytes cannot move, so their text keeps the spellings it was signed with.
 fn pinned(crates: &Path) -> std::collections::BTreeSet<String> {
@@ -329,7 +354,10 @@ fn every_suggested_command_in_the_source_parses_as_printed() {
         let rel = f.strip_prefix(&crates).unwrap_or(f).display().to_string();
         let is_pinned = pinned.contains(&format!("crates/{rel}"));
         for (line, span) in spans(&text) {
-            found.push((format!("{rel}:{line}"), span, is_pinned));
+            let written = WRITTEN_INTO_FILES
+                .iter()
+                .any(|(file, kept)| rel == *file && span == *kept);
+            found.push((format!("{rel}:{line}"), span, is_pinned || written));
         }
     }
     assert!(

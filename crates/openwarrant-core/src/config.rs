@@ -332,7 +332,7 @@ pub struct SignPreset {
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SignPolicy {
-    /// The presets offered in `war view console` and by `war sign --preset`.
+    /// The presets offered in `war console` and by `war sign --preset`.
     #[serde(default, rename = "preset", skip_serializing_if = "Vec::is_empty")]
     pub presets: Vec<SignPreset>,
 }
@@ -406,14 +406,14 @@ pub struct PerformPolicy {
     ///
     /// One, in 1.0. Nothing here contains a performer — no cgroups, no sandbox
     /// — so concurrency would mean several unbounded processes writing one
-    /// tree. Raising it is a deliberate act, and `war evidence perform` says so.
+    /// tree. Raising it is a deliberate act, and `war perform` says so.
     #[serde(default)]
     pub max_concurrent: u32,
-    /// Whether `war evidence perform` may run a performer that reports no spend
+    /// Whether `war perform` may run a performer that reports no spend
     /// (OW-WAR-0132). No adapter meters spend today, so every performance is
     /// unmetered and journals `spend: "unknown"`, never 0.
     ///
-    /// Absent is not consent: `war evidence perform` refuses
+    /// Absent is not consent: `war perform` refuses
     /// `perform.unmetered-not-allowed` until this is `true` (U-001, settled at
     /// authorization). Setting it says "run it, and I know the cost is
     /// unknown"; it does not make the cost known.
@@ -491,7 +491,7 @@ impl PerformPolicy {
     }
 }
 
-/// `[run]` — `war evidence run`'s bounds for a service stage (slice C4b).
+/// `[run]` — `war run`'s bounds for a service stage (slice C4b).
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RunPolicy {
@@ -516,7 +516,7 @@ impl RunPolicy {
 pub struct VerifyPolicy {
     /// The command that reads a bundle path and prints a verification
     /// response on stdout. Empty means no verifier is configured, and
-    /// `war evidence verify --run` says so.
+    /// `war verify --run` says so.
     #[serde(default)]
     pub verifier_argv: Vec<String>,
     /// Wall-clock bound for the verifier; 0 means the default (600).
@@ -587,7 +587,7 @@ impl ContextPolicy {
 /// history (OW-WAR-0124).
 ///
 /// Configuration, not an authority record: it says which commit `war init`
-/// started from, so `war admin telemetry` counts untracked work from there rather
+/// started from, so `war telemetry` counts untracked work from there rather
 /// than from the first commit ever made. It claims nothing about the commits
 /// before it — no Warrant authorized, owns or verified them.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -611,7 +611,7 @@ pub struct AdoptionPolicy {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthorityStoreConfig {
-    /// Absolute path of the store directory `war sign authority bootstrap` made.
+    /// Absolute path of the store directory `war authority bootstrap` made.
     pub store: String,
     /// The store is a same-account test store (`--unprotected-test-store`).
     /// Must match the store's own record; every diagnostic says so.

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! The tool table. Three kinds: read-only, request halves (emit the document
 //! a human signs; write nothing), and writes that an agent is allowed to make
-//! (`war plan new`, evidence, compile, gate runs, journal backfill, a reviewed
+//! (`war new`, evidence, compile, gate runs, journal backfill, a reviewed
 //! `plan --apply`). No tool signs, ingests, proposes a SAS revision, or runs
 //! the configured drafter; the tests in `mod.rs` grep this file for that.
 //!
@@ -51,7 +51,7 @@ pub struct CreateParams {
     pub actor: Option<String>,
 }
 
-/// `war view warrants` filters (OW-WAR-0148 M5); none given lists every Warrant.
+/// `war warrants` filters (OW-WAR-0148 M5); none given lists every Warrant.
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct TicketsParams {
     /// Only Warrants of this type: a light one's type (bug), or a profile (delivery, openspec).
@@ -223,7 +223,7 @@ pub struct GateRunParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct PinsParams {
-    /// Only files pinned by RESOLVED Warrants (a change to one is drafted with `war sign correct`).
+    /// Only files pinned by RESOLVED Warrants (a change to one is drafted with `war correct`).
     #[serde(default)]
     pub resolved_only: bool,
 }

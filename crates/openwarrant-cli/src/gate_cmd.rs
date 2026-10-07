@@ -1612,7 +1612,7 @@ pub mod receipt {
             fixture_digests: observed
                 .map(|o| o.fixture_digests.clone())
                 .unwrap_or_default(),
-            runner: "war evidence gate --run".to_owned(),
+            runner: "war gate --run".to_owned(),
             runtime_environment: format!(
                 "{} {} / rustc {}",
                 std::env::consts::OS,

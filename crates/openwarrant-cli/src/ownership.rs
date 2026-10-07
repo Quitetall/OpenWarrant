@@ -13,7 +13,7 @@
 //! contract digest, so `deliverables.toml` can move after signing — which is
 //! why the set is copied into `authorization.toml` at ingest, under the
 //! attestation, and read from there and never from the manifest. And
-//! `war admin pins --refresh` rewrites content digests during ordinary work, so the
+//! `war pins --refresh` rewrites content digests during ordinary work, so the
 //! thing an authorizer grants is the set of `(id, target_ref)` PAIRS, not
 //! bytes. [`set_digest`] is the digest of exactly that.
 //!
@@ -204,7 +204,7 @@ impl Ownership {
     /// successor's `supersedes`, never a field), and Warrants whose resolution
     /// standing is annulled.
     ///
-    /// Memoized for the process by [`fingerprint`]: `war admin compile` built this
+    /// Memoized for the process by [`fingerprint`]: `war compile` built this
     /// index once per pending act it judged — the whole corpus loaded dozens
     /// of times over. Any write to what the index reads moves the
     /// fingerprint, and the next call rebuilds.
@@ -342,7 +342,7 @@ impl Ownership {
             .filter(|owner| owner.alias != alias && !owner.resolved)
     }
 
-    /// Every owner of `path`, oldest first — the lineage `war admin pins --history`
+    /// Every owner of `path`, oldest first — the lineage `war pins --history`
     /// renders.
     #[must_use]
     pub fn lineage(&self, path: &str) -> Vec<&Owner> {

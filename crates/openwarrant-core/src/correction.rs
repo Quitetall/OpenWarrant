@@ -24,7 +24,7 @@
 //! `war show` prints.
 //!
 //! [`chain_head`] is the ONE function that decides what the current digest ought
-//! to be. `war check`, `war sign correct`, `war sign` and `war show` all call it, so
+//! to be. `war check`, `war correct`, `war sign` and `war show` all call it, so
 //! they cannot disagree about whether a file has drifted or been corrected.
 
 use serde::{Deserialize, Serialize};

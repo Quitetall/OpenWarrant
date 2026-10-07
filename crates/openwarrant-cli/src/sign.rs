@@ -1469,7 +1469,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                     acting_role: "authorizer".to_owned(),
                     meaning: format!(
                         "Signing standing authorization {} at this digest means the signer \
-                     authorizes, in their own name, every Warrant `war sign standing apply` finds \
+                     authorizes, in their own name, every Warrant `war standing apply` finds \
                      inside every term of this class, until {expires} or {max} Warrant(s), \
                      whichever comes first, or until revoked. It resolves nothing: each covered \
                      Warrant is still resolved by a human.{extra} {}",

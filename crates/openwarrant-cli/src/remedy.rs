@@ -412,9 +412,9 @@ fn from_message(message: &str) -> Option<Remedy> {
 }
 
 /// `war sign …` and every act that ends in a signature is a human's; `war
-/// admin compile` and `war admin pins --refresh` are safe to run unasked;
+/// admin compile` and `war pins --refresh` are safe to run unasked;
 /// anything else is shown, not run. The verb is the leaf command, read
-/// through a group word (M12): `war sign resolve` is `resolve`, `war plan
+/// through a group word (M12): `war resolve` is `resolve`, `war plan
 /// answer` is `answer`, and the earlier spellings classify as they did.
 fn classify(argv: &[&str]) -> Kind {
     let (verb, rest) = leaf(argv);
@@ -437,7 +437,7 @@ fn classify(argv: &[&str]) -> Kind {
 }
 
 /// The leaf command of a `war …` argv and what follows it: past a group word
-/// when the next word is one of that group's members (`war admin compile` →
+/// when the next word is one of that group's members (`war compile` →
 /// `compile`), the word itself otherwise (`war sign <alias>` → `sign`,
 /// `war compile` → `compile`).
 #[must_use]

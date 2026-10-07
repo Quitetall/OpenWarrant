@@ -281,7 +281,7 @@ fn parent_citation(repo: &Repository, alias: &str) -> Result<String, RepoError> 
     }
     Ok(format!(
         "# The exact parent revision this child rests on (SAS §20.2, RQ-023), written\n\
-         # by `war plan new --parent {alias}` from its authorization.toml.\n\
+         # by `war new --parent {alias}` from its authorization.toml.\n\
          [[parents]]\n\
          ref = \"war://{uuid}\"\n\
          contract_revision = {revision}\n\

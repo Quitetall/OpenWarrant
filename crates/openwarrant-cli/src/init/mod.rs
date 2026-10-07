@@ -458,7 +458,7 @@ pub fn run_with(
         "allow_unmetered = true\n",
         "# No performer adapter meters spend: every performance's cost is UNKNOWN,\n\
          # journalled as `spend: \"unknown\"`, never 0. `true` runs it knowing that;\n\
-         # it does not make the cost known. Remove it and `war evidence perform` refuses\n\
+         # it does not make the cost known. Remove it and `war perform` refuses\n\
          # `perform.unmetered-not-allowed` (docs/HOTLINE.md).\n\
          allow_unmetered = true\n",
         1,

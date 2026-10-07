@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war plan roadmap` and the roadmap record's checks (OW-WAR-0114, OW-ADR-0023).
+//! `war roadmap` and the roadmap record's checks (OW-WAR-0114, OW-ADR-0023).
 //!
 //! The record lives under `config.paths.roadmap` (`docs/roadmap/`):
 //! `roadmap.toml`, its atoms, and `revisions/<n>.toml`. This module loads
 //! it, holds Warrants to it (`roadmap.*` rules), and answers three
 //! commands:
 //!
-//! - `war plan roadmap`: phases in dependency order, each with its exit, its
+//! - `war roadmap`: phases in dependency order, each with its exit, its
 //!   members and whether it is achieved, read from `status::build` so the
 //!   numbers are the ones `war status` reports.
-//! - `war plan roadmap assign <alias> <phase>`: writes the ref on an **unsigned**
+//! - `war roadmap assign <alias> <phase>`: writes the ref on an **unsigned**
 //!   Warrant. A signed one is refused by name: its ref is inside the
 //!   contract digest, and moving it is an amendment.
-//! - `war plan roadmap propose`: records the atoms as they stand as a proposed
+//! - `war roadmap propose`: records the atoms as they stand as a proposed
 //!   revision, which the queue then offers for one signature.
 //!
 //! # Placements
@@ -38,7 +38,7 @@ use serde::{Deserialize, Serialize};
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
-/// `roadmap.toml` (`oh.war/roadmap/v1`) as `war plan roadmap` reads it: the core
+/// `roadmap.toml` (`oh.war/roadmap/v1`) as `war roadmap` reads it: the core
 /// manifest plus the placement shim and the plans it retires. The schema pack
 /// generates `schemas/oh.war/roadmap/v1.json` from this type.
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -438,7 +438,7 @@ pub fn check_ref(
 // Commands
 // ---------------------------------------------------------------------------
 
-/// What `war plan roadmap --json` returns.
+/// What `war roadmap --json` returns.
 #[derive(Debug, Clone, Serialize)]
 pub struct View {
     pub schema: &'static str,
@@ -604,7 +604,7 @@ pub fn render(v: &View) -> String {
     s
 }
 
-/// `war plan roadmap assign <alias> <phase>[/slug]`: the ref on an unsigned
+/// `war roadmap assign <alias> <phase>[/slug]`: the ref on an unsigned
 /// Warrant. Refused by name for a signed one.
 pub fn assign(repo: &Repository, alias: &str, target: &str) -> Result<Report, RepoError> {
     let mut report = Report::default();
@@ -672,7 +672,7 @@ pub fn assign(repo: &Repository, alias: &str, target: &str) -> Result<Report, Re
     Ok(report)
 }
 
-/// `war plan roadmap propose`: the atoms as they stand, as the next revision.
+/// `war roadmap propose`: the atoms as they stand, as the next revision.
 pub fn propose(repo: &Repository, note: Option<&str>) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let loaded = load(repo)

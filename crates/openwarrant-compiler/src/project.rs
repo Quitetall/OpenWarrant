@@ -5,8 +5,8 @@
 //! [`render`] is a pure function of a selection of the compiled model (an
 //! [`Input`]: records with their bodies, and relations) and a declared
 //! [`ProjectionDef`] (`openwarrant_core::projection`), to bytes and a trace.
-//! It reads no repository and writes nothing, so `war plan render`, `war admin compile`,
-//! `war plan impact` and `war admin host` all call the same function.
+//! It reads no repository and writes nothing, so `war render`, `war compile`,
+//! `war impact` and `war host` all call the same function.
 //!
 //! # Selection
 //!
@@ -26,7 +26,7 @@
 //! the far end of an outgoing relation is **mentioned**, not selected: its
 //! id is part of the relation's author's bytes. An incoming relation is
 //! shown only from records the selection admits, so nothing outside the
-//! selection reaches the output. `war plan impact` lists exactly the declared
+//! selection reaches the output. `war impact` lists exactly the declared
 //! projections that select a record.
 //!
 //! # Trace
@@ -157,7 +157,7 @@ pub struct Template {
     pub revision: String,
 }
 
-/// A rendering, as `war plan render --json` and `war admin host` return it
+/// A rendering, as `war render --json` and `war host` return it
 /// (`oh.war/projection/v1`).
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

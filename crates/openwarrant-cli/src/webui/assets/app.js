@@ -69,7 +69,7 @@
       const list = d.tickets || [];
       main.append(el("h2", { text: "Tickets" }),
         el("p", { class: "muted", text: lan
-          ? "Read-only on this device. Claim and finish tickets at the host (`war claim`, `war done`), or on its own `war ui` page."
+          ? "Read-only on this device. Claim and finish tickets at the host (`war claim`, `war done`), or on its own `war view ui` page."
           : "The ticket loop: claim an item, do it, mark it done. Nothing here needs a signature." }));
       if (!list.length) { main.append(el("p", { class: "muted" }, "No tickets yet — ", code("war create \"what this work accomplishes\" --item \"...\""))); return; }
       main.append(table(["ticket", "state", "done", "ticks", "p", "title", "claimed by"], list.map((t) => {
