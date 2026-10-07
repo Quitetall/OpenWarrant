@@ -312,19 +312,19 @@ pub fn read(repo: &Repository, root: &Utf8Path) -> Tree {
             let mut current: Option<&'static str> = None;
             let mut pending_from: Option<(String, usize)> = None;
             for (n, raw) in unfenced(&text) {
-                if let Some((level, h)) = heading(raw) {
-                    if level <= 2 {
-                        if let Some((from, at)) = pending_from.take() {
-                            tree.faults.push(Fault::new(
-                                DELTA,
-                                &file,
-                                at,
-                                format!("FROM {from:?} has no TO; a rename names both"),
-                            ));
-                        }
-                        current = section(h);
-                        continue;
+                if let Some((level, h)) = heading(raw)
+                    && level <= 2
+                {
+                    if let Some((from, at)) = pending_from.take() {
+                        tree.faults.push(Fault::new(
+                            DELTA,
+                            &file,
+                            at,
+                            format!("FROM {from:?} has no TO; a rename names both"),
+                        ));
                     }
+                    current = section(h);
+                    continue;
                 }
                 if let Some(req) = requirement_name(raw) {
                     let rid = requirement_id(&capability, req);
