@@ -944,7 +944,8 @@ pub fn kpi_run(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             store.rel(&t.dir.join(ticks::CHECKS_FILE)),
             format!(
                 "{what} has no KPI to run. Add one: `war add {} --kpi <name> --cmd \"<prints a \
-                 number>\" --direction max|min [--target N]`",
+                 number>\" --direction max` (or min), with `--target <N>` to pass or fail \
+                 against",
                 t.id()
             ),
         ));
@@ -1031,15 +1032,10 @@ pub fn below_minimum(
         "ticket.tick-below-minimum",
         store.rel(&t.dir.join(ticks::CHECKS_FILE)),
         format!(
-            "{what} ticks at {} or above ({}), and `war done{}` would tick it at {}. Nothing was \
-             ticked; it ticks with {}",
+            "{what} ticks at {} or above ({}), and this tick would be {}. Nothing was ticked; it \
+             ticks with {}",
             minimum.as_str(),
             source.describe(),
-            if reach == Level::Observed {
-                " --check"
-            } else {
-                ""
-            },
             reach.as_str(),
             command_for(minimum, what)
         ),

@@ -548,7 +548,8 @@ enum TicketCommand {
         actor: Option<String>,
     },
     /// Tick a claimed item in the ticket's checklist and release the claim.
-    /// A ticket reads done when every item is.
+    /// A ticket reads done when every item is. A plain tick is `claimed`;
+    /// `--check` runs the item's tests and ticks at `observed`.
     Done {
         /// An item id (or a ticket with no items left open).
         target: String,
@@ -572,7 +573,7 @@ enum TicketCommand {
     },
     /// Append an item to a ticket's checklist, or attach an optional part to
     /// any Warrant, a title-only one included: a test, a KPI, a milestone
-    /// (docs/TYPES.md, "Optional parts").
+    /// (docs/TYPES.md, "Optional parts and the tick ladder").
     Add {
         /// The ticket. For a test or KPI of one item, the item (`t-x/i-y`).
         ticket: String,
