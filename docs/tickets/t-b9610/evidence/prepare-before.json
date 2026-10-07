@@ -1,0 +1,62 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "prepare",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "prepare.planned",
+      "file": null,
+      "message": "IX-WAR-0003: deliver skipped · evidence software.repo.war-check@1.0.0 planned · verify current (2/2 established) · §56.1 unmet: required deliverables exist; artifact digests verify; every required gate has admissible result; no required unknown remains; no blocker remains; required judgments exist; residual risks have sufficient authority"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/prepare/v1",
+    "warrants": [
+      {
+        "alias": "IX-WAR-0003",
+        "state": "planned",
+        "steps": [
+          {
+            "step": "deliver",
+            "subject": "IX-WAR-0003",
+            "outcome": "skipped",
+            "detail": "no deliverable declared"
+          },
+          {
+            "step": "evidence",
+            "subject": "software.repo.war-check@1.0.0",
+            "outcome": "planned",
+            "detail": "intree"
+          },
+          {
+            "step": "verify",
+            "subject": "IX-WAR-0003",
+            "outcome": "current",
+            "detail": "2/2 established"
+          }
+        ],
+        "unmet_requirements": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ]
+      }
+    ],
+    "human_acts": []
+  }
+}

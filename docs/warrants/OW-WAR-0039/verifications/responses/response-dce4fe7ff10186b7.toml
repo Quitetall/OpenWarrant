@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0039"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The only carried deliverable is D-001 (crates/openwarrant-cli/src/telemetry.rs, sha256 991be2...dd20, 18005 bytes, untruncated), which defines the `take()` function and `TELEMETRY_MEASURES` handling, but the bundle carries no rendered Baseline JSON, no journal excerpt, and no gate or CLI output showing `take()` actually executed and produced recorded values. obligation_evidence for OBL-001 lists no named_paths and no terms, only the blanket selection 'every deliverable of the Warrant'; the sole gate run (GR-software.repo.war-check@1.0.0, verdict pass) ran `war check --generated` and its excerpted stdout lines (manifest.valid, deliverable.digests, traceability.refs, journal.append-only, identity.atom-mismatch, milestones.valid, obligations.valid, generated.drift) validate warrant document structure only, with the NOT CHECKED section explicitly stating 'gate execution ... `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run.' Nothing in the bundle shows a measurement recorded for a real operation, so the claim rests on unexecuted source code."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows the term '3678455' only in the 'atoms' selection with an empty cut_from list, i.e. it appears solely in atoms/10-intent.md's narrative account of a human finding the commit by reading the log — not as detector output. No baseline artifact or journal entry in the bundle shows `untracked_work_candidates` from D-001's `untracked_candidates()` function containing 3678455 or any commit hash. The gate run's stdout excerpts cover only `war check --generated` structural checks (manifest.valid, journal.append-only, milestones.valid, etc.) and never mention telemetry output, so there is no evidence the detector was ever run against this repository's own history to surface the known case."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle's plants array is empty, so no plant record of an auto-attach attempt and its refusal is present, despite OBL-003's stated evidence requirement being exactly 'a plant attempting auto-attachment, refused.' D-001's own doc comment on `attach()` admits the refusal path 'shipped in alpha' and 'no command has ever called it, so the refusal had never run outside a unit test,' and D-001's test_names field is empty, so no test execution is carried either. The gate run's stdout (war check --generated) contains no attach-attempt or refusal record among its excerpted lines, so nothing in the bundle demonstrates the no-fabrication rule was actually exercised."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

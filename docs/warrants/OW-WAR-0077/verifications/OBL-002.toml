@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "plants is an empty array and deliverables is empty, so no observed refusal for malformed/incomplete/conflicting/over-limit/authority-confused inputs at the SDK/provider boundary is carried by this bundle. The only gate run present (GR-software.repo.war-check@1.0.0) is a generic manifest/journal/traceability checker, not a boundary-refusal test of the source/provider code, and 60-assurance.md explicitly warns 'Unknown observations cannot pass.' No fixture or conformance output demonstrating a refusal exists in the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

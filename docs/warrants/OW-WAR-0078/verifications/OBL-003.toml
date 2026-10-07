@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of this exact result. The bundle contains no independent-review artifact, no baseline comparison, and no human-acceptance record; the only related material is the prior_verifications block, whose four entries are themselves all disposed not_established for OBL-001/002/004. 20-basis.md itself states 'independent evidence and secure human acceptance remain requirements' for the corresponding Verified claim, and nothing in gate_runs supplies that missing qualification evidence."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

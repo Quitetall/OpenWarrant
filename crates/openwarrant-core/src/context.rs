@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Context items, trust classes, precedence, and the context manifest (SAS §33).
 //!
 //! # The sentence this module is built around
@@ -229,14 +229,79 @@ pub struct ContextManifest {
     pub omitted: Vec<Omission>,
     #[serde(default)]
     pub unresolved: Vec<String>,
+    /// §33.4 precedence conflicts between sources. Read with
+    /// [`ContextManifest::conflict_check`]: an empty list says nothing unless
+    /// a check says what it is empty of.
     #[serde(default)]
     pub conflicts: Vec<Conflict>,
+    /// Which conflict kinds were checked for, which were not, and what the
+    /// checks found (OW-WAR-0133 OBL-004, Q-002). Absent in a manifest
+    /// compiled before it existed, and then nothing was checked: that
+    /// manifest's `conflicts` is unchecked, not clean. Not serialized when
+    /// absent, so such a manifest keeps the bytes (and digest) it had.
+    #[serde(default, skip_serializing_if = "ConflictCheck::is_unrecorded")]
+    pub conflict_check: ConflictCheck,
     #[serde(default)]
     pub effective_classification: String,
     #[serde(default)]
     pub policy_digest: String,
     #[serde(default)]
     pub compiler_digest: String,
+}
+
+/// The one mechanical conflict kind (Q-002 (c), OW-WAR-0133): one source path
+/// included whole at two digests or two revisions.
+pub const SAME_SOURCE_TWO_VERSIONS: &str = "same-source-two-versions";
+
+/// The kind no rule checks (Q-002 (a)): two different sources that disagree.
+pub const SEMANTIC_UNCHECKED: &str = "semantic: two different sources that disagree (§33.4) — no \
+     mechanical rule detects it, and the empty `conflicts` list is not a claim that none exists";
+
+/// What a manifest's conflict fields are a record OF (OW-WAR-0133 OBL-004).
+///
+/// `conflicts: []` alone cannot distinguish "checked, none found" from "never
+/// looked". This names each kind a check ran for, each kind nobody checked,
+/// and every finding of the checks that ran.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct ConflictCheck {
+    /// Conflict kinds a mechanical check ran for.
+    #[serde(default)]
+    pub checked: Vec<String>,
+    /// Conflict kinds nobody checked, each with why.
+    #[serde(default)]
+    pub unchecked: Vec<String>,
+    /// What the checks in `checked` found. Empty means they ran and found
+    /// nothing — for those kinds only.
+    #[serde(default)]
+    pub found: Vec<SourceVersions>,
+}
+
+impl ConflictCheck {
+    /// The record the compiler's checks produce for `manifest` today:
+    /// [`SAME_SOURCE_TWO_VERSIONS`] checked, with its findings;
+    /// [`SEMANTIC_UNCHECKED`] said to be unchecked.
+    #[must_use]
+    pub fn of(manifest: &ContextManifest) -> Self {
+        Self {
+            checked: vec![SAME_SOURCE_TWO_VERSIONS.to_owned()],
+            unchecked: vec![SEMANTIC_UNCHECKED.to_owned()],
+            found: manifest.source_versions(),
+        }
+    }
+
+    /// No check was recorded: a manifest compiled before this field existed.
+    #[must_use]
+    pub fn is_unrecorded(&self) -> bool {
+        self.checked.is_empty() && self.unchecked.is_empty() && self.found.is_empty()
+    }
+}
+
+/// One source path included whole at more than one version.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceVersions {
+    pub path: String,
+    /// Each version as `<commit>:<digest>` (`(floating)` for no commit), sorted.
+    pub versions: Vec<String>,
 }
 
 /// An item left out of a projection, and why (§33.7).
@@ -282,6 +347,49 @@ impl Conflict {
 }
 
 impl ContextManifest {
+    /// §33.4, the one mechanical conflict kind (Q-002 (c), OW-WAR-0133): every
+    /// source path included WHOLE at two or more digests or revisions, sorted
+    /// by path.
+    ///
+    /// Keyed on the holder's kind and path. Items that carry section selectors
+    /// are selections of a file, not versions of it, and never conflict; an
+    /// external reference carries no digest to disagree with. Semantic
+    /// conflict between two different sources is not detected: no mechanical
+    /// rule exists for it, and none is invented here.
+    #[must_use]
+    pub fn source_versions(&self) -> Vec<SourceVersions> {
+        use std::collections::BTreeMap;
+        let mut versions: BTreeMap<(&str, &str), BTreeSet<String>> = BTreeMap::new();
+        for item in &self.included {
+            if item.holder.kind == "external"
+                || item.holder.path.trim().is_empty()
+                || !item.selector_sections.is_empty()
+            {
+                continue;
+            }
+            versions
+                .entry((item.holder.kind.as_str(), item.holder.path.as_str()))
+                .or_default()
+                .insert(format!(
+                    "{}:{}",
+                    if item.holder.commit_sha.is_empty() {
+                        "(floating)"
+                    } else {
+                        item.holder.commit_sha.as_str()
+                    },
+                    item.content_digest
+                ));
+        }
+        versions
+            .into_iter()
+            .filter(|(_, v)| v.len() > 1)
+            .map(|((_, path), v)| SourceVersions {
+                path: path.to_owned(),
+                versions: v.into_iter().collect(),
+            })
+            .collect()
+    }
+
     /// §33.5 and §33.6 — everything required is present, resolved, and not
     /// omitted; and no equal-precedence conflict is left open.
     pub fn validate(&self) -> Result<(), ContextError> {
@@ -700,6 +808,7 @@ mod tests {
             omitted: vec![],
             unresolved: vec![],
             conflicts: vec![],
+            conflict_check: ConflictCheck::default(),
             effective_classification: "internal".into(),
             policy_digest: "sha256:p".into(),
             compiler_digest: "sha256:c".into(),
@@ -708,6 +817,57 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<ContextManifest>(&s).expect("deserialize"),
             m
+        );
+        // A manifest from before the check keeps its bytes: nothing is added
+        // to it on the way through, so its digest does not move.
+        assert!(!s.contains("conflict_check"), "{s}");
+        let mut checked = m.clone();
+        checked.conflict_check = ConflictCheck::of(&m);
+        let s = serde_json::to_string(&checked).expect("serialize");
+        assert!(s.contains(SAME_SOURCE_TWO_VERSIONS), "{s}");
+        assert_eq!(
+            serde_json::from_str::<ContextManifest>(&s).expect("deserialize"),
+            checked
+        );
+    }
+
+    /// OW-WAR-0133 OBL-004: the check says what it ran for, and names a
+    /// finding; a clean manifest is `found: []` beside a named check, never a
+    /// bare empty list; a section of a file is not a second version of it.
+    #[test]
+    fn the_conflict_check_names_what_it_ran_for_and_what_it_found() {
+        let whole = |id: &str, sha: &str, digest: &str| {
+            let mut i = item(id, ContextRole::Normative, true);
+            i.selector_sections.clear();
+            i.holder.commit_sha = sha.into();
+            i.content_digest = digest.into();
+            i
+        };
+        let mut m = ContextManifest {
+            included: vec![whole("A", "", "sha256:one"), whole("B", "", "sha256:one")],
+            ..ContextManifest::default()
+        };
+        let clean = ConflictCheck::of(&m);
+        assert_eq!(clean.checked, vec![SAME_SOURCE_TWO_VERSIONS.to_owned()]);
+        assert_eq!(clean.unchecked, vec![SEMANTIC_UNCHECKED.to_owned()]);
+        assert!(clean.found.is_empty(), "one path at one digest: {clean:?}");
+        assert!(!clean.is_unrecorded());
+
+        // A section at another digest is a selection, not a version.
+        m.included.push(item("S", ContextRole::Normative, true));
+        assert!(ConflictCheck::of(&m).found.is_empty());
+
+        m.included.push(whole("C", &"1".repeat(40), "sha256:two"));
+        let found = ConflictCheck::of(&m).found;
+        assert_eq!(
+            found,
+            vec![SourceVersions {
+                path: "docs/spec.md".into(),
+                versions: vec![
+                    "(floating):sha256:one".into(),
+                    format!("{}:sha256:two", "1".repeat(40)),
+                ],
+            }]
         );
     }
 }

@@ -1,0 +1,71 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0132"
+sas_revision = "1.1.0"
+deliverable_set_digest = "sha256:cd45589c5ae1d1c783d4d6c4be233433441d5b7030668629307bc992015498db"
+
+[revision]
+revision = 4
+state = "authorized"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+predecessor_digest = "447539d42bf963fcc4c9fedc6aa5318a2109445af3317ac85ad9fcca41b70925"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0132 (Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-25T05:41:24Z"
+independence = "separate_role"
+
+[[owned]]
+id = "D-001"
+target_ref = "crates/openwarrant-cli/src/frontier.rs"
+
+[[owned]]
+id = "D-002"
+target_ref = "crates/openwarrant-cli/src/perform.rs"
+
+[[owned]]
+id = "D-003"
+target_ref = "crates/openwarrant-core/src/config.rs"
+
+[[owned]]
+id = "D-004"
+target_ref = "openwarrant.toml"
+
+[[owned]]
+id = "D-005"
+target_ref = "docs/HOTLINE.md"
+
+[[owned]]
+id = "D-006"
+target_ref = "conformance/plants.d/52-hotline-defaults.sh"
+
+[[owned]]
+id = "D-007"
+target_ref = "conformance/plants.d/60-perform-cancel.sh"
+
+[[owned]]
+id = "D-008"
+target_ref = "conformance/plants.d/83-tokens.sh"
+
+[[owned]]
+id = "D-009"
+target_ref = "crates/openwarrant-cli/src/next.rs"
+
+[[owned]]
+id = "D-010"
+target_ref = "crates/openwarrant-cli/src/init/mod.rs"

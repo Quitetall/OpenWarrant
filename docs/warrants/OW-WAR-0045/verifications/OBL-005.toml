@@ -1,12 +1,11 @@
 obligation = "OBL-005"
-disposition = "established"
-evidence = "The measured evidence lists all planted violations in conformance/plant.sh, each rejected by its named rule, with a total plant battery of 138 passed, including fourteen entries corresponding to §91.7 tests 43–51 and §91.9 tests 59–63, as indicated by the grouped plants from OW-WAR-0055, OW-WAR-0056, and OW-WAR-0057."
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-005 explicitly records the named path 'conformance/' as absent, with the reason 'a repository path that is not a deliverable of OW-WAR-0045: not carried.' The fourteen required entries under conformance/ for §91.7 tests 43-51 and §91.9 tests 59-63 are not shown in the bundle, and the gate run's visible stdout contains only the generic corpus-wide checks (its own NOT CHECKED note states '143 of 143 Warrant(s) have no disposed obligations') with no per-test conformance-plant output for this Warrant."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

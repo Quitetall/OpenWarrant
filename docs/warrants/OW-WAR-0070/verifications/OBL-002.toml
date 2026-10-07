@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows all three scoped paths — src/cli/inbox.rs, conformance/fixtures/inbox/, tests/inbox_cli.rs — as not carried. The term 'war inbox --json' has empty shown_in, and 'war inbox' is shown only in ['atoms'] (i.e., in the Intent/Work-Order prose atoms/10-intent.md and atoms/40-work-order.md), not in any executed command output. The sole gate run's stdout excerpts contain no reference to an inbox subcommand, fixture set, or captured CLI output, and selected_test_count is 0. With no captured stdout of 'war inbox' or 'war inbox --json' and no exit-code evidence over the named fixture, the precision of the listed alias set cannot be assessed."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0078"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty, obligation_evidence for OBL-001 lists no named_paths or terms, and plants is empty. No conformance/sdk, conformance/integration artifacts, or provider-evaluation traces are carried. The only gate run present, GR-software.repo.war-check@1.0.0, is a structural record-format checker whose own NOT CHECKED section states 'gate execution ... `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run' — it does not run the planned 60-assurance.md acceptance entry point (`cargo run -p openwarrant-core --example sdk_probe ...`). Nothing shows the SDK condition validator or provider actually executed against inputs."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "plants is an empty array and no deliverables are carried, so there is no record of any malformed/incomplete/conflicting/over-limit/authority-confused input being fed to the named boundary, nor any observed refusal output. OBL-002 explicitly requires 'observed named refusals'; obligation_evidence shows no named_paths or terms for OBL-002, leaving the claim entirely unaddressed by carried evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of this exact result. The bundle contains no independent-review artifact, no baseline comparison, and no human-acceptance record; the only related material is the prior_verifications block, whose four entries are themselves all disposed not_established for OBL-001/002/004. 20-basis.md itself states 'independent evidence and secure human acceptance remain requirements' for the corresponding Verified claim, and nothing in gate_runs supplies that missing qualification evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "GR-software.repo.war-check@1.0.0 shows PASS lines for OW-WAR-0078 on manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift and identity.atom-mismatch, but the same stdout raises WARN evidence.stale-binding on this very receipt ('a run over an earlier source is a record, not evidence about this one', with 33 changed paths since tree:e54ccac1...) and WARN sas.pin-superseded (Basis pinned to SAS 1.0.0 while 1.1.1 is current, pending human re-pin per OW-ADR-0016); gate_binding_digest is recorded as 'unbound:software.repo.war-check@1.0.0'. OBL-004's evidence requirement also calls for 'existing planted refusals,' but plants is empty ([]) in this bundle. Given the checker's own currency warnings about this exact evidence and the absence of any planted-refusal record, structural validity cannot be established from this bundle alone."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

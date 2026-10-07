@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The unit tests 'a_supersession_cannot_leave_unresolved_work_unaddressed' and 'an_unrecognised_decision_is_not_assumed_exempt' in crates/openwarrant-core/src/lifecycle.rs demonstrate refusals for a supersession cycle and an ADR declaring, with error messages naming the specific rules (e.g., §21.5)."
+disposition = "not_established"
+evidence = "The bundle's top-level `plants` array is empty, so no planted supersession cycle and no planted status/currency conflict are carried in evidence, despite OBL-002 requiring 'two plants, two observed refusals naming the specific rule.' D-003 (relations.rs) contains unit tests like `a_cycle_is_found_once` and D-002 (lifecycle.rs) contains `a_supersession_cannot_leave_unresolved_work_unaddressed`, but these are synthetic in-source unit tests operating on hand-built `Currencies::derive`/`Supersession` inputs, not the required plants run against the actual repository via a conformance gate. The gate stdout excerpts show unrelated PASS lines (e.g. identity.atom-mismatch, journal.append-only, relations.currency for OW-WAR-0073) but no `relations.currency-cycle` diagnostic or ADR status/currency CONFLICT diagnostic tied to a planted case, and obligation_evidence lists no terms at all for OBL-002."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

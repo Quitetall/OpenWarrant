@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, receipt sha256:369944f3b6f9376329fa1b9c436797fbb78ede0ecbb5fa4fea391e3927e0b7b2, final tally '1270 passed, 0 failed') carries a stdout excerpt of the '== standing authorization (OW-WAR-0142) ==' section running exactly the scoped scenario on the SB scratch corpus with one signed fixture class and planted Warrants. It shows the positive case, 'inside the class: authorized — its digest, the signer, standing://routine@1, its set; check passes', and a full run of the negative cases named in OBL-002's evidence list — outside-class path, assurance controlled, profile decision, an adr atom, accepted residual risk, an uncited gate, both budget ceilings, expiry and max_warrants — each logged 'ok ... nothing written'; it also shows the post-edit case ('edited outside the class: ERROR — standing.outside-class, not PASS') and the post-revocation case ('applied after revocation — standing.revoked, nothing written', 'an earlier record stands (§31) — standing.revoked is a warning; SB-WAR-0016 still signed'). Deliverable D-014 (conformance/plants.d/69-standing.sh), the plant source itself, is carried with excerpts confirming these are substantive checks rather than printed labels: the positive-case code greps the written authorization.toml for the exact SB_DIGEST, `authorizer = \"Plant Signer\"`, `policy_basis = \"standing://routine@1\"` and `target_ref = \"src/a.rs\"`, then confirms `sb check` prints PASS standing.inside-class and PASS authority.signed with no ERROR lines; the reusable `st_refused` helper independently hashes the Warrant directory's tree before and after each refusal call to confirm byte-identical trees and no authorization.toml written, satisfying the 'nothing written' requirement for every negative case; and the revocation block shows a dry-run success before `--revoke`, then `st_refused` asserting standing.revoked afterward. Together the passing receipt and the corresponding plant source establish, within the stated scope, both the positive coverage claim and the refusal claim for `war standing apply`."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

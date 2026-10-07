@@ -57,6 +57,7 @@ fn board_is_complete_read_only_and_refuses_corrupt_questions() {
     let frontier: serde_json::Value =
         serde_json::from_slice(&run(&["frontier", "--json"]).stdout).unwrap();
     assert_eq!(board["result"]["approvals"], console["result"]["acts"]);
+    assert_eq!(board["result"]["questions"], console["result"]["questions"]);
     assert_eq!(board["result"]["frontier"], frontier["result"]);
     let status: serde_json::Value =
         serde_json::from_slice(&run(&["status", "--json"]).stdout).unwrap();

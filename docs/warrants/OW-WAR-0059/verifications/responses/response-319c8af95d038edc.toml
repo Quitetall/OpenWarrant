@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The obligation's evidence text requires three things — the projection source has no reader of the receipts path, `war check --generated` passes in CI on the committed projection with three Warrants reading requirement 5 met, and the caveat names `gate-runs/` — and none is fully shown. D-001 (crates/openwarrant-cli/src/evidence.rs) is the only deliverable carried with bytes, and its `load` function does read from a Warrant's `gate-runs/` (GATE_RUNS_DIR) rather than `docs/receipts/`, but the 'corpus projection's source' the obligation cites is a separate file that is not in the bundle at all (not even listed in deliverables_not_carried, unlike D-002 resolution_cmd.rs and D-003 gate_cmd.rs, which are also only named by digest with no bytes). obligation_evidence for OBL-003 marks the named path 'gate-runs/' as explicitly absent ('a record of OW-WAR-0059 ... not carried'), so the actual tracked directory this Warrant's own evidence lives in cannot be inspected. The lone gate_runs entry (run GR-software.repo.war-check@1.0.0) has a truncated stdout (377141 bytes, marked truncated:true) shown only via scattered excerpts (lines 929-947, 2591, 2751, 2800, 2831) plus a tail; none of the visible text states that three Warrants (or any specific set) read requirement 5 as met, and the one obligation-adjacent line visible is a WARN 'evidence.stale-binding' for OW-WAR-0059 itself, which does not speak to the claim. The prior verification reached the same not_established disposition on identical evidence, and nothing new in this bundle changes that: the claim is plausible from what D-001 shows about its own read path, but the bundle does not carry the projection source or an unredacted CI result to decide it."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

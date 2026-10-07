@@ -25,8 +25,8 @@
 //! never fed into `warrant_resolved` — doing so would make §34.3's `satisfied`
 //! mean "an agent thinks so", which is the ticked box the section forbids.
 
+use crate::vfs as fs;
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 
 use camino::Utf8PathBuf;
 use openwarrant_core::status::{
@@ -40,17 +40,61 @@ use openwarrant_core::traceability::{
 };
 use openwarrant_core::{Provenance, WarrantState, milestones};
 
+use crate::corpus::Corpus;
 use crate::diagnostic::Severity;
 use crate::repo::{Loaded, RepoError, Repository};
-use crate::resolve::assess;
 
 /// Build the projection.
 pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
-    let mut loaded: Vec<Loaded> = Vec::new();
-    for dir in repo.warrant_dirs()? {
-        loaded.push(repo.load_warrant(&dir)?);
-    }
-    loaded.sort_by_key(Loaded::alias);
+    build_with(&Corpus::new(repo))
+}
+
+/// A Warrant's §24 state, as every projection reports it (OW-WAR-0148).
+///
+/// Recorded from the journal when one exists (OW-WAR-0031). Otherwise
+/// derived from the records' shape, and labelled so: `resolved` from a §56.2
+/// record that binds the contract as it compiles now, `draft` from anything
+/// else. `war status` and the warrant overview both read this; before, the
+/// overview read every unjournalled Warrant as `draft`, so a resolved
+/// Warrant without a journal was `resolved` on one page and `draft` on the
+/// other.
+#[must_use]
+pub fn warrant_state(
+    dir: &camino::Utf8Path,
+    record: Option<&crate::resolution_cmd::ResolutionRecord>,
+    binds_current_contract: bool,
+) -> WarrantState {
+    let outcome = record.and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
+    crate::journal_cmd::load(dir)
+        .ok()
+        .map(|mut j| {
+            // A declared state's entry (OW-WAR-0148 M4) is no transition of
+            // the Warrant's phase.
+            j.events.retain(|e| e.event_type != crate::states::ENTERED);
+            j
+        })
+        .and_then(|j| crate::journal_cmd::recorded_state(&j, outcome))
+        .unwrap_or_else(|| {
+            if binds_current_contract {
+                WarrantState::resolved_recorded(
+                    outcome.unwrap_or(openwarrant_core::CommonOutcome::None),
+                )
+            } else {
+                WarrantState::draft(Provenance::Derived)
+            }
+        })
+}
+
+/// [`build`] over a corpus already loaded: each Warrant's assessment and
+/// contract digest are the corpus's, computed once.
+pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
+    let repo = corpus.repo();
+    let mut loaded: Vec<(&crate::corpus::Entry, &Loaded)> = corpus
+        .entries()?
+        .iter()
+        .map(|e| e.loaded().map(|l| (e, l)))
+        .collect::<Result<_, _>>()?;
+    loaded.sort_by_key(|(_, l)| l.alias());
 
     // Per-Warrant.
     let mut warrants: Vec<WarrantStatus> = Vec::new();
@@ -60,7 +104,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     let mut pins: std::collections::BTreeMap<String, usize> = Default::default();
     let mut milestones_by_alias: BTreeMap<String, Vec<MilestoneState>> = BTreeMap::new();
 
-    for one in &loaded {
+    for &(entry, one) in &loaded {
         let alias = one.alias();
         let valid = one.validated.is_some() && one.basis.is_some();
         let validity = if valid {
@@ -107,7 +151,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 // Requirement 5 reads the Warrant's own committed `gate-runs/`
                 // (OW-WAR-0059), so this projection and `war resolve` answer
                 // from the same tracked inputs and a fresh clone reproduces it.
-                let a = assess(repo, one)?;
+                let a = entry.assessment(repo)?.clone();
                 (
                     Some(a.checks),
                     a.would_resolve_satisfied,
@@ -147,7 +191,14 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 r.resolution.common_outcome
                     == openwarrant_core::resolution::CommonOutcome::Satisfied
             });
-        let rung = WarrantRung::derive(valid, checks.as_ref(), would, resolved);
+        let rung = WarrantRung::derive(
+            valid,
+            checks.as_ref(),
+            would,
+            resolved,
+            one.capabilities(&repo.profiles)
+                .has(openwarrant_core::Capability::Resolution),
+        );
         rung_by_alias.insert(alias.clone(), rung);
         if let Some(v) = one
             .basis
@@ -194,25 +245,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             rung,
             roadmap,
             implements,
-            state: valid.then(|| {
-                let outcome = record
-                    .as_ref()
-                    .and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
-                // Recorded from the journal when one exists (OW-WAR-0031);
-                // derived from the records' shape otherwise, and labelled so.
-                crate::journal_cmd::load(&one.dir)
-                    .ok()
-                    .and_then(|j| crate::journal_cmd::recorded_state(&j, outcome))
-                    .unwrap_or_else(|| {
-                        if resolved {
-                            WarrantState::resolved_recorded(
-                                outcome.unwrap_or(openwarrant_core::CommonOutcome::None),
-                            )
-                        } else {
-                            WarrantState::draft(Provenance::Derived)
-                        }
-                    })
-            }),
+            state: valid.then(|| warrant_state(&one.dir, record.as_ref(), resolved)),
             unmet: checks
                 .as_ref()
                 .map(|c| c.unmet().into_iter().map(str::to_owned).collect())
@@ -247,21 +280,13 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 })
                 .collect(),
             unknowns: unknown_views(repo, one),
-            journal_ref: one
-                .dir
-                .join("journal.jsonl")
-                .is_file()
+            journal_ref: fs::is_file(one.dir.join("journal.jsonl"))
                 .then(|| repo.relative(&one.dir.join("journal.jsonl"))),
-            authorization_ref: one
-                .dir
-                .join("authorization.toml")
-                .is_file()
+            authorization_ref: fs::is_file(one.dir.join("authorization.toml"))
                 .then(|| repo.relative(&one.dir.join("authorization.toml"))),
-            resolution_ref: one
-                .dir
-                .join("resolution.toml")
-                .is_file()
+            resolution_ref: fs::is_file(one.dir.join("resolution.toml"))
                 .then(|| repo.relative(&one.dir.join("resolution.toml"))),
+            review: review_of(repo, &one.dir).ok().filter(|r| !r.is_empty()),
         });
     }
 
@@ -278,33 +303,71 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         .map(|(p, _)| p)
         .unwrap_or_else(|| repo.config.project.namespace.as_str().to_owned());
 
-    // §98 from the SAS as it stands; the compiled-in table is the fallback for
-    // a repository whose document cannot be read.
-    let phases: Vec<(u8, String, Option<String>)> = repo
-        .sas_document()
-        .ok()
-        .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
-        .filter(|v| v.len() == openwarrant_core::status::PHASES.len())
-        .unwrap_or_else(|| {
-            openwarrant_core::status::PHASES
+    // OW-ADR-0023: the roadmap record owns the phases when the program has
+    // one. Without it, §98 from the SAS as it stands, and the compiled-in
+    // table as the fallback for a repository whose document cannot be read.
+    let roadmap = corpus.roadmap().ok().flatten();
+    let prefix = roadmap.map_or(prefix, |r| r.manifest.prefix.clone());
+    // A signed Warrant that names no phase may be placed by the record
+    // (`[[placement]]`), pending its next amendment: read as its first ref.
+    let placed: BTreeMap<String, RoadmapRef> = roadmap
+        .map(|r| {
+            r.manifest
+                .placements
                 .iter()
-                .map(|(n, t, e)| (*n, (*t).to_owned(), e.map(str::to_owned)))
+                .filter_map(|p| {
+                    let text = match &p.slug {
+                        Some(s) => format!("{}/{s}", p.phase),
+                        None => p.phase.clone(),
+                    };
+                    RoadmapRef::parse(&text)
+                        .ok()
+                        .map(|rr| (p.warrant.clone(), rr))
+                })
                 .collect()
-        });
+        })
+        .unwrap_or_default();
+    let first_ref = |w: &WarrantStatus| -> Option<RoadmapRef> {
+        w.roadmap
+            .first()
+            .cloned()
+            .or_else(|| placed.get(&w.alias).cloned())
+    };
+    let phases: Vec<(u8, String, Option<String>)> = match roadmap {
+        Some(r) => r
+            .phases
+            .phases
+            .iter()
+            .map(|p| {
+                (
+                    p.number,
+                    p.title.clone(),
+                    (!p.exit.trim().is_empty()).then(|| p.exit.clone()),
+                )
+            })
+            .collect(),
+        None => repo
+            .sas_document()
+            .ok()
+            .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
+            .filter(|v| v.len() == openwarrant_core::status::PHASES.len())
+            .unwrap_or_else(|| {
+                openwarrant_core::status::PHASES
+                    .iter()
+                    .map(|(n, t, e)| (*n, (*t).to_owned(), e.map(str::to_owned)))
+                    .collect()
+            }),
+    };
     let mut objectives: Vec<ObjectiveStatus> = Vec::new();
     for (n, title, exit) in phases {
         let (title, exit) = (title.as_str(), exit.as_deref());
         let members: Vec<&WarrantStatus> = warrants
             .iter()
-            .filter(|w| {
-                w.roadmap
-                    .first()
-                    .is_some_and(|r| r.phase == n && r.prefix == prefix)
-            })
+            .filter(|w| first_ref(w).is_some_and(|r| r.phase == n && r.prefix == prefix))
             .collect();
         let exit_warrant = members
             .iter()
-            .find(|w| w.roadmap.first().is_some_and(RoadmapRef::is_exit))
+            .find(|w| first_ref(w).is_some_and(|r| r.is_exit()))
             .map(|w| w.alias.clone());
         let mut ladder = WarrantLadder::default();
         for m in &members {
@@ -354,7 +417,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     }
     {
         let members: Vec<&WarrantStatus> =
-            warrants.iter().filter(|w| w.roadmap.is_empty()).collect();
+            warrants.iter().filter(|w| first_ref(w).is_none()).collect();
         let mut ladder = WarrantLadder::default();
         for m in &members {
             ladder.count(m.rung);
@@ -755,29 +818,133 @@ fn hand_written_resolved_claims(repo: &Repository) -> usize {
         .sum()
 }
 
+/// OW-WAR-0137, OBL-004 — the roles actually exercised on one Warrant, read
+/// from its records (§27.4). Kinds come from the records themselves: the
+/// authorization's `actor_kind`, each verdict's `verifier.kind`, and for a
+/// resolution the register's entry for the actor it names (`unknown` when
+/// the register has none). Nothing here says "reviewed": a reader sees who,
+/// and how many distinct humans, and draws no more than that.
+pub fn review_of(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+) -> Result<openwarrant_core::status::ReviewView, RepoError> {
+    use openwarrant_core::status::{ActorView, ReviewView};
+    let register = repo.load_authority_register().unwrap_or_default();
+    let authorized_by = repo
+        .load_authorization(dir)?
+        .and_then(|a| a.revision.authorization)
+        .map(|a| ActorView {
+            actor: a.authorizer,
+            kind: a.actor_kind.to_string(),
+        })
+        .into_iter()
+        .collect();
+    let verifications = repo.load_verifications(dir)?;
+    let mut verified_by: Vec<ActorView> = verifications
+        .records
+        .iter()
+        .map(|v| ActorView {
+            actor: v.verifier.actor.clone(),
+            kind: v.verifier.kind.as_str().to_owned(),
+        })
+        .collect();
+    verified_by.sort();
+    verified_by.dedup();
+    let resolved_by = repo
+        .load_resolution(dir)?
+        .map(|r| {
+            let actor = r
+                .resolution
+                .resolved_by_ref
+                .trim_start_matches("person://")
+                .to_owned();
+            let kind = register
+                .actor(&actor)
+                .map_or_else(|| "unknown".to_owned(), |e| e.actor_kind.to_string());
+            ActorView { actor, kind }
+        })
+        .into_iter()
+        .collect();
+    Ok(ReviewView {
+        authorized_by,
+        verified_by,
+        resolved_by,
+        verification_records: verifications.records.len(),
+        distinct_humans: Vec::new(),
+    }
+    .counted())
+}
+
+/// The review record as a trailer for `war show` and `war status <alias>`.
+#[must_use]
+pub fn render_review(r: &openwarrant_core::status::ReviewView) -> String {
+    let who = |list: &[openwarrant_core::status::ActorView]| {
+        if list.is_empty() {
+            "none on record".to_owned()
+        } else {
+            list.iter()
+                .map(|a| format!("{} ({})", a.actor, a.kind))
+                .collect::<Vec<_>>()
+                .join(", ")
+        }
+    };
+    format!(
+        "\n## Acts on record (§27.4)\n\n\
+         - authorized by: {}\n\
+         - verified by: {} ({} verification record(s))\n\
+         - resolved by: {}\n\
+         - distinct humans on record: {}{}\n",
+        who(&r.authorized_by),
+        who(&r.verified_by),
+        r.verification_records,
+        who(&r.resolved_by),
+        r.distinct_humans.len(),
+        if r.distinct_humans.is_empty() {
+            String::new()
+        } else {
+            format!(" ({})", r.distinct_humans.join(", "))
+        }
+    )
+}
+
 /// The Markdown projection, with its path.
 pub fn corpus_status_md(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
-    let status = build(repo)?;
+    corpus_status_md_with(&Corpus::new(repo))
+}
+
+/// [`corpus_status_md`] over a corpus already loaded.
+pub fn corpus_status_md_with(corpus: &Corpus) -> Result<(Utf8PathBuf, String), RepoError> {
+    let status = corpus.status()?;
     Ok((
-        repo.corpus_status_md_path(),
-        openwarrant_compiler::render_corpus_status(&status),
+        corpus.repo().corpus_status_md_path(),
+        openwarrant_compiler::render_corpus_status(status),
     ))
 }
 
 /// The canonical JSON projection, with its path.
 pub fn corpus_status_json(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
-    let status = build(repo)?;
-    let json = openwarrant_compiler::corpus_status_json(&status).map_err(|e| {
+    corpus_status_json_with(&Corpus::new(repo))
+}
+
+/// [`corpus_status_json`] over a corpus already loaded.
+pub fn corpus_status_json_with(corpus: &Corpus) -> Result<(Utf8PathBuf, String), RepoError> {
+    let json = openwarrant_compiler::corpus_status_json(corpus.status()?).map_err(|e| {
         RepoError::Message(format!("could not canonicalize the corpus status: {e}"))
     })?;
-    Ok((repo.corpus_status_json_path(), json + "\n"))
+    Ok((corpus.repo().corpus_status_json_path(), json + "\n"))
 }
 
 /// The page, with its path. Built from the same canonical JSON the agent
 /// reads, so the three files cannot disagree.
 pub fn corpus_status_html(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
-    let status = build(repo)?;
-    let json = openwarrant_compiler::corpus_status_json(&status).map_err(|e| {
+    corpus_status_html_with(&Corpus::new(repo))
+}
+
+/// [`corpus_status_html`] over a corpus already loaded.
+pub fn corpus_status_html_with(corpus: &Corpus) -> Result<(Utf8PathBuf, String), RepoError> {
+    let repo = corpus.repo();
+    let status = corpus.status()?;
+    let json = openwarrant_compiler::corpus_status_json(status).map_err(|e| {
         RepoError::Message(format!("could not canonicalize the corpus status: {e}"))
     })?;
     // The platform inlines the sibling projections; a failure to build one
@@ -793,16 +960,16 @@ pub fn corpus_status_html(repo: &Repository) -> Result<(Utf8PathBuf, String), Re
     };
     let timeline = sibling(
         "CORPUS_TIMELINE.json",
-        crate::timeline::corpus_timeline_json(repo),
+        crate::timeline::corpus_timeline_json_with(corpus),
     );
     let pending = sibling(
         "CORPUS_PENDING.json",
-        crate::timeline::corpus_pending_json(repo),
+        crate::timeline::corpus_pending_json_with(corpus),
     );
     Ok((
         repo.corpus_status_html_path(),
         openwarrant_compiler::render_corpus_status_platform(
-            &status,
+            status,
             &json,
             timeline.as_deref(),
             pending.as_deref(),
@@ -865,6 +1032,10 @@ fn obligation_views(
     };
     let gates = obligation_gates(one);
     let verifications = repo.load_verifications(&one.dir).ok();
+    let current = verifications
+        .as_ref()
+        .map(|vs| crate::verify::current_records(repo, one, &vs.records))
+        .unwrap_or_default();
     // §46: admissibility is what `war resolve` asks, so the projection asks it
     // too. Reporting the first matching record's disposition verbatim let one
     // `CORPUS_STATUS.json` object say `established` for an obligation the same
@@ -894,14 +1065,22 @@ fn obligation_views(
             let admissible = matching
                 .iter()
                 .copied()
-                .find(|r| r.admissible_for(&assurance).is_ok());
+                .find(|r| current.contains(r) && r.admissible_for(&assurance).is_ok());
             let v = admissible.or_else(|| matching.first().copied());
+            let unbound = admissible.is_none()
+                && matching
+                    .first()
+                    .is_some_and(|r| r.admissible_for(&assurance).is_ok() && !current.contains(r));
             let why = match (admissible, matching.first()) {
+                (None, Some(_)) if unbound => Some(
+                    "no matching reviewed subject establishes this historical verdict for current work".to_owned()
+                ),
                 (None, Some(r)) => r.admissible_for(&assurance).err().map(|e| e.to_string()),
                 _ => None,
             };
             let disposition = match (admissible, &why) {
                 (Some(r), _) => r.disposition.to_string(),
+                (None, Some(_)) if unbound => "unknown".to_owned(),
                 (None, Some(_)) => "inadmissible".to_owned(),
                 (None, None) => o
                     .disposition
@@ -952,7 +1131,7 @@ fn deliverable_views(
             let digest = if !d.content_addressed {
                 DigestState::NotContentAddressed
             } else {
-                match std::fs::read(repo.root.join(&d.target_ref)) {
+                match fs::read(repo.root.join(&d.target_ref)) {
                     Err(_) => DigestState::TargetUnreadable,
                     Ok(bytes) => {
                         let actual = {
@@ -1001,25 +1180,7 @@ fn gate_run_views(
     evidence
         .iter()
         .map(|e| {
-            let (class, why) = match crate::evidence::admissibility(e, contract_digest) {
-                Ok(()) => ("admissible".to_owned(), None),
-                Err(why) => {
-                    let stale = e.receipt.as_ref().is_some_and(|r| {
-                        crate::evidence::receipt_digest_recomputes(r)
-                            && r.verdict == e.run.verdict
-                            && r.validate().is_ok()
-                            && e.run.satisfies_required_pass()
-                    });
-                    let class = if stale {
-                        "stale_binding"
-                    } else if e.run.satisfies_required_pass() {
-                        "receipt_invalid"
-                    } else {
-                        "inadmissible"
-                    };
-                    (class.to_owned(), Some(why))
-                }
-            };
+            let (class, why) = run_class(e, contract_digest);
             openwarrant_core::status::GateRunView {
                 gate: e.run.gate.clone(),
                 run_id: e.run.id.clone(),
@@ -1030,6 +1191,47 @@ fn gate_run_views(
             }
         })
         .collect()
+}
+
+/// How one recorded run is labelled in status: `admissible`, `reuse_unknown`
+/// (OW-WAR-0133: sealed and bound to this contract, and its source cannot be
+/// shown to hold — Law 15, neither pass nor failure), `stale_binding` (bound
+/// to an earlier contract or source), `receipt_invalid`, or `inadmissible`.
+///
+/// A reuse-unknown run is not a stale one: `war check` gives it its own rule
+/// (`evidence.reuse-unknown`), and status says the same thing.
+pub(crate) fn run_class(
+    e: &crate::evidence::GateEvidence,
+    contract_digest: Option<&str>,
+) -> (String, Option<String>) {
+    let standing = crate::evidence::standing(e, contract_digest);
+    let class = match &standing {
+        crate::evidence::Standing::Admissible => return ("admissible".to_owned(), None),
+        crate::evidence::Standing::ReuseUnknown(_) => "reuse_unknown",
+        _ => {
+            let stale = e.receipt.as_ref().is_some_and(|r| {
+                crate::evidence::receipt_digest_recomputes(r)
+                    && r.verdict == e.run.verdict
+                    && r.validate().is_ok()
+                    && e.run.satisfies_required_pass()
+            });
+            if stale {
+                "stale_binding"
+            } else if e.run.satisfies_required_pass() {
+                "receipt_invalid"
+            } else {
+                "inadmissible"
+            }
+        }
+    };
+    let why = match standing {
+        crate::evidence::Standing::Admissible => None,
+        crate::evidence::Standing::Stale(w)
+        | crate::evidence::Standing::ReuseUnknown(w)
+        | crate::evidence::Standing::ReceiptInvalid(w)
+        | crate::evidence::Standing::NotAPass(w) => Some(w),
+    };
+    (class.to_owned(), why)
 }
 
 fn unknown_views(

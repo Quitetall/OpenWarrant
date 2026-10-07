@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# The conformance battery as an ASKABLE gate (OW-WAR-0145). Version 1.0.0
+# runs the battery in the working tree, which it mutates and restores, so it
+# is `mutating` and never askable (§44.8, gate_cmd.rs `askability_of`); no
+# receipt could ever be minted for it. This version runs the same battery in
+# a disposable clone of HEAD (`conformance/plant-isolated.sh`): the working
+# tree, index and HEAD are never touched, so it declares `mutating: "false"`
+# truthfully. What it tests is the committed tree; the run's last line names
+# the commit. A LOCAL CANDIDATE (OW-ADR-0005); shapes per OW-ADR-0003.
+
+gate_id: "ops.conformance.plants"
+version: "1.1.0"
+lifecycle: "qualified"
+implementation_ref: "artifact://openwarrant/conformance/plant-isolated.sh"
+output_schema_ref: "schema://plant-battery-summary/v1"
+provenance: "local_candidate"
+input_kinds: ["warrant-corpus"]
+argv: ["bash", "conformance/plant-isolated.sh"]
+mutating: "false"
+timeout_secs: "3600"
+fault_model: ["planted-violation-undetected", "positive-fixture-rejected"]
+known_blind_spots: ["Reports the battery's pass/fail as one verdict; which plant failed is in the run's captured output, not the receipt.", "Tests the committed tree (HEAD), not uncommitted work; the output's last line names the commit tested.", "Shares the repository's built binary through the clone's ./target link; a stale build tests stale code."]
+qualification_qualifier: "claude via conformance/plants.d/48-isolated-battery.sh (OW-WAR-0145)"
+qualification_digest: ""
+qualification_positive_controls: ["A fake battery that exits 0, run through this gate on a scratch corpus, is askable and passes, with the working tree byte-identical before and after."]
+qualification_negative_controls: ["The same fake battery exiting 1 fails the gate.", "Run with OPENWARRANT_IN_BATTERY set, the script refuses rather than recurse."]
+qualification_mutation_classes: ["the battery's own: deletion, substitution, injection, hand-edit"]
+qualification_environments: ["linux-x86_64, rustc 1.97.1 pinned by rust-toolchain.toml"]
+qualification_limitations: ["The plants exercise the isolation with a fake battery, not the real one: running the battery inside the battery would recurse."]
+detection_results:
+  - fault_class: "planted-violation-undetected"
+    mutation: "the battery's own plants"
+    detected: "true"
+  - fault_class: "positive-fixture-rejected"
+    mutation: "the battery's corpus plant"
+    detected: "true"

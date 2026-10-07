@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0115"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "Four of the five evidence criteria named in atoms/60-assurance.md OBL-002 are confirmed by gate run GR-ops.conformance.plants@1.1.0 (verdict pass, stdout excerpt lines 1020-1057 of D-006's underlying test file 71-hub.sh): 'war from anywhere opens the hub' (pty capture shows the 'Projects — every repository' title), 'no terminal, no hub' (exit 2, tui.no-tty), 'every child names its project' (2 children, each with --root, corroborated by Command::new(exe) call sites in D-003 lines 1441-1469 and 1476-1504), and 'a row's pending is sign --list's' (1 == 1, matching a scratch project's `war --root <it> sign --list` count). However, the fifth required evidence item — 'the Help pane's first row names the running binary's version and path' — is not demonstrated anywhere in the bundle: 71-hub.sh (D-006) contains no such assertion, and the gate stdout excerpts (which are truncated to selected lines) show no test naming 'binary', 'Help', or a version/path check. D-003's `binary_row()` function (lines 1020-1044) and docs/TUI.md's Help section describe the intended behavior, but source code and documentation are not evidence that the behavior was exercised or verified; obligation_evidence lists no shown_in location for related terms beyond source presence. Since one of the obligation's named evidence criteria is unaddressed by any gate run, plant, or captured output in the bundle, the obligation cannot be established as a whole from what is carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

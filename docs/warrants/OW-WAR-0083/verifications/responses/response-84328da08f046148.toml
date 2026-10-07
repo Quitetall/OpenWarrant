@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0083"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries zero deliverables (\"deliverables\":[]) and obligation_evidence for OBL-001 lists no named_paths and no terms, with the only selection note being \"warrant: every deliverable of the Warrant\" — i.e. there is nothing to observe. No plants and no gate run exercises check_records/evaluate_readiness/evaluate_assurance; the sole gate run present (GR-software.repo.war-check@1.0.0) is a structural repo-linter run, not a test of the SDK scheduling/records behavior the obligation names. Absent any evidence of the scoped behavior, this cannot be decided."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "Same empty-evidence state as OBL-001: obligation_evidence for OBL-002 shows no named_paths/terms, deliverables is empty, plants is empty, and prior_verifications is empty, so no refusal fixtures, negative-input tests, or fixture-name-selection checks are shown anywhere in the bundle. The only gate run (software.repo.war-check) checks Warrant-record structure, not input refusal behavior at the check_records/evaluate_readiness/evaluate_assurance boundary. No basis to say refusals occurred or did not occur."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No independent reproduction, review, or human-acceptance record for this exact result appears anywhere in the bundle: prior_verifications is empty, plants is empty, and the assurance atom (60-assurance.md) itself states \"These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here.\" There is nothing carried that could show qualification evidence for OBL-001/002 of this exact result."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The attached gate run GR-software.repo.war-check@1.0.0 (receipt exit_result/verdict \"pass\") is bound via subject_digests to this contract (sha256:759743…, matching authorized_contract_digest) and to tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3, the same non-stale tree cited by the run's own \"bound to the current contract and to its source\" lines — this run is current, not one of the stale-bound receipts flagged elsewhere (e.g. OW-WAR-0140/145/146/147 against tree:e68d1caf…). Within the shown stdout tail, \"PASS identity.atom-mismatch OW-WAR-0083: 4 atom(s) name this Warrant's UUID\" directly confirms one structural check on this Warrant's atoms passed, and the run's final tally (\"2033 pass · 244 warn · 0 unknown · 0 error (worst: WARN)\") shows zero FAIL/ERROR entries across the whole sweep that includes OW-WAR-0083, so none of its structural checks (manifest, deliverable digests, obligations, milestones) failed even though their individual PASS lines fall outside the visible truncated excerpt."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

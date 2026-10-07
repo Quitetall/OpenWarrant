@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0026"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-core/src/seam.rs) contains no Dispatch type or Dispatch→Katana-request compilation function anywhere in its 1061 lines; it only defines KatanaReceipt (receipt consumption), ActionEnvelope, BlutLowering and parity types. The work order (atoms/40-work-order.md) lists 'Dispatch → Katana request mapping' as deliverable #1, but this is the sole deliverable carried for the warrant and it does not contain that mapping, so the obligation's core claim is unaddressed by the evidence shown. The gate run's own NOT CHECKED section states 'war check' does not execute the crate's gates/tests, so the listed test names (e.g. the_receipt_holds_a_prompt_ir_digest_and_not_prompt_ir) are not confirmed as having actually run and passed by this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The obligation's evidence requirement is 'a plant where OpenWarrant fabricates a receipt, refused,' but this bundle's plants array is empty ([]) — no plant is carried. KatanaReceipt::validate() in D-001 only checks that named fields are non-empty and that dispatch_digest matches an expected value; it contains no provenance or signature check that would distinguish a genuine Katana-issued receipt from a self-minted one, so the code shown does not itself demonstrate refusal of fabrication. The prior verification's claim about plant '[OW-WAR-0020]' is not corroborated by any plant data in this bundle, and the gate run's NOT CHECKED note confirms 'war check' does not execute gates/tests, so no execution evidence backs this either."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "D-001 (seam.rs) contains no 'unverified against a live Katana' marker, field, or reporting mechanism anywhere in its text — no such construct appears among KatanaReceipt, ActionEnvelope, BlutLowering, or AdapterParity. The obligation's evidence bar ('every run against the seam reports that it has not been exercised against a real runtime') is not met by anything in the deliverable or in the visible (tail-truncated) portion of the gate run's stdout, which does not include any OW-WAR-0026-specific lines. This matches the prior verification's own finding of not_established for this obligation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

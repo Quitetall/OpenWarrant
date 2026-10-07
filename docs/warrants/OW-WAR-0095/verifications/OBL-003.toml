@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There are no result/evidence pointers, completion records, or failure logs in the bundle: deliverables, gate_runs, and plants are all empty, and obligation_evidence for OBL-003 lists no named_paths or terms. atoms/40-work-order.md's 'Evidence' section only describes what a session record should contain, not an actual observed per-participant outcome, so retained completion or failures cannot be established or refuted."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

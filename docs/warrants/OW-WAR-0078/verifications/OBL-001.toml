@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty, obligation_evidence for OBL-001 lists no named_paths or terms, and plants is empty. No conformance/sdk, conformance/integration artifacts, or provider-evaluation traces are carried. The only gate run present, GR-software.repo.war-check@1.0.0, is a structural record-format checker whose own NOT CHECKED section states 'gate execution ... `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run' — it does not run the planned 60-assurance.md acceptance entry point (`cargo run -p openwarrant-core --example sdk_probe ...`). Nothing shows the SDK condition validator or provider actually executed against inputs."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,25 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-004-22e6"
+band: "manual_revision"
+reason: "OBL-006's third evidence point, 'the SAS document's sha256 after delivery equals revision 1.1.0's', was written as a fact about the tree and is read as one about the tree today. OW-WAR-0125 delivered at 9c3c9150, where the SAS is byte for byte revision 1.1.0 (sha256:321413359168); since then the document moved under other Warrants — 1.1.1 (proposed at e50aec03, OW-WAR-0114; accepted) and 1.2.0 (proposed at 79707733, OW-WAR-0142) — and the blind verifier refuted the obligation on today's sha256 (1.2.0's). The claim OBL-006 is making is that this Warrant changes no SAS byte; that is still true, and is now stated so it stays checkable. OBL-002's 'revision 1.1.0' is stale in the same way: the section index names the revision whose record pins the document's sha256, which the plant already derives. OBL-006 also moves to the battery gate, whose plant (56-sas-sections.sh) now asserts all three of its points, each with a refusal; document.review@1.0.0 ran no check of them. Nothing is narrowed: every point is still asserted, over the delivery instead of over a tree other Warrants have since changed. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-38.4"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes beyond D-009 (56-sas-sections.sh gains the OBL-006 plants, already delivered). 60-assurance.md carries the `after` texts below as revision 5, the contract digest moves, and the signature authorizes that revision; the battery is then re-run."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-27"
+
+semantic_diff:
+  - element: "obligations"
+    before: "OBL-002 evidence: after `war compile`, both files exist and name the document's sha256 and revision `1.1.0`."
+    after: "OBL-002 evidence: after `war compile`, both files exist and name the document's sha256 and the revision whose record under docs/sas/revisions/ pins that sha256."
+  - element: "obligations"
+    before: "OBL-006 evidence: the SAS document's sha256 after delivery equals revision `1.1.0`'s."
+    after: "OBL-006 evidence: at the commit that delivered the section index (the first to add docs/sas/generated/SECTIONS.json), the SAS document's sha256 equals revision `1.1.0`'s and not `1.1.1`'s; and no deliverable of OW-WAR-0125 names the SAS document. Refusal: a planted deliverable naming the SAS is reported."
+  - element: "gates"
+    before: "OBL-006 cites gate://document.review@1.0.0."
+    after: "OBL-006 cites gate://ops.conformance.plants@1.1.0 (plants in conformance/plants.d/56-sas-sections.sh, each paired with a refusal: OW-ADR-0028 status proposed and governing this Warrant, its §105 text marked as a proposal; the SAS at delivery; no SAS deliverable)."
+
+affected_stages: []
+affected_milestones: []

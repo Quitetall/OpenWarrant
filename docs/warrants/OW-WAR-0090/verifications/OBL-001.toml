@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries deliverables:[] (no deliverables_not_carried field explaining an obligation-scoped bundle, since scope is 'warrant'), and obligation_evidence for OBL-001 lists named_paths:[] and terms:[] despite selection 'every deliverable of the Warrant' — no phase-exit records, frozen source-set manifest, Phase 3 webapp artifacts, app-integration evidence, or real-user observation data are present. plants:[] is empty, so no conformance plant names this obligation either. The sole gate run, GR-software.repo.war-check@1.0.0, only performs structural checks on Warrant records (PASS manifest.valid, traceability.refs, obligations.valid, etc.) and atom 60-assurance.md states these implementation observations are 'NOT RUN until attached evidence proves them.' With no behavioral or artifact evidence carried, the claim cannot be decided either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

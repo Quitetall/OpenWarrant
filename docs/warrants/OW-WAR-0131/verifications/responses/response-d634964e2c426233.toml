@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0131"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-004 (tools/performer/claude-performer.sh) implements exactly the validation the obligation describes: it checks dispatch_id match, rejects requested_next_action outside §51.2's five, and only ever prints claude's stdout byte-for-byte or nothing. D-006 (conformance/plants.d/60-perform-cancel.sh) plants a fake `claude` on PATH (refusing to proceed at all unless `command -v claude` resolves to the fake, so no real model is invoked, matching the obligation's scope), and drives it through five modes (right/other/resolve/notjson/fail) both directly against the adapter and through `war perform`. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 'tested commit 39d30f3d2b2ca57dd9864ce4c6f6c804b8c32f88', '1214 passed, 0 failed') shows every relevant plant line passing: 'the adapter passes the answer' (byte for byte, argv carries the pinned tool list), 'adapter refuses: other/resolve/notjson/fail' (each exit non-zero, stdout empty, named reason), 'war perform ingests the adapter' (perform.answered, submission.recorded), and 'war perform, adapter: other/resolve/notjson/fail' (each perform.failed with no submission). This directly satisfies all three evidence bullets the obligation names (byte-identical pass-through and ingestion, refusal with empty stdout and no recorded submission across the four bad-answer cases, and the pinned argv check)."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

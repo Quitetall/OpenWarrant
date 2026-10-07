@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0139"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-003 (pairing.rs, carried in full, not truncated) implements HostTty::ask returning Answer::Yes/No/TimedOut/NoTty exactly per the obligation's four cases, and Device::label()/the pairing prompt path is exercised by conformance/plants.d/59-webui-lan.sh (D-007), which asserts (a) a no-answer pairing times out with no credential issued and the prompt names the device's address and agent (grep for 'pair a device from 127.0.0.1 (plant-phone/1.0)' and the timed-out check), (b) an 'n' answer issues no credential and records no device, (c) a pairing attempted with no TTY (the 'notty' hostterm mode) is refused by the named error 'pair.no-tty', and (d) the confirmation names the device's address as tested directly. The gate run GR-ops.conformance.plants@1.1.0 (verdict 'pass', exit_result 'pass') stdout excerpt (lines 723-781) shows all four corresponding assertions passing: 'ok OBL-004 y at the host pairs; names the device … prompt names 127.0.0.1 and its agent', 'ok OBL-004 n at the host 403 pair.declined, no credential, no device recorded', 'ok OBL-004 no answer at the host 403 pair.timed-out, no credential', and 'ok OBL-004 no terminal at the host 403 pair.no-tty, no credential'. Together the carried source, the plant's test logic, and the gate's recorded pass output for those exact test lines establish every evidence item the obligation requires within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

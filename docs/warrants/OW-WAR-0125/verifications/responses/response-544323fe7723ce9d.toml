@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0125"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows all three required behaviors in its stdout excerpts: the pass case (\"existing section citations current 96 of 96 pass sas.section-current\"), the warning case (\"a cited section that changed ... WARN sas.section-current (sas://WAR-SAS-98 changed between SAS 0.1.0-draft.1.*SAS 1.1.1)\"), and the shallow-clone UNKNOWN case (\"a shallow clone cannot say ... UNKNOWN sas.section-current (sas://WAR-SAS-43.5, shallow)\"). D-009 (conformance/plants.d/56-sas-sections.sh) shows the plant deriving SEC_LATEST dynamically from whichever revision record currently carries state=accepted rather than a fixed '1.1.0', explaining why the warning names 1.1.1 as the comparison target instead of the 1.1.0 named in the obligation's scope text; this is consistent with 20-basis.md's description of the mechanism as comparing the pinned digest against 'the latest accepted revision' (a moving target), not a hardcoded revision, so the substantive per-section pass/warn/unknown behavior the obligation requires is demonstrated even though the concrete revision number in scope is now stale. D-007 (check.rs, function check_section_refs, lines ~1965-2151) implements exactly this pass/warn/UNKNOWN logic against pinned-vs-latest-accepted digests, and obligation_evidence confirms the terms '0.1.0-draft.1', '1.1.0' and 'sas.section-current' are shown (not truncated) across D-009, the gate stdout, and the atoms."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

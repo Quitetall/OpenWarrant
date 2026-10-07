@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0042"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "atoms/20-basis.md's Assumptions and Unknowns section records as a 'Blocking unknown' that 'No drafting agent speaks oh.war/agent-drafter/v1 today' and that Katana, the preferred adapter, 'is not cloned on this host.' atoms/60-assurance.md's JDG-001 (authored by QuiteTall, admissibility controlled_measurement) states directly: 'OBL-001 and OBL-002 require a real drafting agent answering over §75.2 as a SEPARATE PROCESS... No agent has been invoked... All three are recorded as open rather than narrowed: each needs work, not a decision that it cannot be done.' The obligation_evidence entry for OBL-001 carries no named_paths and no terms at all, and the gate run's stdout (software.repo.war-check@1.0.0) only performs structural checks (e.g. 'PASS obligations.valid ... 4 obligation(s), each with a bounded scope and evidence,' 'PASS identity.atom-mismatch') with no mention of a stdin/stdout exchange with a separate drafting process; the gate's own NOT CHECKED footer confirms 'war check does not invoke [gates], so nothing here is evidence that a Warrant's acceptance gates were run.' The Warrant's own authored record affirmatively states the required event has not occurred, so the claim is refuted rather than merely unproven."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "refuted"
+evidence = "JDG-001 in atoms/60-assurance.md groups OBL-002 with OBL-001 as open precisely because 'No agent has been invoked,' meaning no interview producing an agent-authored Draft Proposal has taken place. The obligation_evidence for OBL-002 shows only the term 'war check' surfaced in the generic gate stdout, with no verbatim request, no returned proposal, and no §74.4 eight-step trace anywhere in the bundle (deliverables is an empty list). The gate stdout itself is corpus-wide structural validation (e.g. 'PASS manifest.valid', 'PASS traceability.refs') and its NOT CHECKED section states plainly that 'war check' does not execute gates or verify runs. Since the same authored record that defines this obligation states the underlying agent run never happened, the claim that 'one vague sentence produced an applied draft' does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's scope is explicitly 'the whole run in OBL-002,' and JDG-001 states that run never occurred ('No agent has been invoked'). The obligation_evidence entry for OBL-003 lists the term 'write_file' with both shown_in and cut_from empty, meaning no plant output, filesystem audit, or refusal message naming write_file is carried in the bundle. The sole 'plants' entry (conformance/plants.d/71-plan.sh, line 3) is a source comment about fixture design ('Fixture-driven (OW-WAR-0042 OBS-002): every plant feeds a committed file'), not a test result. With no run to audit and no admissible evidence carried either confirming a clean run or showing an improper write, the bundle simply does not carry enough to decide this claim either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-004 explicitly marks the only named path, 'conformance/', as absent: 'a repository path that is not a deliverable of OW-WAR-0042: not carried.' The bundle's deliverables list is empty, and the sole conformance-related item shown is one comment line from conformance/plants.d/71-plan.sh, not any of the seven plant entries or their pass/fail output for §91.8 tests 52-58. The gate run's stdout mentions plant files by name only in a staleness warning ('WARN evidence.stale-binding ... conformance/plants.d/45-tickets.sh, conformance/plants.d/48-isolated-battery.sh, conformance/plants.d/54-intake.sh, …') without showing any test outcome or named-rule rejection, and nowhere shows tests 53/54 refusing an agent's attempt to authorize or allocate an enterprise ID. With the conformance/ directory not carried, this obligation cannot be decided from the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

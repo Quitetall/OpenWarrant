@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0107"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables, gate_runs, and plants are all empty arrays, and obligation_evidence for OBL-001 lists no named_paths and no terms despite the stated selection 'every deliverable of the Warrant'. Only the authored atoms (atoms/10-intent.md, atoms/20-basis.md, atoms/40-work-order.md, atoms/45-milestones.yaml, atoms/60-assurance.md) are present, which describe the intended requirement but show no isolated verifier run binding exact source/revision/checks, nor any refusal cases for self-verification, mutable/stale candidate, missing protection, or malformed result. No bytes of any implementation or gate output are shown, so the claim cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No gate_runs, deliverables, or plants exist in the bundle, and obligation_evidence for OBL-002 shows empty named_paths and terms. atoms/40-work-order.md (steps 4-5) and atoms/60-assurance.md state the intended repair/rebuttal contract, but there is no observed test execution, repair attempt, exhaustion case, rebuttal, escalation, or bound enforcement shown anywhere in the bundle to confirm or refute the obligation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There are no deliverables (e.g., API/browser code), gate_runs (e.g., UI test transcripts), or plants tied to this obligation, and obligation_evidence for OBL-003 has empty named_paths and terms. atoms/60-assurance.md merely restates the required evidence description for OBL-003; absent any executed gate or artifact demonstrating findings display, unknown/fail distinction, or the unverified-completion marker, truthfulness of the UI/reports cannot be assessed from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

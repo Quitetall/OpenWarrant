@@ -1,0 +1,281 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "war ui: the hardened loopback server"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/mod.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:f644364d5847a020c76264048fcbc1f15be8cb9148e166e7a4754f7d67388cf4"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "the page"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/assets/index.html"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:f7a5bf719fb9e9b37c3135dd71889344f607b99c6f582dfaa84dc6e05c9283fd"
+media_type = "text/html"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "the page's script"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/assets/app.js"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:2aef1b8761b6c1430c2af9cd920b083b09824d70d51e3b76a7000bd1c87683c9"
+media_type = "text/javascript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "the page's style"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/assets/app.css"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:71641e8b9c03706a9682e9a799b549249ef788aa74a398fa736c5d597e46ab64"
+media_type = "text/css"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "the shared parser; no inline CSP"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/progress_viewer/server.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:de20d46178652005905e6a0198208847be9b49729449e8308ee2d3835fdefeeb"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "war progress --serve is war ui"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/progress_viewer.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:319e3a4a99b297c54c4f1bfcb2120c3189bf83002c1b6b6b02b46ac401ab0902"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "the command"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "47ce387b2b36596e0ddae343564fecbb67bf95a2d7be349f30cc008dacfd018e"
+input_digests = []
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "docs/WEBUI.md"
+kind = "file"
+target_ref = "docs/WEBUI.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "47ce387b2b36596e0ddae343564fecbb67bf95a2d7be349f30cc008dacfd018e"
+input_digests = []
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e4e57a1cb4c1d35d358a979d14ffbe2c7d7831612a904072bac92a5de805c33e"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "README.md: war ui"
+kind = "file"
+target_ref = "README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:539e76bd5214180159c83380f6a17e79b0e5dbf11e076b29b41eae956c5db0c7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "THREAT_MODEL row"
+kind = "file"
+target_ref = "docs/THREAT_MODEL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:d12499fa086f4fab71bc8f8fa33c82364b70abc1cb6fc8d0b0e736580ca58499"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/63-webui.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:0397209b30e60b7aab726f1742ba7556c844e671f2df1a81692cd0d9ac376a79"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+# AM-003: what the blind verifier could not see, observed beside D-011, which
+# is held byte-for-byte (OW-WAR-0139 OBL-005 and the quiet-grep exemption).
+[[deliverable]]
+id = "D-012"
+title = "the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus"
+kind = "file"
+target_ref = "conformance/plants.d/63-webui-verified.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "47ce387b2b36596e0ddae343564fecbb67bf95a2d7be349f30cc008dacfd018e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:6f63e2f3d73d31325f095bb67a933fd883c76cd71eff1bc8462a7ba1b0ce4f9c"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

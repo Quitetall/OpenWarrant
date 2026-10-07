@@ -1,12 +1,11 @@
 obligation = "OBL-004"
-disposition = "established"
-evidence = "The test 'lowering_is_deterministic' in lower.rs passed, demonstrating that compiling the same Basis twice yields byte-identical canonical IR, which establishes host-independence as required."
+disposition = "not_established"
+evidence = "OBL-004's scope requires two runs differing in process, working directory, environment ordering, and locale. The relevant tests in the bundle — canonical_output_is_stable_across_two_computations and digests_are_stable_across_runs (D-002), and lowering_is_deterministic (D-004) — all compute both values within a single process and environment, varying none of the required dimensions. Atom atoms/60-assurance.md itself states as a 'known limitation' that 'two hosts is satisfied here by two runs on one machine' and that 'OBL-004 must not be read as proving cross-platform canonicalization,' confirming the bundle carries no evidence of the cross-process/cross-environment comparison the obligation actually names."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

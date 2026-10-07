@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "OBL-005 requires a plant that ingests common_outcome=\"satisfied\" for a Warrant with unestablished obligations and observes a refusal tagged resolution.outcome-unsupported naming the obligations. The bundle's plants array is empty, and obligation_evidence for OBL-005 confirms the term 'common_outcome = \"satisfied\"' is shown_in: [] (nowhere) while 'resolution.outcome-unsupported' is shown only in D-002, i.e. only as source code (resolution_cmd.rs lines implementing `if response.common_outcome == CommonOutcome::Satisfied && a.would_resolve_satisfied != Some(true) { ... \"resolution.outcome-unsupported\" ... }`). The carried gate run (GR-software.repo.war-check@1.0.0, run on OW-WAR-0059) stdout excerpts show many 'PASS resolution.recorded' lines and unrelated warnings (evidence.stale-binding, deliverable.pin-stale, sas.pin-superseded) but no instance of resolution.outcome-unsupported firing, so no execution trace in this bundle demonstrates the refusal actually occurring. A prior_verifications entry from an independent agent verifier (claude-verifier, claude-sonnet-5) reached the same not_established disposition for the identical reason, but that is itself an account rather than primary evidence and is not what establishes this verdict. Since the bundle shows the mechanism coded but not exercised or observed to refuse, per the rule that plausible code is not evidence of behavior, OBL-005 is not established from the bundle alone."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

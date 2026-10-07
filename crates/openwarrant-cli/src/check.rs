@@ -10,14 +10,98 @@
 //! command that dials. `war check` reaching the network would make its verdict
 //! depend on someone else's uptime, which is the opposite of a control.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use openwarrant_compiler::{ChildRef, lower};
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
 
-use crate::compile::{adr_overview, projections, warrant_overview};
+use crate::compile::{adr_overview, projections};
+
+// OW-WAR-0119: the corpus identity rules. A child of this module, not a
+// sibling in `lib.rs`, because `war check` is their only caller.
+#[path = "identity_check.rs"]
+mod identity_check;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{Loaded, RepoError, Repository};
+
+/// OW-WAR-0137 — a Warrant's review assignment against what its authorizer
+/// signed, named by rule. An assignment edited, added or removed after
+/// signing (`assignment.moved`) or one that does not parse
+/// (`assignment.malformed`) is an ERROR: nobody may take the act it governs
+/// until a human restores or re-authorizes it. An assignee who has since lost
+/// the role is a WARN (`assignment.role-revoked`): the act waits, and nobody
+/// else is substituted. A Warrant with no assignment reports nothing.
+fn check_assignment(
+    repo: &Repository,
+    one: &Loaded,
+    register: Option<&openwarrant_core::authority::AuthorityRegister>,
+    report: &mut Report,
+) {
+    use crate::authorize::assignment::{self, Standing};
+    let alias = one.alias();
+    let file = repo.relative(&one.dir.join(assignment::FILE));
+    let standing = match crate::authorize::assignment_standing(repo, &one.dir) {
+        Ok(s) => s,
+        Err(e) => {
+            report.push(Diagnostic::unknown(
+                "assignment.unreadable",
+                file,
+                format!("{alias}: the assignment's standing could not be read: {e}"),
+            ));
+            return;
+        }
+    };
+    match standing {
+        Standing::None => {}
+        Standing::Moved { .. } | Standing::Malformed(_) => {
+            if let Err(f) = standing.for_act(assignment::Act::Resolve) {
+                report.push(Diagnostic::error(
+                    f.rule,
+                    file,
+                    format!("{alias}: {}", f.message),
+                ));
+            }
+        }
+        Standing::Unsigned(ref a) | Standing::Signed(ref a) => {
+            let signed = matches!(standing, Standing::Signed(_));
+            let findings = register
+                .map(|r| assignment::validate(a, r, &repo.performer()))
+                .unwrap_or_default();
+            for f in &findings {
+                // Before signing, `war authorize` will refuse it; after, the
+                // register moved under a signed assignment.
+                let rule = if signed && f.rule == "assignment.role-missing" {
+                    "assignment.role-revoked"
+                } else {
+                    f.rule
+                };
+                report.push(Diagnostic::warn(
+                    rule,
+                    file.clone(),
+                    format!("{alias}: {}", f.message),
+                ));
+            }
+            if findings.is_empty() {
+                report.push(Diagnostic::pass(
+                    if signed {
+                        "assignment.signed"
+                    } else {
+                        "assignment.proposed"
+                    },
+                    format!(
+                        "{alias}: {} {}",
+                        a.digest(),
+                        if signed {
+                            "is the assignment the authorizer signed"
+                        } else {
+                            "awaits the authorizer's signature"
+                        }
+                    ),
+                ));
+            }
+        }
+    }
+}
 
 /// Run every Phase 1 check over the whole corpus, or one Warrant.
 pub fn run(
@@ -25,9 +109,31 @@ pub fn run(
     only: Option<&str>,
     check_generated: bool,
 ) -> Result<Report, RepoError> {
+    run_with(&crate::corpus::Corpus::new(repo), only, check_generated)
+}
+
+/// [`run`] over a corpus already loaded: each Warrant is loaded and lowered
+/// once, and `--generated` compiles every corpus-wide projection from the
+/// same corpus rather than rebuilding it per projection (OW-WAR-0148).
+pub fn run_with(
+    shared_corpus: &crate::corpus::Corpus,
+    only: Option<&str>,
+    check_generated: bool,
+) -> Result<Report, RepoError> {
+    let repo = shared_corpus.repo();
     let dirs = match only {
         Some(alias) => vec![repo.warrant_dir(alias)?],
-        None => repo.warrant_dirs()?,
+        None => shared_corpus
+            .entries()?
+            .iter()
+            .map(|e| e.dir.clone())
+            .collect(),
+    };
+    let load = |dir: &camino::Utf8Path| -> Result<Loaded, RepoError> {
+        match shared_corpus.entry_at(dir) {
+            Some(e) => e.loaded().cloned(),
+            None => repo.load_warrant(dir),
+        }
     };
 
     let mut report = Report::default();
@@ -45,9 +151,14 @@ pub fn run(
 
     let mut loaded = Vec::new();
     for dir in &dirs {
-        let one = repo.load_warrant(dir)?;
+        let one = load(dir)?;
         loaded.push(one);
     }
+
+    // OW-WAR-0121: a temp file of the atomic write path is a write that
+    // stopped before its rename. The record it was meant to replace is whole
+    // (old or absent); the temp file is named so a person can remove it.
+    check_stray_temps(repo, only.map(|_| dirs.as_slice()), &mut report);
 
     // A parent's contract digest is computed from the parent, so verifying a
     // child's citation needs the whole corpus in hand. When only one Warrant was
@@ -55,19 +166,30 @@ pub fn run(
     // rather than reported as unknowable.
     let corpus = if only.is_some() {
         let mut all = Vec::new();
-        for dir in repo.warrant_dirs()? {
-            all.push(repo.load_warrant(&dir)?);
+        for entry in shared_corpus.entries()? {
+            all.push(entry.loaded()?.clone());
         }
         all
     } else {
         loaded.clone()
     };
-    let parent_digests = contract_digests(&corpus);
+    let parent_digests = contract_digests_with(shared_corpus, &corpus);
 
     // §43.1 — local gate candidates. Loaded once for the corpus so an obligation
     // citing a gate can be resolved rather than taken on trust.
     let gates = load_gate_registry(repo, &mut report);
     report_independence(repo, &loaded, &mut report);
+    // OW-WAR-0138: where the actor binding and the policy keys come from —
+    // `authority.unprotected` once without a store, a divergence per key
+    // with one.
+    for d in crate::authority_check::protection_report(repo) {
+        report.push(d);
+    }
+
+    // OW-ADR-0022: currency is derived from relations, once, over the whole
+    // corpus, and read by everything below that asks it.
+    // Every Warrant loaded (the `?` above), so this is the corpus's own.
+    let currencies = shared_corpus.currencies();
 
     // §20 and §21 relation conformance (OW-WAR-0043 OBL-004, §91.5 tests 30-35).
     // Built over the WHOLE corpus for the same reason parent digests are: a
@@ -96,19 +218,34 @@ pub fn run(
                 })
             })
             .collect();
-        crate::relations::check(&related, &mut report);
+        crate::relations::check(&related, currencies, &mut report);
     }
+    // OW-ADR-0023: the roadmap record, and the Warrants it holds to a phase.
+    crate::roadmap_cmd::check(repo, &corpus, &mut report);
+    let roadmap = shared_corpus.roadmap().ok().flatten();
 
+    // OW-ADR-0021: which Warrant governs each path NOW. Built once — it
+    // verifies one attestation per owning Warrant, and the drift decision
+    // below asks it for every content-addressed deliverable in the corpus.
+    let ownership = shared_corpus.ownership()?;
+    // OW-WAR-0125: each recorded SAS revision split into sections, read from
+    // the document or from history at most once per run.
+    let sas_sections = crate::sas::RevisionSections::new(repo);
+
+    let shared = Shared {
+        corpus: &corpus,
+        currencies,
+        parent_digests: &parent_digests,
+        gates: &gates,
+        ownership,
+        roadmap,
+        sas_sections: &sas_sections,
+    };
+    // OW-WAR-0137: the register, once, for every Warrant's assignment.
+    let register = repo.load_authority_register();
     for one in &loaded {
-        check_one(
-            repo,
-            one,
-            &corpus,
-            check_generated,
-            &parent_digests,
-            &gates,
-            &mut report,
-        );
+        check_one(repo, one, shared, check_generated, &mut report);
+        check_assignment(repo, one, register.as_ref().ok(), &mut report);
         if let Some(basis) = &one.basis {
             total_warrants += 1;
             let fully_undisposed = basis
@@ -164,9 +301,28 @@ pub fn run(
             format!("{} ADR(s) parsed", adrs.records.len()),
         ));
     }
+    // §12 identity (OW-WAR-0119), once per run: duplicates and alias
+    // resolution need every Warrant and every ADR in hand, so this sits after
+    // both are loaded rather than inside the per-Warrant loop.
+    identity_check::check(repo, &corpus, &loaded, &adrs.records, &mut report);
     // §101 — the SAS is a controlled document. The bytes on disk are held to
     // the latest recorded revision's digest. Until OW-WAR-0058 nothing in code
     // compared them: the digest appeared in six places, all prose.
+    // Reproducing the same lossy extraction is not a completeness check.
+    // This also covers a source whose first revision is not recorded yet.
+    if let Ok((path, bytes)) = repo.sas_document() {
+        let dropped = openwarrant_core::dropped_sections(&String::from_utf8_lossy(&bytes));
+        if dropped.is_empty() {
+            report.push(Diagnostic::pass(
+                "sas-normative.section-labels",
+                "no unsupported numbered SAS heading hides or mislabels a normative body statement",
+            ));
+        } else {
+            for heading in dropped {
+                report.push(Diagnostic::error("sas-normative.section-dropped", repo.relative(&path), format!("unsupported numbered heading {heading:?} hides or mislabels normative rules; recompiling cannot repair their section identity")));
+            }
+        }
+    }
     match repo.load_sas_revisions() {
         Err(err) => report.push(Diagnostic::error(
             "sas.revision-malformed",
@@ -239,6 +395,18 @@ pub fn run(
         },
     }
 
+    // OW-ADR-0029: every class file — one that reaches an authority path, or
+    // whose acceptance no longer verifies over its bytes, is an error.
+    crate::standing_cmd::check_classes(repo, &mut report);
+
+    // OW-WAR-0148 M3: record atoms and the relations documents author.
+    // Silent where there are none, so such a program checks as it did.
+    if only.is_none() {
+        crate::records::check(shared_corpus, &mut report);
+        // OW-WAR-0148 M6: declared documents. Silent where there are none.
+        crate::render_cmd::check(shared_corpus, &mut report);
+    }
+
     // Accepting a SAS revision is the act that makes a specification normative
     // for every Warrant that pins it, so it is held to the same rule as an
     // authorization: a human signature over the acceptance response's exact
@@ -290,67 +458,41 @@ pub fn run(
     if check_generated && repo.config.generated.verify_drift {
         drift_check(
             repo,
-            warrant_overview(repo),
+            crate::compile::warrant_overview_with(shared_corpus),
             "warrant-overview",
             &mut report,
         );
         drift_check(repo, adr_overview(repo), "adr-overview", &mut report);
         drift_check(
             repo,
-            crate::status::corpus_status_md(repo),
+            crate::status::corpus_status_md_with(shared_corpus),
             "corpus-status",
             &mut report,
         );
         drift_check(
             repo,
-            crate::status::corpus_status_json(repo),
+            crate::status::corpus_status_json_with(shared_corpus),
             "corpus-status",
             &mut report,
         );
         drift_check(
             repo,
-            crate::status::corpus_status_html(repo),
+            crate::status::corpus_status_html_with(shared_corpus),
             "corpus-status",
             &mut report,
         );
         drift_check(
             repo,
-            crate::timeline::corpus_timeline_json(repo),
+            crate::timeline::corpus_timeline_json_with(shared_corpus),
             "corpus-timeline",
             &mut report,
         );
         drift_check(
             repo,
-            crate::timeline::corpus_pending_json(repo),
+            crate::timeline::corpus_pending_json_with(shared_corpus),
             "corpus-pending",
             &mut report,
         );
-        // Completeness, which drift cannot see: a projection that drops the same
-        // sentences every time compiles identically every time. Reported against
-        // the document, whether or not the projection is committed.
-        if let Ok((path, bytes)) = repo.sas_document() {
-            let dropped = openwarrant_core::dropped_sections(&String::from_utf8_lossy(&bytes));
-            if dropped.is_empty() {
-                report.push(Diagnostic::pass(
-                    "sas-normative.complete",
-                    "every numbered section of the SAS reaches the normative projection",
-                ));
-            } else {
-                for heading in dropped {
-                    report.push(Diagnostic::error(
-                        "sas-normative.section-dropped",
-                        repo.relative(&path),
-                        format!(
-                            "§{heading} carries normative text and the projection's section \
-                             parser cannot label it, so every sentence under it is absent from \
-                             docs/sas/generated/NORMATIVE.md — silently, because a fresh \
-                             compilation drops the same ones and the drift check passes. A \
-                             section number is digits with an optional letter suffix (§8, §8A)"
-                        ),
-                    ));
-                }
-            }
-        }
         // The SAS normative projection (E1), when there is a document.
         if repo.sas_document().is_ok() {
             match crate::compile::sas_normative(repo) {
@@ -361,6 +503,33 @@ pub fn run(
                 }
                 Err(e) => drift_check(repo, Err(e), "sas-normative", &mut report),
             }
+            // The section index (OW-WAR-0125), by the same function.
+            match crate::compile::sas_sections(repo) {
+                Ok(files) => {
+                    for file in files {
+                        drift_check(repo, Ok(file), "sas-sections", &mut report);
+                    }
+                }
+                Err(e) => drift_check(repo, Err(e), "sas-sections", &mut report),
+            }
+        }
+        // OW-ADR-0022: the master document, and the history when this
+        // repository keeps one. `generated.drift`, the rule every projection
+        // of a Warrant reports under: CURRENT.md is written by `compile` and by
+        // nothing else. With `history = false` nothing is compiled for
+        // HISTORY.md, so nothing is compared.
+        match crate::compile::master_documents_with(shared_corpus) {
+            Ok(files) => {
+                for file in files {
+                    drift_check(repo, Ok(file), "generated", &mut report);
+                }
+            }
+            Err(e) => drift_check(repo, Err(e), "generated", &mut report),
+        }
+        // OW-WAR-0148 M6: every declared document's projections, rendered
+        // fresh; a hand-edit, or a file no document produces, is drift.
+        if only.is_none() {
+            crate::render_cmd::check_generated(shared_corpus, &mut report);
         }
     }
 
@@ -418,6 +587,31 @@ pub fn run(
     Ok(report)
 }
 
+/// `storage.stray-temp` (warning) for each file `atomic::stray` finds under
+/// `docs/`; with one Warrant asked for, only those inside its directory.
+fn check_stray_temps(
+    repo: &Repository,
+    within: Option<&[camino::Utf8PathBuf]>,
+    report: &mut Report,
+) {
+    for s in crate::compile::atomic::stray(&repo.root) {
+        if within.is_some_and(|dirs| !dirs.iter().any(|d| s.temp.starts_with(d))) {
+            continue;
+        }
+        report.push(Diagnostic::warn(
+            "storage.stray-temp",
+            repo.relative(&s.temp),
+            format!(
+                "{} is a temp file left by a write that stopped before its rename; it was meant \
+                 to replace {}, which is whole as it stands (the previous bytes, or absent). \
+                 Nothing reads the temp file. Remove it once you know which act stopped",
+                repo.relative(&s.temp),
+                repo.relative(&s.record)
+            ),
+        ));
+    }
+}
+
 /// Compare one generated corpus-wide projection against a fresh compilation.
 ///
 /// Shared by the Warrant and ADR overviews so the two cannot drift apart in how
@@ -469,6 +663,29 @@ fn drift_check(
 /// A Warrant that could not be validated has no contract digest and is simply
 /// absent from the map; a child citing it gets an honest "cannot verify" rather
 /// than a comparison against a value invented from broken sources.
+/// [`contract_digests`], reading each digest the corpus already computed
+/// for the same Warrant directory.
+fn contract_digests_with(
+    shared: &crate::corpus::Corpus,
+    corpus: &[Loaded],
+) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    for one in corpus {
+        let Some(validated) = &one.validated else {
+            continue;
+        };
+        let digest = match shared.entry_at(&one.dir) {
+            Some(e) if one.basis.is_some() => e.contract_digest().map(str::to_owned),
+            Some(_) => None,
+            None => contract_digests(std::slice::from_ref(one)).remove(&validated.uuid.to_string()),
+        };
+        if let Some(d) = digest {
+            out.insert(validated.uuid.to_string(), d);
+        }
+    }
+    out
+}
+
 fn contract_digests(corpus: &[Loaded]) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();
     for one in corpus {
@@ -625,7 +842,41 @@ pub(crate) fn load_gate_registry(
 /// target that cannot be read, is reported rather than skipped. "The digest does
 /// not match" and "there is nothing to match against" are different problems and
 /// a check that collapsed them would send the reader to the wrong fix.
-fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, report: &mut Report) {
+/// Does a signed record bind this Warrant's deliverable digests?
+///
+/// Exactly one thing does: a resolution, whose §56.2 record carries
+/// `artifact_manifest_digest` = sha256 of `deliverables.toml`. Moving a pin
+/// under it would change what the resolution resolved, so that is an ERROR and
+/// `war correct` is the act for it (OW-WAR-0064).
+///
+/// An authorization does NOT. The contract digest covers intent, scope,
+/// obligations, milestones and stages — not which bytes a file happens to have
+/// while the work is being done. Treating it as binding sent a signed but
+/// unresolved Warrant to `war correct`, which refuses with
+/// `correction.not-resolved`: an error whose only remedy was itself refused.
+///
+/// So a pin that no one has resolved against is out of date, not violated —
+/// `war pins --refresh` re-records it. That distinction is why `war check` can
+/// run during ordinary work: a repository with nineteen unsigned Warrants
+/// pinning living source files reported ten ERRORs and NOT READY on every
+/// commit, forever, protecting nothing.
+pub fn resolution_binds(repo: &Repository, one: &Loaded) -> bool {
+    repo.load_resolution(&one.dir).ok().flatten().is_some()
+}
+
+fn check_deliverable_digests(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    ownership: &crate::ownership::Ownership,
+    report: &mut Report,
+) {
+    let bound = resolution_binds(repo, one);
+    let authorization = repo.load_authorization(&one.dir).ok().flatten();
+    let authorized_at = authorization
+        .as_ref()
+        .and_then(|a| a.revision.authorization.as_ref())
+        .map(|a| a.effective_time.clone());
     let deliverables = match repo.load_deliverables(&one.dir) {
         Ok(set) => set,
         Err(err) => {
@@ -646,6 +897,65 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
         ));
     }
 
+    // OW-ADR-0021: the set the authorizer signed for is the set that owns.
+    // A record with no `owned` set predates ownership and owns nothing, so
+    // there is nothing to compare; one with a set is held to it both ways.
+    // `authorize` refuses a set that moved between drafting and signing
+    // (`authorize.stale-deliverables`); these two catch the edit AFTER.
+    if let Some(record) = &authorization
+        && !record.owned.is_empty()
+        && deliverables.failures.is_empty()
+    {
+        let declared: BTreeSet<(&str, &str)> = deliverables
+            .records
+            .iter()
+            .map(|d| (d.id.as_str(), d.target_ref.as_str()))
+            .collect();
+        let owned: BTreeSet<(&str, &str)> = record
+            .owned
+            .iter()
+            .map(|d| (d.id.as_str(), d.target_ref.as_str()))
+            .collect();
+        let mut agree = true;
+        for (id, target) in declared.difference(&owned) {
+            agree = false;
+            report.push(Diagnostic::warn(
+                "deliverable.undeclared-at-authorization",
+                file.clone(),
+                format!(
+                    "{alias}: {id} → {target} is declared now but was not in the set the \
+                     authorization signed for, so {alias} does not own it and no other \
+                     Warrant's pin on it becomes historical. Ownership widens only through \
+                     an amendment and a re-authorization (§31, OW-ADR-0021)"
+                ),
+            ));
+        }
+        for (id, target) in owned.difference(&declared) {
+            agree = false;
+            report.push(Diagnostic::error(
+                "deliverable.declared-then-removed",
+                file.clone(),
+                format!(
+                    "{alias}: the authorization signed for {id} → {target} and \
+                     deliverables.toml no longer declares it. A signed claim on a path \
+                     cannot be withdrawn by deleting the line — restore the declaration, \
+                     or amend and re-authorize (§31, OW-ADR-0021)"
+                ),
+            ));
+        }
+        if agree {
+            report.push(Diagnostic::pass(
+                "deliverable.owned",
+                format!(
+                    "{alias}: the {} deliverable(s) declared are the {} the authorization \
+                     signed for",
+                    declared.len(),
+                    owned.len()
+                ),
+            ));
+        }
+    }
+
     let addressed: Vec<_> = deliverables
         .records
         .iter()
@@ -664,6 +974,7 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
 
     let mut drifted = 0usize;
     let mut corrected = 0usize;
+    let mut historical = 0usize;
     for deliverable in &addressed {
         let Some(provenance) = deliverable.provenance.as_ref() else {
             report.push(Diagnostic::error(
@@ -740,6 +1051,39 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
                             ),
                         ));
                     }
+                } else if let Some(newer) = bound
+                    .then(|| {
+                        ownership.newer_than(
+                            &deliverable.target_ref,
+                            alias,
+                            authorized_at.as_deref(),
+                        )
+                    })
+                    .flatten()
+                {
+                    // OW-ADR-0021: a later authorized Warrant declares this
+                    // path, so the bytes are its to answer for. This pin is a
+                    // claim about a moment — `war pins --history` finds the
+                    // commit — and neither drift nor a correction applies.
+                    // Decided before the correction branch on purpose: a
+                    // chain that stopped matching because a NEWER OWNER moved
+                    // the file is not a correction that corrects nothing.
+                    historical += 1;
+                    report.push(Diagnostic::pass(
+                        "deliverable.superseded-by",
+                        format!(
+                            "{alias}: {} pinned {} at {head}; {}/{} (authorized {}) now \
+                             governs that path, so this pin is historical and the bytes \
+                             are that Warrant's to answer for (OW-ADR-0021) — `war pins \
+                             --history {}`",
+                            deliverable.id,
+                            deliverable.target_ref,
+                            newer.alias,
+                            newer.deliverable_id,
+                            newer.authorized_at,
+                            deliverable.target_ref
+                        ),
+                    ));
                 } else if !chain.is_empty() {
                     report.push(Diagnostic::error(
                         "correction.new-digest-mismatch",
@@ -752,32 +1096,59 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
                         ),
                     ));
                     drifted += 1;
-                } else {
+                } else if bound {
                     report.push(Diagnostic::error(
                         "deliverable.digest-drift",
                         file.clone(),
                         format!(
                             "{alias}: {} records sha256:{recorded} for {} but the file is now \
-                             sha256:{actual}. The artifact moved after the record was written — \
-                             regenerate the record, or restore the artifact; for a RESOLVED \
-                             Warrant, `war correct {alias} {}` (OW-WAR-0064)",
-                            deliverable.id, deliverable.target_ref, deliverable.id
+                             sha256:{actual}. A resolution binds this manifest and no later \
+                             authorized Warrant declares {}, so the artifact moved outside any \
+                             authorization — restore it; declare it as a deliverable of a \
+                             Warrant and have that Warrant authorized (OW-ADR-0021); or record \
+                             why it moved: `war correct {alias} {}` (OW-WAR-0064)",
+                            deliverable.id,
+                            deliverable.target_ref,
+                            deliverable.target_ref,
+                            deliverable.id
                         ),
                     ));
                     drifted += 1;
+                } else {
+                    // Nobody has signed for this Warrant, so the pin is a note
+                    // about a file, not a promise about it.
+                    report.push(Diagnostic::warn(
+                        "deliverable.pin-stale",
+                        file.clone(),
+                        format!(
+                            "{alias}: {} records sha256:{recorded} for {} and the file is now \
+                             sha256:{actual}. No resolution binds this manifest, so the pin is \
+                             out of date rather than violated — `war pins --refresh {alias}`",
+                            deliverable.id, deliverable.target_ref
+                        ),
+                    ));
                 }
             }
             Err(err) => {
-                report.push(Diagnostic::error(
-                    "deliverable.target-unreadable",
-                    file.clone(),
-                    format!(
-                        "{alias}: {} names {} and it cannot be read: {err}. An unreadable artifact \
-                         is not a verified one",
-                        deliverable.id, deliverable.target_ref
-                    ),
-                ));
-                drifted += 1;
+                let why = format!(
+                    "{alias}: {} names {} and it cannot be read: {err}. An unreadable artifact \
+                     is not a verified one",
+                    deliverable.id, deliverable.target_ref
+                );
+                if bound {
+                    report.push(Diagnostic::error(
+                        "deliverable.target-unreadable",
+                        file.clone(),
+                        why,
+                    ));
+                    drifted += 1;
+                } else {
+                    report.push(Diagnostic::warn(
+                        "deliverable.target-unreadable",
+                        file.clone(),
+                        why,
+                    ));
+                }
             }
         }
     }
@@ -786,10 +1157,15 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
         report.push(Diagnostic::pass(
             "deliverable.digests",
             format!(
-                "{alias}: {} content-addressed deliverable(s) match their bytes{}",
+                "{alias}: {} content-addressed deliverable(s) match their bytes{}{}",
                 addressed.len(),
                 if corrected > 0 {
                     format!(" ({corrected} through an authorized correction)")
+                } else {
+                    String::new()
+                },
+                if historical > 0 {
+                    format!(" ({historical} historical, governed by a later Warrant)")
                 } else {
                     String::new()
                 }
@@ -813,7 +1189,13 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
 /// An absent contribution is a warning, not an error: §34.2 says a WAR SHOULD
 /// declare it, and turning a SHOULD into a refusal would be reading a rule into
 /// the text.
-fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut Report) {
+fn check_traceability(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    roadmap: Option<&crate::roadmap_cmd::Loaded>,
+    report: &mut Report,
+) {
     use openwarrant_core::traceability::{Contribution, RequirementRef, RoadmapRef};
 
     let Some(basis) = one.basis.as_ref() else {
@@ -848,7 +1230,27 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
                 ));
                 bad += 1;
             }
-            Ok(_) => {}
+            // OW-ADR-0023: with a roadmap record, the phase must be one of its
+            // phases; without one, §98's 0..=10.
+            Ok(parsed) => match roadmap {
+                Some(rm) => {
+                    if !crate::roadmap_cmd::check_ref(rm, alias, &parsed, &file, report) {
+                        bad += 1;
+                    }
+                }
+                None if parsed.phase > RoadmapRef::MAX_PHASE => {
+                    report.push(Diagnostic::error(
+                        "roadmap.malformed",
+                        file.clone(),
+                        format!(
+                            "{alias}: {} names phase {}; §98 defines 0..=10 and this program has no roadmap record to say otherwise",
+                            r.r#ref, parsed.phase
+                        ),
+                    ));
+                    bad += 1;
+                }
+                None => {}
+            },
         }
     }
 
@@ -919,15 +1321,40 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
     }
 }
 
+/// What every Warrant's check reads from the corpus as a whole: built once
+/// in `run`, never per Warrant.
+#[derive(Clone, Copy)]
+struct Shared<'a> {
+    corpus: &'a [Loaded],
+    /// OW-ADR-0022 currency over `corpus`, derived once.
+    currencies: &'a crate::relations::Currencies,
+    /// Contract digests by alias, for a child's citation of its parent.
+    parent_digests: &'a BTreeMap<String, String>,
+    gates: &'a openwarrant_core::GateRegistry,
+    /// OW-ADR-0021: which Warrant governs each path now.
+    ownership: &'a crate::ownership::Ownership,
+    /// OW-ADR-0023: the roadmap record, when the program has one.
+    roadmap: Option<&'a crate::roadmap_cmd::Loaded>,
+    /// OW-WAR-0125: recorded SAS revisions by section, for citations.
+    sas_sections: &'a crate::sas::RevisionSections<'a>,
+}
+
 fn check_one(
     repo: &Repository,
     one: &Loaded,
-    corpus: &[Loaded],
+    shared: Shared<'_>,
     check_generated: bool,
-    parent_digests: &BTreeMap<String, String>,
-    gates: &openwarrant_core::GateRegistry,
     report: &mut Report,
 ) {
+    let Shared {
+        corpus,
+        currencies,
+        parent_digests,
+        gates,
+        ownership,
+        roadmap,
+        sas_sections,
+    } = shared;
     let alias = one.alias();
 
     // Carry forward whatever loading already found.
@@ -946,8 +1373,19 @@ fn check_one(
         format!("{alias}: manifest and composition are well-formed"),
     ));
 
-    check_deliverable_digests(repo, one, &alias, report);
-    check_traceability(repo, one, &alias, report);
+    // OW-ADR-0031: each rule family below runs only when the Warrant's kind
+    // selects its capability, and a family that does not run is named here,
+    // never passed in silence. `structure` is always selected.
+    let caps = one.capabilities(&repo.profiles);
+    push_not_applicable(&alias, validated, caps, report);
+    use openwarrant_core::Capability as C;
+
+    if caps.has(C::Resolution) {
+        check_deliverable_digests(repo, one, &alias, ownership, report);
+    }
+    if caps.has(C::Links) {
+        check_traceability(repo, one, &alias, roadmap, report);
+    }
     {
         // §44.6 recorded runs and the §56.2 record, both held to the contract
         // as it compiles NOW (OW-WAR-0059).
@@ -957,8 +1395,12 @@ fn check_one(
                 .and_then(|ir| ir.contract_digest().ok()),
             _ => None,
         };
-        crate::evidence::check(repo, &one.dir, &alias, current.as_deref(), report);
-        crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
+        if caps.has(C::Evidence) {
+            crate::evidence::check(repo, &one.dir, &alias, current.as_deref(), report);
+        }
+        if caps.has(C::Resolution) {
+            crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
+        }
         let uuid = one.validated.as_ref().map(|v| v.uuid.to_string());
         crate::journal_cmd::check(repo, &one.dir, &alias, uuid.as_deref(), report);
         // §14 — the SAS pin must name a recorded revision, and a Warrant pinned
@@ -1004,7 +1446,8 @@ fn check_one(
         // answer was "it says so in the file". A forged authorization.toml
         // naming the owner passed `war check` with zero errors and satisfied
         // §56.1 requirement 1 (demonstrated 2026-09-19 against 1.0.0-alpha.1).
-        if let Ok(Some(a)) = repo.load_authorization(&one.dir)
+        if caps.has(C::Authorization)
+            && let Ok(Some(a)) = repo.load_authorization(&one.dir)
             && let Some(auth) = &a.revision.authorization
         {
             {
@@ -1029,10 +1472,18 @@ fn check_one(
                     ));
                 }
             }
+            // OW-ADR-0029: an authorization made through a standing class is
+            // re-derived, never trusted — the class, its signature, the stamp
+            // against the class's expiry, count and revocation, and the
+            // Warrant as it stands against every term. Removing this call
+            // fails `conformance/plants.d/69-standing.sh`.
+            crate::standing_cmd::check(repo, one, &a, report);
         }
         // A resolution is the act that says the work is done. It was trusted on
         // content alone for exactly as long as the authorization was.
-        if let Ok(Some(r)) = repo.load_resolution(&one.dir) {
+        if caps.has(C::Resolution)
+            && let Ok(Some(r)) = repo.load_resolution(&one.dir)
+        {
             let verdict = crate::authority_check::verify(
                 repo,
                 crate::authority_check::Act::Resolve,
@@ -1056,7 +1507,9 @@ fn check_one(
         }
         // Each correction moves a delivered file past the wall, so each needs
         // its own signature over its own bytes.
-        if let Ok(set) = repo.load_corrections(&one.dir) {
+        if caps.has(C::Resolution)
+            && let Ok(set) = repo.load_corrections(&one.dir)
+        {
             for (_, c) in &set.records {
                 let subject = format!("{alias}.{}", c.correction.deliverable_id);
                 let verdict = crate::authority_check::verify(
@@ -1082,7 +1535,8 @@ fn check_one(
                 }
             }
         }
-        if let Ok(Some(a)) = repo.load_authorization(&one.dir)
+        if caps.has(C::Authorization)
+            && let Ok(Some(a)) = repo.load_authorization(&one.dir)
             && let Some(v) = &a.sas_revision
             && amended.is_none()
         {
@@ -1095,11 +1549,26 @@ fn check_one(
             } else if let Some(latest) = repo.latest_sas_revision().ok().flatten()
                 && &latest.version != v
             {
-                report.push(Diagnostic::warn(
-                    "sas.pin-superseded",
-                    repo.relative(&one.dir.join("authorization.toml")),
-                    format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment carrying `sas_revision: \"{}\"` re-pins it and a human re-authorizes (OW-ADR-0016)", latest.version, latest.version),
-                ));
+                // A resolved Warrant executes nothing further under any
+                // Basis; the revision it was accepted under is its history,
+                // not a debt. Only a Warrant still open to execution is asked
+                // to re-pin (OW-WAR-0112, OW-ADR-0021).
+                if repo.load_resolution(&one.dir).ok().flatten().is_some() {
+                    report.push(Diagnostic::pass(
+                        "sas.pin-historical",
+                        format!(
+                            "{alias}: resolved under SAS {v}; {} is in force now and asks \
+                             nothing of a Warrant that executes no further",
+                            latest.version
+                        ),
+                    ));
+                } else {
+                    report.push(Diagnostic::warn(
+                        "sas.pin-superseded",
+                        repo.relative(&one.dir.join("authorization.toml")),
+                        format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment carrying `sas_revision: \"{}\"` re-pins it and a human re-authorizes (OW-ADR-0016)", latest.version, latest.version),
+                    ));
+                }
             }
         }
     }
@@ -1123,7 +1592,11 @@ fn check_one(
     // OW-WAR-0019's Intent records why: in the parent project's corpus, 23 of 94
     // declared gates named a tool, script, or crate that was not in the tree.
     // Nothing read those strings, so nothing noticed.
-    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "assurance" && caps.has(C::Evidence))
+    {
         let text = String::from_utf8_lossy(&atom.bytes);
         let file = repo.relative(&one.dir.join(&atom.source));
         let cited = openwarrant_core::gate::cited_gate_uris(&text);
@@ -1158,7 +1631,11 @@ fn check_one(
     // §40 — evidence, observations, inferences and judgments, if the assurance
     // atom records any. §40.7's six prohibited substitutions live here, and until
     // now nothing in any binary read a record they could apply to.
-    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "assurance" && caps.has(C::Evidence))
+    {
         let file = repo.relative(&one.dir.join(&atom.source));
         match openwarrant_core::epistemic::records::parse(&String::from_utf8_lossy(&atom.bytes)) {
             Ok(section) if section.is_empty() => {}
@@ -1188,16 +1665,24 @@ fn check_one(
     // an amendment is not compelled. One that exists anyway is still validated:
     // a record of why a claim was narrowed is worthless if it is malformed, and
     // worse than worthless if it is malformed and nobody checks.
-    let amendments = one.dir.join("amendments");
-    if let Ok(entries) = amendments.read_dir_utf8() {
-        let mut paths: Vec<_> = entries
-            .filter_map(Result::ok)
-            .map(|e| e.into_path())
-            .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
-            .collect();
-        paths.sort();
-        for path in paths {
+    //
+    // The file name is the amendment's id (t-dc28): `AM-<n>` as written
+    // before, or `AM-<n>-<hash>` as `war amend` and `war sas repin` mint it,
+    // so two branches never write the same file. A name that is neither, or
+    // a record whose `id:` is not its name, is refused by name
+    // (`amendment.id`): an id read as some other number would put the record
+    // out of order silently. See `crate::amendment_id`.
+    {
+        for file in crate::amendment_id::files(&one.dir) {
+            let path = file.path;
             let rel = repo.relative(&path);
+            if let Err(why) = &file.id {
+                report.push(Diagnostic::error(
+                    "amendment.id",
+                    rel.clone(),
+                    format!("{alias}: {why}"),
+                ));
+            }
             let Ok(text) = std::fs::read_to_string(&path) else {
                 report.push(Diagnostic::error(
                     "amendment.unreadable",
@@ -1211,6 +1696,17 @@ fn check_one(
                 .and_then(|doc| {
                     openwarrant_core::autonomy::from_structured(&doc).map_err(|e| e.to_string())
                 }) {
+                Ok(record) if file.id.is_ok() && record.id != file.stem => {
+                    report.push(Diagnostic::error(
+                        "amendment.id",
+                        rel,
+                        format!(
+                            "{alias}: the record's id is {:?} and its file is {}.yaml; an \
+                             amendment's id is its file name, so one of them is wrong",
+                            record.id, file.stem
+                        ),
+                    ));
+                }
                 Ok(record) => report.push(Diagnostic::pass(
                     "amendment.valid",
                     format!(
@@ -1229,6 +1725,10 @@ fn check_one(
         }
     }
 
+    if caps.has(C::Links) {
+        check_section_refs(repo, one, &alias, sas_sections, report);
+    }
+
     // §39 / RQ-055: contract-adequacy review, STRUCTURALLY checked.
     //
     // This replaced a substring search that passed any assurance atom merely
@@ -1238,7 +1738,11 @@ fn check_one(
     // a repository-wide grep for the old call site returns nothing.
     let requirement =
         openwarrant_core::AdequacyRequirement::for_level(&validated.assurance_level.to_string());
-    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "assurance" && caps.has(C::Verification))
+    {
         let review = openwarrant_core::adequacy::parse(&String::from_utf8_lossy(&atom.bytes));
         let file = repo.relative(&one.dir.join(&atom.source));
 
@@ -1373,6 +1877,48 @@ fn check_one(
         }
     }
 
+    // OW-ADR-0022 — an atom's relation to the projections is its role.
+    for atom in &basis.atoms {
+        if let Some(d) = role_unprojected(
+            &alias,
+            &atom.role,
+            &atom.source,
+            repo.relative(&one.dir.join(&atom.source)),
+        ) {
+            report.push(d);
+        }
+    }
+
+    // OW-ADR-0022 — presets ask; they do not answer. A heading a preset marked
+    // `<!-- required -->` whose body is still only the preset's comments is a
+    // question nobody answered: allowed in a draft (a warning), refused once
+    // an authorization is on record for the Warrant (an error), because a
+    // signed atom that still asks is a contract with a hole in it.
+    let authorized = one.dir.join("authorization.toml").is_file();
+    for atom in basis.atoms.iter().filter(|a| a.source.ends_with(".md")) {
+        let text = String::from_utf8_lossy(&atom.bytes);
+        for heading in unanswered_required_headings(&text) {
+            let file = repo.relative(&one.dir.join(&atom.source));
+            let message = format!(
+                "{alias}: atom {} — the preset's required heading `{heading}` is \
+                 unanswered: its body is only the preset's comment{}",
+                atom.source,
+                if authorized {
+                    ". An authorization is on record for this Warrant, and a signed \
+                     atom may not leave a required question open"
+                } else {
+                    ". Answer it before asking for authorization; a draft may be \
+                     unfinished"
+                }
+            );
+            report.push(if authorized {
+                Diagnostic::error("atom.preset-unanswered", file, message)
+            } else {
+                Diagnostic::warn("atom.preset-unanswered", file, message)
+            });
+        }
+    }
+
     // §49.3 — BLUT's execution lineage stays authoritative in BLUT. Run over
     // EVERY atom, not just the ones a BLUT-shaped Warrant would use: lineage is
     // copied by hand, into whatever file the author was editing, and a rule that
@@ -1402,7 +1948,11 @@ fn check_one(
     // §23: the milestone graph is parsed and validated, not merely carried.
     // Until OW-WAR-0007 this atom's bytes were hashed and rendered while nothing
     // read them, so a dangling stage_ref or a dependency cycle passed unnoticed.
-    for atom in basis.atoms.iter().filter(|a| a.role == "milestones") {
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "milestones" && caps.has(C::Stages))
+    {
         let text = String::from_utf8_lossy(&atom.bytes);
         match milestones::parse(&text) {
             Ok(graph) => {
@@ -1458,7 +2008,7 @@ fn check_one(
     let obligations = basis
         .atoms
         .iter()
-        .filter(|a| a.role == "assurance")
+        .filter(|a| a.role == "assurance" && caps.has(C::Verification))
         .map(|a| (a, obligation::parse(&String::from_utf8_lossy(&a.bytes))))
         .collect::<Vec<_>>();
     for (atom, parsed) in &obligations {
@@ -1511,7 +2061,7 @@ fn check_one(
     // The optional Bonsai sidecar names assurance obligations. Resolve those
     // names here as well as in the adapter, so an authored scope cannot look
     // valid until its first CI invocation.
-    if basis.scope.is_some() {
+    if basis.scope.is_some() && caps.has(C::Verification) {
         match crate::bonsai::validate_scope(&alias, basis) {
             Ok(()) => report.push(Diagnostic::pass(
                 "bonsai-scope.valid",
@@ -1525,69 +2075,558 @@ fn check_one(
         }
     }
 
-    // §20.2 / §91.5 test 29: a child cites an EXACT parent contract revision.
-    // The digest is what makes "exact" verifiable, so it is compared against the
-    // parent's actual contract digest rather than merely noted as present.
-    let manifest_file = repo.relative(&one.dir.join("manifest.toml"));
-    for parent in &basis.manifest.parents {
-        let uuid = parent.r#ref.strip_prefix("war://").unwrap_or(&parent.r#ref);
-        let actual = parent_digests.get(uuid);
-
-        match (&parent.contract_digest, actual) {
-            (Some(cited), Some(actual)) => {
-                let cited = cited.strip_prefix("sha256:").unwrap_or(cited);
-                if cited == actual {
-                    report.push(Diagnostic::pass(
-                        "relations.parent-digest",
-                        format!("{alias}: parent {} contract digest matches", parent.r#ref),
-                    ));
-                } else {
-                    report.push(Diagnostic::error(
-                        "relations.parent-digest",
-                        manifest_file.clone(),
-                        format!(
-                            "{alias}: parent {} is cited at contract digest sha256:{cited} \
-                             but the parent's actual contract digest is sha256:{actual}. \
-                             The parent changed after this child was written — the child's \
-                             basis is no longer the one it was authorized against.",
-                            parent.r#ref
-                        ),
-                    ));
-                }
-            }
-            (None, Some(actual)) => {
-                // Not an error: the citation is incomplete, not wrong. The
-                // computed value is printed so the fix is a copy-paste rather
-                // than a research task.
-                report.push(Diagnostic::unknown(
-                    "relations.parent-digest",
-                    manifest_file.clone(),
-                    format!(
-                        "{alias}: parent {} cites a revision but no contract_digest (§20.2). \
-                         Its current digest is sha256:{actual} — add \
-                         `contract_digest = \"sha256:{actual}\"` to pin it.",
-                        parent.r#ref
-                    ),
-                ));
-            }
-            (_, None) => {
-                report.push(Diagnostic::unknown(
-                    "relations.parent-digest",
-                    manifest_file.clone(),
-                    format!(
-                        "{alias}: parent {} is not in this repository, so its contract \
-                         digest cannot be computed; cross-repository resolution needs \
-                         federation",
-                        parent.r#ref
-                    ),
-                ));
-            }
-        }
+    if caps.has(C::Links) {
+        check_parent_citations(repo, one, &alias, basis, corpus, parent_digests, report);
     }
 
     if check_generated {
-        let children = crate::compile::children_of(&validated.raw.uuid, corpus);
+        let refs: Vec<&Loaded> = corpus.iter().collect();
+        let children = crate::compile::children_of_with(&validated.raw.uuid, &refs, currencies);
         check_drift(repo, &children, one, basis, validated, &alias, report);
+    }
+}
+
+/// OW-ADR-0031: name what does not apply to a Warrant because its kind does
+/// not select the capability. One pass of its own rule, listing each absent
+/// capability with the rule families it gates; nothing when every capability
+/// is selected, so a delivery Warrant's report is unchanged.
+fn push_not_applicable(
+    alias: &str,
+    validated: &openwarrant_core::ValidatedManifest,
+    caps: openwarrant_core::Capabilities,
+    report: &mut Report,
+) {
+    use openwarrant_core::Capability as C;
+    let absent: Vec<String> = caps
+        .absent()
+        .map(|c| {
+            let families = match c {
+                C::Structure => "every structural rule",
+                C::Links => "traceability, roadmap, SAS section and parent citations",
+                C::Claims => "claims on work items",
+                C::Acceptance => "acceptance",
+                C::Evidence => "gate citations, recorded runs and §40 records",
+                C::Verification => "obligations, the adequacy review and the machine scope",
+                C::Authorization => "the authorization's signature and SAS pin",
+                C::Resolution => {
+                    "deliverable pins, the resolution's signature and corrections, and §56.1"
+                }
+                C::Stages => "the milestone graph and §56.1 requirement 12's runtime receipts",
+            };
+            format!("`{c}` ({families})")
+        })
+        .collect();
+    if absent.is_empty() {
+        return;
+    }
+    report.push(Diagnostic::pass(
+        "capability.not-applicable",
+        format!(
+            "{alias}: profile {} does not select {}: not applicable, not passed (OW-ADR-0031)",
+            validated.profile,
+            absent.join("; ")
+        ),
+    ));
+}
+
+/// `sas.section-ref` and `sas.section-current` (OW-WAR-0125): an amendment
+/// whose `governing_adr_or_policy` is `sas://<NS>-SAS-<n>[.<m>]` cites a
+/// section of the SAS, and the citation is held to the revision the Warrant
+/// is pinned to — the latest amendment's `sas_revision`, else the
+/// authorization's, else the latest recorded revision.
+///
+/// - `sas.section-ref`: the section or subsection exists at the pinned
+///   revision, under the namespace its §106 carries. An error otherwise, and
+///   for a `sas://…-SAS-…` value that is neither a requirement nor a section.
+/// - `sas.section-current`: its digest at the pinned revision against the
+///   latest accepted revision. Equal passes; different (or gone) warns,
+///   naming both revisions; bytes that cannot be read are UNKNOWN with the
+///   reason (Law 15), never a pass.
+///
+/// A pin naming no recorded revision is `sas.pin-unknown`'s to report; the
+/// section rules say nothing about a revision that does not exist.
+fn check_section_refs(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    sections: &crate::sas::RevisionSections<'_>,
+    report: &mut Report,
+) {
+    let mut cited = Vec::new();
+    for path in crate::amendment_id::files(&one.dir)
+        .into_iter()
+        .map(|f| f.path)
+    {
+        let Some(record) = std::fs::read_to_string(&path).ok().and_then(|text| {
+            openwarrant_core::structured::parse(&text)
+                .ok()
+                .and_then(|doc| openwarrant_core::autonomy::from_structured(&doc).ok())
+        }) else {
+            continue; // amendment.invalid / amendment.unreadable report it
+        };
+        let file = repo.relative(&path);
+        let value = record.governing_adr_or_policy.trim().to_owned();
+        match openwarrant_core::sas_sections::parse_ref(&value) {
+            Ok(None) => {}
+            Ok(Some(r)) => cited.push((file, record.id, value, r)),
+            Err(why) => report.push(Diagnostic::error(
+                "sas.section-ref",
+                file,
+                format!("{alias}: amendment {} — {why}", record.id),
+            )),
+        }
+    }
+    if cited.is_empty() {
+        return;
+    }
+    let revisions = sections.revisions();
+    let pinned = crate::repo::amendment_sas_revision(&one.dir)
+        .map(|(v, _)| v)
+        .or_else(|| {
+            repo.load_authorization(&one.dir)
+                .ok()
+                .flatten()
+                .and_then(|a| a.sas_revision)
+        })
+        .or_else(|| crate::sas::pin_of(revisions).map(|r| r.version.clone()));
+    let Some(pinned) = pinned.filter(|v| revisions.iter().any(|r| &r.version == v)) else {
+        return;
+    };
+    let latest = revisions
+        .iter()
+        .filter(|r| r.is_accepted())
+        .max_by(|a, b| a.version.cmp(&b.version))
+        .map(|r| r.version.clone());
+    for (file, id, value, r) in cited {
+        let at_pin = match sections.get(&pinned) {
+            Ok(split) => split,
+            Err(why) => {
+                for rule in ["sas.section-ref", "sas.section-current"] {
+                    report.push(Diagnostic::unknown(
+                        rule,
+                        file.clone(),
+                        format!(
+                            "{alias}: amendment {id} cites {value}; SAS {pinned}, which the \
+                             Warrant is pinned to, cannot be read: {why}"
+                        ),
+                    ));
+                }
+                continue;
+            }
+        };
+        if let Some(ns) = &at_pin.namespace
+            && ns != &r.namespace
+        {
+            report.push(Diagnostic::error(
+                "sas.section-ref",
+                file,
+                format!(
+                    "{alias}: amendment {id} cites {value}, but SAS {pinned} is namespace {ns}; \
+                     a section is cited as sas://{ns}-SAS-{}",
+                    r.section
+                ),
+            ));
+            continue;
+        }
+        let Some(digest) = openwarrant_core::sas_sections::resolve(&at_pin.sections, &r) else {
+            report.push(Diagnostic::error(
+                "sas.section-ref",
+                file,
+                format!(
+                    "{alias}: amendment {id} cites {value}, and SAS {pinned} has no {} {}. A \
+                     citation names a section of the revision the Warrant is pinned to \
+                     (docs/sas/generated/SECTIONS.md lists the revision in force)",
+                    if r.section.contains('.') {
+                        "subsection"
+                    } else {
+                        "section"
+                    },
+                    r.section
+                ),
+            ));
+            continue;
+        };
+        report.push(Diagnostic::pass(
+            "sas.section-ref",
+            format!("{alias}: {value} names a section of SAS {pinned}"),
+        ));
+        let Some(latest) = &latest else {
+            report.push(Diagnostic::unknown(
+                "sas.section-current",
+                file,
+                format!(
+                    "{alias}: {value} — no SAS revision is accepted, so there is nothing to \
+                     compare SAS {pinned} with"
+                ),
+            ));
+            continue;
+        };
+        if latest == &pinned {
+            report.push(Diagnostic::pass(
+                "sas.section-current",
+                format!("{alias}: {value} is cited at SAS {pinned}, the latest accepted revision"),
+            ));
+            continue;
+        }
+        match sections.get(latest) {
+            Err(why) => report.push(Diagnostic::unknown(
+                "sas.section-current",
+                file,
+                format!(
+                    "{alias}: {value} at SAS {pinned} cannot be compared with SAS {latest}: {why}"
+                ),
+            )),
+            Ok(now) => match openwarrant_core::sas_sections::resolve(&now.sections, &r) {
+                Some(d) if d == digest => report.push(Diagnostic::pass(
+                    "sas.section-current",
+                    format!("{alias}: {value} is unchanged between SAS {pinned} and SAS {latest}"),
+                )),
+                Some(_) => report.push(Diagnostic::warn(
+                    "sas.section-current",
+                    file,
+                    format!(
+                        "{alias}: {value} changed between SAS {pinned}, which the Warrant is \
+                         pinned to, and SAS {latest}, the latest accepted revision; what the \
+                         amendment relied on is not what the SAS now says"
+                    ),
+                )),
+                None => report.push(Diagnostic::warn(
+                    "sas.section-current",
+                    file,
+                    format!(
+                        "{alias}: {value} exists at SAS {pinned}, which the Warrant is pinned \
+                         to, and not at SAS {latest}, the latest accepted revision"
+                    ),
+                )),
+            },
+        }
+    }
+}
+
+/// One parent's authorized revisions, read as far as they can be: the latest
+/// from its `authorization.toml`, earlier ones from retained history through
+/// `contract_history::resolve` (OW-WAR-0123, A-001). A revision history cannot
+/// supply is carried as the reason, never guessed.
+struct ParentRevisions<'a> {
+    repo: &'a Repository,
+    alias: String,
+    latest: u32,
+    latest_digest: String,
+    read: BTreeMap<u32, Result<String, String>>,
+}
+
+impl ParentRevisions<'_> {
+    fn digest(&mut self, revision: u32) -> Result<String, String> {
+        if revision == self.latest {
+            return Ok(self.latest_digest.clone());
+        }
+        let (repo, alias) = (self.repo, self.alias.as_str());
+        self.read
+            .entry(revision)
+            .or_insert_with(|| {
+                let (value, _) = crate::contract_history::resolve(repo, alias, revision)
+                    .map_err(|e| e.to_string())?;
+                crate::contract_history::parse_ir(&value)
+                    .map_err(|e| e.to_string())?
+                    .contract_digest()
+                    .map_err(|e| e.to_string())
+            })
+            .clone()
+    }
+}
+
+/// §20.2 / §91.5 test 29 / RQ-023: a child cites an EXACT parent contract
+/// revision, and the number and the digest must name the same one.
+///
+/// Until OW-WAR-0123 the digest was compared with the parent as it compiles
+/// now and the number was never read, so a child could not rest on an older
+/// exact revision, and "revision 1" at revision 2's digest passed. Now the
+/// cited revision is looked up in the parent's authorization records:
+///
+/// - a revision the parent never had is an error (`relations.parent-revision`);
+/// - the cited revision's own digest passes; an older one also warns that the
+///   parent has moved (`relations.parent-moved`);
+/// - another revision's digest is named as that revision — an error for an
+///   unauthorized child, where the fix is an edit; a warning for an authorized
+///   one, whose correction is an amendment (U-001, answered (b));
+/// - a digest of no revision is an error (`relations.parent-digest`), as is a
+///   parent whose working contract no longer compiles to its latest
+///   authorized digest;
+/// - what retained history cannot answer is UNKNOWN (Law 15).
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+fn check_parent_citations(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    basis: &openwarrant_compiler::CompilationBasis,
+    corpus: &[Loaded],
+    parent_digests: &BTreeMap<String, String>,
+    report: &mut Report,
+) {
+    let manifest_file = repo.relative(&one.dir.join("manifest.toml"));
+    let child_authorized = matches!(repo.load_authorization(&one.dir), Ok(Some(_)));
+    for parent in &basis.manifest.parents {
+        let r#ref = parent.r#ref.as_str();
+        let uuid = r#ref.strip_prefix("war://").unwrap_or(r#ref);
+        let in_corpus = corpus.iter().find(|l| {
+            l.validated
+                .as_ref()
+                .is_some_and(|v| v.uuid.to_string() == uuid)
+        });
+        let Some(parent_one) = in_corpus else {
+            report.push(Diagnostic::unknown(
+                "relations.parent-digest",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {ref} is not in this repository, so its contract \
+                     digest cannot be computed; cross-repository resolution needs \
+                     federation"
+                ),
+            ));
+            continue;
+        };
+        let parent_alias = parent_one.alias();
+        let current = parent_digests.get(uuid);
+        let Some(cited) = parent.contract_digest.as_deref() else {
+            // Not an error: the citation is incomplete, not wrong. The value is
+            // printed so the fix is a copy-paste rather than a research task.
+            let hint = current.map_or_else(
+                || "its contract does not compile, so no digest can be offered".to_owned(),
+                |d| format!("its current digest is sha256:{d} — add `contract_digest = \"sha256:{d}\"` to pin it"),
+            );
+            report.push(Diagnostic::unknown(
+                "relations.parent-digest",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {ref} cites a revision but no contract_digest (§20.2). {hint}."
+                ),
+            ));
+            continue;
+        };
+        let cited = cited.strip_prefix("sha256:").unwrap_or(cited);
+        // The manifest refuses a parent without a revision; 1 is never reached
+        // for a valid one.
+        let r = parent.contract_revision.unwrap_or(1);
+
+        let authorization = match repo.load_authorization(&parent_one.dir) {
+            Ok(a) => a,
+            Err(err) => {
+                report.push(Diagnostic::unknown(
+                    "relations.parent-revision",
+                    manifest_file.clone(),
+                    format!(
+                        "{alias}: parent {parent_alias}'s authorization record cannot be read, \
+                         so revision {r} cannot be looked up: {err}"
+                    ),
+                ));
+                continue;
+            }
+        };
+        let Some(authorization) = authorization else {
+            // A draft parent (U-002): it has one revision, the one it compiles
+            // to now. The comparison is today's.
+            if r != 1 {
+                report.push(Diagnostic::error(
+                    "relations.parent-revision",
+                    manifest_file.clone(),
+                    format!(
+                        "{alias}: parent {parent_alias} is cited at revision {r}, which does not \
+                         exist: {parent_alias} has no authorized revision, so a citation of it \
+                         can only be revision 1"
+                    ),
+                ));
+                continue;
+            }
+            push_current_comparison(report, &manifest_file, alias, r#ref, cited, current);
+            continue;
+        };
+        if authorization.revision.state != openwarrant_core::contract::RevisionState::Authorized {
+            report.push(Diagnostic::unknown(
+                "relations.parent-revision",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias}'s authorization record is not in the \
+                     authorized state, so its revisions cannot be read from it"
+                ),
+            ));
+            continue;
+        }
+        let latest = authorization.revision.revision;
+        if r == 0 || r > latest {
+            report.push(Diagnostic::error(
+                "relations.parent-revision",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias} is cited at revision {r}, which does not \
+                     exist: its latest authorized revision is {latest}"
+                ),
+            ));
+            continue;
+        }
+        let mut revisions = ParentRevisions {
+            repo,
+            alias: parent_alias.clone(),
+            latest,
+            latest_digest: authorization.revision.contract_digest.clone(),
+            read: BTreeMap::new(),
+        };
+        let wrong_revision = |report: &mut Report, belongs: u32| {
+            let (severity, tail) = if child_authorized {
+                (
+                    Severity::Warn,
+                    format!(
+                        "{alias}'s contract is authorized, so the signed record stands as it \
+                         is; making the number and the digest agree is an amendment of {alias}"
+                    ),
+                )
+            } else {
+                (
+                    Severity::Error,
+                    format!(
+                        "cite revision {belongs}, or revision {r} at its own digest — `war new \
+                         --parent {parent_alias}` writes the latest exactly"
+                    ),
+                )
+            };
+            report.push(Diagnostic {
+                severity,
+                rule: "relations.parent-revision".to_owned(),
+                file: Some(manifest_file.clone()),
+                message: format!(
+                    "{alias}: parent {parent_alias} is cited as revision {r} at \
+                     sha256:{cited}, which is the digest of revision {belongs}; {tail}"
+                ),
+            });
+        };
+
+        // The latest digest is on disk; no history is needed to see that an
+        // older number was paired with it. The citation still rests on the
+        // latest revision's content, so an unauthorized edit of the parent is
+        // caught for it exactly as for a correct citation of the latest.
+        if r < latest && cited == revisions.latest_digest {
+            wrong_revision(report, latest);
+            push_current_comparison(report, &manifest_file, alias, r#ref, cited, current);
+            continue;
+        }
+        let own = match revisions.digest(r) {
+            Ok(own) => own,
+            Err(why) => {
+                report.push(Diagnostic::unknown(
+                    "relations.parent-revision",
+                    manifest_file.clone(),
+                    format!(
+                        "{alias}: parent {parent_alias} is cited at revision {r}, whose digest \
+                         only retained history holds, and it cannot be read: {why}. Neither \
+                         pass nor error — run `war check` in a full clone"
+                    ),
+                ));
+                continue;
+            }
+        };
+        if own == cited {
+            report.push(Diagnostic::pass(
+                "relations.parent-revision",
+                format!("{alias}: parent {parent_alias} is cited at revision {r}, at that revision's digest"),
+            ));
+            if r < latest {
+                report.push(Diagnostic::warn(
+                    "relations.parent-moved",
+                    manifest_file.clone(),
+                    format!(
+                        "{alias}: parent {parent_alias} has moved from revision {r} to revision \
+                         {latest}; the citation of revision {r} is exact and stays sound. \
+                         Re-citing revision {latest} is an amendment of {alias}"
+                    ),
+                ));
+            } else {
+                // The latest authorized revision: the parent's working contract
+                // must still compile to it, or the parent was edited without an
+                // authorization — today's `relations.parent-digest` finding.
+                push_current_comparison(report, &manifest_file, alias, r#ref, cited, current);
+            }
+            continue;
+        }
+        let mut unreadable = None;
+        let mut belongs = None;
+        for other in (1..=latest).rev().filter(|&o| o != r) {
+            match revisions.digest(other) {
+                Ok(d) if d == cited => {
+                    belongs = Some(other);
+                    break;
+                }
+                Ok(_) => {}
+                Err(why) => {
+                    unreadable.get_or_insert(why);
+                }
+            }
+        }
+        match (belongs, unreadable) {
+            (Some(other), _) => wrong_revision(report, other),
+            (None, None) => report.push(Diagnostic::error(
+                "relations.parent-digest",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias} is cited as revision {r} at \
+                     sha256:{cited}, which is the digest of no authorized revision of it; \
+                     revision {r} is sha256:{own}"
+                ),
+            )),
+            // Unauthorized: an error whichever revision the digest might name.
+            (None, Some(why)) if !child_authorized => report.push(Diagnostic::error(
+                "relations.parent-digest",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias} is cited as revision {r} at \
+                     sha256:{cited}, which is not revision {r}'s digest sha256:{own}; whether \
+                     it is an earlier revision's could not be read ({why})"
+                ),
+            )),
+            (None, Some(why)) => report.push(Diagnostic::unknown(
+                "relations.parent-revision",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias} is cited as revision {r} at \
+                     sha256:{cited}, which is not revision {r}'s digest; which revision it \
+                     names needs retained history that cannot be read: {why}"
+                ),
+            )),
+        }
+    }
+}
+
+/// The comparison with the parent as it compiles now: for a draft parent, and
+/// for a citation of the latest authorized revision.
+fn push_current_comparison(
+    report: &mut Report,
+    manifest_file: &str,
+    alias: &str,
+    r#ref: &str,
+    cited: &str,
+    current: Option<&String>,
+) {
+    match current {
+        Some(actual) if actual == cited => report.push(Diagnostic::pass(
+            "relations.parent-digest",
+            format!("{alias}: parent {ref} contract digest matches"),
+        )),
+        Some(actual) => report.push(Diagnostic::error(
+            "relations.parent-digest",
+            manifest_file.to_owned(),
+            format!(
+                "{alias}: parent {ref} is cited at contract digest sha256:{cited} \
+                 but the parent's actual contract digest is sha256:{actual}. \
+                 The parent changed after this child was written — the child's \
+                 basis is no longer the one it was authorized against."
+            ),
+        )),
+        None => report.push(Diagnostic::unknown(
+            "relations.parent-digest",
+            manifest_file.to_owned(),
+            format!(
+                "{alias}: parent {ref}'s contract does not compile, so the citation \
+                 cannot be compared with it"
+            ),
+        )),
     }
 }
 
@@ -1664,6 +2703,21 @@ pub fn print(report: &Report) {
     for diagnostic in &report.diagnostics {
         println!("{diagnostic}");
     }
+    // §76.2, OW-WAR-0112: the same remedies, once each, with a count — the
+    // list a reader works down. A red corpus of forty findings is usually
+    // three commands.
+    let mut remedies: BTreeMap<(String, &'static str), usize> = BTreeMap::new();
+    for diagnostic in &report.diagnostics {
+        if let Some(r) = crate::remedy::remedy_for(diagnostic) {
+            *remedies.entry((r.command(), r.kind.label())).or_default() += 1;
+        }
+    }
+    if !remedies.is_empty() {
+        println!("\nREMEDIES:");
+        for ((command, kind), n) in &remedies {
+            println!("  {kind:<5} {command}   (×{n})");
+        }
+    }
     println!();
     println!(
         "{} pass · {} warn · {} unknown · {} error   (worst: {})",
@@ -1715,5 +2769,130 @@ fn check_roadmap_status_claims(repo: &Repository, report: &mut Report) {
                 ),
             ));
         }
+    }
+}
+
+/// The headings of a preset atom marked `<!-- required -->` whose body —
+/// everything up to the next heading, HTML comments removed — is blank.
+/// Headings inside a code fence are not headings.
+pub(crate) fn unanswered_required_headings(text: &str) -> Vec<String> {
+    let body = crate::compile::atom_body(text);
+    let mut sections: Vec<(String, String)> = Vec::new();
+    let mut in_fence = false;
+    for line in body.lines() {
+        if line.trim_start().starts_with("```") {
+            in_fence = !in_fence;
+        }
+        if !in_fence && line.starts_with('#') {
+            sections.push((
+                line.trim_start_matches('#').trim().to_owned(),
+                String::new(),
+            ));
+        } else if let Some((_, b)) = sections.last_mut() {
+            b.push_str(line);
+            b.push('\n');
+        }
+    }
+    sections
+        .into_iter()
+        .filter(|(_, b)| b.lines().any(|l| l.trim() == "<!-- required -->"))
+        .filter(|(_, b)| strip_comments(b).trim().is_empty())
+        .map(|(h, _)| h)
+        .collect()
+}
+
+fn strip_comments(s: &str) -> String {
+    let mut out = String::new();
+    let mut rest = s;
+    while let Some(start) = rest.find("<!--") {
+        out.push_str(&rest[..start]);
+        match rest[start..].find("-->") {
+            Some(end) => rest = &rest[start + end + 3..],
+            None => return out,
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// `atom.role-unprojected` (OW-ADR-0022, OW-WAR-0113 AM-002). A role no row
+/// of the composition table renders is text nobody reads, and is refused
+/// rather than silently dropped from both projections — unless it is a
+/// namespaced extension role (§16.4, G-M8), which renders verbatim under the
+/// subject's Extensions section. The test is
+/// [`openwarrant_compiler::is_rendered_role`], the one the renderer uses.
+///
+/// Today the manifest refuses every role this could catch first (a bare
+/// unknown role, a compiler-produced one, a required namespaced one), so on a
+/// parsed Warrant it is defence in depth: the day a row is removed from
+/// `ROLE_SECTIONS`, its atoms are refused here instead of vanishing.
+fn role_unprojected(alias: &str, role: &str, source: &str, file: String) -> Option<Diagnostic> {
+    if openwarrant_compiler::is_rendered_role(role) {
+        return None;
+    }
+    Some(Diagnostic::error(
+        "atom.role-unprojected",
+        file,
+        format!(
+            "{alias}: atom {source} has role `{role}`, which no projection renders — the \
+             master document and the history compose only the roles in `current.rs`'s \
+             ROLE_SECTIONS ({}) and namespaced extension roles (`<namespace>.<name>`, \
+             §16.4). Give it one of those roles, or fold its text into the atom whose \
+             question it answers",
+            openwarrant_compiler::ROLE_SECTIONS
+                .iter()
+                .map(|r| r.role)
+                .collect::<Vec<_>>()
+                .join(", ")
+        ),
+    ))
+}
+
+#[cfg(test)]
+mod role_tests {
+    use super::role_unprojected;
+
+    fn run(role: &str) -> Option<crate::diagnostic::Diagnostic> {
+        role_unprojected("X-WAR-0001", role, "atoms/70-x.md", "a/70-x.md".into())
+    }
+
+    #[test]
+    fn a_namespaced_extension_role_is_not_refused() {
+        assert!(run("x.review").is_none());
+        assert!(run("lab.protocol").is_none());
+        assert!(run("intent").is_none());
+    }
+
+    #[test]
+    fn a_role_neither_a_row_nor_namespaced_is_refused_by_name() {
+        for role in [
+            "hypothesis",
+            "review",
+            "relations_and_integrity",
+            ".review",
+            "x.",
+        ] {
+            let d = run(role).unwrap_or_else(|| panic!("`{role}` must be refused"));
+            assert_eq!(d.rule, "atom.role-unprojected");
+            assert_eq!(d.severity, crate::diagnostic::Severity::Error);
+            assert!(d.message.contains(&format!("role `{role}`")));
+        }
+    }
+}
+
+#[cfg(test)]
+mod preset_tests {
+    use super::unanswered_required_headings;
+
+    #[test]
+    fn a_required_heading_left_as_its_comment_is_unanswered() {
+        let t = "# Intent\n\n## Problem\n<!-- required -->\n<!-- What is wrong? -->\n\n## Non-goals\n<!-- optional: delete if not applicable -->\n<!-- What is out? -->\n";
+        assert_eq!(unanswered_required_headings(t), vec!["Problem".to_owned()]);
+    }
+
+    #[test]
+    fn an_answer_or_a_deleted_optional_heading_passes() {
+        let t = "# Intent\n\n## Problem\n<!-- required -->\n<!-- What is wrong? -->\nThe parser drops a key.\n";
+        assert!(unanswered_required_headings(t).is_empty());
     }
 }

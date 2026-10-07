@@ -79,6 +79,8 @@ pub fn list(repo: &Repository) -> Result<ListResourcesResult, McpError> {
 }
 
 pub fn read(repo: &Repository, uri: &str) -> Result<ReadResourceResult, McpError> {
+    // One compiled corpus per working-tree fingerprint (OW-WAR-0148).
+    let corpus = || crate::corpus::held(repo);
     // Resources return the record's OWN schema as its payload (a corpus
     // status, a pins document, a next document, a rendered view), not the
     // report envelope tools answer with; `sas://current` has no record of its
@@ -120,7 +122,7 @@ pub fn read(repo: &Repository, uri: &str) -> Result<ReadResourceResult, McpError
     }
     match uri {
         "status://corpus" => {
-            let (_, json) = crate::status::corpus_status_json(repo).map_err(internal)?;
+            let (_, json) = crate::status::corpus_status_json_with(&corpus()).map_err(internal)?;
             text(json, "application/json")
         }
         "sas://current" => {
@@ -138,7 +140,7 @@ pub fn read(repo: &Repository, uri: &str) -> Result<ReadResourceResult, McpError
             )
         }
         "next://" => {
-            let next = crate::next::run(repo).map_err(internal)?;
+            let next = crate::next::run_with(&corpus()).map_err(internal)?;
             text(
                 serde_json::to_string_pretty(&next).unwrap_or_default(),
                 "application/json",

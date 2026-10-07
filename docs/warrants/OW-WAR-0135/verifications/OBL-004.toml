@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/57-assurance-mark.sh, carried whole and untruncated, 593 lines/28797 bytes matching its declared size) implements exactly the three checks OBL-004 requires against the scratch baseline v1: the block removing [locator] from resolution.toml then asserting BL-004 result is 'unknown' with detail containing 'no [locator]' and rule mark.requirement-unknown ('no locator is UNKNOWN, not met'); the mk_extra block adding requirement RX-001 via a plant-extra baseline that extends v1, asserting the earned mark's baseline names both 'v1' and 'plant-extra' with requirements 'BL-001,BL-002,BL-003,BL-004,BL-005,BL-006,RX-001' ('a strengthened baseline names both'); and the block deleting BL-004's requirement block from the repo's copy of v1, asserting a mark.baseline-weakened diagnostic naming 'BL-004 removed' and no mark.earned line ('a v1 with BL-004 removed'). The gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0) has receipt exit_result/verdict 'pass' and its stdout excerpt for lines 484-512 shows each of these plants actually executed and reported 'ok', with the exact matching text: 'ok a strengthened baseline names both v1 + plant-extra; RX-001 beside BL-001..BL-006', 'ok a v1 with BL-004 removed mark.baseline-weakened: BL-004 removed; no v1 mark', and 'ok no locator is UNKNOWN, not met BL-004 UNKNOWN (no [locator]); no mark'; the stdout tail confirms '1270 passed, 0 failed' for the whole battery, i.e. no failures anywhere. mark.rs (D-002)'s located() and weakened() functions structurally corroborate this behavior (the literal 'no [locator]' message and the '{id} removed' weakening message). Note: the prior_verifications entry for OBL-004 quotes a contract digest, a passed-count of 1260, and commit 9f55131c... that do not match this bundle's actual gate run (subject contract digest a871e182…, count 1270, commit bb2f6c1…); that prior entry's citations are disregarded here in favor of the bundle's own text and excerpts, which independently support the same conclusion."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

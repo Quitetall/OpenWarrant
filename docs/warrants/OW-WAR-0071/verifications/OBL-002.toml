@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002's scope is the accepted SAS's new §27.6 text and §106 rows, but the SAS document is not carried (confirmed absent under OBL-001's named_paths) and no §27.6/§106 excerpt appears in the bundle. The only related text is OW-ADR-0019's Decision section (atoms path ../../adr/atoms/OW-ADR-0019-...md, sha256 dbed46acc...), which is a drafted proposal for what the revision should say ('§106 rows. Three: ...'), not the accepted SAS text, and the ADR's own frontmatter and Status section read 'status: proposed'. The obligation also requires 'an independent reviewer confirms no clause is unfalsifiable,' and no review artifact exists (plants: []). Cannot be decided from what's carried."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists selection 'warrant: every deliverable of the Warrant' but named_paths: [] and terms: [], meaning no actual file content was carried. plants is also empty (no conformance plant evidence), and the single gate_runs entry (GR-software.repo.war-check@1.0.0) is a structural manifest/record check, not the 'cargo test -p openwarrant-cli --test sdk_cli' acceptance driver against conformance/sdk/cli/cases.json described in atoms/60-assurance.md's Planned acceptance entry point. No CLI invocation, SDK call output, exit code, envelope, or comparison between the two surfaces appears anywhere, so the parity claim cannot be checked against observed bytes."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No measured evidence includes process invocations of `war init`; the unit tests (e.g., init::tests::init_writes_config_and_directories) are excluded by scope, and the CI gate runs `war check`, not `war init`."
+evidence = "obligation_evidence explicitly marks the named path 'openwarrant.toml' as absent — 'a repository path that is not a deliverable of OW-WAR-0001: not carried' — with no carried paths listed, and shows the term 'war init' only inside the atoms (10-intent.md's Desired Outcome and 40-work-order.md's deliverable list), which are descriptions of the requirement, not process output. No gate run or deliverable in the bundle records an invocation of the war binary performing init or reinit, so neither of the two runs the obligation's evidence clause requires (successful init; refused reinit with namespace intact) is present."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

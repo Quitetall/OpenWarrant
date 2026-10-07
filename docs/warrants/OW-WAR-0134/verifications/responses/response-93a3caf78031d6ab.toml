@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0134"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "conformance/plants.d/56-acceptance-validity.sh (D-005) sets up a scratch git corpus with one resolved Warrant (AV-WAR-0001) whose gate plant.acceptance@1.0.0 declares inputs: [\"src/**\"], with a pinned deliverable only at src/core.txt. Its 'an in-scope change is named' block appends to src/helper.txt (an in-scope path no deliverable pins), commits, runs `war pins --candidate HEAD`, and asserts AV_STATUS -ne 0 with acceptance.candidate-moved naming src/helper.txt on the same diagnostic line, no README.txt, no acceptance.unknown; the immediately following block asserts resolution.toml is byte-identical (git diff --quiet) before and after. The recorded gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, exit_result: pass) shows this exact plant executing in its captured stdout (lines 405-418): 'ok an in-scope change is named acceptance.candidate-moved: src/helper.txt (exit 2)' followed by 'ok the resolution is untouched resolution.toml byte-identical', and the run's overall tally '1214 passed, 0 failed' confirms neither check failed. Together the script's precise assertions and the gate run's captured output showing both checks passed establish, within the stated scratch-corpus scope, that an in-scope change is named via acceptance.candidate-moved with a non-zero exit and that resolution.toml is untouched."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

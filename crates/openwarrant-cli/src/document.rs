@@ -19,18 +19,12 @@
 pub mod draft;
 
 use camino::Utf8Path;
+use openwarrant_compiler::digest::sha256_hex;
 
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
 const PLACEHOLDERS: [&str; 5] = ["TODO", "TBD", "FIXME", "lorem ipsum", "<placeholder>"];
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    use sha2::Digest;
-    let mut h = sha2::Sha256::new();
-    h.update(bytes);
-    h.finalize().iter().map(|b| format!("{b:02x}")).collect()
-}
 
 /// `(line number, target)` of every Markdown link or image target.
 ///
@@ -208,10 +202,30 @@ pub fn review(repo: &Repository, only: Option<&str>) -> Result<Report, RepoError
         }
         // Every obligation reviewed by someone else.
         let declared = crate::resolve::declared_obligations(&loaded);
-        let verifications = repo
-            .load_verifications(&dir)
-            .map(|v| v.records)
-            .unwrap_or_default();
+        let verifications = match repo.load_verifications(&dir) {
+            Ok(set) => {
+                for (path, message) in set.failures {
+                    report.push(Diagnostic::error("verification.malformed", path, message));
+                }
+                set.records
+            }
+            Err(RepoError::ObservationUnavailable { rule, message }) => {
+                report.push(Diagnostic::unknown(
+                    rule,
+                    repo.relative(&dir.join("verifications")),
+                    message,
+                ));
+                continue;
+            }
+            Err(error) => {
+                report.push(Diagnostic::unknown(
+                    "verification.unavailable",
+                    repo.relative(&dir.join("verifications")),
+                    error.to_string(),
+                ));
+                continue;
+            }
+        };
         for id in &declared {
             let ok = verifications.iter().any(|v| {
                 v.obligation == *id

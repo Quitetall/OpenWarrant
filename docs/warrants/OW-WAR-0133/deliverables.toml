@@ -1,0 +1,620 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "Receipts name the tree, the deliverable bytes and the fixtures they ran over"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/gate_cmd.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:70af1d16a8a905030e14f32c9ccf2df9f27164d4dab6433508c3abe4e117f569"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "Admissibility: a moved source is a record, a missing one is UNKNOWN"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/evidence.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:c9451b930ce491f9dac28057d4e5ab48f9e796d3170f301809df4e1de0c7db8e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The context manifest's conflict field, stage selection"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/context_select.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0987b0479e39e8b8a74c55aa50423a67ce73313c27dd4b54100352159458a0a"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "The context manifest's conflict field, compiled Dispatch"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/dispatch.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:129e9191e66eef50d69103ed5eae24be53e0b3700e28ee6c34beb98d1de827ae"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "The evidence-reuse and context plants"
+kind = "file"
+target_ref = "conformance/plants.d/55-evidence-reuse.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:c31463c63d08c08c1efa14a087e3a99e00f633edd108cce31d20aa99b650cbf3"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "When recorded evidence still counts: the reuse rule and the compiler's three rules"
+kind = "file"
+target_ref = "docs/RESOLVING.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e7e73a84feaef9c2a21186de33bede09ea9dd066cb4d17afcb77ace36707d7f8"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "The context manifest says conflicts were unchecked (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/dispatch.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6b5b2100e8be92e4f2e0e8a716b884e804364b4fb4da4cd2175e64580a2c6e1f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "The context manifest type carries the conflict state (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/context.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:74a97cf2504216e1331062f33de5f80cfe9dc17815cb888423ceedcc88e83c46"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "Status labels a reuse-unknown run as such (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:525e6bab89babc58d5f0aa5c1465b138bbd9985c3df8cc1cb448f1855ab394d5"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "An eval scratch commits before recording evidence (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/eval.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:c01ab0d54271ea9ac3eeca0ae4675cfec49bfc1ed8f423099cfc6bcd8ef5f93e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "The eval baseline, re-recorded (AM-002)"
+kind = "file"
+target_ref = "evals/baseline.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:720ef311e1731d1b3c53c282e162146e016e66b2d83087a14af3ce0e5a40ab5e"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-012"
+title = "Two resolution plants re-pointed at a scratch fixture (AM-002)"
+kind = "file"
+target_ref = "conformance/plants.d/00-corpus.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:64e836453b4bc7cb2d4377c3de5be589af7843bcd7ec9e9343ded18add347702"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-013"
+title = "run-01-echo: ops.echo@1.1.0, inputs declared (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-01-echo/fixture/docs/gates/ops.echo@1.1.0.yaml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-014"
+title = "run-01-echo: cites ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-01-echo/task.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f19161b9e68e6ececf1d03eda28a8057abf12609f327d0800a100bf21d3ef36a"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-015"
+title = "run-01-echo: stage and obligation cite ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-01-echo/proposal.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f1ff569fdc534a3863d4b5a649a6baf8744417a55f7afe1c98115a5c2eeeeb2b"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-016"
+title = "run-01-echo: pins the 1.1.0 receipt (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-01-echo/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-017"
+title = "run-02-timeout: ops.echo@1.1.0, inputs declared (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-02-timeout/fixture/docs/gates/ops.echo@1.1.0.yaml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-018"
+title = "run-02-timeout: cites ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-02-timeout/task.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:b8d1db7f69688a9746d85c81ba9f751ac57004639d1b52cc1b26700942fb8a76"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-019"
+title = "run-02-timeout: stage and obligation cite ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-02-timeout/proposal.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:8a546d13af6dc7681869a60264e15562e103289222eeb607ecdd1c5711858359"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-020"
+title = "run-02-timeout: pins the 1.1.0 receipt (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-02-timeout/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-021"
+title = "run-03-submit: ops.echo@1.1.0, inputs declared (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-03-submit/fixture/docs/gates/ops.echo@1.1.0.yaml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-022"
+title = "run-03-submit: cites ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-03-submit/task.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:ed55c325c8844ac2156f7037f335a57ecb526e2dd6e62f8a66024da23dcc9cbe"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-023"
+title = "run-03-submit: stage and obligation cite ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-03-submit/proposal.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6dc61603ecedacacd562d203cb60c468484bd219b7c5fde52d55d78dbfc42c56"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-024"
+title = "run-03-submit: pins the 1.1.0 receipt (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-03-submit/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-025"
+title = "run-04-battery: ops.echo@1.1.0, inputs declared (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-04-battery/fixture/docs/gates/ops.echo@1.1.0.yaml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-026"
+title = "run-04-battery: cites ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-04-battery/task.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:18b0ea9705dcbf2c5d36e17d8687efcb9d489c6af40e3c96072d5472950ef09a"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-027"
+title = "run-04-battery: stage and obligation cite ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-04-battery/proposal.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:fb6d17682614f881076f46bf502b8b33730fbb178c0209907f8fcd4feaddc244"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-028"
+title = "run-04-battery: pins the 1.1.0 receipt (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-04-battery/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

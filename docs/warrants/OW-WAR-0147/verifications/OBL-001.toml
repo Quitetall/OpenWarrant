@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = '''Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) and independently confirmed admissible by the software.repo.war-check@1.0.0 run's 'PASS evidence.admissible ... ops.conformance.plants@1.1.0'. Its stdout excerpt shows the lines 'ok create→ready→claim→done, unsigned t-19d9 done; nothing signed, the signing queue unchanged (1)' and 'ok --draft: the drafter's items, or none no drafter: refused, nothing created; a drafter: its two deliverables'. The carried plant source D-013 (conformance/plants.d/45-tickets.sh) shows the exact predicate behind those lines: tkw() invokes `$WAR` with `</dev/null` and `env -u OPENWARRANT_ACTOR -u SSH_AUTH_SOCK` (no terminal, no inherited actor); the first block creates a two-item ticket, claims and dones both items, and asserts `$TK_STATE == "done"`, `grep -q "^- \[x\] Write the grammar ($TK_I1) — done by claude, [0-9-]*: grammar written$"` on the checklist, `grep -q '"ticket.item_done"'` on the journal, `TK_SIGNED -eq 0` (no authorization*/resolution*/*.sig under docs/tickets) and `TK_CHECK_BEFORE == TK_CHECK_AFTER` from `war sign --list`; a later block sets `[plan] drafter_argv` unset, runs `create --draft`, and asserts `ticket.no-drafter` with no ticket created, then with a fixture drafter asserts the items equal exactly '`src/a.rs` parses|`src/b.rs` prints'. D-012 (tests/tickets_cli.rs, untruncated) independently exercises the same claim through the shipped binary in its own scratch repo: test `create_ready_claim_done_needs_no_signature_and_no_human` creates, claims and dones two items, asserts exactly two ticked lines containing '— done by claude, ' and the note, asserts no authorization/resolution/.sig files under docs/tickets, and asserts `war check` reports only `ticket.well-formed`. Together these cover both stated scopes (the 45-tickets.sh scratch program and the tickets_cli.rs scratch repos) and every accepting/refusing bullet the obligation lists.'''
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

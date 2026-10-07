@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0041"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-002 (artifacts/telemetry-baseline.json, full, untruncated, sha256 020600c4...) names commit \"6e08dd6\" and gives every §94 measure either a numeric value with method or an explicit not_measurable_yet reason — no measure is missing. D-001's `take()` function (telemetry.rs) shows the code path that produced these values deterministically from the named commit's repo state. Atom 40-work-order.md's Non-goals ('No tuning... measuring is this Warrant') and the bundle's warrant-scope deliverable list (only D-001/D-002, no tuning-related change) show nothing in this delivery altered assurance defaults or amendment policy, consistent with the baseline preceding any tuning."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Direct inspection of the untruncated D-002 shows every measure requiring instrumented authoring (clarification count, compute and model cost, context tokens per dispatch/verification, escalation count and class, gate failure cause, human authoring minutes, interview questions, post-resolution escapes, reopenings, replay/repair/restart, time to first usable artifact, wall time) is recorded as {\"not_measurable_yet\": \"<reason>\"}, never as a bare 0. The one 0-valued measure, 'auto-authorizable fraction', carries a method string stating it is a deliberate measured zero ('§56.1 requirement 10 is unmet for every Warrant, so none is auto-authorizable'), matching D-001's `unmeasurable()`/module-doc distinction between an untaken measure and a real zero. No measure in the artifact has neither field."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "D-002's untracked_work_candidates array (116 real commit subjects, e.g. '1a4ec61 feat(sas): SAS 1.0.0 proposed...') satisfies the 'real candidates' half of the claim, and D-001's `attach()`/module doc describe an intended refusal via `RelationFabricated` when no reviewer is given. But obligation_evidence for OBL-003 lists the term 'RelationFabricated' with shown_in: [] (absent from the bundle), and the top-level plants array is empty — no plant run, receipt, or gate-run excerpt in the bundle actually exercises `war telemetry --attach` against the shipped binary to demonstrate the refusal. The gate_runs stdout excerpts shown (manifest.valid, evidence.valid, etc.) do not include this check either. Absent that execution evidence, the 'fabricates nothing' half of the claim cannot be decided from what the bundle carries."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-002's success_metrics object (full, untruncated) lists all sixteen §100 metrics named in D-001's SUCCESS_METRICS constant, each valued as the literal string \"no baseline\" with no numeric delta anywhere in the artifact — directly matching the obligation's required evidence and atom 60-assurance.md's JDG-001 stating 'all sixteen §100 metrics record no baseline.'"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

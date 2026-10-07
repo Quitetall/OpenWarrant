@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Preserve typed decoder error through CLI observation and prove future versus malformed record behavior (i-65b7) — done by codex, 2026-10-03: Public CLI red controls reproduced ERROR for future stored formats, silent omission during packet assembly and document.review-absent. Shared typed decoder errors now yield UNKNOWN in repository observation and document review; packet assembly propagates unavailability. Malformed supported v2 still errors; exact restore recovers prior assessment and records/journal stay unchanged. Rust1.97.1: verification29 and preservation18 tests pass. Full gate pending, not independent assurance or wire adoption.

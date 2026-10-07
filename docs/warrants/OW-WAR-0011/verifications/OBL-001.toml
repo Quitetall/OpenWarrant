@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "The test 'preflight::tests::the_check_groups_and_counts_match_the_sas' in crates/openwarrant-core/src/preflight.rs verifies that all six check groups (contract, context, graph, runtime, gates, authority) are defined with the correct counts as per SAS §32, and the code implements fail-closed outcome reporting via PreflightReceipt."
+evidence = "crates/openwarrant-core/src/preflight.rs (D-001, untruncated, 460 lines) defines all six §32 groups as CheckGroup::Contract/Context/Graph/Runtime/Gates/Authority, backed by CONTRACT_CHECKS/CONTEXT_CHECKS/GRAPH_CHECKS/RUNTIME_CHECKS/GATE_CHECKS/AUTHORITY_CHECKS transcribed with counts 6,6,5,10,9,5 (TOTAL_CHECKS=41), matching §32.1–§32.6 as named in OBL-001's scope. The test the_check_groups_and_counts_match_the_sas pins these counts and rejects duplicate check names, and PreflightReceipt::outcome() plus the tests not_run_blocks_exactly_as_failed_does and an_absent_check_is_not_run_not_passed show that any check absent from the outcomes map resolves to NotRun (blocking) rather than Passed — an empty receipt blocks on all 41 checks across all six groups, so none is silently omitted. This is the evidence OBL-001 names, present in full in the carried deliverable."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

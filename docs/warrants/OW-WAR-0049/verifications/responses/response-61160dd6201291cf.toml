@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0049"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "atoms/20-basis.md's INF-001 states directly that the corpus was closed by implementing §91.2 test 10 rather than by amending OW-WAR-0005, concluding 'no §30.3 revision was needed' and 'Amending the scope to remove 10 would have made the record true by shrinking what it promised.' OBL-001's required evidence is specifically a §31 amendment record naming the semantic diff, reason, authorizer and admissibility decision; the deliverables array is empty and no such record appears anywhere in the bundle or in the gate run's stdout excerpts (no 'amendment.valid' or similar line for OW-WAR-0049). The Warrant's own authored reasoning affirmatively explains why no amendment was produced, which is bundle evidence that the amendment-based correction OBL-001 demands did not occur."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "deliverables and plants are both empty arrays, and obligation_evidence for OBL-002 gives only the generic 'warrant: every deliverable of the Warrant' selection with no named paths. The only corroboration in the truncated gate-run stdout is a NOT CHECKED line stating tests 14/15 were 'narrowed by OW-ADR-0008' with a stated reason, but OW-ADR-0008 itself is not carried in the bundle, and no plant results, ADR text, or gate lines address tests 10, 11 or 13's disposition at all — those rest only on the atoms' own narrative (EV-001, OBS-002, JDG-001), whose EV-001 digest is explicitly 'sha256:pending-receipt-binding'. This is insufficient to establish or refute five separate implement-or-narrow outcomes."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 explicitly marks the named term 'check.rs' as absent: 'no deliverable of OW-WAR-0049 and no file at this path: not carried.' With the file not carried and no gate-run line examining its note content, there is no way to tell whether the stale note about tests 14/15 was removed or updated to cite OW-ADR-0008."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "atoms/20-basis.md states that after OW-WAR-0041 made the 'attach_relation' reviewer control functional, 'What remains for OBL-004 is a disposition of OW-WAR-0005 M4 through that verb' — i.e., by this Warrant's own authored record, the actual §95 disposition of OW-WAR-0005 M4 with a named reviewer had not yet been performed. No deliverable, gate-run line, or authority record anywhere in the bundle (deliverables is empty; the visible gate-run excerpts show no M4 disposition or reviewer-attachment line) contradicts this or shows the action being subsequently completed, so the bundle itself shows the claim that the untracked work IS dispositioned does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

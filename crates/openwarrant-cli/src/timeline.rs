@@ -57,14 +57,20 @@ pub struct Timeline {
 }
 
 pub fn build_timeline(repo: &Repository) -> Result<Timeline, RepoError> {
+    build_timeline_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`build_timeline`] over a corpus already loaded.
+pub fn build_timeline_with(corpus: &crate::corpus::Corpus) -> Result<Timeline, RepoError> {
     let mut events = Vec::new();
     let mut warrants = 0usize;
-    for dir in repo.warrant_dirs()? {
-        let Ok(loaded) = repo.load_warrant(&dir) else {
+    for entry in corpus.entries()? {
+        let dir = &entry.dir;
+        let Some(loaded) = entry.ok() else {
             continue;
         };
         let alias = loaded.alias();
-        let Ok(journal) = crate::journal_cmd::load(&dir) else {
+        let Ok(journal) = crate::journal_cmd::load(dir) else {
             continue;
         };
         warrants += 1;
@@ -137,7 +143,12 @@ pub struct PendingSet {
 }
 
 pub fn build_pending(repo: &Repository) -> Result<PendingSet, RepoError> {
-    let next = crate::next::run(repo)?;
+    build_pending_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`build_pending`] over a corpus already loaded.
+pub fn build_pending_with(corpus: &crate::corpus::Corpus) -> Result<PendingSet, RepoError> {
+    let next = crate::next::run_with(corpus)?;
     let mut acts: Vec<PendingAct> = next
         .actions
         .iter()
@@ -165,6 +176,14 @@ fn canonical<T: Serialize>(v: &T, what: &str) -> Result<String, RepoError> {
 
 /// The timeline projection, with its path.
 pub fn corpus_timeline_json(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
+    corpus_timeline_json_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`corpus_timeline_json`] over a corpus already loaded.
+pub fn corpus_timeline_json_with(
+    corpus: &crate::corpus::Corpus,
+) -> Result<(Utf8PathBuf, String), RepoError> {
+    let repo = corpus.repo();
     let path = repo
         .root
         .join(&repo.config.paths.warrants)
@@ -172,12 +191,20 @@ pub fn corpus_timeline_json(repo: &Repository) -> Result<(Utf8PathBuf, String), 
         .join("CORPUS_TIMELINE.json");
     Ok((
         path,
-        canonical(&build_timeline(repo)?, "CORPUS_TIMELINE.json")?,
+        canonical(&build_timeline_with(corpus)?, "CORPUS_TIMELINE.json")?,
     ))
 }
 
 /// The pending projection, with its path.
 pub fn corpus_pending_json(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
+    corpus_pending_json_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`corpus_pending_json`] over a corpus already loaded.
+pub fn corpus_pending_json_with(
+    corpus: &crate::corpus::Corpus,
+) -> Result<(Utf8PathBuf, String), RepoError> {
+    let repo = corpus.repo();
     let path = repo
         .root
         .join(&repo.config.paths.warrants)
@@ -185,6 +212,6 @@ pub fn corpus_pending_json(repo: &Repository) -> Result<(Utf8PathBuf, String), R
         .join("CORPUS_PENDING.json");
     Ok((
         path,
-        canonical(&build_pending(repo)?, "CORPUS_PENDING.json")?,
+        canonical(&build_pending_with(corpus)?, "CORPUS_PENDING.json")?,
     ))
 }

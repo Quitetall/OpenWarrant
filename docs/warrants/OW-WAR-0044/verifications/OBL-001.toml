@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The committed receipt file 'docs/warrants/OW-WAR-0044/gate-runs/software_repo_war-check_1_0_0.receipt.json' demonstrates a real KF instance answering a typed action, with `recorded_at` assigned by the server, and the code in 'crates/openwarrant-cli/src/kf.rs' ensures the client does not supply this value, as verified by the test 'seam::tests::a_client_cannot_assign_recorded_at'."
+disposition = "refuted"
+evidence = "atoms/60-assurance.md's JDG-001 states OBL-001 is 'held, not narrowed' and that the write 'stopped at KF's own registry, which answers 404 for an unregistered action type (OBS-007)' — i.e. core.action is empty and no §67 action could be recorded in this instance. OBS-007 documents the write attempt against the live instance reaching a 404, not a recorded envelope/receipt. EV-001 (war kf health) is read-only and D-001's three tests (an_https_url_is_accepted, a_non_http_url_is_refused, a_short_idempotency_key_never_reaches_the_network) never perform a live write either. The bundle affirmatively shows the required recorded action envelope and receipt never came into existence, so the claim is shown false rather than merely unproven."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

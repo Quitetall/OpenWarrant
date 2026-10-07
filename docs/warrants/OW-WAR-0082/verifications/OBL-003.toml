@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result. The only prior_verifications entries present are earlier not_established calls on OBL-001/002 themselves plus an established OBL-004 call — none constitutes independent qualification review or human sign-off over runtime behavior. 60-assurance.md confirms no disposition on the implementation observations has been declared yet ('No disposition is declared here'), and the war-check gate is structural-only, so qualification evidence cannot exist yet; not established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

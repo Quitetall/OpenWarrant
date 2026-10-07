@@ -1,0 +1,97 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0003"
+
+[[verifications]]
+obligation = "OBL-000"
+disposition = "not_established"
+evidence = "The ADR atoms/OW-ADR-0001-canonical-json-implementation.md is present, status accepted, naming serde_jcs 0.2, matching canonical.rs's use of serde_jcs::to_vec/to_string. But OBL-000's evidence requires 'cargo deny check licenses' passing with the crate in the graph, and obligation_evidence lists the term 'cargo deny check licenses' as shown only in 'atoms' (the ADR/assurance prose stating the policy), never in any gate output. The only gate run, GR-software.repo.war-check@1.0.0 (`war check --generated`), does not execute cargo-deny — its stdout's NOT CHECKED section confirms `war check` performs no gate/tool execution — and no Cargo.toml, Cargo.lock, or deny-tool output is carried in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "OBL-001 is scoped to 'the five Warrants in docs/warrants/, under the delivery profile,' but obligation_evidence states the named path 'docs/warrants/' is 'a repository path that is not a deliverable of OW-WAR-0003: not carried.' D-001's api_version_and_kind_are_pinned test and D-004's lowering tests (lowering_is_deterministic, etc.) only exercise a single synthetic manifest fixture built inline in the test modules, not the five real docs/warrants/ Warrants the obligation names. The sole gate run's stdout explicitly disclaims gate/test execution in its NOT CHECKED section, so nothing in the bundle shows lowering was run against the scoped five Warrants."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "canonical.rs's official_rfc8785_vectors test (D-002) reads external vectors from conformance/rfc8785/ and asserts byte equality against them, matching the required evidence design, but the vector files are not carried in this bundle and obligation_evidence lists no terms shown for OBL-002 at all. The single gate run, GR-software.repo.war-check@1.0.0, is a `war check --generated` well-formedness pass whose stdout NOT CHECKED section states it does not execute gates, so no test-execution output confirms this test (or any run over the five Warrants) actually passed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "digest.rs's every_domain_pair_yields_a_distinct_digest test (D-003) is designed to check the full pairwise set across DigestDomain::ALL (now 16 domains, one more than the 'fifteen' the obligation and atoms/60-assurance.md reference), and domain_uris_are_unique enforces distinct URIs, but obligation_evidence lists no terms shown for OBL-003 and no test-run output appears anywhere in the bundle. The only gate run present does not execute tests per its own NOT CHECKED disclosure, so there is no evidence the pairwise assertion was actually run and passed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "OBL-004's scope requires two runs differing in process, working directory, environment ordering, and locale. The relevant tests in the bundle — canonical_output_is_stable_across_two_computations and digests_are_stable_across_runs (D-002), and lowering_is_deterministic (D-004) — all compute both values within a single process and environment, varying none of the required dimensions. Atom atoms/60-assurance.md itself states as a 'known limitation' that 'two hosts is satisfied here by two runs on one machine' and that 'OBL-004 must not be read as proving cross-platform canonicalization,' confirming the bundle carries no evidence of the cross-process/cross-environment comparison the obligation actually names."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

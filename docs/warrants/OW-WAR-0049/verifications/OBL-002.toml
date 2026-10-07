@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The measured evidence lists 138 passing plants but does not explicitly link any to §91.2 tests 11 and 13, and no ADR is cited for recorded narrowing of tests 14 and 15 as required."
+evidence = "The top-level plants array is empty and deliverables is empty, so none of EV-001's claimed three plants for test 10 (atom.generated-as-source, atom.unknown-jurisdiction, atom.jurisdiction-mismatch) are present as concrete gate results in the visible run GR-software.repo.war-check@1.0.0 excerpts, which show only generic composition checks (manifest.valid, journal.append-only, etc.) and never a §91.2-specific rule line. EV-001's own digest is literally 'sha256:pending-receipt-binding', an unbound placeholder rather than evidence. For tests 11/13/14/15, JDG-001 asserts narrowing via OW-ADR-0008, and the gate stdout's NOT CHECKED section does corroborate that tests 14 and 15 are 'narrowed by OW-ADR-0008' with a stated schema reason, but OW-ADR-0008 itself is not carried in the bundle, and no corroboration at all appears for tests 11 or 13. obligation_evidence for OBL-002 gives only the generic 'warrant: every deliverable of the Warrant' selection with no named paths. This mix of an unbound digest, absent ADR text, and partial/absent gate corroboration is insufficient to establish or refute all five outcomes."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

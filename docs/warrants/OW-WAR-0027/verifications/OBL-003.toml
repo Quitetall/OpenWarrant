@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "established"
-evidence = "The committed receipt `docs/warrants/OW-WAR-0027/gate-runs/software_repo_war-check_1_0_0.receipt.json` and the successful `war check --generated` exit 0 demonstrate an integration run with real BLUT, as required by the obligation."
+evidence = "D-002 identifies the tested binary as '/mnt/4tb/LamQuant/training/cookbooks/lamquant/target/release/lqt (blut 0.2.0-alpha.1+23cd95ac5e18), built from training/engine at 23cd95ac' and records the command `war blut OW-WAR-0047 --verify <lqt> --emit ...` along with BLUT's own PASS output and a genuine fingerprint (b69b886e4c9f) — evidence of a real invocation of the local BLUT checkout at `training/engine`, not a mock. obligation_evidence confirms the term 'training/engine' is shown (in D-002 and atoms) and not cut by the token budget, so this satisfies the obligation's required 'integration run, not a mock' within the scope of the training/engine checkout."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

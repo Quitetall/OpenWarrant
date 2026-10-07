@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-004 (docs/scale/baseline-1000.json, untruncated) is internally self-consistent and satisfies the first two evidence bullets directly: build_profile 'release', war.version 'war 1.0.0-alpha.2 (unreleased, commit 6bcc01bf04a7)', a 40-character repository.commit, machine.cpu_model and machine.os both present, corpus.counted_by 'war status --json' with warrants=1000 and resolved=500. For the third bullet, D-005's 'answers in brief' and budget table both state 'The budget holds at 1,000 Warrants' / 'The budget held', list all nine rows as 'within' with the same limit_ms/median_ms pairs as D-004's rows (e.g. check 10000/3339, check-generated 10000/9163, compile 30000/6893, console-select 10000/6589), and state the corpus as 1000 Warrants/500 resolved — no discrepancy appears anywhere in the D-005 text supplied in this bundle. This is corroborated by the gate excerpt's 'ok the 1,000 record is a release record 1000 Warrants, >=500 resolved, by war status' and 'ok RETENTION.md matches the record every budget row, and the verdict', the automated checks D-006 runs for exactly this purpose."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

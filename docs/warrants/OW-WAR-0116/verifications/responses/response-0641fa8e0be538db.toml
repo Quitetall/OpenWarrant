@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0116"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle shows several of OBL-003's required checks: gate run GR-ops.conformance.plants@1.1.0's stdout (the '== web ui (OW-WAR-0116) ==' block) shows 'an act not on the allowlist 403' and 'an act that carries an argv 400', and D-012 (conformance/plants.d/63-webui-verified.sh), corroborated in the same gate run's '== web ui, what the verifier asked (OW-WAR-0116) ==' excerpt, shows 'two acts at once: one runs 202 409' and 'the act's command, from its log: war ui: act sign-1459f90df80ae199: war --root <root> sign WV-WAR-0001 --as your-name-here --ssh-sign; nothing signed', which matches the required exact-command form for the case where war ui was started with --as. But three parts of the obligation's evidence chain are not shown anywhere in the bundle: (1) no excerpt or plant asserts that the Queue row itself carries a dry-run verdict alongside an allowlist id (D-012 only extracts an act_id from /api/queue, without checking a verdict field); (2) 'an act not on the allowlist: 403' is shown but nothing confirms 'and starts no process' beyond the status code; (3) 'a resolution needing an outcome shows its terminal command and no id' has no matching line, test name, or excerpt anywhere in D-010, D-012, the atoms, or either gate run's stdout/stderr text or excerpts — obligation_evidence carries no term for it and deliverables_not_carried's 63-webui.sh (D-011) is not shown to us at all. Since these bytes were never shown, they are not evidence either way, so the obligation cannot be established from this bundle; nor is there any evidence it fails, so it is not refuted either."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

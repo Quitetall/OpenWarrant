@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0112"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows the '== the app (OW-WAR-0112) ==' block of conformance/plants.d/97-tui.sh (D-034) passing all four checks tied directly to this obligation's core claim: 'ok the app holds no authority — no key, no socket, no signing call under tui/' (the script's grep excludes comment lines and scans the whole tui/ tree for ssh-keygen, SSH_AUTH_SOCK, ssh_sign(, sign::run(, sign::ingest, authorize::ingest, resolution_cmd::ingest, correct::ingest), 'ok acts shell out — every act is a child `war sign --ssh-sign`' (checked against $TUI_SRC/mod.rs), 'ok the queue is war sign --list — board acts == sign --list rows', and 'ok a panic restores the terminal — alternate screen entered and left, panic printed' (captured under a pty via script(1), matching the ESC[?1049h/l sequences the plant greps for). D-030 (tui/mod.rs, excerpted) corroborates the shell-out mechanism directly: term::leave_quietly() followed by std::process::Command::new(current_exe).arg(\"--root\").arg(root).args(args).status(), i.e. the `current_exe --root <root> --json …` pattern the obligation names — though obligation_evidence marks a separate file named shell.rs as absent (not built), the equivalent behavior lives inline in mod.rs and is what the passing plant check actually exercises. D-032 (main.rs, full text) contains the confinement test the_terminal_library_lives_only_in_the_tui_module walking every .rs file for 'ratatui'/'crossterm' outside tui/, and D-029 (Cargo.lock excerpts) shows neither crossterm's nor ratatui's own dependency trees pull in tokio or another executor, supporting 'no executor entered the graph', though no direct `cargo tree` command output or a captured cargo-test run of that specific unit test is present in the bundle to independently confirm it executed and passed (asserted only through source presence). On balance the scope's central claim — no key held, every act delegated to a child war sign --ssh-sign process, terminal restored on panic — is established directly by the passing named gate checks within scope `crates/openwarrant-cli/src/tui/`."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

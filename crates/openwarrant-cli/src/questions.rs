@@ -16,6 +16,14 @@
 //! with a `question.asked` journal event; an answer appends to the same file
 //! and records `question.answered`. Neither is a disposition, a judgment, or
 //! an authorization: an answer informs work, it never accepts it.
+//!
+//! A question can also exist before its Warrant does (OW-WAR-0141, U-002).
+//! When a ticket or a sentence is too thin to draft, the drafter's blocker
+//! waits under `docs/intake/<key>/questions/`, where `<key>` is `github-<n>`
+//! or `sentence-<digest>` and stands where an alias would. No alias is
+//! allocated for it. Such a question names the command that drafts its input
+//! again (`redraft`), and it is listed, answered and shown in `war next`
+//! beside every Warrant's questions.
 
 use std::fmt::Write as _;
 
@@ -54,6 +62,10 @@ pub struct Question {
     pub recommended: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub answer: Option<Answer>,
+    /// On an intake question only: the command that drafts its input again
+    /// once it is answered. Empty on a Warrant's question.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub redraft: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -79,8 +91,26 @@ pub struct QuestionList {
     pub answered: usize,
 }
 
+/// The stage an intake question is asked against: there are no stages
+/// before there is a Warrant.
+pub const INTAKE_STAGE: &str = "intake";
+
+/// Where `alias`'s questions live: under the Warrant, or — for an intake key
+/// with a directory under `docs/intake/` — there.
 fn dir_of(repo: &Repository, alias: &str) -> Result<Utf8PathBuf, RepoError> {
+    if let Some(dir) = crate::plan::intake::existing_dir(repo, alias) {
+        return Ok(dir.join(DIR));
+    }
     Ok(repo.warrant_dir(alias)?.join(DIR))
+}
+
+/// The record `war answer` writes to: the Warrant's directory, or the
+/// intake directory. Only a Warrant has a journal.
+fn owner_dir(repo: &Repository, alias: &str) -> Result<(Utf8PathBuf, bool), RepoError> {
+    if let Some(dir) = crate::plan::intake::existing_dir(repo, alias) {
+        return Ok((dir, false));
+    }
+    Ok((repo.warrant_dir(alias)?, true))
 }
 
 fn path_of(dir: &Utf8Path, id: &str) -> Utf8PathBuf {
@@ -250,6 +280,11 @@ fn write_question(path: &Utf8Path, q: &Question, create_new: bool) -> Result<(),
     Ok(())
 }
 
+/// The `question.asked` payload: what its journal key is made of.
+fn asked_payload(stage: &str, id: &str, blocking: bool) -> String {
+    serde_json::json!({ "stage": stage, "question": id, "blocking": blocking }).to_string()
+}
+
 /// `war ask <alias> <stage> "<question>"`: the agent's half.
 pub fn ask(
     repo: &Repository,
@@ -273,17 +308,59 @@ pub fn ask(
     }
     let dir = repo.warrant_dir(alias)?;
     let existing = load(repo, alias)?;
+    // OW-WAR-0130 (§67.4), before the first write: the same question, asked
+    // by the same agent against the same stage, is a retry. Its journal key
+    // names the question already on file; held by the same actor it replays
+    // and writes nothing, held by another it is a conflict and writes nothing.
+    let asked_by = format!("agent://{}", repo.performer());
+    if let Some(prior) = existing.iter().find(|q| {
+        q.stage == stage
+            && q.question == question.trim()
+            && q.blocking == blocking
+            && q.recommended == recommended.trim()
+            && q.asked_by == asked_by
+    }) {
+        let payload = asked_payload(stage, &prior.id, blocking);
+        match crate::journal_cmd::already_recorded(&dir, EVENT_ASKED, &payload, &asked_by)? {
+            crate::journal_cmd::Prior::Conflict { recorded_by } => {
+                report.push(crate::journal_cmd::conflict(
+                    repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                    EVENT_ASKED,
+                    &recorded_by,
+                    &asked_by,
+                ));
+                return Ok(report);
+            }
+            crate::journal_cmd::Prior::Equivalent { .. } | crate::journal_cmd::Prior::Fresh => {
+                report.push(Diagnostic::pass(
+                    "question.replayed",
+                    format!(
+                        "{alias}/{} already asks this against {stage}{} → {}; an equivalent \
+                         retry replays and writes nothing",
+                        prior.id,
+                        match &prior.answer {
+                            Some(a) => format!(", answered by {}", a.answered_by),
+                            None => " and awaits an answer".to_owned(),
+                        },
+                        repo.relative(&path_of(&dir.join(DIR), &prior.id))
+                    ),
+                ));
+                return Ok(report);
+            }
+        }
+    }
     let q = Question {
         schema: SCHEMA.to_owned(),
         id: next_id(&existing),
         warrant: alias.to_owned(),
         stage: stage.to_owned(),
-        asked_by: format!("agent://{}", repo.performer()),
+        asked_by,
         asked_at: crate::gate_cmd::receipt::now_rfc3339_public(),
         question: question.trim().to_owned(),
         blocking,
         recommended: recommended.trim().to_owned(),
         answer: None,
+        redraft: String::new(),
     };
     let path = path_of(&dir.join(DIR), &q.id);
     write_question(&path, &q, true)?;
@@ -298,8 +375,7 @@ pub fn ask(
             &uuid,
             EVENT_ASKED,
             &q.asked_by,
-            &serde_json::json!({ "stage": stage, "question": q.id, "blocking": blocking })
-                .to_string(),
+            &asked_payload(stage, &q.id, blocking),
         )?;
     }
     report.push(Diagnostic::pass(
@@ -356,7 +432,7 @@ pub fn answer(
         );
         return Ok(report);
     }
-    let dir = repo.warrant_dir(alias)?;
+    let (dir, is_warrant) = owner_dir(repo, alias)?;
     let existing = load(repo, alias)?;
     let Some(mut q) = existing.iter().find(|q| q.id == id).cloned() else {
         refuse(
@@ -382,6 +458,14 @@ pub fn answer(
     });
     let path = path_of(&dir.join(DIR), &q.id);
     write_question(&path, &q, false)?;
+    if !is_warrant {
+        report.push(Diagnostic::pass(
+            "question.answered",
+            format!("{alias}/{id} answered by {actor}; nothing is drafted until the input is"),
+        ));
+        report.note(format!("Draft it again with its answers: `{}`", q.redraft));
+        return Ok(report);
+    }
     if let Some(uuid) = repo
         .load_warrant(&dir)?
         .validated
@@ -416,6 +500,7 @@ pub fn list(
             .warrant_dirs()?
             .iter()
             .filter_map(|d| d.file_name().map(ToOwned::to_owned))
+            .chain(crate::plan::intake::keys(repo))
             .collect(),
     };
     let mut questions = Vec::new();
@@ -485,6 +570,63 @@ pub fn answers_for(
         .collect())
 }
 
+/// Record a drafter's blocker for an input that has no Warrant yet
+/// (OW-WAR-0141). The agent's half, like `ask`: an existing record with the
+/// same id is left as it is — asked once, answered once.
+pub fn record_intake(
+    repo: &Repository,
+    key: &str,
+    id: &str,
+    question: &str,
+    asked_by: &str,
+    redraft: &str,
+) -> Result<Utf8PathBuf, RepoError> {
+    let dir = crate::plan::intake::store_dir(repo, key).join(DIR);
+    let path = path_of(&dir, id);
+    if path.exists() {
+        return Ok(path);
+    }
+    let q = Question {
+        schema: SCHEMA.to_owned(),
+        id: id.to_owned(),
+        warrant: key.to_owned(),
+        stage: INTAKE_STAGE.to_owned(),
+        asked_by: asked_by.to_owned(),
+        asked_at: crate::gate_cmd::receipt::now_rfc3339_public(),
+        question: question.trim().to_owned(),
+        blocking: true,
+        recommended: String::new(),
+        answer: None,
+        redraft: redraft.to_owned(),
+    };
+    write_question(&path, &q, true)?;
+    Ok(path)
+}
+
+/// `war next`'s rows for intake questions: each open one is a human's
+/// `answer` act, and its `why` names the command that drafts the input
+/// again. Never a signing act, and never an agent's.
+pub fn intake_actions(repo: &Repository) -> Vec<crate::next::Action> {
+    let mut out = Vec::new();
+    for key in crate::plan::intake::keys(repo) {
+        let (qs, _) = load_tolerant(repo, &key);
+        for q in qs.into_iter().filter(Question::is_open) {
+            out.push(crate::next::Action {
+                actor: crate::next::Actor::Human,
+                warrant: key.clone(),
+                action: "answer".to_owned(),
+                command: format!("war answer {key} {} \"<answer>\" --as <actor>", q.id),
+                why: format!(
+                    "{}: {} — no Warrant is drafted until it is answered; then `{}`",
+                    q.id, q.question, q.redraft
+                ),
+                judged: None,
+            });
+        }
+    }
+    out
+}
+
 #[must_use]
 pub fn render(list: &QuestionList) -> String {
     let mut out = String::new();
@@ -515,6 +657,9 @@ pub fn render(list: &QuestionList) -> String {
                 );
             }
         }
+        if !q.redraft.is_empty() {
+            let _ = writeln!(out, "            then: {}", q.redraft);
+        }
     }
     out
 }
@@ -539,6 +684,7 @@ mod tests {
                 answered_at: "2026-09-12T00:01:00Z".to_owned(),
                 answer: "y".to_owned(),
             }),
+            redraft: String::new(),
         }
     }
 

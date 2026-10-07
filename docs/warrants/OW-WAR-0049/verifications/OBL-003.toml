@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test, plant, or measurement in the provided evidence directly verifies whether the §91.2 tests 14 and 15 note in check.rs is accurate, removed, or narrowed; the absence of such evidence means the claim is not established."
+evidence = "obligation_evidence explicitly marks the named term 'check.rs' as absent for OBL-003: 'no deliverable of OW-WAR-0049 and no file at this path: not carried.' With the file itself not carried and no gate-run line in the excerpts examining its note text, there is no way to determine from this bundle whether the stale note naming tests 14 and 15 as unchecked was removed or updated to cite OW-ADR-0008."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

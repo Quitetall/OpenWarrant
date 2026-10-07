@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0068"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-001 states the named term plan/request.json is 'not carried' (absent from the Warrant's deliverables entirely), while the obligation's own evidence clause requires a recorded run showing grilling answers land in that file, a Dispatch manifest listing the glossary, and a war-spec proposal passing §74.4 steps 1-4. The bundle carries only method-description prose (D-004 war-grill/SKILL.md, D-005 war-spec/SKILL.md) plus code capable of carrying CONTEXT.md into a Dispatch (D-003 context_select.rs), but no executed Dispatch manifest, no grilling transcript, and no validated war-spec proposal artifact. The top-level plants array is empty and the sole gate run (GR-software.repo.war-check@1.0.0) stdout excerpts show only generic manifest/digest/traceability checks for OW-WAR-0068, none touching grilling or spec drafting. No evidence contradicts the claim either, so it is not established, matching the prior verifier's disposition."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence shows 'war frontier' referenced only in source/doc deliverables (D-002 frontier.rs, D-006 war-tickets/SKILL.md, D-009 docs/SKILLS.md, D-010 plants.d/90-skills.sh) and atoms, and 'blocking_unknown' shown only in atoms (the assurance atom's evidence text), never in an executed artifact. D-010 contains only the source of plants asserting OPEN/blocked/CLAIMED frontier states and glossary-carrying, but the bundle's plants array is empty, so no plant execution result for OW-WAR-0068 is present. The gate run's visible stdout excerpts cover only manifest.valid, milestones.valid, obligations.valid, journal.append-only etc. for OW-WAR-0068 and explicitly list under NOT CHECKED that 'war check does not run gates,' so gate execution is not evidence acceptance checks ran. D-007 (war-review/SKILL.md) and D-008 (war-map/SKILL.md) describe intended methodology, not an executed two-axis review or a map Warrant whose fog war check actually read. No frontier command output, review record, or map artifact is shown, so the obligation is not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 shows 'war eval' appearing only in atoms/40-work-order.md (an intent statement, deliverable #8), with shown_in listing only 'atoms', never a deliverable, and '.claude/skills/**' has an empty shown_in list, meaning it appears nowhere in the bundle. None of the ten carried deliverables (D-001 through D-010) is an eval-task file or fixture-agent baseline result. D-010 (conformance/plants.d/90-skills.sh) contains only the shell source of an em-dash-refusal plant that builds xtask and checks its output, with no corresponding entry in the bundle's empty plants array or in the gate run's stdout excerpts showing it executed or its verdict. Since neither the eval-task deliverables nor an executed em-dash-refusal result are shown, the claim that the superset is measured cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

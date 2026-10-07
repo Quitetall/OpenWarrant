@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0092"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables, gate_runs, and plants are all empty arrays, and obligation_evidence for OBL-001 lists no named_paths and no terms (selection is only the generic string 'warrant: every deliverable of the Warrant'). There is no offline HTML file, rendered tracker rows, XSS-safety test, or evidence of 'source destinations refuse unchanged' behavior present anywhere in the bundle to inspect; only the assurance atom's prose claim exists."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are present to demonstrate the --serve loopback endpoint's behavior. obligation_evidence for OBL-002 carries no named_paths or terms, so none of the claimed behaviors (refresh on edit, stale-state preservation, unknown-state on invalid reports, Host/Origin/POST/traversal/oversize refusal, GET success) are shown by any file, test output, or run log in this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence lists no named_paths or terms for OBL-003. There is no rendered work-report fixture or legacy-record comparison in the bundle showing a 'completed/unverified' report state or a resolved legacy Warrant with unknown implementation state; only the assurance atom's unverified description exists."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "gate_runs and plants are both empty, so there is no cargo xtask gate run, CLI test output, or browser scenario evidence in the bundle. obligation_evidence for OBL-004 carries no named_paths or terms, leaving no test run IDs, plant references, or gate logs to confirm the claimed independent review and repository checks."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "OBL-005's evidence requirement is a plant that ingests common_outcome=\"satisfied\" for a Warrant with unestablished obligations and observes a refusal tagged resolution.outcome-unsupported. The bundle's plants array is empty, and obligation_evidence for OBL-005 shows the term 'common_outcome = \"satisfied\"' as shown_in: [] (nowhere carried), while 'resolution.outcome-unsupported' is shown only in D-002 (resolution_cmd.rs), i.e. only as the source-code check `if response.common_outcome == CommonOutcome::Satisfied && a.would_resolve_satisfied != Some(true) { ... \"resolution.outcome-unsupported\" ... }`. The carried gate run (GR-software.repo.war-check@1.0.0) stdout excerpts show many 'PASS resolution.recorded' lines and other warnings (evidence.stale-binding, deliverable.pin-stale, sas.pin-superseded) but no occurrence of resolution.outcome-unsupported firing anywhere in the shown text, so no execution trace demonstrates the refusal actually occurring against an unestablished-obligation attempt. Code that looks correct is not evidence it was exercised; without a plant run or gate output showing the refusal fire, the obligation cannot be established from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

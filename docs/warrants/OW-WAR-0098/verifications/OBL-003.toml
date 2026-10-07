@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No gate_runs, deliverables, or plants are included that would show an 'unknown' preview result, a dispatch_permitted:false field, or absence of attempts for a nonexistent configured Git commit fixture; obligation_evidence for OBL-003 has empty named_paths and terms, leaving the claim asserted only in atoms/60-assurance.md with no corroborating run output."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0134"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-004 (.github/workflows/ci.yml, untruncated, 10069 bytes, sha256 459e38ff...) shows the `gate` job — the repo's sole required status check per its own comment — containing a step named \"Acceptance still describes the merge candidate\" gated by `if: github.event_name == 'pull_request'` that unshallows history and runs `cargo run --quiet -p openwarrant-cli --bin war -- pins --candidate HEAD --base HEAD^1 --resolved-only` with no `continue-on-error`, so under default GitHub Actions semantics a non-zero exit (acceptance.candidate-moved or acceptance.unknown) fails the job. D-006 (docs/SIGNING.md, untruncated, 18324 bytes, sha256 de5546cb...), in its section \"After you sign: when the candidate changes before merge,\" states \"What the finding means\" (the candidate about to land is not the one accepted, in a way the Warrant's gates would see), \"What it does not mean\" (the resolution is not wrong), and \"What it requires next (Q-001, answered (b))\" in language matching atoms/20-basis.md's recorded recommendation (b) (re-run cited gates and hand independent verification to a non-performer verifier; acceptance carries forward; no new signature required). obligation_evidence for OBL-004 lists both named terms (\"war pins --candidate\", \"pull_request\") as shown in D-004/D-006 with no cut_from, so the bundle withheld nothing material to this claim. The cited gate, software.repo.war-check@1.0.0 (run GR-software.repo.war-check@1.0.0), returned verdict pass; its stdout excerpt shows only an unrelated WARN (evidence.stale-binding on the gate's own receipt binding), not a failure bearing on this obligation's file-as-committed scope, which the obligation itself limits to the committed workflow and doc text rather than an actual GitHub-hosted run."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

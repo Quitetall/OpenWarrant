@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0135"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "conformance/plants.d/57-assurance-mark.sh (D-005, carried whole, untruncated) contains the three checks OBL-004 requires under the war-mark section for MK-WAR-0001: 'no locator is UNKNOWN, not met' asserts BL-004 evaluates to unknown with detail containing 'no [locator]' and no mark.earned; 'a strengthened baseline names both' asserts the mark's baseline id+extensions+requirements list reads 'v1 plant-extra BL-001,BL-002,BL-003,BL-004,BL-005,BL-006,RX-001'; 'a v1 with BL-004 removed' asserts a mark.baseline-weakened line naming 'BL-004 removed' and no mark.earned line. The gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0, verdict pass, subject_digests containing contract:sha256:da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1 which matches authorized_contract_digest) has stdout excerpts confirming all three plants ran and passed: 'ok a strengthened baseline names both v1 + plant-extra; RX-001 beside BL-001..BL-006', 'ok an unanswerable requirement RX-001 UNKNOWN (no such check), no mark, nothing unmet', 'ok a v1 with BL-004 removed mark.baseline-weakened: BL-004 removed; no v1 mark', and 'ok no locator is UNKNOWN, not met BL-004 UNKNOWN (no [locator]); no mark', with the run's tail reporting '1260 passed, 0 failed' at tested commit 9f55131c7aeee59e99b2c258b8ee0ccd86614b60, i.e. no failures anywhere in the battery. mark.rs (D-002)'s `located()` returns Answer::Unknown with the literal 'no [locator]' message, and its `weakened()` function emits '{id} removed' for a dropped requirement and threads extension requirements into the emitted Mark's baseline.extensions and requirements list, corroborating the plant's assertions structurally. obligation_evidence confirms the terms 'war mark' and 'UNKNOWN' are shown uncut across D-002, D-004, D-005 and the gate stdout, so no relevant evidence was hidden by the budget."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

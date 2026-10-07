@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "D-004 (templates/adopt/20-basis.md) and the fully carried D-008 (conformance/plants.d/59-adoption.sh) show the code/script that would render the baseline sentence, list no pre-baseline path via `war pins`, and have `war resolve --dry-run` exit 2 as 'nothing established' — and the ops.conformance.plants@1.1.0 gate run's captured stdout does print the matching 'ok' lines ('the adopt Basis names the baseline and claims nothing before it', 'pins lists no pre-baseline file exit 0', 'pins lists paths where some are pinned this corpus', 'resolve --dry-run: nothing established exit 2'). But that plants receipt's own subject_digests record contract:sha256:c08603d7452c7b629128e27bc87d32004b0cc1475f26f649537185f63f1c59de, which does not equal the bundle's authorized_contract_digest (sha256:4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895), so this specific run is not shown to be evidence about the currently authorized contract. The only gate run whose subject_digests.contract does match the authorized digest is GR-software.repo.war-check@1.0.0 (05:52:16–05:52:32Z), and its own stdout's 'PASS evidence.admissible … ops.conformance.plants@1.1.0 … bound to the current contract and to its source (tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3)' names a tree that matches its own run, not the plants receipt supplied here (tree:9729d66838274661a8b7382db6ef1108887babec, completed later at 19:24:40Z). So the plants run carrying the OBL-003 'ok' lines is neither bound to the authorized contract digest nor the tree the matching-contract run vouched for, and nothing in the bundle links it to the authorized contract otherwise. The evidence therefore does not establish OBL-003, and nothing in the bundle contradicts it either, so it remains not_established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

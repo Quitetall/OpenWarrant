@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The test 'the_receipt_states_what_it_does_not_prove' in preflight::tests verifies that the Preflight receipt explicitly names what it does not prove, which includes reporting unexercised runtime checks (e.g., when no live actor exists) as 'not_run' on every run, aligning with the obligation's requirement."
+disposition = "not_established"
+evidence = "OBL-003's scope is 'every Preflight run' and requires the runtime dimension to report unknown while no live actor exists, on every actual run — not merely that the receipt type can represent NotRun. The bundle carries no `war preflight` CLI deliverable and no generated receipt or gate-run output from an actual invocation; instead the same gate run's stdout confirms 'Preflight readiness (§32.7)' is NOT CHECKED because 'Preflight is not implemented.' The cited test the_receipt_states_what_it_does_not_prove only asserts PreflightReceipt::meaning() contains the §32.7 disclaimer string and says nothing about the runtime group's outcome on any run. With no per-run evidence carried, the per-run claim cannot be decided either way from this bundle."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

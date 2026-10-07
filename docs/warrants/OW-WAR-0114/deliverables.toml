@@ -1,0 +1,763 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer. Under OW-ADR-0021 this SET of
+# (id, target_ref) pairs is what the authorizer signs and what this Warrant
+# then governs; paths that do not exist yet carry content_addressed = false
+# until delivered. `contract_digest` is "unrecorded": no authorized revision yet.
+
+[[deliverable]]
+id = "D-001"
+title = "OW-ADR-0023, the roadmap-is-a-record decision"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0114/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:d8771508a5071f68001bbc598d670d6c369ebbd8fc79d0008b32132769907920"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "The roadmap manifest"
+kind = "file"
+target_ref = "docs/roadmap/roadmap.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:ba7c0dfe44e64a9290a91bae2ebc13116a7b67e36e911f70568c1dcde58b5a35"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The roadmap intent atom"
+kind = "document"
+target_ref = "docs/roadmap/atoms/10-intent.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:c069c6429625f3727f6ce3925ac831458370dc055c9f4b5ff67eb66047e17b57"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "The roadmap phases atom"
+kind = "file"
+target_ref = "docs/roadmap/atoms/20-phases.yaml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:4895d3dadefc9147a55c321cd3dd2ebb4279ed86e8f43dd197d93e17b23d1636"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "Roadmap revision 1"
+kind = "file"
+target_ref = "docs/roadmap/revisions/1.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:6359f6a6ec3e6942e24b3f7faa682f739d9b5d0bdf73ab742748c91be3b198aa"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "core: the roadmap record"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/roadmap.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:da311b477111118d8701b5af0363b2421d4924c868f66d2bd1a4a718ed316f6e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "core: module list"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-008"
+title = "core: the phase range from the record"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/traceability.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:a288aa8f4b43386c5bfa92e46b57965406c982aa2cebac0d7f61b00b78166913"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "core: status types and the corrected fallback"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/status.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:7673d3693340f2b0c3fe14af6d5d51890c99d6c3cb844a685d484a104bb72e2f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "cli: the loader"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:00fcdceff3dec30b6c0d8d4f2207911d7bee658969064a57a9836a62568ef8d0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "cli: war roadmap"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/roadmap_cmd.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:f9908c1dc9db424fe3aeb28eb612a221af3f8cb684f1b800a2a3b716ecff65ea"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-012"
+title = "cli: the edit machine"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/roadmap_edit.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:c450855dc5bf07c695c9ad0fa8e302f63453aac00413882df9501f10f76931a9"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-013"
+title = "cli: the four checks"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-014"
+title = "cli: Objectives from the record"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-015"
+title = "cli: the acceptance act"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-016"
+title = "cli: the command and module list"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-017"
+title = "cli: the remedies for the new rules"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/remedy.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:4ed254cbad249b290c3d668219b54c3134669fddcb9bfd427154faa7115072ef"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-018"
+title = "cli: the app's Roadmap pane"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:5bcdb797a87bd1de7b820489760197d1e16423b79a0bdf3ad4e9a88278a141d5"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-019"
+title = "cli: war progress reads the record"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/progress_viewer.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:319e3a4a99b297c54c4f1bfcb2120c3189bf83002c1b6b6b02b46ac401ab0902"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-020"
+title = "cli: the progress roadmap reader"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/progress_viewer/roadmap.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:a7a7466916415550ab4c2fb9f7a9cd66704db028638460e366c65d4821235df0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-021"
+title = "compiler: the Roadmap section of CURRENT.md"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/current.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:e59259f7cb15a2c23565e98bedc2c3516c89501fe2bdd8d114815787a603bcb5"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-022"
+title = "schema: oh.war/roadmap/v1"
+kind = "file"
+target_ref = "schemas/oh.war/roadmap/v1.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:f7bbca05b9d8996f70597bdf17d5a57924cf4b7b7e5bded2d33afd418ad2d1e4"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-023"
+title = "schema pack"
+kind = "file"
+target_ref = "schemas/pack.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:daca13f33fa2e83f93f10b17e075fd5a424b3c2f227c078e860ed40564278b82"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-024"
+title = "The SAS: §98 points at the record"
+kind = "document"
+target_ref = "docs/sas/WAR_Software_Architecture_Specification.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:85f5e7eff8def10702ecd1fcc74f09cc8e0b6ba9d11d1db2b9c24cd576562a9f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-025"
+title = "PRODUCTION_ROADMAP.md retired to lineage"
+kind = "document"
+target_ref = "docs/roadmap/PRODUCTION_ROADMAP.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:b1b1dfc1254fee44c0c6baf06cd6520aba2d35e9bf77d4285a54e1b7317bd7f6"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-026"
+title = "view.json retired"
+kind = "file"
+target_ref = "docs/roadmap/view.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:2b4de8b56996d306ac826beac07542f85da7313adb56602aa392ca7ab2646caa"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-027"
+title = "rc2 plan retired"
+kind = "file"
+target_ref = "docs/design/rc2-implementation-roadmap.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:9591b84259597fce697105772868379056c6022be9436d90e42b78ce5a689927"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-028"
+title = "rc.3 plan retired"
+kind = "file"
+target_ref = "docs/sas/drafts/1.0.0-rc.3/roadmap.json"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:bf243fef14ad369a53656c293e090c2e8d1b2e6ddda3cfae6ad6d63c0f4aa802"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-029"
+title = "CONTEXT.md: the term"
+kind = "document"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-030"
+title = "docs/TUI.md: the Roadmap pane"
+kind = "document"
+target_ref = "docs/TUI.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:7c28dac741ac3391bff5dfdcacaab679e913183dd8046bbf06ebf0c9e6a599e9"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-031"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/70-roadmap.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:d9319580ad65f31eaeca02bd9edf2e14ef680d3528771b67dfb0a8fd543aa82e"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-032"
+title = "compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:0c3d08949f1d2b6194b3e09728c55e2a943ea771c4878123572e5bdcf6cabac8"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-033"
+title = "compiler: earlier roadmap revisions in HISTORY.md (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/history.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:71d0a9e18caa136ce957abbad5488457841ab5bf99475bf75802be75f5a41ff2"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-034"
+title = "SAS 1.1.1, proposed: §98 points at the record (AM-003)"
+kind = "file"
+target_ref = "docs/sas/revisions/1.1.1.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:b66a7f7407feca2b143b720d9348ad7e39ad9c2f00197d53aee0f6ead52b1e0d"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-035"
+title = "Roadmap revision 3, proposed: the retirements (AM-003)"
+kind = "file"
+target_ref = "docs/roadmap/revisions/3.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:da59c876105076c6f07cd8be7c34d7801806e92d32b1bfee998130e4739801b2"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-036"
+title = "core: the real-document §98 test reads the roadmap record (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/sas.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6123731af9bdeb96618fe3e482f42e9d817d2865ddeef3fc359ecfc4c89c9070"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:c0331a335a98ce40efa0c7754ccb18752bdcb55343b3f34354cae4d16e2fc9f9"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

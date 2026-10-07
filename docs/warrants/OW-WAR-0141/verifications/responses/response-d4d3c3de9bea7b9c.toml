@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0141"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject_digests including contract:sha256:2a0d9737d... matching this bundle's authorized_contract_digest) printed, per its captured stdout excerpt, an unbroken sequence of passing checks for every evidence item OBL-004 requires: 'ok --issue with no [intake] starts nothing / intake.not-configured; the fake gh recorded no call', 'ok --issue fetches once, a read / one call: gh issue view 12 --json number,title,body,url', 'ok a failed or hung fetch writes nothing / intake.fetch-failed, intake.fetch-timeout; the tree is unchanged', 'ok a fetch_argv that writes never runs / intake.fetch-not-a-read; no call recorded', 'ok the fake gh saw no tracker write / 3 call(s), every one issue view', 'ok the planted token reached the fetch / 3 gh call(s), each with GH_TOKEN and GITHUB_TOKEN=planted-token-0141', and 'ok no planted token in the repository / grep -r planted-token-0141 and git log --all -p: nothing, .git included'. Unlike the prior verification, this bundle carries the D-011 (conformance/plants.d/54-intake.sh) excerpt spanning lines 371-448, the OBL-004 section itself, showing the actual assertions being printed: the fake `gh` script (lines 1-41) writes GH_TOKEN/GITHUB_TOKEN it received into `$IK_GH_LOG.env`, and the plant computes `IK_ENVS=$(sort -u \"$IK_GH_LOG.env\")` and only prints the 'ok' line for 'the planted token reached the fetch' when `IK_ENVS == \"GH_TOKEN=$IK_TOKEN GITHUB_TOKEN=$IK_TOKEN\"` for all 3 recorded calls — so the pass message is not an assertion made in isolation but the direct output of a check whose logic is visible in the bundle. Critically, the earlier concern that a clean grep result could be vacuous is now resolved by the additional printed line 'ok control: a written token is found in the tree and in a deleted commit', which is the plant's own negative control proving the leak-detection methodology actually detects a planted token when one is present. D-001 (intake.rs, fully shown, not truncated) corroborates the design: `run_fetch` spawns the configured `fetch_argv` via `std::process::Command` with no `.env_clear()` or environment filtering, so it inherits and passes through the calling process's environment untouched, consistent with the observed pass-through of GH_TOKEN/GITHUB_TOKEN. Together, the source of the check, the fake gh's env-capture mechanism, and the gate's actual passing execution establish every clause of OBL-004's evidence list, including the 'holds no secret' leg."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

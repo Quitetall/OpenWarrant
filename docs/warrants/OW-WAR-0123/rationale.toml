@@ -1,0 +1,9 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "U-001"
+statement = "The four signed children OW-WAR-0002 to 0005, which cite OW-WAR-0001 at revision 1 with revision 2's digest, are reported as a warning naming revision 2 (option b), not as an error (option a)."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner chooses option (a) or (b) before authorization. Under (a) the obligations' severities are redrafted before signing, and the owner decides what happens to the two resolved children whose error would never clear."
+consequence_if_false = "Under (a), war check on this corpus reports four errors after delivery, two of which no amendment can clear."
+judgment_ref = ""

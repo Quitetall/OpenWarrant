@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0091"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and no publication logs, download/digest-verification records, or completion-word statements are included; obligation_evidence for OBL-001 lists no named_paths and no terms. The only gate run present, software.repo.war-check@1.0.0, is a repo-wide structural manifest/atom check across 143 Warrants and its own NOT CHECKED section states 'war check does not invoke gates, so nothing here is evidence that a Warrant's acceptance gates were run'; it says nothing about release publication, re-download verification, or the completion word. There is no evidence in the bundle either way for this obligation's scoped behavior."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables are carried in the bundle (deliverables: []) and obligation_evidence for OBL-002 shows empty named_paths/terms, so no refusal fixtures, invalid-input tests, or unchanged-prior-output-on-failed-write records are present. The single gate run (software.repo.war-check@1.0.0) checks manifest/atom structural well-formedness across the corpus, not the release/publish boundary's handling of malformed or authority-confused inputs, so it cannot speak to this obligation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No independent reproduction, review record, or secure human acceptance of the exact OBL-001/OBL-002 result appears anywhere in the bundle; deliverables are empty and obligation_evidence lists no named_paths/terms for OBL-003. The war-check gate run is a structural/manifest check, not an independent qualification review of a release result, and the bundle carries no other verification records (prior_verifications is empty) that could serve as this evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The cited gate software.repo.war-check@1.0.0 did run (run_id GR-software.repo.war-check@1.0.0, verdict pass) and its stdout shows 'PASS identity.atom-mismatch OW-WAR-0091: 4 atom(s) name this Warrant's UUID' plus REMEDIES entries 'auto war evidence record OW-WAR-0091' and 'human war sas repin OW-WAR-0091', indicating at least one stale-evidence and one SAS-pin WARN for this Warrant. However the stdout is truncated (truncated: true, 355795 bytes total, shown text begins mid-word 'rable...' well into the OW-WAR-0138 section), so the specific deliverable.digests, obligations.valid, milestones.valid, journal.append-only and authority.signed lines for OW-WAR-0091 itself are not shown. The bundle's plants array is also empty, so none of the 'existing planted refusals' the obligation's evidence explicitly requires are present. With key portions of the structural evidence cut off and no planted-refusal evidence at all, the bundle does not carry enough to decide structural validity for OW-WAR-0091."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

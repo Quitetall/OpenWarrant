@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# The smallest service gate: `true`. It exists so the ops work kind (1.0 plan
+# C4b) has a stage `war run` can execute in well under a second — the plants
+# need a run that passes, one that is refused, and one that times out, without
+# waiting on the battery. A LOCAL CANDIDATE (OW-ADR-0005); shapes per
+# OW-ADR-0003's reader.
+#
+# 1.1.0 is 1.0.0 (docs/gates/ops.echo@1.0.0.yaml) with `inputs` declared,
+# for the run-kind eval tasks (OW-WAR-0133 AM-004). A run task's deliverable
+# IS this gate's receipt, pinned by content in deliverables.toml; with no
+# declared inputs the receipt is bound to the tree, which the pin itself
+# moves, so no order of record and pin was ever admissible. `true` reads no
+# file of the program: the only thing that decides its answer is this
+# definition, and that is what it declares. A definition is immutable (SAS
+# §43.3), so the declaration is a new version.
+
+gate_id: "ops.echo"
+version: "1.1.0"
+lifecycle: "qualified"
+implementation_ref: "artifact://coreutils/true"
+output_schema_ref: "schema://exit-status/v1"
+provenance: "local_candidate"
+input_kinds: ["stage-dispatch"]
+inputs: ["docs/gates/ops.echo@1.1.0.yaml"]
+argv: ["true"]
+mutating: "false"
+timeout_secs: "5"
+fault_model: ["service-stage-cannot-run"]
+known_blind_spots: ["Passes whenever `true` exits 0; it verifies nothing about the stage but that the service seam executed it and minted a receipt.", "Its declared input is its own definition: a receipt stays reusable whatever else in the program moves, because nothing else can change what `true` answers."]
+qualification_qualifier: "QuiteTall via conformance/plants.d/86-run.sh, run by cargo xtask gate"
+qualification_digest: ""
+qualification_positive_controls: ["A service stage bound to this gate runs, passes, mints a receipt whose subject is the dispatch digest, and submits `verify`."]
+qualification_negative_controls: ["A human stage is refused before anything runs; an unknown gate is refused by name."]
+qualification_mutation_classes: ["substitution (executor_kind, executor_ref, wall_time_seconds)"]
+qualification_environments: ["linux-x86_64, rustc 1.97.1 pinned by rust-toolchain.toml"]
+qualification_limitations: ["A gate that always passes qualifies the seam, not any work.", "The controls above were run on 1.0.0; 1.1.0 differs only by `inputs`, which changes how its receipt is reused, not what it detects."]
+detection_results:
+  - fault_class: "service-stage-cannot-run"
+    mutation: "stage marked human; executor_ref pointed at an unregistered gate"
+    detected: "true"

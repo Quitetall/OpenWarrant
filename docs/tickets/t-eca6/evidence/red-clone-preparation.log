@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-git-index-performance/conformance/controls/isolated-index.py", line 44, in <module>
+    assert len(refreshed) == 1, f"expected one clone-index refresh before the battery, got {refreshed}"
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError: expected one clone-index refresh before the battery, got []

@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0082"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is an empty array and obligation_evidence for OBL-001 lists no named_paths and no terms, so no runtime trace of the SDK/provider boundary is carried. The sole gate run, software.repo.war-check@1.0.0 (run_id GR-software.repo.war-check@1.0.0), is a repository-structure checker whose own captured stdout states 'gate execution — war gate --run executes a registered gate (§44), but war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' and 60-assurance.md states 'These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here.' No captured input/output/exit-code record of budget enforcement or cache invalidation exists anywhere in the bundle, so this cannot be decided."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 likewise names no paths or terms, and no plants (plants: []) or deliverables addressing refusal behavior are carried. The only gate run checks manifest/journal/authority/milestone structure (e.g. 'PASS manifest.valid', 'PASS journal.append-only', 'PASS authority.signed'), not runtime refusal conduct at the SDK/provider boundary, and its NOT CHECKED section reconfirms 'war check does not run gates.' No observed refusal or unchanged-prior-output-on-failed-write evidence appears, so the claim is undecidable from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result. The only prior_verifications entries present are earlier not_established calls on OBL-001/002 themselves plus an established OBL-004 call — none constitutes independent qualification review or human sign-off over runtime behavior. 60-assurance.md confirms no disposition on the implementation observations has been declared yet ('No disposition is declared here'), and the war-check gate is structural-only, so qualification evidence cannot exist yet; not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 completed with overall verdict 'pass', and its receipt's subject_digests includes 'contract:sha256:6913df06e3bfb43ced68864664cc2907e14ab275fbb5ec4f41b76cafe1e172b4', matching this bundle's authorized_contract_digest exactly, binding the run to this Warrant. The stdout excerpts show every OW-WAR-0082-specific line at PASS or WARN with zero errors: 'PASS manifest.valid OW-WAR-0082', 'PASS traceability.refs OW-WAR-0082', 'PASS journal.append-only OW-WAR-0082', 'PASS authority.signed OW-WAR-0082', 'PASS gate.resolved OW-WAR-0082', 'PASS milestones.valid OW-WAR-0082: 3 milestone(s), 3 stage(s), acyclic with no dangling refs', 'PASS obligations.valid OW-WAR-0082: 4 obligation(s), each with a bounded scope and evidence', 'PASS generated.drift OW-WAR-0082', and 'PASS identity.atom-mismatch OW-WAR-0082: 4 atom(s) name this Warrant's UUID'. The two WARNs on this Warrant (evidence.stale-binding, sas.pin-superseded) are record-hygiene notices, not structural-validity failures, and both fall within OBL-004's scope of 'authored records/references; no runtime feature or assurance claim,' so structural validity is established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

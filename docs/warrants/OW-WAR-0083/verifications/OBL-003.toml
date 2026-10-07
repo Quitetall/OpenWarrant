@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No independent reproduction, review, baseline, or secure human-acceptance record for the exact result is carried: prior_verifications supplies only prior agent-verifier text (not itself qualification evidence), plants is empty, and atoms/60-assurance.md states outright 'These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here.' The gate run present is scoped to structural checks (OBL-004), not qualification. Nothing in the bundle could show qualification of the exact OBL-001/OBL-002 outcome."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

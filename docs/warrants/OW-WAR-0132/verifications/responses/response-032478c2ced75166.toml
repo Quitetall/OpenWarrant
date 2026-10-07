@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0132"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-006 (conformance/plants.d/52-hotline-defaults.sh), carried in full and not truncated, defines the exact scoped checks: 'max_recoveries = 1' (three says-nothing.sh runs on STAGE-001, asserting hd_endings=='failed,failed' before the third is refused perform.recovery-limit), 'max_repairs = 1' (three echo-submission.sh runs, asserting hd_endings=='answered,answered' before the third is refused perform.repair-limit), and 'a failed run is not a repair' (echo, says-nothing, echo, asserting exit 0, hd_endings=='answered,failed,answered', and neither limit rule firing) — each comparing the journal's recorded perform.ended outcome sequence to the run performed via the hd_endings() helper, and each result line incrementing the script's own PASSED/FAILED counters via hd_ok/hd_fail. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, receipt exit_result pass) shows literal matching output lines 'ok max_recoveries = 1  failed, failed, then rejected by perform.recovery-limit' and 'ok max_repairs = 1  answered, answered, then rejected by perform.repair-limit' at stdout lines 274-275, directly confirming the first two evidence points and the outcomes-match-run point for those two cases. The third case's own ok/FAIL line (line 276) falls in a gap the excerpts do not show, but the same stdout's visible tail reports the whole battery's final tally as '1260 passed, 0 failed' with the gate verdict 'pass'; since hd_fail is the only path that increments FAILED and the total is zero, no case in this plant (including the unshown 'a failed run is not a repair' line) could have failed. Together the fully visible plant logic and the gate's zero-failure total for an executed, passing run establish all of OBL-004's evidence points within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

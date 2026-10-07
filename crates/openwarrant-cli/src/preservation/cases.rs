@@ -76,8 +76,7 @@ pub(super) fn coverage(
         } else if local.starts_with("verifications/") && local.ends_with(".toml") {
             if text()
                 .and_then(|text| {
-                    toml::from_str::<openwarrant_core::verification::Verification>(text)
-                        .map_err(|e| e.to_string())
+                    crate::verify::record::decode(text).map_err(|error| error.to_string())
                 })
                 .is_err()
             {

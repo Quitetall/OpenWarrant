@@ -1,0 +1,19 @@
+obligation = "OBL-007"
+disposition = "established"
+evidence = "docs/INSTALL.md (D-009) contains the exact RELEASES URL from install.rs's `pub const RELEASES` (https://api.github.com/repos/Quitetall/OpenWarrant/releases, in the 'What it sends' section), both opt-outs OPENWARRANT_NO_UPDATE_CHECK and CI (in the 'When it is silent' list), the phrase 'not a signature' (in 'What the checksum establishes'), the four build classes release/crate/unreleased/unknown as a table in 'Which build is this?', and the 'A stranded install' section's first command line byte-identical to install.rs's `INSTALL_SH_LINE` constant. README.md (D-010) and QUICKSTART.md (D-011) each contain a `(docs/INSTALL.md)` markdown link. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) executed conformance/plants.d/61-update.sh's `up_doc_check` against the real docs/INSTALL.md, printing 'ok docs/INSTALL.md says what it must ... URL, both opt-outs, not a signature, stranded line = remedy, 4 classes; linked twice', and separately against a copy with OPENWARRANT_NO_UPDATE_CHECK renamed, printing 'ok a renamed opt-out fails the document check missing: OPENWARRANT_NO_UPDATE_CHECK;' confirming the refusal case. obligation_evidence confirms none of the relevant terms (RELEASES, OPENWARRANT_NO_UPDATE_CHECK, remedy) were cut by the budget."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

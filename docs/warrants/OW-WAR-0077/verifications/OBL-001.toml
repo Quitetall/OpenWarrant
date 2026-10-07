@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists no named_paths or terms, so no source-identity/snapshot/reference codec output (crates/openwarrant-core/src/document/source.rs) or typed provider-resolution response against source snapshots is shown anywhere in the bundle. The sole gate run, GR-software.repo.war-check@1.0.0, is a repo structural checker whose own stdout states under NOT CHECKED that '`war check` does not invoke [a registered gate], so nothing here is evidence that a Warrant's acceptance gates were run.' 60-assurance.md itself declares these observations 'NOT RUN until attached evidence proves them,' and no such evidence is attached, so the scoped SDK/provider behavior cannot be shown to hold."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

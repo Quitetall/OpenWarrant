@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No plant or test in the measured evidence exercises the detection for ADR Overview shipped with no Warrant; the known case is not covered by the listed plants or tests, and the receipt does not show the detector reporting it."
+evidence = "obligation_evidence for OBL-002 shows the term '3678455' only in the 'atoms' selection with an empty cut_from list, i.e. it appears solely in atoms/10-intent.md's narrative account of a human finding the commit by reading the log — not as detector output. No baseline artifact or journal entry in the bundle shows `untracked_work_candidates` from D-001's `untracked_candidates()` function containing 3678455 or any commit hash. The gate run's stdout excerpts cover only `war check --generated` structural checks (manifest.valid, journal.append-only, milestones.valid, etc.) and never mention telemetry output, so there is no evidence the detector was ever run against this repository's own history to surface the known case."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

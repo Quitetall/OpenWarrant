@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's scope requires independent reproduction/review, baseline conditions, and secure human acceptance of the exact OBL-001/002 result. Since deliverables and plants are both empty and OBL-001/OBL-002 have no carried runtime evidence, there is nothing for independent reproduction to reproduce, and the bundle contains no human-acceptance artifact (e.g., a signed acceptance record) distinct from the war-check gate's structural authority.signed check, which pertains to Warrant-record authorship, not qualification of this result. Qualification cannot be decided from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

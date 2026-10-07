@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0137"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-005 (crates/openwarrant-cli/src/verify.rs) implements `not_assigned` in `ingest`, which refuses a verdict from any actor not in the recorded assignment list (`verify.not-assigned`) or an assigned human lacking `verifier` in roles.toml (`verify.role-missing`), and structurally never writes such a verdict to `verifications/` (only entries in the `planned` vector, built after both `admissible_for` and `not_assigned` pass, are fsync-written). Conformance/plants.d/57-teams.sh (D-008) exercises this exact path on the scratch program TT-WAR-0001/0002: 'a verdict from an unassigned verifier' → verify.not-assigned (exit 2) plus 'the refused verdict is not written' (no verifications/OBL-002.toml); 'the assigned verifier without the role' → verify.role-missing plus 'the role-less verdict is not written'; 'the assigned verifier's verdict' → verify.recorded (exit 0) plus 'the assigned verdict is written' (verifications/OBL-001.toml present); and 'unassigned: any distinct verifier, as before' → verify.recorded on TT-WAR-0002, which carries no assignment. All five lines appear as 'ok' in the gate run GR-ops.conformance.plants@1.1.0 stdout excerpt (lines 543-590), whose receipt binds subject contract:sha256:659119be4a59...b611e0a9 (matching authorized_contract_digest) and tree 2b24c062778e0d87732c7f85873cd25ceb8fbad3, confirmed fresh (not stale) by war-check's PASS evidence.admissible line for this gate, with an overall '1214 passed, 0 failed' tally. The obligation's fourth bullet, that 84-verify-bundle.sh still passes on an unassigned Warrant, is not shown by name (obligation_evidence marks it absent/not carried as a discrete excerpt), but the same gate run's zero-failure total for the full battery it belongs to is direct evidence no plant in that run — including that one — failed, so all four evidence bullets in OBL-003's scope are shown satisfied."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0147"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The refusal half of OBL-003 is shown to hold: conformance/plants.d/45-tickets.sh (D-013) has the 'done refuses unclaimed and unknown' check — `tkw done \"$TK2/$TK2_I\" --as bob` (someone else's claim), `tkw done \"$TK2/$TK2_J\" --as bob` (unclaimed), and `tkw done i-zzzz --as bob` (unknown id) — asserting exit 2 for all three with `ticket.claimed-by-other`/`ticket.not-claimed`/`ticket.unknown` and no `[x]` ticked, and the ops.conformance.plants@1.1.0 gate run (GR-ops.conformance.plants@1.1.0) stdout confirms 'ok done refuses unclaimed and unknown ... three refusals, nothing ticked'. The plant's OBL-001 block also confirms the accepting case ticks the correct line (`grep -q \"^- \\[x\\] Write the grammar ($TK_I1) — done by claude, ...\"`). However the obligation's accepting evidence also requires that done 'releases the claim', and nothing in the bundle demonstrates this: the D-006 excerpts shown cover the standalone `release()` command (which calls `claim::release` and journals `event::RELEASED`) but the `done()` function's excerpt (lines 1495-1590) is cut off before showing whether it releases the item's claim, and no plant assertion in D-013 checks the claim state (e.g. re-claimability or absence of a lock file) on the just-done item after `done` runs. Since this component of the obligation's own stated evidence is neither shown in the code nor asserted by any gate-run output, it cannot be established from the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

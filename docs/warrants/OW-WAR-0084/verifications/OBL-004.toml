@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 has subject_digests including contract:sha256:253369a99...ec81d, matching this bundle's authorized_contract_digest, with verdict/exit_result 'pass'. The stdout excerpts (lines 1265-1278, 2592) show OW-WAR-0084-specific PASS results for manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift, and identity.atom-mismatch ('4 atom(s) name this Warrant's UUID'); the only OW-WAR-0084 WARNs (evidence.stale-binding, sas.pin-superseded) flag staleness/re-pin procedure rather than structural invalidity, directly matching OBL-004's scope ('this Warrant's authored records/references') and its cited gate `gate://software.repo.war-check@1.0.0`."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

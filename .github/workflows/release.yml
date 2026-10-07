@@ -63,7 +63,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
 
+      # OW-WAR-0143: a build told its tag is a `release` build, and prints
+      # the bare `war <version>` the Package step compares. build.rs refuses
+      # a tag that is not v<version>, or a dirty tree, so a binary that says
+      # it is the release cannot be built from anything else. A rehearsal
+      # (no tag, no preview_tag) builds as `unreleased`.
       - name: Build
+        env:
+          OPENWARRANT_RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.preview_tag }}
         run: cargo build --release --target ${{ matrix.target }} -p openwarrant-cli
 
       # §91.1 test 1 — two hosts, one IR. Each host compiles every Warrant
@@ -174,11 +181,13 @@ jobs:
           case "${{ github.ref_name }}" in
             v0.*|*-*) prerelease="--prerelease" ;;
           esac
+          # install.sh rides along, so a tag-pinned bootstrap URL exists
+          # (docs/INSTALL.md): .../releases/download/<tag>/install.sh.
           gh release create "${{ github.ref_name }}" \
             --title "${{ github.ref_name }}" \
             --notes-file CHANGELOG.md \
             $prerelease \
-            dist/*
+            dist/* install.sh
 
   # crates.io, in dependency order, only from a tag, and only under the
   # licence the relicense produces: a version published under

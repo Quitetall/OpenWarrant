@@ -71,8 +71,6 @@ pub(super) struct Snapshot {
     links: BTreeMap<String, String>,
     #[serde(skip)]
     sources: BTreeMap<String, PathBuf>,
-    #[serde(skip)]
-    root: PathBuf,
 }
 fn err(message: impl Into<String>) -> RepoError {
     RepoError::Message(message.into())
@@ -167,7 +165,14 @@ fn read_report(root: &Path, path: &str, alias: &str) -> Result<(WorkReport, Stri
 }
 fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
     let root = repo.root.canonicalize().map_err(|e| err(e.to_string()))?;
-    let legacy = overview::build(status::build(repo)?, true);
+    let corpus = status::build(repo)?;
+    // OW-ADR-0023: use the same observed corpus for both views. Calling
+    // `view` would assess every Warrant a second time for the same snapshot.
+    let from_record = match crate::roadmap_cmd::view_with(repo, &corpus) {
+        Ok((_, v)) => Some(roadmap::from_record(&v)),
+        Err(_) => None,
+    };
+    let legacy = overview::build(corpus, true);
     let git = std::process::Command::new("git")
         .args(["rev-parse", "HEAD"])
         .current_dir(&root)
@@ -190,7 +195,6 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
         stage_frontier_error: None,
         links: BTreeMap::new(),
         sources: BTreeMap::new(),
-        root: root.clone(),
     };
     let mut known_aliases = std::collections::BTreeSet::new();
     // The configured Warrant directories, not a hard-coded docs path, define scope.
@@ -243,11 +247,18 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
         };
         snapshot.reports.insert(alias, entry);
     }
+    // OW-ADR-0023: the roadmap record when the program has one; the authored
+    // `view.json` only for a program that has not adopted the record.
     let path = root.join("docs/roadmap/view.json");
-    if path.try_exists().map_err(|e| err(e.to_string()))? {
-        let bytes = bounded_read(&path, SOURCE_LIMIT).map_err(err)?;
-        let aliases = known_aliases.iter().map(String::as_str).collect();
-        let roadmap = roadmap::parse(&bytes, &aliases).map_err(err)?;
+    if from_record.is_some() || path.try_exists().map_err(|e| err(e.to_string()))? {
+        let roadmap = match from_record {
+            Some(r) => r,
+            None => {
+                let bytes = bounded_read(&path, SOURCE_LIMIT).map_err(err)?;
+                let aliases = known_aliases.iter().map(String::as_str).collect();
+                roadmap::parse(&bytes, &aliases).map_err(err)?
+            }
+        };
         for name in roadmap.nodes.iter().flat_map(|node| &node.documents) {
             link(&mut snapshot, &root, name, live).map_err(err)?;
         }
@@ -343,6 +354,26 @@ pub fn serve(
     mode: crate::output::Mode,
 ) -> Result<(), RepoError> {
     server::serve(repo, port, interval, mode)
+}
+
+/// One linked source, by the key its live link names (`/source/<key>`), for
+/// the web UI's `/api/source/<key>`. Only a name the snapshot itself links
+/// resolves; the bytes come through the descriptor-relative reader, which
+/// refuses traversal, symlinks, FIFOs and anything over the size bound.
+/// `Ok(None)` is an unknown key; `Err` a source that is no longer a safe
+/// regular file.
+pub fn live_source(repo: &Repository, key: &str) -> Result<Option<Vec<u8>>, String> {
+    let snapshot = capture(repo, true).map_err(|e| e.to_string())?;
+    let Some(path) = snapshot.sources.get(key) else {
+        return Ok(None);
+    };
+    let root = repo.root.canonicalize().map_err(|e| e.to_string())?;
+    // A cached canonical name must not be followed through a replacement.
+    if path.canonicalize().ok().as_ref() != Some(path) {
+        return Err("source replaced".into());
+    }
+    let relative = path.strip_prefix(&root).map_err(|e| e.to_string())?;
+    source::read(&root, relative, SOURCE_LIMIT).map(Some)
 }
 
 /// The same validated snapshot used by both HTML consumers. No files are written.

@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The tests in `evidence::tests` (e.g., `a_sealed_bound_passing_receipt_is_admissible`) verify that only admissible evidence bound to the contract digest is considered, and `war check --generated` passes on the committed corpus, ensuring requirement 5 is answered from tracked inputs."
+disposition = "not_established"
+evidence = "The obligation's three-part evidence claim (no reader of the receipts path in the projection's source; `war check --generated` passes in CI with three Warrants reading requirement 5 met; the caveat names `gate-runs/`) is not decidable from what's carried. D-001 (evidence.rs) is the only deliverable with bytes and its `load` function reads from `<warrant_dir>/gate-runs/` via GATE_RUNS_DIR, never `docs/receipts/`, which is consistent with the claim but does not establish it since the actual 'corpus projection's source' file the obligation names is not in the bundle at all — it isn't even listed in deliverables_not_carried the way D-002 and D-003 are, so its absence can't even be confirmed as a scoping choice. obligation_evidence for OBL-003 explicitly marks the named path 'gate-runs/' as absent ('a record of OW-WAR-0059 ... not carried'), so the tracked directory whose contents this obligation is about cannot be inspected here. The sole gate run (GR-software.repo.war-check@1.0.0, run_id shown) has stdout truncated (379204 bytes, truncated:true) with only scattered excerpts (lines 930-951, 2607, 2767, 2816, 2847) and a tail; the visible excerpt shows a WARN `evidence.stale-binding` for OW-WAR-0059's own gate run (stale tree binding, unrelated to the claim) and does not state that three Warrants read requirement 5 met, nor is any caveat text naming `gate-runs/` shown. This matches the prior_verifications entry, which reached the same not_established disposition on the same gap, and nothing newly carried in this bundle closes it."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

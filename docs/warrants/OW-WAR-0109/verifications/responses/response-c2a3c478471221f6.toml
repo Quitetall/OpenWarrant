@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0109"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty, and obligation_evidence for OBL-001 lists no named_paths or terms despite selection 'every deliverable of the Warrant'; only the authored intent/basis/work-order/milestones/assurance atoms are present, which state requirements but contain no queue implementation, test run, or fixture output showing unavailable-stays-queued, single-attempt dispatch, or restart/duplicate-request behavior."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate runs, or plants are carried in the bundle, and obligation_evidence for OBL-002 shows no named_paths or terms; the 60-assurance.md atom only declares the expected evidence (changed source/config, unmet dependencies, unknown writer, verified-start, unknown-cost cap refusals; matching ready work success) without any admission-evaluator code, test log, or gate run demonstrating these outcomes."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There is no queue-history data, crash/restart gate run, or cancellation test evidence anywhere in the bundle (deliverables, gate_runs, and plants are all empty arrays, and OBL-003's obligation_evidence entry has no named_paths/terms), so the claims about ambiguous requests never being replayed, retained attempts remaining discoverable, cancellation preventing dispatch, and corrupt history refusing cannot be checked against anything shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The bundle contains no API/browser deliverable, no probe-handling code, and no gate run output (deliverables, gate_runs, plants all empty; OBL-004's obligation_evidence has no named_paths or terms), leaving no evidence of pending-reason readability, auth/injection refusal, bounded probe handling for unknown/malformed/timeout/oversized output, or the required browser QA observation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

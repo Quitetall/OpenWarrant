@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0133"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh) implements exactly the three scenarios OBL-002's evidence calls for: 'a committed run counts' (records, then checks `war resolve --dry-run` reports requirement 5 met), 'a changed deliverable' (one byte of the deliverable changed and committed, expecting `evidence.stale-binding` naming the moved subject and requirement 5 unmet), and the control 'an unrelated commit leaves it' (a commit touching nothing the rule reads must stay admissible). The gate run GR-ops.conformance.plants@1.1.0 (subject_digests include the run's own tree and deliverables digest, verdict pass) has stdout excerpts at lines 360 and 362 directly confirming the moved-deliverable half: 'ok a changed deliverable rejected by evidence.stale-binding naming inputs:sha256:c66fce50cd12ec53082684d840cbe8eb22bac9c28c5b5e113c7649864f2fe859; requirement 5 unmet' and the parallel fixture case. The stdout's shown tail reports the run's final tally as '1214 passed, 0 failed', meaning none of this script's er_fail assertions (including the recording/resolve-counts step and the unrelated-commit control, whose specific lines fell outside the selected excerpts) triggered a failure — a failure would have raised the failed count and produced a 'FAILED' line as seen elsewhere in the same run for genuinely failing plants. The software.repo.war-check@1.0.0 run for OW-WAR-0133 corroborates this receipt as `evidence.admissible ... bound to the current contract and to its source (tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3)`, confirming the run genuinely occurred over a known tree and was judged admissible."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

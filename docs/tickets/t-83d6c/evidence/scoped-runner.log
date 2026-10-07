@@ -1,0 +1,18 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== plant files: no fixed /tmp path (t-0e4f) ==
+ok    mktemp scratch and the temp root run 50-clean.sh ran and passed; a template, ${TMPDIR:-…}, a nested tmp/, a comment
+ok    a fixed /tmp path is refused       51-fixed.sh FAILED at line 2 and never ran; totals 1 passed, 1 failed
+== plant files: no pipe into a quiet grep (t-515e) ==
+ok    captured greps run                 50-clean.sh ran and passed; line_has, a here-string, <(…), -c/-v/-o pipes, ||, a comment
+ok    a pipe into a quiet grep is refused -q, -qF, -E -q, |& --quiet, a split pipe, the held file's name on other bytes: each FAILED at its line, none ran; totals 1 passed, 6 failed
+ok    one file held by its bytes         63-webui.sh at 0397209b runs (OW-WAR-0139 OBL-005); other bytes under its name do not
+ok    line_has reads a captured text     200/200 true over 9719 bytes; an empty filter and a -v over the filter's lines are false
+== plant files: prefixes group, order decides nothing (t-dc28) ==
+ok    two files share a prefix           57-a and 57-b both run, in byte order, then 58, 59
+ok    a file that leaks is named         58-leak.sh FAILED for docs/warrants/.plant-order-leak-1937941, removed before 59 ran
+ok    reversed, the same result          TOTALS 4 1 either way
+
+10 passed, 0 failed

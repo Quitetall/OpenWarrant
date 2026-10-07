@@ -35,6 +35,12 @@ fn now_rfc3339() -> String {
     crate::gate_cmd::receipt::rfc3339_from_secs(secs)
 }
 
+/// The bytes [`write_json`] writes for `v`.
+fn render_json<T: serde::Serialize>(v: &T) -> Result<String, RepoError> {
+    let text = serde_json::to_string_pretty(v).map_err(|e| RepoError::Message(e.to_string()))?;
+    Ok(format!("{text}\n"))
+}
+
 fn write_json<T: serde::Serialize>(path: &Utf8Path, v: &T) -> Result<(), RepoError> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|source| RepoError::Io {
@@ -42,33 +48,46 @@ fn write_json<T: serde::Serialize>(path: &Utf8Path, v: &T) -> Result<(), RepoErr
             source,
         })?;
     }
-    let text = serde_json::to_string_pretty(v).map_err(|e| RepoError::Message(e.to_string()))?;
-    std::fs::write(path, format!("{text}\n")).map_err(|source| RepoError::Io {
+    let text = render_json(v)?;
+    std::fs::write(path, text).map_err(|source| RepoError::Io {
         context: format!("could not write {path}"),
         source,
     })
 }
 
-/// The dispatch ids this Warrant's journal says were compiled (§24). A
+/// The dispatch bindings this Warrant's journal says were compiled (§24). A
 /// journal that cannot be read is an error, not an empty set: a submission
 /// refused for "unknown dispatch" when the journal is corrupt would be
 /// refused for the wrong reason.
-fn compiled_dispatch_ids(dir: &Utf8Path) -> Result<Vec<String>, RepoError> {
-    crate::journal_cmd::load(dir).map(|j| {
-        j.events
+fn compiled_dispatch_bindings(dir: &Utf8Path) -> Result<Vec<serde_json::Value>, RepoError> {
+    crate::journal_cmd::load(dir)?.events
             .iter()
             .filter(|e| e.event_type == "dispatch.compiled")
-            .filter_map(|e| {
+            .map(|e| {
                 serde_json::from_str::<serde_json::Value>(&e.payload)
-                    .ok()
-                    .and_then(|v| {
-                        v.get("dispatch_id")
-                            .and_then(|d| d.as_str())
-                            .map(str::to_owned)
-                    })
+                    .map_err(|error| RepoError::Message(format!(
+                        "submission.dispatch-history-invalid: dispatch event {} has an unreadable payload: {error}", e.id)))
             })
             .collect()
+}
+
+const SUBMISSION_RECORDED: &str = "submission.recorded";
+
+fn submission_path(dir: &Utf8Path, submission: &StageSubmission) -> Utf8PathBuf {
+    dir.join(SUBMISSIONS_DIR)
+        .join(format!("{}.json", submission.dispatch_id))
+}
+
+/// The `submission.recorded` payload: what the journal key is made of.
+fn submission_payload(repo: &Repository, path: &Utf8Path, submission: &StageSubmission) -> String {
+    serde_json::json!({
+        "dispatch_id": submission.dispatch_id,
+        "stage": submission.stage_id,
+        "requested_next_action": submission.requested_next_action.map(|a| a.to_string()),
+        "blockers": submission.blockers.len(),
+        "path": repo.relative(path),
     })
+    .to_string()
 }
 
 /// Write a submission and journal it. The caller has validated it.
@@ -80,23 +99,14 @@ fn record_submission(
     actor: &str,
     report: &mut Report,
 ) -> Result<Utf8PathBuf, RepoError> {
-    let path = dir
-        .join(SUBMISSIONS_DIR)
-        .join(format!("{}.json", submission.dispatch_id));
+    let path = submission_path(dir, submission);
     write_json(&path, submission)?;
     crate::journal_cmd::record(
         dir,
         uuid,
-        "submission.recorded",
+        SUBMISSION_RECORDED,
         actor,
-        &serde_json::json!({
-            "dispatch_id": submission.dispatch_id,
-            "stage": submission.stage_id,
-            "requested_next_action": submission.requested_next_action.map(|a| a.to_string()),
-            "blockers": submission.blockers.len(),
-            "path": repo.relative(&path),
-        })
-        .to_string(),
+        &submission_payload(repo, &path, submission),
     )?;
     report.push(Diagnostic::pass(
         "submission.recorded",
@@ -255,7 +265,7 @@ pub fn run(
         .wall_time_seconds
         .unwrap_or_else(|| repo.config.run.wall_time_seconds());
     let bound = def.timeout_secs.map_or(wall, |g| g.min(wall));
-    let mut bounded = def.clone();
+    let mut bounded = crate::gate_cmd::bind_warrant(def, Some(alias));
     bounded.timeout_secs = Some(bound);
     let started_at = now_rfc3339();
     // Each dispatch owns distinct evidence paths. Re-running the same gate
@@ -283,7 +293,7 @@ pub fn run(
     if gate_run.execution_status == openwarrant_core::ExecutionStatus::Completed {
         match crate::gate_cmd::receipt::mint(
             repo,
-            def,
+            &bounded,
             &gate_run,
             &started_at,
             &gate_run.verdict.to_string(),
@@ -447,8 +457,10 @@ pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report,
         ));
         return Ok(report);
     }
-    let known = compiled_dispatch_ids(&dir)?;
-    if !known.contains(&submission.dispatch_id) {
+    let known = compiled_dispatch_bindings(&dir)?;
+    let Some(binding) = known.iter().find(|b| {
+        b.get("dispatch_id").and_then(|id| id.as_str()) == Some(submission.dispatch_id.as_str())
+    }) else {
         report.push(Diagnostic::error(
             "submission.unknown-dispatch",
             file.to_string(),
@@ -459,8 +471,115 @@ pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report,
             ),
         ));
         return Ok(report);
+    };
+    let Some(expected) = binding
+        .get("contract_digest")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        report.push(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!("{alias}: dispatch {} has no recorded contract binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
+        ));
+        return Ok(report);
+    };
+    if submission.contract_digest != expected {
+        report.push(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_string(),
+            format!("{alias}: contract_digest {:?} does not match the compiled dispatch's {:?}. Nothing was written", submission.contract_digest, expected),
+        ));
+        return Ok(report);
+    }
+    let Some(expected_stage) = binding
+        .get("stage")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        report.push(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!("{alias}: dispatch {} has no recorded stage binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
+        ));
+        return Ok(report);
+    };
+    if submission.stage_id != expected_stage {
+        report.push(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_string(),
+            format!("{alias}: stage_id {:?} does not match the compiled dispatch's stage {:?}. Nothing was written", submission.stage_id, binding.get("stage")),
+        ));
+        return Ok(report);
+    }
+    let Some(expected_attempt) = binding
+        .get("attempt_id")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        report.push(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!("{alias}: dispatch {} has no recorded attempt binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
+        ));
+        return Ok(report);
+    };
+    if submission.attempt_id != expected_attempt {
+        report.push(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_string(),
+            format!("{alias}: attempt_id {:?} does not match the compiled dispatch's {:?}. Nothing was written", submission.attempt_id, expected_attempt),
+        ));
+        return Ok(report);
     }
     let actor = format!("agent://{}", repo.performer());
+    // OW-WAR-0130 (§67.4), before the first write: the same submission,
+    // already recorded by the same actor with the same bytes on disk, replays
+    // and writes nothing. The same key held by another actor, or by a record
+    // whose bytes differ, is a conflicting reuse and writes nothing either.
+    let path = submission_path(&dir, &submission);
+    let payload = submission_payload(repo, &path, &submission);
+    let journal = repo.relative(&dir.join(crate::journal_cmd::FILE));
+    match crate::journal_cmd::already_recorded(&dir, SUBMISSION_RECORDED, &payload, &actor)? {
+        crate::journal_cmd::Prior::Fresh => {}
+        crate::journal_cmd::Prior::Conflict { recorded_by } => {
+            report.push(crate::journal_cmd::conflict(
+                journal,
+                SUBMISSION_RECORDED,
+                &recorded_by,
+                &actor,
+            ));
+            return Ok(report);
+        }
+        crate::journal_cmd::Prior::Equivalent { occurred_at } => {
+            let rendered = render_json(&submission)?;
+            if std::fs::read(&path).is_ok_and(|b| b == rendered.as_bytes()) {
+                report.push(Diagnostic::pass(
+                    "submission.replayed",
+                    format!(
+                        "{}: this submission for dispatch {} was recorded at {occurred_at} with \
+                         these exact bytes; an equivalent retry replays and writes nothing",
+                        repo.relative(&path),
+                        submission.dispatch_id
+                    ),
+                ));
+                return Ok(report);
+            }
+            report.push(Diagnostic::error(
+                "journal.idempotency-conflict",
+                journal,
+                format!(
+                    "{alias}: `{SUBMISSION_RECORDED}` for dispatch {} is already journalled with \
+                     this key, and {} no longer holds the bytes this submission would write. A \
+                     different record under the same key is a conflicting reuse (§67.4), not a \
+                     retry; nothing was written",
+                    submission.dispatch_id,
+                    repo.relative(&path)
+                ),
+            ));
+            return Ok(report);
+        }
+    }
     record_submission(repo, &dir, &uuid, &submission, &actor, &mut report)?;
     Ok(report)
 }

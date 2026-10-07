@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0122"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) is the gate OBL-003 cites, and its stdout excerpt (lines 497-542) shows the full grammar plant battery from conformance/plants.d/57-grammar.sh (D-003) running against docs/GRAMMAR.md (D-001): each refused construct fires atom.frontmatter naming exactly what the document claims (G-R1 'a YAML anchor is not supported', G-R3 'a YAML tag is not supported', G-R4 'a flow sequence is not supported', G-R6 'a block scalar is not supported', G-R8 'duplicate key \"classification\"'); §62's verbatim example fails atom.frontmatter naming the nested mapping (G-R10: 'line 8: an indented (nested) mapping is not supported'); both positive controls pass (G-P1 '§62 example minus holder' reads with only atom.header on warrant_uuid, and G-P3 'a namespaced key' passes with the IR digest binding its bytes); and the drift control behaves as specified (G-D1: '11 rule id(s), every one produced' with no drift, and G-D2 confirms the control does flag a planted false citation). Every one of the ~45 plant lines in that excerpt (G-H0 through G-D2, covering the header, reader, manifest, structured-atom, heading, obligation and gate-citation sections) is marked 'ok', and the run's own tail total ('1214 passed, 0 failed') rules out an unshown failure elsewhere in the file. This directly matches all four bullets of OBL-003's evidence requirement within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

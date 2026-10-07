@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "Delivering revision 2 showed that `sas.section-current` reads UNKNOWN in a shallow clone, correctly (R-002): history cannot say whether a cited section changed. The CI `gate` job (.github/workflows/ci.yml) checks out at depth 1 and runs `war check --generated`, so every Warrant pinned to an older SAS revision that cites a section would read UNKNOWN there and the gate would go not-ready on a sound corpus. The fix is `fetch-depth: 0` on that job's checkout, as the bonsai job already has; ci.yml was outside the declared set. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "OW-ADR-0028"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-010, .github/workflows/ci.yml: the gate job's checkout fetches full history. No code changes. Revision 3 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-24"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-009."
+    after: "Also D-010: .github/workflows/ci.yml, fetch-depth 0 on the gate job's checkout."
+
+affected_stages: []
+affected_milestones: []

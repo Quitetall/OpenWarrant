@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The autonomy envelope (SAS §30) and amendment records (§31).
 //!
 //! # What decides whether an executor may act alone

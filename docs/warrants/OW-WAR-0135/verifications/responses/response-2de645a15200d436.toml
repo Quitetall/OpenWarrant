@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0135"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 has verdict/exit_result 'pass' and subject_digests includes contract:sha256:da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1, matching authorized_contract_digest, so the run is bound to this Warrant's contract. Its stdout excerpt (lines 483-511) shows the 57-assurance-mark.sh plant (D-005, carried in full, truncated:false) running the OBL-002 scenario: after the scratch baseline is set to 'accepted', `war mark MK-WAR-0001 --json` is invoked and the line 'ok a met baseline earns a mark   oh.war/mark/v1; baseline, resolution, attestation, commit, contract, OBL-001 each recompute' is printed, followed by 'ok a mark recomputes to the same bytes'. D-005's own script text shows exactly what that 'ok' required: the embedded MK_CHECK python routine independently recomputes sha256 of the baseline file, the resolution file and the attestation file, plus the resolution's locator commit_sha and contract_digest, directly from the scratch corpus tree, and diffs each against the corresponding field of the mark's JSON output (schema, baseline.id/sha256/independence_floor, resolution.sha256, attestation.path/sha256, commit, contract_digest, obligations, requirements) — the 'ok' line is only reached when that diff (MK_CHECK) is empty and 'mark.earned' appears with exit 0. D-002's excerpts (mark.rs) show the Mark struct with exactly these fields (warrant, baseline, resolution, attestation, commit, contract_digest, obligations, requirements) and its evaluate()/record() functions, corroborating that the tested tool matches the plant's assumptions. No FAIL line appears for this test in the shown stdout, and the run's overall tail shows 'tested commit 9f55131c7aeee59e99b2c258b8ee0ccd86614b60' with 0 failures reported. This directly satisfies OBL-002's stated evidence requirement (a mark statement naming baseline version, resolution digest, attestation digest, locator commit, contract digest and obligation ids, each equal to the value recomputed from the corpus) within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

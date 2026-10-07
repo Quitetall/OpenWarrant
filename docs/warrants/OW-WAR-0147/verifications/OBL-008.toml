@@ -1,0 +1,19 @@
+obligation = "OBL-008"
+disposition = "established"
+evidence = "The bundle's gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) is the obligation's designated gate and its stdout directly evidences the claim within scope ('war mcp' in a scratch program, the live tool router): the excerpt at lines 155-171 shows 'ok the loop over war mcp claim, a second agent refused by name, done, prime' and 'ok war mcp: still no authority tool 39 tools, 27 refused names absent; war_sign and war_verify_ingest refused as unknown, nothing signed'. D-013 (45-tickets.sh, lines 376-463) shows the exact live session this passing result came from: an MCP transcript over stdio where war_claim by mcp-agent succeeds, a second actor ('intruder') is refused ('claimed by mcp-agent' in the JSON-RPC reply), war_done ticks the checklist to 'Via a tool (i-..) — done by mcp-agent' (grepped from the actual checklist file), and a follow-on Python check (TK_NOAUTH) reads the live tools/list, confirms none of REFUSED_TOOLS (extracted from mod.rs's own source) is registered, no name contains 'sign' or 'ingest' beyond war_sign_list/war_sign_show, and that calling war_sign and war_verify_ingest each return an error with the signed-file count unchanged (TK_SIGS == TK_SIGS0) — exactly the predicate the script's own comment describes as substituting for mcp::tests ('the predicate of mcp::tests, read from tools/list rather than the source'). D-011 (mcp/mod.rs, full, not truncated) corroborates this design: REFUSED_TOOLS lists war_sign, war_verify_ingest and every other authority-tool name, and INSTRUCTIONS states 'It holds NO authority... cannot authorize... or sign anything'. Together the passing, executed gate run and the live-session transcript it produced establish both the accepting half (the loop works, checklist names the MCP actor) and the refusing half (no authority tool is reachable, nothing gets signed) of OBL-008 within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

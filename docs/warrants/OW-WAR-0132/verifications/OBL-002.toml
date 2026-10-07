@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0's stdout excerpt (file lines 262-279) shows four passing plant checks from conformance/plants.d/52-hotline-defaults.sh (D-006) that together cover every clause of OBL-002's scope and evidence: 'frontier with no responder' (line 267, ok) — UNKNOWN question.no-responder naming roles.toml with STAGE-001 still blocked; 'next with no responder' (line 268, ok) — the same UNKNOWN naming roles.toml via war next, with STAGE-001 not offered; 'an agent answering, no responder' (line 269, ok) — rejected by question.agent with the question file byte-identical before and after, evidencing that war answer --as <agent> is still refused; and 'frontier with a responder' (line 270, ok) — the finding is gone once the human actor is restored to roles.toml. The plant script itself (D-006) shows the exact mechanics behind each check (hd_agents_only strips the human assignment, sha256sum is taken of the question file before and after the agent's answer attempt, and roles.toml is restored via git checkout before the final check), and the implementation in D-001 (frontier.rs's someone_can_answer/no_responder functions emitting question.no-responder against docs/authority/roles.toml) and D-009 (next.rs's apply_questions, unit-tested by a_question_held_stage_is_not_offered_and_no_responder_is_carried) matches what the plants exercise. All four assertions needed to decide the obligation are present and passing in this bundle's gate-run evidence, so the claim is established within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

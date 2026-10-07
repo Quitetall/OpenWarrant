@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The gate-run excerpt shows all four required checks passing verbatim: 'ok    the repository tree is unchanged   git status --porcelain identical', 'ok    its ssh-agent is gone, sock restored agent 1308152 not running; SSH_AUTH_SOCK back to the sentinel', and 'ok    HOME holds nothing afterwards      no ~/.ssh, no config written'. These correspond exactly to D-004's OBL-003 block (FR_GIT_BEFORE/FR_GIT_AFTER comparison, the ssh_agent pid/stopped/ssh_auth_sock_restored check from the record, and the HOME-emptiness check on `$FR_TMP/home`), run from the repository root as the obligation's scope requires. D-002's own ssh_agent block ({'stopped': true, 'ssh_auth_sock_restored': true}) is consistent with this behavior."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

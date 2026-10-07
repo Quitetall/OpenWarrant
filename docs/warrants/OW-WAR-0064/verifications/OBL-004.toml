@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "This obligation requires two specific plants (edit-after-authorization refused; second correction applied as an edit refused) to be shown refused; none of that is present — deliverables is empty, obligation_evidence lists no named_paths or terms for OBL-004, and the only gate-run stdout carried is the generic repo well-formedness listing with the explicit WARN that the adequacy review 'has executed no attacks.' No basis exists in the bundle to say the append-only property holds or fails."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

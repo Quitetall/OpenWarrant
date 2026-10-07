@@ -1,0 +1,5 @@
+# OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh)
+
+## Notes
+
+- **2026-09-27 22:48 UTC, claude:** Found: Q-001 (reference form) is unanswered (rationale judgment_ref empty; war answers: none), and none of the 7 'delivered' code files implements native references: they are pre-existing files; Deliverable::validate is not even called by war check. Probe on a scratch program: an external:// target_ref is joined to the root; with a file there, pins --refresh rewrites its digest, correct/status/resolve/bundle read its bytes, requirement 2 passes; without it, check warns target-unreadable. Changed: D-001 OW-ADR-0026 status proposed, options (a)/(b)/(c), recommends (a), decides nothing; D-009 61-native-authority.sh, 17 cases over OBL-001..004 on a scratch corpus, UNKNOWN and uncounted until OW-ADR-0026 is accepted (14 observed unmet, 3 controls met). Ran: the plant alone (1 passed 0 failed, 17 UNKNOWN); a copy forced to counted mode (4 passed, 14 failed); war compile; war check --generated exit 0; war check OW-WAR-0127 0 errors; war deliver OW-WAR-0127 D-001 D-009 recorded both.

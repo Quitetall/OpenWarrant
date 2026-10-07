@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "D-004 (docs/scale/baseline-1000.json, untruncated, the exact artifact this obligation cites) records over: [], unknown: [], held: true, and every one of its nine rows (check, check-generated, next, status, pins-resolved-only, sign-list, compile, console-json, console-select — matching all nine commands declared in tools/scale/budget.toml, D-002) has verdict 'within' against its limit_ms, on the machine the record itself names (13th Gen Intel Core i5-13600K, Linux 7.2.6 x86_64, release build 6bcc01bf04a7)."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

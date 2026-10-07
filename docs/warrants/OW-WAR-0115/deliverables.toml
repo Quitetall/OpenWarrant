@@ -1,0 +1,142 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The per-user project list"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/projects.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:8f523a02015a15983577605532341bf6f047fac428a2d378f7b2c7490f3476d0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "war projects; touch on use; war from anywhere"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "56b6fff1456174d48be486e8f50a3f1de84b2878b35af0ac2af45e65f891aa51"
+input_digests = []
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The Projects pane, switching, the binary line"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "56b6fff1456174d48be486e8f50a3f1de84b2878b35af0ac2af45e65f891aa51"
+input_digests = []
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:5bcdb797a87bd1de7b820489760197d1e16423b79a0bdf3ad4e9a88278a141d5"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "docs/TUI.md: the hub"
+kind = "file"
+target_ref = "docs/TUI.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:7c28dac741ac3391bff5dfdcacaab679e913183dd8046bbf06ebf0c9e6a599e9"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "README.md: war from anywhere"
+kind = "file"
+target_ref = "README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:539e76bd5214180159c83380f6a17e79b0e5dbf11e076b29b41eae956c5db0c7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "The hub plants"
+kind = "file"
+target_ref = "conformance/plants.d/71-hub.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "56b6fff1456174d48be486e8f50a3f1de84b2878b35af0ac2af45e65f891aa51"
+input_digests = []
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:1442d9fb6ee9fbd62edf5fe66c708224f78eec104c60d6737d7228022ba55139"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

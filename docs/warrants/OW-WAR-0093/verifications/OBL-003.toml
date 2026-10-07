@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires a full legacy-Warrant reconciliation inventory (per atoms/10-intent.md and the docs/releases/ deliverable named in atoms/40-work-order.md), but the bundle carries no docs/releases/ file, gate run, or plant, and obligation_evidence lists no named_paths for OBL-003, so neither the existence nor the accuracy of any inventory can be checked."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

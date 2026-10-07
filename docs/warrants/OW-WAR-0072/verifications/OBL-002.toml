@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002 carries no named_paths and its two cited terms are unevidenced: 'git status' is shown_in [] (nowhere in the bundle) and 'batch.digest-moved' is shown_in ['atoms'] only, i.e. described in atoms/40-work-order.md/60-assurance.md prose but never exercised. The bundle's top-level plants array is empty, and the sole gate run GR-software.repo.war-check@1.0.0 is a generic repo-wide 'war check --generated' whose visible stdout excerpts (lines 1121-1134, 2604, 2751, 2833) discuss OW-WAR-0072's manifest validity, SAS pin, journal and traceability but never mention any batch.* refusal, a plant exercising it, or a git-status assertion post-refusal. There is neither a plant demonstrating a refusal-before-write nor evidence that it fails, so the claim cannot be decided from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

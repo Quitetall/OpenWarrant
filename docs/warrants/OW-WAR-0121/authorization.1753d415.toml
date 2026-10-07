@@ -1,0 +1,74 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0121"
+sas_revision = "1.1.0"
+deliverable_set_digest = "sha256:6447f661ee41070aeb33954273b0ea3877bbb3a9d0c29f5034eb23218c3287a0"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "594df1ba6624ec7d9bad745ad289ba6937148f927454de2e98b206e29b48b81b"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0121 (Storage: atomic writes, crash recovery, and migration of retained artifacts) at this contract digest means the signer accepts its intent, scope and 5 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T23:23:42Z"
+independence = "separate_role"
+
+[[owned]]
+id = "D-001"
+target_ref = "crates/openwarrant-cli/src/atomic.rs"
+
+[[owned]]
+id = "D-002"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+
+[[owned]]
+id = "D-003"
+target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
+
+[[owned]]
+id = "D-004"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
+
+[[owned]]
+id = "D-005"
+target_ref = "crates/openwarrant-cli/src/gate_cmd.rs"
+
+[[owned]]
+id = "D-006"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
+
+[[owned]]
+id = "D-007"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+
+[[owned]]
+id = "D-008"
+target_ref = "crates/openwarrant-cli/src/journal_cmd.rs"
+
+[[owned]]
+id = "D-009"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+
+[[owned]]
+id = "D-010"
+target_ref = "docs/STORAGE.md"
+
+[[owned]]
+id = "D-011"
+target_ref = "conformance/plants.d/53-storage.sh"

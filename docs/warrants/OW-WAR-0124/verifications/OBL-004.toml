@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-008 (conformance/plants.d/59-adoption.sh, untruncated, sha256 5b39cae8...) contains the exact plant for this obligation: it builds AD_D with docs/adr/0001-x.md, runs `war init --program Acme --namespace ACME`, and asserts the output contains exactly one line matching `war migrate --corpus docs/adr --commit $AD_DHEAD` and that `$AD_D/artifacts` does not exist (ad_ok 'existing ADRs get the migrate line'); it then builds AD_E with only docs/adr/README.md (no NNNN-*.md file) and reuses AD_A (no adr directory at all), asserting neither produces a 'war migrate' line (ad_ok 'no ADR corpus, no migrate line'), matching the obligation's absence clause. The gate run GR-ops.conformance.plants@1.1.0 stdout excerpt (lines 719-745) shows both corresponding results — 'ok    existing ADRs get the migrate line one line, nothing imported' and 'ok    no ADR corpus, no migrate line     README.md alone, or no directory' — within an overall verdict:pass run ('1270 passed, 0 failed'). The second gate run, software.repo.war-check@1.0.0, independently confirms via its PASS evidence.admissible line that this ops.conformance.plants@1.1.0 receipt 'reseals and is bound to the current contract and to its source (tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3)', so the passing plant run is tied to this Warrant's current contract rather than a stale one. D-002's migrate_line function (excerpted, lines 202-226) produces exactly the string format the plant greps for. obligation_evidence confirms both named terms ('war init' and the migrate command string) are shown, uncut. Together the plant script's assertions matching the obligation's stated evidence verbatim, and the confirmed-current passing gate run, establish the obligation."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0140"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, exit_result: pass) shows the 'contractor profile (OW-WAR-0140)' section of conformance/plants.d/56-contractor.sh (D-009) executing against the fixture conformance/fixtures/contractor/work-order.sh (D-012), and its stdout excerpt contains all four lines matching the obligation's evidence bullets verbatim: 'ok without contractor.acceptance: refused manifest.invalid: profile contractor requires a contractor.acceptance atom' (names both profile and role), 'ok an unknown profile: refused manifest.invalid: unknown profile \"experiment\"', 'ok required contractor.terms on delivery: refused UnknownRequiredRole, as before the registry', and 'ok optional contractor.terms on delivery: kept manifest.valid'. The plant source (D-009) shows the exact assertions behind each ok line (ct_manifest_refused calls checking for 'profile contractor requires a contractor.acceptance atom' and 'unknown profile \"experiment\"'; the sed-based required/optional contractor.terms-on-delivery checks against CT-WAR-0001's manifest). The overall battery total reports '1214 passed, 0 failed' with no FAIL lines in the excerpted contractor section, and obligation_evidence confirms the terms 'contractor.acceptance', 'contractor.terms', 'delivery', and 'UnknownRequiredRole' are all shown (cut_from: []), so nothing decisive was cut by the budget."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

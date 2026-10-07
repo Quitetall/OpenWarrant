@@ -1,0 +1,31 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "verify.recorded",
+      "file": null,
+      "message": "OBL-001: established by fixture-independent-verifier"
+    },
+    {
+      "severity": "pass",
+      "rule": "verify.recorded",
+      "file": null,
+      "message": "OBL-002: established by fixture-independent-verifier"
+    }
+  ],
+  "notes": [
+    "2 verification(s) recorded, 0 refused. A refused verdict is not written to disk at all — recording it would let an inadmissible verdict read as a verification on the next run."
+  ],
+  "counts": {
+    "pass": 2,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

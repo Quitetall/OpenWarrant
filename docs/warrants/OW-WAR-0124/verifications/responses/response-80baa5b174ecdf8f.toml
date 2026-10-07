@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-007"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) prints, under '== brownfield adoption (OW-WAR-0124) ==' in its stdout excerpt, the five lines that exactly match the OBL-007 checks in conformance/plants.d/59-adoption.sh (D-008): 'outside a work tree: git init — said so; check ready' (AD_F case: asserts a .git created, a 'git init: ' line printed, war check exit 0, and no UNKNOWN identity.changed), 'plain init outside: git init too — said so' (AD_F2, plain `war init` without --program also git-inits), 'inside a work tree: no nested .git — enclosing HEAD unchanged' (AD_G/sub: no .git created in the subdirectory of an existing repo and the enclosing repo's HEAD is provably unchanged, satisfying the 'refusal to nest'), 'no git: init continues, says so — exit 0, scaffold written' (AD_NOGIT: PATH stripped of git, exit 0, openwarrant.toml and docs/warrants/ACME-WAR-0001 written, no .git, and the 'git is not available'/'cannot be checked until' message present), and 'no git: identity.changed is UNKNOWN — never a pass' (the matching war check run reports identity.changed as UNKNOWN only, never PASS/ok). The corresponding implementation shown in crates/openwarrant-cli/src/init/mod.rs (D-002) — `history()`'s Outside/NoGit branches and `run_with`'s 'git init: … so Warrant identity and journal history can be checked' and 'git is not available … cannot be checked until' strings — matches what the plant asserts. Admissibility of this receipt is independently corroborated by the software.repo.war-check@1.0.0 gate run's 'PASS evidence.admissible … ops.conformance.plants@1.1.0 · required pass, receipt reseals and is bound to the current contract and to its source'. All three scratch scenarios named in OBL-007's scope (outside any work tree, inside an existing repository, and with git removed from PATH) are covered and shown passing, so the obligation's claim holds."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

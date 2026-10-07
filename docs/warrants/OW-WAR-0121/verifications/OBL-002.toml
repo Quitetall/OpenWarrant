@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = """D-011 (conformance/plants.d/53-storage.sh) contains the OBL-002 plant: it runs `war sign ST-WAR-0001 --ssh-sign` with `OPENWARRANT_FAULT=pause-before-rename:5000 OPENWARRANT_FAULT_FILE=authorization.toml`, waits for the temp file to appear, then writes ST_PLANTED bytes directly to authorization.toml, and asserts the backgrounded sign exits non-zero, prints `ERROR storage.prestate-moved`, that authorization.toml now equals the planted bytes, and that no temp file remains. The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) stdout excerpt directly confirms this ran and passed: 'ok    a moved record is not overwritten  storage.prestate-moved (exit 2); the plant's bytes stand'. D-002 (authorize.rs, lines 648-672 and 1157-1163) shows the code path exercised: the authorization/judgments prestates are read via `crate::compile::atomic::prestate` before the ssh-agent dialog, and `write_toml` calls `crate::compile::atomic::write_if(path, rendered, before)`. D-001 (atomic.rs) implements `write_if`'s prestate re-check before rename, returning `Refused{rule:"storage.prestate-moved"}` and removing the temp file when the target changed, matching the plant's observed behavior. Together the plant source, its execution in the passing gate run's captured stdout, and the routed code in authorize.rs/atomic.rs establish the obligation within its stated scope (authorize.rs via war sign --ssh-sign, scratch program, pause-before-rename); no separate claim is made for resolution_cmd.rs per the obligation's own scope."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

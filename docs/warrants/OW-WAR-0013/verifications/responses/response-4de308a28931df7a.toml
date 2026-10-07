@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0013"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "The only deliverable for this Warrant, D-001 (crates/openwarrant-core/src/traceability.rs, shown in full and untruncated, 700 lines), contains no code that resolves a `sas://` or `roadmap://` reference against a §106 requirement index or the Production Roadmap — RequirementRef::parse and RoadmapRef::parse (and their tests, e.g. the_sas_example_identifiers_parse, a_roadmap_ref_parses_with_and_without_a_slug) only validate identifier grammar. The gate run GR-software.repo.war-check@1.0.0's stdout literally reports 'N requirement ref(s) and M roadmap ref(s) parse' for each Warrant (e.g. OW-WAR-0139, OW-WAR-0140), never 'resolve', matching the code's actual capability. The Basis atom (20-basis.md) itself lists whether OpenWarrant parses §106 or requires a generated index as a 'Blocking unknown', confirming this was not decided/built. obligation_evidence's shown terms for OBL-001 are only the bare strings 'sas://'/'roadmap://' occurring in the file and atoms, not any index-lookup evidence, so the claimed evidence ('resolution against §106 and the Production Roadmap') does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows the term 'sas://WAR-SAS-RQ-999' with shown_in: [] — it appears nowhere in the bundle. The bundle's plants array is empty, and no gate-run line, deliverable excerpt, or Overview text records a refusal of this specific unresolvable reference; the closest test, unstable_or_malformed_identifiers_are_refused in D-001, only exercises malformed grammar, not an unresolvable-but-well-formed identifier like RQ-999. There is nothing here to decide the claim either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No deliverable in the bundle carries WARRANT_OVERVIEW.md content — the only gate-run line touching it is 'PASS warrant-overview.drift WARRANT_OVERVIEW.md matches a fresh compilation', which shows internal consistency, not that the file 'lists the uncovered ones by identifier' as OBL-003's evidence requires. The sole deliverable D-001's derive_all function only maps over requirements already present in the supplied Implements links, so it cannot itself enumerate all 57 §106 requirements to find ones with zero links; whether that enumeration/set-difference happens in an Overview generator elsewhere in the repo is not shown in this bundle. Absent the Overview's actual content, this cannot be decided from the evidence carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

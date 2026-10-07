@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 shows both 'deliverable.digest-drift' and 'git tag -l v1.0.0' with shown_in: [] — neither term appears anywhere in the bundle, including the visible excerpts and tail of GR-software.repo.war-check@1.0.0's stdout, which ends with a pass/warn summary and a 'NOT CHECKED' list (explicitly stating gate execution and Preflight are not covered) but no zero-drift report or tag-existence check. 'v1.0.0' is shown only as text inside atoms/40-work-order.md describing the plan, not as evidence the tag exists in the repository. No battery result (264/264 or otherwise) appears in the bundle. With the underlying stdout truncated (377,626 bytes total, only excerpts and a partial tail shown) and none of the three required evidence items (drift report, battery result, tag check) present, the claim cannot be decided from what's carried."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

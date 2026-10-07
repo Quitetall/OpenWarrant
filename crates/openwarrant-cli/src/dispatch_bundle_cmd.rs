@@ -101,7 +101,35 @@ fn insert(
     }
     Ok(())
 }
-pub fn run(command: Command) -> Result<(Report, serde_json::Value), RepoError> {
+/// RQ-046 / §47.2: a Dispatch declares its estimate and budget, and one over
+/// its budget is not handed on. `bundle-tokens-unrecorded` for a packet with
+/// no `tokens` (hand-edited, or compiled before C2); `bundle-over-budget` for
+/// one whose `estimated_tokens` exceeds its `budget_tokens`.
+fn judge_tokens(dispatch: &StageDispatch) -> Result<(), RepoError> {
+    let Some(tokens) = &dispatch.tokens else {
+        return Err(err(format!(
+            "bundle-tokens-unrecorded: dispatch {} (stage {}) carries no token account; a \
+             Dispatch declares its estimate and budget (RQ-046). Recompile it with `war dispatch`",
+            dispatch.dispatch_id, dispatch.stage_id
+        )));
+    };
+    if tokens.estimated_tokens > tokens.budget_tokens {
+        return Err(err(format!(
+            "bundle-over-budget: dispatch {} (stage {}) estimates ~{} tokens against a budget of \
+             {} ({}); an over-budget Dispatch is refused, not bundled (RQ-046, §47.2)",
+            dispatch.dispatch_id,
+            dispatch.stage_id,
+            tokens.estimated_tokens,
+            tokens.budget_tokens,
+            tokens.method
+        )));
+    }
+    Ok(())
+}
+pub fn run(
+    root: Option<camino::Utf8PathBuf>,
+    command: Command,
+) -> Result<(Report, serde_json::Value), RepoError> {
     let mut report = Report::default();
     let result = match command {
         Command::Create {
@@ -112,7 +140,13 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value), RepoError> {
             attachment,
             policy,
         } => {
-            let repo = Repository::discover(None)?;
+            let repo = Repository::discover(root)?;
+            // RQ-046: a Dispatch from elsewhere is judged before anything is
+            // captured. Its account is read from the packet, not recomputed;
+            // one with none, or over its own budget, is refused by name, and
+            // no context is read and nothing is written.
+            let dispatch: StageDispatch = serde_json::from_slice(&read(&dispatch)?).map_err(err)?;
+            judge_tokens(&dispatch)?;
             let dir = repo.warrant_dir(&alias)?;
             let loaded = repo.load_warrant(&dir)?;
             if loaded
@@ -129,7 +163,6 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value), RepoError> {
                 return Err(err("bundle-incomplete-basis"));
             };
             let ir = lower(basis, validated).map_err(err)?;
-            let dispatch: StageDispatch = serde_json::from_slice(&read(&dispatch)?).map_err(err)?;
             let context: ContextManifest = serde_json::from_slice(&read(&context)?).map_err(err)?;
             let mut sources = BTreeMap::new();
             insert(

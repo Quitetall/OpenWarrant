@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = """D-001 (docs/adr/atoms/OW-ADR-0025-assurance-mark.md) has frontmatter `status: proposed` and its own Status section states 'Proposed by the performer under OW-WAR-0135. **Not decided.**' with the Decision section reading 'Pending Q-001 and Q-002.' D-004 (docs/assurance/baseline-v1.toml) likewise carries `status = "proposed"` and its header states the file 'governs nothing until OW-ADR-0025 is accepted and `status` below becomes "accepted"'. OBL-001 requires 'the ADR is accepted by the owner, not by its author' and that it 'states Q-001's answer', but D-001 only records a recommendation among options (a)/(b)/(c) and is authored by the performer, never accepted by the owner. While BL-001 through BL-006 in D-004 do each name their evidence/unmet/unknown conditions (confirmed by the gate run GR-ops.conformance.plants@1.1.0 stdout line 'baseline v1 names its evidence 6 requirement(s), each with evidence, unmet, unknown'), the bundle affirmatively shows the acceptance and decided-Q-001 prongs of OBL-001 are unmet, not merely unshown, so the claim does not hold within its stated scope."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0106"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries only five authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md); deliverables, gate_runs, and plants are all empty, and obligation_evidence for OBL-001 lists no named_paths and no terms. There is no ask/checkpoint/answer/resume/restart trace, no synthetic harness, HTTP, SDK, or Git worktree evidence, and no stale-basis refusal shown, so the claim cannot be assessed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No gate_runs, deliverables, or plants are present, and obligation_evidence for OBL-002 shows no named_paths or terms. There is no evidence of technical-advice-vs-governing routing, responder authentication checks, missing-responder/pending-blocker/unknown-writer/exhausted-budget refusals, or an independent Warrant executing, so nothing in the bundle supports or contradicts the claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle contains only the authored atoms with zero deliverables, gate_runs, or plants to show webapp behavior, completion-report wording, or package/gate test results. obligation_evidence for OBL-003 likewise carries no named_paths or terms, so the required browser/report distinction between waiting and completion is entirely unshown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

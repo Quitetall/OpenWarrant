@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1270 passed/0 failed) and plant D-014 (conformance/plants.d/69-standing.sh, block SC) show the four claimed refusals verbatim: 'the policy service resolves resolve.standing-needs-human, nothing written', 'war resolve alone writes no resolution', 'a class with a resolution term standing.unknown-term, nothing written', and 'a human resolves them in one batch 3 resolutions, 1 batch document, by Plant Signer', and the source excerpts from D-013 (resolve.rs lines 409-433) and D-019 (resolution_cmd.rs lines 509-533) show the refusal fires unconditionally and first, with resolve.rs's own comment stating it applies 'whatever policy.allow_automated_resolution says'. But the obligation's stated scope requires this be demonstrated 'with policy.allow_automated_resolution = true and a policy_service actor in roles.toml,' and obligation_evidence explicitly records that roles.toml is not carried ('no deliverable of OW-WAR-0142 and no file at this path') and that the exact term 'policy.allow_automated_resolution = true' is shown_in: [] nowhere in the bundle. The D-014 excerpt only shows the plant's response file naming resolved_by = 'plant-policy'; it does not show the st_corpus setup that would register a policy_service-kind actor or set the flag true. Without evidence the scratch corpus actually constructed the adversarial precondition the obligation names, the claim's scope is not shown to be met, so it remains not_established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

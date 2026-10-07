@@ -10,6 +10,7 @@
 //! single Warrant with its evidence is untouched (`export.rs`).
 
 use camino::{Utf8Path, Utf8PathBuf};
+use openwarrant_compiler::digest::sha256_hex;
 use serde::Serialize;
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -34,13 +35,6 @@ pub struct Manifest {
     pub files: Vec<BundleFile>,
     /// sha256 over the sorted `path:sha256` lines — one digest for the bundle.
     pub bundle_digest: String,
-}
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    use sha2::Digest;
-    let mut h = sha2::Sha256::new();
-    h.update(bytes);
-    h.finalize().iter().map(|b| format!("{b:02x}")).collect()
 }
 
 /// Copy `source` (repository-relative) to `out/<path>`, recording it.

@@ -3,7 +3,9 @@
   "gate_definition_digest": "sha256:719636ad60f447d590f1e3962849fd3c7ac7e9fe048519f5240a95450584cd1a",
   "gate_binding_digest": "unbound:software.repo.war-check@1.0.0",
   "subject_digests": [
-    "contract:sha256:d9f4e90b4a789decf839ddf7cee7ba2596104ef54487d0a7629acf09550cd79c"
+    "contract:sha256:d9f4e90b4a789decf839ddf7cee7ba2596104ef54487d0a7629acf09550cd79c",
+    "deliverables:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tree:9729d66838274661a8b7382db6ef1108887babec"
   ],
   "fixture_digests": [],
   "runner": "war gate --run",
@@ -13,9 +15,9 @@
     "check",
     "--generated"
   ],
-  "working_directory": "/mnt/4tb/OpenWarrant",
-  "started_at": "2026-09-03T00:37:29Z",
-  "completed_at": "2026-09-03T00:37:29Z",
+  "working_directory": "/mnt/4tb/tmp/ow-mvp-alpha1",
+  "started_at": "2026-09-27T21:38:31Z",
+  "completed_at": "2026-09-27T21:38:48Z",
   "exit_result": "pass",
   "selected_test_count": 0,
   "selected_test_manifest": [],
@@ -24,5 +26,5 @@
   "stderr_ref": "docs/warrants/OW-WAR-0040/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
   "resource_usage": "wall-clock only; 3 argv item(s)",
   "verdict": "pass",
-  "receipt_digest": "sha256:899ae4a13b0cbd6ba65d21ab659b6eb67426ba5ae28c4a43e807fe8d3a16be67"
+  "receipt_digest": "sha256:f9aababeb7bac7149fb9c6fb152be108138b7ee8d5466f26226a9b3d1539d85c"
 }

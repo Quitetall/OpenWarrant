@@ -1,0 +1,54 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0120"
+sas_revision = "1.1.0"
+deliverable_set_digest = "sha256:4c64e75b6ff5c52c69d429c49a6417753c992059b1f3ac1c4724fdc72eb2f466"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "35a1dea11c6f643adeafc7c191792856c6a1698e29c387c894853c8e0fa40706"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0120 (Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants) at this contract digest means the signer accepts its intent, scope and 5 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T23:23:42Z"
+independence = "separate_role"
+
+[[owned]]
+id = "D-001"
+target_ref = "tools/scale/synth-corpus.sh"
+
+[[owned]]
+id = "D-002"
+target_ref = "tools/scale/budget.toml"
+
+[[owned]]
+id = "D-003"
+target_ref = "tools/scale/budget.sh"
+
+[[owned]]
+id = "D-004"
+target_ref = "docs/scale/baseline-1000.json"
+
+[[owned]]
+id = "D-005"
+target_ref = "docs/RETENTION.md"
+
+[[owned]]
+id = "D-006"
+target_ref = "conformance/plants.d/52-retention.sh"

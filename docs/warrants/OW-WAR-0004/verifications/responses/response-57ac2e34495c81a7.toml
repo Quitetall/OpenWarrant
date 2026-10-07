@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0004"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The obligation requires generated files under docs/warrants/ for the five Warrants, each carrying a §17.1 header. obligation_evidence marks 'docs/warrants/' as an absent named path ('not carried'), and no generated/WAR.md or generated/WAR.json bytes appear anywhere in the bundle — only the compiler source (D-001 render.rs, D-002 compile.rs) and OW-WAR-0004's own atoms are carried. The sole gate run, GR-software.repo.war-check@1.0.0, is truncated (stdout truncated:true, showing only a tail starting at OW-WAR-0138); its visible portion contains 'PASS generated.drift' lines for OW-WAR-0138 through OW-WAR-0147 and various overview/master-doc drift checks, but no line naming OW-WAR-0004 is visible, so the bundle does not show that OW-WAR-0004's own full_warrant/canonical_json views exist, carry the header, or passed drift for this specific Warrant. D-001 defines generated_header() with the four required fields and lists the_generated_header_is_present_and_complete among its test_names, but no test result/report is included, so this is code, not evidence of an executed check."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The obligation's stated evidence is two consecutive `war compile` runs over an unmodified tree followed by `git diff --exit-code` exiting 0; obligation_evidence lists this term ('git diff --exit-code') as shown_in: [] — nowhere in the bundle. compile.rs's `run()` only writes a file when bytes differ from prestate (write-if-changed logic), and render.rs lists rendering_is_byte_identical_across_runs as a unit-test name, but neither is a recorded execution of the two-compile-plus-diff procedure the obligation specifies. The single gate run present (`war check --generated`) is a different, one-shot committed-vs-fresh-compile comparison, its stdout is truncated with no visible OW-WAR-0004 line, and it is not the CLI-level double-compile/diff evidence the obligation calls for."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "plants is empty in the bundle, and no gate run or test result shows a single-byte mutation of a committed generated parent followed by `war check --generated` exiting non-zero and naming the file. The drift-detection/refusal code path itself is not among the carried deliverables (compile.rs exposes only `projections()` for comparison; the comparison/refusal logic invoked by `war check` is absent). The one recorded gate run (GR-software.repo.war-check@1.0.0) passed on the tree as committed (verdict: pass, exit_result: pass), demonstrating only that no drift was found on an unmutated tree — the opposite condition from what OBL-003 requires to be shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

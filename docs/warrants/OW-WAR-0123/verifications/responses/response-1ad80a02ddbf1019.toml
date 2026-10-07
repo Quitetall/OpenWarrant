@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0123"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The ops.conformance.plants@1.1.0 gate run (run_id GR-ops.conformance.plants@1.1.0, verdict pass, subject tree e54ccac17a000db9430a08ded5ae9ad1923067b0) stdout carries both halves of OBL-004 directly. Its excerpt at line 10 reads 'ok    stale parent contract digest       rejected by relations.parent-digest (no longer the one it was authorized against)', which is the pre-existing 00-corpus.sh plant reporting the same relations.parent-digest failure the obligation requires; obligation_evidence confirms 00-corpus.sh itself is not carried as a file, but this stdout line is direct evidence of its current behavior, which is what the obligation's evidence bullet asserts (it does not require a byte-level diff). The excerpt at lines 664-715 shows the D-004 (58-parent-revision.sh) shallow-clone assertions: 'ok    shallow: revision 1 is UNKNOWN     unknown relations.parent-revision ×1', 'ok    shallow: not PASS ... no pass relations.parent-revision', 'ok    shallow: not ERROR (revision) ... no error relations.parent-revision', 'ok    shallow: not ERROR (digest) ... no error relations.parent-digest', all passing. D-004's own script text shows this is a genuine `git clone -q --depth 1` copy, verified shallow via `git rev-parse --is-shallow-repository` before use, with the child re-cited to revision 1 at PR_REV1 and then checked with `war --json check`, matching the obligation's scope exactly. Together these establish that in a real shallow clone the older revision's citation is UNKNOWN (never PASS or ERROR) and that the existing stale-parent-digest plant still fails with relations.parent-digest, satisfying both evidence bullets."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

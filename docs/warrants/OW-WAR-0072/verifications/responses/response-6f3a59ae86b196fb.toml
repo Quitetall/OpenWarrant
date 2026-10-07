@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0072"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "The bundle's top-level deliverables array is empty ([]), and obligation_evidence for OBL-001 explicitly marks both scoped paths as absent: 'openwarrant-core/src/batch.rs' — 'no deliverable of OW-WAR-0072 and no file at this path: not carried' — and 'docs/authority/batches/' likewise. The terms DigestDomain and --verify are shown_in ['atoms'] or nowhere, i.e. only in atoms/40-work-order.md's plan prose, never in executed code or a plant. With no batch.rs and no batches/ directory confirmed to exist, there is no canonical-JCS DigestDomain::Batch implementation for 'the signed subject is the list, canonically' to hold of, refuting the obligation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002 carries no named_paths and its two cited terms are unevidenced: 'git status' is shown_in [] (nowhere in the bundle) and 'batch.digest-moved' is shown_in ['atoms'] only, i.e. described in atoms/40-work-order.md/60-assurance.md prose but never exercised. The bundle's top-level plants array is empty, and the sole gate run GR-software.repo.war-check@1.0.0 is a generic repo-wide 'war check --generated' whose visible stdout excerpts (lines 1121-1134, 2604, 2751, 2833) discuss OW-WAR-0072's manifest validity, SAS pin, journal and traceability but never mention any batch.* refusal, a plant exercising it, or a git-status assertion post-refusal. There is neither a plant demonstrating a refusal-before-write nor evidence that it fails, so the claim cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "refuted"
+evidence = "OBL-003 is scoped to 'the ingest loop, sign.rs's per-act ingests,' and obligation_evidence records sign.rs as 'no deliverable of OW-WAR-0072 and no file at this path: not carried.' The terms batch.agent, batch.not-permitted, batch.unknown-act and batch_ref are shown_in ['atoms'] only (i.e. only in the work-order's own description of what should be built), and 'war sign --list' is shown nowhere. Combined with the globally empty deliverables list, there is no ingest-loop code reusing sign.rs's per-act ingests to examine, so 'a batch grants no authority a single act would not' is refuted by the confirmed absence of the file the obligation is scoped to."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "OBL-004 is scoped to attest.rs and docs/SIGNING.md; obligation_evidence marks attest.rs as 'no deliverable of OW-WAR-0072 and no file at this path: not carried' and docs/SIGNING.md as absent for the same reason (not a deliverable, no file at this path). The terms 'war attest verify', 'attest.subject-drift' and 'oh.war/dsse' are shown only in atoms or nowhere, never against real DSSE envelope code or a signing doc. Since both files named by the obligation's scope are confirmed absent and the Warrant's deliverables array is empty, there is no attestation implementation or documentation for a foreign verifier to check either way, refuting the claim that 'a foreign verifier can check a batch both ways.'"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

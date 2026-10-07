@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0083"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is the empty list and obligation_evidence for OBL-001 carries no named_paths and no terms (selection is only the generic 'warrant: every deliverable of the Warrant'), and plants is empty. The sole gate_runs entry, GR-software.repo.war-check@1.0.0, is a structural repo linter (manifest/traceability/obligations checks) and never exercises check_records/evaluate_readiness/evaluate_assurance with supplied facts, nor touches S04/T42–T48/SDK-08–SDK-24 record subsets. No bytes of the named scoped behavior are shown, so the claim cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "Same empty-evidence state as OBL-001: obligation_evidence for OBL-002 has no named_paths/terms, deliverables is empty, and plants is empty, so no malformed/incomplete/conflicting/over-limit/authority-confused input case, refusal fixture, or 'unchanged prior output on failed write' is shown anywhere. The only gate run present (software.repo.war-check) checks Warrant record structure, not boundary refusal behavior. Nothing in the bundle demonstrates a refusal or its absence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No independent reproduction, review, baseline, or human-acceptance record for the exact result is carried: prior_verifications supplies only prior agent-verifier text (not itself the qualification evidence required), plants is empty, and atoms/60-assurance.md states outright 'These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here.' There is nothing in the bundle that could show qualification of the exact OBL-001/OBL-002 outcome."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The attached receipt GR-software.repo.war-check@1.0.0 is directly flagged by its own stdout excerpt as stale: 'WARN evidence.stale-binding OW-WAR-0083: software.repo.war-check@1.0.0 · the receipt names tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3 and 91 path(s) ... have changed since (conformance/plants.d/45-tickets.sh, conformance/plants.d/48-isolated-battery.sh, conformance/plants.d/54-intake.sh, …) — a run over an earlier source is a record, not evidence about this one.' That named tree (2b24c062...) does not match the tree the receipt's own subject_digests lists ('tree:e54ccac17a000db9430a08ded5ae9ad1923067b0'), confirming the run bound to an earlier source than what the bundle now reflects. The war-check output further concedes under NOT CHECKED that 'war check does not invoke gates, so nothing here is evidence that a Warrant's acceptance gates were run' and the overall result is 'WELL-FORMED (record only ...)'. Given the tool's own explicit statement that this receipt is a stale record and not evidence about the current state, the PASS lines shown for manifest/obligations/milestones validity cannot be relied on to establish that Warrant records are currently structurally valid."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

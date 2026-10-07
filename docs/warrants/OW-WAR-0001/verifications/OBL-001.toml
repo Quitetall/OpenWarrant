@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The `cargo xtask gate` CI run includes a 'build' step that passed, and the toolchain is pinned to Rust 1.97.1 as declared in Cargo.toml and verified in the basis atom."
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-001 shows the term 'cargo build --workspace' with shown_in: [] (it appears nowhere in the bundle) and 'rustc --version' shown only inside D-004 (.github/workflows/ci.yml), where it is merely a CI step definition ('cargo --version') rather than captured output of an actual run. The one gate run present, GR-software.repo.war-check@1.0.0, invoked 'war check --generated' — a Warrant-corpus record check — whose own stdout footer states 'war check does not invoke gates', so it supplies no build exit status or rustc version for any actual compilation. No evidence of the workspace having been built is carried."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

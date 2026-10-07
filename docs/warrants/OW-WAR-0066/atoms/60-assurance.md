@@ -18,7 +18,7 @@ classification: internal
 
 ### OBL-002 — the battery passes as a stage
 - **scope:** STAGE-002 under `war run`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the battery's receipt with verdict pass, bound to the stage's dispatch digest.
 
 ## Gate Adequacy

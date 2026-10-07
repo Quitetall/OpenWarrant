@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0125"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-007 (check.rs, function check_section_refs, ~lines 1965-2151) implements sas.section-current as digest comparison of a cited section at the Warrant's pinned SAS revision against 'the latest accepted revision', emitting PASS when equal, WARN naming both revisions when different or gone, and UNKNOWN with a reason when bytes cannot be read (e.g. history missing) — never a pass in that case. D-009 (conformance/plants.d/56-sas-sections.sh) derives SEC_LATEST dynamically from whichever revision record currently carries state=accepted, locates a Warrant pinned to 0.1.0-draft.1 (SEC_ALIAS), plants a citation of WAR-SAS-98 (a section known to have changed since 0.1.0-draft.1) and asserts a WARN naming both revisions, and separately runs the same corpus check in a --depth 1 clone expecting UNKNOWN. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout confirms all three required behaviors fired: 'existing section citations current 100 of 100 pass sas.section-current' (bulk pass case), 'a cited section that changed ... rejected by WARN sas.section-current (sas://WAR-SAS-98 changed between SAS 0.1.0-draft.1.*SAS 1.1.1)' (warning naming both revisions — the corpus's latest accepted revision has since moved past 1.1.0 to 1.1.1, but the mechanism, which explicitly tracks 'the latest accepted revision' rather than a fixed version per D-007's own documentation, is shown operating correctly against whichever revision is current), and 'a shallow clone cannot say ... UNKNOWN sas.section-current (sas://WAR-SAS-43.5, shallow)' (the UNKNOWN case, not a pass or warning). obligation_evidence confirms the terms '0.1.0-draft.1', '1.1.0' and 'sas.section-current' are shown, not truncated, across D-007, D-009 and the gate stdout."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

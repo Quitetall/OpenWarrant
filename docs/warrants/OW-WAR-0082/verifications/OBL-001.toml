@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is an empty array and obligation_evidence for OBL-001 lists no named_paths and no terms, so no runtime trace of the SDK/provider boundary is carried. The sole gate run, software.repo.war-check@1.0.0 (run_id GR-software.repo.war-check@1.0.0), is a repository-structure checker whose own captured stdout states 'gate execution — war gate --run executes a registered gate (§44), but war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' and 60-assurance.md states 'These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here.' No captured input/output/exit-code record of budget enforcement or cache invalidation exists anywhere in the bundle, so this cannot be decided."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

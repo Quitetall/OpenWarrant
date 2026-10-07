@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0139"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed) shows every evidence item the obligation names actually exercised and passing: 'ok OBL-003 the device's queue verdict + host command, no act id', 'ok OBL-003 a device POSTs the signing id 403 act.host-only; no act, no child, nothing signed', 'ok OBL-003 a device asks for a signature marked requested from at the host; nothing ran', 'ok OBL-003 an auto remedy with a fresh nonce 202; ran war compile once', and the four-part grep check 'ok OBL-003 webui/ holds no signing authority', 'ok OBL-003 a planted signing call refused', 'ok OBL-003 a grep that cannot read refused', 'ok OBL-003 no webui/ to read refused' (this last group specifically demonstrates the grep-based check is not fooled by an unreadable file or an absent directory). The plant script D-007 (conformance/plants.d/59-webui-lan.sh) shows the exact curl/python assertions backing these lines (POST of the loopback signing id from a device session expecting 403 act.host-only with WL_KIDS==0 and no act-log line; the device queue asserted to carry no act_id and host_only:true). The deliverable D-001 (webui/mod.rs) excerpts corroborate the mechanism: start_act() refuses with 403 act.host-only before anything runs when `from` is Some(device) and the argv's first word is 'sign', and the ticket route separately refuses LAN POSTs with act.host-only. All obligation_evidence terms ('/api/act', 'act.host-only', 'war sign', 'auto') are shown with empty cut_from, meaning nothing relevant was cut by the budget. Together the code, the plant, and the passing gate run establish the claim within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

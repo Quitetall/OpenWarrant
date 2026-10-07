@@ -248,6 +248,7 @@ mod tests {
             enterprise_id: String::new(),
             title: "A warrant".to_owned(),
             profile: "delivery".to_owned(),
+            profile_digest: None,
             assurance_level: Some("basic".to_owned()),
             implements: vec![Implements {
                 r#ref: "sas://WAR-SAS-RQ-070".to_owned(),

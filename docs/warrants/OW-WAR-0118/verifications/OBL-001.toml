@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = """Gate run GR-ops.conformance.plants@1.1.0's stdout excerpt (lines 217-228) shows the friction plant section '== friction measurement (OW-WAR-0118) ==' with 'ok    every step timed or counted        tool steps in ms, human steps not_measured' and two refusal checks passing ('a timed human step is refused "time": 0 → refused' and '"time": 4200 → refused'), which are exactly the assertions in D-004's fr_check_record function (SETUP/ROUTINE id lists, the human-step number/zero check, the non-empty asks check). The run's final line ('1260 passed, 0 failed') confirms no failures anywhere including this section, and the receipt's subject_digests bind this run to the same contract digest carried at top level, so the pass applies to this bundle's exact deliverables. D-002 independently shows the concrete structure this checks: every tool step (git-init, init-program, sas-propose, sas-sign, check, compile, authorize, authorize-sign, plus routine acts) with integer times_ms/median_ms/max_ms, and every human step (human-say-who-may-sign, human-accept-sas, human-authorize-first-warrant, human-confirm-routine-signature) with 'time': 'not_measured' and non-empty asks."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence.named_paths for OBL-001 marks both docs/sas/WAR_Software_Architecture_Specification.md and docs/sas/revisions/1.1.0.toml as absent/not carried, and docs/sas/generated/NORMATIVE.{md,json} appears nowhere in the bundle either (deliverables: []). The only candidate evidence is gate run GR-software.repo.war-check@1.0.0, whose stdout is truncated (375,522 bytes, shown only via scattered excerpts) and whose own terms list shows 'war sas propose 1.1.0', 'sas.stale-digest', and 'sas.repin-unknown-requirement' all with shown_in: []. What the excerpts do show cuts the other way: a WARN sas.pin-superseded line stating OW-WAR-0071 'authorized against SAS 1.0.0; the latest recorded revision is 1.1.1' and requiring a human re-authorization to re-pin, plus a WARN evidence.stale-binding stating the receipt's tree predates 33 changed paths, so the run cannot speak reliably to this Warrant's current subject state. Nothing in the bundle shows the owner's ssh signature accepting 1.1.0 specifically. Cannot be decided from what's carried."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

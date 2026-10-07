@@ -1,0 +1,10 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-submission-dispatch-binding/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 39s
+     Running tests/submission_binding_cli.rs (/mnt/2tb/ow-submission-binding-target/debug/deps/submission_binding_cli-d8c5835dc89ac249)
+
+running 2 tests
+test a_known_dispatch_does_not_admit_a_different_stage ... ok
+test a_known_dispatch_does_not_admit_a_different_contract ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 34.32s
+

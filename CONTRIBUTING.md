@@ -59,6 +59,37 @@ defective) or to `PASS` (which makes an unasked question look answered).
 digest is computed over is a wire-format change and needs an ADR first. A digest
 minted under a stand-in is indistinguishable from a real one after the fact.
 
+## Ids that parallel branches mint
+
+Many agents work on branches at once without coordinating, so nothing a
+branch creates may take the "next number" from a shared sequence — two
+branches both take it, and the merge renumbers one by hand. Tickets and items
+are hash ids (`t-xxxx`, `i-xxxx`). Two other names were sequential and
+collided; both are now safe to create on any branch:
+
+- **Amendments** (`docs/warrants/<alias>/amendments/`, §31). Start one with
+  `war amend <alias>`: it writes `AM-<n>-<hash>.yaml`, where `<n>` is one more
+  than the highest ordinal on your branch (the number people cite) and
+  `<hash>` is 4-16 lowercase hex digits minted fresh, and leaves the fields
+  only a person can state empty — `war check` refuses the record
+  (`amendment.invalid`) until they are written. Two branches that both write
+  amendment 4 get `AM-004-1f3a` and `AM-004-c07e`: two files, no conflict.
+  `war sas repin` mints the same way. **Order** is by ordinal, then the
+  record's `effective_time`, then file name, so same-numbered amendments from
+  two branches sort by when they take effect. Records named `AM-<n>` before
+  this scheme keep their names and bytes — signed contracts cite them — and
+  sort by their number, exactly as before. A file whose name is not
+  `AM-<n>` or `AM-<n>-<hash>`, or whose `id:` is not its file name, is
+  refused by name (`amendment.id`). Never rename an existing amendment.
+- **Plant files** (`conformance/plants.d/NN-<name>.sh`). `NN` is a grouping,
+  not an id: two files may share it, and several do. The runner sources the
+  files in byte order of their names (`LC_ALL=C`), starts each from the
+  restored tree, and fails by name a file that leaves a change `restore`
+  cannot undo, so no file's result depends on which files ran before it. Pick
+  the group a new plant belongs to; do not hunt for a free number.
+  `conformance/plants.d/99-plant-order.sh` and `31-amendment-ids.sh` are the
+  plants for both rules.
+
 ## Making a change
 
 1. **Open a Warrant.** `war new "<title>"` — this project is built through its

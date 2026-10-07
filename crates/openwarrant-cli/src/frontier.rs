@@ -16,8 +16,19 @@
 //! never completes, so everything behind it stays blocked until someone
 //! writes the obligation (fail closed, and reported); a stage cited by more
 //! than one milestone is one row, blocked if any of them waits.
+//!
+//! A second blocking edge (OW-WAR-0132): a blocking question on the stage that
+//! no human has answered. The stage is `blocked` and its `waiting_on` names the
+//! question beside any milestone; every other stage is untouched, and an
+//! answered question blocks nothing. When the authority register holds no
+//! actor who is not an agent, nobody can answer, and each such stage also
+//! carries UNKNOWN `question.no-responder` naming `roles.toml`: neither
+//! waiting normally nor answered (Law 15).
 
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
+
+use camino::{Utf8Path, Utf8PathBuf};
 
 use serde::Serialize;
 
@@ -33,7 +44,8 @@ pub enum StageState {
     Claimed,
     /// A submission is recorded for it.
     Done,
-    /// Its milestone waits on another milestone that is not complete.
+    /// Its milestone waits on another milestone that is not complete, or a
+    /// blocking question on it is unanswered.
     Blocked,
 }
 
@@ -45,7 +57,8 @@ pub struct Row {
     pub milestone: String,
     pub executor_kind: String,
     pub state: StageState,
-    /// Milestones this one's milestone waits on and that are not complete.
+    /// Milestones this one's milestone waits on and that are not complete,
+    /// then the blocking questions on it that are unanswered (`Q-nnn`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub waiting_on: Vec<String>,
 }
@@ -127,14 +140,62 @@ fn stage_events(dir: &camino::Utf8Path) -> Result<(BTreeSet<String>, BTreeSet<St
 
 /// The frontier of one Warrant, or of every unresolved Warrant.
 pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier), RepoError> {
-    let mut report = Report::default();
-    let dirs = match alias {
+    match alias {
+        // One Warrant: read that one, not the corpus.
+        Some(a) => {
+            let dir = repo.warrant_dir(a)?;
+            frontier_of(
+                repo,
+                vec![dir],
+                &|dir| repo.load_warrant(dir).map(Cow::Owned),
+                &|one| crate::resolve::assess(repo, one).map(|a| a.established),
+            )
+        }
+        None => run_with(&crate::corpus::Corpus::new(repo), None),
+    }
+}
+
+/// [`run`] over a corpus already loaded: each Warrant's assessment is the
+/// corpus's, the same one `war status` reads.
+pub fn run_with(
+    corpus: &crate::corpus::Corpus,
+    alias: Option<&str>,
+) -> Result<(Report, Frontier), RepoError> {
+    let repo = corpus.repo();
+    let dirs: Vec<Utf8PathBuf> = match alias {
         Some(a) => vec![repo.warrant_dir(a)?],
-        None => repo.warrant_dirs()?,
+        None => corpus.entries()?.iter().map(|e| e.dir.clone()).collect(),
     };
+    frontier_of(
+        repo,
+        dirs,
+        &|dir| match corpus.entry_at(dir) {
+            Some(e) => e.loaded().map(Cow::Borrowed),
+            None => repo.load_warrant(dir).map(Cow::Owned),
+        },
+        &|one| match corpus.entry_at(&one.dir) {
+            Some(e) => e.assessment(repo).map(|a| a.established.clone()),
+            None => crate::resolve::assess(repo, one).map(|a| a.established),
+        },
+    )
+}
+
+type LoadFn<'a> = dyn Fn(&Utf8Path) -> Result<Cow<'a, crate::repo::Loaded>, RepoError> + 'a;
+type EstablishedFn<'a> = dyn Fn(&crate::repo::Loaded) -> Result<Vec<String>, RepoError> + 'a;
+
+fn frontier_of<'a>(
+    repo: &Repository,
+    dirs: Vec<Utf8PathBuf>,
+    load: &LoadFn<'a>,
+    established_of: &EstablishedFn<'a>,
+) -> Result<(Report, Frontier), RepoError> {
+    let mut report = Report::default();
     let mut rows = Vec::new();
+    // Read once, and only if a blocking question needs it.
+    let mut responder: Option<Result<bool, String>> = None;
     for dir in dirs {
-        let one = repo.load_warrant(&dir)?;
+        let one = load(&dir)?;
+        let one: &crate::repo::Loaded = &one;
         let alias = dir.file_name().unwrap_or_default().to_owned();
         if repo.load_resolution(&dir)?.is_some() {
             continue;
@@ -161,10 +222,7 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
         };
         let graph = openwarrant_core::milestones::parse(&text)
             .map_err(|e| RepoError::Message(format!("{alias}: invalid milestones: {e}")))?;
-        let established: BTreeSet<String> = crate::resolve::assess(repo, &one)?
-            .established
-            .into_iter()
-            .collect();
+        let established: BTreeSet<String> = established_of(one)?.into_iter().collect();
         let complete: BTreeMap<&str, bool> = graph
             .milestones
             .iter()
@@ -197,6 +255,7 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
             }
         }
         let (claimed, done) = stage_events(&dir)?;
+        let asked = open_blocking(repo, &alias, &mut report);
         // One row per stage: its milestones' waits are unioned.
         let mut per_stage: BTreeMap<String, (Vec<String>, BTreeSet<String>)> = BTreeMap::new();
         for m in &graph.milestones {
@@ -216,6 +275,9 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
             let Some(stage) = graph.stages.iter().find(|s| s.id == sid) else {
                 continue;
             };
+            let questions = asked.get(&sid).cloned().unwrap_or_default();
+            let mut waiting: Vec<String> = waiting.into_iter().collect();
+            waiting.extend(questions.iter().cloned());
             let state = if done.contains(&sid) {
                 StageState::Done
             } else if !waiting.is_empty() {
@@ -225,6 +287,19 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
             } else {
                 StageState::Open
             };
+            if state == StageState::Blocked && !questions.is_empty() {
+                let answerable = responder.get_or_insert_with(|| someone_can_answer(repo));
+                if let Some(why) = no_responder(answerable) {
+                    report.push(Diagnostic::unknown(
+                        "question.no-responder",
+                        "docs/authority/roles.toml".to_owned(),
+                        format!(
+                            "{alias}/{sid} waits on {} and {why}, so nobody can answer:                              `war answer` refuses an agent by kind (§27.2). The stage stays                              blocked; it is not waiting normally and it is not answered. A human                              added to docs/authority/roles.toml can answer",
+                            questions.join(", ")
+                        ),
+                    ));
+                }
+            }
             rows.push(Row {
                 warrant: alias.clone(),
                 stage: sid.clone(),
@@ -233,7 +308,7 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
                 executor_kind: stage.executor_kind.to_string(),
                 state,
                 waiting_on: if state == StageState::Blocked {
-                    waiting.into_iter().collect()
+                    waiting
                 } else {
                     vec![]
                 },
@@ -259,6 +334,54 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
         f.rows.len()
     ));
     Ok((report, f))
+}
+
+/// The unanswered blocking questions of one Warrant, by stage. A question
+/// store that cannot be read is reported, not taken to hold nothing.
+fn open_blocking(
+    repo: &Repository,
+    alias: &str,
+    report: &mut Report,
+) -> BTreeMap<String, Vec<String>> {
+    let (questions, unreadable) = crate::questions::load_tolerant(repo, alias);
+    for path in unreadable {
+        report.push(Diagnostic::unknown(
+            "frontier.question-unreadable",
+            path,
+            format!(
+                "{alias}: a question record cannot be read, so whether it blocks a stage cannot                  be established; the rows below count only the readable ones"
+            ),
+        ));
+    }
+    let mut by_stage: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for q in questions.into_iter().filter(|q| q.blocking && q.is_open()) {
+        by_stage.entry(q.stage).or_default().push(q.id);
+    }
+    by_stage
+}
+
+/// Whether the register names an actor `war answer` would accept: any
+/// assignment whose kind is not `agent` (A-002). `Err` when the register
+/// cannot be read at all.
+fn someone_can_answer(repo: &Repository) -> Result<bool, String> {
+    repo.load_authority_register()
+        .map(|r| {
+            r.assignments
+                .iter()
+                .any(|a| a.actor_kind != openwarrant_core::authority::ActorKind::Agent)
+        })
+        .map_err(|e| e.to_string())
+}
+
+/// The clause of the no-responder finding, or `None` when someone can answer.
+fn no_responder(answerable: &Result<bool, String>) -> Option<String> {
+    match answerable {
+        Ok(true) => None,
+        Ok(false) => Some(
+            "docs/authority/roles.toml holds no actor whose actor_kind is not `agent`".to_owned(),
+        ),
+        Err(e) => Some(format!("docs/authority/roles.toml cannot be read ({e})")),
+    }
 }
 
 #[must_use]

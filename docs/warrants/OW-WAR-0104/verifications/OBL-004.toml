@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "Only atoms/40-work-order.md and atoms/60-assurance.md describe the OBL-004 requirement (roadmap parser, progress snapshot, HTML tree); no parser code, fixture-count results, refusal-test output, or browser observation records are present in deliverables or plants (both empty), so the required evidence cannot be checked."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

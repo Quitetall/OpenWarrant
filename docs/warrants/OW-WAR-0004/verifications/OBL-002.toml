@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "The test 'rendering_is_byte_identical_across_runs' in render::tests passes, confirming that rendering output is identical across multiple runs, which directly supports the obligation that recompilation on an unchanged tree changes nothing."
+evidence = "Gate run GR-software.repo.war-check@1.0.0 (verdict: pass, run_id GR-software.repo.war-check@1.0.0) shows in its visible stdout excerpt (lines 81-101) the line 'PASS generated.drift OW-WAR-0004: 2 generated view(s) match a fresh compilation'. Per atoms/20-basis.md, the drift check's mechanism is precisely comparing committed generated views against a fresh compilation from the same Basis — the property OBL-002 asks for (a compile over an unmodified tree changes nothing). This is a recorded, executed-gate result, not merely asserted, and the same excerpt's WARN lines (evidence.stale-binding, sas.pin-superseded, relations.parent-revision) concern unrelated paths and pinning, not the generated-view comparison, so they do not contradict this finding."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

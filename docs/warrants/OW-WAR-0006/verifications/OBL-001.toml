@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "Test `adr::tests::supersession_relations_are_read_in_both_directions` (passing) directly exercises parsing of `supersedes` and `superseded_by` fields, and `lower::tests::relations_are_carried_through` (passing) confirms those relations survive the canonical round trip through the IR pipeline."
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-core/src/adr.rs) contains test `supersession_relations_are_read_in_both_directions`, but it only calls `AdrRecord::parse` on frontmatter text and asserts the resulting `supersedes`/`superseded_by` fields — it never serializes an `AdrRecord` back to canonical text and reparses it, so the 'canonical round trip' OBL-001's evidence requirement names does not appear in D-001, D-002, or D-003. The only gate run in the bundle, GR-software.repo.war-check@1.0.0 (`war check --generated`, exit_result pass), is not a test runner: its own stdout NOT CHECKED section states 'gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' so there is no execution record showing `cargo test` or the listed test_names were run at all, let alone that a round trip was exercised and passed. obligation_evidence for OBL-001 confirms 'supersedes'/'superseded_by' are shown only in source deliverables and atoms text, not in any gate execution output."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

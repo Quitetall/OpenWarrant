@@ -12,6 +12,14 @@ readme.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
+[lib]
+name = "openwarrant_cli"
+path = "src/lib.rs"
+# A lib target runs doctests; a bin target does not. Turning this crate into a
+# library would start doctesting ~40k lines of doc comments that were never
+# written as doctests, in one step. Off deliberately, reversible on its own.
+doctest = false
+
 [[bin]]
 name = "war"
 path = "src/main.rs"
@@ -34,6 +42,25 @@ camino = { workspace = true }
 ureq = { workspace = true }
 clap = { workspace = true }
 toml = { workspace = true }
+# OW-ADR-0020: the terminal app, confined to `src/tui/` by a unit test in
+# main.rs. Both MIT; both synchronous — crossterm WITHOUT `event-stream`,
+# which would pull `futures` and engage OW-ADR-0014's refusal.
+ratatui = { version = "=0.30.2", default-features = false, features = ["crossterm"] }
+crossterm = { version = "=0.29.0", default-features = false, features = ["events", "windows"] }
+# OW-WAR-0139 (AM-003): `war ui --lan` terminates TLS in `war` (U-002 A, with
+# B's self-signed certificate as a labelled fallback). Blocking, on the same
+# hand-rolled accept loop (OW-ADR-0014: no async). All three were already in
+# Cargo.lock through `ureq`, with `ring` as the provider, so TLS adds no crate
+# to the build. rustls moved 0.23.43 → 0.23.45 for RUSTSEC-2026-0285 (TLS 1.3
+# handshake messages accepted across encryption levels), which a server now
+# depends on; `ureq` resolves the same version. The pins are exact so a bump
+# is a decision. `ring` is named directly only for the fallback's P-256 key.
+rustls = { version = "=0.23.45", default-features = false, features = ["std", "tls12", "ring"] }
+rustls-pki-types = { version = "=1.15.1", features = ["std"] }
+ring = { version = "=0.17.14", default-features = false, features = ["alloc"] }
+# The pairing link as a QR code on the host terminal (OW-WAR-0139 intent).
+# Nayuki's reference encoder: MIT, no dependencies.
+qrcodegen = "=1.8.0"
 
 [features]
 # `war schemas`: the JSON Schema pack, generated from the record types.
@@ -41,4 +68,9 @@ toml = { workspace = true }
 schema = ["openwarrant-core/schema", "openwarrant-compiler/schema"]
 
 [target.'cfg(unix)'.dependencies]
-rustix = { version = "=1.1.4", features = ["fs", "process"] }
+rustix = { version = "=1.1.5", features = ["fs", "process"] }
+# OW-WAR-0131 U-001 option A: SIGINT and SIGTERM reach `war perform`'s wait
+# loop, which kills and reaps the performer's group. Already locked through
+# crossterm, so this adds no new code to the build; unix-only because the
+# group kill it serves is.
+signal-hook = { version = "=0.4.4", default-features = false }

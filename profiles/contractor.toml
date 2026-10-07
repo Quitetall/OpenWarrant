@@ -1,0 +1,117 @@
+# The contractor Work Order profile (OW-WAR-0140), as data.
+#
+# NON-BINDING. This file is a technical mechanism: the roles a contractor
+# Work Order carries beside the unchanged technical core. It is not a legal
+# instrument, and nothing in it or in a Warrant of this profile is legal,
+# financial or quality advice. SAS §98 requires separate legal, finance and
+# QMS decisions before a contractor profile is delivered; none exists in this
+# repository (OW-WAR-0140 U-001), so the profile is not approved and says so.
+#
+# Adding it touched no core file: a profile is data (docs/PROFILES.md).
+schema = "oh.war/profile/v1"
+name = "contractor"
+extends = "delivery"
+
+# §22.3: "Until that profile is approved, a technical WAR SHALL link to, not
+# replace, the Knowledge Fabric contractual Work Order and finance records."
+# Nobody with the authority has approved it. `war check` warns
+# `profile.unapproved` on every Warrant of it.
+approved = false
+
+note = "NON-BINDING technical mechanism, not approved (§22.3). Not a legal instrument, and not legal, financial or quality advice. The terms of a contractor Work Order live in the contractual and finance records this profile links to."
+
+# The atom whose header names the acceptance authority. Acceptance is the
+# existing resolution act (`war resolve`) by a human holding `resolver`.
+acceptance_role = "contractor.acceptance"
+
+# Atoms that carry references, never copies (§22.3). Each must cite at least
+# one; a `kf://` reference reads UNKNOWN here, where no Knowledge Fabric is
+# reachable (U-004).
+reference_roles = ["contractor.terms", "contractor.commercial"]
+
+# OW-ADR-0031: the delivery profile's capabilities, unnarrowed. Its outcome
+# word stays the common outcome's, and no standing class may cover it: it
+# sets neither `satisfied_outcome` nor `standing_coverage`.
+capabilities = [
+    "structure",
+    "links",
+    "claims",
+    "acceptance",
+    "evidence",
+    "verification",
+    "authorization",
+    "resolution",
+    "stages",
+]
+
+# The §22.3 fields, grouped into four roles in the profile's own namespace.
+
+[[requires]]
+role = "contractor.parties"
+ordinal = 71
+file = "71-contractor-parties.md"
+stub = """# Contractor Parties
+
+> NON-BINDING. Not a legal instrument, and not legal, financial or quality
+> advice. The contractor profile is not approved (§22.3).
+
+## Parties
+<!-- required -->
+<!-- Who the parties are, each by reference to the record that identifies
+     them (a Knowledge Fabric `kf://` URI). Names only: no contact, tax or
+     banking detail belongs in a Warrant. -->
+"""
+
+[[requires]]
+role = "contractor.terms"
+ordinal = 72
+file = "72-contractor-terms.md"
+stub = """# Contractor Terms
+
+> NON-BINDING. Not a legal instrument, and not legal, financial or quality
+> advice. The contractor profile is not approved (§22.3).
+
+## Terms, by reference
+<!-- required -->
+<!-- Authorization scope, compensation, schedule, confidentiality and legal
+     terms: each BY REFERENCE to the contractual Work Order (a `kf://` URI).
+     Link, never copy (§22.3). A term copied here is not a term. -->
+"""
+
+[[requires]]
+role = "contractor.acceptance"
+ordinal = 73
+file = "73-contractor-acceptance.md"
+stub = """# Contractor Acceptance
+
+> NON-BINDING. Not a legal instrument, and not legal, financial or quality
+> advice. The contractor profile is not approved (§22.3).
+
+## Acceptance authority
+<!-- required -->
+<!-- Put `acceptance_authority: <actor>` in this atom's header. The actor must
+     be a human in docs/authority/roles.toml holding `resolver`, and not the
+     performer. Acceptance IS the resolution act, `war resolve`: this profile
+     adds no role and no signing path. -->
+
+## Acceptance criteria
+<!-- required -->
+<!-- What the acceptance authority judges, by reference to the obligations
+     in 60-assurance.md. -->
+"""
+
+[[requires]]
+role = "contractor.commercial"
+ordinal = 74
+file = "74-contractor-commercial.md"
+stub = """# Contractor Commercial Relations
+
+> NON-BINDING. Not a legal instrument, and not legal, financial or quality
+> advice. The contractor profile is not approved (§22.3).
+
+## Invoice and payment relations
+<!-- required -->
+<!-- The invoice and payment records this work relates to, BY REFERENCE (a
+     `kf://` URI). No amount, account or payment instruction belongs in a
+     Warrant; no money moves through one. -->
+"""

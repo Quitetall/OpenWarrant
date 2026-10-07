@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Gate Run semantics (SAS §44) and gate invalidation (§45). RQ-054, RQ-057.
 //!
 //! # The one rule this module exists for

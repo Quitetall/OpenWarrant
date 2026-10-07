@@ -1,0 +1,16 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-gate-source-profile/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.97s
+     Running tests/progress_viewer.rs (/mnt/2tb/ow-gate-profile-target/debug/deps/progress_viewer-00feec7bf6df43a8)
+
+running 8 tests
+test json_snapshot_reuses_report_validation_and_preserves_unknown ... ok
+test roadmap_keeps_frontier_error_visible_instead_of_empty_ready_state ... ok
+test unknown_report_and_symlink_sources_never_become_completed ... ok
+test configured_roadmap_changes_snapshot_digest_and_refuses_dangling_warrants ... ok
+test roadmap_document_link_serves_exact_source_and_invalid_refresh_stays_stale ... ok
+test cached_evidence_replaced_by_fifo_or_symlink_refuses_without_hanging ... ok
+test live_refresh_keeps_last_good_snapshot_and_refuses_writes_and_bad_origins ... ok
+test offline_view_contains_live_data_and_refuses_source_overwrite ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 21.25s
+

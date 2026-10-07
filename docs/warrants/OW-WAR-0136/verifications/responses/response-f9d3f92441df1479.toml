@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0136"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "The ops.conformance.plants@1.1.0 gate run (verdict pass, 1214 passed/0 failed) captured stdout from conformance/plants.d/58-invalidation.sh (D-007) running against the scratch IV corpus. The stdout excerpts show four matching 'ok' lines that correspond exactly to OBL-005's four evidence items: 'an agent's invalidation: refused invalidation.agent (§27.2, by kind); nothing written', 'the performer's invalidation: refused invalidation.self-act (SelfAct); nothing written', 'the performer may not record it attest.custody-self-act (SelfAct); nothing written', and 'the performer may not resolve resolution.not-permitted (SelfAct); no resolution.toml'. The D-007 excerpts also show the underlying script logic for the invalidation cases (lines ~499-523), confirming each 'ok' is gated on the actual command's non-zero exit code, a grep match on the specific error rule (e.g. '^ERROR +invalidation\\.self-act' with 'SelfAct'), and helper checks (iv_clean, iv_no_disputes) that nothing was written — not a bare assertion. The gate's overall pass verdict and 0-failed total corroborate that these checks, along with the custody and resolution cases (not shown in excerpts but reported with the same iv_ok pattern), passed on this run."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

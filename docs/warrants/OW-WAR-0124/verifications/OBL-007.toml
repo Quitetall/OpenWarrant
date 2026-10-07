@@ -1,0 +1,19 @@
+obligation = "OBL-007"
+disposition = "established"
+evidence = "conformance/plants.d/59-adoption.sh (D-008) defines exactly the three scratch scenarios OBL-007's scope names — AD_F/AD_F2 (outside any work tree, via `war init --program` and plain `war init`), AD_G/sub (a subdirectory of an existing repository, refusing to nest), and AD_NOGIT (git stripped from PATH) — each asserting the specific conditions OBL-007 states: a `.git` created and named in output plus a ready `war check` with no UNKNOWN identity.changed for the outside cases; no `.git` in the subdirectory and an unchanged enclosing HEAD for the nesting case; and for no-git, exit 0, the scaffold written, the 'git is not available'/'cannot be checked until' message, and a `war check` that reports identity.changed as UNKNOWN and never PASS/ok. Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, tail showing '1270 passed, 0 failed') prints under '== brownfield adoption (OW-WAR-0124) ==' the matching five 'ok' lines: 'outside a work tree: git init — said so; check ready', 'plain init outside: git init too — said so', 'inside a work tree: no nested .git — enclosing HEAD unchanged', 'no git: init continues, says so — exit 0, scaffold written', and 'no git: identity.changed is UNKNOWN — never a pass'. This is corroborated by the implementation in crates/openwarrant-cli/src/init/mod.rs (D-002), whose `history()` function's `Outside`/`NoGit`/`Inside` branches and `run_with`'s printed strings ('git init: {root} was not a git repository and now is', 'git is not available ({why}); continuing without it … cannot be checked until {root} is a git repository') match what the plant checks for. The receipt's admissibility is independently confirmed by gate run GR-software.repo.war-check@1.0.0's 'PASS evidence.admissible … ops.conformance.plants@1.1.0 · required pass, receipt reseals and is bound to the current contract and to its source'. All three named scratch scenarios are covered and shown passing with no contrary evidence, so the obligation's claim holds within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

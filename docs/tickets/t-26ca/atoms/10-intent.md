@@ -1,0 +1,3 @@
+# war ui drops an oversized request under load instead of answering 431
+
+63-webui.sh 'an oversized request' intermittently gets curl status 000 (connection closed, no response) instead of 431 when the machine is loaded — seen 2026-09-23 and again on OW-WAR-0117's evidence run 2026-09-25 (1155 passed, 1 failed). A refusal that closes the socket without an answer is indistinguishable from a crash to a client. Likely the server stops reading at the size limit and closes before writing the 431 (unread request bytes → RST). Reproduce under load, fix the refusal path so the 431 always reaches the client, keep the plant's bound.

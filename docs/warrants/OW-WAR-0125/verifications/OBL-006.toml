@@ -1,0 +1,19 @@
+obligation = "OBL-006"
+disposition = "established"
+evidence = """D-001 (docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md) frontmatter shows status: proposed and governs: ["war://01a0d04c-5f26-7ba0-a64b-2618b983ba43"], matching the warrant_uuid in atoms/10-intent.md, and its 'Proposed SAS text' section explicitly marks the §105 wording as 'proposed wording for a separate SAS revision... OW-WAR-0125 changes no SAS byte,' satisfying the first two evidence bullets. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) has stdout excerpts at lines 478 and 480 explicitly labeled 'OBL-006' and marked 'ok': 'OBL-006 OW-ADR-0028 is a proposal status proposed; governs OW-WAR-0125; §105 text marked', 'OBL-006 the SAS at delivery is 1.1.0 9c3c9150: sha256:321413359168 = revision 1.1.0, not 1.1.1', 'OBL-006 no deliverable is the SAS 10 deliverable(s); none is docs/sas/WAR_Software_Architecture_Specification.md', and 'OBL-006 a SAS deliverable is seen a planted D-999 naming the SAS is reported' — these four lines directly cover the commit-level digest check, the no-SAS-deliverable check, and the planted-refusal case named in the obligation's evidence. The obligation_evidence block confirms the terms 'OW-ADR-0028', 'proposed', 'governs', '1.1.0', and '1.1.1' are shown (not cut) across D-001, the gate stdout, and the atoms. The bundle's full deliverable manifest (D-001 through D-010) lists target_ref for every OW-WAR-0125 deliverable and none is the SAS document itself, corroborating the gate's own count. D-005's current revision field showing 1.2.0 does not contradict the historical claim, since the obligation concerns the earlier commit that first added SECTIONS.json, not the file's present state. Together this establishes the obligation within its stated scope."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

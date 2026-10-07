@@ -1,12 +1,11 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "The measured evidence lists all planted violations in conformance/plant.sh, but none correspond to §91.3 tests 19 and 22 or §91.13 tests 91 through 95, and no entries for OW-WAR-0044 are provided to satisfy the requirement for seven rejected entries."
+evidence = "obligation_evidence for OBL-005 marks the named path 'conformance/' as explicitly absent from this bundle ('a repository path that is not a deliverable of OW-WAR-0044: not carried'), so none of the seven required plants for §91.3 tests 19/22 and §91.13 tests 91-95 can be inspected. EV-002 and EV-003 in atoms/60-assurance.md reference only two unrelated plant.sh scenarios (a missing --confirm-write flag and an unservable https:// URL; an incomplete export and a vacuous round trip) that are not mapped to the required test numbers, so no evidence of the specified plants is shown."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

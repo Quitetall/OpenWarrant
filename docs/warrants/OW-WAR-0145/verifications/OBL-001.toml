@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (receipt: askability askable, execution_status completed, verdict pass) embeds the actual invocation of the plant OBL-001 describes: its captured stdout excerpt at lines 199-209 shows plant 48-isolated-battery.sh's own assertions all report 'ok', specifically 'the battery gate is askable ran and passed', 'the working tree is untouched files, index, HEAD and the uncommitted edit identical', 'the clone is removed nothing left under the temp directory', 'it tests HEAD, not the working tree committed bytes, tested commit 8dfe8553a17b01c1fd72a5ad13290999358d6c5e' (confirming the fake battery saw only committed bytes, never the uncommitted edit), and 'a failing battery fails the gate verdict fail'. These lines are the direct output of exactly the checks D-003's ib_run/ib_tree functions define against a scratch corpus with a fake battery, uncommitted marker and uncommitted edit, matching OBL-001's scope and evidence requirements point for point."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

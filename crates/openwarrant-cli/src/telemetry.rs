@@ -71,6 +71,12 @@ pub struct Baseline {
     /// §95 candidates. Diagnostic only — §95 says this "SHALL not fabricate a
     /// relationship after the fact without review".
     pub untracked_work_candidates: Vec<String>,
+    /// The `[adoption]` baseline the candidates were counted from
+    /// (OW-WAR-0124), so a moved baseline is visible beside the count it
+    /// moved. Absent — and not serialized — when none is recorded: the
+    /// candidates then come from all history, as they always did.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub adoption_baseline: Option<String>,
     /// §100's sixteen. Every entry is a baseline or the string `no baseline`;
     /// none is a delta.
     pub success_metrics: BTreeMap<String, String>,
@@ -315,8 +321,19 @@ pub fn take(repo: &Repository, commit: &str) -> Result<Baseline, RepoError> {
         measures,
         derived,
         untracked_work_candidates: untracked,
+        adoption_baseline: repo.config.adoption.as_ref().map(|a| a.baseline.clone()),
         success_metrics,
     })
+}
+
+/// Which history the §95 candidates were read from, in words: the adoption
+/// baseline's range, or all of it. Printed beside the count (R-001).
+#[must_use]
+pub fn history_read(b: &Baseline) -> String {
+    match &b.adoption_baseline {
+        Some(id) => format!("{id}..HEAD (the [adoption] baseline)"),
+        None => "all history (no [adoption] baseline)".to_owned(),
+    }
 }
 
 /// §95 — commits touching tracked scope with no WAR relation.
@@ -331,8 +348,17 @@ fn untracked_candidates(repo: &Repository) -> Result<Vec<String>, RepoError> {
     // `--verify` would fail against the committed baseline, and nothing would
     // say why. A measurement that gets smaller as the history grows is worse
     // than an expensive one.
+    //
+    // OW-WAR-0124: bounded BELOW, by the recorded adoption baseline, never
+    // above. The commits up to it are history nobody claims; counting them
+    // would make a repository adopted at its 3,000th commit report 3,000
+    // candidates forever. Without a baseline, all history, as before.
+    let mut args = vec!["log".to_owned(), "--format=%h %s".to_owned()];
+    if let Some(adoption) = &repo.config.adoption {
+        args.push(format!("{}..HEAD", adoption.baseline));
+    }
     let out = std::process::Command::new("git")
-        .args(["log", "--format=%h %s"])
+        .args(&args)
         .current_dir(repo.root.as_std_path())
         .output()
         .map_err(|e| RepoError::Message(format!("git log: {e}")))?;
@@ -348,10 +374,15 @@ fn untracked_candidates(repo: &Repository) -> Result<Vec<String>, RepoError> {
     // a genuinely untracked commit whose subject merely quotes the prefix —
     // `fix: handle "OW-WAR-" in the parser` is untracked work about aliases, not
     // work under a Warrant.
+    //
+    // The prefix is THIS repository's namespace (OW-WAR-0124): in `ACME`, a
+    // commit citing `ACME-WAR-0001` is tracked and one citing only
+    // `OW-WAR-0001` is not — that alias names no Warrant here.
+    let prefix = format!("{}-WAR-", repo.config.project.namespace.as_str());
     let cites_warrant = |subject: &str| {
         subject.split_whitespace().any(|w| {
             let w = w.trim_matches(|c: char| !c.is_ascii_alphanumeric() && c != '-');
-            w.starts_with("OW-WAR-") && w.len() > "OW-WAR-".len()
+            w.starts_with(&prefix) && w.len() > prefix.len()
                 || w.starts_with("war://") && w.len() > "war://".len()
         })
     };

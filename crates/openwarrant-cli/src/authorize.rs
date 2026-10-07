@@ -34,7 +34,7 @@
 
 use std::fs;
 
-use camino::Utf8PathBuf;
+use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::lower;
 use openwarrant_core::authority::{ActorRole, AuthorityRegister, RoleAssignment};
 use openwarrant_core::contract::{
@@ -51,6 +51,12 @@ pub const REQUEST_SCHEMA: &str = "oh.war/authorization-request/v1";
 pub const RESPONSE_SCHEMA: &str = "oh.war/authorization-response/v1";
 pub const AUTHORIZATION_SCHEMA: &str = "oh.war/authorization/v1";
 pub const JUDGMENTS_SCHEMA: &str = "oh.war/judgments/v1";
+
+/// OW-WAR-0137 — the per-Warrant review assignment. The file lives under
+/// `openwarrant-core/src/` because it is pure; it is compiled here because
+/// core's `lib.rs` is outside this Warrant's declared set.
+#[path = "../../openwarrant-core/src/assignment.rs"]
+pub mod assignment;
 
 /// What is put to the authorizer.
 ///
@@ -79,6 +85,29 @@ pub struct AuthorizationRequest {
     /// Actors the register says may authorize this. Informational — ingestion
     /// re-derives it rather than trusting the response to have used the list.
     pub eligible_authorizers: Vec<String>,
+    /// OW-ADR-0021 — every deliverable the Warrant declares, as `(id, path)`.
+    /// This is what the signature GRANTS: the paths this Warrant will govern.
+    /// Absent from `contract_digest` on purpose (§28.5 coverage is frozen), so
+    /// the set gets its own digest, echoed by the response and checked at
+    /// ingest.
+    #[serde(default)]
+    pub deliverables: Vec<crate::ownership::OwnedDeliverable>,
+    /// `ownership::set_digest` of `deliverables`.
+    #[serde(default)]
+    pub deliverable_set_digest: String,
+    /// OW-WAR-0137 — who verifies and who resolves, when the Warrant names
+    /// anyone. Signed like the deliverable set: listed here, its digest
+    /// echoed by the response, a moved file refused at ingest. Absent on an
+    /// unassigned Warrant, whose request is unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub assignment: Option<assignment::Assignment>,
+    /// [`assignment::Assignment::digest`] of `assignment`; empty when none.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub assignment_digest: String,
+    /// What ingest would refuse about the assignment, by rule, so the signer
+    /// is not asked to sign something that will be refused.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub assignment_findings: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -123,6 +152,16 @@ pub struct AuthorizationResponse {
     /// authority — ingestion trusts the register, never this field.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub signed_via: Option<String>,
+    /// OW-ADR-0021 — the set digest the signer saw. Must equal the manifest's
+    /// set at ingest or the response is refused; absent on a hand-written
+    /// response, in which case the set is recorded unsigned and said so.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deliverable_set_digest: Option<String>,
+    /// OW-WAR-0137 — the assignment digest the signer saw. Required when the
+    /// Warrant has an `assignment.toml`: an assignment nobody signed is
+    /// refused, never recorded unsigned.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub assignment_digest: Option<String>,
 }
 
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -139,6 +178,16 @@ pub struct AuthorizationRecord {
     /// records written before this field existed; those read as the latest.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sas_revision: Option<String>,
+    /// OW-ADR-0021 — the digest of `owned` as the authorizer signed it, or
+    /// as ingest recorded it from the manifest when the response carried none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deliverable_set_digest: Option<String>,
+    /// OW-ADR-0021 — the paths this authorization governs. Copied here at
+    /// ingest because `deliverables.toml` can move afterwards and this record
+    /// cannot: `authorization.toml` is an attestation subject. Empty on every
+    /// record made before this field existed, and an empty set owns nothing.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub owned: Vec<crate::ownership::OwnedDeliverable>,
 }
 
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -155,14 +204,37 @@ pub struct JudgmentRecord {
 pub fn request(repo: &Repository, alias: &str) -> Result<AuthorizationRequest, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
+    request_for(repo, alias, &one, None)
+}
+
+/// [`request`] for a Warrant already loaded, with its contract already
+/// lowered when the caller holds it (`corpus::Entry::ir`). `None` lowers it
+/// here, so a contract that does not compile is refused in the same words.
+pub fn request_for(
+    repo: &Repository,
+    alias: &str,
+    one: &crate::repo::Loaded,
+    lowered: Option<&openwarrant_compiler::WarIr>,
+) -> Result<AuthorizationRequest, RepoError> {
+    let dir = one.dir.clone();
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
         return Err(RepoError::Message(format!(
             "{alias}: the manifest did not validate, so there is no contract to authorize"
         )));
     };
+    // OW-ADR-0031: a kind without `authorization` has no contract to sign.
+    one.require(&repo.profiles, openwarrant_core::Capability::Authorization)?;
 
-    let ir = lower(basis, validated)
-        .map_err(|e| RepoError::Message(format!("{alias}: could not compile contract: {e}")))?;
+    let owned;
+    let ir = match lowered {
+        Some(ir) => ir,
+        None => {
+            owned = lower(basis, validated).map_err(|e| {
+                RepoError::Message(format!("{alias}: could not compile contract: {e}"))
+            })?;
+            &owned
+        }
+    };
     let contract_digest = ir
         .contract_digest()
         .map_err(|e| RepoError::Message(format!("{alias}: could not digest contract: {e}")))?;
@@ -177,6 +249,23 @@ pub fn request(repo: &Repository, alias: &str) -> Result<AuthorizationRequest, R
 
     let register = repo.load_authority_register()?;
     let assumptions = repo.load_rationale(&dir)?.unwrap_or_default();
+    let deliverables = crate::ownership::declared_set(repo, &dir)?;
+    let deliverable_set_digest = crate::ownership::set_digest(&deliverables);
+    let (assignment, assignment_findings) = match load_assignment(&dir) {
+        None => (None, vec![]),
+        Some(Err(why)) => (None, vec![format!("assignment.malformed: {why}")]),
+        Some(Ok(a)) => {
+            let findings = assignment::validate(&a, &register, &repo.performer())
+                .iter()
+                .map(ToString::to_string)
+                .collect();
+            (Some(a), findings)
+        }
+    };
+    let assignment_digest = assignment
+        .as_ref()
+        .map(assignment::Assignment::digest)
+        .unwrap_or_default();
 
     Ok(AuthorizationRequest {
         schema: REQUEST_SCHEMA.to_owned(),
@@ -202,7 +291,109 @@ pub fn request(repo: &Repository, alias: &str) -> Result<AuthorizationRequest, R
             .filter(|a| a.may_authorize(&repo.performer()).is_ok())
             .map(|a| a.actor.clone())
             .collect(),
+        deliverables,
+        deliverable_set_digest,
+        assignment,
+        assignment_digest,
+        assignment_findings,
     })
+}
+
+/// The Warrant's `assignment.toml`: `None` when absent, `Some(Err)` when it
+/// exists and does not parse (or cannot be read — fail closed, never absent).
+#[must_use]
+pub fn load_assignment(dir: &camino::Utf8Path) -> Option<Result<assignment::Assignment, String>> {
+    let path = dir.join(assignment::FILE);
+    match fs::read_to_string(&path) {
+        Ok(text) => Some(assignment::Assignment::parse(&text)),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+        Err(e) => Some(Err(format!("could not read {path}: {e}"))),
+    }
+}
+
+/// The assignment digest the recorded authorization signed.
+///
+/// `None` when no authorization is recorded; `Some(None)` when one is and it
+/// signed no assignment. `authorization.toml`'s schema is in the published
+/// pack and this Warrant does not move it, so the digest is read from where
+/// the act already put it:
+///
+/// 1. the authorization response under `docs/authority/responses/` at the
+///    recorded contract digest — the bytes the human signed. When one exists,
+///    its echo (or its lack of one) is the answer whatever the journal says:
+///    deleting `assignment.toml` and the journal field together still meets
+///    the signed echo, so a removal cannot widen who may act;
+/// 2. otherwise the journal event that recorded the authorization at that
+///    digest, the payload ingest wrote.
+///
+/// Whether that response's signature verifies is `authority_check`'s
+/// question, asked wherever the authorization is relied on; editing the
+/// response to change its echo breaks the signature and stops the Warrant.
+pub fn recorded_assignment_digest(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+) -> Result<Option<Option<String>>, RepoError> {
+    let Some(record) = repo.load_authorization(dir)? else {
+        return Ok(None);
+    };
+    if record.revision.authorization.is_none() {
+        return Ok(None);
+    }
+    if let Some(echo) =
+        signed_response_echo(repo, &record.warrant, &record.revision.contract_digest)
+    {
+        return Ok(Some(echo));
+    }
+    let journal = crate::journal_cmd::load(dir)?;
+    let digest = journal
+        .events
+        .iter()
+        .rev()
+        .filter(|e| {
+            e.event_type == crate::journal_cmd::AUTHORIZATION_RECORDED
+                || e.event_type == crate::journal_cmd::AUTHORIZATION_SIGNATURE_RECORDED
+        })
+        .filter_map(|e| serde_json::from_str::<serde_json::Value>(&e.payload).ok())
+        .find(|p| p["contract_digest"].as_str() == Some(record.revision.contract_digest.as_str()))
+        .and_then(|p| p["assignment_digest"].as_str().map(str::to_owned));
+    Ok(Some(digest))
+}
+
+/// The `assignment_digest` echoed by this Warrant's authorization response
+/// over `contract`: `Some(Some(d))` when it echoes `d`, `Some(None)` when it
+/// echoes none, `None` when no such response is on disk. Looks at the current
+/// response and at the one `war sign` retires when a later revision is signed
+/// (`<alias>.<digest[..8]>.response.toml`), and believes only a file whose
+/// schema and contract digest are this act's.
+fn signed_response_echo(repo: &Repository, alias: &str, contract: &str) -> Option<Option<String>> {
+    let current =
+        crate::authority_check::response_path(repo, crate::authority_check::Act::Authorize, alias);
+    let retired = contract
+        .get(..8)
+        .map(|tag| current.with_file_name(format!("{alias}.{tag}.response.toml")));
+    [Some(current), retired]
+        .into_iter()
+        .flatten()
+        .filter_map(|path| fs::read_to_string(path).ok())
+        .filter_map(|text| toml::from_str::<AuthorizationResponse>(&text).ok())
+        .find(|r| {
+            r.schema == RESPONSE_SCHEMA && r.warrant == alias && r.contract_digest == contract
+        })
+        .map(|r| r.assignment_digest)
+}
+
+/// Where this Warrant's assignment stands against its authorization. Every
+/// act an assignment governs asks this, and an `Err` from
+/// [`assignment::Standing::for_act`] means nobody may take the act.
+pub fn assignment_standing(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+) -> Result<assignment::Standing, RepoError> {
+    let recorded = recorded_assignment_digest(repo, dir)?;
+    Ok(assignment::standing(
+        load_assignment(dir),
+        recorded.as_ref().map(Option::as_deref),
+    ))
 }
 
 /// Obligations declared across a Warrant's assurance atoms.
@@ -271,6 +462,20 @@ pub enum Refusal {
     NotPermitted {
         detail: String,
     },
+    /// OW-ADR-0021 — the response signs a deliverable set the manifest no
+    /// longer has.
+    StaleDeliverables {
+        signed: String,
+        current: String,
+    },
+    /// OW-ADR-0021 — the response is dated before an existing owner of a path
+    /// it declares.
+    TimeBeforeOwner {
+        path: String,
+        owner: String,
+        owner_time: String,
+        this_time: String,
+    },
 }
 
 impl std::fmt::Display for Refusal {
@@ -303,7 +508,44 @@ impl std::fmt::Display for Refusal {
                  human wrote, never from a name supplied in the response itself"
             ),
             Self::NotPermitted { detail } => f.write_str(detail),
+            Self::StaleDeliverables { signed, current } => write!(
+                f,
+                "the declared deliverable set moved after the request was drafted: the \
+                 response signs set {signed} and the manifest is now {current}. What was \
+                 drafted is what is signed (OW-ADR-0021) — re-draft and re-sign"
+            ),
+            Self::TimeBeforeOwner {
+                path,
+                owner,
+                owner_time,
+                this_time,
+            } => write!(
+                f,
+                "effective_time {this_time} precedes {owner_time}, when {owner} was authorized \
+                 for {path}. Ownership is ordered by authorization time (OW-ADR-0021), so an \
+                 authorization dated before an existing owner would take the path away from it \
+                 silently — set effective_time to now"
+            ),
         }
+    }
+}
+
+/// Check the signed deliverable set against the manifest, writing nothing.
+///
+/// `Ok(true)` when the response signed the set and it matches; `Ok(false)`
+/// when the response carried no set (a hand-written or pre-ADR response), in
+/// which case the caller records the current set and says it was unsigned.
+pub fn validate_deliverables(
+    response: &AuthorizationResponse,
+    current_set_digest: &str,
+) -> Result<bool, Refusal> {
+    match response.deliverable_set_digest.as_deref() {
+        None => Ok(false),
+        Some(signed) if signed == current_set_digest => Ok(true),
+        Some(signed) => Err(Refusal::StaleDeliverables {
+            signed: signed.to_owned(),
+            current: current_set_digest.to_owned(),
+        }),
     }
 }
 
@@ -413,7 +655,39 @@ pub fn ingest(
     alias: &str,
     response_path: &Utf8PathBuf,
 ) -> Result<Report, RepoError> {
+    ingest_with(repo, alias, response_path, crate::sign::IngestMode::Record)
+}
+
+/// [`ingest`], or the same judgment with the write withheld.
+///
+/// Every refusal above the record write runs in both modes, so a
+/// `DryRun` report names exactly what the real ingest would refuse. The one
+/// difference is at the write: `DryRun` reports `authorize.would-record` and
+/// returns; nothing under the Warrant directory is touched and no journal
+/// line is appended.
+pub fn ingest_with(
+    repo: &Repository,
+    alias: &str,
+    response_path: &Utf8PathBuf,
+    mode: crate::sign::IngestMode,
+) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
+    // OW-WAR-0121: what the two records this act may write ARE, read before
+    // anything else is. The writes at the end refuse if either moved in the
+    // meantime — the span includes an ssh-agent dialog — and a symlink in a
+    // record's place is refused here, before its target is read as a record.
+    let authorization_path = dir.join("authorization.toml");
+    let judgments_path = dir.join("judgments.toml");
+    let prestates = crate::compile::atomic::prestate(&authorization_path)
+        .and_then(|a| crate::compile::atomic::prestate(&judgments_path).map(|j| (a, j)));
+    let (authorization_before, judgments_before) = match prestates {
+        Ok(p) => p,
+        Err(refused) => {
+            let mut report = Report::default();
+            report.push(refused.diagnostic());
+            return Ok(report);
+        }
+    };
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
 
@@ -459,6 +733,8 @@ pub fn ingest(
             Refusal::EffectiveTime { .. } => "authorize.effective-time",
             Refusal::UnknownActor { .. } => "authorize.unknown-actor",
             Refusal::NotPermitted { .. } => "authorize.not-permitted",
+            Refusal::StaleDeliverables { .. } => "authorize.stale-deliverables",
+            Refusal::TimeBeforeOwner { .. } => "authorize.time-before-owner",
         };
         report.push(Diagnostic::error(
             rule,
@@ -466,6 +742,73 @@ pub fn ingest(
             refusal.to_string(),
         ));
         return Ok(report);
+    }
+
+    // OW-ADR-0021: what the signer saw is what is recorded. The set is read
+    // from the manifest NOW and compared to what the response signed; a moved
+    // set is refused before anything else is considered.
+    let owned = crate::ownership::declared_set(repo, &dir)?;
+    let current_set_digest = crate::ownership::set_digest(&owned);
+    let set_signed = match validate_deliverables(&response, &current_set_digest) {
+        Ok(signed) => signed,
+        Err(refusal) => {
+            report.push(Diagnostic::error(
+                "authorize.stale-deliverables",
+                response_path.to_string(),
+                refusal.to_string(),
+            ));
+            return Ok(report);
+        }
+    };
+    // OW-WAR-0137: the assignment is what the signer saw, and it names only
+    // actors the register already permits. Checked before any signature is
+    // looked at and before anything is written; every refusal names its rule.
+    if let Some(refusal) = assignment_refusal(&response, &dir, &register, &proposer) {
+        report.push(Diagnostic::error(
+            refusal.rule,
+            response_path.to_string(),
+            refusal.message,
+        ));
+        return Ok(report);
+    }
+    let assignment_digest = load_assignment(&dir)
+        .and_then(Result::ok)
+        .map(|a| a.digest());
+    if !set_signed && !owned.is_empty() {
+        report.push(Diagnostic::warn(
+            "authorize.deliverables-unsigned",
+            response_path.to_string(),
+            format!(
+                "{alias}: the response carries no deliverable_set_digest, so the {} declared \
+                 path(s) are recorded from the manifest at ingest and the signature does not \
+                 cover them. A response drafted by `war sign` signs the set",
+                owned.len()
+            ),
+        ));
+    }
+    // Ownership is ordered by effective time; a signature dated before an
+    // existing owner of one of these paths would silently take it away.
+    if !owned.is_empty() {
+        let ownership = crate::ownership::Ownership::index(repo)?;
+        for d in &owned {
+            if let Some(cur) = ownership.current(&d.target_ref)
+                && cur.alias != alias
+                && response.effective_time.as_str() < cur.authorized_at.as_str()
+            {
+                let refusal = Refusal::TimeBeforeOwner {
+                    path: d.target_ref.clone(),
+                    owner: cur.alias.clone(),
+                    owner_time: cur.authorized_at.clone(),
+                    this_time: response.effective_time.clone(),
+                };
+                report.push(Diagnostic::error(
+                    "authorize.time-before-owner",
+                    response_path.to_string(),
+                    refusal.to_string(),
+                ));
+                return Ok(report);
+            }
+        }
     }
 
     // Every judgment is checked BEFORE anything is written. A response that
@@ -487,6 +830,69 @@ pub fn ingest(
             ));
         }
         return Ok(report);
+    }
+
+    // OW-WAR-0130 (§67.4), before the first write: the same signed act,
+    // already recorded for the contract as it stands by the same person, is
+    // an equivalent retry. It replays — nothing is written, the act exits 0 —
+    // where it used to meet `authorize.already-authorized` or, for a record
+    // that was file-only, rewrite it. The same key journalled by another
+    // actor is a conflicting reuse and is refused with nothing written.
+    let actor = format!("person://{}", response.authorizer);
+    let payload = format!(
+        "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\",\"deliverable_set_digest\":\"{}\",\"set_signed\":{}{}}}",
+        response.contract_digest,
+        response.acting_role,
+        response.signed_via.as_deref().unwrap_or("file"),
+        current_set_digest,
+        set_signed,
+        // OW-WAR-0137: present only on an assigned Warrant, so every other
+        // payload — and every replay key already journalled — is unchanged.
+        assignment_digest
+            .as_deref()
+            .map(|d| format!(",\"assignment_digest\":\"{d}\""))
+            .unwrap_or_default()
+    );
+    let on_file = repo.load_authorization(&dir)?.is_some_and(|prev| {
+        prev.revision.contract_digest == current_digest
+            && prev
+                .revision
+                .authorization
+                .as_ref()
+                .is_some_and(|a| a.authorizer == response.authorizer)
+    });
+    if on_file {
+        for event_type in [
+            crate::journal_cmd::AUTHORIZATION_RECORDED,
+            crate::journal_cmd::AUTHORIZATION_SIGNATURE_RECORDED,
+        ] {
+            match crate::journal_cmd::already_recorded(&dir, event_type, &payload, &actor)? {
+                crate::journal_cmd::Prior::Fresh => {}
+                crate::journal_cmd::Prior::Conflict { recorded_by } => {
+                    report.push(crate::journal_cmd::conflict(
+                        repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                        event_type,
+                        &recorded_by,
+                        &actor,
+                    ));
+                    return Ok(report);
+                }
+                crate::journal_cmd::Prior::Equivalent { occurred_at } => {
+                    report.push(Diagnostic::pass(
+                        "authorize.replayed",
+                        format!(
+                            "{alias}: contract {current_digest} is already authorized by {} \
+                             acting as {}, journalled at {occurred_at} → {}; an equivalent \
+                             retry replays and writes nothing",
+                            response.authorizer,
+                            response.acting_role,
+                            repo.relative(&authorization_path)
+                        ),
+                    ));
+                    return Ok(report);
+                }
+            }
+        }
     }
 
     let authorization = Authorization {
@@ -513,6 +919,12 @@ pub fn ingest(
     // signature is accepted. Re-signing the SAME digest is refused: an
     // authorized revision is immutable (§28.3), and there is nothing to add.
     let existing = repo.load_authorization(&dir)?;
+    // OW-WAR-0137: an assignment that moved since the recorded authorization
+    // changes who reviews, which is §31 material like a moved deliverable set:
+    // it falls through to the amendment branch rather than reading as
+    // "already authorized".
+    let assignment_moved = recorded_assignment_digest(repo, &dir)?
+        .is_some_and(|recorded| recorded != assignment_digest);
     // An existing record at this digest with no verified signature is not an
     // authorized revision — it is an unsigned draft that happens to sit in the
     // authorization's place. Accepting a signature for it adds the one thing it
@@ -559,7 +971,18 @@ pub fn ingest(
             signed.revision = prev.revision.revision;
             signed
         }
-        Some(prev) if prev.revision.contract_digest == current_digest => {
+        // Same contract digest AND same (or never-recorded) set: nothing to
+        // add. A moved set at the same contract digest is §31 material — it
+        // widens what the Warrant governs — and falls through to the amendment
+        // branch below, which demands AM-nnn and produces revision N+1.
+        Some(prev)
+            if prev.revision.contract_digest == current_digest
+                && prev
+                    .deliverable_set_digest
+                    .as_deref()
+                    .is_none_or(|d| d == current_set_digest)
+                && !assignment_moved =>
+        {
             report.push(Diagnostic::error(
                 "authorize.already-authorized",
                 response_path.to_string(),
@@ -595,7 +1018,7 @@ pub fn ingest(
                         "{alias}: the contract moved from {} to {} after revision {} was authorized. \
                          §31: every revision after authorization carries an amendment record — \
                          revision {} needs {needed} under amendments/ and {amendments} exist. \
-                         Write AM-{:03} before re-signing",
+                         Write AM-{:03} (`war amend {alias}` mints its file, AM-<n>-<hash>) before re-signing",
                         prev.revision.contract_digest,
                         current_digest,
                         prev.revision.revision,
@@ -622,8 +1045,33 @@ pub fn ingest(
         warrant: alias.to_owned(),
         revision,
         sas_revision: basis.sas.as_ref().map(|p| p.version.clone()),
+        deliverable_set_digest: Some(current_set_digest.clone()),
+        owned,
     };
-    write_toml(&dir.join("authorization.toml"), &record)?;
+    if mode == crate::sign::IngestMode::DryRun {
+        report.push(Diagnostic::pass(
+            "authorize.would-record",
+            format!(
+                "{alias}: revision {} at contract {current_digest} would be recorded, granting \
+                 {} path(s) under set {current_set_digest}. Not written",
+                record.revision.revision,
+                record.owned.len()
+            ),
+        ));
+        return Ok(report);
+    }
+    // OW-WAR-0144: a revision after authorization replaces this file, and
+    // every attestation over the revision it replaces names these bytes.
+    // Keep them beside it, as a retired response is kept (§34.4: supersede,
+    // never erase), where `attest --verify` finds them by digest.
+    if let Some(refused) = retain_superseded(&authorization_path) {
+        report.push(refused);
+        return Ok(report);
+    }
+    if let Err(refused) = write_toml(&authorization_path, &record, &authorization_before)? {
+        report.push(refused.diagnostic());
+        return Ok(report);
+    }
     if let Some(v) = &one.validated {
         crate::journal_cmd::record(
             &dir,
@@ -633,13 +1081,8 @@ pub fn ingest(
             } else {
                 crate::journal_cmd::AUTHORIZATION_RECORDED
             },
-            &format!("person://{}", response.authorizer),
-            &format!(
-                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\"}}",
-                response.contract_digest,
-                response.acting_role,
-                response.signed_via.as_deref().unwrap_or("file")
-            ),
+            &actor,
+            &payload,
         )?;
     }
     report.push(Diagnostic::pass(
@@ -658,7 +1101,10 @@ pub fn ingest(
             warrant: alias.to_owned(),
             judgment: response.judgment.clone(),
         };
-        write_toml(&dir.join("judgments.toml"), &judgments)?;
+        if let Err(refused) = write_toml(&judgments_path, &judgments, &judgments_before)? {
+            report.push(refused.diagnostic());
+            return Ok(report);
+        }
         report.push(Diagnostic::pass(
             "authorize.judgments-recorded",
             format!(
@@ -672,12 +1118,70 @@ pub fn ingest(
     Ok(report)
 }
 
-fn write_toml<T: Serialize>(path: &camino::Utf8Path, value: &T) -> Result<(), RepoError> {
+/// OW-WAR-0137 — the assignment check at authorization ingest, writing
+/// nothing. `None` when the response may proceed.
+fn assignment_refusal(
+    response: &AuthorizationResponse,
+    dir: &camino::Utf8Path,
+    register: &AuthorityRegister,
+    performer: &str,
+) -> Option<assignment::Finding> {
+    let current = match load_assignment(dir) {
+        None => None,
+        Some(Err(why)) => {
+            return Some(assignment::Finding {
+                rule: "assignment.malformed",
+                message: format!("{}: {why}", assignment::FILE),
+            });
+        }
+        Some(Ok(a)) => Some(a),
+    };
+    let current_digest = current.as_ref().map(assignment::Assignment::digest);
+    match (
+        response.assignment_digest.as_deref(),
+        current_digest.as_deref(),
+    ) {
+        (None, None) => return None,
+        (Some(signed), Some(now)) if signed == now => {}
+        (None, Some(now)) => {
+            return Some(assignment::Finding {
+                rule: "authorize.assignment-unsigned",
+                message: format!(
+                    "the Warrant assigns who reviews it ({now}) and the response echoes no \
+                     assignment_digest. An assignment takes effect only as the authorizer \
+                     signed it — draft the response with `war sign`, which echoes it"
+                ),
+            });
+        }
+        (Some(signed), now) => {
+            return Some(assignment::Finding {
+                rule: "authorize.stale-assignment",
+                message: format!(
+                    "the response signs assignment {signed} and {} is now {}. What was \
+                     drafted is what is signed — re-draft and re-sign",
+                    assignment::FILE,
+                    now.unwrap_or("absent")
+                ),
+            });
+        }
+    }
+    let a = current?;
+    assignment::validate(&a, register, performer)
+        .into_iter()
+        .next()
+}
+
+/// Render and write one record through the §86 path, against the prestate
+/// read when the act began. The outer error is a record that would not
+/// render; the inner one is a write the storage layer refused by name, which
+/// the caller reports as a diagnostic rather than an I/O failure.
+fn write_toml<T: Serialize>(
+    path: &camino::Utf8Path,
+    value: &T,
+    before: &crate::compile::atomic::Prestate,
+) -> Result<Result<(), crate::compile::atomic::Refused>, RepoError> {
     let rendered = toml::to_string_pretty(value).map_err(|e| RepoError::Message(e.to_string()))?;
-    fs::write(path, rendered).map_err(|source| RepoError::Io {
-        context: format!("could not write {path}"),
-        source,
-    })
+    Ok(crate::compile::atomic::write_if(path, rendered, before))
 }
 
 /// Whether a persisted authorization covers the contract as it stands now.
@@ -690,6 +1194,32 @@ pub fn authorizes_current_contract(record: &AuthorizationRecord, current_digest:
     record.revision.state == RevisionState::Authorized
         && record.revision.contract_digest == current_digest
         && record.revision.authorization.is_some()
+}
+
+/// Copy an existing `authorization.toml` to `authorization.<digest8>.toml`
+/// beside it before it is replaced. An identical copy already there is left
+/// alone; a different file under that name refuses the act before anything
+/// is written (`authorize.retire-collision`), never overwritten.
+fn retain_superseded(path: &Utf8Path) -> Option<Diagnostic> {
+    let Ok(bytes) = fs::read(path) else {
+        return None; // nothing authorized yet: nothing to keep
+    };
+    let digest = openwarrant_compiler::sha256_hex(&bytes);
+    let kept = path.with_file_name(format!("authorization.{}.toml", &digest[..8]));
+    match fs::read(&kept) {
+        Ok(existing) if existing == bytes => None,
+        Ok(_) => Some(Diagnostic::error(
+            "authorize.retire-collision",
+            kept.to_string(),
+            format!(
+                "{kept} exists with other bytes than the authorization it would keep \
+                 (sha256:{digest}); nothing is overwritten and nothing is recorded"
+            ),
+        )),
+        Err(_) => crate::compile::atomic::write(&kept, &bytes)
+            .err()
+            .map(|refused| refused.diagnostic()),
+    }
 }
 
 #[cfg(test)]
@@ -735,6 +1265,7 @@ mod tests {
 
     fn response(authorizer: &str, digest: &str) -> AuthorizationResponse {
         AuthorizationResponse {
+            deliverable_set_digest: None,
             schema: RESPONSE_SCHEMA.to_owned(),
             warrant: "OW-WAR-0014".to_owned(),
             contract_digest: digest.to_owned(),
@@ -746,6 +1277,7 @@ mod tests {
             signed_via: None,
             independence: Independence::None,
             judgment: vec![],
+            assignment_digest: None,
         }
     }
 
@@ -1028,6 +1560,8 @@ mod tests {
     #[test]
     fn an_authorization_must_be_authorized_and_current() {
         let record = AuthorizationRecord {
+            deliverable_set_digest: None,
+            owned: vec![],
             schema: AUTHORIZATION_SCHEMA.to_owned(),
             warrant: "OW-WAR-0014".to_owned(),
             revision: ContractRevision::draft(

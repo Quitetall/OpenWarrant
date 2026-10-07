@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "The bundle's top-level deliverables array is empty ([]), and obligation_evidence for OBL-001 explicitly marks both scoped paths as absent: 'openwarrant-core/src/batch.rs' — 'no deliverable of OW-WAR-0072 and no file at this path: not carried' — and 'docs/authority/batches/' likewise. The terms DigestDomain and --verify are shown_in ['atoms'] or nowhere, i.e. only in atoms/40-work-order.md's plan prose, never in executed code or a plant. With no batch.rs and no batches/ directory confirmed to exist, there is no canonical-JCS DigestDomain::Batch implementation for 'the signed subject is the list, canonically' to hold of, refuting the obligation."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

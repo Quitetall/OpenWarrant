@@ -28,8 +28,20 @@ Operations, in this order, each {"op":"create_atom","role":R,"ordinal":N,"path":
  - role "assurance", ordinal 60, path "60-assurance.md": "# Assurance" with "## Acceptance Obligations" containing "### OBL-001 — <title>" blocks, each with bullets "- **scope:** ...", "- **gate:** `gate://software.repo.war-check@1.0.0`", "- **evidence:** ..."; then "## Gate Adequacy" with the line "Required at `<assurance>`.", a "**Adversarial question:** ..." paragraph and "- **outcome:** gap_accepted"; then "## Residual Risk" bullets.
 Then exactly one {"op":"add_relation","relation_kind":"roadmap","relation_ref":"roadmap://<NAMESPACE>-PHASE-2/plan"} where <NAMESPACE> is the request namespace.
 If the request would require a durable architectural choice (a format, a dependency, a protocol boundary), add {"op":"propose_adr","adr_title":"<title>","body":"<markdown with ## Status, ## Context, ## Decision, ## Consequences>"} — never bury such a choice in the work order.
-If the request is too vague to draft without a human answer, answer instead with {"api_version":"oh.war/draft-proposal/v2","proposed_identity":{...},"operations":[],"risk_assessment":"...","blockers":[{"id":"Q1","question":"..."}]}.
+If the request is too vague to draft without a human answer, never guess a Warrant: answer instead with {"api_version":"oh.war/draft-proposal/v2","proposed_identity":{"title":"<what the request seems to ask for>"},"operations":[],"risk_assessment":"...","unresolved_questions":[{"id":"Q-001","question":"<the one question whose answer unblocks the draft>","removes_blocker":true}]} — ask the minimum: usually one question. Ids are letters, digits and dashes. The request field "answers" carries answers a human already gave, by question id; do not ask those again. The proposal has no other top-level fields: any other field is refused.
 Write no files. Run no tools. Output the JSON only.'
+prompt="Draft a Warrant for the oh.war/draft-request/v1 document on stdin. Output the proposal JSON only."
+# OW-WAR-0148 M7: `war plan --records` / `war create --draft --records` send
+# an oh.war/records-request/v1 instead; it is answered with records.
+if [[ "$(printf '%s' "$request" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("api_version",""))' 2>/dev/null)" == "oh.war/records-request/v1" ]]; then
+    prompt="Draft typed records and a ticket for the oh.war/records-request/v1 document on stdin. Output the proposal JSON only."
+    system='You are the drafting agent behind `war plan --records` (OpenWarrant). You will receive an oh.war/records-request/v1 JSON document on stdin: a human sentence (user_request), an optional area, the governing profile, the record types it declares (record_types), the relation kinds a record may use (relation_kinds), the relations it requires (required_relations, as [from type, kind, to type]: every record of the first type needs at least one such relation to a record of the last type), the kinds a ticket item may use (item_relation_kinds), and every record already in the program (existing_records: id, type, area). Answer with EXACTLY ONE JSON document and nothing else — no prose, no code fence — an oh.war/records-proposal/v1:
+{"api_version":"oh.war/records-proposal/v1","title":"<short noun phrase>","area":"<lowercase-dashed area, only when the request names none>","records":[{"id":"<ID>","type":"<one of record_types>","title":"<one sentence>","body":"<optional markdown>","relations":[{"kind":"<one of relation_kinds>","target":"<a record id>"}]}],"ticket":{"title":"<imperative title>","body":"<optional one paragraph>","items":[{"text":"<one line of work>","implements":["<record id>"]}]}}
+Records: the durable facts of the work — usually one outcome (what a user can do afterwards), the requirements that serve it (each testable, each `implements` an outcome), constraints on them (`constrains`), and a decision where a real choice was made (with its options and `selected_over` when they matter). Ids are an uppercase prefix by type (OUT, REQ, CON, DEC, OPT), a dash, and a short lowercase-alphanumeric suffix unique to this area (e.g. REQ-pre1); never reuse an id in existing_records. Relate to existing records by id where the sentence touches them. Every target is a record you propose or one in existing_records. Satisfy every required relation. A title or body line never starts with "## " and is never just "<word> <ID>".
+Ticket: 2 to 6 items, each one line of work; an item that delivers a record lists it in implements (only ids you propose or that exist), an item that delivers none lists none.
+If the sentence is too vague to draft without a human answer, answer instead with {"api_version":"oh.war/records-proposal/v1","title":"<what it seems to ask for>","records":[],"unresolved_questions":[{"id":"Q-001","question":"<the one question>","removes_blocker":true}]}. The request field "answers" carries answers already given, by question id. No other top-level fields: any other field is refused.
+Write no files. Run no tools. Output the JSON only.'
+fi
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 version=$(claude --version 2>/dev/null | head -1)
 # The system prompt travels as an argument and is therefore visible in `ps`
@@ -37,7 +49,7 @@ version=$(claude --version 2>/dev/null | head -1)
 # why that is acceptable here.
 # The prompt comes FIRST: --disallowedTools is variadic and would swallow a
 # trailing positional. The request itself rides on stdin.
-out=$(printf '%s' "$request" | claude -p "Draft a Warrant for the oh.war/draft-request/v1 document on stdin. Output the proposal JSON only." "${args[@]:1}" --append-system-prompt "$system" 2>/tmp/claude-drafter.$$.err) || status=$?
+out=$(printf '%s' "$request" | claude -p "$prompt" "${args[@]:1}" --append-system-prompt "$system" 2>/tmp/claude-drafter.$$.err) || status=$?
 status=${status:-0}
 finished=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 # Strip a code fence if the model added one despite the instruction.

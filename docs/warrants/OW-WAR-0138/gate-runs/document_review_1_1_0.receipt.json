@@ -1,0 +1,31 @@
+{
+  "run_id": "GR-document.review@1.1.0",
+  "gate_definition_digest": "sha256:8609cedd42bcd90eba7891d78c2288ac308eb7357ce9bec1f3d44f8e8098479e",
+  "gate_binding_digest": "unbound:document.review@1.1.0",
+  "subject_digests": [
+    "contract:sha256:fd5fcadb2c0492499449495f330de0f8ca81edbf192ef435275001bae2a5776f",
+    "deliverables:sha256:e527b4292d6e4cd9fa783e367052ec7c9ff31691a2ce2bebfafdf2dfc4dadc2c",
+    "tree:9729d66838274661a8b7382db6ef1108887babec"
+  ],
+  "fixture_digests": [],
+  "runner": "war gate --run",
+  "runtime_environment": "linux x86_64 / rustc 1.97.1",
+  "arguments": [
+    "./target/debug/war",
+    "document",
+    "review",
+    "OW-WAR-0138"
+  ],
+  "working_directory": "/mnt/4tb/tmp/ow-mvp-alpha1",
+  "started_at": "2026-09-27T22:34:58Z",
+  "completed_at": "2026-09-27T22:34:58Z",
+  "exit_result": "pass",
+  "selected_test_count": 0,
+  "selected_test_manifest": [],
+  "raw_evidence_refs": [],
+  "stdout_ref": "docs/warrants/OW-WAR-0138/gate-runs/document_review_1_1_0.stdout.txt",
+  "stderr_ref": "docs/warrants/OW-WAR-0138/gate-runs/document_review_1_1_0.stderr.txt",
+  "resource_usage": "wall-clock only; 4 argv item(s)",
+  "verdict": "pass",
+  "receipt_digest": "sha256:ad98021be080c2e58c19979745312d5c55ba5315bb08f3d2378693a8b2dadc8a"
+}

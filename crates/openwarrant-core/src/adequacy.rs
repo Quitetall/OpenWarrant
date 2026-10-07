@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Contract-adequacy review (SAS §39, RQ-055).
 //!
 //! §39 opens: "The authoring process SHALL test whether the gate set

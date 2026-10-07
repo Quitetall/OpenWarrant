@@ -1,0 +1,19 @@
+obligation = "OBL-006"
+disposition = "established"
+evidence = """D-008 (docs/friction/baseline-2.json) is a release build (war.build_profile:"release", sha256 4562c664…f5c3, status:"complete") whose intake section has human-file-issue and human-next-contact rows with asks all-empty except outside_war/observed_queue_rows and time:"not_measured" (never a number), plan-issue and queue rows carrying only median_ms/max_ms, and observed_queue_rows showing exactly one 'authorize' row per of the 5 runs. D-009 (docs/FRICTION.md) reproduces these same figures in its intake table and gives an explicit met/met/met/'not measured' verdict for each of intake-target-human, intake-target-next-contact, intake-target-tool and intake-target-drafter, and model_latency is recorded as not_measured (consistent with U-006's exclusion). The refusal requirement -- that a record whose human intake step carries a number, including zero, as its time is rejected -- is not demonstrated through conformance/plants.d/50-friction.sh, which deliverables_not_carried and obligation_evidence both mark absent from this bundle; instead it is shown functionally by D-011's (conformance/plants.d/54-intake.sh) embedded `ik_check_intake` routine, and the gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt (lines 314-348) records both 'ok a timed human intake row is refused "time": 0 → refused' and '... "time": 4200 → refused' passing, alongside 'ok the script records the intake rows', 'ok baseline-2 is a release record', 'ok FRICTION.md's intake rows match' and 'ok an intake doc row off by 1 ms' (confirming the doc/baseline cross-check actually detects a mismatch). Taken together, within the stated scope (measure.sh's intake rows, one release-build baseline-2.json, and FRICTION.md at delivery), the bundle shows the record's structure, the doc-baseline match, and the numeric-human-time refusal all functioning and passing under this gate run, so the obligation is established notwithstanding that the specific enforcing script named in the evidence bullet (50-friction.sh) is not itself carried."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

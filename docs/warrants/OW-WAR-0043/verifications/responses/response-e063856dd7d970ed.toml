@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0043"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "atoms/20-basis.md states the resolution requirement is 'a named LamQuant commit, agreed and frozen for the duration of the import' and names it as SHA-F = ba9ed833faa9a52940d5e9d424566466e9066867 (LamQuant ADR 0186 clause 5). But atoms/60-assurance.md EV-001's recorded method is `war migrate --corpus /mnt/4tb/LamQuant/docs/decisions --commit 0e0e04a7a6cff7901c073c27cc233d9af9f11664` — a different 40-character commit entirely. The import the bundle documents did not run against the commit the Basis identifies as agreed and frozen, so the claim that 'the import ran against one named, frozen commit' (i.e. the one this Warrant froze) does not hold on this bundle's own evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The only executable evidence in the bundle for byte preservation is D-001's unit test the_body_is_preserved_byte_for_byte_and_its_digest_recomputes, which runs against a single synthetic ADR in a scratch temp corpus, not the frozen 173-ADR LamQuant corpus the obligation's scope names. The claim about the real corpus, OBS-001 ('173 ADRs imported ... zero preservation failures'), is sourced from EV-001, whose admissibility is performer_report_only and whose digest is the placeholder 'sha256:pending-receipt-binding' — not a sealed, independently checkable measurement. The import artifact itself (artifacts/lamquant-adr-import.json) is not among the carried deliverables. Combined with the commit discrepancy noted under OBL-001, the bundle does not show which corpus, if any, was actually measured for the zero-differences claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "D-001's unit test attempting_to_promote_a_completion_line_is_refused only checks that the error message contains the substring 'HISTORICAL' on a single synthetic ADR — it never exercises or names 'LegacyCompletionPromoted', which is the specific refusal the obligation requires and which lives in openwarrant_core (not a carried deliverable). The obligation's other required evidence — a plant against the shipped binary via `--attempt-promotion` over the real corpus naming '0057-training-campaign-plan.md' — is only asserted in OBS-003/EV-003, whose digest is again the placeholder 'sha256:pending-receipt-binding' and whose admissibility for the artifact half is performer_report_only; no raw stdout of that invocation appears anywhere in gate_runs (the only gate run present, GR-software.repo.war-check@1.0.0, runs `war check --generated`, not `war migrate --attempt-promotion`). The bundle asserts the zero count and the named refusal but does not show either against the real corpus and shipped binary."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "The obligation requires all seven plants (§91.4 test 24, §91.5 tests 30-35) in conformance/, each rejected by a named rule. atoms/60-assurance.md's own JDG-001 states plainly that only one plant exists (§91.5 test 31, evidenced by EV-004/OBS-004 — 'relations.child-listed' rejecting a removed child line), and enumerates the remaining six (test 24, 30, 32, 33, 34, 35) as not planted, each with a stated reason a rule or decision is still missing, per atoms/20-basis.md's 'Known gap' section. obligation_evidence also confirms conformance/ is not a carried deliverable of this Warrant. The bundle's own record therefore affirmatively shows six of the seven required plants do not exist, refuting the claim that 'the parent/child and ADR conformance tests are planted.'"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

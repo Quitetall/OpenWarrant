@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's obligation_evidence has an empty named_paths list and deliverables is empty, so no queue/questions/frontier pane source and no plant result comparing rendered rows to `war sign --list`, nor any record of a TUI-originated `war answer`/`war perform`/`war run` call, is present in the bundle. The single gate run is the generic corpus-wide `war check` record-validity scan, unrelated to comparing the TUI's queue against `war sign --list` output. war sign --list, war perform, and war run are shown_in 'atoms' only (the Warrant's own text), not evidenced by any executed comparison or receipt."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

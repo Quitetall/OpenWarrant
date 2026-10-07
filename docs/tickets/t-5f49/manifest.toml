@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-5f49` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-5f49"
+uuid = "01a0dcf2-e5bb-7272-bc67-7b317090eb0d"
+title = "war ui answers 431 instead of 413 for an oversized body, under load"
+profile = "ticket"
+priority = 3
+created_at = "2026-09-26T09:01:41Z"
+created_by = "claude"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

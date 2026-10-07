@@ -1,0 +1,16 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization, and `answered_by` is an attribution, not a proof: a
+# signature binds an ACT, and an answer is not one. `war questions
+# --open` lists what awaits an answer. Regenerated when answered, so
+# a comment added below this header does not survive.
+
+schema = "oh.war/question/v1"
+id = "Q-003"
+warrant = "OW-WAR-0142"
+stage = "STAGE-003"
+asked_by = "agent://claude"
+asked_at = "2026-09-24T08:38:02Z"
+question = "Under A, may a covered (routine) Warrant take ownership of a path whose current owner is an authorized but unresolved Warrant? OW-ADR-0021 would let the later authorization own it. Answer 'refuse' or 'allow'."
+blocking = true
+recommended = "refuse. Routine work should not silently take a file from work in flight. The in-flight Warrant resolves first, or you sign the routine change individually."

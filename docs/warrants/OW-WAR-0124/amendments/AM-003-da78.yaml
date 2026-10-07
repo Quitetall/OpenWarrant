@@ -1,0 +1,25 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-003-da78"
+band: "manual_revision"
+reason: "OBL-005 and OBL-006 cite gate://software.repo.war-check@1.0.0, a static `war check` that runs neither telemetry nor a test. OBL-005's evidence, `war telemetry --commit <baseline commit> --verify` against artifacts/telemetry-baseline.json, cannot pass for any reason this Warrant controls: that artifact (last written at 143f2de9, labelled 6e08dd6) is a record of one moment taken by an earlier collector, and today's collector, run in a clone checked out where the artifact was written (143f2de9) and at the commit it names (6e08dd6), differs from it in its method texts, in `auto-authorizable fraction` (0 then, not measured now) and by one untracked-work candidate; at HEAD the corpus has moved as well — changes made by other Warrants before and after this one. The claim OBL-005 makes is that a repository without `[adoption]` counts untracked work from all history, as before; conformance/plants.d/59-adoption.sh (D-008) now asserts that on this repository, recounting §95's rule from `git log` independently of telemetry.rs. OBL-006's 'no line of the diff touches …' is likewise asserted by 59-adoption.sh, which compares the six named regions of guided.rs before and after each OW-WAR-0124 commit, with a planted refusal. OBL-006's 'pass unmodified' remains: this amendment does not claim a test run, and no registered gate runs cargo test. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-44.6"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. D-008 (59-adoption.sh) gains the OBL-005 and OBL-006 plants, already delivered. 60-assurance.md carries the `after` texts as revision 4, the contract digest moves, and the signature authorizes that revision. OBL-006's test-run half stays unestablishable until a gate that runs cargo test is registered; the owner may instead strike it by a further amendment."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-27"
+
+semantic_diff:
+  - element: "gates"
+    before: "OBL-005 and OBL-006 cite gate://software.repo.war-check@1.0.0."
+    after: "OBL-005 and OBL-006 cite gate://ops.conformance.plants@1.1.0; the evidence is 59-adoption.sh's OBL-005 and OBL-006 lines."
+  - element: "obligations"
+    before: "OBL-005 evidence: `war telemetry --commit <the committed baseline's commit> --verify` against `artifacts/telemetry-baseline.json` still passes."
+    after: "OBL-005 evidence: on this repository, `war telemetry` reads all history ('all history (no [adoption] baseline)'), writes no `adoption_baseline`, and its §95 count equals the count recomputed from `git log` by the rule telemetry.rs states. Refusal: 'no baseline reads all history' and the bounded count in a scratch repository with `[adoption]` (OBL-002's plants)."
+  - element: "obligations"
+    before: "OBL-006 evidence: … no line of the diff touches `render_roles`, `render_allowed_signers` or the Signer and KeyLoaded arms."
+    after: "OBL-006 evidence: … for each commit naming OW-WAR-0124 that changed guided.rs, `render_roles`, `render_allowed_signers`, the Signer and KeyLoaded arms of `answer`, and the two named tests are byte-identical before and after. Refusal: a line planted in render_roles is reported."
+
+affected_stages: []
+affected_milestones: []

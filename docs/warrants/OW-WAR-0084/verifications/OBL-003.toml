@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There is no independent reproduction/review artifact, no baseline-condition record, and no signed human-acceptance record for this exact result; deliverables and OBL-003's obligation_evidence are both empty. atoms/20-basis.md and atoms/60-assurance.md themselves state the RC.3 candidate is 'unverified' and 'these implementation observations are NOT RUN until attached evidence proves them,' and the war-check stdout confirms '143 of 143 Warrant(s) have no disposed obligations' (which includes OW-WAR-0084), so qualification evidence is absent rather than merely unshown."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

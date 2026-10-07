@@ -1,0 +1,16 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization, and `answered_by` is an attribution, not a proof: a
+# signature binds an ACT, and an answer is not one. `war questions
+# --open` lists what awaits an answer. Regenerated when answered, so
+# a comment added below this header does not survive.
+
+schema = "oh.war/question/v1"
+id = "Q-002"
+warrant = "OW-WAR-0142"
+stage = "STAGE-003"
+asked_by = "agent://claude"
+asked_at = "2026-09-24T08:38:02Z"
+question = "Under A, what bounds does a class carry by default? The draft proposes an expiry of at most 90 days from signing, at most 50 covered Warrants, and a ceiling of 24000 budget_tokens and 1800 wall_time_seconds per stage. Answer with the numbers, or 'as drafted'."
+blocking = true
+recommended = "as drafted: 90 days, 50 Warrants, 24000 tokens and 1800 s per stage. Revoking or re-signing a class is one act, so short bounds are cheap."

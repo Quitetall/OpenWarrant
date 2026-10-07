@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "D-002 (blut-plan-check-2026-09-03.md) records BLUT's own verbatim verdict 'PASS blut.accepted' with fingerprint b69b886e4c9f and exit 0, confirming the lowered PlanSpec was accepted by the external binary; D-003 (OW-WAR-0047.planspec.json) is the emitted PlanSpec that was accepted."
+evidence = "D-001 (crates/openwarrant-cli/src/blut.rs) implements the §49.2 lowering, including PORT_KIND_MAP mapping named WAR port types to BLUT artifact kinds and the `lower`/`verify` functions that hand the generated PlanSpec to a real BLUT binary. D-003 (OW-WAR-0047.planspec.json) is the exact PlanSpec produced. D-002 (blut-plan-check-2026-09-03.md) records BLUT's own verbatim stdout: 'PASS blut.ports-mapped OW-WAR-0047: 3 port(s) map to kinds BLUT declares' and 'PASS blut.accepted OW-WAR-0047: BLUT accepted the lowering (fingerprint b69b886e4c9f, 8 recipes registered, exit 0) — reported by /mnt/4tb/LamQuant/training/cookbooks/lamquant/target/release/lqt'. This shows a stage graph with named typed ports (3 mapped ports) was lowered and a valid PlanSpec was accepted by BLUT itself, matching the obligation's stated evidence within its scope."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

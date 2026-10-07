@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 likewise names no paths or terms, and no plants (plants: []) or deliverables addressing refusal behavior are carried. The only gate run checks manifest/journal/authority/milestone structure (e.g. 'PASS manifest.valid', 'PASS journal.append-only', 'PASS authority.signed'), not runtime refusal conduct at the SDK/provider boundary, and its NOT CHECKED section reconfirms 'war check does not run gates.' No observed refusal or unchanged-prior-output-on-failed-write evidence appears, so the claim is undecidable from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

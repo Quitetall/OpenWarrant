@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0081"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables (deliverables: []), no conformance plants (plants: []), and no prior verifications. The only gate run present is software.repo.war-check@1.0.0 (run GR-software.repo.war-check@1.0.0), which is a structural/authority check over the repo's Warrant records, not an execution of decode_packet/check_packet_integrity or any offline-provider export. Nothing in the bundle shows explicit inputs, outputs, exit codes or fixture/build revisions for the S05 integrity subset or T32–T37 packages that OBL-001 requires, so the scoped behavior is not observed here."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No plants, deliverables, or gate output addressing malformed/incomplete/conflicting/over-limit/authority-confused inputs are present anywhere in the bundle. The sole gate run (software.repo.war-check@1.0.0) is a structural check of Warrant metadata and its printed output contains no reference to boundary refusal behavior for decode_packet/check_packet_integrity or the provider export path, so there is no observed refusal evidence to decide this obligation either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "prior_verifications is empty and no independent reproduction/review artifact or human-acceptance record for this exact result is included in the bundle; the only gate run is the automated software.repo.war-check@1.0.0 structural check, which is not independent qualification evidence for OBL-001/002. With no such record carried, qualification cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The obligation's own designated gate, software.repo.war-check@1.0.0 (run GR-software.repo.war-check@1.0.0), ran with subject_digests binding it to this Warrant's authorized contract (contract:sha256:7886b09...c2d4e, matching authorized_contract_digest) and returned verdict 'pass'. The truncated stdout shows the OW-WAR-0081-specific line 'PASS identity.atom-mismatch OW-WAR-0081: 4 atom(s) name this Warrant's UUID' and a non-blocking 'sas.pin-superseded' WARN (listed in the remedies as 'human war sas repin OW-WAR-0081'), and the run's own summary totals '2031 pass · 246 warn · 0 unknown · 0 error (worst: WARN)' across the whole corpus, meaning no structural error occurred for any Warrant including OW-WAR-0081. This is exactly the structural-check evidence OBL-004's scope calls for (authored records/references, no runtime or assurance claim), so it is established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

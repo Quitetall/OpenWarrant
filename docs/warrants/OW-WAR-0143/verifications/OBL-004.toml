@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = """crates/openwarrant-cli/src/install.rs (D-003) shows the unmanaged-PATH check running before any release fetch or download: when no entry on PATH is managed, `update` pushes `update.unmanaged` for every entry via `unmanaged_remedy`, which emits `CARGO_LINE` for a `.cargo/bin` binary and `INSTALL_SH_LINE` otherwise, then returns before `releases()`/archive download is ever called. Later in the same function, an unmanaged entry beside a managed one is reported `update.not-ours` and `continue`d over (never written), while the managed symlink is repointed. `Install::remedy` returns `war update --to <v>` when any on_path entry `is_managed`, else `INSTALL_SH_LINE`, matching the obligation's evidence text exactly, and is covered by the unit test `remedy_names_update_for_a_managed_link_and_install_sh_otherwise` shown in the same file. The conformance battery (conformance/plants.d/61-update.sh, D-012) runs exactly the three named PATH configurations (`up_unmanaged` against a copied binary at u1, a `#!` script at u2, and a binary at `$UP_HOME/.cargo/bin/war`), each asserting `update.unmanaged`, zero archive GETs (`up_gets /dl/ == 0`), and byte/mode/mtime equality before and after, plus the managed-link-beside-unmanaged-script case and the `remedy("99.0.0")` check. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, contract digest matching this bundle's `authorized_contract_digest`) shows all five corresponding lines passing verbatim in its stdout excerpt: 'a copied binary is refused ... update.unmanaged, no download, untouched', 'a #! script is refused ...', 'a ~/.cargo/bin binary is refused ... names: cargo install --locked openwarrant-cli', 'a managed link is repointed beside an unmanaged war ... update.repointed; the script update.not-ours, untouched', and 'remedy(99.0.0): update when managed, install.sh when not ...'."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

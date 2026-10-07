@@ -1,0 +1,254 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "the assignment record and its validation"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/assignment.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6eb62f2ed418a9495ad9fda425556d27f4057144b2af45228f9f5107eb52c3dc"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "the authorization request lists and echoes the assignment"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d7d1a247ee9faeb8af60877ac3e3e9381ebdfc36bbc358aa964def5ed799ad9d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "eligibility narrowed by assignment; the per-actor list"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "war inbox --as"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/inbox/mod.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:baa758f5f71fc2be55b586d2ecfc00f4e951070562a856af60aaf6a5bfc62b75"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "verify ingest checks the assigned verifier and its role"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:059ab2d1ecf4d31724d162a26c5529dadd2cdcc077dee66bd7f2fd7bad21253d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "docs/TEAMS.md"
+kind = "file"
+target_ref = "docs/TEAMS.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:eb792b1e204f8f4cd31ff49a2727b23adb9ad6601866e562426177412ccda6a7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "THREAT_MODEL row: assignment and verdict attribution"
+kind = "file"
+target_ref = "docs/THREAT_MODEL.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/57-teams.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:031f2da7fdee917541f8ebd25d2cd9ffefb7dd9628f02c8ce002d556e98e2c2b"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "`war sign --list --as`, `war inbox --as`, `sign --list --json`, the review record after `war show` (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "`war check` names a moved or malformed assignment (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "each Warrant's review record in `war status --json` (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-012"
+title = "the review record's type in the corpus status (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/status.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:7673d3693340f2b0c3fe14af6d5d51890c99d6c3cb844a685d484a104bb72e2f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-013"
+title = "a resolution from an unassigned resolver is refused (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "659119be4a59f371efbd1156d27416993d3461120ef866498c1cbb13b611e0a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0d5c3aad354f9868c58d539dd7a71bc82ca6da4b35250e136d4ea8f67c56dfec"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

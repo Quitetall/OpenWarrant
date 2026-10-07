@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0131"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-001 (crates/openwarrant-cli/src/perform.rs, fully carried, untruncated) shows the exact `cfg` gate: `Os::group_kill()` returns `cfg!(unix)`, and `admitted()` pushes `perform.unsupported-os` and returns false before `perform_one` (and thus before `compile`/`hand_over`/`host.spawn`) is ever reached when `group_kill()` is false. The unit test `a_platform_without_the_group_kill_is_refused_before_anything_runs`, present in D-001's test_names and body, drives a `FakeHost{group_kill:false}` through both `run_on` and `all_on`, asserting the diagnostics are exactly `[\"perform.unsupported-os\"]`, that the report is not ready, and `host.spawns.get() == 0` — matching the obligation's evidence bullet on the unit test forcing the non-unix branch. The companion test `this_build_has_the_group_kill_exactly_on_unix` pins `Os.group_kill()` to `cfg!(unix)` for whatever target compiled it. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt at line 771, 'ok    Linux is admitted                  no perform.unsupported-os on this OS; the refusal is unit-tested', combined with D-006's corresponding check in `conformance/plants.d/60-perform-cancel.sh` (grep for `perform.cancelled` present and `perform.unsupported-os` absent across the OBL-001/OBL-002 runs on this runner), confirms empirically on Linux that the group-kill (supported) branch, not the refusal branch, is what actually got compiled and exercised in the OBL-001/OBL-002 plant runs — satisfying the obligation's second evidence bullet exactly as scoped ('on Linux, the plants in OBL-001 and OBL-002 run, which shows the supported branch is the one compiled')."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

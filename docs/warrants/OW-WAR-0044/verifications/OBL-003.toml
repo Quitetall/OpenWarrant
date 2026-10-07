@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test, plant, or receipt in the measured evidence specifically addresses Git remaining Source Holder after registration or refuses a plant asserting KF as Source Holder for an authored atom."
+evidence = "OBL-003's scope is explicitly 'for the registered Warrant,' but JDG-001/OBS-007 establish that no registration ever completed (the write stopped at a 404 before any action was recorded). Neither the D-001 deliverable, the gate run GR-software.repo.war-check@1.0.0 (whose visible excerpts are generic repo-wide PASS/WARN lines such as manifest.valid, journal.append-only, sas.pin-superseded — nothing about post-registration Source Holder status), nor any plant addresses whether authored atoms would still resolve to Git after a registration event, because that event is not shown to have occurred."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

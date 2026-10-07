@@ -1,0 +1,35 @@
+# The decision profile (SAS §16.3), as data (OW-WAR-0140).
+#
+# A core profile: §16.3 fixes its roles, and this file restates them. The
+# registry refuses a copy that differs, so a program cannot loosen `decision`
+# by editing this file. A new profile EXTENDS a core one; see docs/PROFILES.md.
+schema = "oh.war/profile/v1"
+name = "decision"
+core = true
+note = "A decision recorded as an ADR: intent, basis, the decision, assurance."
+
+# §16.3, in §16.1's canonical order. `control` and `relations_and_integrity`
+# are compiler-produced: required, and never authored in a manifest.
+required_roles = [
+    "control",
+    "intent",
+    "basis",
+    "adr",
+    "assurance",
+    "relations_and_integrity",
+]
+
+# OW-ADR-0031: every capability but `stages`. A decision has no milestone
+# graph, so §56.1 requirement 12 (runtime receipts) is not applicable to it,
+# named, rather than unmet forever. A core profile restates its kind data;
+# the registry refuses a copy that differs.
+capabilities = [
+    "structure",
+    "links",
+    "claims",
+    "acceptance",
+    "evidence",
+    "verification",
+    "authorization",
+    "resolution",
+]

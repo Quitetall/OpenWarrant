@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0012"
+
+[correction]
+id = "01a0d0cb-1012-70e0-9560-ad031f803129"
+deliverable_id = "D-001"
+target_ref = "crates/openwarrant-core/src/context.rs"
+sequence = 1
+superseded_digest = "sha256:4abca1be9caf5e2d5f12c9f9a5ff0e472cd23b8a108a3b9dbff74c738568df08"
+new_digest = "sha256:f0b6fc75fa3d8842fac47ae99c6d0f194c4a54713e47c8f5e38a8cdbdc0a1158"
+reason = "The SPDX identifier moved with the relicense to Apache-2.0 (OW-ADR-0017); the licence changed and the behaviour did not. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-24T00:22:43Z"
+recorded_at = "2026-09-24T00:22:43Z"

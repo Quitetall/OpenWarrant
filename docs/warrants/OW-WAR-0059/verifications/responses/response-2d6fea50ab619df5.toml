@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "The bundle carries no plants (plants array is empty) and obligation_evidence for OBL-006 shows resolution.toml is absent for OW-WAR-0059 ('no deliverable of OW-WAR-0059 and no file at this path: not carried'), so the required scenario — a well-formed resolution.toml binding a stale digest, refused by war check as resolution.stale, with the projection reporting binds_current_contract = false — is nowhere demonstrated. The terms binds_current_contract = false and binds_current_contract are listed with shown_in: [], meaning no location in the bundle shows the projection's staleness reporting for a resolved-then-moved Warrant. The gate run stdout excerpts for GR-software.repo.war-check@1.0.0 show many PASS/WARN lines for OW-WAR-0059 (manifest.valid, evidence.stale-binding, journal.append-only, sas.pin-superseded, gate.resolved, etc.) but no resolution.stale or resolution.recorded line, consistent with no resolution existing to test staleness against. D-002 (resolution_cmd.rs) contains the code implementing the resolution.stale check in its `check` function, but per §51.3 a performer's code is not evidence of behavior — only an executed, admissible check counts, and none is shown here. The prior verification by claude-verifier reached the same not_established conclusion on identical grounds."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

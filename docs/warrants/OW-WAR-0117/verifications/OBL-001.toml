@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (tools/verifier/claude-verifier.sh) is present untruncated and D-003 (conformance/plants.d/62-verifier.sh) is present untruncated, and gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, receipt sha256:80b54f5c...) recorded stdout that, within the '== the blind verifier (OW-WAR-0117) ==' block, shows 'ok verdicts pass through 1 established, 1 refuted, evidence kept' and 'ok the model cannot name itself identity and flags identical with and without its claims'. These are exactly the two evidence items OBL-001 asks for: a fixture's dispositions/evidence reaching the response, and a fixture that also claims a verifier/actor/independence flags producing a byte-identical response (per D-003's vf_flags/VF_GOOD_FLAGS diff and 'claim' mode). obligation_evidence lists no cut_from for the 'claude' term relevant here, so nothing needed was truncated."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
