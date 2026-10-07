@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war sas` — the SAS as a controlled document (SAS §101; §34.1–§34.4).
+//! `war sign sas` — the SAS as a controlled document (SAS §101; §34.1–§34.4).
 //!
 //! # Two halves, again
 //!
-//! `war sas propose <version>` writes a proposed revision: the document's
-//! digest, a §106 snapshot, the diff against its predecessor. `war sas accept
+//! `war sign sas propose <version>` writes a proposed revision: the document's
+//! digest, a §106 snapshot, the diff against its predecessor. `war sign sas accept
 //! <version>` emits a request; `--response <file>` ingests a human's
 //! acceptance through the authority register, which refuses every agent
 //! regardless of what the response claims. The split is the one `war
@@ -96,7 +96,7 @@ pub fn propose(repo: &Repository, version: &str) -> Result<Report, RepoError> {
         ),
     ));
     report.note(
-        "Proposed, not accepted. §101.2's accepted revision needs a human: `war sas accept <version>` \
+        "Proposed, not accepted. §101.2's accepted revision needs a human: `war sign sas accept <version>` \
          emits the request, `--response <file>` ingests the signature."
             .to_owned(),
     );
@@ -383,7 +383,7 @@ pub fn diff(repo: &Repository, candidate: &Utf8Path) -> Result<Report, RepoError
     Ok(report)
 }
 
-/// The section half of `war sas diff` (OW-WAR-0125): the candidate's split is
+/// The section half of `war sign sas diff` (OW-WAR-0125): the candidate's split is
 /// shown to be lossless, then every section added, removed or changed against
 /// the document in force is named by id. §106's comparison, beside it, is
 /// untouched: a section that changed says where the prose moved, not whether

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war run <alias> <stage>` and `war submit <alias> <file>` — the ops / runs /
+//! `war evidence run <alias> <stage>` and `war evidence submit <alias> <file>` — the ops / runs /
 //! experiments work kind (slice C4b; SAS §47, §51, §44.6).
 //!
 //! A `service` stage names a registered gate as its executor
-//! (`executor_ref = "gate://<key>"`). `war run` compiles the stage's Dispatch,
+//! (`executor_ref = "gate://<key>"`). `war evidence run` compiles the stage's Dispatch,
 //! runs that gate under the smaller of the stage's `wall_time_seconds` and
 //! the gate's own timeout, mints a §44.6 receipt whose subject is the
 //! **dispatch digest**, and writes a Stage Submission (§51) whose requested
@@ -11,7 +11,7 @@
 //! failure or a timeout. Never anything else: a run cannot ask to be
 //! resolved, and `validate_requested_action` refuses `resolve` by name.
 //!
-//! `war submit` ingests a submission something else produced (an agent, a
+//! `war evidence submit` ingests a submission something else produced (an agent, a
 //! BLUT job) through the same two refusals — it must name a dispatch this
 //! Warrant compiled, and it may not request its own completion — and writes
 //! it under `submissions/` only when both hold.
@@ -122,7 +122,7 @@ fn record_submission(
     Ok(path)
 }
 
-/// `war run <alias> <stage>`.
+/// `war evidence run <alias> <stage>`.
 pub fn run(
     repo: &Repository,
     alias: &str,
@@ -174,9 +174,9 @@ pub fn run(
             &mut report,
             "run.not-a-service",
             format!(
-                "{alias}/{stage_id}: executor_kind is {}; `war run` runs service stages whose \
+                "{alias}/{stage_id}: executor_kind is {}; `war evidence run` runs service stages whose \
                  executor_ref names a registered gate. A human stage is done by a human; an agent \
-                 stage is dispatched with `war dispatch`",
+                 stage is dispatched with `war admin dispatch`",
                 stage.executor_kind
             ),
         );
@@ -401,7 +401,7 @@ pub fn run(
     Ok(report)
 }
 
-/// `war submit <alias> <file>`: ingest an external Stage Submission.
+/// `war evidence submit <alias> <file>`: ingest an external Stage Submission.
 pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let dir = repo.warrant_dir(alias)?;

@@ -356,10 +356,10 @@ pub fn find_block(text: &str) -> Result<Option<Block>, BlockError> {
 pub fn block_text(version: &str) -> String {
     [
         BLOCK_BEGIN,
-        "<!-- Written by `war agents-md --block`, which rewrites the lines between these markers. -->",
+        "<!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->",
         "Ordinary coding needs no Warrant and no ticket: work here as in any repository.",
         "OpenWarrant tracks optional plans and checklists in this repository; run",
-        "`war prime` to see what is tracked (open work, who holds what, recent notes).",
+        "`war view prime` to see what is tracked (open work, who holds what, recent notes).",
         &format!("{STAMP_PREFIX}{version} -->"),
         BLOCK_END,
     ]

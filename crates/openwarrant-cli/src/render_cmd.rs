@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war render <projection> [--of <record or document>]` and the declared
-//! documents `war compile` writes (OW-WAR-0148 M6; OW-ADR-0031).
+//! `war plan render <projection> [--of <record or document>]` and the declared
+//! documents `war admin compile` writes (OW-WAR-0148 M6; OW-ADR-0031).
 //! `docs/DOCUMENTS.md` walks it; `docs/TYPES.md` has the reference.
 //!
 //! # Documents
@@ -36,7 +36,7 @@
 //! lines, an obligation's statement with its scope, evidence and verdict, a
 //! ticket item's text) and every relation — and
 //! `openwarrant_compiler::project::render`, a pure function, does the rest.
-//! `war render` writes nothing.
+//! `war plan render` writes nothing.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -393,7 +393,7 @@ pub fn subject_of(corpus: &Corpus, d: &Declared) -> Subject {
     }
 }
 
-/// Where `war compile` writes projection `def` of document `d`.
+/// Where `war admin compile` writes projection `def` of document `d`.
 #[must_use]
 pub fn path_of(
     repo: &Repository,
@@ -454,7 +454,7 @@ pub fn compile_all<'a>(
     out
 }
 
-/// What `war compile` writes and `war check --generated` compares: each
+/// What `war admin compile` writes and `war check --generated` compares: each
 /// declared projection's path and bytes, or why it cannot be rendered.
 /// Empty, and reading nothing more, for a program that declares no document.
 pub fn compiled(corpus: &Corpus) -> Result<Vec<CompiledFile>, RepoError> {
@@ -533,14 +533,14 @@ pub fn check_generated(corpus: &Corpus, report: &mut Report) {
                     relative.clone(),
                     format!(
                         "the committed {relative} differs from a fresh rendering; it was edited \
-                         by hand or its records changed without `war compile`. Edit the \
+                         by hand or its records changed without `war admin compile`. Edit the \
                          records, then recompile"
                     ),
                 )),
                 Err(_) if repo.config.generated.commit => report.push(Diagnostic::error(
                     "projection.missing",
                     relative,
-                    "missing, and this repository commits generated views; run `war compile`"
+                    "missing, and this repository commits generated views; run `war admin compile`"
                         .to_owned(),
                 )),
                 Err(_) => {}
@@ -591,7 +591,7 @@ pub fn check(corpus: &Corpus, report: &mut Report) {
                 "documents.root-unknown",
                 d.source.clone(),
                 format!(
-                    "document {}: root {root} is not a record of this corpus; `war model \
+                    "document {}: root {root} is not a record of this corpus; `war plan model \
                      --json` lists every record id",
                     d.id
                 ),
@@ -611,7 +611,7 @@ pub fn check(corpus: &Corpus, report: &mut Report) {
     }
 }
 
-/// The declared projections that select `id`, for `war impact`: each with
+/// The declared projections that select `id`, for `war plan impact`: each with
 /// `id` and the other `reached` records it also selects. A projection that
 /// does not select `id` is not listed, whatever else it shows.
 #[must_use]
@@ -656,7 +656,7 @@ enum Of {
     Record(String),
 }
 
-/// `war render`: the rendering, or a report saying why there is none.
+/// `war plan render`: the rendering, or a report saying why there is none.
 /// Writes nothing.
 pub fn run(
     corpus: &Corpus,

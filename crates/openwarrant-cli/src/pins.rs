@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war pins` — every file some Warrant's `deliverables.toml` pins, with the
+//! `war admin pins` — every file some Warrant's `deliverables.toml` pins, with the
 //! Warrant's state, so an agent (or a hook) can refuse the edit BEFORE it
 //! drifts a resolved record.
 //!
@@ -138,7 +138,7 @@ pub fn render(p: &Pins) -> String {
     s
 }
 
-/// `war pins --candidate <rev>` — each pin, and beside every resolved
+/// `war admin pins --candidate <rev>` — each pin, and beside every resolved
 /// Warrant's pins whether the candidate is still the one a human accepted
 /// (OW-WAR-0134): `unchanged`, `moved` with the in-scope paths
 /// (`acceptance.candidate-moved`), or `UNKNOWN` with the reason. The finding
@@ -183,7 +183,7 @@ pub fn candidate(
     ))
 }
 
-/// `war pins --history <path>` — every Warrant that ever governed a path,
+/// `war admin pins --history <path>` — every Warrant that ever governed a path,
 /// oldest first, and whether each delivery still verifies from history.
 ///
 /// A historical pin is a claim about bytes at a moment. The moment is the
@@ -294,7 +294,7 @@ pub fn history(repo: &Repository, path: &str) -> Result<String, RepoError> {
     Ok(s)
 }
 
-/// `war pins --refresh [alias]` — bring an unresolved Warrant's recorded
+/// `war admin pins --refresh [alias]` — bring an unresolved Warrant's recorded
 /// digests back to the bytes on disk.
 ///
 /// The gap this fills: a Warrant is written at the start of the work, its
@@ -306,7 +306,7 @@ pub fn history(repo: &Repository, path: &str) -> Result<String, RepoError> {
 ///
 /// Refused for a RESOLVED Warrant, whose §56.2 record binds
 /// `sha256(deliverables.toml)`: moving a pin there changes what was accepted,
-/// and `war correct` is the act that exists for it. An authorization binds the
+/// and `war sign correct` is the act that exists for it. An authorization binds the
 /// contract, not the bytes, so an authorized-but-unresolved Warrant refreshes
 /// like any draft.
 pub fn refresh(
@@ -331,7 +331,7 @@ pub fn refresh(
                     format!(
                         "{name} is resolved: its §56.2 record binds sha256(deliverables.toml). \
                          Moving a pin here would change what was accepted — \
-                         `war correct {name} <D-id>` records why the file moved"
+                         `war sign correct {name} <D-id>` records why the file moved"
                     ),
                 ));
             }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war gate list` and `war gate run` — local gate execution (SAS §44).
+//! `war evidence gate list` and `war evidence gate run` — local gate execution (SAS §44).
 //!
 //! # Askability is decided BEFORE execution
 //!
@@ -12,7 +12,7 @@
 //!
 //! # This command runs code from the corpus
 //!
-//! `war gate --run` spawns each gate's declared `argv` with the repository root
+//! `war evidence gate --run` spawns each gate's declared `argv` with the repository root
 //! as its working directory. There is no sandbox and no allowlist. A gate
 //! definition is executable content, and `mutating` is self-declared — a gate
 //! that lies about it will still run. Running this against a corpus you did not
@@ -90,7 +90,7 @@ pub fn askability_of(def: &GateDefinition, repo: &Repository) -> Option<ReasonCo
 }
 
 /// The argv item a Warrant-scoped gate writes where the Warrant it is run
-/// for belongs. `war evidence record <alias>` and `war run` replace it with
+/// for belongs. `war evidence record <alias>` and `war evidence run` replace it with
 /// the alias, so the gate reviews that Warrant and its receipt's `arguments`
 /// name it; run with no Warrant, the gate is not askable (`not_run`).
 ///
@@ -412,7 +412,7 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 ///
 /// # Why a verification does not move the tree (t-fed6)
 ///
-/// Nor do the records `war verify` writes under a Warrant's `verifications/`
+/// Nor do the records `war evidence verify` writes under a Warrant's `verifications/`
 /// — each obligation's verdict (`<id>.toml`), the bundle a verifier was
 /// handed (`bundle-<digest16>.json`) and the responses kept under
 /// `responses/` ([`source::is_verification_record`]). They are judgments
@@ -421,7 +421,7 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 /// Bound to the tree, that write staled every tree-bound receipt, and
 /// recording again changed the receipts the verdicts were made against — a
 /// loop with no fixed point. Each verdict is judged by its own ingest
-/// (admissibility, independence, the register) and live by `war resolve`.
+/// (admissibility, independence, the register) and live by `war sign resolve`.
 /// A gate that reads verification records — `document.review@1.0.0`,
 /// `war check` — says nothing about ones written after its receipt: the
 /// stated limit. Anything else under `verifications/` stays bound.
@@ -435,7 +435,7 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 /// Warrant reads it as source. `war check` does validate a ticket's
 /// structure; a receipt says nothing about ticket files written after it,
 /// the same stated limit as above. Anything else in a ticket's directory,
-/// and a Warrant `war promote` drafts, stays bound.
+/// and a Warrant `war plan promote` drafts, stays bound.
 ///
 /// `inputs` and `fixtures` are read from the definition file here rather than
 /// from `GateDefinition`, whose fields are the core crate's; the definition
@@ -603,14 +603,14 @@ pub mod source {
         }
     }
 
-    /// Whether a repository-relative path is a record `war verify` writes
+    /// Whether a repository-relative path is a record `war evidence verify` writes
     /// under a Warrant's `verifications/` (t-fed6):
     ///
     /// - `<warrants>/<alias>/verifications/<name>.toml` — one obligation's
-    ///   verdict (`war verify --response`, `--run`); every `*.toml` directly
+    ///   verdict (`war evidence verify --response`, `--run`); every `*.toml` directly
     ///   there is read as one ([`crate::repo::Repository::load_verifications`]);
     /// - `<warrants>/<alias>/verifications/bundle-<16 hex>.json` — the bundle
-    ///   `war verify --bundle` and `--run` hand a verifier;
+    ///   `war evidence verify --bundle` and `--run` hand a verifier;
     /// - `<warrants>/<alias>/verifications/responses/…` — the whole responses
     ///   `--run` keeps ([`crate::bundle::RESPONSES_DIR`]).
     ///
@@ -694,7 +694,7 @@ pub mod source {
     }
 
     /// Paths no source comparison reads: evidence records, and the
-    /// projections `war compile` writes.
+    /// projections `war admin compile` writes.
     ///
     /// Projections are excluded for the same reason as records, one step
     /// removed: the corpus status projects each run's admissibility, so
@@ -705,7 +705,7 @@ pub mod source {
     /// need to.
     ///
     /// The tree rule skips three classes more: the records a human act writes
-    /// ([`is_authority_record`]), the records `war verify` writes
+    /// ([`is_authority_record`]), the records `war evidence verify` writes
     /// ([`is_verification_record`]) and the files the ticket loop writes
     /// ([`is_ticket_record`]); [`Exclusions::excludes_from_tree`]. Declared
     /// inputs do not — a gate that says it reads one is held to it.
@@ -771,7 +771,7 @@ pub mod source {
         }
 
         /// What the tree rule skips: [`Exclusions::excludes`], the records a
-        /// human act writes, the records `war verify` writes, and the files
+        /// human act writes, the records `war evidence verify` writes, and the files
         /// the ticket loop writes. A signature (t-22fd), a verification
         /// (t-fed6) or a `war claim` / `done` / `note` (t-5d82) after a run
         /// does not move the tree that run names.
@@ -1065,7 +1065,7 @@ pub mod source {
     }
 }
 
-/// `war gate list` / `war gate run`, for no particular Warrant: a gate whose
+/// `war evidence gate list` / `war evidence gate run`, for no particular Warrant: a gate whose
 /// argv names [`WARRANT_ARG`] is listed and run as not askable.
 pub fn run(
     repo: &Repository,
@@ -1370,7 +1370,7 @@ fn validate_bonsai_bindings(
             raw_evidence_refs.len(),
             if raw_evidence_refs.is_empty() {
                 " — pass --evidence-ref file:<path>#sha256:<digest> naming the passing \
-                 `war bonsai check` document"
+                 `war admin bonsai check` document"
             } else {
                 ""
             }
@@ -1545,7 +1545,7 @@ pub mod receipt {
     /// The receipt is VALIDATED before it is written. A malformed receipt on
     /// disk is worse than none: it looks like evidence.
     ///
-    /// No source subjects: this is `war run`'s path, whose receipt is bound
+    /// No source subjects: this is `war evidence run`'s path, whose receipt is bound
     /// to exactly one subject, the dispatch digest, and is checked against
     /// that one subject when a Warrant is preserved. Receipts that count
     /// toward requirement 5 are minted by `war evidence record` through
@@ -1612,7 +1612,7 @@ pub mod receipt {
             fixture_digests: observed
                 .map(|o| o.fixture_digests.clone())
                 .unwrap_or_default(),
-            runner: "war gate --run".to_owned(),
+            runner: "war evidence gate --run".to_owned(),
             runtime_environment: format!(
                 "{} {} / rustc {}",
                 std::env::consts::OS,
@@ -1856,7 +1856,7 @@ mod source_tests {
         ));
     }
 
-    /// t-fed6: what `war verify` writes under `verifications/` is skipped by
+    /// t-fed6: what `war evidence verify` writes under `verifications/` is skipped by
     /// the tree rule, file by file; anything else there, and a verification
     /// directory anywhere but directly in a Warrant, is not.
     #[test]

@@ -4,14 +4,14 @@
 //! (OW-WAR-0143).
 //!
 //! A build from a checkout 62 commits past `v1.0.0-alpha.2` used to print
-//! `war 1.0.0-alpha.2`, and `war update --check` then told it that it was
+//! `war 1.0.0-alpha.2`, and `war admin update --check` then told it that it was
 //! current. The version names a line of development; it does not name a build.
 //! So a build carries its class, its commit and whether its tree was dirty,
 //! and only a `release` build prints the bare `war <version>`.
 //!
 //! This file is shared: `build.rs` includes it by `#[path]` to classify the
 //! workspace at build time, and the crate includes it to read back what
-//! `build.rs` embedded and to answer `war version --probe <dir>`. It therefore
+//! `build.rs` embedded and to answer `war admin version --probe <dir>`. It therefore
 //! uses the standard library alone — `build.rs` has no dependencies.
 //!
 //! Law 15: a build with neither a git checkout nor a `.cargo_vcs_info.json`

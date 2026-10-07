@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! A git merge driver for ticket files (M11): `war merge-ticket`.
+//! A git merge driver for ticket files (M11): `war admin merge-ticket`.
 //!
 //! Two agents on two branches tick two adjacent items of one checklist.
 //! Each changed one line; git's text merge reads two changes that touch and
@@ -8,7 +8,7 @@
 //! The files keep their layout and their bytes: what changes is how git
 //! merges them, through this driver, named in `.gitattributes`
 //! (`merge=war-ticket`) and configured once per clone by `war init` or
-//! `war merge-ticket --install`.
+//! `war admin merge-ticket --install`.
 //!
 //! - A **checklist** merges item by item, keyed by item id: an item changed
 //!   on one side takes that side's line; one changed identically on both is
@@ -39,7 +39,7 @@ pub const GITATTRIBUTES: &str = "\
 # war (M11): journals are append-only lines, so a merge keeps both sides'.
 **/journal.jsonl merge=union
 # war (M11): ticket checklists merge item by item, notes by appending
-# (`war merge-ticket`; `war merge-ticket --install` configures this clone).
+# (`war admin merge-ticket`; `war admin merge-ticket --install` configures this clone).
 docs/tickets/*/atoms/*.md merge=war-ticket
 ";
 
@@ -231,7 +231,7 @@ fn appends(base: &str, ours: &str, theirs: &str) -> Option<String> {
 pub const DRIVER_COMMAND: &str = "if war merge-ticket --probe >/dev/null 2>&1; then \
      war merge-ticket %O %A %B %P; else git merge-file -L ours -L base -L theirs %A %O %B; fi";
 
-/// `war merge-ticket --install`, and `war init`: the `.gitattributes`
+/// `war admin merge-ticket --install`, and `war init`: the `.gitattributes`
 /// lines (each appended when absent) and this clone's driver in git's
 /// configuration. Returns what it did, a line each.
 pub fn install(root: &Utf8Path) -> Result<Vec<String>, String> {
@@ -285,7 +285,7 @@ pub fn install(root: &Utf8Path) -> Result<Vec<String>, String> {
         }
     }
     did.push(format!(
-        "git config merge.{DRIVER}.driver: `war merge-ticket` for this clone"
+        "git config merge.{DRIVER}.driver: `war admin merge-ticket` for this clone"
     ));
     Ok(did)
 }

@@ -23,7 +23,7 @@
 //! A profile may declare `[[states]] name = "in_review", refines =
 //! "in_progress"`. A declared state is a qualifier on its fixed parent:
 //!
-//! - it is entered by an authored, journaled event (`war state`);
+//! - it is entered by an authored, journaled event (`war plan state`);
 //! - it holds only while its parent holds, and lapses when the parent stops;
 //! - refining an authenticated state, it can be entered only while that state
 //!   already holds — `signed_off` refines `verified`, and is never a way to

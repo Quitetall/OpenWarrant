@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war host` — the standalone half of Liminal hosting, `oh.war/liminal-v1`
+//! `war admin host` — the standalone half of Liminal hosting, `oh.war/liminal-v1`
 //! (OW-WAR-0148 M8; SAS §11.3, §82.2–82.4; OW-ADR-0031; docs/LIMINAL_HOST.md).
 //!
 //! One request on stdin, one response on stdout:
@@ -19,7 +19,7 @@
 //!
 //! **One implementation.** The model is built by [`crate::model::build`]
 //! over a [`Corpus`] whose files are the request's basis, held in memory by
-//! [`crate::vfs`] — the same code `war model` runs over the disk. Nothing
+//! [`crate::vfs`] — the same code `war plan model` runs over the disk. Nothing
 //! here interprets a record.
 //!
 //! **Pure.** A hosted run reads no repository and no other file, writes
@@ -45,7 +45,7 @@
 //! is not established — a Node or Relation differs, a projection is
 //! unavailable, an observation was missing, or the basis is no repository.
 //!
-//! `war host --export` writes the request that reproduces a repository's
+//! `war admin host --export` writes the request that reproduces a repository's
 //! model: every file the standalone build read, listed or found, the
 //! observations it made, and its records and relations as Nodes and
 //! Relations. Standalone and hosted runs of the same compiler over it give
@@ -193,7 +193,7 @@ pub struct Member {
     pub hex: Option<String>,
     /// Held by digest only, deliberately: the member is listed and found,
     /// and a reader that needs its bytes is reported (`host.member-withheld`).
-    /// `war host --export` withholds what the standalone build listed and
+    /// `war admin host --export` withholds what the standalone build listed and
     /// never read.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub withheld: bool,
@@ -854,7 +854,7 @@ fn m6_render_seam_kinds() -> &'static [&'static str] {
     &["document"]
 }
 
-/// Render `kind` of `subject` with the same call `war compile` makes
+/// Render `kind` of `subject` with the same call `war admin compile` makes
 /// (`render_cmd::compile_all`, bounded by each document's budget), over this
 /// corpus and model, as `(basis-relative path, bytes)`. One implementation:
 /// a hosted rendering cannot differ from a standalone one.
@@ -892,7 +892,7 @@ fn m6_render_seam(
     Some(Ok(views))
 }
 
-/// A Warrant's committed views, exactly as `war compile` renders them.
+/// A Warrant's committed views, exactly as `war admin compile` renders them.
 fn warrant_views(corpus: &Corpus, alias: &str) -> Result<Vec<(String, String)>, String> {
     let repo = corpus.repo();
     let entry = corpus
@@ -1214,7 +1214,7 @@ fn compare(model: &Model, request: &Request, out: &mut BTreeSet<HostDiagnostic>)
     }
 }
 
-/// `war host`: one request on stdin, one response on stdout.
+/// `war admin host`: one request on stdin, one response on stdout.
 #[must_use]
 pub fn run_stdin() -> u8 {
     let mut bytes = Vec::new();
@@ -1390,7 +1390,7 @@ pub fn export(
     })
 }
 
-/// `war host --export`: the request, one line of JSON on stdout.
+/// `war admin host --export`: the request, one line of JSON on stdout.
 pub fn run_export(repo: &Repository, projections: &[String]) -> Result<u8, RepoError> {
     let asked = projections
         .iter()

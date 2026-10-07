@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! `war perform` (OW-WAR-0069 STAGE-003): an agent stage, started.
+//! `war evidence perform` (OW-WAR-0069 STAGE-003): an agent stage, started.
 //!
-//! `war run` covers a service stage: a registered gate, a receipt, a verdict.
+//! `war evidence run` covers a service stage: a registered gate, a receipt, a verdict.
 //! An agent stage had no runner at all — a human compiled a Dispatch with `war
 //! dispatch`, carried it to an agent by hand, and carried a Stage Submission
 //! back. This is that walk, done by the tool: compile the Dispatch, hand it to
 //! the configured performer on stdin, and ingest whatever it answers through
-//! the same refusals `war submit` applies to a submission that arrived by post.
+//! the same refusals `war evidence submit` applies to a submission that arrived by post.
 //!
 //! What it does NOT do, and cannot:
 //!
 //! - **decide that the work is done.** §51.2 lets a performer ask to continue,
-//!   be verified, block, amend or cancel. `war submit`'s
+//!   be verified, block, amend or cancel. `war evidence submit`'s
 //!   `submission.self-completion` refusal is the one that matters here, and it
 //!   is reused verbatim rather than re-implemented.
 //! - **write a submission the performer did not send.** A performer that
@@ -139,14 +139,14 @@ struct Performance {
     /// The signal that cancelled the run, when one did.
     cancelled: Option<&'static str>,
     /// The performer exited, but something in its group had not by the end of
-    /// the grace: its writer record is kept, and the next `war perform` on the
+    /// the grace: its writer record is kept, and the next `war evidence perform` on the
     /// stage will see it.
     lingering: Option<camino::Utf8PathBuf>,
     stderr_tail: String,
     seconds: u64,
 }
 
-/// `war perform <alias> <stage>`: compile the Dispatch, hand it over, ingest.
+/// `war evidence perform <alias> <stage>`: compile the Dispatch, hand it over, ingest.
 pub fn run(
     repo: &Repository,
     alias: &str,
@@ -180,11 +180,11 @@ fn admitted(host: &dyn Host, report: &mut Report) -> bool {
         "perform.unsupported-os",
         std::env::consts::OS.to_owned(),
         format!(
-            "`war perform` bounds a performer by killing its whole process group, and this \
+            "`war evidence perform` bounds a performer by killing its whole process group, and this \
              platform ({}) has no group kill here: a performer's children would outlive its \
              deadline and a cancellation. Refused rather than run under a weaker bound than the \
              report would claim (§55.2). Linux and macOS are supported; compile the Dispatch with \
-             `war dispatch` and hand it over yourself",
+             `war admin dispatch` and hand it over yourself",
             std::env::consts::OS
         ),
     ));
@@ -245,8 +245,8 @@ fn perform_one(
                 "perform.not-an-agent",
                 at,
                 format!(
-                    "{alias}/{stage_id}: executor_kind is {other}; `war perform` performs agent \
-                     stages. A service stage is run by `war run`, which mints its receipt"
+                    "{alias}/{stage_id}: executor_kind is {other}; `war evidence perform` performs agent \
+                     stages. A service stage is run by `war evidence run`, which mints its receipt"
                 ),
             ));
             return Ok(report);
@@ -258,7 +258,7 @@ fn perform_one(
             "perform.no-performer",
             "openwarrant.toml".to_owned(),
             "no performer is configured: set [perform] performer_argv, or compile the Dispatch \
-             with `war dispatch` and hand it to an agent yourself"
+             with `war admin dispatch` and hand it to an agent yourself"
                 .to_owned(),
         ));
         return Ok(report);
@@ -341,7 +341,7 @@ fn perform_one(
             repo.relative(path),
             format!(
                 "{alias}/{stage_id}: the performer is gone but its process group was still alive \
-                 {}s later; the writer record is kept, and the next `war perform` on this stage \
+                 {}s later; the writer record is kept, and the next `war evidence perform` on this stage \
                  will refuse until the group is gone",
                 READ_GRACE.as_secs()
             ),
@@ -467,7 +467,7 @@ fn discard(outcome: &Performance) {
     }
 }
 
-/// `war perform --all`: every open agent stage, one at a time.
+/// `war evidence perform --all`: every open agent stage, one at a time.
 pub fn all(repo: &Repository, prototype: bool) -> Result<Report, RepoError> {
     all_on(&Os, repo, prototype)
 }
@@ -582,7 +582,7 @@ fn compile(
 /// the performer's pipes. The group kill makes that vanishingly rare — it takes
 /// a grandchild wedged in uninterruptible sleep — and the alternative, joining
 /// it, is the ten-minute hang this bound exists to prevent. A long
-/// `war perform --all` on a box doing that repeatedly would accumulate threads;
+/// `war evidence perform --all` on a box doing that repeatedly would accumulate threads;
 /// what it must never do is stall, which it now cannot.
 ///
 /// Its stdout is written verbatim to `dispatches/answer-<dispatch>.json` and
@@ -919,7 +919,7 @@ fn hotline_admitted(
             ),
             format!(
                 "{alias}/{stage_id} waits on blocking question {} ({:?}), which no human has \
-                 answered. Only this stage waits; a human answers with `war answer {alias} {} \
+                 answered. Only this stage waits; a human answers with `war plan answer {alias} {} \
                  \"<answer>\" --as <actor>`",
                 q.id, q.question, q.id
             ),
@@ -1052,7 +1052,7 @@ fn journal_ended(
 
 /// `dispatches/<dispatch>.writer`: who is performing a Dispatch right now.
 ///
-/// It exists while a performer may write, so a second `war perform` on the
+/// It exists while a performer may write, so a second `war evidence perform` on the
 /// stage can ask whether the first has stopped. The leader's start time is kept
 /// because a pid alone can be reused: a pid that is alive but started at a
 /// different time is not shown to be the writer, and not shown to be gone.

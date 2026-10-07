@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war dispatch` — build the inputs to a Stage Dispatch from a Warrant's own
+//! `war admin dispatch` — build the inputs to a Stage Dispatch from a Warrant's own
 //! records and emit the packet (SAS §47, §33, §52).
 //!
 //! # What the context manifest is built from

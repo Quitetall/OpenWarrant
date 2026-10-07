@@ -147,7 +147,7 @@ enum KfCommand {
 
 #[derive(clap::Subcommand, Debug)]
 enum UiCommand {
-    /// The devices paired with `war ui --lan` for this repository, from the
+    /// The devices paired with `war view ui --lan` for this repository, from the
     /// per-user device file (never a record).
     Devices {
         /// Revoke one device by id; its next request is refused.
@@ -179,7 +179,7 @@ enum RoadmapCommand {
     Edit,
 }
 
-/// `war standing` (OW-ADR-0029): a class of routine work one human
+/// `war sign standing` (OW-ADR-0029): a class of routine work one human
 /// signature pre-authorizes.
 #[derive(clap::Subcommand, Debug)]
 enum StandingCommand {
@@ -250,7 +250,7 @@ enum SasCommand {
     },
 }
 
-/// `war gate <action>` (OW-WAR-0136).
+/// `war evidence gate <action>` (OW-WAR-0136).
 #[derive(clap::Subcommand, Debug)]
 enum GateAction {
     /// Invalidate one Gate Definition version (§45, RQ-057). With
@@ -291,7 +291,7 @@ enum BonsaiCommand {
     },
     /// Validate a completed passing Bonsai evidence document without rerunning Bonsai.
     VerifyEvidence {
-        /// Repository-relative evidence document emitted by `war bonsai check`.
+        /// Repository-relative evidence document emitted by `war admin bonsai check`.
         #[arg(long)]
         evidence: Utf8PathBuf,
     },
@@ -410,7 +410,7 @@ enum DocumentCommand {
     },
 }
 
-/// `war kpi <action>` (OW-WAR-0148 M13).
+/// `war evidence kpi <action>` (OW-WAR-0148 M13).
 #[derive(Subcommand)]
 enum KpiCommand {
     /// Run every KPI of a Warrant (or one item's), parse the one number each
@@ -424,7 +424,7 @@ enum KpiCommand {
     },
 }
 
-/// `war bridge <harness>` (OW-WAR-0148 M13).
+/// `war admin bridge <harness>` (OW-WAR-0148 M13).
 #[derive(Subcommand)]
 enum BridgeCommand {
     /// Read a Claude Code task list and propose the item ticks it implies:
@@ -470,20 +470,103 @@ pub const DAILY: &[&str] = &[
 /// (the first line of its own help).
 pub const GROUPS: &[&str] = &["plan", "sign", "evidence", "view", "admin"];
 
-/// The members of `war sign …` that are subcommands, not targets: `war sign
-/// <alias>` signs, `war sign authorize <alias>` drafts the request. A sign
-/// target is never one of these words.
-pub const SIGN_MEMBERS: &[&str] = &[
-    "authorize",
-    "resolve",
-    "correct",
-    "amend",
-    "attest",
-    "standing",
-    "sas",
-    "inbox",
-    "authority",
+/// Each group's members as `war <group> --help` lists them, aliases
+/// included, for code that reads the words of a suggested command (the
+/// remedy classifier, the app's sign button). A test holds these lists to
+/// the clap tree. A `war sign` target is never one of the sign members:
+/// `war sign <alias>` signs, `war sign authorize <alias>` drafts a request.
+pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
+    (
+        "plan",
+        &[
+            "new",
+            "promote",
+            "render",
+            "impact",
+            "model",
+            "state",
+            "roadmap",
+            "frontier",
+            "questions",
+            "ask",
+            "answer",
+            "answers",
+        ],
+    ),
+    (
+        "sign",
+        &[
+            "authorize",
+            "resolve",
+            "correct",
+            "amend",
+            "attest",
+            "standing",
+            "sas",
+            "inbox",
+            "authority",
+        ],
+    ),
+    (
+        "evidence",
+        &[
+            "record", "gate", "verify", "prepare", "run", "perform", "submit", "kpi", "mark",
+            "document", "eval",
+        ],
+    ),
+    (
+        "view",
+        &[
+            "ui", "tui", "board", "console", "watch", "overview", "progress", "warrants",
+            "tickets", "ls", "ready", "prime", "timeline",
+        ],
+    ),
+    (
+        "admin",
+        &[
+            "compile",
+            "doctor",
+            "pins",
+            "preflight",
+            "diff",
+            "journal",
+            "deliver",
+            "dispatch",
+            "dispatch-bundle",
+            "commit",
+            "heartbeat",
+            "release",
+            "renumber",
+            "agents-md",
+            "import",
+            "export",
+            "migrate",
+            "archive",
+            "bridge",
+            "host",
+            "sdk",
+            "mcp",
+            "kf",
+            "telemetry",
+            "bonsai",
+            "blut",
+            "projects",
+            "update",
+            "version",
+            "schemas",
+            "merge-ticket",
+        ],
+    ),
 ];
+
+/// Whether `word` names a member of `group` (`group_member("sign",
+/// "authorize")`), so the words after `war <group>` read as that member.
+#[must_use]
+pub fn group_member(group: &str, word: &str) -> bool {
+    GROUP_MEMBERS
+        .iter()
+        .any(|(g, members)| *g == group && members.contains(&word))
+}
 
 /// The daily loop (OW-WAR-0147; OW-WAR-0148 M10, M12; docs/TICKETS.md):
 /// `war create`, `war claim`, `war done`, and the reads around them. A
@@ -544,7 +627,7 @@ enum DailyCommand {
         /// Context, decisions, links: Markdown for the Warrant's description.
         #[arg(long, value_name = "MARKDOWN")]
         body: Option<String>,
-        /// 0 (most urgent) to 4; default 2. `war ready` lists urgent work first.
+        /// 0 (most urgent) to 4; default 2. `war view ready` lists urgent work first.
         #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
         priority: Option<u8>,
         /// Ask the configured `[plan] drafter_argv` to propose the items. Without a
@@ -818,7 +901,7 @@ enum PlanCommand {
     /// "document"`); a program declares its own. Prints the rendering
     /// (Markdown or JSON) and writes nothing; `--json` returns it as
     /// `oh.war/projection/v1`, every line traced to the record id and
-    /// revision it came from. `war compile` writes the projections of the
+    /// revision it came from. `war admin compile` writes the projections of the
     /// documents an area declares in `docs/records/<area>/documents.toml`.
     Render {
         /// The projection's name (`prd`, `architecture`, `test-plan`,
@@ -841,7 +924,7 @@ enum PlanCommand {
     /// verdict on an older revision stays recorded and reads stale); the
     /// roadmap phases and generated views they feed. Read-only.
     Impact {
-        /// A record id of `war model` (`REQ-pr1`, `OW-WAR-0001/OBL-002`,
+        /// A record id of `war plan model` (`REQ-pr1`, `OW-WAR-0001/OBL-002`,
         /// `t-3f2a/i-9c01`).
         record: String,
     },
@@ -860,7 +943,7 @@ enum PlanCommand {
     /// that state already holds. It satisfies no resolution check and no
     /// capability gate.
     State {
-        /// A record id of `war model`: a ticket, an item (`t-x/i-y`, `i-y`),
+        /// A record id of `war plan model`: a ticket, an item (`t-x/i-y`, `i-y`),
         /// a Warrant or one of its records (`NS-WAR-0001/OBL-001`).
         record: String,
         /// The declared state's name.
@@ -1096,9 +1179,9 @@ enum EvidenceCommand {
         run: bool,
     },
     /// Take Warrants to their sign-off unattended (t-cee5): deliver, run
-    /// each gate-executed stage (`war run`), record each cited gate not
+    /// each gate-executed stage (`war evidence run`), record each cited gate not
     /// already admissible (`war evidence record`), run the configured
-    /// independent verifier (`war verify --run`), record the document gates
+    /// independent verifier (`war evidence verify --run`), record the document gates
     /// last — then print what is left for a human. Idempotent and resumable:
     /// what is current is skipped. Never signs, never writes a disposition,
     /// never asks. See docs/SIGNING.md "One sitting".
@@ -1113,7 +1196,7 @@ enum EvidenceCommand {
         /// Gates that run outside the working tree (a battery in a clone),
         /// and verifier runs, at most this many at once. Gates that run
         /// `war` itself read the projections receipts change, so they run
-        /// one at a time with `war compile` just before each, whatever this
+        /// one at a time with `war admin compile` just before each, whatever this
         /// says.
         #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..=64))]
         jobs: u32,
@@ -1146,7 +1229,7 @@ enum EvidenceCommand {
     },
     /// Perform an agent stage with the configured performer (OW-WAR-0069): the
     /// Dispatch goes in on stdin, a Stage Submission comes back on stdout, and
-    /// it is ingested through `war submit`'s refusals. It cannot decide the work
+    /// it is ingested through `war evidence submit`'s refusals. It cannot decide the work
     /// is done — §51.2 — and writes nothing if the performer sends nothing.
     Perform {
         /// The Warrant's local alias. Omit with --all.
@@ -1226,7 +1309,7 @@ enum ViewCommand {
     ///
     /// `--lan <addr:port>` also serves paired devices on the LAN, TLS only
     /// (OW-WAR-0139): a device reads, runs automatic remedies and can ask for
-    /// a signature at this machine; it can never sign. `war ui devices`
+    /// a signature at this machine; it can never sign. `war view ui devices`
     /// lists and revokes them.
     Ui {
         #[command(subcommand)]
@@ -1404,7 +1487,7 @@ enum AdminCommand {
     /// `war sign correct` (OW-WAR-0064).
     Pins {
         /// Re-record each DRAFT Warrant's content digests from the bytes on
-        /// disk. Refused for anything a human has signed for; `war correct`
+        /// disk. Refused for anything a human has signed for; `war sign correct`
         /// is the act that moves those.
         #[arg(long)]
         refresh: bool,
@@ -1558,7 +1641,7 @@ enum AdminCommand {
         /// Insert or update the managed pointer block (`<!-- openwarrant:begin -->` …
         /// `<!-- openwarrant:end -->`) in every root AGENTS.md and CLAUDE.md, or in a
         /// new AGENTS.md when neither exists. It says ordinary coding needs no Warrant
-        /// and that `war prime` shows tracked work, and carries the version stamp.
+        /// and that `war view prime` shows tracked work, and carries the version stamp.
         /// Bytes outside the markers are never touched; a second run changes
         /// nothing. A file with two blocks or an unterminated one is refused by
         /// name, and then no file is written.
@@ -1589,9 +1672,9 @@ enum AdminCommand {
         actor: Option<String>,
     },
 
-    /// §68 portable export and round trip; or, as `war export beads`, every
+    /// §68 portable export and round trip; or, as `war admin export beads`, every
     /// light Warrant (a ticket) as Beads issue JSONL on stdout, in the shape
-    /// `bd export` writes, which `war import beads` reads back (OW-WAR-0148
+    /// `bd export` writes, which `war admin import beads` reads back (OW-WAR-0148
     /// M10).
     Export {
         /// The Warrant's local alias (§68), or `beads`. Not needed with
@@ -3640,7 +3723,7 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
                         }
                         eprintln!(
                             "# Fill in accepted_by, acting_role, meaning, effective_time, then:\n\
-                             #   war sas accept {} --response <file>",
+                             #   war sign sas accept {} --response <file>",
                             request.version
                         );
                         Ok(EXIT_OK)
@@ -3661,7 +3744,7 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
             if custody {
                 let Some(t) = target else {
                     return Err(Box::new(repo::RepoError::Message(
-                        "war attest --custody: name the resolved Warrant to audit".to_owned(),
+                        "war sign attest --custody: name the resolved Warrant to audit".to_owned(),
                     )));
                 };
                 let (report, audit) = attest::custody(&repository, &t, record.as_deref())?;
@@ -3677,7 +3760,7 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
                 (Some(t), false) => attest::run(&repository, &t, verify)?,
                 (None, false) => {
                     return Err(Box::new(repo::RepoError::Message(
-                        "war attest: name a Warrant or SAS version, or pass --all".to_owned(),
+                        "war sign attest: name a Warrant or SAS version, or pass --all".to_owned(),
                     )));
                 }
             };
@@ -3733,7 +3816,7 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
                     }
                     eprintln!(
                         "# Fill in authorizer, acting_role, meaning and effective_time, then:\n\
-                         #   war authorize {alias} --response <file>"
+                         #   war sign authorize {alias} --response <file>"
                     );
                     Ok(EXIT_OK)
                 }
@@ -3951,7 +4034,8 @@ fn run_evidence_member(
                 (None, None, true) => perform::all(&repository, prototype)?,
                 _ => {
                     return Err(Box::new(repo::RepoError::Message(
-                        "war perform: name a Warrant and a stage, or pass --all".to_owned(),
+                        "war evidence perform: name a Warrant and a stage, or pass --all"
+                            .to_owned(),
                     )));
                 }
             };
@@ -4062,7 +4146,7 @@ fn run_evidence_member(
                     );
                     eprintln!(
                         "# Hand this to an INDEPENDENT verifier, then ingest with:\n\
-                         #   war verify {alias} --response <file>"
+                         #   war evidence verify {alias} --response <file>"
                     );
                     Ok(EXIT_OK)
                 }
@@ -4553,7 +4637,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                     "export.beads-flags",
                     String::new(),
                     "--force, --round-trip and --reconnect are the §68 package's; \
-                     `war export beads` takes none of them",
+                     `war admin export beads` takes none of them",
                 ));
                 return Ok(output::finish(mode, "export", &report, None));
             }
@@ -4609,7 +4693,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                 // clap: `alias` is required unless a progress flag was given,
                 // and both of those returned above.
                 return Err(Box::new(repo::RepoError::Message(
-                    "war export: a Warrant alias is required".to_owned(),
+                    "war admin export: a Warrant alias is required".to_owned(),
                 )));
             };
             if round_trip {
@@ -5118,8 +5202,8 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                     diagnostic::Severity::Error,
                     "doctor.fix-needs-tty",
                     None,
-                    "`war doctor --fix-signing` asks questions, so it runs only at a terminal; \
-                     `war doctor` alone reports the same findings without asking"
+                    "`war admin doctor --fix-signing` asks questions, so it runs only at a terminal; \
+                     `war admin doctor` alone reports the same findings without asking"
                         .to_owned(),
                 ));
                 return Ok(output::finish(mode, "doctor", &report, None));
@@ -5176,5 +5260,61 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             }
             Ok(EXIT_OK)
         }
+    }
+}
+
+#[cfg(test)]
+mod surface_tests {
+    use super::*;
+
+    /// The tree on an 8 MiB stack, as the binary builds it (main.rs says why).
+    fn tree() -> clap::Command {
+        std::thread::Builder::new()
+            .stack_size(8 << 20)
+            .spawn(command)
+            .expect("spawn")
+            .join()
+            .expect("the command tree builds")
+    }
+
+    /// `GROUP_MEMBERS` is what each group's help lists (with aliases), and
+    /// `DAILY` is exactly what the top level shows: the lists code reads a
+    /// suggested command by cannot drift from the parser.
+    #[test]
+    fn the_member_lists_are_the_clap_tree() {
+        let cmd = tree();
+        for (group, members) in GROUP_MEMBERS {
+            let g = cmd.find_subcommand(group).expect("a group");
+            let mut listed: Vec<String> = g
+                .get_subcommands()
+                .filter(|s| !s.is_hide_set() && s.get_name() != "help")
+                .flat_map(|s| {
+                    std::iter::once(s.get_name().to_owned())
+                        .chain(s.get_visible_aliases().map(str::to_owned))
+                })
+                .collect();
+            let mut want: Vec<String> = members.iter().map(|m| (*m).to_owned()).collect();
+            // `schemas` exists only in a build with the `schema` feature.
+            if cfg!(not(feature = "schema")) {
+                want.retain(|m| m != "schemas");
+            }
+            listed.sort();
+            want.sort();
+            assert_eq!(listed, want, "war {group}");
+        }
+        let shown: Vec<&str> = cmd
+            .get_subcommands()
+            .filter(|s| !s.is_hide_set())
+            .map(clap::Command::get_name)
+            .collect();
+        assert_eq!(shown, DAILY, "the top level lists the daily verbs alone");
+        assert!(DAILY.len() <= 12);
+        // Refusal side: a hidden spelling is still a subcommand, and a word
+        // that names nothing is not a member of any group.
+        assert!(
+            cmd.find_subcommand("board")
+                .is_some_and(clap::Command::is_hide_set)
+        );
+        assert!(!group_member("view", "compile") && !group_member("sign", "OW-WAR-0001"));
     }
 }

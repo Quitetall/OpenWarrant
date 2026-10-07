@@ -36,7 +36,7 @@
 //! # Leases (M11)
 //!
 //! A claim carries `lease_until`: `[tickets] claim_lease_minutes` (30 by
-//! default) after it was taken. The holder's `war heartbeat`, and every
+//! default) after it was taken. The holder's `war admin heartbeat`, and every
 //! `war` command the holder runs, renews it by setting the lock file's
 //! modification time to now; the lease then runs to that time plus the
 //! claim's lease length. A renewal never rewrites a lock: it touches the
@@ -421,7 +421,7 @@ pub struct GitLayout {
     pub common_dir: Utf8PathBuf,
 }
 
-/// Disk reads that leave no trace in a `war host --export` recording, and
+/// Disk reads that leave no trace in a `war admin host --export` recording, and
 /// basis reads in a hosted run: where claims live is a fact about this
 /// checkout, never a member of the repository's basis.
 fn layout_is_dir(p: &Utf8Path) -> bool {

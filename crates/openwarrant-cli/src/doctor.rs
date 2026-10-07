@@ -80,12 +80,12 @@ pub fn run(
             "Authority register path is not a regular file; inspect the path before attempting any governed act.")),
         Ok(_) => match repo.load_authority_register() {
             Ok(_) => report.push(Diagnostic::warn("doctor.legacy-authority", "docs/authority/roles.toml",
-                "Legacy role declarations parse. They do not establish a protected trust root. Inspect `war authority --help`.")),
+                "Legacy role declarations parse. They do not establish a protected trust root. Inspect `war sign authority --help`.")),
             Err(error) => unavailable(&mut report, "authority", error),
         },
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => report.push(Diagnostic::warn(
             "doctor.authority-absent", "docs/authority/roles.toml",
-            "No authority register (docs/authority/roles.toml). Only sign-off needs one; ordinary work does not. See `war authority --help`.")),
+            "No authority register (docs/authority/roles.toml). Only sign-off needs one; ordinary work does not. See `war sign authority --help`.")),
         Err(source) => unavailable(&mut report, "authority", RepoError::Io {
             context: format!("could not inspect {roles}"), source,
         }),
@@ -94,12 +94,12 @@ pub fn run(
         (
             !repo.config.perform.performer_argv.is_empty(),
             "doctor.performer",
-            "No CLI performer configured. Configure [perform].performer_argv for `war perform`; prompt-only harness work does not require it.",
+            "No CLI performer configured. Configure [perform].performer_argv for `war evidence perform`; prompt-only harness work does not require it.",
         ),
         (
             !repo.config.verify.verifier_argv.is_empty(),
             "doctor.verifier",
-            "No CLI independent verifier configured. Configure [verify].verifier_argv for `war verify --run`; configuration alone cannot prove independence.",
+            "No CLI independent verifier configured. Configure [verify].verifier_argv for `war evidence verify --run`; configuration alone cannot prove independence.",
         ),
     ] {
         if !configured {
@@ -115,14 +115,14 @@ pub fn run(
     let (signing, signing_json) = crate::signing_probe::probe(&repo);
     report.diagnostics.extend(signing);
     result["signing"] = signing_json;
-    report.note("Signing probes signed nothing: they read PATH, SSH_AUTH_SOCK, `ssh-add -L` (public keys), roles.toml and allowed_signers. Whether a key was loaded with `ssh-add -c`, key custody and backend availability are not probed. A missing piece blocks only the sign-off, not your work; `war doctor --fix-signing` at a terminal offers to repair it.");
+    report.note("Signing probes signed nothing: they read PATH, SSH_AUTH_SOCK, `ssh-add -L` (public keys), roles.toml and allowed_signers. Whether a key was loaded with `ssh-add -c`, key custody and backend availability are not probed. A missing piece blocks only the sign-off, not your work; `war admin doctor --fix-signing` at a terminal offers to repair it.");
     match crate::frontier::run(&repo, alias) {
         Ok((findings, frontier)) => {
             report.diagnostics.extend(findings.diagnostics);
             report.notes.extend(findings.notes);
             if frontier.blocked > 0 {
                 report.push(Diagnostic::new(Severity::Warn, "doctor.dependencies", None, format!(
-                    "{} stage(s) have unmet milestone dependencies; inspect `war frontier`. This is not a complete admission result.", frontier.blocked)));
+                    "{} stage(s) have unmet milestone dependencies; inspect `war plan frontier`. This is not a complete admission result.", frontier.blocked)));
             }
             result["frontier"] = json!(frontier);
         }
@@ -145,6 +145,6 @@ pub fn run(
         {"component":"verifier", "argv":["war","verify","--help"], "purpose":"Inspect independent verifier configuration requirements."},
         {"component":"signing", "argv":["war","doctor","--fix-signing"], "purpose":"At a terminal: repair the signing setup interactively. Signs nothing; writes roles.toml or allowed_signers only when absent, after confirming the exact bytes."}
     ]);
-    report.note("Next diagnostic commands: `war check`, `war frontier`, `war authority --help`, `war perform --help`, `war verify --help`. JSON remedies preserve exact arguments; nothing is executed automatically.");
+    report.note("Next diagnostic commands: `war check`, `war plan frontier`, `war sign authority --help`, `war evidence perform --help`, `war evidence verify --help`. JSON remedies preserve exact arguments; nothing is executed automatically.");
     (report, result)
 }

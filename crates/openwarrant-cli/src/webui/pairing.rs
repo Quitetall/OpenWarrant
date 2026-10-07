@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! Devices for `war ui --lan` (OW-WAR-0139): pairing, credentials, nonces.
+//! Devices for `war view ui --lan` (OW-WAR-0139): pairing, credentials, nonces.
 //!
 //! A device credential is a session in OW-WAR-0138's sense. It is never an
 //! authority to sign: a paired device reads the program, runs `auto`
@@ -15,7 +15,7 @@
 //!   SameSite=Strict` cookie. The server keeps only its SHA-256, with the
 //!   device's address, user agent and expiry, in the per-user state
 //!   directory (`$XDG_STATE_HOME/openwarrant/ui-devices.json`, mode 0600) —
-//!   never under a repository. It is read on every request, so `war ui
+//!   never under a repository. It is read on every request, so `war view ui
 //!   devices --revoke <id>` in another terminal takes effect at once.
 //! - **Nonces.** Every act a device starts carries a nonce the server issued
 //!   to that device; a nonce is spent on first use, and a second use is
@@ -143,7 +143,7 @@ impl Device {
         }
     }
 
-    /// The row `war ui devices` prints and reports.
+    /// The row `war view ui devices` prints and reports.
     #[must_use]
     pub fn row(&self) -> serde_json::Value {
         serde_json::json!({

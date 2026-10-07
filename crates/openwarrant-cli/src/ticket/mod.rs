@@ -18,7 +18,7 @@
 //! evidence and no verification to be created, worked or finished, and no
 //! command here asks a human for anything. `war check` validates a ticket's
 //! structure and nothing else about it. Someone who wants sign-off runs
-//! `war promote <ticket>`, which drafts a delivery Warrant through `war new`;
+//! `war plan promote <ticket>`, which drafts a delivery Warrant through `war plan new`;
 //! from there the authority layer applies exactly as it always has.
 //!
 //! # Fast by construction
@@ -131,12 +131,12 @@ pub struct Policy {
     #[serde(default)]
     pub claim_ttl_minutes: Option<u64>,
     /// M11: how long a claim's lease runs from its last renewal (default 30;
-    /// a fraction is allowed). The holder's `war heartbeat` and every `war`
+    /// a fraction is allowed). The holder's `war admin heartbeat` and every `war`
     /// command the holder runs renew it; once it runs out, a plain
     /// `war claim` takes the claim.
     #[serde(default)]
     pub claim_lease_minutes: Option<f64>,
-    /// How many days a done ticket keeps its full block in `war prime`
+    /// How many days a done ticket keeps its full block in `war view prime`
     /// before it collapses to one line.
     #[serde(default)]
     pub compact_after_days: Option<u64>,
@@ -240,17 +240,17 @@ pub struct Ticket {
     pub intent: String,
     pub checklist_text: String,
     pub checklist: Checklist,
-    /// M11: the ticket's revision as `war model` reports it (M3): the sha256
+    /// M11: the ticket's revision as `war plan model` reports it (M3): the sha256
     /// of its manifest's bytes. What `--if-rev` compares on a ticket.
     pub revision: String,
 }
 
-/// `sha256:<hex>` of `bytes`, as `war model` writes a revision.
+/// `sha256:<hex>` of `bytes`, as `war plan model` writes a revision.
 fn revision_of(bytes: &[u8]) -> String {
     format!("sha256:{}", openwarrant_compiler::sha256_hex(bytes))
 }
 
-/// M11: an item's revision as `war model` reports it (M3): the sha256 of its
+/// M11: an item's revision as `war plan model` reports it (M3): the sha256 of its
 /// checklist line, newline included. What `--if-rev` compares on an item.
 #[must_use]
 pub fn item_revision(checklist_text: &str, item: &Item) -> String {
@@ -747,7 +747,7 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
             },
             String::new(),
             if found.is_empty() {
-                format!("no {what} is {query:?}; `war ready` and `war warrants` list them")
+                format!("no {what} is {query:?}; `war next` and `war view warrants` list them")
             } else {
                 format!(
                     "{query:?} names more than one {what}: {}. Give more of the id",
@@ -844,7 +844,7 @@ fn holder(c: Option<&claim::Claim>, now: u64) -> String {
 ///
 /// OW-WAR-0148 M5: a blocker is read as the kernel reads it, a `depends_on`
 /// relation to a global record id (`t-x/i-y` or `t-x`,
-/// [`ticket::Blocker::record_id`]); `war model` emits the same relation.
+/// [`ticket::Blocker::record_id`]); `war plan model` emits the same relation.
 fn open_blockers(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
     item.after
         .iter()
@@ -1355,7 +1355,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
             "\nno items yet: `war add {id} \"...\"`, or `war claim {id}` and work it whole"
         ));
     } else {
-        human.push_str(&format!("\n{} item(s); `war ready` lists them", made.len()));
+        human.push_str(&format!("\n{} item(s); `war next` lists them", made.len()));
     }
     // OW-WAR-0148 M13 (decision 2): one line, never a refusal, suggesting
     // the test a new Warrant does not have yet. `[warrants] hints = false`
@@ -1460,7 +1460,7 @@ pub fn refusal_of(e: RepoError) -> Outcome {
 
 /// One item per record id: the record's first sentence, then
 /// `(implements <id>)`, so the ticket profile's `implements` relation names
-/// the record (`war impact` finds the item). Refused, by name, for an id no
+/// the record (`war plan impact` finds the item). Refused, by name, for an id no
 /// record atom declares. Reads the record atoms under `docs/records/` and
 /// nothing else.
 pub fn implementing_items(
@@ -1655,7 +1655,7 @@ pub fn drafted_items(
 
 // ---- ready -----------------------------------------------------------------
 
-/// One row of `war ready`.
+/// One row of `war view ready`.
 #[derive(Debug, Clone, Serialize)]
 pub struct ReadyRow {
     pub ticket: String,
@@ -1777,7 +1777,7 @@ pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, Re
     Ok(rows)
 }
 
-/// `war ready`.
+/// `war view ready`.
 pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
     let (tickets, faults) = store.load_all()?;
     let rows = ready_rows(store, &tickets)?;
@@ -1788,7 +1788,7 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
         if tickets.iter().any(|t| !t.checklist.is_done()) {
             human.push_str(
                 "nothing tracked is ready; work freely. Every open item is claimed or \
-                 waiting (`war warrants`)",
+                 waiting (`war view warrants`)",
             );
         } else {
             human.push_str(
@@ -1912,7 +1912,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 "ticket.blocked",
                 store.rel(&t.checklist_path),
                 format!(
-                    "{what} waits on {}; `war ready` lists what can start now",
+                    "{what} waits on {}; `war next` lists what can start now",
                     waiting.join(", ")
                 ),
             ));
@@ -2003,7 +2003,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                         "ticket.claimed-by-other",
                         store.rel(&held_at),
                         format!(
-                            "{what} was taken first by {}; pick another (`war ready`)",
+                            "{what} was taken first by {}; pick another (`war next`)",
                             holder(other.as_ref(), now)
                         ),
                     ));
@@ -2192,7 +2192,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     Ok(Outcome::ok(human, result))
 }
 
-/// `war release <item|ticket>`: give a claim back without finishing.
+/// `war admin release <item|ticket>`: give a claim back without finishing.
 pub fn release(store: &Store, query: &str, if_rev: Option<&str>) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
     let (index, item) = match resolve(&tickets, query) {
@@ -2533,7 +2533,7 @@ impl Store {
 
 // ---- merge driver (M11) ----------------------------------------------------
 
-/// `war merge-ticket <base> <ours> <theirs> [<path>]`: git's merge driver
+/// `war admin merge-ticket <base> <ours> <theirs> [<path>]`: git's merge driver
 /// for ticket files ([`merge`]). The result goes to `ours`, as git expects;
 /// a merge this cannot make is git's text merge, conflict markers and all,
 /// refused `ticket.merge-conflict` so git stops and asks.
@@ -2590,7 +2590,7 @@ pub fn merge_ticket(
     ))
 }
 
-/// `war merge-ticket --install`.
+/// `war admin merge-ticket --install`.
 pub fn merge_install(root: &Utf8Path) -> Outcome {
     match merge::install(root) {
         Ok(did) => Outcome::ok(
@@ -2603,7 +2603,7 @@ pub fn merge_install(root: &Utf8Path) -> Outcome {
 
 // ---- heartbeat (M11) -------------------------------------------------------
 
-/// `war heartbeat [<item|ticket>]`: renew the lease on the caller's claims,
+/// `war admin heartbeat [<item|ticket>]`: renew the lease on the caller's claims,
 /// or on the one named. Every `war` command the holder runs renews them too;
 /// this is for an agent that is working and running nothing else.
 pub fn heartbeat(store: &Store, query: Option<&str>) -> Result<Outcome, RepoError> {
@@ -3548,8 +3548,8 @@ pub fn note(
 
 // ---- promote ---------------------------------------------------------------
 
-/// `war promote <ticket>`: draft a delivery Warrant from a ticket, for when
-/// someone wants sign-off. The Warrant starts where `war new` starts it, with
+/// `war plan promote <ticket>`: draft a delivery Warrant from a ticket, for when
+/// someone wants sign-off. The Warrant starts where `war plan new` starts it, with
 /// the ticket's description and checklist carried into its intent; from there
 /// the authority layer applies as it always has. The ticket stays workable.
 pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome, RepoError> {
@@ -3651,7 +3651,7 @@ pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome,
         format!(
             "promoted {} into {alias} ({}), a draft delivery Warrant carrying the ticket's \
              description and checklist ({rel_ticket}).\nThe contract path starts here: answer \
-             each atom's questions, `war check {alias}`, `war compile`, then `war authorize \
+             each atom's questions, `war check {alias}`, `war admin compile`, then `war sign authorize \
              {alias}` asks a human to sign. The ticket stays workable meanwhile.",
             t.id(),
             repo.relative(&dir)
@@ -3690,8 +3690,8 @@ pub fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
     )
 }
 
-/// Every ticket as `war tickets` lists it, each with `war show`'s items,
-/// notes and Markdown, and which of its items `war ready` offers now. The
+/// Every ticket as `war view tickets` lists it, each with `war show`'s items,
+/// notes and Markdown, and which of its items `war view ready` offers now. The
 /// TUI and the web page render this and compute nothing of their own.
 pub fn board(store: &Store) -> Result<serde_json::Value, RepoError> {
     let list = tickets(store)?;

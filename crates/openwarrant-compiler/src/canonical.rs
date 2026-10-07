@@ -15,7 +15,7 @@ pub enum CanonicalError {
     /// digest (OW-WAR-0032): nothing compiles until the pack and the format
     /// agree.
     #[error(
-        "the committed schema pack does not declare version {expected}, the one inside every contract digest; regenerate it with `war schemas` (cargo feature `schema`) or restore it"
+        "the committed schema pack does not declare version {expected}, the one inside every contract digest; regenerate it with `war admin schemas` (cargo feature `schema`) or restore it"
     )]
     SchemaPack { expected: String },
 }

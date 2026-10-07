@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! TLS for `war ui --lan` (OW-WAR-0139, U-002).
+//! TLS for `war view ui --lan` (OW-WAR-0139, U-002).
 //!
 //! TLS terminates in `war`, on the same blocking accept loop as the rest of
 //! the server (OW-ADR-0014: no async), through `rustls` with the `ring`

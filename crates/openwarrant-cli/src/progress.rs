@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war export --progress <dir>` — the progress bundle (slice D5).
+//! `war admin export --progress <dir>` — the progress bundle (slice D5).
 //!
 //! Everything a tracker needs, copied byte-for-byte from the committed
 //! projections into one directory with a manifest of sha256 digests:
@@ -47,7 +47,7 @@ fn copy(
 ) -> Result<(), RepoError> {
     let bytes = std::fs::read(source).map_err(|e| {
         RepoError::Message(format!(
-            "progress.missing: {} is not in the tree ({e}); run `war compile` first",
+            "progress.missing: {} is not in the tree ({e}); run `war admin compile` first",
             repo.relative(source)
         ))
     })?;

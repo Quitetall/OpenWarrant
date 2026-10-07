@@ -4,12 +4,12 @@
 //!
 //! # The block
 //!
-//! `war agents-md --block` keeps one small block, between
+//! `war admin agents-md --block` keeps one small block, between
 //! `<!-- openwarrant:begin -->` and `<!-- openwarrant:end -->`, in the
 //! repository's instruction files. It says that ordinary coding needs no
-//! Warrant and that `war prime` shows tracked work, and it carries the version
+//! Warrant and that `war view prime` shows tracked work, and it carries the version
 //! stamp [`crate::skew`] reads. It never holds the active Warrant's context:
-//! the file stays stable, and what changes lives in `war prime`.
+//! the file stays stable, and what changes lives in `war view prime`.
 //!
 //! - Which files: every root `AGENTS.md` and `CLAUDE.md` that exists, or
 //!   `AGENTS.md` alone when neither does; `--file` names others.
@@ -21,7 +21,7 @@
 //!
 //! `war init` writes the full AGENTS.md template (which ends with the block)
 //! when there is none, and adds the block to an existing AGENTS.md or
-//! CLAUDE.md. `war doctor` reports a block that is missing, stale (another
+//! CLAUDE.md. `war admin doctor` reports a block that is missing, stale (another
 //! version's, or edited), or malformed.
 //!
 //! # Sections as records
@@ -31,8 +31,8 @@
 //! `##` section is a record `md:<file>#<slug>` of type `instruction`, its
 //! revision the digest of its byte span ([`openwarrant_core::instruction`]).
 //! The block is no section. Relations cite a section by id
-//! (`constrains md:CLAUDE.md#testing`), `war model` lists them, and
-//! `war impact md:CLAUDE.md#testing` names what cites one.
+//! (`constrains md:CLAUDE.md#testing`), `war plan model` lists them, and
+//! `war plan impact md:CLAUDE.md#testing` names what cites one.
 
 use std::collections::BTreeSet;
 
@@ -185,7 +185,7 @@ pub fn read(repo: &Repository) -> (Vec<Record>, Vec<Fault>, usize) {
     (records, faults, paths.len())
 }
 
-/// What `war agents-md --block` did to one file.
+/// What `war admin agents-md --block` did to one file.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Written {
     /// Repository-relative.
@@ -195,7 +195,7 @@ pub struct Written {
     pub change: &'static str,
 }
 
-/// Why `war agents-md --block` wrote nothing.
+/// Why `war admin agents-md --block` wrote nothing.
 #[derive(Debug)]
 pub enum Refused {
     /// One or more files' blocks, each by rule.
@@ -338,7 +338,7 @@ pub fn refusal(file: &str, e: &BlockError) -> Diagnostic {
     )
 }
 
-/// `war doctor`'s findings on the block in the root instruction files: one
+/// `war admin doctor`'s findings on the block in the root instruction files: one
 /// per file that lacks it, holds a stale one or a malformed one, and a pass
 /// per file whose block is this `war`'s. A block a newer `war` wrote is not
 /// stale here; [`crate::skew`] reports it as version skew.
@@ -363,7 +363,7 @@ pub fn doctor_for(root: &Utf8Path, running: &str) -> Vec<Diagnostic> {
                 "doctor.agents-block-malformed",
                 format!("{name}:{}", e.line()),
                 format!(
-                    "{name}: {e}. `war agents-md --block` refuses this file ({}) until it is \
+                    "{name}: {e}. `war admin agents-md --block` refuses this file ({}) until it is \
                      fixed; ordinary work is unaffected",
                     e.rule()
                 ),
@@ -375,8 +375,8 @@ pub fn doctor_for(root: &Utf8Path, running: &str) -> Vec<Diagnostic> {
                 "doctor.agents-block-missing",
                 name,
                 format!(
-                    "{name} has no openwarrant block. `war agents-md --block` adds one: a few \
-                     lines saying ordinary coding needs no Warrant and `war prime` shows tracked \
+                    "{name} has no openwarrant block. `war admin agents-md --block` adds one: a few \
+                     lines saying ordinary coding needs no Warrant and `war view prime` shows tracked \
                      work, with nothing else in the file changed"
                 ),
             ));
@@ -403,7 +403,7 @@ pub fn doctor_for(root: &Utf8Path, running: &str) -> Vec<Diagnostic> {
             format!("{name}:{}", block.begin_line),
             format!(
                 "{name}: the openwarrant block {} differs from what war {running} writes. \
-                 `war agents-md --block` rewrites the lines between its markers and nothing else",
+                 `war admin agents-md --block` rewrites the lines between its markers and nothing else",
                 stamp.map_or_else(
                     || "has no version stamp and".to_owned(),
                     |s| format!("was written by war {s} and")
@@ -415,9 +415,9 @@ pub fn doctor_for(root: &Utf8Path, running: &str) -> Vec<Diagnostic> {
         out.push(Diagnostic::warn(
             "doctor.agents-block-missing",
             "AGENTS.md",
-            "no AGENTS.md or CLAUDE.md at the root. `war agents-md --block` writes an AGENTS.md \
-             holding the openwarrant block (ordinary coding needs no Warrant; `war prime` shows \
-             tracked work), and `war agents-md` the full guide",
+            "no AGENTS.md or CLAUDE.md at the root. `war admin agents-md --block` writes an AGENTS.md \
+             holding the openwarrant block (ordinary coding needs no Warrant; `war view prime` shows \
+             tracked work), and `war admin agents-md` the full guide",
         ));
     }
     out

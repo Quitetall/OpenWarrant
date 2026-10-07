@@ -480,8 +480,8 @@ for x in stale:
 assert d["exit_code"] == 2 and d["verdict"] == "not_ready", d["verdict"]
 ' "$OS_A" <<<"$OS_JSON" 2>"$OS_TMP/py.err" \
     && [[ $(grep -c '^REMEDIES:' <<<"$OS_HUMAN") -eq 1 ]] \
-    && grep -qE '^  human +war correct OS-WAR-0001 D-001 ' <<<"$OS_HUMAN" \
-    && grep -qE '^  auto +war compile ' <<<"$OS_HUMAN"; then
+    && grep -qE '^  human +war sign correct OS-WAR-0001 D-001 ' <<<"$OS_HUMAN" \
+    && grep -qE '^  auto +war admin compile ' <<<"$OS_HUMAN"; then
     os_ok "check --json carries each remedy" "drift: human war correct (signs with war sign $OS_A/D-001); stale: auto war compile; REMEDIES: block"
 else
     os_fail "check --json carries each remedy" "$(tail -1 "$OS_TMP/py.err") / $(grep -A3 '^REMEDIES:' <<<"$OS_HUMAN" | tr '\n' '|')"

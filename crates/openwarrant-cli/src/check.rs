@@ -6,7 +6,7 @@
 //!
 //! That was once guaranteed by the binary having no HTTP client at all. Since
 //! OW-WAR-0044 it is guaranteed by this module not using the one it has: `ureq`
-//! is linked for the §67 Knowledge Fabric seam, and `war kf` is the only
+//! is linked for the §67 Knowledge Fabric seam, and `war admin kf` is the only
 //! command that dials. `war check` reaching the network would make its verdict
 //! depend on someone else's uptime, which is the opposite of a control.
 
@@ -336,7 +336,7 @@ pub fn run_with(
                 "sas.unrecorded",
                 repo.config.paths.sas.clone(),
                 "no SAS revision is recorded; the document is pinned by prose only. \
-                 `war sas propose <version>` records one"
+                 `war sign sas propose <version>` records one"
                     .to_owned(),
             )),
             Some(pin) => match repo.sas_document() {
@@ -565,7 +565,7 @@ pub fn run_with(
     // diagnostic: a report that answers "ok" while whole classes of check go
     // unasked reads as full coverage, but a scope note that blocked readiness
     // would make the verdict permanently negative and therefore meaningless.
-    report.note("gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run");
+    report.note("gate execution — `war evidence gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run");
     report.note("Preflight readiness (§32.7) — 'well-formed' is a claim about the record only");
     report.note("bound-atom resolution — `ref =` atoms cannot be fetched offline");
     // Kept, and now says WHY rather than only that. OW-WAR-0049's OBL-003 asks
@@ -646,7 +646,7 @@ fn drift_check(
                     relative,
                     format!(
                         "{name} is missing and this repository commits generated views; \
-                         run `war compile`"
+                         run `war admin compile`"
                     ),
                 )),
                 Err(_) => {}
@@ -823,9 +823,9 @@ pub(crate) fn load_gate_registry(
 #[allow(clippy::too_many_arguments)]
 /// §37.2 — a declared deliverable's recorded digest must still match its bytes.
 ///
-/// # Why this belongs in `war check` and not only in `war resolve`
+/// # Why this belongs in `war check` and not only in `war sign resolve`
 ///
-/// `war resolve` already recomputes these digests, and it caught the drift both
+/// `war sign resolve` already recomputes these digests, and it caught the drift both
 /// times it happened. It caught it *late*: resolve is run deliberately, by
 /// someone asking about one Warrant, so a stale record sat in `main` until
 /// somebody thought to look. Twice in two days an unrelated pull request edited
@@ -849,16 +849,16 @@ pub(crate) fn load_gate_registry(
 /// Exactly one thing does: a resolution, whose §56.2 record carries
 /// `artifact_manifest_digest` = sha256 of `deliverables.toml`. Moving a pin
 /// under it would change what the resolution resolved, so that is an ERROR and
-/// `war correct` is the act for it (OW-WAR-0064).
+/// `war sign correct` is the act for it (OW-WAR-0064).
 ///
 /// An authorization does NOT. The contract digest covers intent, scope,
 /// obligations, milestones and stages — not which bytes a file happens to have
 /// while the work is being done. Treating it as binding sent a signed but
-/// unresolved Warrant to `war correct`, which refuses with
+/// unresolved Warrant to `war sign correct`, which refuses with
 /// `correction.not-resolved`: an error whose only remedy was itself refused.
 ///
 /// So a pin that no one has resolved against is out of date, not violated —
-/// `war pins --refresh` re-records it. That distinction is why `war check` can
+/// `war admin pins --refresh` re-records it. That distinction is why `war check` can
 /// run during ordinary work: a repository with nineteen unsigned Warrants
 /// pinning living source files reported ten ERRORs and NOT READY on every
 /// commit, forever, protecting nothing.
@@ -1076,7 +1076,7 @@ fn check_deliverable_digests(
                         format!(
                             "{alias}: {} pinned {} at {head}; {}/{} (authorized {}) now \
                              governs that path, so this pin is historical and the bytes \
-                             are that Warrant's to answer for (OW-ADR-0021) — `war pins \
+                             are that Warrant's to answer for (OW-ADR-0021) — `war admin pins \
                              --history {}`",
                             deliverable.id,
                             deliverable.target_ref,
@@ -1093,7 +1093,7 @@ fn check_deliverable_digests(
                         format!(
                             "{alias}: {} — the latest correction records {head} but the file is \
                              sha256:{actual}; it corrects nothing. A further change is a further \
-                             correction, `war correct {alias} {}`",
+                             correction, `war sign correct {alias} {}`",
                             deliverable.id, deliverable.id
                         ),
                     ));
@@ -1108,7 +1108,7 @@ fn check_deliverable_digests(
                              authorized Warrant declares {}, so the artifact moved outside any \
                              authorization — restore it; declare it as a deliverable of a \
                              Warrant and have that Warrant authorized (OW-ADR-0021); or record \
-                             why it moved: `war correct {alias} {}` (OW-WAR-0064)",
+                             why it moved: `war sign correct {alias} {}` (OW-WAR-0064)",
                             deliverable.id,
                             deliverable.target_ref,
                             deliverable.target_ref,
@@ -1125,7 +1125,7 @@ fn check_deliverable_digests(
                         format!(
                             "{alias}: {} records sha256:{recorded} for {} and the file is now \
                              sha256:{actual}. No resolution binds this manifest, so the pin is \
-                             out of date rather than violated — `war pins --refresh --alias {alias}`",
+                             out of date rather than violated — `war admin pins --refresh --alias {alias}`",
                             deliverable.id, deliverable.target_ref
                         ),
                     ));
@@ -1417,7 +1417,7 @@ fn check_one(
                 None => report.push(Diagnostic::error(
                     "sas.pin-unknown",
                     file,
-                    format!("{alias}: an amendment re-pins to SAS revision {v}, and no record of it exists under docs/sas/revisions/ — `war sas propose {v}` first"),
+                    format!("{alias}: an amendment re-pins to SAS revision {v}, and no record of it exists under docs/sas/revisions/ — `war sign sas propose {v}` first"),
                 )),
                 Some(rev) => {
                     // The re-pinned revision must still carry every row this
@@ -2485,7 +2485,7 @@ fn check_parent_citations(
                 (
                     Severity::Error,
                     format!(
-                        "cite revision {belongs}, or revision {r} at its own digest — `war new \
+                        "cite revision {belongs}, or revision {r} at its own digest — `war plan new \
                          \"<title>\" --parent {parent_alias}` writes the latest exactly"
                     ),
                 )
@@ -2684,7 +2684,7 @@ fn check_drift(
                 relative,
                 format!(
                     "{alias}: {} is missing and this repository commits generated views; \
-                     run `war compile {alias}`",
+                     run `war admin compile {alias}`",
                     view.committed_filename()
                 ),
             )),

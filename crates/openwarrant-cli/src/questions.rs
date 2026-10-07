@@ -104,7 +104,7 @@ fn dir_of(repo: &Repository, alias: &str) -> Result<Utf8PathBuf, RepoError> {
     Ok(repo.warrant_dir(alias)?.join(DIR))
 }
 
-/// The record `war answer` writes to: the Warrant's directory, or the
+/// The record `war plan answer` writes to: the Warrant's directory, or the
 /// intake directory. Only a Warrant has a journal.
 fn owner_dir(repo: &Repository, alias: &str) -> Result<(Utf8PathBuf, bool), RepoError> {
     if let Some(dir) = crate::plan::intake::existing_dir(repo, alias) {
@@ -245,7 +245,7 @@ fn write_question(path: &Utf8Path, q: &Question, create_new: bool) -> Result<(),
         "# {SCHEMA}. Asked by an agent, answered by a human (§27.2). An answer\n\
          # informs the work; it is never a disposition, a judgment, or an\n\
          # authorization, and `answered_by` is an attribution, not a proof: a\n\
-         # signature binds an ACT, and an answer is not one. `war questions\n\
+         # signature binds an ACT, and an answer is not one. `war plan questions\n\
          # --open` lists what awaits an answer. Regenerated when answered, so\n\
          # a comment added below this header does not survive.\n\n"
     );
@@ -285,7 +285,7 @@ fn asked_payload(stage: &str, id: &str, blocking: bool) -> String {
     serde_json::json!({ "stage": stage, "question": id, "blocking": blocking }).to_string()
 }
 
-/// `war ask <alias> <stage> "<question>"`: the agent's half.
+/// `war plan ask <alias> <stage> "<question>"`: the agent's half.
 pub fn ask(
     repo: &Repository,
     alias: &str,
@@ -388,14 +388,14 @@ pub fn ask(
         ),
     ));
     report.note(format!(
-        "A human answers it: `war answer {alias} {} \"<answer>\" --as <actor>`. \
+        "A human answers it: `war plan answer {alias} {} \"<answer>\" --as <actor>`. \
          Nothing here authorizes anything.",
         q.id
     ));
     Ok(report)
 }
 
-/// `war answer <alias> <id> "<answer>" --as <actor>`: the human's half.
+/// `war plan answer <alias> <id> "<answer>" --as <actor>`: the human's half.
 pub fn answer(
     repo: &Repository,
     alias: &str,
@@ -487,7 +487,7 @@ pub fn answer(
     Ok(report)
 }
 
-/// `war questions [--open]`: one queue across every Warrant, blocking first.
+/// `war plan questions [--open]`: one queue across every Warrant, blocking first.
 pub fn list(
     repo: &Repository,
     alias: Option<&str>,
@@ -551,7 +551,7 @@ pub fn complete_list(repo: &Repository, open_only: bool) -> Result<QuestionList,
     let (report, list) = list(repo, None, open_only)?;
     if !report.is_ready() {
         return Err(RepoError::Message(
-            "question store is incomplete; run war questions for diagnostics".to_owned(),
+            "question store is incomplete; run war plan questions for diagnostics".to_owned(),
         ));
     }
     Ok(list)
@@ -615,7 +615,7 @@ pub fn intake_actions(repo: &Repository) -> Vec<crate::next::Action> {
                 actor: crate::next::Actor::Human,
                 warrant: key.clone(),
                 action: "answer".to_owned(),
-                command: format!("war answer {key} {} \"<answer>\" --as <actor>", q.id),
+                command: format!("war plan answer {key} {} \"<answer>\" --as <actor>", q.id),
                 why: format!(
                     "{}: {} — no Warrant is drafted until it is answered; then `{}`",
                     q.id, q.question, q.redraft
@@ -652,7 +652,7 @@ pub fn render(list: &QuestionList) -> String {
             None => {
                 let _ = writeln!(
                     out,
-                    "            war answer {} {} \"<answer>\" --as <actor>",
+                    "            war plan answer {} {} \"<answer>\" --as <actor>",
                     q.warrant, q.id
                 );
             }

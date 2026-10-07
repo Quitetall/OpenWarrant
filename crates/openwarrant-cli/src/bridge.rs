@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war bridge claude-tasks` (OW-WAR-0148 M13): a harness's own task list
+//! `war admin bridge claude-tasks` (OW-WAR-0148 M13): a harness's own task list
 //! feeds the tick ladder instead of competing with it.
 //!
 //! # What it reads
@@ -220,7 +220,7 @@ fn read_source(source: &Source) -> Result<(String, Vec<Task>, Vec<Diagnostic>), 
     }
 }
 
-/// `war bridge claude-tasks [--dir|--file|--event] [--apply]`.
+/// `war admin bridge claude-tasks [--dir|--file|--event] [--apply]`.
 pub fn claude_tasks(store: &Store, source: &Source, apply: bool) -> Result<Outcome, RepoError> {
     let (from, tasks, faults) = match read_source(source) {
         Ok(v) => v,

@@ -7,7 +7,7 @@
 //! nothing else. This module says what is missing, in the words of the thing
 //! that is missing.
 //!
-//! - [`probe`] is `war doctor`'s signing section. It reads PATH,
+//! - [`probe`] is `war admin doctor`'s signing section. It reads PATH,
 //!   `SSH_AUTH_SOCK`, `ssh-add -L` (public keys only), `roles.toml` and
 //!   `allowed_signers`. It signs nothing and writes nothing.
 //! - [`sign_failure`] turns a failed `ssh-keygen -Y sign` into the reason:
@@ -15,7 +15,7 @@
 //! - [`finish`] is applied to every `war sign` report: a refusal that names
 //!   nobody eligible says which file is missing, and every `sign.*` refusal
 //!   ends with [`BLOCKS_ONLY`].
-//! - [`fix`] is `war doctor --fix-signing`: at a terminal only, it offers to
+//! - [`fix`] is `war admin doctor --fix-signing`: at a terminal only, it offers to
 //!   repair each finding. It never signs. It writes `roles.toml` or
 //!   `allowed_signers` only when the file does not exist yet, from answers
 //!   typed at the terminal, after showing the exact bytes and asking — the
@@ -280,7 +280,8 @@ impl Inputs {
     }
 }
 
-const FIX: &str = "`war doctor --fix-signing` at a terminal offers to write it from your answers";
+const FIX: &str =
+    "`war admin doctor --fix-signing` at a terminal offers to write it from your answers";
 
 fn line_for(principal: &str, key: &str) -> String {
     format!("{principal} namespaces=\"oh.war/response,oh.war/dsse\" {key}")
@@ -499,7 +500,7 @@ pub fn assess(i: &Inputs) -> Vec<Diagnostic> {
     out
 }
 
-/// `war doctor`'s signing section: the findings, and what they rest on.
+/// `war admin doctor`'s signing section: the findings, and what they rest on.
 #[must_use]
 pub fn probe(repo: &Repository) -> (Vec<Diagnostic>, serde_json::Value) {
     let inputs = Inputs::gather(repo);
@@ -671,7 +672,7 @@ pub fn repairs(
     match &i.agent {
         Agent::NoSocket | Agent::SocketMissing(_) | Agent::Unreachable { .. } => {
             out.push(Repair::Tell(
-                "start an agent in your shell, then run `war doctor --fix-signing` again from \
+                "start an agent in your shell, then run `war admin doctor --fix-signing` again from \
                  it:\n  eval \"$(ssh-agent -s)\""
                     .to_owned(),
             ));
@@ -681,7 +682,7 @@ pub fn repairs(
     if i.store.is_some() {
         out.push(Repair::Tell(
             "this repository binds signers through its authority store; the wizard leaves that \
-             to the store's own commands (`war authority --help`)"
+             to the store's own commands (`war sign authority --help`)"
                 .to_owned(),
         ));
         return out;
@@ -745,17 +746,17 @@ fn assignment(name: &str, principal: &str, now: &str) -> String {
     format!(
         "[[assignment]]\nactor = {name:?}\nactor_kind = \"human\"\nroles = [\"authorizer\", \
          \"resolver\", \"risk_acceptor\", \"judge\"]\nassigned_by = {name:?}\neffective_time = \
-         {now:?}\nnote = \"Repository owner, from `war doctor --fix-signing`.\"\nssh_principal = \
+         {now:?}\nnote = \"Repository owner, from `war admin doctor --fix-signing`.\"\nssh_principal = \
          {principal:?}\n"
     )
 }
 
 fn header(name: &str, now: &str) -> String {
     format!(
-        "# Written by `war doctor --fix-signing` on {now} from answers typed at a terminal by \
+        "# Written by `war admin doctor --fix-signing` on {now} from answers typed at a terminal by \
          {name:?}.\n#\n# THE RULE FOR THIS FILE: a tool writes it only from a human's answers at \
          a\n# terminal, once. No command edits it afterwards; every tool in this workspace\n# \
-         reads it, and both `war init` and `war doctor --fix-signing` refuse to touch\n# one that \
+         reads it, and both `war init` and `war admin doctor --fix-signing` refuse to touch\n# one that \
          exists (OW-ADR-0021, Consequences).\n"
     )
 }
@@ -808,7 +809,7 @@ fn yes(a: &str) -> bool {
     matches!(a.trim().to_ascii_lowercase().as_str(), "y" | "yes")
 }
 
-/// `war doctor --fix-signing`. Refused without a terminal, before anything
+/// `war admin doctor --fix-signing`. Refused without a terminal, before anything
 /// is read; never signs; writes a file only when it does not exist, after
 /// the exact bytes were shown and confirmed.
 pub fn fix(repo: &Repository) -> Result<Report, RepoError> {
@@ -818,8 +819,8 @@ pub fn fix(repo: &Repository) -> Result<Report, RepoError> {
             Severity::Error,
             "doctor.fix-needs-tty",
             None,
-            "`war doctor --fix-signing` asks questions, so it runs only at a terminal; \
-             `war doctor` alone reports the same findings without asking"
+            "`war admin doctor --fix-signing` asks questions, so it runs only at a terminal; \
+             `war admin doctor` alone reports the same findings without asking"
                 .to_owned(),
         ));
         return Ok(report);
@@ -979,7 +980,7 @@ pub fn fix(repo: &Repository) -> Result<Report, RepoError> {
         }
     }
     report.note(
-        "The wizard signed nothing. Run `war doctor` to see the signing setup now; a missing \
+        "The wizard signed nothing. Run `war admin doctor` to see the signing setup now; a missing \
          piece blocks only the sign-off, not anyone's work.",
     );
     Ok(report)

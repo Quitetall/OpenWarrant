@@ -12,7 +12,7 @@
 //! human must, and how.
 //!
 //! t-67ed: ready ticket items come first. They are read from the ticket
-//! store with the same computation `war ready` uses, carry `war claim`, and
+//! store with the same computation `war view ready` uses, carry `war claim`, and
 //! are never a signature; the Warrant acts follow them, still judged.
 
 use serde::Serialize;
@@ -76,7 +76,7 @@ pub struct Action {
     pub judged: Option<Judged>,
 }
 
-/// A ticket item that can start now (`war ready`'s row), offered before any
+/// A ticket item that can start now (`war view ready`'s row), offered before any
 /// Warrant act. Its command is always `war claim`: never a signature.
 #[derive(Debug, Clone, Serialize)]
 pub struct ReadyItem {
@@ -145,7 +145,7 @@ pub struct Finding {
 ///
 /// `profiles` answers what each Warrant's kind selects (OW-ADR-0031): no act
 /// is offered for a capability its kind lacks. A human act arrives here only
-/// when its request could be built, and `war authorize`/`war resolve` refuse
+/// when its request could be built, and `war sign authorize`/`war sign resolve` refuse
 /// a kind without the capability, so the gate for those is upstream.
 #[must_use]
 pub fn derive(
@@ -286,7 +286,10 @@ pub fn derive(
                     actor: Actor::Agent,
                     warrant: w.alias.clone(),
                     action: "deliver".to_owned(),
-                    command: format!("war evidence record {a} && war verify {a}", a = w.alias),
+                    command: format!(
+                        "war evidence record {a} && war evidence verify {a}",
+                        a = w.alias
+                    ),
                     why: if unmet.is_empty() {
                         "not every §56.1 requirement is met".to_owned()
                     } else {
@@ -300,7 +303,7 @@ pub fn derive(
                     actor: Actor::Agent,
                     warrant: w.alias.clone(),
                     action: "verify".to_owned(),
-                    command: format!("war verify {}", w.alias),
+                    command: format!("war evidence verify {}", w.alias),
                     why: "obligations remain unestablished; a blind verifier must dispose of them"
                         .to_owned(),
                     judged: None,
@@ -317,7 +320,7 @@ pub fn derive(
             actor: Actor::Agent,
             warrant: s.warrant.clone(),
             action: "execute".to_owned(),
-            command: format!("war dispatch {} {}", s.warrant, s.stage),
+            command: format!("war admin dispatch {} {}", s.warrant, s.stage),
             why: format!("{} / {}: {}", s.milestone, s.stage, s.why),
             judged: None,
         });
@@ -366,7 +369,7 @@ pub fn derive(
 }
 
 /// OW-WAR-0132: the frontier's question edge, applied to the table. A stage
-/// a blocking question holds is not offered to an agent (`war dispatch` would
+/// a blocking question holds is not offered to an agent (`war admin dispatch` would
 /// start work the question is meant to stop), and the frontier's
 /// `question.no-responder` is carried as a finding. Pure over the frontier,
 /// so the rule is testable without a repository.
@@ -427,7 +430,7 @@ pub fn run(repo: &Repository) -> Result<Next, RepoError> {
 }
 
 /// [`run`] over a corpus already loaded, so a caller that also needs the
-/// status, the sign queue or the frontier (`war compile`'s master document,
+/// status, the sign queue or the frontier (`war admin compile`'s master document,
 /// the web UI) builds each once.
 pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
     let repo = corpus.repo();
@@ -482,7 +485,7 @@ pub fn idle_lines(n: &Next) -> Option<Vec<String>> {
 }
 
 /// t-67ed: the ticket store's ready set, ahead of every Warrant act. The
-/// same `ticket::ready_rows` `war ready` answers from, so the two never
+/// same `ticket::ready_rows` `war view ready` answers from, so the two never
 /// disagree. A store that cannot be read is an UNKNOWN finding, never an
 /// empty list presented as "nothing ready".
 pub fn ready_tickets(repo: &Repository, next: &mut Next) {
@@ -735,7 +738,7 @@ mod tests {
             actor: Actor::Agent,
             warrant: "X-WAR-0001".to_owned(),
             action: "execute".to_owned(),
-            command: format!("war dispatch X-WAR-0001 {stage}"),
+            command: format!("war admin dispatch X-WAR-0001 {stage}"),
             why: String::new(),
             judged: None,
         }
@@ -780,8 +783,8 @@ mod tests {
         assert_eq!(
             offered,
             [
-                "war dispatch X-WAR-0001 STAGE-002",
-                "war dispatch X-WAR-0001 STAGE-003"
+                "war admin dispatch X-WAR-0001 STAGE-002",
+                "war admin dispatch X-WAR-0001 STAGE-003"
             ]
         );
         assert_eq!(next.findings.len(), 1);

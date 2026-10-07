@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war model` — the compiled corpus as one document, `oh.war/model/v1`
+//! `war plan model` — the compiled corpus as one document, `oh.war/model/v1`
 //! (OW-WAR-0148 M1; OW-ADR-0031).
 //!
 //! ```text
@@ -751,7 +751,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
     })
 }
 
-/// `war model`: the model, and a report naming each of its diagnostics.
+/// `war plan model`: the model, and a report naming each of its diagnostics.
 pub fn run(corpus: &Corpus) -> Result<(Report, Model), RepoError> {
     let model = build(corpus)?;
     let mut report = Report::default();

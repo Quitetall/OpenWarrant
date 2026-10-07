@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war authorize` — the §28.4 authorization seam.
+//! `war sign authorize` — the §28.4 authorization seam.
 //!
 //! # Two halves, and why this command cannot sign anything
 //!
-//! `war authorize <alias>` EMITS an authorization request. `war authorize
+//! `war sign authorize <alias>` EMITS an authorization request. `war sign authorize
 //! <alias> --response <file>` INGESTS what a human returned. Nothing in between
-//! decides anything, for the same reason `war verify` is split: §27.2 says an
+//! decides anything, for the same reason `war evidence verify` is split: §27.2 says an
 //! agent SHALL NOT authorize a proposed WAR, and a command that filled in an
 //! authorizer would be doing exactly that with extra steps.
 //!
@@ -30,7 +30,7 @@
 //! [`ContractRevision`]) and, when judgments were returned, `judgments.toml`
 //! (§42). A refused response writes NOTHING. A rejected authorization must not
 //! become a file that later reads as authority, which is the same rule
-//! `war verify` applies to refused verdicts.
+//! `war evidence verify` applies to refused verdicts.
 
 use std::fs;
 
@@ -1018,7 +1018,7 @@ pub fn ingest_with(
                         "{alias}: the contract moved from {} to {} after revision {} was authorized. \
                          §31: every revision after authorization carries an amendment record — \
                          revision {} needs {needed} under amendments/ and {amendments} exist. \
-                         Write AM-{:03} (`war amend {alias}` mints its file, AM-<n>-<hash>) before re-signing",
+                         Write AM-{:03} (`war sign amend {alias}` mints its file, AM-<n>-<hash>) before re-signing",
                         prev.revision.contract_digest,
                         current_digest,
                         prev.revision.revision,

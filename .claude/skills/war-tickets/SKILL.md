@@ -1,6 +1,6 @@
 ---
 name: war-tickets
-description: "War tickets: split a Warrant into bounded stages with real input dependencies and observable end points. For the ticket loop itself (war prime, ready, claim, done), see the openwarrant skill's tickets reference."
+description: "War tickets: split a Warrant into bounded stages with real input dependencies and observable end points. For the ticket loop itself (war view prime, ready, claim, done), see the openwarrant skill's tickets reference."
 ---
 
 # war-tickets
@@ -8,7 +8,7 @@ description: "War tickets: split a Warrant into bounded stages with real input d
 Read [shared workflow](../openwarrant/SKILL.md). Method: Matt Pocock's tracer-bullet
 decomposition; [provenance](../openwarrant/ADAPTATIONS.md). Splitting work into
 a checklist anyone can claim is a ticket: `war create "..." --item "..."`, then
-`war ready`, `war claim`, `war done` ([tickets](../openwarrant/references/tickets.md)).
+`war next`, `war claim`, `war done` ([tickets](../openwarrant/references/tickets.md)).
 This skill splits a planned Warrant into stages.
 
 1. Read the Warrant's required outcome, constraints and available interfaces.
@@ -22,7 +22,7 @@ This skill splits a planned Warrant into stages.
    Signed contracts need their actual amendment process. Ask about material scope
    changes, not ordinary stage granularity already delegated by the request.
 5. Return stage graph, actual validation and remaining input gaps; implement too
-   when the user asked for it. `war frontier` describes scheduling state, not
+   when the user asked for it. `war plan frontier` describes scheduling state, not
    permission and not completion.
 
 Expand then contract for wide refactors: add new interface, migrate bounded caller

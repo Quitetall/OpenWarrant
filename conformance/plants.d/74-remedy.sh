@@ -75,7 +75,7 @@ fi
 
 # The human rendering: a third line under the finding, and one REMEDIES
 # block with counts before the totals.
-if grep -q '→ human: war correct OW-WAR-' <<<"$RM_HUMAN" \
+if grep -q '→ human: war sign correct OW-WAR-' <<<"$RM_HUMAN" \
     && [[ $(grep -c '^REMEDIES:' <<<"$RM_HUMAN") -eq 1 ]] \
     && grep -qE '^  (auto|human|info) +war .*\(×[0-9]+\)$' <<<"$RM_HUMAN"; then
     printf 'ok    %-34s third line + one REMEDIES block\n' "remedies render for a human"

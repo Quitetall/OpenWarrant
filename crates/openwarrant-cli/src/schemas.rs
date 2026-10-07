@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! `war schemas` (OW-WAR-0032): the JSON Schema pack, generated from the
+//! `war admin schemas` (OW-WAR-0032): the JSON Schema pack, generated from the
 //! record types and drift-checked like every other projection.
 //!
 //! One file per record under `schemas/oh.war/<record>/v1.json`, plus
@@ -148,7 +148,7 @@ fn file_path(root: &Utf8Path, record: &str) -> Utf8PathBuf {
         .join("v1.json")
 }
 
-/// Write the pack (`war schemas`), or compare it to the tree (`--check`).
+/// Write the pack (`war admin schemas`), or compare it to the tree (`--check`).
 pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let (files, pack) = render_all()?;
@@ -176,7 +176,7 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
         .collect();
     let projection = serde_json::json!({
         "schema": "oh.war/typescript-projection/v1",
-        "generator": "war schemas/typescript-v1",
+        "generator": "war admin schemas/typescript-v1",
         "source_pack_sha256": openwarrant_compiler::sha256_hex(pack_body.as_bytes()),
         "source_files": &pack.files,
         "artifacts": artifact_digests,
@@ -196,7 +196,7 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
                 report.push(Diagnostic::error(
                     "schemas.drift",
                     repo.relative(path),
-                    "differs from what the types generate; run `war schemas` (cargo feature `schema`) and commit the result".to_owned(),
+                    "differs from what the types generate; run `war admin schemas` (cargo feature `schema`) and commit the result".to_owned(),
                 ));
             }
             Err(_) => {
@@ -204,7 +204,7 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
                 report.push(Diagnostic::error(
                     "schemas.missing",
                     repo.relative(path),
-                    "not in the tree; run `war schemas` and commit the result".to_owned(),
+                    "not in the tree; run `war admin schemas` and commit the result".to_owned(),
                 ));
             }
         }

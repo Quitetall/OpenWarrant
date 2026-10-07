@@ -370,7 +370,7 @@ impl Repository {
     /// Role assignments in force for this repository (§27.4).
     ///
     /// `docs/authority/roles.toml` is authored by a human and by nothing else.
-    /// There is no `war authority grant`: a command that could write this file
+    /// There is no `war sign authority grant`: a command that could write this file
     /// would let an agent assign itself the roles §27.2 exists to withhold, so
     /// the register is read-only to every tool in this workspace.
     ///
@@ -447,7 +447,7 @@ impl Repository {
     }
 
     /// Judgments recorded for one Warrant (§42).
-    /// The §56.2 record, if one has been ingested (`war resolve --response`).
+    /// The §56.2 record, if one has been ingested (`war sign resolve --response`).
     pub fn load_resolution(
         &self,
         dir: &Utf8Path,
@@ -1328,7 +1328,7 @@ impl Repository {
                 file,
                 format!(
                     "{alias}: acceptance authority {actor:?} does not hold `resolver` in \
-                     docs/authority/roles.toml; acceptance is `war resolve`, and no other \
+                     docs/authority/roles.toml; acceptance is `war sign resolve`, and no other \
                      role grants it"
                 ),
             ));
@@ -1337,7 +1337,7 @@ impl Repository {
             RULE,
             format!(
                 "{alias}: acceptance authority {actor:?} is a human holding resolver; \
-                 acceptance is `war resolve` by that actor"
+                 acceptance is `war sign resolve` by that actor"
             ),
         ))
     }
@@ -1494,7 +1494,7 @@ impl Loaded {
     }
 
     /// `Err` naming the absent capability, by rule, when this Warrant's kind
-    /// does not select `cap`: the refusal `war authorize`, `war verify`, `war
+    /// does not select `cap`: the refusal `war sign authorize`, `war evidence verify`, `war
     /// resolve` and `war sign` give a kind that lacks the act's capability.
     pub fn require(
         &self,

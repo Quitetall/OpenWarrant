@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! The tool table. Three kinds: read-only, request halves (emit the document
 //! a human signs; write nothing), and writes that an agent is allowed to make
-//! (`war new`, evidence, compile, gate runs, journal backfill, a reviewed
+//! (`war plan new`, evidence, compile, gate runs, journal backfill, a reviewed
 //! `plan --apply`). No tool signs, ingests, proposes a SAS revision, or runs
 //! the configured drafter; the tests in `mod.rs` grep this file for that.
 //!
@@ -51,7 +51,7 @@ pub struct CreateParams {
     pub actor: Option<String>,
 }
 
-/// `war warrants` filters (OW-WAR-0148 M5); none given lists every Warrant.
+/// `war view warrants` filters (OW-WAR-0148 M5); none given lists every Warrant.
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct TicketsParams {
     /// Only Warrants of this type: a light one's type (bug), or a profile (delivery, openspec).
@@ -223,7 +223,7 @@ pub struct GateRunParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct PinsParams {
-    /// Only files pinned by RESOLVED Warrants (a change to one is drafted with `war correct`).
+    /// Only files pinned by RESOLVED Warrants (a change to one is drafted with `war sign correct`).
     #[serde(default)]
     pub resolved_only: bool,
 }
@@ -654,7 +654,7 @@ impl WarServer {
 
     #[tool(
         name = "war_journal",
-        description = "The Warrant's journal, rendered (`war journal <alias>`). Read-only.",
+        description = "The Warrant's journal, rendered (`war admin journal <alias>`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_journal(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -668,7 +668,7 @@ impl WarServer {
 
     #[tool(
         name = "war_diff",
-        description = "Semantic diff of a Warrant's compiled IR against the committed IR or a git ref (`war diff`). Read-only.",
+        description = "Semantic diff of a Warrant's compiled IR against the committed IR or a git ref (`war admin diff`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_diff(&self, Parameters(p): Parameters<DiffParams>) -> ToolResult {
@@ -681,7 +681,7 @@ impl WarServer {
 
     #[tool(
         name = "war_gate_list",
-        description = "List the registered gates and their askability without running any (`war gate`). Read-only.",
+        description = "List the registered gates and their askability without running any (`war evidence gate`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_gate_list(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
@@ -693,7 +693,7 @@ impl WarServer {
 
     #[tool(
         name = "war_sas_status",
-        description = "The accepted SAS revision and what pins to it (`war sas status`). Read-only.",
+        description = "The accepted SAS revision and what pins to it (`war sign sas status`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_sas_status(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
@@ -702,7 +702,7 @@ impl WarServer {
 
     #[tool(
         name = "war_resolve_dry_run",
-        description = "§56.1's thirteen requirements assessed for a Warrant without resolving anything (`war resolve --dry-run`). Read-only.",
+        description = "§56.1's thirteen requirements assessed for a Warrant without resolving anything (`war sign resolve --dry-run`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_resolve_dry_run(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -740,7 +740,7 @@ impl WarServer {
 
     #[tool(
         name = "war_pins",
-        description = "Files pinned by Warrants, with state and digest (`war pins`). With resolved_only, the files closed Warrants pin; a change to one is drafted with `war correct`. Read-only.",
+        description = "Files pinned by Warrants, with state and digest (`war admin pins`). With resolved_only, the files closed Warrants pin; a change to one is drafted with `war sign correct`. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_pins(&self, Parameters(p): Parameters<PinsParams>) -> ToolResult {
@@ -753,7 +753,7 @@ impl WarServer {
 
     #[tool(
         name = "war_standing_show",
-        description = "Standing authorizations (OW-ADR-0029): each class's state, signer, expiry, count used, and what each glob matches today (`war standing show`). Read-only.",
+        description = "Standing authorizations (OW-ADR-0029): each class's state, signer, expiry, count used, and what each glob matches today (`war sign standing show`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_standing_show(&self, Parameters(p): Parameters<StandingShowParams>) -> ToolResult {
@@ -782,7 +782,7 @@ impl WarServer {
     // Warrant's own history of being compiled, not a change to its records.
     #[tool(
         name = "war_dispatch",
-        description = "Compile the Stage Dispatch packet (`oh.war/stage-dispatch/v1`) for a stage — the agent's context for that stage, with its token estimate and budget (`war dispatch`). Records a `dispatch.compiled` journal event; writes nothing else.",
+        description = "Compile the Stage Dispatch packet (`oh.war/stage-dispatch/v1`) for a stage — the agent's context for that stage, with its token estimate and budget (`war admin dispatch`). Records a `dispatch.compiled` journal event; writes nothing else.",
         annotations(read_only_hint = true)
     )]
     fn war_dispatch(&self, Parameters(p): Parameters<DispatchParams>) -> ToolResult {
@@ -847,7 +847,7 @@ impl WarServer {
 
     #[tool(
         name = "war_authorize_request",
-        description = "Emit the authorization request a human will sign (`war authorize <alias>`). Writes nothing; authorization is a human act.",
+        description = "Emit the authorization request a human will sign (`war sign authorize <alias>`). Writes nothing; authorization is a human act.",
         annotations(read_only_hint = true)
     )]
     fn war_authorize_request(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -860,7 +860,7 @@ impl WarServer {
 
     #[tool(
         name = "war_resolve_request",
-        description = "Emit the resolution request with §56.1's requirements assessed (`war resolve <alias>`). Writes nothing; resolution is a human act.",
+        description = "Emit the resolution request with §56.1's requirements assessed (`war sign resolve <alias>`). Writes nothing; resolution is a human act.",
         annotations(read_only_hint = true)
     )]
     fn war_resolve_request(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -873,7 +873,7 @@ impl WarServer {
 
     #[tool(
         name = "war_verify_request",
-        description = "Emit the verification request for an INDEPENDENT verifier (`war verify <alias>`). Writes nothing; the verdicts come back through `war verify --response`, a human act.",
+        description = "Emit the verification request for an INDEPENDENT verifier (`war evidence verify <alias>`). Writes nothing; the verdicts come back through `war evidence verify --response`, a human act.",
         annotations(read_only_hint = true)
     )]
     fn war_verify_request(&self, Parameters(p): Parameters<VerifyRequestParams>) -> ToolResult {
@@ -890,7 +890,7 @@ impl WarServer {
 
     #[tool(
         name = "war_sas_accept_request",
-        description = "Emit the SAS acceptance request a human will sign (`war sas accept <version>`). Writes nothing.",
+        description = "Emit the SAS acceptance request a human will sign (`war sign sas accept <version>`). Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_sas_accept_request(&self, Parameters(p): Parameters<VersionParams>) -> ToolResult {
@@ -981,7 +981,7 @@ impl WarServer {
 
     #[tool(
         name = "war_questions",
-        description = "Every question asked of the human across the corpus, blocking and open first, each with the command that answers it (`war questions`). Read-only.",
+        description = "Every question asked of the human across the corpus, blocking and open first, each with the command that answers it (`war plan questions`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_questions(&self, Parameters(p): Parameters<QuestionsParams>) -> ToolResult {
@@ -999,7 +999,7 @@ impl WarServer {
 
     #[tool(
         name = "war_answers",
-        description = "The answers a human gave for a stage, to read BEFORE performing it (`war answers`). Read-only.",
+        description = "The answers a human gave for a stage, to read BEFORE performing it (`war plan answers`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_answers(&self, Parameters(p): Parameters<AnswersParams>) -> ToolResult {
@@ -1016,7 +1016,7 @@ impl WarServer {
     // REFUSED_TOOLS for the same reason `war_sign` is (OW-WAR-0069).
     #[tool(
         name = "war_ask",
-        description = "Ask the human a question that blocks a stage (`war ask`): writes questions/Q-nnn.toml and a journal event. Answering is a human act and is not available here.",
+        description = "Ask the human a question that blocks a stage (`war plan ask`): writes questions/Q-nnn.toml and a journal event. Answering is a human act and is not available here.",
         annotations(read_only_hint = false)
     )]
     fn war_ask(&self, Parameters(p): Parameters<AskParams>) -> ToolResult {
@@ -1035,7 +1035,7 @@ impl WarServer {
 
     #[tool(
         name = "war_new",
-        description = "Create a new Warrant directory with stub atoms (`war new`). Writes under docs/warrants/<alias>/ only.",
+        description = "Create a new Warrant directory with stub atoms (`war plan new`). Writes under docs/warrants/<alias>/ only.",
         annotations(read_only_hint = false)
     )]
     fn war_new(&self, Parameters(p): Parameters<NewParams>) -> ToolResult {
@@ -1071,7 +1071,7 @@ impl WarServer {
 
     #[tool(
         name = "war_prime",
-        description = "Read this first (`war prime`): open Warrants with their remaining items, who holds which claim, recent notes, done work compacted. Markdown in result.markdown. Read-only.",
+        description = "Read this first (`war view prime`): open Warrants with their remaining items, who holds which claim, recent notes, done work compacted. Markdown in result.markdown. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_prime(&self, Parameters(p): Parameters<PrimeParams>) -> ToolResult {
@@ -1082,7 +1082,7 @@ impl WarServer {
 
     #[tool(
         name = "war_ready",
-        description = "What can start now (`war ready`): open, unclaimed, unblocked items of light Warrants, most urgent and oldest first. Read-only.",
+        description = "What can start now (`war view ready`): open, unclaimed, unblocked items of light Warrants, most urgent and oldest first. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_ready(&self, Parameters(p): Parameters<ActorParams>) -> ToolResult {
@@ -1091,7 +1091,7 @@ impl WarServer {
 
     #[tool(
         name = "war_tickets",
-        description = "Every Warrant with its type, state and progress (`war warrants`, also `war tickets`): light ones in result.tickets, directory and read-in-place ones in result.warrants; optionally filtered by type, labels, state, a phrase, search words or epic: exactly the Warrants every filter admits. Read-only.",
+        description = "Every Warrant with its type, state and progress (`war view warrants`, also `war view tickets`): light ones in result.tickets, directory and read-in-place ones in result.warrants; optionally filtered by type, labels, state, a phrase, search words or epic: exactly the Warrants every filter admits. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_tickets(&self, Parameters(p): Parameters<TicketsParams>) -> ToolResult {
@@ -1143,7 +1143,7 @@ impl WarServer {
 
     #[tool(
         name = "war_heartbeat",
-        description = "Renew the lease on your claims (`war heartbeat`), or on the one named, so no other agent reclaims them while you work. Every call of the Warrant loop's tools renews them too; a claim whose lease runs out is taken by a plain claim.",
+        description = "Renew the lease on your claims (`war admin heartbeat`), or on the one named, so no other agent reclaims them while you work. Every call of the Warrant loop's tools renews them too; a claim whose lease runs out is taken by a plain claim.",
         annotations(read_only_hint = false)
     )]
     fn war_heartbeat(&self, Parameters(p): Parameters<HeartbeatParams>) -> ToolResult {
@@ -1182,7 +1182,7 @@ impl WarServer {
 
     #[tool(
         name = "war_note",
-        description = "Append a dated note to a Warrant (`war note`): the durable context the next agent or person reads in `war prime`.",
+        description = "Append a dated note to a Warrant (`war note`): the durable context the next agent or person reads in `war view prime`.",
         annotations(read_only_hint = false)
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
@@ -1210,7 +1210,7 @@ impl WarServer {
 
     #[tool(
         name = "war_deliver",
-        description = "Declare a Warrant's deliverables delivered (`war deliver`): record §37.2 provenance on each — the sha256 of the file now, how it was made, the build of war that recorded it — and set content_addressed. Refuses a resolved Warrant, a missing file, and a path a later authorized Warrant governs (OW-ADR-0021); any refusal writes nothing. Run it before `war_evidence_record`: deliverables.toml is bound into every tree-bound receipt.",
+        description = "Declare a Warrant's deliverables delivered (`war admin deliver`): record §37.2 provenance on each — the sha256 of the file now, how it was made, the build of war that recorded it — and set content_addressed. Refuses a resolved Warrant, a missing file, and a path a later authorized Warrant governs (OW-ADR-0021); any refusal writes nothing. Run it before `war_evidence_record`: deliverables.toml is bound into every tree-bound receipt.",
         annotations(read_only_hint = false)
     )]
     fn war_deliver(&self, Parameters(p): Parameters<DeliverParams>) -> ToolResult {
@@ -1230,7 +1230,7 @@ impl WarServer {
 
     #[tool(
         name = "war_standing_apply",
-        description = "The coverage check of a standing authorization (`war standing apply`): a Warrant inside a class a human signed is authorized in that human's name; one outside is refused by the term it breaks and nothing is written. Accepting, revoking or signing a class is not a tool.",
+        description = "The coverage check of a standing authorization (`war sign standing apply`): a Warrant inside a class a human signed is authorized in that human's name; one outside is refused by the term it breaks and nothing is written. Accepting, revoking or signing a class is not a tool.",
         annotations(read_only_hint = false)
     )]
     fn war_standing_apply(&self, Parameters(p): Parameters<StandingApplyParams>) -> ToolResult {
@@ -1242,7 +1242,7 @@ impl WarServer {
 
     #[tool(
         name = "war_compile",
-        description = "Compile Warrants to their generated projections (`war compile`).",
+        description = "Compile Warrants to their generated projections (`war admin compile`).",
         annotations(read_only_hint = false)
     )]
     fn war_compile(&self, Parameters(p): Parameters<CompileParams>) -> ToolResult {
@@ -1255,7 +1255,7 @@ impl WarServer {
 
     #[tool(
         name = "war_gate_run",
-        description = "Execute registered gates and report their verdicts without recording (`war gate --run`). Recording is `war evidence record`.",
+        description = "Execute registered gates and report their verdicts without recording (`war evidence gate --run`). Recording is `war evidence record`.",
         annotations(read_only_hint = false)
     )]
     fn war_gate_run(&self, Parameters(p): Parameters<GateRunParams>) -> ToolResult {
@@ -1267,7 +1267,7 @@ impl WarServer {
 
     #[tool(
         name = "war_journal_backfill",
-        description = "Backfill a Warrant's journal from its records (`war journal <alias> --backfill`).",
+        description = "Backfill a Warrant's journal from its records (`war admin journal <alias> --backfill`).",
         annotations(read_only_hint = false)
     )]
     fn war_journal_backfill(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -1279,7 +1279,7 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_apply",
-        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war new` and the seven §74.3 operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true, or the proposal answers an issue (`issue_file`/`issue`) under `[intake] policy_approval`; an issue-linked Warrant records plan/intake.json. Authorizes nothing.",
+        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war plan new` and the seven §74.3 operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true, or the proposal answers an issue (`issue_file`/`issue`) under `[intake] policy_approval`; an issue-linked Warrant records plan/intake.json. Authorizes nothing.",
         annotations(read_only_hint = false)
     )]
     fn war_plan_apply(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {

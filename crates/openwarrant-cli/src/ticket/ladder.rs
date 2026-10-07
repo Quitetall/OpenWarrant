@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! The tick ladder on tickets (OW-WAR-0148 M13): what each tick shows, what
-//! backs it, what `war done --check` runs, and `war kpi run`.
+//! backs it, what `war done --check` runs, and `war evidence kpi run`.
 //!
 //! # A tick's level is what the file says, as far as a record backs it
 //!
@@ -57,7 +57,7 @@ pub mod event {
     pub const TICK_SIGNED: &str = "ticket.tick_signed";
 }
 
-/// Where `war done --check` and `war kpi run` leave each command's output,
+/// Where `war done --check` and `war evidence kpi run` leave each command's output,
 /// under the repository root: disposable state, never committed.
 pub const OUTPUT_DIR: &str = ".openwarrant/state/checks";
 
@@ -93,8 +93,8 @@ pub fn command_for(level: Level, target: &str) -> String {
         Level::Claimed => format!("`war done {target}`"),
         Level::Observed => format!("`war done {target} --check`"),
         Level::Independent => format!(
-            "an independent verification: `war verify {target}` writes the request, and \
-             someone other than you answers it (`war verify {target} --response <file>`)"
+            "an independent verification: `war evidence verify {target}` writes the request, and \
+             someone other than you answers it (`war evidence verify {target} --response <file>`)"
         ),
         Level::Signed => format!("a human's sign-off: `war sign {target} --ssh-sign`"),
     }
@@ -920,7 +920,7 @@ pub fn describe_standing(s: &KpiStanding) -> String {
     out
 }
 
-/// `war kpi run <ticket|item>`: run every KPI that applies, journal each
+/// `war evidence kpi run <ticket|item>`: run every KPI that applies, journal each
 /// run, and say each one's latest, best and target. Ticks nothing.
 pub fn kpi_run(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;

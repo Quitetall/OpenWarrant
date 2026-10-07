@@ -951,7 +951,7 @@ pub fn human(a: &Applied) -> String {
     }
     let first = a.records.first().map_or("<ID>", |r| r.id.as_str());
     s.push_str(&format!(
-        "`war ready` lists the items; `war impact {first}` lists what a change to a record reaches"
+        "`war next` lists the items; `war plan impact {first}` lists what a change to a record reaches"
     ));
     s
 }

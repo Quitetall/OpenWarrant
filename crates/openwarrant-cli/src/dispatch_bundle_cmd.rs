@@ -109,7 +109,7 @@ fn judge_tokens(dispatch: &StageDispatch) -> Result<(), RepoError> {
     let Some(tokens) = &dispatch.tokens else {
         return Err(err(format!(
             "bundle-tokens-unrecorded: dispatch {} (stage {}) carries no token account; a \
-             Dispatch declares its estimate and budget (RQ-046). Recompile it with `war dispatch`",
+             Dispatch declares its estimate and budget (RQ-046). Recompile it with `war admin dispatch`",
             dispatch.dispatch_id, dispatch.stage_id
         )));
     };

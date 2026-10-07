@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war resolve --dry-run` — evaluate §56.1's thirteen requirements.
+//! `war sign resolve --dry-run` — evaluate §56.1's thirteen requirements.
 //!
 //! # Why this is a dry run and nothing else, for now
 //!
@@ -708,10 +708,10 @@ pub fn artifact_digests_verify(
         })
 }
 
-/// Everything `war resolve` computes for one Warrant, before any diagnostic is
+/// Everything `war sign resolve` computes for one Warrant, before any diagnostic is
 /// written.
 ///
-/// Extracted so the corpus projection (`war status`) and `war resolve` compute
+/// Extracted so the corpus projection (`war status`) and `war sign resolve` compute
 /// from ONE function. Two implementations of the thirteen would be two places
 /// for them to disagree, and the projection would be the one nobody re-checked.
 #[derive(Debug, Clone)]
@@ -736,7 +736,7 @@ pub struct Assessment {
 /// Compute §56.1's thirteen and §38.6 for one loaded Warrant, reading gate
 /// runs from the receipts path.
 ///
-/// This is what `war resolve` calls. It is a LOCAL question — "what do the
+/// This is what `war sign resolve` calls. It is a LOCAL question — "what do the
 /// records on this machine say?" — and the receipts under `docs/receipts/`
 /// are part of that, gitignored or not.
 pub fn assess(repo: &Repository, one: &crate::repo::Loaded) -> Result<Assessment, RepoError> {
@@ -765,7 +765,7 @@ pub fn cited_gate_keys(one: &crate::repo::Loaded) -> Vec<String> {
 /// Assess against an explicit set of recorded runs.
 ///
 /// Requirement 5 reads ONLY a Warrant's own committed `gate-runs/` — never the
-/// gitignored receipts path — so the corpus projection and `war resolve` answer
+/// gitignored receipts path — so the corpus projection and `war sign resolve` answer
 /// the same question from the same tracked inputs, and a fresh clone reproduces
 /// both. A run counts only when its receipt reseals and is bound to the
 /// contract as it compiles now (`evidence::admissibility`).
@@ -888,7 +888,7 @@ pub fn assess_with_digest(
     })
 }
 
-/// `war resolve <alias> --dry-run`.
+/// `war sign resolve <alias> --dry-run`.
 pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
@@ -966,7 +966,7 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
                         "{alias}: {} → {} no longer carries the bytes this Warrant pinned; \
                          {}/{} (authorized {}) governs that path now. Requirement 3 stays \
                          unmet as written, and nothing here is drift: no resolution binds \
-                         this pin, so `war pins --refresh --alias {alias}` records the bytes \
+                         this pin, so `war admin pins --refresh --alias {alias}` records the bytes \
                          as they stand and the resolution then says what was delivered under \
                          whose authority (OW-ADR-0021)",
                         d.id, d.target_ref, newer.alias, newer.deliverable_id, newer.authorized_at

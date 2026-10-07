@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war standing` — a standing authorization (OW-ADR-0029; SAS §28.8 as
+//! `war sign standing` — a standing authorization (OW-ADR-0029; SAS §28.8 as
 //! proposed in 1.2.0).
 //!
 //! # The shape, in one paragraph
 //!
 //! The owner signs one CLASS of routine work. The class is a file under
 //! `docs/authority/standing/<id>@<revision>.toml`, proposed by anyone with
-//! `war standing propose`, and it covers nothing until a human signs it with
+//! `war sign standing propose`, and it covers nothing until a human signs it with
 //! `war sign standing:<id>@<revision> --ssh-sign` — the acceptance is that
 //! signed response, bound to the class file's exact sha256. Each routine
-//! Warrant is then checked against the class by `war standing apply`: inside,
+//! Warrant is then checked against the class by `war sign standing apply`: inside,
 //! it gets the same `oh.war/authorization/v1` record a signature writes, with
 //! the class's signer as `authorizer` and `policy_basis =
 //! "standing://<id>@<revision>"`; outside, it is refused by the term it
@@ -20,7 +20,7 @@
 //!
 //! - The class is signed by a human: `war sign` drafts the acceptance and the
 //!   ingest refuses an agent by kind and the performer as `SelfAct`, exactly
-//!   as for an authorization. `war mcp` registers no tool that accepts,
+//!   as for an authorization. `war admin mcp` registers no tool that accepts,
 //!   revokes or ingests a class.
 //! - The class cannot be widened in place: its signature binds the file's
 //!   bytes, so an edited glob leaves the class unsigned and every Warrant it
@@ -367,7 +367,7 @@ fn refusal_diag(r: &Refusal, file: String) -> Diagnostic {
     Diagnostic::error(r.rule(), file, r.to_string())
 }
 
-/// `war standing propose <file>`: validate a class and place it where
+/// `war sign standing propose <file>`: validate a class and place it where
 /// `war sign` offers it for one signature. Writes the file's exact bytes,
 /// which are what the signature will bind; `--dry-run` writes nothing.
 pub fn propose(repo: &Repository, file: &Utf8Path, dry_run: bool) -> Result<Report, RepoError> {
@@ -514,7 +514,7 @@ pub fn matches_today(
         .collect()
 }
 
-/// One class as `war standing show` reports it.
+/// One class as `war sign standing show` reports it.
 #[derive(Debug, Clone, Serialize)]
 pub struct View {
     pub reference: String,
@@ -531,7 +531,7 @@ pub struct View {
     pub matches: BTreeMap<String, Vec<String>>,
 }
 
-/// `war standing show [<id>]`.
+/// `war sign standing show [<id>]`.
 pub fn show(repo: &Repository, id: Option<&str>) -> Result<(Report, Vec<View>), RepoError> {
     let mut report = Report::default();
     let covered = covered_records(repo);
@@ -663,7 +663,7 @@ fn requested_reference(one: &crate::repo::Loaded, flag: Option<&str>) -> Option<
         .map(str::to_owned)
 }
 
-/// `war standing apply <alias>`: the coverage check. Inside the class, the
+/// `war sign standing apply <alias>`: the coverage check. Inside the class, the
 /// Warrant's `authorization.toml` is written with the class's signer as
 /// authorizer; outside it, every broken term is named and nothing is written.
 pub fn apply(
@@ -864,7 +864,7 @@ pub fn apply(
         acting_role: "authorizer".to_owned(),
         meaning: format!(
             "Authorized under the standing authorization {reference} (class sha256:{}), which \
-             {} signed at {}: \"{}\" `war standing apply` found this contract inside every \
+             {} signed at {}: \"{}\" `war sign standing apply` found this contract inside every \
              term of the class; the authorizer of record is the class's signer (SAS §28.8, \
              proposed in 1.2.0). It does not resolve the Warrant.",
             class.sha256,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war ui` — the web UI (OW-WAR-0116).
+//! `war view ui` — the web UI (OW-WAR-0116).
 //!
 //! One page application served from the `war` binary on 127.0.0.1. It is a
 //! rendering (SAS §76.6, OW-ADR-0019): every view is read through the
@@ -27,7 +27,7 @@
 //!
 //! # Current by construction
 //!
-//! Views are cached against the `war watch` fingerprint of the records
+//! Views are cached against the `war view watch` fingerprint of the records
 //! (plus the roadmap directory). `/api/version` returns it; the page asks
 //! every two seconds and refetches when it moves, so a signature given in a
 //! terminal appears without a reload.
@@ -35,7 +35,7 @@
 //! No async (OW-ADR-0014): one accept loop, and an act runs on its own thread
 //! so the loop stays responsive while the key's dialog waits for the human.
 //!
-//! # LAN (`war ui --lan`, OW-WAR-0139)
+//! # LAN (`war view ui --lan`, OW-WAR-0139)
 //!
 //! Opt-in, beside the loopback page, which is unchanged and stays the only
 //! page that can start a signing act.
@@ -170,7 +170,7 @@ fn err(s: impl std::fmt::Display) -> RepoError {
     RepoError::Message(s.to_string())
 }
 
-/// `war ui`. Blocks until interrupted.
+/// `war view ui`. Blocks until interrupted.
 pub fn run(
     root: Utf8PathBuf,
     port: u16,
@@ -181,7 +181,7 @@ pub fn run(
     run_with(root, port, page, actor, None, mode)
 }
 
-/// `war ui --lan …`: what the LAN listener needs (OW-WAR-0139).
+/// `war view ui --lan …`: what the LAN listener needs (OW-WAR-0139).
 #[derive(Debug, Clone)]
 pub struct LanOptions {
     /// `--lan <addr:port>`, exactly as typed.
@@ -255,7 +255,7 @@ impl Lan {
             }
             _ => {
                 return Err(err(
-                    "ui.lan-needs-tls: `war ui --lan` serves only TLS and did not start. Pass \
+                    "ui.lan-needs-tls: `war view ui --lan` serves only TLS and did not start. Pass \
                      --cert <pem> and --key <pem> (an operator certificate, for example from \
                      `tailscale cert` or a local CA), or --self-signed (the fallback: every device \
                      shows a browser warning). Nothing was bound.",
@@ -324,7 +324,7 @@ fn qr(text: &str) -> String {
     out
 }
 
-/// `war ui [--lan …]`. Blocks until interrupted.
+/// `war view ui [--lan …]`. Blocks until interrupted.
 pub fn run_with(
     root: Utf8PathBuf,
     port: u16,
@@ -449,7 +449,7 @@ a paired device reads, runs automatic remedies and can ask for a signature here;
     }
 }
 
-/// `war ui devices [--revoke <id>]`: the devices paired for this repository.
+/// `war view ui devices [--revoke <id>]`: the devices paired for this repository.
 pub fn devices(
     root: Utf8PathBuf,
     revoke: Option<String>,
@@ -485,7 +485,7 @@ pub fn devices(
     }
     if list.is_empty() {
         text.push_str(
-            "  none — `war ui --lan <addr:port> --cert … --key …` prints a pairing link\n",
+            "  none — `war view ui --lan <addr:port> --cert … --key …` prints a pairing link\n",
         );
     }
     crate::output::emit(
@@ -988,7 +988,7 @@ impl Server {
             pairing::Answer::Yes => match lan.store.issue(peer, &ua, lan.device_ttl) {
                 Ok((device, credential)) => {
                     eprintln!(
-                        "war ui: paired device {} from {peer}; `war ui devices --revoke {}` revokes it.",
+                        "war ui: paired device {} from {peer}; `war view ui devices --revoke {}` revokes it.",
                         device.id, device.id
                     );
                     let cookie = format!(
@@ -1372,7 +1372,7 @@ impl Server {
         )
     }
 
-    /// The records' fingerprint: `war watch`'s trees plus the roadmap.
+    /// The records' fingerprint: `war view watch`'s trees plus the roadmap.
     /// A loopback ticket act, in process: the same `ticket::claim_cmd` or
     /// `ticket::done` the CLI runs, acting as `--as` when given. 200 with the
     /// command's words, or 409 naming the rule it refused by.
@@ -1818,7 +1818,7 @@ fn build_view(
                     json!({
                         "alias": w.alias, "title": w.title, "rung": w.rung,
                         "unmet": w.unmet, "unestablished": w.unestablished,
-                        "command": format!("war resolve {} --dry-run", w.alias),
+                        "command": format!("war sign resolve {} --dry-run", w.alias),
                     })
                 })
                 .collect();
@@ -1847,7 +1847,7 @@ fn progress(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
         match by_alias.get(a) {
             Some(w) => json!({
                 "alias": a, "title": w.title, "rung": w.rung,
-                "unmet": w.unmet.len(), "command": format!("war resolve {a} --dry-run"),
+                "unmet": w.unmet.len(), "command": format!("war sign resolve {a} --dry-run"),
             }),
             None => json!({"alias": a}),
         }
@@ -2000,7 +2000,7 @@ fn queue(corpus: &crate::corpus::Corpus, actor: Option<&str>) -> Result<Value, R
         "signer": actor,
         "who": who.map(|m| json!({
             "why": m,
-            "command": "war ui --as <your name as roles.toml spells it>",
+            "command": "war view ui --as <your name as roles.toml spells it>",
         })),
     }))
 }

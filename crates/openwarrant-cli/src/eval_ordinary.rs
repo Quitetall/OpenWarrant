@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war eval ordinary` (M9, decision 19): does a real agent, in a repository
+//! `war evidence eval ordinary` (M9, decision 19): does a real agent, in a repository
 //! with OpenWarrant installed, still do ordinary work?
 //!
 //! An agent in a game-engine repository that had adopted OpenWarrant refused
@@ -339,14 +339,14 @@ fn run_agent(
     ))
 }
 
-/// `war eval ordinary`.
+/// `war evidence eval ordinary`.
 pub fn run(repo: &Repository, opts: &Options) -> Result<(Report, serde_json::Value), RepoError> {
     let mut report = Report::default();
     if opts.agent.is_empty() {
         // As `eval.no-drafter`: a seam with nothing on the other side says so
         // and runs nothing (exit 1).
         return Err(RepoError::Message(
-            "eval.no-agent: no agent to ask. Pass its argv with repeated --agent, e.g. `war \
+            "eval.no-agent: no agent to ask. Pass its argv with repeated --agent, e.g. `war evidence \
              eval ordinary --agent claude --agent -p --agent {prompt} --agent --permission-mode \
              --agent acceptEdits` (evals/ordinary/README.md). Nothing ran"
                 .to_owned(),

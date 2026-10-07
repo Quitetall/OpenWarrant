@@ -152,7 +152,7 @@ fn walk(dir: &Utf8Path, out: &mut Vec<Utf8PathBuf>) {
 
 /// [`schemas_in`], remembered per file for the life of the process while the
 /// file's length and modification time stand. A Warrant is loaded many times
-/// by one command (`war compile` loads the corpus once per projection); the
+/// by one command (`war admin compile` loads the corpus once per projection); the
 /// answer for an unchanged file does not change between loads.
 fn cached_schemas(file: &Utf8Path) -> Vec<(String, u32)> {
     type Seen = std::collections::HashMap<

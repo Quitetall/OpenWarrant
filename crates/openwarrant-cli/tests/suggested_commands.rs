@@ -20,6 +20,14 @@
 //! answers with that family's help; anything else clap refuses fails here,
 //! by file, line and command, so a rename (M12) that leaves a suggestion
 //! behind is caught.
+//!
+//! M12: every suggestion also names its command by the spelling help shows
+//! (`war admin compile`, not `war compile`). An earlier spelling still parses
+//! (it is a hidden alias), so the parse alone cannot catch one left behind;
+//! [`canonical`] walks the words through the tree and refuses a hidden one.
+//! A file a resolved Warrant pins cannot be edited (`war admin pins
+//! --resolved-only`), so its text keeps the earlier spelling and is exempt,
+//! read from the records rather than listed here.
 
 use std::path::{Path, PathBuf};
 
@@ -151,6 +159,65 @@ fn shape_ok(cmd: &clap::Command, span: &str) -> Result<(), String> {
     }
 }
 
+/// The words of a suggested command name each subcommand by a spelling help
+/// shows: at the top level a daily verb or a group (the groups are named in
+/// the help's "More:" block), below it a member the group's help lists. The
+/// first word that is no subcommand (a target, a value, a flag) ends the walk.
+fn canonical(cmd: &clap::Command, argv: &[String]) -> Result<(), String> {
+    let mut words = argv.iter().skip(1).map(String::as_str).peekable();
+    // The global flags, wherever they sit before the command.
+    let mut at = cmd;
+    let mut top = true;
+    while let Some(w) = words.next() {
+        if w == "--json" {
+            continue;
+        }
+        if w == "--root" {
+            words.next();
+            continue;
+        }
+        if w.starts_with('-') {
+            return Ok(());
+        }
+        let Some(sub) = at.find_subcommand(w) else {
+            return Ok(());
+        };
+        let shown = if top {
+            openwarrant_cli::DAILY.contains(&sub.get_name())
+                || openwarrant_cli::GROUPS.contains(&sub.get_name())
+                || sub.get_name() == "help"
+        } else {
+            !sub.is_hide_set()
+        };
+        if !shown {
+            return Err(format!(
+                "`{w}` is a hidden spelling; help names it under a group (docs/COMMANDS.md)"
+            ));
+        }
+        // A `war sign <target>` or `war plan "<sentence>"` stops here: what
+        // follows the group is the member only when it names one.
+        at = sub;
+        top = false;
+    }
+    Ok(())
+}
+
+/// The files a resolved Warrant pins and no later Warrant governs: their
+/// bytes cannot move, so their text keeps the spellings it was signed with.
+fn pinned(crates: &Path) -> std::collections::BTreeSet<String> {
+    let root =
+        camino::Utf8PathBuf::from_path_buf(crates.join("..")).expect("a UTF-8 workspace path");
+    let repo = openwarrant_cli::repo::Repository::discover(Some(root))
+        .expect("the workspace is an OpenWarrant repository");
+    openwarrant_cli::pins::list(&repo, true)
+        .expect("the pins read")
+        .pins
+        .into_iter()
+        .filter(|p| !p.historical)
+        .map(|p| p.path)
+        .collect()
+}
+
 fn rust_files(dir: &Path, out: &mut Vec<PathBuf>) {
     for e in std::fs::read_dir(dir).expect("readable source dir") {
         let p = e.expect("entry").path();
@@ -227,7 +294,9 @@ fn every_remedy_parses_as_printed() {
             if r.argv.first().map(String::as_str) != Some("war") {
                 continue;
             }
-            if let Err(why) = parses(&cmd, &r.argv, Strict::Whole) {
+            if let Err(why) =
+                parses(&cmd, &r.argv, Strict::Whole).and_then(|()| canonical(&cmd, &r.argv))
+            {
                 failures.push(format!("{rule}: `{}`: {why}", r.command()));
             }
         }
@@ -253,12 +322,14 @@ fn every_suggested_command_in_the_source_parses_as_printed() {
         rust_files(&crates.join(c).join("src"), &mut files);
     }
     files.sort();
-    let mut found: Vec<(String, String)> = Vec::new();
+    let pinned = pinned(&crates);
+    let mut found: Vec<(String, String, bool)> = Vec::new();
     for f in &files {
         let text = std::fs::read_to_string(f).expect("readable");
         let rel = f.strip_prefix(&crates).unwrap_or(f).display().to_string();
+        let is_pinned = pinned.contains(&format!("crates/{rel}"));
         for (line, span) in spans(&text) {
-            found.push((format!("{rel}:{line}"), span));
+            found.push((format!("{rel}:{line}"), span, is_pinned));
         }
     }
     assert!(
@@ -272,11 +343,21 @@ fn every_suggested_command_in_the_source_parses_as_printed() {
         found
             .into_iter()
             // `war {command}`: a command built at run time, not a suggestion.
-            .filter(|(_, span)| !span["war ".len()..].starts_with('{'))
+            .filter(|(_, span, _)| !span["war ".len()..].starts_with('{'))
             // `war schemas` exists only in a build with the `schema` feature.
-            .filter(|(_, span)| cfg!(feature = "schema") || !span.starts_with("war schemas"))
-            .filter_map(|(at, span)| {
+            .filter(|(_, span, _)| {
+                cfg!(feature = "schema")
+                    || !(span.starts_with("war schemas") || span.starts_with("war admin schemas"))
+            })
+            .filter_map(|(at, span, is_pinned)| {
                 shape_ok(&cmd, &span)
+                    .and_then(|()| {
+                        if is_pinned {
+                            Ok(())
+                        } else {
+                            canonical(&cmd, &normalize(&span).0)
+                        }
+                    })
                     .err()
                     .map(|why| format!("{at}: `{span}`: {why}"))
             })
@@ -307,6 +388,37 @@ fn a_suggestion_clap_refuses_is_caught() {
         // Strict, as a remedy is held: the operand is required.
         let (argv, _) = normalize("war evidence record");
         assert!(parses(&cmd, &argv, Strict::Whole).is_err());
+        // M12: an earlier spelling parses, and is refused as a suggestion;
+        // the spelling help shows passes, a sign target and a plan sentence
+        // included.
+        let words = |line: &str| normalize(line).0;
+        for hidden in [
+            "war compile",
+            "war board --html",
+            "war resolve {alias} --dry-run",
+            "war tickets",
+            "war admin merge-ticket --install",
+        ] {
+            assert_eq!(shape_ok(&cmd, hidden), Ok(()), "{hidden} still parses");
+            if hidden.contains("admin") {
+                assert_eq!(canonical(&cmd, &words(hidden)), Ok(()), "{hidden}");
+            } else {
+                assert!(canonical(&cmd, &words(hidden)).is_err(), "{hidden}");
+            }
+        }
+        for shown in [
+            "war admin compile",
+            "war view board --html",
+            "war sign resolve {alias} --dry-run",
+            "war sign {alias} --ssh-sign",
+            "war plan \"add a changelog\"",
+            "war evidence record {alias}",
+            "war view tickets",
+            "war --json next",
+            "war done {id}",
+        ] {
+            assert_eq!(canonical(&cmd, &words(shown)), Ok(()), "{shown}");
+        }
         // A quoted "..." is a value; a bare trailing … is a gap.
         assert_eq!(shape_ok(&cmd, "war done {id} --note \"...\""), Ok(()));
         assert_eq!(shape_ok(&cmd, "war sign <alias> --ssh-sign …"), Ok(()));

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war impact <record>` — what a change to one record affects
+//! `war plan impact <record>` — what a change to one record affects
 //! (OW-WAR-0148 M3; OW-ADR-0031), as `oh.war/impact/v1`.
 //!
 //! Read from the compiled model (`oh.war/model/v1`) and nothing else but
@@ -198,7 +198,7 @@ pub fn build(corpus: &Corpus, id: &str) -> Result<(Report, Option<Impact>), Repo
             "impact.unknown-record",
             id.to_owned(),
             format!(
-                "{id} is not a record of this corpus ({} records); `war model --json` lists \
+                "{id} is not a record of this corpus ({} records); `war plan model --json` lists \
                  every record id",
                 model.records.len()
             ),

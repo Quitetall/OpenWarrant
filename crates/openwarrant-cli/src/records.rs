@@ -550,7 +550,7 @@ pub fn check(corpus: &Corpus, report: &mut Report) {
                     .starts_with(openwarrant_core::instruction::ID_PREFIX)
                 {
                     ". A section's id is `md:<file>#<slug>`, its slug the heading as GitHub \
-                     anchors it; `war model --json` lists every section"
+                     anchors it; `war plan model --json` lists every section"
                 } else {
                     ""
                 }

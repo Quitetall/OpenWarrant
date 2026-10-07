@@ -15,15 +15,15 @@ war init --namespace APP
 war create "Add password reset" --item "Reset endpoint" --item "Email template"
 ```
 
-Then `war ready` shows what can start, `war claim <id>` takes an item,
-`war done <id> --note "..."` ticks it off, and `war prime` is what the next
+Then `war next` shows what can start, `war claim <id>` takes an item,
+`war done <id> --note "..."` ticks it off, and `war view prime` is what the next
 agent (or person) reads first: open tickets, remaining items, who holds what,
 recent notes. A ticket is two Markdown files you can read on GitHub; no step
 needs a signature or anyone's approval. [The loop in five commands](docs/TICKETS.md).
-Sign-off is opt-in: `war promote <ticket>` drafts a Warrant when someone wants it.
+Sign-off is opt-in: `war plan promote <ticket>` drafts a Warrant when someone wants it.
 
 **Read first: [the current state](docs/generated/CURRENT.md)** — the master
-document `war compile` writes from the records, current by construction
+document `war admin compile` writes from the records, current by construction
 (`docs/generated/CURRENT.md`; its history is `docs/generated/HISTORY.md`).
 
 [Design draft](docs/sas/drafts/1.0.0-rc.3/README.md) ·
@@ -129,7 +129,7 @@ and [generated status](docs/warrants/generated/CORPUS_STATUS.md).
 
 ## Build the current CLI
 
-To install a release instead, and keep it current with `war update`:
+To install a release instead, and keep it current with `war admin update`:
 `curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`
 ([docs/INSTALL.md](docs/INSTALL.md)).
 
@@ -142,13 +142,13 @@ cargo build --release -p openwarrant-cli
 ./target/release/war --help
 ```
 
-Or run `war ui` for the same in a browser on this machine: Progress on the
+Or run `war view ui` for the same in a browser on this machine: Progress on the
 roadmap, updating live, the signing queue with each act's dry-run verdict,
 and buttons that start the signature your key's dialog confirms
 ([docs/WEBUI.md](docs/WEBUI.md)).
 
 Type `war` anywhere: outside a repository it opens **Projects**, every
-repository you have used `war` in, remembered on use (`war projects`;
+repository you have used `war` in, remembered on use (`war admin projects`;
 `OPENWARRANT_NO_PROJECTS=1` turns it off). Type `war` in a repository and,
 at a terminal, it opens the app — setup,
 help, the signing queue and every pane of the corpus, with the exact command

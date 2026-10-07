@@ -72,9 +72,9 @@ pub fn run(
 /// scaffold does not print it — its three lines are pinned (99-init,
 /// 59-adoption), and asking for the scaffold is asking for the authority layer.
 pub const START_HINT: &str = "start: ordinary coding needs no ticket and no Warrant. To track work, \
-     `war create \"what this work accomplishes\" --item \"...\"`, then `war ready`, `war claim <id>`, \
-     `war done <id>`; no signature needed. Agents run `war prime` first (AGENTS.md). Sign-off is \
-     opt-in: `war promote <ticket>`.";
+     `war create \"what this work accomplishes\" --item \"...\"`, then `war next`, `war claim <id>`, \
+     `war done <id>`; no signature needed. Agents run `war view prime` first (AGENTS.md). Sign-off is \
+     opt-in: `war plan promote <ticket>`.";
 
 /// The namespace `war init` uses when none is given (M9): derived from a
 /// name, so a script or an agent's shell never has to invent one and a
@@ -193,7 +193,7 @@ pub fn history(root: &Utf8Path) -> History {
 }
 
 /// Resolve a named commit to its full id, refusing anything that is not a
-/// commit in HEAD's history: a baseline outside the history `war telemetry`
+/// commit in HEAD's history: a baseline outside the history `war admin telemetry`
 /// walks would silently hide or invent untracked work.
 pub fn resolve_baseline(root: &Utf8Path, named: &str) -> Result<String, InitError> {
     let refuse = |why: &str| InitError::Baseline {
@@ -236,7 +236,7 @@ pub fn resolve_baseline(root: &Utf8Path, named: &str) -> Result<String, InitErro
 }
 
 /// The conventional places an existing ADR corpus lives, holding at least
-/// one file `war migrate` would read (`NNNN-*.md`). Found, never imported.
+/// one file `war admin migrate` would read (`NNNN-*.md`). Found, never imported.
 #[must_use]
 pub fn adr_dirs(root: &Utf8Path) -> Vec<&'static str> {
     ["docs/adr", "doc/adr", "adr"]
@@ -263,11 +263,11 @@ pub fn adr_dirs(root: &Utf8Path) -> Vec<&'static str> {
 pub fn migrate_line(dir: &str, baseline: Option<&str>) -> String {
     match baseline {
         Some(id) => format!(
-            "existing ADRs in {dir}/: `war migrate --corpus {dir} --commit {id}` would import \
+            "existing ADRs in {dir}/: `war admin migrate --corpus {dir} --commit {id}` would import \
              them (§96); nothing was imported"
         ),
         None => format!(
-            "existing ADRs in {dir}/: once they are committed, `war migrate --corpus {dir} \
+            "existing ADRs in {dir}/: once they are committed, `war admin migrate --corpus {dir} \
              --commit <commit>` would import them (§96); nothing was imported"
         ),
     }
@@ -458,7 +458,7 @@ pub fn run_with(
         "allow_unmetered = true\n",
         "# No performer adapter meters spend: every performance's cost is UNKNOWN,\n\
          # journalled as `spend: \"unknown\"`, never 0. `true` runs it knowing that;\n\
-         # it does not make the cost known. Remove it and `war perform` refuses\n\
+         # it does not make the cost known. Remove it and `war evidence perform` refuses\n\
          # `perform.unmetered-not-allowed` (docs/HOTLINE.md).\n\
          allow_unmetered = true\n",
         1,
@@ -503,7 +503,7 @@ pub fn run_with(
         let before = git_line(&root, &["rev-list", "--count", id]).unwrap_or_else(|| "?".into());
         println!(
             "adoption baseline {id} ({before} commit(s) of history): nothing up to it is \
-             claimed, owned or verified by any Warrant; `war telemetry` counts untracked work \
+             claimed, owned or verified by any Warrant; `war admin telemetry` counts untracked work \
              after it"
         );
     }
@@ -517,7 +517,7 @@ pub fn run_with(
 
 /// `war init --program`: everything `run` writes, plus a SAS the tool can read,
 /// the authority examples, the repository's own gate, and a first Warrant
-/// whose atoms are real. `war check` on the result exits 0, and `war sas
+/// whose atoms are real. `war check` on the result exits 0, and `war sign sas
 /// propose 0.1.0` records the SAS — asserted by a test, because a scaffold
 /// the tool refuses would teach an adopter to distrust the tool on day one.
 pub fn run_program(
@@ -647,7 +647,7 @@ pub fn run_program_with(
         })
         .ok_or_else(|| {
             invalid(format!(
-                "{manifest_path}: no `uuid` in the manifest `war new` wrote"
+                "{manifest_path}: no `uuid` in the manifest `war plan new` wrote"
             ))
         })?;
     let frontmatter = |role: &str, ordinal: u32| {
@@ -681,7 +681,7 @@ pub fn run_program_with(
 
     println!("scaffolded {program}: {sas_path}, docs/authority/*.example, {gate_path}, {alias}");
     println!(
-        "next: edit the SAS, `war sas propose 0.1.0`, then a human signs it — `war next` says the rest"
+        "next: edit the SAS, `war sign sas propose 0.1.0`, then a human signs it — `war next` says the rest"
     );
     Ok(root)
 }
@@ -702,14 +702,14 @@ const ADOPT_ASSURANCE: &str = include_str!("../../templates/adopt/60-assurance.m
 ///
 /// This legacy template is also the repository's linked workflow reference.
 /// Root `AGENTS.md` adds project-specific routing and successor design guidance;
-/// the additive pointer is the managed block (`war agents-md --block`, M16).
+/// the additive pointer is the managed block (`war admin agents-md --block`, M16).
 pub const AGENTS_MD_TEMPLATE: &str = include_str!("../../templates/AGENTS.md.tmpl");
 
 /// The template filled in: the namespace, and the managed openwarrant block
 /// at its end (M16), whose last line inside the markers is the version stamp
-/// (`<!-- openwarrant agents-md: written by war X -->`) that `war doctor`
-/// and `war prime` read to warn when an older `war` meets text a newer one
-/// wrote (`crate::skew`). The block is the one `war agents-md --block`
+/// (`<!-- openwarrant agents-md: written by war X -->`) that `war admin doctor`
+/// and `war view prime` read to warn when an older `war` meets text a newer one
+/// wrote (`crate::skew`). The block is the one `war admin agents-md --block`
 /// writes, so a second `--block` changes nothing.
 #[must_use]
 pub fn render_agents_md(namespace: &str) -> String {
@@ -725,7 +725,7 @@ pub fn render_agents_md(namespace: &str) -> String {
 /// managed block in each root AGENTS.md or CLAUDE.md that was already there,
 /// with nothing else in it changed. Returns the lines to print: one per file
 /// the block went into, and one per file left as it was because its block is
-/// malformed (init goes on; `war agents-md --block` names the fix).
+/// malformed (init goes on; `war admin agents-md --block` names the fix).
 fn instructions_on_init(root: &Utf8Path, namespace: &str) -> Result<Vec<String>, InitError> {
     let wrote = write_agents_md(root, namespace, false)?;
     let existing: Vec<Utf8PathBuf> = crate::instructions::ROOT_FILES
@@ -742,7 +742,7 @@ fn instructions_on_init(root: &Utf8Path, namespace: &str) -> Result<Vec<String>,
             Ok(written) => lines.extend(written.iter().filter_map(|w| match w.change {
                 "inserted" => Some(format!(
                     "{}: added the openwarrant block at its end (ordinary coding needs no \
-                     Warrant; `war prime` shows tracked work); nothing else in it changed",
+                     Warrant; `war view prime` shows tracked work); nothing else in it changed",
                     w.path
                 )),
                 "updated" => Some(format!(
@@ -886,7 +886,7 @@ mod program_tests {
     use super::*;
 
     /// The scaffold passes the tool that will judge it: `war check` exits 0
-    /// (warnings only — no independence, no SAS revision yet), `war sas
+    /// (warnings only — no independence, no SAS revision yet), `war sign sas
     /// propose 0.1.0` records the SAS with its three §106 rows, and after
     /// that `sas.unrecorded` is gone.
     #[test]
@@ -961,7 +961,7 @@ mod adoption_tests {
         assert!(some.contains("Nothing before it is claimed, owned or verified by any Warrant"));
     }
 
-    /// The ADR matcher is `war migrate`'s: `NNNN-*.md`, nothing else.
+    /// The ADR matcher is `war admin migrate`'s: `NNNN-*.md`, nothing else.
     #[test]
     fn only_an_nnnn_corpus_is_pointed_at() {
         let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())
@@ -975,7 +975,7 @@ mod adoption_tests {
         assert_eq!(adr_dirs(&root), ["docs/adr"]);
         assert!(
             migrate_line("docs/adr", Some("abc"))
-                .contains("war migrate --corpus docs/adr --commit abc")
+                .contains("war admin migrate --corpus docs/adr --commit abc")
         );
         fs::remove_dir_all(root).unwrap();
     }
@@ -1055,7 +1055,7 @@ mod agents_md_tests {
         let a = std::fs::read_to_string(root.join("AGENTS.md")).unwrap();
         let c = std::fs::read_to_string(root.join("CLAUDE.md")).unwrap();
         assert!(a.starts_with(agents) && a.contains("<!-- openwarrant:begin -->"));
-        assert!(c.starts_with(claude) && c.contains("war prime"));
+        assert!(c.starts_with(claude) && c.contains("war view prime"));
         assert!(
             !a.contains("ZZ-WAR-NNNN"),
             "an existing AGENTS.md is not replaced"

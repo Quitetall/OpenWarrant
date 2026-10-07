@@ -138,7 +138,7 @@ OW_S_RC=$?
 OW_RESP=$(find "$OW_Q/docs/authority/responses" -name '*.response.toml' 2>/dev/null | head -1)
 if [[ $OW_S_RC -ne 0 && -z $OW_RESP ]] && grep -q 'sign.ssh-refused .*none of them the ssh-ed25519' <<<"$OW_S" \
     && grep -q 'This blocks only the sign-off, not your work.' <<<"$OW_S" \
-    && grep -q '→ info: war doctor' <<<"$OW_S"; then
+    && grep -q '→ info: war admin doctor' <<<"$OW_S"; then
     ow_ok "a signing refusal names the key" "the agent lacks k2; remedy war doctor; nothing written"
 else
     ow_fail "a signing refusal names the key" "exit $OW_S_RC; response $OW_RESP; $(grep -E '^ERROR|→ info' <<<"$OW_S" | tr '\n' '|')"
@@ -151,7 +151,7 @@ OW_W=$(env -u SSH_AUTH_SOCK "$WAR" --root "$OW_Q" sign OQ-WAR-0001 --ssh-sign 2>
 OW_W_RC=$?
 if [[ $OW_W_RC -ne 0 ]] && grep -q 'sign.who .*docs/authority/roles.toml does not exist' <<<"$OW_W" \
     && grep -q 'This blocks only the sign-off, not your work.' <<<"$OW_W" \
-    && grep -q '→ info: war doctor' <<<"$OW_W"; then
+    && grep -q '→ info: war admin doctor' <<<"$OW_W"; then
     ow_ok "no roles.toml is named as missing" "sign.who names the file and how to make it"
 else
     ow_fail "no roles.toml is named as missing" "exit $OW_W_RC: $(grep -E '^ERROR' <<<"$OW_W" | head -2 | tr '\n' '|')"

@@ -173,7 +173,7 @@ pub fn mint(warrant_dir: &Utf8Path) -> String {
         .unwrap_or_else(|| format!("AM-{next:03}-{}", &hex[..16]))
 }
 
-/// `war amend <alias>`: write the skeleton of the next amendment under a
+/// `war sign amend <alias>`: write the skeleton of the next amendment under a
 /// minted id, never over an existing file. The skeleton is deliberately not a
 /// valid §31 record — its reason, authority, instruction, authorizer and
 /// semantic diff are empty — so `war check` refuses it (`amendment.invalid`)
@@ -246,7 +246,7 @@ pub fn amend(
     Ok(report)
 }
 
-/// The skeleton `war amend` writes: every §31 field present, the ones only a
+/// The skeleton `war sign amend` writes: every §31 field present, the ones only a
 /// person can say left empty.
 fn skeleton(id: &str, today: &str) -> String {
     format!(

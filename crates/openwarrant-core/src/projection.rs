@@ -188,7 +188,7 @@ impl Renderer {
         }
     }
 
-    /// The file extension `war compile` writes it under.
+    /// The file extension `war admin compile` writes it under.
     #[must_use]
     pub const fn extension(self) -> &'static str {
         match self {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Two corpus projections for the progress platform (slice D2), compiled by
-//! `war compile` and drift-checked by `war check --generated`:
+//! `war admin compile` and drift-checked by `war check --generated`:
 //!
 //! - `CORPUS_TIMELINE.json` (`oh.war/corpus-timeline/v1`): every journal
 //!   event of every Warrant, sorted by `(occurred_at, warrant, id)`, with a

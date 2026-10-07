@@ -48,7 +48,7 @@ pub enum ManifestError {
     #[error(
         "profile {profile} is a working form: a record of it is not a Warrant of the \
          contract corpus. It lives under the tickets directory and becomes a Warrant by \
-         promotion into `{core}` (`war promote`), which then requires every core role"
+         promotion into `{core}` (`war plan promote`), which then requires every core role"
     )]
     WorkingFormProfile { profile: Profile, core: String },
     #[error(
@@ -219,7 +219,7 @@ pub struct Manifest {
     pub title: String,
     pub profile: String,
     /// OW-ADR-0031: `sha256:<hex>` of the profile file this Warrant was
-    /// composed against, written by `war new`. Manifest bytes are inside the
+    /// composed against, written by `war plan new`. Manifest bytes are inside the
     /// contract digest, so a signature over a manifest carrying it covers the
     /// type. Absent in every manifest written before it existed, which keeps
     /// its bytes, its digest and its checks as they were.

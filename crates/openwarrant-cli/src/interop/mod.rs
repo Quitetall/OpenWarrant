@@ -4,8 +4,8 @@
 //! Kit folders in place. docs/TYPES.md, "One Warrant, three encodings", is
 //! the guide.
 //!
-//! - [`beads`] — Beads' issue JSONL (`bd export`), in (`war import beads`)
-//!   and out (`war export beads`).
+//! - [`beads`] — Beads' issue JSONL (`bd export`), in (`war admin import beads`)
+//!   and out (`war admin export beads`).
 //! - [`openspec`] — an `openspec/` folder: each change a Warrant, its
 //!   tasks the items, its spec deltas the requirements it implements.
 //! - [`speckit`] — a Spec Kit `specs/` folder: each feature a Warrant, its
@@ -288,7 +288,7 @@ pub fn timestamp(text: &str) -> Option<String> {
 /// One folder of another tool's work, read (OW-WAR-0148 M10): the
 /// Warrants in it, the records they hold or change, the relations between
 /// them, and what could not be read, by rule. The same reading serves
-/// `war import` and the read-in-place adapters.
+/// `war admin import` and the read-in-place adapters.
 #[derive(Debug, Clone, Default)]
 pub struct Tree {
     /// `openspec` or `speckit`.

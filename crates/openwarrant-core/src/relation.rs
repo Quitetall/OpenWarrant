@@ -15,7 +15,7 @@
 //! - **Namespaced** — `<namespace>.<name>` (`x.mentions`,
 //!   `contractor.bills`). Carried and displayed, never declared and never
 //!   computed from: a namespaced kind drives no state, no readiness and no
-//!   check, and `war impact` does not walk it. A profile cannot give one
+//!   check, and `war plan impact` does not walk it. A profile cannot give one
 //!   kernel meaning.
 //!
 //! A word that is neither is refused: a relation line is a claim, and a kind

@@ -106,7 +106,7 @@ fn duplicate_warrants(repo: &Repository, corpus: &[Loaded], asked: &[String], re
                 "UUID {uuid} names {} Warrants: {}. §12.1: the UUIDv7 IS the record's \
                  identity, so one UUID names one Warrant. A copied Warrant keeps its \
                  alias's convenience and none of its identity — the copy needs a fresh \
-                 UUID from `war new`, not the original's",
+                 UUID from `war plan new`, not the original's",
                 holders.len(),
                 named.join(", ")
             ),
@@ -384,7 +384,7 @@ fn changed(repo: &Repository, checked: &[Loaded], report: &mut Report) {
                 format!(
                     "{alias}: the manifest UUID was {before} at HEAD and is now {now}. \
                      §12.2: the UUIDv7 is created at draft creation and never changes. \
-                     A different identity is a different Warrant — `war new` makes one; \
+                     A different identity is a different Warrant — `war plan new` makes one; \
                      editing this manifest does not"
                 ),
             ));

@@ -71,7 +71,7 @@ const MAPPED: &[&str] = &[
     "close_reason",
 ];
 
-/// Derived from the rest, recomputed by `war export beads`: dropped
+/// Derived from the rest, recomputed by `war admin export beads`: dropped
 /// silently, since nothing is lost.
 const DERIVED: &[&str] = &[
     "updated_at",
@@ -468,7 +468,7 @@ pub fn read(repo: &Repository, store: &Store, path: &Utf8Path) -> Result<Import,
 
 // ---- export ----------------------------------------------------------------
 
-/// One line of `war export beads`, in Beads' field order.
+/// One line of `war admin export beads`, in Beads' field order.
 #[derive(Debug, Clone, Serialize)]
 pub struct Issue {
     #[serde(rename = "_type")]
@@ -554,7 +554,7 @@ fn parse_note(note: &str) -> Option<(String, String, String)> {
     Some((at, who.to_owned(), text.replace("\n  ", "\n")))
 }
 
-/// `war export beads`: every Warrant in the light encoding as Beads issue
+/// `war admin export beads`: every Warrant in the light encoding as Beads issue
 /// JSONL, sorted by id. A Warrant imported from Beads gets its original id
 /// back; one whose items are not just its title is an issue with one child
 /// issue (`<id>.<n>`, `parent-child`) per item.

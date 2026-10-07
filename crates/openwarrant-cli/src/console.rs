@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! `war console` (OW-WAR-0069): one screen for everything a human owes.
+//! `war view console` (OW-WAR-0069): one screen for everything a human owes.
 //!
 //! The queue was never the friction. Typing was. Ten acts meant ten commands
 //! and ten sentences about changes the repository had already described in ten
@@ -146,7 +146,7 @@ pub fn review_rows_with(
         l.questions
             .into_iter()
             .map(|q| Question {
-                command: format!("war answer {} {} \"…\" --as <you>", q.warrant, q.id),
+                command: format!("war plan answer {} {} \"…\" --as <you>", q.warrant, q.id),
                 warrant: q.warrant,
                 id: q.id,
                 blocking: q.blocking,
@@ -176,7 +176,7 @@ pub fn board_with(corpus: &crate::corpus::Corpus) -> Result<Board, RepoError> {
                 .filter(|&r| r.executor_kind != "human")
                 .cloned()
                 .map(|r| Stage {
-                    command: format!("war dispatch {} {}", r.warrant, r.stage),
+                    command: format!("war admin dispatch {} {}", r.warrant, r.stage),
                     warrant: r.warrant,
                     stage: r.stage,
                     title: r.title,
@@ -404,7 +404,7 @@ fn compose_meaning(
     }
 }
 
-/// `war console`: the loop. Every act still goes through `war sign`.
+/// `war view console`: the loop. Every act still goes through `war sign`.
 pub fn run(repo: &Repository) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let mut checked: BTreeSet<usize> = BTreeSet::new();
@@ -435,7 +435,7 @@ pub fn run(repo: &Repository) -> Result<Report, RepoError> {
             "c" => {
                 let message = crate::commit::message(repo)?;
                 println!("\n{message}\n");
-                println!("  git commit -F - <<'MSG'  (or `war commit --write`)");
+                println!("  git commit -F - <<'MSG'  (or `war admin commit --write`)");
             }
             other => {
                 for part in other.split(|c: char| !c.is_ascii_digit()) {

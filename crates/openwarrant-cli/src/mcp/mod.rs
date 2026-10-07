@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war mcp` — the Model Context Protocol server over stdio (OW-ADR-0014).
+//! `war admin mcp` — the Model Context Protocol server over stdio (OW-ADR-0014).
 //!
 //! The only place in this workspace where an async runtime exists. Every tool
 //! body is a synchronous call into the module that already implements the
@@ -9,7 +9,7 @@
 //! list in this module's tests.
 //!
 //! Stdout belongs to the transport. No function reached from a tool may print;
-//! the two commands whose printers live in pinned files (`war compile`,
+//! the two commands whose printers live in pinned files (`war admin compile`,
 //! `war sign --show`) are run as a child process with stdout captured.
 
 mod resources;
@@ -41,7 +41,7 @@ SAS, correct a delivered file, or sign anything, and no tool records a signed re
 are human acts done at a terminal with `war sign`. Tools ending in `_request` draft the \
 document a person signs and write nothing. `war_next` lists what is ready and whose step each \
 item is. `war_pins` lists the files closed Warrants pin by digest; a change to one is drafted \
-with `war correct`. Every tool returns an `oh.war/report/v1` envelope as structured content: \
+with `war sign correct`. Every tool returns an `oh.war/report/v1` envelope as structured content: \
 `diagnostics[]` name a rule per finding, `verdict` is ready|not_ready, `exit_code` is what the \
 CLI would have exited with.";
 

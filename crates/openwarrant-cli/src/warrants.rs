@@ -11,7 +11,7 @@
 //!   moment it exists, never signed. `war create` writes this one.
 //! - **directory** — `docs/warrants/<alias>/`: a manifest and the atoms its
 //!   type requires (delivery, decision, ...), compiled, and signed where
-//!   its type says so. `war new` writes this one.
+//!   its type says so. `war plan new` writes this one.
 //! - **read in place** — an OpenSpec change or a Spec Kit feature named by
 //!   an `[[adapters]]` entry in `openwarrant.toml`, read where it is and
 //!   never written ([`crate::interop::adapters`]).
@@ -23,7 +23,7 @@
 //!
 //! The list here is built for speed: a directory Warrant's row reads its
 //! manifest and its journal, never the compiler or the status builder, so
-//! `war warrants` answers in milliseconds on a corpus of any size. Its
+//! `war view warrants` answers in milliseconds on a corpus of any size. Its
 //! state is the phase the journal records (`provenance: recorded`);
 //! `war status <alias>` is the full, computed answer.
 
@@ -65,7 +65,7 @@ pub fn kind_of(id: &str) -> IdKind {
     }
 }
 
-/// One Warrant that is not in the light encoding, as `war warrants` lists
+/// One Warrant that is not in the light encoding, as `war view warrants` lists
 /// it beside the light ones (`result.warrants`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Row {

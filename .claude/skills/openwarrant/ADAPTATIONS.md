@@ -22,7 +22,7 @@ These are method adaptations, not an imported copy of the whole upstream suite.
 `war` routing is local. Keep this revision fixed until a reviewed upstream update.
 Audit evidence: [skill audit](../../../docs/design/war-skills-audit.md).
 
-OW85 update: RC.3 authoring now points to shipped `war sdk` transport. Fixed
+OW85 update: RC.3 authoring now points to shipped `war admin sdk` transport. Fixed
 artifact/host-entry proposals are tested separately from model invocation quality.
 Upstream revision and attribution remain unchanged.
 
