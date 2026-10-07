@@ -1032,6 +1032,10 @@ fn obligation_views(
     };
     let gates = obligation_gates(one);
     let verifications = repo.load_verifications(&one.dir).ok();
+    let current = verifications
+        .as_ref()
+        .map(|vs| crate::verify::current_records(repo, one, &vs.records))
+        .unwrap_or_default();
     // §46: admissibility is what `war resolve` asks, so the projection asks it
     // too. Reporting the first matching record's disposition verbatim let one
     // `CORPUS_STATUS.json` object say `established` for an obligation the same
@@ -1061,14 +1065,22 @@ fn obligation_views(
             let admissible = matching
                 .iter()
                 .copied()
-                .find(|r| r.admissible_for(&assurance).is_ok());
+                .find(|r| current.contains(r) && r.admissible_for(&assurance).is_ok());
             let v = admissible.or_else(|| matching.first().copied());
+            let unbound = admissible.is_none()
+                && matching
+                    .first()
+                    .is_some_and(|r| r.admissible_for(&assurance).is_ok() && !current.contains(r));
             let why = match (admissible, matching.first()) {
+                (None, Some(_)) if unbound => Some(
+                    "no matching reviewed subject establishes this historical verdict for current work".to_owned()
+                ),
                 (None, Some(r)) => r.admissible_for(&assurance).err().map(|e| e.to_string()),
                 _ => None,
             };
             let disposition = match (admissible, &why) {
                 (Some(r), _) => r.disposition.to_string(),
+                (None, Some(_)) if unbound => "unknown".to_owned(),
                 (None, Some(_)) => "inadmissible".to_owned(),
                 (None, None) => o
                     .disposition

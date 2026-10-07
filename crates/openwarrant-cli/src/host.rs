@@ -492,9 +492,10 @@ fn check(bytes: &[u8]) -> Result<Checked, Refused> {
             ),
         );
     }
-    let value = wire::decode_value_within(
+    let value = wire::decode_value_with_limits(
         bytes,
         usize::try_from(LIMITS.json_nodes).unwrap_or(usize::MAX),
+        64,
     )
     .map_err(|e| {
         let m = e.to_string();
@@ -615,9 +616,10 @@ fn check(bytes: &[u8]) -> Result<Checked, Refused> {
     };
     over("input_bytes", bytes.len() as u64, limits.input_bytes)?;
     if limits.json_nodes < LIMITS.json_nodes
-        && wire::decode_value_within(
+        && wire::decode_value_with_limits(
             bytes,
             usize::try_from(limits.json_nodes).unwrap_or(usize::MAX),
+            64,
         )
         .is_err()
     {

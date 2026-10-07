@@ -38,5 +38,9 @@ schemas_expect "a hand-edited schema is drift, by file" 2 "schemas/oh.war/manife
 schemas_expect "a missing schema is named" 2 "schemas.missing" "rm schemas/oh.war/correction/v1.json"
 schemas_expect "a relabelled pack is drift" 2 "schemas/pack.json" \
     "sed -i 's/\"transitive_digest\":\"[0-9a-f]*\"/\"transitive_digest\":\"0000\"/' schemas/pack.json; assert_present '\"0000\"' schemas/pack.json"
+# Candidate publication has its own controls; it is not in the active pack.
+schemas_expect "a candidate schema edit is drift" 2 "schemas/oh.war/verification/v2.json" \
+    "sed -i 's/oh.war\/verification\/v2/oh.war\/verification\/v9/' schemas/oh.war/verification/v2.json; assert_present 'oh.war/verification/v9' schemas/oh.war/verification/v2.json"
+schemas_expect "a missing candidate is named" 2 "schemas.missing" "rm schemas/oh.war/verification/v2.json"
 rm -rf "$SCHEMAS_TMP"
 unset SCHEMAS_TMP SCHEMAS_RUN

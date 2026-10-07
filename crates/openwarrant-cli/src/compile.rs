@@ -799,16 +799,32 @@ pub fn warrant_overview_with(
     ))
 }
 
+/// Observable outcome of writing projections; skipped sources are never silent.
+pub struct CompileSummary {
+    pub written: usize,
+    pub skipped: Vec<String>,
+}
+
 /// Compile one Warrant, or all of them, writing into each `generated/`.
-pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
+pub fn run(
+    repo: &Repository,
+    only: Option<&str>,
+    mode: crate::output::Mode,
+) -> Result<CompileSummary, RepoError> {
+    let human = mode == crate::output::Mode::Human;
     let dirs = match only {
         Some(alias) => vec![repo.warrant_dir(alias)?],
         None => repo.warrant_dirs()?,
     };
 
     if dirs.is_empty() {
-        println!("no Warrants found in {}", repo.config.paths.warrants);
-        return Ok(());
+        if human {
+            println!("no Warrants found in {}", repo.config.paths.warrants);
+        }
+        return Ok(CompileSummary {
+            written: 0,
+            skipped: Vec::new(),
+        });
     }
 
     let mut written = 0usize;
@@ -882,10 +898,12 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
                 written += 1;
             }
         }
-        println!("compiled {alias}");
+        if human {
+            println!("compiled {alias}");
+        }
     }
 
-    if !skipped.is_empty() {
+    if human && !skipped.is_empty() {
         // Never silent. A Warrant skipped without a word reads as compiled.
         eprintln!("\nnot compiled ({}): {}", skipped.len(), skipped.join(", "));
         eprintln!("run `war check` for the reason.");
@@ -947,14 +965,18 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
                 atomic::write_if(&path, &contents, &before)?;
                 written += 1;
             }
-            println!("compiled {}", path.file_name().unwrap_or("overview"));
+            if human {
+                println!("compiled {}", path.file_name().unwrap_or("overview"));
+            }
         }
     }
 
-    println!(
-        "\n{} file(s) written, {} Warrant(s) skipped",
-        written,
-        skipped.len()
-    );
-    Ok(())
+    if human {
+        println!(
+            "\n{} file(s) written, {} Warrant(s) skipped",
+            written,
+            skipped.len()
+        );
+    }
+    Ok(CompileSummary { written, skipped })
 }

@@ -49,7 +49,9 @@
 //! configured verifier too. A response answering an obligation its bundle did
 //! not carry is refused unread.
 
-use camino::Utf8PathBuf;
+pub(crate) mod store;
+
+use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::digest::sha256_hex;
 use openwarrant_compiler::{DigestDomain, sha256_digest};
 use serde::Serialize;
@@ -167,6 +169,20 @@ pub struct ObligationEvidence {
     pub terms: Vec<NamedTerm>,
 }
 
+/// Exact required review inputs. UTF-8 is readable; binary bytes remain lossless.
+/// Missing input stays explicit. These fixed inputs are never excerpted.
+#[derive(Debug, Clone, Serialize)]
+pub struct RequiredSource {
+    pub path: String,
+    pub kind: String,
+    pub sha256: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
+    pub present: bool,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Bundle {
     pub schema: String,
@@ -177,6 +193,7 @@ pub struct Bundle {
     pub request: crate::verify::VerificationRequest,
     pub obligation_evidence: Vec<ObligationEvidence>,
     pub atoms: Vec<BundledAtom>,
+    pub required_sources: Vec<RequiredSource>,
     pub deliverables: Vec<BundledDeliverable>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub deliverables_not_carried: Vec<NotCarried>,
@@ -550,6 +567,7 @@ struct Sources {
     authorized_contract_digest: String,
     request: crate::verify::VerificationRequest,
     atoms: Vec<BundledAtom>,
+    required_sources: Vec<RequiredSource>,
     files: Vec<File>,
     runs: Vec<Run>,
     plants: Vec<BundledPlant>,
@@ -569,10 +587,118 @@ struct Sources {
     warrant_dir: Utf8PathBuf,
 }
 
+fn required_sources(
+    repo: &Repository,
+    subject: &crate::verify::ReviewedSubject,
+    one: &crate::repo::Loaded,
+) -> Result<Vec<RequiredSource>, RepoError> {
+    let context_sources = crate::verify::context::capture(repo, one)?;
+    let context_digests: std::collections::BTreeMap<_, _> = context_sources
+        .iter()
+        .map(|(path, bytes)| (path.clone(), format!("sha256:{}", sha256_hex(bytes))))
+        .collect();
+    if context_digests != subject.context_sources {
+        return Err(RepoError::Message(
+            "verify.subject-stale: governing context changed during bundle capture".into(),
+        ));
+    }
+    let mut required = std::collections::BTreeMap::new();
+    let mut found = std::collections::BTreeSet::new();
+    for (path, digest) in &subject.context_sources {
+        required.insert(path.clone(), ("governing-sas", digest.clone()));
+    }
+    // Input bindings identify the reviewed workspace. They do not grant
+    // permission to publish every source as blind reviewer context.
+    // Artifacts and explicitly required context are collected separately.
+    for (path, digest) in &subject.gate_evidence {
+        required.insert(path.clone(), ("gate-evidence", digest.clone()));
+    }
+    for (path, digest) in &subject.fixtures {
+        required.insert(path.clone(), ("fixture", digest.clone()));
+    }
+    let directory = repo.root.join(&repo.config.paths.gates);
+    if directory.exists() {
+        for entry in directory
+            .read_dir_utf8()
+            .map_err(|e| RepoError::Message(e.to_string()))?
+        {
+            let path = entry
+                .map_err(|e| RepoError::Message(e.to_string()))?
+                .into_path();
+            if !matches!(path.extension(), Some("yaml" | "yml")) {
+                continue;
+            }
+            let relative = repo.relative(&path);
+            let Some(bytes) = crate::verify::file_bytes(repo, &relative)? else {
+                continue;
+            };
+            let Some(doc) = std::str::from_utf8(&bytes)
+                .ok()
+                .and_then(|s| openwarrant_core::structured::parse(s).ok())
+            else {
+                continue;
+            };
+            let key = format!(
+                "{}@{}",
+                doc.scalar("gate_id").unwrap_or_default(),
+                doc.scalar("version").unwrap_or_default()
+            );
+            if let Some(digest) = subject.gate_definitions.get(&key) {
+                if !found.insert(key.clone()) {
+                    return Err(RepoError::Message(format!(
+                        "verify.subject-stale: duplicate required gate {key} during bundle capture"
+                    )));
+                }
+                required.insert(relative, ("gate-definition", digest.clone()));
+            }
+        }
+    }
+    for (key, digest) in &subject.gate_definitions {
+        if digest != "missing" && !found.contains(key) {
+            return Err(RepoError::Message(format!(
+                "verify.subject-stale: required gate {key} disappeared during bundle capture"
+            )));
+        }
+    }
+    let mut out = Vec::new();
+    for (path, (kind, expected)) in required {
+        let read = match context_sources.get(&path) {
+            Some(bytes) => Some(bytes.clone()),
+            None => crate::verify::file_bytes(repo, &path)?,
+        };
+        let actual = read
+            .as_ref()
+            .map(|b| format!("sha256:{}", sha256_hex(b)))
+            .unwrap_or_else(|| "missing".to_owned());
+        if actual != expected {
+            return Err(RepoError::Message(format!(
+                "verify.subject-stale: required source {path} changed during bundle capture"
+            )));
+        }
+        let (text, bytes) = match read {
+            Some(bytes) => match String::from_utf8(bytes) {
+                Ok(text) => (Some(text), None),
+                Err(e) => (None, Some(e.into_bytes())),
+            },
+            None => (None, None),
+        };
+        out.push(RequiredSource {
+            path,
+            kind: kind.to_owned(),
+            sha256: actual,
+            present: text.is_some() || bytes.is_some(),
+            text,
+            bytes,
+        });
+    }
+    Ok(out)
+}
+
 fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
-    let request = crate::verify::request(repo, alias, performer)?;
+    let request = crate::verify::request_from_loaded(repo, &one, performer)?;
+    let required_sources = required_sources(repo, &request.reviewed_subject, &one)?;
     let authorized_contract_digest = repo
         .load_authorization(&dir)
         .ok()
@@ -642,10 +768,9 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
                 .collect()
         })
         .unwrap_or_default();
-    let prior = repo
-        .load_verifications(&dir)
-        .map(|v| v.records)
-        .unwrap_or_default();
+    // An unsupported stored format is an unavailable observation, not an
+    // empty review history that may be silently omitted from the packet.
+    let prior = repo.load_verifications(&dir)?.records;
     let mut heads = vec![alias.to_owned()];
     for f in &files {
         if !f.record.target_ref.starts_with("conformance/") {
@@ -693,6 +818,7 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
         authorized_contract_digest,
         request,
         atoms,
+        required_sources,
         files,
         runs,
         plants: plants_naming(repo, alias),
@@ -1156,6 +1282,7 @@ fn warrant_bundle(src: &Sources) -> Result<Bundle, RepoError> {
         request: src.request.clone(),
         obligation_evidence,
         atoms: src.atoms.clone(),
+        required_sources: src.required_sources.clone(),
         deliverables,
         deliverables_not_carried: vec![],
         plants: src.plants.clone(),
@@ -1286,6 +1413,7 @@ fn obligation_bundle_at(
         request,
         obligation_evidence: vec![evidence],
         atoms: src.atoms.clone(),
+        required_sources: src.required_sources.clone(),
         deliverables,
         deliverables_not_carried,
         plants: src.plants.clone(),
@@ -1373,19 +1501,16 @@ pub fn write(
     // whether it exists is part of what the bundle says about it — a first
     // run must not describe a tree its own writing then changes.
     let dir = repo.warrant_dir(alias)?.join("verifications");
-    std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
-        context: format!("could not create {dir}"),
-        source,
-    })?;
+    let retained = store::Directory::open(&repo.root, Utf8Path::new(&repo.relative(&dir)))?;
     let bundles = build_all(repo, alias, performer)?;
     let mut out = Vec::new();
     for bundle in bundles {
         let (text, digest) = canonical(&bundle)?;
         let path = dir.join(format!("bundle-{}.json", short(&digest)));
-        std::fs::write(&path, text + "\n").map_err(|source| RepoError::Io {
-            context: format!("could not write {path}"),
-            source,
-        })?;
+        retained.retain(
+            &format!("bundle-{}.json", short(&digest)),
+            (text + "\n").as_bytes(),
+        )?;
         out.push((path, bundle, digest));
     }
     Ok(out)
@@ -1448,9 +1573,23 @@ fn over_budget(report: &mut Report, repo: &Repository, path: &Utf8PathBuf, b: &B
 }
 
 /// `war verify <alias> --bundle`: write them and say what each holds.
-pub fn emit(repo: &Repository, alias: &str, performer: &str) -> Result<Report, RepoError> {
+pub fn emit(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+) -> Result<(Report, serde_json::Value), RepoError> {
     let mut report = Report::default();
-    for (path, bundle, digest) in write(repo, alias, performer)? {
+    let bundles = write(repo, alias, performer)?;
+    let reviewed_subject = bundles.first().map(|(_, b, _)| &b.request.reviewed_subject);
+    let packets: Vec<_> = bundles
+        .iter()
+        .map(|(path, _, digest)| crate::verify::ReviewedPacket {
+            path: repo.relative(path),
+            digest: digest.clone(),
+        })
+        .collect();
+    let index = serde_json::json!({"schema":"oh.war/review-packets/v1", "reviewed_subject":reviewed_subject, "packets":packets});
+    for (path, bundle, digest) in bundles {
         report.push(Diagnostic::pass(
             "verify.bundle",
             format!(
@@ -1462,7 +1601,7 @@ pub fn emit(repo: &Repository, alias: &str, performer: &str) -> Result<Report, R
         ));
         over_budget(&mut report, repo, &path, &bundle);
     }
-    Ok(report)
+    Ok((report, index))
 }
 
 /// The obligations a response answers that its bundle did not carry. A
@@ -1491,10 +1630,12 @@ fn call(
     bundle_path: &Utf8PathBuf,
     root: &Utf8PathBuf,
     timeout: u64,
+    packets: &str,
 ) -> Result<Outcome, RepoError> {
     let mut child = std::process::Command::new(&argv[0])
         .args(&argv[1..])
         .arg(bundle_path.as_str())
+        .env("OPENWARRANT_REVIEWED_PACKETS", packets)
         .current_dir(root)
         .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::piped())
@@ -1567,7 +1708,7 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
             "verify.no-verifier",
             "openwarrant.toml".to_owned(),
             "no verifier is configured: set `[verify] verifier_argv` to a command that reads a \
-             bundle path and prints an oh.war/verification-response/v1 document on stdout. A seam \
+             bundle path and prints an oh.war/verification-response/v2 document on stdout. A seam \
              with nothing on the other side says so (§75.2)"
                 .to_owned(),
         ));
@@ -1595,7 +1736,12 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
             ),
         ));
         over_budget(&mut report, repo, bundle_path, bundle);
-        let stdout = match call(argv, bundle_path, &repo.root, timeout)? {
+        let packets = serde_json::to_string(&vec![crate::verify::ReviewedPacket {
+            path: repo.relative(bundle_path),
+            digest: digest.clone(),
+        }])
+        .map_err(|e| RepoError::Message(e.to_string()))?;
+        let stdout = match call(argv, bundle_path, &repo.root, timeout, &packets)? {
             Outcome::TimedOut => {
                 report.push(Diagnostic::error(
                     "verify.verifier-timeout",

@@ -162,3 +162,54 @@ a directory, and exact/oversized regular-file reads. This prevents the observed
 FIFO-open hang and refuses directories without leaking the descriptor. Parent
 paths and control storage still require operator protection; this is not a
 general filesystem sandbox or a guarantee against slow regular-file I/O.
+
+## Draft candidate review context (OW-ADR-0030)
+
+Candidate review must use the SAS revision named by its captured contract. A
+newer file, a different current branch or a Git replacement must not supply a
+different governing rule. Candidate snapshots freeze the resolved commit. If the
+source file no longer matches its pin, the draft reads regular Git blobs only
+from that commit's retained ancestors and checks their full SHA-256 against the
+recorded pin. The shared Git reader disables replacement objects and lazy fetching;
+it does not run candidate code, hooks or filters. Missing context reports an
+unavailable observation rather than substituting the current document.
+
+The acceptance-validity plant advances the SAS after a synthetic bound review;
+the baseline falsely rejected that unchanged context. The historical-reader
+extension is awaiting a green run. The existing public CLI replacement control
+observes refusal of an actually malformed candidate while replacements cannot
+change a valid candidate's bytes. These bounded controls do not prove transitive
+context closure, private-copy custody or protection of a Git object store from
+an account that can rewrite it. Operators must protect retained objects and
+control storage. This draft grants no authority and qualifies no live Warrant.
+
+
+### Experimental stored-review boundary (OW-ADR-0030)
+
+Unsupported stored verification formats cannot supply current assurance. The
+shared SDK decoder keeps an unsupported schema distinct from malformed supported
+data. Repository observation reports the unsupported schema as `UNKNOWN`; packet
+assembly refuses to silently omit it, and document review retains that diagnostic
+instead of claiming the review is absent. Malformed supported records remain
+errors. Public CLI controls in `verification_subject_cli.rs` exercise future
+versus malformed formats, unchanged records/journal, exact-byte restoration and
+document review. These controls neither authenticate a verdict nor adopt v2.
+
+The installed older alpha.2 executable ignores the minimum-reader configuration
+and counts changed bare verification records as established. The public CLI
+downgrade probe preserves the exact executable hashes and reproduces that
+behavior. The draft v2 stored envelope nests the frozen v1 payload, so bare v1
+readers must refuse it; current qualification also compares envelope bindings
+with the journal and retained packets. Runtime confirmation of that refusal is
+pending the current build. This proposal does not protect unchanged legacy
+repositories from old executables, establish private custody or authorize a
+new schema pack. Pack adoption and preservation of replaced evidence remain
+release requirements.
+
+
+The retention draft preserves the prior active record before replacement using
+no-follow descriptor reads and no-overwrite archive publication. Replacement
+checks the captured prestate; retention unavailability aborts before any active
+replacement. Existing archives are not rewritten. The public CLI history
+regression is red on the prior binary; current runtime verification is pending.
+The ordinary atomic writer's remaining same-uid race limits still apply.

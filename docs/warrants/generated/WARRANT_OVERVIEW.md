@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-144 Warrant(s) in this repository.
+145 Warrant(s) in this repository.
 
 ## Summary
 
@@ -155,6 +155,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0146](docs/warrants/OW-WAR-0146/manifest.toml) | A verification bundle carries what each gate printed, so a blind verifier can see the evidence | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0147](docs/warrants/OW-WAR-0147/manifest.toml) | Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | `draft` | `current` | `valid` | `basic` | 2M / 3S |
 | [OW-WAR-0148](docs/warrants/OW-WAR-0148/manifest.toml) | Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | `authorized` | `current` | `valid` | `basic` | 5M / 5S |
+| [OW-WAR-0149](docs/warrants/OW-WAR-0149/manifest.toml) | Shared Katana and BLUT runtime receipt binding contract | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 
 ## Claimed SAS requirement coverage
 

@@ -1,0 +1,29 @@
+schema: "oh.war/milestones/v1"
+milestones:
+  - id: "M1"
+    title: "Shared receipt contract and provider interfaces defined"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "Receipt capture and basis assessment implemented"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+  - id: "M3"
+    title: "Actual provider runs and refusal controls qualified"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+stages:
+  - id: "STAGE-001"
+    title: "Prepare shared contract and explicit participant responses"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-002"
+    title: "Implement each participant's declared receipt adapter side"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "Exercise actual provider integrations and independent checks"
+    executor_kind: "agent"
+    responsibility_tier: "T2"

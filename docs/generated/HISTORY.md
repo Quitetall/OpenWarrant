@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 144 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-03.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-03.
 
 ## Lineage
 
@@ -35,6 +35,7 @@ Everything this repository has recorded, current or not: 144 subject(s), their l
 | 2026-09-25 | 79 | authorization.recorded 34, draft.created 1, sync.receipt_attached 44 |
 | 2026-09-26 | 249 | dispatch.compiled 32, submission.recorded 32, sync.receipt_attached 183, verification.recorded 2 |
 | 2026-09-27 | 1437 | dispatch.compiled 13, submission.recorded 13, sync.receipt_attached 295, verification.recorded 1116 |
+| 2026-10-01 | 1 | draft.created 1 |
 | 2026-10-02 | 2 | draft.created 1, question.asked 1 |
 | 2026-10-03 | 3 | attestation.recorded 1, authorization.recorded 1, question.answered 1 |
 
@@ -3430,6 +3431,122 @@ fixed by this ADR. A later change to any of them is a new ADR.
   expiry and the count bound how long a wide class lasts. Only the owner
   can judge how wide is too wide, and the signing screen prints every glob
   and what it matches today.
+
+### OW-ADR-0030 — ADR OW-0030: Bind a verdict to the subject that was reviewed (`proposed`)
+
+[source](../../docs/adr/atoms/OW-ADR-0030-reviewed-subject-binding.md)
+
+# ADR OW-0030: Bind a verdict to the subject that was reviewed
+
+## Status and scope
+
+Proposed experimental decision for [ticket t-b9610](../../tickets/t-b9610/atoms/10-intent.md). The branch is unfinished. This proposal grants no authority, changes no signed historical record, and does not adopt a new assurance baseline. Read the [implementation notes](../../design/reviewed-subject-binding-wip.md) for observed checks and remaining work.
+
+## Problem
+
+A public CLI reproduction ingested an independent response, changed the requirement, and still reported verification current. It also accepted the old response again. A historical observation cannot establish a different current subject.
+
+Separate reproductions showed packet generation overwriting different retained bytes and following a packet filename link to overwrite a file outside the repository. Retained evidence must remain distinguishable from a newly generated projection.
+
+## Reviewed subject
+
+The request carries `reviewed_subject`. A response echoes the exact object it reviewed. The draft captures:
+
+| Field | Binding |
+|---|---|
+| `contract_digest` | Existing compiled contract digest. |
+| `context_sources` | Exact pinned SAS source path and ordinary SHA-256 of its retained bytes. |
+| `artifacts` | Declared delivered paths and ordinary SHA-256 of actual bytes. |
+| `gate_definitions` | Each cited gate key and the digest of its definition bytes. |
+| `fixtures` | Declared fixture paths and actual byte digests. |
+| `gate_evidence` | Recorded run, receipt, stdout, stderr and raw evidence paths and byte digests. |
+| `gate_inputs` | Selected input paths and actual byte digests. |
+| `gate_links` | Selected link paths and exact target text. |
+
+Maps are sorted. Missing artifacts remain explicit and cannot satisfy existence. Malformed deliverable declarations cannot become an empty artifact set. Duplicate definitions of a cited gate cannot produce one ambiguous binding. Malformed run or receipt data refuses capture instead of becoming an absent observation. Binding a receipt does not establish its admissibility or sufficiency.
+
+Cited gates with nonempty `inputs` use the existing glob and exclusion rules. Missing or empty input lists, missing gate definitions, and no cited gates use the existing conservative tree scope. Explicit selections are unioned with that scope: tree bookkeeping exclusions cannot remove a declared input.
+
+Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. Candidate Git queries and the batch blob reader disable replacement objects and lazy fetching; an unavailable object remains UNKNOWN instead of reading a substituted commit or fetching new data. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
+
+Input bindings identify the reviewed workspace. They do not grant permission to publish every source as blind context. Performer rationale and historical instructions remain excluded from reviewer context. Source selection and portable context closure are separate requirements.
+
+## Transport and qualification
+
+The experimental request/response transport is v2. A v2 response requires the reviewed subject and exact packet references before any verdict write. V1 responses remain historical observations, including those containing optional newer fields. An unsupported future response version reports UNKNOWN; malformed current v2 data is refused.
+
+Existing v1 records remain byte preserving on read. New observations store the original verification payload inside an explicit v2 envelope; an older bare-record reader must refuse that envelope. The verification-recorded journal event binds the record digest, actor, Warrant identity, obligation, reviewed subject, packet references and explicit v2 protocol. Protocol labels and reviewed bindings are never inferred from timestamps or optional fields.
+
+Ingestion preflights the whole response: current subject, declared obligation identifiers, packet identity, performer and obligation coverage. Qualification uses that same rule for preparation, resolution, progress and the assurance mark. Legacy or stale observations remain on disk and supply no current qualification. Known independence failures retain their inadmissibility reason.
+
+Candidate acceptance compares against exact Git-tree data using the same subject/compiler routines. Its private snapshot does not run candidate code or activate candidate-selected authority. Unsupported selected nodes remain visible as unavailable observations.
+
+V1-only response readers refuse v2 envelopes. This does not protect stored records from older readers that ignore the new journal binding. A direct synthetic CLI probe of the installed alpha.2 release reproduced stale observations counted as established, including passing the obligation and independence requirements in a resolution dry run. That reader also ignores `project.requires_war`; a minimum-version setting alone does not protect it. The current reader rejects those stale observations. Adoption therefore needs a record-level storage boundary that old bare-record readers cannot misread, alongside the frozen v1 reader and preserved history. Define the new envelope and schema-pack adoption before qualified release; do not silently alter the frozen v1 payload or claim a version setting covers readers that ignore it. The portable probe is `conformance/fixtures/verifier/probe-stored-reader.py`; its results apply to the exact recorded executable digests, not every old tool.
+
+## Proposed stored-record boundary
+
+Newly ingested observations use a distinct `oh.war/verification/v2` envelope.
+The frozen v1 `Verification` payload is nested under `verification`, without
+renaming its fields. The root must not repeat v1's `obligation`, `disposition`,
+`performer`, `evidence` or `verifier`: the observed older reader requires these
+at the root, so a nested payload causes a parse refusal rather than a verdict.
+The envelope carries the response protocol, reviewed subject and exact packet
+references. A v1 response can be retained in this envelope as unbound history;
+it does not gain qualification by being wrapped.
+
+The current reader continues to read existing bare v1 records without rewriting
+them. Current qualification requires a v2 envelope whose bindings agree with
+the journal event, current subject and retained packet bytes. Candidate
+re-verification uses the same record decoder and binding checks. Unknown future
+formats must not fall back to a permissive v1 decoder.
+
+This is an experimental wire-format proposal, not adoption of a schema pack.
+The pack must publish v1 and v2 beside each other, move its format version, and
+support explicit adoption without reinterpreting old contract digests. Until
+that path and history retention are proved, this branch remains unreleasable.
+The regression probe's `--require-old-refusal` checks both fresh current-reader
+qualification and old-reader refusal, so rejecting all reviews cannot pass it.
+
+Before replacing an active verification, retain its exact bytes under
+`verifications/history/<raw-sha256>.toml`. The existing journal digest refers
+to these bytes; retaining them introduces no new digest domain or authority.
+History is outside the active-record enumeration. Immediate
+`history/<64-lowercase-hex>.toml` paths are verification bookkeeping for the
+implicit tree scope, like active verdicts; archiving a review must not change
+its own default source binding. Declared inputs still bind these files, and
+other names or nested files in that directory stay in the conservative tree.
+A no-overwrite publication
+must reuse identical bytes and refuse collisions, links or unavailable files.
+If retention fails, do not replace the active record. Unchanged replays must
+remain byte preserving. A changed subject needs distinct bound bytes and a
+fresh current observation; an archive alone is not qualification.
+`--require-history-retention` reproduces lost prior bytes at the public CLI
+seam and checks fresh re-review plus exact archival. This control is still red
+before the retention implementation.
+
+## Portable packet binding
+
+Each `reviewed_packets` entry carries a retained repository-relative path and the full existing VerificationBundle digest. The path uses the existing shortened digest filename; qualification checks the full digest. Packet/request schema, exact subject, performer and covered obligations must match. Qualification reads the retained packet; it does not rebuild a different packet after prior verdicts changed.
+
+Contract and packet digests retain their existing Rust canonicalizers and digest domains. No replacement canonicalizer, Python digest implementation or model-created digest is introduced. `verify --bundle --json` returns a machine-readable packet index; configured verifier calls receive its Rust-computed references as transport metadata.
+
+Packets carry exact required pinned-SAS, gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. The draft locates the captured SAS version/digest in retained revision records, uses descriptor-safe current reads, and recovers matching historical Git bytes locally when needed. Candidate snapshots cannot borrow mutable checkout history. The historical-source extension freezes the candidate commit and reads regular source blobs only from that commit’s retained ancestors, with replacement objects and lazy fetching disabled. Matching content must have the exact pinned SHA-256; a newer source file or unrelated branch cannot substitute. An unavailable pinned source is UNKNOWN. This extension has a reproduced CLI failure and is awaiting its green qualification run. Packet qualification also checks the full carried source against its subject digest. Request and packet assembly reuse one loaded Warrant. This SAS slice is under test; complete transitive governing-context closure remains open.
+
+## Retained packet storage
+
+The draft storage implementation reuses identical retained bytes and refuses different bytes at the same filename. New packets are staged and synced, then published without replacing an existing name. A competing publisher must supply identical bytes; it cannot truncate the winning packet. Directory-relative file handles refuse link traversal, and packet reads inspect regular files through the opened descriptor.
+
+Missing, unreadable or unsupported retained files report UNKNOWN. Observed identity/content mismatches remain refusals. History remains intact; regeneration is not permission to repair or overwrite retained evidence.
+
+These controls do not sandbox a same-uid writer, prove verifier private-copy custody, or complete the source-capture race audit. Those claims require separate evidence.
+
+## Configured verifier
+
+The wrapper reads a private copy of the supplied packet and echoes its request subject. It must not recapture a newer subject after review, infer a missing legacy binding, or ask a model to invent one. Rust transport metadata binds packet references. Complete copy/custody and harness-isolation qualification remains open.
+
+## Adoption requirements
+
+Before release, prove complete context/evidence closure, stored-record reader compatibility, large-packet budget behavior, unsafe-file and race controls, and the full gate. Independent verification and secure human acceptance remain separate acts. This draft and its local checks satisfy neither act.
 
 ### OW-ADR-0031 — ADR OW-0031: Documents are typed records; a document's type selects its capabilities (`proposed`)
 
@@ -17165,7 +17282,7 @@ no-op.
 |---|---|---|---|
 | D-001 | traceability.unknown-requirement — implements refs held to §106 | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-002 | ADR supersession relations read in both directions | `crates/openwarrant-core/src/adr.rs` | verified |
-| D-003 | The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift | `conformance/plants.d/00-corpus.sh` | verified |
+| D-003 | The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift | `conformance/plants.d/00-corpus.sh` | drift |
 | D-004 | Tests: banner before title, no division, every WAR.json carries the SAS pin | `crates/openwarrant-compiler/src/corpus_status.rs` | verified |
 
 ### OW-WAR-0064 — Repair a delivered artifact: the correction act for a resolved Warrant
@@ -25845,12 +25962,12 @@ the app shows a `human` remedy and stops.
 | D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | verified |
 | D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | drift |
-| D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
+| D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | drift |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
-| D-015 | The threat-model row | `docs/THREAT_MODEL.md` | verified |
+| D-015 | The threat-model row | `docs/THREAT_MODEL.md` | drift |
 | D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | drift |
 | D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | verified |
-| D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | verified |
+| D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | drift |
 | D-019 | The report schema | `schemas/oh.war/report/v1.json` | verified |
 | D-020 | The schema pack | `schemas/pack.json` | drift |
 | D-021 | init, unchanged in behaviour, as a module directory | `crates/openwarrant-cli/src/init/mod.rs` | verified |
@@ -27750,7 +27867,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
 | D-009 | README.md: war ui | `README.md` | verified |
-| D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
+| D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | drift |
 | D-011 | the plants | `conformance/plants.d/63-webui.sh` | verified |
 | D-012 | the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus | `conformance/plants.d/63-webui-verified.sh` | verified |
 
@@ -28014,7 +28131,7 @@ performer's report under another name.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | verified |
+| D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | drift |
 | D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | verified |
 | D-003 | The verifier plants | `conformance/plants.d/62-verifier.sh` | verified |
 | D-004 | How to run the verifier and read what it says | `docs/VERIFICATION.md` | verified |
@@ -28944,7 +29061,7 @@ would answer the owner's question with a number nobody measured.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The synthetic corpus generator | `tools/scale/synth-corpus.sh` | verified |
+| D-001 | The synthetic corpus generator | `tools/scale/synth-corpus.sh` | drift |
 | D-002 | The declared budget | `tools/scale/budget.toml` | verified |
 | D-003 | The budget gate | `tools/scale/budget.sh` | verified |
 | D-004 | The 1,000-Warrant measurement | `docs/scale/baseline-1000.json` | verified |
@@ -30781,7 +30898,7 @@ anything.
 | D-005 | The generated section index | `docs/sas/generated/SECTIONS.json` | not_content_addressed |
 | D-006 | The generated section index, for reading | `docs/sas/generated/SECTIONS.md` | not_content_addressed |
 | D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | drift |
-| D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | verified |
+| D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | drift |
 | D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | drift |
 | D-010 | The CI gate job fetches full history, so section currency is answered there (AM-002) | `.github/workflows/ci.yml` | drift |
 
@@ -31427,7 +31544,7 @@ joined path is what shows no reader does.
 | D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-005 | pins and pins --refresh leave a native reference alone | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-006 | A correction of a native reference is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
-| D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | verified |
+| D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | drift |
 | D-008 | Digest state says held by its system | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
 | D-009 | The native-authority plants | `conformance/plants.d/61-native-authority.sh` | verified |
 
@@ -32451,7 +32568,7 @@ nothing about concurrent writers on a shared filesystem.
 | D-004 | compat.rs: requires_war and schema-major recognition | `crates/openwarrant-cli/src/compat.rs` | drift |
 | D-005 | [project] requires_war | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
 | D-006 | Repository::discover runs the compat check once | `crates/openwarrant-cli/src/repo.rs` | drift |
-| D-007 | Reading backward: what an older war does with newer records | `docs/COMPATIBILITY.md` | verified |
+| D-007 | Reading backward: what an older war does with newer records | `docs/COMPATIBILITY.md` | drift |
 | D-008 | The idempotency, batch-atomicity and version plants | `conformance/plants.d/69-idempotency.sh` | drift |
 | D-013 | `war sign --batch --recover <id>` as a flag, and exit 2 for compat.war-too-old (AM-002) | `crates/openwarrant-cli/src/lib.rs` | drift |
 
@@ -33596,9 +33713,9 @@ this level requires. The author does not record them.
 | D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | drift |
 | D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | verified |
 | D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | drift |
-| D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | verified |
+| D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | drift |
 | D-011 | The eval baseline, re-recorded (AM-002) | `evals/baseline.json` | verified |
-| D-012 | Two resolution plants re-pointed at a scratch fixture (AM-002) | `conformance/plants.d/00-corpus.sh` | verified |
+| D-012 | Two resolution plants re-pointed at a scratch fixture (AM-002) | `conformance/plants.d/00-corpus.sh` | drift |
 | D-013 | run-01-echo: ops.echo@1.1.0, inputs declared (AM-004) | `evals/tasks/run-01-echo/fixture/docs/gates/ops.echo@1.1.0.yaml` | verified |
 | D-014 | run-01-echo: cites ops.echo@1.1.0 (AM-004) | `evals/tasks/run-01-echo/task.toml` | verified |
 | D-015 | run-01-echo: stage and obligation cite ops.echo@1.1.0 (AM-004) | `evals/tasks/run-01-echo/proposal.json` | verified |
@@ -33947,11 +34064,11 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | verified |
+| D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | drift |
 | D-002 | war pins --candidate: the finding beside each resolved pin | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-003 | The --candidate flag | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | drift |
-| D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | verified |
+| D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | drift |
 | D-006 | After you sign: when the accepted candidate changes before merge | `docs/SIGNING.md` | verified |
 
 ### OW-WAR-0135 — The assurance mark: a baseline, its issuance, and what it binds
@@ -34301,10 +34418,10 @@ this level requires. The author does not record them.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The assurance mark decision: baseline v1, issuance, what it binds | `docs/adr/atoms/OW-ADR-0025-assurance-mark.md` | verified |
-| D-002 | Evaluate a resolved Warrant against a baseline; emit or refuse the mark | `crates/openwarrant-cli/src/mark.rs` | verified |
+| D-002 | Evaluate a resolved Warrant against a baseline; emit or refuse the mark | `crates/openwarrant-cli/src/mark.rs` | drift |
 | D-003 | The war mark command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | Baseline v1 as data, versioned | `docs/assurance/baseline-v1.toml` | verified |
-| D-005 | The mark plants | `conformance/plants.d/57-assurance-mark.sh` | verified |
+| D-005 | The mark plants | `conformance/plants.d/57-assurance-mark.sh` | drift |
 | D-006 | What the mark says, and what it does not | `docs/ASSURANCE_MARK.md` | verified |
 
 ### OW-WAR-0136 — Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates
@@ -34717,7 +34834,7 @@ this level requires. The author does not record them.
 | D-004 | Standing read from disputes: resolution.disputed in war check | `crates/openwarrant-cli/src/resolution_cmd.rs` | drift |
 | D-005 | A receipt of an invalidated gate is not admissible | `crates/openwarrant-cli/src/evidence.rs` | not_content_addressed |
 | D-006 | The war gate invalidate and war attest --custody flags | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-007 | The Phase 9 exit plants, §91.10 test 75 among them | `conformance/plants.d/58-invalidation.sh` | verified |
+| D-007 | The Phase 9 exit plants, §91.10 test 75 among them | `conformance/plants.d/58-invalidation.sh` | drift |
 | D-008 | Custody, invalidation and dispute: what each act does and who may do it | `docs/INVALIDATION.md` | verified |
 | D-009 | The live demonstration gate, only if Q-002 selects the live corpus | `docs/gates/ops.exit-demo@1.0.0.yaml` | verified |
 | D-010 | The invalidate act's response schema and name, verified on the read path (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
@@ -35117,7 +35234,7 @@ resolver is refused by kind whatever the file says.
 | D-005 | verify ingest checks the assigned verifier and its role | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-006 | docs/TEAMS.md | `docs/TEAMS.md` | verified |
 | D-007 | THREAT_MODEL row: assignment and verdict attribution | `docs/THREAT_MODEL.md` | not_content_addressed |
-| D-008 | the plants | `conformance/plants.d/57-teams.sh` | verified |
+| D-008 | the plants | `conformance/plants.d/57-teams.sh` | drift |
 | D-009 | `war sign --list --as`, `war inbox --as`, `sign --list --json`, the review record after `war show` (AM-003) | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-010 | `war check` names a moved or malformed assignment (AM-003) | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-011 | each Warrant's review record in `war status --json` (AM-003) | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
@@ -35540,7 +35657,7 @@ test mode is labeled in every record it produces.
 | D-004 | sign records presence; refuses by policy and on actor-key mismatch | `crates/openwarrant-cli/src/sign.rs` | drift |
 | D-005 | revision v2: actor kind and protected policy | `crates/openwarrant-core/src/authority_transition.rs` | verified |
 | D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | verified |
-| D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | verified |
+| D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | drift |
 | D-008 | authority.md: the cutover | `docs/cli/authority.md` | verified |
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | verified |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | drift |
@@ -37777,7 +37894,7 @@ once, at acceptance, after the blind verifier.
 | D-011 | cli: the batch act carries class acts | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 | D-012 | cli: no covered path taken from work in flight | `crates/openwarrant-cli/src/ownership.rs` | drift |
 | D-013 | cli: a covered Warrant is never resolved by a policy service | `crates/openwarrant-cli/src/resolve.rs` | drift |
-| D-014 | the plants | `conformance/plants.d/69-standing.sh` | verified |
+| D-014 | the plants | `conformance/plants.d/69-standing.sh` | drift |
 | D-015 | docs/SIGNING.md: routine work under a standing authorization | `docs/SIGNING.md` | verified |
 | D-016 | CONTEXT.md: the term | `CONTEXT.md` | verified |
 | D-017 | cli: the class acts and the covered verdict | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
@@ -39085,7 +39202,7 @@ verifier conclude a gate printed nothing wrong.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The bundle carries each gate run's stdout and stderr | `crates/openwarrant-cli/src/bundle.rs` | not_content_addressed |
-| D-002 | The bundle-output plants | `conformance/plants.d/47-bundle-output.sh` | verified |
+| D-002 | The bundle-output plants | `conformance/plants.d/47-bundle-output.sh` | drift |
 
 ### OW-WAR-0147 — Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in
 
@@ -40154,4 +40271,144 @@ observer.
 | D-056 | Profiles with capabilities and the pin | `docs/PROFILES.md` | not_content_addressed |
 | D-057 | Ticket features and GitHub | `docs/TICKETS.md` | not_content_addressed |
 | D-058 | Glossary: record, relation, capability, declared state | `CONTEXT.md` | not_content_addressed |
+
+### OW-WAR-0149 — Shared Katana and BLUT runtime receipt binding contract
+
+[manifest](../../docs/warrants/OW-WAR-0149/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+
+Not authorized; no Basis is fixed.
+
+#### Intent — [docs/warrants/OW-WAR-0149/atoms/10-intent.md](../../docs/warrants/OW-WAR-0149/atoms/10-intent.md)
+
+<!-- atom docs/warrants/OW-WAR-0149/atoms/10-intent.md begins -->
+# Intent
+
+Runtime work must return a real provider receipt that OpenWarrant can match to the exact work it sent. Today the resolver has no connected receipt store and cannot establish the runtime requirement for any Katana or BLUT stage.
+
+One shared Warrant governs the adapter boundary across OpenWarrant, Katana and BLUT. Each project implements its own side; no drifting copies of this contract. OpenWarrant owns dispatch bindings, import observations and resolution assessment. Providers own execution facts, receipt sealing and their authoritative logs or lineage.
+
+Outcome: an attributable receipt from an actual run can satisfy the matching requirement for its own dispatch, contract, stage and attempt. Wrong, stale, missing, unverifiable or incomplete records cannot. This does not itself establish independent assurance or human acceptance.
+
+Out of scope: rewriting provider conversations, copying BLUT lineage into a Warrant, changing signed legacy records, signing as a human, inventing a receipt digest or performing paid calls without reliable accounting.
+<!-- atom docs/warrants/OW-WAR-0149/atoms/10-intent.md ends -->
+
+#### Basis — [docs/warrants/OW-WAR-0149/atoms/20-basis.md](../../docs/warrants/OW-WAR-0149/atoms/20-basis.md)
+
+<!-- atom docs/warrants/OW-WAR-0149/atoms/20-basis.md begins -->
+# Basis
+
+## Shared sources and participant boundaries
+
+- Relevant legacy SAS sections: §47, §48.1–48.5, §49.2–49.3 and §65; OW-WAR-0026, OW-WAR-0027, OW-WAR-0047 and OW-WAR-0108. Live `war sas status` reports 1.1.1 accepted and 1.2.0 proposed. The current generated normative projection reflects the proposed 1.2.0 document; generation does not accept that revision or replace an existing signed contract. This shared draft likewise does not activate new provider rules.
+- OpenWarrant cbe9a8a8: `crates/openwarrant-core/src/seam.rs` defines KatanaReceipt and BlutLineageReceipt. These validators check minimum fields and references, not a provider-authenticated seal. `resolve.rs::runtime_receipts_match_the_basis` has no connected store.
+- Katana checkout 0b0ac9dd1cbf69a2628ea214a4e841c5bd2888e1: `crates/katana/src/exec.rs` returns status, session path, answer, tool summaries and token usage. `crates/katana-mekugi/src/lib.rs` owns an append-only event log and BLAKE3 chain. These interfaces do not supply the complete OpenWarrant KatanaReceipt contract. The scoped Rust search found no dispatch_digest, prompt_ir_digest or receipt_digest producer.
+- BLUT checkout 6eedf207d2c539f65ef5506028d2e0e25e002e50 (rechecked 2026-10-01): `src/framework/lineage.rs` provides read-only job lineage; job/status/artifact APIs own their observations. LineageNode now carries portable input/output content identities alongside preserved legacy hashes. A scoped Rust search under src found no dispatch_digest, receipt_digest or warrant_uuid producer. This checkout differs from the OW47 runtime engine pin. Do not silently attribute its behavior to the old run. No complete dispatch-bound provider receipt has been observed.
+- Retained OW47 successful run: job 20260918-121422-409152626, provider b10f46be930be8f2696a35941fe36a2d7c2ab7c7, engine ffecee56abc87175a55dedc9f92d3537fa5a4227. References and actual failures remain in `../OW-WAR-0047/implementation/`.
+- Provider PR Quitetall/blut-cookbooks#1 remains open at aebd937beb6fee46664ca7bdd691bec3e732a3d3 with the latest visible hosted checks failed on 2026-09-18 (fmt/clippy/tests and secret-scan). Those historical failures do not establish their causes or qualify a newer checkout. The old runtime binary path is now absent. Retained records do not prove a fresh rerun or merge.
+
+## Blocking unknowns for verified integration
+
+1. Each provider must publish its receipt schema, exact digest/seal calculation and supported verification interface. An OpenWarrant checksum of stored bytes is not that provider seal.
+2. Katana must supply its own PromptIR identity, effective confinement/capabilities and terminal receipt. OpenWarrant must not reconstruct them from a transcript.
+3. BLUT must provide a stable job-to-dispatch binding and a way to check that status, artifacts and lineage references belong to that job. A matching path or ordinary JSON file is insufficient.
+4. Approval of the cross-project adapter version and source identities remains required where the participating Warrant or repository policy requires verified start.
+
+Preparation and prototype tests may proceed under the owner prompt. These unknowns block claims of provider qualification and verified integration, not ordinary drafting.
+<!-- atom docs/warrants/OW-WAR-0149/atoms/20-basis.md ends -->
+
+#### Work order — [docs/warrants/OW-WAR-0149/atoms/40-work-order.md](../../docs/warrants/OW-WAR-0149/atoms/40-work-order.md)
+
+<!-- atom docs/warrants/OW-WAR-0149/atoms/40-work-order.md begins -->
+# Work Order
+
+## Shared contract and ownership
+
+This directory is the single shared contract. Provider implementation Warrants and adapter specifications must point here by UUID/revision instead of restating it. Changes must preserve a reviewable shared revision and explicit participant responses. No participant is silently considered to have approved another project's change.
+
+### OpenWarrant
+
+1. Persist provider receipts and an attributable capture/import observation through the SDK and CLI. Record the actual provider interface version, binary/source identity, command or transport, exit/status and exact original receipt reference. Failures must leave prior records intact.
+2. Bind capture to the actual recorded dispatch: Warrant UUID, contract digest, dispatch digest, stage id and attempt id. Read these values from the dispatch record; do not accept an arbitrary caller assertion as proof.
+3. Keep provider receipt identity separate from local file-content identity. Consume the provider's defined receipt validation; do not invent a new canonical preimage or hash domain.
+4. Match every runtime stage in the current compilation basis to its eligible completed attempt and provider observation. Reject wrong provider, wrong contract, wrong dispatch, wrong stage, wrong attempt, altered receipt, stale source or mixed-job references. Missing provider support or unavailable observation is UNKNOWN.
+5. Assess Katana realized capabilities against the authorized set. An emitted receipt is not evidence of sandbox enforcement unless the provider actually establishes it. Unknown cost stays unknown; a mandatory hard spend cap refuses an unmetered run.
+6. Resolution uses this assessment, rather than counting all runtime stages as automatically unmet. No runtime stages is a genuine pass only for a valid required milestones atom. Missing or invalid milestones stays unmet.
+
+### Katana
+
+Emit the existing OpenWarrant minimum receipt from an actual terminal session: session identity, Dispatch digest, provider-owned PromptIR digest, provider/model identity, event-log head, realized capabilities, confinement, usage, artifact references, terminal runtime status, provider receipt digest and taint-label references. Define and expose receipt verification. Preserve cancellation, halt and failure as distinct states. Do not label a token count as a metered dollar spend.
+
+### BLUT
+
+Emit a receipt that binds the actual executed PlanSpec/job to the requested dispatch and exact registry identity. Supply terminal status, artifact references, lineage reference and provider receipt identity through its defined verification interface. Keep the lineage stream authoritative in BLUT; OpenWarrant stores references and permitted projections. An accepted typecheck is not an execution receipt.
+
+## Deliverables
+
+- One versioned shared adapter contract and participant implementation references.
+- SDK/CLI receipt capture, durable storage and basis assessment with precise refusal/UNKNOWN diagnostics.
+- Provider-owned Katana and BLUT receipt/verification surfaces at exact source revisions.
+- Real positive integration runs and public-seam negative controls; source manifests, local/hosted checks and honest progress records.
+
+## Start, limits and rollback
+
+Drafting, inspection and isolated prototype tests may start by prompt. Verified provider integration requires all relevant participants to accept the shared adapter revision and provider identity, plus any explicit local start requirements. A receipt import cannot authorize work, confer assurance or merge code.
+
+Use separate worktrees, serialized writers, the owner's configurable budget and protected fixtures. No paid model call without reliable cost tracking. Do not alter resolved pins or signed atoms; request successor/correction acts when needed. On interruption, retain capture history and partial progress. Revert unaccepted implementation through Git, retaining observations of failures.
+<!-- atom docs/warrants/OW-WAR-0149/atoms/40-work-order.md ends -->
+
+#### Milestones — [docs/warrants/OW-WAR-0149/atoms/45-milestones.yaml](../../docs/warrants/OW-WAR-0149/atoms/45-milestones.yaml)
+
+```yaml
+schema: "oh.war/milestones/v1"
+milestones:
+  - id: "M1"
+    title: "Shared receipt contract and provider interfaces defined"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "Receipt capture and basis assessment implemented"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+  - id: "M3"
+    title: "Actual provider runs and refusal controls qualified"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+stages:
+  - id: "STAGE-001"
+    title: "Prepare shared contract and explicit participant responses"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-002"
+    title: "Implement each participant's declared receipt adapter side"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "Exercise actual provider integrations and independent checks"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+```
+
+#### Assurance — [docs/warrants/OW-WAR-0149/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0149/atoms/60-assurance.md)
+
+<!-- atom docs/warrants/OW-WAR-0149/atoms/60-assurance.md begins -->
+# Assurance
+
+### OBL-001 — exact dispatch and provider binding
+- **scope:** shared adapter receipt capture and assessment for declared runtime stages.
+- **evidence:** actual provider receipt passes for its recorded dispatch; known but wrong contract, dispatch, stage, attempt, provider or registry is refused by the intended rule before writes. Exact replay changes no stored bytes. Missing historical binding is UNKNOWN.
+
+### OBL-002 — authentic provider facts and terminal outcomes
+- **scope:** declared Katana/BLUT receipt schemas and exact integration revisions.
+- **evidence:** positive actual execution plus altered seal, mixed-job artifacts, invalid lineage reference, nonterminal/halted/cancelled/failed run, missing provider verification and unsupported schema controls. Provider verification remains distinct from a local byte checksum. No synthesized PromptIR or copied BLUT lineage.
+
+### OBL-003 — retention, limits and basis changes
+- **scope:** SDK/CLI imports, current basis assessment and configured limits.
+- **evidence:** interrupted publication preserves previous receipt, stale contract/attempt refuses, one missing stage cannot satisfy the whole Warrant, unauthorized capability refuses, unmetered hard cap refuses, unknown cost never becomes zero. Missing/invalid milestones never exempts work.
+
+### OBL-004 — real cross-project qualification
+- **scope:** the shared contract's declared provider revisions and checked integration workflow.
+- **evidence:** actual Katana and BLUT runs at exact revisions, independent findings, full local/hosted checks and required authorized participant acceptance. Synthetic fixtures and retained historical observations remain labeled. Performer checks do not award assurance or authorize/resolve this Warrant.
+<!-- atom docs/warrants/OW-WAR-0149/atoms/60-assurance.md ends -->
 

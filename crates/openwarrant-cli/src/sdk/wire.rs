@@ -12,16 +12,21 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Value, serde_json::Error> {
     Ok(value)
 }
 pub(crate) fn decode_value(bytes: &[u8]) -> Result<Value, serde_json::Error> {
-    decode_value_within(bytes, 65_536)
+    decode_value_with_limits(bytes, 65_536, 64)
 }
-/// [`decode_value`] under a caller's JSON-node budget (`war host`'s is its
-/// own declared limit); depth stays 64.
-pub(crate) fn decode_value_within(bytes: &[u8], nodes: usize) -> Result<Value, serde_json::Error> {
+/// Reuse duplicate-member validation without imposing SDK request limits on
+/// another transport's larger, lossless document. Callers still bound work.
+pub(crate) fn decode_value_with_limits(
+    bytes: &[u8],
+    node_limit: usize,
+    depth_limit: usize,
+) -> Result<Value, serde_json::Error> {
     let mut decoder = serde_json::Deserializer::from_slice(bytes);
-    let mut remaining = nodes;
+    let mut remaining = node_limit;
     let value = Node {
         remaining: &mut remaining,
         depth: 0,
+        depth_limit,
     }
     .deserialize(&mut decoder)?;
     decoder.end()?;
@@ -30,11 +35,12 @@ pub(crate) fn decode_value_within(bytes: &[u8], nodes: usize) -> Result<Value, s
 struct Node<'a> {
     remaining: &'a mut usize,
     depth: usize,
+    depth_limit: usize,
 }
 impl<'de> DeserializeSeed<'de> for Node<'_> {
     type Value = Value;
     fn deserialize<D: de::Deserializer<'de>>(self, decoder: D) -> Result<Value, D::Error> {
-        if self.depth > 64 || *self.remaining == 0 {
+        if self.depth > self.depth_limit || *self.remaining == 0 {
             return Err(de::Error::custom("resource-limit: JSON nodes or depth"));
         }
         *self.remaining -= 1;
@@ -74,6 +80,7 @@ impl<'de> Visitor<'de> for Node<'_> {
         while let Some(value) = seq.next_element_seed(Node {
             remaining: self.remaining,
             depth: self.depth + 1,
+            depth_limit: self.depth_limit,
         })? {
             out.push(value);
         }
@@ -90,6 +97,7 @@ impl<'de> Visitor<'de> for Node<'_> {
                 map.next_value_seed(Node {
                     remaining: self.remaining,
                     depth: self.depth + 1,
+                    depth_limit: self.depth_limit,
                 })?,
             );
         }
