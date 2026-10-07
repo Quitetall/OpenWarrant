@@ -2242,6 +2242,7 @@ impl Store {
                     takeover = None;
                 }
                 Ok(remote::Held::At(sha, c)) => {
+                    let c = c.map(|c| *c);
                     let how = match &c {
                         Some(c) if c.actor == self.actor => Some(Takeover::Own),
                         Some(c) if c.lease_expired(now) => Some(Takeover::Reclaimed),
@@ -2302,6 +2303,7 @@ impl Store {
             ))),
             Ok(remote::Held::Absent) => Ok(None),
             Ok(remote::Held::At(sha, c)) => {
+                let c = c.map(|c| *c);
                 let published = remote::read_sidecar(lock).is_some_and(|p| p.commit == sha);
                 if published || c.as_ref().is_some_and(|c| c.actor == self.actor) {
                     Ok(Some(sha))

@@ -625,6 +625,56 @@ mod tests {
         }
     }
 
+    /// M11: a lease runs from the lock's last renewal; a reclaim judged on an
+    /// expired lease loses to a renewal that landed before it set the lock
+    /// aside, and wins when none did.
+    #[test]
+    fn a_renewal_that_lands_first_beats_a_reclaim() {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_secs();
+        let dir = scratch("lease");
+        let path = dir.join(lock_name("t-3f2a", Some("i-0001")));
+        let lapse = |p: &Utf8Path| {
+            let f = std::fs::File::options().write(true).open(p).expect("lock");
+            f.set_modified(std::time::UNIX_EPOCH + std::time::Duration::from_secs(now - 120))
+                .expect("mtime");
+        };
+        let mut holder = claim("holder", now - 120);
+        holder.lease_until_unix = Some(now - 60);
+        assert!(matches!(take(&path, &holder).expect("take"), Taken::Won));
+        lapse(&path);
+        let judged = read(&path, 60).expect("read").flatten().expect("claim");
+        assert!(judged.lease_expired(now), "set back, the lease has run out");
+        // The holder renews before the reclaim sets the lock aside.
+        let renewed = renew(&path, "holder", 60).expect("renew").expect("held");
+        assert!(!renewed.lease_expired(now), "renewed: {renewed:?}");
+        assert!(renew(&path, "someone-else", 60).expect("renew").is_none());
+        let reclaimer = claim("reclaimer", now);
+        let expired = |m: &Claim| m.lease_expired(now);
+        match steal_into(&path, Some(&judged), &path, &reclaimer, 60, &expired).expect("steal") {
+            Stolen::Lost(Some(c)) => assert_eq!(c.actor, "holder"),
+            other => panic!("the renewal should have won: {other:?}"),
+        }
+        // No renewal this time: the reclaim wins.
+        lapse(&path);
+        let judged = read(&path, 60).expect("read").flatten().expect("claim");
+        match steal_into(&path, Some(&judged), &path, &reclaimer, 60, &expired).expect("steal") {
+            Stolen::Won { from: Some(c) } => assert_eq!(c.actor, "holder"),
+            other => panic!("the reclaim should have won: {other:?}"),
+        }
+        assert_eq!(
+            read(&path, 60)
+                .expect("read")
+                .flatten()
+                .expect("claim")
+                .actor,
+            "reclaimer"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
     /// The layout is read as git lays it out: a main worktree's `.git`
     /// directory, a linked worktree's `.git` file and `commondir`, and a root
     /// below the top level.

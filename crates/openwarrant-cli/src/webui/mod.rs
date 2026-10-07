@@ -1379,11 +1379,8 @@ impl Server {
     fn ticket_act(&self, stream: &mut Conn, body: &TicketBody) -> std::io::Result<()> {
         let outcome = Repository::discover(Some(self.repo.root.clone()))
             .and_then(|repo| crate::ticket::Store::open(&repo, self.actor.as_deref()))
-            .and_then(|store| {
-                // M11: an act by the holder renews its leases, as the CLI's do.
-                store.renew_all();
-                Ok(store)
-            })
+            // M11: an act by the holder renews its leases, as the CLI's do.
+            .inspect(crate::ticket::Store::renew_all)
             .and_then(|store| match body.act {
                 TicketAct::Claim => crate::ticket::claim_cmd(&store, &body.target, false),
                 TicketAct::Done => crate::ticket::done(

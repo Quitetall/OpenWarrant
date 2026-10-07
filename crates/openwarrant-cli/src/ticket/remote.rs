@@ -267,7 +267,7 @@ pub fn push(
 pub enum Held {
     Absent,
     /// The commit, and the claim its message carries (`None`: not a claim).
-    At(String, Option<Claim>),
+    At(String, Option<Box<Claim>>),
 }
 
 /// Read `refname` on `remote`, fetching its commit when this clone lacks it.
@@ -315,5 +315,8 @@ pub fn read(root: &Utf8Path, remote: &str, refname: &str) -> Result<Held, String
         .split_once("\n\n")
         .map_or("", |(_, m)| m)
         .trim();
-    Ok(Held::At(commit, serde_json::from_str(message).ok()))
+    Ok(Held::At(
+        commit,
+        serde_json::from_str::<Claim>(message).ok().map(Box::new),
+    ))
 }
