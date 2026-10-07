@@ -5,7 +5,8 @@
 # question, the roadmap the scaffold writes, and a ticket with a blocker that
 # was promoted into a Warrant.
 #
-# Accepted: every record kind and every relation kind is named; two runs over
+# Accepted: every record kind (with M16, the `instruction` sections of the
+# AGENTS.md init writes) and every relation kind is named; two runs over
 # the same tree are byte-identical with the same basis_digest; the output
 # validates against schemas/oh.war/model/v1.json.
 # Refused: a parent naming no Warrant of the corpus is a diagnostic and the
@@ -71,7 +72,8 @@ print("kinds", " ".join(sorted({r["kind"] for r in m["relations"]})))
 print("diagnostics", len(m["diagnostics"]))
 PY
 )
-MD_WANT_TYPES="deliverable item obligation phase question requirement stage ticket warrant"
+# `instruction`: the `##` sections of the AGENTS.md `war init` wrote (M16).
+MD_WANT_TYPES="deliverable instruction item obligation phase question requirement stage ticket warrant"
 MD_WANT_KINDS="depends_on implements parent part_of promoted_to roadmap supersedes"
 if [[ $MD_STATUS -eq 0 ]] && grep -qx "types $MD_WANT_TYPES" <<<"$MD_KINDS"; then
     md_ok "model names every record kind" "$MD_WANT_TYPES"

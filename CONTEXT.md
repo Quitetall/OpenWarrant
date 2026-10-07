@@ -42,6 +42,13 @@ The candidate is not signed adoption or proof of shipped behavior.
 - **Claim:** who is working an item now — a lock under
   `.openwarrant/state/claims/` plus a journal event. Coordination between
   agents, not authority; a stale claim (past the TTL) may be stolen, journalled.
+- **Pointer block:** the few lines `war agents-md --block` keeps in `CLAUDE.md` and
+  `AGENTS.md`, between `<!-- openwarrant:begin -->` and `<!-- openwarrant:end -->`:
+  ordinary coding needs no Warrant, `war prime` shows tracked work, and the version
+  stamp. It holds no Warrant's context; bytes outside it are the file owner's.
+- **Instruction section:** a `##` section of `CLAUDE.md` or `AGENTS.md`, read in place
+  as a record `md:<file>#<slug>` of type `instruction` (docs/TYPES.md). Plans cite it
+  (`constrains md:CLAUDE.md#testing`) and `war impact` follows the citations.
 - **Preset:** the typed skeleton `war new --preset` writes: each heading and the
   question it answers. Presets ask; the author answers.
 - **Work stop:** declared scope complete, with generated progress and evidence links.

@@ -8,7 +8,9 @@
 //! came with:
 //!
 //! - **AGENTS.md** ends with `<!-- openwarrant agents-md: written by war X -->`,
-//!   filled in by the `war` that wrote it (`war init`, `war agents-md`).
+//!   filled in by the `war` that wrote it (`war init`, `war agents-md`). The
+//!   same line sits inside the managed block (M16) in `AGENTS.md` or
+//!   `CLAUDE.md`, and is read from either.
 //! - **The Claude Code plugin manifest** (`.claude-plugin/plugin.json`)
 //!   carries the `war` release it ships with as its `version`, bumped every
 //!   release (CONTRIBUTING.md). The skills ship inside the plugin, so its
@@ -28,7 +30,7 @@ use crate::diagnostic::{Diagnostic, Severity};
 /// The rule a newer stamp is reported under.
 pub const RULE: &str = "install.version-skew";
 
-const AGENTS_STAMP: &str = "<!-- openwarrant agents-md: written by war ";
+const AGENTS_STAMP: &str = openwarrant_core::instruction::STAMP_PREFIX;
 
 /// The version an AGENTS.md says wrote it, from its stamp line.
 #[must_use]
@@ -86,11 +88,14 @@ fn plugin_root() -> Option<Utf8PathBuf> {
 #[must_use]
 pub fn findings_for(root: &Utf8Path, running: &str, plugin: Option<&Utf8Path>) -> Vec<Diagnostic> {
     let mut out = Vec::new();
-    if let Ok(text) = std::fs::read_to_string(root.join("AGENTS.md"))
-        && let Some(stamp) = agents_md_stamp(&text)
-        && let Some(d) = compare("AGENTS.md", "AGENTS.md", &stamp, running)
-    {
-        out.push(d);
+    // M16: CLAUDE.md carries the stamp too, inside its openwarrant block.
+    for name in crate::instructions::ROOT_FILES {
+        if let Ok(text) = std::fs::read_to_string(root.join(name))
+            && let Some(stamp) = agents_md_stamp(&text)
+            && let Some(d) = compare(name, name, &stamp, running)
+        {
+            out.push(d);
+        }
     }
     let mut manifests = vec![root.join(".claude-plugin/plugin.json")];
     if let Some(p) = plugin {

@@ -709,6 +709,8 @@ pub fn validate(
         relations: mine,
         faults: Vec::new(),
         files: all.files,
+        instructions: all.instructions.clone(),
+        instruction_faults: Vec::new(),
     };
     for r in crate::records::unknown_targets(&corpus, &probe) {
         if proposed_ids.contains(r.target.id.as_str()) {

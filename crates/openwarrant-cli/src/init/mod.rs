@@ -482,8 +482,9 @@ pub fn run_with(
     }
 
     // An adopter's agents read AGENTS.md before their first Warrant. Written
-    // once, never over an existing one: a repository may have tuned its copy.
-    write_agents_md(&root, config.project.namespace.as_str(), false)?;
+    // once, never over an existing one: a repository may have tuned its copy,
+    // and gets the managed block added to it instead (M16), as CLAUDE.md does.
+    let block_lines = instructions_on_init(&root, config.project.namespace.as_str())?;
     // M11: journals union-merge and ticket files merge item by item
     // (`.gitattributes`, and this clone's driver). Best effort and silent: a
     // repository without git still initializes, and merges as text.
@@ -494,6 +495,9 @@ pub fn run_with(
     println!("initialized {} ({})", config.project.name, config_path);
     if start_hint {
         println!("{START_HINT}");
+    }
+    for line in &block_lines {
+        println!("{line}");
     }
     if let Some(id) = &recorded {
         let before = git_line(&root, &["rev-list", "--count", id]).unwrap_or_else(|| "?".into());
@@ -698,18 +702,68 @@ const ADOPT_ASSURANCE: &str = include_str!("../../templates/adopt/60-assurance.m
 ///
 /// This legacy template is also the repository's linked workflow reference.
 /// Root `AGENTS.md` adds project-specific routing and successor design guidance;
-/// installing an additive context pointer is a separate, planned operation.
+/// the additive pointer is the managed block (`war agents-md --block`, M16).
 pub const AGENTS_MD_TEMPLATE: &str = include_str!("../../templates/AGENTS.md.tmpl");
 
-/// The template filled in: the namespace, and the version stamp on its last
-/// line (`<!-- openwarrant agents-md: written by war X -->`), which
-/// `war doctor` and `war prime` read to warn when an older `war` meets text
-/// a newer one wrote (`crate::skew`).
+/// The template filled in: the namespace, and the managed openwarrant block
+/// at its end (M16), whose last line inside the markers is the version stamp
+/// (`<!-- openwarrant agents-md: written by war X -->`) that `war doctor`
+/// and `war prime` read to warn when an older `war` meets text a newer one
+/// wrote (`crate::skew`). The block is the one `war agents-md --block`
+/// writes, so a second `--block` changes nothing.
 #[must_use]
 pub fn render_agents_md(namespace: &str) -> String {
     AGENTS_MD_TEMPLATE
         .replace("{{namespace}}", namespace)
-        .replace("{{war_version}}", env!("CARGO_PKG_VERSION"))
+        .replace(
+            "{{openwarrant_block}}",
+            &openwarrant_core::instruction::block_text(env!("CARGO_PKG_VERSION")),
+        )
+}
+
+/// M16, at `war init`: the full AGENTS.md when there is none, and the
+/// managed block in each root AGENTS.md or CLAUDE.md that was already there,
+/// with nothing else in it changed. Returns the lines to print: one per file
+/// the block went into, and one per file left as it was because its block is
+/// malformed (init goes on; `war agents-md --block` names the fix).
+fn instructions_on_init(root: &Utf8Path, namespace: &str) -> Result<Vec<String>, InitError> {
+    let wrote = write_agents_md(root, namespace, false)?;
+    let existing: Vec<Utf8PathBuf> = crate::instructions::ROOT_FILES
+        .iter()
+        .filter(|f| !(wrote && **f == "AGENTS.md"))
+        .map(|f| root.join(f))
+        .filter(|p| p.is_file())
+        .collect();
+    // One file at a time: a malformed block in one leaves the other's
+    // block to be added.
+    let mut lines = Vec::new();
+    for path in existing {
+        match crate::instructions::write_blocks(root, std::slice::from_ref(&path)) {
+            Ok(written) => lines.extend(written.iter().filter_map(|w| match w.change {
+                "inserted" => Some(format!(
+                    "{}: added the openwarrant block at its end (ordinary coding needs no \
+                     Warrant; `war prime` shows tracked work); nothing else in it changed",
+                    w.path
+                )),
+                "updated" => Some(format!(
+                    "{}: updated the openwarrant block to war {}",
+                    w.path,
+                    crate::instructions::version()
+                )),
+                _ => None,
+            })),
+            Err(crate::instructions::Refused::Blocks(report)) => lines.extend(
+                report
+                    .diagnostics
+                    .iter()
+                    .map(|d| format!("left as it is: {} ({})", d.message, d.rule)),
+            ),
+            Err(crate::instructions::Refused::Io(message)) => {
+                lines.push(format!("the openwarrant block was not added: {message}"));
+            }
+        }
+    }
+    Ok(lines)
 }
 
 /// Write `AGENTS.md` at the root. Refuses to overwrite unless `force`: an
@@ -954,10 +1008,20 @@ mod agents_md_tests {
             .find("Your own work is checked by someone else")
             .expect("the self-verification fact");
         assert!(scoped < fact, "the facts live in the scoped section");
-        assert!(out.trim_end().ends_with(&format!(
-            "<!-- openwarrant agents-md: written by war {} -->",
+        // M16: it ends with the managed block, whose stamp skew reads, so
+        // `war agents-md --block` on a fresh AGENTS.md changes nothing.
+        assert!(out.ends_with(&format!(
+            "<!-- openwarrant agents-md: written by war {} -->\n<!-- openwarrant:end -->\n",
             env!("CARGO_PKG_VERSION")
         )));
+        assert_eq!(
+            crate::skew::agents_md_stamp(&out).as_deref(),
+            Some(env!("CARGO_PKG_VERSION"))
+        );
+        let (again, change) =
+            openwarrant_core::instruction::upsert(&out, env!("CARGO_PKG_VERSION")).unwrap();
+        assert_eq!(change, openwarrant_core::instruction::Change::Unchanged);
+        assert_eq!(again, out);
     }
 
     /// Keep the shipped legacy workflow equal to the linked reference, while
@@ -973,6 +1037,37 @@ mod agents_md_tests {
             instructions.contains(reference),
             "root must route legacy work"
         );
+    }
+
+    #[test]
+    fn init_adds_the_block_to_existing_instruction_files() {
+        let root = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-init-block-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let agents = "# Ours\n\n## Build\nmake\n";
+        let claude = "Be brief.";
+        std::fs::write(root.join("AGENTS.md"), agents).unwrap();
+        std::fs::write(root.join("CLAUDE.md"), claude).unwrap();
+        let lines = instructions_on_init(&root, "ZZ").unwrap();
+        assert_eq!(lines.len(), 2, "{lines:?}");
+        let a = std::fs::read_to_string(root.join("AGENTS.md")).unwrap();
+        let c = std::fs::read_to_string(root.join("CLAUDE.md")).unwrap();
+        assert!(a.starts_with(agents) && a.contains("<!-- openwarrant:begin -->"));
+        assert!(c.starts_with(claude) && c.contains("war prime"));
+        assert!(
+            !a.contains("ZZ-WAR-NNNN"),
+            "an existing AGENTS.md is not replaced"
+        );
+        // Again: nothing to say, nothing changed.
+        assert!(instructions_on_init(&root, "ZZ").unwrap().is_empty());
+        assert_eq!(std::fs::read_to_string(root.join("AGENTS.md")).unwrap(), a);
+        // A malformed block is left as it is, and init goes on.
+        std::fs::write(root.join("CLAUDE.md"), format!("{c}{c}")).unwrap();
+        let lines = instructions_on_init(&root, "ZZ").unwrap();
+        assert!(lines[0].contains("agents-md.block-duplicate"), "{lines:?}");
+        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

@@ -203,7 +203,9 @@ have, and an agent would read the old binary's refusal as a rule of the
 repository. Two stamps say which `war` the text came with:
 
 - AGENTS.md ends with `<!-- openwarrant agents-md: written by war X -->`,
-  written by the `war init` or `war agents-md` that made it;
+  written by the `war init` or `war agents-md` that made it. The line sits
+  inside the managed block (below), so a CLAUDE.md carrying the block is
+  read the same way;
 - the Claude Code plugin's `.claude-plugin/plugin.json` `version` is the
   `war` release it ships with (it moves every release), read from the
   repository root and from `$CLAUDE_PLUGIN_ROOT` when the harness sets it.
@@ -212,6 +214,50 @@ repository. Two stamps say which `war` the text came with:
 warn `install.version-skew`, naming both versions and the update command,
 when the stamp is newer. An equal or older stamp, or a file with none (written
 before the stamps existed), says nothing.
+
+## The pointer block in CLAUDE.md and AGENTS.md
+
+An agent reads the repository's `CLAUDE.md` or `AGENTS.md` before anything
+else. `war` keeps one small block in them, and nothing more:
+
+```markdown
+<!-- openwarrant:begin -->
+<!-- Written by `war agents-md --block`, which rewrites the lines between these markers. -->
+Ordinary coding needs no Warrant and no ticket: work here as in any repository.
+OpenWarrant tracks optional plans and checklists in this repository; run
+`war prime` to see what is tracked (open work, who holds what, recent notes).
+<!-- openwarrant agents-md: written by war 1.0.0 -->
+<!-- openwarrant:end -->
+```
+
+- `war agents-md --block` inserts or updates it in every root `AGENTS.md`
+  and `CLAUDE.md` that exists, or writes an `AGENTS.md` holding only the
+  block when neither does. `--file <path>` names another file (created when
+  absent); `--stdout` prints the block. A `CLAUDE.md` that is a link to
+  `AGENTS.md` is written once, through the link; a link to a file outside
+  the repository (a shared or global `CLAUDE.md`) is refused,
+  `agents-md.link-outside`.
+- A file without the block gets it on the line after its last one. A file
+  with it has only the lines between the markers rewritten. Every byte
+  outside the markers stays as it was, and a second run changes nothing.
+- The block never holds the Warrant you are working on or any other state
+  that changes: `war prime` says that, and the file stays stable.
+- Refused by rule, with nothing written to any file: a file with two blocks
+  (`agents-md.block-duplicate`), a block that never closes
+  (`agents-md.block-unterminated`), an end marker with no begin
+  (`agents-md.block-unopened`), and a file whose last code fence never
+  closes (`agents-md.fence-unclosed`). Each names the line to fix.
+- `war init` writes the full AGENTS.md guide (which ends with the block)
+  when there is none, and adds the block to an `AGENTS.md` or `CLAUDE.md`
+  you already have, printing one line per file it touched.
+- `war doctor` reports each root file's block: `doctor.agents-block` when it
+  is this `war`'s, `doctor.agents-block-missing`, `doctor.agents-block-stale`
+  (written by an older `war`, or edited between the markers), and
+  `doctor.agents-block-malformed`. A block a newer `war` wrote is version
+  skew, not stale.
+
+The sections of these files are also records that plans can cite
+(`md:CLAUDE.md#testing`); [docs/TYPES.md](TYPES.md) has the details.
 
 ## Signing setup: `war doctor`
 

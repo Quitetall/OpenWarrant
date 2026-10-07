@@ -45,9 +45,13 @@ war overview
 ```
 
 These commands initialize records and show progress; they do not launch a coding
-agent or award verification. Your connected agent does the implementation. Existing
-`AGENTS.md` is preserved by initialization; integrate the work-path guidance into
-it instead of overwriting it with `war agents-md --force`.
+agent or award verification. Your connected agent does the implementation. An
+existing `AGENTS.md` or `CLAUDE.md` is kept: initialization adds only a small
+managed block at its end, between `<!-- openwarrant:begin -->` and
+`<!-- openwarrant:end -->`, saying ordinary coding needs no Warrant and that
+`war prime` shows tracked work. `war agents-md --block` keeps that block current
+and touches nothing outside it ([INSTALL](docs/INSTALL.md#the-pointer-block-in-claudemd-and-agentsmd));
+`war agents-md --force` would replace the whole file with the full guide.
 
 For legacy approvals, `war sign APP-WAR-0001` shows the exact pending act and asks
 for confirmation. `war console` supplies a terminal checklist. SSH signing is a
