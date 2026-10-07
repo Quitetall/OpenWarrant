@@ -19,7 +19,7 @@ echo "== the small surface: help (M12) =="
 SS_WAR="$REPO_ROOT/${WAR#./}"
 ss_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 ss_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
-ss() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR "$SS_WAR" "$@" </dev/null; }
+sw() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR "$SS_WAR" "$@" </dev/null; }
 
 # The words listed in one section of a help text (`Commands:` or `More:`),
 # clap's own `help` set aside, space-separated in the order shown.
@@ -39,7 +39,7 @@ ss_reads_ok() {
 }
 
 SS_DAILY_WANT="init create next claim done add note edit show status check"
-SS_HELP=$(ss --help 2>&1); SS_RC=$?
+SS_HELP=$(sw --help 2>&1); SS_RC=$?
 SS_DAILY=$(ss_section "$SS_HELP" "Commands:")
 SS_LINES=$(wc -l <<<"$SS_HELP")
 if [[ $SS_RC -eq 0 && "$SS_DAILY" == "$SS_DAILY_WANT" ]] && ss_reads_ok "$SS_HELP"; then
@@ -71,12 +71,12 @@ declare -A SS_MEMBERS=(
 )
 SS_BAD=""
 for g in plan sign evidence view admin; do
-    gh=$(ss "$g" --help 2>&1); grc=$?
+    gh=$(sw "$g" --help 2>&1); grc=$?
     got=$(ss_section "$gh" "Commands:" | tr ' ' '\n' | awk '$0 != "schemas"' | tr '\n' ' ' | sed 's/ $//')
     [[ $grc -eq 0 && "$got" == "${SS_MEMBERS[$g]}" ]] || SS_BAD="$SS_BAD $g(exit $grc: $got)"
 done
-SS_WRONG=$(ss view compile 2>&1); SS_WRONG_RC=$?
-SS_NEVER=$(ss frobnicate 2>&1); SS_NEVER_RC=$?
+SS_WRONG=$(sw view compile 2>&1); SS_WRONG_RC=$?
+SS_NEVER=$(sw frobnicate 2>&1); SS_NEVER_RC=$?
 if [[ -z "$SS_BAD" && $SS_WRONG_RC -eq 2 && $SS_NEVER_RC -eq 2 ]] \
     && grep -q "unrecognized subcommand 'compile'" <<<"$SS_WRONG" \
     && grep -q "unrecognized subcommand 'frobnicate'" <<<"$SS_NEVER"; then
@@ -101,7 +101,7 @@ SS_ERR=$(mktemp)
 SS_MISS=""; SS_N=0
 for w in $SS_OLD; do
     SS_N=$((SS_N + 1))
-    h=$(ss "$w" --help 2>"$SS_ERR"); hrc=$?
+    h=$(sw "$w" --help 2>"$SS_ERR"); hrc=$?
     # An alias answers with its command's own name.
     case "$w" in progress) name=overview ;; tickets | ls) name=warrants ;; *) name=$w ;; esac
     if [[ $hrc -ne 0 || -s "$SS_ERR" ]] || ! grep -q "^Usage: war $name\b" <<<"$h"; then

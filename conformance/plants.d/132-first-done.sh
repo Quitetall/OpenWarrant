@@ -24,7 +24,7 @@ FD_WAR="$REPO_ROOT/${WAR#./}"
 fd_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 fd_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 # No terminal to ask on, no inherited actor, no key: a newcomer's shell.
-fd() { (cd "$FD_ROOT" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR \
+fdw() { (cd "$FD_ROOT" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR \
     OPENWARRANT_NO_PROJECTS=1 "$FD_WAR" "$@" </dev/null); }
 mkdir -p "$FD_ROOT"
 git -C "$FD_ROOT" init -q .
@@ -35,16 +35,16 @@ FD_DAILY=$(awk '$0 == "Commands:" {f=1; next} /^[^ ]/ || /^$/ {f=0} f && /^  [a-
 FD_STEPS=()
 
 # 1. init  2. create  3. claim  4. done
-FD_STEPS+=(init); fd init >/dev/null 2>&1; FD_I=$?
-FD_STEPS+=(create); FD_OUT=$(fd create --json "Fix the login redirect" 2>/dev/null); FD_C=$?
+FD_STEPS+=(init); fdw init >/dev/null 2>&1; FD_I=$?
+FD_STEPS+=(create); FD_OUT=$(fdw create --json "Fix the login redirect" 2>/dev/null); FD_C=$?
 FD_ID=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["result"]["id"])' "$FD_OUT" 2>/dev/null)
 # The refusal half first, on the same Warrant: done before any claim.
-FD_ERR=$(fd done "$FD_ID" 2>&1 >/dev/null); FD_R1=$?
-FD_ERR2=$(fd done t-ffff 2>&1 >/dev/null); FD_R2=$?
-FD_STATE0=$(fd --json show "$FD_ID" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["ticket"]["state"])' 2>/dev/null)
-FD_STEPS+=(claim); fd claim "$FD_ID" >/dev/null 2>&1; FD_K=$?
-FD_STEPS+=(done); fd done "$FD_ID" >/dev/null 2>&1; FD_D=$?
-FD_STATE=$(fd --json show "$FD_ID" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["ticket"]["state"])' 2>/dev/null)
+FD_ERR=$(fdw done "$FD_ID" 2>&1 >/dev/null); FD_R1=$?
+FD_ERR2=$(fdw done t-ffff 2>&1 >/dev/null); FD_R2=$?
+FD_STATE0=$(fdw --json show "$FD_ID" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["ticket"]["state"])' 2>/dev/null)
+FD_STEPS+=(claim); fdw claim "$FD_ID" >/dev/null 2>&1; FD_K=$?
+FD_STEPS+=(done); fdw done "$FD_ID" >/dev/null 2>&1; FD_D=$?
+FD_STATE=$(fdw --json show "$FD_ID" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["ticket"]["state"])' 2>/dev/null)
 
 FD_WORDS=""; FD_ALL_DAILY=1
 for w in "${FD_STEPS[@]}"; do
