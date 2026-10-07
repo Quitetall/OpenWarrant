@@ -94,12 +94,27 @@ pub struct ClaimParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct HeartbeatParams {
+    /// One claimed item or ticket; omit to renew every claim the actor holds.
+    #[serde(default)]
+    pub target: Option<String>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct DoneParams {
     /// The claimed item (or a ticket with nothing left open).
     pub target: String,
     /// What was done, written on the item's line for the next reader.
     #[serde(default)]
     pub note: Option<String>,
+    /// Write only if the target is still at this revision (from `war_show`'s
+    /// `revision`, or an item's); a stale one is refused
+    /// `warrant.stale-revision`, naming the current one.
+    #[serde(default)]
+    pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
     #[serde(default)]
     pub actor: Option<String>,
@@ -114,6 +129,11 @@ pub struct AddParams {
     /// What the item waits on: items of this ticket, tickets, or `t-x/i-y`.
     #[serde(default)]
     pub after: Vec<String>,
+    /// Write only if the target is still at this revision (from `war_show`'s
+    /// `revision`, or an item's); a stale one is refused
+    /// `warrant.stale-revision`, naming the current one.
+    #[serde(default)]
+    pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
     #[serde(default)]
     pub actor: Option<String>,
@@ -125,6 +145,11 @@ pub struct NoteParams {
     pub target: String,
     /// The note, Markdown.
     pub text: String,
+    /// Write only if the target is still at this revision (from `war_show`'s
+    /// `revision`, or an item's); a stale one is refused
+    /// `warrant.stale-revision`, naming the current one.
+    #[serde(default)]
+    pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
     #[serde(default)]
     pub actor: Option<String>,
@@ -1102,13 +1127,24 @@ impl WarServer {
     }
 
     #[tool(
+        name = "war_heartbeat",
+        description = "Renew the lease on your claims (`war heartbeat`), or on the one named, so no other agent reclaims them while you work. Every ticket tool call renews them too; a claim whose lease runs out is taken by a plain claim.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_heartbeat(&self, Parameters(p): Parameters<HeartbeatParams>) -> ToolResult {
+        self.ticket("heartbeat", p.actor.as_deref(), |s| {
+            crate::ticket::heartbeat(s, p.target.as_deref())
+        })
+    }
+
+    #[tool(
         name = "war_done",
         description = "Finish a claimed item (`war done`): ticks its checkbox in the ticket's checklist with who, when and an optional note, journals it, releases the claim.",
         annotations(read_only_hint = false)
     )]
     fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
         self.ticket("done", p.actor.as_deref(), |s| {
-            crate::ticket::done(s, &p.target, p.note.as_deref())
+            crate::ticket::done(s, &p.target, p.note.as_deref(), p.if_rev.as_deref())
         })
     }
 
@@ -1119,7 +1155,7 @@ impl WarServer {
     )]
     fn war_add(&self, Parameters(p): Parameters<AddParams>) -> ToolResult {
         self.ticket("add", p.actor.as_deref(), |s| {
-            crate::ticket::add(s, &p.ticket, &p.text, &p.after)
+            crate::ticket::add(s, &p.ticket, &p.text, &p.after, p.if_rev.as_deref())
         })
     }
 
@@ -1130,7 +1166,7 @@ impl WarServer {
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
         self.ticket("note", p.actor.as_deref(), |s| {
-            crate::ticket::note(s, &p.target, &p.text)
+            crate::ticket::note(s, &p.target, &p.text, p.if_rev.as_deref())
         })
     }
 
@@ -1314,7 +1350,11 @@ impl WarServer {
         actor: Option<&str>,
         run: impl FnOnce(&crate::ticket::Store) -> Result<crate::ticket::Outcome, RepoError>,
     ) -> ToolResult {
-        let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| run(&s));
+        // M11: every ticket tool call renews the acting agent's leases.
+        let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| {
+            s.renew_all();
+            run(&s)
+        });
         match outcome {
             Ok(o) => {
                 let text = crate::output::envelope(command, &o.report, Some(o.result));

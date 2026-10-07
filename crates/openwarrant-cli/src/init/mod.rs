@@ -484,6 +484,10 @@ pub fn run_with(
     // An adopter's agents read AGENTS.md before their first Warrant. Written
     // once, never over an existing one: a repository may have tuned its copy.
     write_agents_md(&root, config.project.namespace.as_str(), false)?;
+    // M11: journals union-merge and ticket files merge item by item
+    // (`.gitattributes`, and this clone's driver). Best effort and silent: a
+    // repository without git still initializes, and merges as text.
+    let _ = crate::ticket::merge::install(&root);
 
     // §76.3: silence on sound state is the ideal, but `init` is a mutation and
     // the operator needs to know what was created and where.

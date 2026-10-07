@@ -29444,7 +29444,7 @@ truncates nothing.
 | D-007 | Response drafts written atomically before their rename | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-008 | Durable journal appends and journal.torn-tail | `crates/openwarrant-cli/src/journal_cmd.rs` | drift |
 | D-009 | storage.stray-temp in war check | `crates/openwarrant-cli/src/check.rs` | drift |
-| D-010 | The storage protocol, crash points, and the retained-artifact rule | `docs/STORAGE.md` | verified |
+| D-010 | The storage protocol, crash points, and the retained-artifact rule | `docs/STORAGE.md` | drift |
 | D-011 | The storage plants | `conformance/plants.d/53-storage.sh` | verified |
 
 ### OW-WAR-0122 — The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept
@@ -39580,7 +39580,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-010 | The ticket tools over MCP | `crates/openwarrant-cli/src/mcp/tools.rs` | drift |
 | D-011 | The MCP instructions name the ticket loop | `crates/openwarrant-cli/src/mcp/mod.rs` | drift |
 | D-012 | The loop, the process race, check and MCP, through the binary | `crates/openwarrant-cli/tests/tickets_cli.rs` | verified |
-| D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | verified |
+| D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | drift |
 | D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | drift |
 | D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | drift |
 | D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | verified |

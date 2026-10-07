@@ -10,6 +10,7 @@ use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
 pub mod acceptance;
+pub mod alias;
 pub mod amendment_id;
 pub mod attest;
 pub mod authority_check;
@@ -513,6 +514,11 @@ enum TicketCommand {
         /// What was done, for the next reader; written on the item's line.
         #[arg(long)]
         note: Option<String>,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -525,6 +531,11 @@ enum TicketCommand {
         /// What the item waits on: an item of this ticket, a ticket, or `t-x/i-y`. Repeatable.
         #[arg(long, value_name = "ITEM|TICKET")]
         after: Vec<String>,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -534,6 +545,11 @@ enum TicketCommand {
         target: String,
         /// The note; Markdown, may span lines.
         text: String,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -589,12 +605,55 @@ enum TicketCommand {
         part_of: Option<String>,
         #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
         priority: Option<u8>,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
     /// Give a claim back without finishing the item.
     Release {
         target: String,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// git's merge driver for ticket files: checklists item by item, notes
+    /// appended (`merge=war-ticket` in .gitattributes). `--install` writes
+    /// the .gitattributes lines and this clone's git configuration.
+    #[command(hide = true)]
+    MergeTicket {
+        /// The common ancestor's copy (git's %O).
+        #[arg(required_unless_present_any = ["install", "probe"])]
+        base: Option<Utf8PathBuf>,
+        /// Ours (git's %A); the result is written here.
+        #[arg(required_unless_present_any = ["install", "probe"])]
+        ours: Option<Utf8PathBuf>,
+        /// Theirs (git's %B).
+        #[arg(required_unless_present_any = ["install", "probe"])]
+        theirs: Option<Utf8PathBuf>,
+        /// The path in the repository (git's %P).
+        path: Option<String>,
+        /// Configure this clone instead of merging.
+        #[arg(long)]
+        install: bool,
+        /// Exit 0: this war has the driver (what the configured command
+        /// asks before it runs it).
+        #[arg(long)]
+        probe: bool,
+    },
+    /// Renew the lease on your claims (or the one named), so no other agent
+    /// reclaims them while you work. Every war command you run renews them
+    /// too; a claim whose lease runs out is taken by a plain `war claim`.
+    Heartbeat {
+        /// One claimed item or ticket; omit for every claim you hold.
+        target: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -766,6 +825,15 @@ enum Command {
         /// authorized revision is refused and nothing is created.
         #[arg(long, value_name = "ALIAS")]
         parent: Option<String>,
+    },
+    /// Give an unsigned Warrant a free alias: its `local_alias`, its
+    /// directory, and a journal line. A Warrant with an authorization keeps
+    /// its alias; that is refused by name.
+    Renumber {
+        /// The Warrant's alias now.
+        alias: String,
+        /// The alias to give it; refused if any branch this clone knows has it.
+        new: String,
     },
     /// Validate deterministically, without any agent (§71.7).
     Check {
@@ -1781,10 +1849,16 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     //
     // Every command that opened a repository remembers it for the hub
     // (OW-WAR-0115): best-effort, and nothing it does changes the result.
+    //
+    // M11: every command that opens a repository renews the acting agent's
+    // claim leases (`$OPENWARRANT_ACTOR`, else `[project] performer`): a
+    // touch per lock it holds, nothing more. The ticket commands renew for
+    // their own `--as`.
     let open_repo = || {
         let r = repo::Repository::discover(root.clone());
         if let Ok(r) = &r {
             projects::touch(&r.root);
+            ticket::renew_ambient(r);
         }
         r
     };
@@ -1804,10 +1878,13 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         return Ok(code);
     };
-    // The ticket loop: a store over the ticket files, and one printer.
+    // The ticket loop: a store over the ticket files, and one printer. Every
+    // ticket command renews the acting agent's claims (M11).
     let tickets = |actor: Option<&str>| -> Result<(repo::Repository, ticket::Store), Box<dyn std::error::Error>> {
-        let repository = open_repo()?;
+        let repository = repo::Repository::discover(root.clone())?;
+        projects::touch(&repository.root);
         let store = ticket::Store::open(&repository, actor)?;
+        store.renew_all();
         Ok((repository, store))
     };
     match command {
@@ -1915,38 +1992,41 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             TicketCommand::Done {
                 target,
                 note,
+                if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "done",
-                    &ticket::done(&store, &target, note.as_deref())?,
+                    &ticket::done(&store, &target, note.as_deref(), if_rev.as_deref())?,
                 ))
             }
             TicketCommand::Add {
                 ticket: target,
                 text,
                 after,
+                if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "add",
-                    &ticket::add(&store, &target, &text, &after)?,
+                    &ticket::add(&store, &target, &text, &after, if_rev.as_deref())?,
                 ))
             }
             TicketCommand::Note {
                 target,
                 text,
+                if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "note",
-                    &ticket::note(&store, &target, &text)?,
+                    &ticket::note(&store, &target, &text, if_rev.as_deref())?,
                 ))
             }
             TicketCommand::Prime {
@@ -1994,6 +2074,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 unlabels,
                 part_of,
                 priority,
+                if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
@@ -2005,6 +2086,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     remove_labels: unlabels,
                     part_of: none(part_of),
                     priority,
+                    if_rev,
                 };
                 Ok(ticket_answer(
                     mode,
@@ -2012,12 +2094,54 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     &ticket::edit(&store, &target, &args)?,
                 ))
             }
-            TicketCommand::Release { target, actor } => {
+            TicketCommand::Release {
+                target,
+                if_rev,
+                actor,
+            } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "release",
-                    &ticket::release(&store, &target)?,
+                    &ticket::release(&store, &target, if_rev.as_deref())?,
+                ))
+            }
+            TicketCommand::MergeTicket {
+                base,
+                ours,
+                theirs,
+                path,
+                install,
+                probe,
+            } => {
+                if probe {
+                    return Ok(EXIT_OK);
+                }
+                let outcome = if install {
+                    let repository = repo::Repository::discover(root.clone())?;
+                    ticket::merge_install(&repository.root)
+                } else {
+                    match (base, ours, theirs) {
+                        (Some(base), Some(ours), Some(theirs)) => {
+                            ticket::merge_ticket(&base, &ours, &theirs, path.as_deref())?
+                        }
+                        _ => unreachable!("clap requires the three files without --install"),
+                    }
+                };
+                if matches!(mode, output::Mode::Human)
+                    && !outcome.is_refused()
+                    && outcome.human.is_empty()
+                {
+                    return Ok(EXIT_OK);
+                }
+                Ok(ticket_answer(mode, "merge-ticket", &outcome))
+            }
+            TicketCommand::Heartbeat { target, actor } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "heartbeat",
+                    &ticket::heartbeat(&store, target.as_deref())?,
                 ))
             }
             TicketCommand::Promote {
@@ -3982,6 +4106,27 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         } => {
             let (report, result) = doctor::run(root.clone(), alias.as_deref(), generated);
             Ok(output::finish(mode, "doctor", &report, Some(result)))
+        }
+        Command::Renumber { alias, new } => {
+            let repository = open_repo()?;
+            let done = alias::renumber(&repository, &alias, &new)?;
+            match mode {
+                output::Mode::Human => {
+                    for d in &done.report.diagnostics {
+                        if d.severity == diagnostic::Severity::Error {
+                            eprintln!("refused ({}): {}", d.rule, d.message);
+                        }
+                    }
+                    if done.report.is_ready() {
+                        println!("{}", done.human);
+                    }
+                }
+                output::Mode::Json => println!(
+                    "{}",
+                    output::envelope("renumber", &done.report, Some(done.result.clone()))
+                ),
+            }
+            Ok(output::exit_code(&done.report))
         }
         Command::Check { alias, generated } => {
             let repository = open_repo()?;

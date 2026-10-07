@@ -35,7 +35,8 @@ More, when you need them:
 | `war tickets` (or `war ls`) | every ticket: open, in progress or done, and how far along; filters below |
 | `war edit <ticket> --type bug -l ui -p 1` | change a ticket's type, labels, epic or priority |
 | `war release <item>` | give a claim back without finishing |
-| `war claim <item> --steal` | take a claim whose holder went quiet (older than the TTL) |
+| `war heartbeat [<item>]` | renew the lease on your claims (any `war` command does too) |
+| `war claim <item> --steal` | take a claim older than the TTL whose lease is still live |
 | `war create "..." --draft` | ask the configured drafter (`[plan] drafter_argv`) to propose the items |
 | `war create "..." --draft --records` | the drafter proposes typed records too (requirements, constraints, decisions, outcomes), and the items implement them; see "From a sentence to records" |
 | `war create --issue 12` | make the ticket from GitHub issue #12 (below) |
@@ -220,11 +221,82 @@ since when. Of two agents claiming at the same instant, exactly one wins.
 `war done` refuses an item nobody claimed, or someone else did, so two agents
 never finish the same thing.
 
-Claims are lock files in `.openwarrant/state/claims/`, which is never
-committed; every claim, release and steal is also a line in the ticket's
-journal, which is. A claim older than two hours is stale and
-`war claim --steal` may take it; the steal is journalled with whom it was taken
-from.
+Claims are lock files, never committed; every claim, release and steal is
+also a line in the ticket's journal, which is. In a git checkout the locks
+live under git's common directory (`git rev-parse --git-common-dir`, then
+`openwarrant/claims/`), so every worktree of one clone shares one set: an
+agent in one worktree is refused an item an agent in another holds. Outside
+git, and before this was so, they lived in `.openwarrant/state/claims/`; a
+claim found there is still honoured from every worktree, and its holder can
+finish or release it. `[tickets] claims_dir` names one directory instead.
+
+A claim is a lease. It carries `lease_until`, 30 minutes after it was taken
+(`[tickets] claim_lease_minutes`), and the holder renews it with
+`war heartbeat` and with every `war` command it runs, so an agent at work
+keeps its claims without thinking about them. A renewal touches the lock
+file's modification time and nothing else. When a lease runs out, the holder
+probably stopped: `war ready` offers the item again (`lease ran out`), and a
+plain `war claim` takes it, journalled as `ticket.claim_reclaimed` with whom
+it was taken from and when their lease ended. A claim with a live lease that
+is older than two hours (`claim_ttl_minutes`, counted from when it was
+taken, whatever its renewals) can still be taken with `war claim --steal`,
+journalled with whom it was taken from.
+
+### Claims across machines
+
+Off by default. With
+
+```toml
+[claims]
+remote = "origin"
+```
+
+a claim is also published to that git remote as the ref
+`refs/openwarrant/claims/<ticket>--<item>` (a commit whose message is the
+claim), pushed with `git push --atomic --force-with-lease`, so the remote is
+the compare-and-set: of two machines claiming one item, exactly one push
+lands, and the other is refused by name (`claimed on the remote origin by
+...`) and keeps no lock. The lock on this machine is taken first, so the
+worktrees of one clone settle among themselves before anything is pushed.
+`war done` first checks the remote still gives the claim to you (a lease that
+ran out there may have been taken from another machine), then deletes the
+ref; `war release` deletes it if it is still yours. A claim whose lease ran
+out on another machine is reclaimed across the remote, and journalled from
+its holder. Local renewals are a file touch; the remote's copy of a lease is
+renewed by `war heartbeat`, and by any ticket command once less than half of
+it is left. When the remote cannot be reached the claim is refused
+(`ticket.claim-remote-unreachable`) and nothing is claimed. `war ready`
+reads this machine's claims only; a claim held elsewhere is refused at
+`war claim`. Nothing is signed: the commit is written with `--no-gpg-sign`
+under a fixed `war` identity, and pushes skip hooks.
+
+### Branches that merge
+
+Two agents on two branches tick two adjacent items, each add an item and a
+note: git's text merge reads two touching edits and stops. Ticket files keep
+their layout; `.gitattributes` names a merge driver for them
+(`docs/tickets/*/atoms/*.md merge=war-ticket`), and `war merge-ticket`
+merges a checklist item by item (keyed by id) and an intent's appended notes
+side by side, under one `## Notes` heading. One item changed two different
+ways is not merged for you: the driver leaves git's conflict markers and
+stops the merge (`ticket.merge-conflict`). Journals are append-only lines and
+merge with git's built-in `merge=union`. `war init` writes both
+`.gitattributes` lines and configures the driver for its clone; in a clone
+made since, run `war merge-ticket --install` once. Without the driver git
+merges these files as text, as before.
+
+### Writes that say what they read
+
+`war done`, `edit`, `note`, `add` and `release` take `--if-rev <revision>`
+(`if_rev` over MCP): write only if the target is still what the caller read.
+`war show <ticket> --json` gives the revisions, the same digests `war model`
+reports: `revision` for the ticket (its manifest's sha256; `edit` changes it)
+and `items[].revision` for each item (its checklist line's; ticking or
+rewording the item changes it). Pass the item's for an item, the ticket's for
+the ticket. A stale one is refused, `warrant.stale-revision`, naming the
+revision now, and nothing is written; read again and retry. On `done` and
+`edit` the compare and the write are one step. Without `--if-rev` every
+command behaves as it always has.
 
 A claim is a name for coordination. It proves nothing about who someone is and
 authorizes nothing. Who is acting comes from `--as <name>`, else the
@@ -258,7 +330,8 @@ know with `war note`. Do not ask the human to sign anything during this loop;
 nothing in it needs a signature.
 
 Over MCP (`war mcp`) the same loop is `war_prime`, `war_ready`, `war_claim`,
-`war_done`, `war_create`, `war_add`, `war_note`, `war_show` and `war_tickets`.
+`war_done`, `war_create`, `war_add`, `war_note`, `war_show`, `war_tickets`
+and `war_heartbeat`.
 Each takes an optional `actor`; `war_create` also takes `type`, `labels` and
 `part_of`, and `war_tickets` the filters above (`type`, `labels`, `state`,
 `text`, `search`, `epic`). Finding the right ticket is
@@ -271,8 +344,9 @@ All optional, in `openwarrant.toml`:
 ```toml
 [tickets]
 dir = "docs/tickets"                        # where tickets live
-claims_dir = ".openwarrant/state/claims"    # point at a shared path to see claims across worktrees
-claim_ttl_minutes = 120                     # after this a claim may be stolen
+claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
+claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands
+claim_ttl_minutes = 120                     # after this a claim with a live lease may be stolen
 compact_after_days = 7                      # done tickets older than this are one line in `war prime`
 ```
 
