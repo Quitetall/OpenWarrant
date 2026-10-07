@@ -131,6 +131,37 @@ fn undeclared_referenced_phase_stays_visible_without_an_invented_exit() {
             .unwrap()
             .contains("name phase(s) 8 that the configured SAS does not declare")
     }));
+
+    // The model lists no record for the undeclared phase: the Warrant's
+    // relation to it stays visible and is reported as naming no record.
+    let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["model", "--json"])
+        .current_dir(&fixture.0)
+        .output()
+        .unwrap();
+    let model = &serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap()["result"];
+    let records = model["records"].as_array().unwrap();
+    assert!(
+        records.iter().all(|r| r["id"] != "DEMO-PHASE-8"),
+        "{records:?}"
+    );
+    assert!(
+        model["states"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|s| s["record"] != "DEMO-PHASE-8")
+    );
+    assert!(
+        model["relations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["from"] == "DEMO-WAR-0001" && r["to"] == "DEMO-PHASE-8")
+    );
+    assert!(model["diagnostics"].as_array().unwrap().iter().any(|d| {
+        d["rule"] == "model.relation-target-unknown" && d["record"] == "DEMO-WAR-0001"
+    }));
 }
 
 /// The program `war init --program` scaffolds declares two phases in its SAS

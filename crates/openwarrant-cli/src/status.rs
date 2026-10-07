@@ -85,6 +85,19 @@ pub fn warrant_state(
         })
 }
 
+/// The phases the configured SAS declares in section 98, in its order, for a
+/// program with no roadmap record: (number, title, Exit). None when the
+/// document cannot be read, declares none, or declares one phase twice (then
+/// there is no one title or Exit to project). Never another program's.
+#[must_use]
+pub fn sas_phases(repo: &Repository) -> Vec<(u8, String, Option<String>)> {
+    repo.sas_document()
+        .ok()
+        .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
+        .filter(|v| v.iter().map(|(n, _, _)| *n).collect::<BTreeSet<u8>>().len() == v.len())
+        .unwrap_or_default()
+}
+
 /// [`build`] over a corpus already loaded: each Warrant's assessment and
 /// contract digest are the corpus's, computed once.
 pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
@@ -352,13 +365,7 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
                 )
             })
             .collect(),
-        None => repo
-            .sas_document()
-            .ok()
-            .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
-            // A phase declared twice has no one title or Exit to project.
-            .filter(|v| v.iter().map(|(n, _, _)| *n).collect::<BTreeSet<u8>>().len() == v.len())
-            .unwrap_or_default(),
+        None => sas_phases(repo),
     };
     let phases_unknown = roadmap.is_none() && phases.is_empty();
     // A Warrant placed in a phase nobody declared stays visible under that
