@@ -49,6 +49,8 @@ More, when you need them:
 | `war create --issue 12` | make the ticket from GitHub issue #12 (below) |
 | `war create "..." --implements REQ-pr1` | one item per record, its text the record's first sentence (docs/TYPES.md) |
 | `war promote <ticket>` | draft a Warrant from the ticket when someone wants sign-off |
+| `war import beads <file.jsonl>` | bring Beads issues in as tickets; also `war import openspec <dir>`, `war import speckit <dir>` (docs/TYPES.md, "Bringing work in") |
+| `war export beads` | every ticket as Beads issue JSONL, on stdout |
 
 Every command takes `--json` and answers with the same `oh.war/report/v1`
 envelope as the rest of `war`. Each reads only the ticket files and the claims,

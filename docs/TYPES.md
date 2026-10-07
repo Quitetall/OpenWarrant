@@ -5,7 +5,9 @@ made of and what applies to it (OW-ADR-0031). This page covers the two
 things a type composes, **records** and the **relations** between them, and
 the **states** a record can be in.
 `war impact` (below) is what they are for: one change, and everything it
-reaches.
+reaches. The last section, "One Warrant, three encodings", covers the
+Warrant itself: one noun, one id space, one list, and work brought in from
+Beads, OpenSpec and Spec Kit.
 
 ## Records
 
@@ -485,3 +487,183 @@ records, their file and the proposal's digest. Applying the same proposal
 again is refused, `record.duplicate-id` once per record, naming where each
 already is. No drafter configured is `plan.no-drafter` (`ticket.no-drafter`
 from `war create`), and nothing is invented.
+
+## One Warrant, three encodings
+
+A Warrant is one unit of work. Its minimum is a title; everything else is
+optional, chosen by its type (OW-WAR-0148 M10). A "ticket" is a Warrant in
+its light encoding; the word stays as that encoding's other name. A Warrant
+is written down in one of three ways, and each reads forever, byte for
+byte: nothing is migrated, and no signed digest moves.
+
+| encoding | where | its type | written by |
+|---|---|---|---|
+| light | `docs/tickets/<t-id>/`: a manifest, an intent and a checklist | the working form (`profiles/ticket.toml`); its own `type` (bug, feature, ...) beside | `war create`, `war import` |
+| directory | `docs/warrants/<alias>/`: a manifest and the atoms its profile requires | its profile: `delivery`, `decision`, ... | `war new`, `war plan --apply`, `war promote` |
+| read in place | an OpenSpec change or a Spec Kit feature an `[[adapters]]` entry names | `openspec`, `speckit` | the tool that owns the folder; `war` never writes it |
+
+There is no third file format: a light Warrant is the single-file-sized
+encoding, and an imported one is a light one with one more manifest key,
+`imported_from = "<format>:<id>"` (absent from every other, so a manifest
+written before it reads and writes back unchanged).
+
+### One id space
+
+| id | names | for example |
+|---|---|---|
+| `t-<hex>`, `t-<hex>/i-<hex>`, `i-<hex>` | a light Warrant, one of its items | `t-3f2a`, `t-3f2a/i-9c01` |
+| `<NS>-WAR-<NNNN>` | a directory Warrant | `OW-WAR-0148` |
+| `openspec:<change>`, `openspec:<change>/<task>`, `openspec:<capability>#<requirement>` | a change read in place, its task, a requirement | `openspec:add-2fa/1.1` |
+| `speckit:<feature>`, `speckit:<feature>/<T-id>`, `speckit:<feature>/<FR-, SC- or US-id>` | a feature read in place, its task, its record | `speckit:001-photo-albums/T004` |
+
+The shape routes the id, so nothing is read to decide where it goes.
+`war show <id>` and `war status <id>` take any of them: a light Warrant
+renders as its document, a directory one as its §17.5 projection, one read
+in place from its folder. `war impact` takes any record id of the model.
+
+### The list
+
+`war warrants` (also `war tickets`, `war ls`) lists every Warrant: the
+light ones first, in the order work takes them (`result.tickets`, as
+before), then the directory ones and the ones read in place
+(`result.warrants`, each with `profile`, `encoding`, `state` and
+`provenance`). A directory Warrant's state is the phase its journal
+records (`provenance: recorded`): the list reads only its manifest and
+journal, so it answers in milliseconds on a corpus of any size, and
+`war status <alias>` is the computed answer. One read in place is `open`,
+`in_progress` or `done` from its tasks (`computed`).
+
+Filters read every encoding. `--type` takes a light Warrant's type (`bug`)
+or a profile (`delivery`, `ticket`, `openspec`); `--state` the fixed three,
+a declared state, or a recorded phase (`draft`, `authorized`, `resolved`),
+a phase reading as one of the three (draft is open, authorized to verifying
+is in progress, resolved is done); `--text` and `--search` read a Warrant's
+title where they cannot read more. Labels and epics are the light
+encoding's. A type that is neither, or a state that is none, is refused
+(`ticket.filter-type-unknown`, `ticket.filter-state-unknown`).
+
+`war ready` lists the items that can be claimed now, which are the light
+Warrants'; `war next` adds the directory Warrants' acts and ready stages.
+A Warrant read in place is never claimed here: its tasks are ticked in its
+own files, by its own tool.
+
+### Bringing work in
+
+```bash
+war import beads issues.jsonl      # Beads' issue JSONL, as `bd export` writes it
+war import openspec .              # each change of openspec/changes/ (archive/ is not read)
+war import speckit .               # each feature of specs/
+war export beads > issues.jsonl    # every light Warrant, as Beads issue JSONL
+```
+
+Each imported change, feature or issue becomes a light Warrant whose
+tasks are its items, worked with `war ready`, `claim` and `done` like any
+other.
+
+- **Deterministic.** An imported Warrant's id is `t-` and 8 hex of the
+  sha256 of where it came from; its item ids come from that and each
+  task's own key (`1.1`, `T001`); its UUID is a v7 from its source and its
+  creation time. The same input gives the same files in every program.
+  The journal line that records the import carries the time it ran, and a
+  source that names no creation time takes the import's own.
+- **Idempotent.** A Warrant whose `imported_from` is already here is named
+  and left alone, so running an import again writes nothing.
+- **All or nothing.** Every refusal is found before the first file is
+  written; a refusal writes nothing.
+
+| Beads (`internal/types/types.go`, `cmd/bd/export.go`) | the Warrant |
+|---|---|
+| `id` | `imported_from = "beads:<id>"`; `war export beads` gives it back |
+| `title` | its title, and the text of its one item |
+| `description`; `design`, `acceptance_criteria`, `notes` | its description; the other three as `## Design`, `## Acceptance criteria`, `## Notes from Beads` |
+| `status` | `closed`: the item ticked, with `closed_at` and `close_reason` on its line; any other built-in status reads open, and the import says which |
+| `priority`, `issue_type`, `labels` | priority (the same 0 to 4), type, labels, where the ticket profile admits them |
+| `parent-child` | `part_of` the parent |
+| `blocks` | the item waits on that Warrant (`after t-...`) |
+| `comments` | dated notes |
+
+An open epic with no blocking dependency gets no item and is worked
+through the Warrants part of it. Derived fields (the counts,
+`updated_at`, `parent`) are dropped, since an export computes them again;
+who holds an issue now (`assignee`, `owner`, leases) is dropped with a
+warning, since a claim says that here, locally. On export, a Warrant whose
+items are not just its title is an issue with one child issue per item
+(`<id>.<n>`, `parent-child`).
+
+| OpenSpec (`openspec/changes/<change>/`) | the Warrant |
+|---|---|
+| `proposal.md` | the title (its `# ` heading, or the change's name) and the description (its first section, `## Why`) |
+| `.openspec.yaml` `created:` | `created_at` |
+| `tasks.md` | the items, ticked as ticked, each keeping its number |
+| `specs/<capability>/spec.md` deltas | named in the description: what it adds, modifies, removes or renames |
+
+| Spec Kit (`specs/<feature>/`) | the Warrant |
+|---|---|
+| `spec.md` | the title (`# Feature Specification: ...`), the description (`**Input**`), `created_at` (`**Created**`) |
+| `tasks.md` | the items (`- [ ] T001 [P] [US1] ...`); `depends on T003` becomes `after` |
+| `FR-` and `SC-` lines | records `SK<NNN>-FR-<n>` (requirement) and `SK<NNN>-SC-<n>` (outcome) in `docs/records/<feature>/10-speckit.md`, where the program's record format admits them; otherwise they stay in the description and the import says why (`speckit.records-not-admitted`) |
+
+"Admits them" means the atom passes every rule `war check` applies to a
+record atom: the `delivery` profile declares `requirement` and `outcome`,
+and nothing it requires (a requirement's `implements` an outcome, say) is
+missing. `.specify/` (templates, scripts, the constitution) holds no work
+and is not read.
+
+Refused by rule, each writing nothing:
+
+| rule | what |
+|---|---|
+| `beads.malformed` | a line that is not an issue object, an issue with no id, title or `created_at` |
+| `beads.not-an-issue` | a `_type` other than `issue` (a memory line) |
+| `beads.status-unmapped` | a custom status |
+| `beads.type-unmapped`, `beads.label-unmapped` | an issue type or label the ticket profile does not admit |
+| `beads.dependency-unmapped` | a dependency other than `blocks` or `parent-child`, or a second parent |
+| `beads.field-unmapped` | any other field that carries a value |
+| `openspec.missing`, `speckit.missing` | a folder that is neither |
+| `openspec.tasks-malformed`, `speckit.tasks-malformed` | a task line that is not one (`- [y]`, `- []`, no text), a number or id used twice, a Spec Kit task with no `T` id |
+| `openspec.delta-malformed` | a requirement outside the four delta sections, a FROM with no TO |
+| `openspec.requirement-duplicate`, `speckit.record-duplicate` | a requirement or record declared twice |
+| `import.target-unknown`, `import.part-of-cycle`, `import.blocker-cycle` | a reference to nothing in the input or the program, or one that comes back to itself |
+| `import.format-unknown` | a format other than `beads`, `openspec`, `speckit` |
+| `export.beads-flags` | `war export beads` with a §68 flag |
+
+### Read in place
+
+A repository that keeps working in OpenSpec or Spec Kit names the folder
+instead of importing it:
+
+```toml
+# openwarrant.toml
+[[adapters]]
+kind = "openspec"
+path = "openspec"
+
+[[adapters]]
+kind = "speckit"
+path = "specs"
+```
+
+`war warrants`, `war show`, `war status`, `war model`, `war impact` and
+`war check` then read those folders on every call, with the readers the
+import uses, and never write them. Each change or feature is a Warrant
+(`change`, `feature` in the model), each task an `item` `part_of` it, each
+requirement (OpenSpec's `### Requirement:`, Spec Kit's `FR-`), success
+criterion (`outcome`) and user story (`story`) a record with the revision
+of its own bytes. Relations: a change `implements` the requirements its
+deltas add or modify (`openspec.removes` and `openspec.renames` are
+namespaced: carried, inert); a Spec Kit task `implements` the story its
+`[US1]` names and any `FR-` it names, and `depends_on` the tasks it says
+it depends on. So `war impact openspec:auth-session#session-expiry` names
+the change that modifies the requirement and that change's tasks.
+
+`war status` prints a "Read in place" section (and `read_in_place` under
+`--json`) only when an adapter is configured; the committed
+`CORPUS_STATUS` projections never include it, since the folders are
+another tool's and change without a compile.
+
+Reported by rule: an entry that does not parse (`adapter.config`), a kind
+this build does not read (`adapter.kind-unknown`), a path that is not there
+(`adapter.path-missing`), an id no adapter reads (`adapter.unknown`), and
+the readers' own rules above. `war check` makes each an error; the list,
+the model and the status carry each as a warning beside what could be
+read.

@@ -94,7 +94,17 @@ pub struct Import {
 pub fn refused(faults: &[super::Fault]) -> Outcome {
     let mut report = Report::default();
     for f in faults {
-        report.push(f.error());
+        // The place in the words too: a person reads the message alone.
+        let place = f.place();
+        report.push(Diagnostic::error(
+            f.rule,
+            place.clone(),
+            if place.is_empty() {
+                f.message.clone()
+            } else {
+                format!("{place}: {}", f.message)
+            },
+        ));
     }
     let human = faults
         .iter()
