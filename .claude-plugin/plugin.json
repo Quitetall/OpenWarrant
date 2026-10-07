@@ -1,8 +1,8 @@
 {
   "name": "openwarrant",
   "displayName": "OpenWarrant",
-  "version": "0.1.0",
-  "description": "OpenWarrant standard and SDK workflows: war keyword router, MCP, immutable-history edit guard and scoped progress reports. Completion and Verified assurance remain separate.",
+  "version": "1.0.0-alpha.2",
+  "description": "OpenWarrant: optional planning and tracking for agents. Ordinary coding needs none of it. Skills, the war MCP server, an edit guard for generated and pinned files in OpenWarrant repositories, and an end-of-turn check that reports without blocking.",
   "author": {
     "name": "OpenWarrant"
   },

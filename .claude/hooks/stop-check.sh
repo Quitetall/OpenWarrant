@@ -40,7 +40,7 @@ if v["exit_code"] == 0:
     sys.exit(0)
 errs = [d for d in v.get("diagnostics", []) if d.get("severity") in ("error", "unknown")]
 first = "; ".join(d.get("rule", "?") + ": " + d.get("message", "")[:120] for d in errs[:3])
-print("OpenWarrant: `war check` is %s with %d error(s). Fix the cause, never the checker. First: %s" % (v.get("verdict_line", "not ready"), len(errs), first))')
+print("OpenWarrant: `war check` is %s with %d error(s); this does not hold the turn. If you change a record, fix the cause rather than the checker. First: %s" % (v.get("verdict_line", "not ready"), len(errs), first))')
 if [[ -n "$reason" ]]; then
     printf '%s\n' "$reason" >&2
 fi

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# PreToolUse hook (Edit|Write|MultiEdit|NotebookEdit): refuse an edit to a file
-# a RESOLVED Warrant pins and no later authorized Warrant governs, or to
-# anything under a generated/ directory.
+# PreToolUse hook (Edit|Write|MultiEdit|NotebookEdit): in a repository that
+# uses OpenWarrant (an `openwarrant.toml` at its root), turn back an edit to a
+# file a RESOLVED Warrant pins and no later authorized Warrant governs, or to
+# anything under a generated/ directory. Anywhere else it says nothing: the
+# plugin is installed per user, and a `generated/` directory in a repository
+# that never adopted OpenWarrant is that repository's business (M9).
 #
 # The pin list is `war pins --resolved-only --json`, so the hook can never
 # disagree with `war check`: both read the same records. A pin a LATER
@@ -49,12 +52,31 @@ case "$file" in
     "$root"/*) rel="${file#"$root"/}" ;;
 esac
 
-case "$rel" in
-    */generated/*|generated/*|generated)
-        deny "OpenWarrant: $rel is a generated projection. Edit the atoms and run \`war compile\` (AGENTS.md rule 4)." ;;
-esac
+# First: is this an OpenWarrant repository at all (its root, or the working
+# directory for a program kept below a monorepo's root)? Nothing below
+# applies to one that is not.
+[[ -f "$root/openwarrant.toml" || -f openwarrant.toml ]] || exit 0
 
-[[ -f openwarrant.toml ]] || exit 0
+# The trees `war compile` writes into: docs/, and every directory the
+# config's [paths] names. A `generated/` directory elsewhere (a build's
+# codegen, say) is the repository's own, and an edit there is ordinary work.
+cfg="$root/openwarrant.toml"
+[[ -f "$cfg" ]] || cfg=openwarrant.toml
+ow_tree() {
+    case "$1" in docs/*) return 0 ;; esac
+    local dir
+    while IFS= read -r dir; do
+        [[ -n "$dir" ]] || continue
+        case "$1" in "${dir%/}"/*) return 0 ;; esac
+    done < <(sed -n -E 's/^[[:space:]]*(sas|roadmap|adrs|warrants|gates|receipts)[[:space:]]*=[[:space:]]*"([^"]*)".*/\2/p' "$cfg")
+    return 1
+}
+case "$rel" in
+    */generated/*|generated/*)
+        if ow_tree "$rel"; then
+            deny "OpenWarrant: $rel is generated from the atoms, so an edit here would be overwritten. Edit the atoms and run \`war compile\`."
+        fi ;;
+esac
 if [[ -x ./target/debug/war ]]; then
     war_cmd=./target/debug/war
 elif command -v war >/dev/null 2>&1; then

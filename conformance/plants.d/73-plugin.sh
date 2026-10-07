@@ -41,6 +41,29 @@ plant_hook "the denial names the correction act" guard-pins.sh "$HKFX/edit-pinne
 plant_hook "edit to a historical pin is permitted" guard-pins.sh "$HKFX/edit-historical.json" '' empty
 # A generated projection is denied without consulting the pins.
 plant_hook "edit under generated/ is denied" guard-pins.sh "$HKFX/edit-generated.json" 'war compile' present
+# M9: the generated/ rule is OpenWarrant's, so it holds only in a repository
+# with an openwarrant.toml, and there only in the trees `war compile` writes
+# (docs/ and the config's [paths]). In a repository without one, an edit to
+# docs/generated/ passes in silence; once it adopts OpenWarrant the deny
+# comes back, while its own codegen (src/generated/) stays ordinary work.
+# The denial just above (this repository has one) pairs with the passes.
+HK_FOREIGN=$(mktemp -d)
+git -C "$HK_FOREIGN" init -q .
+hk_event() {
+    printf '{"session_id":"plant","hook_event_name":"PreToolUse","tool_name":"Write","cwd":"%s","tool_input":{"file_path":"%s/%s","content":"x"}}\n' \
+        "$HK_FOREIGN" "$HK_FOREIGN" "$1" > "$HK_FOREIGN/$2.json"
+}
+hk_event docs/generated/CURRENT.md docs
+hk_event src/generated/out.rs src
+plant_hook "generated/ outside OpenWarrant passes" guard-pins.sh "$HK_FOREIGN/docs.json" '' empty
+printf '[paths]\nwarrants = "plans/warrants"\n' > "$HK_FOREIGN/openwarrant.toml"
+plant_hook "docs/generated/ once adopted is denied" guard-pins.sh "$HK_FOREIGN/docs.json" 'war compile' present
+plant_hook "a repo's own codegen is not denied" guard-pins.sh "$HK_FOREIGN/src.json" '' empty
+hk_event plans/warrants/X-WAR-0001/generated/WAR.md paths
+plant_hook "a configured [paths] tree is guarded" guard-pins.sh "$HK_FOREIGN/paths.json" 'war compile' present
+rm -rf "$HK_FOREIGN"
+unset HK_FOREIGN
+unset -f hk_event
 # An unpinned file passes in silence.
 plant_hook "edit to an unpinned file is silent" guard-pins.sh "$HKFX/edit-free.json" '' empty
 # The stop check lets a stop through when it already blocked once this turn.

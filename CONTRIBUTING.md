@@ -115,6 +115,23 @@ it did not reproduce.
 Do not describe the tree; describe the diff. A message claiming "5 manifests" when
 the diff contains 4 makes the log unusable as evidence.
 
+## Releasing: what moves with the version
+
+The Claude Code plugin's version moves **every release**: `.claude-plugin/plugin.json`
+carries the `war` release it ships with as its `version`, equal to
+`crates/openwarrant-cli/Cargo.toml`'s. A unit test
+(`skew::tests::the_shipped_plugin_tracks_this_release`) fails a version bump
+that leaves the plugin behind. The same bump regenerates
+`docs/agents/legacy-warrant-workflow.md` (`war agents-md --stdout >
+docs/agents/legacy-warrant-workflow.md`), because the AGENTS.md template ends
+with the version that wrote it.
+
+Both stamps are how `war doctor` and `war prime` warn about version skew
+(`install.version-skew`): an AGENTS.md or plugin newer than the running `war`
+describes commands the binary may not have, and an agent would read the old
+binary's refusal as a rule of the repository. An equal or older stamp, or none,
+says nothing. `crates/openwarrant-cli/src/skew.rs` is the mechanism.
+
 ## Signing, and what it does not defend
 
 `war sign --ssh-sign` is only as strong as the ssh agent behind it: the key
