@@ -105,6 +105,11 @@ static INDEXES: std::sync::OnceLock<
 /// batches; the SAS revisions; `openwarrant.toml`. `None` when any of it
 /// cannot be read — then nothing is cached and the index is built fresh.
 fn fingerprint(repo: &Repository) -> Option<String> {
+    // A hosted run (`war host`) has no modification times to key on, and
+    // holds one basis for its life: it builds the index fresh, once.
+    if crate::vfs::is_hosted() {
+        return None;
+    }
     // A read-only command (t-eca6) computes it once: it stats every record of
     // every Warrant, and `war next` asked once per pending act — ~15,000 stats
     // times ~250 acts at 1,000 Warrants (OW-WAR-0120's budget, t-f815).

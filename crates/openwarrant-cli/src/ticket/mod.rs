@@ -115,7 +115,7 @@ pub struct Policy {
 
 fn policy_of(root: &Utf8Path) -> Result<Policy, RepoError> {
     let path = root.join(crate::init::CONFIG_FILE);
-    let text = std::fs::read_to_string(&path).map_err(|source| RepoError::Io {
+    let text = crate::vfs::read_to_string(&path).map_err(|source| RepoError::Io {
         context: format!("could not read {path}"),
         source,
     })?;
@@ -343,7 +343,7 @@ impl Store {
 
     /// Every ticket directory (one holding a `manifest.toml`), sorted.
     fn ticket_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
-        let entries = match std::fs::read_dir(&self.dir) {
+        let entries = match crate::vfs::read_dir(&self.dir) {
             Ok(e) => e,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
             Err(source) => {
@@ -359,7 +359,7 @@ impl Store {
             let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
                 continue;
             };
-            if path.join("manifest.toml").is_file() {
+            if crate::vfs::is_file(path.join("manifest.toml")) {
                 out.push(path);
             }
         }
@@ -372,7 +372,7 @@ impl Store {
         let manifest_path = dir.join("manifest.toml");
         let rel = self.rel(&manifest_path);
         let bad = |message: String| Diagnostic::error("ticket.manifest", rel.clone(), message);
-        let text = std::fs::read_to_string(&manifest_path)
+        let text = crate::vfs::read_to_string(&manifest_path)
             .map_err(|e| bad(format!("could not read it: {e}")))?;
         let manifest: TicketManifest =
             toml::from_str(&text).map_err(|e| bad(format!("does not parse: {e}")))?;
@@ -393,7 +393,7 @@ impl Store {
         }
         let atom = |role: &str| -> Result<(Utf8PathBuf, String), Diagnostic> {
             let path = dir.join(manifest.atom_path(role).unwrap_or_default());
-            std::fs::read_to_string(&path)
+            crate::vfs::read_to_string(&path)
                 .map(|t| (path.clone(), t))
                 .map_err(|e| {
                     Diagnostic::error(
@@ -687,7 +687,7 @@ fn rewrite<T>(
     mut edit: impl FnMut(&str) -> Result<(String, T), Box<Outcome>>,
 ) -> Result<Result<T, Box<Outcome>>, RepoError> {
     for _ in 0..8 {
-        let bytes = std::fs::read(path).map_err(io(format!("could not read {path}")))?;
+        let bytes = crate::vfs::read(path).map_err(io(format!("could not read {path}")))?;
         let text = String::from_utf8(bytes.clone())
             .map_err(|e| RepoError::Message(format!("{path}: not UTF-8 ({e})")))?;
         let (next, value) = match edit(&text) {

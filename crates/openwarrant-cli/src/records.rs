@@ -118,7 +118,7 @@ impl Records {
 #[must_use]
 pub fn files(repo: &Repository) -> Vec<Utf8PathBuf> {
     let read = |d: &Utf8Path| -> Vec<Utf8PathBuf> {
-        let Ok(rd) = std::fs::read_dir(d) else {
+        let Ok(rd) = crate::vfs::read_dir(d) else {
             return Vec::new();
         };
         rd.filter_map(Result::ok)
@@ -127,9 +127,9 @@ pub fn files(repo: &Repository) -> Vec<Utf8PathBuf> {
     };
     let mut out: Vec<Utf8PathBuf> = read(&repo.root.join(DIR))
         .into_iter()
-        .filter(|p| p.is_dir())
+        .filter(|p| crate::vfs::is_dir(p))
         .flat_map(|area| read(&area))
-        .filter(|p| p.is_file() && p.extension() == Some("md"))
+        .filter(|p| crate::vfs::is_file(p) && p.extension() == Some("md"))
         .collect();
     out.sort();
     out
@@ -184,7 +184,7 @@ pub fn load(corpus: &Corpus) -> Records {
     for path in files(repo) {
         out.files += 1;
         let rel = repo.relative(&path);
-        let text = match std::fs::read(&path).map(String::from_utf8) {
+        let text = match crate::vfs::read(&path).map(String::from_utf8) {
             Ok(Ok(t)) => t,
             Ok(Err(e)) => {
                 out.faults.push(Fault {

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Repository discovery and loading — the I/O half the core crate refuses (§79.1, §79.4).
 
+use crate::vfs as fs;
 use std::fmt;
-use std::fs;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::{AtomSource, CompilationBasis, SasPin, ScopeSource};
@@ -144,7 +144,7 @@ impl Repository {
         let mut cursor: &Utf8Path = &start;
         loop {
             let candidate = cursor.join(CONFIG_FILE);
-            if candidate.is_file() {
+            if fs::is_file(&candidate) {
                 return Self::open(cursor.to_owned());
             }
             match cursor.parent() {
@@ -249,7 +249,7 @@ impl Repository {
     /// nobody anything — the fail-closed direction.
     pub fn load_authority_register(&self) -> Result<AuthorityRegister, RepoError> {
         let path = self.root.join("docs/authority/roles.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(AuthorityRegister::default());
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -305,7 +305,7 @@ impl Repository {
         dir: &Utf8Path,
     ) -> Result<Option<crate::authorize::AuthorizationRecord>, RepoError> {
         let path = dir.join("authorization.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(None);
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -324,7 +324,7 @@ impl Repository {
         dir: &Utf8Path,
     ) -> Result<Option<crate::resolution_cmd::ResolutionRecord>, RepoError> {
         let path = dir.join("resolution.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(None);
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -341,7 +341,7 @@ impl Repository {
         dir: &Utf8Path,
     ) -> Result<Vec<openwarrant_core::Judgment>, RepoError> {
         let path = dir.join("judgments.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(vec![]);
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -364,7 +364,7 @@ impl Repository {
         dir: &Utf8Path,
     ) -> Result<Option<Vec<openwarrant_core::rationale::Assumption>>, RepoError> {
         let path = dir.join("rationale.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(None);
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -395,7 +395,7 @@ impl Repository {
     /// paths alone."
     pub fn warrant_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
         let dir = self.warrants_dir();
-        if !dir.is_dir() {
+        if !fs::is_dir(&dir) {
             return Ok(vec![]);
         }
         let mut out = Vec::new();
@@ -411,7 +411,7 @@ impl Repository {
             let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
                 continue;
             };
-            if path.join("manifest.toml").is_file() {
+            if fs::is_file(path.join("manifest.toml")) {
                 out.push(path);
             }
         }
@@ -430,7 +430,7 @@ impl Repository {
             !alias.is_empty() && alias != "." && alias != ".." && !alias.contains(['/', '\\']);
         if plain {
             let dir = self.warrants_dir().join(alias);
-            if dir.join("manifest.toml").is_file() {
+            if fs::is_file(dir.join("manifest.toml")) {
                 return Ok(dir);
             }
         }
@@ -577,7 +577,7 @@ impl Repository {
         }
 
         let scope_path = dir.join("scope.toml");
-        let scope = if scope_path.is_file() {
+        let scope = if fs::is_file(&scope_path) {
             match fs::read(&scope_path) {
                 Ok(bytes) => Some(ScopeSource {
                     source: self.relative(&scope_path),
@@ -685,7 +685,7 @@ impl Repository {
     /// would read as "the document is unpinned", which is the wrong direction.
     pub fn load_sas_revisions(&self) -> Result<Vec<openwarrant_core::SasRevision>, RepoError> {
         let dir = self.sas_revisions_dir();
-        if !dir.is_dir() {
+        if !fs::is_dir(&dir) {
             return Ok(vec![]);
         }
         let mut paths: Vec<Utf8PathBuf> = fs::read_dir(&dir)
@@ -820,7 +820,7 @@ impl Repository {
     /// malformed ADR in one run instead of one per invocation.
     pub fn load_adrs(&self) -> Result<AdrCorpus, RepoError> {
         let dir = self.adr_atoms_dir();
-        if !dir.is_dir() {
+        if !fs::is_dir(&dir) {
             return Ok(AdrCorpus::default());
         }
         let mut paths = Vec::new();
@@ -866,7 +866,7 @@ impl Repository {
     /// failed to parse.
     pub fn load_verifications(&self, dir: &Utf8Path) -> Result<VerificationSet, RepoError> {
         let vdir = dir.join("verifications");
-        if !vdir.is_dir() {
+        if !fs::is_dir(&vdir) {
             return Ok(VerificationSet::default());
         }
         let mut paths = Vec::new();
@@ -908,7 +908,7 @@ impl Repository {
     /// records so a malformed correction is reported rather than skipped.
     pub fn load_corrections(&self, dir: &Utf8Path) -> Result<CorrectionSet, RepoError> {
         let cdir = dir.join("corrections");
-        if !cdir.is_dir() {
+        if !fs::is_dir(&cdir) {
             return Ok(CorrectionSet::default());
         }
         let mut paths = Vec::new();
@@ -951,7 +951,7 @@ impl Repository {
     /// set.
     pub fn load_deliverables(&self, dir: &Utf8Path) -> Result<DeliverableSet, RepoError> {
         let path = dir.join("deliverables.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(DeliverableSet::default());
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -1410,7 +1410,7 @@ pub fn amendment_sas_revision(dir: &Utf8Path) -> Option<(String, Utf8PathBuf)> {
         .filter(|p| p.extension() == Some("yaml"))
         .collect();
     files.into_iter().rev().find_map(|path| {
-        let text = std::fs::read_to_string(&path).ok()?;
+        let text = fs::read_to_string(&path).ok()?;
         let version = text.lines().find_map(|line| {
             let v = line
                 .strip_prefix("sas_revision:")?
@@ -1509,7 +1509,7 @@ pub fn capability_absent(alias: &str, profile: &str, cap: openwarrant_core::Capa
 /// otherwise read as having an unknown profile, which is not what is wrong.
 fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
     let dir = root.join("profiles");
-    if !dir.is_dir() {
+    if !fs::is_dir(&dir) {
         return Ok(ProfileRegistry::builtin());
     }
     let entries = fs::read_dir(&dir).map_err(|source| RepoError::Io {
@@ -1521,7 +1521,7 @@ fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
         let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
             continue;
         };
-        if path.extension() == Some("toml") && path.is_file() {
+        if path.extension() == Some("toml") && fs::is_file(&path) {
             let bytes = fs::read(&path).map_err(|source| RepoError::Io {
                 context: format!("could not read {path}"),
                 source,

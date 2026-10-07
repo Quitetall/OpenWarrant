@@ -75,6 +75,11 @@ fn entries() -> Vec<Entry> {
         // OW-WAR-0148 M3: what a change to one record affects (`war impact`).
         // Additive: the pack version does not move.
         entry::<crate::impact::Impact>("impact"),
+        // OW-WAR-0148 M8: `war host`, oh.war/liminal-v1 (SAS §82.2) — the
+        // request Liminal sends and the response it reads. Additive: the
+        // pack version does not move.
+        entry::<crate::host::Request>("liminal-request"),
+        entry::<crate::host::Response>("liminal-response"),
     ]
 }
 

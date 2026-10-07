@@ -25,8 +25,8 @@
 //! never fed into `warrant_resolved` — doing so would make §34.3's `satisfied`
 //! mean "an agent thinks so", which is the ticked box the section forbids.
 
+use crate::vfs as fs;
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 
 use camino::Utf8PathBuf;
 use openwarrant_core::status::{
@@ -274,20 +274,11 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
                 })
                 .collect(),
             unknowns: unknown_views(repo, one),
-            journal_ref: one
-                .dir
-                .join("journal.jsonl")
-                .is_file()
+            journal_ref: fs::is_file(one.dir.join("journal.jsonl"))
                 .then(|| repo.relative(&one.dir.join("journal.jsonl"))),
-            authorization_ref: one
-                .dir
-                .join("authorization.toml")
-                .is_file()
+            authorization_ref: fs::is_file(one.dir.join("authorization.toml"))
                 .then(|| repo.relative(&one.dir.join("authorization.toml"))),
-            resolution_ref: one
-                .dir
-                .join("resolution.toml")
-                .is_file()
+            resolution_ref: fs::is_file(one.dir.join("resolution.toml"))
                 .then(|| repo.relative(&one.dir.join("resolution.toml"))),
             review: review_of(repo, &one.dir).ok().filter(|r| !r.is_empty()),
         });
@@ -1122,7 +1113,7 @@ fn deliverable_views(
             let digest = if !d.content_addressed {
                 DigestState::NotContentAddressed
             } else {
-                match std::fs::read(repo.root.join(&d.target_ref)) {
+                match fs::read(repo.root.join(&d.target_ref)) {
                     Err(_) => DigestState::TargetUnreadable,
                     Ok(bytes) => {
                         let actual = {

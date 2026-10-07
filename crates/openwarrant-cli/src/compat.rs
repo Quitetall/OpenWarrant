@@ -135,11 +135,13 @@ pub(crate) fn newer_records(
 }
 
 fn walk(dir: &Utf8Path, out: &mut Vec<Utf8PathBuf>) {
-    let Ok(rd) = dir.read_dir_utf8() else {
+    let Ok(rd) = crate::vfs::read_dir(dir) else {
         return;
     };
     for entry in rd.flatten() {
-        let path = entry.path().to_owned();
+        let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
+            continue;
+        };
         match entry.file_type() {
             Ok(t) if t.is_dir() => walk(&path, out),
             Ok(t) if t.is_file() => out.push(path),
@@ -158,6 +160,10 @@ fn cached_schemas(file: &Utf8Path) -> Vec<(String, u32)> {
         (u64, Option<std::time::SystemTime>, Vec<(String, u32)>),
     >;
     static CACHE: std::sync::OnceLock<std::sync::Mutex<Seen>> = std::sync::OnceLock::new();
+    // A hosted run (`war host`) has no modification times to key on.
+    if crate::vfs::is_hosted() {
+        return schemas_in(file);
+    }
     let Ok(meta) = std::fs::metadata(file) else {
         return vec![];
     };
@@ -183,7 +189,7 @@ fn schemas_in(file: &Utf8Path) -> Vec<(String, u32)> {
     if !matches!(ext, "toml" | "json" | "jsonl" | "yaml" | "yml" | "md") {
         return vec![];
     }
-    let Ok(text) = std::fs::read_to_string(file) else {
+    let Ok(text) = crate::vfs::read_to_string(file) else {
         return vec![];
     };
     let named = |s: &str| parse_schema(s).map(|(r, m)| (r.to_owned(), m));

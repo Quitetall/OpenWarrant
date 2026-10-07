@@ -151,10 +151,10 @@ pub fn torn_tail(bytes: &[u8]) -> Option<TornTail> {
 /// read as it is, and repairing it is a person's act.
 pub fn load(warrant_dir: &Utf8Path) -> Result<Journal, RepoError> {
     let path = warrant_dir.join(FILE);
-    if !path.is_file() {
+    if !crate::vfs::is_file(&path) {
         return Ok(Journal::default());
     }
-    let bytes = std::fs::read(&path).map_err(|source| RepoError::Io {
+    let bytes = crate::vfs::read(&path).map_err(|source| RepoError::Io {
         context: format!("could not read {path}"),
         source,
     })?;
