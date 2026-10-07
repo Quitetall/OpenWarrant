@@ -9249,7 +9249,7 @@ the app shows a `human` remedy and stops.
 | D-031 | The way in: no-args, tui.json, tui.no-tty | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-032 | The confinement test and NOT_YET | `crates/openwarrant-cli/src/main.rs` | drift |
 | D-033 | The poller opened to the app | `crates/openwarrant-cli/src/watch.rs` | drift |
-| D-034 | The app plants | `conformance/plants.d/97-tui.sh` | verified |
+| D-034 | The app plants | `conformance/plants.d/97-tui.sh` | drift |
 | D-035 | docs/TUI.md: every pane, every key, the rendering rule | `docs/TUI.md` | drift |
 | D-036 | README: one line | `README.md` | drift |
 | D-037 | AGENTS.md: agents call war status and war next, never bare war | `AGENTS.md` | drift |

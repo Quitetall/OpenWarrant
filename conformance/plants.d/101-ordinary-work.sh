@@ -89,7 +89,7 @@ assert s["signed_anything"] is False and s["agent"] == "no-socket", s
 assert v["result"]["ordinary_work_needs_authorization"] is False
 d = [x for x in v["diagnostics"] if x["rule"] == "doctor.signing-agent"]
 assert d and "SSH_AUTH_SOCK is not set" in d[0]["message"], d
-assert d[0]["remedy"]["argv"] == ["war", "doctor", "--fix-signing"], d
+assert d[0]["remedy"]["argv"] == ["war", "admin", "doctor", "--fix-signing"], d
 ' "$OW_D" 2>/dev/null; then
     ow_ok "doctor probes signing, signs nothing" "no agent named; tree unchanged"
 else

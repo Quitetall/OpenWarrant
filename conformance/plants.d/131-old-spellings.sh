@@ -36,11 +36,11 @@ sp() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR OPENWARRANT_NO
     "$WAR" --root "$PLANT_ROOT" "$@" </dev/null; }
 SP_A=$(cd "$PLANT_ROOT/docs/warrants" && find . -maxdepth 1 -name 'SP-WAR-*' -printf '%f\n' | sort | head -1)
 [[ "$SP_A" =~ ^SP-WAR-[0-9]{4}$ ]] || { printf 'PLANT SETUP FAILED: no SP Warrant in the scratch corpus (%s)\n' "$SP_A" >&2; exit 9; }
-# Something for the lists to show: two tickets, one item claimed.
-SP_TK=$(sp --json create "Plant ticket" --item "First" --item "Second" 2>/dev/null \
-    | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["id"])' 2>/dev/null)
+# Something for the lists to show: two tickets. Nothing is claimed: a claim's
+# lease is renewed by every command (M11), so a listing that shows it would
+# differ by the second between two calls, whatever their spelling.
+sp create "Plant ticket" --item "First" --item "Second" >/dev/null 2>&1
 sp create "Another" >/dev/null 2>&1
-sp claim "$SP_TK" >/dev/null 2>&1
 
 # run <file-prefix> <args...>: stdout, stderr and the exit code, to files.
 sp_run() {

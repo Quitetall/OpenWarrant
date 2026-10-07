@@ -29,10 +29,10 @@ assert drift, "no drift on this corpus to look at"
 for x in drift:
     r = x["remedy"]
     assert r["kind"] == "human", r
-    assert r["argv"][:2] == ["war", "correct"], r
+    assert r["argv"][:3] == ["war", "sign", "correct"], r
     assert "<" not in " ".join(r["argv"]), r
 ' <<<"$RM_JSON" 2>/dev/null; then
-    printf 'ok    %-34s human, war correct <alias> <D>, no placeholders\n' "drift carries a human correction"
+    printf 'ok    %-34s human, war sign correct <alias> <D>, no placeholders\n' "drift carries a human correction"
     PASSED=$((PASSED + 1))
 else
     printf 'FAIL  %-34s remedy missing, wrong kind, or placeholders left in\n' "drift carries a human correction"

@@ -471,18 +471,18 @@ drift = [x for x in d["diagnostics"] if x["rule"] == "deliverable.digest-drift"]
 assert drift, "no drift"
 r = drift[0]["remedy"]
 assert r["kind"] == "human", r
-assert r["argv"] == ["war", "correct", alias, "D-001"], r
+assert r["argv"] == ["war", "sign", "correct", alias, "D-001"], r
 assert f"war sign {alias}/D-001 --ssh-sign" in r["purpose"], r
 stale = [x for x in d["diagnostics"] if x["rule"] == "generated.drift" and x["severity"] != "pass"]
 assert stale, "no stale projection"
 for x in stale:
-    assert x["remedy"]["kind"] == "auto" and x["remedy"]["argv"] == ["war", "compile"], x
+    assert x["remedy"]["kind"] == "auto" and x["remedy"]["argv"] == ["war", "admin", "compile"], x
 assert d["exit_code"] == 2 and d["verdict"] == "not_ready", d["verdict"]
 ' "$OS_A" <<<"$OS_JSON" 2>"$OS_TMP/py.err" \
     && [[ $(grep -c '^REMEDIES:' <<<"$OS_HUMAN") -eq 1 ]] \
     && grep -qE '^  human +war sign correct OS-WAR-0001 D-001 ' <<<"$OS_HUMAN" \
     && grep -qE '^  auto +war admin compile ' <<<"$OS_HUMAN"; then
-    os_ok "check --json carries each remedy" "drift: human war correct (signs with war sign $OS_A/D-001); stale: auto war compile; REMEDIES: block"
+    os_ok "check --json carries each remedy" "drift: human war sign correct (signs with war sign $OS_A/D-001); stale: auto war admin compile; REMEDIES: block"
 else
     os_fail "check --json carries each remedy" "$(tail -1 "$OS_TMP/py.err") / $(grep -A3 '^REMEDIES:' <<<"$OS_HUMAN" | tr '\n' '|')"
 fi
