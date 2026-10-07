@@ -24,6 +24,10 @@
 //!   of its own byte span; and the relations documents author — record
 //!   atoms' relation lines, obligations' `evaluates`, ticket items'
 //!   `implements` — each with the revision it pins, if any.
+//! - **Instruction sections** (M16): each `##` section of the root
+//!   `CLAUDE.md` and `AGENTS.md` (and configured nested files), id
+//!   `md:<file>#<slug>`, type `instruction`, its revision that of its own
+//!   byte span. The managed `openwarrant` block is none of them.
 //! - **Relations:** `part_of`, `parent`, `supersedes`, `roadmap`,
 //!   `implements`, `depends_on`, `promoted_to`. A relation whose target is
 //!   not a record here is kept AND reported (`model.relation-target-unknown`):
@@ -624,6 +628,21 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         b.relate_pinned(&r.from, r.kind.as_str(), &r.target.id, r.target.pin.clone());
     }
     for f in &authored.faults {
+        b.diagnose(f.rule, &format!("{}:{}", f.file, f.line), f.message.clone());
+    }
+    // ---- Instruction sections (M16): each `##` section of CLAUDE.md and
+    // AGENTS.md, type `instruction`, with its own span's revision. Nobody
+    // governs them; a relation names one as `md:<file>#<slug>`.
+    for r in &authored.instructions {
+        b.record(
+            r.id.clone(),
+            &r.record_type,
+            r.source.clone(),
+            r.revision.clone(),
+            None,
+        );
+    }
+    for f in &authored.instruction_faults {
         b.diagnose(f.rule, &format!("{}:{}", f.file, f.line), f.message.clone());
     }
 

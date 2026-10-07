@@ -70,7 +70,9 @@
 //! `<kind>` is a lowercase word or a namespaced `<ns>.<name>`; each
 //! `<target>` begins with an uppercase letter or `t-` and is a record id, a
 //! Warrant-scoped id (`OW-WAR-0148/OBL-001`) or a ticket or item
-//! (`t-3f2a/i-9c01`), optionally pinning a revision (`@sha256:<hex>`). A
+//! (`t-3f2a/i-9c01`), or begins with `md:` and holds a `#` and is a section
+//! of an instruction file (`md:CLAUDE.md#testing`, [`crate::instruction`]),
+//! optionally pinning a revision (`@sha256:<hex>`). A
 //! line that has the shape but whose target does not parse is refused; a
 //! line without the shape ("Tokens are single-use.") is prose. Whether the
 //! kind is allowed is the profile's to say, and whether the target exists
@@ -194,7 +196,7 @@ fn is_kind_word(s: &str) -> bool {
 }
 
 /// A fence opener: (character, run length), when `line` opens one.
-fn fence_open(line: &str) -> Option<(char, usize)> {
+pub(crate) fn fence_open(line: &str) -> Option<(char, usize)> {
     let c = line.chars().next().filter(|c| *c == '`' || *c == '~')?;
     let n = line.chars().take_while(|x| *x == c).count();
     if n < 3 {
@@ -204,7 +206,8 @@ fn fence_open(line: &str) -> Option<(char, usize)> {
     (c != '`' || !info.contains('`')).then_some((c, n))
 }
 
-fn fence_closes(line: &str, (c, n): (char, usize)) -> bool {
+/// Whether `line` closes the fence `(c, n)` opened.
+pub(crate) fn fence_closes(line: &str, (c, n): (char, usize)) -> bool {
     let run = line.chars().take_while(|x| *x == c).count();
     run >= n
         && line[run * c.len_utf8()..]
@@ -246,7 +249,9 @@ fn relation(line: &str) -> Result<Option<(String, Vec<Target>)>, String> {
     let shaped = tokens.iter().all(|t| {
         !t.is_empty()
             && !t.contains(char::is_whitespace)
-            && (t.starts_with(|c: char| c.is_ascii_uppercase()) || t.starts_with("t-"))
+            && (t.starts_with(|c: char| c.is_ascii_uppercase())
+                || t.starts_with("t-")
+                || (t.starts_with(crate::instruction::ID_PREFIX) && t.contains('#')))
     });
     if !shaped {
         return Ok(None);
@@ -516,9 +521,21 @@ mod tests {
             "constrains everything",
             "implements the reset flow",
             "see OW-ADR-0031 for why",
+            "see md:CLAUDE.md for the rules",
         ] {
             assert_eq!(relation(prose), Ok(None), "{prose}");
         }
+        // A section of an instruction file is a target; one that does not
+        // parse, in the shape, is refused rather than read as prose.
+        let (kind, targets) = relation("constrains md:CLAUDE.md#testing")
+            .unwrap()
+            .unwrap();
+        assert_eq!(kind, "constrains");
+        assert_eq!(targets[0].id, "md:CLAUDE.md#testing");
+        assert_eq!(
+            relation("constrains md:../CLAUDE.md#testing"),
+            Err("md:../CLAUDE.md#testing".to_owned())
+        );
     }
 
     #[test]
