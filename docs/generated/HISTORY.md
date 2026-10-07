@@ -36919,11 +36919,11 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The intake record, its file reader and the optional fetch adapter | `crates/openwarrant-cli/src/intake.rs` | verified |
-| D-002 | war plan --issue / --issue-file, policy review, pre-Warrant questions | `crates/openwarrant-cli/src/plan.rs` | verified |
+| D-002 | war plan --issue / --issue-file, policy review, pre-Warrant questions | `crates/openwarrant-cli/src/plan.rs` | drift |
 | D-003 | Intake questions listed and answered beside Warrant questions | `crates/openwarrant-cli/src/questions.rs` | verified |
 | D-004 | The [intake] table, absent by default | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-005 | Closes/Refs trailers for issue-linked Warrants | `crates/openwarrant-cli/src/commit.rs` | verified |
-| D-006 | The drafter asks through unresolved_questions | `conformance/fixtures/drafter/claude-drafter.sh` | verified |
+| D-006 | The drafter asks through unresolved_questions | `conformance/fixtures/drafter/claude-drafter.sh` | drift |
 | D-007 | Intake rows in the friction script | `tools/friction/measure.sh` | verified |
 | D-008 | The second friction baseline, with intake | `docs/friction/baseline-2.json` | verified |
 | D-009 | Intake against a prompt and a Jira ticket | `docs/FRICTION.md` | verified |
@@ -39467,7 +39467,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
 | D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | verified |
 | D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | verified |
-| D-017 | The loop in five commands | `docs/TICKETS.md` | verified |
+| D-017 | The loop in five commands | `docs/TICKETS.md` | drift |
 | D-018 | Three steps to start | `README.md` | verified |
 | D-019 | Three steps to start | `QUICKSTART.md` | verified |
 | D-020 | Ticket and Claim | `CONTEXT.md` | verified |

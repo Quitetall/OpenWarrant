@@ -135,7 +135,7 @@ pub fn files(repo: &Repository) -> Vec<Utf8PathBuf> {
     out
 }
 
-fn kind_fault(
+pub(crate) fn kind_fault(
     vocabulary: &Vocabulary,
     profile: &str,
     kind: &str,
@@ -174,6 +174,16 @@ fn kind_fault(
 /// declare.
 #[must_use]
 pub fn load(corpus: &Corpus) -> Records {
+    load_with(corpus, &[])
+}
+
+/// [`load`], as if each of `proposed` — `(repository-relative path, text)` —
+/// were a record atom read after every file on disk: the same rules over the
+/// same corpus, for a proposal that is not written yet (OW-WAR-0148 M7,
+/// `war plan --records`). Read last, a proposed record that repeats an id
+/// already on disk is the one refused as `record.duplicate-id`.
+#[must_use]
+pub fn load_with(corpus: &Corpus, proposed: &[(String, String)]) -> Records {
     let repo = corpus.repo();
     let mut out = Records::default();
     let mut first: BTreeMap<String, String> = BTreeMap::new();
@@ -181,10 +191,16 @@ pub fn load(corpus: &Corpus) -> Records {
 
     // ---- Record atoms.
     let mut atoms: Vec<(String, RecordAtom)> = Vec::new();
-    for path in files(repo) {
-        out.files += 1;
+    let on_disk = files(repo).into_iter().map(|path| {
         let rel = repo.relative(&path);
-        let text = match crate::vfs::read(&path).map(String::from_utf8) {
+        (rel, crate::vfs::read(&path).map(String::from_utf8))
+    });
+    let virtual_atoms = proposed
+        .iter()
+        .map(|(rel, text)| (rel.clone(), Ok(Ok(text.clone()))));
+    for (rel, read) in on_disk.chain(virtual_atoms) {
+        out.files += 1;
+        let text = match read {
             Ok(Ok(t)) => t,
             Ok(Err(e)) => {
                 out.faults.push(Fault {

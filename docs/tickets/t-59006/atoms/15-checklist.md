@@ -1,5 +1,5 @@
 # Checklist
 
-- [ ] war plan drafts typed records and relations (i-335e)
-- [ ] validation before any write; --apply writes records and a ticket (i-1e8f)
-- [ ] war create --draft --records (i-fcca)
+- [x] war plan drafts typed records and relations (i-335e) — done by claude, 2026-10-07: plan_records.rs: war plan "<s>" --records [--area] [--profile] emits oh.war/records-request/v1 (profile's types, allowed/required relations, implements for items, existing record ids); --draft asks [plan] drafter_argv for an oh.war/records-proposal/v1 (records id/type/title/body/relations + ticket items implementing them; deny_unknown_fields; additive, pack untouched); claude-drafter.sh answers it (checked once against a real model)
+- [x] validation before any write; --apply writes records and a ticket (i-1e8f) — done by claude, 2026-10-07: proposal rendered to the exact atom and read by records::load_with (same parser, same record.* rules: type-undeclared, relation-kind-unknown/undeclared, duplicate-id vs proposal and corpus, relation-required; unknown target refused as record.relation-target-unknown); all faults named, nothing written; --reviewed --apply writes docs/records/<area>/<NN>-<slug>.md and a ticket whose items implement them; unreviewed is plan.review-required; re-apply is record.duplicate-id per record; 80-plan-records.sh 7 checks; battery in a clone 1329 passed, 0 failed
+- [x] war create --draft --records (i-fcca) — done by claude, 2026-10-07: war create "<s>" --draft --records [--area]: same request, drafter and validation, applied directly; --item/--body/--priority join; ticket.no-drafter preserved; docs/TYPES.md and docs/TICKETS.md 'From a sentence to records'

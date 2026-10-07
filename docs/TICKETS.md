@@ -35,6 +35,7 @@ More, when you need them:
 | `war release <item>` | give a claim back without finishing |
 | `war claim <item> --steal` | take a claim whose holder went quiet (older than the TTL) |
 | `war create "..." --draft` | ask the configured drafter (`[plan] drafter_argv`) to propose the items |
+| `war create "..." --draft --records` | the drafter proposes typed records too (requirements, constraints, decisions, outcomes), and the items implement them; see "From a sentence to records" |
 | `war promote <ticket>` | draft a Warrant from the ticket when someone wants sign-off |
 
 Every command takes `--json` and answers with the same `oh.war/report/v1`
@@ -88,6 +89,23 @@ A claim is a name for coordination. It proves nothing about who someone is and
 authorizes nothing. Who is acting comes from `--as <name>`, else the
 `OPENWARRANT_ACTOR` environment variable, else `[project] performer` in
 `openwarrant.toml` (default `claude`). Give each parallel agent its own name.
+
+## From a sentence to records
+
+```bash
+war create "Add password reset by email" --draft --records --area password-reset-email
+```
+
+The drafter answers with records as well as items: an outcome, the
+requirements that serve it, the constraints and decisions on them. They are
+checked exactly as hand-written records are (docs/TYPES.md, "From a sentence
+to records"), then written to one record atom under
+`docs/records/<area>/`, and the ticket is created with items that read
+`… (implements REQ-pre1)`. `war impact REQ-pre1` then names the item a
+change to that requirement reaches. A proposal with an undeclared type, a
+relation to nothing, or an id the program already has is refused by rule,
+and nothing is written. To read the proposal first, use
+`war plan "<sentence>" --records --draft`, then `--reviewed --apply`.
 
 ## For agents
 

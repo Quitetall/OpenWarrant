@@ -31,6 +31,11 @@
 #[path = "intake.rs"]
 pub mod intake;
 
+// OW-WAR-0148 M7: a sentence to typed records and the ticket that implements
+// them, a child of this module for the same reason.
+#[path = "plan_records.rs"]
+pub mod records;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
@@ -138,10 +143,12 @@ fn porcelain(repo: &Repository) -> Result<BTreeSet<String>, RepoError> {
         .collect())
 }
 
-/// Run the configured drafter: request on stdin, proposal on stdout.
-pub fn run_drafter(
+/// Run the configured drafter: request on stdin, proposal on stdout. The
+/// request is a Warrant draft request ([`Request`]) or a records request
+/// ([`records::Request`]); the drafter tells them apart by `api_version`.
+pub fn run_drafter<R: Serialize>(
     repo: &Repository,
-    request: &Request,
+    request: &R,
 ) -> Result<(String, DrafterRun), RepoError> {
     let policy = &repo.config.plan;
     let Some(program) = policy.drafter_argv.first() else {

@@ -414,3 +414,71 @@ check --generated` renders them again and compares.
 | `projection.compile` | a declared projection that cannot be rendered (over budget, an unknown root) |
 | `projection.over-budget` | a rendering over its budget: refused by name with the records that cost the most; nothing is truncated |
 | `projection.unknown`, `projection.of-missing`, `projection.of-unknown`, `projection.root-unknown` | `war render` was asked for something that is not there |
+
+## From a sentence to records
+
+One sentence in, typed records and the ticket that implements them out:
+
+```bash
+war create "Add password reset by email" --draft --records [--area password-reset-email]
+```
+
+or, to read the drafter's proposal before anything is written:
+
+```bash
+war plan "Add password reset by email" --records          # the request, for an agent of your own
+war plan "Add password reset by email" --records --draft  # ask the drafter; validate; show it; write nothing
+war plan --records --proposal <file> --reviewed --apply   # write it
+```
+
+The drafter is the one `war plan` already asks (`[plan] drafter_argv`). It
+receives an `oh.war/records-request/v1` on stdin: the sentence, the area
+when `--area` names one, the governing profile (`--profile`, default
+`delivery`), that profile's record types, allowed and required relations,
+`implements` for ticket items, and every record id the program already has.
+It answers with an `oh.war/records-proposal/v1`:
+
+```json
+{
+  "api_version": "oh.war/records-proposal/v1",
+  "title": "Password reset by email",
+  "area": "password-reset-email",
+  "records": [
+    {"id": "OUT-pre1", "type": "outcome", "title": "A user resets a forgotten password from an emailed link."},
+    {"id": "REQ-pre1", "type": "requirement", "title": "The email is sent within a minute.",
+     "body": "Markdown, optional.", "relations": [{"kind": "implements", "target": "OUT-pre1"}]}
+  ],
+  "ticket": {"title": "Add password reset by email", "body": "optional", "priority": 2,
+             "items": [{"text": "Send the reset email", "implements": ["REQ-pre1"]}]}
+}
+```
+
+Any other field is refused at parse. A proposal that asks
+(`unresolved_questions`) instead of proposing is refused,
+`plan.interview-required`, until `--answer <id>=<text>` answers it.
+
+**Validated before anything is written, by the rules above.** The proposal
+is rendered to the record atom `--apply` would write and read with every
+atom on disk, by the same parser and the same rules `war check` applies:
+`record.type-undeclared`, `record.relation-kind-unknown`,
+`record.relation-undeclared`, `record.duplicate-id` (within the proposal and
+against the corpus), `record.relation-required`. A relation, or an item's
+`implements`, whose target is neither a record of the corpus nor one the
+proposal makes is refused, `record.relation-target-unknown` (a warning in
+`war check`; a proposal is not let in already dangling). A title or body
+that would read as a heading or a relation line of its own is
+`plan.record-body`. Every fault is named at once, and a refused proposal
+writes nothing: not the atom, not the ticket, not a scratch file.
+
+**What `--apply` writes.** `--apply` needs `--reviewed`
+(`plan.review-required` otherwise, before the drafter is asked);
+`war create --draft --records` is the fast path and applies directly. One
+record atom, `docs/records/<area>/<NN>-<slug>.md` (the next free `NN`,
+never overwriting), whose frontmatter names the profile and whose prelude
+names the sentence; then a ticket through `war create` whose items read
+`… (implements REQ-pre1)`, so `war model` carries each item's `implements`
+and `war impact REQ-pre1` reaches the item. The ticket's body names the
+records, their file and the proposal's digest. Applying the same proposal
+again is refused, `record.duplicate-id` once per record, naming where each
+already is. No drafter configured is `plan.no-drafter` (`ticket.no-drafter`
+from `war create`), and nothing is invented.
