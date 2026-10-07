@@ -129,8 +129,8 @@ TF_SHOW1=$(tfw show "$TF_E" 2>/dev/null)
 TF_P1=$(tf_field "$(tfj show "$TF_E")" '"%d/%d" % (v["result"]["ticket"]["tickets"]["done"], v["result"]["ticket"]["tickets"]["total"])')
 TF_READY=$(tf_field "$(tfj ready)" '",".join(r["ticket"] + ("/" + r["item"] if r["item"] else "") for r in v["result"]["ready"])')
 TF_LS=$(tfw tickets 2>/dev/null)
-if [[ "$TF_P0" == "0/2" && "$TF_P1" == "1/2" ]] && tf_has "## Tickets (0/2 done)" "$TF_SHOW0" \
-    && tf_has "## Tickets (1/2 done)" "$TF_SHOW1" \
+if [[ "$TF_P0" == "0/2" && "$TF_P1" == "1/2" ]] && tf_has "## Warrants in it (0/2 done)" "$TF_SHOW0" \
+    && tf_has "## Warrants in it (1/2 done)" "$TF_SHOW1" \
     && tf_has "- [x] $TF_B — Reset page · done · 1/1 done" "$TF_SHOW1" \
     && tf_has "- [ ] $TF_A — Fix the login crash · open · 0/3 done" "$TF_SHOW1" \
     && [[ ",$TF_READY," != *",$TF_E,"* && ",$TF_READY," == *",$TF_A/$TF_A1,"* ]] \
@@ -284,7 +284,7 @@ TF_WB=$(tf_field "$TF_DONE" 'v["result"]["issue"]["writeback"]')
 if [[ $TF_DS -eq 0 && "$TF_MID" == 1 && "$TF_CALLS" == 3 && "$TF_WB" == written \
     && "$TF_LAST" == "argv=issue comment 13|argv=issue close 13|" \
     && "$TF_CLOSE" == "argv=issue close 13 --reason completed env=passed-through" ]] \
-    && tf_has "Done in ticket $TF_H: Login fails on an empty password" "$TF_COMMENT" \
+    && tf_has "Done in Warrant $TF_H: Login fails on an empty password" "$TF_COMMENT" \
     && tf_has "Patch the guard — done by claude" "$TF_COMMENT" && tf_has ": regression test added" "$TF_COMMENT" \
     && tf_has "root cause: an unchecked empty string" "$TF_COMMENT"; then
     tf_ok "writeback: one comment, one close" "$TF_H from #13: nothing written until its last item; then exactly comment (items, notes) and close, configured argv, in order"

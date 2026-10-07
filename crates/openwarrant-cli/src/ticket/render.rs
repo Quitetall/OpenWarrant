@@ -364,23 +364,68 @@ fn sorted<'a>(tickets: &'a [Ticket], claims: &Claims) -> Vec<&'a Ticket> {
     out
 }
 
-/// `war tickets` (`war ls`): every ticket, its state and progress.
+/// Every Warrant beside the light ones, for the one list (OW-WAR-0148
+/// M10): the directory and read-in-place rows, the warnings from reading
+/// them, and the words `--type` accepts for them. Empty: the light
+/// Warrants alone, as before M10 (the board reads that).
+#[derive(Debug, Clone, Default)]
+pub struct Others {
+    pub rows: Vec<crate::warrants::Row>,
+    pub faults: Vec<crate::diagnostic::Diagnostic>,
+    /// Profile names and read-in-place kinds a row may carry.
+    pub types: Vec<String>,
+}
+
+impl Others {
+    /// Every Warrant of `repo` that is not in the light encoding.
+    pub fn of(repo: &crate::repo::Repository) -> Result<Self, RepoError> {
+        let (rows, faults) = crate::warrants::other_rows(repo)?;
+        Ok(Self {
+            rows,
+            faults,
+            types: crate::warrants::type_words(repo),
+        })
+    }
+}
+
+/// The light Warrants alone, every one, its state and progress.
 pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
     tickets_filtered(store, &Filter::default())
 }
 
-/// `war tickets` with filters: exactly the tickets every given filter
-/// admits, in the same order and form. A filter naming a type the profile
-/// does not declare, a label outside a closed set, a state that is neither
-/// fixed nor declared, or an unknown epic is refused by name.
+/// The light Warrants alone, filtered.
 pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoError> {
+    list(store, &Others::default(), filter)
+}
+
+/// `war warrants` (`war tickets`, `war ls`): every Warrant, whatever its
+/// encoding, with its type, state and progress. The light ones first, in
+/// the order work takes them (`result.tickets`, as before M10); then the
+/// directory ones and the ones read in place (`result.warrants`).
+///
+/// Filters: exactly the Warrants every given filter admits, in the same
+/// order and form. `--type` takes a light Warrant's type (`bug`) or any
+/// Warrant's profile (`delivery`, `ticket`, `openspec`); `--state` the
+/// fixed three, a declared state, or a phase a journal records (`draft`,
+/// `authorized`, `resolved`). Labels and epics are the light encoding's.
+/// A filter that can match nothing by construction is refused by name.
+pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, RepoError> {
     let (tickets, faults) = store.load_all()?;
     let claims = store.claims()?;
     // Refusals first: a filter that can match nothing by construction is a
     // typo, never an empty answer.
     if let Some(k) = &filter.kind
+        && k != openwarrant_core::ticket::TICKET_PROFILE
+        && !others.types.iter().any(|t| t == k)
         && let Some(why) = store.definition.fields.refuse_type(k)
     {
+        let mut why = why;
+        if !others.types.is_empty() {
+            why.push_str(&format!(
+                "; nor is it a Warrant type here: {}",
+                others.types.join(", ")
+            ));
+        }
         return Ok(super::Outcome::refused(
             "ticket.filter-type-unknown",
             "profiles/ticket.toml",
@@ -396,12 +441,22 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
             ));
         }
     }
+    // A state a light Warrant can be in (fixed or declared), or a phase a
+    // directory Warrant's journal records.
+    enum Wanted {
+        Fixed(TicketState),
+        Declared(String),
+        Phase(String),
+    }
     let wanted_state = match &filter.state {
         None => None,
         Some(s) => match fixed_state(s) {
-            Some(f) => Some(Ok(f)),
+            Some(f) => Some(Wanted::Fixed(f)),
             None if store.definition.states.iter().any(|d| d.name == s.trim()) => {
-                Some(Err(s.trim().to_owned()))
+                Some(Wanted::Declared(s.trim().to_owned()))
+            }
+            None if crate::warrants::PHASES.contains(&s.trim()) => {
+                Some(Wanted::Phase(s.trim().to_owned()))
             }
             None => {
                 let mut known = vec![
@@ -414,8 +469,10 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
                     "ticket.filter-state-unknown",
                     "profiles/ticket.toml",
                     format!(
-                        "state {s:?} is neither a fixed state nor one the ticket profile declares: {}",
-                        known.join(", ")
+                        "state {s:?} is neither a fixed state nor one the ticket profile declares: {}; \
+                         nor a phase a Warrant's journal records: {}",
+                        known.join(", "),
+                        crate::warrants::PHASES.join(", ")
                     ),
                 ));
             }
@@ -429,7 +486,7 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
                 return Ok(super::Outcome::refused(
                     "ticket.unknown",
                     String::new(),
-                    format!("`--epic {q}` names an item; an epic is a ticket"),
+                    format!("`--epic {q}` names an item; an epic is a Warrant"),
                 ));
             }
             Err(d) => return Ok(super::Outcome::from_diagnostic(d)),
@@ -437,8 +494,26 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
     };
     let text = filter.text.as_ref().map(|t| t.trim().to_lowercase());
     let search = filter.search.as_deref().map(words).unwrap_or_default();
+    let matches_text = |hay: &str| -> bool {
+        if let Some(phrase) = &text
+            && !hay.contains(phrase.as_str())
+        {
+            return false;
+        }
+        if !search.is_empty() {
+            let have = words(hay);
+            if !search
+                .iter()
+                .all(|q| have.iter().any(|w| w.starts_with(q.as_str())))
+            {
+                return false;
+            }
+        }
+        true
+    };
     let admits = |t: &Ticket, r: &Row| -> bool {
         if let Some(k) = &filter.kind
+            && k != openwarrant_core::ticket::TICKET_PROFILE
             && r.kind.as_ref() != Some(k)
         {
             return false;
@@ -448,11 +523,12 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
         }
         let state_holds = match &wanted_state {
             None => true,
-            Some(Ok(f)) => r.state == *f,
-            Some(Err(declared)) => r
+            Some(Wanted::Fixed(f)) => r.state == *f,
+            Some(Wanted::Declared(declared)) => r
                 .declared_states
                 .iter()
                 .any(|d| !d.lapsed && &d.state == declared),
+            Some(Wanted::Phase(_)) => false,
         };
         if !state_holds {
             return false;
@@ -463,30 +539,51 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
             return false;
         }
         if text.is_some() || !search.is_empty() {
-            let hay = haystack(t);
-            if let Some(phrase) = &text
-                && !hay.contains(phrase.as_str())
-            {
-                return false;
-            }
-            if !search.is_empty() {
-                let have = words(&hay);
-                if !search
-                    .iter()
-                    .all(|q| have.iter().any(|w| w.starts_with(q.as_str())))
-                {
-                    return false;
-                }
-            }
+            return matches_text(&haystack(t));
+        }
+        true
+    };
+    // A Warrant in another encoding: its type, its state (or phase), and
+    // its title. Labels and epics are the light encoding's alone.
+    let admits_other = |o: &crate::warrants::Row| -> bool {
+        if let Some(k) = &filter.kind
+            && &o.profile != k
+        {
+            return false;
+        }
+        if !filter.labels.is_empty() || epic.is_some() {
+            return false;
+        }
+        let state_holds = match &wanted_state {
+            None => true,
+            Some(Wanted::Fixed(f)) => o.fixed_state() == Some(fixed_word(*f)),
+            Some(Wanted::Declared(_)) => false,
+            Some(Wanted::Phase(p)) => &o.state == p,
+        };
+        if !state_holds {
+            return false;
+        }
+        if text.is_some() || !search.is_empty() {
+            return matches_text(&format!("{}\n{}", o.id, o.title).to_lowercase());
         }
         true
     };
     let mut human = String::new();
-    if tickets.is_empty() {
-        human.push_str("no tickets yet: `war create \"what this work accomplishes\"`");
+    if tickets.is_empty() && others.rows.is_empty() {
+        human.push_str("no Warrants yet: `war create \"what this work accomplishes\"`");
     }
     let order = sorted(&tickets, &claims);
-    let width = order.iter().map(|t| t.id().len()).max().unwrap_or(6);
+    let listed: Vec<&crate::warrants::Row> = others
+        .rows
+        .iter()
+        .filter(|o| filter.is_empty() || admits_other(o))
+        .collect();
+    let width = order
+        .iter()
+        .map(|t| t.id().len())
+        .chain(listed.iter().map(|o| o.id.len()))
+        .max()
+        .unwrap_or(6);
     let mut rows = Vec::new();
     for t in order {
         let r = row_in(store, &tickets, t, &claims);
@@ -539,10 +636,34 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
         }
         rows.push(r);
     }
-    if !filter.is_empty() && rows.is_empty() && !tickets.is_empty() {
-        human.push_str("no ticket matches");
+    // M10: the Warrants in the other encodings, after the light ones, each
+    // with its type; a directory Warrant's state is its journal's phase.
+    for o in &listed {
+        let progress = match (o.done, o.total) {
+            (Some(d), Some(n)) => format!("{d}/{n}"),
+            _ => "-".to_owned(),
+        };
+        let kind = if o.encoding == "directory" {
+            o.profile.clone()
+        } else {
+            format!("{}, read in place", o.profile)
+        };
+        human.push_str(&format!(
+            "{:<width$}  {:<11}  {:>5}  --  {}  [{kind}]\n",
+            o.id,
+            o.state.replace('_', " "),
+            progress,
+            o.title,
+        ));
+    }
+    let any = !tickets.is_empty() || !others.rows.is_empty();
+    if !filter.is_empty() && rows.is_empty() && listed.is_empty() && any {
+        human.push_str("no Warrant matches");
     }
     let mut result = serde_json::json!({"schema": "oh.war/ticket-list/v1", "tickets": rows});
+    if !others.rows.is_empty() {
+        result["warrants"] = serde_json::to_value(&listed).unwrap_or_default();
+    }
     if !filter.is_empty() {
         result["filter"] = serde_json::json!({
             "type": filter.kind,
@@ -561,7 +682,19 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
             format!("skipped: {}", f.message),
         ));
     }
+    for f in &others.faults {
+        out.report.push(f.clone());
+    }
     Ok(out)
+}
+
+/// A fixed state as `Row::fixed_state` names it.
+const fn fixed_word(s: TicketState) -> &'static str {
+    match s {
+        TicketState::Open => "open",
+        TicketState::InProgress => "in_progress",
+        TicketState::Done => "done",
+    }
 }
 
 /// `war show <ticket>`: the ticket as a person reads it, with who holds what.
@@ -627,9 +760,9 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     }
     md.push_str("\n## Checklist\n\n");
     if t.checklist.items.is_empty() && r.tickets.is_some() {
-        md.push_str("(no items of its own: the work is its tickets, below)\n");
+        md.push_str("(no items of its own: the work is its Warrants, below)\n");
     } else if t.checklist.items.is_empty() {
-        md.push_str("(no items: the ticket is the work — `war add` breaks it down)\n");
+        md.push_str("(no items: the Warrant is the work — `war add` breaks it down)\n");
     }
     for item in &t.checklist.items {
         if item.done {
@@ -663,7 +796,10 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let kids = super::children_of(&tickets, t.id());
     let mut children = Vec::new();
     if let Some(p) = r.tickets {
-        md.push_str(&format!("\n## Tickets ({}/{} done)\n\n", p.done, p.total));
+        md.push_str(&format!(
+            "\n## Warrants in it ({}/{} done)\n\n",
+            p.done, p.total
+        ));
         for k in sorted_refs(kids, &claims) {
             let kr = row_in(store, &tickets, k, &claims);
             md.push_str(&format!(
@@ -757,7 +893,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
         .filter(|t| state_of(t, &claims) == TicketState::InProgress)
         .count();
 
-    let mut md = format!("# Tickets — {}\n\n", store.project);
+    let mut md = format!("# Warrants — {}\n\n", store.project);
     md.push_str(&format!(
         "_Read this first. From `{}/` at {}: {} open ({in_progress} in progress), {} done._\n\n",
         store.rel(&store.dir),
@@ -768,7 +904,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
     md.push_str(
         "How to work: `war ready` lists what can start now; `war claim <id>` takes one; do it; \
          `war done <id> --note \"what you did\"` ticks it. Leave anything the next person needs \
-         with `war note <ticket> \"...\"`. No step needs a signature or anyone's approval.\n",
+         with `war note <warrant> \"...\"`. No step needs a signature or anyone's approval.\n",
     );
 
     let mut held: Vec<String> = Vec::new();
@@ -784,7 +920,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
                 Some(i) => t
                     .item(i)
                     .map_or_else(|| t.manifest.title.clone(), |x| x.text.clone()),
-                None => format!("{} (whole ticket)", t.manifest.title),
+                None => format!("{} (whole Warrant)", t.manifest.title),
             })
             .unwrap_or_default();
         let stale = if c.age(now) > store.ttl_secs {
@@ -807,7 +943,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
 
     md.push_str("\n## Open\n");
     if open.is_empty() {
-        md.push_str("\nNothing open. `war create \"...\"` starts a ticket.\n");
+        md.push_str("\nNothing open. `war create \"...\"` starts a Warrant.\n");
     }
     for t in &open {
         let (d, n) = t.checklist.progress();
@@ -832,7 +968,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
             .map(|i| open_item_line(store, &all, t, i, &claims, now))
             .collect();
         if remaining.is_empty() {
-            md.push_str("\nNo items yet: the ticket is the work.\n");
+            md.push_str("\nNo items yet: the Warrant is the work.\n");
         } else {
             md.push_str("\nRemaining:\n\n");
             md.push_str(&remaining.concat());
@@ -916,7 +1052,7 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
         .collect();
     md.push_str("\n## Remaining\n\n");
     if remaining.is_empty() && n == 0 {
-        md.push_str("No items: the ticket is the work (`war claim` it whole, `war done` it).\n");
+        md.push_str("No items: the Warrant is the work (`war claim` it whole, `war done` it).\n");
     } else if remaining.is_empty() {
         md.push_str("Nothing: every item is done.\n");
     } else {
