@@ -37,6 +37,7 @@ pub mod dispatch_bundle_cmd;
 pub mod doctor;
 pub mod document;
 pub mod eval;
+pub mod eval_ordinary;
 pub mod evidence;
 pub mod export;
 pub mod frontier;
@@ -382,6 +383,26 @@ enum EvalCommand {
         result: Utf8PathBuf,
         #[arg(long, default_value = eval::DEFAULT_BASELINE, value_name = "FILE")]
         baseline: Utf8PathBuf,
+    },
+    /// Opt-in, costs tokens (M9): put a real agent in a scratch repository
+    /// with OpenWarrant installed, ask it to fix a trivial bug, and fail if
+    /// it refuses, asks for a Warrant, or edits nothing. Never run by the
+    /// battery with a real agent. evals/ordinary/README.md has the how-to.
+    Ordinary {
+        /// The agent's argv, one element per flag (repeat --agent). An
+        /// element `{prompt}` is replaced by the scenario's sentence;
+        /// without one the sentence goes to the agent's stdin.
+        #[arg(long = "agent", value_name = "ARGV")]
+        agent: Vec<String>,
+        /// The scenario directory (`scenario.toml` and `repo/`).
+        #[arg(long, default_value = eval_ordinary::DEFAULT_SCENARIO, value_name = "DIR")]
+        scenario: Utf8PathBuf,
+        /// Kill the agent after this many seconds (default: the scenario's).
+        #[arg(long, value_name = "SECS")]
+        timeout_secs: Option<u64>,
+        /// Keep the scratch repository and the transcript for inspection.
+        #[arg(long)]
+        keep: bool,
     },
 }
 
@@ -3617,6 +3638,21 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 EvalCommand::Verify { result, baseline } => {
                     let report = eval::verify(&repository, &result, &baseline)?;
                     Ok(output::finish(mode, "eval.verify", &report, None))
+                }
+                EvalCommand::Ordinary {
+                    agent,
+                    scenario,
+                    timeout_secs,
+                    keep,
+                } => {
+                    let opts = eval_ordinary::Options {
+                        scenario,
+                        agent,
+                        timeout_secs,
+                        keep,
+                    };
+                    let (report, result) = eval_ordinary::run(&repository, &opts)?;
+                    Ok(output::finish(mode, "eval.ordinary", &report, Some(result)))
                 }
             }
         }
