@@ -333,10 +333,18 @@ compacted to a line each once it is older than a week. Then `war ready`,
 know with `war note`. Do not ask the human to sign anything during this loop;
 nothing in it needs a signature.
 
+Every tick says how it was earned. A plain `war done` is **claimed**: your
+word. When the item (or its Warrant) has a test or a KPI, `war done --check`
+runs them and ticks at **observed** only when they pass; `war show` lists
+them, and an item whose minimum is observed says so in `war prime`. A failed
+check refuses the tick by name and leaves the claim yours: fix the work and
+run it again.
+
 Over MCP (`war mcp`) the same loop is `war_prime`, `war_ready`, `war_claim`,
 `war_done`, `war_create`, `war_add`, `war_note`, `war_show`, `war_tickets`
 and `war_heartbeat`.
-Each takes an optional `actor`; `war_create` also takes `type`, `labels` and
+Each takes an optional `actor`; `war_done` also takes `check` (`--check`);
+`war_create` also takes `type`, `labels` and
 `part_of`, and `war_tickets` the filters above (`type`, `labels`, `state`,
 `text`, `search`, `epic`). Finding the right ticket is
 `war tickets --search "<words>" --json`, not reading every directory.
@@ -352,6 +360,11 @@ claims_dir = "/srv/war/claims"              # unset: shared by every worktree, u
 claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands
 claim_ttl_minutes = 120                     # after this a claim with a live lease may be stolen
 compact_after_days = 7                      # done tickets older than this are one line in `war prime`
+```
+
+```toml
+[warrants]
+hints = false                               # `war create` prints no one-line hint about tests
 ```
 
 `[intake]` and `[intake.writeback]` (GitHub in and out) are above; types,
