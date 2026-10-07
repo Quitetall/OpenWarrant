@@ -877,7 +877,9 @@ fn m6_render_seam(
         .filter(|d| subject == "*" || d.id == subject)
         .collect();
     if chosen.is_empty() {
-        return Some(Err(format!("{subject} is no declared document of this basis")));
+        return Some(Err(format!(
+            "{subject} is no declared document of this basis"
+        )));
     }
     let input = crate::render_cmd::input(corpus, model);
     let mut views = Vec::new();
