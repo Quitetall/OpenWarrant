@@ -1,6 +1,6 @@
 # Checklist
 
-- [ ] war add --test/--kpi/--milestone on any Warrant (i-5814)
-- [ ] Ticks record their level (claimed < observed < independent < signed); type minimum per milestone; tracker shows the level (i-5121)
-- [ ] KPIs: command, direction, target; threshold plus best value tracked by default; every run journaled (i-bea6)
-- [ ] Create hint, and harness bridges (Claude Code TaskCompleted hook, Tasks sync) (i-b953)
+- [x] war add --test/--kpi/--milestone on any Warrant (i-5814) — done by claude, 2026-10-07 [observed]: war add <id> --test/--kpi/--milestone/--min on any ticket-encoded Warrant, a title-only one included; parts in the optional atoms/30-checks.md (docs/TYPES.md); war check reports checks.malformed/duplicate/item-unknown; directory Warrants are refused by name (M10 unifies the encodings)
+- [x] Ticks record their level (claimed < observed < independent < signed); type minimum per milestone; tracker shows the level (i-5121) — done by claude, 2026-10-07 [observed]: claimed/observed/independent/signed: a marker after the date, believed only as far as the journal or a verified signature backs it; war done --check, war verify t-x/i-y, war sign t-x/i-y --ssh-sign; [ticks] minimums as profile data; levels in show, tickets, status, roadmap, board, web page
+- [x] KPIs: command, direction, target; threshold plus best value tracked by default; every run journaled (i-bea6) — done by claude, 2026-10-07 [observed]: war kpi run journals every run (value, verdict, commit); best/threshold/optimise; show gives latest, best, target; no number is UNKNOWN (kpi.unknown) and holds a --check tick
+- [x] Create hint, and harness bridges (Claude Code TaskCompleted hook, Tasks sync) (i-b953) — done by claude, 2026-10-07 [observed]: create prints one hint line ([warrants] hints = false hides it); .claude/hooks/task-completed.sh (TaskCompleted, exits 0 always) and war bridge claude-tasks (proposes, --apply writes); plant 110; battery 1448/0
