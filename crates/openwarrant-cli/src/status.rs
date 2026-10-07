@@ -85,6 +85,19 @@ pub fn warrant_state(
         })
 }
 
+/// The phases the configured SAS declares in section 98, in its order, for a
+/// program with no roadmap record: (number, title, Exit). None when the
+/// document cannot be read, declares none, or declares one phase twice (then
+/// there is no one title or Exit to project). Never another program's.
+#[must_use]
+pub fn sas_phases(repo: &Repository) -> Vec<(u8, String, Option<String>)> {
+    repo.sas_document()
+        .ok()
+        .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
+        .filter(|v| v.iter().map(|(n, _, _)| *n).collect::<BTreeSet<u8>>().len() == v.len())
+        .unwrap_or_default()
+}
+
 /// [`build`] over a corpus already loaded: each Warrant's assessment and
 /// contract digest are the corpus's, computed once.
 pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
@@ -304,8 +317,9 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
         .unwrap_or_else(|| repo.config.project.namespace.as_str().to_owned());
 
     // OW-ADR-0023: the roadmap record owns the phases when the program has
-    // one. Without it, §98 from the SAS as it stands, and the compiled-in
-    // table as the fallback for a repository whose document cannot be read.
+    // one. Without it, §98 of the configured program's SAS as it stands, in
+    // whatever number it declares. No other program's phases stand in for an
+    // unreadable, empty or ambiguous §98: those objectives stay unknown.
     let roadmap = corpus.roadmap().ok().flatten();
     let prefix = roadmap.map_or(prefix, |r| r.manifest.prefix.clone());
     // A signed Warrant that names no phase may be placed by the record
@@ -333,7 +347,12 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
             .cloned()
             .or_else(|| placed.get(&w.alias).cloned())
     };
-    let phases: Vec<(u8, String, Option<String>)> = match roadmap {
+    let declarer = if roadmap.is_some() {
+        "the roadmap record"
+    } else {
+        "the configured SAS"
+    };
+    let mut phases: Vec<(u8, String, Option<String>)> = match roadmap {
         Some(r) => r
             .phases
             .phases
@@ -346,18 +365,19 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
                 )
             })
             .collect(),
-        None => repo
-            .sas_document()
-            .ok()
-            .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
-            .filter(|v| v.len() == openwarrant_core::status::PHASES.len())
-            .unwrap_or_else(|| {
-                openwarrant_core::status::PHASES
-                    .iter()
-                    .map(|(n, t, e)| (*n, (*t).to_owned(), e.map(str::to_owned)))
-                    .collect()
-            }),
+        None => sas_phases(repo),
     };
+    let phases_unknown = roadmap.is_none() && phases.is_empty();
+    // A Warrant placed in a phase nobody declared stays visible under that
+    // phase, with no title or Exit invented for it.
+    let declared: BTreeSet<u8> = phases.iter().map(|(n, _, _)| *n).collect();
+    let undeclared: BTreeSet<u8> = warrants
+        .iter()
+        .filter_map(&first_ref)
+        .filter(|r| r.prefix == prefix && !declared.contains(&r.phase))
+        .map(|r| r.phase)
+        .collect();
+    phases.extend(undeclared.iter().map(|n| (*n, format!("Phase {n}"), None)));
     let mut objectives: Vec<ObjectiveStatus> = Vec::new();
     for (n, title, exit) in phases {
         let (title, exit) = (title.as_str(), exit.as_deref());
@@ -373,7 +393,11 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
         for m in &members {
             ladder.count(m.rung);
         }
-        let achieved = if exit.is_none() {
+        let achieved = if undeclared.contains(&n) {
+            Achieved::NotDerivable {
+                why: format!("{declarer} does not declare this phase"),
+            }
+        } else if exit.is_none() {
             Achieved::NotDerivable {
                 why: "§98 defines no Exit for this phase".to_owned(),
             }
@@ -492,6 +516,25 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
          recorded a run, which is a true state, not a caveat."
             .to_owned(),
     ];
+    if phases_unknown {
+        caveats.push(
+            "No phase could be read: no roadmap record was read, and the configured SAS \
+             declares no phase in section 98 (or declares one twice). Objective titles and \
+             Exit criteria stay unknown; no other program's phases stand in for them."
+                .to_owned(),
+        );
+    }
+    if !undeclared.is_empty() {
+        caveats.push(format!(
+            "Warrants name phase(s) {} that {declarer} does not declare. They are listed under \
+             those phases with no title or Exit criterion.",
+            undeclared
+                .iter()
+                .map(u8::to_string)
+                .collect::<Vec<_>>()
+                .join(", ")
+        ));
+    }
     let roadmap_claims = hand_written_resolved_claims(repo);
     let recorded = warrants.iter().filter(|w| w.resolution.is_some()).count();
     if roadmap_claims > 0 {
