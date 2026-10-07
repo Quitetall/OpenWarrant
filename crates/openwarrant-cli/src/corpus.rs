@@ -64,7 +64,9 @@ pub(crate) enum Kept {
 impl Kept {
     fn of(error: RepoError) -> Self {
         match error {
-            RepoError::ObservationUnavailable { rule, message } => Self::Unavailable { rule, message },
+            RepoError::ObservationUnavailable { rule, message } => {
+                Self::Unavailable { rule, message }
+            }
             other => Self::Message(other.to_string()),
         }
     }

@@ -403,7 +403,10 @@ pub fn warrant_section(repo: &Repository, alias: &str) -> Option<(String, Vec<De
             if d.lapsed { "; lapsed" } else { "" },
             d.entered_by,
             d.entered_at,
-            d.note.as_ref().map(|n| format!(": {n}")).unwrap_or_default()
+            d.note
+                .as_ref()
+                .map(|n| format!(": {n}"))
+                .unwrap_or_default()
         ));
     }
     Some((md, declared))
@@ -598,10 +601,7 @@ pub fn enter(
                 d.refines, d.refines
             )
         } else {
-            format!(
-                "`{name}` holds only while `{}` does",
-                d.refines
-            )
+            format!("`{name}` holds only while `{}` does", d.refines)
         };
         return Ok(refused(
             "state.parent-not-holding",
@@ -624,7 +624,10 @@ pub fn enter(
             "entered": entered,
         })
     };
-    if s.on_record.iter().any(|o| o.record == s.record && o.state == name && !o.lapsed) {
+    if s.on_record
+        .iter()
+        .any(|o| o.record == s.record && o.state == name && !o.lapsed)
+    {
         let mut report = Report::default();
         let message = format!(
             "{}: already {name} (refines {}); nothing was written",
