@@ -5,9 +5,11 @@ made of and what applies to it (OW-ADR-0031). This page covers the two
 things a type composes, **records** and the **relations** between them, and
 the **states** a record can be in.
 `war plan impact` (below) is what they are for: one change, and everything it
-reaches. The last section, "One Warrant, three encodings", covers the
-Warrant itself: one noun, one id space, one list, and work brought in from
-Beads, OpenSpec and Spec Kit.
+reaches. "One Warrant, three encodings" covers the Warrant itself: one
+noun, one id space, one list, and work brought in from Beads, OpenSpec and
+Spec Kit. The last section, "Every development document is a type", covers
+the roadmap, the specification and ADRs as types, the core types and packs,
+and the documents no type governs yet.
 
 ## Records
 
@@ -922,3 +924,178 @@ observed. It never refuses anything. `[warrants] hints = false` in
   `subject`/`task_subject`, `description`/`task_description`,
   `status`/`task_status`) and names any other file UNKNOWN
   (`bridge.task-unreadable`) rather than guess.
+
+## Every development document is a type
+
+OpenWarrant's document types cover all development work (OW-WAR-0148 M18,
+decisions 25 to 27). Nothing the kernel reads is a special case of it any
+more: the roadmap, the specification and ADRs are ordinary types, about ten
+core types ship in the box, more ship as packs in the same format, and a
+document no type governs still counts, as untyped.
+
+### The stores are types
+
+Three stores predate typed records. Each is now read as one type's
+**encoding**, unchanged:
+
+| type | `encoding` | the store | its records in `war plan model` |
+|---|---|---|---|
+| `roadmap` | `roadmap` | `docs/roadmap/`: `roadmap.toml`, its atoms, `revisions/<n>.toml` | `OW-ROADMAP` (type `roadmap`); each phase (`OW-PHASE-3`, type `phase`) `part_of` it, with its `depends_on` |
+| `spec` | `sas` | `docs/sas/`: the one document and `revisions/<version>.toml` | `WAR-SAS` (type `spec`); each numbered section and subsection (`WAR-SAS-43`, `WAR-SAS-43.5`, type `section`, the revision of its own byte span), each `part_of` its parent; each §106 requirement `part_of` the spec |
+| `adr` | `adr` | `docs/adr/atoms/` | each ADR by its alias (`OW-ADR-0031`, type `adr`), its front matter's `status` (provenance `authored`), its `supersedes`, and the Warrants it governs as the namespaced `adr.governs` (inert) |
+
+```toml
+# profiles/roadmap.toml
+schema = "oh.war/profile/v1"
+name = "roadmap"
+form = "document"
+encoding = "roadmap"
+capabilities = ["structure", "links", "acceptance"]
+
+[records]
+types = ["roadmap", "phase"]
+
+[relations]
+allow = ["part_of", "depends_on"]
+```
+
+- **Read unchanged.** The readers are the ones that always read these
+  stores. A revision's digest is the store's own, so every signed SAS and
+  roadmap revision keeps its digest, and the SAS text is never edited by
+  reading it. `war plan roadmap` and `war sign sas` (and their earlier
+  spellings `war roadmap`, `war sas`) answer as before.
+- **Rules are the type's.** The `roadmap.*`, `sas.*` and `adr.*` rules of
+  `war check` run because the type selects the capability each needs:
+  `structure` reads the store (`roadmap.malformed`, `roadmap.cycle`,
+  `sas-normative.section-labels`, `adr.malformed`, `adr.parsed`); `links`
+  resolves what points into it (`roadmap.unknown-phase`,
+  `roadmap.placement-*`, `roadmap.unassigned`, `sas.pin-*`, `sas.repin-*`,
+  `sas.section-ref`, `sas.section-current`); `acceptance` holds it to a
+  revision a human signed (`roadmap.accepted`, `roadmap.unaccepted`,
+  `sas.unrecorded`, `sas.pinned`, `sas.digest-drift`,
+  `sas.proposed-unaccepted`, and each acceptance's signature). A rule whose
+  capability the type does not select does not run.
+- **What a store admits.** A store's type selects from `structure`,
+  `links` and, where the store records a human act, `acceptance` (a roadmap
+  or SAS revision is accepted by a signature). An ADR's status is authored in
+  its own front matter, never signed, so `adr` cannot select `acceptance`:
+  an ADR reads `status: accepted` in the model, and never the authenticated
+  state `accepted`. Anything more is refused, `profile.capabilities`. An
+  encoding the kernel has no reader for is refused, `profile.invalid`, and so
+  is a second type reading a store one type already reads.
+- **States.** The fixed states the capabilities produce: a phase
+  `achieved` (links) and `accepted` (acceptance); the roadmap and the
+  specification `accepted` while their bytes are an accepted revision's; an
+  ADR another supersedes `superseded` (links), from the relation, never from
+  its front matter. None declares `[[states]]`: a declared state is entered
+  in a Warrant's or a ticket's journal, and nothing journals a phase, a
+  section or an ADR.
+- **Built in.** This build ships the three definitions (and the core types
+  below). A program's own `profiles/roadmap.toml` replaces the built-in one,
+  whole; a program may narrow a store type's capabilities, and the rules that
+  needed them stop running. This repository's `profiles/` restates all
+  three, selecting every capability its store admits.
+- **Projections.** A store type's projection renders the store as one
+  document. One that names a `file` is compiled to the store's
+  `generated/`; one that does not is rendered on request. The roadmap
+  declares **ROADMAP.md** (`docs/roadmap/generated/ROADMAP.md`): the
+  record's standing, each phase with its tier, what it needs first and
+  whether it is achieved, then each exit with its exit Warrant and member
+  Warrants, the numbers `war plan roadmap` shows. `war admin compile` writes
+  it and `war check --generated` drift-checks it like any projection
+  (`projection.drift`). `spec` declares `spec-requirements` and `adr`
+  declares `adr-index`, rendered with `war plan render <name>`; the kernel's
+  own extracts (NORMATIVE.md, SECTIONS.md, ADR_OVERVIEW.md) stay as they are,
+  and so does the roadmap section of CURRENT.md.
+
+### Core types and packs
+
+About ten core types ship in the box: the Warrant (`delivery`, `decision`),
+the ticket, `roadmap`, `spec`, `adr`, `prd`, `architecture`, `test-plan`,
+`release` and `incident`, with the small `exit-report` beside them.
+
+| type | its records | its projection |
+|---|---|---|
+| `release` | `release`, `note`, `change`, `exit_criterion` | `release-notes`: the release, its notes, its changelog, and each exit criterion with the obligations that `evaluates` it (unchecked when none does) |
+| `incident` | `incident`, `event`, `cause` | `incident-report`: the summary, the timeline in authored order, the causes, and the actions: each a Warrant item that `implements` the incident or a cause, its state the item's |
+| `exit-report` | `exit_report`, `measurement` | `exit-report`: what was measured to say a phase's exit holds; the phase is achieved only by its exit Warrant's resolution |
+
+The rest ship as **packs**: a directory with a `pack.toml`
+(`oh.war/pack/v1`: its name, version and profile files) and the files, in
+the profile format anyone can write.
+
+```sh
+war plan types                  # every type: its form, store, capabilities, and where it comes from
+war plan types add ops          # packs/ops/ of this repository, else the ops pack this build ships
+war plan types add ./my-pack    # or a directory of your own
+war plan types add ops --dry-run
+```
+
+| pack | types |
+|---|---|
+| `ops` 1.0.0 | `runbook`, `slo`, `rollout`, `incident-review` |
+| `quality` 1.0.0 | `threat-model`, `performance-budget`, `test-charter` |
+
+Both live in `packs/` of this repository and are built into `war`, so they
+install in any repository.
+
+`war plan types add` admits every file of the pack beside the program's
+own types, with the registry that reads `profiles/`, before it writes
+anything. Then it copies the files into `profiles/` and records the pack in
+`docs/types.toml`. Installing the same pack again writes nothing. Refused,
+writing nothing at all:
+
+| rule | what |
+|---|---|
+| `types.pack-unknown` | no `pack.toml` where the pack was named |
+| `types.pack-malformed` | the manifest does not parse, names no file, or names a file that is not a readable `<name>.toml` beside it |
+| `types.collision` | a type of the pack has a name a type of the program already has: its own file, a built-in type, a Warrant profile |
+| `profile.capability-unknown` | a profile of the pack selects a capability outside the closed set |
+| any `profile.*` rule | a profile the registry refuses for another reason (a projection name already used, a relation it does not allow) |
+
+### Untyped documents count
+
+`war` indexes the program's development documents: every file
+`[documents] index` matches.
+
+```toml
+# openwarrant.toml
+[documents]
+index = ["docs/**/*.md", "*.md"]   # the default
+```
+
+A walk never enters a `generated/` directory, the Warrant tree, the ticket
+tree, a hidden directory, `target/` or `node_modules/`. An indexed document
+is **typed** when something reads it as records: a store's type (the
+specification, an ADR atom, the roadmap's atoms and the plans its record
+retires), a record area under `docs/records/`, the instruction reader
+(`CLAUDE.md`, `AGENTS.md`), or an adoption. Every other one is **untyped**:
+`war plan model` carries it as a record `doc:<path>` of type `document` with
+the state `untyped`.
+
+`war status --json` reports the share typed under `document_coverage`:
+`{"typed": …, "untyped": …, "total": …}`, a ladder, never a percentage. An
+untyped document lowers it; adopting one raises it.
+
+```text
+war plan type <file> <type> [--json]
+```
+
+adopts a document in place: it records `path → type` in `docs/types.toml`
+(`oh.war/types/v1`) and never writes the document. The model then carries it
+as a record `doc:<path>` of its type with the state `adopted`. Refused,
+writing nothing:
+
+| rule | what |
+|---|---|
+| `types.file-unknown` | no such file under the repository |
+| `types.file-excluded` | a projection, or a file of a Warrant or a ticket |
+| `types.file-governed` | a file a store, a record area or the instruction reader already reads |
+| `types.type-unknown` | no document type of this program by that name |
+| `types.type-not-adoptable` | a store's type (`roadmap`, `spec`, `adr`): a store is not added to by naming a file |
+
+This repository adopts `docs/roadmap/RELEASE_1_0.md` as a `release` and
+`docs/roadmap/PHASE1_EXIT.md` as an `exit-report`. `war check` holds
+`docs/types.toml` to the files and types it names (`types.malformed`,
+`types.document-missing`, `types.type-unknown`, `types.pack-missing`) and
+is silent for a program without one.

@@ -333,8 +333,7 @@ impl Corpus {
     /// The development-document index (OW-WAR-0148 M18), once.
     /// Infallible: what could not be read is a fault inside, by rule.
     pub fn documents(&self) -> &crate::doc_index::Index {
-        self.documents
-            .get_or_init(|| crate::doc_index::load(self))
+        self.documents.get_or_init(|| crate::doc_index::load(self))
     }
 
     /// The recorded SAS revisions, once.

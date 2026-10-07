@@ -37,6 +37,10 @@
 //!   front matter's `status`, its `supersedes`, and the Warrants it governs
 //!   as the inert `adr.governs`. Each only where the type that reads the
 //!   store selects `structure`, related only under `links`.
+//! - **Documents** (OW-WAR-0148 M18): each development document the index
+//!   reads that nothing else reads as records, `doc:<path>`, type
+//!   `document` with the state `untyped`, or, adopted in place, of its
+//!   document type with the state `adopted`.
 //! - **Instruction sections** (M16): each `##` section of the root
 //!   `CLAUDE.md` and `AGENTS.md` (and configured nested files), id
 //!   `md:<file>#<slug>`, type `instruction`, its revision that of its own
@@ -101,7 +105,8 @@ pub struct Record {
     pub id: String,
     /// `warrant`, `obligation`, `deliverable`, `stage`, `question`, `phase`,
     /// `requirement`, `ticket` or `item`; a store's records (OW-WAR-0148
-    /// M18): `roadmap`, `spec`, `section` or `adr`.
+    /// M18): `roadmap`, `spec`, `section` or `adr`; an indexed document no
+    /// type reads, `document`, and one adopted, its document type's name.
     #[serde(rename = "type")]
     pub kind: String,
     /// Repository-relative path of the file that holds it.
@@ -144,14 +149,15 @@ pub struct Relation {
 pub struct State {
     pub record: String,
     /// What the builders derive: `phase`, `rung`, `currency`,
-    /// `disposition`, `achieved`, `checklist`, or an ADR's `status` as its
-    /// front matter states it. A kernel state (OW-ADR-0031) is `computed`,
+    /// `disposition`, `achieved`, `checklist`, an ADR's `status` as its
+    /// front matter states it, or an indexed document's `document`
+    /// (`untyped`, or `adopted` in docs/types.toml). A kernel state (OW-ADR-0031) is `computed`,
     /// `authenticated` or `declared`, and its `value` is the state's name.
     pub kind: String,
     pub value: String,
     /// `recorded` (read from a record of an act), `computed`, or `authored`:
     /// a declared state's entry in a journal, an ADR's status in its front
-    /// matter.
+    /// matter, a document's adoption.
     pub provenance: String,
     /// A fixed kernel state's dimension in SAS §24 / RQ-032's decomposition:
     /// `phase`, `outcome`, `currency` or `standing`.
@@ -832,6 +838,42 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
     }
     for f in &authored.instruction_faults {
         b.diagnose(f.rule, &format!("{}:{}", f.file, f.line), f.message.clone());
+    }
+
+    // ---- The development-document index (OW-WAR-0148 M18): every
+    // indexed document nothing reads as records is one, `doc:<path>` of
+    // type `document`, state `untyped`; an adopted one is of its type,
+    // state `adopted` (authored in docs/types.toml). The rest are already
+    // records in their own form.
+    let index = corpus.documents();
+    for d in &index.docs {
+        let (kind, value, provenance) = match &d.governor {
+            crate::doc_index::Governor::Untyped => {
+                (crate::doc_index::UNTYPED_TYPE, "untyped", "computed")
+            }
+            crate::doc_index::Governor::Adopted(t) => (t.as_str(), "adopted", "authored"),
+            _ => continue,
+        };
+        let id = d.id();
+        b.record(
+            id.clone(),
+            kind,
+            d.path.clone(),
+            file_digest(&repo.root.join(&d.path)).unwrap_or_else(|| digest(b"")),
+            None,
+        );
+        b.states.insert(State {
+            record: id,
+            kind: "document".to_owned(),
+            value: value.to_owned(),
+            provenance: provenance.to_owned(),
+            facet: None,
+            refines: None,
+            lapsed: false,
+        });
+    }
+    for f in &index.faults {
+        b.diagnose(f.rule, &f.file, f.message.clone());
     }
 
     // ---- Every relation names a record, or is reported.

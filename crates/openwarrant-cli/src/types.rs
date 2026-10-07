@@ -248,9 +248,15 @@ const BUILTIN_PACKS: [(&str, &[(&str, &str)]); 2] = [
         "ops",
         &[
             ("pack.toml", include_str!("../../../packs/ops/pack.toml")),
-            ("runbook.toml", include_str!("../../../packs/ops/runbook.toml")),
+            (
+                "runbook.toml",
+                include_str!("../../../packs/ops/runbook.toml"),
+            ),
             ("slo.toml", include_str!("../../../packs/ops/slo.toml")),
-            ("rollout.toml", include_str!("../../../packs/ops/rollout.toml")),
+            (
+                "rollout.toml",
+                include_str!("../../../packs/ops/rollout.toml"),
+            ),
             (
                 "incident-review.toml",
                 include_str!("../../../packs/ops/incident-review.toml"),
@@ -260,7 +266,10 @@ const BUILTIN_PACKS: [(&str, &[(&str, &str)]); 2] = [
     (
         "quality",
         &[
-            ("pack.toml", include_str!("../../../packs/quality/pack.toml")),
+            (
+                "pack.toml",
+                include_str!("../../../packs/quality/pack.toml"),
+            ),
             (
                 "threat-model.toml",
                 include_str!("../../../packs/quality/threat-model.toml"),
@@ -442,14 +451,11 @@ pub fn add(
             .ok()
             .is_some_and(|on_disk| &on_disk == b)
     });
-    let recorded = doc_index::read_types(repo)
-        .ok()
-        .flatten()
-        .is_some_and(|t| {
-            t.packs
-                .iter()
-                .any(|p| p.name == manifest.name && p.digest == pack_digest)
-        });
+    let recorded = doc_index::read_types(repo).ok().flatten().is_some_and(|t| {
+        t.packs
+            .iter()
+            .any(|p| p.name == manifest.name && p.digest == pack_digest)
+    });
     if same && recorded {
         report.push(Diagnostic::pass(
             "types.pack-installed",
@@ -910,9 +916,11 @@ pub fn check(corpus: &crate::corpus::Corpus, report: &mut Report) {
         let gone: Vec<&str> = p
             .profiles
             .iter()
-            .filter(|n| repo.profiles.document(n).is_none() && {
-                let n: &str = n;
-                !repo.profiles.names().contains(&n)
+            .filter(|n| {
+                repo.profiles.document(n).is_none() && {
+                    let n: &str = n;
+                    !repo.profiles.names().contains(&n)
+                }
             })
             .map(String::as_str)
             .collect();
@@ -959,7 +967,10 @@ mod tests {
             for e in std::fs::read_dir(root.join(dir)).unwrap().flatten() {
                 let p = Utf8PathBuf::from_path_buf(e.path()).unwrap();
                 if p.extension() == Some("toml") && p.file_name() != Some("pack.toml") {
-                    files.push((format!("{dir}/{}", p.file_name().unwrap()), std::fs::read(&p).unwrap()));
+                    files.push((
+                        format!("{dir}/{}", p.file_name().unwrap()),
+                        std::fs::read(&p).unwrap(),
+                    ));
                 }
             }
         }

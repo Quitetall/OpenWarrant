@@ -237,13 +237,7 @@ fn skipped(name: &str) -> bool {
 /// tree and the ticket tree.
 fn pruned(repo: &Repository) -> BTreeSet<String> {
     let mut out = BTreeSet::new();
-    out.insert(
-        repo.config
-            .paths
-            .warrants
-            .trim_end_matches('/')
-            .to_owned(),
-    );
+    out.insert(repo.config.paths.warrants.trim_end_matches('/').to_owned());
     if let Ok(store) = crate::ticket::Store::open(repo, None) {
         out.insert(repo.relative(&store.dir));
     }
