@@ -679,31 +679,40 @@ enum Command {
         #[command(subcommand)]
         command: Option<RoadmapCommand>,
     },
-    /// Initialize repository configuration and directories (§71.1). With no
-    /// `--namespace`, at a terminal, it asks — and walks the whole setup:
-    /// who signs, the SAS, the first Warrant (OW-WAR-0112).
+    /// Initialize repository configuration and directories (§71.1). Asks
+    /// nothing and writes no signing setup: `openwarrant.toml`, the record
+    /// directories and AGENTS.md. Without `--namespace` one is derived from
+    /// the directory name. `--program` adds the sign-off scaffold (a SAS,
+    /// authority examples, a first Warrant); `--guided`, at a terminal, walks
+    /// the whole setup as a conversation (OW-WAR-0112).
     Init {
         /// Namespace prefixing every local alias, e.g. `OW` in `OW-WAR-0001`.
-        /// Required unless `war init` runs at a terminal, where it is asked.
+        /// Derived from the directory name (or `--program`'s name) when not
+        /// given: one word is that word, uppercased, several their initials.
         #[arg(long)]
         namespace: Option<String>,
         /// Project name. Defaults to the directory name.
         #[arg(long, conflicts_with = "program")]
         name: Option<String>,
-        /// Scaffold a whole program: a SAS the tool reads, the authority
-        /// examples, the `war check` gate, and a first Warrant with real
-        /// atoms. `war check` on the result exits 0.
+        /// Scaffold a whole program for sign-off: a SAS the tool reads, the
+        /// authority examples, the `war check` gate, and a first Warrant with
+        /// real atoms. `war check` on the result exits 0.
         #[arg(long, value_name = "PROGRAM")]
         program: Option<String>,
-        /// Never ask, even at a terminal: `--namespace` is then required and
-        /// only the examples are written, exactly as a script gets them.
+        /// Ask the setup questions at a terminal: who signs, the SAS, the
+        /// first Warrant. Refused without a terminal; plain `war init` asks
+        /// nothing.
+        #[arg(long, conflicts_with_all = ["non_interactive", "namespace"])]
+        guided: bool,
+        /// Never ask. Plain `war init` already asks nothing; the flag is kept
+        /// so scripts that pass it keep working.
         #[arg(long)]
         non_interactive: bool,
         /// Where governed work begins in a repository with history: the
         /// commit recorded as `[adoption] baseline` (OW-WAR-0124). Defaults
         /// to HEAD when there are commits; refused, with nothing written,
         /// unless it names a commit in HEAD's history.
-        #[arg(long, value_name = "COMMIT", requires = "namespace")]
+        #[arg(long, value_name = "COMMIT", conflicts_with = "guided")]
         baseline: Option<String>,
     },
     /// Write the AGENTS.md this repository ships, for the repository's
@@ -2013,37 +2022,61 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             namespace,
             name,
             program,
-            non_interactive,
+            guided,
+            non_interactive: _,
             baseline,
         } => {
             let chosen = baseline
                 .as_deref()
                 .map_or(init::Baseline::Head, init::Baseline::Named);
+            // The conversation is opt-in (M9): only `--guided` asks, and only
+            // at a real terminal. A script, a pipe or `--json` is refused by
+            // name and never meets a prompt it cannot answer.
+            if guided {
+                if cli.json || !sign::at_a_terminal() {
+                    return Err(Box::new(repo::RepoError::Message(
+                        "`war init --guided` asks the setup questions, so it needs a terminal. \
+                         Plain `war init` asks nothing and derives a namespace; `--namespace \
+                         <NS>` picks one, and `--program <name>` adds the sign-off scaffold"
+                            .to_owned(),
+                    )));
+                }
+                init::guided(root, program.as_deref())?;
+                return Ok(EXIT_OK);
+            }
             match (namespace, program) {
                 (Some(namespace), Some(program)) => {
                     init::run_program_with(&program, &namespace, root, chosen)?;
                 }
-                (Some(namespace), None) => {
+                (None, Some(program)) => {
+                    // M9: `--program` without `--namespace` derives one from
+                    // the program's name, letters only (it prefixes
+                    // `<NS>-SAS-RQ-001`), instead of refusing.
+                    let derived = init::derive_namespace(&program, true);
+                    init::run_program_with(&program, &derived, root, chosen)?;
+                    println!(
+                        "namespace {derived}, from the program's name (`--namespace` picks \
+                         another)"
+                    );
+                }
+                (namespace, None) => {
                     // OW-WAR-0147 / t-67ed: most work here starts as a
                     // ticket; the start hint is the first line after
                     // `initialized`. Plain `init` only: the `--program`
                     // scaffold's three lines are pinned (99-init, 59-adoption).
-                    init::run_with(&namespace, name.as_deref(), root, chosen, true)?;
-                }
-                // No namespace: a conversation, and only at a real terminal.
-                // A script, a pipe, `--json` or `--non-interactive` gets the
-                // refusal below, byte-for-byte what it always got from a
-                // missing required flag, and never a prompt it cannot answer.
-                (None, program) => {
-                    if non_interactive || cli.json || !sign::at_a_terminal() {
-                        return Err(Box::new(repo::RepoError::Message(
-                            "`--namespace` is required here. At a terminal `war init` asks for \
-                             it and walks the setup; a script passes `--namespace <NS>` (and \
-                             `--program <name>` for a whole scaffold)"
-                                .to_owned(),
-                        )));
+                    // M9: no `--namespace` means one derived from the
+                    // directory name, never a refusal and never a question.
+                    let dir = init::init_root(root.clone())?;
+                    let derived = namespace.is_none().then(|| {
+                        init::derive_namespace(dir.file_name().unwrap_or_default(), false)
+                    });
+                    let ns = namespace.or_else(|| derived.clone()).unwrap_or_default();
+                    init::run_with(&ns, name.as_deref(), root, chosen, true)?;
+                    if let Some(d) = derived {
+                        println!(
+                            "namespace {d}, from the directory name (`--namespace` picks another)"
+                        );
                     }
-                    init::guided(root, program.as_deref())?;
                 }
             }
             Ok(EXIT_OK)

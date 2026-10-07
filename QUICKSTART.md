@@ -4,9 +4,12 @@
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash   # or cargo install --path crates/openwarrant-cli
-war init --namespace APP
+war init                       # asks nothing; the namespace comes from the directory name (--namespace APP picks one)
 war create "Describe the outcome" --item "First step" --item "Second step"
 ```
+
+Ordinary coding needs none of this: tickets are there when you want the work
+tracked.
 
 Then work it — no signature, no human step, each command well under a second:
 
@@ -90,11 +93,14 @@ cp docs/authority/allowed_signers.example docs/authority/allowed_signers  # edit
 ssh-add -c ~/.ssh/id_ed25519      # -c: every signature asks you. Test Deny before you trust Allow.
 ```
 
-Or let `war init` at a terminal ask for these and write both files from your
-answers — once; no command edits them afterwards, and the agent entry it writes
-is `performer` only (OW-ADR-0021, Consequences). Read the comments in the
-examples; the one thing `war` cannot check is that the key was loaded with `-c`
-— `war init` asks, and records your answer as yours.
+Or let `war init --guided` at a terminal ask for these and write both files
+from your answers — once; no command edits them afterwards, and the agent entry
+it writes is `performer` only (OW-ADR-0021, Consequences). In a repository
+already set up, `war doctor --fix-signing` offers the same for whichever file
+is missing, and `war doctor` alone says what the signing setup lacks without
+signing anything. Read the comments in the examples; the one thing `war`
+cannot check is that the key was loaded with `-c` — `war init --guided` asks,
+and records your answer as yours.
 
 ## 3. Accept the SAS
 
@@ -144,9 +150,10 @@ steps announce themselves when the agent reaches them.
 
 Claude Code: add this repository as a plugin (`claude plugin marketplace add
 <path>`, `/plugin install openwarrant@openwarrant`) — the skill, the MCP server
-and two hooks (a pin guard on edits, a stop check on `war check`). Any other
-harness: `war mcp` over stdio; `war mcp --describe` lists the tools and what
-is deliberately not one.
+and two hooks (an edit guard for generated and pinned files, active only in a
+repository with `openwarrant.toml`, and an end-of-turn check that reports
+`war check` errors without blocking). Any other harness: `war mcp` over
+stdio; `war mcp --describe` lists the tools and what is deliberately not one.
 
 ## Worked examples
 
