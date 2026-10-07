@@ -20,6 +20,7 @@ pub mod deliverable;
 pub mod document;
 pub mod preflight;
 pub mod presence;
+pub mod projection;
 pub mod rationale;
 pub mod record;
 pub mod relation;

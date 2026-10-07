@@ -894,6 +894,29 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
     // The ADR Overview covers the whole corpus, so it is compiled once rather
     // than per Warrant, and only on a full run.
     if only.is_none() {
+        // OW-WAR-0148 M6: each declared document's projections, rendered
+        // before any is written (one refused for its size writes none) and
+        // written before the corpus-wide views are derived, which read the
+        // working tree these writes change. Rendered from a corpus of their
+        // own for that reason: `shared` derives nothing until they are on disk.
+        let documents = crate::render_cmd::compiled(&crate::corpus::Corpus::new(repo))?
+            .into_iter()
+            .map(|(path, bytes)| bytes.map(|b| (path, b)))
+            .collect::<Result<Vec<_>, _>>()?;
+        for (path, contents) in documents {
+            if let Some(parent) = path.parent() {
+                fs::create_dir_all(parent).map_err(|source| RepoError::Io {
+                    context: format!("could not create {parent}"),
+                    source,
+                })?;
+            }
+            let before = atomic::prestate(&path)?;
+            if before != atomic::Prestate::of(contents.as_bytes()) {
+                atomic::write_if(&path, &contents, &before)?;
+                written += 1;
+            }
+            println!("compiled {}", repo.relative(&path));
+        }
         let mut projections = vec![
             warrant_overview_with(&shared)?,
             adr_overview(repo)?,

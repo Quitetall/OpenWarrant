@@ -80,6 +80,10 @@ fn entries() -> Vec<Entry> {
         // pack version does not move.
         entry::<crate::host::Request>("liminal-request"),
         entry::<crate::host::Response>("liminal-response"),
+        // OW-WAR-0148 M6: a rendering of a declared projection (`war render
+        // --json`), every line traced to a record and its revision. Additive:
+        // the pack version does not move.
+        entry::<openwarrant_compiler::project::Projection>("projection"),
     ]
 }
 

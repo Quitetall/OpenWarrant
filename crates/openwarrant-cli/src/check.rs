@@ -388,6 +388,8 @@ pub fn run_with(
     // Silent where there are none, so such a program checks as it did.
     if only.is_none() {
         crate::records::check(shared_corpus, &mut report);
+        // OW-WAR-0148 M6: declared documents. Silent where there are none.
+        crate::render_cmd::check(shared_corpus, &mut report);
     }
 
     // Accepting a SAS revision is the act that makes a specification normative
@@ -508,6 +510,11 @@ pub fn run_with(
                 }
             }
             Err(e) => drift_check(repo, Err(e), "generated", &mut report),
+        }
+        // OW-WAR-0148 M6: every declared document's projections, rendered
+        // fresh; a hand-edit, or a file no document produces, is drift.
+        if only.is_none() {
+            crate::render_cmd::check_generated(shared_corpus, &mut report);
         }
     }
 

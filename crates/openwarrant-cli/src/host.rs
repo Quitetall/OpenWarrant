@@ -842,23 +842,47 @@ fn projection_kind_known(kind: &str) -> bool {
     PROJECTION_KINDS.contains(&kind) || m6_render_seam_kinds().contains(&kind)
 }
 
-/// SEAM (OW-WAR-0148 M6): the projection kinds M6's pure render function
-/// (`war render`) answers. Empty until M6 merges; then it returns M6's kind
-/// list, and [`m6_render_seam`] calls its render function.
+/// The projection kinds M6's pure renderer answers (OW-WAR-0148 M6):
+/// `document`, a declared document's projections (`docs/records/<area>/
+/// documents.toml`), by subject `<area>/<name>` or `*` for every one.
 fn m6_render_seam_kinds() -> &'static [&'static str] {
-    &[]
+    &["document"]
 }
 
-/// SEAM (OW-WAR-0148 M6): render `kind` of `subject` with M6's pure render
-/// function over this corpus and model, as `(basis-relative path, bytes)`.
-/// `None` until M6 merges.
+/// Render `kind` of `subject` with the same call `war compile` makes
+/// (`render_cmd::compile_all`, bounded by each document's budget), over this
+/// corpus and model, as `(basis-relative path, bytes)`. One implementation:
+/// a hosted rendering cannot differ from a standalone one.
 fn m6_render_seam(
-    _corpus: &Corpus,
-    _model: &Model,
-    _kind: &str,
-    _subject: &str,
+    corpus: &Corpus,
+    model: &Model,
+    kind: &str,
+    subject: &str,
 ) -> Option<Result<Vec<(String, String)>, String>> {
-    None
+    if kind != "document" {
+        return None;
+    }
+    let repo = corpus.repo();
+    let (declared, faults) = crate::render_cmd::documents(repo);
+    if let Some(f) = faults.first() {
+        return Some(Err(format!("the documents declaration is refused: {f:?}")));
+    }
+    let chosen: Vec<_> = declared
+        .into_iter()
+        .filter(|d| subject == "*" || d.id == subject)
+        .collect();
+    if chosen.is_empty() {
+        return Some(Err(format!("{subject} is no declared document of this basis")));
+    }
+    let input = crate::render_cmd::input(corpus, model);
+    let mut views = Vec::new();
+    for c in crate::render_cmd::compile_all(corpus, &chosen, &input, true) {
+        match c.rendered {
+            Ok(p) => views.push((repo.relative(&c.path).to_string(), p.content)),
+            Err(e) => return Some(Err(format!("{}: {}: {e}", e.rule(), c.document.id))),
+        }
+    }
+    Some(Ok(views))
 }
 
 /// A Warrant's committed views, exactly as `war compile` renders them.

@@ -21,9 +21,9 @@
 //!   whose progress is recomputed from them, with their achievement now.
 //! - **projections** — the generated views known to include an affected
 //!   Warrant or phase: the Warrant's own `generated/`, the corpus-wide
-//!   status and overview, the roadmap view. Declared projection targets
-//!   (M6) join this list with the records each selects; until then a record
-//!   atom's records are in no projection, and none is invented for them.
+//!   status and overview, the roadmap view; and (M6) exactly the declared
+//!   document projections that select the subject (its bytes reach them),
+//!   each with the affected records it also selects.
 //!
 //! An id that is not a record of the model is refused by name
 //! (`impact.unknown-record`). Nothing is written.
@@ -148,8 +148,9 @@ pub struct Phase {
 pub struct Projection {
     /// Repository-relative.
     pub path: String,
-    /// `warrant` (that Warrant's own view), `corpus` (every Warrant's) or
-    /// `roadmap` (every phase's). M6 adds declared projection targets.
+    /// `warrant` (that Warrant's own view), `corpus` (every Warrant's),
+    /// `roadmap` (every phase's) or `declared` (a document's projection that
+    /// selects the subject, OW-WAR-0148 M6).
     pub scope: String,
     /// The affected records it includes.
     pub selects: Vec<String>,
@@ -429,6 +430,10 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
             "roadmap",
             &p.id,
         );
+    }
+    // OW-WAR-0148 M6: the declared projections that select the subject.
+    for p in crate::render_cmd::selecting(corpus, model, &subject.id, &reached) {
+        projections.insert(p.path.clone(), p);
     }
     let projections: Vec<Projection> = projections.into_values().collect();
 

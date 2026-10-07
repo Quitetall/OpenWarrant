@@ -31,6 +31,9 @@ g add -A && g commit -qm baseline
 
 # python3 helpers: write a case from a request (and its declared observables)
 case_out() { # <name> <request-file> ; answer it, record exit and observables
+    # ONLY_CASE=<name> writes that case alone: the scratch program is new on
+    # every run, so a full run rewrites every case's bytes.
+    [[ -n "${ONLY_CASE:-}" && "$1" != "$ONLY_CASE" ]] && return 0
     local name="$1" req="$2" dir="$CASES/$1" code=0
     mkdir -p "$dir"
     cp "$req" "$dir/request.json"
@@ -78,6 +81,16 @@ w compile >/dev/null
 g add -A && g commit -qm warrant
 w host --export --projection 'warrant:*' > "$D/req"
 case_out warrant "$D/req"
+
+# 3b. The four document types (OW-WAR-0148 M6) and their declared
+#     projections over the password-reset records: a hosted rendering is the
+#     one `war compile` writes.
+cp "$R/profiles/prd.toml" "$R/profiles/architecture.toml" "$R/profiles/test-plan.toml" "$R/profiles/agent-packet.toml" "$D/profiles/"
+cp "$R/docs/records/password-reset/20-product.md" "$R/docs/records/password-reset/30-architecture.md" "$R/docs/records/password-reset/documents.toml" "$D/docs/records/password-reset/"
+w compile >/dev/null
+g add -A && g commit -qm documents
+w host --export --projection 'document:*' > "$D/req"
+case_out documents "$D/req"
 
 # 4. Compiled, not established: the request holds a Node the basis does not
 #    compile to (REQ-pr1 at another revision).

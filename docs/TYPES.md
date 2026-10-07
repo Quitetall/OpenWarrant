@@ -275,11 +275,142 @@ it is what its change reaches; what it points at is not), and lists
 - **phases** the affected Warrants are placed in, whose progress is
   recomputed from them;
 - **projections** known to include an affected Warrant or phase: its own
-  `generated/` views, the corpus status and overview, the roadmap view.
-  Declared projection targets (M6) join this list with the records each
-  selects; until then a record atom's records are in no projection.
+  `generated/` views, the corpus status and overview, the roadmap view; and
+  exactly the declared document projections that **select** the record
+  (scope `declared`, below), each with the affected records it also
+  selects. A projection that only names the record by id is not listed:
+  its bytes do not move when the record does.
 - **inert**: namespaced relations into any of them, not walked.
 
 An id that is no record of the model is refused, `impact.unknown-record`.
 Nothing is written, and nothing is cleared: a stale verdict is a record of
 what was judged, not a fault to delete.
+
+## Projections
+
+One set of records, many documents. A **document type** is a profile with
+`form = "document"`: it composes records and declares **projections**, each a
+pure function from a selection of the compiled model to bytes. Nothing of a
+document is claimed, accepted, authorized, verified or resolved: its
+capabilities are chosen from `structure` and `links` (the default), and any
+other is refused, `profile.capabilities`. A Warrant manifest cannot name one;
+the authority over a record, where it has any, is the Warrant that governs
+it. `docs/DOCUMENTS.md` is the walk-through.
+
+Four ship in `profiles/`, all rendering the same records:
+
+| type | what it shows |
+|---|---|
+| `prd` | outcomes (quoted), requirements with the outcome each implements and what constrains it, constraints, non-goals, open questions |
+| `architecture` | decisions with the alternatives each was chosen over (`selected_over`) and its consequences (`part_of` the decision), interfaces (a table), constraints; requirements named by id, not restated |
+| `test-plan` | a coverage table, then each requirement and constraint with the obligations that `evaluates` it, their scope, evidence and verdict, and whether each judged the record's current revision or an earlier one (stale) |
+| `agent-packet` | the records one stage needs from its root: the work, its outcome, the rules it must obey, the alternatives already rejected, consequences, interfaces, how it will be checked; each with source and revision; within a 16000-byte budget |
+
+### Declaring a projection
+
+```toml
+schema = "oh.war/profile/v1"
+name = "prd"
+form = "document"
+
+[records]                      # the nouns it shows; a record atom may be
+types = ["outcome", "requirement", "non_goal"]   # governed by `prd` to hold them
+[relations]
+allow = ["implements", "constrains"]
+
+[[projections]]
+name = "prd"                   # unique across the program's document types
+title = "{title}: product requirements"
+intro = "…"                    # optional prose under the title
+renderer = "markdown"          # or "json"
+max_bytes = 16000              # optional budget; over it is refused, never truncated
+sources = "Sources"            # the heading of the provenance table
+
+[projections.select]
+types = ["outcome", "requirement", "non_goal", "obligation"]
+through = ["in:evaluates"]     # relations walked from the seeds
+depth = 2                      # optional bound on the walk
+
+[[projections.sections]]
+heading = "Requirements"
+intro = "…"
+block = "list"
+types = ["requirement"]
+annotate = ["out:implements", "in:constrains"]
+empty = "No requirement is recorded yet."
+```
+
+**Selection.** The walk starts at the subject's seeds — a document's
+`roots`, or every record of its area — and follows `select.through`:
+`in:<kind>` walks incoming relations, `out:<kind>` outgoing ones, a bare kind
+both ways, and `in:<kind>:<type>` only to records of that type. Only records
+of `select.types` are admitted, to `depth` steps.
+
+**The template vocabulary.** Each section is one block over the admitted
+records of its `types` (`of = "roots"` or `"rest"` narrows to the seeds or
+the others), in authored order:
+
+| block | renders | options |
+|---|---|---|
+| `heading` | the heading and its intro | — |
+| `list` | a record list: `- **ID.** text` bullets, or a `### ID` block per record | `style = "bullets"\|"blocks"`, `show = "body"\|"summary"`, `annotate`, `provenance`, `fields` |
+| `table` | records × fields | `columns`: `id`, `type`, `summary`, `revision`, `source`, `field:<name>`, `in:<kind>`, `out:<kind>`, each optionally `=<header>` |
+| `tree` | each record with its children through named relations | `children = [{ relation = "out:selected_over", label = "…", empty = "…" }]`, `annotate`, `fields`, `show` |
+| `quote` | each record's body, quoted, with its id | — |
+
+An annotation reads the relation from the record's side: `out:implements`
+"implements OUT-pr1", `in:constrains` "constrained by CON-pr1". Fields are
+what a record carries beside its body: an obligation's `scope`, `evidence`
+and `verdict` (read from the corpus), an item's `state`.
+
+**Refused when the profile is read**, `profile.projection`: a record type the
+profile does not declare (the kernel's `obligation` and `item` need no
+declaration), a relation kind it does not allow, a namespaced kind (inert; a
+projection may not give it meaning), a section type the selection does not
+admit, an unknown block, column or renderer, a projection name used twice.
+
+### What a rendering selects, exactly
+
+A rendering **selects** a record when the record's bytes reach the output:
+it is shown, or it authored an incoming relation an annotation shows (only
+selected records' incoming relations are shown). Every rendering ends with a
+provenance table of each selected record and its revision, so the bytes move
+when a selected record changes and never when another does. A record named
+only at the far end of an outgoing relation — the architecture view's
+"Constrains REQ-pr1" — is **mentioned**, not selected. `war impact` lists
+exactly the declared projections that select its record.
+
+### Trace
+
+`war render … --json` returns `oh.war/projection/v1`: the content, its
+digest and size, the budget, `selects` (each record's id, type, revision,
+source and the bytes rendered from it), `mentions`, and `trace` — every
+output line in runs, each with its origin: `record` (id and revision),
+`document` (the declaration's id and revision: the title) or `template` (the
+document type and its profile file's digest: headings, intros, table
+headers).
+
+### Documents, `war render` and `war compile`
+
+An area declares its documents in `docs/records/<area>/documents.toml`
+(`oh.war/documents/v1`): each a `type`, optionally a `name` (default: the
+type), `title` (default: the file's), `roots` (default: every record of the
+area) and `max_bytes`. Its id is `<area>/<name>`.
+
+```text
+war render <projection> [--of <document | area | record>] [--max-bytes N] [--json]
+```
+
+prints the rendering and writes nothing. `war compile` writes each
+declared document's projections to `docs/records/<area>/generated/`; `war
+check --generated` renders them again and compares.
+
+| rule | what |
+|---|---|
+| `documents.well-formed` | (pass) every declaration read, each of a document type |
+| `documents.malformed`, `documents.type-unknown`, `documents.duplicate`, `documents.root-unknown` | a declaration refused |
+| `projection.drift` | a generated projection differs from a fresh rendering (a hand-edit), or a file under `generated/` no document produces |
+| `projection.missing` | a declared projection not yet compiled |
+| `projection.compile` | a declared projection that cannot be rendered (over budget, an unknown root) |
+| `projection.over-budget` | a rendering over its budget: refused by name with the records that cost the most; nothing is truncated |
+| `projection.unknown`, `projection.of-missing`, `projection.of-unknown`, `projection.root-unknown` | `war render` was asked for something that is not there |
