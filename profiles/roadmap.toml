@@ -1,0 +1,34 @@
+# The roadmap (OW-ADR-0023) as a type (OW-WAR-0148 M18): one store, read
+# where it is, and no longer a special case of the kernel.
+#
+# Its records are the roadmap store's: docs/roadmap/roadmap.toml, its atoms
+# and revisions/<n>.toml. Nothing here changes how that store is read or
+# signed. A revision's digest is the store's own, and `war sign roadmap`
+# accepts it as before. What this file says is what the type is made of and
+# which rules apply to it, each through a capability it selects:
+#
+# - structure: the record parses and its phases are acyclic
+#   (roadmap.malformed, roadmap.cycle, roadmap.valid, roadmap.status-claim).
+# - links: a Warrant names a phase that exists and a placement holds
+#   (roadmap.unknown-phase, roadmap.placement-*, roadmap.assigned,
+#   roadmap.unassigned). A phase reaches the fixed state `achieved` once
+#   its exit Warrant's resolution is recorded.
+# - acceptance: a revision is in force once a human accepts it
+#   (roadmap.accepted, roadmap.unaccepted, and its signature). The roadmap
+#   and its phases reach the fixed state `accepted`.
+#
+# It declares no [[states]] of its own: a declared state is entered in a
+# Warrant's or a ticket's journal, and nothing journals a phase.
+# docs/TYPES.md, "Every development document is a type".
+schema = "oh.war/profile/v1"
+name = "roadmap"
+form = "document"
+encoding = "roadmap"
+note = "The order the program is built in: phases, each with its exit and the phases it needs, held in docs/roadmap/ and accepted by a human one revision at a time."
+capabilities = ["structure", "links", "acceptance"]
+
+[records]
+types = ["roadmap", "phase"]
+
+[relations]
+allow = ["part_of", "depends_on"]

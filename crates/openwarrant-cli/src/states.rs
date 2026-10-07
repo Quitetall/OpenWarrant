@@ -275,10 +275,21 @@ pub fn warrant_holding(corpus: &Corpus) -> Result<Vec<Holding>, RepoError> {
     Ok(out)
 }
 
-/// `achieved` and `accepted` for roadmap phases.
+/// `achieved` and `accepted` for roadmap phases, each only where the
+/// `roadmap` type selects the capability that produces it (OW-WAR-0148
+/// M18): `links` for `achieved`, `acceptance` for `accepted`. Beside them,
+/// the store types' own records: the roadmap and the specification
+/// `accepted` while their bytes are an accepted revision's, and an ADR
+/// another supersedes `superseded`.
 fn phase_holding(corpus: &Corpus) -> Vec<Holding> {
+    use openwarrant_core::Capability as C;
+    use openwarrant_core::projection::Store;
+    let repo = corpus.repo();
+    let roadmap = crate::types::caps(repo, Store::Roadmap);
     let mut out = Vec::new();
-    if let Ok(status) = corpus.status() {
+    if roadmap.has(C::Links)
+        && let Ok(status) = corpus.status()
+    {
         for o in &status.objectives {
             if let (Some(r), openwarrant_core::status::Achieved::Recorded) =
                 (&o.roadmap_ref, &o.achieved)
@@ -291,7 +302,8 @@ fn phase_holding(corpus: &Corpus) -> Vec<Holding> {
             }
         }
     }
-    if let Ok(Some(rm)) = corpus.roadmap()
+    if roadmap.has(C::Acceptance)
+        && let Ok(Some(rm)) = corpus.roadmap()
         && rm.accepted().is_some()
     {
         for p in &rm.phases.phases {
@@ -301,6 +313,27 @@ fn phase_holding(corpus: &Corpus) -> Vec<Holding> {
                 episode: None,
             });
         }
+        if rm.is_accepted() {
+            out.push(Holding {
+                record: crate::model::roadmap_id(rm),
+                state: FixedState::Accepted,
+                episode: None,
+            });
+        }
+    }
+    if let Some(spec) = crate::model::spec_accepted(corpus) {
+        out.push(Holding {
+            record: spec,
+            state: FixedState::Accepted,
+            episode: None,
+        });
+    }
+    for adr in crate::model::adrs_superseded(corpus) {
+        out.push(Holding {
+            record: adr,
+            state: FixedState::Superseded,
+            episode: None,
+        });
     }
     out
 }

@@ -1081,6 +1081,60 @@ impl ProfileRegistry {
         Ok(registry)
     }
 
+    /// [`Self::with_definitions`] over a program's own files, then each
+    /// built-in type (OW-WAR-0148 M18) the program does not declare itself:
+    /// one whose name no file of the program uses and, for a store's type,
+    /// whose store no type of the program already reads. A program's own
+    /// `profiles/roadmap.toml` replaces the built-in one; it is never merged
+    /// with it. A built-in file is refused like any other.
+    pub fn with_builtins<'a, 'b>(
+        sources: impl IntoIterator<Item = (&'a str, &'a [u8])>,
+        builtins: impl IntoIterator<Item = (&'b str, &'b [u8])>,
+    ) -> Result<Self, ProfileError> {
+        let mut registry = Self::with_definitions(sources)?;
+        for (file, bytes) in builtins {
+            let name = file_stem(file);
+            if registry.definitions.contains_key(name) || registry.documents.contains_key(name) {
+                continue;
+            }
+            // A store the program's own type already reads: the program's
+            // type stands, and the built-in one is not read.
+            let store = std::str::from_utf8(bytes)
+                .ok()
+                .and_then(|t| toml::from_str::<toml::Value>(t).ok())
+                .and_then(|v| {
+                    v.get("encoding")
+                        .and_then(toml::Value::as_str)
+                        .and_then(crate::projection::Store::parse)
+                });
+            if store.is_some_and(|s| registry.store_type(s).is_some()) {
+                continue;
+            }
+            let Some(document) = parse_document_file(file, bytes, &registry)? else {
+                continue;
+            };
+            registry.documents.insert(document.name.clone(), document);
+        }
+        Ok(registry)
+    }
+
+    /// The type that reads `store` (OW-WAR-0148 M18), if the program has one.
+    #[must_use]
+    pub fn store_type(
+        &self,
+        store: crate::projection::Store,
+    ) -> Option<&crate::projection::DocumentProfile> {
+        self.documents.values().find(|d| d.encoding == Some(store))
+    }
+
+    /// The capabilities of the type that reads `store`: what its rules are
+    /// gated on. Empty when no type reads it, so none of its rules fire.
+    #[must_use]
+    pub fn store_capabilities(&self, store: crate::projection::Store) -> Capabilities {
+        self.store_type(store)
+            .map_or(Capabilities::default(), |d| d.capabilities)
+    }
+
     /// Resolve a profile name, or refuse it as unknown (§16.3).
     pub fn resolve(&self, name: &str) -> Result<Profile, RoleError> {
         match self.definitions.get(name) {
@@ -1239,6 +1293,19 @@ fn parse_document_file(
             name: document.name,
         });
     }
+    if let Some(store) = document.encoding
+        && let Some(other) = registry.store_type(store)
+    {
+        return Err(ProfileError::BadDocument {
+            file: file.to_owned(),
+            name: document.name.clone(),
+            rule: "profile.invalid",
+            detail: format!(
+                "encoding `{store}` is already read by document type {}; one store has one type",
+                other.name
+            ),
+        });
+    }
     for p in &document.projections {
         if let Some((other, _)) = registry.projection(&p.name) {
             return Err(ProfileError::BadDocument {
@@ -1254,6 +1321,12 @@ fn parse_document_file(
         }
     }
     Ok(Some(document))
+}
+
+/// A profile file's stem: `profiles/roadmap.toml` is `roadmap`.
+fn file_stem(file: &str) -> &str {
+    let stem = file.strip_suffix(".toml").unwrap_or(file);
+    stem.rsplit('/').next().unwrap_or(stem)
 }
 
 fn is_profile_name(name: &str) -> bool {
@@ -2468,5 +2541,53 @@ stub = "# Checklist"
             ProfileRegistry::with_definitions([("profiles/delivery.toml", core.as_slice())]),
             Err(ProfileError::CoreRedefined { .. })
         ));
+    }
+    /// OW-WAR-0148 M18: a built-in type is admitted where the program
+    /// declares none of its name or store; the program's own replaces it,
+    /// and two types reading one store are refused.
+    #[test]
+    fn built_in_types_yield_to_the_programs_own() {
+        use crate::projection::Store;
+        let builtin = b"schema = \"oh.war/profile/v1\"\nname = \"roadmap\"\nform = \"document\"\n\
+            encoding = \"roadmap\"\n";
+        let r = ProfileRegistry::with_builtins(
+            std::iter::empty(),
+            [("(built in)/roadmap.toml", builtin.as_slice())],
+        )
+        .unwrap();
+        assert_eq!(
+            r.store_capabilities(Store::Roadmap),
+            Store::Roadmap.capabilities()
+        );
+        assert_eq!(r.store_capabilities(Store::Sas), Capabilities::default());
+        // The program narrows it: its own file wins, whole.
+        let narrowed = b"schema = \"oh.war/profile/v1\"\nname = \"roadmap\"\nform = \"document\"\n\
+            encoding = \"roadmap\"\ncapabilities = [\"structure\"]\n";
+        let r = ProfileRegistry::with_builtins(
+            [("profiles/roadmap.toml", narrowed.as_slice())],
+            [("(built in)/roadmap.toml", builtin.as_slice())],
+        )
+        .unwrap();
+        assert!(
+            !r.store_capabilities(Store::Roadmap)
+                .has(Capability::Acceptance)
+        );
+        // A type of another name reading the same store also replaces it.
+        let mine = b"schema = \"oh.war/profile/v1\"\nname = \"plan\"\nform = \"document\"\n\
+            encoding = \"roadmap\"\ncapabilities = [\"structure\", \"links\"]\n";
+        let r = ProfileRegistry::with_builtins(
+            [("profiles/plan.toml", mine.as_slice())],
+            [("(built in)/roadmap.toml", builtin.as_slice())],
+        )
+        .unwrap();
+        assert_eq!(r.store_type(Store::Roadmap).unwrap().name, "plan");
+        assert!(r.document("roadmap").is_none());
+        // Two of the program's own reading one store: refused.
+        let e = ProfileRegistry::with_definitions([
+            ("profiles/plan.toml", mine.as_slice()),
+            ("profiles/roadmap.toml", narrowed.as_slice()),
+        ])
+        .unwrap_err();
+        assert!(e.to_string().contains("one store has one type"), "{e}");
     }
 }

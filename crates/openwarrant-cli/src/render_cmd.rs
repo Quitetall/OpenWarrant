@@ -335,6 +335,7 @@ pub fn input(corpus: &Corpus, model: &Model) -> Input {
             }
         }
     }
+    store_bodies(corpus, &mut bodies);
     let records = model
         .records
         .iter()
@@ -362,6 +363,204 @@ pub fn input(corpus: &Corpus, model: &Model) -> Input {
         })
         .collect();
     Input { records, relations }
+}
+
+/// A store's records' bodies and fields (OW-WAR-0148 M18), where its type
+/// reads the store: a phase's outcome with its title, exit, tier, members
+/// and achievement (the numbers `war plan roadmap` shows); the roadmap's
+/// intent; a section's and a requirement's title; an ADR's title with its
+/// status and decision date.
+fn store_bodies(corpus: &Corpus, bodies: &mut BTreeMap<String, Body>) {
+    use openwarrant_core::Capability as C;
+    use openwarrant_core::projection::Store;
+    let repo = corpus.repo();
+    if crate::types::has(repo, Store::Roadmap, C::Structure)
+        && let Ok(Some(rm)) = corpus.roadmap()
+    {
+        let phases_text = rm
+            .manifest
+            .atoms
+            .iter()
+            .filter(|a| a.role == "phases")
+            .min_by_key(|a| a.ordinal)
+            .and_then(|a| crate::vfs::read_to_string(rm.dir.join(&a.path)).ok())
+            .unwrap_or_default();
+        let line_of = |id: &str| -> Option<usize> {
+            let quoted = format!("\"{id}\"");
+            phases_text.lines().position(|l| {
+                let t = l.trim_start().trim_start_matches("- ");
+                t.starts_with("id:") && (t.contains(&quoted) || t.trim_end().ends_with(id))
+            })
+        };
+        let views: BTreeMap<String, crate::roadmap_cmd::PhaseView> = corpus
+            .status()
+            .ok()
+            .and_then(|st| crate::roadmap_cmd::view_with(repo, st).ok())
+            .map(|(_, v)| v.phases.into_iter().map(|p| (p.id.clone(), p)).collect())
+            .unwrap_or_default();
+        for p in &rm.phases.phases {
+            let mut fields = BTreeMap::new();
+            fields.insert("title".to_owned(), p.title.clone());
+            fields.insert("exit".to_owned(), p.exit.clone());
+            if let Some(v) = views.get(&p.id) {
+                fields.insert("achieved".to_owned(), v.achieved.clone());
+                fields.insert(
+                    "warrants".to_owned(),
+                    if v.members.is_empty() {
+                        "none".to_owned()
+                    } else {
+                        format!("{}: {}", v.members.len(), v.members.join(", "))
+                    },
+                );
+                if let Some(e) = &v.exit_warrant {
+                    fields.insert("exit_warrant".to_owned(), e.clone());
+                }
+                if let Some(t) = &v.tier {
+                    fields.insert("tier".to_owned(), t.trim().to_owned());
+                }
+            }
+            if !p.open.is_empty() {
+                fields.insert("no_warrant_yet".to_owned(), p.open.join(", "));
+            }
+            bodies.insert(
+                p.id.clone(),
+                (line_of(&p.id).map(|l| l + 1), p.outcome.clone(), fields),
+            );
+        }
+        let intent = rm
+            .manifest
+            .atoms
+            .iter()
+            .filter(|a| a.role == "intent")
+            .min_by_key(|a| a.ordinal)
+            .and_then(|a| crate::vfs::read_to_string(rm.dir.join(&a.path)).ok())
+            .map(|t| {
+                let body = crate::compile::atom_body(&t);
+                let body = body.trim_start();
+                body.strip_prefix("# ")
+                    .map_or(body, |rest| rest.split_once('\n').map_or("", |(_, r)| r))
+                    .trim()
+                    .to_owned()
+            })
+            .unwrap_or_default();
+        let mut fields = BTreeMap::new();
+        fields.insert(
+            "standing".to_owned(),
+            if rm.is_accepted() {
+                format!(
+                    "revision {} accepted",
+                    rm.accepted().map_or(0, |r| r.revision)
+                )
+            } else if let Some(p) = rm.pending() {
+                format!("revision {} proposed, awaiting acceptance", p.revision)
+            } else {
+                "not accepted: the atoms are no accepted revision".to_owned()
+            },
+        );
+        bodies.insert(crate::model::roadmap_id(rm), (None, intent, fields));
+    }
+    if crate::types::has(repo, Store::Sas, C::Structure)
+        && let Ok((_, bytes)) = repo.sas_document()
+    {
+        let text = String::from_utf8_lossy(&bytes);
+        let spec = crate::model::spec_id(repo, &text);
+        for section in openwarrant_core::sas_sections::split(&bytes)
+            .iter()
+            .filter(|s| s.kind == openwarrant_core::sas_sections::SectionKind::Numbered)
+        {
+            bodies.insert(
+                format!("{spec}-{}", section.id),
+                (None, section.title.clone(), BTreeMap::new()),
+            );
+            for sub in &section.subsections {
+                bodies.insert(
+                    format!("{spec}-{}", sub.id),
+                    (None, sub.title.clone(), BTreeMap::new()),
+                );
+            }
+        }
+        if let Ok(st) = corpus.status() {
+            for r in &st.requirements {
+                if let Some(title) = &r.title {
+                    bodies.insert(
+                        r.requirement.canonical(),
+                        (None, title.clone(), BTreeMap::new()),
+                    );
+                }
+            }
+        }
+    }
+    if crate::types::has(repo, Store::Adr, C::Structure)
+        && let Ok(adrs) = corpus.adrs()
+    {
+        for a in &adrs.records {
+            let mut fields = BTreeMap::new();
+            fields.insert("status".to_owned(), a.status.as_str().to_owned());
+            if let Some(d) = &a.decided {
+                fields.insert("decided".to_owned(), d.clone());
+            }
+            bodies.insert(a.local_alias.clone(), (None, a.title.clone(), fields));
+        }
+    }
+}
+
+/// The subject a store's type renders when nothing else is named
+/// (OW-WAR-0148 M18): the store as one document, seeded with its root
+/// records. `None` when the store has nothing to render (no roadmap record,
+/// no specification, no ADR).
+#[must_use]
+pub fn store_subject(corpus: &Corpus, profile: &DocumentProfile) -> Option<Subject> {
+    use openwarrant_core::projection::Store;
+    let repo = corpus.repo();
+    let store = profile.encoding?;
+    let program = repo.config.project.name.clone();
+    match store {
+        Store::Roadmap => {
+            let rm = corpus.roadmap().ok().flatten()?;
+            let root = crate::model::roadmap_id(rm);
+            let mut seeds = vec![root];
+            seeds.extend(rm.phases.phases.iter().map(|p| p.id.clone()));
+            Some(Subject {
+                id: profile.name.clone(),
+                kind: "document".to_owned(),
+                title: rm.manifest.program.clone(),
+                seeds,
+                revision: Some(format!(
+                    "sha256:{}",
+                    rm.digest.trim_start_matches("sha256:")
+                )),
+                source: Some(repo.relative(&rm.dir.join("roadmap.toml"))),
+            })
+        }
+        Store::Sas => {
+            let (path, bytes) = repo.sas_document().ok()?;
+            Some(Subject {
+                id: profile.name.clone(),
+                kind: "document".to_owned(),
+                title: program,
+                seeds: vec![crate::model::spec_id(
+                    repo,
+                    &String::from_utf8_lossy(&bytes),
+                )],
+                revision: Some(format!(
+                    "sha256:{}",
+                    openwarrant_compiler::sha256_hex(&bytes)
+                )),
+                source: Some(repo.relative(&path)),
+            })
+        }
+        Store::Adr => {
+            let adrs = corpus.adrs().ok()?;
+            Some(Subject {
+                id: profile.name.clone(),
+                kind: "document".to_owned(),
+                title: program,
+                seeds: adrs.records.iter().map(|a| a.local_alias.clone()).collect(),
+                revision: None,
+                source: None,
+            })
+        }
+    }
 }
 
 /// The records of an area, in authored order: a document's default seeds.
@@ -459,12 +658,13 @@ pub fn compile_all<'a>(
 /// Empty, and reading nothing more, for a program that declares no document.
 pub fn compiled(corpus: &Corpus) -> Result<Vec<CompiledFile>, RepoError> {
     let (declared, _) = documents(corpus.repo());
-    if declared.is_empty() {
+    let stores = store_files(corpus);
+    if declared.is_empty() && stores.is_empty() {
         return Ok(Vec::new());
     }
     let model = crate::model::build(corpus)?;
     let input = input(corpus, &model);
-    Ok(compile_all(corpus, &declared, &input, true)
+    let mut out: Vec<CompiledFile> = compile_all(corpus, &declared, &input, true)
         .into_iter()
         .map(|c| {
             let bytes = c
@@ -473,7 +673,53 @@ pub fn compiled(corpus: &Corpus) -> Result<Vec<CompiledFile>, RepoError> {
                 .map_err(|e| RepoError::Message(format!("{}: {}: {e}", e.rule(), c.document.id)));
             (c.path, bytes)
         })
-        .collect())
+        .collect();
+    for (profile, def, subject, path) in stores {
+        let bytes = project::render(&input, profile, def, &subject, None)
+            .map(|p| p.content)
+            .map_err(|e| RepoError::Message(format!("{}: {}: {e}", e.rule(), subject.id)));
+        out.push((path, bytes));
+    }
+    Ok(out)
+}
+
+/// Each projection a store's type compiles to a file (OW-WAR-0148 M18):
+/// its type, its declaration, the store as its subject, and
+/// `<store>/generated/<file>`. Only where the store has something to
+/// render: a program with no roadmap record compiles no ROADMAP.md.
+#[must_use]
+pub fn store_files(
+    corpus: &Corpus,
+) -> Vec<(&DocumentProfile, &ProjectionDef, Subject, Utf8PathBuf)> {
+    use openwarrant_core::projection::Store;
+    let repo = corpus.repo();
+    let mut out = Vec::new();
+    for profile in repo.profiles.documents() {
+        let Some(store) = profile.encoding else {
+            continue;
+        };
+        if !profile.has(openwarrant_core::Capability::Structure) {
+            continue;
+        }
+        let dir = match store {
+            Store::Roadmap => &repo.config.paths.roadmap,
+            Store::Sas => &repo.config.paths.sas,
+            Store::Adr => &repo.config.paths.adrs,
+        };
+        for def in &profile.projections {
+            let Some(file) = &def.file else { continue };
+            let Some(subject) = store_subject(corpus, profile) else {
+                continue;
+            };
+            out.push((
+                profile,
+                def,
+                subject,
+                repo.root.join(dir).join(GENERATED).join(file),
+            ));
+        }
+    }
+    out
 }
 
 /// Files under an area's `generated/` that no declared projection produces.
@@ -654,6 +900,8 @@ enum Of {
     Document(Declared),
     Area(String),
     Record(String),
+    /// A store's type with nothing named: the store (OW-WAR-0148 M18).
+    Store,
 }
 
 /// `war plan render`: the rendering, or a report saying why there is none.
@@ -702,6 +950,7 @@ pub fn run(
                     Of::Record(x.to_owned())
                 }
             }
+            None if profile.encoding.is_some() => Of::Store,
             None => {
                 let mine: Vec<&Declared> = declared
                     .iter()
@@ -730,6 +979,21 @@ pub fn run(
         };
     let model = crate::model::build(corpus)?;
     let (subject, budget) = match target {
+        Of::Store => {
+            let Some(subject) = store_subject(corpus, profile) else {
+                report.push(Diagnostic::error(
+                    "projection.of-missing",
+                    projection.to_owned(),
+                    format!(
+                        "{projection} renders the {} store, and this program has nothing in it \
+                         to render; name a record with --of",
+                        profile.encoding.map_or("", |s| s.as_str())
+                    ),
+                ));
+                return Ok((report, None));
+            };
+            (subject, max_bytes)
+        }
         Of::Document(d) => (subject_of(corpus, &d), max_bytes.or(d.max_bytes)),
         Of::Area(area) => {
             let title = declared

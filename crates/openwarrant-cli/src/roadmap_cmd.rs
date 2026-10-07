@@ -258,7 +258,17 @@ pub fn revision_path(loaded: &Loaded, n: u32) -> Utf8PathBuf {
 /// The record's own rules, and the ones that need the whole corpus.
 /// Per-ref rules (`roadmap.unknown-phase`) run in `check_traceability`,
 /// beside the ref's grammar.
+///
+/// OW-WAR-0148 M18: these are the `roadmap` type's rules, each gated on a
+/// capability it selects (profiles/roadmap.toml): `structure` reads the
+/// record, `acceptance` holds it to a signed revision, `links` holds the
+/// Warrants to its phases. A type that selects none of them is not read.
 pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Report) {
+    use openwarrant_core::Capability as C;
+    let caps = crate::types::caps(repo, openwarrant_core::projection::Store::Roadmap);
+    if !caps.has(C::Structure) {
+        return;
+    }
     let file = repo.relative(&dir(repo).join("roadmap.toml"));
     let loaded = match load(repo) {
         Ok(None) => return,
@@ -272,7 +282,9 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             return;
         }
     };
-    check_signatures(repo, &loaded, report);
+    if caps.has(C::Acceptance) {
+        check_signatures(repo, &loaded, report);
+    }
     report.push(Diagnostic::pass(
         "roadmap.valid",
         format!(
@@ -282,7 +294,9 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
         ),
     ));
 
-    if loaded.is_accepted() {
+    if !caps.has(C::Acceptance) {
+        // Nothing of the record is held to a signature.
+    } else if loaded.is_accepted() {
         let rev = loaded.accepted().map_or(0, |r| r.revision);
         report.push(Diagnostic::pass(
             "roadmap.accepted",
@@ -308,6 +322,9 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
         ));
     }
 
+    if !caps.has(C::Links) {
+        return;
+    }
     // Which Warrants are replaced — by relation, not by a field.
     let superseded: BTreeSet<String> = corpus
         .iter()

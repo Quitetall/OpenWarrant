@@ -61,6 +61,18 @@
 //! allow (a namespaced kind is inert and may not be walked), a section type
 //! the selection does not admit, or a block it does not know.
 //!
+//! # A store's type (OW-WAR-0148 M18)
+//!
+//! A document type may name an **encoding**: one of the kernel's readers of a
+//! store that predates typed records (`roadmap`: `docs/roadmap/`; `sas`:
+//! `docs/sas/`; `adr`: `docs/adr/atoms/`). Its records are then that store's,
+//! read where they are, and the store's rules (`roadmap.*`, `sas.*`, `adr.*`)
+//! are this type's, each gated on a capability it selects ([`Store`]). A
+//! store that records a human act (a roadmap or SAS revision a human
+//! accepted) admits `acceptance` beside `structure` and `links`; nothing
+//! admits more. A projection of such a type may name the `file` it is
+//! compiled to under the store's `generated/`.
+//!
 //! Pure: values, parses and validation (§79.1).
 
 use std::collections::BTreeSet;
@@ -77,6 +89,61 @@ pub const DOCUMENT_FORM: &str = "document";
 pub const DOCUMENT_CAPABILITIES: Capabilities =
     Capabilities::of(&[Capability::Structure, Capability::Links]);
 
+/// A store the kernel reads in place, as a document type's encoding
+/// (OW-WAR-0148 M18). A closed set: each is a reader of files that predate
+/// typed records, and a type names one; it cannot define one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Store {
+    /// `docs/roadmap/`: `roadmap.toml`, its atoms, `revisions/<n>.toml`.
+    Roadmap,
+    /// `docs/sas/`: the specification and `revisions/<version>.toml`.
+    Sas,
+    /// `docs/adr/atoms/`: one ADR per atom.
+    Adr,
+}
+
+impl Store {
+    /// The closed set.
+    pub const ALL: [Self; 3] = [Self::Roadmap, Self::Sas, Self::Adr];
+
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Roadmap => "roadmap",
+            Self::Sas => "sas",
+            Self::Adr => "adr",
+        }
+    }
+
+    /// A store by its encoding's name, or `None` outside the set.
+    #[must_use]
+    pub fn parse(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|s| s.as_str() == name)
+    }
+
+    /// What a type of this store may select. A roadmap or SAS revision is
+    /// accepted by a human (a signed record), so those two admit
+    /// `acceptance`; an ADR's status is authored in its own front matter,
+    /// and nothing of the ADR store is a human act on record.
+    #[must_use]
+    pub const fn capabilities(self) -> Capabilities {
+        match self {
+            Self::Roadmap | Self::Sas => Capabilities::of(&[
+                Capability::Structure,
+                Capability::Links,
+                Capability::Acceptance,
+            ]),
+            Self::Adr => DOCUMENT_CAPABILITIES,
+        }
+    }
+}
+
+impl std::fmt::Display for Store {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 /// A document type: `profiles/<name>.toml` with `form = "document"`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DocumentProfile {
@@ -88,6 +155,18 @@ pub struct DocumentProfile {
     /// `sha256:<hex>` of the file's bytes: what the template lines of every
     /// rendering trace to.
     pub digest: String,
+    /// OW-WAR-0148 M18: the store its records are read from, when it is a
+    /// store's type (`encoding = "roadmap"`). `None` for a type whose records
+    /// are record atoms.
+    pub encoding: Option<Store>,
+}
+
+impl DocumentProfile {
+    /// Whether this type selects `cap`.
+    #[must_use]
+    pub const fn has(&self, cap: Capability) -> bool {
+        self.capabilities.has(cap)
+    }
 }
 
 /// Which way a step walks a relation.
@@ -324,6 +403,11 @@ pub struct ProjectionDef {
     pub sources: String,
     /// The budget a rendering must fit, in bytes.
     pub max_bytes: Option<usize>,
+    /// OW-WAR-0148 M18: for a store's type, the file `war admin compile`
+    /// writes it to under the store's `generated/` (`ROADMAP.md`). A
+    /// projection of a store's type without one is rendered on request
+    /// (`war plan render`) and never written.
+    pub file: Option<String>,
 }
 
 // ---- The file form.
@@ -338,6 +422,9 @@ struct DocumentFile {
     note: Option<String>,
     #[serde(default)]
     capabilities: Option<Vec<String>>,
+    /// OW-WAR-0148 M18: the store this type reads, `roadmap`, `sas` or `adr`.
+    #[serde(default)]
+    encoding: Option<String>,
     #[serde(default)]
     records: Option<RecordsTable>,
     #[serde(default)]
@@ -378,6 +465,8 @@ struct ProjectionFile {
     sources: Option<String>,
     #[serde(default)]
     max_bytes: Option<usize>,
+    #[serde(default)]
+    file: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -490,8 +579,19 @@ pub fn parse_document(text: &str, digest: String) -> Result<DocumentProfile, Doc
             raw.name
         )));
     }
+    let encoding = match raw.encoding.as_deref() {
+        None => None,
+        Some(e) => Some(Store::parse(e).ok_or_else(|| {
+            invalid(format!(
+                "encoding {e:?} is not one of the kernel's stores ({}); a type reads a store \
+                 the kernel knows, and cannot define one",
+                Store::ALL.map(Store::as_str).join(", ")
+            ))
+        })?),
+    };
+    let admitted = encoding.map_or(DOCUMENT_CAPABILITIES, Store::capabilities);
     let capabilities = match raw.capabilities.as_deref() {
-        None => DOCUMENT_CAPABILITIES,
+        None => admitted,
         Some(listed) => {
             let mut seen = Vec::new();
             for found in listed {
@@ -504,15 +604,21 @@ pub fn parse_document(text: &str, digest: String) -> Result<DocumentProfile, Doc
                         ),
                     });
                 };
-                if !DOCUMENT_CAPABILITIES.has(c) {
+                if !admitted.has(c) {
                     return Err(DocumentError {
                         rule: "profile.capabilities",
-                        detail: format!(
-                            "a document type selects from [{DOCUMENT_CAPABILITIES}], and \
-                             `{c}` is not among them. A document is a view of records: \
-                             nothing of it is claimed, accepted, authorized, verified or \
-                             resolved. Work that needs `{c}` is a Warrant's"
-                        ),
+                        detail: match encoding {
+                            None => format!(
+                                "a document type selects from [{DOCUMENT_CAPABILITIES}], and \
+                                 `{c}` is not among them. A document is a view of records: \
+                                 nothing of it is claimed, accepted, authorized, verified or \
+                                 resolved. Work that needs `{c}` is a Warrant's"
+                            ),
+                            Some(store) => format!(
+                                "a type of the `{store}` store selects from [{admitted}], and \
+                                 `{c}` is not among them: nothing in that store records it"
+                            ),
+                        },
                     });
                 }
                 if seen.contains(&c) {
@@ -550,7 +656,7 @@ pub fn parse_document(text: &str, digest: String) -> Result<DocumentProfile, Doc
     let mut projections = Vec::new();
     let mut names = BTreeSet::new();
     for p in raw.projections {
-        let def = projection(p, &vocabulary)?;
+        let def = projection(p, &vocabulary, encoding)?;
         if !names.insert(def.name.clone()) {
             return Err(refused(&def.name, "declared twice"));
         }
@@ -563,6 +669,7 @@ pub fn parse_document(text: &str, digest: String) -> Result<DocumentProfile, Doc
         vocabulary,
         projections,
         digest,
+        encoding,
     })
 }
 
@@ -623,7 +730,11 @@ fn show(name: &str, s: Option<&str>) -> Result<Show, DocumentError> {
     }
 }
 
-fn projection(p: ProjectionFile, vocabulary: &Vocabulary) -> Result<ProjectionDef, DocumentError> {
+fn projection(
+    p: ProjectionFile,
+    vocabulary: &Vocabulary,
+    encoding: Option<Store>,
+) -> Result<ProjectionDef, DocumentError> {
     let name = p.name.clone();
     if !is_word(&name) {
         return Err(refused(
@@ -657,6 +768,31 @@ fn projection(p: ProjectionFile, vocabulary: &Vocabulary) -> Result<ProjectionDe
         .collect::<Result<Vec<_>, _>>()?;
     if p.max_bytes == Some(0) {
         return Err(refused(&name, "`max_bytes` is 0; nothing fits"));
+    }
+    if let Some(file) = &p.file {
+        if encoding.is_none() {
+            return Err(refused(
+                &name,
+                "`file` names where a store's projection is compiled; a type of record atoms \
+                 is compiled for each document an area declares (documents.toml)",
+            ));
+        }
+        let ext = format!(".{}", renderer.extension());
+        let bare = file.len() > ext.len()
+            && file.ends_with(&ext)
+            && !file.starts_with('.')
+            && file
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.'));
+        if !bare {
+            return Err(refused(
+                &name,
+                format!(
+                    "file {file:?} is not a plain file name ending in `{ext}`; it is written \
+                     under the store's generated/"
+                ),
+            ));
+        }
     }
     if p.sections.is_empty() {
         return Err(refused(&name, "declares no section"));
@@ -835,6 +971,7 @@ fn projection(p: ProjectionFile, vocabulary: &Vocabulary) -> Result<ProjectionDe
         sections,
         sources: p.sources.unwrap_or_else(|| "Sources".to_owned()),
         max_bytes: p.max_bytes,
+        file: p.file,
     })
 }
 
@@ -976,6 +1113,66 @@ children = [{ relation = "in:evaluates", label = "Evaluated by" }]
             parse(&bad).unwrap_err().rule,
             "profile.capability-prerequisite"
         );
+    }
+
+    /// OW-WAR-0148 M18: a store's type reads a store the kernel knows, may
+    /// select `acceptance` only where the store records a human act, and
+    /// names the file a projection of it is compiled to.
+    #[test]
+    fn a_store_type_reads_a_known_store_and_selects_no_more_than_it_records() {
+        let roadmap = DOC
+            .replace(
+                "form = \"document\"\n",
+                "form = \"document\"\nencoding = \"roadmap\"\n\
+                 capabilities = [\"structure\", \"links\", \"acceptance\"]\n",
+            )
+            .replace(
+                "title = \"{title}: requirements\"",
+                "title = \"{title}: requirements\"\nfile = \"ROADMAP.md\"",
+            );
+        let d = parse(&roadmap).unwrap();
+        assert_eq!(d.encoding, Some(Store::Roadmap));
+        assert!(d.has(Capability::Acceptance));
+        assert_eq!(d.projections[0].file.as_deref(), Some("ROADMAP.md"));
+        // Absent capabilities: the store's own set.
+        let adr = DOC.replace(
+            "form = \"document\"\n",
+            "form = \"document\"\nencoding = \"adr\"\n",
+        );
+        assert_eq!(parse(&adr).unwrap().capabilities, Store::Adr.capabilities());
+        // The ADR store records no human act: `acceptance` is refused.
+        let bad = DOC.replace(
+            "form = \"document\"\n",
+            "form = \"document\"\nencoding = \"adr\"\ncapabilities = [\"structure\", \"acceptance\"]\n",
+        );
+        let e = parse(&bad).unwrap_err();
+        assert_eq!(e.rule, "profile.capabilities");
+        assert!(e.detail.contains("`adr` store"), "{}", e.detail);
+        // Nothing records an authorization or a verification.
+        let bad = roadmap.replace("\"acceptance\"]", "\"verification\"]");
+        assert_eq!(parse(&bad).unwrap_err().rule, "profile.capabilities");
+        // An encoding the kernel has no reader for.
+        let bad = DOC.replace(
+            "form = \"document\"\n",
+            "form = \"document\"\nencoding = \"wiki\"\n",
+        );
+        let e = parse(&bad).unwrap_err();
+        assert_eq!(e.rule, "profile.invalid");
+        assert!(e.detail.contains("\"wiki\""), "{}", e.detail);
+        // `file` belongs to a store's type, and is a plain name.
+        let bad = DOC.replace(
+            "title = \"{title}: requirements\"",
+            "title = \"{title}: requirements\"\nfile = \"PRD.md\"",
+        );
+        assert_eq!(parse(&bad).unwrap_err().rule, "profile.projection");
+        for name in ["../ROADMAP.md", "ROADMAP.json", ".md", "sub/ROADMAP.md"] {
+            let bad = roadmap.replace("ROADMAP.md", name);
+            assert_eq!(
+                parse(&bad).unwrap_err().rule,
+                "profile.projection",
+                "{name}"
+            );
+        }
     }
 
     #[test]

@@ -102,6 +102,7 @@ pub mod telemetry;
 pub mod ticket;
 pub mod timeline;
 pub mod tui;
+pub mod types;
 pub mod verify;
 pub mod vfs;
 pub mod warrants;
