@@ -458,6 +458,10 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 .map(|r| (format!("{}-PHASE-{}", r.prefix, r.phase), o))
         })
         .collect();
+    // Status lists a phase nobody declared so that the Warrants naming it stay
+    // visible. It is no record of the SAS or of the roadmap record, and holds
+    // no state: a relation to it stays `model.relation-target-unknown`.
+    let mut undeclared: BTreeSet<&str> = BTreeSet::new();
     match corpus.roadmap() {
         Ok(Some(rm)) => {
             let atom = rm
@@ -490,6 +494,13 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             for pl in &rm.manifest.placements {
                 b.relate(&pl.warrant, "roadmap", &pl.phase);
             }
+            let ids: BTreeSet<&str> = rm.phases.phases.iter().map(|p| p.id.as_str()).collect();
+            undeclared.extend(
+                objectives
+                    .keys()
+                    .map(String::as_str)
+                    .filter(|id| !ids.contains(id)),
+            );
         }
         Ok(None) => {
             // No record: the phases are SAS §98's, as status reads them.
@@ -497,13 +508,27 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 .sas_document()
                 .map(|(p, bytes)| (repo.relative(&p), digest(&bytes)))
                 .unwrap_or_else(|_| ("SAS §98".to_owned(), digest(b"builtin:sas-98")));
-            for id in objectives.keys() {
-                b.record(id.clone(), "phase", source.clone(), rev.clone(), None);
+            let declared: BTreeSet<u8> = crate::status::sas_phases(repo)
+                .iter()
+                .map(|(n, _, _)| *n)
+                .collect();
+            for (id, o) in &objectives {
+                if o.roadmap_ref
+                    .as_ref()
+                    .is_some_and(|r| declared.contains(&r.phase))
+                {
+                    b.record(id.clone(), "phase", source.clone(), rev.clone(), None);
+                } else {
+                    undeclared.insert(id);
+                }
             }
         }
         Err(e) => b.diagnose("model.roadmap-unreadable", "roadmap", e.to_string()),
     }
-    for (id, o) in &objectives {
+    for (id, o) in objectives
+        .iter()
+        .filter(|(id, _)| !undeclared.contains(id.as_str()))
+    {
         let value = match &o.achieved {
             openwarrant_core::status::Achieved::Recorded => "achieved".to_owned(),
             openwarrant_core::status::Achieved::ExitWarrantWouldSatisfy => {

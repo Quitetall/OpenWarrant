@@ -3,10 +3,10 @@
   "outcome": "not_established",
   "refusal": null,
   "basis_digest": "sha256:4ca09e63b99bc0bcd6144a879d41ac2409fcce181cbe45be9e10e004733c2a85",
-  "model_digest": "sha256:f16bfe27c88aed5fab7ea174477b5a7f223ac75ff3a1eb35d52e502060a81d83",
-  "records": 30,
+  "model_digest": "sha256:d93021dfc2e054f1443b8f45164aeccf77eb3113f92673cf952e0d84057383d6",
+  "records": 21,
   "relations": 15,
-  "states": 27,
+  "states": 18,
   "host_rules": [
     "host.node-differs"
   ],
