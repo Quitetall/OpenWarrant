@@ -658,6 +658,13 @@ pub struct ProfileDefinition {
     /// the file declares none. Program data: it selects no capability and
     /// loosens nothing an act reads.
     pub fields: FieldsDecl,
+    /// OW-WAR-0148 M13: `[ticks]`, the least a tick of this type must show
+    /// on the ladder (claimed < observed < independent < signed), for every
+    /// item, for every milestone, and for the milestones of a record of a
+    /// given `type`. Empty when the file declares none: every minimum is
+    /// `claimed`. Program data: it raises what `war done` asks for and
+    /// loosens nothing an act reads.
+    pub ticks: crate::ticks::TicksDecl,
 }
 
 /// `[fields]` of a working-form profile (OW-WAR-0148 M5).
@@ -788,6 +795,21 @@ struct ProfileFile {
     /// `labels_closed = bool`. A working form only.
     #[serde(default)]
     fields: Option<FieldsTable>,
+    /// OW-WAR-0148 M13: `[ticks] item = "...", milestone = "..."` and
+    /// `[ticks.types] <type> = "<level>"`.
+    #[serde(default)]
+    ticks: Option<TicksTable>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TicksTable {
+    #[serde(default)]
+    item: Option<String>,
+    #[serde(default)]
+    milestone: Option<String>,
+    #[serde(default)]
+    types: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -935,6 +957,13 @@ pub enum ProfileError {
         name: String,
         detail: String,
     },
+    /// OW-WAR-0148 M13: `[ticks]` refused.
+    #[error("{file}: profile {name}: [ticks]: {detail}")]
+    BadTicks {
+        file: String,
+        name: String,
+        detail: String,
+    },
     /// OW-WAR-0148 M6: a document type (`form = "document"`) refused, under
     /// the rule [`crate::projection`] names.
     #[error("{file}: document type {name}: {detail} (OW-ADR-0031)")]
@@ -957,6 +986,7 @@ impl ProfileError {
             Self::BadCapabilities { .. } => "profile.capabilities",
             Self::BadVocabulary { .. } => "profile.records",
             Self::BadFields { .. } => "profile.fields",
+            Self::BadTicks { .. } => "profile.ticks",
             Self::BadState { rule, .. } => rule,
             Self::BadDocument { rule, .. } => rule,
             _ => "profile.invalid",
@@ -1007,6 +1037,7 @@ impl ProfileRegistry {
                         vocabulary: crate::relation::Vocabulary::default(),
                         states: Vec::new(),
                         fields: FieldsDecl::default(),
+                        ticks: crate::ticks::TicksDecl::default(),
                     },
                 )
             })
@@ -1330,6 +1361,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         }
         let states = parse_states(&owned, &raw.name, fixed.capabilities, &raw)?;
         parse_fields(&owned, &raw.name, false, &raw)?;
+        let ticks = parse_ticks(&owned, &raw.name, &FieldsDecl::default(), &raw)?;
         return Ok(ProfileDefinition {
             name: raw.name,
             core,
@@ -1344,6 +1376,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             kind: fixed,
             vocabulary,
             fields: FieldsDecl::default(),
+            ticks,
         });
     }
 
@@ -1447,6 +1480,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
     }
     let states = parse_states(&owned, &raw.name, kind.capabilities, &raw)?;
     let fields = parse_fields(&owned, &raw.name, working_core_roles.is_some(), &raw)?;
+    let ticks = parse_ticks(&owned, &raw.name, &fields, &raw)?;
     Ok(ProfileDefinition {
         name: raw.name,
         core,
@@ -1461,6 +1495,62 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         kind,
         vocabulary,
         fields,
+        ticks,
+    })
+}
+
+// ---- OW-WAR-0148 M13: the minimum a tick must show ----------------------------
+
+fn parse_ticks(
+    file: &str,
+    name: &str,
+    fields: &FieldsDecl,
+    raw: &ProfileFile,
+) -> Result<crate::ticks::TicksDecl, ProfileError> {
+    use crate::ticks::Level;
+    let Some(table) = &raw.ticks else {
+        return Ok(crate::ticks::TicksDecl::default());
+    };
+    let bad = |detail: String| ProfileError::BadTicks {
+        file: file.to_owned(),
+        name: name.to_owned(),
+        detail,
+    };
+    let level = |what: &str, v: &str| -> Result<Level, ProfileError> {
+        Level::parse(v).ok_or_else(|| {
+            bad(format!(
+                "{what} {v:?} is not a level: claimed, observed, independent or signed"
+            ))
+        })
+    };
+    let item = table
+        .item
+        .as_deref()
+        .map(|v| level("item", v))
+        .transpose()?;
+    let milestone = table
+        .milestone
+        .as_deref()
+        .map(|v| level("milestone", v))
+        .transpose()?;
+    let mut types = BTreeMap::new();
+    for (kind, v) in &table.types {
+        if !fields.types.iter().any(|t| t == kind) {
+            return Err(bad(format!(
+                "types.{kind}: the profile declares no such type ([fields] types: {})",
+                if fields.types.is_empty() {
+                    "none".to_owned()
+                } else {
+                    fields.types.join(", ")
+                }
+            )));
+        }
+        types.insert(kind.clone(), level(&format!("types.{kind}"), v)?);
+    }
+    Ok(crate::ticks::TicksDecl {
+        item,
+        milestone,
+        types,
     })
 }
 
@@ -2234,6 +2324,55 @@ stub = "# Checklist"
                 .working_roles()
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn a_profile_declares_the_least_a_tick_must_show() {
+        use crate::ticks::Level;
+        let with = |ticks: &str| {
+            format!("{WORKING}\n[fields]\ntypes = [\"bug\", \"chore\"]\n\n[ticks]\n{ticks}\n")
+        };
+        let registry = ProfileRegistry::with_definitions([(
+            "profiles/task.toml",
+            with("milestone = \"observed\"\n\n[ticks.types]\nbug = \"independent\"").as_bytes(),
+        )])
+        .expect("parses");
+        let def = registry
+            .definition(&registry.resolve("task").expect("task"))
+            .expect("def");
+        assert_eq!(def.ticks.item, None);
+        assert_eq!(def.ticks.milestone, Some(Level::Observed));
+        assert_eq!(def.ticks.types.get("bug"), Some(&Level::Independent));
+        assert_eq!(
+            def.ticks.minimum(Some("bug"), Some(None)).0,
+            Level::Independent
+        );
+        // Absent: every minimum is claimed.
+        let plain = ProfileRegistry::with_definitions([("profiles/task.toml", WORKING.as_bytes())])
+            .expect("parses");
+        let def = plain
+            .definition(&plain.resolve("task").expect("task"))
+            .expect("def");
+        assert_eq!(def.ticks.minimum(None, Some(None)).0, Level::Claimed);
+        for bad in [
+            "item = \"verified\"",
+            "milestone = \"done\"",
+            "[ticks.types]\nepic = \"observed\"",
+            "colour = \"red\"",
+        ] {
+            let e =
+                ProfileRegistry::with_definitions([("profiles/task.toml", with(bad).as_bytes())])
+                    .expect_err(bad);
+            assert_eq!(
+                e.rule(),
+                if bad.starts_with("colour") {
+                    "profile.invalid"
+                } else {
+                    "profile.ticks"
+                },
+                "{bad}: {e}"
+            );
+        }
     }
 
     #[test]
