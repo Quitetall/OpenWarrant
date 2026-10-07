@@ -1131,8 +1131,9 @@ enum Command {
     },
 
     /// §68 portable export and round trip; or, as `war export beads`, every
-    /// light Warrant (a ticket) as Beads issue JSONL on stdout (OW-WAR-0148
-    /// M10), which `bd import` and `war import beads` read.
+    /// light Warrant (a ticket) as Beads issue JSONL on stdout, in the shape
+    /// `bd export` writes, which `war import beads` reads back (OW-WAR-0148
+    /// M10).
     Export {
         /// The Warrant's local alias (§68), or `beads`. Not needed with
         /// --progress.
