@@ -1,0 +1,1 @@
+{"v":1,"id":"01a11589-cc92-738b-ba95-0d87665c727b","warrant_uuid":"01a11589-cc8c-7221-b9c0-a4211b666e0d","type":"ticket.created","class":"draft_history","actor_ref":"claude","occurred_at":"2026-10-07T08:45:14Z","payload":"{\"ticket\":\"t-a92bb\",\"title\":\"M12: a small surface\",\"items\":3}","idempotency_key":"ac724774f0b274e9517b6bdc55b18e9e4c1abab5b337b5f50f3a7be3ab3d51a9"}
