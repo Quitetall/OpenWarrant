@@ -51,8 +51,11 @@ pub use render::{Filter, prime, show, tickets, tickets_filtered};
 
 /// Where tickets live unless `[tickets] dir` says otherwise.
 pub const DEFAULT_DIR: &str = "docs/tickets";
-/// Where claims live unless `[tickets] claims_dir` says otherwise: inside
-/// `.openwarrant/state/`, which `.gitignore` already names disposable.
+/// Where claims lived before they were shared across worktrees (M11), and
+/// where they still live outside a git checkout: inside `.openwarrant/state/`,
+/// which `.gitignore` already names disposable. In a git checkout new claims
+/// go under git's common directory ([`claim::SHARED_SUBDIR`]); a claim found
+/// here is still honoured.
 pub const DEFAULT_CLAIMS_DIR: &str = ".openwarrant/state/claims";
 const DEFAULT_TTL_MINUTES: u64 = 120;
 const DEFAULT_COMPACT_DAYS: u64 = 7;
@@ -105,8 +108,9 @@ pub struct Policy {
     /// Where ticket directories live, relative to the root.
     #[serde(default)]
     pub dir: Option<String>,
-    /// Where claim locks live, relative to the root or absolute. Point it at
-    /// a directory several worktrees share to make claims visible across them.
+    /// Where claim locks live, relative to the root or absolute. Unset, a git
+    /// checkout keeps them under git's common directory, which every worktree
+    /// of the clone shares (M11); set, this one directory is used instead.
     #[serde(default)]
     pub claims_dir: Option<String>,
     /// How long a claim holds before `--steal` may take it.
@@ -232,7 +236,17 @@ impl TicketState {
 pub struct Store {
     pub root: Utf8PathBuf,
     pub dir: Utf8PathBuf,
+    /// Where new claims are taken: `[tickets] claims_dir`, else the clone's
+    /// shared directory under git's common directory, else (outside git)
+    /// [`DEFAULT_CLAIMS_DIR`].
     pub claims_dir: Utf8PathBuf,
+    /// `[tickets] claims_dir`, else [`DEFAULT_CLAIMS_DIR`], under the root:
+    /// what the evidence tree rule skips, as before claims were shared.
+    tree_claims_dir: Utf8PathBuf,
+    /// The checkout's git layout when claims are shared through it.
+    layout: Option<claim::GitLayout>,
+    /// Every worktree's own claims directory, from before M11: read lazily.
+    legacy_dirs: std::sync::OnceLock<Vec<Utf8PathBuf>>,
     pub ttl_secs: u64,
     pub compact_days: u64,
     pub definition: ProfileDefinition,
@@ -281,10 +295,20 @@ impl Store {
             .map(|a| ticket::one_line(&a))
             .filter(|a| !a.is_empty())
             .unwrap_or_else(|| repo.performer());
+        let tree_claims_dir = resolve(policy.claims_dir.as_deref().unwrap_or(DEFAULT_CLAIMS_DIR));
+        let layout = match policy.claims_dir {
+            Some(_) => None,
+            None => claim::git_layout(&repo.root),
+        };
         Ok(Self {
             root: repo.root.clone(),
             dir: resolve(policy.dir.as_deref().unwrap_or(DEFAULT_DIR)),
-            claims_dir: resolve(policy.claims_dir.as_deref().unwrap_or(DEFAULT_CLAIMS_DIR)),
+            claims_dir: layout
+                .as_ref()
+                .map_or_else(|| tree_claims_dir.clone(), claim::GitLayout::shared_claims_dir),
+            tree_claims_dir,
+            layout,
+            legacy_dirs: std::sync::OnceLock::new(),
             ttl_secs: policy.claim_ttl_minutes.unwrap_or(DEFAULT_TTL_MINUTES) * 60,
             compact_days: policy.compact_after_days.unwrap_or(DEFAULT_COMPACT_DAYS),
             definition,
@@ -312,7 +336,7 @@ impl Store {
         };
         Bookkeeping {
             dir: rel(&self.dir),
-            claims_dir: rel(&self.claims_dir),
+            claims_dir: rel(&self.tree_claims_dir),
             files: vec![
                 "manifest.toml".to_owned(),
                 crate::journal_cmd::FILE.to_owned(),
@@ -435,13 +459,63 @@ impl Store {
         Ok((tickets, faults))
     }
 
-    /// Every claim now held, by lock file name.
-    pub fn claims(&self) -> Result<BTreeMap<String, Option<claim::Claim>>, RepoError> {
-        claim::all(&self.claims_dir).map_err(io(format!("could not read {}", self.claims_dir)))
+    /// Where claims taken before M11 may still lie: each worktree's own
+    /// [`DEFAULT_CLAIMS_DIR`], this worktree's first. Empty when
+    /// `[tickets] claims_dir` names the directory or there is no git
+    /// checkout (the one directory is then [`Self::claims_dir`] itself).
+    pub fn legacy_claims_dirs(&self) -> &[Utf8PathBuf] {
+        self.legacy_dirs.get_or_init(|| {
+            let Some(layout) = &self.layout else {
+                return Vec::new();
+            };
+            let below = self
+                .root
+                .strip_prefix(&layout.toplevel)
+                .map(Utf8Path::to_owned)
+                .unwrap_or_default();
+            layout
+                .worktrees()
+                .into_iter()
+                .map(|top| top.join(&below).join(DEFAULT_CLAIMS_DIR))
+                .collect()
+        })
     }
 
+    /// Every claim now held, by lock file name: the shared directory's, then
+    /// any from before M11 in a worktree's own directory that the shared one
+    /// does not hold.
+    pub fn claims(&self) -> Result<BTreeMap<String, Option<claim::Claim>>, RepoError> {
+        let mut out = claim::all(&self.claims_dir)
+            .map_err(io(format!("could not read {}", self.claims_dir)))?;
+        for dir in self.legacy_claims_dirs() {
+            // Another worktree's directory may be gone or unreadable; what
+            // cannot be read holds nothing.
+            for (name, c) in claim::all(dir).unwrap_or_default() {
+                out.entry(name).or_insert(c);
+            }
+        }
+        Ok(out)
+    }
+
+    /// Where a new claim on the target is taken.
     fn lock_path(&self, ticket: &str, item: Option<&str>) -> Utf8PathBuf {
         self.claims_dir.join(claim::lock_name(ticket, item))
+    }
+
+    /// Where the claim on the target lies now: the shared directory's lock,
+    /// else one from before M11 in a worktree's own directory, else (no claim)
+    /// where a new one would be taken.
+    fn lock_of(&self, ticket: &str, item: Option<&str>) -> Utf8PathBuf {
+        let shared = self.lock_path(ticket, item);
+        if crate::vfs::exists(&shared) {
+            return shared;
+        }
+        let name = claim::lock_name(ticket, item);
+        self.legacy_claims_dirs()
+            .iter()
+            .map(|d| d.join(&name))
+            .find(|p| crate::vfs::exists(p))
+            .unwrap_or(shared)
     }
 
     fn journal(
@@ -1573,7 +1647,17 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     }
     let path = store.lock_path(t.id(), item.as_deref());
     let mine = new_claim(store, t.id(), item.as_deref(), now);
-    let taken = claim::take(&path, &mine).map_err(io(format!("could not claim {path}")))?;
+    // A claim from before claims were shared (M11) holds where it lies.
+    let held_at = store.lock_of(t.id(), item.as_deref());
+    let taken = if held_at == path {
+        claim::take(&path, &mine).map_err(io(format!("could not claim {path}")))?
+    } else {
+        claim::Taken::Held(
+            claim::read(&held_at)
+                .map_err(io(format!("could not read {held_at}")))?
+                .flatten(),
+        )
+    };
     let stolen_from = match taken {
         claim::Taken::Won => None,
         claim::Taken::Held(Some(c)) if c.actor == store.actor => {
@@ -1605,12 +1689,12 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 };
                 return Ok(Outcome::refused(
                     "ticket.claimed-by-other",
-                    store.rel(&path),
+                    store.rel(&held_at),
                     format!("{what} is claimed by {}{hint}", holder(c.as_ref(), now)),
                 ));
             }
-            match claim::steal(&path, c.as_ref(), &mine)
-                .map_err(io(format!("could not steal {path}")))?
+            match claim::steal_into(&held_at, c.as_ref(), &path, &mine)
+                .map_err(io(format!("could not steal {held_at}")))?
             {
                 claim::Stolen::Won { from } => Some(from),
                 claim::Stolen::Lost(other) => {
@@ -1721,7 +1805,7 @@ pub fn release(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
-    let path = store.lock_path(t.id(), item.as_deref());
+    let path = store.lock_of(t.id(), item.as_deref());
     let what = item
         .as_ref()
         .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
@@ -1767,7 +1851,7 @@ fn may_finish(
 ) -> Result<(), Box<Outcome>> {
     let now = now_secs();
     let read = |item: Option<&str>| {
-        let path = store.lock_path(t.id(), item);
+        let path = store.lock_of(t.id(), item);
         (claim::read(&path).ok().flatten(), path)
     };
     let (own, own_path) = read(item);
@@ -1938,9 +2022,9 @@ pub fn done(store: &Store, query: &str, note: Option<&str>) -> Result<Outcome, R
     }
     store.journal(&t, event::ITEM_DONE, &payload)?;
     // The claim is spent: release the item's, and the ticket's once it is done.
-    let _ = claim::release(&store.lock_path(t.id(), Some(&done_id)), &store.actor);
+    let _ = claim::release(&store.lock_of(t.id(), Some(&done_id)), &store.actor);
     if t.checklist.is_done() {
-        let _ = claim::release(&store.lock_path(t.id(), None), &store.actor);
+        let _ = claim::release(&store.lock_of(t.id(), None), &store.actor);
     }
     let claims = store.claims()?;
     let state = state_of(&t, &claims);
@@ -2573,7 +2657,14 @@ fn pathdiff(from: &Utf8Path, to: &Utf8Path) -> String {
 /// ticket store and the claims. Empty when the store cannot be opened.
 #[must_use]
 pub fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
-    Store::open(repo, None).map_or_else(|_| Vec::new(), |s| vec![s.dir, s.claims_dir])
+    Store::open(repo, None).map_or_else(
+        |_| Vec::new(),
+        |s| {
+            let mut out = vec![s.dir.clone(), s.claims_dir.clone()];
+            out.extend(s.legacy_claims_dirs().iter().cloned());
+            out
+        },
+    )
 }
 
 /// Every ticket as `war tickets` lists it, each with `war show`'s items,

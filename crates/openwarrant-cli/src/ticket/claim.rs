@@ -18,6 +18,20 @@
 //! A claim older than the TTL (`[tickets] claim_ttl_minutes`, 120 by default)
 //! is stale: its holder probably stopped. `war claim --steal` takes it, and
 //! the steal is journalled with whom it was taken from.
+//!
+//! # One lock set per clone (M11)
+//!
+//! Every worktree of one clone shares one claims directory, under git's
+//! common directory (`git rev-parse --git-common-dir`, then
+//! `openwarrant/claims/`). Before M11 each worktree kept its own
+//! `.openwarrant/state/claims/`, so two agents in two worktrees could both
+//! claim one item. Such a claim is still honoured where it lies: it is read,
+//! it holds, and its holder can finish or release it; no new claim is taken
+//! there. `[tickets] claims_dir` still names one directory outright.
+//!
+//! The common directory is found from the files git itself reads (`.git`,
+//! a `.git` file's `gitdir:`, `commondir`), never by running `git`: a claim
+//! costs a stat or two, and a hosted run reads only its basis.
 
 use std::io::Write as _;
 
@@ -169,24 +183,36 @@ pub enum Stolen {
 /// three agents on one stale item within microseconds; the journal records
 /// all three claims either way.
 pub fn steal(path: &Utf8Path, stale: Option<&Claim>, claim: &Claim) -> std::io::Result<Stolen> {
-    let aside = Utf8PathBuf::from(format!("{path}.stolen.{}", nonce()));
-    match std::fs::rename(path, &aside) {
+    steal_into(path, stale, path, claim)
+}
+
+/// [`steal`], taking the lock at `to` once the stale one at `from` is set
+/// aside: a claim from before claims were shared lies in a worktree's own
+/// directory, and the claim that replaces it is taken in the shared one.
+pub fn steal_into(
+    from: &Utf8Path,
+    stale: Option<&Claim>,
+    to: &Utf8Path,
+    claim: &Claim,
+) -> std::io::Result<Stolen> {
+    let aside = Utf8PathBuf::from(format!("{from}.stolen.{}", nonce()));
+    match std::fs::rename(from, &aside) {
         Ok(()) => {
             let moved: Option<Claim> = std::fs::read(&aside)
                 .ok()
                 .and_then(|b| serde_json::from_slice(&b).ok());
             if moved.as_ref() != stale {
                 // Not the claim we judged: put it back, and lose.
-                let _ = std::fs::hard_link(&aside, path);
+                let _ = std::fs::hard_link(&aside, from);
                 let _ = std::fs::remove_file(&aside);
-                return Ok(Stolen::Lost(read(path)?.flatten()));
+                return Ok(Stolen::Lost(read(from)?.flatten()));
             }
             let _ = std::fs::remove_file(&aside);
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
         Err(e) => return Err(e),
     }
-    match take(path, claim)? {
+    match take(to, claim)? {
         Taken::Won => Ok(Stolen::Won {
             from: stale.cloned(),
         }),
@@ -228,6 +254,147 @@ pub fn all(dir: &Utf8Path) -> std::io::Result<std::collections::BTreeMap<String,
         }
     }
     Ok(out)
+}
+
+// ---- where claims live (M11) ----------------------------------------------
+
+/// Under git's common directory, where every worktree of a clone keeps its
+/// claims.
+pub const SHARED_SUBDIR: &str = "openwarrant/claims";
+
+/// How the checkout around a repository root is laid out, as git lays it out.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GitLayout {
+    /// The worktree's top level: the nearest directory, from the root up,
+    /// holding `.git`.
+    pub toplevel: Utf8PathBuf,
+    /// What `git rev-parse --git-common-dir` names.
+    pub common_dir: Utf8PathBuf,
+}
+
+/// Disk reads that leave no trace in a `war host --export` recording, and
+/// basis reads in a hosted run: where claims live is a fact about this
+/// checkout, never a member of the repository's basis.
+fn layout_is_dir(p: &Utf8Path) -> bool {
+    if crate::vfs::is_hosted() {
+        crate::vfs::is_dir(p)
+    } else {
+        p.is_dir()
+    }
+}
+
+fn layout_read(p: &Utf8Path) -> Option<String> {
+    if crate::vfs::is_hosted() {
+        crate::vfs::read_to_string(p).ok()
+    } else {
+        std::fs::read_to_string(p).ok()
+    }
+}
+
+/// `p` with `.` and `..` resolved by name.
+fn lexical(p: &Utf8Path) -> Utf8PathBuf {
+    let mut out = Utf8PathBuf::new();
+    for c in p.components() {
+        match c {
+            camino::Utf8Component::CurDir => {}
+            camino::Utf8Component::ParentDir => {
+                if !out.pop() {
+                    out.push("..");
+                }
+            }
+            other => out.push(other.as_str()),
+        }
+    }
+    out
+}
+
+/// A path a git file names, relative to `base` unless absolute.
+fn named_path(base: &Utf8Path, text: &str) -> Utf8PathBuf {
+    let p = Utf8PathBuf::from(text.trim());
+    lexical(&if p.is_absolute() { p } else { base.join(p) })
+}
+
+/// The git layout around `root`, or `None` outside a git checkout. Read
+/// from `.git` (a directory, or a file naming one with `gitdir:`) and the
+/// git directory's `commondir`, as git reads them. No process is started.
+#[must_use]
+pub fn git_layout(root: &Utf8Path) -> Option<GitLayout> {
+    let mut at = Some(root);
+    while let Some(dir) = at {
+        let dotgit = dir.join(".git");
+        let git_dir = if layout_is_dir(&dotgit) {
+            Some(dotgit)
+        } else {
+            layout_read(&dotgit).and_then(|text| {
+                text.lines()
+                    .find_map(|l| l.strip_prefix("gitdir:"))
+                    .map(|p| named_path(dir, p))
+            })
+        };
+        if let Some(git_dir) = git_dir {
+            let common_dir = layout_read(&git_dir.join("commondir"))
+                .map_or_else(|| git_dir.clone(), |c| named_path(&git_dir, &c));
+            return Some(GitLayout {
+                toplevel: dir.to_owned(),
+                common_dir,
+            });
+        }
+        at = dir.parent();
+    }
+    None
+}
+
+impl GitLayout {
+    /// The claims directory every worktree of this clone shares.
+    #[must_use]
+    pub fn shared_claims_dir(&self) -> Utf8PathBuf {
+        self.common_dir.join(SHARED_SUBDIR)
+    }
+
+    /// The top level of every worktree of this clone, this one first: the
+    /// main worktree (the common directory's parent, when it is a `.git`),
+    /// and each linked one git lists under `worktrees/*/gitdir`. A worktree
+    /// whose directory is gone is listed all the same; reading it finds
+    /// nothing.
+    #[must_use]
+    pub fn worktrees(&self) -> Vec<Utf8PathBuf> {
+        let mut out = vec![self.toplevel.clone()];
+        let mut add = |p: Utf8PathBuf| {
+            if !out.contains(&p) {
+                out.push(p);
+            }
+        };
+        if self.common_dir.file_name() == Some(".git")
+            && let Some(main) = self.common_dir.parent()
+        {
+            add(main.to_owned());
+        }
+        let listed = self.common_dir.join("worktrees");
+        let entries = if crate::vfs::is_hosted() {
+            crate::vfs::read_dir_utf8(&listed).unwrap_or_default()
+        } else {
+            std::fs::read_dir(&listed)
+                .map(|rd| {
+                    rd.filter_map(Result::ok)
+                        .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+                        .collect()
+                })
+                .unwrap_or_default()
+        };
+        {
+            let mut entries = entries;
+            entries.sort();
+            for entry in entries {
+                if let Some(gitfile) = layout_read(&entry.join("gitdir")) {
+                    let gitfile = named_path(&entry, &gitfile);
+                    if let Some(top) = gitfile.parent() {
+                        add(top.to_owned());
+                    }
+                }
+            }
+        }
+        out
+    }
 }
 
 #[cfg(test)]
@@ -302,6 +469,44 @@ mod tests {
             assert_eq!(names, vec![lock_name("t-3f2a", Some("i-0001"))]);
             let _ = std::fs::remove_dir_all(&dir);
         }
+    }
+
+    /// The layout is read as git lays it out: a main worktree's `.git`
+    /// directory, a linked worktree's `.git` file and `commondir`, and a root
+    /// below the top level.
+    #[test]
+    fn the_common_dir_is_found_from_every_worktree() {
+        let base = scratch("layout");
+        let main = base.join("main");
+        let linked = base.join("linked");
+        let admin = main.join(".git/worktrees/linked");
+        std::fs::create_dir_all(&admin).expect("admin dir");
+        std::fs::create_dir_all(main.join("sub/deeper")).expect("sub");
+        std::fs::create_dir_all(&linked).expect("linked");
+        std::fs::write(linked.join(".git"), format!("gitdir: {admin}\n")).expect(".git file");
+        std::fs::write(admin.join("commondir"), "../..\n").expect("commondir");
+        std::fs::write(admin.join("gitdir"), format!("{}\n", linked.join(".git"))).expect("gitdir");
+
+        let from_main = git_layout(&main).expect("main is a checkout");
+        assert_eq!(from_main.toplevel, main);
+        assert_eq!(from_main.common_dir, main.join(".git"));
+        let from_linked = git_layout(&linked).expect("linked is a checkout");
+        assert_eq!(from_linked.toplevel, linked);
+        assert_eq!(from_linked.common_dir, main.join(".git"));
+        assert_eq!(
+            from_linked.shared_claims_dir(),
+            from_main.shared_claims_dir(),
+            "one lock set per clone"
+        );
+        assert_eq!(from_linked.worktrees(), vec![linked.clone(), main.clone()]);
+        assert_eq!(from_main.worktrees(), vec![main.clone(), linked.clone()]);
+        let below = git_layout(&main.join("sub/deeper")).expect("below the top level");
+        assert_eq!(below.toplevel, main);
+        // Refused: a directory that is no checkout has no layout.
+        let bare = base.join("plain");
+        std::fs::create_dir_all(&bare).expect("plain");
+        assert!(git_layout(&bare).is_none_or(|l| l.toplevel != bare));
+        let _ = std::fs::remove_dir_all(&base);
     }
 
     #[test]

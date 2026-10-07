@@ -219,11 +219,16 @@ since when. Of two agents claiming at the same instant, exactly one wins.
 `war done` refuses an item nobody claimed, or someone else did, so two agents
 never finish the same thing.
 
-Claims are lock files in `.openwarrant/state/claims/`, which is never
-committed; every claim, release and steal is also a line in the ticket's
-journal, which is. A claim older than two hours is stale and
-`war claim --steal` may take it; the steal is journalled with whom it was taken
-from.
+Claims are lock files, never committed; every claim, release and steal is
+also a line in the ticket's journal, which is. In a git checkout the locks
+live under git's common directory (`git rev-parse --git-common-dir`, then
+`openwarrant/claims/`), so every worktree of one clone shares one set: an
+agent in one worktree is refused an item an agent in another holds. Outside
+git, and before this was so, they lived in `.openwarrant/state/claims/`; a
+claim found there is still honoured from every worktree, and its holder can
+finish or release it. `[tickets] claims_dir` names one directory instead. A
+claim older than two hours is stale and `war claim --steal` may take it; the
+steal is journalled with whom it was taken from.
 
 A claim is a name for coordination. It proves nothing about who someone is and
 authorizes nothing. Who is acting comes from `--as <name>`, else the
@@ -270,7 +275,7 @@ All optional, in `openwarrant.toml`:
 ```toml
 [tickets]
 dir = "docs/tickets"                        # where tickets live
-claims_dir = ".openwarrant/state/claims"    # point at a shared path to see claims across worktrees
+claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
 claim_ttl_minutes = 120                     # after this a claim may be stolen
 compact_after_days = 7                      # done tickets older than this are one line in `war prime`
 ```
