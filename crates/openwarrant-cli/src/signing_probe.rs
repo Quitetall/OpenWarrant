@@ -280,7 +280,7 @@ impl Inputs {
     }
 }
 
-const FIX: &str = "`war doctor --fix-signing` at a terminal offers to set it up";
+const FIX: &str = "`war doctor --fix-signing` at a terminal offers to write it from your answers";
 
 fn line_for(principal: &str, key: &str) -> String {
     format!("{principal} namespaces=\"oh.war/response,oh.war/dsse\" {key}")
@@ -374,9 +374,10 @@ pub fn assess(i: &Inputs) -> Vec<Diagnostic> {
                 "doctor.signing-roles",
                 Some(ROLES),
                 format!(
-                    "{ROLES} does not exist, so no one is registered to sign off. Create it \
-                     from docs/authority/roles.toml.example (`war init --program` writes the \
-                     example), naming yourself with the authorizer and resolver roles; {FIX}"
+                    "{ROLES} does not exist, so no one is registered to sign off. {FIX}, or \
+                     a person writes it by hand, naming themselves with the authorizer and \
+                     resolver roles (the format is OpenWarrant's \
+                     docs/authority/roles.toml.example)"
                 ),
             ));
             return out;
@@ -594,9 +595,9 @@ fn no_signer(repo: &Repository, message: &str) -> String {
     }
     match Roles::read(repo) {
         Roles::Absent => format!(
-            "{ROLES} does not exist, so no one is registered to sign this. A person creates it \
-             from docs/authority/roles.toml.example, naming themselves with the authorizer and \
-             resolver roles; {FIX}"
+            "{ROLES} does not exist, so no one is registered to sign this. {FIX}, or a person \
+             writes it by hand, naming themselves with the authorizer and resolver roles (the \
+             format is OpenWarrant's docs/authority/roles.toml.example)"
         ),
         Roles::Unreadable(why) => format!("{ROLES} could not be read, so no one may sign: {why}"),
         Roles::Read { signers, .. } if signers.is_empty() => format!(

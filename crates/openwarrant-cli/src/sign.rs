@@ -2109,8 +2109,9 @@ pub(crate) fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Resul
         if signed {
             return Err(format!(
                 "{final_path} already holds a SIGNED response for this exact digest. Ingest it \
-                 (`war authorize/resolve/sas accept … --response`) or remove it; it is not \
-                 overwritten"
+                 with the act's own command (`war authorize <alias> --response <file>`, `war \
+                 resolve <alias> --response <file>` or `war sas accept <version> --response \
+                 <file>`) or remove it; it is not overwritten"
             ));
         }
         let aside = final_path.with_file_name(format!(
