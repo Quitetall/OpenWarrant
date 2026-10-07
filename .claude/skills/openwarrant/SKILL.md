@@ -16,6 +16,11 @@ repository's AGENTS.md for its own conventions.
   step adds a person's approval, and the tool holds those rules.
 - Finished and verified are separate: report finished work as finished, and
   as unverified until an independent check says more.
+- The repository's `CLAUDE.md` and `AGENTS.md` sections are records too
+  (`md:CLAUDE.md#testing`): a plan can cite one, and
+  `war impact md:CLAUDE.md#testing` lists what cites it. The block between
+  `<!-- openwarrant:begin -->` and `<!-- openwarrant:end -->` is kept by
+  `war agents-md --block`; the rest of each file is yours to edit.
 
 ## Locate and select
 

@@ -67,6 +67,48 @@ relation line is ordinary text; an unclosed fence is refused.
 
 The worked example is `docs/records/password-reset/10-records.md`.
 
+### Instruction sections: CLAUDE.md and AGENTS.md
+
+The repository's own agent instructions are records too, read where they are
+and never edited by the reader (M16). Each `##` section of the root
+`CLAUDE.md` and `AGENTS.md` is a record of type **`instruction`**:
+
+| | |
+|---|---|
+| **id** | `md:<file>#<slug>`: `md:CLAUDE.md#testing`, `md:AGENTS.md#tools` |
+| **slug** | the heading as GitHub anchors it: lowercased; letters, digits, `-` and `_` kept; spaces become `-`; other characters dropped (`## Style & Lint` is `style--lint`). A repeated heading gets `-1`, `-2`, … in order; an empty one is `section` |
+| **span** | from the heading line's first byte to the next `#` or `##` heading, the managed block's begin marker, or the end of the file; `###` headings, blank lines and line endings are inside it, nothing normalized |
+| **revision** | `sha256:` of exactly that span, so an edit to one section moves that section's revision and no other |
+| **governed by** | no profile: nobody governs a repository's instructions but the repository |
+
+- Text before the first `##` heading, under a `#` heading, or between the
+  managed block and the next heading belongs to no section.
+- Inside a fenced code block a heading is text, as in a record atom; an
+  unclosed fence runs to the end of the file and is not refused here.
+- The **managed block** (`<!-- openwarrant:begin -->` …
+  `<!-- openwarrant:end -->`, written by `war agents-md --block`) is no
+  section and inside none, so restamping it moves no revision. A malformed
+  block (two of them, or one that never closes) is a warning,
+  `instruction.block-malformed`; the sections outside it are still read.
+- **Nested files.** `[instructions] nested` in `openwarrant.toml` adds the
+  files its globs match, such as `["**/CLAUDE.md"]` in a monorepo
+  (`md:packages/api/CLAUDE.md#build`). A `**` walk skips hidden directories,
+  symbolic links, `target/` and `node_modules/`. It is empty by default, so
+  only the two root files are read unless you ask.
+
+Cite a section like any record, from a relation line, an obligation's
+`evaluates`, or a ticket item's `implements`:
+
+```markdown
+## CON-ci1 · constraint
+constrains md:CLAUDE.md#testing
+```
+
+A Warrant's atoms or a ticket's text that name `md:CLAUDE.md#testing` are
+found by `war impact` as documents citing it. The CLAUDE.md file itself is
+never written to with the active Warrant's context: what changes lives in
+`war prime`, and the file stays stable.
+
 ## Relations
 
 A relation is `{from, kind, to}`, and `to` may pin a revision of its target
@@ -95,9 +137,10 @@ A relation is `{from, kind, to}`, and `to` may pin a revision of its target
 
 A relation line's targets begin with an uppercase letter or `t-`: a record
 id, a Warrant's own record (`OW-WAR-0148/OBL-001`), a ticket or an item
-(`t-3f2a/i-9c01`). A line without that shape is prose ("Tokens are
-single-use." and "constrains everything" are prose); a line with the shape
-whose target does not parse is refused.
+(`t-3f2a/i-9c01`); or with `md:` and hold a `#`: an instruction section
+(`md:CLAUDE.md#testing`). A line without that shape is prose ("Tokens are
+single-use.", "constrains everything" and "see md:CLAUDE.md for the rules"
+are prose); a line with the shape whose target does not parse is refused.
 
 **Pin what you judged.** An obligation's `evaluates` should pin the revision
 it was written against: `war impact REQ-pr1` and `war model --json` show the
@@ -156,7 +199,8 @@ Silent for a program with no record atom and no authored relation. Otherwise
 | `record.relation-undeclared` | a core kind the governing profile does not allow |
 | `record.relation-malformed` | an `evaluates` bullet naming no record id |
 | `record.relation-required` | a record missing a relation its profile requires |
-| `record.relation-target-unknown` | (a warning) a core relation whose target is no record of the corpus; kept, never dropped |
+| `record.relation-target-unknown` | (a warning) a core relation whose target is no record of the corpus; kept, never dropped. A citation of an instruction section that does not exist (`md:CLAUDE.md#no-such`) is one |
+| `instruction.block-malformed` | (a warning, said even with no record atom) an instruction file's managed block is doubled or never closes; its other sections are still records |
 
 ## States
 
@@ -255,7 +299,8 @@ see, never a way to read more than its parent.
 `war model --json` (`oh.war/model/v1`) carries record atoms' records beside
 the corpus's own (Warrants, obligations, items, phases…), and their
 relations beside the existing kinds, each with `to_revision` when it pins
-one. Every refusal above is also a model diagnostic under its rule, and an
+one. Each instruction section is there too, type `instruction`, its source
+the file that holds it. Every refusal above is also a model diagnostic under its rule, and an
 unknown target is `model.relation-target-unknown`.
 
 ## `war impact <record>`
@@ -271,7 +316,9 @@ it is what its change reaches; what it points at is not), and lists
 - **affected** records, each with the edge that reached it and its depth;
 - **documents** that hold an affected record or name one by id — the
   Warrant whose basis names `REQ-pr1`, the ticket whose item implements it,
-  the record atom that declares it;
+  the record atom that declares it; for an instruction section, the file
+  that holds it (kind `instruction`) and every Warrant or ticket whose text
+  cites `md:CLAUDE.md#testing`;
 - **evaluations**: each obligation that `evaluates` an affected record, with
   its verdict now, its verdict as recorded, and whether it reads `current`,
   `stale` or `unbound`;
