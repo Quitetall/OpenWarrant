@@ -114,7 +114,7 @@ fn read_class(profiles: &ProfileRegistry, path: &Utf8Path) -> Option<ClassFile> 
     let stem = path.file_name()?.strip_suffix(".toml")?;
     let (id, rev) = stem.split_once('@')?;
     let revision: u32 = rev.parse().ok()?;
-    let bytes = std::fs::read(path).ok()?;
+    let bytes = crate::vfs::read(path).ok()?;
     let sha256 = openwarrant_compiler::sha256_hex(&bytes);
     let parsed = standing::parse_in(&String::from_utf8_lossy(&bytes), &|p| {
         may_cover(profiles, p)
@@ -145,11 +145,9 @@ fn read_class(profiles: &ProfileRegistry, path: &Utf8Path) -> Option<ClassFile> 
 #[must_use]
 pub fn load_all(repo: &Repository) -> Vec<ClassFile> {
     let dir = repo.root.join(DIR);
-    let mut out: Vec<ClassFile> = dir
-        .read_dir_utf8()
+    let mut out: Vec<ClassFile> = crate::vfs::read_dir_utf8(&dir)
         .map(|rd| {
-            rd.flatten()
-                .map(|e| e.path().to_owned())
+            rd.into_iter()
                 .filter(|p| p.extension() == Some("toml"))
                 .filter_map(|p| read_class(&repo.profiles, &p))
                 .collect()
@@ -188,7 +186,7 @@ pub enum Standing {
 
 fn signed_act(repo: &Repository, act: Act, class: &ClassFile, who_key: &str) -> Option<Verdict> {
     let path = crate::authority_check::response_path(repo, act, &class.subject());
-    let text = std::fs::read_to_string(&path).ok()?;
+    let text = crate::vfs::read_to_string(&path).ok()?;
     let value: toml::Value = toml::from_str(&text).ok()?;
     let who = value.get(who_key).and_then(toml::Value::as_str)?.to_owned();
     Some(crate::authority_check::verify(
@@ -202,7 +200,7 @@ fn signed_act(repo: &Repository, act: Act, class: &ClassFile, who_key: &str) -> 
 
 fn response_field(repo: &Repository, act: Act, class: &ClassFile, key: &str) -> Option<String> {
     let path = crate::authority_check::response_path(repo, act, &class.subject());
-    let text = std::fs::read_to_string(path).ok()?;
+    let text = crate::vfs::read_to_string(path).ok()?;
     let value: toml::Value = toml::from_str(&text).ok()?;
     value
         .get(key)
@@ -656,7 +654,7 @@ fn requested_reference(one: &crate::repo::Loaded, flag: Option<&str>) -> Option<
             format!("{}{}", standing::SCHEME, f.trim_start_matches("standing:"))
         });
     }
-    let text = std::fs::read_to_string(one.dir.join("manifest.toml")).ok()?;
+    let text = crate::vfs::read_to_string(one.dir.join("manifest.toml")).ok()?;
     let value: toml::Value = toml::from_str(&text).ok()?;
     value
         .get("standing")?

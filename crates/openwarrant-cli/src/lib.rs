@@ -41,6 +41,7 @@ pub mod evidence;
 pub mod export;
 pub mod frontier;
 pub mod gate_cmd;
+pub mod host;
 pub mod impact;
 pub mod inbox;
 pub mod init;
@@ -94,6 +95,7 @@ pub mod ticket;
 pub mod timeline;
 pub mod tui;
 pub mod verify;
+pub mod vfs;
 pub mod watch;
 pub mod webui;
 
@@ -1371,6 +1373,21 @@ enum Command {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
+    /// Host the WAR domain for Liminal, `oh.war/liminal-v1` (OW-WAR-0148 M8;
+    /// SAS §82.2; docs/LIMINAL_HOST.md): one request on stdin, one response
+    /// on stdout. Pure — no repository, no file, no network, no process.
+    /// Exit 0 compiled, 1 refused, 2 compiled with something not
+    /// established. `--export` writes the request that reproduces this
+    /// repository's model instead.
+    Host {
+        /// Write this repository's request (honours `--root`).
+        #[arg(long)]
+        export: bool,
+        /// With `--export`: a projection to request, `KIND:SUBJECT`
+        /// (`warrant:OW-WAR-0001`, `warrant:*`). Repeatable.
+        #[arg(long = "projection", value_name = "KIND:SUBJECT", requires = "export")]
+        projections: Vec<String>,
+    },
     /// The stages that can start now (OW-WAR-0068): open, unblocked by
     /// their milestone's `depends_on`, and not yet dispatched. Derived from
     /// the same records a resolution reads; never a status claim.
@@ -1760,6 +1777,15 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(tui::run(root, panic_after_setup)?)
         }
         Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
+        // A hosted run opens no repository: the request is the basis.
+        Command::Host {
+            export: false,
+            projections: _,
+        } => Ok(host::run_stdin()),
+        Command::Host {
+            export: true,
+            projections,
+        } => Ok(host::run_export(&open_repo()?, &projections)?),
         Command::Init {
             namespace,
             name,

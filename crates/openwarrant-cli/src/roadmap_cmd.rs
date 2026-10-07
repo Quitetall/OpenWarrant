@@ -24,8 +24,8 @@
 //! It is a migration shim for history, not a member list: a new Warrant
 //! states its phase itself.
 
+use crate::vfs as fs;
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::sha256_hex;
@@ -162,7 +162,7 @@ pub fn dir(repo: &Repository) -> Utf8PathBuf {
 pub fn load(repo: &Repository) -> Result<Option<Loaded>, LoadError> {
     let dir = dir(repo);
     let manifest_path = dir.join("roadmap.toml");
-    if !manifest_path.is_file() {
+    if !fs::is_file(&manifest_path) {
         return Ok(None);
     }
     let read =
@@ -338,7 +338,7 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
                     ),
                 ))
             }
-            Some(w) if !w.dir.join("authorization.toml").is_file() => Some((
+            Some(w) if !fs::is_file(w.dir.join("authorization.toml")) => Some((
                 "roadmap.placement-unsigned",
                 format!(
                     "{} is unsigned; give it its own ref with `war roadmap assign {} {}`",
@@ -386,7 +386,7 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
         }
         unassigned += 1;
         let alias = w.alias();
-        let signed = w.dir.join("authorization.toml").is_file();
+        let signed = fs::is_file(w.dir.join("authorization.toml"));
         report.push(Diagnostic::warn(
             "roadmap.unassigned",
             repo.relative(&w.dir.join("manifest.toml")),
@@ -606,7 +606,7 @@ pub fn assign(repo: &Repository, alias: &str, target: &str) -> Result<Report, Re
         ));
         return Ok(report);
     }
-    if dir.join("authorization.toml").is_file() {
+    if fs::is_file(dir.join("authorization.toml")) {
         report.push(Diagnostic::error(
             "roadmap.assign-signed",
             repo.relative(&manifest_path),

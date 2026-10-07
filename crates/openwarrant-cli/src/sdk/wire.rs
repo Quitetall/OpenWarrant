@@ -12,8 +12,13 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Value, serde_json::Error> {
     Ok(value)
 }
 pub(crate) fn decode_value(bytes: &[u8]) -> Result<Value, serde_json::Error> {
+    decode_value_within(bytes, 65_536)
+}
+/// [`decode_value`] under a caller's JSON-node budget (`war host`'s is its
+/// own declared limit); depth stays 64.
+pub(crate) fn decode_value_within(bytes: &[u8], nodes: usize) -> Result<Value, serde_json::Error> {
     let mut decoder = serde_json::Deserializer::from_slice(bytes);
-    let mut remaining = 65_536usize;
+    let mut remaining = nodes;
     let value = Node {
         remaining: &mut remaining,
         depth: 0,
@@ -122,7 +127,7 @@ pub(crate) fn shape(input: &Value, typed: &Value) -> Result<(), &'static str> {
         _ => Ok(()),
     }
 }
-pub(super) fn encode(value: &Value, limit: usize) -> Result<Vec<u8>, serde_json::Error> {
+pub(crate) fn encode(value: &Value, limit: usize) -> Result<Vec<u8>, serde_json::Error> {
     struct Bounded {
         bytes: Vec<u8>,
         limit: usize,

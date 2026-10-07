@@ -772,7 +772,7 @@ pub(crate) fn read_amendments(dir: &Utf8Path) -> Vec<AmendmentSummary> {
 }
 
 fn read_amendment(path: &Utf8Path) -> Option<AmendmentSummary> {
-    let text = std::fs::read_to_string(path).ok()?;
+    let text = crate::vfs::read_to_string(path).ok()?;
     let mut summary = AmendmentSummary {
         id: path.file_stem().unwrap_or_default().to_owned(),
         ..Default::default()

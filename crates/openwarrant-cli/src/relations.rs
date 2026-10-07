@@ -390,7 +390,7 @@ pub fn currencies(corpus: &[crate::repo::Loaded]) -> Currencies {
         .iter()
         .filter_map(|one| {
             let v = one.validated.as_ref()?;
-            let read = |name: &str| std::fs::read_to_string(one.dir.join(name)).ok();
+            let read = |name: &str| crate::vfs::read_to_string(one.dir.join(name)).ok();
             let authorized = !v.raw.supersedes.is_empty()
                 && read("authorization.toml")
                     .and_then(|t| toml::from_str::<crate::authorize::AuthorizationRecord>(&t).ok())

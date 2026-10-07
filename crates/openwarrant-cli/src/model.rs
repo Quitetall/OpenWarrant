@@ -160,7 +160,7 @@ fn digest(bytes: &[u8]) -> String {
 }
 
 fn file_digest(path: &Utf8Path) -> Option<String> {
-    std::fs::read(path).ok().map(|b| digest(&b))
+    crate::vfs::read(path).ok().map(|b| digest(&b))
 }
 
 fn word<T: Serialize>(v: &T) -> String {
@@ -347,7 +347,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 b.relate(&id, "part_of", &alias);
             }
         }
-        if let Ok(rd) = std::fs::read_dir(one.dir.join("questions")) {
+        if let Ok(rd) = crate::vfs::read_dir(one.dir.join("questions")) {
             let mut paths: Vec<_> = rd
                 .filter_map(Result::ok)
                 .filter_map(|x| camino::Utf8PathBuf::from_path_buf(x.path()).ok())
@@ -355,7 +355,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 .collect();
             paths.sort();
             for p in paths {
-                let Ok(bytes) = std::fs::read(&p) else {
+                let Ok(bytes) = crate::vfs::read(&p) else {
                     continue;
                 };
                 let qid = toml::from_str::<toml::Value>(&String::from_utf8_lossy(&bytes))

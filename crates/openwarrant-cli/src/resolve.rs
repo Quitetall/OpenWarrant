@@ -658,9 +658,9 @@ pub fn required_deliverables_exist(
 ) -> bool {
     let required: Vec<&Deliverable> = deliverables.iter().filter(|d| d.required).collect();
     !required.is_empty()
-        && required
-            .iter()
-            .all(|d| d.validate(declared_obligations).is_ok() && root.join(&d.target_ref).exists())
+        && required.iter().all(|d| {
+            d.validate(declared_obligations).is_ok() && crate::vfs::exists(root.join(&d.target_ref))
+        })
 }
 
 /// §37.2 — a content-addressed deliverable's recorded digest must match the
@@ -699,7 +699,7 @@ pub fn artifact_digests_verify(
                 return false;
             };
             let want = head.trim_start_matches("sha256:");
-            match std::fs::read(root.join(&d.target_ref)) {
+            match crate::vfs::read(root.join(&d.target_ref)) {
                 Ok(bytes) => openwarrant_compiler::sha256_hex(&bytes) == want,
                 Err(_) => false,
             }
@@ -949,7 +949,7 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
                 continue;
             };
             let want = head.trim_start_matches("sha256:");
-            let unchanged = std::fs::read(repo.root.join(&d.target_ref))
+            let unchanged = crate::vfs::read(repo.root.join(&d.target_ref))
                 .is_ok_and(|b| openwarrant_compiler::sha256_hex(&b) == want);
             if unchanged {
                 continue;
