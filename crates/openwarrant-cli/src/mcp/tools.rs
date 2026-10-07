@@ -110,6 +110,11 @@ pub struct DoneParams {
     /// What was done, written on the item's line for the next reader.
     #[serde(default)]
     pub note: Option<String>,
+    /// Write only if the target is still at this revision (from `war_show`'s
+    /// `revision`, or an item's); a stale one is refused
+    /// `warrant.stale-revision`, naming the current one.
+    #[serde(default)]
+    pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
     #[serde(default)]
     pub actor: Option<String>,
@@ -124,6 +129,11 @@ pub struct AddParams {
     /// What the item waits on: items of this ticket, tickets, or `t-x/i-y`.
     #[serde(default)]
     pub after: Vec<String>,
+    /// Write only if the target is still at this revision (from `war_show`'s
+    /// `revision`, or an item's); a stale one is refused
+    /// `warrant.stale-revision`, naming the current one.
+    #[serde(default)]
+    pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
     #[serde(default)]
     pub actor: Option<String>,
@@ -135,6 +145,11 @@ pub struct NoteParams {
     pub target: String,
     /// The note, Markdown.
     pub text: String,
+    /// Write only if the target is still at this revision (from `war_show`'s
+    /// `revision`, or an item's); a stale one is refused
+    /// `warrant.stale-revision`, naming the current one.
+    #[serde(default)]
+    pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
     #[serde(default)]
     pub actor: Option<String>,
@@ -1129,7 +1144,7 @@ impl WarServer {
     )]
     fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
         self.ticket("done", p.actor.as_deref(), |s| {
-            crate::ticket::done(s, &p.target, p.note.as_deref())
+            crate::ticket::done(s, &p.target, p.note.as_deref(), p.if_rev.as_deref())
         })
     }
 
@@ -1140,7 +1155,7 @@ impl WarServer {
     )]
     fn war_add(&self, Parameters(p): Parameters<AddParams>) -> ToolResult {
         self.ticket("add", p.actor.as_deref(), |s| {
-            crate::ticket::add(s, &p.ticket, &p.text, &p.after)
+            crate::ticket::add(s, &p.ticket, &p.text, &p.after, p.if_rev.as_deref())
         })
     }
 
@@ -1151,7 +1166,7 @@ impl WarServer {
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
         self.ticket("note", p.actor.as_deref(), |s| {
-            crate::ticket::note(s, &p.target, &p.text)
+            crate::ticket::note(s, &p.target, &p.text, p.if_rev.as_deref())
         })
     }
 

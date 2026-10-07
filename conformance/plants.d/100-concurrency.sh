@@ -82,9 +82,9 @@ else
     cc_fail "a pre-M11 claim is honoured" "erin $CC_S ($CC_ERR), release $CC_S2, gone $CC_GONE, erin again $CC_S3"
 fi
 
-# Leases. A 5-second lease, and a lock's modification time set back by hand
-# to stand for an agent that stopped renewing (the lease runs from the lock's
-# last renewal). Accepted: a claim carries lease_until; `war heartbeat`, and
+# Leases. A one-minute lease, and a lock set back two minutes by hand (its
+# claim's times and its modification time) to stand for an agent that stopped
+# renewing: no sleeping, so a loaded machine cannot move the result. Accepted: a claim carries lease_until; `war heartbeat`, and
 # any war command the holder runs (`war check` here, as $OPENWARRANT_ACTOR),
 # renews it; an expired lease is offered by `war ready` and reclaimed by a
 # plain `war claim`, journalled with the previous holder. Refused: a claim on
@@ -93,25 +93,38 @@ fi
 # before each renewal so the renewal is what kept the claim.
 echo "== concurrency: leases (M11) =="
 cc_config() { git -C "$CC_ROOT" checkout -q -- openwarrant.toml && printf '\n[tickets]\n%s\n' "$1" >> "$CC_ROOT/openwarrant.toml"; }
-cc_config 'claim_lease_minutes = 0.0834'
+cc_config 'claim_lease_minutes = 1'
 CC_OUT=$(cc_json "$CC_ROOT" create "Leases" --item "Leased" --item "Stolen")
 CC_L=$(cc_field "$CC_OUT" 'v["result"]["id"]')
 CC_LA=$(cc_field "$CC_OUT" 'v["result"]["items"][0]["id"]')
 CC_LB=$(cc_field "$CC_OUT" 'v["result"]["items"][1]["id"]')
 CC_LLOCK="$CC_COMMON/openwarrant/claims/$CC_L--$CC_LA.lock"
-# cc_lapse: the lock as an agent that stopped a minute ago left it.
-cc_lapse() { touch -d "@$(( $(date +%s) - 60 ))" "$CC_LLOCK"; }
+# cc_lapse: the lock as an agent that took it, and last renewed it, two
+# minutes ago left it.
+cc_lapse() {
+    python3 - "$CC_LLOCK" <<'PY2'
+import json, sys, time
+p = sys.argv[1]
+c = json.load(open(p))
+back = int(time.time()) - 120 - c["since_unix"]
+for k in ("since_unix", "lease_until_unix"):
+    c[k] += back
+c["since"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(c["since_unix"]))
+c["lease_until"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(c["lease_until_unix"]))
+open(p, "w").write(json.dumps(c, indent=2) + "\n")
+PY2
+    touch -d "@$(( $(date +%s) - 120 ))" "$CC_LLOCK"
+}
 # cc_offered: whether `war ready` (as ivy) offers the item, and why.
 cc_offered() { cc_field "$(cc_json "$CC_ROOT" ready --as ivy)" '",".join(("expired:"+r["expired_claim"]["actor"]) if r.get("expired_claim") else "free" for r in v["result"]["ready"] if r.get("item")=="'"$CC_LA"'") or "held"'; }
 CC_C=$(cc_json "$CC_ROOT" claim "$CC_L/$CC_LA" --as hank)
 CC_LEASE=$(cc_field "$CC_C" 'v["result"]["claim"]["lease_until_unix"] - v["result"]["claim"]["since_unix"]')
 CC_ERR=$(cc_war "$CC_ROOT" claim "$CC_L/$CC_LA" --as ivy 2>&1 >/dev/null); CC_S=$?
-if [[ "$CC_LEASE" == 5 && $CC_S -eq 2 ]] && grep -q 'claimed by hank' <<<"$CC_ERR" && grep -q 'lease runs out in' <<<"$CC_ERR"; then
-    cc_ok "a claim carries its lease" "lease_until 5 s after since; ivy refused by name while it runs"
+if [[ "$CC_LEASE" == 60 && $CC_S -eq 2 ]] && grep -q 'claimed by hank' <<<"$CC_ERR" && grep -q 'lease runs out in' <<<"$CC_ERR"; then
+    cc_ok "a claim carries its lease" "lease_until 60 s after since; ivy refused by name while it runs"
 else
     cc_fail "a claim carries its lease" "lease $CC_LEASE s; ivy exit $CC_S: $CC_ERR"
 fi
-sleep 6
 cc_lapse; CC_BEFORE=$(cc_offered)
 cc_war "$CC_ROOT" heartbeat --as hank >/dev/null 2>&1; CC_S=$?
 CC_AFTER=$(cc_offered)
@@ -154,3 +167,97 @@ else
     cc_fail "--steal is for a live lease" "plain $CC_S ($CC_ERR), steal $CC_S2"
 fi
 git -C "$CC_ROOT" checkout -q -- openwarrant.toml
+
+# Compare-and-set. `war show --json` gives the ticket's revision and each
+# item's (the same digests `war model` reports). Accepted: four agents race
+# `war edit --priority` from one read with --if-rev, and exactly one write
+# lands; done, note, add and release at the current revision go through, and
+# without --if-rev everything behaves as before (the same race, unguarded,
+# lets every write through and only the last survives: three lost updates).
+# Refused, warrant.stale-revision naming the current revision, nothing
+# written: the three race losers; done after the item's line moved; note,
+# add and release at a stale revision; and war_note over MCP with a stale
+# if_rev.
+echo "== concurrency: compare-and-set (M11) =="
+CC_OUT=$(cc_json "$CC_ROOT" create "CAS" --item "Guarded" --item "Other")
+CC_K=$(cc_field "$CC_OUT" 'v["result"]["id"]')
+CC_KA=$(cc_field "$CC_OUT" 'v["result"]["items"][0]["id"]')
+cc_rev() { cc_field "$(cc_json "$CC_ROOT" show "$CC_K")" "$1"; }
+CC_R0=$(cc_rev 'v["result"]["revision"]')
+CC_MODEL=$(cc_field "$(cc_json "$CC_ROOT" model)" '",".join(r["revision"] for r in v["result"]["records"] if r["id"] in ("'"$CC_K"'", "'"$CC_K/$CC_KA"'"))')
+CC_SHOWN=$(cc_rev '",".join([v["result"]["revision"]] + [i["revision"] for i in v["result"]["items"] if i["id"]=="'"$CC_KA"'"])')
+CC_EDITS0=$(grep -c '"ticket.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")
+CC_PIDS=(); CC_DIR=$(mktemp -d -p "$CC_TMP")
+for p in 0 1 3 4; do
+    ( cc_war "$CC_ROOT" edit "$CC_K" --priority "$p" --if-rev "$CC_R0" --as "racer-$p" >"$CC_DIR/out.$p" 2>"$CC_DIR/err.$p"; echo $? >"$CC_DIR/rc.$p" ) &
+    CC_PIDS+=($!)
+done
+for pid in "${CC_PIDS[@]}"; do wait "$pid"; done
+CC_WON=""; CC_STALE=0
+for p in 0 1 3 4; do
+    if [[ "$(cat "$CC_DIR/rc.$p")" == 0 ]]; then CC_WON="$CC_WON$p"; fi
+    if grep -q 'warrant.stale-revision' "$CC_DIR/err.$p" && grep -q 'and it is now sha256:' "$CC_DIR/err.$p"; then CC_STALE=$((CC_STALE + 1)); fi
+done
+CC_PRIO=$(cc_field "$(cc_json "$CC_ROOT" show "$CC_K")" 'v["result"]["ticket"]["priority"]')
+CC_EDITS=$(( $(grep -c '"ticket.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl") - CC_EDITS0 ))
+if [[ "$CC_SHOWN" == "$CC_MODEL" && ${#CC_WON} -eq 1 && $CC_STALE -eq 3 && "$CC_PRIO" == "$CC_WON" && $CC_EDITS -eq 1 ]]; then
+    cc_ok "--if-rev: one write of four lands" "show's revisions are war model's; racer-$CC_WON won; 3 refused warrant.stale-revision naming the current revision; one ticket.edited"
+else
+    cc_fail "--if-rev: one write of four lands" "show '$CC_SHOWN' model '$CC_MODEL' won '$CC_WON' stale $CC_STALE priority $CC_PRIO edits $CC_EDITS: $(cat "$CC_DIR"/err.* | head -2)"
+fi
+# The same race without --if-rev: every write exits 0, and the last one wins.
+CC_PIDS=(); CC_EDITS0=$(grep -c '"ticket.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")
+CC_FROM=$(cc_field "$(cc_json "$CC_ROOT" show "$CC_K")" 'v["result"]["ticket"]["priority"]')
+for p in 0 1 3 4; do
+    [[ "$p" == "$CC_FROM" ]] && continue
+    ( cc_war "$CC_ROOT" edit "$CC_K" --priority "$p" --as "racer-$p" >/dev/null 2>&1; echo $? >"$CC_DIR/rc2.$p" ) &
+    CC_PIDS+=($!)
+done
+for pid in "${CC_PIDS[@]}"; do wait "$pid"; done
+CC_OK2=$(cat "$CC_DIR"/rc2.* | grep -c '^0$')
+CC_EDITS=$(( $(grep -c '"ticket.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl") - CC_EDITS0 ))
+if [[ $CC_OK2 -eq 3 && $CC_EDITS -ge 2 ]]; then
+    cc_ok "without --if-rev: as before" "three unguarded edits all exit 0 ($CC_EDITS journalled); one priority survives, the others lost"
+else
+    cc_fail "without --if-rev: as before" "$CC_OK2 of 3 exited 0; $CC_EDITS edits journalled"
+fi
+# Item revisions: done after the line moved is refused; at the new revision it lands.
+cc_war "$CC_ROOT" claim "$CC_K/$CC_KA" --as lena >/dev/null 2>&1
+CC_IR=$(cc_rev '[i["revision"] for i in v["result"]["items"] if i["id"]=="'"$CC_KA"'"][0]')
+CC_KR=$(cc_rev 'v["result"]["revision"]')
+sed -i "s/^- \[ \] Guarded ($CC_KA)/- [ ] Guarded, reworded ($CC_KA)/" "$CC_ROOT/docs/tickets/$CC_K/atoms/15-checklist.md"
+CC_ERR=$(cc_war "$CC_ROOT" done "$CC_K/$CC_KA" --as lena --if-rev "$CC_IR" 2>&1 >/dev/null); CC_S=$?
+CC_ERR2=$(cc_war "$CC_ROOT" note "$CC_K/$CC_KA" "stale" --as lena --if-rev "$CC_IR" 2>&1 >/dev/null); CC_S2=$?
+CC_ERR3=$(cc_war "$CC_ROOT" release "$CC_K/$CC_KA" --as lena --if-rev "$CC_IR" 2>&1 >/dev/null); CC_S3=$?
+CC_ERR4=$(cc_war "$CC_ROOT" add "$CC_K" "late" --as lena --if-rev "$CC_R0" 2>&1 >/dev/null); CC_S4=$?
+CC_UNTICKED=$(grep -c "^- \[ \] Guarded, reworded ($CC_KA)$" "$CC_ROOT/docs/tickets/$CC_K/atoms/15-checklist.md")
+CC_HELD=0; [[ -f "$CC_COMMON/openwarrant/claims/$CC_K--$CC_KA.lock" ]] && CC_HELD=1
+CC_IR2=$(cc_rev '[i["revision"] for i in v["result"]["items"] if i["id"]=="'"$CC_KA"'"][0]')
+cc_war "$CC_ROOT" note "$CC_K/$CC_KA" "current" --as lena --if-rev "$CC_IR2" >/dev/null 2>&1; CC_S5=$?
+cc_war "$CC_ROOT" add "$CC_K" "on time" --as lena --if-rev "$CC_KR" >/dev/null 2>&1; CC_S6=$?
+cc_war "$CC_ROOT" done "$CC_K/$CC_KA" --as lena --if-rev "$CC_IR2" >/dev/null 2>&1; CC_S7=$?
+CC_ALL=0
+for e in "$CC_ERR" "$CC_ERR2" "$CC_ERR3" "$CC_ERR4"; do grep -q 'warrant.stale-revision' <<<"$e" && CC_ALL=$((CC_ALL + 1)); done
+if [[ $CC_S -eq 2 && $CC_S2 -eq 2 && $CC_S3 -eq 2 && $CC_S4 -eq 2 && $CC_ALL -eq 4 && $CC_UNTICKED -eq 1 && $CC_HELD -eq 1 \
+    && $CC_S5 -eq 0 && $CC_S6 -eq 0 && $CC_S7 -eq 0 ]] && grep -q "and it is now $CC_IR2" <<<"$CC_ERR"; then
+    cc_ok "stale done/note/add/release" "the line moved: four refused by name (the new revision named), nothing ticked, the claim kept; at the current revision all three wrote"
+else
+    cc_fail "stale done/note/add/release" "stale: $CC_S/$CC_S2/$CC_S3/$CC_S4 ($CC_ALL named), unticked $CC_UNTICKED held $CC_HELD; current: $CC_S5/$CC_S6/$CC_S7; $CC_ERR"
+fi
+# Over MCP: war_note with a stale if_rev, then with the current one.
+CC_KR=$(cc_rev 'v["result"]["revision"]')
+CC_TX=$(mktemp -p "$CC_TMP")
+{
+    printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"plant","version":"0"}}}'
+    printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+    printf '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"war_note","arguments":{"target":"%s","text":"stale","if_rev":"%s","actor":"mcp"}}}\n' "$CC_K" "$CC_R0"
+    printf '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"war_note","arguments":{"target":"%s","text":"fresh","if_rev":"%s","actor":"mcp"}}}\n' "$CC_K" "$CC_KR"
+} > "$CC_TX"
+CC_MCP=$(cd "$CC_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$CC_WAR" "$CC_TX" 2>/dev/null)
+if grep -q '"id":2.*warrant.stale-revision' <<<"$CC_MCP" && grep -q '"id":3.*"exit_code":0' <<<"$CC_MCP" \
+    && grep -q 'mcp:\*\* fresh' "$CC_ROOT/docs/tickets/$CC_K/atoms/10-intent.md" \
+    && ! grep -q 'mcp:\*\* stale' "$CC_ROOT/docs/tickets/$CC_K/atoms/10-intent.md"; then
+    cc_ok "if_rev over MCP" "war_note: stale refused by name, current written"
+else
+    cc_fail "if_rev over MCP" "$(head -c 400 <<<"$CC_MCP")"
+fi

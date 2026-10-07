@@ -489,6 +489,11 @@ enum TicketCommand {
         /// What was done, for the next reader; written on the item's line.
         #[arg(long)]
         note: Option<String>,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -501,6 +506,11 @@ enum TicketCommand {
         /// What the item waits on: an item of this ticket, a ticket, or `t-x/i-y`. Repeatable.
         #[arg(long, value_name = "ITEM|TICKET")]
         after: Vec<String>,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -510,6 +520,11 @@ enum TicketCommand {
         target: String,
         /// The note; Markdown, may span lines.
         text: String,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -565,12 +580,22 @@ enum TicketCommand {
         part_of: Option<String>,
         #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
         priority: Option<u8>,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
     /// Give a claim back without finishing the item.
     Release {
         target: String,
+        /// Write only if the item (or ticket) is still at this revision, the
+        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -1892,38 +1917,41 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             TicketCommand::Done {
                 target,
                 note,
+                if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "done",
-                    &ticket::done(&store, &target, note.as_deref())?,
+                    &ticket::done(&store, &target, note.as_deref(), if_rev.as_deref())?,
                 ))
             }
             TicketCommand::Add {
                 ticket: target,
                 text,
                 after,
+                if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "add",
-                    &ticket::add(&store, &target, &text, &after)?,
+                    &ticket::add(&store, &target, &text, &after, if_rev.as_deref())?,
                 ))
             }
             TicketCommand::Note {
                 target,
                 text,
+                if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "note",
-                    &ticket::note(&store, &target, &text)?,
+                    &ticket::note(&store, &target, &text, if_rev.as_deref())?,
                 ))
             }
             TicketCommand::Prime {
@@ -1967,6 +1995,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 unlabels,
                 part_of,
                 priority,
+                if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
@@ -1978,6 +2007,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     remove_labels: unlabels,
                     part_of: none(part_of),
                     priority,
+                    if_rev,
                 };
                 Ok(ticket_answer(
                     mode,
@@ -1985,12 +2015,16 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     &ticket::edit(&store, &target, &args)?,
                 ))
             }
-            TicketCommand::Release { target, actor } => {
+            TicketCommand::Release {
+                target,
+                if_rev,
+                actor,
+            } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "release",
-                    &ticket::release(&store, &target)?,
+                    &ticket::release(&store, &target, if_rev.as_deref())?,
                 ))
             }
             TicketCommand::Heartbeat { target, actor } => {

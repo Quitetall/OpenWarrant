@@ -692,11 +692,28 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             md.push_str(&format!("- {n}\n"));
         }
     }
+    // M11: each revision `--if-rev` takes, the ticket's and every item's.
+    let items: Vec<serde_json::Value> = t
+        .checklist
+        .items
+        .iter()
+        .map(|item| {
+            let mut v = serde_json::to_value(item).unwrap_or_default();
+            if let Some(o) = v.as_object_mut() {
+                o.insert(
+                    "revision".to_owned(),
+                    serde_json::json!(super::item_revision(&t.checklist_text, item)),
+                );
+            }
+            v
+        })
+        .collect();
     let mut result = serde_json::json!({
         "schema": "oh.war/ticket-show/v1",
         "ticket": r,
+        "revision": t.revision,
         "description": body,
-        "items": t.checklist.items,
+        "items": items,
         "notes": all,
         "markdown": md,
     });

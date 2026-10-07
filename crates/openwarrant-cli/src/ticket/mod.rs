@@ -220,9 +220,40 @@ pub struct Ticket {
     pub intent: String,
     pub checklist_text: String,
     pub checklist: Checklist,
+    /// M11: the ticket's revision as `war model` reports it (M3): the sha256
+    /// of its manifest's bytes. What `--if-rev` compares on a ticket.
+    pub revision: String,
+}
+
+/// `sha256:<hex>` of `bytes`, as `war model` writes a revision.
+fn revision_of(bytes: &[u8]) -> String {
+    format!("sha256:{}", openwarrant_compiler::sha256_hex(bytes))
+}
+
+/// M11: an item's revision as `war model` reports it (M3): the sha256 of its
+/// checklist line, newline included. What `--if-rev` compares on an item.
+#[must_use]
+pub fn item_revision(checklist_text: &str, item: &Item) -> String {
+    let line = checklist_text
+        .split_inclusive('\n')
+        .nth(item.line)
+        .unwrap_or_default();
+    revision_of(line.as_bytes())
 }
 
 impl Ticket {
+    /// The revision `--if-rev` compares for the ticket (`None`) or one of
+    /// its items; `None` when the item is not in the checklist.
+    #[must_use]
+    pub fn revision_for(&self, item: Option<&str>) -> Option<String> {
+        match item {
+            None => Some(self.revision.clone()),
+            Some(id) => self
+                .item(id)
+                .map(|i| item_revision(&self.checklist_text, i)),
+        }
+    }
+
     #[must_use]
     pub fn id(&self) -> &str {
         &self.manifest.id
@@ -433,6 +464,7 @@ impl Store {
             .map_err(|e| bad(format!("could not read it: {e}")))?;
         let manifest: TicketManifest =
             toml::from_str(&text).map_err(|e| bad(format!("does not parse: {e}")))?;
+        let revision = revision_of(text.as_bytes());
         manifest
             .validate(&self.definition.working_roles())
             .map_err(bad)?;
@@ -471,6 +503,7 @@ impl Store {
             intent,
             checklist_text,
             checklist,
+            revision,
         })
     }
 
@@ -836,15 +869,84 @@ pub(crate) fn state_of(t: &Ticket, claims: &BTreeMap<String, Option<claim::Claim
     }
 }
 
+// ---- compare-and-set (M11) ---------------------------------------------------
+
+/// `--if-rev`: whether the revision the caller read is still the record's.
+/// `sha256:` is optional on the caller's side.
+fn same_revision(given: &str, current: &str) -> bool {
+    let bare = |s: &str| s.trim().trim_start_matches("sha256:").to_ascii_lowercase();
+    bare(given) == bare(current)
+}
+
+/// The refusal of a write whose `--if-rev` is not the record's revision now:
+/// `warrant.stale-revision`, naming both, and how to read the current one.
+fn stale_revision(
+    store: &Store,
+    t: &Ticket,
+    what: &str,
+    file: &Utf8Path,
+    given: &str,
+    current: &str,
+) -> Outcome {
+    Outcome::refused(
+        "warrant.stale-revision",
+        store.rel(file),
+        format!(
+            "{what} changed since you read it: you passed revision {given}, and it is now \
+             {current}. Nothing was written. Read it again (`war show {} --json`) and retry \
+             with the revision it gives",
+            t.id()
+        ),
+    )
+}
+
+/// `--if-rev` against the target as loaded: `Some(refusal)` when stale.
+fn check_if_rev(
+    store: &Store,
+    t: &Ticket,
+    item: Option<&str>,
+    what: &str,
+    if_rev: Option<&str>,
+) -> Option<Outcome> {
+    let given = if_rev?;
+    let current = t.revision_for(item).unwrap_or_default();
+    if same_revision(given, &current) {
+        return None;
+    }
+    let file = if item.is_some() {
+        t.checklist_path.clone()
+    } else {
+        t.dir.join("manifest.toml")
+    };
+    Some(stale_revision(store, t, what, &file, given, &current))
+}
+
 // ---- writes ----------------------------------------------------------------
+
+/// One writer at a time in `dir`: an advisory lock (flock) on the directory
+/// itself, held until the returned file is dropped and released by the
+/// kernel however the process ends. `None` where the filesystem has none;
+/// the prestate check below still stands then.
+fn dir_lock(dir: &Utf8Path) -> Option<std::fs::File> {
+    let f = std::fs::File::open(dir).ok()?;
+    f.lock().ok()?;
+    Some(f)
+}
 
 /// Rewrite a file from its current bytes, retrying when another writer moved
 /// it between the read and the rename (`storage.prestate-moved`). `edit`
 /// returns the new text and a value, or `Err` to write nothing.
+///
+/// M11: the read, the edit and the rename run under a lock on the file's
+/// directory. `write_if` compares the prestate and then renames, two steps:
+/// two writers could both pass the compare and the second rename would drop
+/// the first one's line (found by plant 100's compare-and-set race). Under
+/// the lock no write lands between another's read and its rename.
 fn rewrite<T>(
     path: &Utf8Path,
     mut edit: impl FnMut(&str) -> Result<(String, T), Box<Outcome>>,
 ) -> Result<Result<T, Box<Outcome>>, RepoError> {
+    let _held = path.parent().and_then(dir_lock);
     for _ in 0..8 {
         let bytes = crate::vfs::read(path).map_err(io(format!("could not read {path}")))?;
         let text = String::from_utf8(bytes.clone())
@@ -1937,7 +2039,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
 }
 
 /// `war release <item|ticket>`: give a claim back without finishing.
-pub fn release(store: &Store, query: &str) -> Result<Outcome, RepoError> {
+pub fn release(store: &Store, query: &str, if_rev: Option<&str>) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
     let (index, item) = match resolve(&tickets, query) {
         Ok(Target::Ticket(n)) => (n, None),
@@ -1949,6 +2051,9 @@ pub fn release(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let what = item
         .as_ref()
         .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
+    if let Some(refusal) = check_if_rev(store, t, item.as_deref(), &what, if_rev) {
+        return Ok(refusal);
+    }
     match store
         .read_claim(&path)
         .map_err(io(format!("could not read {path}")))?
@@ -2119,7 +2224,12 @@ fn may_finish(
 }
 
 /// `war done <item|ticket> [--note]`.
-pub fn done(store: &Store, query: &str, note: Option<&str>) -> Result<Outcome, RepoError> {
+pub fn done(
+    store: &Store,
+    query: &str,
+    note: Option<&str>,
+    if_rev: Option<&str>,
+) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
     let target = match resolve(&tickets, query) {
         Ok(t) => t,
@@ -2136,6 +2246,9 @@ pub fn done(store: &Store, query: &str, note: Option<&str>) -> Result<Outcome, R
     let what = item_id
         .as_ref()
         .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
+    if let Some(refusal) = check_if_rev(store, t, item_id.as_deref(), &what, if_rev) {
+        return Ok(refusal);
+    }
 
     // A whole ticket: done only when nothing remains, or when it has no items
     // (the ticket was the one item, and is ticked as one).
@@ -2210,6 +2323,21 @@ pub fn done(store: &Store, query: &str, note: Option<&str>) -> Result<Outcome, R
                         ),
                     )));
                 };
+                // The compare and the set are one write: the line judged is
+                // the line the rename replaces (`rewrite`'s prestate).
+                if let Some(given) = if_rev {
+                    let now = item_revision(&text, it);
+                    if !same_revision(given, &now) {
+                        return Err(Box::new(stale_revision(
+                            store,
+                            t,
+                            &what,
+                            &t.checklist_path,
+                            given,
+                            &now,
+                        )));
+                    }
+                }
                 let line = it.ticked(&actor, &date, note.as_deref()).render();
                 Ok((
                     ticket::replace_line(&text, it.line, &line),
@@ -2429,13 +2557,26 @@ fn issue_writeback(
 // ---- add / note ------------------------------------------------------------
 
 /// `war add <ticket> "<text>" [--after <item|ticket>]...`.
-pub fn add(store: &Store, query: &str, text: &str, after: &[String]) -> Result<Outcome, RepoError> {
+pub fn add(
+    store: &Store,
+    query: &str,
+    text: &str,
+    after: &[String],
+    if_rev: Option<&str>,
+) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
-    let index = match resolve(&tickets, query) {
-        Ok(Target::Ticket(n) | Target::Item(n, _)) => n,
+    let (index, named_item) = match resolve(&tickets, query) {
+        Ok(Target::Ticket(n)) => (n, None),
+        Ok(Target::Item(n, i)) => (n, Some(i)),
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
+    let what = named_item
+        .as_ref()
+        .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
+    if let Some(refusal) = check_if_rev(store, t, named_item.as_deref(), &what, if_rev) {
+        return Ok(refusal);
+    }
     let text = ticket::one_line(text);
     if text.is_empty() {
         return Ok(Outcome::refused(
@@ -2523,6 +2664,9 @@ pub struct EditArgs {
     /// `Some(None)`: no longer part of anything.
     pub part_of: Option<Option<String>>,
     pub priority: Option<u8>,
+    /// M11: the ticket revision the caller read (`--if-rev`); a stale one
+    /// is refused, `warrant.stale-revision`.
+    pub if_rev: Option<String>,
 }
 
 /// `war edit <ticket>`: set a ticket's type, labels, epic or priority. Each
@@ -2542,6 +2686,9 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
+    if let Some(refusal) = check_if_rev(store, t, None, t.id(), args.if_rev.as_deref()) {
+        return Ok(refusal);
+    }
     let mut m = t.manifest.clone();
     let mut changes = serde_json::Map::new();
     if let Some(kind) = &args.kind {
@@ -2610,6 +2757,20 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
     let manifest_path = t.dir.join("manifest.toml");
     let edited = m.clone();
     let written = rewrite(&manifest_path, |text| {
+        // The compare and the set are one write (`rewrite`'s prestate).
+        if let Some(given) = args.if_rev.as_deref() {
+            let now = revision_of(text.as_bytes());
+            if !same_revision(given, &now) {
+                return Err(Box::new(stale_revision(
+                    store,
+                    t,
+                    t.id(),
+                    &manifest_path,
+                    given,
+                    &now,
+                )));
+            }
+        }
         let mut next = text.to_owned();
         let quoted = |s: &str| ticket::toml_string(s);
         next =
@@ -2680,7 +2841,12 @@ pub const NOTES_HEADING: &str = "## Notes";
 
 /// `war note <ticket|item> "<text>"`: a dated note in the ticket's intent, the
 /// durable context the next agent or human reads.
-pub fn note(store: &Store, query: &str, text: &str) -> Result<Outcome, RepoError> {
+pub fn note(
+    store: &Store,
+    query: &str,
+    text: &str,
+    if_rev: Option<&str>,
+) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
     let (index, item) = match resolve(&tickets, query) {
         Ok(Target::Ticket(n)) => (n, None),
@@ -2688,6 +2854,12 @@ pub fn note(store: &Store, query: &str, text: &str) -> Result<Outcome, RepoError
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
+    let what = item
+        .as_ref()
+        .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
+    if let Some(refusal) = check_if_rev(store, t, item.as_deref(), &what, if_rev) {
+        return Ok(refusal);
+    }
     let body = text.trim();
     if body.is_empty() {
         return Ok(Outcome::refused(

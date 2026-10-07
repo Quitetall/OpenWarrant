@@ -241,6 +241,19 @@ is older than two hours (`claim_ttl_minutes`, counted from when it was
 taken, whatever its renewals) can still be taken with `war claim --steal`,
 journalled with whom it was taken from.
 
+### Writes that say what they read
+
+`war done`, `edit`, `note`, `add` and `release` take `--if-rev <revision>`
+(`if_rev` over MCP): write only if the target is still what the caller read.
+`war show <ticket> --json` gives the revisions, the same digests `war model`
+reports: `revision` for the ticket (its manifest's sha256; `edit` changes it)
+and `items[].revision` for each item (its checklist line's; ticking or
+rewording the item changes it). Pass the item's for an item, the ticket's for
+the ticket. A stale one is refused, `warrant.stale-revision`, naming the
+revision now, and nothing is written; read again and retry. On `done` and
+`edit` the compare and the write are one step. Without `--if-rev` every
+command behaves as it always has.
+
 A claim is a name for coordination. It proves nothing about who someone is and
 authorizes nothing. Who is acting comes from `--as <name>`, else the
 `OPENWARRANT_ACTOR` environment variable, else `[project] performer` in
