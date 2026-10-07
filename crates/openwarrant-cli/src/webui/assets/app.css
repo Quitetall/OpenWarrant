@@ -16,11 +16,6 @@ h3 { font-size:.95rem; margin:.9rem 0 .3rem; }
 .badge.ok { color:var(--ok); border-color:var(--ok); }
 .badge.warn { color:var(--warn); border-color:var(--warn); }
 .badge.bad { color:var(--bad); border-color:var(--bad); }
-.badge.tick-claimed { color:var(--muted); border-style:dashed; }
-.badge.tick-observed { color:var(--accent); border-color:var(--accent); }
-.badge.tick-independent { color:var(--ok); border-color:var(--ok); }
-.badge.tick-signed { color:var(--ok); border-color:var(--ok); font-weight:600; }
-.badge.below { color:var(--warn); border-color:var(--warn); }
 .table-wrap { overflow-x:auto; }
 table { border-collapse:collapse; width:100%; }
 th, td { text-align:left; padding:.3rem .5rem; border-bottom:1px solid var(--line); vertical-align:top; }

@@ -137,7 +137,7 @@
           el("p", { class: "muted", text: "claimed < observed < independent < signed; a claimed tick is the performer's word, nothing checked it." }),
           table(["", "milestone", "ticket", "minimum", "tick"], d.milestones.map((m) => [
             m.met ? "☑" : "☐", el("span", {}, code(m.target), " ", m.text), m.ticket_title || "", m.minimum,
-            m.level ? el("span", { class: "badge tick-" + m.level + (m.met ? "" : " below"), text: m.marker }) : el("span", { class: "muted", text: "open" })])));
+            m.level ? el("span", { class: tickClass(m.level, m.met), "data-tick": m.level, text: m.marker }) : el("span", { class: "muted", text: "open" })])));
     },
     async queue(main) {
       const d = await api("queue");
@@ -203,12 +203,16 @@
     },
   };
 
-  // How a tick was earned (OW-WAR-0148 M13). Each level has its own word and
-  // style; a claimed tick is never drawn as a checked one.
+  // How a tick was earned (OW-WAR-0148 M13). Each level has its own word; a
+  // claimed tick is drawn muted and never as a checked one, a tick below its
+  // minimum as a warning. The page's stylesheet is unchanged (its bytes are
+  // pinned by OW-WAR-0139's OBL-005), so the existing classes carry it.
+  const TICK_CLASS = { claimed: "badge muted", observed: "badge ok", independent: "badge ok", signed: "badge ok" };
+  function tickClass(level, meets) { return meets ? (TICK_CLASS[level] || "badge muted") : "badge warn"; }
   function tickBadge(i) {
     const t = i.tick;
     if (!t) return null;
-    return el("span", { class: "badge tick-" + t.level + (t.meets_minimum ? "" : " below"),
+    return el("span", { class: tickClass(t.level, t.meets_minimum), "data-tick": t.level,
       text: i.tick_marker || "(" + t.level + ")", title: t.unbacked ? "its [" + t.written + "] marker is not believed: " + t.unbacked : t.level });
   }
   function tickSummary(c) {

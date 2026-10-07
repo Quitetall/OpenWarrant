@@ -662,7 +662,7 @@ holds no key. Without `--ssh-sign` nothing is signed (`sign.ssh-required`);
 | `war status` | a **Ticks** block after the corpus projection (never inside it, so working a ticket moves no generated file); `war status <ticket>` is the ticket's show |
 | `war roadmap` | a **Milestones** section (in a program with a roadmap record): each milestone with the level its tick shows and whether it meets its minimum |
 | `war board` | the same ticks and milestones |
-| `war ui` | a badge per done item, a distinct word and style per level (claimed is muted and dashed), and the milestones on the progress page |
+| `war ui` | a badge per done item, a distinct word per level (claimed is drawn muted, never as a checked one; a tick below its minimum as a warning), and the milestones on the progress page |
 
 ### The create hint
 

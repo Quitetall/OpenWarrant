@@ -204,9 +204,8 @@ ms = {m["target"]: m["marker"] for m in p.get("milestones", [])}
 print(marks["plain"][0], marks["plain"][1], marks["checked"][0], marks["checked"][1], ms.get(sys.argv[4], "-"))
 ' "$TL_API" "$TL_PROG" "$TL_W" "$TL_R/$TL_M" 2>&1)
 if [[ "$TL_UI" == "claimed (claimed) observed (observed) (observed)" ]] \
-    && grep -qF 'tick-claimed { color:var(--muted); border-style:dashed; }' "$REPO_ROOT/crates/openwarrant-cli/src/webui/assets/app.css" \
-    && grep -qF '"badge tick-" + t.level' <<<"$TL_JS"; then
-    tl_ok "the web page: levels apart" "API: $TL_UI; claimed is drawn muted and dashed"
+    && grep -qF 'claimed: "badge muted", observed: "badge ok"' <<<"$TL_JS"; then
+    tl_ok "the web page: levels apart" "API: $TL_UI; claimed is drawn muted, never as checked"
 else
     tl_fail "the web page: levels apart" "$TL_UI | $(head -c 120 <<<"$TL_API")"
 fi
