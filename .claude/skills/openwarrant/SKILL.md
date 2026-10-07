@@ -9,11 +9,13 @@ Ordinary coding needs no Warrant and no ticket: edit, build and test as in any
 repository. OpenWarrant is optional planning and tracking. Read the target
 repository's AGENTS.md for its own conventions.
 
-- A **ticket** tracks a piece of work as a checklist: `war prime`, `war ready`,
-  `war claim <item>`, do it, `war done <item> --note "..."`. No step needs a
-  signature. [Tickets](references/tickets.md) has the loop.
-- A **Warrant** is a work plan; optional. A Warrant whose type has a sign-off
-  step adds a person's approval, and the tool holds those rules.
+- A **Warrant** is a work plan; optional. The lightest one, a **ticket**, tracks
+  a piece of work as a checklist: `war prime`, `war ready`, `war claim <item>`,
+  do it, `war done <item> --note "..."`. No step needs a signature.
+  [Tickets](references/tickets.md) has the loop; `war warrants` lists every
+  Warrant, whatever its encoding.
+- A Warrant whose type has a sign-off step adds a person's approval, and the
+  tool holds those rules.
 - Finished and verified are separate: report finished work as finished, and
   as unverified until an independent check says more.
 

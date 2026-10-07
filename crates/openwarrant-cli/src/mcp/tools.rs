@@ -1129,7 +1129,7 @@ impl WarServer {
 
     #[tool(
         name = "war_heartbeat",
-        description = "Renew the lease on your claims (`war heartbeat`), or on the one named, so no other agent reclaims them while you work. Every ticket tool call renews them too; a claim whose lease runs out is taken by a plain claim.",
+        description = "Renew the lease on your claims (`war heartbeat`), or on the one named, so no other agent reclaims them while you work. Every call of the Warrant loop's tools renews them too; a claim whose lease runs out is taken by a plain claim.",
         annotations(read_only_hint = false)
     )]
     fn war_heartbeat(&self, Parameters(p): Parameters<HeartbeatParams>) -> ToolResult {

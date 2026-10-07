@@ -1,5 +1,12 @@
 # Tickets
 
+**Tickets are Warrants.** A ticket is a Warrant in its light encoding: a
+title is enough, and everything else is optional. `war warrants` (also
+`war tickets`, `war ls`) lists every Warrant, light, directory or read in
+place, and `war show <id>` shows any of them; docs/TYPES.md, "One Warrant,
+three encodings", is the whole picture, with import and export for Beads,
+OpenSpec and Spec Kit. This page keeps the word "ticket" for the light one.
+
 A ticket is a piece of work written down so that anyone — you tomorrow, a
 colleague, another agent — can pick it up and finish what is left. You create
 one with a sentence, break it into a checklist, and tick items off as they are
@@ -32,7 +39,7 @@ More, when you need them:
 | `war add <ticket> "text" [--after <item>]` | append an item; `--after` makes it wait on another item, a ticket (`t-...`) or another ticket's item (`t-.../i-...`) |
 | `war note <ticket> "text"` | a dated note under the ticket's **Notes**: a decision, a dead end, a link |
 | `war show <ticket>` | the ticket as a person reads it, with who holds what |
-| `war tickets` (or `war ls`) | every ticket: open, in progress or done, and how far along; filters below |
+| `war warrants` (or `war tickets`, `war ls`) | every Warrant: the tickets first (open, in progress or done, and how far along), then the directory Warrants and those read in place, each with its type; filters below |
 | `war edit <ticket> --type bug -l ui -p 1` | change a ticket's type, labels, epic or priority |
 | `war release <item>` | give a claim back without finishing |
 | `war heartbeat [<item>]` | renew the lease on your claims (any `war` command does too) |

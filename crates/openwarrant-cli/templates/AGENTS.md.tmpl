@@ -6,10 +6,11 @@ created, claimed, approved or signed first.
 
 OpenWarrant is installed here as an optional kit for planning and tracking:
 
-- a **ticket** is a checklist for a piece of work, so the next person or agent
-  can see what is done and what is left;
-- a **Warrant** is a work plan; optional. Some Warrant types add a person's
-  sign-off, and only those come with the rules near the end of this file.
+- a **Warrant** is a work plan; optional. The lightest one, a **ticket**, is a
+  title and a checklist, so the next person or agent can see what is done and
+  what is left; `war warrants` lists every Warrant, tickets included;
+- some Warrant types add a person's sign-off, and only those come with the
+  rules near the end of this file.
 
 Use them when they help, or when the person you work with asks for them.
 

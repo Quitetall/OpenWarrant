@@ -521,7 +521,7 @@ enum TicketCommand {
         /// What was done, for the next reader; written on the item's line.
         #[arg(long)]
         note: Option<String>,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -539,7 +539,7 @@ enum TicketCommand {
         /// What the item waits on: an item of this Warrant, a Warrant, or `t-x/i-y`. Repeatable.
         #[arg(long, value_name = "ITEM|WARRANT")]
         after: Vec<String>,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -553,7 +553,7 @@ enum TicketCommand {
         target: String,
         /// The note; Markdown, may span lines.
         text: String,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -618,7 +618,7 @@ enum TicketCommand {
         part_of: Option<String>,
         #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
         priority: Option<u8>,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -629,7 +629,7 @@ enum TicketCommand {
     /// Give a claim back without finishing the item.
     Release {
         target: String,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -665,7 +665,7 @@ enum TicketCommand {
     /// reclaims them while you work. Every war command you run renews them
     /// too; a claim whose lease runs out is taken by a plain `war claim`.
     Heartbeat {
-        /// One claimed item or ticket; omit for every claim you hold.
+        /// One claimed item or Warrant; omit for every claim you hold.
         target: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
