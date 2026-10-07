@@ -15662,7 +15662,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
 | D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | verified |
 | D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | verified |
-| D-017 | The loop in five commands | `docs/TICKETS.md` | verified |
+| D-017 | The loop in five commands | `docs/TICKETS.md` | drift |
 | D-018 | Three steps to start | `README.md` | verified |
 | D-019 | Three steps to start | `QUICKSTART.md` | verified |
 | D-020 | Ticket and Claim | `CONTEXT.md` | verified |
