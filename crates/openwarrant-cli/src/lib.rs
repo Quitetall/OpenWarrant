@@ -574,6 +574,15 @@ enum TicketCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
+    /// Renew the lease on your claims (or the one named), so no other agent
+    /// reclaims them while you work. Every war command you run renews them
+    /// too; a claim whose lease runs out is taken by a plain `war claim`.
+    Heartbeat {
+        /// One claimed item or ticket; omit for every claim you hold.
+        target: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
     /// Draft a delivery Warrant from a ticket, for when someone wants
     /// sign-off. Opt-in: the authority layer starts here, not before.
     Promote {
@@ -1740,10 +1749,16 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     //
     // Every command that opened a repository remembers it for the hub
     // (OW-WAR-0115): best-effort, and nothing it does changes the result.
+    //
+    // M11: every command that opens a repository renews the acting agent's
+    // claim leases (`$OPENWARRANT_ACTOR`, else `[project] performer`): a
+    // touch per lock it holds, nothing more. The ticket commands renew for
+    // their own `--as`.
     let open_repo = || {
         let r = repo::Repository::discover(root.clone());
         if let Ok(r) = &r {
             projects::touch(&r.root);
+            ticket::renew_ambient(r);
         }
         r
     };
@@ -1763,10 +1778,13 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         return Ok(code);
     };
-    // The ticket loop: a store over the ticket files, and one printer.
+    // The ticket loop: a store over the ticket files, and one printer. Every
+    // ticket command renews the acting agent's claims (M11).
     let tickets = |actor: Option<&str>| -> Result<(repo::Repository, ticket::Store), Box<dyn std::error::Error>> {
-        let repository = open_repo()?;
+        let repository = repo::Repository::discover(root.clone())?;
+        projects::touch(&repository.root);
         let store = ticket::Store::open(&repository, actor)?;
+        store.renew_held(None);
         Ok((repository, store))
     };
     match command {
@@ -1973,6 +1991,14 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     mode,
                     "release",
                     &ticket::release(&store, &target)?,
+                ))
+            }
+            TicketCommand::Heartbeat { target, actor } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "heartbeat",
+                    &ticket::heartbeat(&store, target.as_deref())?,
                 ))
             }
             TicketCommand::Promote {

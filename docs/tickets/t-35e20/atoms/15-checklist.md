@@ -1,7 +1,7 @@
 # Checklist
 
 - [x] Shared claims across worktrees in the git common dir; the cross-worktree double claim becomes a refused plant (i-12e7) — done by claude-m11, 2026-10-07: Claims live under <git common dir>/openwarrant/claims (found by reading .git/gitdir/commondir, no git process); pre-M11 per-worktree locks are read from every worktree and honoured; [tickets] claims_dir still overrides. Plant 100-concurrency: the two-worktree double claim refused by name, same-worktree refused, a pre-M11 lock honoured. Plants 45 and 46 updated for the new lock path.
-- [ ] Leases with heartbeat and reclaim of expired leases, journaled (i-0b6e)
+- [x] Leases with heartbeat and reclaim of expired leases, journaled (i-0b6e) — done by claude-m11, 2026-10-07: Leases: a claim carries lease_until (default 30 min, [tickets] claim_lease_minutes, fractional allowed). Renewal sets the lock inode's mtime through the fd it read as the holder's (never rewrites a lock), so a renewal racing a reclaim extends only the claim it read. war heartbeat [<id>], and every war command (ambient actor) / ticket command (--as) / MCP and web ticket act renews. An expired lease: war ready offers it (expired_claim), a plain war claim reclaims it, journalled ticket.claim_reclaimed with from/from_since/from_lease_until. --steal kept for a live lease past the TTL (TTL counted from since, whatever the renewals). Plant 100 lease section uses touch -d to stand for a lapsed holder.
 - [ ] Compare-and-set writes on record revision (warrant.stale-revision) (i-5812)
 - [ ] Cross-machine claims via refs/openwarrant/claims with atomic push; optional war serve HTTP API (i-5e12)
 - [ ] Alias safety: warrant.alias-duplicate, cross-branch allocation, war renumber for unsigned Warrants (i-75d0)

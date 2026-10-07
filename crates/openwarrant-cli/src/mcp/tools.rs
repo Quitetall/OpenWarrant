@@ -94,6 +94,16 @@ pub struct ClaimParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct HeartbeatParams {
+    /// One claimed item or ticket; omit to renew every claim the actor holds.
+    #[serde(default)]
+    pub target: Option<String>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct DoneParams {
     /// The claimed item (or a ticket with nothing left open).
     pub target: String,
@@ -1102,6 +1112,17 @@ impl WarServer {
     }
 
     #[tool(
+        name = "war_heartbeat",
+        description = "Renew the lease on your claims (`war heartbeat`), or on the one named, so no other agent reclaims them while you work. Every ticket tool call renews them too; a claim whose lease runs out is taken by a plain claim.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_heartbeat(&self, Parameters(p): Parameters<HeartbeatParams>) -> ToolResult {
+        self.ticket("heartbeat", p.actor.as_deref(), |s| {
+            crate::ticket::heartbeat(s, p.target.as_deref())
+        })
+    }
+
+    #[tool(
         name = "war_done",
         description = "Finish a claimed item (`war done`): ticks its checkbox in the ticket's checklist with who, when and an optional note, journals it, releases the claim.",
         annotations(read_only_hint = false)
@@ -1314,7 +1335,11 @@ impl WarServer {
         actor: Option<&str>,
         run: impl FnOnce(&crate::ticket::Store) -> Result<crate::ticket::Outcome, RepoError>,
     ) -> ToolResult {
-        let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| run(&s));
+        // M11: every ticket tool call renews the acting agent's leases.
+        let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| {
+            s.renew_held(None);
+            run(&s)
+        });
         match outcome {
             Ok(o) => {
                 let text = crate::output::envelope(command, &o.report, Some(o.result));

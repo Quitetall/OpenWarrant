@@ -81,3 +81,76 @@ if [[ $CC_S -eq 2 && $CC_S2 -eq 0 && $CC_GONE -eq 1 && $CC_S3 -eq 0 ]] && grep -
 else
     cc_fail "a pre-M11 claim is honoured" "erin $CC_S ($CC_ERR), release $CC_S2, gone $CC_GONE, erin again $CC_S3"
 fi
+
+# Leases. A 5-second lease, and a lock's modification time set back by hand
+# to stand for an agent that stopped renewing (the lease runs from the lock's
+# last renewal). Accepted: a claim carries lease_until; `war heartbeat`, and
+# any war command the holder runs (`war check` here, as $OPENWARRANT_ACTOR),
+# renews it; an expired lease is offered by `war ready` and reclaimed by a
+# plain `war claim`, journalled with the previous holder. Refused: a claim on
+# a live lease (ticket.claimed-by-other, naming when it runs out); the old
+# holder's done after the reclaim; and the lapsed state itself, observed
+# before each renewal so the renewal is what kept the claim.
+echo "== concurrency: leases (M11) =="
+cc_config() { git -C "$CC_ROOT" checkout -q -- openwarrant.toml && printf '\n[tickets]\n%s\n' "$1" >> "$CC_ROOT/openwarrant.toml"; }
+cc_config 'claim_lease_minutes = 0.0834'
+CC_OUT=$(cc_json "$CC_ROOT" create "Leases" --item "Leased" --item "Stolen")
+CC_L=$(cc_field "$CC_OUT" 'v["result"]["id"]')
+CC_LA=$(cc_field "$CC_OUT" 'v["result"]["items"][0]["id"]')
+CC_LB=$(cc_field "$CC_OUT" 'v["result"]["items"][1]["id"]')
+CC_LLOCK="$CC_COMMON/openwarrant/claims/$CC_L--$CC_LA.lock"
+# cc_lapse: the lock as an agent that stopped a minute ago left it.
+cc_lapse() { touch -d "@$(( $(date +%s) - 60 ))" "$CC_LLOCK"; }
+# cc_offered: whether `war ready` (as ivy) offers the item, and why.
+cc_offered() { cc_field "$(cc_json "$CC_ROOT" ready --as ivy)" '",".join(("expired:"+r["expired_claim"]["actor"]) if r.get("expired_claim") else "free" for r in v["result"]["ready"] if r.get("item")=="'"$CC_LA"'") or "held"'; }
+CC_C=$(cc_json "$CC_ROOT" claim "$CC_L/$CC_LA" --as hank)
+CC_LEASE=$(cc_field "$CC_C" 'v["result"]["claim"]["lease_until_unix"] - v["result"]["claim"]["since_unix"]')
+CC_ERR=$(cc_war "$CC_ROOT" claim "$CC_L/$CC_LA" --as ivy 2>&1 >/dev/null); CC_S=$?
+if [[ "$CC_LEASE" == 5 && $CC_S -eq 2 ]] && grep -q 'claimed by hank' <<<"$CC_ERR" && grep -q 'lease runs out in' <<<"$CC_ERR"; then
+    cc_ok "a claim carries its lease" "lease_until 5 s after since; ivy refused by name while it runs"
+else
+    cc_fail "a claim carries its lease" "lease $CC_LEASE s; ivy exit $CC_S: $CC_ERR"
+fi
+sleep 6
+cc_lapse; CC_BEFORE=$(cc_offered)
+cc_war "$CC_ROOT" heartbeat --as hank >/dev/null 2>&1; CC_S=$?
+CC_AFTER=$(cc_offered)
+CC_ERR=$(cc_war "$CC_ROOT" claim "$CC_L/$CC_LA" --as ivy 2>&1 >/dev/null); CC_S2=$?
+if [[ "$CC_BEFORE" == "expired:hank" && $CC_S -eq 0 && "$CC_AFTER" == "held" && $CC_S2 -eq 2 ]] && grep -q 'claimed by hank' <<<"$CC_ERR"; then
+    cc_ok "war heartbeat renews the lease" "lapsed: offered as expired; after hank's heartbeat: held, ivy refused"
+else
+    cc_fail "war heartbeat renews the lease" "before '$CC_BEFORE', heartbeat $CC_S, after '$CC_AFTER', ivy $CC_S2: $CC_ERR"
+fi
+cc_lapse; CC_BEFORE=$(cc_offered)
+env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_ACTOR=hank "$CC_WAR" --root "$CC_ROOT" check </dev/null >/dev/null 2>&1
+CC_AFTER=$(cc_offered)
+CC_ERR=$(cc_war "$CC_ROOT" claim "$CC_L/$CC_LA" --as ivy 2>&1 >/dev/null); CC_S2=$?
+if [[ "$CC_BEFORE" == "expired:hank" && "$CC_AFTER" == "held" && $CC_S2 -eq 2 ]]; then
+    cc_ok "any war command renews it" "lapsed, then hank ran \`war check\`: held, ivy refused"
+else
+    cc_fail "any war command renews it" "before '$CC_BEFORE', after '$CC_AFTER', ivy $CC_S2: $CC_ERR"
+fi
+cc_lapse
+CC_OUT=$(cc_war "$CC_ROOT" claim "$CC_L/$CC_LA" --as ivy 2>&1); CC_S=$?
+CC_ERR=$(cc_war "$CC_ROOT" done "$CC_L/$CC_LA" --as hank 2>&1 >/dev/null); CC_S2=$?
+CC_J="$CC_ROOT/docs/tickets/$CC_L/journal.jsonl"
+if [[ $CC_S -eq 0 && $CC_S2 -eq 2 ]] && grep -q 'reclaimed from hank' <<<"$CC_OUT" \
+    && grep -q '"ticket.claim_reclaimed".*from\\":\\"hank.*from_lease_until' "$CC_J" \
+    && grep -q 'claimed by ivy' <<<"$CC_ERR"; then
+    cc_ok "an expired lease is reclaimed" "ivy took it with a plain claim, journalled from hank; hank's done refused"
+else
+    cc_fail "an expired lease is reclaimed" "ivy $CC_S ($CC_OUT); hank's done $CC_S2 ($CC_ERR)"
+fi
+# --steal still takes a claim past the TTL whose lease is live.
+cc_config $'claim_lease_minutes = 30\nclaim_ttl_minutes = 0'
+cc_war "$CC_ROOT" claim "$CC_L/$CC_LB" --as jill >/dev/null 2>&1
+sleep 1
+CC_ERR=$(cc_war "$CC_ROOT" claim "$CC_L/$CC_LB" --as kim 2>&1 >/dev/null); CC_S=$?
+cc_war "$CC_ROOT" claim "$CC_L/$CC_LB" --as kim --steal >/dev/null 2>&1; CC_S2=$?
+if [[ $CC_S -eq 2 && $CC_S2 -eq 0 ]] && grep -q -- '--steal. takes it' <<<"$CC_ERR" \
+    && grep -q '"ticket.claim_stolen".*from\\":\\"jill' "$CC_J"; then
+    cc_ok "--steal is for a live lease" "past the TTL with 30 min of lease left: plain claim refused, --steal took it from jill"
+else
+    cc_fail "--steal is for a live lease" "plain $CC_S ($CC_ERR), steal $CC_S2"
+fi
+git -C "$CC_ROOT" checkout -q -- openwarrant.toml

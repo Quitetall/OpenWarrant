@@ -109,7 +109,9 @@ fn annotation(
     if let Some((_, c)) = held {
         notes.push(match c {
             Some(c) => {
-                let stale = if c.age(now) > store.ttl_secs {
+                let stale = if c.lease_expired(now) {
+                    ", lease ran out"
+                } else if c.age(now) > store.ttl_secs {
                     ", stale"
                 } else {
                     ""
@@ -787,7 +789,9 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
                 None => format!("{} (whole ticket)", t.manifest.title),
             })
             .unwrap_or_default();
-        let stale = if c.age(now) > store.ttl_secs {
+        let stale = if c.lease_expired(now) {
+            " — its lease ran out: `war claim` takes it"
+        } else if c.age(now) > store.ttl_secs {
             " — stale: `war claim --steal` may take it"
         } else {
             ""

@@ -34,7 +34,8 @@ More, when you need them:
 | `war tickets` (or `war ls`) | every ticket: open, in progress or done, and how far along; filters below |
 | `war edit <ticket> --type bug -l ui -p 1` | change a ticket's type, labels, epic or priority |
 | `war release <item>` | give a claim back without finishing |
-| `war claim <item> --steal` | take a claim whose holder went quiet (older than the TTL) |
+| `war heartbeat [<item>]` | renew the lease on your claims (any `war` command does too) |
+| `war claim <item> --steal` | take a claim older than the TTL whose lease is still live |
 | `war create "..." --draft` | ask the configured drafter (`[plan] drafter_argv`) to propose the items |
 | `war create "..." --draft --records` | the drafter proposes typed records too (requirements, constraints, decisions, outcomes), and the items implement them; see "From a sentence to records" |
 | `war create --issue 12` | make the ticket from GitHub issue #12 (below) |
@@ -226,9 +227,19 @@ live under git's common directory (`git rev-parse --git-common-dir`, then
 agent in one worktree is refused an item an agent in another holds. Outside
 git, and before this was so, they lived in `.openwarrant/state/claims/`; a
 claim found there is still honoured from every worktree, and its holder can
-finish or release it. `[tickets] claims_dir` names one directory instead. A
-claim older than two hours is stale and `war claim --steal` may take it; the
-steal is journalled with whom it was taken from.
+finish or release it. `[tickets] claims_dir` names one directory instead.
+
+A claim is a lease. It carries `lease_until`, 30 minutes after it was taken
+(`[tickets] claim_lease_minutes`), and the holder renews it with
+`war heartbeat` and with every `war` command it runs, so an agent at work
+keeps its claims without thinking about them. A renewal touches the lock
+file's modification time and nothing else. When a lease runs out, the holder
+probably stopped: `war ready` offers the item again (`lease ran out`), and a
+plain `war claim` takes it, journalled as `ticket.claim_reclaimed` with whom
+it was taken from and when their lease ended. A claim with a live lease that
+is older than two hours (`claim_ttl_minutes`, counted from when it was
+taken, whatever its renewals) can still be taken with `war claim --steal`,
+journalled with whom it was taken from.
 
 A claim is a name for coordination. It proves nothing about who someone is and
 authorizes nothing. Who is acting comes from `--as <name>`, else the
@@ -262,7 +273,8 @@ know with `war note`. Do not ask the human to sign anything during this loop;
 nothing in it needs a signature.
 
 Over MCP (`war mcp`) the same loop is `war_prime`, `war_ready`, `war_claim`,
-`war_done`, `war_create`, `war_add`, `war_note`, `war_show` and `war_tickets`.
+`war_done`, `war_create`, `war_add`, `war_note`, `war_show`, `war_tickets`
+and `war_heartbeat`.
 Each takes an optional `actor`; `war_create` also takes `type`, `labels` and
 `part_of`, and `war_tickets` the filters above (`type`, `labels`, `state`,
 `text`, `search`, `epic`). Finding the right ticket is
@@ -276,7 +288,8 @@ All optional, in `openwarrant.toml`:
 [tickets]
 dir = "docs/tickets"                        # where tickets live
 claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
-claim_ttl_minutes = 120                     # after this a claim may be stolen
+claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands
+claim_ttl_minutes = 120                     # after this a claim with a live lease may be stolen
 compact_after_days = 7                      # done tickets older than this are one line in `war prime`
 ```
 

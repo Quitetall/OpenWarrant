@@ -32,8 +32,22 @@
 //! The common directory is found from the files git itself reads (`.git`,
 //! a `.git` file's `gitdir:`, `commondir`), never by running `git`: a claim
 //! costs a stat or two, and a hosted run reads only its basis.
+//!
+//! # Leases (M11)
+//!
+//! A claim carries `lease_until`: `[tickets] claim_lease_minutes` (30 by
+//! default) after it was taken. The holder's `war heartbeat`, and every
+//! `war` command the holder runs, renews it by setting the lock file's
+//! modification time to now; the lease then runs to that time plus the
+//! claim's lease length. A renewal never rewrites a lock: it touches the
+//! inode it opened and read as the holder's, so a renewal racing a reclaim
+//! extends nothing but the claim it read. A claim whose lease ran out is
+//! reclaimed by a plain `war claim`, journalled with whom it was taken from;
+//! `--steal` is for a claim whose lease is live and which is older than the
+//! TTL, as before. A claim from before leases has the configured lease from
+//! when it was taken.
 
-use std::io::Write as _;
+use std::io::{Read as _, Write as _};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use serde::{Deserialize, Serialize};
@@ -53,6 +67,14 @@ pub struct Claim {
     /// RFC 3339, UTC.
     pub since: String,
     pub since_unix: u64,
+    /// When the lease runs out unless the holder renews it, RFC 3339 UTC
+    /// (M11). As read, the lease's current end: the later of what the lock
+    /// was written with and its last renewal plus the lease length. Absent
+    /// in a lock from before leases.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lease_until: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lease_until_unix: Option<u64>,
 }
 
 impl Claim {
@@ -60,6 +82,43 @@ impl Claim {
     #[must_use]
     pub fn age(&self, now: u64) -> u64 {
         now.saturating_sub(self.since_unix)
+    }
+
+    /// Whether the lease has run out at `now`. A claim with no lease (one
+    /// read without [`read`]'s lease, which every reader here supplies)
+    /// never has.
+    #[must_use]
+    pub fn lease_expired(&self, now: u64) -> bool {
+        self.lease_until_unix.is_some_and(|end| now >= end)
+    }
+
+    /// Seconds left on the lease at `now`.
+    #[must_use]
+    pub fn lease_left(&self, now: u64) -> u64 {
+        self.lease_until_unix
+            .map_or(0, |end| end.saturating_sub(now))
+    }
+
+    /// The lease this claim was taken with, in seconds, as written; `default`
+    /// for a claim from before leases.
+    #[must_use]
+    fn written_lease_secs(&self, default: u64) -> u64 {
+        self.lease_until_unix
+            .map_or(default, |end| end.saturating_sub(self.since_unix))
+    }
+
+    /// The claim as a reader sees it: its lease running from its last
+    /// renewal (`renewed`, the lock's modification time) when that is later
+    /// than the lease written in it.
+    fn with_lease(mut self, default: u64, renewed: Option<u64>) -> Self {
+        let len = self.written_lease_secs(default);
+        let written = self
+            .lease_until_unix
+            .unwrap_or_else(|| self.since_unix.saturating_add(len));
+        let end = renewed.map_or(written, |r| written.max(r.saturating_add(len)));
+        self.lease_until_unix = Some(end);
+        self.lease_until = Some(crate::gate_cmd::receipt::rfc3339_from_secs(end));
+        self
     }
 
     /// The claimed thing, `t-x` or `t-x/i-y`.
@@ -97,13 +156,67 @@ fn nonce() -> String {
 }
 
 /// Read a lock, if it exists. A lock that exists and does not parse is
-/// `Some(None)`: held, by nobody the file names.
-pub fn read(path: &Utf8Path) -> std::io::Result<Option<Option<Claim>>> {
+/// `Some(None)`: held, by nobody the file names. The claim's lease is as of
+/// its last renewal; `lease` is the length, in seconds, a claim from before
+/// leases is given.
+pub fn read(path: &Utf8Path, lease: u64) -> std::io::Result<Option<Option<Claim>>> {
     match crate::vfs::read(path) {
-        Ok(bytes) => Ok(Some(serde_json::from_slice(&bytes).ok())),
+        Ok(bytes) => {
+            let renewed = if crate::vfs::is_hosted() {
+                None
+            } else {
+                std::fs::metadata(path).ok().and_then(|m| mtime_secs(&m))
+            };
+            Ok(Some(
+                serde_json::from_slice::<Claim>(&bytes)
+                    .ok()
+                    .map(|c| c.with_lease(lease, renewed)),
+            ))
+        }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e),
     }
+}
+
+fn mtime_secs(m: &std::fs::Metadata) -> Option<u64> {
+    m.modified()
+        .ok()?
+        .duration_since(std::time::UNIX_EPOCH)
+        .ok()
+        .map(|d| d.as_secs())
+}
+
+/// The lock at `path` as one open file sees it: its claim as written and
+/// its last renewal, read from the same inode, so the two cannot belong to
+/// two different locks.
+fn read_open(path: &Utf8Path) -> std::io::Result<(std::fs::File, Option<Claim>, Option<u64>)> {
+    let mut f = std::fs::File::open(path)?;
+    let mut bytes = Vec::new();
+    f.read_to_end(&mut bytes)?;
+    let renewed = f.metadata().ok().and_then(|m| mtime_secs(&m));
+    Ok((f, serde_json::from_slice::<Claim>(&bytes).ok(), renewed))
+}
+
+/// Renew the lease on the lock at `path` if `actor` holds it: its
+/// modification time becomes now. Returns the claim as renewed, or `None`
+/// when the lock is gone or someone else's. The time is set on the file
+/// that was opened and read as `actor`'s, never on whatever the name points
+/// at afterwards: a lock reclaimed in between is not extended.
+pub fn renew(path: &Utf8Path, actor: &str, lease: u64) -> std::io::Result<Option<Claim>> {
+    let (f, claim, _) = match read_open(path) {
+        Ok(v) => v,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(e),
+    };
+    let Some(claim) = claim.filter(|c| c.actor == actor) else {
+        return Ok(None);
+    };
+    let now = std::time::SystemTime::now();
+    f.set_modified(now)?;
+    let secs = now
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_secs());
+    Ok(Some(claim.with_lease(lease, Some(secs))))
 }
 
 /// Take `path` for `claim`, atomically. See the module docs.
@@ -141,7 +254,7 @@ pub fn take(path: &Utf8Path, claim: &Claim) -> std::io::Result<Taken> {
     match linked {
         Ok(()) => Ok(Taken::Won),
         Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-            Ok(Taken::Held(read(path)?.flatten()))
+            Ok(Taken::Held(read(path, lease_of(claim))?.flatten()))
         }
         // A filesystem without hard links: O_EXCL create, then write. A
         // reader in the instant between the two sees an empty lock, which
@@ -158,11 +271,17 @@ pub fn take(path: &Utf8Path, claim: &Claim) -> std::io::Result<Taken> {
                 Ok(Taken::Won)
             }
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-                Ok(Taken::Held(read(path)?.flatten()))
+                Ok(Taken::Held(read(path, lease_of(claim))?.flatten()))
             }
             Err(e) => Err(e),
         },
     }
+}
+
+/// The lease length `claim` was written with: what a holder read alongside
+/// it, from before leases, is given.
+fn lease_of(claim: &Claim) -> u64 {
+    claim.written_lease_secs(0)
 }
 
 /// What a steal did.
@@ -183,29 +302,41 @@ pub enum Stolen {
 /// three agents on one stale item within microseconds; the journal records
 /// all three claims either way.
 pub fn steal(path: &Utf8Path, stale: Option<&Claim>, claim: &Claim) -> std::io::Result<Stolen> {
-    steal_into(path, stale, path, claim)
+    steal_into(path, stale, path, claim, 0, &|_| true)
 }
 
 /// [`steal`], taking the lock at `to` once the stale one at `from` is set
-/// aside: a claim from before claims were shared lies in a worktree's own
-/// directory, and the claim that replaces it is taken in the shared one.
+/// aside (a claim from before claims were shared lies in a worktree's own
+/// directory, and the claim that replaces it is taken in the shared one),
+/// and only while `takeable` still holds of the lock as set aside. Once it is
+/// aside no renewal can reach it, so a reclaim judged on an expired lease
+/// loses to a renewal that landed first. `lease` is what a claim from before
+/// leases is given.
 pub fn steal_into(
     from: &Utf8Path,
     stale: Option<&Claim>,
     to: &Utf8Path,
     claim: &Claim,
+    lease: u64,
+    takeable: &dyn Fn(&Claim) -> bool,
 ) -> std::io::Result<Stolen> {
     let aside = Utf8PathBuf::from(format!("{from}.stolen.{}", nonce()));
     match std::fs::rename(from, &aside) {
         Ok(()) => {
-            let moved: Option<Claim> = std::fs::read(&aside)
+            let moved: Option<Claim> = read_open(&aside)
                 .ok()
-                .and_then(|b| serde_json::from_slice(&b).ok());
-            if moved.as_ref() != stale {
-                // Not the claim we judged: put it back, and lose.
+                .and_then(|(_, c, renewed)| c.map(|c| c.with_lease(lease, renewed)));
+            let same = match (&moved, stale) {
+                (Some(m), Some(s)) => m.claim == s.claim && takeable(m),
+                (None, None) => true,
+                _ => false,
+            };
+            if !same {
+                // Not the claim we judged, or no longer takeable: put it
+                // back, and lose.
                 let _ = std::fs::hard_link(&aside, from);
                 let _ = std::fs::remove_file(&aside);
-                return Ok(Stolen::Lost(read(from)?.flatten()));
+                return Ok(Stolen::Lost(read(from, lease)?.flatten()));
             }
             let _ = std::fs::remove_file(&aside);
         }
@@ -222,7 +353,7 @@ pub fn steal_into(
 
 /// Remove `path` if `actor` holds it. Returns whether it was removed.
 pub fn release(path: &Utf8Path, actor: &str) -> std::io::Result<bool> {
-    match read(path)? {
+    match read(path, 0)? {
         Some(Some(claim)) if claim.actor == actor => {
             std::fs::remove_file(path)?;
             Ok(true)
@@ -231,9 +362,27 @@ pub fn release(path: &Utf8Path, actor: &str) -> std::io::Result<bool> {
     }
 }
 
+/// Every lock file in `dir`, by name.
+pub fn lock_files(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
+    let mut out: Vec<Utf8PathBuf> = crate::vfs::read_dir_utf8(dir)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|p| {
+            p.file_name()
+                .is_some_and(|n| n.ends_with(".lock") && !n.starts_with('.'))
+        })
+        .collect();
+    out.sort();
+    out
+}
+
 /// Every claim in `dir`, keyed by lock file name. An unreadable lock is
-/// included as held by nobody named.
-pub fn all(dir: &Utf8Path) -> std::io::Result<std::collections::BTreeMap<String, Option<Claim>>> {
+/// included as held by nobody named. `lease` is what a claim from before
+/// leases is given.
+pub fn all(
+    dir: &Utf8Path,
+    lease: u64,
+) -> std::io::Result<std::collections::BTreeMap<String, Option<Claim>>> {
     let mut out = std::collections::BTreeMap::new();
     let entries = match crate::vfs::read_dir(dir) {
         Ok(e) => e,
@@ -249,7 +398,7 @@ pub fn all(dir: &Utf8Path) -> std::io::Result<std::collections::BTreeMap<String,
             continue;
         }
         let path = dir.join(&name);
-        if let Some(claim) = read(&path)? {
+        if let Some(claim) = read(&path, lease)? {
             out.insert(name, claim);
         }
     }
@@ -417,6 +566,8 @@ mod tests {
             actor: actor.to_owned(),
             since: "2026-09-25T00:00:00Z".to_owned(),
             since_unix,
+            lease_until: None,
+            lease_until_unix: None,
         }
     }
 
@@ -449,7 +600,10 @@ mod tests {
                 .map(|(a, _)| a)
                 .collect();
             assert_eq!(winners.len(), 1, "round {round}: {winners:?}");
-            let holder = read(&path).expect("read").flatten().expect("a whole claim");
+            let holder = read(&path, 60)
+                .expect("read")
+                .flatten()
+                .expect("a whole claim");
             assert_eq!(&holder.actor, winners[0]);
             for (actor, taken) in &results {
                 if let Taken::Held(seen) = taken {
@@ -529,13 +683,17 @@ mod tests {
             other => panic!("{other:?}"),
         }
         assert_eq!(
-            read(&path).expect("read").flatten().expect("claim").actor,
+            read(&path, 60)
+                .expect("read")
+                .flatten()
+                .expect("claim")
+                .actor,
             "agent-a"
         );
         // Release is the holder's only.
         assert!(!release(&path, "agent-b").expect("release"));
         assert!(release(&path, "agent-a").expect("release"));
-        assert!(read(&path).expect("read").is_none());
+        assert!(read(&path, 60).expect("read").is_none());
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
