@@ -3,10 +3,10 @@
   "outcome": "compiled",
   "refusal": null,
   "basis_digest": "sha256:47aa55630c0a37f8fd568e8989e5951e9e8a9e938d99343fa6feaf8cb8027443",
-  "model_digest": "sha256:679d956cf2113b61349222b1c07bcb8570d5dd1414ee733ae652a637f4c7f432",
-  "records": 25,
+  "model_digest": "sha256:be1f27324ab03ffb34e1684c49b2e43fd6457b254f9799e2320de19d86581761",
+  "records": 16,
   "relations": 11,
-  "states": 17,
+  "states": 8,
   "host_rules": [],
   "projections": []
 }
