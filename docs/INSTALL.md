@@ -194,3 +194,38 @@ profile of the running binary, and every `war` on `PATH`.
 `war version --json` carries them under `result.build`. A build of the same
 version as a release, but not the release itself, is told `update.unreleased`
 by `war update --check`, never `update.current`.
+
+## Version skew: text newer than the binary
+
+An agent follows AGENTS.md and the plugin's skills; `war` is whatever binary
+`PATH` finds. When the text is newer, it names commands the binary may not
+have, and an agent would read the old binary's refusal as a rule of the
+repository. Two stamps say which `war` the text came with:
+
+- AGENTS.md ends with `<!-- openwarrant agents-md: written by war X -->`,
+  written by the `war init` or `war agents-md` that made it;
+- the Claude Code plugin's `.claude-plugin/plugin.json` `version` is the
+  `war` release it ships with (it moves every release), read from the
+  repository root and from `$CLAUDE_PLUGIN_ROOT` when the harness sets it.
+
+`war doctor` and `war prime` compare each stamp with the running version and
+warn `install.version-skew`, naming both versions and the update command,
+when the stamp is newer. An equal or older stamp, or a file with none (written
+before the stamps existed), says nothing.
+
+## Signing setup: `war doctor`
+
+Ordinary work needs no signing setup. When a person wants to sign off with
+`war sign --ssh-sign`, `war doctor` probes what that needs without signing
+anything: `ssh-keygen` on `PATH`, the agent behind `SSH_AUTH_SOCK` and the
+keys `ssh-add -L` lists, `docs/authority/roles.toml` (a human with the
+authorizer or resolver role and an `ssh_principal`), and an
+`docs/authority/allowed_signers` line for that principal whose key the agent
+holds. Each missing piece is a WARN that says what to run or add. At a
+terminal, `war doctor --fix-signing` walks through them: it signs nothing,
+writes `roles.toml` or `allowed_signers` only when the file does not exist
+yet (from your answers, after showing the exact bytes and asking), and for a
+file that exists prints the lines to add by hand, because no command edits
+those files once written (OW-ADR-0021). Every `war sign` refusal names the
+missing piece, carries a remedy, and ends "This blocks only the sign-off, not
+your work."

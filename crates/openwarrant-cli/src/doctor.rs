@@ -27,10 +27,15 @@ pub fn run(
     generated: bool,
 ) -> (Report, Value) {
     let mut report = Report::default();
+    // `execution_authorized: false` stays for the readers that check it
+    // (tests/doctor_cli.rs): it says doctor grants no Warrant execution. It
+    // never meant ordinary work needs a grant, and `ordinary_work_needs_
+    // authorization: false` says that in the same breath (M9).
     let mut result = json!({
         "schema": "oh.war/doctor/v1", "read_only": true,
         "admission": "UNKNOWN", "secure_authority": "UNKNOWN",
-        "execution_authorized": false, "remedies": [],
+        "execution_authorized": false, "ordinary_work_needs_authorization": false,
+        "remedies": [],
         "scope": "legacy-record-diagnostics-and-configuration"
     });
     // Which binary is answering, before anything it says can be read. An
@@ -39,9 +44,13 @@ pub fn run(
     let install = crate::install::observe();
     report.diagnostics.extend(install.report().diagnostics);
     result["install"] = install.json();
-    report.note("Doctor reports records and configuration only. Admission and protected authority are UNKNOWN; no execution permission or assurance is issued.");
+    report.note("Not an approval: ordinary work needs nothing from this report (no Warrant, ticket or signature is required to edit, build or test). Doctor reads records, configuration and the signing setup, and changes nothing.");
     let repo = match Repository::discover(root) {
-        Ok(repo) => repo,
+        Ok(repo) => {
+            // M9: text newer than this binary, said before anything it reads.
+            report.diagnostics.extend(crate::skew::findings(&repo.root));
+            repo
+        }
         Err(error) => {
             unavailable(&mut report, "repository", error);
             report.note("Inspect openwarrant.toml. For a new repository, see `war init --help`; doctor never initializes or changes it.");
@@ -71,7 +80,7 @@ pub fn run(
         },
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => report.push(Diagnostic::warn(
             "doctor.authority-absent", "docs/authority/roles.toml",
-            "No legacy authority register. Optional for ungated prototypes; governed acts require their configured authority path. See `war authority --help`.")),
+            "No authority register (docs/authority/roles.toml). Only sign-off needs one; ordinary work does not. See `war authority --help`.")),
         Err(source) => unavailable(&mut report, "authority", RepoError::Io {
             context: format!("could not inspect {roles}"), source,
         }),
@@ -97,7 +106,11 @@ pub fn run(
         "verifier_configured": !repo.config.verify.verifier_argv.is_empty(),
         "backend_probed": false, "signer_custody": "UNKNOWN"
     });
-    report.note("Signer identity, key custody, human confirmation and backend availability are not probed. A key file or configured command does not prove these properties.");
+    // M9: the signing setup, probed without signing anything.
+    let (signing, signing_json) = crate::signing_probe::probe(&repo);
+    report.diagnostics.extend(signing);
+    result["signing"] = signing_json;
+    report.note("Signing probes signed nothing: they read PATH, SSH_AUTH_SOCK, `ssh-add -L` (public keys), roles.toml and allowed_signers. Whether a key was loaded with `ssh-add -c`, key custody and backend availability are not probed. A missing piece blocks only the sign-off, not your work; `war doctor --fix-signing` at a terminal offers to repair it.");
     match crate::frontier::run(&repo, alias) {
         Ok((findings, frontier)) => {
             report.diagnostics.extend(findings.diagnostics);
@@ -124,7 +137,8 @@ pub fn run(
         {"component":"dependencies", "argv":frontier, "purpose":"Inspect blocked stage prerequisites; complete required work rather than clearing records."},
         {"component":"authority", "argv":["war","authority","--help"], "purpose":"Inspect protected authority setup; do not edit active grants to bypass checks."},
         {"component":"performer", "argv":["war","perform","--help"], "purpose":"Inspect performer configuration requirements."},
-        {"component":"verifier", "argv":["war","verify","--help"], "purpose":"Inspect independent verifier configuration requirements."}
+        {"component":"verifier", "argv":["war","verify","--help"], "purpose":"Inspect independent verifier configuration requirements."},
+        {"component":"signing", "argv":["war","doctor","--fix-signing"], "purpose":"At a terminal: repair the signing setup interactively. Signs nothing; writes roles.toml or allowed_signers only when absent, after confirming the exact bytes."}
     ]);
     report.note("Next diagnostic commands: `war check`, `war frontier`, `war authority --help`, `war perform --help`, `war verify --help`. JSON remedies preserve exact arguments; nothing is executed automatically.");
     (report, result)

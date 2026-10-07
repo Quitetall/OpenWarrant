@@ -129,6 +129,45 @@ pub const TABLE: &[&str] = &[
     "doctor.performer",
     "doctor.verifier",
     "journal.not-empty",
+    // M9: every `sign.*` rule has a remedy, so no signing refusal ends in a
+    // dead end. A test below reads the source for `"sign.…"` literals and
+    // holds this list to all of them.
+    "sign.who",
+    "sign.ssh-principal",
+    "sign.ssh-refused",
+    "sign.actor-key-mismatch",
+    "sign.not-verified",
+    "sign.presence-required",
+    "sign.dry-run-failed",
+    "sign.presence",
+    "sign.presence-unreadable",
+    "sign.verified",
+    "sign.signer",
+    "sign.unsigned",
+    "sign.no-tty",
+    "sign.no-target",
+    "sign.nothing-pending",
+    "sign.not-assigned",
+    "sign.declined",
+    "sign.no-response",
+    "sign.list",
+    "sign.show",
+    "sign.shown",
+    "sign.not-draftable",
+    "sign.needs-decision",
+    "sign.response-exists",
+    "sign.would-record",
+    "sign.would-refuse",
+    "sign.refused",
+    "sign.ingest-failed",
+    "doctor.signing-keygen",
+    "doctor.signing-agent",
+    "doctor.signing-keys",
+    "doctor.signing-roles",
+    "doctor.signing-allowed",
+    "doctor.signing-key-loaded",
+    "doctor.fix-by-hand",
+    "doctor.fix-needs-tty",
 ];
 
 /// The remedy for one diagnostic, or `None` when nothing answers it. A
@@ -269,6 +308,72 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
             &["war", "journal", a],
             "read the events already on the journal before asking for a backfill",
         ),
+        // M9: a signing refusal blocks only the sign-off. Each names where to
+        // look next, and none of these remedies signs anything.
+        "sign.who"
+        | "sign.ssh-principal"
+        | "sign.ssh-refused"
+        | "sign.actor-key-mismatch"
+        | "sign.not-verified"
+        | "sign.presence-required"
+        | "sign.dry-run-failed"
+        | "sign.presence"
+        | "sign.presence-unreadable"
+        | "sign.verified"
+        | "sign.signer"
+        | "sign.unsigned" => Remedy::new(
+            Kind::Informational,
+            &["war", "doctor"],
+            "probe the signing setup (ssh-keygen, the agent and its keys, roles.toml, \
+             allowed_signers) without signing anything; at a terminal `war doctor \
+             --fix-signing` offers repairs. This blocks only the sign-off, not your work",
+        ),
+        "sign.no-tty"
+        | "sign.no-target"
+        | "sign.nothing-pending"
+        | "sign.not-assigned"
+        | "sign.declined"
+        | "sign.no-response"
+        | "sign.list"
+        | "sign.show"
+        | "sign.shown"
+        | "sign.not-draftable"
+        | "sign.needs-decision"
+        | "sign.response-exists"
+        | "sign.would-record" => Remedy::new(
+            Kind::Informational,
+            &["war", "sign", "--list"],
+            "see what awaits a signature and who may sign each; a person signs at their own \
+             terminal, or with --ssh-sign through the ssh agent's dialog",
+        ),
+        "sign.would-refuse" | "sign.refused" => Remedy::new(
+            Kind::Informational,
+            &["war", "next"],
+            "see each waiting act's dry-run verdict and the rule that would refuse it; \
+             nothing is signed or written",
+        ),
+        "sign.ingest-failed" => Remedy::new(
+            Kind::Informational,
+            &["war", "check"],
+            "see what the records say now; the signature on disk is kept, never deleted",
+        ),
+        "doctor.signing-keygen"
+        | "doctor.signing-agent"
+        | "doctor.signing-keys"
+        | "doctor.signing-roles"
+        | "doctor.signing-allowed"
+        | "doctor.signing-key-loaded"
+        | "doctor.fix-by-hand" => Remedy::new(
+            Kind::Informational,
+            &["war", "doctor", "--fix-signing"],
+            "at a terminal, walk through the signing setup and repair what is missing; it \
+             signs nothing and writes only a file that does not exist yet",
+        ),
+        "doctor.fix-needs-tty" => Remedy::new(
+            Kind::Informational,
+            &["war", "doctor"],
+            "the same findings, without questions",
+        ),
         _ => return from_message(&d.message),
     };
     // A table entry that needed an alias or a deliverable the finding did not
@@ -391,6 +496,62 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// M9: every `sign.*` rule the source can emit has a table entry, and
+    /// each entry answers with a remedy that signs nothing. The rules are
+    /// read from the source, so a new `sign.*` rule without a remedy fails
+    /// here by name.
+    #[test]
+    fn every_sign_rule_has_a_remedy_that_signs_nothing() {
+        let sources = [
+            include_str!("sign.rs"),
+            include_str!("batch_cmd.rs"),
+            include_str!("next.rs"),
+            include_str!("authority_check.rs"),
+            include_str!("invalidation.rs"),
+            include_str!("standing_cmd.rs"),
+            include_str!("mcp/tools.rs"),
+        ];
+        let mut rules = std::collections::BTreeSet::new();
+        for src in sources {
+            let mut rest = src;
+            while let Some(i) = rest.find("\"sign.") {
+                let after = &rest[i + 1..];
+                let end = after
+                    .find(|c: char| !(c.is_ascii_lowercase() || c == '.' || c == '-'))
+                    .unwrap_or(after.len());
+                if after[end..].starts_with('"') && end > "sign.".len() {
+                    rules.insert(after[..end].to_owned());
+                }
+                rest = &after[end..];
+            }
+        }
+        assert!(rules.len() >= 20, "found only {rules:?}");
+        let missing: Vec<&String> = rules
+            .iter()
+            .filter(|r| !TABLE.contains(&r.as_str()))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "sign.* rules without a remedy: {missing:?}"
+        );
+        for rule in &rules {
+            let d = Diagnostic::error(rule.as_str(), "war sign".to_owned(), "refused");
+            let r = remedy_for(&d).unwrap_or_else(|| panic!("{rule}: no remedy"));
+            assert_ne!(r.kind, Kind::Human, "{rule}: {}", r.command());
+            assert!(!r.argv.iter().any(|a| a == "--ssh-sign"), "{rule}");
+            assert!(
+                !(r.argv.get(1).map(String::as_str) == Some("sign")
+                    && !r.argv.iter().any(|a| a == "--list")),
+                "{rule}: a remedy that would sign: {}",
+                r.command()
+            );
+        }
+        // Refusal side: a made-up rule outside the table with no command in
+        // its message has no remedy; the table is not a catch-all.
+        let unknown = Diagnostic::error("sign.not-a-rule", "x".to_owned(), "refused");
+        assert!(remedy_for(&unknown).is_none());
     }
 
     #[test]

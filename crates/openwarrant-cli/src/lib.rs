@@ -88,6 +88,8 @@ pub mod schemas;
 pub mod sdk;
 pub mod show;
 pub mod sign;
+pub mod signing_probe;
+pub mod skew;
 pub mod standing_cmd;
 pub mod states;
 pub mod status;
@@ -788,6 +790,12 @@ enum Command {
         /// Include deterministic generated-view drift checks.
         #[arg(long)]
         generated: bool,
+        /// At a terminal, offer to repair each signing finding. Never signs;
+        /// writes roles.toml or allowed_signers only when absent, after you
+        /// confirm the exact bytes; prints the lines to add to one that
+        /// exists. Refused without a terminal.
+        #[arg(long, conflicts_with_all = ["alias", "generated"])]
+        fix_signing: bool,
     },
     /// Inspect or run local gate definitions (§44).
     Gate {
@@ -1923,12 +1931,16 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 ticket: target,
                 actor,
             } => {
-                let (_, store) = tickets(actor.as_deref())?;
-                Ok(ticket_answer(
-                    mode,
-                    "prime",
-                    &ticket::prime(&store, target.as_deref())?,
-                ))
+                let (repository, store) = tickets(actor.as_deref())?;
+                let mut outcome = ticket::prime(&store, target.as_deref())?;
+                // M9: the first thing an agent runs says when the text it
+                // follows is newer than this binary (a WARN, on stderr in
+                // human mode, in the envelope under --json).
+                outcome
+                    .report
+                    .diagnostics
+                    .extend(skew::findings(&repository.root));
+                Ok(ticket_answer(mode, "prime", &outcome))
             }
             TicketCommand::Tickets {
                 kind,
@@ -3905,7 +3917,32 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             };
             Ok(output::finish(mode, "update", &report, None))
         }
-        Command::Doctor { alias, generated } => {
+        Command::Doctor {
+            fix_signing: true, ..
+        } => {
+            // The terminal gate comes before the repository is read, so a
+            // pipe or an agent's shell learns one thing and nothing moves.
+            if !sign::at_a_terminal() || cli.json {
+                let mut report = diagnostic::Report::default();
+                report.push(diagnostic::Diagnostic::new(
+                    diagnostic::Severity::Error,
+                    "doctor.fix-needs-tty",
+                    None,
+                    "`war doctor --fix-signing` asks questions, so it runs only at a terminal; \
+                     `war doctor` alone reports the same findings without asking"
+                        .to_owned(),
+                ));
+                return Ok(output::finish(mode, "doctor", &report, None));
+            }
+            let repository = open_repo()?;
+            let report = signing_probe::fix(&repository)?;
+            Ok(output::finish(mode, "doctor", &report, None))
+        }
+        Command::Doctor {
+            alias,
+            generated,
+            fix_signing: false,
+        } => {
             let (report, result) = doctor::run(root.clone(), alias.as_deref(), generated);
             Ok(output::finish(mode, "doctor", &report, Some(result)))
         }
@@ -4094,7 +4131,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 targets.extend(target);
                 // Named with anything else, `batch.recover-alone` refuses it.
                 targets.extend(recover.map(|id| format!("{}{id}", batch_cmd::RECOVER_PREFIX)));
-                let report = batch_cmd::run(&repository, &targets, &opts)?;
+                let mut report = batch_cmd::run(&repository, &targets, &opts)?;
+                signing_probe::finish(&repository, &mut report);
                 return Ok(output::finish(mode, "sign", &report, None));
             }
             let report = sign::run(&repository, target.as_deref(), &opts)?;
