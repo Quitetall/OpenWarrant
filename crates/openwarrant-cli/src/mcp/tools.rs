@@ -627,8 +627,18 @@ impl WarServer {
         annotations(read_only_hint = true)
     )]
     fn war_show(&self, Parameters(p): Parameters<ShowParams>) -> ToolResult {
-        if crate::warrants::kind_of(&p.alias) == crate::warrants::IdKind::Light {
-            return self.ticket("show", None, |s| crate::ticket::show(s, &p.alias));
+        match crate::warrants::kind_of(&p.alias) {
+            crate::warrants::IdKind::Light => {
+                return self.ticket("show", None, |s| crate::ticket::show(s, &p.alias));
+            }
+            crate::warrants::IdKind::ReadInPlace => {
+                let alias = p.alias.clone();
+                let repo = self.repo.clone();
+                return self.ticket("show", None, move |_| {
+                    Ok(crate::interop::adapters::show(&repo, &alias))
+                });
+            }
+            crate::warrants::IdKind::Directory => {}
         }
         value_of(
             "show",

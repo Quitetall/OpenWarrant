@@ -186,7 +186,11 @@ pub fn directory_rows(repo: &Repository) -> Result<(Vec<Row>, Vec<Diagnostic>), 
 /// Every Warrant not in the light encoding: the directory ones, then the
 /// ones read in place, with a warning per one that could not be read.
 pub fn other_rows(repo: &Repository) -> Result<(Vec<Row>, Vec<Diagnostic>), RepoError> {
-    directory_rows(repo)
+    let (mut rows, mut faults) = directory_rows(repo)?;
+    let adapted = crate::interop::adapters::load(repo);
+    rows.extend(adapted.rows());
+    faults.extend(adapted.diagnostics());
+    Ok((rows, faults))
 }
 
 /// The words `--type` accepts beyond the light encoding's own types: every

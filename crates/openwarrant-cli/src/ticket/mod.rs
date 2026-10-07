@@ -49,7 +49,9 @@ use crate::compile::atomic;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{RepoError, Repository};
 
-pub use render::{Filter, Others, list, prime, show, tickets, tickets_filtered};
+pub use render::{
+    Filter, Others, description, list, notes, prime, show, tickets, tickets_filtered,
+};
 
 /// Where tickets live unless `[tickets] dir` says otherwise.
 pub const DEFAULT_DIR: &str = "docs/tickets";
@@ -70,7 +72,7 @@ const DEFAULT_COMPACT_DAYS: u64 = 7;
 const BUILTIN_PROFILE: &str = include_str!("../../../../profiles/ticket.toml");
 
 /// Where `war create` writes a ticket's intent atom, relative to its directory.
-const INTENT_FILE: &str = "atoms/10-intent.md";
+pub(crate) const INTENT_FILE: &str = "atoms/10-intent.md";
 
 /// The files the ticket loop writes while a ticket is worked (t-5d82), for
 /// the evidence tree rule to skip: a ticket is a record about the work, not
@@ -187,7 +189,7 @@ pub struct Outcome {
 }
 
 impl Outcome {
-    fn ok(human: impl Into<String>, result: serde_json::Value) -> Self {
+    pub(crate) fn ok(human: impl Into<String>, result: serde_json::Value) -> Self {
         Self {
             report: Report::default(),
             human: human.into(),
@@ -195,7 +197,7 @@ impl Outcome {
         }
     }
 
-    fn refused(rule: &str, file: impl Into<String>, message: impl Into<String>) -> Self {
+    pub(crate) fn refused(rule: &str, file: impl Into<String>, message: impl Into<String>) -> Self {
         let message = message.into();
         let mut report = Report::default();
         report.push(Diagnostic::error(rule, file, message.clone()));
@@ -206,7 +208,7 @@ impl Outcome {
         }
     }
 
-    fn from_diagnostic(d: Diagnostic) -> Self {
+    pub(crate) fn from_diagnostic(d: Diagnostic) -> Self {
         let mut report = Report::default();
         let human = d.message.clone();
         report.push(d);
@@ -422,7 +424,7 @@ impl Store {
         }
     }
 
-    fn checklist_file(&self) -> &str {
+    pub(crate) fn checklist_file(&self) -> &str {
         self.definition
             .required_extension_roles
             .iter()
@@ -430,7 +432,7 @@ impl Store {
             .map_or("15-checklist.md", |r| r.file.as_str())
     }
 
-    fn checklist_ordinal(&self) -> u32 {
+    pub(crate) fn checklist_ordinal(&self) -> u32 {
         self.definition
             .required_extension_roles
             .iter()
@@ -438,7 +440,7 @@ impl Store {
             .map_or(15, |r| r.ordinal)
     }
 
-    fn checklist_stub(&self) -> String {
+    pub(crate) fn checklist_stub(&self) -> String {
         self.definition
             .required_extension_roles
             .iter()
@@ -447,7 +449,7 @@ impl Store {
     }
 
     /// Every ticket directory (one holding a `manifest.toml`), sorted.
-    fn ticket_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
+    pub(crate) fn ticket_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
         let entries = match crate::vfs::read_dir(&self.dir) {
             Ok(e) => e,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
@@ -627,7 +629,7 @@ impl Store {
         renewed
     }
 
-    fn journal(
+    pub(crate) fn journal(
         &self,
         t: &Ticket,
         event_type: &str,
@@ -1112,7 +1114,7 @@ fn parent_of(tickets: &[Ticket], query: &str, child: Option<&str>) -> Result<Str
     Ok(parent)
 }
 
-fn toml_of(m: &TicketManifest) -> Result<String, RepoError> {
+pub(crate) fn toml_of(m: &TicketManifest) -> Result<String, RepoError> {
     let body = toml::to_string(m)
         .map_err(|e| RepoError::Message(format!("could not render the ticket manifest: {e}")))?;
     Ok(format!(
@@ -1713,7 +1715,9 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
             (None, None) => format!("{} (no items: the Warrant is the work)", r.text),
         };
         human.push_str(&format!("{:<16} p{}  {what}", r.target(), r.priority));
-        if r.item.is_some() || r.line.is_some() {
+        // M10: an item that is its Warrant's title (an imported issue's one
+        // item) is not named twice.
+        if (r.item.is_some() || r.line.is_some()) && r.text != r.title {
             human.push_str(&format!("  — {}", r.title));
         }
         if let Some(c) = &r.stale_claim {

@@ -48,6 +48,7 @@ pub mod impact;
 pub mod inbox;
 pub mod init;
 pub mod install;
+pub mod interop;
 pub mod invalidation;
 pub mod journal_cmd;
 pub mod kf;
@@ -1129,9 +1130,12 @@ enum Command {
         cmd: preservation::Command,
     },
 
-    /// §68 portable export and round trip.
+    /// §68 portable export and round trip; or, as `war export beads`, every
+    /// light Warrant (a ticket) as Beads issue JSONL on stdout (OW-WAR-0148
+    /// M10), which `bd import` and `war import beads` read.
     Export {
-        /// The Warrant's local alias (§68). Not needed with --progress.
+        /// The Warrant's local alias (§68), or `beads`. Not needed with
+        /// --progress.
         #[arg(required_unless_present_any = ["progress", "verify_progress"])]
         alias: Option<String>,
         /// Write the progress bundle (`oh.war/progress-bundle/v1`) — the corpus
@@ -1153,6 +1157,25 @@ enum Command {
         /// Record that the preserved evidence bytes were reconnected.
         #[arg(long)]
         reconnect: bool,
+    },
+
+    /// Bring work in as Warrants (OW-WAR-0148 M10): `beads <file.jsonl>`
+    /// (Beads' issue JSONL, as `bd export` writes it), `openspec <dir>` (each
+    /// change of an OpenSpec folder) or `speckit <dir>` (each feature of a
+    /// Spec Kit `specs/` folder). Each becomes a light Warrant (a ticket)
+    /// with its tasks as items. Running it again changes nothing; input it
+    /// cannot map is refused by name, and a refusal writes nothing. To keep
+    /// working in those tools instead, read the folder in place:
+    /// `[[adapters]]` in openwarrant.toml (docs/TYPES.md).
+    Import {
+        /// `beads`, `openspec` or `speckit`.
+        format: String,
+        /// The Beads JSONL file, or the OpenSpec or Spec Kit folder (or the
+        /// folder holding `openspec/` or `specs/`).
+        path: Utf8PathBuf,
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
     },
 
     /// §67 Knowledge Fabric seam. `health` reads; `act` WRITES and needs
@@ -2196,6 +2219,28 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 &ticket::show(&store, &alias)?,
             ))
         }
+        // M10: a Warrant read in place shows from its folder, written to
+        // never.
+        Command::Show { alias, .. }
+            if warrants::kind_of(&alias) == warrants::IdKind::ReadInPlace =>
+        {
+            let repository = open_repo()?;
+            Ok(ticket_answer(
+                mode,
+                "show",
+                &interop::adapters::show(&repository, &alias),
+            ))
+        }
+        Command::Status {
+            alias: Some(alias), ..
+        } if warrants::kind_of(&alias) == warrants::IdKind::ReadInPlace => {
+            let repository = open_repo()?;
+            Ok(ticket_answer(
+                mode,
+                "status",
+                &interop::adapters::show(&repository, &alias),
+            ))
+        }
         Command::Tui { panic_after_setup } => {
             if matches!(mode, output::Mode::Json) {
                 return Ok(tui::refuse_json());
@@ -2503,6 +2548,85 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let (human, result) = preservation::run(root.clone(), cmd)?;
             output::emit(mode, "archive", &human, result);
             Ok(EXIT_OK)
+        }
+        // M10: `war export beads`. An alias is `NS-WAR-NNNN`, so the word can
+        // name nothing else.
+        Command::Export {
+            alias: Some(format),
+            force,
+            round_trip,
+            reconnect,
+            progress: None,
+            verify_progress: None,
+        } if format == "beads" => {
+            if force || round_trip || reconnect {
+                let mut report = diagnostic::Report::default();
+                report.push(diagnostic::Diagnostic::error(
+                    "export.beads-flags",
+                    String::new(),
+                    "--force, --round-trip and --reconnect are the §68 package's; \
+                     `war export beads` takes none of them",
+                ));
+                return Ok(output::finish(mode, "export", &report, None));
+            }
+            let (_, store) = tickets(None)?;
+            let (jsonl, warnings) = interop::beads::export(&store)?;
+            let mut report = diagnostic::Report::default();
+            for w in warnings {
+                report.push(w);
+            }
+            match mode {
+                output::Mode::Human => {
+                    for d in &report.diagnostics {
+                        eprintln!("{d}");
+                    }
+                    print!("{jsonl}");
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "export",
+                    &report,
+                    Some(serde_json::json!({
+                        "schema": "oh.war/export-beads/v1",
+                        "issues": jsonl.lines().count(),
+                        "jsonl": jsonl,
+                    })),
+                )),
+            }
+        }
+        Command::Import {
+            format,
+            path,
+            actor,
+        } => {
+            let (repository, store) = tickets(actor.as_deref())?;
+            let path = interop::resolve(&repository, &path);
+            let read = match format.as_str() {
+                "beads" => interop::beads::read(&repository, &store, &path),
+                "openspec" => interop::openspec::import(&repository, &store, &path),
+                "speckit" => interop::speckit::import(&repository, &store, &path),
+                other => {
+                    return Ok(ticket_answer(
+                        mode,
+                        "import",
+                        &interop::write::refused(&[interop::Fault::new(
+                            "import.format-unknown",
+                            "",
+                            0,
+                            format!(
+                                "{other:?} is not a format this build imports: beads, \
+                                 openspec, speckit"
+                            ),
+                        )]),
+                    ));
+                }
+            };
+            let outcome = match read {
+                Ok(import) => interop::write::apply(&repository, &store, &import)?,
+                Err(faults) => interop::write::refused(&faults),
+            };
+            Ok(ticket_answer(mode, "import", &outcome))
         }
         Command::Export {
             alias,
@@ -3989,15 +4113,27 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     // --json it rides inside the envelope as `result`, so the
                     // committed CORPUS_STATUS.json (written by `compile`) and
                     // this output agree on the payload.
+                    // M10: with `[[adapters]]`, the Warrants read in place
+                    // follow (`read_in_place`). They are never written into
+                    // the committed projection: their folders are another
+                    // tool's, and change without a compile.
                     output::Mode::Json => {
                         let (_, text) = status::corpus_status_json(&repository)?;
-                        let value: serde_json::Value = serde_json::from_str(&text)
+                        let mut value: serde_json::Value = serde_json::from_str(&text)
                             .map_err(|e| repo::RepoError::Message(format!("corpus status: {e}")))?;
+                        let adapted = interop::adapters::load(&repository);
+                        if !adapted.is_empty() {
+                            value["read_in_place"] = interop::adapters::status(&adapted).1;
+                        }
                         output::emit(mode, "status", &text, value);
                     }
                     output::Mode::Human => {
                         let (_, text) = status::corpus_status_md(&repository)?;
                         println!("{text}");
+                        let adapted = interop::adapters::load(&repository);
+                        if !adapted.is_empty() {
+                            print!("{}", interop::adapters::status(&adapted).0);
+                        }
                     }
                 },
             }
@@ -4180,6 +4316,16 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
                 return Ok(output::finish(mode, "check", &report, None));
             }
+            // M10: a Warrant read in place is checked for what its folder
+            // says, read where it is; nothing is written.
+            if let Some(a) = alias
+                .as_deref()
+                .filter(|a| warrants::kind_of(a) == warrants::IdKind::ReadInPlace)
+            {
+                let mut report = diagnostic::Report::default();
+                interop::adapters::check(&repository, Some(a), &mut report);
+                return Ok(output::finish(mode, "check", &report, None));
+            }
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
             let mut report = check::run(&repository, alias.as_deref(), generated)?;
@@ -4192,6 +4338,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                         e.to_string(),
                     )),
                 }
+                interop::adapters::check(&repository, None, &mut report);
             }
             // A non-zero exit for an unsound Warrant is what lets CI gate on it.
             Ok(output::finish(mode, "check", &report, None))
