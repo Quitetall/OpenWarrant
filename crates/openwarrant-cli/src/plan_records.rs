@@ -506,16 +506,19 @@ pub fn validate(
     // ---- Render, and each record alone must read back as itself.
     let mut text = frontmatter(&request.profile);
     text.push_str(&format!("# {title}\n\n"));
+    let asked = openwarrant_core::ticket::one_line(sentence);
     text.push_str(&format!(
-        "Drafted from \u{201c}{}\u{201d} (`{PROPOSAL_API}`). The ticket that implements \
-         these records names them by id.\n",
-        openwarrant_core::ticket::one_line(sentence)
+        "Drafted{} (`{PROPOSAL_API}`). The ticket that implements these records names them \
+         by id.\n",
+        if asked.is_empty() {
+            String::new()
+        } else {
+            format!(" from \u{201c}{asked}\u{201d}")
+        }
     ));
-    let mut heading_lines = Vec::new();
     for r in &proposal.records {
         text.push('\n');
         let line = text.lines().count() + 1;
-        heading_lines.push(line);
         let one = render_record(r);
         text.push_str(&one);
         if openwarrant_core::ticket::one_line(&r.title).is_empty() {
