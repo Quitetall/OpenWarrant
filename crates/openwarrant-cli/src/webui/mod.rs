@@ -1881,11 +1881,20 @@ fn progress(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
         Err(e) => (json!({"error": e.to_string()}), vec![]),
     };
     let ladder = status.warrant_ladder();
+    // OW-WAR-0148 M13: the tickets' milestones, each with the level its tick
+    // was earned at; independent of the roadmap record, so a program without
+    // one still sees them.
+    let milestones = crate::ticket::Store::open(repo, None)
+        .ok()
+        .and_then(|s| crate::ticket::ladder::tracker(&s).ok())
+        .map(|t| t.milestones)
+        .unwrap_or_default();
     Ok(json!({
         "roadmap": roadmap,
         "phases": phases,
         "unassigned": unassigned,
         "ladder": ladder,
+        "milestones": milestones,
     }))
 }
 

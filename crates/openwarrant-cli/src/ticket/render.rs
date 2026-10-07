@@ -813,6 +813,10 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
                 }
                 if let Some(view) = report.items.get(&super::ladder::item_key(item)) {
                     o.insert("tick".to_owned(), serde_json::json!(view));
+                    o.insert(
+                        "tick_marker".to_owned(),
+                        serde_json::json!(tick_marker(view)),
+                    );
                 } else if let Some(id) = item.id.as_deref() {
                     let (min, _) = super::ladder::minimum(store, t, &report.checks, Some(id));
                     if min > Level::Claimed || report.checks.milestone(id).is_some() {
