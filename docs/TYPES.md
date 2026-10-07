@@ -502,8 +502,8 @@ byte: nothing is migrated, and no signed digest moves.
 | directory | `docs/warrants/<alias>/`: a manifest and the atoms its profile requires | its profile: `delivery`, `decision`, ... | `war new`, `war plan --apply`, `war promote` |
 | read in place | an OpenSpec change or a Spec Kit feature an `[[adapters]]` entry names | `openspec`, `speckit` | the tool that owns the folder; `war` never writes it |
 
-There is no third file format: a light Warrant is the single-file-sized
-encoding, and an imported one is a light one with one more manifest key,
+There is no third file format. The light encoding is already the small
+one, and an imported Warrant is a light one with one more manifest key,
 `imported_from = "<format>:<id>"` (absent from every other, so a manifest
 written before it reads and writes back unchanged).
 
