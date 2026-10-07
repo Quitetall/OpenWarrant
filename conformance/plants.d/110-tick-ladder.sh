@@ -62,7 +62,7 @@ fi
 # The create hint: one line, by default; `[warrants] hints = false` hides it.
 TL_HINTS=$(grep -c 'hint (optional): `war add' <<<"$TL_CREATE")
 printf '\n[warrants]\nhints = false\n' >> "$PLANT_ROOT/openwarrant.toml"
-TL_QUIET=$(tlw create "No hint here" 2>&1)
+TL_QUIET=$(tlw create "Quiet one" 2>&1)
 if [[ "$TL_HINTS" == 1 ]] && ! grep -q 'hint' <<<"$TL_QUIET"; then
     tl_ok "the create hint, and its switch" "one line by default; none with [warrants] hints = false"
 else
@@ -246,7 +246,7 @@ fi
 # ---- 5. a KPI that prints no number is UNKNOWN --------------------------------
 tlw add "$TL_K" --kpi words --cmd "echo fast" --direction max --target 1 >/dev/null 2>&1
 TL_U=$(TL_P95=80 tlj kpi run "$TL_K")
-TL_UV=$(tl_py "v['exit_code'], [ (r['name'], r['verdict'], r['value']) for r in v['result']['runs']], [d['rule'] for d in v['diagnostics']]" <<<"$TL_U")
+TL_UV=$(tl_py "(v['exit_code'], [(r['name'], r['verdict'], r.get('value')) for r in v['result']['runs']], [d['rule'] for d in v['diagnostics']])" <<<"$TL_U")
 if [[ "$TL_UV" == "(2, [('p95', 'pass', 80.0), ('words', 'unknown', None)], ['kpi.unknown'])" ]]; then
     tl_ok "no number is UNKNOWN" "words: unknown, no value; p95 beside it: 80, pass"
 else
