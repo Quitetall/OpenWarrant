@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "The bundle's plants array is empty, and obligation_evidence for OBL-006 shows resolution.toml is absent for OW-WAR-0059 ('no deliverable of OW-WAR-0059 and no file at this path: not carried'), so the scenario the obligation requires — a well-formed resolution.toml binding a stale digest — was never instantiated here. The projection term 'binds_current_contract = false' (and even the bare field name 'binds_current_contract') is listed with shown_in: [] , meaning the bundle carries no location where the projection's reporting of staleness is demonstrated. The gate run stdout excerpts for GR-software.repo.war-check@1.0.0 list many PASS/WARN rules (manifest.valid, evidence.not-a-pass, journal.append-only, sas.pin-superseded, gate.resolved, etc.) but no resolution.stale or resolution.recorded line for OW-WAR-0059. D-002 (resolution_cmd.rs) contains code that would emit 'resolution.stale' when digests mismatch, but per §51.3 a performer's code or claim is not evidence of behavior — only an executed check counts. The lone prior_verification citing a plant is for '[OW-WAR-0010]', a different Warrant than the one under review (OW-WAR-0059), and its evidence text only asserts the check 'is designed to' report staleness rather than describing an observed refusal, so it cannot substitute for a plant against this Warrant's own contract. Taken together, the bundle does not carry an executed demonstration that OW-WAR-0059's resolution is marked stale after its contract moved."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

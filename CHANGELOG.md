@@ -6,6 +6,44 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- A document's type chooses its capabilities (OW-ADR-0031, OW-WAR-0148 M2).
+  `oh.war/profile/v1` gains `capabilities`, from the closed set `structure,
+  links, claims, acceptance, evidence, verification, authorization,
+  resolution, stages`, with prerequisites checked by name
+  (`profile.capability-prerequisite`, `profile.capability-unknown`,
+  `profile.capabilities`), and `satisfied_outcome`, `falsifiable_claims` and
+  `standing_coverage`, which replace the profile-name matches in `war sign`,
+  resolution recording, standing classes and `war promote`. `delivery`
+  selects every capability; `decision` every one but `stages`, so §56.1
+  requirement 12 reads "not applicable: no `stages` capability" for a
+  decision Warrant and OW-WAR-0071 can resolve. A kind lacking a capability
+  is refused the act by name (`capability.absent`), offered nothing for it by
+  `war next`, and its rule families are named `capability.not-applicable`.
+- `oh.war/manifest/v1` gains `profile_digest` (optional, omitted when absent):
+  `war new` writes the sha256 of the profile file a Warrant is composed
+  against, and `war check` reports `profile.pin-drift` — a warning unsigned,
+  an error once authorized. A manifest without it keeps its bytes, digest and
+  checks. `ResolutionChecks` gains `not_applicable`, omitted when empty.
+
+### Changed
+
+- Verification bundles are bounded (t-9f7e). `oh.war/verification-bundle/v2`
+  carries its estimate over the whole JSON against `[verify]
+  max_bundle_tokens` (default 48000). A Warrant over it gets one bundle per
+  obligation — the deliverables it lists or names, excerpted by numbered
+  lines with whole-file digests, and `obligation_evidence` saying what was
+  not carried or was cut — and `war verify --run` calls the verifier once
+  per bundle. OW-WAR-0112's single 241k-token bundle, which timed the
+  verifier out, is now seven of at most 48k.
+- A bundle no longer carries a gate receipt's `working_directory` (t-ade4).
+  It was the absolute path of the checkout the gate ran in, so a bundle's
+  bytes, digest and token estimate depended on where the repository sat:
+  `war eval` measured the same fixture at 3043 and 3042 tokens as a scratch
+  program's PID and nanosecond digits varied. The receipt in the tree keeps
+  the field, and its `receipt_digest` still covers it.
+
 ## [1.0.0-alpha.2] — 2026-09-19
 
 ### Security

@@ -33,6 +33,7 @@ use openwarrant_core::execution::{
     SUBMISSION_SCHEMA_REF, StageDispatch,
 };
 use openwarrant_core::milestones::{Milestone, Stage};
+use openwarrant_core::tokens::{self, TokenAccount};
 use serde::Serialize;
 
 use crate::canonical::{CanonicalError, sha256_digest, to_canonical_string};
@@ -74,6 +75,94 @@ pub enum DispatchError {
          required normative source is preserved; an omission with a reason is still an omission"
     )]
     RequiredAtomOmitted { atom: String },
+    /// RQ-046 / §47.2: the estimate exceeds the budget. The largest items are
+    /// named, so the fix is a cut the author makes (§33.6), not one made here.
+    #[error(
+        "the selected context is ~{estimated_tokens} tokens against a budget of {budget_tokens} \
+         ({method}); largest: {}",
+        largest
+            .iter()
+            .map(|(id, t)| format!("{id} (~{t} tokens)"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    )]
+    OverBudget {
+        estimated_tokens: u64,
+        budget_tokens: u64,
+        method: String,
+        /// The three largest items, largest first, each with its estimate.
+        largest: Vec<(String, u64)>,
+    },
+    /// §33.4 under Q-002 (c), OW-WAR-0133: one source included whole at two
+    /// digests or two revisions. The packet would carry two versions of one
+    /// file and nothing says which binds; refused, naming both.
+    #[error(
+        "the context manifest includes {path} twice, at {} — one source at two digests or \
+         revisions is a conflict §33.4 says blocks readiness, and no precedence rule can \
+         choose between two versions of the same file",
+        versions.join(" and ")
+    )]
+    SourceConflict {
+        path: String,
+        /// Each version as `<commit>:<digest>`, sorted.
+        versions: Vec<String>,
+    },
+    /// RQ-046: a Dispatch declares its estimate and budget. One compiled with
+    /// no token account at all would carry neither, so it is not emitted.
+    #[error(
+        "no token account was supplied: a Dispatch declares its token estimate and budget \
+         (RQ-046, §47.2), and none is emitted without them"
+    )]
+    TokensUnrecorded,
+}
+
+/// What the compiler needs to account a Dispatch's size (§33.7, §47.1): the
+/// byte count of every selected context item, and the budget it must fit. The
+/// estimate itself is computed here by [`openwarrant_core::tokens::METHOD`],
+/// never handed in, so no caller can record a number the rule did not judge.
+#[derive(Debug, Clone, Copy)]
+pub struct TokenInputs<'a> {
+    /// `(item id, bytes)` for each selected context item.
+    pub item_bytes: &'a [(String, u64)],
+    /// The stage's `budget_tokens`, or the repository's default.
+    pub budget_tokens: u64,
+}
+
+/// Estimate `inputs` and judge it against its budget (RQ-046, §47.2).
+///
+/// # Errors
+///
+/// [`DispatchError::OverBudget`] when the estimate exceeds the budget, naming
+/// the three largest items.
+pub fn token_account(inputs: TokenInputs<'_>) -> Result<TokenAccount, DispatchError> {
+    let TokenInputs {
+        item_bytes,
+        budget_tokens,
+    } = inputs;
+    let total: u64 = item_bytes
+        .iter()
+        .map(|(_, b)| *b)
+        .fold(0u64, u64::saturating_add);
+    let estimated_tokens = tokens::estimate(total);
+    if estimated_tokens > budget_tokens {
+        let mut sorted: Vec<&(String, u64)> = item_bytes.iter().collect();
+        sorted.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+        return Err(DispatchError::OverBudget {
+            estimated_tokens,
+            budget_tokens,
+            method: tokens::METHOD.to_owned(),
+            largest: sorted
+                .into_iter()
+                .take(3)
+                .map(|(id, b)| (id.clone(), tokens::estimate(*b)))
+                .collect(),
+        });
+    }
+    Ok(TokenAccount {
+        estimated_tokens,
+        budget_tokens,
+        method: tokens::METHOD.to_owned(),
+    })
 }
 
 /// Everything a dispatch is compiled from.
@@ -86,12 +175,34 @@ pub struct DispatchInputs<'a> {
     pub context: &'a ContextManifest,
     pub resources: ResourceEnvelope,
     pub capability: CapabilityAuthorization,
-    /// §33.7 (slice C2): the estimate and budget, computed by the caller who
-    /// holds the bytes; `None` records nothing.
-    pub tokens: Option<openwarrant_core::tokens::TokenAccount>,
+    /// §33.7, RQ-046: the item bytes and the budget. The compiler computes
+    /// the estimate and refuses over budget; `None` is refused as
+    /// [`DispatchError::TokensUnrecorded`], never emitted without `tokens`.
+    pub tokens: Option<TokenInputs<'a>>,
     /// Minted by the caller. Keeping it out of this function is what makes the
     /// output a pure function of its inputs.
     pub dispatch_id: String,
+}
+
+/// §33.4, the one mechanical conflict kind (Q-002 (c), OW-WAR-0133): a
+/// source path included WHOLE at two different digests or revisions.
+///
+/// The detection is [`ContextManifest::source_versions`], so the manifest's
+/// own `conflict_check.found` and this refusal are one rule. Recomputed from
+/// `included` here rather than read from `conflict_check`: a caller that left
+/// the record empty does not thereby get a packet past it.
+///
+/// # Errors
+///
+/// [`DispatchError::SourceConflict`] for the first conflicting path, sorted.
+pub fn source_conflicts(context: &ContextManifest) -> Result<(), DispatchError> {
+    match context.source_versions().into_iter().next() {
+        Some(found) => Err(DispatchError::SourceConflict {
+            path: found.path,
+            versions: found.versions,
+        }),
+        None => Ok(()),
+    }
 }
 
 /// The sources §47.2 says must survive projection: every required atom.
@@ -137,8 +248,13 @@ pub fn compile_dispatch(inputs: DispatchInputs<'_>) -> Result<StageDispatch, Dis
             stage: stage.id.clone(),
         });
     }
+    // RQ-046 / §47.2 — the compiler records the estimate and budget and
+    // refuses over budget. Here, not in a caller, so every caller inherits it.
+    let tokens = token_account(tokens.ok_or(DispatchError::TokensUnrecorded)?)?;
     attempt.validate()?;
     context.validate()?;
+    // §33.4 — checked here, not by a caller, so every caller inherits it.
+    source_conflicts(context)?;
 
     // §33.6 / §47.2 — every required atom is either in the manifest or
     // recorded as omitted with a reason. Neither is not an option.
@@ -227,7 +343,7 @@ pub fn compile_dispatch(inputs: DispatchInputs<'_>) -> Result<StageDispatch, Dis
         submission_schema_ref: SUBMISSION_SCHEMA_REF.to_owned(),
         omitted_subgraphs: omitted,
         prior_failure_evidence_refs: attempt.prior_failure_evidence_refs.clone(),
-        tokens,
+        tokens: Some(tokens),
         dispatch_digest: String::new(),
     };
 
@@ -358,6 +474,7 @@ stages:
             enterprise_id: String::new(),
             title: "t".to_owned(),
             profile: "delivery".to_owned(),
+            profile_digest: None,
             assurance_level: Some("basic".to_owned()),
             implements: vec![],
             roadmap: vec![],
@@ -455,6 +572,7 @@ stages:
             }],
             unresolved: vec![],
             conflicts: vec![],
+            conflict_check: openwarrant_core::context::ConflictCheck::default(),
             effective_classification: "internal".to_owned(),
             policy_digest: String::new(),
             compiler_digest: "test".to_owned(),
@@ -477,6 +595,16 @@ stages:
         }
     }
 
+    /// The byte count of each required atom, as the CLI's selector reports it.
+    fn item_bytes(basis: &CompilationBasis) -> Vec<(String, u64)> {
+        basis
+            .atoms
+            .iter()
+            .filter(|a| a.required)
+            .map(|a| (a.source.clone(), a.bytes.len() as u64))
+            .collect()
+    }
+
     fn compile(
         basis: &CompilationBasis,
         validated: &ValidatedManifest,
@@ -484,12 +612,34 @@ stages:
         stage: &str,
         attempt: &Attempt,
     ) -> Result<StageDispatch, DispatchError> {
+        let items = item_bytes(basis);
+        compile_with_tokens(
+            basis,
+            validated,
+            context,
+            stage,
+            attempt,
+            Some(TokenInputs {
+                item_bytes: &items,
+                budget_tokens: 1_000_000,
+            }),
+        )
+    }
+
+    fn compile_with_tokens(
+        basis: &CompilationBasis,
+        validated: &ValidatedManifest,
+        context: &ContextManifest,
+        stage: &str,
+        attempt: &Attempt,
+        tokens: Option<TokenInputs<'_>>,
+    ) -> Result<StageDispatch, DispatchError> {
         let ir = lower(basis, validated).expect("lowers");
         let graph = openwarrant_core::milestones::parse(MILESTONES).expect("graph parses");
         let stage = graph.stages.iter().find(|s| s.id == stage).expect("stage");
         let milestone = &graph.milestones[0];
         compile_dispatch(DispatchInputs {
-            tokens: None,
+            tokens,
             ir: &ir,
             basis,
             milestone,
@@ -667,5 +817,166 @@ stages:
         )
         .expect_err("a repair with no prior evidence must be refused");
         assert!(matches!(err, DispatchError::Execution(_)), "{err}");
+    }
+
+    /// OW-WAR-0129 OBL-001 — the budget rule lives in the compiler. Exactly at
+    /// budget is emitted with the compiler's own estimate; one token over is
+    /// refused naming the largest items; no account at all is refused.
+    #[test]
+    fn the_compiler_refuses_over_budget_and_emits_at_budget() {
+        let (basis, validated) = fixture();
+        let ctx = context_for(&basis);
+        let items = item_bytes(&basis);
+        let total: u64 = items.iter().map(|(_, b)| *b).sum();
+        let estimate = tokens::estimate(total);
+        assert!(estimate > 1, "the fixture has something to estimate");
+        let with_budget = |budget_tokens| {
+            compile_with_tokens(
+                &basis,
+                &validated,
+                &ctx,
+                "STAGE-001",
+                &attempt(AttemptKind::Initial),
+                Some(TokenInputs {
+                    item_bytes: &items,
+                    budget_tokens,
+                }),
+            )
+        };
+
+        // In budget, and exactly at it: emitted, the account recorded as
+        // computed here, and inside the digest.
+        for budget in [estimate + 100, estimate] {
+            let d = with_budget(budget).expect("in budget compiles");
+            assert_eq!(
+                d.tokens,
+                Some(TokenAccount {
+                    estimated_tokens: estimate,
+                    budget_tokens: budget,
+                    method: tokens::METHOD.to_owned(),
+                })
+            );
+        }
+        let low = with_budget(estimate + 100).expect("compiles");
+        let high = with_budget(estimate + 101).expect("compiles");
+        assert_ne!(
+            low.dispatch_digest, high.dispatch_digest,
+            "tokens are inside the dispatch digest (§47.1)"
+        );
+
+        // One token over: refused, with the numbers and the largest items.
+        match with_budget(estimate - 1) {
+            Err(DispatchError::OverBudget {
+                estimated_tokens,
+                budget_tokens,
+                method,
+                largest,
+            }) => {
+                assert_eq!(estimated_tokens, estimate);
+                assert_eq!(budget_tokens, estimate - 1);
+                assert_eq!(method, tokens::METHOD);
+                assert_eq!(largest.len(), 3);
+                // The milestones atom is the largest in the fixture.
+                assert_eq!(largest[0].0, "atoms/45-milestones.yaml");
+                assert!(largest.windows(2).all(|w| w[0].1 >= w[1].1));
+                let err = with_budget(estimate - 1).expect_err("refused");
+                assert!(
+                    err.to_string()
+                        .contains("largest: atoms/45-milestones.yaml")
+                );
+            }
+            other => panic!("expected OverBudget, got {other:?}"),
+        }
+
+        // No token account: refused, never emitted without `tokens`.
+        match compile_with_tokens(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+            None,
+        ) {
+            Err(DispatchError::TokensUnrecorded) => {}
+            other => panic!("expected TokensUnrecorded, got {other:?}"),
+        }
+    }
+
+    /// OW-WAR-0133 OBL-005, Q-002 (c): one path at two digests refuses the
+    /// Dispatch and names both; the same path twice at one digest, or a
+    /// section of it, is not a conflict (the control).
+    #[test]
+    fn one_source_at_two_digests_is_refused_and_both_are_named() {
+        let (basis, validated) = fixture();
+        let mut ctx = context_for(&basis);
+        let mut twin = ctx.included[0].clone();
+        twin.id = "artifact-alias".to_owned();
+        ctx.included.push(twin.clone());
+        compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        )
+        .expect("the same path at one digest is not a conflict");
+
+        let mut section = twin.clone();
+        section.id = "section-alias".to_owned();
+        section.content_digest = "sha256:section".to_owned();
+        section.selector_sections = vec!["Heading".to_owned()];
+        ctx.included.push(section);
+        compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        )
+        .expect("a section of a file is a selection, not a version");
+
+        let first = ctx.included[0].content_digest.clone();
+        ctx.included
+            .last_mut()
+            .expect("pushed")
+            .selector_sections
+            .clear();
+        match compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        ) {
+            Err(DispatchError::SourceConflict { path, versions }) => {
+                assert_eq!(path, ctx.included[0].holder.path);
+                assert_eq!(versions.len(), 2, "{versions:?}");
+                assert!(versions.iter().any(|v| v.ends_with(&first)), "{versions:?}");
+                assert!(
+                    versions.iter().any(|v| v.ends_with("sha256:section")),
+                    "{versions:?}"
+                );
+            }
+            other => panic!("expected SourceConflict, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn one_source_at_two_revisions_is_refused() {
+        let (basis, validated) = fixture();
+        let mut ctx = context_for(&basis);
+        let mut twin = ctx.included[0].clone();
+        twin.id = "older".to_owned();
+        twin.holder.commit_sha = "1".repeat(40);
+        ctx.included.push(twin);
+        let err = compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        )
+        .expect_err("two revisions of one path");
+        assert!(matches!(err, DispatchError::SourceConflict { .. }), "{err}");
     }
 }

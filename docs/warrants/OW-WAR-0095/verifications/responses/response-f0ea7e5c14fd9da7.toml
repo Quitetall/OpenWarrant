@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0095"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables[], gate_runs[], and plants[] are all empty and obligation_evidence for OBL-001 lists no named_paths and no terms, only the generic selection string. Only the five authored atoms (atoms/10-intent.md, atoms/20-basis.md, atoms/40-work-order.md, atoms/45-milestones.yaml, atoms/60-assurance.md) are present, describing the planned study design and required prerequisites; none contain consent confirmations or session records for P1, P2, or P3, so the existence of three real consenting participants cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No event intervals, timers, or per-participant durations appear anywhere in the bundle: deliverables and gate_runs are empty arrays and obligation_evidence for OBL-002 shows no named_paths or terms. atoms/40-work-order.md specifies the measurement methodology to be used in future sessions (monotonic timer, categorized durations) but contains no recorded times, so the ≤600s setup / ≤60s administration thresholds cannot be evaluated per participant."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There are no result/evidence pointers, completion records, or failure logs in the bundle: deliverables, gate_runs, and plants are all empty, and obligation_evidence for OBL-003 lists no named_paths or terms. atoms/40-work-order.md's 'Evidence' section only describes what a session record should contain, not an actual observed per-participant outcome, so retained completion or failures cannot be established or refuted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

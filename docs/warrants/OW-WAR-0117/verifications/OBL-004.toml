@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "GR-ops.conformance.plants@1.1.0 stdout shows 'ok independence only where true distinct model: unset no, same no, different yes; human never' (covering distinct_model_required and distinct_human_required per D-003's vf good / CLAUDE_PERFORMER_MODEL loop), and separately 'ok independence is declared independence.sufficient 1 basic;independence.sufficient 1 controlled' plus 'ok an undeclared independence is seen without [independence]: independence.undeclared', which is D-003's vf_levels check run against $REPO_ROOT (this repository) for both OW-WAR-0117 (basic) and OW-WAR-0003 (controlled), confirming sufficient at both levels with no independence.undeclared on the real repo, and confirming the check is non-vacuous via the stripped clone. obligation_evidence lists cut_from: [] for every term relevant to this obligation ('basic', 'controlled', 'independence.undeclared', 'distinct_model_required', 'war check'), so none of this evidence was cut by the budget."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The committed receipt for gate run software_repo_war-check on OW-WAR-0032 and the passing war check --generated on the committed corpus demonstrate that FormatBasis.digest matches the assembled pack."
+disposition = "not_established"
+evidence = "obligation_evidence names the term 'FormatBasis.digest' for OBL-002 but both shown_in and cut_from are empty arrays, indicating the term was never carried into the bundle at all (not shown, not cut for budget) rather than merely truncated. deliverables is empty, so there is no FormatBasis file or assembled pack artifact to compare digests against. The gate run's visible stdout excerpts contain no mention of FormatBasis or a pack digest, and the WARN evidence.stale-binding line further notes the receipt's tree predates 33 changed paths, undermining reliance on it even where relevant. There is nothing in the bundle from which to decide whether FormatBasis.digest matches the assembled pack."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

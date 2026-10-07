@@ -1,0 +1,171 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# init/mod.rs and init/guided.rs (OW-WAR-0112), telemetry.rs (OW-WAR-0039,
+# 0041) and lib.rs (OW-WAR-0116) are governed by other Warrants today; on
+# authorization this Warrant becomes their owner.
+
+[[deliverable]]
+id = "D-001"
+title = "The optional [adoption] baseline in repository configuration"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/config.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "war init records the baseline, refuses a non-commit, points at existing ADRs"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/init/mod.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:718ec2faea164a02e823e448712c06e00353f7476fbcc79ab26197e5c25166ab"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The --baseline flag on war init"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "The adopt Warrant's Basis names the baseline and what it does not claim"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/adopt/20-basis.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:9b28c249e0e4307b84ccdd52f6178f5dce28a4847b46711eaeb2c46bf67c2c66"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "The guided Baseline step"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/init/guided.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f53af057a4df91f4f630af18fbd49355fdc3669f40cc64764ca5fa22de90754b"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "Untracked work from the baseline, in the repository's namespace"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/telemetry.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:991be21830a0d531f824fdb8101968d00c840cf6ae9ef266966f1b73fdb6dd20"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "Adopting OpenWarrant in a repository with history"
+kind = "file"
+target_ref = "docs/ADOPTING.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2a3427344c30f87e7c5445f11f0b1c4e7e4b80dc4df8e72ac0117f24d8e2fca8"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "The adoption plants"
+kind = "file"
+target_ref = "conformance/plants.d/59-adoption.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit fde64f4d2e14, dirty, debug)"
+creation_method = "authored"
+content_digest = "sha256:5b39cae867ac069c5d0461236dbe049a8cfb4035d90ff5cf8b29f27fff3766e3"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

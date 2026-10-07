@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The gate run GR-software.repo.war-check@1.0.0 (verdict pass, subject_digests tree:9729d66838274661a8b7382db6ef1108887babec — the same commit tree as the passing GR-ops.conformance.plants@1.1.0 run) ends with the tally '2081 pass · 241 warn · 0 unknown · 0 error (worst: WARN)', meaning zero errors were emitted across the whole corpus by `war check`; since D-002 (repo.rs) emits atom.header exclusively via Diagnostic::error, a zero-error run necessarily means no atom.header error fired anywhere in the current corpus. This is corroborated independently by the ops.conformance.plants@1.1.0 stdout, which shows the plant line 'ok war check reports no error 1835 pass · 331 warn · 0 unknown · 0 error' and the grammar-plant line 'ok G-H0 an untouched scaffold accepted, no atom.header' confirming a clean, unmodified atom passes with no atom.header diagnostic. The one WARN this run raises against gate software.repo.war-check@1.0.0 itself (evidence.stale-binding, about a previously recorded receipt bound to an older contract/tree) is a bookkeeping note about receipt freshness, not an atom.header failure, and does not add to the error count, so it does not undermine this evidence."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

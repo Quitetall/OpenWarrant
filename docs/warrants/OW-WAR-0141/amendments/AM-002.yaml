@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "Revision 1's work order puts `war plan --issue` and `--issue-file` in plan.rs and lists intake questions through questions.rs in `war next`, but the flags are clap's, in lib.rs, and `war next` reads nothing but `next.rs`'s own table, so neither file was declared. The performer delivered both in reach at e96da456 and escalated rather than widen the set: (1) lib.rs gains the two flags and their wiring into the plan handler (read the input, name who reviews, route a thin input to its question, apply with the intake record); (2) next.rs gains six lines that append each open intake question as a human `answer` act. It also declares mcp/tools.rs, so the war_plan_* MCP tools take an issue as the CLI does: an agent handed a ticket over MCP otherwise reaches intake only by shelling out. OBL-006 says `50-friction.sh` still fails a record with a timed human intake step; that file is OW-WAR-0118's and its checker reads only the setup and routine rows, so 54-intake.sh carries the intake checker and shows it refusing. Holding 50-friction.sh to the letter is OW-WAR-0118's amendment, not this one. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-37.1"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-012 crates/openwarrant-cli/src/lib.rs (--issue/--issue-file and the plan wiring), D-013 crates/openwarrant-cli/src/next.rs (intake answer acts) and D-014 crates/openwarrant-cli/src/mcp/tools.rs (an issue input on war_plan_request, war_plan_validate and war_plan_apply, planted in 54-intake.sh). The work order names each; revision 2 is authorized against the amended contract. 50-friction.sh is left to OW-WAR-0118."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-25"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-011."
+    after: "Also D-012: crates/openwarrant-cli/src/lib.rs, the --issue/--issue-file flags and the plan wiring; D-013: crates/openwarrant-cli/src/next.rs, intake questions as human answer acts; D-014: crates/openwarrant-cli/src/mcp/tools.rs, an issue input on the war_plan_* MCP tools."
+
+affected_stages: []
+affected_milestones: []

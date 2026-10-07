@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0123"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (the gate the obligation cites, gate://ops.conformance.plants@1.1.0), verdict pass, exit_result pass, overall '1260 passed, 0 failed'. Its stdout excerpt (lines 664-715, section '== parent revision (OW-WAR-0123) ==', from conformance/plants.d/58-parent-revision.sh) shows: 'ok corpus: OW-WAR-0002 named as revision 2 warn relations.parent-revision ×1' repeated for OW-WAR-0003, OW-WAR-0004 and OW-WAR-0005 (matching U-001's option (b), warn for signed children, naming revision 2); 'ok corpus: no parent error no error relations.parent-revision' and 'ok corpus: no parent-digest error no error relations.parent-digest'; and critically 'ok corpus: only the four children no parent finding elsewhere', which is the plant's explicit, passing test of the exact claim that a prior verification (see prior_verifications) found unsupported by the truncated software.repo.war-check@1.0.0 stdout alone. This is corroborated by the separate gate run GR-software.repo.war-check@1.0.0's stdout excerpts (lines 57, 77, 96, 120), which show individually the same four WARN relations.parent-revision findings with matching wording ('is the digest of revision 2 ... is an amendment'). obligation_evidence for OBL-006 confirms the terms 'war check' and 'relations.parent-revision' are shown (cut_from: []) in both D-001, both gate stdouts, and the atoms, i.e. nothing load-bearing was cut. Together these establish that the corpus result matches the owner's chosen severity (U-001(b)) for exactly OW-WAR-0002–0005 and no other Warrant."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

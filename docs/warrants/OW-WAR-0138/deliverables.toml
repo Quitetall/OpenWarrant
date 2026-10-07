@@ -1,0 +1,378 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "docs/AUTHENTICATION.md: the human and session authentication contract"
+kind = "file"
+target_ref = "docs/AUTHENTICATION.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6d634e918901e194be9ff7c3565233a2d67b64a0b8d72eb4fda8c0eec97cc24d"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "authority_check reads the store; no legacy fallback"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authority_check.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:b8926a5d7e1296a314e3aa94a81be9b9bb8c7916b6f93a16d8a2623c72e48ca0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "presence flags from the sshsig blob"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/presence.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6f3d764cf7a57ccf3f83556f4a4c8ecaf83006b0884f7147ddc69076d3285c2c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "sign records presence; refuses by policy and on actor-key mismatch"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:c0c2cc3f96b9a8995ec5cccf02a5f3f0cb5808d82985b81a39161e403006f60c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "revision v2: actor kind and protected policy"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/authority_transition.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d2299e0472186e17b31e781c7e26e6850bd40b2466d826268ff954d9dbb4eb9d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "protected policy keys resolved from the store"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/config.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2bb838ae29c35c673f42966ab9447b598006d50b1ad821774e7c6d57db7533fa"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "THREAT_MODEL rows 1 and 6 narrowed"
+kind = "file"
+target_ref = "docs/THREAT_MODEL.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d12499fa086f4fab71bc8f8fa33c82364b70abc1cb6fc8d0b0e736580ca58499"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "authority.md: the cutover"
+kind = "file"
+target_ref = "docs/cli/authority.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:95235812a27d512ef1553305c5be7c402e07418b76de2328d31f12510b71ac0f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/58-authn.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:28fd024265a6869eef230a5429850ab4938f35b6bdec98b7cadf72d27bc8936f"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "core lib.rs declares the presence module (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:876b95fb550dcad12960f7eb8bc768c581a35ca51009fdafda6f33d1cad62243"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "war sign --batch signs under the presence policy and the key-binding check (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/batch_cmd.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:faa829f22527f3be5cf527b2fd762b3ad487d731f3ec40ef1abe5356bba387fd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-012"
+title = "authority_cmd.rs: store readable by the read path; v2 drafting (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authority_cmd.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:7c75feced8a00c7f09e2718cc64285d8cd657259de3c4e71fdcf95ffeda87c45"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-013"
+title = "store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authority_cmd/store.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:18ec074cf9d5a083383539ed4c3c40957d06f2257609aa2815a3dd92b7350f7b"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-014"
+title = "check.rs emits authority.unprotected and policy.unprotected-divergence (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-015"
+title = "repo.rs applies the store's protected policy keys on open (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:00fcdceff3dec30b6c0d8d4f2207911d7bee658969064a57a9836a62568ef8d0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-016"
+title = "0096's transition tests name the v2 fields (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/authority_transition.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:a7876731103352656d82c68e645ef1f6796613304583b7e4e3290b944491aef7"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-017"
+title = "roles.toml: the actor_kind comment spells policyservice (AM-004; comments only)"
+kind = "file"
+target_ref = "docs/authority/roles.toml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d264fe63a501ea17ac5a6b008fb7ad67575cdbf954ada9ef4da39ebd8ac7cc04"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

@@ -1,0 +1,19 @@
+obligation = "OBL-009"
+disposition = "established"
+evidence = "conformance/plants.d/45-tickets.sh (D-013, carried in full, truncated:false) contains the OBL-009 timing block: it sets $REPO_ROOT (the actual repository working tree, distinct from the scratch $PLANT_ROOT used earlier in the plant) and via tk_ms/rw loops over exactly the eleven commands named in OBL-009's scope — create, ready, claim, done, add, note, prime, prime $TKR (prime <t>), show, tickets, check $TKR (check <t>) — asserting each exits 0 and completes in under 2000ms, gating on TK_SLOW being empty, then removes the tickets the probe created. The gate run GR-ops.conformance.plants@1.1.0's captured stdout excerpt shows the resulting line 'ok    each ticket command < 2 s here      create=13ms ready=8ms claim=11ms done=12ms add=13ms note=13ms prime=8ms prime=8ms show=8ms tickets=9ms check=11ms' (two 'prime' and one 'check' entries reflect the label-stripping of arguments in the script's ${cmd%% *}, but the script's own source, fully visible, shows they correspond to the plain and targeted invocations respectively), and the run's overall verdict is 'pass' with the battery total '1260 passed, 0 failed'. Although obligation_evidence's literal term index shows 'prime <t>' and 'check <t>' as not found by exact string match (an artifact of the script using variables rather than the literal token '<t>'), the untruncated script text and the untruncated result line together show the actual commands run and passing, so the obligation's claim is established for the scope stated."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

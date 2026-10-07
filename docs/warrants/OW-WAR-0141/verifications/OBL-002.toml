@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = """conformance/plants.d/54-intake.sh (D-011) contains the full test logic for OBL-002's scope: it issues a thin sentence ("THIN: make it better") and a thin issue file (issue-21.json), then asserts exit 2 on both, identical before/after directory listings with zero IK-WAR-* paths taken, and the presence of docs/intake/{sentence-*,github-21}/{request.json,questions/Q-001.toml} (and intake.json for the issue case) — covering the 'no alias allocated' bullet. It then greps `war --json questions --open` and `war --json next` output for exactly one Q-001 entry per key with a redraft command starting 'war plan ', covering the 'listed as a human answer act with the redraft command' bullet. It asserts `war answer ... --as intake-agent` is refused with question.agent and the record carries no answer, then runs the exact redraft command as a human would and asserts exactly one new Warrant directory appears with the question no longer open, covering the 'one Warrant drafted, question no longer open' bullet. It greps the shipped conformance/fixtures/drafter/claude-drafter.sh's system-prompt text for `unresolved_questions` and the absence of `blockers`, which D-006 (carried in full, untruncated) independently confirms by its own content. Finally it constructs a proposal with an invented `blockers` field and asserts `war plan --proposal` fails with 'did not parse' naming 'blockers', covering the last refusal bullet. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt shows the corresponding lines all passing verbatim: 'a thin input allocates no alias', 'the question is one human answer act', 'an agent cannot answer it', 'answer, re-draft: one Warrant each', 'an answered question leaves war next', 'claude-drafter.sh asks correctly', and 'an invented blockers field fails', within a run totalling '1260 passed, 0 failed'. The obligation_evidence block shows every key term for this obligation (war plan, war answer, unresolved_questions, blockers) was shown with no cut_from truncation, so no relevant text was hidden by the budget. Together the plant source and the passing gate output establish every evidentiary bullet within OBL-002's stated scope."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

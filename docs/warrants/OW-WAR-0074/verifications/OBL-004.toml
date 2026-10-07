@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 (verdict pass, subject_digests including contract:sha256:df700b5f1d82...556d6f64a matching authorized_contract_digest) shows OW-WAR-0074-specific structural PASS lines (manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift, identity.atom-mismatch at line 2586) plus WARN evidence.stale-binding (33 paths changed since the receipt's tree) and WARN sas.pin-superseded (authorized against SAS 1.0.0 while latest recorded revision is 1.1.1, pending repin). OBL-004's own evidence clause requires 'a named fixture/schema violation is refused in a disposable corpus' to show planted controls are retained; the plants array is empty and the run summary reports '0 error', with no FAIL/refusal of any planted violation shown in the excerpts. Per the assurance atom's explicit adversarial question, a structural pass alone without a demonstrated plant refusal cannot establish this obligation, and the stale-binding warning further undercuts treating this run as evidence about the current deliverable revision."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

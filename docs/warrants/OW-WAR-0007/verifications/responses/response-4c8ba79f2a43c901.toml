@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0007"
+
+[[verifications]]
+obligation = "OBL-000"
+disposition = "not_established"
+evidence = "unused"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (milestones.rs) is carried whole (truncated:false, 785 lines) and defines Milestone, Stage, Port, ExecutorKind and ResponsibilityTier with a parse() function that extracts each field via scalar/list helpers and a dedicated ports() closure that splits 'name:type' into Port{name, type_name}. Its own tests parses_a_valid_graph (asserts milestones.len, stages.len, executor_kind, responsibility_tier, referenced_obligations), typed_ports_parse (asserts inputs[0].name/type_name and outputs[0].name), and tier_and_executor_kind_are_orthogonal assert on these exact fields one by one, matching the obligation's evidence bar of field-by-field assertion including ports. Gate run GR-software.repo.war-check@1.0.0 additionally shows 'PASS milestones.valid OW-WAR-0007: 4 milestone(s), 4 stage(s), acyclic with no dangling refs', confirming the parser also operates correctly against this repository's actual milestones.yaml."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "refuted"
+evidence = "OBL-002's scope explicitly names dangling obligation_refs as one of the malformed-graph cases requiring refusal, but the fully-shown D-001 source's validate_references() only checks m.stage_refs against stage_ids and m.depends_on against milestone_ids — obligation_refs is parsed and stored on Milestone (via list(record, \"obligation_refs\")) but never validated against any known-obligation set, and MilestoneError declares no DanglingObligationRef variant. The test_names list confirms this gap: none of the thirteen tests (e.g. a_dangling_stage_ref_is_refused, a_dangling_dependency_is_refused, duplicate_ids_are_refused, a_dependency_cycle_is_refused) exercises a dangling obligation_ref. This is corroborated by atoms/60-assurance.md's own adequacy review, whose 'Executed attacks' list only three plants (dangling stage_ref, dependency cycle, milestone-only field on a stage), short of the obligation's own evidence bar of 'five plants, five observed refusals'. The bundle itself therefore shows the claim does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 has receipt exit_result 'pass' and verdict 'pass', with stdout excerpt showing 'PASS milestones.valid OW-WAR-0007: 4 milestone(s), 4 stage(s), acyclic with no dangling refs' and an overall summary of '2028 pass · 294 warn · 0 unknown · 0 error (worst: WARN)', i.e. exit 0 with the milestone graph reported and no errors anywhere in the corpus run. D-001's own test every_milestone_graph_in_this_repository_validates walks docs/warrants at runtime and asserts at least 40 milestone graphs parse, matching the 'enumerated at run time' scope. The WARN evidence.stale-binding line flags a governance concern about the freshness of a recorded evidence binding (unrelated paths having changed since an earlier run.toml was recorded) but does not report any FAIL or error in milestone validation itself, so the plain evidentiary claim the obligation asks for — exit 0 with the milestone graph reported — is shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No test in the workspace validates that `war diff` attributes contract-digest movement to a causing field; the listed tests in `show::tests::` cover general diffing but not specific attribution for digest changes."
+evidence = "The same fully-shown `diff()`/`semantic_diff`/`walk` code in D-001, and the tests exercising it (an_added_field_is_reported, a_removed_field_is_reported, nested_changes_are_reported_by_path, array_changes_are_reported_by_index), only produce a flat, undifferentiated list of every JSON path that changed between two documents — there is no code that computes a contract digest, detects that it moved, or singles out which one of the reported paths caused that specific digest to move, as OBL-002 and the work-order's premade instruction ('Attribute digest movement to a field') require. The gate run's stdout excerpt itself notes the contract digest 'covers 8 of 17 §28.5 elements,' underscoring that a generic path diff cannot by itself distinguish a digest-causing field from unrelated changed fields. No deliverable, test, or gate excerpt in the bundle shows this attribution behavior, so the claim cannot be decided from what is carried."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

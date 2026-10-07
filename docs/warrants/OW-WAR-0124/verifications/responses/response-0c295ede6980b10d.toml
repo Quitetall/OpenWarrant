@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "conformance/plants.d/59-adoption.sh (D-008) builds a scratch repo AD_D containing docs/adr/0001-x.md, runs `war init --program Acme --namespace ACME`, and asserts the output contains exactly one occurrence of `war migrate --corpus docs/adr --commit $AD_DHEAD` and that no `artifacts/` directory exists afterward; it also checks the negative case (AD_E with only docs/adr/README.md, and AD_A with no adr directory at all) produces no migrate line. The gate run GR-ops.conformance.plants@1.1.0 stdout excerpt (lines 699-722) shows both corresponding plant lines passing: 'ok    existing ADRs get the migrate line one line, nothing imported' and 'ok    no ADR corpus, no migrate line     README.md alone, or no directory', within an overall '1214 passed, 0 failed' run bound to the current contract digest (subject_digests includes contract:sha256:4bb6019c...) and confirmed non-stale by the second gate run's PASS evidence.admissible line for ops.conformance.plants@1.1.0. D-002's migrate_line function in init/mod.rs matches the exact string format asserted by the plant. Together the plant logic and the passing gate output directly establish both halves of the obligation's stated evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

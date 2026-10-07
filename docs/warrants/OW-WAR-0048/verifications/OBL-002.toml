@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No test, plant, receipt, or measured artifact in the provided evidence examines or verifies the content of the runner comment in .github/workflows/ci.yml."
+evidence = "obligation_evidence explicitly marks `.github/workflows/ci.yml` as not carried ('a repository path that is not a deliverable of OW-WAR-0048: not carried'), and deliverables is empty. The gate run's visible stdout never references ci.yml or its runner-tier comment. With the named path absent from the bundle, there is no evidence to compare against the required corrected wording."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

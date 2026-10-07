@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires a separate verifier to reproduce OBL-001/OBL-002's observations and human acceptance/resolution. prior_verifications shows only prior not_established dispositions from an agent-kind verifier (claude-verifier) on all four obligations, and no authority/acceptance record (e.g., a response.toml naming human sign-off on the RC.2 adoption ADR) is carried in this bundle. Since OBL-001 and OBL-002 are not established here and no independent human acceptance artifact is shown, OBL-003 cannot be established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

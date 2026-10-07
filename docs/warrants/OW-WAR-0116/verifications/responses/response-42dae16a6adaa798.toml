@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0116"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "OBL-001's evidence clause and the work order (atoms/40-work-order.md deliverable 9) both require 'a GET on /api/act is refused 405', but D-001 (crates/openwarrant-cli/src/webui/mod.rs, excerpt lines 1195-1225) shows the opposite: the match arm `(_, \"/api/act\") if req.method != \"GET\" => 405` refuses every method except GET, and `(\"GET\", \"/api/act\") => { ... json_response(stream, \"200 OK\", ...) }` answers a GET with the current act state — a route app.js's watchAct() function actually polls via a plain GET. The gate run for ops.conformance.plants@1.1.0 (63-webui.sh) never tests a GET on /api/act; the case it labels 'an act by a non-POST method' sends `-X PUT` and gets 405, which is consistent with the code but does not exercise, and in fact sidesteps, the specific GET/405 requirement the obligation names. All of OBL-001's other named checks are established by that same gate run (no-token 401, wrong-token 401, foreign Host 400, foreign/missing Origin 403, oversized 431, CSP with no unsafe-inline and frame-ancestors 'none', loopback-only bind via ss, and the source grep finding no ssh-keygen/SSH_AUTH_SOCK/signing call under webui/), but because the deliverable's own source contradicts the specific named 'GET on /api/act refused 405' clause, the obligation as stated does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

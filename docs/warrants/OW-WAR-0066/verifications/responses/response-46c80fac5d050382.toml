@@ -1,0 +1,40 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0066"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "The gate run GR-ops.echo@1.0.0 receipt records runner \"war gate --run\" (not the `war run` service-stage path atoms/40-work-order.md and atoms/45-milestones.yaml require for STAGE-001), gate_binding_digest \"unbound:ops.echo@1.0.0\", and subject_digests limited to [\"contract:sha256:498240f8...\", \"deliverables:sha256:e3b0c442...\", \"tree:9729d66838274661a8b7382db6ef1108887babec\"] — there is no `dispatch:<digest>` entry, which obligation_evidence for OBL-001 confirms directly (\"dispatch:<digest>\": shown_in: []). This contradicts the required §44.6 receipt whose subject is `dispatch:<digest>` (and the basis atom's own assumption in atoms/20-basis.md). The bundle's deliverables array is empty, so no `dispatches/<id>.json` or `submissions/<id>.json` for this Warrant's STAGE-001 is present; the only occurrences of \"verify\" and \"submission.recorded\" are inside the ops.conformance.plants@1.1.0 stdout excerpts (e.g. lines 1174-1175, part of the battery's own internal self-tests of the mechanism), not evidence of this Warrant's own STAGE-001 submission or journal event. The receipt's actual subject_digests, fully shown and not truncated, positively show the subject is not the dispatch digest, so the claim is refuted rather than merely unproven."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "refuted"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 has verdict \"pass\" (stdout tail \"1270 passed, 0 failed\"), but its receipt shows runner \"war gate --run\" with arguments [\"bash\",\"conformance/plant-isolated.sh\"], gate_binding_digest \"unbound:ops.conformance.plants@1.1.0\", and the same subject_digests set [\"contract:sha256:498240f8...\", \"deliverables:sha256:e3b0c442...\", \"tree:9729d66838274661a8b7382db6ef1108887babec\"] with no `dispatch:` entry. obligation_evidence for OBL-002 lists only the term \"war run\" shown_in [\"atoms\"] — asserted in the work order text but not demonstrated by any run in the bundle — and gives no evidence the receipt is \"bound to the stage's dispatch digest\" as OBL-002 requires. Since the receipt's subject_digests are fully shown and do not include a dispatch digest, the specific binding OBL-002 demands is contradicted, so despite the pass verdict the obligation as scoped is refuted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

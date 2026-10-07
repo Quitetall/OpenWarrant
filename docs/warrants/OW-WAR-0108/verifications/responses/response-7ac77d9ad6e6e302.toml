@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0108"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "the verifier returned no usable verdict for this obligation"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are present to show the two-stage PlanSpec execution, done status, artifact receipts, byte comparison, or port-refusal behavior. 20-basis.md explicitly states GitHub 'currently refuses to start provider CI', and no local run record, receipt, or CLI transcript is included anywhere in the bundle to substantiate the 'one real local run' the obligation's scope requires; obligation_evidence again lists no named_paths."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires evidence of preserved original failures, unchanged signed sources, no copied lineage, and passing projections/checks/full gate, with unavailable provider checks kept visible. The bundle has zero deliverables and zero gate_runs, so none of the required run records, projections, or gate outputs are present to check. 20-basis.md's acknowledgment that provider CI is currently unavailable due to billing limits is consistent with, but does not itself prove, that this unavailability was made visible within an actual OpenWarrant integration run — no such run evidence is in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

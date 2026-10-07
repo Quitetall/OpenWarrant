@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The unit test `evidence::tests::an_edited_receipt_does_not_reseal` in crates/openwarrant-cli/src/evidence.rs verifies that an edited receipt is refused by admissibility, and the plant '[OW-WAR-0010] a receipt edited after it was sealed' is rejected by the system, confirming the control."
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-cli/src/evidence.rs) is carried in full and contains the unit test `an_edited_receipt_does_not_reseal`, which flips a sealed receipt's verdict and asserts that `admissibility`'s returned error contains 'does not recompute' — this satisfies the unit-test half of OBL-001's stated evidence. The second half requires a plant flipping a committed receipt's verdict and `war check` refusing it as `evidence.receipt-invalid`, but the bundle's top-level `plants` array is empty, and `obligation_evidence.terms` for OBL-001 lists `evidence.receipt-invalid` as shown only in D-001 (the diagnostic's own match-arm definition) and the atoms — not in any plant transcript or gate-run output. The carried excerpts of the `software.repo.war-check@1.0.0` gate-run stdout show `evidence.stale-binding` firing for this Warrant's own run but no `evidence.receipt-invalid` line anywhere. The 60-assurance.md atom asserts six plants exist in `conformance/plant.sh` including this one, but per §51.3 a performer's claim is not evidence, and no plant execution or output is carried to substantiate it. With only one of the two required evidentiary components shown, the obligation cannot be established from this bundle."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

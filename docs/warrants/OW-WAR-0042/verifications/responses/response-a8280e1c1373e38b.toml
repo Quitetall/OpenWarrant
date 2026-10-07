@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0042"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "The Basis atom (atoms/20-basis.md) states as a 'blocking unknown' that no drafting agent speaks oh.war/agent-drafter/v1 today and that Katana is not cloned on this host, and the Assurance atom's JDG-001 explicitly records 'OBL-001 and OBL-002... require a real drafting agent answering over §75.2 as a SEPARATE PROCESS... No agent has been invoked. ... All three are recorded as open rather than narrowed.' No gate run, plant, or deliverable in the bundle shows a subsequent stdin/stdout exchange with a separate drafting process; the war-check stdout only reports generic corpus checks (e.g. 'PASS identity.atom-mismatch OW-WAR-0042') with no mention of an agent exchange. This is an affirmative statement in the record that the required event has not occurred, so the claim is refuted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "refuted"
+evidence = "JDG-001 in atoms/60-assurance.md groups OBL-002 with OBL-001 as open because 'No agent has been invoked,' and the obligation_evidence entry for OBL-002 shows only the generic 'war check' term surfaced in the gate stdout with no verbatim request, no returned proposal, and no §74.4 eight-step trace anywhere in the bundle. Since producing an applied draft under this obligation depends on the same agent invocation JDG-001 says has not happened, and no deliverable in this (empty) deliverables list documents such a run, the bundle shows the claim does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 lists the term 'write_file' with empty shown_in and empty cut_from, meaning no plant output or filesystem-audit text naming a write_file refusal is carried in the bundle at all; the single 'plants' entry supplied (conformance/plants.d/71-plan.sh line 3) is just a code comment about fixture-driven design, not a test result. The scope of this obligation is 'the whole run in OBL-002,' which JDG-001 says never occurred, so there is no run to audit and no admissible evidence either confirming or denying a stray write — the bundle simply does not carry it."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-004 explicitly marks the named path 'conformance/' as absent: 'a repository path that is not a deliverable of OW-WAR-0042: not carried.' The bundle's only conformance-related artifact is one comment line from conformance/plants.d/71-plan.sh, which does not show seven entries rejecting proposals for §91.8 tests 52–58 by named rule, nor any refusal of an agent attempting to authorize or allocate an enterprise ID (tests 53/54). The gate stdout's 2006 pass/271 warn summary is corpus-wide and does not identify any of these seven plants by name. With the conformance/ directory not carried, this obligation cannot be decided from the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

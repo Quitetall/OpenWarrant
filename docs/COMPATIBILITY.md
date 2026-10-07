@@ -35,6 +35,61 @@ form changed — each is a new `oh.war/<record>/v2` beside the old one, read by
 and with the pack every contract digest, so a `v2` is a release the owner
 re-authorizes into, not a patch.
 
+## Reading backward
+
+The rules above say what a later `war` reads from an earlier one. This is the
+other direction: an older `war` meeting a repository, or a record, that a
+newer one wrote (OW-WAR-0130).
+
+### A repository says which `war` it needs
+
+`openwarrant.toml` may carry, under `[project]`:
+
+```toml
+requires_war = ">=1.2.0"
+```
+
+A version requirement in Cargo's comparator syntax: `>=`, `>`, `<=`, `<`,
+`=`, `^`, `~` or bare (which is `^`), comma-separated, over a version of one
+to three parts, or three with a pre-release (`=1.0.0-alpha.2`). A pre-release
+orders below its release, so `>=1.0.0` does not admit `1.0.0-alpha.2`. A
+requirement that does not parse is refused when the configuration is read.
+
+It is checked once, when the repository is discovered and before any record
+is read. A `war` it does not admit stops there with `compat.war-too-old`,
+naming the requirement and its own version, and reads nothing: no Warrant
+finding is printed from records it may not understand. No key: every `war`
+reads the repository, as before.
+
+The key protects from the first release that reads it. A `war` older than
+that does not know the key and ignores it, as it ignores any key it does not
+know in `[project]`; for those, the record check below is what remains.
+
+### A record says which major it is
+
+Every frozen record names its schema, `oh.war/<record>/v<major>`, and each
+`war` knows the major it reads for each (`crates/openwarrant-cli/src/compat.rs`
+lists them, and it moves only with a `v2`). A record naming a newer major is
+reported by `war check` as UNKNOWN `compat.newer-record` — never PASS, because
+this `war` did not read what it says, and never ERROR, because nothing is known
+to be wrong with it. The journal carries its major in each line's `v`.
+
+That is a report, not a translation: whatever else reads the record reads it
+as it always did. A repository that relies on a newer record says so with
+`requires_war`, which stops an older `war` before it reads anything.
+
+### Unknown optional fields (§69.4)
+
+§69.4 asks that unknown optional namespaced extensions be preserved and that
+unknown required ones fail closed. Today they are not preserved: many record
+types refuse any field they do not know (`deny_unknown_fields` — the batch,
+attestation, drafting-v2 and roadmap records among them), so an optional
+extension written by a newer `war` is a parse error to an older one, and the
+rest keep only the fields they know when they rewrite a record. Relaxing
+that touches every such record type and is its own Warrant (option C of
+OW-WAR-0130's U-001); until then, `requires_war` is how a repository keeps an
+older `war` away from records it would refuse or trim.
+
 ## The crates
 
 `openwarrant-core`, `openwarrant-agent`, `openwarrant-compiler`,
@@ -46,3 +101,29 @@ as usual; the protocol rules above are stricter and win.
 The human rendering of `war check` and `war show`, the progress platform's
 HTML, the skill and plugin files, the conformance battery, gate definitions
 under `docs/gates/`, and this repository's own Warrants.
+
+
+## Proposed reviewed-verification storage (not adopted)
+
+`openwarrant_core::verification_record` exposes the candidate stored v2 types,
+format-selecting decoder and binding comparison. `war schemas` publishes
+`schemas/oh.war/verification/v2.json` beside the frozen v1 schema and checks its
+bytes. The v2 candidate is outside the active `0.2.0` pack. Publication does not
+activate a format, change a contract digest, establish a review or accept ADR
+0030. The public decoder distinguishes unsupported versions from malformed
+records; callers must not treat either result as successful verification.
+
+V1 records remain readable as unbound history without a rewrite. New v2 records
+nest the v1 payload and carry explicit protocol, reviewed subject and packet
+references. Binding comparison checks declared equality only: packet bytes,
+journal provenance, source currency, independent custody and acceptance remain
+separate checks. A v1 record with optional new fields does not gain v2 standing.
+
+Explicit pack adoption remains required before qualified release. Its supported
+path must retain the old pack and signed contract bytes, publish the new pack
+beside them, compile an expressly selected new basis and request the applicable
+contract-revision authorization. An old resolution remains tied to its old
+basis; a new pack or new review cannot reinterpret it. Migration must preserve
+originals, report affected records and obtain required acts, rather than globally
+bumping the compiler constant or regenerating signed deliverable manifests.
+See proposed [ADR 0030](adr/atoms/OW-ADR-0030-reviewed-subject-binding.md).

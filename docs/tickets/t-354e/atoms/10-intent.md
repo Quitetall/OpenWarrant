@@ -1,0 +1,3 @@
+# The battery inherits the caller's CLAUDE_* environment
+
+Running the battery gate with CLAUDE_PERFORMER_MODEL (and CLAUDE_VERIFIER_LOG) exported made every run fail 'independence only where true' (unset 2, same 0, different 2 of 2): the verifier plant tests what tools/verifier/claude-verifier.sh claims when the performer model is unset, and it read the caller's value. A battery must give the same answer whatever the caller exports. Fix: lib.sh (or the verifier plant) unsets CLAUDE_PERFORMER_MODEL, CLAUDE_VERIFIER_MODEL, CLAUDE_VERIFIER_LOG, CLAUDE_BIN before running plants, and each plant that needs one sets it explicitly; audit the other env vars war and the plants read (OPENWARRANT_*, XDG_*, HOME) for the same leak.

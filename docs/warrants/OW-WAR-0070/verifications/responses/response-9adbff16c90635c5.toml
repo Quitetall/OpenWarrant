@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0070"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-001 marks both scoped paths, src/inbox/classify.rs and tests/inbox_classify.rs, as not carried ('no deliverable of OW-WAR-0070 and no file at this path'), and the bundle's deliverables array is empty. The required term '_ =>' has empty shown_in, so the no-wildcard-arm claim is not evidenced either. The only gate run, GR-software.repo.war-check@1.0.0, has stdout excerpts covering only manifest/journal/authority/SAS-pin checks (manifest.valid, journal.append-only, authority.signed, sas.pin-superseded) with selected_test_count 0, and its own NOT CHECKED section states 'war check does not invoke [gate execution], so nothing here is evidence that a Warrant's acceptance gates were run.' No test output or source text for the classifier appears anywhere, so the claim cannot be decided."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows all three scoped paths — src/cli/inbox.rs, conformance/fixtures/inbox/, tests/inbox_cli.rs — as not carried. The term 'war inbox --json' has empty shown_in, and 'war inbox' is shown only in ['atoms'] (i.e., in the Intent/Work-Order prose atoms/10-intent.md and atoms/40-work-order.md), not in any executed command output. The sole gate run's stdout excerpts contain no reference to an inbox subcommand, fixture set, or captured CLI output, and selected_test_count is 0. With no captured stdout of 'war inbox' or 'war inbox --json' and no exit-code evidence over the named fixture, the precision of the listed alias set cannot be assessed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 marks both docs/cli/inbox.md and CHANGELOG.md as not carried, with no terms shown for a state-to-act table or an Unreleased entry. The deliverables array is empty, and the single gate run (GR-software.repo.war-check@1.0.0) is a corpus-wide record-integrity check whose visible excerpts never reference either file's content. Absent any doc or changelog bytes in the bundle, whether the command is documented or the change recorded cannot be established or refuted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

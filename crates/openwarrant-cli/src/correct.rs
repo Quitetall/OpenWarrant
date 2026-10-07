@@ -137,9 +137,36 @@ fn standing(repo: &Repository, one: &Loaded, alias: &str, id: &str) -> Result<St
 
 /// `war correct <alias> <deliverable-id>`: the request. Writes nothing.
 pub fn request(repo: &Repository, alias: &str, id: &str) -> Result<CorrectionRequest, RepoError> {
+    request_with(repo, alias, id, &crate::ownership::Ownership::index(repo)?)
+}
+
+/// [`request`] over an ownership index already built. A caller asking for
+/// many requests in one pass (`war sign --list` asks for every
+/// content-addressed deliverable of every resolved Warrant) builds the index
+/// once; built per request, it re-loaded the whole corpus each time.
+pub fn request_with(
+    repo: &Repository,
+    alias: &str,
+    id: &str,
+    ownership: &crate::ownership::Ownership,
+) -> Result<CorrectionRequest, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let s = standing(repo, &one, alias, id)?;
+    // OW-ADR-0021: a pin a later authorized Warrant governs is historical.
+    // There is nothing to correct — the file moved under that Warrant's
+    // authority, and this Warrant's delivery verifies at its own resolution.
+    let authorized_at = repo
+        .load_authorization(&dir)?
+        .and_then(|a| a.revision.authorization.map(|x| x.effective_time));
+    if let Some(owner) = ownership.newer_than(&s.target_ref, alias, authorized_at.as_deref()) {
+        return Err(RepoError::Message(format!(
+            "correction.historical: nothing to correct — {} is governed by {}/{} (authorized {}), \
+             so {alias}/{id}'s pin is historical. It verifies at {alias}'s resolution, not against \
+             the working tree (OW-ADR-0021). To move the file, work under {}",
+            s.target_ref, owner.alias, owner.deliverable_id, owner.authorized_at, owner.alias
+        )));
+    }
     let head = chain_head(&s.recorded, &s.corrections)
         .map_err(|e| RepoError::Message(format!("{alias}/{id}: {e}")))?;
     let current = sha256_of(&repo.root.join(&s.target_ref))?;
@@ -185,6 +212,19 @@ pub fn ingest(
     alias: &str,
     id: &str,
     path: &Utf8Path,
+) -> Result<Report, RepoError> {
+    ingest_with(repo, alias, id, path, crate::sign::IngestMode::Record)
+}
+
+/// [`ingest`], or the same judgment with the write withheld (see
+/// `sign::IngestMode`): every refusal runs, `DryRun` stops before the
+/// correction file is created with `correction.would-record`.
+pub fn ingest_with(
+    repo: &Repository,
+    alias: &str,
+    id: &str,
+    path: &Utf8Path,
+    mode: crate::sign::IngestMode,
 ) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let refuse = |report: &mut Report, rule: &'static str, why: String| {
@@ -412,6 +452,28 @@ pub fn ingest(
     let out = cdir.join(format!("{id}-{sequence}.toml"));
     let body = toml::to_string_pretty(&record)
         .map_err(|e| RepoError::Message(format!("could not render the correction: {e}")))?;
+    if mode == crate::sign::IngestMode::DryRun {
+        if out.exists() {
+            refuse(
+                &mut report,
+                "correction.exists",
+                format!(
+                    "{}: already exists; a correction is never overwritten",
+                    repo.relative(&out)
+                ),
+            );
+        } else {
+            report.push(Diagnostic::pass(
+                "correction.would-record",
+                format!(
+                    "{alias}/{id}: correction {sequence} ({} → {}) would be recorded. Not written",
+                    &record.correction.superseded_digest[..19],
+                    &record.correction.new_digest[..19]
+                ),
+            ));
+        }
+        return Ok(report);
+    }
     // `create_new`: a second correction is a second file, never an overwrite.
     let mut f = match std::fs::OpenOptions::new()
         .write(true)

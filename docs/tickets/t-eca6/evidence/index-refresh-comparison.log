@@ -1,0 +1,4 @@
+Same-second tracked entries: 1233
+{"sample": "fresh", "exit": 0, "wall_seconds": 4.57, "child_cpu_seconds": 4.555, "diff_seconds": 0.597639, "index_unchanged": true, "output_sha256": "8b5819fadf6ca78763c853c40a0e8518a8ab751ed14b171a5a01dec25eca8dcf", "diff_calls": 5, "untracked_calls": 1}
+{"sample": "fresh-repeat", "exit": 0, "wall_seconds": 4.567, "child_cpu_seconds": 4.582, "diff_seconds": 0.596744, "index_unchanged": true, "output_sha256": "8b5819fadf6ca78763c853c40a0e8518a8ab751ed14b171a5a01dec25eca8dcf", "diff_calls": 5, "untracked_calls": 1}
+{"sample": "after-refresh", "exit": 0, "wall_seconds": 4.075, "child_cpu_seconds": 4.068, "diff_seconds": 0.032255, "index_unchanged": true, "output_sha256": "8b5819fadf6ca78763c853c40a0e8518a8ab751ed14b171a5a01dec25eca8dcf", "diff_calls": 5, "untracked_calls": 1}

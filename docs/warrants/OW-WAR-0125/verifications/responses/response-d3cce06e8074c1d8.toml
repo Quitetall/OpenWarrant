@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0125"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-009 (conformance/plants.d/56-sas-sections.sh, carried in full, not truncated) implements exactly the required evidence: it plants sas://WAR-SAS-999 and sas://WAR-SAS-43.9 into a real amendment's governing_adr_or_policy in a full clone of HEAD and asserts each is rejected with the exact text 'ERROR sas.section-ref ... has no section 999' / 'has no subsection 43.9', and it independently counts existing citations (SEC_REFS, via grep on docs/warrants/*/amendments/*.yaml) against `war check`'s sas.section-ref pass/error/warn/unknown counts. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, exit_result pass) stdout excerpts lines 463-483 show this plant executing and passing: 'ok sas://WAR-SAS-999 cites nothing rejected by ERROR sas.section-ref (has no section 999)', 'ok sas://WAR-SAS-43.9 cites nothing rejected by ERROR sas.section-ref (has no subsection 43.9)', and 'ok existing section citations resolve 100 of 100 pass sas.section-ref' - i.e. every section reference currently in the repository (a superset including the sixteen the atoms cite) passes with zero sas.section-ref errors, while the two planted non-existent references are refused under that same rule. D-007 (crates/openwarrant-cli/src/check.rs, excerpts of check_section_refs and the sas.section-ref/sas.section-current rule commentary) corroborates that the rule is implemented to error precisely when a cited section or subsection is absent from the pinned revision, consistent with the observed gate behavior. obligation_evidence confirms 'sas.section-ref', 'sas://WAR-SAS-999' and 'sas://WAR-SAS-43.9' are shown untruncated in D-007, D-009 and the gate stdout, so nothing decisive here was cut. Both evidence bullets the obligation requires are directly satisfied by this passing gate run and matching plant source."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

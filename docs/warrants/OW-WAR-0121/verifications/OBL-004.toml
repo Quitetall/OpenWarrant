@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-008 (journal_cmd.rs) implements torn_tail() and check() exactly as required (torn.describe gives offset/truncate command; check() returns early with journal.torn-tail on a torn tail and otherwise journal.malformed for a bad line), and its own unit test only_an_unterminated_unparseable_last_line_is_a_torn_tail exercises the offset math and the malformed/torn distinction. D-011 (53-storage.sh) contains the OBL-004 plant block that runs `war check` against the scratch Warrant ST-WAR-0001's journal.jsonl, and gate run GR-ops.conformance.plants@1.1.0's stdout excerpt (lines 285-307) shows those plants actually passing: 'a torn tail is named  journal.torn-tail at offset 1444, not journal.malformed', 'war truncates nothing', 'a writer on a torn journal  refused naming journal.torn-tail', 'the named truncation repairs it  3 event(s) kept; check exit 0 as before', 'a bad middle line is not torn  journal.malformed, not journal.torn-tail', and 'a terminated bad tail is not torn  journal.malformed, not journal.torn-tail'. Together these cover all three evidence bullets (offset naming, malformed-not-torn for a mid-file or terminated occurrence, and the named truncation restoring a passing check with the same event count), and the overall gate run verdict is pass (1214 passed, 0 failed) on commit 39d30f3d2b2ca57dd9864ce4c6f6c804b8c32f88."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

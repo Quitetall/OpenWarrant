@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0108"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and no gate_runs or plants are present; obligation_evidence for OBL-001 lists no named_paths and selects 'every deliverable of the Warrant', but zero deliverables were carried. Only the authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are shown, and 60-assurance.md merely asserts the required evidence (regression test, retained-bytes check, symlink check, provider CI pass) without any actual test output, hash, or run record. No bytes were shown that could confirm the standard cookbook's materialize_dataset_path behavior."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are present in the bundle to show a two-stage PlanSpec execution, done status, artifact receipts, byte comparison, or port-refusal behavior. The only content is the authored intent/basis/work-order/assurance atoms, which describe what OBL-002 requires (done status, receipts, equal bytes, lineage reference, port validation) but contain no actual run evidence; 20-basis.md itself states GitHub 'currently refuses to start provider CI' and that integration observation is unavailable. There is nothing in obligation_evidence beyond an empty named_paths list to substantiate the claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires evidence of preserved original failures, unchanged signed sources, no copied lineage, and passing projections/checks/full gate, plus visible unavailable provider checks. The bundle carries zero deliverables and zero gate_runs, so none of these can be verified from records; 20-basis.md's own text acknowledges provider checks are currently unavailable due to billing limits, which is consistent with but not proof of the obligation's 'remain visible and prevent integration completion claims' requirement, since no actual OpenWarrant run record, projection, or gate output was included in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

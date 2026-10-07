@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0143"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout shows all OBL-005 plant checks passing: 'a newer release: one stderr line' (exact line 'war: v99.0.0-alpha.1 is published (this is 1.0.0-alpha.2). Update: war update --to 99.0.0-alpha.1', stdout byte-identical to disabled run, up_gets(/)==0), 'a stale cache: one request for two runs' (exactly one GET /releases.json across two runs within a minute, headers limited to host+user-agent), and the five refusal cases 'OPENWARRANT_NO_UPDATE_CHECK=1: silent', 'CI=true: silent', '--json: silent, one envelope on stdout', 'stderr not a terminal: silent', 'war version: silent' — each reporting zero notice lines and zero server requests — plus the final 'connection refused: nothing changes, UNKNOWN cached' case matching exit code and stdout to the disabled run. These match the plant logic in D-012 (conformance/plants.d/61-update.sh), which drives war status under a pty via up_pty (script) with a seeded release-check.json cache and the local fixture server, exactly as OBL-005's scope requires. The implementation in D-004 (notice.rs, untruncated) shows the enabled() gating on DISABLE_ENV/CI/json/stderr-terminal/command name, the exact eprintln! format string, and the write-then-rename cache logic that the plant's assertions rely on, and D-005's shown lib.rs excerpt confirms the single notice::after(matches.subcommand_name(), json) call after dispatch. obligation_evidence confirms every term the obligation turns on ('war status', 'script', '--json', 'oh.war/report/v1', the two opt-outs, 'war version') was shown with no cuts (cut_from empty for all)."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

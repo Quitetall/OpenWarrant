@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No gate_runs, deliverables, or plants exist in the bundle, and obligation_evidence for OBL-002 shows empty named_paths and terms. atoms/40-work-order.md (steps 4-5) and atoms/60-assurance.md state the intended repair/rebuttal contract, but there is no observed test execution, repair attempt, exhaustion case, rebuttal, escalation, or bound enforcement shown anywhere in the bundle to confirm or refute the obligation."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

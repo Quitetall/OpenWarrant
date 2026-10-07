@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0129"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (crates/openwarrant-compiler/src/dispatch.rs) implements token_account, returning DispatchError::OverBudget naming the three largest items when estimated_tokens>budget_tokens and DispatchError::TokensUnrecorded when no TokenInputs are supplied, and its embedded unit test the_compiler_refuses_over_budget_and_emits_at_budget asserts exactly this for over-budget, at-budget, and unrecorded cases. D-002 (crates/openwarrant-cli/src/dispatch.rs) shows the CLI passes TokenInputs{item_bytes, budget_tokens} into compile_dispatch and maps only DispatchError::OverBudget to the dispatch.over-budget diagnostic, keeping no comparison of its own. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject contract digest matching authorized_contract_digest) printed, on this corpus (OW-WAR-0047/STAGE-002), the passing lines 'the packet carries its token account', 'an over-budget stage is refused    rejected by dispatch.over-budget (largest:)', 'the CLI keeps no budget check      the comparison is the compiler's; the CLI maps OverBudget' (from grepping D-002 for the absent comparison and D-001 for the compiler's own), and 'an in-budget stage is unchanged    same estimate, budget and method as before the move', matching every evidence bullet under OBL-001's scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-004 (conformance/plants.d/83-tokens.sh) builds a scratch corpus TK-WAR-0002 with STAGE-001 (agent, budget_tokens:10), STAGE-002 (agent, in budget) and STAGE-003 (service, budget_tokens:10) and a fixture performer that writes a per-stage marker file only if it runs, then exercises war perform, war perform --all and war run against it, and separately removes the budget to show the refusal is not a no-op. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) printed the passing lines 'perform over budget starts nothing    rejected by dispatch.over-budget; no marker, packet or journal line', 'perform in budget starts the actor    the marker exists: the refusal above is the budget's', 'perform --all skips only the over    STAGE-002 performed; STAGE-001 named by dispatch.over-budget', 'run over budget runs no gate    rejected by dispatch.over-budget; no gate run, no receipt', and 'run in budget mints a receipt    the gate ran: the refusal above is the budget's', which together satisfy every evidence bullet (no marker/packet/journal line over budget, --all names only the over-budget stage while performing the other, no gate receipt on an over-budget war run, and the refusal is proven non-vacuous by the corresponding unbudgeted runs)."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-003 (crates/openwarrant-cli/src/dispatch_bundle_cmd.rs) shows judge_tokens called on the parsed StageDispatch before any context/source is read, returning bundle-tokens-unrecorded when dispatch.tokens is None and bundle-over-budget when estimated_tokens>budget_tokens, with Command::Create writing via create_new (so nothing is overwritten and nothing is emitted on an Err short-circuit). D-004's tok_bundle_refused helper and calls construct a Dispatch file edited to be over budget and one with tokens deleted, pointing --context at a nonexistent file to prove the refusal precedes context reads, then confirms the unedited Dispatch bundles. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) printed the passing lines 'bundle over budget is refused    rejected by bundle-over-budget; nothing at --emit', 'bundle with no tokens is refused    rejected by bundle-tokens-unrecorded; nothing at --emit', and 'the unedited Dispatch is bundled    the refusals above are not blanket', matching every evidence bullet under OBL-003's scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

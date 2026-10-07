@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0069"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables at all (top-level \"deliverables\": []); obligation_evidence for OBL-001 marks the named path \"questions/\" as absent (\"a record of OW-WAR-0069 ... not a deliverable: not carried\"), and the terms \"war questions --open\" and \"war watch --once\" are shown_in: [] (not shown anywhere in the bundle). The only plant reference given is conformance/plants.d/91-questions.sh line 3, which is a bare comment line (\"# refuses the reverse. Every plant runs against OW-WAR-0069...\") with no actual test body or output shown. The gate run (GR-software.repo.war-check@1.0.0) is a generic repo-wide well-formedness checker whose visible stdout excerpt covers OW-WAR-0138 through OW-WAR-0147 and general corpus checks; it never mentions OW-WAR-0069, questions/, or an agent-actor refusal. There is no evidence in the bundle that a question record exists, that an agent-kind answer is refused, or that `war watch` names an open question."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverable for perform.rs or any performer fixture is carried in the bundle (deliverables: []). obligation_evidence shows the term \"war perform\" is only shown_in \"atoms\" (i.e. it appears in the work-order text, not as executed evidence), \"submission.recorded\" is shown_in: [] entirely, and \"resolve\" is shown_in atoms and the war-check stdout only incidentally (that stdout excerpt, covering OW-WAR-0138–0147, contains no reference to a performer, a Dispatch/submission run, or a §51.2 refusal — its only appearances of related terms are in unrelated contexts like \"war evidence record\" and \"resolution_cmd.rs\" for a different Warrant). No gate run, plant, or deliverable in the bundle demonstrates a Dispatch-in/submission-out run or a refusal of a performer requesting resolve."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No board.rs deliverable, platform view HTML, or `war sign --list` output is carried in the bundle (deliverables: []). obligation_evidence lists \"war board\" and \"war sign --list\" as shown_in \"atoms\" only, meaning they appear solely in the work-order/intent text describing intended behavior, not as rendered output or code. The single gate run in the bundle is the generic repo-wide war-check whose visible excerpt (OW-WAR-0138–0147 and corpus-wide checks) contains no reference to `war board`, a numbered signature list, or the HTML board view. There is nothing in the bundle comparing board output to `war sign --list` or showing the HTML contains no signing call."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

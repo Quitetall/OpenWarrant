@@ -1,0 +1,192 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# D-002..D-008 are existing files: on authorization this Warrant becomes
+# their owner. Each is a place that joins target_ref to the repository root.
+
+[[deliverable]]
+id = "D-001"
+title = "The native reference form, decided: OW-ADR-0026"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:ee09d5d9caee2d826d70059e01f54dbda021c27fe14286de705536c3dc67fdd8"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "Classify a target_ref; refuse a native reference without a non-Git holder"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/deliverable.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:872afa96dc0de06a78f8b5ffc5a4269e1ace5f132f800dd298c41e5b3cc30e5e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "§56.1 requirements 2 and 3 never read a native reference from disk"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolve.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:db18ed48bb18097cbb80729a8e53daf05abcc4fd9ff310041a19a6894d04d825"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "Drift skips native references; validation surfaces the refusals"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "pins and pins --refresh leave a native reference alone"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/pins.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:86ff81a10c62150c1ac15c527a685326a5266f40096c5581ec0c15d05c08f50a"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "A correction of a native reference is refused"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/correct.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:4fbfa384b1a13821bd3c81a9f0f50dbc134f7c75a7961a877873aa886a17c251"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "The verification bundle carries the reference, not bytes"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/bundle.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug)"
+creation_method = "authored"
+content_digest = "sha256:79272ef07b66749987fc1308db303bccee7cdbec18b928d6f130e940cc16fc0d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "Digest state says held by its system"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "The native-authority plants"
+kind = "file"
+target_ref = "conformance/plants.d/61-native-authority.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:b06e154d2be03b31988991c674ff45f5056874a5d221854a89ab6ce1876c4752"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

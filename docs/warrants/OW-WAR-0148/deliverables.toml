@@ -1,0 +1,584 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Delivered on claude/typed-records; `war deliver` records each.
+
+[[deliverable]]
+id = "D-001"
+title = "The compiled corpus, built once per process"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/corpus.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-002"
+title = "Corpus status from the shared corpus; one state derivation"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "Frontier from the shared corpus"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/frontier.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-004"
+title = "Pending acts from the corpus; outcome word from profile data"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-004"]
+
+[[deliverable]]
+id = "D-005"
+title = "Console from the corpus"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/console.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-006"
+title = "Timeline and pending from the corpus"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/timeline.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-007"
+title = "Next from the corpus; acts offered by capability"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/next.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "Compile builds the corpus once; shared state derivation"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-009"
+title = "Check builds the corpus once; rule families by capability"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-010"
+title = "Web UI reads one corpus per fingerprint"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-011"
+title = "TUI reads one corpus per fingerprint"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-012"
+title = "MCP tools read the corpus"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mcp/tools.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-013"
+title = "MCP resources read the corpus"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mcp/resources.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-014"
+title = "war model: oh.war/model/v1"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/model.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-015"
+title = "war model, war impact, war state; create --issue"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-007", "OBL-008", "OBL-011"]
+
+[[deliverable]]
+id = "D-016"
+title = "The model schema joins the pack"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/schemas.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-017"
+title = "The compiled model's schema"
+kind = "file"
+target_ref = "schemas/oh.war/model/v1.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-018"
+title = "Pack index, version unchanged"
+kind = "file"
+target_ref = "schemas/pack.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-019"
+title = "A gate run once per commit, shared by citing Warrants"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/prepare.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-020"
+title = "Capabilities in profile data, prerequisites, defaults"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/role.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-021"
+title = "Delivery's capabilities"
+kind = "file"
+target_ref = "profiles/delivery.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-022"
+title = "Decision's capabilities (no stages)"
+kind = "file"
+target_ref = "profiles/decision.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-023"
+title = "Contractor's capabilities"
+kind = "file"
+target_ref = "profiles/contractor.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-024"
+title = "The ticket working form's capabilities"
+kind = "file"
+target_ref = "profiles/ticket.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-009"]
+
+[[deliverable]]
+id = "D-025"
+title = "§56.1 checks by capability; not applicable by name"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolve.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-026"
+title = "WarrantRung by capability"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-027"
+title = "Authorize refuses a kind without the capability"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-028"
+title = "Verify refuses a kind without the capability"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-029"
+title = "Unassigned only for kinds that join the roadmap"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/roadmap_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-030"
+title = "Falsifiability from profile data"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-031"
+title = "Falsifiability from profile data"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/resolution.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-032"
+title = "Standing coverage from profile data"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/standing.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-033"
+title = "war new pins the profile digest"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/new.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-034"
+title = "profile_digest read from the manifest"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/manifest.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-035"
+title = "profile.pin-drift"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-036"
+title = "Record atoms, ids, per-record revisions"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/record.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-037"
+title = "Core and namespaced relation kinds"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/relation.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-038"
+title = "Modules record, relation, lifecycle"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006", "OBL-008"]
+
+[[deliverable]]
+id = "D-039"
+title = "war impact"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/impact.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-007"]
+
+[[deliverable]]
+id = "D-040"
+title = "Fixed and declared states"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lifecycle.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-008"]
+
+[[deliverable]]
+id = "D-041"
+title = "war state"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/state_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-008"]
+
+[[deliverable]]
+id = "D-042"
+title = "Ticket items as records; type, labels"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/ticket.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-009", "OBL-010"]
+
+[[deliverable]]
+id = "D-043"
+title = "Tickets on the kernel; filters, search, epics; promotion target from data"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ticket/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004", "OBL-009", "OBL-010"]
+
+[[deliverable]]
+id = "D-044"
+title = "Ticket rendering with type, labels, epics"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ticket/render.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-010"]
+
+[[deliverable]]
+id = "D-045"
+title = "create --issue; opt-in write-back"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/intake.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-011"]
+
+[[deliverable]]
+id = "D-046"
+title = "Model tests"
+kind = "file"
+target_ref = "crates/openwarrant-cli/tests/model_cli.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-047"
+title = "Plant: model and differential"
+kind = "file"
+target_ref = "conformance/plants.d/72-model.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-048"
+title = "Plant: capabilities and profile pin"
+kind = "file"
+target_ref = "conformance/plants.d/73-capabilities.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-049"
+title = "Plant: records, relations, impact"
+kind = "file"
+target_ref = "conformance/plants.d/74-records.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006", "OBL-007"]
+
+[[deliverable]]
+id = "D-050"
+title = "Plant: states"
+kind = "file"
+target_ref = "conformance/plants.d/75-states.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-008"]
+
+[[deliverable]]
+id = "D-051"
+title = "Plant: ticket features and GitHub"
+kind = "file"
+target_ref = "conformance/plants.d/76-ticket-features.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-010", "OBL-011"]
+
+[[deliverable]]
+id = "D-052"
+title = "Plant: the password-reset demonstration"
+kind = "file"
+target_ref = "conformance/plants.d/77-typed-demo.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-011"]
+
+[[deliverable]]
+id = "D-053"
+title = "Plant: tickets on the kernel"
+kind = "file"
+target_ref = "conformance/plants.d/45-tickets.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-009"]
+
+[[deliverable]]
+id = "D-054"
+title = "OW-ADR-0031, proposed"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0031-typed-records.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-055"
+title = "Types, capabilities, records, relations, states"
+kind = "document"
+target_ref = "docs/TYPES.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-056"
+title = "Profiles with capabilities and the pin"
+kind = "document"
+target_ref = "docs/PROFILES.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-005"]
+
+[[deliverable]]
+id = "D-057"
+title = "Ticket features and GitHub"
+kind = "document"
+target_ref = "docs/TICKETS.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-010", "OBL-011"]
+
+[[deliverable]]
+id = "D-058"
+title = "Glossary: record, relation, capability, declared state"
+kind = "document"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]

@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The `war check --generated` command on the committed corpus exited 0, demonstrating that the generated schemas validate the existing corpus, and the receipt for gate run software_repo_war-check_1_0_0.receipt.json confirms successful validation."
+disposition = "not_established"
+evidence = "deliverables is empty, so no generated JSON Schema output or corpus-validation record tied to OW-WAR-0032 is present in the bundle. obligation_evidence for OBL-001 lists no named_paths and no terms, meaning nothing was carried for this obligation. The only gate evidence, run GR-software.repo.war-check@1.0.0, has a truncated stdout whose visible excerpts (lines 538-551, 2614, 2797, 2877) cover only manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, and identity.atom-mismatch — checks on the Warrant record itself, not on generated schemas against the IR/manifest/Dispatch/Submission/gate corpus. The gate's own NOT CHECKED section states explicitly that `war check` does not invoke `war gate --run`, so 'nothing here is evidence that a Warrant's acceptance gates were run,' which forecloses using this run as evidence for OBL-001's claim."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

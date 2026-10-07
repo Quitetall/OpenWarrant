@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0073"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries deliverables: [] and obligation_evidence for OBL-001 marks Cargo.toml, Cargo.lock, deny.toml and tui/ all as 'not_established' — i.e. absent/not carried. The sole gate run (GR-software.repo.war-check@1.0.0) is a corpus-wide `war check --generated` record-validity scan (manifest/deliverable-digest/journal checks) and contains no `cargo deny check licenses` output, no `cargo tree` diff, and no result of the 'only tui/ may use ratatui|crossterm' unit test; the terms list only shows those strings appearing in the atoms' prose (shown_in: atoms), not as gate output. No evidence in the bundle shows or refutes the licence/async claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows crates/openwarrant-cli/src/tui/ and conformance/plants.d/97-tui.sh as not carried, and deliverables is empty, so no source grep for ssh-keygen/SSH_AUTH_SOCK, no plant run, and no non-TTY-exit or panic-restoration test result is present. The only gate run in the bundle is the generic corpus war-check (record structure/journal/manifest checks), which does not execute conformance plants.d/97-tui.sh or any TUI-specific grep. The 'shown_in: atoms' entries for ssh-keygen etc. only mean those words appear in the Warrant's own prose, not that a grep was run. Nothing decides whether the rendering holds no authority."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No named_paths or deliverables are carried for OBL-003, and the queue/questions/frontier panes' source is not in the bundle. The gate run present is the corpus-wide record check, not a comparison of the TUI queue against `war sign --list` output, nor evidence of `war answer`/`war perform`/`war run` calls from the TUI. The claim that acting panes reuse existing acts is unverifiable from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "OBL-004's scope (corpus, obligations, evidence, journal panes) has no deliverables or named_paths carried in the bundle. There is no plant output showing an obligation rendered as 'inadmissible' matching `war resolve --dry-run`, nor a corrupted-record fixture showing named-unreadable behavior. The single gate run is unrelated corpus-check output (manifest/journal/SAS checks across 143 warrants), not a check of the TUI's reading panes against status::build/resolve::assess. The claim cannot be decided from what's shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

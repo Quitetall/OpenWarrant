@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0122"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (the gate OBL-003 cites) has verdict pass, and per software.repo.war-check@1.0.0's stdout ('PASS evidence.admissible ... ops.conformance.plants@1.1.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:9729d66838274661a8b7382db6ef1108887babec)') this run is bound to the current contract, not stale. Its stdout excerpt (lines 513-562) shows the full 57-grammar.sh (D-003) run against docs/GRAMMAR.md (D-001) with every relevant plant marked 'ok': the refused constructs G-R1 (anchor), G-R3 (tag), G-R4/G-R5 (flow sequence/mapping) and G-R6 (block scalar) each 'rejected by atom.frontmatter' naming the construct (e.g. 'a YAML anchor is not supported'), and G-R8 'rejected by atom.frontmatter (duplicate key \"classification\")'; §62's example verbatim (G-R10) is 'rejected by atom.frontmatter (line 8: an indented (nested) mapping is not supported)', naming the nested mapping exactly as the document's divergence DV-1 states; the two positive controls both pass — G-P1 '§62 example minus holder' reads as only atom.header firing (for warrant_uuid), and G-P3 'a namespaced key' 'passes; the IR digest binds its bytes', i.e. survives into the compiled IR; and the drift control is shown working via G-D1 ('11 rule id(s), every one produced') and G-D2 ('a planted citation is reported'), confirming it fails when the document cites an unproduced rule. The run's tail reports '1270 passed, 0 failed', ruling out a hidden failure. This matches the independent prior verification from claude-verifier reaching the same disposition on the same run."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

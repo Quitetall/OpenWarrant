@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0011"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "crates/openwarrant-core/src/preflight.rs (D-001, untruncated, 460 lines) defines all six §32 groups (CheckGroup::Contract/Context/Graph/Runtime/Gates/Authority) with CONTRACT_CHECKS/CONTEXT_CHECKS/GRAPH_CHECKS/RUNTIME_CHECKS/GATE_CHECKS/AUTHORITY_CHECKS holding the SAS-verbatim check lists, and the test the_check_groups_and_counts_match_the_sas pins the counts (6,6,5,10,9,5 = TOTAL_CHECKS 41) and uniqueness of names. PreflightReceipt::outcome() defaults any absent check to CheckOutcome::NotRun rather than Passed, and not_run_blocks_exactly_as_failed_does plus an_absent_check_is_not_run_not_passed show every check in every one of the six groups either resolves to a readiness-permitting outcome or blocks, with none silently omitted (an empty receipt blocks on all TOTAL_CHECKS). This is the evidence the obligation itself asks for, shown in full, unbudgeted source."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The obligation's own evidence clause requires 'a plant' showing a not-ready verdict with the unchecked dimension named, per milestones.yaml STAGE-002 ('Plant an unresolvable context and an absent gate tool'). The bundle's plants array is empty, obligation_evidence for OBL-002 carries no named_paths or terms, and the gate run software.repo.war-check@1.0.0 stdout explicitly lists 'Preflight readiness (§32.7)' under NOT CHECKED, stating war check does not exercise it. The unit test not_run_blocks_exactly_as_failed_does in preflight.rs is a synthetic in-memory receipt manipulation, not a plant of an unresolvable context or absent gate tool, so no evidence in the bundle shows the required planted scenario or its verdict."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's evidence clause requires that 'the runtime dimension reports unknown while no live actor exists, on every run' — i.e. actual behavior of Preflight runs, not just the type's capability. The bundle contains no war preflight CLI deliverable, no generated receipt, and no gate-run output demonstrating an actual run where the runtime group reports NotRun/unknown; the gate run stdout confirms Preflight is not implemented/executed ('Preflight is not implemented, and war check does not run gates'). The cited test the_receipt_states_what_it_does_not_prove only checks that PreflightReceipt::meaning() contains the §32.7 disclaimer string; it says nothing about the runtime dimension's outcome on any run, so it cannot establish this obligation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

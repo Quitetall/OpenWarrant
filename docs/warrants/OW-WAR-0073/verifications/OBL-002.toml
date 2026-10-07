@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence shows crates/openwarrant-cli/src/tui/ and conformance/plants.d/97-tui.sh as not carried, and deliverables is empty, so no source grep for ssh-keygen/SSH_AUTH_SOCK/signature construction, no execution of the 97-tui.sh plant, and no panic-recovery or non-TTY-exit result appears anywhere in the bundle. GR-software.repo.war-check@1.0.0's excerpts are generic corpus-manifest/journal/SAS-pin checks (e.g. PASS journal.append-only, WARN sas.pin-superseded) with no mention of 97-tui.sh, terminal restoration, or exit code 2 on non-TTY. The terms ssh-keygen, SSH_AUTH_SOCK, war sign --ssh-sign, war tui are all shown_in 'atoms' only, meaning they appear in the Warrant's authored text, not in any grep or plant run recorded here."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

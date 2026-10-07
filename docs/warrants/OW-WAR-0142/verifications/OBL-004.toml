@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = """D-014 (conformance/plants.d/69-standing.sh, truncated but with targeted excerpts) shows the actual plant assertions for every clause of OBL-004: lines ~564-585 edit one glob in the signed class file (`paths = ["src/**", "lib/**"]`) and assert `sb check`/`sb standing apply` both report `standing.unsigned` (and `authority.unsigned`) with the Warrant's directory tree unchanged; the following `st_class "$ST_TMP/unsigned.toml"` block shows an unsigned class refused with `standing.unsigned` via `st_refused`; lines ~578-599 show `st_sign_as` invoking `war sign ... --ssh-sign --as plant-agent` and `--as claude`, asserting `standing.not-permitted` naming `AgentProhibited` and `SelfAct` respectively with the responses directory digest unchanged, i.e. an agent (of any role) cannot sign a class; and lines 631-656 show a second class revision (`standing:routine@2`) being signed, `lib/` refused as `standing.outside-class` under revision 1 but covered (`policy_basis = "standing://routine@2"`) under revision 2, while `$SB_AUTH` (SB-WAR-0002's original authorization) still carries `policy_basis = "standing://routine@1"` — directly establishing both that a class widens only via a new human signature and that it does not re-cover the past (§31). Every one of these specific checks appears as a passing `ok` line in the gate run GR-ops.conformance.plants@1.1.0's captured stdout (receipt exit_result pass, verdict pass), including "an edited glob unsigns the class", "a class with no signature", "an agent or the performer signs", "revision 2 covers what 1 did not", and "no MCP tool signs a class". The MCP-refusal clause is further corroborated by D-023 (crates/openwarrant-cli/src/mcp/mod.rs), carried in full and untruncated, whose `REFUSED_TOOLS` constant lists `war_standing_propose_ingest`, `war_standing_accept`, `war_standing_revoke`, `war_standing_ingest`, and whose test `no_refused_tool_is_registered_and_no_signing_or_ingesting_name_exists` asserts none of these is registered against the live tool router. Together the scratch-corpus plant behavior and the source-level refusal list converge on the same claim, so all evidence OBL-004 requires (unsigning by edit, signature-less coverage, agent-by-kind refusal, no MCP signing surface, revision-scoped widening, and non-retroactivity) is shown, not merely asserted."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

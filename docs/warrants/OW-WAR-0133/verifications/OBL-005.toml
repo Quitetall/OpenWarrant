@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh, carried in full, not truncated) contains the two checks OBL-005 requires, run against the real `war dispatch` binary on scratch Warrant ER-WAR-0002/STAGE-001: (1) a budget_tokens:10 stage is dispatched, expecting exit!=0, `dispatch.over-budget .*largest: atoms/`, and neither packet nor context file written, followed by a control with the budget line removed that asserts (via a python check against manifest.toml) every required atom id is present in the emitted context's `included` and none of `omitted` has `required: true`; (2) a FIFO-based test (`notes/moving.txt`) forcing one path to be read at two digests during a single `war dispatch` compilation, asserting `dispatch.source-conflict` naming both `sha256:$ER_V1` and `sha256:$ER_V2` and that no `d.json`/`c.json` is emitted, with a preceding control showing the same path listed twice at rest compiles cleanly. The recorded gate run `GR-ops.conformance.plants@1.1.0` (verdict pass, exit_result pass, subject `tree:9729d66838274661a8b7382db6ef1108887babec`) shows stdout excerpt lines 365-383 with verbatim matches of this script's own `er_ok` output: 'a budget too small for the atoms   rejected by dispatch.over-budget naming required atoms; nothing emitted', 'the same stage in budget           every required atom included, none omitted', and 'one path at two digests refuses    dispatch.source-conflict names notes/moving.txt at sha256:dbcdb1f658e3… and sha256:906ed25f555e…; nothing emitted', with the battery's tail reporting '1270 passed, 0 failed' overall. `software.repo.war-check@1.0.0`'s own stdout independently attests `evidence.admissible ... ops.conformance.plants@1.1.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:9729d66838274661a8b7382db6ef1108887babec)`, confirming this receipt is not stale. D-008 (crates/openwarrant-core/src/context.rs) carries `ContextError::RequiredItemOmitted` and its test `a_required_item_cannot_be_omitted_to_fit_a_budget`, the manifest invariant the plant exercises through the CLI. Together the carried script, the matching real-run stdout lines, and the admissible receipt establish both the omission-refusal and the Q-002(c) conflict-refusal halves of OBL-005 within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

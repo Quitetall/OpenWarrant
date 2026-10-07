@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists no named_paths or terms, so no source for document.rs/document/draft.rs, no output of `cargo test -p openwarrant-cli --test document_draft --test sdk_cli`, and no run of conformance/integration/interactive/run.py appear anywhere. The single gate_runs entry, GR-software.repo.war-check@1.0.0, is a structural repo/atom checker (its own stdout NOT CHECKED section states 'war check does not invoke [gate --run]'), not an execution of the interactive adapter, so it cannot show field selection, edit/preview, draft retention on cancel/failure, or identical validated output for equivalent inputs. plants is empty. Nothing carried decides this claim."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

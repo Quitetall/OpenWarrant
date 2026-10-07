@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-007 (conformance/plants.d/58-invalidation.sh, excerpt lines 302-382) implements iv_fields, which asserts the exact nine §41.5 field names, that every field is either 'present' with a value and no reason or 'unknown' with a reason and no value, and that access history is specifically unknown with reason 'git records no reads'; it then checks that the scratch resolution IV_A yields original digest status 'present' while the existing repository resolution OW-WAR-0062 yields 'unknown:not attested' with literal output text 'original digest: UNKNOWN (not attested)' and no matching '^PASS .*original digest' line (i.e. not shown as present). The same block checks --record by performer 'claude' is refused via error code attest.custody-self-act naming SelfAct, with custody-audit.toml absent and the tree/records byte-identical before and after, and that a different auditor 'plant-verifier' succeeds and writes custody-audit.toml with verdict intact. D-003 (attest.rs, excerpts around CustodyField, ReceiptCustody and custody()) corroborates the present/unknown field model, the render() format 'field: UNKNOWN (reason)', and the self-act refusal placed before any write. The recorded gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1270 passed/0 failed) shows this exact sequence actually executing with matching 'ok' lines: 'nine fields, scratch resolution … original digest present', 'an old resolution is not attested … OW-WAR-0062: original digest UNKNOWN (not attested), not present', 'the performer may not record it … attest.custody-self-act (SelfAct); nothing written', and 'another auditor records it … custody-audit.toml names plant-verifier, verdict intact'. obligation_evidence lists every cited term ('war attest --custody', 'UNKNOWN', 'UNKNOWN (not attested)', '--record', 'SelfAct') as shown in D-003, D-006, D-007 and the gate stdout with no cut_from entries, so none of the deciding text was truncated away. Together the source assertions and the actual battery execution confirm every clause of OBL-002 within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

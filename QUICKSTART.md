@@ -1,5 +1,31 @@
 # Quickstart — choose your workflow
 
+## Start in three steps: tickets
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash   # or cargo install --path crates/openwarrant-cli
+war init --namespace APP
+war create "Describe the outcome" --item "First step" --item "Second step"
+```
+
+Then work it — no signature, no human step, each command well under a second:
+
+```bash
+war ready                      # what can start now
+war claim t-3f2a/i-9c01        # take an item (refused, by name, if someone holds it)
+war done t-3f2a/i-9c01 --note "what you did"
+war prime                      # what the next agent reads first
+```
+
+`docs/TICKETS.md` has the whole loop. The rest of this page is the governed
+path, which a ticket joins only when someone asks for sign-off
+(`war promote <ticket>`).
+
+Read `docs/generated/CURRENT.md` first: the master document `war compile`
+writes (OW-ADR-0022) — every current Warrant expanded, the SAS in force, who
+governs what, and the queue with each signing command already judged by the
+dry run. In this repository it is [here](docs/generated/CURRENT.md).
+
 ## Prompt-only work and records
 
 For ordinary implementation, ask your connected agent to draft and execute work
@@ -10,8 +36,8 @@ From an existing Git repository, initialize once:
 
 ```bash
 war init --namespace APP --name "My project"
-war new "Describe the outcome"
-war compile
+war new "Describe the outcome" --preset feature   # or fix, decision
+war compile                                        # also writes docs/generated/CURRENT.md
 war overview
 ```
 
@@ -40,6 +66,10 @@ reading takes.
 cargo install --path crates/openwarrant-cli     # or a release tarball; `war --version`
 ```
 
+Or install a release that `war update` keeps current:
+`curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`
+([docs/INSTALL.md](docs/INSTALL.md)).
+
 ## 1. Scaffold the program (agent or human, seconds)
 
 ```bash
@@ -60,8 +90,11 @@ cp docs/authority/allowed_signers.example docs/authority/allowed_signers  # edit
 ssh-add -c ~/.ssh/id_ed25519      # -c: every signature asks you. Test Deny before you trust Allow.
 ```
 
-No tool writes these two files. Read the comments in the examples; the one
-thing `war` cannot check is that the key was loaded with `-c`.
+Or let `war init` at a terminal ask for these and write both files from your
+answers — once; no command edits them afterwards, and the agent entry it writes
+is `performer` only (OW-ADR-0021, Consequences). Read the comments in the
+examples; the one thing `war` cannot check is that the key was loaded with `-c`
+— `war init` asks, and records your answer as yours.
 
 ## 3. Accept the SAS
 

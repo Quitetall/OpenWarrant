@@ -14,13 +14,19 @@
 pub mod authority;
 pub mod authority_transition;
 pub mod autonomy;
+pub mod batch;
 pub mod context;
 pub mod deliverable;
 pub mod document;
 pub mod preflight;
+pub mod presence;
+pub mod projection;
 pub mod rationale;
+pub mod record;
+pub mod relation;
 pub mod traceability;
 pub mod verification;
+pub mod verification_record;
 mod vocab;
 
 pub mod adequacy;
@@ -39,6 +45,7 @@ pub mod gate_run;
 pub mod identity;
 pub mod independence;
 pub mod journal;
+pub mod kernel_state;
 pub mod lifecycle;
 pub mod manifest;
 pub mod migration;
@@ -46,13 +53,17 @@ pub mod milestones;
 pub mod normative;
 pub mod obligation;
 pub mod resolution;
+pub mod roadmap;
 pub mod role;
 pub mod sas;
+pub mod sas_sections;
 pub mod seam;
 pub mod sections;
+pub mod standing;
 pub mod state;
 pub mod status;
 pub mod structured;
+pub mod ticket;
 pub mod timestamp;
 pub mod tokens;
 
@@ -90,9 +101,12 @@ pub use milestones::{
     ExecutorKind, MILESTONES_SCHEMA, Milestone, MilestoneError, MilestoneGraph, Port,
     ResponsibilityTier, Stage,
 };
-pub use normative::{NormativeKeyword, NormativeSentence, normative_sentences};
+pub use normative::{NormativeKeyword, NormativeSentence, dropped_sections, normative_sentences};
 pub use obligation::{Disposition, Obligation, ObligationError, ObligationSet, ScopeKind};
-pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
+pub use role::{
+    AtomRole, Capabilities, Capability, Jurisdiction, KindData, Profile, RoleError,
+    is_namespaced_extension_role,
+};
 pub use sas::{
     SAS_REVISION_SCHEMA, SasAcceptance, SasError, SasRevision, SasRevisionState, Section106Diff,
     section_106,

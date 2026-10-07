@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Agent-assisted planning (SAS §74), the agent adapter protocol (§75), and the
 //! interview loop (§71.3–§71.4). RQ-071, RQ-072, RQ-073.
 //!

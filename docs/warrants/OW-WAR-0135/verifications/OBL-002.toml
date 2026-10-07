@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = """The bundle's own gate run record (run_id GR-ops.conformance.plants@1.1.0) lists subject_digests = ["contract:sha256:a871e182021c6d2237d126bb497a0f0506f0ea368a185c5cb8aa84494fbdfe24", "deliverables:sha256:5522fc506b6f14ccf7946e02922b5f390c01204b275bc7fe451771d131c9e4a7", "tree:9729d66838274661a8b7382db6ef1108887babec"] and gate_binding_digest = "unbound:ops.conformance.plants@1.1.0". The bundle's top-level authorized_contract_digest is "da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1" — a different value from the run's recorded contract digest. The prior verification (performer claude, agent verifier) asserts 'subject_digests includes contract:sha256:da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1, matching authorized_contract_digest' and also cites 'tested commit 9f55131c7aeee59e99b2c258b8ee0ccd86614b60'; neither string appears in the bundle, whose stdout tail instead reads 'tested commit bb2f6c1befe37edba06e48d64fb1d742a0d40657'. Because the prior verification's key binding claim is not supported by (and contradicts) the actual bundle data, it cannot be relied on, and the bundle as shown does not establish that GR-ops.conformance.plants@1.1.0 is bound to this Warrant's authorized contract. Separately, the plant script D-005 (57-assurance-mark.sh, carried in full, truncated:false) does contain the MK_CHECK logic that recomputes baseline/resolution/attestation/commit/contract_digest/obligation digests from the scratch corpus and diffs them against the mark JSON, and the gate's stdout excerpt shows the corresponding 'ok a met baseline earns a mark ... each recompute' and 'ok a mark recomputes to the same bytes' lines with no adjacent FAIL and an overall '1270 passed, 0 failed' tally — so the test logic itself, if this run pertains to the current contract, would satisfy OBL-002's evidence requirement. But given the unresolved contract-digest mismatch and the demonstrably inaccurate prior-verification narrative, the bundle does not carry enough to confirm this passing run is the one that ran against OW-WAR-0135's authorized contract revision, so OBL-002 cannot be established on this bundle alone."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = """D-002 (relations.rs) implements the pure `Currencies::derive` function and the `currency()` check emitting `relations.currency` PASS on derived supersession, `relations.currency-authored` ERROR on a written `currency = "superseded"`, and `relations.currency-cycle` ERROR on a cycle (unit tests `an_authorized_successor_supersedes_and_a_draft_does_not`, `a_written_field_does_not_make_a_warrant_superseded`). D-005 shows OW-WAR-0073/manifest.toml carrying no `currency` field. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject_digests containing `contract:sha256:de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9`, matching request.inputs.authorized_contract_digest via the bundle's `authorized_contract_digest` field, tested commit bb2f6c1) prints, in its stdout excerpt under '== current by relation …', exactly the five required outcomes: 'an unauthorized successor … still current; the relation is not in force', 'currency derived from the relation … no field written', 'a written currency is refused … rejected by relations.currency-authored', 'a supersedes cycle is refused … rejected by relations.currency-cycle', 'OW-WAR-0073 reads superseded … derived from OW-WAR-0112; no field in its manifest', and 'OW-WAR-0073's signature stands … no authorize.no-amendment; contract 691f51ce…', closing with '1270 passed, 0 failed'. This is independently corroborated by the software.repo.war-check@1.0.0 run's line 'PASS relations.currency OW-WAR-0073: superseded, derived from OW-WAR-0112's authorized `supersedes`; nothing is written'. D-003 (ownership.rs) and D-004 (warrant_overview.rs), both in the obligation's scope, read `currencies.of(&alias)`/the derived currency rather than any raw field, with the passing test `the_currency_column_is_the_derived_one`. Every clause of the obligation's evidence statement is matched, within scope, by gate-verified output."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

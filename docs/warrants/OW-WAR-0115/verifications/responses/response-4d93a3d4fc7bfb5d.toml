@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0115"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) is bound as evidence for OBL-002, and its stdout excerpt (lines 1052-1090, from conformance/plants.d/71-hub.sh, carried in full and unredacted as D-006) shows every named evidence item passing: 'war from anywhere opens the hub — the Projects pane, listing the scratch project' (pty capture matching the 'Projects — every repository' title), 'no terminal, no hub — exit 2, tui.no-tty', 'every child names its project — 2 child(ren), each with --root' (corroborated by D-003's two current_exe call sites at lines 1429-1457 and 1464-1492, both passing .arg(\"--root\")), 'a row's pending is sign --list's — 1 == 1' (the scratch project's pending count matching `war --root <it> sign --list`), and critically 'Help's first row is this binary — WARN this is war 1.0.0-alpha.2 ... at /mnt/4tb/tmp/cargo-nvme/merge/debug/war; war on PATH is war 1.0.0-alpha.2 at /ho...', which the unredacted 71-hub.sh script only prints via hub_ok after its awk/pty-replay check confirms the Help pane's first row names this binary's version and path. All five evidence clauses named in atoms/60-assurance.md OBL-002 are thus each backed by a passing assertion in the same gate run, within the obligation's declared scope of tui/mod.rs and docs/TUI.md (both carried, D-003 and D-004)."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

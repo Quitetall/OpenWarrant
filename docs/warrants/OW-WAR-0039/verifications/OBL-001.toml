@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The test 'the_measure_and_metric_counts_match_the_sas' in telemetry.rs verifies that the measurement set aligns with §94's list, and the take function records measures for real operations as confirmed by all passing tests in the measured evidence."
+disposition = "not_established"
+evidence = "The only carried deliverable is D-001 (crates/openwarrant-cli/src/telemetry.rs, sha256 991be2...dd20, 18005 bytes, untruncated), which defines the `take()` function and `TELEMETRY_MEASURES` handling, but the bundle carries no rendered Baseline JSON, no journal excerpt, and no gate or CLI output showing `take()` actually executed and produced recorded values. obligation_evidence for OBL-001 lists no named_paths and no terms, only the blanket selection 'every deliverable of the Warrant'; the sole gate run (GR-software.repo.war-check@1.0.0, verdict pass) ran `war check --generated` and its excerpted stdout lines (manifest.valid, deliverable.digests, traceability.refs, journal.append-only, identity.atom-mismatch, milestones.valid, obligations.valid, generated.drift) validate warrant document structure only, with the NOT CHECKED section explicitly stating 'gate execution ... `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run.' Nothing in the bundle shows a measurement recorded for a real operation, so the claim rests on unexecuted source code."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

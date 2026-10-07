@@ -1,0 +1,36 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The bundle carries each gate run's stdout and stderr"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/bundle.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "The bundle-output plants"
+kind = "file"
+target_ref = "conformance/plants.d/47-bundle-output.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "e24a9cfd2337d14917d08832ad3e1143ab699ced6e2fd4f8223f9d26292fff09"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0883b653b76945dd3793e7e19ab59fb86fd72ec9b1c18a56b16726874a2d6db4"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

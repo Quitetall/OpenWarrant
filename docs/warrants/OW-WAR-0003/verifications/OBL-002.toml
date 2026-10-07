@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The test 'canonical::tests::official_rfc8785_vectors' in 'crates/openwarrant-compiler/src/canonical.rs' performs byte comparison against the official RFC 8785 vectors from external files and passed."
+disposition = "not_established"
+evidence = "canonical.rs's official_rfc8785_vectors test (D-002) reads external vectors from conformance/rfc8785/ and asserts byte equality against them, matching the required evidence design, but the vector files are not carried in this bundle and obligation_evidence lists no terms shown for OBL-002 at all. The single gate run, GR-software.repo.war-check@1.0.0, is a `war check --generated` well-formedness pass whose stdout NOT CHECKED section states it does not execute gates, so no test-execution output confirms this test (or any run over the five Warrants) actually passed."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

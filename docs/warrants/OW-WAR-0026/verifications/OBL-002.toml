@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The plant '[OW-WAR-0020] a receipt for a run that never happened' in conformance/plant.sh was rejected by its named rule, demonstrating that OpenWarrant refuses to fabricate (mint) receipts, as required by §48.4."
+disposition = "not_established"
+evidence = "OBL-002's stated evidence is 'a plant where OpenWarrant fabricates a receipt, refused,' but the bundle's top-level plants array is empty — no such plant is carried. KatanaReceipt::validate() in the fully-shown D-001 only checks non-empty required fields and dispatch_digest equality; it has no provenance/signature check, so the code alone cannot show a fabricated-but-well-formed receipt would be refused. The gate run's stdout excerpts (e.g. lines 452-466) and its NOT CHECKED note confirm 'war check' does not execute gates or tests, so no test run in the bundle substitutes for the missing plant. Absent that plant, the bundle does not carry enough to decide the claim either way."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

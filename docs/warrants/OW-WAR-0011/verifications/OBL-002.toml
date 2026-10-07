@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No plant in conformance/plant.sh exercises the unchecked dimension blocking control for Preflight; the listed plants are for other Warrants and do not name a Preflight dimension or show a not-ready verdict due to an unchecked dimension."
+evidence = "OBL-002's evidence clause requires 'a plant; the verdict is not-ready with the dimension named,' matching milestones.yaml STAGE-002 ('Plant an unresolvable context and an absent gate tool'). The bundle's top-level plants array is empty and obligation_evidence for OBL-002 carries no named_paths or terms. The gate run GR-software.repo.war-check@1.0.0 stdout explicitly lists 'Preflight readiness (§32.7)' under NOT CHECKED, stating 'Preflight is not implemented, and war check does not run gates.' The unit test not_run_blocks_exactly_as_failed_does only manipulates a synthetic in-memory PreflightReceipt; it is not a plant of an unresolvable context or absent gate tool and does not produce a not-ready verdict against a planted real scenario. No item in the bundle demonstrates the required planted blocking case, so this cannot be decided from what is shown."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

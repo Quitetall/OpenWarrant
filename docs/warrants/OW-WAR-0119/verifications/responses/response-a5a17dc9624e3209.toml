@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0119"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-001 (identity_check.rs) implements atom_mismatch(), scoped to atoms whose source ends in '.md', comparing each atom's declared warrant_uuid against its manifest's UUID and emitting identity.atom-mismatch naming the atom path when they differ; its unit test an_atom_naming_another_warrant_is_refused_and_restored_passes edits atoms/10-intent.md's warrant_uuid to a different Warrant's UUID and asserts an error naming 'atoms/10-intent.md' and that UUID, then restores it and asserts Severity::Pass. D-004 (51-identity.sh) plants the same scenario on the scratch corpus ID: sed-editing ID_W/atoms/10-intent.md's warrant_uuid and asserting via id_expect an error identity.atom-mismatch naming the path and the other UUID, then restoring and asserting id_none finds no such error. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt shows both corresponding lines succeeded: 'ok    an atom names another Warrant      error identity.atom-mismatch (exit 2)' and 'ok    the atom restored                  no error identity.atom-mismatch', directly confirming both the refusal and its reversal as OBL-002 requires."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

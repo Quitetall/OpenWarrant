@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is an empty array and obligation_evidence for OBL-001 lists no named_paths and no terms, so no publication log, re-download/digest-verification record, or completion-word statement is present in the bundle. The only gate run, software.repo.war-check@1.0.0 (run_id GR-software.repo.war-check@1.0.0), is a repository-wide manifest/atom structural check whose own NOT CHECKED section states it does not execute gates or speak to runtime behavior, and its excerpts contain nothing about Phase 4 publication, artifact re-download, or the completion word. Nothing in the bundle bears on this obligation either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

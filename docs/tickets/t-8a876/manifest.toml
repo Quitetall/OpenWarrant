@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-8a876` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-8a876"
+uuid = "01a0f493-26ce-7d41-aa17-2deb3cd259e7"
+title = "Bind stage submissions to the exact compiled dispatch"
+profile = "ticket"
+priority = 2
+created_at = "2026-09-30T23:07:59Z"
+created_by = "codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

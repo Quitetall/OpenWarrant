@@ -1,0 +1,68 @@
+# A Warrant is the contract for ONE bounded intervention inside a program,
+# and it traces to that program's SAS through [[implements]] and [[roadmap]].
+# Starting a program? Write its SAS instead (SAS §6.10; docs/DEFINITIONS.md).
+schema = "oh.war/manifest/v1"
+uuid = "01a0d289-1e89-7990-8b2c-5a43577b5ce5"
+local_alias = "OW-WAR-0142"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance"
+profile = "delivery"
+assurance_level = "basic"
+
+# RQ-044 is what a class makes explicit and bounded; RQ-030 and RQ-037 are
+# the rows a covered Warrant's authorization must still satisfy exactly as a
+# signed one does. The decision (OW-ADR-0029) is the owner's, by Q-001.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-044"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-030"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-037"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-9/standing-authorization"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 30
+role = "adr"
+path = "../../adr/atoms/OW-ADR-0029-standing-authorization.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+

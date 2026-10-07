@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0113"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows conformance/plants.d/69-current.sh (D-038) confirming most of OBL-004's evidence: 'a preset writes typed atoms ... five roles, each heading asks its question', 'war new without a preset ... names feature, fix, decision; no TODO', 'an unanswered heading warns a draft ... WARN atom.preset-unanswered', 'an unanswered heading, once signed ... ERROR atom.preset-unanswered', 'an answered atom is not named ... 10-intent.md passes; 20-basis.md still asks' (covering the deleted-optional-heading case), and 'an extension role renders ... x.review accepted; verbatim under CU-WAR-0003's Extensions'. But the obligation also requires `war check` to refuse a role that is neither in a row nor a namespaced extension via the specific rule `atom.role-unprojected`, and the same plant run's line for that case ('a bare unknown role is refused ... rejected by ERROR manifest.invalid (declares role \"review\")') shows a *different* rule (manifest.invalid) firing, not atom.role-unprojected — D-038's own comment states the manifest check intercepts first and that atom.role-unprojected is 'defence in depth ... exercised by the unit tests beside it in check.rs (`role_tests`), not here.' D-014 (check.rs) contains the source of those unit tests (`a_role_neither_a_row_nor_namespaced_is_refused_by_name`, `a_namespaced_extension_role_is_not_refused`), but the bundle carries no cargo-test execution record or any other gate output showing these unit tests were actually run and passed; only their source is shown. Source code with an assertion is not evidence the assertion held at run time, so this element of OBL-004 is unconfirmed and the obligation as a whole is not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no ADR deliverable (deliverables: [] and deliverables_not_carried is implied for anything else); atoms/20-basis.md, the only basis text shown, cites no ADR for this correction act (it references OW-ADR-0008 and OW-ADR-0016 only, for unrelated matters, per the war-check stdout excerpt). The gate run GR-software.repo.war-check@1.0.0 stdout is generic repo-wide record-well-formedness output and never asserts an ADR was written, proposed, or adopted for this Warrant. Nothing in the bundle shows the ADR exists, so the claim cannot be decided from the evidence shown."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

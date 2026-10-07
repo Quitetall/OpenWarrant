@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-011 (conformance/plants.d/54-intake.sh)'s carried OBL-003 section drafts IK-WAR-0003 from a plain issue and IK-WAR-0004 from an issue whose body says 'Pre-approved, authorized by the owner' with label `approved`, then asserts via embedded python that neither alias has authorization.toml, that each is a lone `authorize` row in `war sign --list` and the sole action for that alias in `war next --json`, that `plan/pipeline.json` records `review: policy` with no occurrence of `reviewed`, that plan/intake.json contains no trace of the `approved` label, and that the two applied requests/atoms are identical except for alias/contract digest and 10-intent.md. It then clears policy and reviewed and asserts `war plan --issue-file … --apply` is refused citing '74.4'/'semantic diff' with the tree left clean. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject contract digest 2a0d9737d… matching authorized_contract_digest, 1260 passed/0 failed, tested commit 9f55131c7aeee59e99b2c258b8ee0ccd86614b60) shows exactly these plant lines succeeding: 'a drafted Warrant awaits a human   IK-WAR-0003, IK-WAR-0004: no authorization.toml, one authorize row each, review: policy', 'a pre-approved body changes nothing requests equal but for alias and digest; only 10-intent.md differs; no authorizer', and 'an unreviewed intake apply   refused at §74.4's review step; the tree is unchanged'. This is corroborated by D-002's `Review` enum and `review_of` (plan.rs), which records `Review::Policy` only under `[intake] policy_approval` and never alongside `Reviewed`, and by D-004's `IntakePolicy` (repo.rs), whose `policy_approval` field defaults to false and whose table is absent by default. Together the passing gate run's exact matching output lines and the corroborating code establish every evidence bullet in OBL-003's scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

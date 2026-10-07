@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0113"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows conformance/plants.d/69-current.sh (D-038) confirming most of OBL-004's evidence: 'a preset writes typed atoms ... five roles, each heading asks its question', 'war new without a preset ... names feature, fix, decision; no TODO', 'an unanswered heading warns a draft ... WARN atom.preset-unanswered', 'an unanswered heading, once signed ... ERROR atom.preset-unanswered', 'an answered atom is not named ... 10-intent.md passes; 20-basis.md still asks' (the deleted-optional-heading case), and 'an extension role renders ... x.review accepted; verbatim under CU-WAR-0003's Extensions'. But the obligation also requires `war check` to refuse, by rule `atom.role-unprojected`, an atom whose role is neither in the composition table nor a namespaced extension. The same plant run's corresponding line, 'a bare unknown role is refused ... rejected by ERROR manifest.invalid (declares role \"review\")', shows a *different* rule (`manifest.invalid`) firing, not `atom.role-unprojected`. D-038's own inline comment states this directly: the manifest check intercepts first, so `atom.role-unprojected` is 'defence in depth ... exercised by the unit tests beside it in check.rs (`role_tests`), not here.' D-014 (check.rs) carries the source of those unit tests (`a_role_neither_a_row_nor_namespaced_is_refused_by_name`, `a_namespaced_extension_role_is_not_refused`) but the bundle's only two gate runs are the shell-script plant battery and `software.repo.war-check@1.0.0` (a `war check --generated` run against the real corpus, not a unit-test runner) — no cargo-test execution record appears anywhere in gate_runs. Source code containing an assertion is not evidence the assertion held at run time, so the `atom.role-unprojected` half of OBL-004's claim is unconfirmed by any run in the bundle, and the obligation as a whole cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

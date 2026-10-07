@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0110"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle contains no deliverables array entries, gate_runs, or plants — only the five contract atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md). No generated TypeScript declarations, no repeat-generation comparison, and no compiled/failed fixture output are present anywhere in the bundle, so the required evidence for determinism and fixture pass/fail behavior is entirely absent."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No generator source, artifact/source identity manifest, unsupported-construct refusal test output, drift-check run, or digest comparison is carried in this bundle (deliverables and gate_runs are both empty). The only content is the 60-assurance.md atom stating what evidence *would* be needed, which is an assertion of requirements, not evidence that the requirements were met."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There is no KF Warrant package build output, no compiled import fixture, and no runtime-rejection test result in the bundle — gate_runs is empty and deliverables is empty, so nothing shows pinned generated declarations actually compiling in KF's build or an incompatible-field fixture failing as required."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No evidence of source revisions, artifact identity retention, or preserved OW32 records is included; obligation_evidence for OBL-004 lists no named_paths and no terms, and prior_verifications is empty. Absent any deliverable or gate run showing the original OW-WAR-0032 atoms/verdicts alongside this work's artifacts, the bundle does not demonstrate history was preserved or that a shared contract was referenced."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

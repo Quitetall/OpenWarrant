@@ -19,6 +19,10 @@ pub struct Item {
     pub state: openwarrant_core::Phase,
     pub awaited_act: HumanAct,
     pub waiting_since: Option<String>,
+    /// OW-WAR-0137 — on `war inbox --as <actor>`, whether this act is
+    /// assigned to that actor by name. Absent (false) on the shared inbox.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub assigned: bool,
 }
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -69,6 +73,14 @@ fn check_path(path: &camino::Utf8Path, directory: bool) -> Result<(), RepoError>
 }
 
 pub fn run(repo: &Repository) -> Result<Inbox, RepoError> {
+    run_as(repo, None)
+}
+
+/// OW-WAR-0137 — `war inbox --as <actor>`: the same inbox, keeping only the
+/// signing acts `actor` may take now (per `sign::eligible`, which an
+/// assignment has already narrowed), acts assigned to them by name first.
+/// Questions stay: answering one is no role's act. `None` is [`run`].
+pub fn run_as(repo: &Repository, actor: Option<&str>) -> Result<Inbox, RepoError> {
     let generated_at = crate::gate_cmd::receipt::now_rfc3339_public();
     let now = timestamp(&generated_at)
         .ok_or_else(|| RepoError::Message("system time is not RFC 3339".into()))?;
@@ -152,12 +164,19 @@ pub fn run(repo: &Repository) -> Result<Inbox, RepoError> {
         let (qs, journal) = inputs.remove(&w.alias).ok_or_else(|| {
             RepoError::Message(format!("{}: records changed during inbox read", w.alias))
         })?;
-        let pending = pending.iter().find_map(|p| match p {
-            Pending::Authorize { alias, .. } if alias == &w.alias => Some(HumanAct::Authorize),
-            Pending::Correct { alias, .. } if alias == &w.alias => Some(HumanAct::Correct),
-            Pending::Resolve { alias, .. } if alias == &w.alias => Some(HumanAct::Resolve),
+        let found = pending.iter().find_map(|p| match p {
+            Pending::Authorize { alias, .. } if alias == &w.alias => Some((HumanAct::Authorize, p)),
+            Pending::Correct { alias, .. } if alias == &w.alias => Some((HumanAct::Correct, p)),
+            Pending::Resolve { alias, .. } if alias == &w.alias => Some((HumanAct::Resolve, p)),
             _ => None,
         });
+        let assigned = actor.is_some_and(|a| {
+            matches!(found, Some((_, Pending::Resolve { assignment: Some(Ok(n)), .. }))
+                if n.eligible.iter().any(|e| e == a))
+        });
+        let open_to_actor = actor
+            .is_none_or(|a| found.is_none_or(|(_, p)| sign::eligible(p).iter().any(|e| e == a)));
+        let pending = found.map(|(act, _)| act);
         let NextAct::Human(awaited_act) = classify::next_act(&Warrant {
             phase,
             pending,
@@ -165,6 +184,9 @@ pub fn run(repo: &Repository) -> Result<Inbox, RepoError> {
         }) else {
             continue;
         };
+        if awaited_act != HumanAct::Answer && !open_to_actor {
+            continue;
+        }
         // Journal order is the recorded order. An invalid newest time must not
         // silently fall back to an older event. Receipts and dispatch reads do
         // not move a lifecycle transition or reset the wait age.
@@ -195,18 +217,22 @@ pub fn run(repo: &Repository) -> Result<Inbox, RepoError> {
             state: phase,
             awaited_act,
             waiting_since,
+            assigned,
         });
     }
     items.sort_by(|a, b| {
-        match (
-            a.waiting_since.as_deref().and_then(timestamp),
-            b.waiting_since.as_deref().and_then(timestamp),
-        ) {
-            (Some(a_time), Some(b_time)) => a_time.cmp(&b_time).then(a.alias.cmp(&b.alias)),
-            (Some(_), None) => std::cmp::Ordering::Less,
-            (None, Some(_)) => std::cmp::Ordering::Greater,
-            (None, None) => a.alias.cmp(&b.alias),
-        }
+        // Assigned first (only ever true under `--as`), then oldest first.
+        b.assigned.cmp(&a.assigned).then_with(|| {
+            match (
+                a.waiting_since.as_deref().and_then(timestamp),
+                b.waiting_since.as_deref().and_then(timestamp),
+            ) {
+                (Some(a_time), Some(b_time)) => a_time.cmp(&b_time).then(a.alias.cmp(&b.alias)),
+                (Some(_), None) => std::cmp::Ordering::Less,
+                (None, Some(_)) => std::cmp::Ordering::Greater,
+                (None, None) => a.alias.cmp(&b.alias),
+            }
+        })
     });
     Ok(Inbox {
         api_version: "oh.war/inbox/v1".into(),

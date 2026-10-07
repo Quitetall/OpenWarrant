@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The measured evidence includes that `war check --generated` on the committed corpus exited with code 0, directly demonstrating that the draft passes the required check."
+disposition = "not_established"
+evidence = """deliverables is [] and obligation_evidence for OBL-001 lists no named_paths; the only gate run (GR-software.repo.war-check@1.0.0, subject_digests keyed to contract:sha256:d19666... and tree:9729d66...) shows `war check` validating the OW-WAR-0035 Warrant record itself (manifest.valid, traceability.refs, journal.append-only, authority.signed, identity.atom-mismatch, obligations.valid, milestones.valid, generated.drift — all labeled OW-WAR-0035), not a draft produced by `war plan "<sentence>"`. The stdout's own NOT CHECKED section states 'gate execution ... `war check` does not run gates ... nothing here is evidence that a Warrant's acceptance gates were run' and closes with 'WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)'. No draft or plan artifact is carried anywhere in the bundle, so §99 criterion 1 cannot be decided."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

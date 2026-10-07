@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject_digests including contract:sha256:56b6fff...891aa51 which matches authorized_contract_digest, and tree e54ccac17a000db9430a08ded5ae9ad1923067b0) prints a '== the hub (OW-WAR-0115) ==' section (stdout excerpt lines 1052-1090) with ok lines mapping to every clause of OBL-001's evidence: 'used projects are remembered ... war status in two repositories lists both', 'a moved project is not forgotten ... listed as missing, by name' (deleted-repo-shown-missing), '--forget removes exactly one ... the other stays', 'the opt-out writes nothing ... no projects.toml' (OPENWARRANT_NO_PROJECTS=1 leaves the file absent), and 'an unwritable list changes nothing ... exit 0 either way'. This is corroborated by carried code: D-001 (projects.rs) shows touch() returning early when OPENWARRANT_NO_PROJECTS is set to a non-empty, non-'0' value before any write; save() using write-then-rename; listed()/rows() setting `missing: parsed.is_none()` rather than deleting the BTreeMap entry; and run()'s forget branch removing exactly one key via `p.projects.remove(&key)`. D-002 (lib.rs) excerpt at lines 1557-1568 shows the `open_repo` closure calling `projects::touch(&r.root)` on every repository discovery, comment-documented as best-effort so it never changes a command's result. obligation_evidence flags that the literal strings 'war projects --json' and 'OPENWARRANT_NO_PROJECTS=1 war status' are not shown verbatim anywhere in the bundle (the plant script D-006 that would show exact invocations is in deliverables_not_carried), so the precise CLI syntax used by the plant is not independently visible, but the gate's own named test outcomes and the corroborating code substantively satisfy every behavioral clause of OBL-001 within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

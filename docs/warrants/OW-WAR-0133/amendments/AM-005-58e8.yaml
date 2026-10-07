@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-005-58e8"
+band: "manual_revision"
+reason: "OBL-005's first evidence bullet names the refusal `RequiredItemOmitted`, and no stage can reach it through `war dispatch`. `RequiredItemOmitted` (core context.rs `ContextManifest::validate`) fires when a context manifest records a REQUIRED item as omitted; the selector (cli context_select.rs `select`) includes every required atom whole and marks every omission `required: false`, so it never builds such a manifest. A stage whose budget cannot hold the required atoms is refused earlier, by the compiler's token account (compiler dispatch.rs `token_account`, called in `compile_dispatch` before `context.validate()`), which `war dispatch` reports as `dispatch.over-budget`, naming the largest items, and emits nothing. The behaviour the bullet asks for holds — refused by name, never dispatched without the atom — under a different name; the plant (55-evidence-reuse.sh) has always asserted `dispatch.over-budget`. The blind verifier flagged the mismatch (not-established, 2026-09-27). This amendment corrects the name; the rule and the code are unchanged. The bullet's second half (Q-002 (c)) is unchanged: the plant now reaches it through `war dispatch` (one artifact path read at two digests; a FIFO makes the two reads differ). Wording drafted by the performer `claude`, for the owner's authorization."
+governing_adr_or_policy: "sas://WAR-SAS-47.2"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes. In atoms/60-assurance.md, OBL-005's first evidence bullet reads: 'a stage whose budget cannot hold a required atom is refused by the compiler's token account, reported as `dispatch.over-budget` naming the largest items (a required atom among them), and nothing is emitted; the same stage within budget compiles with every required atom included and none omitted. `RequiredItemOmitted` is the manifest invariant behind it and is not reachable from the selector.' The contract digest moves and the next revision is authorized against it; the battery is then re-run."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-27"
+
+semantic_diff:
+  - element: "obligations"
+    before: "OBL-005: a stage whose budget cannot hold a required atom is refused by name (`RequiredItemOmitted`), not dispatched without it."
+    after: "OBL-005: the same stage is refused as `dispatch.over-budget` (the compiler's token account, §47.2), naming the largest items, with nothing emitted; its in-budget control includes every required atom and omits none."
+
+affected_stages: []
+affected_milestones: []

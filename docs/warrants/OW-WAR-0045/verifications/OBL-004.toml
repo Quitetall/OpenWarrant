@@ -1,12 +1,11 @@
 obligation = "OBL-004"
-disposition = "established"
-evidence = "The passing test 'seam::tests::realizing_more_than_was_authorized_is_a_containment_failure' verifies that a receipt with capabilities beyond the Dispatch's authorization is refused, directly implementing the required comparison and control."
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-004 lists both required terms, 'realized_capabilities' and 'UnauthorizedCapabilityRealized', with shown_in: [] for each — neither appears anywhere in the bundle. deliverables is empty, so no receipt or capability comparison is carried, and the single gate run addresses repo-wide manifest/authority/traceability structure rather than §48.3 capability containment for OW-WAR-0045's executed attempt."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

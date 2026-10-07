@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-001 marks both scoped paths, src/inbox/classify.rs and tests/inbox_classify.rs, as not carried ('no deliverable of OW-WAR-0070 and no file at this path'), and the bundle's deliverables array is empty. The required term '_ =>' has empty shown_in, so the no-wildcard-arm claim is not evidenced either. The only gate run, GR-software.repo.war-check@1.0.0, has stdout excerpts covering only manifest/journal/authority/SAS-pin checks (manifest.valid, journal.append-only, authority.signed, sas.pin-superseded) with selected_test_count 0, and its own NOT CHECKED section states 'war check does not invoke [gate execution], so nothing here is evidence that a Warrant's acceptance gates were run.' No test output or source text for the classifier appears anywhere, so the claim cannot be decided."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

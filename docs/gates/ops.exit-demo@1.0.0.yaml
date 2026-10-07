@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# A Gate Definition (SAS §43.2), LOCAL CANDIDATE — the demonstration gate of
+# OW-WAR-0136 D-009, present only under its Q-002 (b).
+#
+# It exists to be invalidated. §98 Phase 9's exit asks that one gate
+# invalidation propagate to every dependent resolution, and the owner
+# signing a real invalidation of a gate this repository relies on
+# (`software.repo.war-check@1.0.0`, under 29 resolutions) would dispute
+# correct work to prove a point. So: one small Warrant is resolved against
+# this gate by a human, and then the owner invalidates this gate, and only
+# that resolution is disputed. Both acts are the owner's (OW-WAR-0136 M3);
+# neither is recorded by this file.
+#
+# What it runs is deliberately trivial and says so: it reads one file and
+# passes when that file is there and not empty. Nothing else relies on it.
+
+gate_id: "ops.exit-demo"
+version: "1.0.0"
+lifecycle: "qualified"
+implementation_ref: "artifact://coreutils/test"
+output_schema_ref: "schema://exit-status/v1"
+provenance: "local_candidate"
+input_kinds: ["warrant-corpus"]
+
+# §44.7 — a structured argument vector. `test -s` exits 0 when the file
+# exists and is not empty.
+argv: ["test", "-s", "docs/INVALIDATION.md"]
+inputs: ["docs/INVALIDATION.md"]
+
+# §44.8 — it reads one file and changes nothing.
+mutating: "false"
+timeout_secs: "5"
+
+fault_model: ["invalidation-doc-missing"]
+known_blind_spots: ["Passes whenever docs/INVALIDATION.md exists and is not empty; it says nothing about what the file says.", "It exists to be invalidated for the Phase 9 exit demonstration; a resolution resting on it is evidence of the seam, not of any work."]
+
+qualification_qualifier: "OW-WAR-0136 D-009 (a demonstration gate; qualified against its one declared fault class only)"
+qualification_digest: ""
+qualification_positive_controls: ["With docs/INVALIDATION.md present and non-empty, `test -s` exits 0."]
+qualification_negative_controls: ["With the file absent or empty, `test -s` exits 1 and the run is not a pass."]
+qualification_mutation_classes: ["deletion (the one input file)", "truncation (the one input file to zero bytes)"]
+qualification_environments: ["linux-x86_64, coreutils test"]
+qualification_limitations: ["A gate that checks one file's presence qualifies nothing but its own execution; it is a demonstration, and its invalidation is the point."]
+
+detection_results:
+  - fault_class: "invalidation-doc-missing"
+    mutation: "deleted or truncated docs/INVALIDATION.md"
+    detected: "true"

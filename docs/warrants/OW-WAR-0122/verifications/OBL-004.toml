@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = """D-001 (docs/GRAMMAR.md) is carried in full and untruncated (358 lines, sha256 43d0219a...), distinct from the digest (fb72211b...) the prior verification examined, meaning the document was revised since that refutation. A manual scan of every table row in the full text (sections 1-7) shows each standard-conformance cell either quotes SAS text in double quotes or states 'unspecified' — including the three rows the prior verification flagged as bare/paraphrased (the '§62's example with holder removed' row now reads accept: "The v1 source adapter uses Markdown with YAML frontmatter"; the milestones 'mapping below a sequence item' and 'duplicate key' rows now quote §62.1's "Machine-dense atoms ... MAY use YAML or canonical JSON source"; the 'namespaced role, required' row quotes §16.4's "Unknown required roles SHALL fail closed."). This is corroborated mechanically by gate run GR-ops.conformance.plants@1.1.0 (verdict pass): G-D5 reports '46 row(s), each standard cell quotes or says unspecified' and its negative control G-D6 confirms the check actually catches a planted bare cell. The same run's G-D3 confirms '14 divergence(s), each with a proposed SAS text' with negative control G-D4 showing the check fires on a divergence lacking one — matching the document's DV-1 through DV-14, each of which (including DV-14, previously missing one) now carries a 'Proposed SAS text' block marked as a proposal. Manual scan also confirms every row's final (plant) column cites either a G-xx plant id or a `source path:line` reference, and every row has both a standard and a `war` column populated. The document.review@1.0.0 gate run (fail) is not relevant here — its errors concern absent third-party verification records for multiple warrants, not GRAMMAR.md's table structure or content, and it targets a different gate version (1.0.0) than the one OBL-004 cites (1.1.0)."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

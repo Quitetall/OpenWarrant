@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows named_paths: [] and terms: [], and the top-level plants array is empty, so there is no observed refusal fixture, malformed/over-limit/authority-confused input case, or unchanged-prior-output-on-failed-write evidence anywhere in the bundle. The sole gate run (GR-software.repo.war-check@1.0.0) checks Warrant record structure, not boundary refusal behavior, so nothing supports or contradicts the claim that the boundary refuses invalid inputs."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

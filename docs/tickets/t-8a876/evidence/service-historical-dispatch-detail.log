@@ -1,0 +1,20 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+ok    a service stage runs and submits verify rejected by run.passed (ops.echo)
+ok    the run left its records           receipt subject is the dispatch digest; submission requests verify
+ok    a human stage is not run           rejected by run.not-a-service (human)
+ok    an unknown gate is refused         rejected by run.unknown-gate (ops.nothing)
+ok    a run over its wall time is a timeout rejected by run.timeout (block)
+ok    a submission asking to be resolved is refused rejected by submission.self-completion (resolve)
+ok    a refused submission is absent     nothing written for the refused submission
+ok    a submission for an unknown dispatch is refused rejected by submission.unknown-dispatch (dispatch.compiled)
+FAIL  a sound external submission is recorded
+UNKNOWN submission.dispatch-unbound        OW-WAR-0066: dispatch 01a0deee-aa09-7221-8420-d49d5d39039d has no recorded contract binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written
+                                             → docs/warrants/OW-WAR-0066/journal.jsonl
+
+0 pass · 0 warn · 1 unknown · 0 error   (worst: UNKNOWN)
+
+NOT READY
+9 passed, 1 failed

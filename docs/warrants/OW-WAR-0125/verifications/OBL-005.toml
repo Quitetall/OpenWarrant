@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = """The gate run GR-ops.conformance.plants@1.1.0's receipt records subject_digests=["contract:sha256:018fea969160b2568321c11c209fb1ae59909e01eafffe163254b11db644426b", "deliverables:sha256:0f6f66689c4c9254669060a57aa019a5e3c7621372dc8a77e0bbfeb02f738d5a", "tree:9729d66838274661a8b7382db6ef1108887babec"] and gate_binding_digest "unbound:ops.conformance.plants@1.1.0". The contract digest the receipt is bound to (018fea9691...) does not match this bundle's authorized_contract_digest (c970ba32f4...238660) at all, and the binding is literally marked unbound. The system's own admissibility standard, exercised repeatedly across this same gate's stdout (e.g. the 't-dec1' and 't-22fd' plant blocks: 'evidence.admissible', 'evidence.stale-binding names ... requirement 5 unmet'), treats a receipt whose subject contract does not match the authorized contract as inadmissible evidence for that contract. Although the gate's stdout (captured, sha256:704f5702...) does contain, verbatim, the three plant lines OBL-005's evidence calls for — 'the document against itself ... no section named', 'one word in §62.3 ... section 62 named (in 62.3), and no other', and 'a §106 row removed ... rejected by sas.diff.removed (WAR-SAS-RQ-001)' — all produced by conformance/plants.d/56-sas-sections.sh (D-009) driving war sas diff against crates/openwarrant-cli/src/sas.rs's sections_diff (D-008), the unresolved contract-digest mismatch on the run's own receipt means this bundle does not itself show the run is bound to the currently authorized contract. Per Law 15, bytes/bindings not shown to hold are not evidence either way, so OBL-005 cannot be established from this bundle alone; nothing in the bundle shows the sections_diff output to be wrong either, so it is not refuted."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

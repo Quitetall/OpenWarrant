@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-007"
+disposition = "not_established"
+evidence = "The bundle's obligation_evidence entry for OBL-007 explicitly marks the terms 'war resolve --dry-run', 'requirements_met = true', and 'requirements_met' as shown_in: [] — not shown anywhere in the bundle. The only carried gate run is software.repo.war-check@1.0.0's stdout for OW-WAR-0059, whose excerpts do show 'PASS evidence.admissible' for OW-WAR-0010 (line 198-199) and OW-WAR-0020 (line 362-363), satisfying only the first clause of the obligation's evidence. But those same excerpts also show 'PASS resolution.recorded OW-WAR-0010: satisfied' and 'PASS resolution.recorded OW-WAR-0020: satisfied', i.e. these Warrants already carry a recorded resolution rather than the dry-run/'requirements_met=true' request state the obligation's evidence text specifically asks for. No `war resolve --dry-run` output or `war resolve <alias>` request payload for either Warrant is present in the bundle, so the second and third clauses of OBL-007's evidence cannot be checked from what is shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

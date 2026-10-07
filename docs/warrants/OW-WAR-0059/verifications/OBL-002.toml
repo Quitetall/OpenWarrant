@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The unit test 'evidence::tests::a_receipt_for_an_earlier_contract_is_a_record_not_evidence' passes, and the code in evidence.rs implements admissibility checks that reject receipts bound to earlier contracts, ensuring they are not counted as evidence."
+disposition = "not_established"
+evidence = "D-001 (evidence.rs) carries the unit test `a_receipt_for_an_earlier_contract_is_a_record_not_evidence`, which binds a receipt to contract:sha256:ffff while the compiled contract is C, and confirms `admissibility` errs with 'earlier revision' and `admissible_runs(&[e], Some(C))` is empty — this satisfies the first half of OBL-002's named evidence. The second half requires 'a plant edits an atom of a Warrant with recorded evidence and war resolve --dry-run reports requirement 5 unmet again, while war check reports evidence.stale-binding.' The bundle's plants array is empty ([]), and obligation_evidence lists the term 'war resolve --dry-run' with shown_in: [], meaning that command's output is not carried at all. The gate_runs excerpt does show `war check` emitting `evidence.stale-binding` for several real Warrants whose receipts bind an earlier contract digest than the one it now compiles to (e.g. OW-WAR-0112: 'the receipt is bound to contract:sha256:3eb47417...and the contract now compiles to contract:sha256:19a98376...'), which is consistent with the claim, but this is ordinary corpus drift observed in a routine full-corpus run, not the constructed plant the obligation names, and none of it is paired with a `war resolve --dry-run` showing requirement 5 flip back to unmet. Because a material, explicitly-named half of the evidence (the plant and its war resolve --dry-run output) is absent from the bundle rather than merely truncated, the obligation — bound to '§56.1 requirement 1 and 5 together' — cannot be established from what is shown, though nothing in the bundle contradicts it either."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The test 'tests::no_proposal_kind_names_a_write_target' verifies that no proposal kind names a write target, ensuring the model's mutations are confined to §74.3's seven operations and no file writes occur outside them."
+disposition = "not_established"
+evidence = "OBL-003's scope is explicitly 'the whole run in OBL-002,' and atoms/60-assurance.md states that run never occurred ('No agent has been invoked'; 'this Warrant has not been executed'). The obligation_evidence entry for OBL-003 lists the term 'write_file' with both shown_in and cut_from empty, so no plant output, filesystem audit, or named refusal is carried. The sole 'plants' entry (conformance/plants.d/71-plan.sh, line 3) is a source comment describing fixture design ('Fixture-driven (OW-WAR-0042 OBS-002): every plant feeds a committed file'), not a test result or audit finding. With no run to audit and no admissible evidence carried either confirming a clean run or showing an improper write, the bundle does not carry enough to decide this claim; it is inapplicable-by-vacuity at best, which is not the same as the required audit evidence being shown."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

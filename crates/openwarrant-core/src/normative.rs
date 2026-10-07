@@ -228,6 +228,63 @@ fn section_number(number: &str) -> bool {
     })
 }
 
+/// Unsupported numbered headings whose body contains normative text.
+/// A malformed section drops that text; a malformed subsection can instead
+/// misattribute it to its parent. Drift checks alone cannot detect either.
+/// Use the extractor's section grammar and its fence/table exclusions.
+#[must_use]
+pub fn dropped_sections(text: &str) -> Vec<String> {
+    let mut found = Vec::new();
+    let mut pending: Option<(String, bool)> = None;
+    let mut in_fence = false;
+    fn finish(pending: &mut Option<(String, bool)>, found: &mut Vec<String>) {
+        if let Some((heading, true)) = pending.take() {
+            found.push(heading);
+        }
+    }
+    for line in text.lines() {
+        let line = line.trim();
+        if line.starts_with("```") {
+            in_fence = !in_fence;
+            continue;
+        }
+        if in_fence || line.starts_with('|') {
+            continue;
+        }
+        let section = line.strip_prefix("## ");
+        let subsection = line.strip_prefix("### ");
+        if let Some(heading) = section.or(subsection) {
+            let numbered = heading.starts_with(|c: char| c.is_ascii_digit());
+            let supported = if section.is_some() {
+                heading
+                    .split_once(". ")
+                    .is_some_and(|(number, _)| section_number(number))
+            } else {
+                heading.split_once(' ').is_some_and(|(number, _)| {
+                    number.contains('.') && section_number(number.trim_end_matches('.'))
+                })
+            };
+            // An unnumbered subsection retains its parent's section in the
+            // extractor; do not lose the unsupported parent's pending body.
+            if section.is_some() || numbered {
+                finish(&mut pending, &mut found);
+                if numbered && !supported {
+                    pending = Some((heading.to_owned(), false));
+                }
+            }
+            continue;
+        }
+        if line.starts_with('#') {
+            continue;
+        }
+        if let Some((_, has_rule)) = pending.as_mut() {
+            *has_rule |= NormativeKeyword::of(line).is_some();
+        }
+    }
+    finish(&mut pending, &mut found);
+    found
+}
+
 /// Split prose into sentences at `. ` followed by an uppercase letter, `(`,
 /// `\`` or a digit — not at every period, since `e.g.` and `§12.4` carry
 /// them. The text's end closes the last sentence.

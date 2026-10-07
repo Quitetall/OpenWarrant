@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0117"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (tools/verifier/claude-verifier.sh) is present untruncated and D-003 (conformance/plants.d/62-verifier.sh) is present untruncated, and gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, receipt sha256:80b54f5c...) recorded stdout that, within the '== the blind verifier (OW-WAR-0117) ==' block, shows 'ok verdicts pass through 1 established, 1 refuted, evidence kept' and 'ok the model cannot name itself identity and flags identical with and without its claims'. These are exactly the two evidence items OBL-001 asks for: a fixture's dispositions/evidence reaching the response, and a fixture that also claims a verifier/actor/independence flags producing a byte-identical response (per D-003's vf_flags/VF_GOOD_FLAGS diff and 'claim' mode). obligation_evidence lists no cut_from for the 'claude' term relevant here, so nothing needed was truncated."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same GR-ops.conformance.plants@1.1.0 stdout (pass, 1260 passed/0 failed overall) shows, in the 62-verifier.sh block, 'ok an answer that is garbage 2 not_established', 'ok an answer that is skip 1 not_established', 'ok an answer that is probably 2 not_established', 'ok an unknown disposition is dropped no \"probably\" in the response', and 'ok a failing verifier records nothing verify.verifier-failed (exit 2), no record moved'. Together these cover non-JSON, omitted-obligation, and unknown-disposition answers each yielding not_established, and a failing claude exit causing war verify --run to write nothing, matching OBL-002's evidence exactly; D-003's script defines these exact checks (vf modes garbage/skip/probably/fail) and obligation_evidence marks the relevant terms ('not_established', 'war verify --run', 'probably') as fully shown, not cut."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "GR-ops.conformance.plants@1.1.0's stdout line 'ok the verifier holds no tool --tools '', no MCP, restricted, no session, empty cwd' reflects D-003's argv-inspection block, which greps the recorded fake-claude argv for --no-session-persistence, --strict-mcp-config, --restricted, empty --tools, and --disallowedTools naming Bash/Read/Write/Edit, failing (VF_MISSING) if any is absent. D-001's own argv construction (--disallowedTools listing Bash,Edit,Write,...Read... and --no-session-persistence) matches what the plant checks, and the gate run's overall verdict is pass with none of these checks failing."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "GR-ops.conformance.plants@1.1.0 stdout shows 'ok independence only where true distinct model: unset no, same no, different yes; human never' (covering distinct_model_required and distinct_human_required per D-003's vf good / CLAUDE_PERFORMER_MODEL loop), and separately 'ok independence is declared independence.sufficient 1 basic;independence.sufficient 1 controlled' plus 'ok an undeclared independence is seen without [independence]: independence.undeclared', which is D-003's vf_levels check run against $REPO_ROOT (this repository) for both OW-WAR-0117 (basic) and OW-WAR-0003 (controlled), confirming sufficient at both levels with no independence.undeclared on the real repo, and confirming the check is non-vacuous via the stripped clone. obligation_evidence lists cut_from: [] for every term relevant to this obligation ('basic', 'controlled', 'independence.undeclared', 'distinct_model_required', 'war check'), so none of this evidence was cut by the budget."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

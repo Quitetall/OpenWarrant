@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review, applicable baseline conditions, and secure human acceptance of the exact result, but obligation_evidence names no paths/terms for it and deliverables is empty. prior_verifications contains only this same automated verifier's own earlier not-established passes on OBL-001/002, which supply no independent reproduction and in fact confirm those obligations remain undecided; the gate run's stdout itself notes '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them', covering OW-WAR-0088. There is no baseline comparison or human acceptance record for this exact result in the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0141"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, tested commit 9f55131c) prints in its 54-intake.sh section the exact lines the obligation asks for: 'an issue file drafts one Warrant IK-WAR-0002: checks clean, plan/intake.json names github #12 and its body digest, three plan.* events', 'it writes only under its Warrant git status: docs/warrants/IK-WAR-0002/ and nothing else', 'an issue with no-title is refused intake.issue-missing-title; the tree is unchanged', 'an issue with no-number is refused intake.issue-missing-number; the tree is unchanged', and 'an intake drafter that writes plan.drafter-wrote-files, as on the sentence path; no Warrant'. D-011 (conformance/plants.d/54-intake.sh) carries the source behind each: it drafts via `ik_war --json plan --issue-file … --draft --reviewed --apply`, then a python check reads plan/intake.json and asserts schema/tracker/id/url/body_sha256 against the fixture issue-12.json and the three plan.* journal events, runs `war check $IK_A12` for a clean exit, and diffs `git status --porcelain` against only that Warrant's directory; the no-title/no-number cases assert a non-zero exit containing the named rule with an empty git-status diff and no new Warrant directory; the drafter-writes case asserts `plan.drafter-wrote-files` with zero new Warrant paths. D-001 (intake.rs) shows `Issue::parse` producing exactly `intake.issue-missing-title`/`intake.issue-missing-number`, corroborated by its own unit test `an_issue_needs_a_number_and_a_title_by_name`; D-002 (plan.rs) shows the `plan.drafter-wrote-files` refusal wired to the `tree_delta`/`git status --porcelain` check. For the scope's `--issue` path, the same gate stdout and D-011 (lines ~395-403) show `IK_OUT=$(ik_war --json plan --issue 12 --draft --reviewed --apply …)` succeeding with `-f docs/warrants/$IK_FA/plan/intake.json` asserted true and reported as 'IK-WAR-0005 drafted', corroborating that the fetched-issue path also reaches a drafted, linked Warrant through the same gauntlet. Together the passing gate run, the plant assertions it printed, and the source they exercise establish the claim within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

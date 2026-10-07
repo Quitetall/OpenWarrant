@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0125"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, exit_result pass) stdout excerpts lines 470-472 show 'ok sas://WAR-SAS-999 cites nothing rejected by ERROR sas.section-ref (has no section 999)' and 'ok sas://WAR-SAS-43.9 cites nothing rejected by ERROR sas.section-ref (has no subsection 43.9)', matching the two required negative plants naming nothing. Line 468 shows 'ok existing section citations resolve 96 of 96 pass sas.section-ref', showing every real section citation currently in this repository's amendments (a superset of the sixteen named in the atoms) passes with zero sas.section-ref errors. D-009 (conformance/plants.d/56-sas-sections.sh, carried in full, not truncated) shows the plant mechanism: SEC_REFS is counted directly from docs/warrants/*/amendments/*.yaml via grep, the two negative plants sed-substitute a real amendment's governing_adr_or_policy to sas://WAR-SAS-999 and sas://WAR-SAS-43.9 in a full clone of this repository's HEAD and assert the exact ERROR text, and the positive check runs `war check` against the live corpus and greps for PASS/ERROR/UNKNOWN/WARN counts on the sas.section-ref rule. D-007 (crates/openwarrant-cli/src/check.rs) excerpts show check_section_refs and openwarrant_core::sas_sections::resolve producing an sas.section-ref error precisely when a cited section or subsection is absent from the pinned revision, corroborating the observed gate behavior. Together the gate output and the untruncated plant source establish both halves of the obligation's stated evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

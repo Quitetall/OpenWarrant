@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The cited gate software.repo.war-check@1.0.0 did run against subject_digests including contract:sha256:ddedceac...2811b, and its stdout excerpts show PASS results specific to OW-WAR-0091 (manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift, identity.atom-mismatch), covering the 'structural check' half of the obligation's evidence requirement. However the obligation's evidence also requires 'existing planted refusals,' and the bundle's plants array is empty with no plant lines shown for OW-WAR-0091, so that half is not carried. The gate's own WARN evidence.stale-binding line further notes the receipt's tree diverges from the current tree by 33 paths, including several conformance/plants.d files, meaning even the structural portion is flagged as run over a possibly-superseded source ('a run over an earlier source is a record, not evidence about this one'). With the planted-refusal evidence entirely absent and the structural receipt flagged stale, the bundle does not establish this obligation."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

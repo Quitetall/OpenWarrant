@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same excerpt (gate run GR-ops.conformance.plants@1.1.0, lines 209-216) shows 'ok a dry run keeps nothing the Warrant directory is byte-identical' and 'ok a colliding kept name refuses authorize.retire-collision, revision 1 untouched', which are the literal ar_ok lines D-002 emits after its ar_dir byte-comparison around `war sign ... --dry-run` and after planting a colliding authorization.<digest8>.toml and re-signing. This directly confirms both OBL-002 requirements (dry run leaves the tree byte-identical; a colliding kept file causes authorize.retire-collision with no file changed) as actually executed and passed, not merely asserted by the source."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

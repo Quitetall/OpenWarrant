@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0133"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh, carried whole, untruncated) defines the exact assertions behind OBL-001: the 'a clean receipt names its source' case passes only if subject_digests contains contract:sha256:*, tree:<HEAD^{tree}>, deliverables:sha256:<digest> (plus inputs/fixture) and er_seal verify succeeds (seal recomputes); the 'a dirty receipt says so' case passes only if worktree:dirty is present and er_seal verify succeeds. The recorded gate run for gate://ops.conformance.plants@1.1.0 (run_id GR-ops.conformance.plants@1.1.0, verdict pass, arguments bash conformance/plant-isolated.sh) has stdout excerpt lines 365-383, which shows the literal lines 'ok a clean receipt names its source contract, tree = HEAD^{tree}, deliverables, inputs, fixture; seal recomputes' and 'ok a dirty receipt says so worktree:dirty named, seal recomputes; reuse-unknown (dirty tree has no name)'. These 'ok' lines match verbatim the er_ok() success messages emitted only when D-005's guarding conditions hold, so the excerpt is direct evidence that both the clean-tree bullet (contract, tree=HEAD^{tree}, deliverables named, seal recomputes) and the dirty-tree bullet (worktree:dirty named, seal recomputes) of OBL-001 were satisfied in this run, on a scratch corpus (ER_ROOT) via 'war evidence record', matching the obligation's stated scope. This supersedes the prior_verifications entry, which was evaluating a different bundle/run (different tested commit and different, narrower excerpt selection) and is not controlling here."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

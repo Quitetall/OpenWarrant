@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test in crates/openwarrant-cli/src/export.rs or its tests (e.g., every_required_content_is_classified) verifies that superseded, disputed, or annulled records are present in the export; the measured evidence lacks any specific check for history survival in the export deliverable."
+evidence = "Neither export.rs nor its three tests (`every_required_content_is_classified`, `an_unreconnected_round_trip_is_refused_as_vacuous`, `a_reconnected_round_trip_with_equal_digests_verifies`) mention superseded, disputed, or annulled records. The `software.repo.war-check@1.0.0` gate run's shown excerpts (manifest/deliverable-digest/traceability/journal/authority/gate/milestone/obligation checks for OW-WAR-0030, plus repo-wide pass/warn totals and NOT-CHECKED list) contain no check bearing on historical-record retention, and obligation_evidence lists no named_paths or terms for OBL-003. The bundle carries nothing, present or truncated, that speaks to RQ-084 in either direction, so the claim is undecidable from this evidence rather than false."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0136"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "The bundle carries only D-009 (docs/gates/ops.exit-demo@1.0.0.yaml), the demonstration gate definition itself; deliverables_not_carried lists every other file. The software.repo.war-check@1.0.0 run's stdout excerpt shows only 'PASS gate.registered ... ops.exit-demo@1.0.0: local candidate, qualified against its declared fault model' — the gate exists and is registered, nothing more. OBL-006 requires four things not shown anywhere in the bundle: (1) a resolution record and DSSE attestation for 'the one Warrant resolved against' ops.exit-demo@1.0.0, signed by the owner — no such resolution.toml or attestation appears among carried deliverables or gate-run excerpts; (2) a custody-audit.toml naming an actor distinct from that resolution's performer — none is carried; (3) an invalidation record for ops.exit-demo@1.0.0 and exactly one resulting dispute — no docs/gates/invalidations/ or docs/warrants/<alias>/disputes/ file is carried or excerpted; (4) 'war attest --verify --all' output showing the 29 existing resolutions still verify and none disputed — obligation_evidence explicitly lists this term with shown_in: [], confirming it is absent from the bundle entirely. The software.repo.war-check@1.0.0 stdout excerpts that are shown concern only OW-WAR-0136's own authorization/traceability status (deliverable.undeclared-at-authorization, evidence.stale-binding, sas.pin-superseded WARNs) and do not touch the demo resolution or the 29-resolution check. Since none of the required evidence is carried, and nothing shown contradicts the claim either, the obligation is not established rather than refuted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

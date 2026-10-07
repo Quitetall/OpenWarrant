@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0138"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "presence.rs (D-003) unit tests directly verify the parsing rules: a_touched_security_key_is_verified shows an sk signature with flags 0x01 yields Presence::Verified, an_ordinary_key_is_never_verified shows an ed25519 signature yields Presence::Unverified, and a_flipped_flag_byte_parses_and_is_not_thereby_verified documents that parsing alone must never be mistaken for verification. sign.rs (D-004) shows the enforcement point: ssh_sign_act refuses with sign.presence-required whenever repo.config.policy.require_user_presence is set and signed.presence() != Verified, and the unit test the_terminal_path_is_refused_only_under_the_presence_policy pins that behavior is gated strictly on the policy flag. The conformance plant 58-authn.sh (D-009) exercises all five required scenarios end-to-end against a live `war` binary, and the gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed) shows its stdout containing the exact matching lines: 'an ordinary key signs, unverified' and 'a touched security key, verified' (policy off, both sign and the record states which), 'an ordinary key, refused by policy' and 'a security key with no touch, refused ... flags 0x00 → sign.presence-required' (policy on, refusals), and 'a flipped flag byte fails verification sign.ssh-refused before any presence is read' plus 'a flag flipped on disk is invalid ... --verify reads no presence' (verification fails outright on a flipped flag, never reaching a presence read). All five evidence bullets in OBL-002 are thus independently confirmed by both the pure unit tests and the passing gate run, within the obligation's stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

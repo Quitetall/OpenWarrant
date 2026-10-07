@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is an empty list and obligation_evidence for OBL-001 shows selection 'warrant: every deliverable of the Warrant' but named_paths:[] and terms:[], so no bytes of crates/openwarrant-core/src/document/author.rs, no conformance/sdk/author/ fixtures, and no observed author_document/edit_document→parse_document/validate_document transcript are carried. The sole gate run (GR-software.repo.war-check@1.0.0) is a corpus-structure linter whose own stdout explicitly states in NOT CHECKED that 'war check does not invoke [gates]... nothing here is evidence that a Warrant's acceptance gates were run,' so it cannot stand in for the text-first/footer-last, unit-preservation, or identity/revision behavior this obligation requires. With no deliverable bytes and no plant or gate evidence of the runtime behavior, the claim cannot be decided."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

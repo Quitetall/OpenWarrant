@@ -1,0 +1,3 @@
+# war eval's result is not deterministic: a bundle's token count varies by one
+
+87-eval.sh 'the fixture result is deterministic' failed during war prepare (OW-WAR-0113 STAGE-006, 2026-09-26): two runs of the same fixture gave "bundle": 3043 vs 3042 (and a different total). Since t-9f7e the bundle size is measured over the whole bundle JSON; something whose length varies between runs (a duration or timestamp rendered with a different digit count, a temp path, a map order) is inside what is measured. A bundle must be a function of the tree and config only (t-9f7e's own claim). Find the varying field, remove it from the bundle (or from what is measured), and make the determinism check hold N times under load.

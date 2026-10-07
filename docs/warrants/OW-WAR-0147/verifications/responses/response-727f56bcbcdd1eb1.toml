@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0147"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "conformance/plants.d/45-tickets.sh (D-013, not truncated) contains the exact checks the obligation demands: the 'done by the holder releases it' block claims TK2/TK2_J as carol, records TK_HELD=1 for the lock file's presence and TK_CLB showing carol's claim via `war tickets`, runs `tkw done ... --as carol`, then asserts TK_GONE=1 (the lock file at $TK_LOCK is gone), that `war tickets` (TK_CLA) no longer lists carol's claim on the item, and that exactly one checklist line is ticked with the correct 'done by carol' text — matching the obligation's full accepting evidence (ticks the line, releases the claim, lock gone, war tickets differs before/after). The same script's 'done refuses unclaimed and unknown' block runs `tkw done $TK2/$TK2_I --as bob` (someone else's claim), `tkw done $TK2/$TK2_J --as bob` (unclaimed) and `tkw done i-zzzz --as bob` (unknown id), asserting exit 2 for all three with ticket.claimed-by-other/ticket.not-claimed/ticket.unknown and no box ticked, matching the refusing evidence exactly. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, bound to the current contract/tree per the war-check gate's PASS evidence.admissible line) has stdout excerpts explicitly showing both lines succeeded: 'ok done refuses unclaimed and unknown ... three refusals, nothing ticked' and 'ok done by the holder releases it carol's lock held, then gone after done; war tickets: ...caro's claim present then absent...; one line ticked'. Since the plant's assertions map 1:1 onto the obligation's stated evidence and the gate that ran them passed with those specific outcomes shown, the obligation is established directly by execution evidence, independent of whatever the (partially truncated) ticket/mod.rs source excerpts do or don't show."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

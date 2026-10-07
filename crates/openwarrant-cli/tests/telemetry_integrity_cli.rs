@@ -17,6 +17,31 @@ fn copy_tree(from: &Path, to: &Path) {
     }
 }
 
+fn telemetry_report(output: &std::process::Output) -> serde_json::Value {
+    let report: serde_json::Value =
+        serde_json::from_slice(&output.stdout).unwrap_or_else(|error| {
+            panic!(
+                "telemetry must emit one JSON report: {error}; stdout={}",
+                String::from_utf8_lossy(&output.stdout)
+            )
+        });
+    assert_eq!(report["schema"], "oh.war/report/v1");
+    assert_eq!(
+        report["command"],
+        if output.status.success() {
+            "telemetry"
+        } else {
+            "error"
+        }
+    );
+    if output.status.success() {
+        assert_eq!(report["exit_code"], 0);
+    } else {
+        assert!(report["exit_code"].as_u64().unwrap() > 0);
+    }
+    report
+}
+
 #[test]
 fn unobserved_eligibility_is_not_measured_zero() {
     let root = std::env::temp_dir().join(format!("ow-telemetry-integrity-{}", std::process::id()));
@@ -73,8 +98,11 @@ fn unobserved_eligibility_is_not_measured_zero() {
         "{}",
         String::from_utf8_lossy(&result.stdout)
     );
+    let report = telemetry_report(&result);
+    assert_eq!(report["result"]["operation"], "record");
     let measurement: serde_json::Value =
         serde_json::from_slice(&std::fs::read(root.join("measurement.json")).unwrap()).unwrap();
+    assert_eq!(report["result"]["baseline"], measurement);
     let eligibility = &measurement["measures"]["auto-authorizable fraction"];
     assert!(
         eligibility.get("value").is_none(),
@@ -106,6 +134,140 @@ fn unobserved_eligibility_is_not_measured_zero() {
             .as_array()
             .unwrap()
             .is_empty()
+    );
+    let verified = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            head.trim(),
+            "--out",
+            "measurement.json",
+            "--verify",
+            "--json",
+        ])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(
+        verified.status.success(),
+        "{}",
+        String::from_utf8_lossy(&verified.stdout)
+    );
+    let report = telemetry_report(&verified);
+    assert_eq!(report["result"]["operation"], "verify");
+    assert_eq!(report["result"]["unchanged"], true);
+    let attached = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            head.trim(),
+            "--attach",
+            "fixture commit",
+            "--warrant",
+            "IX-WAR-0002",
+            "--reviewer",
+            "fixture-reviewer",
+            "--json",
+        ])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(attached.status.success());
+    let report = telemetry_report(&attached);
+    assert_eq!(report["result"]["operation"], "attach");
+    assert_eq!(report["result"]["scope"], "fixture commit");
+    assert_eq!(report["result"]["warrant"], "IX-WAR-0002");
+    assert_eq!(report["result"]["reviewer"], "fixture-reviewer");
+    let original = std::fs::read(root.join("measurement.json")).unwrap();
+    let mut drifted = original.clone();
+    drifted.push(b'\n');
+    std::fs::write(root.join("measurement.json"), &drifted).unwrap();
+    let refused = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            head.trim(),
+            "--out",
+            "measurement.json",
+            "--verify",
+            "--json",
+        ])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(!refused.status.success());
+    let report = telemetry_report(&refused);
+    assert!(
+        report["diagnostics"]
+            .to_string()
+            .contains("baseline differs")
+    );
+    assert_eq!(
+        std::fs::read(root.join("measurement.json")).unwrap(),
+        drifted
+    );
+    std::fs::write(root.join("measurement.json"), &original).unwrap();
+    let refused = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            head.trim(),
+            "--attach",
+            "fixture commit",
+            "--warrant",
+            "IX-WAR-0002",
+            "--json",
+        ])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(!refused.status.success());
+    let report = telemetry_report(&refused);
+    assert!(report["diagnostics"].to_string().contains("review"));
+    let human = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            head.trim(),
+            "--attach",
+            "fixture commit",
+            "--warrant",
+            "IX-WAR-0002",
+            "--reviewer",
+            "fixture-reviewer",
+        ])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(human.status.success());
+    assert_eq!(
+        String::from_utf8(human.stdout).unwrap(),
+        "fixture commit related to IX-WAR-0002 (reviewed by fixture-reviewer)\n"
+    );
+    let human = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            head.trim(),
+            "--out",
+            "measurement.json",
+            "--verify",
+        ])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(human.status.success());
+    assert!(
+        String::from_utf8(human.stdout)
+            .unwrap()
+            .starts_with(&format!(
+                "telemetry baseline at {} is unchanged (untracked work read from ",
+                head.trim()
+            ))
+    );
+    assert_eq!(
+        std::fs::read(root.join("measurement.json")).unwrap(),
+        original
     );
     std::fs::remove_dir_all(root).unwrap();
 }

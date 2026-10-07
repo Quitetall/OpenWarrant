@@ -1,0 +1,29 @@
+{
+  "exit": 0,
+  "outcome": "compiled",
+  "refusal": null,
+  "basis_digest": "sha256:e4132822b9742a7645afcd8591d43bae9c692a19b109e87b180038ab5fa335e2",
+  "model_digest": "sha256:213cc605c9a468f398844e615b4a28c6acdffd4f2e31e06f713b9e52742d8176",
+  "records": 36,
+  "relations": 19,
+  "states": 27,
+  "host_rules": [],
+  "projections": [
+    [
+      "docs/records/password-reset/generated/agent-packet.md",
+      "sha256:fae29742e5e0f6ebdfb3be28feef1ef367e9ad685e66f06fd75569597284240f"
+    ],
+    [
+      "docs/records/password-reset/generated/architecture.md",
+      "sha256:6b7eb95237680831cbbd78ee67ba7f03a70218c14048f1257814b215c1e39400"
+    ],
+    [
+      "docs/records/password-reset/generated/prd.md",
+      "sha256:40a916d7f9540498ba930b002f462c51a0b653736b39ef445062217be29bdb9b"
+    ],
+    [
+      "docs/records/password-reset/generated/test-plan.md",
+      "sha256:6c9eaa4b1202c153bf1754852ffe7c1a076da4ea8eebcf79b5ff0989bd4fc956"
+    ]
+  ]
+}

@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires evidence of preserved original failures, unchanged signed sources, no copied lineage, and passing projections/checks/full gate, with unavailable provider checks kept visible. The bundle has zero deliverables and zero gate_runs, so none of the required run records, projections, or gate outputs are present to check. 20-basis.md's acknowledgment that provider CI is currently unavailable due to billing limits is consistent with, but does not itself prove, that this unavailability was made visible within an actual OpenWarrant integration run — no such run evidence is in the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

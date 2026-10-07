@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 marks both docs/cli/inbox.md and CHANGELOG.md as not carried, with no terms shown for a state-to-act table or an Unreleased entry. The deliverables array is empty, and the single gate run (GR-software.repo.war-check@1.0.0) is a corpus-wide record-integrity check whose visible excerpts never reference either file's content. Absent any doc or changelog bytes in the bundle, whether the command is documented or the change recorded cannot be established or refuted."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

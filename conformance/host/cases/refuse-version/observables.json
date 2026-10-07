@@ -1,0 +1,12 @@
+{
+  "exit": 1,
+  "outcome": "refused",
+  "refusal": "host.version",
+  "basis_digest": null,
+  "model_digest": null,
+  "records": null,
+  "relations": null,
+  "states": null,
+  "host_rules": [],
+  "projections": []
+}

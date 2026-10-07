@@ -1,0 +1,12 @@
+PASS document.digested                  OW-WAR-0138: D-001 is at its recorded digest
+PASS document.digested                  OW-WAR-0138: D-007 is at its recorded digest
+PASS document.digested                  OW-WAR-0138: D-008 is at its recorded digest
+PASS document.reviewed                  OW-WAR-0138: OBL-001 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0138: OBL-002 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0138: OBL-003 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0138: OBL-004 established by a verifier who is not the performer
+PASS document.reviewed-warrants         1 Warrant(s) with Markdown deliverables reviewed
+
+8 pass · 0 warn · 0 unknown · 0 error   (worst: PASS)
+
+WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)

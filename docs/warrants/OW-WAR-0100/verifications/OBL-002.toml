@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 lists no terms and no named_paths, and deliverables/gate_runs/plants are all empty, so nothing from crates/openwarrant-cli/src/telemetry.rs or crates/openwarrant-cli/tests/telemetry_integrity_cli.rs (named only in 40-work-order.md's prose) is shown to verify that collection-gap reasons describe absent capability rather than inventing history."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

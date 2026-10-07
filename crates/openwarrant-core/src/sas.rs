@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Governance of the SAS itself (SAS §101; §34.1, §34.3, §34.4).
 //!
 //! # The SAS is a document, and until now nothing held it
@@ -477,19 +477,34 @@ mod tests {
         );
     }
 
+    /// The eleven phases and their Exits moved from §98 to the roadmap record
+    /// (OW-ADR-0023, OW-WAR-0114): the record holds all eleven, each with an
+    /// Exit, and §98 of the real document lists none — it points at the
+    /// record, so re-planning never revises the SAS (§6.3).
     #[test]
-    fn section_98_of_the_real_document_has_eleven_phases_and_exits_for_all_of_them() {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../docs/sas/WAR_Software_Architecture_Specification.md");
-        let text = std::fs::read_to_string(path).expect("SAS");
-        let p = super::section_98(&text);
-        assert_eq!(p.len(), 11);
-        let missing: Vec<u8> = p
+    fn the_eleven_phases_and_their_exits_are_the_roadmap_records_not_section_98() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let atom = std::fs::read_to_string(root.join("docs/roadmap/atoms/20-phases.yaml"))
+            .expect("the roadmap record's phases atom");
+        let phases = crate::roadmap::parse_phases(&atom, "OW").expect("the phases parse");
+        assert_eq!(phases.phases.len(), 11);
+        let missing: Vec<&str> = phases
+            .phases
             .iter()
-            .filter(|(_, _, e)| e.is_none())
-            .map(|(n, _, _)| *n)
+            .filter(|p| p.exit.trim().is_empty())
+            .map(|p| p.id.as_str())
             .collect();
         assert!(missing.is_empty(), "phases without an Exit: {missing:?}");
+
+        let text = std::fs::read_to_string(
+            root.join("docs/sas/WAR_Software_Architecture_Specification.md"),
+        )
+        .expect("SAS");
+        assert!(
+            super::section_98(&text).is_empty(),
+            "§98 lists phases again; they are the roadmap record's"
+        );
+        assert!(text.contains("The phases are the roadmap record's (OW-ADR-0023)."));
     }
 
     use super::*;

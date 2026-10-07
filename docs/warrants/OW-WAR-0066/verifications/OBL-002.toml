@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "refuted"
+evidence = """Gate run GR-ops.conformance.plants@1.1.0 has verdict "pass" (stdout tail "1270 passed, 0 failed"), but its receipt shows runner "war gate --run" with arguments ["bash","conformance/plant-isolated.sh"], gate_binding_digest "unbound:ops.conformance.plants@1.1.0", and the same subject_digests set ["contract:sha256:498240f8...", "deliverables:sha256:e3b0c442...", "tree:9729d66838274661a8b7382db6ef1108887babec"] with no `dispatch:` entry. obligation_evidence for OBL-002 lists only the term "war run" shown_in ["atoms"] — asserted in the work order text but not demonstrated by any run in the bundle — and gives no evidence the receipt is "bound to the stage's dispatch digest" as OBL-002 requires. Since the receipt's subject_digests are fully shown and do not include a dispatch digest, the specific binding OBL-002 demands is contradicted, so despite the pass verdict the obligation as scoped is refuted."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

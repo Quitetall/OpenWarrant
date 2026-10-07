@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0116"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "Most of OBL-003's required checks are shown: D-012 (conformance/plants.d/63-webui-verified.sh), corroborated by gate run GR-ops.conformance.plants@1.1.0's stdout excerpt ('== web ui, what the verifier asked (OW-WAR-0116) =='), shows the Queue row assertion 'the Queue row: verdict and id -- authorize WV-WAR-0001: verdict \"would record\", act_id sign-1459f90df80ae199' (its embedded python asserts verdict==\"would record\" and act_id startswith \"sign-\" for every row), the allowlist-miss check 'an act not on the allowlist -- 403; no act line, state idle, no act among its children' (verified via a /proc child-process sampler, not just the status code), 'two acts at once: one runs -- 202 409', and the exact act-log line 'war ui: act sign-...: war --root <root> sign WV-WAR-0001 --as your-name-here --ssh-sign; nothing signed' confirming --as is included when war ui is started with it. The same gate run's excerpt of 63-webui.sh's own block ('== web ui (OW-WAR-0116) ==', not itself carried as D-011 but its stdout is) shows 'an act that carries an argv 400' and 'an allowlisted act ran sign WU-WAR-0001 --ssh-sign; nothing signed' for the no --as case. However, the obligation's final clause -- 'a resolution needing an outcome shows its terminal command and no id' -- has no corresponding line, assertion, or excerpt anywhere in D-010, D-012, either gate run's stdout/stderr excerpts, or the atoms; obligation_evidence's terms list nothing for this clause either. Since this required piece of the obligation's evidence is simply absent from what the bundle carries (not shown to be true or false), the obligation as a whole cannot be established, and nothing in the bundle refutes it either."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

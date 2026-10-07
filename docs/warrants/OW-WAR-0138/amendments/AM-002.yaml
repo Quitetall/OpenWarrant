@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "The obligations of OW-WAR-0138 cite `gate://ops.conformance.plants@1.0.0`, which can never produce a receipt: it declares `mutating: \"true\"`, and `askability_of` refuses every mutating gate (SAS §44.8), so §56.1 requirement 5 could never be met. OW-WAR-0145 added `@1.1.0`, the same battery run in a disposable clone of HEAD — truthfully non-mutating and askable. This amendment moves every citation of the gate, and the battery stage's executor, to `@1.1.0`, and raises that stage's wall time to the gate's 3600 s. Nothing else changes. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-44.8"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes; the assurance and milestones atoms cite @1.1.0, the contract digest moves, and the next revision is authorized against it. The battery is then run with `war run OW-WAR-0138 <its battery stage>`."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-24"
+
+semantic_diff:
+  - element: "gates"
+    before: "Obligations and the battery stage cite gate://ops.conformance.plants@1.0.0 (never askable)."
+    after: "They cite gate://ops.conformance.plants@1.1.0 (the battery in a disposable clone; askable); the stage's wall time is 3600 s."
+
+affected_stages: []
+affected_milestones: []

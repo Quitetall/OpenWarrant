@@ -1,0 +1,79 @@
+# A Warrant is the contract for ONE bounded intervention inside a program,
+# and it traces to that program's SAS through [[implements]] and [[roadmap]].
+# Starting a program? Write its SAS instead (SAS §6.10; docs/DEFINITIONS.md).
+schema = "oh.war/manifest/v1"
+uuid = "01a0feb6-ab80-73a5-abcb-7ade9cfaaeaa"
+local_alias = "OW-WAR-0148"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel"
+profile = "delivery"
+assurance_level = "basic"
+
+# Typed composition, decomposed state and the trace are generalized; fail
+# closed, deterministic checking and drift-checked views are kept. Whether
+# OpenWarrant may own document semantics at all (RQ-061, RQ-064) is Q-001,
+# blocking, in the basis.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-013"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-032"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-022"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-025"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-015"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-074"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-075"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/typed-records"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+

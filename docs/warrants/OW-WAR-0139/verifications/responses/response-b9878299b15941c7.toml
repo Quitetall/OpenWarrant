@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0139"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed) stdout excerpt shows each of OBL-002's specific claims exercised and passing against the LAN listener of a running `war ui --lan` program: 'OBL-002 /api/ with no credential 401', 'OBL-002 the loopback token on the LAN 401' (the loopback session token rejected at the LAN listener), 'OBL-002 a pairing code used twice 403 pair.code-used, no credential' and 'OBL-002 a pairing code after expiry 403 pair.code-expired, no credential', 'OBL-002 a revoked credential 401 ui.device-revoked; the other device still 200' and 'OBL-002 an expired credential 200 while fresh; 401 ui.device-expired after', 'OBL-002 an act replayed with its nonce 409 act.nonce-used; the act log has one line', and 'OBL-002 the device file 0600, outside the repository, hashes only'. These are corroborated by D-003 (pairing.rs) unit tests a_credential_is_stored_only_as_its_hash_in_a_private_file (asserts the stored file never contains the raw credential and is mode 0600) and a_pairing_code_works_once_and_not_after_expiry (single-use and expiry enforcement at the Codes type pairing.rs uses). Every bullet in the obligation's evidence list has a matching, passing, named plant result within the same gate run, so the claim is established within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

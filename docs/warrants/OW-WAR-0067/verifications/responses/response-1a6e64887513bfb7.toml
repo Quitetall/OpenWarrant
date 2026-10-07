@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0067"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "conformance/plants.d/90-skills.sh:9 directly asserts that OW-WAR-0067 STAGE-001 status is 'OPEN' — per atoms/45-milestones.yaml, STAGE-001 is 'Relicense to Apache-2.0 (RELICENSING.md steps 1-6)', the stage feeding M1/OBL-001. An OPEN (unblocked-but-not-done) status means the relicense act has not occurred, directly contradicting the claim 'the tree is relicensed.' This is corroborated by obligation_evidence for OBL-001: Cargo.toml is marked not carried, LICENSE/NOTICE/docs/authority/allowed_signers appear only as text inside the atoms (work-order prose) rather than as actual deliverable bytes, and the two required gate-evidence terms ('cargo xtask gate' and 'war attest --all') both have shown_in: [] — absent from the bundle entirely. The gate run GR-software.repo.war-check@1.0.0's stdout also explicitly notes 'war check does not invoke [gates]', so it cannot substitute as the acceptance-gate evidence the obligation names."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 lists no named_paths, marks 'war sign --verify' as shown nowhere (shown_in: []), and '.sig' as appearing only somewhere inside the truncated GR-software.repo.war-check@1.0.0 stdout without pinpointing a line tying it to OW-WAR-0042's resolution specifically. The visible stdout excerpts show 'PASS authority.signed' for OW-WAR-0064, OW-WAR-0065, OW-WAR-0066, and SAS-1.0.0 (satisfying the naming pattern for three authorizations and the SAS acceptance), but for OW-WAR-0042 only a plain 'OW-WAR-0042: signed by brian over ...OW-WAR-0042.response.toml' line appears (line 686) — unlike comparable warrants elsewhere in the excerpts (e.g. OW-WAR-0002, OW-WAR-0005) which show a distinct '... resolution: signed by brian over ....resolution.response.toml' line, no such resolution-specific line is shown for OW-WAR-0042. The obligation's evidence bar (a DSSE attestation and journal record for each act) is not shown for any of the five items. Since the residual-risk note in atoms/60-assurance.md concedes signatures may occur out of the milestone's nominal order, STAGE-001 being OPEN cannot be used to infer STAGE-005 (OW-WAR-0042's resolution) is undone either — the bundle simply does not carry the specific resolution evidence, so this is undecidable rather than refuted."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 shows both 'deliverable.digest-drift' and 'git tag -l v1.0.0' with shown_in: [] — neither term appears anywhere in the bundle, including the visible excerpts and tail of GR-software.repo.war-check@1.0.0's stdout, which ends with a pass/warn summary and a 'NOT CHECKED' list (explicitly stating gate execution and Preflight are not covered) but no zero-drift report or tag-existence check. 'v1.0.0' is shown only as text inside atoms/40-work-order.md describing the plan, not as evidence the tag exists in the repository. No battery result (264/264 or otherwise) appears in the bundle. With the underlying stdout truncated (377,626 bytes total, only excerpts and a partial tail shown) and none of the three required evidence items (drift report, battery result, tag check) present, the claim cannot be decided from what's carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

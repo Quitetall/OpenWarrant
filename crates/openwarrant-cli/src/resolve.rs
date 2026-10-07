@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war resolve --dry-run` — evaluate §56.1's thirteen requirements.
 //!
 //! # Why this is a dry run and nothing else, for now
@@ -77,7 +77,9 @@ use openwarrant_core::authority::{AuthorityRegister, PolicyResolutionContext};
 use openwarrant_core::deliverable::Deliverable;
 use openwarrant_core::epistemic::Judgment;
 use openwarrant_core::rationale::Assumption;
-use openwarrant_core::resolution::{RESOLUTION_REQUIREMENTS, ResolutionChecks};
+use openwarrant_core::resolution::{
+    NotApplicable, RESOLUTION_REQUIREMENTS, RequirementState, ResolutionChecks,
+};
 use openwarrant_core::verification::Verification;
 
 use crate::authorize::AuthorizationRecord;
@@ -193,7 +195,7 @@ fn evaluate(
         })
     });
 
-    ResolutionChecks {
+    let checks = ResolutionChecks {
         exact_authorized_contract_revision: authority.contract_is_authorized()
             && authorization_signed,
         required_deliverables_exist,
@@ -220,7 +222,44 @@ fn evaluate(
         residual_risks_have_sufficient_authority: authority.residual_risks_are_covered(),
         runtime_receipts_match_the_basis: runtime_receipts_match_the_basis(basis),
         resolver_holds_the_role: authority.a_resolver_is_eligible(&assurance, &declared),
+        not_applicable: NotApplicable::default(),
+    };
+    not_applicable(checks, one.capabilities(&repo.profiles))
+}
+
+/// OW-ADR-0031: mark each requirement whose capability the kind does not
+/// select as not applicable, and set its boolean `false`. It is named, it
+/// does not block, and it never reads met — a decision Warrant has no
+/// `stages`, so requirement 12 is not applicable to it rather than unmet
+/// forever, and rather than vacuously true.
+#[must_use]
+pub fn not_applicable(
+    mut checks: ResolutionChecks,
+    capabilities: openwarrant_core::Capabilities,
+) -> ResolutionChecks {
+    let na = NotApplicable::for_capabilities(capabilities);
+    let flags: [&mut bool; 13] = [
+        &mut checks.exact_authorized_contract_revision,
+        &mut checks.required_deliverables_exist,
+        &mut checks.artifact_digests_verify,
+        &mut checks.every_required_obligation_dispositioned,
+        &mut checks.every_required_gate_has_admissible_result,
+        &mut checks.no_required_unknown_remains,
+        &mut checks.no_blocker_remains,
+        &mut checks.deviations_dispositioned,
+        &mut checks.required_judgments_exist,
+        &mut checks.independence_requirements_met,
+        &mut checks.residual_risks_have_sufficient_authority,
+        &mut checks.runtime_receipts_match_the_basis,
+        &mut checks.resolver_holds_the_role,
+    ];
+    for (i, flag) in flags.into_iter().enumerate() {
+        if na.contains(i) {
+            *flag = false;
+        }
     }
+    checks.not_applicable = na;
+    checks
 }
 
 /// Everything §27, §28.4, §42 and §36.2 need, read once from disk.
@@ -384,6 +423,48 @@ impl Authority<'_> {
     }
 }
 
+/// OW-ADR-0029 — a Warrant authorized through a standing authorization is
+/// never resolved by §27.3's policy service, whatever the repository's policy
+/// says: a class carries no resolution term, and the owner's rule is that no
+/// resolution is automatic. `Some(why)` when `resolver` is a registered actor
+/// that is not a human and the Warrant's authorization names a class; `None`
+/// otherwise (an unknown resolver is refused by name elsewhere).
+///
+/// # Errors
+/// When the authorization or the register will not read.
+pub fn standing_needs_human(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    resolver: &str,
+) -> Result<Option<String>, RepoError> {
+    let Some(basis) = covered_basis(repo, dir)? else {
+        return Ok(None);
+    };
+    let register = repo.load_authority_register()?;
+    Ok(register
+        .actor(resolver)
+        .filter(|a| a.actor_kind != openwarrant_core::authority::ActorKind::Human)
+        .map(|a| {
+            format!(
+                "{resolver:?} is {} and this Warrant was authorized under the standing \
+                 authorization {basis}. A covered Warrant is resolved by a human, always: a \
+                 class carries no resolution term, and §27.3's policy-service path does not \
+                 apply to it whatever `policy.allow_automated_resolution` says",
+                a.actor_kind
+            )
+        }))
+}
+
+/// The `standing://` reference a Warrant's authorization records, if any.
+fn covered_basis(repo: &Repository, dir: &camino::Utf8Path) -> Result<Option<String>, RepoError> {
+    Ok(repo.load_authorization(dir)?.and_then(|a| {
+        a.revision
+            .authorization
+            .and_then(|x| x.policy_basis)
+            .filter(|b| b.starts_with(openwarrant_core::standing::SCHEME))
+    }))
+}
+
 /// Whether a judgment addresses a given residual risk.
 ///
 /// Matched through the assumption's own `judgment_ref` when it declares one, and
@@ -465,9 +546,11 @@ pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[
 ///
 /// # Where this is strict
 ///
-/// A Warrant with a `katana` or `blut` stage needs a receipt, and none exists
-/// anywhere in this repository — Katana has no checkout and nothing has been
-/// dispatched. Those Warrants report unmet, which is correct.
+/// A Warrant with a `katana` or `blut` stage needs a receipt matched to its
+/// compilation basis. The store/import seam is not connected here yet, so
+/// those Warrants report unmet. Retained OW-WAR-0047 observations include an
+/// actual BLUT execution; they are not a dispatch-bound receipt store. Provider
+/// checkouts and historical runs must not be confused with matching receipts.
 ///
 /// Reading the executor kind from the atom is safe because the atom is part of
 /// the Compilation Basis: mis-declaring a Katana stage as `human` to dodge this
@@ -577,9 +660,9 @@ pub fn required_deliverables_exist(
 ) -> bool {
     let required: Vec<&Deliverable> = deliverables.iter().filter(|d| d.required).collect();
     !required.is_empty()
-        && required
-            .iter()
-            .all(|d| d.validate(declared_obligations).is_ok() && root.join(&d.target_ref).exists())
+        && required.iter().all(|d| {
+            d.validate(declared_obligations).is_ok() && crate::vfs::exists(root.join(&d.target_ref))
+        })
 }
 
 /// §37.2 — a content-addressed deliverable's recorded digest must match the
@@ -618,7 +701,7 @@ pub fn artifact_digests_verify(
                 return false;
             };
             let want = head.trim_start_matches("sha256:");
-            match std::fs::read(root.join(&d.target_ref)) {
+            match crate::vfs::read(root.join(&d.target_ref)) {
                 Ok(bytes) => openwarrant_compiler::sha256_hex(&bytes) == want,
                 Err(_) => false,
             }
@@ -691,15 +774,6 @@ pub fn assess_with(
     one: &crate::repo::Loaded,
     evidence: &[crate::evidence::GateEvidence],
 ) -> Result<Assessment, RepoError> {
-    let dir = &one.dir;
-    let verifications = repo.load_verifications(dir)?;
-    let deliverables = repo.load_deliverables(dir)?;
-
-    let performer = repo.performer();
-    let register = repo.load_authority_register()?;
-    let authorization = repo.load_authorization(dir)?;
-    let judgments = repo.load_judgments(dir)?;
-    let assumptions = repo.load_rationale(dir)?;
     // The digest the Warrant compiles to right now, which requirement 1 compares
     // the signature against. A Warrant that will not compile yields `None`, and
     // requirement 1 is then unanswerable rather than satisfied.
@@ -709,6 +783,35 @@ pub fn assess_with(
             .and_then(|ir| ir.contract_digest().ok()),
         _ => None,
     };
+    assess_with_digest(repo, one, evidence, current_contract_digest)
+}
+
+/// [`assess_with`], given the digest the Warrant compiles to now — computed
+/// once by the corpus (`corpus::Entry::contract_digest`) rather than per
+/// caller. `None` exactly when `lower` or the digest fails.
+pub fn assess_with_digest(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    evidence: &[crate::evidence::GateEvidence],
+    current_contract_digest: Option<String>,
+) -> Result<Assessment, RepoError> {
+    let dir = &one.dir;
+    let verifications = repo.load_verifications(dir)?;
+    let current_verifications = crate::verify::current_records(repo, one, &verifications.records);
+    let deliverables = repo.load_deliverables(dir)?;
+
+    let performer = repo.performer();
+    let mut register = repo.load_authority_register()?;
+    // OW-ADR-0029: requirement 13 for a covered Warrant asks whether a HUMAN
+    // may resolve it; a policy service never may.
+    if covered_basis(repo, dir)?.is_some() {
+        register
+            .assignments
+            .retain(|a| a.actor_kind == openwarrant_core::authority::ActorKind::Human);
+    }
+    let authorization = repo.load_authorization(dir)?;
+    let judgments = repo.load_judgments(dir)?;
+    let assumptions = repo.load_rationale(dir)?;
     let authority = Authority {
         register: &register,
         authorization: authorization.as_ref(),
@@ -723,7 +826,7 @@ pub fn assess_with(
     let checks = evaluate(
         repo,
         one,
-        &verifications.records,
+        &current_verifications,
         &deliverables.records,
         &gate_runs,
         &authority,
@@ -737,8 +840,7 @@ pub fn assess_with(
         .map(|v| v.assurance_level.to_string())
         .unwrap_or_else(|| "basic".to_owned());
     let declared = declared_obligations(one);
-    let admissible: Vec<&Verification> = verifications
-        .records
+    let admissible: Vec<&Verification> = current_verifications
         .iter()
         .filter(|v| v.admissible_for(&assurance).is_ok())
         .collect();
@@ -791,6 +893,19 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
+    // OW-ADR-0031: a kind without `resolution` is never resolved, so §56.1
+    // is not asked of it — refused by name, never answered "unmet" or "met".
+    if let Err(RepoError::Message(why)) =
+        one.require(&repo.profiles, openwarrant_core::Capability::Resolution)
+    {
+        let (rule, message) = why.split_once(": ").unwrap_or(("capability.absent", &why));
+        report.push(Diagnostic::error(
+            rule.to_owned(),
+            repo.relative(&dir.join("manifest.toml")),
+            message.to_owned(),
+        ));
+        return Ok(report);
+    }
 
     let assessment = assess(repo, &one)?;
     for (path, why) in &assessment.deliverable_failures {
@@ -809,6 +924,57 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     }
     let checks = assessment.checks;
     let outcome = assessment.would_resolve_satisfied;
+
+    // OW-ADR-0021: requirement 3 reads exactly as before — the bytes either
+    // are what this Warrant pinned or they are not. But when they are not
+    // BECAUSE a later authorized Warrant declares the path, "not established"
+    // sends the reader to restore a file that is now someone else's. Name the
+    // owner, and the act that fits: this Warrant was never resolved against
+    // this pin, so the pin is out of date, and a refresh records what it
+    // delivered as the tree stands under whose authority.
+    if !checks.artifact_digests_verify
+        && let Ok(set) = repo.load_deliverables(&dir)
+        && let Ok(ownership) = crate::ownership::Ownership::index(repo)
+    {
+        let corrections = repo.load_corrections(&dir).unwrap_or_default();
+        let authorized_at = repo
+            .load_authorization(&dir)
+            .ok()
+            .flatten()
+            .and_then(|a| a.revision.authorization.map(|x| x.effective_time));
+        for d in set.records.iter().filter(|d| d.content_addressed) {
+            let Some(p) = d.provenance.as_ref() else {
+                continue;
+            };
+            let (_, head) = crate::correct::head_for(&corrections, &d.id, &p.content_digest);
+            let Ok(head) = head else {
+                continue;
+            };
+            let want = head.trim_start_matches("sha256:");
+            let unchanged = crate::vfs::read(repo.root.join(&d.target_ref))
+                .is_ok_and(|b| openwarrant_compiler::sha256_hex(&b) == want);
+            if unchanged {
+                continue;
+            }
+            if let Some(newer) =
+                ownership.newer_than(&d.target_ref, alias, authorized_at.as_deref())
+            {
+                report.push(Diagnostic::warn(
+                    "resolution.deliverable-moved",
+                    repo.relative(&dir.join("deliverables.toml")),
+                    format!(
+                        "{alias}: {} → {} no longer carries the bytes this Warrant pinned; \
+                         {}/{} (authorized {}) governs that path now. Requirement 3 stays \
+                         unmet as written, and nothing here is drift: no resolution binds \
+                         this pin, so `war pins --refresh --alias {alias}` records the bytes \
+                         as they stand and the resolution then says what was delivered under \
+                         whose authority (OW-ADR-0021)",
+                        d.id, d.target_ref, newer.alias, newer.deliverable_id, newer.authorized_at
+                    ),
+                ));
+            }
+        }
+    }
     let unestablished: Vec<&str> = assessment
         .unestablished
         .iter()
@@ -816,15 +982,25 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
         .collect();
 
     let unmet = checks.unmet();
+    let not_applicable = checks.not_applicable.named();
 
     if unmet.is_empty() {
         report.push(Diagnostic::pass(
             "resolution.requirements",
-            format!(
-                "{alias}: all {} §56.1 requirements are met",
-                RESOLUTION_REQUIREMENTS.len()
-            ),
+            if not_applicable.is_empty() {
+                format!(
+                    "{alias}: all {} §56.1 requirements are met",
+                    RESOLUTION_REQUIREMENTS.len()
+                )
+            } else {
+                format!(
+                    "{alias}: all {} applicable §56.1 requirements are met; {} not applicable",
+                    RESOLUTION_REQUIREMENTS.len() - not_applicable.len(),
+                    not_applicable.len()
+                )
+            },
         ));
+        push_not_applicable(&mut report, alias, &not_applicable);
         report.note(
             "All thirteen are met, but no resolution has been RECORDED. §56.2's record \
              needs an authorizer, an acting role, and a stated meaning — none of which \
@@ -837,22 +1013,24 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
 
     // Each unmet requirement is named. "9 of 13" tells a reader nothing about
     // whether to worry; the names tell them what to fix.
-    for (group, requirement, met) in checks
-        .as_pairs()
+    for (group, requirement, state) in checks
+        .states()
         .into_iter()
-        .map(|(name, met)| ("§56.1", name, met))
+        .map(|(name, state)| ("§56.1", name, state))
     {
-        if met {
-            report.push(Diagnostic::pass(
+        match state {
+            RequirementState::Met => report.push(Diagnostic::pass(
                 "resolution.requirement-met",
                 format!("{alias}: {group} {requirement}"),
-            ));
-        } else {
-            report.push(Diagnostic::unknown(
+            )),
+            RequirementState::Unmet => report.push(Diagnostic::unknown(
                 "resolution.requirement-unmet",
                 repo.relative(&dir.join("manifest.toml")),
                 format!("{alias}: {group} {requirement} — not established"),
-            ));
+            )),
+            RequirementState::NotApplicable(cap) => {
+                push_not_applicable(&mut report, alias, &[(requirement, cap)]);
+            }
         }
     }
 
@@ -866,6 +1044,22 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     ));
     push_outcome(&mut report, alias, outcome, &unestablished);
     Ok(report)
+}
+
+/// A requirement the kind's capabilities make not applicable, named with the
+/// capability it lacks (OW-ADR-0031). A pass of its own rule, never
+/// `resolution.requirement-met`: nothing about it was established.
+fn push_not_applicable(
+    report: &mut Report,
+    alias: &str,
+    not_applicable: &[(&str, openwarrant_core::Capability)],
+) {
+    for (requirement, cap) in not_applicable {
+        report.push(Diagnostic::pass(
+            "resolution.requirement-not-applicable",
+            format!("{alias}: §56.1 {requirement} — not applicable: no `{cap}` capability"),
+        ));
+    }
 }
 
 /// The obligation ids a Warrant declares, as the parser reads them.
@@ -1153,6 +1347,7 @@ mod tests {
                 enterprise_id: String::new(),
                 title: "t".to_owned(),
                 profile: "delivery".to_owned(),
+                profile_digest: None,
                 assurance_level: Some("basic".to_owned()),
                 implements: vec![],
                 roadmap: vec![],

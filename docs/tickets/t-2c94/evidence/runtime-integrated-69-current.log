@@ -1,0 +1,41 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== current by relation, the master document, judged acts, presets (OW-WAR-0113) ==
+ok: dry-run exit 1: refused
+ok: dry-run exit 0: accepted
+ok: dry-run exit 0: refused
+ok: dry-run exit 0: refused
+ok    signature assertion controls       failed command and missing report refused; successful report accepted
+ok    an unauthorized successor          CU-WAR-0001 still current; the relation is not in force
+ok    currency derived from the relation CU-WAR-0001 superseded by CU-WAR-0002, no field written
+ok    a written currency is refused      rejected by relations.currency-authored (CU-WAR-0001: the manifest writes .currency = "superseded")
+ok    a supersedes cycle is refused      rejected by relations.currency-cycle (CU-WAR-0001 → CU-WAR-0002 → CU-WAR-0001)
+ok    OW-WAR-0073 reads superseded       derived from OW-WAR-0112; no field in its manifest
+ok    OW-WAR-0073's signature stands     successful report; no authorize.no-amendment; contract 691f51ce…
+ok    a replaced subject is one line     CU-WAR-0001 once, as lineage; none of its text
+ok    history off writes no history      no HISTORY.md, nothing compared
+ok    a failing check is not 'no history' war exited 1: refused
+ok    a hand edit to CURRENT.md is drift rejected by generated.drift (CURRENT.md)
+ok    the history holds what was replaced CU-WAR-0001's intent verbatim, and its lineage
+ok    a hand edit to HISTORY.md is drift rejected by generated.drift (HISTORY.md)
+ok    CURRENT.md on this corpus          every current atom verbatim; 0073 one lineage line
+ok    the verbatim test can fail         a body CURRENT.md lacks is not found
+ok    this corpus's CURRENT.md is fresh  generated.drift passes
+ok    four documents point at CURRENT.md README, QUICKSTART, AGENTS, TUI: read it first
+ok    the app's Help lists it first      CURRENT.md before every other document
+ok    every signing act is judged        the refusable one last, its rule beside the command
+ok    war next writes nothing            tree unchanged, no draft left, no key named
+ok    CURRENT.md carries the verdict     CU-WAR-0002: would refuse, by rule
+ok    a preset writes typed atoms        five roles, each heading asks its question
+ok    war new without a preset           names feature, fix, decision; no TODO
+ok    an unknown preset is refused       rejected by new.unknown-preset (feature, fix, decision)
+ok    a preset's profile is its own      rejected by new.preset-profile (decision)
+ok    an unanswered heading warns a draft rejected by WARN atom.preset-unanswered (CU-WAR-0003.*Problem)
+ok    an answered atom is not named      10-intent.md passes; 20-basis.md still asks
+ok    an unanswered heading, once signed rejected by ERROR atom.preset-unanswered (CU-WAR-0003.*Problem)
+ok    an extension role renders          x.review accepted; verbatim under CU-WAR-0003's Extensions
+ok    a bare unknown role is refused     rejected by ERROR manifest.invalid (declares role "review")
+
+31 passed, 0 failed

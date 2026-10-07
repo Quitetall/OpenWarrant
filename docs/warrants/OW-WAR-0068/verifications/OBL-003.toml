@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 shows 'war eval' appearing only in atoms/40-work-order.md (an intent statement, deliverable #8), with shown_in listing only 'atoms', never a deliverable, and '.claude/skills/**' has an empty shown_in list, meaning it appears nowhere in the bundle. None of the ten carried deliverables (D-001 through D-010) is an eval-task file or fixture-agent baseline result. D-010 (conformance/plants.d/90-skills.sh) contains only the shell source of an em-dash-refusal plant that builds xtask and checks its output, with no corresponding entry in the bundle's empty plants array or in the gate run's stdout excerpts showing it executed or its verdict. Since neither the eval-task deliverables nor an executed em-dash-refusal result are shown, the claim that the superset is measured cannot be established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

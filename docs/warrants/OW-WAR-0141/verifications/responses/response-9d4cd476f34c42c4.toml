@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0141"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "Four of the five required checks are directly confirmed by the ops.conformance.plants@1.1.0 gate stdout (matching the passed run over subject_digests including this exact deliverable set/tree): 'ok --issue with no [intake] starts nothing' (intake.not-configured, no gh call), 'ok --issue fetches once, a read' (single 'gh issue view 12 --json ...' call), 'ok the fake gh saw no tracker write' (3 calls, every one issue view, across the whole plant), 'ok a fetch_argv that writes never runs' (intake.fetch-not-a-read before any process starts), and 'ok a failed or hung fetch writes nothing' (intake.fetch-failed / intake.fetch-timeout with an unchanged tree). However, the scope explicitly requires the check to be run with the environment variables GH_TOKEN=planted-token-0141 and GITHUB_TOKEN=planted-token-0141 present, and obligation_evidence flags both literal terms 'GH_TOKEN=planted-token-0141' and 'GITHUB_TOKEN=planted-token-0141' as shown_in: [] — nowhere in the carried bundle. D-011 (54-intake.sh) is truncated to excerpts; the only shown token-related lines define a local shell variable IK_TOKEN=planted-token-0141 and later grep for it ('IK_LEAK=$(grep -rIl -- \"$IK_TOKEN\" \"$PLANT_ROOT\" ...)'), with the gate stdout line 'ok no planted token in the repository grep -r planted-token-0141: nothing, .git included' confirming that check passed. But the excerpt gap between line 41 and line 98 of D-011 (where an 'ik_war' invocation helper would plausibly export GH_TOKEN/GITHUB_TOKEN to the war process) is not carried, so the bundle does not show that the planted token was ever actually placed into the environment of the `war plan --issue` / fake-gh invocations being tested. Without that, the passing 'no planted token in the repository' check cannot be distinguished from a vacuous pass (the string was never introduced anywhere to leak). D-001's run_fetch (intake.rs, fully shown, not truncated) confirms `war` invokes the fetch command via `std::process::Command` with no explicit environment manipulation (so it would inherit and pass through whatever env the parent had, consistent with the design intent stated in its own comments), but this only shows capability, not that the specific plant actually set the two named variables. Because a term the obligation's scope specifically names is absent from every carried deliverable and excerpt (not merely truncated but simply not shown, per obligation_evidence's shown_in: [] with no cut_from), the 'holds no secret' leg of OBL-004 cannot be confirmed from the bundle alone, even though the other tracker-access and no-write legs are solidly established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0145"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's only gate_runs entry is GR-software.repo.war-check@1.0.0 (a `war check --generated` run), not an execution of `war gate --run --gate ops.conformance.plants@1.1.0` on a scratch corpus with a fake battery and uncommitted files. D-003's ib_run()/ib_tree() functions define exactly the check the obligation asks for, and D-001/D-002 are the source the plant would exercise, but no captured stdout/stderr or run record shows these plants were actually executed — the war-check stdout (itself only a tail, truncated:true) contains no 'ib_ok'/'ib_fail' lines or 'askability askable · verdict pass' output, and no separate gate run for ops.conformance.plants@1.1.0 is recorded for OW-WAR-0145 (no matching 'evidence.admissible' line appears in its section of the war-check output, unlike OW-WAR-0138/0139/0140 etc.). Source code alone cannot establish that the run occurred, passed, left the tree untouched, or correctly refused on a failing fake battery."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-001 (conformance/plant-isolated.sh, lines 27-30) contains the refusal logic ('plant-isolated.refused-nested', exit 2) and D-003 contains a plant that would invoke it with OPENWARRANT_IN_BATTERY=1, but the bundle carries no execution trace of plant-isolated.sh being run with that variable set — the only gate_runs entry is software.repo.war-check@1.0.0, an unrelated static corpus check, and obligation_evidence shows no run output for this term beyond the source files D-001/D-003 themselves. Without an actual run (exit code and captured stderr line), the claim rests on reading code, which is insufficient to establish it."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The war-check run (GR-software.repo.war-check@1.0.0) shows the corpus-wide summary '0 error' and 'PASS deliverable.digests OW-WAR-0145', but obligation_evidence explicitly marks the term 'gate.registered' as cut_from the software.repo.war-check@1.0.0 stdout (shown only in D-003's grep pattern, not in actual output), so no PASS for 'gate.registered ... ops.conformance.plants@1.1.0' as mutating false is visible in what the bundle shows — no such line appears anywhere in the provided stdout tail, which instead uses a different check name 'gate.resolved'. Additionally the bundle carries no before/after comparison of docs/gates/ops.conformance.plants@1.0.0.yaml to show it is byte-identical to before delivery; that file is not among the deliverables and no digest/diff evidence is given. Two of the three required evidence items are therefore not shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

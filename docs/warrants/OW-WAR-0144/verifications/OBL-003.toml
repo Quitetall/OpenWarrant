@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The excerpt from GR-ops.conformance.plants@1.1.0 (lines 209-216) shows 'ok the kept file is not a record check clean; no authorization pending', which is D-002's ar_ok line following its check that `war check` produced no ERROR and `war sign --list` shows no 'AR-WAR-0001 .*authorize' row — exactly OBL-003's scope and evidence. Combined with the earlier passed check in the same run confirming the authorization.toml grep for 'revision = 2', this establishes that after revision 2 the kept file is not read as a second authorization."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

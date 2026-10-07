@@ -202,13 +202,17 @@ plant_gate "a receipt for a run that never happened" "gate-run.unaskable" "malfo
 # plant asserts the check can also PASS when independence is actually declared
 # sufficient. That is the same negative-control logic §43.4 qualification
 # requires of a gate, applied to a diagnostic.
+# Plain `check`, not `--generated`: since the corpus declares a verifier
+# (OW-WAR-0117) the committed CORPUS_STATUS depends on [independence], so a
+# plant that edits it also moves the projection and `--generated` would
+# report that drift instead of the rule under test.
 plant_cmd "independence not declared at all" "independence.undeclared" "not the same as none" 0 \
     "python3 - <<'EOF'
 import pathlib
 p = pathlib.Path('openwarrant.toml')
 s = p.read_text()
 p.write_text(s[:s.index('[independence]')])
-EOF" check --generated
+EOF" check
 
 plant_cmd "independence declared sufficient" "independence.sufficient" "meets §46.3" 0 \
     "python3 - <<'EOF'
@@ -216,7 +220,7 @@ import pathlib
 p = pathlib.Path('openwarrant.toml')
 s = p.read_text()
 p.write_text(s.replace('= false', '= true'))
-EOF" check --generated
+EOF" check
 
 # §56.1 — resolution refuses while its thirteen requirements are unmet.
 #
@@ -640,8 +644,34 @@ plant_cmd "child missing from parent view" "relations.child-listed" \
 plant_cmd "child state in parent source" "relations.parent-source" \
     "OW-WAR-0002" 2 "$PLANTS/30-child-state-in-parent-source.py" check
 
-plant_cmd "supersession without currency" "relations.currency" \
-    "21.2" 2 "$PLANTS/33-supersession-without-currency.py $P1" check
+# §91.5 test 33, read under OW-ADR-0022 (OW-WAR-0113 AM-002). §21.2's
+# "currency becomes superseded" is DERIVED from the successor's relation; the
+# predecessor's manifest, under a signature, is never edited to say it. So:
+#
+#   - a supersession with no written currency is the correct state: the
+#     predecessor reads superseded by derivation, and nothing is refused for
+#     the absent field. (Appending to OW-WAR-0002's signed manifest also stales
+#     its resolution, so the exit is 2 for that reason — this entry asserts
+#     what the currency rules say, not the exit.)
+#   - a WRITTEN currency is the refusal the plant must see.
+plant_restore
+T33_OUT="mutation failed"
+plant_mutate "$PLANTS/33-supersession-without-currency.py $P1" && T33_OUT="$(plant_war check 2>&1)"
+plant_restore
+if grep -q "PASS relations.currency  *OW-WAR-0001: superseded, derived from OW-WAR-0002" <<<"$T33_OUT" \
+    && ! grep -q "relations.currency-authored" <<<"$T33_OUT" \
+    && ! grep -q "ERROR relations.currency " <<<"$T33_OUT"; then
+    printf 'ok    %-34s superseded by derivation, nothing written\n' "supersession, currency derived"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s\n' "supersession, currency derived" \
+        "$(grep -E 'relations\.currency' <<<"$T33_OUT" | head -3 | tr '\n' '|')"
+    FAILED=$((FAILED + 1))
+fi
+
+plant_cmd "supersession, currency written" "ERROR relations.currency-authored" \
+    "OW-WAR-0001: the manifest writes \`currency = \"superseded\"\`" 2 \
+    "$PLANTS/33-supersession-without-currency.py $P1 --written" check
 
 plant_cmd "retired Warrant emptied" "relations.retired-available" \
     "21.4" 2 "$PLANTS/34-retired-warrant-emptied.py" check
@@ -732,10 +762,13 @@ plant_cmd "a tampered import artifact" "not reproducible" \
 # openwarrant.toml. A plant that edited `deny.toml` to move its bytes would not
 # be undone by the restore and would leave the developer's tree modified. Same
 # control either way: recorded digest versus bytes on disk.
-DELIVERABLE="docs/warrants/OW-WAR-0001/deliverables.toml"
+# OW-WAR-0061 is resolved and nothing later declares its path, so the drift
+# is the real thing (OW-ADR-0021). OW-WAR-0001, the previous target, is only
+# authorized: its pin is a note, not a promise, and reads `pin-stale`.
+DELIVERABLE="docs/warrants/OW-WAR-0061/deliverables.toml"
 
 plant "a deliverable digest that no longer matches" "deliverable.digest-drift" \
-    "regenerate the record" 2 \
+    "OW-WAR-0061: D-001 records sha256:dead" 2 \
     "python3 -c \"
 import pathlib, re
 p = pathlib.Path('$DELIVERABLE')
@@ -751,8 +784,8 @@ plant "a deliverable naming a missing artifact" "deliverable.target-unreadable" 
     "python3 -c \"
 import pathlib
 p = pathlib.Path('$DELIVERABLE')
-p.write_text(p.read_text().replace('target_ref = \\\"Cargo.toml\\\"', 'target_ref = \\\"Cargo.toml.nope\\\"', 1))
-\"; assert_present 'Cargo.toml.nope' '$DELIVERABLE'"
+p.write_text(p.read_text().replace('target_ref = \\\"docs/roadmap/PHASE1_EXIT.md\\\"', 'target_ref = \\\"docs/roadmap/PHASE1_EXIT.md.nope\\\"', 1))
+\"; assert_present 'docs/roadmap/PHASE1_EXIT.md.nope' '$DELIVERABLE'"
 
 # OW-WAR-0055 — the corpus projection. §34 and §105 references, and the two
 # generated files a person and an agent read.
@@ -763,7 +796,8 @@ p.write_text(p.read_text().replace('target_ref = \\\"Cargo.toml\\\"', 'target_re
 MANIFEST_0014="docs/warrants/OW-WAR-0014/manifest.toml"
 
 # OBL-001. Phase 11 does not exist in §98; a reference to it names nothing.
-plant "a roadmap ref past the last phase" "roadmap.malformed" "0..=10" 2 \
+# OW-ADR-0023: the roadmap record bounds the phase number, not the grammar.
+plant "a roadmap ref past the last phase" "roadmap.unknown-phase" "OW-PHASE-11" 2 \
     "sed -i 's|roadmap://OW-PHASE-1/rationale|roadmap://OW-PHASE-11/rationale|' $MANIFEST_0014; \
      assert_present 'OW-PHASE-11' '$MANIFEST_0014'"
 
@@ -798,7 +832,50 @@ plant "Corpus Status JSON edited by hand" "corpus-status.drift" "edited by hand"
 # dropping it. `plant_cmd` with a no-op mutation and a wanted exit of 0 is the
 # battery's way of asserting a thing is SAID, not only that a thing is refused.
 plant_cmd "next actionable is never empty" "Next actionable" "STAGE-" 0 ":" status
-plant_cmd "a Warrant with no roadmap is listed as unassigned" "unassigned" "OW-WAR-0050" 0 ":" status
+# A Warrant with neither a ref nor a placement (OW-ADR-0023) lands in the
+# unassigned objective. OW-WAR-0050 is placed by the roadmap record; removing
+# its placement is the mutation. Other unassigned drafts may already exist.
+unplace_0050() {
+    python3 - <<'PY'
+import pathlib, re
+p = pathlib.Path("docs/roadmap/roadmap.toml")
+t = p.read_text()
+t2 = re.sub(r'\[\[placement\]\]\nwarrant = "OW-WAR-0050"\n(?:[a-z]+ = .*\n)*', '', t)
+assert t2 != t
+p.write_text(t2)
+PY
+}
+plant_restore
+if unplace_0050 \
+    && ! grep -q 'OW-WAR-0050' docs/roadmap/roadmap.toml \
+    && plant_war status --json > "$MIGRATE_TMP/unassigned-status.json" \
+    && python3 - "$MIGRATE_TMP/unassigned-status.json" <<'PY'
+import collections, json, sys
+s = json.load(open(sys.argv[1]))["result"]
+groups = [o for o in s["objectives"] if o.get("roadmap_ref") is None]
+assert len(groups) == 1, "missing or duplicate unassigned group"
+group = groups[0]
+assert "OW-WAR-0050" in group["warrants"], "unplaced Warrant was dropped"
+assert all("OW-WAR-0050" not in o["warrants"]
+           for o in s["objectives"] if o.get("roadmap_ref") is not None), \
+    "unplaced Warrant still belongs to an Objective"
+rungs = {w["alias"]: w["rung"] for w in s["warrants"]}
+counts = collections.Counter(rungs[w] for w in group["warrants"])
+assert all(n == counts[rung] for rung, n in group["ladder"].items()), \
+    "unassigned ladder does not count its members"
+assert group["achieved"]["state"] == "not_derivable", \
+    "unassigned work claims an achieved Objective"
+PY
+then
+    printf 'ok    %-34s exact membership and ladder counts\n' \
+        "a Warrant with no roadmap is listed as unassigned"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s unassigned membership or ladder is wrong\n' \
+        "a Warrant with no roadmap is listed as unassigned"
+    FAILED=$((FAILED + 1))
+fi
+plant_restore
 
 # OBL-004. Two runs, byte-identical. A projection that differed between runs
 # would drift-fail on every commit, so this is also what makes OBL-005 usable.
@@ -908,32 +985,173 @@ plant "a receipt recorded before the contract moved" "evidence.stale-binding" "e
      assert_present 'Planted: one more paragraph' docs/warrants/OW-WAR-0010/atoms/10-intent.md" \
     OW-WAR-0010
 
+# OBL-004 and OBL-005 need a Warrant with all thirteen met and NO resolution.
+# They used to delete OW-WAR-0010's to stand in for one; its receipt names
+# only the contract, which OW-WAR-0133 made reuse-unknown for an unresolved
+# Warrant, so the deletion tripped requirement 5 before the rule each plant
+# tests (OW-WAR-0133 AM-002). Built instead on a scratch program nobody owns:
+# its adoption Warrant walked to the edge of resolution — the SAS accepted
+# and the contract authorized by a plant human whose throwaway key signs the
+# responses (`ssh-keygen -Y sign -f`, never an agent, the owner's
+# SSH_AUTH_SOCK unset), a content-addressed deliverable, an empty rationale
+# (asked, nothing risked), a blind fixture verification, and a tree-bound
+# receipt recorded over the committed, verified tree by the war built here.
+RZ_ROOT=$(scratch_corpus RZ)
+[[ -d "${RZ_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus for the resolution plants\n' >&2; exit 9; }
+RZ_TMP=$(mktemp -d)
+RZ_W=RZ-WAR-0001
+RZ_DIR="$RZ_ROOT/docs/warrants/$RZ_W"
+RZ_RESP="$RZ_ROOT/docs/authority/responses"
+# The scaffold's gate is `war check --generated` by name: the binary built
+# here must be the `war` it finds, or it judges this corpus by another rule.
+rz()        { PATH="$REPO_ROOT/target/debug:$PATH" "$REPO_ROOT/${WAR#./}" --root "$RZ_ROOT" "$@"; }
+rz_commit() {
+    git -C "$RZ_ROOT" add -A >/dev/null 2>&1
+    git -C "$RZ_ROOT" -c user.email=plant@invalid -c user.name=plant -c commit.gpgsign=false \
+        commit -qm "$1" >/dev/null 2>&1
+}
+rz_sign()   { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID ssh-keygen -q -Y sign -f "$RZ_TMP/id_plant" -n oh.war/response "$1" >/dev/null 2>&1; }
+# Record, compile, commit: the order this repository records in.
+rz_record() { rz evidence record "$RZ_W" >/dev/null 2>&1; rz compile >/dev/null 2>&1; rz_commit "$1"; }
+[[ -d "$RZ_DIR" ]] || { printf 'PLANT SETUP FAILED: %s has no %s\n' "$RZ_ROOT" "$RZ_W" >&2; exit 9; }
+env -u SSH_AUTH_SOCK -u SSH_AGENT_PID ssh-keygen -q -t ed25519 -N "" -C plant -f "$RZ_TMP/id_plant" \
+    || { printf 'PLANT SETUP FAILED: ssh-keygen\n' >&2; exit 9; }
+printf 'plant namespaces="oh.war/response,oh.war/dsse" %s\n' "$(cut -d' ' -f1,2 "$RZ_TMP/id_plant.pub")" \
+    > "$RZ_ROOT/docs/authority/allowed_signers"
+cat > "$RZ_ROOT/docs/authority/roles.toml" <<'ROLES'
+[[assignment]]
+actor = "Plant Human"
+actor_kind = "human"
+roles = ["authorizer", "resolver", "risk_acceptor", "judge"]
+assigned_by = "conformance/plants.d/00-corpus.sh"
+effective_time = "2026-01-01T00:00:00Z"
+note = "Exists only while the resolution plants run; its key is generated and discarded here."
+ssh_principal = "plant"
+
+[[assignment]]
+actor = "claude"
+actor_kind = "agent"
+roles = ["performer"]
+assigned_by = "conformance/plants.d/00-corpus.sh"
+effective_time = "2026-01-01T00:00:00Z"
+note = "The agent the resolution plant refuses."
+ROLES
+mkdir -p "$RZ_RESP"
+rz sas propose 0.1.0 >/dev/null 2>&1
+RZ_SAS=$(grep '^sha256' "$RZ_ROOT/docs/sas/revisions/0.1.0.toml" 2>/dev/null | cut -d'"' -f2)
+printf 'schema = "oh.war/sas-acceptance-response/v1"\nversion = "0.1.0"\nsha256 = "%s"\naccepted_by = "Plant Human"\nacting_role = "owner"\nmeaning = "plant fixture"\neffective_time = "2026-09-02T00:00:00Z"\n' \
+    "$RZ_SAS" > "$RZ_RESP/SAS-0.1.0.response.toml"
+rz_sign "$RZ_RESP/SAS-0.1.0.response.toml"
+rz sas accept 0.1.0 --response "$RZ_RESP/SAS-0.1.0.response.toml" >/dev/null 2>&1
+rz compile >/dev/null 2>&1
+RES_DIGEST=$(rz authorize "$RZ_W" 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)
+[[ -n "$RES_DIGEST" ]] || { printf 'PLANT SETUP FAILED: could not read %s contract digest\n' "$RZ_W" >&2; exit 9; }
+printf 'schema = "oh.war/authorization-response/v1"\nwarrant = "%s"\ncontract_digest = "%s"\nauthorizer = "Plant Human"\nacting_role = "authorizer"\nmeaning = "plant fixture"\neffective_time = "2026-09-02T00:00:00Z"\nindependence = "separate_role"\n' \
+    "$RZ_W" "$RES_DIGEST" > "$RZ_RESP/$RZ_W.response.toml"
+rz_sign "$RZ_RESP/$RZ_W.response.toml"
+rz authorize "$RZ_W" --response "$RZ_RESP/$RZ_W.response.toml" >/dev/null 2>&1
+python3 - "$RZ_ROOT/openwarrant.toml" "$REPO_ROOT/conformance/fixtures/verifier/establishes-all.sh" <<'PY'
+import sys
+path, verifier = sys.argv[1], sys.argv[2]
+text = open(path).read()
+if "verifier_argv = []" not in text:
+    sys.exit("PLANT SETUP FAILED: the scaffold's [verify] table changed shape")
+open(path, "w").write(text.replace("verifier_argv = []", f'verifier_argv = ["{verifier}"]', 1))
+PY
+printf 'adopted\n' > "$RZ_ROOT/ADOPTED.md"
+cat > "$RZ_DIR/deliverables.toml" <<TOML
+schema = "oh.war/deliverables/v1"
+
+[[deliverable]]
+id = "D-001"
+title = "The adoption note"
+kind = "file"
+target_ref = "ADOPTED.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "conformance/plants.d/00-corpus.sh"
+producing_attempt = "$RZ_W/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "printf"
+creation_method = "generated"
+content_digest = "sha256:$(sha256sum < "$RZ_ROOT/ADOPTED.md" | cut -d' ' -f1)"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+TOML
+printf 'schema = "oh.war/rationale/v1"\n' > "$RZ_DIR/rationale.toml"
+rz compile >/dev/null 2>&1
+rz_commit "resolution plants: authorized and delivered"
+rz_record "resolution plants: first record"
+# Verification records are bookkeeping, not source the tree-bound gate reads.
+rz verify "$RZ_W" --performer claude --run >/dev/null 2>&1
+rz compile >/dev/null 2>&1
+rz_commit "resolution plants: verified"
+RZ_BASE=$(git -C "$RZ_ROOT" rev-parse HEAD)
+rz_reset() { git -C "$RZ_ROOT" reset --hard -q "$RZ_BASE" && git -C "$RZ_ROOT" clean -fdq; }
+
+# The paired control: the fixture meets all thirteen with a tree-bound
+# receipt, so a refusal below is the rule it names and not an unmet requirement.
+RZ_OUT=$(rz resolve --dry-run "$RZ_W" 2>&1)
+if ! grep -q 'resolution.requirement-unmet' <<<"$RZ_OUT" \
+    && grep -q 'evidence.admissible .*to its source (tree:' <<<"$(rz check "$RZ_W" 2>&1)"; then
+    printf 'ok    %-34s all thirteen met; the receipt is tree-bound\n' "an unresolved scratch delivery"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s\n' "an unresolved scratch delivery" "$(grep -m2 -E 'requirement-unmet|^ERROR' <<<"$RZ_OUT" | tr '\n' '|')"
+    FAILED=$((FAILED + 1))
+fi
+
 # OBL-004. The agent signs a resolution for a Warrant with all thirteen met.
-# OW-WAR-0010 carries a REAL record now (resolved 2026-09-02), so the plant
-# removes it first — `restore` brings a tracked file back — and asserts that
-# the refusal wrote nothing BEFORE restore runs, or restore would hide a leak.
-RES_DIGEST="$("$WAR" resolve OW-WAR-0010 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)"
-[[ -n "$RES_DIGEST" ]] || { echo "could not read OW-WAR-0010's contract digest" >&2; exit 9; }
-restore
-rm -f docs/warrants/OW-WAR-0010/resolution.toml
-printf 'schema = "oh.war/resolution-response/v1"\nwarrant = "OW-WAR-0010"\ncontract_digest = "%s"\nresolved_by = "claude"\nacting_role = "resolver"\ncommon_outcome = "satisfied"\nprofile_outcome = "delivered"\nmeaning = "x"\neffective_time = "2026-09-02T00:00:00Z"\n' "$RES_DIGEST" > "$MIGRATE_TMP/agent-resolve.toml"
-agent_out="$("$WAR" resolve OW-WAR-0010 --response "$MIGRATE_TMP/agent-resolve.toml" 2>&1)"; agent_status=$?
-if [[ "$agent_status" -eq 2 ]] && grep -q "resolution.agent" <<<"$agent_out" && grep -q "SHALL NOT resolve" <<<"$agent_out" && [[ ! -f docs/warrants/OW-WAR-0010/resolution.toml ]]; then
+# Asserts the refusal wrote nothing BEFORE the reset, or the reset would hide
+# a leak.
+printf 'schema = "oh.war/resolution-response/v1"\nwarrant = "%s"\ncontract_digest = "%s"\nresolved_by = "claude"\nacting_role = "resolver"\ncommon_outcome = "satisfied"\nprofile_outcome = "delivered"\nmeaning = "x"\neffective_time = "2026-09-02T00:00:00Z"\n' "$RZ_W" "$RES_DIGEST" > "$MIGRATE_TMP/agent-resolve.toml"
+agent_out="$(rz resolve "$RZ_W" --response "$MIGRATE_TMP/agent-resolve.toml" 2>&1)"; agent_status=$?
+if [[ "$agent_status" -eq 2 ]] && grep -q "resolution.agent" <<<"$agent_out" && grep -q "SHALL NOT resolve" <<<"$agent_out" && [[ ! -f "$RZ_DIR/resolution.toml" ]]; then
     printf 'ok    %-34s resolution.agent — refused, nothing written\n' "an agent resolving a delivery"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s exit %s (wanted 2), record present: %s\n' "an agent resolving a delivery" "$agent_status" "$([[ -f docs/warrants/OW-WAR-0010/resolution.toml ]] && echo yes || echo no)"
+    printf 'FAIL  %-34s exit %s (wanted 2), record present: %s; %s\n' "an agent resolving a delivery" "$agent_status" "$([[ -f "$RZ_DIR/resolution.toml" ]] && echo yes || echo no)" "$(grep -m1 '^ERROR' <<<"$agent_out")"
     FAILED=$((FAILED + 1))
 fi
-restore
+rz_reset
 
-# OBL-005. `satisfied` signed over an obligation the verifier did not establish.
-plant_cmd "satisfied signed over an unestablished obligation" "resolution.outcome-unsupported" "OBL-001" 2 \
-    "rm -f docs/warrants/OW-WAR-0010/resolution.toml; \
-     sed -i 's|^disposition = \"established\"|disposition = \"not_established\"|' docs/warrants/OW-WAR-0010/verifications/OBL-001.toml; \
-     assert_present 'not_established' docs/warrants/OW-WAR-0010/verifications/OBL-001.toml; \
-     printf 'schema = \"oh.war/resolution-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nresolved_by = \"Brian Lam\"\nacting_role = \"resolver\"\ncommon_outcome = \"satisfied\"\nprofile_outcome = \"delivered\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"$RES_DIGEST\" > \"$MIGRATE_TMP/over-resolve.toml\"" \
-    resolve OW-WAR-0010 --response "$MIGRATE_TMP/over-resolve.toml"
+# OBL-005. `satisfied` signed over an obligation the verifier did not
+# establish. The disposition is changed and committed; the unchanged receipt
+# still holds, so §38.6 is the control this plant exercises.
+# Ingest a fresh synthetic negative verdict. Editing a stored record would
+# invalidate its journal digest and test tampering, not the outcome rule.
+rz verify "$RZ_W" --performer claude --bundle --json > "$MIGRATE_TMP/negative-request.json"
+RZ_PACKET=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["result"]["packets"][0]["path"])' "$MIGRATE_TMP/negative-request.json")
+OPENWARRANT_REVIEWED_PACKETS=$(python3 -c 'import json,sys;print(json.dumps(json.load(open(sys.argv[1]))["result"]["packets"]))' "$MIGRATE_TMP/negative-request.json") \
+    bash "$REPO_ROOT/conformance/fixtures/verifier/establishes-all.sh" "$RZ_ROOT/$RZ_PACKET" > "$MIGRATE_TMP/negative-verdict.toml"
+python3 - "$MIGRATE_TMP/negative-verdict.toml" <<'PY'
+import sys
+p=sys.argv[1];s=open(p).read();old='disposition = "established"'
+assert old in s
+open(p,"w").write(s.replace(old,'disposition = "not_established"',1))
+PY
+rz verify "$RZ_W" --response "$MIGRATE_TMP/negative-verdict.toml" >/dev/null 2>&1
+assert_present 'not_established' "$RZ_DIR/verifications/OBL-001.toml"
+rz compile >/dev/null 2>&1
+rz_commit "resolution plants: OBL-001 not established"
+printf 'schema = "oh.war/resolution-response/v1"\nwarrant = "%s"\ncontract_digest = "%s"\nresolved_by = "Plant Human"\nacting_role = "resolver"\ncommon_outcome = "satisfied"\nprofile_outcome = "delivered"\nmeaning = "x"\neffective_time = "2026-09-02T00:00:00Z"\n' "$RZ_W" "$RES_DIGEST" > "$MIGRATE_TMP/over-resolve.toml"
+over_out="$(rz resolve "$RZ_W" --response "$MIGRATE_TMP/over-resolve.toml" 2>&1)"; over_status=$?
+if [[ "$over_status" -eq 2 ]] && grep -q "resolution.outcome-unsupported" <<<"$over_out" && grep -q "OBL-001" <<<"$over_out" && [[ ! -f "$RZ_DIR/resolution.toml" ]]; then
+    printf 'ok    %-34s rejected by resolution.outcome-unsupported (OBL-001)\n' "satisfied signed over an unestablished obligation"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s exit %s (wanted 2); %s\n' "satisfied signed over an unestablished obligation" "$over_status" "$(grep -m1 '^ERROR' <<<"$over_out")"
+    FAILED=$((FAILED + 1))
+fi
+rz_reset
+rm -rf "$RZ_TMP"
 
 # OBL-006. A well-formed resolution that binds a contract this Warrant no
 # longer compiles to. §45: dispute or annul; never edit around it. Overwrites

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows an untruncated excerpt at stdout lines 280-291 containing the '== retention and the scale budget (OW-WAR-0120) ==' banner from conformance/plants.d/52-retention.sh (D-006) followed by 'ok the synthetic program checks clean synth-corpus.sh exit 0, war check exit 0', 'ok war status counts 6 resolved, 6 not and 6 resolution records on disk', 'ok a non-empty --out is refused exit 2, its contents untouched', and 'ok the repository tree is unchanged git status --porcelain identical' — the exact four sub-checks OBL-001's evidence clause requires, matching D-006's rt_ok invocations line for line, with the run's subject_digests binding it to this contract (41c9faf7...) and a run-level verdict of pass in a 1270-passed/0-failed battery."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0144"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (authorize.rs) implements retain_superseded, and D-002 (49-authorization-retained.sh) contains the exact plant assertions for this claim (\"revision 1 is kept beside revision 2\", \"the revision-1 envelope verifies\" via attest.subject-archived, and the control check for attest.subject-drift), but obligation_evidence marks the terms 'attest.subject-archived' and (implicitly) the plant's own printed output as cut_from the gate run's stdout — the GR-ops.conformance.plants@1.1.0 receipt's stdout shown in the bundle is truncated (truncated:true) and its visible text jumps between unrelated plant sections (e.g. OW-WAR-0136, OW-WAR-0139) without ever showing the '== authorization retention (OW-WAR-0144) ==' section or its ar_ok/ar_fail lines. The overall summary '1214 passed, 0 failed' is shown, but it does not itself demonstrate the specific claims (byte-identical digest match, attest --verify producing subject-archived, and the drift control) since the section proving those specific assertions ran and passed was not carried in the bundle. Source code and script existing is not execution evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-001's retain_superseded and D-002's plant assertions ('a dry run keeps nothing', 'a colliding kept name refuses' -> authorize.retire-collision) state the intended check, and obligation_evidence explicitly lists 'authorize.retire-collision' as cut_from the gate stdout for this run. The shown portion of GR-ops.conformance.plants@1.1.0's stdout does not include the OW-WAR-0144/AR-WAR-0001 plant section, so there is no visible confirmation that the dry-run-leaves-tree-unchanged check or the retire-collision refusal actually printed 'ok' for this run. The aggregate '1214 passed, 0 failed' total does not substitute for the specific missing lines, per the rule that bytes not shown are not evidence either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "D-002's plant script contains the assertion ('the kept file is not a record' checking `war check` and `war sign --list`) matching OBL-003's scope exactly, and D-003/atoms describe the intended behavior, but the bundle's carried gate stdout (GR-ops.conformance.plants@1.1.0, truncated:true) does not include the AR-WAR-0001 section's printed result for this check; 'war check' and 'war sign --list' do appear elsewhere in the shown stdout but only for unrelated plants/warrants (e.g. TT-WAR-0001, SB-WAR-*), not for AR-WAR-0001. No direct evidence in the bundle shows the actual `war check`/`war sign --list` output for this Warrant's scratch corpus after revision 2."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

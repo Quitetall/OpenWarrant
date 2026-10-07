@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 has subject_digests including contract:sha256:7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e, matching authorized_contract_digest, and verdict 'pass'. Its stdout excerpts show, tagged specifically to OW-WAR-0081: PASS manifest.valid, PASS traceability.refs, PASS journal.append-only, PASS authority.signed, PASS gate.resolved, PASS milestones.valid, PASS obligations.valid, PASS generated.drift, and PASS identity.atom-mismatch ('4 atom(s) name this Warrant's UUID'). The only OW-WAR-0081-tagged findings are non-blocking WARNs (evidence.stale-binding on tree drift, sas.pin-superseded on SAS revision), and the run summary reports 0 error, worst WARN. This directly satisfies OBL-004's scope (this Warrant's authored records/references, no runtime claim), so the obligation is established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

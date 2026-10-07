@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No gate_runs, deliverables, or plants carrying real stdio JSON-RPC war_questions/war_answers sessions are present. atoms/60-assurance.md describes the acceptance criteria (healthy record visible beside malformed companion, exit status/MCP error flag, answers refuse) as text only; there is no MCP transcript or output artifact in the bundle to check it against."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

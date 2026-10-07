@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The gate run GR-software.repo.war-check@1.0.0 shows verdict 'pass' with PASS lines for manifest.valid, obligations.valid, milestones.valid and identity.atom-mismatch, but the same stdout also carries 'WARN evidence.stale-binding ... the receipt names tree:e54ccac17a000db9430a08ded5ae9ad1923067b0 and 33 path(s) ... have changed since ... a run over an earlier source is a record, not evidence about this one' pointing at the very run.toml receipt embedded in this bundle — a tree hash that does not match the receipt's own subject_digests tree (9729d66838274661a8b7382db6ef1108887babec). The tool itself thus disclaims that this run's output is current evidence. Additionally OBL-004's stated evidence requires 'structural check and existing planted refusals,' but plants is empty here, so the planted-refusal component of the obligation's evidence is entirely absent, leaving structural validity not established from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

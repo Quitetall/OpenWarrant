@@ -1,0 +1,3 @@
+# war evidence record cannot run software.repo.bonsai-evidence@1.0.0
+
+Recording OW-WAR-0050's evidence (2026-09-26) with `war evidence record OW-WAR-0050 --gate software.repo.bonsai-evidence@1.0.0` fails before any gate runs: 'Bonsai receipt binding requires exactly one contract subject and one evidence reference'. Since OW-WAR-0133, evidence record binds several subjects (contract, tree, inputs, deliverables), so the Bonsai adapter's one-subject rule refuses it. Decide how a Bonsai receipt binds under the reuse rule and make the gate recordable, or say by name that it is not recordable through evidence record.

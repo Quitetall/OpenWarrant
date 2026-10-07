@@ -1,0 +1,6 @@
+test_project_inventory_keeps_legacy_and_work_separate (test_workflow.WorkflowTests.test_project_inventory_keeps_legacy_and_work_separate) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.099s
+
+OK

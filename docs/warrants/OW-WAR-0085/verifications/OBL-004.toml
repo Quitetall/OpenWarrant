@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0's excerpts show OW-WAR-0085-specific structural PASS results (manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, bonsai-scope.valid, generated.drift, identity.atom-mismatch) with subject_digests matching this Warrant's authorized_contract_digest, satisfying the 'structural check' half of the evidence requirement. However OBL-004 also requires 'existing planted refusals,' and the plants array is empty, so that half is entirely absent, leaving the obligation not established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

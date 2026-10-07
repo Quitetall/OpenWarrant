@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0136"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-007 (conformance/plants.d/58-invalidation.sh) excerpt lines 616-640, under an explicit '# OBL-004' comment, captures IV_HIST/IV_DEF before the invalidation and compares them via `iv_history` and `sha256sum` of G's definition file after it, checks `war attest --all --verify` exits 0 with no ERROR lines and that the invalidation's own attestation file exists, then checks `war check` on unresolved Warrant IV-WAR-0005 for `WARN evidence.gate-invalidated` naming `docs/gates/invalidations/plant.g@1.0.0.toml`, absence of `PASS evidence.admissible`, and a non-zero exit from `war resolve --dry-run`. The recorded gate run for gate://ops.conformance.plants@1.1.0 (run_id GR-ops.conformance.plants@1.1.0, verdict pass, receipt sealed) prints in its stdout excerpt the exact corresponding success lines — 'ok nothing historical is rewritten resolutions, receipts, runs, attestations, G's definition byte-identical; attest --all verifies' and 'ok G's receipt is inadmissible on E evidence.gate-invalidated names the invalidation; IV-WAR-0005 no longer resolvable' — within a battery total of '1260 passed, 0 failed'. D-005 (evidence.rs, excerpt lines 209-233) independently corroborates the mechanism: an invalidated gate's receipt returns `Standing::Stale`/`evidence.gate-invalidated` rather than admissible. The source implementing the check, the mechanism it checks, and the actual recorded execution output agree, establishing the obligation within its stated scratch-corpus scope; obligation_evidence's note that no literal resolution.toml bytes were carried does not undermine this since the claim is verified through the plant's own executed assertions rather than a raw file diff."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

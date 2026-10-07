@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-008 (conformance/plants.d/59-adoption.sh, carried in full, untruncated) implements exactly the three evidence bullets: it builds AD_A with three commits and asserts `openwarrant.toml`'s `[adoption] baseline` equals `git rev-parse HEAD` (AD_HEAD) and that `war check` exits 0; it builds AD_B and asserts `--baseline 0000000` exits non-zero with neither `openwarrant.toml` nor `docs` written; it builds AD_C (git-initialized, zero commits) and asserts no `[adoption]` table plus an unchanged three-line, no-'baseline' output. Gate run GR-ops.conformance.plants@1.1.0's stdout excerpt (the `== brownfield adoption (OW-WAR-0124) ==` block) shows these exact plant lines passing verbatim: 'ok init records HEAD as the baseline ae64d3839edb461ab7b5e5526b0c65e1070f5447', 'ok the adopted scaffold passes check exit 0', 'ok --baseline 0000000 is refused exit 1, nothing written', and 'ok no commits, no [adoption] table three lines, as before'. The files `99-init.sh` and `75-init-program.sh` are not carried in this bundle (obligation_evidence marks them absent, not-carried), so their content cannot be inspected directly, but they are declared Frozen Surfaces the work order says this Warrant does not touch (they are absent from both deliverables and deliverables_not_carried, meaning no deliverable here modifies them), and the same gate run's final tally — '1270 passed, 0 failed' — covers the whole battery those scripts belong to, so nothing in the run contradicts 'pass unmodified'. Within OBL-001's stated scope (scratch repositories built by 59-adoption.sh under `gate://ops.conformance.plants@1.1.0`), this is sufficient to establish the claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

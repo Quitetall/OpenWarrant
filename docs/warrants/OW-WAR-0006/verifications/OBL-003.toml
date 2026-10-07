@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The measured evidence includes tests, plants, and receipts for relation checks and other validations, but no Progress Log entry naming commit 3678455 and the violated obligation is present in the provided artifacts."
+evidence = "No Progress Log atom or deliverable is carried in this bundle — the atoms present are only intent, basis, work_order, milestones, and assurance (atoms/10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md), and the three deliverables (D-001, D-002, D-003) are all Rust source files, not a Progress Log. obligation_evidence for OBL-003 shows the term '3678455' appearing only under 'atoms', which is atoms/10-intent.md's own Intent narrative ('The ADR Overview shipped in commit `3678455` with NO Warrant authorizing it'), not a Progress Log entry naming the commit and the specific obligation it violated as OBL-003's evidence requires. No gate output or deliverable contains any such record."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

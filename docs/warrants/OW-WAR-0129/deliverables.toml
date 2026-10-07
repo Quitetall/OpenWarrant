@@ -1,0 +1,98 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# D-001 and D-002 are delivered paths of resolved OW-WAR-0056 (D-002, D-003):
+# on authorization this Warrant governs them and 0056's pins become historical.
+
+[[deliverable]]
+id = "D-001"
+title = "compile_dispatch computes the estimate and refuses over budget or unrecorded"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/dispatch.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0129/attempt-1"
+contract_digest = "d17aca0d0a840009691d7ac17d72ef999ccca1c556f0d9730ea94820a28aa261"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:129e9191e66eef50d69103ed5eae24be53e0b3700e28ee6c34beb98d1de827ae"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "war dispatch delegates the budget rule to the compiler"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/dispatch.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0129/attempt-1"
+contract_digest = "d17aca0d0a840009691d7ac17d72ef999ccca1c556f0d9730ea94820a28aa261"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:6b5b2100e8be92e4f2e0e8a716b884e804364b4fb4da4cd2175e64580a2c6e1f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "war dispatch-bundle create judges a Dispatch's tokens before bundling"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/dispatch_bundle_cmd.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0129/attempt-1"
+contract_digest = "d17aca0d0a840009691d7ac17d72ef999ccca1c556f0d9730ea94820a28aa261"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:4740417c0420eec9c4d877d7b096d87d308434a757c2af807812c730e00692df"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "The budget plants: perform, perform --all, run, dispatch-bundle"
+kind = "file"
+target_ref = "conformance/plants.d/83-tokens.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0129/attempt-1"
+contract_digest = "d17aca0d0a840009691d7ac17d72ef999ccca1c556f0d9730ea94820a28aa261"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:1c20c426cead858aad627f57bfd3c3e7922916b7b020fc2bc35e86343515e824"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

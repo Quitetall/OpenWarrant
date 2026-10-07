@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-006 (telemetry.rs) implements the mechanism the obligation requires: untracked_candidates() appends '<baseline>..HEAD' to the git log range only when repo.config.adoption is set, matches commit subjects against '{namespace}-WAR-' (the repository's own namespace) rather than a fixed OW- prefix, and history_read() reports the baseline used or 'all history'. D-008 (conformance/plants.d/59-adoption.sh), in its '--- OBL-002 ---' section, runs telemetry on the ACME scratch repo (AD_A) right after init, after one uncited commit, after a commit citing ACME-WAR-0001, and after one citing OW-WAR-0001, checking ad_candidates() and the printed baseline range. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows these exact plant lines succeeding: 'ok 0 candidates right after init read from 68ed7543d8dee26bab544c59e95772b74e74cb92..HEAD', 'ok one uncited commit is 1 candidate 1', 'ok an ACME-WAR citation is tracked still 1', 'ok an OW-WAR citation is not tracked 2', and the companion 'ok no baseline reads all history 5, named as all history' with a final tally of '1260 passed, 0 failed'. The software.repo.war-check@1.0.0 gate run independently confirms this evidence's admissibility ('PASS evidence.admissible ... ops.conformance.plants@1.1.0 · required pass, receipt reseals and is bound to the current contract'). obligation_evidence lists no cut_from for the OBL-002 terms ('war telemetry', 'ACME-WAR-0001', 'OW-WAR-0001'), so all five required evidence bullets are shown in full and satisfied."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

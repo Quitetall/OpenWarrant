@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-submission-dispatch-binding/conformance/controls/submission-bindings.py", line 82, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-submission-dispatch-binding/conformance/controls/submission-bindings.py", line 64, in main
+    assert any(d["rule"] == "submission.dispatch-unbound" and d["severity"] == "unknown"
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               for d in report["diagnostics"]), report
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'schema': 'oh.war/report/v1', 'command': 'submit', 'diagnostics': [{'severity': 'error', 'rule': 'submission.dispatch-mismatch', 'file': 'submission.json', 'message': 'IX-WAR-0003: stage_id "STAGE-001" does not match the compiled dispatch\'s stage None. Nothing was written'}], 'notes': [], 'counts': {'pass': 0, 'warn': 0, 'unknown': 0, 'error': 1, 'worst': 'error'}, 'verdict': 'not_ready', 'verdict_line': 'NOT READY', 'exit_code': 2}

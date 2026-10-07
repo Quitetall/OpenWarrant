@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence for OBL-001 lists no named_paths or terms; no sdk_probe.rs run, no conformance/sdk/run_phase1.py receipt, no CLI/driver transcript, and no docs/reviews/phase-1.md content appear anywhere in the bundle. The only evidence item, gate run GR-software.repo.war-check@1.0.0, is a repository-manifest structural check and its own stdout excerpt states 'war check does not invoke [a gate], so nothing here is evidence that a Warrant's acceptance gates were run.' No inputs, outputs, exit codes, or fixture revisions for S01–S08/SDK-01–24/FOOTER-01–08 are shown."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,2 @@
+grep: /mnt/4tb/tmp/battery-tmp/tmp.bvdSFxc8KT/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/battery-tmp/tmp.bvdSFxc8KT/unreadable/closed.rs: Permission denied

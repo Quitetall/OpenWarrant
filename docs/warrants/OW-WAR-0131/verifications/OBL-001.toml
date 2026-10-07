@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (runtime_environment 'linux x86_64', verdict pass) executed conformance/plants.d/60-perform-cancel.sh (D-006), whose stdout excerpts (lines 764-766) show 'ok SIGINT cancels performer+child rejected by perform.cancelled (exit 2); performer 1->1, child 1->1, alive: none; no submission, Dispatch kept, record gone' and the identical result for SIGTERM, matching the obligation's required evidence (perform.cancelled, non-zero exit, marker line counts unchanged for both performer and child, no submissions/*.json, Dispatch kept). The same excerpt shows 'ok the check sees an orphan negative control: setsid writer reported orphan (performer 2->11, child 2->11, alive: 1564475 1564478)', confirming the plant's check can detect a still-writing orphan under setsid, satisfying the negative-control requirement. D-006 also contains the 'no switch in the shipped binary disables the handler' check (grep for env::var/var_os and register_usize(sig) in perform.rs), and although that specific ok/fail line falls outside the shown excerpt window, the gate's own summary line '1214 passed, 0 failed' establishes every check in the run, including that one, passed. The obligation's scope is Linux-only (macOS is explicitly not claimed absent a macOS runner, and none is present here), so this Linux gate run with a pass verdict fully covers the scoped claim."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

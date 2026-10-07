@@ -51,7 +51,7 @@ else
     out=$("$WAR" answer "$Q_ALIAS" "$Q_ID" "Yes, a human answers." --as "Brian Lam" 2>&1)
     if [[ $? -eq 0 ]] && grep -q 'question.answered' <<< "$out" \
         && grep -qE '^answered_by = "person://Brian Lam"' "$Q_DIR/$Q_ID.toml" \
-        && "$WAR" answers "$Q_ALIAS" STAGE-001 2>&1 | grep -q 'Yes, a human answers.'; then
+        && Q_ANSWERS=$("$WAR" answers "$Q_ALIAS" STAGE-001 2>&1) && grep -q 'Yes, a human answers.' <<<"$Q_ANSWERS"; then
         printf 'ok    %-34s recorded, and war answers reads it back\n' "a human answering"
         PASSED=$((PASSED + 1))
     else

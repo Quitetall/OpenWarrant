@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout shows the exact block of 9 plant assertions from conformance/plants.d/61-update.sh (D-012) under the OW-WAR-0143 header, each matching an evidence item verbatim: 'a clean checkout is unreleased … commit f8cfd823df43, dirty false', 'the same tree, tagged v<version>, is a release … line is exactly war 1.0.0-alpha.2', 'a published crate's source is crate … sha1 from .cargo_vcs_info.json', 'neither source: unknown … no commit claimed', 'a modified tracked file is dirty … dirty true', 'a release tag over a dirty tree is refused … exit 1 … dirty', 'a tag that is not v<version> is refused … names v9.9.9 and v1.0.0-alpha.2', 'unknown is never release … a tag with no source is refused', and 'the battery's war says what it is … war 1.0.0-alpha.2 (unreleased, commit e4e52b0391f7, dirty, debug); build.class unreleased'. D-012's source (up_probe/up_field assertions around UP_R, UP_HEAD, UP_V) shows these lines are produced by genuine checks against `war version --probe` output and `war --version`/`war version --json`, not hardcoded strings, and D-001 (build_identity.rs)'s classify()/Identity::version_text implementation independently corroborates the described release/dirty/tag-mismatch/unknown-never-release logic and the non-bare version_text format for non-release classes. Every accepted and refused case named in OBL-001's evidence list is thus shown to hold in the same run that reports 1214 passed, 0 failed."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

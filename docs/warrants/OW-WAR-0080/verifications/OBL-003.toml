@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but the war-check gate stdout's NOT-CHECKED section states '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' and atoms/60-assurance.md states 'No disposition is declared here.' Since OBL-001 and OBL-002 are themselves not_established in this same bundle, there is no qualified outcome for OBL-003 to attach to, and no evidence of independent review or human sign-off is present."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,22 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-004-d7d9"
+band: "manual_revision"
+reason: "Work-order item 3 and a basis constraint say the schema pack version moves once when `oh.war/roadmap/v1` joins the pack. docs/COMPATIBILITY.md says the pack version is inside every contract digest and moves only with a format change (a `v2`), never with an added `v1` schema; OW-WAR-0142 added `standing-authorization` at pack 0.2.0 on that rule. D-022 was generated into the pack at 0.2.0 accordingly. The sentences are corrected to what the governing document says and what was built; nothing else changes. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "docs/COMPATIBILITY.md"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes. The work order and basis carry the corrected sentences in the revision this amendment is carried by; the signature authorizes that revision."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-27"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "`schemas/oh.war/roadmap/v1.json` is regenerated; the pack version moves once."
+    after: "`schemas/oh.war/roadmap/v1.json` is generated into the pack; the pack version does not move: an added `v1` schema is not a format change (docs/COMPATIBILITY.md)."
+  - element: "constraints"
+    before: "The roadmap record adds a schema (`oh.war/roadmap/v1`) and the pack version moves once, in M2, with a regenerated pack."
+    after: "The roadmap record adds a schema (`oh.war/roadmap/v1`) to the pack in M2; the pack version does not move, as docs/COMPATIBILITY.md requires for an added `v1` schema."
+
+affected_stages: []
+affected_milestones: []

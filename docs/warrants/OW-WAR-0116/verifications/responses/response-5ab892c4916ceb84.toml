@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0116"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0's stdout (truncated:true, only specific excerpts and a tail shown) confirms three of the obligation's required checks in its '== web ui (OW-WAR-0116) ==' block (lines 840-893): 'an act not on the allowlist 403', 'an act that carries an argv 400', and 'an allowlisted act ran sign WU-WAR-0001 --ssh-sign; nothing signed'. But obligation_evidence explicitly marks the term 'war --root <root> sign <target> --ssh-sign' as shown_in: [] — the exact command string the obligation requires to be asserted from the server's act log line is not shown anywhere in the bundle; only the shorter summary 'ran sign WU-WAR-0001 --ssh-sign' appears, which does not confirm the --root <root> prefix or that the shown target matches an allowlist id tied to a dry-run verdict on the Queue row. Additionally, two other required checks are absent from every visible excerpt and the stdout tail: 'a second POST while one runs is 409' and 'a resolution needing an outcome shows its terminal command and no id' — neither phrase nor an equivalent line appears in the shown lines 840-893 or in the tail text (which covers different, later plant sections such as deliverable/correction and tmp-path plants). Since the stdout is truncated and these specific lines are not among what was carried, bytes for them were not shown and are therefore not evidence either way, so the obligation cannot be established from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0006"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-core/src/adr.rs) contains `supersession_relations_are_read_in_both_directions`, which only exercises AdrRecord::parse on frontmatter text and asserts the resulting `supersedes`/`superseded_by` fields — it never serializes an AdrRecord back to text and reparses it, so no 'canonical round trip' as OBL-001's evidence requirement names is present anywhere in D-001, D-002, or D-003. The sole gate run, GR-software.repo.war-check@1.0.0 (`war check --generated`), is not a test runner: its own stdout NOT CHECKED section states 'gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' so there is no execution record in the bundle showing the listed test_names were ever run, let alone passed. obligation_evidence for OBL-001 shows 'supersedes'/'superseded_by' appearing only in source deliverables and atoms text, not in any gate output demonstrating a round trip."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The bundle's top-level `plants` array is empty, so no planted supersession cycle and no planted status/currency conflict are carried, despite OBL-002 explicitly requiring 'two plants, two observed refusals naming the specific rule.' D-002 and D-003 contain unit tests (`a_supersession_cannot_leave_unresolved_work_unaddressed`, `a_cycle_is_found_once`, etc.) exercising cycle detection and adoption logic in isolation, but these are synthetic in-source tests, not the required plants against the actual system, and as with OBL-001 the only gate run (`war check --generated`) does not execute cargo tests — its own stdout says so. The gate stdout excerpts show unrelated PASS lines (e.g. `identity.atom-mismatch`, `journal.append-only`) but no `relations.currency-cycle` or CONFLICT diagnostic tied to a planted case."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No Progress Log atom or deliverable is carried in this bundle — the atoms present are only intent, basis, work_order, milestones, and assurance (atoms/10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md). obligation_evidence for OBL-003 shows the term '3678455' appearing only under 'atoms', which is atoms/10-intent.md's own Intent narrative ('The ADR Overview shipped in commit `3678455` with NO Warrant authorizing it'), not a Progress Log entry naming the commit and the violated obligation as required. No deliverable (D-001, D-002, D-003) or gate output contains any such record."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

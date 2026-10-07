@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: Apache-2.0
 """Author a Warrant from a specification dict.
 
 This is scaffolding for the ROADMAP Warrants, not a replacement for thinking:

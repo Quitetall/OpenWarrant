@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0134"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/56-acceptance-validity.sh, carried in full, truncated:false) contains both required checks for the chosen Q-001 consequence, and gate run GR-ops.conformance.plants@1.1.0's stdout excerpt (lines 414-428) shows all of them passing: for the (b) branch, 'not re-established does not clear' (exit 2, still acceptance.candidate-moved), 'a re-verification clears it' (acceptance.unchanged (re-verified), resolution.toml untouched), and 'it clears for that candidate only' (a second commit against src/second.txt re-raises it) are all logged 'ok'. For the pinned-deliverable branch, the script rewrites src/core.txt, re-verifies it (which does not clear the finding, confirmed by 'ok a moved pin needs a human ... re-verification did not clear it', naming Q-001(a)), then executes a CORRECT block running `war sign \"$A/D-001\" --ssh-sign --as \"Plant Signer\" --kind behaviour-change` in a throwaway agent holding only the plant key, and checks `war pins --candidate HEAD` afterward reports acceptance.unchanged rather than candidate-moved — logged as 'ok a signed correction clears the pin war sign AV-WAR-0001/D-001: acceptance.unchanged at the re-accepted candidate'. This is the positive (a)-clearing demonstration; combined with the (b)-branch checks it covers the full consequence the Basis selects (b for ordinary in-scope changes, a correction-based analogue of (a) for a pinned deliverable), using the existing 'behaviour-change' act kind rather than a new one. The companion gate run GR-software.repo.war-check@1.0.0 (PASS evidence.admissible line) confirms the plants receipt reseals and is bound to the current contract digest, so this run is evidence about the candidate under review, not a stale record."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

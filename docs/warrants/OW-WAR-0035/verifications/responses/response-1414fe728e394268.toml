@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0035"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is [] and obligation_evidence for OBL-001 lists no named_paths; the only gate run (GR-software.repo.war-check@1.0.0, subject_digests keyed to contract:sha256:d19666... and tree:9729d66...) shows `war check` validating the OW-WAR-0035 Warrant record itself (manifest.valid, traceability.refs, journal.append-only, authority.signed, identity.atom-mismatch, obligations.valid, milestones.valid, generated.drift — all labeled OW-WAR-0035), not a draft produced by `war plan \"<sentence>\"`. The stdout's own NOT CHECKED section states 'gate execution ... `war check` does not run gates ... nothing here is evidence that a Warrant's acceptance gates were run' and closes with 'WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)'. No draft or plan artifact is carried anywhere in the bundle, so §99 criterion 1 cannot be decided."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 has empty named_paths and an empty terms array, deliverables is [], and none of the visible gate stdout excerpts (the OW-WAR-0035 manifest/traceability/journal/authority/identity checks or the repin-command listing at the tail) mention a clarification count or per-plan question telemetry. atoms/60-assurance.md's Residual Risk section states plainly that 'Question quality is unmeasurable pre-telemetry. Until OW-WAR-0039, §99 criterion 2 is an aspiration,' confirming no such telemetry artifact exists in this bundle to check. Nothing is carried to establish or refute the claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's required evidence is 'a plant; the draft remains unauthorized,' but plants is [] in the bundle and obligation_evidence for OBL-003 shows no named_paths and no terms. The single gate run's visible stdout (spanning lines 581-2988, including the OW-WAR-0130 through OW-WAR-0146 repin listing and the OW-WAR-0035-scoped PASS/WARN lines) contains no plant record, rejection trace, or content addressing self-authorization or §27.2. With no plant artifact carried, this bundle gives no basis to decide whether planning ever attempted or was blocked from self-authorization."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

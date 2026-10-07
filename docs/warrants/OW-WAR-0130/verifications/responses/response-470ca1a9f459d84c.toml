@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0130"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The gate run ops.conformance.plants@1.1.0 (D-008, conformance/plants.d/69-idempotency.sh) stdout shows two of OBL-002's three required evidence items fully satisfied for all five scoped acts (war sign, war ask, war submit, war verify --response, war evidence record): each 'retried replays' line shows exit 0 with a replay diagnostic and 'IA-WAR-0001 byte-identical' (e.g. 'war verify retried replays verify.replayed, exit 0, IA-WAR-0001 byte-identical'), and each conflict case shows 'journal.idempotency-conflict' with an unchanged journal line count (e.g. 'war evidence by another refuses journal.idempotency-conflict, 9 line(s) unchanged'). However the obligation's evidence also names a required negative control -- that the same plant fails on at least war verify --response before this change, to show the plant tests something -- and the gate output shows this control was explicitly skipped: 'note control: before, the retry failed not run: set IP_WAR_BEFORE to a war built before OW-WAR-0130'. Since the bundle affirmatively shows this named evidence item was never executed (not merely truncated or cut by budget), the full evidentiary basis the obligation names is not carried, so the claim cannot be established even though the other two bullets are well supported."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

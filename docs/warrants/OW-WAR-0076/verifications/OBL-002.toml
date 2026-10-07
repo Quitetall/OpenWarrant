@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "plants is an empty list and obligation_evidence for OBL-002 likewise shows named_paths:[] and terms:[], so no refusal fixtures, CLI transcripts, or exit codes for malformed/duplicate/conflicting/authority-confused inputs are present anywhere in the bundle. The only gate run carried is software.repo.war-check@1.0.0, a record-structure linter (its PASS lines cover manifest.valid, traceability.refs, obligations.valid, etc., all about Warrant record shape, not SDK input handling), and its own NOT CHECKED section disclaims evidencing acceptance-gate execution. No observed refusal for this boundary is shown, so this obligation cannot be established or refuted."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

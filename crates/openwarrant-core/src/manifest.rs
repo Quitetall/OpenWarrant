@@ -11,7 +11,7 @@ use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 
 use crate::identity::{IdentityError, LocalAlias, WarUuid};
-use crate::role::{AtomRole, Profile, RoleError, is_namespaced_extension_role};
+use crate::role::{AtomRole, Profile, ProfileRegistry, RoleError, is_namespaced_extension_role};
 
 /// The only manifest schema this build understands.
 pub const MANIFEST_SCHEMA: &str = "oh.war/manifest/v1";
@@ -41,6 +41,17 @@ pub enum ManifestError {
     )]
     MissingRequiredRole { profile: Profile, role: AtomRole },
     #[error(
+        "profile {profile} requires a {role} atom and the manifest declares none \
+         (SAS §16.3, §16.4 — a role the profile requires fails closed when absent)"
+    )]
+    MissingProfileRole { profile: Profile, role: String },
+    #[error(
+        "profile {profile} is a working form: a record of it is not a Warrant of the \
+         contract corpus. It lives under the tickets directory and becomes a Warrant by \
+         promotion into `{core}` (`war promote`), which then requires every core role"
+    )]
+    WorkingFormProfile { profile: Profile, core: String },
+    #[error(
         "atom at ordinal {ordinal} declares role {role:?}, which is neither a core role \
          nor a namespaced optional extension (SAS §16.4 — unknown required roles fail closed)"
     )]
@@ -63,6 +74,8 @@ pub enum ManifestError {
         "parent {index} references {reference:?} but declares no contract_revision (SAS §20.2)"
     )]
     ParentWithoutRevision { index: usize, reference: String },
+    #[error("profile_digest {found:?} is not `sha256:` and 64 lowercase hex digits (OW-ADR-0031)")]
+    BadProfileDigest { found: String },
 }
 
 /// Assurance level (SAS §25).
@@ -205,6 +218,13 @@ pub struct Manifest {
     pub enterprise_id: String,
     pub title: String,
     pub profile: String,
+    /// OW-ADR-0031: `sha256:<hex>` of the profile file this Warrant was
+    /// composed against, written by `war new`. Manifest bytes are inside the
+    /// contract digest, so a signature over a manifest carrying it covers the
+    /// type. Absent in every manifest written before it existed, which keeps
+    /// its bytes, its digest and its checks as they were.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_digest: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub assurance_level: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -238,7 +258,25 @@ impl Manifest {
     ///
     /// `namespace`, when supplied, additionally requires the alias to belong to
     /// this repository.
+    ///
+    /// The profile resolves against the two core profiles only; a program's
+    /// own profiles are admitted by [`Self::validate_in`].
     pub fn validate(&self, namespace: Option<&str>) -> Result<ValidatedManifest, ManifestError> {
+        self.validate_in(namespace, &ProfileRegistry::builtin())
+    }
+
+    /// [`Self::validate`] against a program's profile registry (§16.3).
+    ///
+    /// A namespaced role the manifest's profile requires is admitted when an
+    /// atom declares it required, and its absence fails closed. A required
+    /// namespaced role no profile asks for is still `UnknownRequiredRole`
+    /// (§16.4): the registry widens exactly the roles one definition names,
+    /// for Warrants of that profile, and nothing else.
+    pub fn validate_in(
+        &self,
+        namespace: Option<&str>,
+        registry: &ProfileRegistry,
+    ) -> Result<ValidatedManifest, ManifestError> {
         if self.schema != MANIFEST_SCHEMA {
             return Err(ManifestError::UnknownSchema {
                 found: self.schema.clone(),
@@ -263,7 +301,24 @@ impl Manifest {
             });
         }
 
-        let profile = Profile::from_str(&self.profile)?;
+        let profile = registry.resolve(&self.profile)?;
+        if let Some(pin) = &self.profile_digest
+            && !pin.strip_prefix("sha256:").is_some_and(|hex| {
+                hex.len() == 64
+                    && hex
+                        .bytes()
+                        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            })
+        {
+            return Err(ManifestError::BadProfileDigest { found: pin.clone() });
+        }
+        if registry.is_working_form(&profile) {
+            return Err(ManifestError::WorkingFormProfile {
+                core: profile.core().as_str().to_owned(),
+                profile,
+            });
+        }
+        let profile_roles = registry.required_extension_roles(&profile);
         let assurance_level = match &self.assurance_level {
             Some(level) => AssuranceLevel::from_str(level)?,
             None => AssuranceLevel::Basic,
@@ -281,6 +336,7 @@ impl Manifest {
 
         // §91.2 test 9 (via core_role), plus source-shape checks.
         let mut present_roles = BTreeSet::new();
+        let mut present_extension_roles = BTreeSet::new();
         for atom in &self.atoms {
             match (&atom.path, &atom.r#ref) {
                 (None, None) => {
@@ -294,6 +350,10 @@ impl Manifest {
                     });
                 }
                 _ => {}
+            }
+            if profile_roles.contains(&atom.role.as_str()) {
+                present_extension_roles.insert(atom.role.as_str());
+                continue;
             }
             if let Some(role) = atom.core_role()? {
                 if role.is_compiler_produced() {
@@ -310,6 +370,14 @@ impl Manifest {
         for role in profile.required_authored_roles() {
             if !present_roles.contains(&role) {
                 return Err(ManifestError::MissingRequiredRole { profile, role });
+            }
+        }
+        for role in &profile_roles {
+            if !present_extension_roles.contains(role) {
+                return Err(ManifestError::MissingProfileRole {
+                    profile: profile.clone(),
+                    role: (*role).to_owned(),
+                });
             }
         }
 
@@ -460,6 +528,7 @@ mod tests {
             enterprise_id: String::new(),
             title: "A delivery warrant".to_owned(),
             profile: "delivery".to_owned(),
+            profile_digest: None,
             assurance_level: Some("basic".to_owned()),
             implements: vec![],
             roadmap: vec![],
@@ -474,6 +543,117 @@ mod tests {
                 atom(60, "assurance"),
             ],
         }
+    }
+
+    /// A profile that is not the contractor one: the seam is generic, and
+    /// these tests prove it without the contractor definition existing.
+    const LAB: &str = r#"
+schema = "oh.war/profile/v1"
+name = "lab"
+extends = "delivery"
+approved = false
+
+[[requires]]
+role = "lab.protocol"
+ordinal = 71
+file = "71-lab-protocol.md"
+stub = "Protocol"
+"#;
+
+    fn lab_registry() -> ProfileRegistry {
+        ProfileRegistry::with_definitions([("profiles/lab.toml", LAB.as_bytes())])
+            .expect("lab definition")
+    }
+
+    fn lab() -> Manifest {
+        let mut m = delivery();
+        m.profile = "lab".to_owned();
+        m.atoms.push(atom(71, "lab.protocol"));
+        m
+    }
+
+    /// OW-WAR-0140 OBL-002: a profile-required role satisfies validation for
+    /// that profile, and its absence fails closed naming profile and role.
+    #[test]
+    fn a_profile_required_role_is_admitted_and_its_absence_refused() {
+        let v = lab()
+            .validate_in(Some("OW"), &lab_registry())
+            .expect("valid");
+        assert_eq!(v.profile.as_str(), "lab");
+        assert_eq!(v.profile.core(), crate::role::CoreProfile::Delivery);
+
+        let mut m = lab();
+        m.atoms.retain(|a| a.role != "lab.protocol");
+        let err = m
+            .validate_in(Some("OW"), &lab_registry())
+            .expect_err("must refuse");
+        assert_eq!(
+            err,
+            ManifestError::MissingProfileRole {
+                profile: lab_registry().resolve("lab").expect("lab"),
+                role: "lab.protocol".to_owned()
+            }
+        );
+        let text = err.to_string();
+        assert!(
+            text.contains("profile lab") && text.contains("lab.protocol"),
+            "{text}"
+        );
+    }
+
+    /// Elsewhere nothing loosens: the registry that admits `lab.protocol` for
+    /// `lab` still refuses it REQUIRED on a delivery Warrant, and a lab
+    /// Warrant still refuses a required role its profile does not name.
+    #[test]
+    fn a_profile_role_is_admitted_for_its_profile_only() {
+        let mut m = delivery();
+        m.atoms.push(atom(71, "lab.protocol"));
+        assert!(matches!(
+            m.validate_in(Some("OW"), &lab_registry()),
+            Err(ManifestError::UnknownRequiredRole { ordinal: 71, .. })
+        ));
+        let mut m = lab();
+        m.atoms.push(atom(72, "lab.other"));
+        assert!(matches!(
+            m.validate_in(Some("OW"), &lab_registry()),
+            Err(ManifestError::UnknownRequiredRole { ordinal: 72, .. })
+        ));
+        // Optional on delivery: preserved, as before.
+        let mut m = delivery();
+        let mut optional = atom(71, "lab.protocol");
+        optional.required = false;
+        m.atoms.push(optional);
+        assert!(m.validate_in(Some("OW"), &lab_registry()).is_ok());
+    }
+
+    /// A working form (a ticket) is never a Warrant of the contract corpus:
+    /// a manifest naming it is refused whatever atoms it carries, so nothing
+    /// that compiles, authorizes or resolves ever reads a two-atom record.
+    #[test]
+    fn a_working_form_profile_is_refused_as_a_warrant() {
+        let registry = ProfileRegistry::with_definitions([(
+            "profiles/task.toml",
+            b"schema = \"oh.war/profile/v1\"\nname = \"task\"\nextends = \"delivery\"\napproved = false\nform = \"working\"\ncore_roles = [\"intent\"]\n[[requires]]\nrole = \"task.checklist\"\nordinal = 15\nfile = \"15-checklist.md\"\nstub = \"x\"\n"
+                .as_slice(),
+        )])
+        .expect("task definition");
+        let mut m = delivery();
+        m.profile = "task".to_owned();
+        m.atoms.push(atom(15, "task.checklist"));
+        assert!(matches!(
+            m.validate_in(Some("OW"), &registry),
+            Err(ManifestError::WorkingFormProfile { .. })
+        ));
+    }
+
+    /// Without the program's registry the profile is unknown: `validate`
+    /// resolves against the two core profiles only.
+    #[test]
+    fn a_program_profile_is_unknown_to_the_builtin_registry() {
+        assert!(matches!(
+            lab().validate(Some("OW")),
+            Err(ManifestError::Role(RoleError::UnknownProfile { .. }))
+        ));
     }
 
     #[test]

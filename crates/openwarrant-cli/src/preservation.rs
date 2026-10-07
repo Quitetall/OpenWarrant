@@ -60,7 +60,10 @@ fn read(path: &Path, limit: usize) -> Result<Vec<u8>, Error> {
     crate::progress_viewer::source::read(Path::new("/"), relative, limit).map_err(Error)
 }
 
-pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
+pub fn run(
+    root: Option<camino::Utf8PathBuf>,
+    command: Command,
+) -> Result<(String, serde_json::Value), Error> {
     let limits = Limits::default();
     match command {
         Command::RuntimeBasis { input } => runtime_basis::run(input.as_std_path(), limits),
@@ -95,7 +98,7 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
             history,
             history_ref,
         } => {
-            let repo = crate::repo::Repository::discover(None).map_err(|e| Error(e.to_string()))?;
+            let repo = crate::repo::Repository::discover(root).map_err(|e| Error(e.to_string()))?;
             let archive = assemble(&repo, &alias, limits, history, &history_ref)?;
             let bytes = archive.encode(limits)?;
             write_new(output.as_std_path(), &bytes)?;

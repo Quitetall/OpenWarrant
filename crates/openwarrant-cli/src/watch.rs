@@ -36,8 +36,9 @@ pub struct Snapshot {
     pub questions: Vec<String>,
 }
 
-/// The trees whose change can change the pending set.
-fn watched_dirs(repo: &Repository) -> Vec<camino::Utf8PathBuf> {
+/// The trees whose change can change the pending set. `pub(crate)`: the app
+/// polls the same fingerprint (OW-WAR-0112), one poller and not two.
+pub(crate) fn watched_dirs(repo: &Repository) -> Vec<camino::Utf8PathBuf> {
     vec![
         repo.root.join(&repo.config.paths.warrants),
         repo.root.join("docs/authority"),
@@ -47,7 +48,7 @@ fn watched_dirs(repo: &Repository) -> Vec<camino::Utf8PathBuf> {
 
 /// A cheap fingerprint of the trees: every file's path, length and mtime,
 /// skipping `generated/` (projections change without the pending set).
-fn fingerprint(dirs: &[camino::Utf8PathBuf]) -> u64 {
+pub(crate) fn fingerprint(dirs: &[camino::Utf8PathBuf]) -> u64 {
     use std::hash::{Hash, Hasher};
     let mut h = std::collections::hash_map::DefaultHasher::new();
     fn walk(dir: &Utf8Path, h: &mut std::collections::hash_map::DefaultHasher) {

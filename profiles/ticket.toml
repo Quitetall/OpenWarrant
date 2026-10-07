@@ -1,0 +1,64 @@
+# The ticket profile (OW-WAR-0147), as data: the working form of a delivery
+# Warrant.
+#
+# A ticket is a sentence and a checklist: `war create`, `war claim`, `war done`.
+# It is workable the moment it exists, and nothing in it is a signature, a
+# verification or a resolution. That is what `form = "working"` says: a
+# record of this profile carries only the roles below, lives under
+# docs/tickets/ rather than docs/warrants/, and is never compiled, authorized,
+# verified or resolved as a ticket. A Warrant manifest that names this profile
+# is refused (`WorkingFormProfile`). When someone wants sign-off, `war promote`
+# turns the ticket into a `delivery` Warrant, which then requires every core
+# role of §16.3 exactly as `war new` does. The working form loosens nothing
+# the authority layer reads. docs/TICKETS.md walks the loop.
+schema = "oh.war/profile/v1"
+name = "ticket"
+extends = "delivery"
+
+# Nobody has approved this definition yet: the Warrant that introduces it
+# (OW-WAR-0147) is drafted and unsigned. A ticket does not need approval to
+# be worked — nothing about a ticket is accepted — so this flag gates nothing
+# on the ticket path; it records the definition's standing honestly.
+approved = false
+
+note = "The working form of a delivery Warrant: an intent (the sentence, context, decisions and notes) and a Markdown checklist. Worked with war create / ready / claim / done; promoted into delivery by war promote when someone wants sign-off."
+
+form = "working"
+core_roles = ["intent"]
+
+# OW-ADR-0031: the working form's capabilities, which `form = "working"`
+# implies anyway: structure, links and claims. Nothing here authorizes,
+# verifies or resolves.
+capabilities = ["structure", "links", "claims"]
+
+# OW-WAR-0148 M3: the core relation kinds a ticket's items may author. An
+# item's `implements REQ-pr1` (in its text) is intended coverage of a record,
+# never satisfaction of it; `war impact REQ-pr1` names the item.
+[relations]
+allow = ["depends_on", "implements", "part_of"]
+
+[[requires]]
+role = "ticket.checklist"
+ordinal = 15
+file = "15-checklist.md"
+stub = """# Checklist
+
+"""
+
+# OW-WAR-0148 M5: what a ticket's optional fields may hold. `type` is one of
+# `types` (`war create --type bug`); labels are free words unless
+# `labels_closed = true`, when only `labels` are admitted and any other is
+# refused by rule (`ticket.label-unknown`). Both are absent from a ticket
+# that sets neither, so tickets written before M5 read byte for byte.
+[fields]
+types = ["task", "bug", "feature", "chore", "epic"]
+labels = []
+labels_closed = false
+
+# OW-WAR-0148 M4/M5: a declared refinement a ticket or an item may enter with
+# `war state <item> in_review`. It holds while the item is claimed (in
+# progress) and lapses when it is done; `war tickets --state in_review`
+# finds it. It satisfies nothing: done is still the ticked box.
+[[states]]
+name = "in_review"
+refines = "in_progress"

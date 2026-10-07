@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The conformance/plant.sh battery contains 138 deliberate violations each rejected by its named rule (e.g., '[OW-WAR-0055] a roadmap ref past the last phase', '[OW-WAR-0059] a receipt edited after it was sealed', '[OW-WAR-0031] a journal line edited in place'), and the final step of `cargo xtask gate` is 'planted violations (conformance/plant.sh)' which exercises the gate's rejection path; the receipt for GR-software.repo.war-check@1.0.0 confirms the gate infrastructure is qualified against its declared fault model."
+disposition = "not_established"
+evidence = "The only recorded gate run, GR-software.repo.war-check@1.0.0, has exit_result 'pass' and run.verdict 'pass' — the opposite of the rejection this obligation requires — and its argv is 'war check --generated', not 'cargo xtask gate'. No second run and no run of any kind showing cargo xtask gate exiting non-zero with named failing steps (fmt/clippy/tests/licenses) appears anywhere in gate_runs or the deliverables, so the bundle carries no evidence of the control having been observed to reject."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

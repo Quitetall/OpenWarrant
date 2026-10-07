@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No plant in conformance/plant.sh or test in execution::tests demonstrates a request for an unlisted capability being refused, as required by §55.2; the listed plants are for other warrants (e.g., OW-WAR-0055, OW-WAR-0056) and do not exercise this control."
+evidence = "OBL-003 requires 'a plant requesting an unlisted capability, refused,' but the bundle's top-level plants array is empty, so no such conformance plant is carried. D-001's test_names list contains no test exercising capability denial, and the CapabilityAuthorization struct defined in execution.rs carries only policy_ref and digest with no enforcement/default-deny logic anywhere in the deliverable's text. The assurance atom's 'Executed attacks' list (atoms/60-assurance.md) enumerates attacks on contract_digest/revision/obligation_refs tampering, omitted_subgraphs, and repair evidence, but names nothing about an unlisted-capability request being refused. The single gate run's excerpted stdout concerns unrelated repo-structure checks (manifest, deliverable digests, traceability, journal), giving no evidence of this specific refusal."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

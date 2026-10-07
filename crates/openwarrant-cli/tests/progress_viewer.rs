@@ -87,9 +87,12 @@ impl Drop for Fixture {
         let _ = std::fs::remove_dir_all(&self.0);
     }
 }
+/// `war progress --serve`, which is `war ui` opened at Progress
+/// (OW-WAR-0116): every `/api/` call carries the session token.
 struct Server {
     child: Child,
     host: String,
+    token: String,
 }
 impl Server {
     fn start(fixture: &Fixture) -> Self {
@@ -112,6 +115,7 @@ impl Server {
         let mut server = Self {
             child,
             host: String::new(),
+            token: String::new(),
         };
         let mut reader = BufReader::new(stdout);
         let mut json = String::new();
@@ -125,11 +129,16 @@ impl Server {
             }
             assert!(json.len() < 65536, "Invalid startup envelope");
         };
-        server.host = result["result"]["url"]
-            .as_str()
+        let url = result["result"]["url"].as_str().unwrap();
+        let rest = url.trim_start_matches("http://");
+        server.host = rest.split('/').next().unwrap().to_string();
+        server.token = rest
+            .split("#t=")
+            .nth(1)
             .unwrap()
-            .trim_start_matches("http://")
-            .trim_end_matches('/')
+            .split('&')
+            .next()
+            .unwrap()
             .to_string();
         server
     }
@@ -140,7 +149,8 @@ impl Server {
             .unwrap();
         write!(
             stream,
-            "{method} {path} HTTP/1.1\r\nHost: {host}\r\n{extra}\r\n"
+            "{method} {path} HTTP/1.1\r\nHost: {host}\r\nAuthorization: Bearer {}\r\n{extra}\r\n",
+            self.token
         )
         .unwrap();
         let mut result = String::new();
@@ -148,7 +158,7 @@ impl Server {
         result
     }
     fn data(&self) -> serde_json::Value {
-        let result = self.request("GET", "/api/progress", &self.host, "");
+        let result = self.request("GET", "/api/snapshot", &self.host, "");
         assert!(result.starts_with("HTTP/1.1 200"));
         serde_json::from_str(result.split_once("\r\n\r\n").unwrap().1).unwrap()
     }
@@ -183,9 +193,12 @@ fn live_refresh_keeps_last_good_snapshot_and_refuses_writes_and_bad_origins() {
         server.data()["snapshot"]["reports"]["VIEW-WAR-0001"]["report"]["work_state"],
         "in-progress"
     );
+    // The page carries no data and no inline script: a record cannot
+    // inject into it, because nothing from a record is in it.
     let html = server.request("GET", "/", &server.host, "");
-    assert!(!html.contains("</script><script>globalThis.injected=true"));
-    assert!(html.contains("__LIVE__ __INTERVAL__"));
+    assert!(!html.contains("globalThis.injected"));
+    assert!(!html.contains("<script>"));
+    assert!(html.contains("Content-Security-Policy: default-src 'none'; script-src 'self'"));
     fixture.report("completed");
     let completed = server.until(|v| {
         v["snapshot"]["reports"]["VIEW-WAR-0001"]["report"]["work_state"] == "completed"
@@ -204,7 +217,8 @@ fn live_refresh_keeps_last_good_snapshot_and_refuses_writes_and_bad_origins() {
     server.until(|v| v["snapshot"]["reports"]["VIEW-WAR-0001"]["error"].is_string());
     for (method, path, host, extra, code) in [
         ("POST", "/api/progress", server.host.as_str(), "", "405"),
-        ("GET", "/api/progress", "attacker.example", "", "403"),
+        // A foreign Host is DNS rebinding, refused before the token is read.
+        ("GET", "/api/progress", "attacker.example", "", "400"),
         (
             "GET",
             "/api/progress",
@@ -272,7 +286,10 @@ fn cached_evidence_replaced_by_fifo_or_symlink_refuses_without_hanging() {
     std::fs::write(&report, serde_json::to_vec(&data).unwrap()).unwrap();
     let server = Server::start(&fixture);
     let snapshot = server.data();
-    let url = snapshot["snapshot"]["links"]["note.md"].as_str().unwrap();
+    let url = &snapshot["snapshot"]["links"]["note.md"]
+        .as_str()
+        .unwrap()
+        .replacen("/source/", "/api/source/", 1);
     assert!(
         server
             .request("GET", url, &server.host, "")
@@ -435,8 +452,9 @@ fn roadmap_document_link_serves_exact_source_and_invalid_refresh_stays_stale() {
     let before = server.data();
     let link = before["snapshot"]["links"]["architecture.md"]
         .as_str()
-        .unwrap();
-    let response = server.request("GET", link, &server.host, "");
+        .unwrap()
+        .replacen("/source/", "/api/source/", 1);
+    let response = server.request("GET", &link, &server.host, "");
     assert!(response.starts_with("HTTP/1.1 200"));
     assert_eq!(
         response.split_once("\r\n\r\n").unwrap().1,

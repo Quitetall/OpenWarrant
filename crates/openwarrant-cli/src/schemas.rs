@@ -64,6 +64,26 @@ fn entries() -> Vec<Entry> {
         entry::<crate::output::Envelope<'static>>("report"),
         entry::<crate::bonsai::BonsaiEvidence>("bonsai-evidence"),
         entry::<openwarrant_compiler::WarIr>("war"),
+        // OW-ADR-0029: the class a human signs once for routine work.
+        entry::<openwarrant_core::standing::StandingAuthorization>("standing-authorization"),
+        // OW-WAR-0114 (OW-ADR-0023): `roadmap.toml`, as `war roadmap` reads it —
+        // the core manifest plus `[[placement]]` and `[[retires]]`.
+        entry::<crate::roadmap_cmd::Manifest>("roadmap"),
+        // OW-WAR-0148: the compiled corpus every client reads (`war model`).
+        // Additive: the pack version does not move.
+        entry::<crate::model::Model>("model"),
+        // OW-WAR-0148 M3: what a change to one record affects (`war impact`).
+        // Additive: the pack version does not move.
+        entry::<crate::impact::Impact>("impact"),
+        // OW-WAR-0148 M8: `war host`, oh.war/liminal-v1 (SAS §82.2) — the
+        // request Liminal sends and the response it reads. Additive: the
+        // pack version does not move.
+        entry::<crate::host::Request>("liminal-request"),
+        entry::<crate::host::Response>("liminal-response"),
+        // OW-WAR-0148 M6: a rendering of a declared projection (`war render
+        // --json`), every line traced to a record and its revision. Additive:
+        // the pack version does not move.
+        entry::<openwarrant_compiler::project::Projection>("projection"),
     ]
 }
 
@@ -132,6 +152,16 @@ fn file_path(root: &Utf8Path, record: &str) -> Utf8PathBuf {
 pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let (files, pack) = render_all()?;
+    // Candidate publication is separate from the frozen active pack. Adding a
+    // second record format must not silently rebind existing contract digests.
+    let candidate_path = repo.root.join(PACK_DIR).join("oh.war/verification/v2.json");
+    let candidate_text = serde_jcs::to_string(&openwarrant_core::verification_record::schema())
+        .map_err(|error| {
+            RepoError::Message(format!(
+                "could not render candidate verification schema: {error}"
+            ))
+        })?
+        + "\n";
     let mut typescript = crate::schema_typescript::render(&files).map_err(RepoError::Message)?;
     let pack_path = repo.root.join(PACK_DIR).join("pack.json");
     let pack_body = pack_text(&pack)?;
@@ -179,11 +209,13 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             }
         }
     };
+    report.notes.push("verification/v2.json is a candidate publication outside the active 0.2.0 pack; it does not adopt the format or change contract identity".into());
     if check {
         for (record, text) in &files {
             compare(&file_path(&repo.root, record), text, &mut report);
         }
         compare(&pack_path, &pack_body, &mut report);
+        compare(&candidate_path, &candidate_text, &mut report);
         for (name, text) in &typescript {
             compare(
                 &repo.root.join(PACK_DIR).join("typescript").join(name),
@@ -218,6 +250,16 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             source,
         })?;
     }
+    if let Some(parent) = candidate_path.parent() {
+        std::fs::create_dir_all(parent).map_err(|source| RepoError::Io {
+            context: format!("could not create {parent}"),
+            source,
+        })?;
+    }
+    std::fs::write(&candidate_path, &candidate_text).map_err(|source| RepoError::Io {
+        context: format!("could not write {candidate_path}"),
+        source,
+    })?;
     std::fs::write(&pack_path, &pack_body).map_err(|source| RepoError::Io {
         context: format!("could not write {pack_path}"),
         source,
@@ -257,7 +299,8 @@ mod tests {
         let (b, pb) = render_all().unwrap();
         assert_eq!(a, b);
         assert_eq!(pa.transitive_digest, pb.transitive_digest);
-        assert_eq!(a.len(), 15);
+        assert_eq!(a.len(), entries().len());
+        assert!(a.contains_key("roadmap"), "the roadmap record has a schema");
         for (record, text) in &a {
             let v: serde_json::Value = serde_json::from_str(text).unwrap();
             assert_eq!(v["$id"], format!("oh.war/{record}/v1"));

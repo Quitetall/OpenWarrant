@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-004 (conformance/plants.d/83-tokens.sh) builds a scratch corpus TK-WAR-0002 with STAGE-001 (agent, budget_tokens:10), STAGE-002 (agent, in budget) and STAGE-003 (service, budget_tokens:10) and a fixture performer that writes a per-stage marker file only if it runs, then exercises war perform, war perform --all and war run against it, and separately removes the budget to show the refusal is not a no-op. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) printed the passing lines 'perform over budget starts nothing    rejected by dispatch.over-budget; no marker, packet or journal line', 'perform in budget starts the actor    the marker exists: the refusal above is the budget's', 'perform --all skips only the over    STAGE-002 performed; STAGE-001 named by dispatch.over-budget', 'run over budget runs no gate    rejected by dispatch.over-budget; no gate run, no receipt', and 'run in budget mints a receipt    the gate ran: the refusal above is the budget's', which together satisfy every evidence bullet (no marker/packet/journal line over budget, --all names only the over-budget stage while performing the other, no gate receipt on an over-budget war run, and the refusal is proven non-vacuous by the corresponding unbudgeted runs)."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

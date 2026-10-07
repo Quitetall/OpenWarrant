@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The measured evidence does not include a run of `war telemetry` producing real untracked-work candidates or a plant that attempts to attach a relation with an empty reviewer and is refused by `RelationFabricated`, as required by the obligation."
+evidence = "D-002's untracked_work_candidates array (116 real commit subjects) shows the 'real history, real candidates' half of the claim. But obligation_evidence for OBL-003 lists the term 'RelationFabricated' with shown_in: [] — it is absent from the bundle — and the top-level plants array is empty, so no plant run, receipt, or gate-run excerpt demonstrates `war telemetry --attach` being refused by the shipped binary when given no reviewer. The single gate run present (GR-software.repo.war-check@1.0.0) is a generic repo check whose shown stdout excerpts (manifest.valid, evidence.valid, journal checks, etc.) do not exercise this refusal. Atom 60-assurance.md's EV-002/OBS-003 assert the refusal ran, but those are the author's own claims in the contract, not gate-run or plant evidence carried in this bundle, so the 'fabricates nothing, run against the shipped binary' half of the obligation cannot be decided."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

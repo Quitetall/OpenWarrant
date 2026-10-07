@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 likewise has no named_paths/terms, deliverables is empty, and plants is empty, so no malformed/incomplete/conflicting/over-limit/authority-confused input case, refusal fixture, or 'unchanged prior output on failed write' is shown anywhere in the bundle. The only gate run present (software.repo.war-check@1.0.0) checks Warrant record structure, not boundary refusal behavior of check_records/evaluate_readiness/evaluate_assurance. Nothing demonstrates a refusal or its absence."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

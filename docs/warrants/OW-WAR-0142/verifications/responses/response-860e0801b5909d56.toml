@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (ops.conformance.plants@1.1.0, receipt exit_result pass) contains stdout lines matching every clause of OBL-004's evidence list, and D-014 (conformance/plants.d/69-standing.sh, carried excerpts) shows the actual assertions behind them, not just the printed titles. 'an edited glob unsigns the class → standing.unsigned in check and at apply; SB-WAR-0002 no longer signed' is backed by the shown script (lines 602-621) that edits `paths` in the signed class file, then asserts `sb check` reports ERROR standing.unsigned and authority.unsigned, `sb standing apply` also errors standing.unsigned, and the Warrant's directory tree is byte-identical before/after. 'a class with no signature → standing.unsigned, nothing written' is the following lines' `st_refused \"a class with no signature\" \"$SB_Z\" 'standing\\.unsigned'` over an unsigned class. 'an agent or the performer signs → refused by kind (AgentProhibited) and as SelfAct; nothing written' is shown at lines 564-585: `st_sign_as` (defined lines 297-321 as `war sign ... --ssh-sign --as <actor>`) invoked as plant-agent and as claude, asserting ERROR standing.not-permitted with AgentProhibited/SelfAct respectively and an unchanged responses-directory digest. 'no MCP tool signs a class → apply and show listed; accept, revoke, propose --ingest refused' is corroborated by the fully-carried D-023 (mcp/mod.rs), whose REFUSED_TOOLS constant lists war_standing_propose_ingest/accept/revoke/ingest and whose test no_refused_tool_is_registered_and_no_signing_or_ingesting_name_exists asserts none of them is registered, together with D-022 showing only war_standing_apply/war_standing_show as registered standing tools. 'revision 2 covers what 1 did not → lib/ refused under @1, covered under @2; SB-WAR-0002 keeps @1' is directly shown at lines 631-656: after signing standing:routine@2 and re-pointing the Warrant's ref to it, the script asserts the @1 attempt was standing.outside-class, the new attempt's authorization.toml carries policy_basis = \"standing://routine@2\", and SB_W1's original authorization.toml still carries policy_basis = \"standing://routine@1\" — the §31 non-retroactivity claim. Every one of these plant checks is reported as a passing 'ok' line in the same gate run's captured stdout, so the obligation's scope (the class record, its signature, war check's re-derivation, the signing path, on the scratch corpus) is satisfied by concrete, traceable evidence rather than mere assertion."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

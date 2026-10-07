@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "The test 'execution::tests::actor_projections_may_differ_in_form_but_not_in_contract' passes, demonstrating that two actor roles can receive different projections of one stage while maintaining the same normative contract, as required by §47.3."
+evidence = """D-001's test actor_projections_may_differ_in_form_but_not_in_contract (present in full in the untruncated execution.rs deliverable) constructs a 'human' StageDispatch and a 'katana' projection with differing objective, instructions, and non_goals, and asserts human.same_normative_contract_as(&katana, "katana") == Ok(()) — two actor-role-specific projections of one stage, as OBL-002's evidence requires. The same test also asserts that altering contract_digest, contract_revision, or obligation_refs between the two projections is refused via ProjectionAltersContract, confirming representation may differ while the normative contract may not, per §47.3 scope. This matches the 'Executed attacks' entry in atoms/60-assurance.md: 'projected one dispatch for a human and one for Katana with different objectives, instructions and non-goals; accepted, because §47.3 permits representation to differ.'"""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

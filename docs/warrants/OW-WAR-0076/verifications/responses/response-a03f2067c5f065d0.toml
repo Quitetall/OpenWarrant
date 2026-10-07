@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0076"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 shows selection 'warrant: every deliverable of the Warrant' with no named_paths or terms actually populated — no bytes of author.rs, conformance/sdk/author/ fixtures, or any parse_document/validate_document output are present anywhere in the bundle. The only evidence item is the software.repo.war-check@1.0.0 gate run, which is a structural/authority linter over the whole corpus and never inspects runtime SDK behavior (footer ordering, unit preservation, revision handling). There is nothing here showing readable-text-first/footer-last output or preserved units, so the claim cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No refusal fixtures, CLI/API outputs, or exit codes for malformed/duplicate/conflicting inputs are included; deliverables is empty and no conformance/sdk/author/ refusal cases are shown. The war-check gate run (GR-software.repo.war-check@1.0.0) only checks repository/Warrant record structure (manifests, digests, journal, SAS pins) and explicitly is not evidence that any acceptance gate for runtime refusal behavior was run ('war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run'). No observed refusal for this obligation's scope is present."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "prior_verifications is an empty array, and 60-assurance.md itself states 'These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here.' No independent reproduction, baseline comparison, or human-acceptance record for this exact result is present in the bundle, so qualification evidence for OBL-001/OBL-002 cannot be found."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The war-check gate run (run_id GR-software.repo.war-check@1.0.0, verdict 'pass') is a corpus-wide report with gate_binding_digest 'unbound:software.repo.war-check@1.0.0' and deliverables digest e3b0c44...855 (the empty-input hash), so it is not bound to OW-WAR-0076's own deliverable set. Its stdout is truncated to a tail beginning at OW-WAR-0138, so the specific manifest.valid/deliverable.digests/obligations.valid/milestones.valid lines for OW-WAR-0076 are not shown; the only visible line naming OW-WAR-0076 is 'PASS identity.atom-mismatch OW-WAR-0076: 4 atom(s) name this Warrant's UUID', while the REMEDIES section lists both 'auto war evidence record OW-WAR-0076' and 'human war sas repin OW-WAR-0076', indicating unresolved WARN-level items for this Warrant's own records that are not visible in the shown excerpt. This partial, truncated view is insufficient to establish structural validity of OW-WAR-0076's authored records."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0134"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/56-acceptance-validity.sh, untruncated) builds a scratch corpus with exactly one resolved Warrant (AV-WAR-0001) whose gate declares inputs: [\"src/**\"] and whose only pinned deliverable is src/core.txt, matching OBL-001's scope. Its 'an in-scope change is named' block appends to src/helper.txt (in-scope, unpinned), commits, runs `war pins --candidate HEAD`, and asserts AV_STATUS -ne 0 with the diagnostic line naming both 'acceptance.candidate-moved' and 'src/helper.txt' (via av_names) while excluding README.txt and acceptance.unknown; the next assertion checks av_sha()==AV_BEFORE and `git diff --quiet -- resolution.toml`, i.e. byte-identical before/after. The recorded gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, exit_result: pass) shows this exact plant's captured stdout excerpt (lines 414-428): 'ok an in-scope change is named acceptance.candidate-moved: src/helper.txt (exit 2)' immediately followed by 'ok the resolution is untouched resolution.toml byte-identical', with the battery's overall tally '1260 passed, 0 failed' confirming neither assertion failed. D-001 (acceptance.rs) implements the corresponding logic (State::Moved, MOVED constant, the in_scope path list, the error diagnostic naming each path) consistent with what the plant exercises. This is independent, non-truncated script logic paired with matching captured gate output, which is sufficient to establish the obligation within its stated scratch-corpus scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

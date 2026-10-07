@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "OBL-004 is scoped to attest.rs and docs/SIGNING.md; obligation_evidence marks attest.rs as 'no deliverable of OW-WAR-0072 and no file at this path: not carried' and docs/SIGNING.md as absent for the same reason (not a deliverable, no file at this path). The terms 'war attest verify', 'attest.subject-drift' and 'oh.war/dsse' are shown only in atoms or nowhere, never against real DSSE envelope code or a signing doc. Since both files named by the obligation's scope are confirmed absent and the Warrant's deliverables array is empty, there is no attestation implementation or documentation for a foreign verifier to check either way, refuting the claim that 'a foreign verifier can check a batch both ways.'"
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

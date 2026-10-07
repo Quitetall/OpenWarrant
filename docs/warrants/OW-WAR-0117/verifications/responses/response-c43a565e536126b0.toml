@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0117"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) executed conformance/plants.d/62-verifier.sh (D-003) against tools/verifier/claude-verifier.sh (D-001), and its stdout shows 'ok    verdicts pass through              1 established, 1 refuted, evidence kept' and 'ok    the model cannot name itself       identity and flags identical with and without its claims' — exactly the two checks OBL-001's evidence calls for (the fixture's dispositions/evidence reaching the response, and a fixture claiming a verifier/actor/independence flags producing byte-identical identity/flags output). D-003's script (the vf_flags/VF_GOOD_FLAGS comparison and the 'claim' mode) is the mechanism producing that result."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same gate run's stdout under '== the blind verifier (OW-WAR-0117) ==' shows 'ok    an answer that is garbage          2 not_established', 'ok    an answer that is skip             1 not_established', 'ok    an answer that is probably         2 not_established', and 'ok    an unknown disposition is dropped  no \"probably\" in the response', covering non-JSON, omitted-obligation, and unknown-disposition answers. It also shows 'ok    a failing verifier records nothing verify.verifier-failed (exit 2), no record moved', directly matching the requirement that a non-zero claude exit causes war verify --run to write nothing. All checks are 'ok' and the battery totals '1214 passed, 0 failed'."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-003's argv-inspection block (grep for --no-session-persistence, --strict-mcp-config, --restricted, --tools '' emptiness, and --disallowedTools naming Bash/Read/Write/Edit) is exercised in the same gate run, whose stdout shows 'ok    the verifier holds no tool         --tools '', no MCP, restricted, no session, empty cwd', matching OBL-003's scope and evidence exactly, with the plant designed to fail (VF_MISSING) if any flag is removed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The distinct_model_required half is shown: gate run GR-ops.conformance.plants@1.1.0 stdout reads 'ok    independence only where true       distinct model: unset no, same no, different yes; human never', matching the wrapper-level bullets. But OBL-004's scope also requires 'war check's independence findings on this repository' — that basic/controlled reporting is sufficient and independence.undeclared no longer appears — and obligation_evidence explicitly marks the terms 'basic' and 'independence.undeclared' as cut_from the ops.conformance.plants@1.1.0 stdout, shown only in D-004 (docs/VERIFICATION.md) and the atoms, i.e. only asserted in prose, not demonstrated by any war check run on this repository. Since a required part of the claim's scope is only asserted and the relevant evidence was cut by the budget, the obligation cannot be established as a whole."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

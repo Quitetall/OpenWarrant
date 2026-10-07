@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same GR-ops.conformance.plants@1.1.0 stdout excerpt (lines 199-209) shows 'ok    a nested battery refuses           exit 2, refused-nested, no clone made', which is D-003's assertion that runs `bash conformance/plant-isolated.sh` directly with OPENWARRANT_IN_BATTERY=1 and checks for exit status 2, the 'plant-isolated.refused-nested' line (defined in D-001 lines ~27-30), and an empty IB_TMP — exactly OBL-002's scope and required evidence, observed in actual captured execution output rather than merely inferred from source."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

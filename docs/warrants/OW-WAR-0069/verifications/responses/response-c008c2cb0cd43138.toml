@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0069"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is empty ([]) and obligation_evidence for OBL-001 marks questions/ as explicitly absent ('a record of OW-WAR-0069 ... not a deliverable: not carried'), with the terms 'war questions --open' and 'war watch --once' shown_in: [] (nowhere in the bundle). The sole plant reference, conformance/plants.d/91-questions.sh line 3, is a comment fragment ('# refuses the reverse...') with no test body or run output. The gate run GR-software.repo.war-check@1.0.0's OW-WAR-0069-specific excerpt (stdout lines 1079-1092) only checks manifest/milestone/obligation well-formedness and journal append-only-ness, plus explicitly states in its NOT CHECKED section that 'war check does not invoke' gate execution and that '143 of 143 Warrants have no disposed obligations' — i.e. it never executed or reported on the questions.rs refusal behavior. No evidence of an agent-actor being refused, a listed question, or war watch naming it exists in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No perform.rs deliverable or fixture-performer run is carried (deliverables: []). obligation_evidence shows 'war perform' only shown_in atoms (work-order prose describing intent, not execution), 'submission.recorded' shown_in: [] entirely, and 'resolve' appearing only in atoms and incidentally in the generic war-check stdout excerpt, which covers OW-WAR-0069's structural checks (manifest.valid, milestones.valid, obligations.valid, journal.append-only) and unrelated Warrants OW-WAR-0138–0147, never a Dispatch/submission run or a §51.2 refusal. The gate run's own NOT CHECKED note states acceptance gates were not actually executed by war check. No plant or gate output demonstrates Dispatch-in/submission-out behavior or a refused resolve request."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No board.rs, platform view HTML, or war sign --list output is carried (deliverables: []). obligation_evidence lists 'war board' and 'war sign --list' as shown_in atoms only, i.e. present solely in the work-order/intent prose, not as rendered output or code. The gate run's OW-WAR-0069 excerpt (stdout lines 1079-1092) covers only manifest/milestone/obligation structural validity, not board rendering or a comparison against war sign --list; its own NOT CHECKED section confirms acceptance-gate execution did not occur. No evidence in the bundle shows the numbered list matching war sign --list rows or that the HTML contains no signing call."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

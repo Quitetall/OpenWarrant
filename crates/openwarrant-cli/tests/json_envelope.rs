@@ -115,3 +115,69 @@ fn without_the_flag_stdout_never_begins_with_a_brace() {
         "human mode leaks JSON: {out}"
     );
 }
+
+#[test]
+fn compile_emits_one_envelope_and_reports_skipped_warrants() {
+    fn copy(from: &std::path::Path, to: &std::path::Path) {
+        std::fs::create_dir_all(to).unwrap();
+        for entry in std::fs::read_dir(from).unwrap() {
+            let entry = entry.unwrap();
+            let target = to.join(entry.file_name());
+            if entry.file_type().unwrap().is_dir() {
+                copy(&entry.path(), &target);
+            } else {
+                std::fs::copy(entry.path(), target).unwrap();
+            }
+        }
+    }
+    let root = std::env::temp_dir().join(format!(
+        "ow-compile-json-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    copy(
+        &repo_root().join("conformance/fixtures/inbox/repository"),
+        &root,
+    );
+    let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["compile", "--json"])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    let v = envelope(&String::from_utf8_lossy(&out.stdout));
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(v["command"], "compile");
+    assert_eq!(v["exit_code"], 0);
+    assert!(out.stderr.is_empty(), "machine mode leaked terminal output");
+    assert!(v["result"]["written"].as_u64().unwrap() > 0);
+    assert!(v["result"]["skipped"].as_array().is_some());
+    // A valid config with an invalid authored Warrant must disclose the skip.
+    let manifest = root.join("docs/warrants/IX-WAR-0001/manifest.toml");
+    assert!(manifest.exists());
+    let source = std::fs::read_to_string(&manifest).unwrap();
+    std::fs::write(
+        &manifest,
+        source.replacen("ordinal = 20", "ordinal = 10", 1),
+    )
+    .unwrap();
+    let rejected = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["compile", "IX-WAR-0001", "--json"])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    let refusal = envelope(&String::from_utf8_lossy(&rejected.stdout));
+    assert_eq!(
+        refusal["result"]["skipped"],
+        serde_json::json!(["IX-WAR-0001"])
+    );
+    assert_eq!(refusal["result"]["written"], 0);
+    assert!(rejected.stderr.is_empty());
+    std::fs::remove_dir_all(root).unwrap();
+}

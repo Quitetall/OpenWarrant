@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "established"
-evidence = "The test 'milestones::tests::every_milestone_graph_in_this_repository_validates' passed, and `war check --generated` exited 0, confirming that the existing corpus validates."
+evidence = "Gate run GR-software.repo.war-check@1.0.0 has receipt exit_result 'pass' and verdict 'pass', with stdout excerpt showing 'PASS milestones.valid OW-WAR-0007: 4 milestone(s), 4 stage(s), acyclic with no dangling refs' and an overall summary of '2028 pass · 294 warn · 0 unknown · 0 error (worst: WARN)', i.e. exit 0 with the milestone graph reported and no errors anywhere in the corpus run. D-001's own test every_milestone_graph_in_this_repository_validates walks docs/warrants at runtime and asserts at least 40 milestone graphs parse, matching the 'enumerated at run time' scope. The WARN evidence.stale-binding line flags a governance concern about the freshness of a recorded evidence binding (unrelated paths having changed since an earlier run.toml was recorded) but does not report any FAIL or error in milestone validation itself, so the plain evidentiary claim the obligation asks for — exit 0 with the milestone graph reported — is shown."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

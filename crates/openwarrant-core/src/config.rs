@@ -34,6 +34,17 @@ pub enum ConfigError {
          and no tool may decide that for the signer"
     )]
     PresetKindMissing { key: String },
+    #[error(
+        "project.requires_war {found:?} is not a version requirement: {why}. Write one or \
+         more comma-separated comparators such as \">=1.0.0\", \">=1.2, <2\" or \"^1.1\" \
+         (OW-WAR-0130)"
+    )]
+    RequiresWarMalformed { found: String, why: String },
+    #[error(
+        "authority.store is {found:?}; a protected store is named by an absolute path with no \
+         `..` (OW-WAR-0138)"
+    )]
+    AuthorityStoreNotAbsolute { found: String },
 }
 
 /// A validated project namespace, e.g. `OW`.
@@ -90,6 +101,17 @@ pub struct Project {
     /// it. Optional; a tracked input, unlike a git remote.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub repository_url: Option<String>,
+    /// The `war` versions this repository needs (OW-WAR-0130, option B of
+    /// its U-001): a requirement such as `">=1.2.0"`, checked once when a
+    /// repository is discovered, before any record is read. A `war` it does
+    /// not admit refuses with `compat.war-too-old` rather than misreading
+    /// records a newer one wrote. Absent: any `war` reads the repository.
+    ///
+    /// A `war` older than this key does not know it and ignores it; the key
+    /// protects from the first release that reads it onwards
+    /// (docs/COMPATIBILITY.md, "Reading backward").
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requires_war: Option<String>,
 }
 
 /// Where the controlled document trees live (§59, §60).
@@ -198,6 +220,13 @@ pub struct GeneratedPolicy {
     pub commit: bool,
     #[serde(default = "GeneratedPolicy::yes")]
     pub verify_drift: bool,
+    /// OW-ADR-0022 — write `docs/generated/HISTORY.md`, the optional
+    /// projection of everything that ever existed, beside the master
+    /// document. Off unless a repository asks: a new program has no history
+    /// to keep, and `CURRENT.md` already names every replaced subject by one
+    /// line of lineage.
+    #[serde(default)]
+    pub history: bool,
 }
 
 impl GeneratedPolicy {
@@ -211,6 +240,7 @@ impl Default for GeneratedPolicy {
         Self {
             commit: true,
             verify_drift: true,
+            history: false,
         }
     }
 }
@@ -229,6 +259,20 @@ pub struct AuthorityPolicy {
     /// one is the standing permission without which none of them are reached.
     #[serde(default)]
     pub allow_automated_resolution: bool,
+    /// OW-WAR-0138 — every signature `war sign` makes (one act or a batch)
+    /// must show a person at the key: a security key's signature with its
+    /// user-presence flag set. An ordinary key, a security key signing
+    /// without a touch, and the terminal path (no signature at all) are
+    /// refused `sign.presence-required` before anything is renamed into
+    /// place. `false` unless a human wrote otherwise, and omitted from a
+    /// written config while false, so every existing file keeps its bytes.
+    ///
+    /// Without a protected store it lives here, in a file the performer can
+    /// edit: turning it off is a commit a reviewer sees, not a thing `war` can
+    /// stop. With `[authority] store` set, the store's value governs
+    /// ([`RepositoryConfig::govern_from_store`]).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub require_user_presence: bool,
 }
 
 /// §75.2's configured drafter: the process `war plan --draft` hands the
@@ -343,7 +387,39 @@ pub struct PerformPolicy {
     /// tree. Raising it is a deliberate act, and `war perform` says so.
     #[serde(default)]
     pub max_concurrent: u32,
+    /// Whether `war perform` may run a performer that reports no spend
+    /// (OW-WAR-0132). No adapter meters spend today, so every performance is
+    /// unmetered and journals `spend: "unknown"`, never 0.
+    ///
+    /// Absent is not consent: `war perform` refuses
+    /// `perform.unmetered-not-allowed` until this is `true` (U-001, settled at
+    /// authorization). Setting it says "run it, and I know the cost is
+    /// unknown"; it does not make the cost known.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub allow_unmetered: Option<bool>,
+    /// A mandatory spend ceiling, such as `"1.00 USD"`. Nothing meters spend,
+    /// so no cap can be enforced, and a cap that cannot be enforced refuses the
+    /// run (`perform.spend-unenforceable`) rather than be claimed. The value is
+    /// not parsed: any cap, of any amount, is one this tool cannot keep.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hard_spend_cap: Option<String>,
+    /// How many repairs a stage gets: performances after its first accepted
+    /// submission, counted by the ones that were themselves accepted. 0 means
+    /// the default, [`DEFAULT_MAX_REPAIRS`] (3, the product spec's fallback).
+    #[serde(default)]
+    pub max_repairs: u32,
+    /// How many recoveries a stage gets in a row: performances after an
+    /// ending that was not an accepted submission (refused, timeout,
+    /// cancelled, failed), counted since its last accepted one. 0 means the
+    /// default, [`DEFAULT_MAX_RECOVERIES`] (2).
+    #[serde(default)]
+    pub max_recoveries: u32,
 }
+
+/// `[perform] max_repairs` when unset (OW-WAR-0132 U-001).
+pub const DEFAULT_MAX_REPAIRS: u32 = 3;
+/// `[perform] max_recoveries` when unset (OW-WAR-0132 U-001).
+pub const DEFAULT_MAX_RECOVERIES: u32 = 2;
 
 impl PerformPolicy {
     #[must_use]
@@ -355,11 +431,41 @@ impl PerformPolicy {
         }
     }
 
+    /// The repair limit in force: [`Self::max_repairs`], or the default.
+    #[must_use]
+    pub fn repairs(&self) -> u32 {
+        if self.max_repairs == 0 {
+            DEFAULT_MAX_REPAIRS
+        } else {
+            self.max_repairs
+        }
+    }
+
+    /// The recovery limit in force: [`Self::max_recoveries`], or the default.
+    #[must_use]
+    pub fn recoveries(&self) -> u32 {
+        if self.max_recoveries == 0 {
+            DEFAULT_MAX_RECOVERIES
+        } else {
+            self.max_recoveries
+        }
+    }
+
+    /// Only an explicit `true` admits an unmetered performer.
+    #[must_use]
+    pub fn unmetered_allowed(&self) -> bool {
+        self.allow_unmetered == Some(true)
+    }
+
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.performer_argv.is_empty()
             && self.performer_timeout_secs == 0
             && self.max_concurrent == 0
+            && self.allow_unmetered.is_none()
+            && self.hard_spend_cap.is_none()
+            && self.max_repairs == 0
+            && self.max_recoveries == 0
     }
 }
 
@@ -398,6 +504,13 @@ pub struct VerifyPolicy {
     /// this head with their full digest. 0 means the default (65536).
     #[serde(default)]
     pub max_excerpt_bytes: usize,
+    /// The reading budget of one bundle, in estimated tokens over its whole
+    /// canonical JSON (t-9f7e). A Warrant whose bundle fits is sent whole; one
+    /// that does not is split into one bundle per obligation, each bounded to
+    /// this by excerpts carrying whole-file digests. 0 means the default
+    /// (48000).
+    #[serde(default)]
+    pub max_bundle_tokens: u64,
 }
 
 impl VerifyPolicy {
@@ -416,6 +529,15 @@ impl VerifyPolicy {
             65_536
         } else {
             self.max_excerpt_bytes
+        }
+    }
+
+    #[must_use]
+    pub fn max_bundle_tokens(&self) -> u64 {
+        if self.max_bundle_tokens == 0 {
+            48_000
+        } else {
+            self.max_bundle_tokens
         }
     }
 }
@@ -437,6 +559,80 @@ impl ContextPolicy {
         self.default_budget_tokens
             .unwrap_or(Self::DEFAULT_BUDGET_TOKENS)
     }
+}
+
+/// `[adoption]` — where governed work begins in a repository adopted with
+/// history (OW-WAR-0124).
+///
+/// Configuration, not an authority record: it says which commit `war init`
+/// started from, so `war telemetry` counts untracked work from there rather
+/// than from the first commit ever made. It claims nothing about the commits
+/// before it — no Warrant authorized, owns or verified them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AdoptionPolicy {
+    /// The full commit id `war init` recorded: HEAD, or `--baseline`.
+    pub baseline: String,
+}
+
+/// `[authority]` — the protected store this repository adopts (OW-WAR-0138).
+///
+/// CONTINGENT on the owner answering OW-WAR-0138 U-001 option A: opt-in per
+/// repository. Absent, every key below is read from this file and `war check`
+/// warns `authority.unprotected`. Present, the store governs the actor
+/// binding and the protected policy keys, with no fallback: a store that
+/// cannot be read fails closed, never back to `roles.toml`.
+///
+/// This table is itself in a file the performer can write. Deleting it is a
+/// commit a reviewer sees and turns the warning back on; it cannot make the
+/// store say something else. An older `war` that does not know the table
+/// ignores it, which `[project] requires_war` exists to refuse.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthorityStoreConfig {
+    /// Absolute path of the store directory `war authority bootstrap` made.
+    pub store: String,
+    /// The store is a same-account test store (`--unprotected-test-store`).
+    /// Must match the store's own record; every diagnostic says so.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub unprotected_test_store: bool,
+}
+
+/// Where the protected keys came from for this process (OW-WAR-0138).
+///
+/// Not part of the file: set once when the repository is opened, from the
+/// store, and read by `war check`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub enum Governance {
+    /// No `[authority]` table: `openwarrant.toml` is the only source.
+    #[default]
+    Unprotected,
+    /// A v2 store governs, at `head`.
+    Store {
+        store: String,
+        head: String,
+        test_mode: bool,
+        /// Keys whose `openwarrant.toml` value differs from the store's.
+        divergences: Vec<Divergence>,
+    },
+    /// A store is configured and gave no policy (unreadable, refused, or a v1
+    /// head). The protected keys take their most restrictive values.
+    FailedClosed {
+        store: String,
+        rule: &'static str,
+        why: String,
+    },
+}
+
+/// One protected key whose `openwarrant.toml` value is not the store's.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Divergence {
+    pub key: &'static str,
+    pub file: String,
+    pub store: String,
+}
+
+fn shown<T: Serialize>(v: &T) -> String {
+    serde_json::to_string(v).unwrap_or_else(|_| "<unprintable>".to_owned())
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -474,6 +670,19 @@ pub struct RepositoryConfig {
     /// reports it as such rather than assuming the flattering answer.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub independence: Option<crate::independence::Independence>,
+    /// `[adoption]` — absent for a repository initialized with no history,
+    /// and never written when absent, so every existing `openwarrant.toml`
+    /// loads and writes unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub adoption: Option<AdoptionPolicy>,
+    /// `[authority]` — the protected store, if this repository adopted one
+    /// (OW-WAR-0138). Absent in every existing file, and never written absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authority: Option<AuthorityStoreConfig>,
+    /// Where the protected keys came from; set when the repository is
+    /// opened, never read from or written to the file.
+    #[serde(skip)]
+    pub governance: Governance,
 }
 
 impl RepositoryConfig {
@@ -488,6 +697,7 @@ impl RepositoryConfig {
                 knowledge_fabric_project_ref: None,
                 performer: None,
                 repository_url: None,
+                requires_war: None,
             },
             paths: Paths::default(),
             generated: GeneratedPolicy::default(),
@@ -502,7 +712,75 @@ impl RepositoryConfig {
             perform: PerformPolicy::default(),
             sign: SignPolicy::default(),
             independence: None,
+            adoption: None,
+            authority: None,
+            governance: Governance::Unprotected,
         }
+    }
+
+    /// The protected keys as the store holds them, with each file value that
+    /// differs recorded as a [`Divergence`] (OW-WAR-0138 D-006). The store's
+    /// value governs: after this call every consumer reading
+    /// `self.policy`, `self.verify.verifier_argv` or `self.independence`
+    /// reads the store's.
+    pub fn govern_from_store(
+        &mut self,
+        store: &str,
+        head: &str,
+        test_mode: bool,
+        policy: &crate::authority_transition::Policy,
+    ) {
+        let mut divergences = Vec::new();
+        let mut differ = |key: &'static str, file: String, store: String| {
+            if file != store {
+                divergences.push(Divergence { key, file, store });
+            }
+        };
+        differ(
+            "[policy] allow_automated_resolution",
+            shown(&self.policy.allow_automated_resolution),
+            shown(&policy.allow_automated_resolution),
+        );
+        differ(
+            "[policy] require_user_presence",
+            shown(&self.policy.require_user_presence),
+            shown(&policy.require_user_presence),
+        );
+        differ(
+            "[verify] verifier_argv",
+            shown(&self.verify.verifier_argv),
+            shown(&policy.verifier_argv),
+        );
+        differ(
+            "[independence]",
+            shown(&self.independence),
+            shown(&policy.independence),
+        );
+        self.policy.allow_automated_resolution = policy.allow_automated_resolution;
+        self.policy.require_user_presence = policy.require_user_presence;
+        self.verify.verifier_argv.clone_from(&policy.verifier_argv);
+        self.independence = policy.independence;
+        self.governance = Governance::Store {
+            store: store.to_owned(),
+            head: head.to_owned(),
+            test_mode,
+            divergences,
+        };
+    }
+
+    /// A store is configured and gave no policy: every protected key takes
+    /// its most restrictive value — no automated resolution, presence
+    /// required, no verifier, independence undeclared. Never the file's.
+    pub fn govern_fail_closed(&mut self, store: &str, rule: &'static str, why: String) {
+        self.policy.allow_automated_resolution = false;
+        self.policy.require_user_presence = true;
+        self.verify.verifier_argv.clear();
+        self.independence = None;
+        self.governance = Governance::FailedClosed {
+            store: store.to_owned(),
+            rule,
+            why,
+        };
     }
 
     /// Fail-closed validation (§91.1 test 4).
@@ -516,8 +794,203 @@ impl RepositoryConfig {
         if self.project.name.trim().is_empty() {
             return Err(ConfigError::ProjectNameEmpty);
         }
+        if let Some(req) = &self.project.requires_war {
+            VersionReq::parse(req).map_err(|why| ConfigError::RequiresWarMalformed {
+                found: req.clone(),
+                why,
+            })?;
+        }
+        if let Some(a) = &self.authority
+            && (!a.store.starts_with('/') || a.store.split('/').any(|c| c == ".."))
+        {
+            return Err(ConfigError::AuthorityStoreNotAbsolute {
+                found: a.store.clone(),
+            });
+        }
         self.sign.validate()?;
         self.paths.validate()
+    }
+}
+
+/// A `war` version requirement, `[project] requires_war` (OW-WAR-0130).
+///
+/// Cargo's comparator syntax, without the dependency: one or more
+/// comma-separated comparators, each `>=`, `>`, `<=`, `<`, `=`, `^`, `~` or
+/// bare (which is `^`), over a version of one to three numeric parts, or of
+/// three with a pre-release (`=1.0.0-alpha.2`). Versions order as semver
+/// orders them — a pre-release below its release, so `>=1.0.0` does not
+/// admit `1.0.0-alpha.2` — and wildcards are refused rather than guessed at.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VersionReq {
+    bounds: Vec<Bounds>,
+}
+
+/// One comparator: a lower and an upper bound, each `(key, inclusive)`.
+type Bounds = (Option<(VersionKey, bool)>, Option<(VersionKey, bool)>);
+
+/// A version as semver orders it.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct VersionKey(u64, u64, u64, Pre);
+
+/// The pre-release part. `Pre(vec![])` is the least version of its triple;
+/// a release is greater than every pre-release of it.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum Pre {
+    Pre(Vec<PreId>),
+    Release,
+}
+
+/// Numeric identifiers order below alphanumeric ones, as semver says.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum PreId {
+    Num(u64),
+    Alnum(String),
+}
+
+impl VersionKey {
+    /// `1.2.3`, `1.2.3-alpha.2`, `1.2.3+build`; `None` for anything else.
+    fn parse(v: &str) -> Option<Self> {
+        let v = v.trim();
+        let v = v.split_once('+').map_or(v, |(c, _)| c);
+        let (core, pre) = match v.split_once('-') {
+            Some((c, p)) => (c, Some(p)),
+            None => (v, None),
+        };
+        let n: Vec<u64> = core
+            .split('.')
+            .map(str::parse)
+            .collect::<Result<_, _>>()
+            .ok()?;
+        let [a, b, c] = n.as_slice() else {
+            return None;
+        };
+        let pre = match pre {
+            None => Pre::Release,
+            Some(p) => Pre::Pre(Self::pre(p)?),
+        };
+        Some(Self(*a, *b, *c, pre))
+    }
+
+    fn pre(p: &str) -> Option<Vec<PreId>> {
+        p.split('.')
+            .map(|id| {
+                if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+                    None
+                } else if let Ok(n) = id.parse() {
+                    Some(PreId::Num(n))
+                } else {
+                    Some(PreId::Alnum(id.to_owned()))
+                }
+            })
+            .collect()
+    }
+}
+
+impl VersionReq {
+    /// Parse a requirement; the error says which comparator and why.
+    pub fn parse(raw: &str) -> Result<Self, String> {
+        let raw = raw.trim();
+        if raw.is_empty() {
+            return Err("it is empty".to_owned());
+        }
+        let mut bounds = Vec::new();
+        for part in raw.split(',') {
+            bounds.push(Self::comparator(part.trim())?);
+        }
+        Ok(Self { bounds })
+    }
+
+    fn comparator(c: &str) -> Result<Bounds, String> {
+        let (op, rest) = ["<=", ">=", "<", ">", "=", "^", "~"]
+            .iter()
+            .find_map(|op| c.strip_prefix(op).map(|r| (*op, r.trim())))
+            .unwrap_or(("^", c));
+        if rest.is_empty() {
+            return Err(format!("{c:?} names no version"));
+        }
+        let (core, pre) = match rest.split_once('-') {
+            Some((core, pre)) => (core, Some(pre)),
+            None => (rest, None),
+        };
+        let parts: Vec<&str> = core.split('.').collect();
+        if parts.len() > 3 {
+            return Err(format!("{rest:?} has more than three parts"));
+        }
+        let mut n = [0u64; 3];
+        for (i, p) in parts.iter().enumerate() {
+            n[i] = p
+                .parse()
+                .map_err(|_| format!("{rest:?}: {p:?} is not a number (wildcards are not read)"))?;
+        }
+        let given = parts.len();
+        let [ma, mi, pa] = n;
+        let pre = match pre {
+            None => Pre::Release,
+            Some(_) if given != 3 => {
+                return Err(format!("{rest:?}: a pre-release needs all three parts"));
+            }
+            Some(p) => Pre::Pre(
+                VersionKey::pre(p)
+                    .ok_or_else(|| format!("{rest:?}: {p:?} is not a pre-release"))?,
+            ),
+        };
+        let exact = VersionKey(ma, mi, pa, pre);
+        // The least version of a triple: its lowest pre-release.
+        let least = |a, b, c| VersionKey(a, b, c, Pre::Pre(vec![]));
+        let at = |k: VersionKey| Some((k, true));
+        let below = |k: VersionKey| Some((k, false));
+        // The first version past the given precision: 1.2 → 1.3.0, 1 → 2.0.0.
+        let next = match given {
+            1 => least(ma + 1, 0, 0),
+            2 => least(ma, mi + 1, 0),
+            _ => least(ma, mi, pa + 1),
+        };
+        let full = given == 3;
+        Ok(match op {
+            ">=" => (at(exact), None),
+            ">" if full => (Some((exact, false)), None),
+            ">" => (at(next), None),
+            "<" => (None, below(exact)),
+            "<=" if full => (None, at(exact)),
+            "<=" => (None, below(next)),
+            "=" if full => (at(exact.clone()), at(exact)),
+            "=" => (at(exact), below(next)),
+            "~" => {
+                let upper = if given == 1 {
+                    least(ma + 1, 0, 0)
+                } else {
+                    least(ma, mi + 1, 0)
+                };
+                (at(exact), below(upper))
+            }
+            _ => {
+                // Caret: the leftmost non-zero part given may not move.
+                let upper = if ma > 0 || given == 1 {
+                    least(ma + 1, 0, 0)
+                } else if mi > 0 || given == 2 {
+                    least(0, mi + 1, 0)
+                } else {
+                    least(0, 0, pa + 1)
+                };
+                (at(exact), below(upper))
+            }
+        })
+    }
+
+    /// Whether `version` satisfies every comparator. A version that does not
+    /// parse satisfies nothing.
+    #[must_use]
+    pub fn matches(&self, version: &str) -> bool {
+        let Some(key) = VersionKey::parse(version) else {
+            return false;
+        };
+        self.bounds.iter().all(|(lo, hi)| {
+            lo.as_ref()
+                .is_none_or(|(k, incl)| if *incl { key >= *k } else { key > *k })
+                && hi
+                    .as_ref()
+                    .is_none_or(|(k, incl)| if *incl { key <= *k } else { key < *k })
+        })
     }
 }
 
@@ -525,8 +998,162 @@ impl RepositoryConfig {
 mod tests {
     use super::*;
 
+    #[test]
+    fn a_version_requirement_admits_and_refuses_as_cargo_would() {
+        let admits = |req: &str, v: &str| VersionReq::parse(req).expect(req).matches(v);
+        assert!(admits(">=1.0.0", "1.0.0"));
+        assert!(!admits(">=99", "1.0.0"));
+        assert!(
+            !admits(">=1.0.0", "1.0.0-alpha.2"),
+            "a pre-release is below its release"
+        );
+        assert!(admits("^1.1", "1.9.0") && !admits("^1.1", "2.0.0") && !admits("^1.1", "1.0.9"));
+        assert!(admits("^0.2.3", "0.2.9") && !admits("^0.2.3", "0.3.0"));
+        assert!(admits("~1.2", "1.2.7") && !admits("~1.2", "1.3.0"));
+        assert!(admits("=1.2", "1.2.5") && !admits("=1.2.3", "1.2.4"));
+        assert!(admits(">1.2", "1.3.0") && !admits(">1.2", "1.2.9"));
+        assert!(admits("<=1.2", "1.2.9") && !admits("<=1.2", "1.3.0"));
+        assert!(admits(">=1.2, <2", "1.5.0") && !admits(">=1.2, <2", "2.0.0"));
+        assert!(!admits(">=1.0.0", "not a version"));
+        assert!(admits("=1.0.0-alpha.2", "1.0.0-alpha.2"));
+        assert!(!admits("=1.0.0-alpha.2", "1.0.0-alpha.3") && !admits("=1.0.0-alpha.2", "1.0.0"));
+        assert!(
+            admits(">=1.0.0-alpha.2", "1.0.0-alpha.10"),
+            "numeric identifiers order as numbers"
+        );
+        assert!(admits(">=1.0.0-alpha.2", "1.0.0") && !admits(">=1.0.0-alpha.2", "1.0.0-alpha.1"));
+        assert!(admits("<1.0.0", "0.9.9") && !admits("<1.0.0", "1.0.0"));
+        for bad in ["", ">=", "1.x", ">=1.0-alpha", "1.2.3.4", "*", "=1.0.0-"] {
+            assert!(VersionReq::parse(bad).is_err(), "{bad:?} must be refused");
+        }
+    }
+
+    #[test]
+    fn a_malformed_requires_war_is_refused_by_validation() {
+        let mut c = valid();
+        c.project.requires_war = Some(">=one".to_owned());
+        assert!(matches!(
+            c.validate(),
+            Err(ConfigError::RequiresWarMalformed { .. })
+        ));
+        c.project.requires_war = Some(">=1.0".to_owned());
+        assert_eq!(c.validate(), Ok(()));
+    }
+
     fn valid() -> RepositoryConfig {
         RepositoryConfig::new("OpenWarrant", Namespace::parse("OW").expect("valid"))
+    }
+
+    /// OW-WAR-0138 OBL-003: with the store saying no, a file saying yes is a
+    /// divergence, and a policy-service resolution is still refused — the
+    /// value consumers read is the store's.
+    #[test]
+    fn the_store_governs_and_a_differing_file_value_is_a_divergence() {
+        use crate::authority::{ActorRole, PolicyResolutionContext, RoleAssignment};
+        let mut c = valid();
+        c.policy.allow_automated_resolution = true;
+        c.independence = Some(crate::independence::Independence::default());
+        c.verify.verifier_argv = vec!["mine.sh".to_owned()];
+        let store = crate::authority_transition::Policy {
+            allow_automated_resolution: false,
+            require_user_presence: true,
+            verifier_argv: vec!["theirs.sh".to_owned()],
+            independence: None,
+        };
+        c.govern_from_store("/s", "sha256:h", true, &store);
+        assert!(!c.policy.allow_automated_resolution);
+        assert!(c.policy.require_user_presence);
+        assert_eq!(c.verify.verifier_argv, vec!["theirs.sh".to_owned()]);
+        assert_eq!(c.independence, None);
+        let Governance::Store { divergences, .. } = &c.governance else {
+            panic!("{:?}", c.governance);
+        };
+        let keys: Vec<&str> = divergences.iter().map(|d| d.key).collect();
+        assert_eq!(
+            keys,
+            [
+                "[policy] allow_automated_resolution",
+                "[policy] require_user_presence",
+                "[verify] verifier_argv",
+                "[independence]"
+            ]
+        );
+        assert_eq!(divergences[0].file, "true");
+        assert_eq!(divergences[0].store, "false");
+        let service = RoleAssignment {
+            actor: "closer".to_owned(),
+            actor_kind: crate::authority::ActorKind::PolicyService,
+            roles: [ActorRole::Resolver].into_iter().collect(),
+            assigned_by: "test".to_owned(),
+            effective_time: "2026-01-01T00:00:00Z".to_owned(),
+            note: None,
+            ssh_principal: None,
+        };
+        let ctx = |allows| PolicyResolutionContext {
+            policy_allows: allows,
+            assurance_level: "basic",
+            all_obligations_mechanical: true,
+            residual_risk_judgment_required: false,
+        };
+        assert!(
+            service
+                .may_resolve("claude", ctx(c.policy.allow_automated_resolution))
+                .is_err(),
+            "the store's false governs"
+        );
+        assert!(
+            service.may_resolve("claude", ctx(true)).is_ok(),
+            "the refusal is the policy's, not something else's"
+        );
+    }
+
+    #[test]
+    fn equal_values_are_no_divergence_and_a_failed_store_closes_every_key() {
+        let mut c = valid();
+        c.govern_from_store(
+            "/s",
+            "sha256:h",
+            false,
+            &crate::authority_transition::Policy::default(),
+        );
+        assert!(
+            matches!(&c.governance, Governance::Store { divergences, .. } if divergences.is_empty())
+        );
+        let mut c = valid();
+        c.policy.allow_automated_resolution = true;
+        c.verify.verifier_argv = vec!["v".to_owned()];
+        c.independence = Some(crate::independence::Independence::default());
+        c.govern_fail_closed("/s", "authority.verify-unavailable", "gone".to_owned());
+        assert!(!c.policy.allow_automated_resolution);
+        assert!(c.policy.require_user_presence);
+        assert!(c.verify.verifier_argv.is_empty());
+        assert!(c.independence.is_none());
+    }
+
+    #[test]
+    fn an_authority_store_is_absolute_and_absent_by_default() {
+        let mut c = valid();
+        assert!(c.authority.is_none());
+        let text = toml::to_string(&c).expect("serializes");
+        assert!(!text.contains("[authority]"), "{text}");
+        c.authority = Some(AuthorityStoreConfig {
+            store: "relative/store".to_owned(),
+            unprotected_test_store: false,
+        });
+        assert!(matches!(
+            c.validate(),
+            Err(ConfigError::AuthorityStoreNotAbsolute { .. })
+        ));
+        c.authority = Some(AuthorityStoreConfig {
+            store: "/var/lib/ow/../x".to_owned(),
+            unprotected_test_store: false,
+        });
+        assert!(c.validate().is_err());
+        c.authority = Some(AuthorityStoreConfig {
+            store: "/var/lib/openwarrant/example".to_owned(),
+            unprotected_test_store: false,
+        });
+        assert_eq!(c.validate(), Ok(()));
     }
 
     #[test]
@@ -539,6 +1166,10 @@ mod tests {
         let config = valid();
         assert!(config.generated.commit);
         assert!(config.generated.verify_drift, "drift check must default on");
+        assert!(
+            !config.generated.history,
+            "the history projection is opt-in"
+        );
     }
 
     /// A preset that offers itself for a correction and names no kind is a
@@ -604,6 +1235,40 @@ mod tests {
         );
     }
 
+    /// OW-WAR-0124: a config with no `[adoption]` writes no such table, and
+    /// one that records a baseline reads it back.
+    #[test]
+    fn adoption_is_absent_unless_recorded() {
+        let config = valid();
+        let text = toml::to_string_pretty(&config).expect("serializes");
+        assert!(!text.contains("adoption"), "{text}");
+        let back: RepositoryConfig = toml::from_str(&text).expect("parses");
+        assert_eq!(back.adoption, None);
+        let mut adopted = valid();
+        adopted.adoption = Some(AdoptionPolicy {
+            baseline: "0123456789abcdef0123456789abcdef01234567".to_owned(),
+        });
+        let text = toml::to_string_pretty(&adopted).expect("serializes");
+        assert!(text.contains("[adoption]"), "{text}");
+        let back: RepositoryConfig = toml::from_str(&text).expect("parses");
+        assert_eq!(back, adopted);
+    }
+
+    /// OW-WAR-0138: absent means no, a written config omits it while false,
+    /// and a human's `true` reads back.
+    #[test]
+    fn user_presence_is_off_unless_written() {
+        let config = valid();
+        assert!(!config.policy.require_user_presence);
+        let text = toml::to_string_pretty(&config).expect("serializes");
+        assert!(!text.contains("require_user_presence"), "{text}");
+        let on: AuthorityPolicy = toml::from_str("require_user_presence = true\n").expect("parses");
+        assert!(on.require_user_presence);
+        assert!(!on.allow_automated_resolution);
+        let text = toml::to_string_pretty(&on).expect("serializes");
+        assert!(text.contains("require_user_presence = true"), "{text}");
+    }
+
     #[test]
     fn empty_path_is_refused() {
         let mut config = valid();
@@ -611,6 +1276,31 @@ mod tests {
         assert_eq!(
             config.validate(),
             Err(ConfigError::PathEmpty { field: "adrs" })
+        );
+    }
+
+    /// OW-WAR-0132 U-001: absent is refusal, not consent; 0 is the default.
+    #[test]
+    fn perform_spend_and_attempt_defaults() {
+        let p = PerformPolicy::default();
+        assert!(
+            !p.unmetered_allowed(),
+            "absent allow_unmetered is not consent"
+        );
+        assert_eq!((p.repairs(), p.recoveries()), (3, 2));
+        let set: PerformPolicy = toml::from_str(
+            "allow_unmetered = true\nhard_spend_cap = \"1.00 USD\"\nmax_repairs = 1\nmax_recoveries = 5\n",
+        )
+        .expect("parses");
+        assert!(set.unmetered_allowed());
+        assert_eq!(set.hard_spend_cap.as_deref(), Some("1.00 USD"));
+        assert_eq!((set.repairs(), set.recoveries()), (1, 5));
+        assert!(!set.is_empty());
+        let no: PerformPolicy = toml::from_str("allow_unmetered = false\n").expect("parses");
+        assert!(!no.unmetered_allowed());
+        assert!(
+            !no.is_empty(),
+            "an explicit false is written back, not dropped"
         );
     }
 }

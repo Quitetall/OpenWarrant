@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "D-011 (conformance/plants.d/54-intake.sh, OBL-005 section) plants exactly the three scenarios the obligation names on the issue-linked Warrant IK-WAR-0002 (plan/intake.json names issue #12, confirmed by the earlier OBL-001 section's ok line): IK_M1 (only resolution.toml changed) is checked to contain 'Closes #12' exactly once; IK_M2 (authorization.toml changed) and IK_M3 (manifest.toml/delivery changed) are each checked to contain 'Refs #12' exactly once and no 'Closes' anywhere; and IK_M4 (resolution.toml changed on IK-WAR-0001, a Warrant found to have no plan/intake.json) is checked to carry neither trailer. D-005 (commit.rs, fn tracker_refs) implements exactly this rule, reading each changed Warrant's plan/intake.json, skipping Warrants with no readable github intake record, and setting closes=true only when that Warrant's resolution.toml is among the changed paths, emitting 'Closes #{n}' or 'Refs #{n}' accordingly, once per issue. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, run_id GR-ops.conformance.plants@1.1.0) stdout excerpt shows the corresponding passing lines verbatim: 'ok a resolution closes its issue Closes #12, exactly once', 'ok other commits only refer authorization and delivery: Refs #12, never Closes', and 'ok a Warrant with no issue: no trailer IK-WAR-0001's resolution carries neither'. obligation_evidence confirms every term this decision turns on ('war commit', 'Closes #N', 'Refs #N', 'Closes') is shown across D-005, D-011 and the gate stdout with no cut_from truncation, and both D-005 and D-011 are carried untruncated in full. The code, the plant exercising every named scenario, and the passing gate output are mutually consistent, so the obligation is established within its stated scratch-program scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

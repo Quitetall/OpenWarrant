@@ -145,9 +145,9 @@ pub struct Tokens {
     pub bundle: u64,
     pub total: u64,
     pub method: String,
-    /// False for the run kind: its bundle carries a receipt, and a receipt
-    /// carries wall-clock durations, so the estimate moves by a token or two
-    /// between identical runs. A comparison should drop the numbers then.
+    /// False when packets carry runtime evidence, including receipt timings.
+    /// Its estimate can vary between identical runs; comparisons omit these
+    /// numbers, while the actual task budget still uses the measured total.
     pub stable: bool,
 }
 
@@ -400,6 +400,58 @@ impl Scratch {
                 String::from_utf8_lossy(&out.stderr).trim()
             ))
         })
+    }
+
+    /// Commit everything in the scratch (OW-WAR-0133 AM-002). A receipt names
+    /// the tree its run started from, and a run over uncommitted changes names
+    /// `worktree:dirty`, which no later check can compare: reuse UNKNOWN, and
+    /// the task could never score above `partial`. So the harness commits
+    /// before each `war evidence record`, as a performer would.
+    ///
+    /// The identity is the harness's own and signing is off: a scratch commit
+    /// is a name for a tree, not an attestation, and must never reach the
+    /// operator's signing key or hooks.
+    fn commit(&self, message: &str) -> Result<(), RepoError> {
+        let git = |args: &[&str]| -> Result<(), RepoError> {
+            let out = Command::new("git")
+                .args([
+                    "-c",
+                    "user.name=war eval",
+                    "-c",
+                    "user.email=war-eval@invalid",
+                    "-c",
+                    "commit.gpgsign=false",
+                    "-c",
+                    "core.hooksPath=/dev/null",
+                ])
+                .args(args)
+                .current_dir(&self.root)
+                .stdin(Stdio::null())
+                .output()
+                .map_err(|source| RepoError::Io {
+                    context: format!("could not run git {}", args.join(" ")),
+                    source,
+                })?;
+            if out.status.success() {
+                Ok(())
+            } else {
+                Err(RepoError::Message(format!(
+                    "git {} failed in {}: {}",
+                    args.join(" "),
+                    self.root,
+                    String::from_utf8_lossy(&out.stderr).trim()
+                )))
+            }
+        };
+        git(&["add", "-A"])?;
+        git(&[
+            "commit",
+            "-q",
+            "--no-verify",
+            "--allow-empty",
+            "-m",
+            message,
+        ])
     }
 
     /// The scaffold's gates say `war`, not a build path: the binary that runs
@@ -810,6 +862,7 @@ fn run_task(
         }
         let compile = scratch.war(&["compile"])?;
         r.steps.push(compile.step("compile"));
+        scratch.commit("eval: before evidence record")?;
         let evidence = scratch.war(&["evidence", "record", &alias])?;
         r.steps.push(evidence.step("evidence.record"));
         if !perform_step(&mut r, &dispatch_doc)? {
@@ -827,6 +880,7 @@ fn run_task(
         // (`war check --generated`) needs the projections to exist.
         let compile = scratch.war(&["compile"])?;
         r.steps.push(compile.step("compile"));
+        scratch.commit("eval: before evidence record")?;
         let evidence = scratch.war(&["evidence", "record", &alias])?;
         r.steps.push(evidence.step("evidence.record"));
     }
@@ -838,12 +892,39 @@ fn run_task(
         let t = finish(&mut r, started);
         return Ok((r, t));
     }
+    // Document review gates need the preliminary independent review. Their
+    // new receipts then require a final blind review of that exact evidence.
+    // Do not overwrite a run task's delivered receipt, or rerecord a code
+    // task merely because verification bookkeeping was added.
+    if task.kind == "document" {
+        let compile = scratch.war(&["compile"])?;
+        r.steps.push(compile.step("compile.after-review"));
+        scratch.commit("eval: after preliminary review, before evidence record")?;
+        let again = scratch.war(&["evidence", "record", &alias])?;
+        r.steps.push(again.step("evidence.record.after-review"));
+        let final_review =
+            scratch.war(&["verify", &alias, "--performer", "eval-performer", "--run"])?;
+        r.steps.push(final_review.step("verify.run.after-evidence"));
+        if let Some(rule) = final_review.refusal() {
+            r.refusals.push(rule);
+            r.score = Score::Refused;
+            let t = finish(&mut r, started);
+            return Ok((r, t));
+        }
+    }
+
     if let Ok(entries) = std::fs::read_dir(warrant_dir.join("verifications")) {
         for e in entries.flatten() {
             let name = e.file_name().to_string_lossy().into_owned();
             if name.starts_with("bundle-") && name.ends_with(".json") {
                 let p = Utf8PathBuf::from_path_buf(e.path()).unwrap_or_default();
                 if let Some(t) = read_json(&p).and_then(|b| {
+                    if b.get("gate_runs")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|runs| !runs.is_empty())
+                    {
+                        r.tokens.stable = false;
+                    }
                     b.get("estimated_tokens")
                         .and_then(serde_json::Value::as_u64)
                 }) {
@@ -851,11 +932,6 @@ fn run_task(
                 }
             }
         }
-    }
-    if task.kind == "document" {
-        // Its gate wants the review to exist (C4a rule 3).
-        let again = scratch.war(&["evidence", "record", &alias])?;
-        r.steps.push(again.step("evidence.record.after-review"));
     }
 
     // 8. What a resolution would say — §38.6, in-process, nothing signed.

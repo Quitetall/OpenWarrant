@@ -1,0 +1,6 @@
+ok: clone index prepared once; caller index unchanged; clone removed
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-git-index-performance/conformance/controls/isolated-index.py", line 51, in <module>
+    assert result.returncode == 2, f"failed refresh did not refuse: {result.returncode}, {result.stdout!r}"
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: failed refresh did not refuse: 0, 'BATTERY_STARTED\ntested commit c9e6bf5544f68b0023cc4b7ba66e62535fdf179d\n'

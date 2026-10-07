@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result. The prior_verifications entries in this bundle are all attributed to performer 'claude' with verifier actor 'claude-verifier (claude-sonnet-5)' — an AI verification pass, not a secured human-acceptance record — and OBL-001/OBL-002 are not established in this bundle to even have qualifiable output. plants is empty ([]) and no signed human-acceptance artifact (e.g. an authority/response record for this exact result) is carried, so OBL-003's evidentiary requirement is not met."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

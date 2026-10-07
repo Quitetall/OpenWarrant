@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0134"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (stdout excerpt lines 405-418) and deliverable D-005 (conformance/plants.d/56-acceptance-validity.sh, carried in full, not truncated) show the (b)-branch fully exercised and passing: 'not re-established does not clear' (exit 2), 'a re-verification clears it' (acceptance.unchanged, re-verified), and 'it clears for that candidate only' (src/second.txt re-raises it) — all logged 'ok' in the gate's stdout. But OBL-005's evidence also requires, for the (a) branch chosen for a pinned deliverable ('under (a): the finding clears only after the re-acceptance record the SAS revision defines'), a demonstration that such a record actually clears the finding. The plant's 'a moved pin needs a human' case (also passing) only shows that re-verification fails to clear a moved D-001 pin and names Q-001(a); it never constructs or ingests a re-acceptance record and shows clearing, and the work order (atoms/40-work-order.md, Autonomy and Escalation) explicitly places that new act kind out of scope pending a human SAS decision. No deliverable or gate output in the bundle shows the positive (a)-clearing path, so the obligation's full claim — that whichever consequence Q-001 selects is enforced — is not established for the pinned-deliverable branch; the bundle is silent on that half rather than showing it holds or fails."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "The bundle carries only D-009 (docs/gates/ops.exit-demo@1.0.0.yaml); deliverables_not_carried lists every other file including any resolution.toml, attestation, custody-audit.toml, or invalidation/dispute record for the demo. The only gate-run text touching ops.exit-demo@1.0.0 is the software.repo.war-check@1.0.0 stdout excerpt 'PASS gate.registered ... ops.exit-demo@1.0.0: local candidate, qualified against its declared fault model', which shows registration only, not that a resolution was signed against it, that a custody audit was recorded by a non-performer, or that an invalidation was issued and disputed exactly that resolution. obligation_evidence explicitly lists 'war attest --verify --all' with shown_in: [], confirming the term required to show the 29 existing resolutions remain undisputed is entirely absent from the bundle. Since none of OBL-006's four required evidentiary showings (signed attestation, custody audit by a distinct actor, single dispute from the invalidation, and continued verification of the 29 prior resolutions) appear anywhere in the carried deliverables or gate-run excerpts, and nothing shown contradicts the claim, the obligation cannot be established or refuted from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

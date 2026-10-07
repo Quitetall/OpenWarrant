@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "Test 'render::tests::the_generated_header_is_present_and_complete' verifies the §17.1 header for the Markdown parent, and 'war check --generated' exits 0 confirming both projections are correctly generated from the basis."
+disposition = "not_established"
+evidence = "obligation_evidence marks the named path 'docs/warrants/' as not carried ('a repository path that is not a deliverable of OW-WAR-0004: not carried'), so no generated WAR.md/WAR.json bytes for any of the five Warrants named in this obligation's scope are present in the bundle — only compiler source (D-001 crates/openwarrant-compiler/src/render.rs, D-002 crates/openwarrant-cli/src/compile.rs) and the atoms. The unit test names listed on D-001 (e.g. the_generated_header_is_present_and_complete, rendering_is_byte_identical_across_runs) are function names in source, not a record that they were executed or passed. The single gate run GR-software.repo.war-check@1.0.0 has truncated stdout; its visible excerpt (lines 81-101) contains only 'PASS generated.drift OW-WAR-0004: 2 generated view(s) match a fresh compilation', which speaks to OW-WAR-0004 alone, not the other four Warrants the obligation's scope requires. With no generated-file evidence for any of the five Warrants and coverage of only one in the gate excerpt, the claim cannot be established across its stated scope."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "No test in adr_overview::tests or the listed passing tests asserts that both call the same function; the artifact shows only one classifier use without verification of consistency."
+evidence = "OBL-001 requires evidence that a decision classifier is shared between OW-WAR-0010 and this Warrant, with a test asserting it. The two carried deliverables, D-001 (crates/openwarrant-compiler/src/adr_overview.rs, an ADR-overview renderer) and D-002 (crates/openwarrant-core/src/structured.rs, a restricted-YAML parser), contain no classifier code, and none of their test_names reference OW-WAR-0010 or a shared function. obligation_evidence lists no named_paths or terms for OBL-001, and the gate run's shown stdout excerpts discuss unrelated checks (manifest.valid, journal.append-only, authority.signed, sas.pin-superseded, identity.atom-mismatch), not a classifier. Bytes not shown are not evidence either way."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

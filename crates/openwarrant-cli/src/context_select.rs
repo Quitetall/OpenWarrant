@@ -137,6 +137,20 @@ pub fn select(
     // Artifacts: repository paths that exist.
     let mut artifact_items = Vec::new();
     for path in &stage.context_artifacts {
+        // A Dispatch carries repository bytes only. An absolute path, a `..`
+        // step, or a link that resolves outside the root would put a file
+        // from elsewhere on the machine into a packet an agent reads (t-3293).
+        if let Some(why) = outside_repository(&repo.root, path) {
+            refusals.push(Refusal {
+                rule: "dispatch.artifact-outside",
+                message: format!(
+                    "{}: context_artifacts names {path:?}, {why}; a Dispatch carries \
+                     files of this repository only",
+                    stage.id
+                ),
+            });
+            continue;
+        }
         let full = repo.root.join(path);
         match std::fs::read(&full) {
             Ok(content) => {
@@ -270,4 +284,52 @@ pub fn select(
         omitted,
         bytes,
     })
+}
+
+/// Why `path` is not a file of the repository at `root`, or `None` if it is.
+/// A path that does not exist is not judged here: reading it refuses it.
+fn outside_repository(root: &camino::Utf8Path, path: &str) -> Option<String> {
+    let p = camino::Utf8Path::new(path);
+    if p.is_absolute() {
+        return Some("an absolute path".to_owned());
+    }
+    if p.components()
+        .any(|c| matches!(c, camino::Utf8Component::ParentDir))
+    {
+        return Some("a path that steps out with `..`".to_owned());
+    }
+    let (Ok(real_root), Ok(real)) = (root.canonicalize_utf8(), root.join(p).canonicalize_utf8())
+    else {
+        return None;
+    };
+    (!real.starts_with(&real_root)).then(|| format!("a link that resolves to {real}"))
+}
+
+#[cfg(test)]
+mod outside_tests {
+    use super::outside_repository;
+
+    #[test]
+    fn only_a_path_inside_the_root_is_a_repository_file() {
+        // No tempdir crate here (migrate.rs says why): a unique dir, removed.
+        let root = camino::Utf8PathBuf::from_path_buf(
+            std::env::temp_dir().join(format!("war-outside-{}", std::process::id())),
+        )
+        .unwrap();
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let root = root.as_path();
+        std::fs::write(root.join("inside.txt"), "x").unwrap();
+        assert_eq!(outside_repository(root, "inside.txt"), None);
+        assert_eq!(outside_repository(root, "missing.txt"), None);
+        assert!(outside_repository(root, "/etc/hostname").is_some());
+        assert!(outside_repository(root, "../x").is_some());
+        assert!(outside_repository(root, "a/../../x").is_some());
+        #[cfg(unix)]
+        {
+            std::os::unix::fs::symlink("/etc", root.join("out")).unwrap();
+            assert!(outside_repository(root, "out/hostname").is_some());
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }

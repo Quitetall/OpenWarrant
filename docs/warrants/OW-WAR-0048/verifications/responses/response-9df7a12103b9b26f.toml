@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0048"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence for OBL-001 shows the required triples (x86_64-unknown-linux-gnu, aarch64-apple-darwin) only with shown_in:[\"atoms\"] — i.e. named in atoms/20-basis.md as a needed run, not evidenced as an executed one. The single gate run GR-software.repo.war-check@1.0.0 is a `war check --generated` invocation whose own NOT CHECKED section states 'war check does not invoke [gates]... nothing here is evidence that a Warrant's acceptance gates were run', and its visible stdout excerpts (lines 801-819, 2606, 2773, 2853) cover manifest validity, traceability, journal, SAS pin, milestones — never a two-host canonical-IR byte comparison. No CI run, digest comparison, or updated caveat text from OW-WAR-0003/OW-WAR-0005 is carried anywhere in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence explicitly marks `.github/workflows/ci.yml` as not carried ('a repository path that is not a deliverable of OW-WAR-0048: not carried'), and deliverables is empty. The gate run's visible stdout never references ci.yml or its runner-tier comment. With the named path absent from the bundle, there is no evidence to compare against the required corrected wording."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No deliverable, gate excerpt, or plant records a Liminal invocation with `--protocol oh.war/liminal-v1`. The only mention of Liminal in the bundle is atoms/20-basis.md's 'Blocking unknown', which states 'No Liminal compiler profile exists to compare against' and 'is not checked out here' at authoring time — the opposite of evidence that one was later stood up and invoked. The gate run's stdout excerpts contain no Liminal reference at all."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-004 lists the required terms compiled_by_both, corpus_size, and the equality itself with empty shown_in and empty cut_from — none appear anywhere in the carried material, and deliverables is empty. The gate run's visible stdout tail is generic `war check` administrative output (manifest, traceability, journal, milestones) for OW-WAR-0048 and unrelated warrants, with no parity metrics, declared observables, or corpus counts. Per atoms/45-milestones.yaml, M4 depends on M3 (the Liminal profile in OBL-003), which the bundle does not establish, leaving no basis for a completed parity measurement."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

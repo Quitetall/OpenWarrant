@@ -1,0 +1,40 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0037"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (crates/openwarrant-cli/src/show.rs, present in full, not truncated) shows `diff()` reading canonical JSON (`generated/WAR.json` and a freshly computed `canonical_json(&ir)`) and calling `semantic_diff`, which walks only `serde_json::Value` trees — the function never receives rendered Markdown, so a rendering-only change cannot alter its inputs. The unit test `identical_documents_produce_no_changes` (lines in the `#[cfg(test)] mod tests` block) confirms that two identical IR documents produce zero SemanticChange entries, which is exactly what a pair of revisions differing only in rendering reduces to under this architecture (rendering is a downstream projection of the IR, per the module doc comment referencing §91.1 test 3). Together the code path and this test establish, within the stated scope, that such a diff reports no semantic change."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The bundle shows `semantic_diff`/`walk` in show.rs reporting every changed JSON path generically (tests: an_added_field_is_reported, a_removed_field_is_reported, nested_changes_are_reported_by_path, array_changes_are_reported_by_index), but none of these tests, nor the `diff()` function itself, single out the contract digest specifically or identify which field's change is the CAUSE of a digest move — the tool only lists all differing paths, not a causal attribution to one field responsible for the digest. The gate run stdout (GR-software.repo.war-check@1.0.0) is a repo-wide `war check --generated` run and does not exercise or report on digest-attribution behavior; its own NOT CHECKED section even notes 'contract digest covers 8 of 17 §28.5 elements' without indicating any attribution mechanism. No deliverable or test in the bundle demonstrates the required causing-field naming, so the claim cannot be decided from the evidence shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

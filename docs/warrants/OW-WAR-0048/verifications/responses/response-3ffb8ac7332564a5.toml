@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0048"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables (deliverables: []) and no CI workflow output for the canonical-IR comparison job. The only gate run shown is `GR-software.repo.war-check@1.0.0`, a repo-wide `war check --generated` invocation whose own NOT CHECKED section states 'war check does not invoke [gates], so nothing here is evidence that a Warrant's acceptance gates were run,' and its visible (truncated-tail) stdout discusses unrelated warrants (OW-WAR-0138–0147) and general repo checks, never a two-host byte-comparison of canonical JSON on x86_64-unknown-linux-gnu vs aarch64-apple-darwin. obligation_evidence for OBL-001 names no carried paths at all. The atoms (10-intent.md, 20-basis.md) only describe the plan/assumption that the two-host run is 'free' and still needed — Basis atom explicitly lists 'no Liminal compiler profile exists' as a blocking unknown and treats the two-host claim as unresolved, not as evidence it was run."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 explicitly marks `.github/workflows/ci.yml` as absent ('a repository path that is not a deliverable of OW-WAR-0048: not carried'), and deliverables is empty, so no version of the runner-tier comment — corrected or stale — is present anywhere in the bundle. The war-check gate run's visible output does not reference ci.yml's runner comment. There is nothing to compare the comment's current text against the obligation's required wording."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No deliverable, gate output, or plant in the bundle records an invocation of a Liminal compiler over `--protocol oh.war/liminal-v1`. The Basis atom (20-basis.md) states as a 'Blocking unknown' that 'No Liminal compiler profile exists to compare against' and that Liminal 'is not checked out here,' which is the only mention of Liminal in the bundle and affirmatively describes the prerequisite as unmet rather than satisfied. The single gate run's stdout (truncated tail) contains no reference to Liminal at all."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No parity run, corpus count, or declared-observables record appears anywhere in the bundle: deliverables is empty and obligation_evidence lists the required terms (`compiled_by_both`, `corpus_size`, `compiled_by_both == corpus_size`) as neither shown nor cut — they are simply absent from what was carried. The gate run's stdout tail is a generic `war check` report over unrelated warrants and contains no parity metrics. OBL-004 also depends on OBL-003 (per milestones.yaml, M4 depends on M3), which is itself not established, so the precondition for measuring parity against a real Liminal profile is not shown to exist."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
