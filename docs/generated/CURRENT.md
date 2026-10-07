@@ -16669,7 +16669,7 @@ tired.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The LamQuant ADR import, fabricating nothing | `crates/openwarrant-cli/src/migrate.rs` | drift |
+| D-001 | The LamQuant ADR import, fabricating nothing | `crates/openwarrant-cli/src/migrate.rs` | verified |
 
 #### OW-WAR-0058 — Put the SAS under §101 governance: controlled revisions and the Release axis
 
@@ -38983,4 +38983,3 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0146 | `war sign OW-WAR-0146` | would record | revision 2 awaits authorization under AM-001-4610 |
 | authorize | OW-WAR-0147 | `war sign OW-WAR-0147` | would record | revision 1 awaits authorization |
 | authorize | OW-WAR-0149 | `war sign OW-WAR-0149` | would record | revision 1 awaits authorization |
-| correct | OW-WAR-0038 | `war sign OW-WAR-0038/D-002` | would refuse: sign.needs-decision | crates/openwarrant-cli/src/migrate.rs drifted after resolution |

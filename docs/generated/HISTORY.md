@@ -12765,7 +12765,7 @@ tired.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The LamQuant ADR import, fabricating nothing | `crates/openwarrant-cli/src/migrate.rs` | drift |
+| D-001 | The LamQuant ADR import, fabricating nothing | `crates/openwarrant-cli/src/migrate.rs` | verified |
 
 ### OW-WAR-0044 — Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder
 
