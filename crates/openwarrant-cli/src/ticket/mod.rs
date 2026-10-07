@@ -154,12 +154,17 @@ fn lease_secs(minutes: Option<f64>) -> u64 {
     secs
 }
 
-fn policy_of(root: &Utf8Path) -> Result<(Policy, remote::Policy), RepoError> {
+fn policy_of(
+    root: &Utf8Path,
+) -> Result<(Policy, remote::Policy, crate::preset::Policy), RepoError> {
     let path = root.join(crate::init::CONFIG_FILE);
     let text = crate::vfs::read_to_string(&path).map_err(|source| RepoError::Io {
         context: format!("could not read {path}"),
         source,
     })?;
+    // M14: a preset that does not read is `war check`'s to report
+    // (`preset.config`); the loop goes on as if there were none.
+    let preset = crate::preset::Policy::from_text(&text).unwrap_or_default();
     #[derive(Deserialize)]
     struct File {
         #[serde(default)]
@@ -180,6 +185,7 @@ fn policy_of(root: &Utf8Path) -> Result<(Policy, remote::Policy), RepoError> {
     Ok((
         file.tickets.unwrap_or_default(),
         claims.claims.unwrap_or_default(),
+        preset,
     ))
 }
 
@@ -333,6 +339,12 @@ pub struct Store {
     /// `[project] performer`. A name for coordination; it authorizes nothing.
     pub actor: String,
     pub project: String,
+    /// OW-WAR-0148 M14: `[preset] name`, when set. Under `vibe`, `war done`
+    /// claims an unclaimed item itself.
+    pub preset: Option<crate::preset::Preset>,
+    /// OW-WAR-0148 M14: `[preset] ticks`, the least every tick shows
+    /// (`claimed` without a preset).
+    pub tick_floor: Level,
 }
 
 /// Now, in Unix seconds.
@@ -358,7 +370,7 @@ fn io(context: String) -> impl FnOnce(std::io::Error) -> RepoError {
 impl Store {
     /// Open the ticket store of `repo`, acting as `actor` when given.
     pub fn open(repo: &Repository, actor: Option<&str>) -> Result<Self, RepoError> {
-        let (policy, claims_policy) = policy_of(&repo.root)?;
+        let (policy, claims_policy, preset) = policy_of(&repo.root)?;
         let definition = ticket_definition(&repo.profiles)?;
         let resolve = |p: &str| {
             let p = Utf8PathBuf::from(p);
@@ -396,6 +408,12 @@ impl Store {
             definition,
             actor,
             project: repo.config.project.name.clone(),
+            preset: preset.preset,
+            tick_floor: if preset.preset.is_some() {
+                preset.ticks
+            } else {
+                Level::Claimed
+            },
         })
     }
 
@@ -2845,8 +2863,20 @@ pub fn done_with(
             });
         }
     }
+    // OW-WAR-0148 M14: under the vibe preset, a done on an item nobody
+    // holds claims it first (init, create, done). Anywhere else the
+    // refusal stands: two agents never finish one item.
+    let mut auto_claim = false;
     if let Err(refusal) = may_finish(store, t, item_id.as_deref(), &what) {
-        return Ok(*refusal);
+        let unclaimed = refusal
+            .report
+            .diagnostics
+            .iter()
+            .any(|d| d.rule == "ticket.not-claimed");
+        if !(unclaimed && store.preset == Some(crate::preset::Preset::Vibe)) {
+            return Ok(*refusal);
+        }
+        auto_claim = true;
     }
     // OW-WAR-0148 M13: the level this tick reaches, and the least it must.
     let checks = ladder::checks_of(t);
@@ -2859,6 +2889,16 @@ pub fn done_with(
         ladder::below_minimum(store, t, &checks, item_id.as_deref(), &what, reach)
     {
         return Ok(refusal);
+    }
+    // The claim, as `war claim` takes it: refused when the item is blocked
+    // or someone took it meanwhile, journalled when it is taken.
+    let mut auto_claimed = None;
+    if auto_claim {
+        let claimed = claim_cmd(store, &what, false)?;
+        if claimed.is_refused() {
+            return Ok(claimed);
+        }
+        auto_claimed = Some(claimed.result.get("claim").cloned().unwrap_or_default());
     }
     let round = if check {
         match ladder::check_for_tick(store, t, item_id.as_deref(), &checks, &what)? {
@@ -2984,6 +3024,13 @@ pub fn done_with(
     let state = state_of(&t, &claims);
     let (d, n) = t.checklist.progress();
     let mut human = format!("done {}/{done_id}  ({d}/{n})", t.id());
+    if auto_claimed.is_some() {
+        human = format!(
+            "claimed {what} first: under the vibe preset `war done` claims an item nobody \
+             holds
+{human}"
+        );
+    }
     // Every tick says how it was earned (OW-WAR-0148 M13).
     match &round {
         Some(r) => human.push_str(&format!(
@@ -3027,6 +3074,9 @@ pub fn done_with(
     });
     if let Some(r) = &round {
         result["checks"] = serde_json::to_value(r).unwrap_or_default();
+    }
+    if let Some(c) = auto_claimed {
+        result["auto_claimed"] = c;
     }
     if let Some(r) = issue_report {
         result["issue"] = r;
