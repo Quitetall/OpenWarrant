@@ -65,6 +65,7 @@ pub mod state;
 pub mod status;
 pub mod structured;
 pub mod ticket;
+pub mod ticks;
 pub mod timestamp;
 pub mod tokens;
 

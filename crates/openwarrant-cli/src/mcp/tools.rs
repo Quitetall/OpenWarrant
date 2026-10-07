@@ -115,6 +115,10 @@ pub struct DoneParams {
     /// `warrant.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
+    /// Run the item's tests and KPIs first and tick at `observed` only when
+    /// they pass (`war done --check`); on a done item, raise its tick.
+    #[serde(default)]
+    pub check: bool,
     /// Who is acting; defaults to the repository's configured performer.
     #[serde(default)]
     pub actor: Option<String>,
@@ -1155,7 +1159,13 @@ impl WarServer {
     )]
     fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
         self.ticket("done", p.actor.as_deref(), |s| {
-            crate::ticket::done(s, &p.target, p.note.as_deref(), p.if_rev.as_deref())
+            crate::ticket::done_with(
+                s,
+                &p.target,
+                p.note.as_deref(),
+                p.if_rev.as_deref(),
+                p.check,
+            )
         })
     }
 

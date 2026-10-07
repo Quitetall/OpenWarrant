@@ -82,6 +82,11 @@ pub enum Act {
     AcceptStanding,
     /// OW-ADR-0029 — a human revokes a signed class.
     RevokeStanding,
+    /// OW-WAR-0148 M13 — a human signs off one tick of a ticket's item,
+    /// over the statement of the ticket, the item and its text. Subject
+    /// `<ticket>--<item>`; it moves the tick to `signed` on the ladder and
+    /// authorizes nothing else.
+    SignOff,
 }
 
 impl Act {
@@ -102,6 +107,7 @@ impl Act {
             Self::Invalidate => "oh.war/invalidation-response/v1",
             Self::AcceptStanding => "oh.war/standing-acceptance-response/v1",
             Self::RevokeStanding => "oh.war/standing-revocation-response/v1",
+            Self::SignOff => "oh.war/tick-signoff-response/v1",
         }
     }
 
@@ -115,6 +121,7 @@ impl Act {
             Self::Invalidate => "gate invalidation",
             Self::AcceptStanding => "standing authorization",
             Self::RevokeStanding => "standing revocation",
+            Self::SignOff => "sign-off",
         }
     }
 }
@@ -199,6 +206,7 @@ pub fn response_stem(act: Act, subject: &str) -> String {
         Act::Correct => format!("{subject}.correction"),
         Act::Invalidate => format!("{subject}.invalidation"),
         Act::RevokeStanding => format!("{subject}.revocation"),
+        Act::SignOff => format!("{subject}.signoff"),
     }
 }
 
@@ -825,7 +833,9 @@ const fn role_for(act: Act) -> &'static str {
     match act {
         // OW-WAR-0136 Q-001 (a): a gate is invalidated by a holder of
         // `resolver` — it disputes resolutions, and the resolver owns standing.
-        Act::Resolve | Act::Invalidate => "resolver",
+        // OW-WAR-0148 M13: signing off a tick closes a piece of work, as a
+        // resolution closes a Warrant.
+        Act::Resolve | Act::Invalidate | Act::SignOff => "resolver",
         // OW-ADR-0029: a class pre-authorizes work, so it is an authorizer's.
         Act::Authorize
         | Act::Accept

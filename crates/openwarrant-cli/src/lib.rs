@@ -20,6 +20,7 @@ pub mod batch_cmd;
 pub mod blut;
 pub mod board;
 pub mod bonsai;
+pub mod bridge;
 pub mod build_identity;
 pub mod bundle;
 pub mod check;
@@ -429,6 +430,46 @@ enum DocumentCommand {
     },
 }
 
+/// `war kpi <action>` (OW-WAR-0148 M13).
+#[derive(Subcommand)]
+enum KpiCommand {
+    /// Run every KPI of a Warrant (or one item's), parse the one number each
+    /// prints, journal the run (value, time, commit), and say the latest,
+    /// best and target. A command that prints no number is UNKNOWN.
+    Run {
+        /// A ticket (every KPI) or an item (the Warrant's and its own).
+        target: String,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+}
+
+/// `war bridge <harness>` (OW-WAR-0148 M13).
+#[derive(Subcommand)]
+enum BridgeCommand {
+    /// Read a Claude Code task list and propose the item ticks it implies:
+    /// each completed task that names an item (`t-x/i-y`) becomes `war done
+    /// <item> --check` (claimed when the item has nothing to check). Prints
+    /// what it would do; writes only with --apply.
+    ClaudeTasks {
+        /// The task list directory (default: `~/.claude/tasks/$CLAUDE_CODE_TASK_LIST_ID`).
+        #[arg(long, value_name = "DIR", conflicts_with_all = ["file", "event"])]
+        dir: Option<Utf8PathBuf>,
+        /// One JSON file holding a task, an array of tasks, or `{"tasks": [...]}`.
+        #[arg(long, value_name = "FILE", conflicts_with = "event")]
+        file: Option<Utf8PathBuf>,
+        /// A `TaskCompleted` hook's input (JSON), from a file or `-` for
+        /// stdin: one completed task.
+        #[arg(long, value_name = "FILE")]
+        event: Option<String>,
+        /// Tick what is proposed. Without it nothing is written.
+        #[arg(long)]
+        apply: bool,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+}
+
 /// The Warrant loop (OW-WAR-0147; OW-WAR-0148 M10; docs/TICKETS.md),
 /// flattened into the top level: `war create`, not `war ticket create`. A
 /// Warrant made here is in its light encoding (what earlier releases called
@@ -516,7 +557,8 @@ enum TicketCommand {
         actor: Option<String>,
     },
     /// Tick a claimed item in the Warrant's checklist and release the claim.
-    /// A Warrant reads done when every item is.
+    /// A Warrant reads done when every item is. A plain tick is `claimed`;
+    /// `--check` runs the item's tests and ticks at `observed`.
     Done {
         /// An item id (or a Warrant with no items left open).
         target: String,
@@ -528,19 +570,68 @@ enum TicketCommand {
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
+        /// Run the Warrant's tests and KPIs (and the item's own) first, and
+        /// tick at `observed` only when every one that decides passes; the
+        /// receipt is journalled. On a done item, raise its tick the same way.
+        /// A failing check refuses the tick by name; one that could not run
+        /// is UNKNOWN, never a pass.
+        #[arg(long)]
+        check: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// Append an item to a Warrant's checklist.
+    /// Append an item to a Warrant's checklist, or attach an optional part to
+    /// any Warrant, a title-only one included: a test, a KPI, a milestone
+    /// (docs/TYPES.md, "Optional parts and the tick ladder").
     Add {
-        /// The Warrant.
+        /// The Warrant. For a test or KPI of one item, the item (`t-x/i-y`).
         #[arg(value_name = "WARRANT")]
         ticket: String,
-        /// The item, one line.
-        text: String,
+        /// The item, one line. Optional when a part is given; given with a
+        /// test or KPI, the part is the new item's.
+        #[arg(required_unless_present_any = ["tests", "kpi", "milestone", "min"])]
+        text: Option<String>,
         /// What the item waits on: an item of this Warrant, a Warrant, or `t-x/i-y`. Repeatable.
         #[arg(long, value_name = "ITEM|WARRANT")]
         after: Vec<String>,
+        /// A test: a shell command whose exit code decides pass or fail.
+        /// Repeatable. `war done <item> --check` runs it.
+        #[arg(long = "test", value_name = "COMMAND")]
+        tests: Vec<String>,
+        /// The name of the one --test given (default `test-N`).
+        #[arg(long, value_name = "NAME", requires = "tests")]
+        name: Option<String>,
+        /// A KPI by name: `--cmd` prints one number, `--direction max|min`
+        /// says which way is better, `--target` and `--mode` are optional.
+        #[arg(long, value_name = "NAME")]
+        kpi: Option<String>,
+        /// The KPI's command; it prints one number.
+        #[arg(long, value_name = "COMMAND", requires = "kpi")]
+        cmd: Option<String>,
+        /// max or min: which way the KPI is better.
+        #[arg(long, value_name = "max|min", requires = "kpi")]
+        direction: Option<String>,
+        /// The value the KPI passes at (at or above for max, at or below for min).
+        #[arg(
+            long,
+            value_name = "N",
+            requires = "kpi",
+            allow_negative_numbers = true
+        )]
+        target: Option<f64>,
+        /// best (the default: pass or fail against the target, best value
+        /// kept), threshold (pass or fail only), optimise (a signal only;
+        /// never decides a tick).
+        #[arg(long, value_name = "MODE", requires = "kpi")]
+        mode: Option<String>,
+        /// A milestone: an item that ticks a marker on the progress tracker.
+        #[arg(long, value_name = "TEXT")]
+        milestone: Option<String>,
+        /// The least the milestone's tick must show: claimed, observed,
+        /// independent or signed. Alone, on an item, it makes that item a
+        /// milestone.
+        #[arg(long, value_name = "LEVEL")]
+        min: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
@@ -548,6 +639,18 @@ enum TicketCommand {
         if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+    },
+    /// KPIs (OW-WAR-0148 M13): run each one, journal every value, and say
+    /// its latest, best and target. Ticks nothing.
+    Kpi {
+        #[command(subcommand)]
+        command: KpiCommand,
+    },
+    /// Feed a harness's own task list into the tick ladder (OW-WAR-0148
+    /// M13). Proposes ticks; writes only with `--apply`; never blocks.
+    Bridge {
+        #[command(subcommand)]
+        command: BridgeCommand,
     },
     /// Append a dated note to a Warrant: context for the next agent or person.
     Note {
@@ -2053,27 +2156,98 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 target,
                 note,
                 if_rev,
+                check,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
                     "done",
-                    &ticket::done(&store, &target, note.as_deref(), if_rev.as_deref())?,
+                    &ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?,
                 ))
             }
             TicketCommand::Add {
                 ticket: target,
                 text,
                 after,
+                tests,
+                name,
+                kpi,
+                cmd,
+                direction,
+                target: kpi_target,
+                mode: kpi_mode,
+                milestone,
+                min,
                 if_rev,
                 actor,
             } => {
                 let (_, store) = tickets(actor.as_deref())?;
+                let parts = ticket::parts::PartsArgs {
+                    tests,
+                    name,
+                    kpi: kpi.map(|name| ticket::parts::KpiSpec {
+                        name,
+                        cmd,
+                        direction,
+                        target: kpi_target,
+                        mode: kpi_mode,
+                    }),
+                    milestone,
+                    min,
+                };
+                // Without a part, `war add` is the item it always was.
+                let outcome = if parts.is_empty() {
+                    ticket::add(
+                        &store,
+                        &target,
+                        text.as_deref().unwrap_or_default(),
+                        &after,
+                        if_rev.as_deref(),
+                    )?
+                } else {
+                    ticket::parts::add(
+                        &store,
+                        &target,
+                        text.as_deref(),
+                        &after,
+                        &parts,
+                        if_rev.as_deref(),
+                    )?
+                };
+                Ok(ticket_answer(mode, "add", &outcome))
+            }
+            TicketCommand::Kpi {
+                command: KpiCommand::Run { target, actor },
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
                 Ok(ticket_answer(
                     mode,
-                    "add",
-                    &ticket::add(&store, &target, &text, &after, if_rev.as_deref())?,
+                    "kpi",
+                    &ticket::ladder::kpi_run(&store, &target)?,
+                ))
+            }
+            TicketCommand::Bridge {
+                command:
+                    BridgeCommand::ClaudeTasks {
+                        dir,
+                        file,
+                        event,
+                        apply,
+                        actor,
+                    },
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                let source = match (dir, file, event) {
+                    (_, _, Some(e)) => bridge::Source::Event(e),
+                    (_, Some(f), None) => bridge::Source::File(f),
+                    (Some(d), None, None) => bridge::Source::Dir(d),
+                    (None, None, None) => bridge::Source::Default,
+                };
+                Ok(ticket_answer(
+                    mode,
+                    "bridge",
+                    &bridge::claude_tasks(&store, &source, apply)?,
                 ))
             }
             TicketCommand::Note {
@@ -4234,6 +4408,18 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                         if !adapted.is_empty() {
                             print!("{}", interop::adapters::status(&adapted).0);
                         }
+                        // OW-WAR-0148 M13: how the tickets' ticks were
+                        // earned, after the projection and never in it (the
+                        // committed projection does not move when a ticket
+                        // is worked).
+                        if let Some(block) = ticket::Store::open(&repository, None)
+                            .ok()
+                            .and_then(|s| ticket::ladder::tracker(&s).ok())
+                            .and_then(|t| t.render())
+                        {
+                            let gap = if text.ends_with('\n') { "" } else { "\n" };
+                            println!("{gap}{}", block.trim_end());
+                        }
                     }
                 },
             }
@@ -4444,6 +4630,18 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(output::finish(mode, "check", &report, None))
         }
 
+        // OW-WAR-0148 M13: an item's independent verification, the same seam
+        // at the size of one tick.
+        Command::Verify {
+            alias, response, ..
+        } if ticket::is_ticket_ref(&alias) => {
+            let (_, store) = tickets(None)?;
+            let outcome = match response {
+                Some(path) => ticket::acts::verify_ingest(&store, &alias, &path)?,
+                None => ticket::acts::verify_request(&store, &alias)?,
+            };
+            Ok(ticket_answer(mode, "verify", &outcome))
+        }
         Command::Verify {
             alias,
             performer,
@@ -4493,6 +4691,29 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
         }
 
+        // OW-WAR-0148 M13: a human's sign-off of one ticket item.
+        Command::Sign {
+            target: Some(target),
+            actor,
+            meaning,
+            ssh_sign,
+            dry_run,
+            ..
+        } if ticket::is_ticket_ref(&target) => {
+            let repository = open_repo()?;
+            let store = ticket::Store::open(&repository, None)?;
+            let args = ticket::acts::SignArgs {
+                actor,
+                meaning,
+                ssh_sign,
+                dry_run,
+            };
+            Ok(ticket_answer(
+                mode,
+                "sign",
+                &ticket::acts::sign(&repository, &store, &target, &args)?,
+            ))
+        }
         Command::Sign {
             target,
             list,

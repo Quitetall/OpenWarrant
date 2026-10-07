@@ -18,6 +18,10 @@ pub struct Board {
     pub frontier: frontier::Frontier,
     pub approvals: Vec<console::Act>,
     pub questions: Vec<console::Question>,
+    /// OW-WAR-0148 M13: tickets' ticks by level, and their milestones.
+    /// Absent when nothing is ticked and no ticket has a milestone.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ticks: Option<crate::ticket::ladder::Tracker>,
 }
 
 pub fn build(repo: &Repository) -> Result<(Report, Board), RepoError> {
@@ -32,6 +36,10 @@ pub fn build(repo: &Repository) -> Result<(Report, Board), RepoError> {
             frontier,
             approvals,
             questions,
+            ticks: crate::ticket::Store::open(repo, None)
+                .ok()
+                .and_then(|s| crate::ticket::ladder::tracker(&s).ok())
+                .filter(|t| t.counts.total() > 0 || !t.milestones.is_empty()),
         },
     ))
 }
@@ -80,6 +88,14 @@ pub fn render(board: &Board) -> String {
             q.question,
             q.recommended
         );
+    }
+    if let Some(block) = board
+        .ticks
+        .as_ref()
+        .and_then(crate::ticket::ladder::Tracker::render)
+    {
+        out.push('\n');
+        out.push_str(&block);
     }
     out.push_str("\nApprovals (commands only; this board never signs)\n");
     for act in &board.approvals {
