@@ -384,7 +384,7 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
     // ---- projections known to include them.
     let mut projections: BTreeMap<String, Projection> = BTreeMap::new();
     let mut include = |path: camino::Utf8PathBuf, scope: &str, id: &str| {
-        if !path.is_file() {
+        if !crate::vfs::is_file(&path) {
             return;
         }
         let p = projections
@@ -404,7 +404,7 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
         .join("generated");
     for w in &warrants {
         if let Some(e) = corpus.entry(w)
-            && let Ok(rd) = std::fs::read_dir(e.dir.join("generated"))
+            && let Ok(rd) = crate::vfs::read_dir(e.dir.join("generated"))
         {
             let mut files: Vec<camino::Utf8PathBuf> = rd
                 .filter_map(Result::ok)

@@ -85,7 +85,7 @@ struct Entry {
 fn entries_in(dir: &Utf8Path) -> Vec<Entry> {
     // Cheap first: most journals hold no declared state, and a ticket list
     // reads every ticket's.
-    let Ok(text) = std::fs::read_to_string(dir.join(crate::journal_cmd::FILE)) else {
+    let Ok(text) = crate::vfs::read_to_string(dir.join(crate::journal_cmd::FILE)) else {
         return Vec::new();
     };
     if !text.contains(ENTERED) {

@@ -39457,7 +39457,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | verified |
 | D-005 | The ticket module | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | drift |
-| D-007 | Claims: hard-link locks, steal, release | `crates/openwarrant-cli/src/ticket/claim.rs` | verified |
+| D-007 | Claims: hard-link locks, steal, release | `crates/openwarrant-cli/src/ticket/claim.rs` | drift |
 | D-008 | prime, show, tickets | `crates/openwarrant-cli/src/ticket/render.rs` | drift |
 | D-009 | The ticket subcommands, show and check routing, the init start line | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-010 | The ticket tools over MCP | `crates/openwarrant-cli/src/mcp/tools.rs` | drift |
