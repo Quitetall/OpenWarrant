@@ -1,0 +1,7 @@
+# Operating what ships (OW-WAR-0148 M18): a pack of document types.
+# `war plan types add ops` copies these profiles into profiles/.
+schema = "oh.war/pack/v1"
+name = "ops"
+version = "1.0.0"
+note = "Operating what ships: runbooks, service-level objectives, rollouts and incident reviews."
+profiles = ["runbook.toml", "slo.toml", "rollout.toml", "incident-review.toml"]

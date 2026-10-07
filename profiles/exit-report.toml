@@ -1,0 +1,42 @@
+# An exit report (OW-WAR-0148 M18), as data: a small core document type.
+# The measured evidence that a roadmap phase's exit holds: each measurement
+# with the command that produced it. It `evaluates` the phase it reports
+# on; whether the phase is achieved stays the roadmap's to compute, from its
+# exit Warrant's resolution. Nothing of it is claimed, accepted, authorized,
+# verified or resolved (`form = "document"`). docs/roadmap/PHASE1_EXIT.md
+# is adopted in place as one (`war plan type`); its bytes are never
+# rewritten. docs/TYPES.md, "Every development document is a type".
+schema = "oh.war/profile/v1"
+name = "exit-report"
+form = "document"
+note = "The measured evidence that a roadmap phase's exit holds: each measurement with the command that produced it."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["exit_report", "measurement"]
+
+[relations]
+allow = ["part_of", "evaluates"]
+
+[[projections]]
+name = "exit-report"
+title = "{title}: exit report"
+intro = "What was measured, and how, to say whether a phase's exit holds. A measurement is evidence for a reader; the phase is achieved only when its exit Warrant's resolution is recorded."
+
+[projections.select]
+types = ["exit_report", "measurement"]
+through = ["in:part_of"]
+
+[[projections.sections]]
+heading = "Exit"
+block = "list"
+style = "blocks"
+types = ["exit_report"]
+annotate = ["out:evaluates"]
+empty = "No exit report record is recorded."
+
+[[projections.sections]]
+heading = "Measurements"
+block = "list"
+types = ["measurement"]
+empty = "No measurement is recorded."

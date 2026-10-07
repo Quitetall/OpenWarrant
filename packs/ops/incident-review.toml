@@ -1,0 +1,43 @@
+# An incident review (pack `ops` 1.0.0): what was learned after an
+# incident, and the follow-up work. A follow-up is a Warrant item that
+# `implements` a finding; it is done when its box is ticked.
+schema = "oh.war/profile/v1"
+name = "incident-review"
+form = "document"
+note = "What was learned after an incident: findings, lessons, and the follow-up work, each a Warrant item."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["review", "finding", "lesson"]
+
+[relations]
+allow = ["part_of", "causes", "supports", "implements"]
+
+[[projections]]
+name = "incident-review"
+title = "{title}: incident review"
+
+[projections.select]
+types = ["review", "finding", "lesson", "item"]
+through = ["in:part_of", "in:supports", "in:implements"]
+
+[[projections.sections]]
+heading = "Findings"
+block = "list"
+types = ["finding"]
+annotate = ["out:causes"]
+empty = "No finding is recorded."
+
+[[projections.sections]]
+heading = "Lessons"
+block = "list"
+types = ["lesson"]
+annotate = ["out:supports"]
+empty = "No lesson is recorded."
+
+[[projections.sections]]
+heading = "Follow-up"
+block = "table"
+types = ["item"]
+columns = ["id", "summary=Action", "field:state=State", "out:implements=Addresses"]
+empty = "No follow-up is recorded: no Warrant item implements a finding."

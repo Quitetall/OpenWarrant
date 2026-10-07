@@ -1,0 +1,39 @@
+# A service-level objective (pack `ops` 1.0.0): what a service promises,
+# measured by which indicator. The numbers are the records' text; whether
+# one is met is a Warrant obligation's verdict, never this document's.
+schema = "oh.war/profile/v1"
+name = "slo"
+form = "document"
+note = "What a service promises its users, and the indicator each promise is measured by."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["service", "indicator", "objective"]
+
+[relations]
+allow = ["part_of", "evaluates", "constrains"]
+
+[[projections]]
+name = "slo"
+title = "{title}: service-level objectives"
+
+[projections.select]
+types = ["service", "indicator", "objective", "obligation"]
+through = ["in:part_of", "in:evaluates"]
+
+[[projections.sections]]
+heading = "Objectives"
+block = "tree"
+types = ["objective"]
+fields = ["verdict"]
+children = [
+    { relation = "in:evaluates", label = "Measured by", empty = "No indicator or obligation measures this objective." },
+]
+empty = "No objective is recorded."
+
+[[projections.sections]]
+heading = "Indicators"
+block = "list"
+types = ["indicator"]
+annotate = ["out:evaluates"]
+empty = "No indicator is recorded."

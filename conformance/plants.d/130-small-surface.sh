@@ -63,7 +63,7 @@ fi
 # Each group's members, as docs/COMMANDS.md lists them. `schemas` is in a
 # build with the `schema` feature only.
 declare -A SS_MEMBERS=(
-    [plan]="new promote render impact model state roadmap frontier questions ask answer answers"
+    [plan]="new promote render impact model state roadmap types type frontier questions ask answer answers"
     [sign]="authorize resolve correct amend attest standing sas inbox authority"
     [evidence]="record gate verify prepare run perform submit kpi mark document eval"
     [view]="ui tui board console watch overview warrants ready prime timeline"

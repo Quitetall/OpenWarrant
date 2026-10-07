@@ -420,6 +420,9 @@ pub fn run_with(
         crate::records::check(shared_corpus, &mut report);
         // OW-WAR-0148 M6: declared documents. Silent where there are none.
         crate::render_cmd::check(shared_corpus, &mut report);
+        // OW-WAR-0148 M18: docs/types.toml and the document index. Silent
+        // for a program with neither a types file nor a bad [documents].
+        crate::types::check(shared_corpus, &mut report);
     }
 
     // Accepting a SAS revision is the act that makes a specification normative

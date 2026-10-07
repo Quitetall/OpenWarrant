@@ -15,7 +15,8 @@
 //! - the corpus status, the sign queue, the frontier, the ownership index;
 //! - the roadmap record, the tickets, the ADRs and the SAS revisions;
 //! - the record atoms and the relations documents author (OW-WAR-0148 M3);
-//! - the folders `[[adapters]]` reads in place (OW-WAR-0148 M10).
+//! - the folders `[[adapters]]` reads in place (OW-WAR-0148 M10);
+//! - the development-document index (OW-WAR-0148 M18).
 //!
 //! Every derived value is computed on first use and kept for the life of the
 //! corpus: a command that never asks for the frontier never pays for it, and
@@ -171,6 +172,7 @@ pub struct Corpus {
     sas_revisions: OnceLock<Result<Vec<openwarrant_core::SasRevision>, Kept>>,
     records: OnceLock<crate::records::Records>,
     adapters: OnceLock<crate::interop::adapters::Adapted>,
+    documents: OnceLock<crate::doc_index::Index>,
 }
 
 impl std::fmt::Debug for Corpus {
@@ -206,6 +208,7 @@ impl Corpus {
             sas_revisions: OnceLock::new(),
             records: OnceLock::new(),
             adapters: OnceLock::new(),
+            documents: OnceLock::new(),
         }
     }
 
@@ -325,6 +328,13 @@ impl Corpus {
     pub fn adapters(&self) -> &crate::interop::adapters::Adapted {
         self.adapters
             .get_or_init(|| crate::interop::adapters::load(&self.repo))
+    }
+
+    /// The development-document index (OW-WAR-0148 M18), once.
+    /// Infallible: what could not be read is a fault inside, by rule.
+    pub fn documents(&self) -> &crate::doc_index::Index {
+        self.documents
+            .get_or_init(|| crate::doc_index::load(self))
     }
 
     /// The recorded SAS revisions, once.

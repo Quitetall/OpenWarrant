@@ -1,0 +1,53 @@
+# An incident (OW-WAR-0148 M18, decision 26), as data: a core document
+# type. Its timeline and causes are records; its actions are Warrant items
+# that `implements` the incident or a cause, so an action is done when its
+# box is ticked and never because this document says so. Nothing of it is
+# claimed, authorized, verified or resolved (`form = "document"`).
+# docs/TYPES.md, "Every development document is a type".
+schema = "oh.war/profile/v1"
+name = "incident"
+form = "document"
+note = "What happened, why, and what is being done about it: the incident, its timeline, its causes, and the actions, each a Warrant item that implements a fix."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["incident", "event", "cause"]
+
+[relations]
+allow = ["part_of", "causes", "implements", "depends_on"]
+
+[[projections]]
+name = "incident-report"
+title = "{title}: incident report"
+intro = "What happened, in the order it happened, what caused it, and the actions taken. An action is a Warrant item; its state is the item's, read from its checklist."
+
+[projections.select]
+types = ["incident", "event", "cause", "item"]
+through = ["in:part_of", "in:causes", "in:implements"]
+
+[[projections.sections]]
+heading = "Summary"
+block = "list"
+style = "blocks"
+types = ["incident"]
+empty = "No incident record is recorded."
+
+[[projections.sections]]
+heading = "Timeline"
+block = "list"
+types = ["event"]
+empty = "No event is recorded."
+
+[[projections.sections]]
+heading = "Causes"
+block = "list"
+types = ["cause"]
+annotate = ["out:causes"]
+empty = "No cause is recorded yet."
+
+[[projections.sections]]
+heading = "Actions"
+block = "table"
+types = ["item"]
+columns = ["id", "summary=Action", "field:state=State", "out:implements=Addresses"]
+empty = "No action is recorded: no Warrant item implements this incident or a cause of it."

@@ -100,6 +100,8 @@ value of the `--json` envelope, the same under either spelling.
 | `war plan model` | `war model` | `model` |
 | `war plan state` | `war state` | `state` |
 | `war plan roadmap` | `war roadmap` | `roadmap` |
+| `war plan types`, `war plan types add` (M18, new) | `war types` (hidden, as every group member) | `types`, `types.add` |
+| `war plan type` (M18, new) | `war type` (hidden, as every group member) | `type` |
 | `war plan frontier` | `war frontier` | `frontier` |
 | `war plan questions` | `war questions` | `questions` |
 | `war plan ask` | `war ask` | `ask` |
@@ -243,6 +245,13 @@ value of the `--json` envelope, the same under either spelling.
   `war merge-ticket`, so clones configured earlier keep merging.
 - **`timeline` is new under `view`**: `war status --timeline` under the name
   a reader looks for.
+- **`types` and `type` are new under `plan`** (OW-WAR-0148 M18): a type is
+  how a document is planned, beside `model`, `render` and `roadmap`.
+  `war plan types` lists the types, `war plan types add <pack>` installs a
+  pack, `war plan type <file> <type>` adopts a document in place. Like every
+  group member they also answer, hidden, at the top level (`war types add
+  ops`, `war type <file> <type>`, the spellings the plan's decision table
+  uses); messages name the `plan` spellings.
 
 ## What still names an earlier spelling, on purpose
 

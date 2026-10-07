@@ -577,6 +577,7 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
     }
 
     Ok(CorpusStatus {
+        document_coverage: None,
         repository_url: repo.config.project.repository_url.clone(),
         generated_by: Some(openwarrant_core::status::GeneratedBy {
             war_version: env!("CARGO_PKG_VERSION").to_owned(),
