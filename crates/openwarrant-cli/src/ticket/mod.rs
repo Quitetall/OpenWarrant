@@ -29,8 +29,11 @@
 //! verified. `conformance/plants.d/45-tickets.sh` measures each command on this
 //! repository.
 
+pub mod acts;
 pub mod claim;
+pub mod ladder;
 pub mod merge;
+pub mod parts;
 pub mod remote;
 mod render;
 
@@ -43,6 +46,7 @@ use openwarrant_core::ticket::{
     self, Blocker, CHECKLIST_ROLE, Checklist, DEFAULT_PRIORITY, Item, TICKET_PROFILE,
     TICKET_SCHEMA, TicketAtom, TicketManifest,
 };
+use openwarrant_core::ticks::{self, Level};
 use serde::{Deserialize, Serialize};
 
 use crate::compile::atomic;
@@ -187,7 +191,7 @@ pub struct Outcome {
 }
 
 impl Outcome {
-    fn ok(human: impl Into<String>, result: serde_json::Value) -> Self {
+    pub(crate) fn ok(human: impl Into<String>, result: serde_json::Value) -> Self {
         Self {
             report: Report::default(),
             human: human.into(),
@@ -195,7 +199,7 @@ impl Outcome {
         }
     }
 
-    fn refused(rule: &str, file: impl Into<String>, message: impl Into<String>) -> Self {
+    pub(crate) fn refused(rule: &str, file: impl Into<String>, message: impl Into<String>) -> Self {
         let message = message.into();
         let mut report = Report::default();
         report.push(Diagnostic::error(rule, file, message.clone()));
@@ -206,7 +210,7 @@ impl Outcome {
         }
     }
 
-    fn from_diagnostic(d: Diagnostic) -> Self {
+    pub(crate) fn from_diagnostic(d: Diagnostic) -> Self {
         let mut report = Report::default();
         let human = d.message.clone();
         report.push(d);
@@ -418,6 +422,8 @@ impl Store {
                 crate::journal_cmd::FILE.to_owned(),
                 INTENT_FILE.to_owned(),
                 format!("atoms/{}", self.checklist_file()),
+                // OW-WAR-0148 M13: the optional parts `war add` writes.
+                ticks::CHECKS_FILE.to_owned(),
             ],
         }
     }
@@ -986,6 +992,53 @@ fn rewrite<T>(
     )))
 }
 
+/// [`rewrite`], for a file that may not exist yet: absent, it is `stub`
+/// edited, written only if it is still absent (OW-WAR-0148 M13).
+fn rewrite_or_create<T>(
+    path: &Utf8Path,
+    stub: &str,
+    mut edit: impl FnMut(&str) -> Result<(String, T), Box<Outcome>>,
+) -> Result<Result<T, Box<Outcome>>, RepoError> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(io(format!("could not create {parent}")))?;
+    }
+    // One writer at a time, as `rewrite` (M11).
+    let _held = path.parent().and_then(dir_lock);
+    for _ in 0..8 {
+        let (current, prestate) = match crate::vfs::read(path) {
+            Ok(bytes) => {
+                let text = String::from_utf8(bytes.clone())
+                    .map_err(|e| RepoError::Message(format!("{path}: not UTF-8 ({e})")))?;
+                (text, atomic::Prestate::of(&bytes))
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                (stub.to_owned(), atomic::Prestate::Absent)
+            }
+            Err(source) => {
+                return Err(RepoError::Io {
+                    context: format!("could not read {path}"),
+                    source,
+                });
+            }
+        };
+        let (next, value) = match edit(&current) {
+            Ok(v) => v,
+            Err(refusal) => return Ok(Err(refusal)),
+        };
+        if next == current && prestate != atomic::Prestate::Absent {
+            return Ok(Ok(value));
+        }
+        match atomic::write_if(path, next.as_bytes(), &prestate) {
+            Ok(()) => return Ok(Ok(value)),
+            Err(r) if r.rule == "storage.prestate-moved" => {}
+            Err(r) => return Err(r.into()),
+        }
+    }
+    Err(RepoError::Message(format!(
+        "storage.prestate-moved: {path} kept changing under this write; nothing was written"
+    )))
+}
+
 fn fresh_item_id(taken: &BTreeSet<String>) -> String {
     ticket::item_id(&WarUuid::mint().to_string(), taken)
 }
@@ -1301,6 +1354,19 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
     } else {
         human.push_str(&format!("\n{} item(s); `war ready` lists them", made.len()));
     }
+    // OW-WAR-0148 M13 (decision 2): one line, never a refusal, suggesting
+    // the test a new Warrant does not have yet. `[warrants] hints = false`
+    // turns it off.
+    let hint = hints_enabled(&store.root).then(|| {
+        format!(
+            "hint (optional): `war add {id} --test \"<command>\"` gives it a test, and `war \
+             done <item> --check` then ticks only when it passes"
+        )
+    });
+    if let Some(h) = &hint {
+        human.push('\n');
+        human.push_str(h);
+    }
     let mut result = serde_json::json!({
         "schema": "oh.war/ticket-created/v1",
         "id": id,
@@ -1322,7 +1388,33 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
     if let Some(issue) = &args.issue {
         result["issue"] = serde_json::json!({"number": issue.number, "url": issue.url});
     }
+    if let Some(h) = hint {
+        result["hint"] = serde_json::json!(h);
+    }
     Ok(Outcome::ok(human, result))
+}
+
+/// `[warrants] hints` in `openwarrant.toml` (OW-WAR-0148 M13): whether
+/// `war create` prints its one-line hint. On unless set to `false`; a file
+/// that cannot be read leaves it on.
+#[must_use]
+pub fn hints_enabled(root: &Utf8Path) -> bool {
+    #[derive(Deserialize)]
+    struct Warrants {
+        #[serde(default)]
+        hints: Option<bool>,
+    }
+    #[derive(Deserialize)]
+    struct File {
+        #[serde(default)]
+        warrants: Option<Warrants>,
+    }
+    crate::vfs::read_to_string(root.join(crate::init::CONFIG_FILE))
+        .ok()
+        .and_then(|text| toml::from_str::<File>(&text).ok())
+        .and_then(|f| f.warrants)
+        .and_then(|w| w.hints)
+        .unwrap_or(true)
 }
 
 /// A refusal for `--issue <n>` when a ticket already holds that issue, read
@@ -2649,12 +2741,28 @@ fn may_finish(
     )))
 }
 
-/// `war done <item|ticket> [--note]`.
+/// `war done <item|ticket> [--note]`: a claimed tick.
 pub fn done(
     store: &Store,
     query: &str,
     note: Option<&str>,
     if_rev: Option<&str>,
+) -> Result<Outcome, RepoError> {
+    done_with(store, query, note, if_rev, false)
+}
+
+/// `war done <item|ticket> [--note] [--if-rev] [--check]`. With `check`
+/// (OW-WAR-0148 M13) the item's tests and KPIs run first and the tick is
+/// written at `observed` only when every one that decides passes; a done
+/// item's tick is raised to `observed` the same way. Either way a tick below
+/// the minimum its item must reach is refused, naming the command that
+/// reaches it.
+pub fn done_with(
+    store: &Store,
+    query: &str,
+    note: Option<&str>,
+    if_rev: Option<&str>,
+    check: bool,
 ) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
     let target = match resolve(&tickets, query) {
@@ -2710,6 +2818,9 @@ pub fn done(
     }
     if let Some(id) = &item_id {
         let it = t.item(id).expect("resolved");
+        if it.done && check {
+            return ladder::raise_observed(store, t, id, &what, if_rev);
+        }
         if it.done {
             let by = it.done_by.clone().unwrap_or_else(|| "hand".to_owned());
             return Ok(if it.done_by.as_deref() == Some(store.actor.as_str()) {
@@ -2732,6 +2843,35 @@ pub fn done(
     if let Err(refusal) = may_finish(store, t, item_id.as_deref(), &what) {
         return Ok(*refusal);
     }
+    // OW-WAR-0148 M13: the level this tick reaches, and the least it must.
+    let checks = ladder::checks_of(t);
+    let reach = if check {
+        Level::Observed
+    } else {
+        Level::Claimed
+    };
+    if let Some(refusal) =
+        ladder::below_minimum(store, t, &checks, item_id.as_deref(), &what, reach)
+    {
+        return Ok(refusal);
+    }
+    let round = if check {
+        match ladder::check_for_tick(store, t, item_id.as_deref(), &checks, &what)? {
+            Ok(round) => Some(round),
+            Err(refusal) => return Ok(*refusal),
+        }
+    } else {
+        None
+    };
+    // The checks may have run for a while: the claim must still be this
+    // agent's (its lease was renewed after each run) before anything is
+    // ticked.
+    if round.is_some()
+        && let Err(refusal) = may_finish(store, t, item_id.as_deref(), &what)
+    {
+        return Ok(*refusal);
+    }
+    let date = ticks::with_level(&date, reach);
     // M11: with a claims remote, the remote must still give the claim to this
     // agent: a lease that ran out there may have been taken from another
     // machine.
@@ -2801,12 +2941,21 @@ pub fn done(
     let t = store
         .load(&t.dir)
         .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))?;
-    let mut payload = serde_json::json!({"item": done_id, "target": what, "on": date});
+    let on = date_of(now);
+    let mut payload = serde_json::json!({"item": done_id, "target": what, "on": on});
     if let Some(n) = &note {
         payload["note"] = serde_json::json!(n);
     }
     if !named_now.is_empty() {
         payload["named"] = serde_json::json!(named_now);
+    }
+    // A claimed tick's event is the bytes it always was; an observed one
+    // carries its level and the receipt of every run.
+    if let Some(r) = &round {
+        payload["level"] = serde_json::json!(reach.as_str());
+        payload["runs"] = serde_json::to_value(&r.runs).unwrap_or_default();
+        payload["commit"] = serde_json::json!(r.commit);
+        payload["run"] = serde_json::json!(r.run);
     }
     store.journal(&t, event::ITEM_DONE, &payload)?;
     // The claim is spent: release the item's, and the ticket's once it is done.
@@ -2830,6 +2979,14 @@ pub fn done(
     let state = state_of(&t, &claims);
     let (d, n) = t.checklist.progress();
     let mut human = format!("done {}/{done_id}  ({d}/{n})", t.id());
+    // Every tick says how it was earned (OW-WAR-0148 M13).
+    match &round {
+        Some(r) => human.push_str(&format!(
+            "\nticked at observed: {} passed",
+            ladder::passed_names(r)
+        )),
+        None => human.push_str("\nticked as claimed: nothing was checked"),
+    }
     // OW-WAR-0148 M5: the ticket just became done. If it was made from an
     // issue, say so there when write-back is configured.
     let mut issue_report = None;
@@ -2861,7 +3018,11 @@ pub fn done(
         "note": note,
         "progress": {"done": d, "total": n},
         "ticket_state": state,
+        "level": reach.as_str(),
     });
+    if let Some(r) = &round {
+        result["checks"] = serde_json::to_value(r).unwrap_or_default();
+    }
     if let Some(r) = issue_report {
         result["issue"] = r;
     }
@@ -2871,6 +3032,11 @@ pub fn done(
     }
     for w in remote_warnings {
         out.report.push(w);
+    }
+    if let Some(r) = &round {
+        for w in ladder::signal_warnings(r) {
+            out.report.push(w);
+        }
     }
     Ok(out)
 }

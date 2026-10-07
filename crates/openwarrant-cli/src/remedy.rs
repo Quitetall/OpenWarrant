@@ -160,6 +160,9 @@ pub const TABLE: &[&str] = &[
     "sign.would-refuse",
     "sign.refused",
     "sign.ingest-failed",
+    // OW-WAR-0148 M13: a ticket item's sign-off.
+    "sign.no-eligible-signer",
+    "sign.ssh-required",
     "doctor.signing-keygen",
     "doctor.signing-agent",
     "doctor.signing-keys",
@@ -321,7 +324,9 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         | "sign.presence-unreadable"
         | "sign.verified"
         | "sign.signer"
-        | "sign.unsigned" => Remedy::new(
+        | "sign.unsigned"
+        | "sign.no-eligible-signer"
+        | "sign.ssh-required" => Remedy::new(
             Kind::Informational,
             &["war", "doctor"],
             "probe the signing setup (ssh-keygen, the agent and its keys, roles.toml, \
@@ -512,6 +517,7 @@ mod tests {
             include_str!("invalidation.rs"),
             include_str!("standing_cmd.rs"),
             include_str!("mcp/tools.rs"),
+            include_str!("ticket/acts.rs"),
         ];
         let mut rules = std::collections::BTreeSet::new();
         for src in sources {

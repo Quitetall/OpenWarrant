@@ -448,6 +448,11 @@ pub struct View {
     pub accepted: bool,
     pub pending_revision: Option<u32>,
     pub phases: Vec<PhaseView>,
+    /// OW-WAR-0148 M13: the milestones tickets carry, each with the level
+    /// its tick shows and whether that meets its minimum. Absent when no
+    /// ticket has one.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub milestones: Vec<crate::ticket::ladder::MilestoneView>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -530,6 +535,11 @@ pub fn view_with(
             accepted: loaded.is_accepted(),
             pending_revision: loaded.pending().map(|r| r.revision),
             phases,
+            milestones: crate::ticket::Store::open(repo, None)
+                .ok()
+                .and_then(|s| crate::ticket::ladder::tracker(&s).ok())
+                .map(|t| t.milestones)
+                .unwrap_or_default(),
         },
     ))
 }
@@ -577,6 +587,17 @@ pub fn render(v: &View) -> String {
         }
         if !p.open.is_empty() {
             s.push_str(&format!("    no Warrant yet: {}\n", p.open.join(", ")));
+        }
+    }
+    // OW-WAR-0148 M13: a ticket's milestones tick their marker here, each
+    // with the level it was earned at.
+    if !v.milestones.is_empty() {
+        s.push_str("\nMilestones (ticket items; claimed < observed < independent < signed)\n");
+        for m in &v.milestones {
+            s.push_str(&format!(
+                "    {}\n",
+                crate::ticket::ladder::milestone_line(m)
+            ));
         }
     }
     s
