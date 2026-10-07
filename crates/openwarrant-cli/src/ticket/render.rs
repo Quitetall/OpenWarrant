@@ -446,22 +446,16 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
         if !filter.labels.iter().all(|l| r.labels.contains(l)) {
             return false;
         }
-        match &wanted_state {
-            None => {}
-            Some(Ok(f)) => {
-                if r.state != *f {
-                    return false;
-                }
-            }
-            Some(Err(declared)) => {
-                if !r
-                    .declared_states
-                    .iter()
-                    .any(|d| !d.lapsed && &d.state == declared)
-                {
-                    return false;
-                }
-            }
+        let state_holds = match &wanted_state {
+            None => true,
+            Some(Ok(f)) => r.state == *f,
+            Some(Err(declared)) => r
+                .declared_states
+                .iter()
+                .any(|d| !d.lapsed && &d.state == declared),
+        };
+        if !state_holds {
+            return false;
         }
         if let Some(e) = &epic
             && r.part_of.as_ref() != Some(e)

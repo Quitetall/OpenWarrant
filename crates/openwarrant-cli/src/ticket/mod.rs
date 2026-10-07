@@ -803,40 +803,40 @@ fn label_set(labels: &[String]) -> Vec<String> {
 
 /// Resolve `--part-of` to a ticket id, refusing one that is unknown or that
 /// would make `child` (when it exists) part of itself through the chain.
-fn parent_of(tickets: &[Ticket], query: &str, child: Option<&str>) -> Result<String, Outcome> {
+fn parent_of(tickets: &[Ticket], query: &str, child: Option<&str>) -> Result<String, Box<Outcome>> {
     let parent = match resolve(tickets, query) {
         Ok(Target::Ticket(n)) => tickets[n].id().to_owned(),
         Ok(Target::Item(..)) => {
-            return Err(Outcome::refused(
+            return Err(Box::new(Outcome::refused(
                 "ticket.part-of",
                 String::new(),
                 format!(
                     "`--part-of {query}` names an item; a ticket is part of a ticket (an epic)"
                 ),
-            ));
+            )));
         }
-        Err(d) => return Err(Outcome::from_diagnostic(d)),
+        Err(d) => return Err(Box::new(Outcome::from_diagnostic(d))),
     };
     if child == Some(parent.as_str()) {
-        return Err(Outcome::refused(
+        return Err(Box::new(Outcome::refused(
             "ticket.part-of-cycle",
             String::new(),
             format!("{parent} cannot be part of itself"),
-        ));
+        )));
     }
     if let Some(child) = child {
         let mut at = Some(parent.clone());
         let mut seen = BTreeSet::new();
         while let Some(id) = at {
             if id == child {
-                return Err(Outcome::refused(
+                return Err(Box::new(Outcome::refused(
                     "ticket.part-of-cycle",
                     String::new(),
                     format!(
                         "{child} cannot be part of {parent}: {parent} is already part of {child}, \
                          through `part_of`"
                     ),
-                ));
+                )));
             }
             if !seen.insert(id.clone()) {
                 break;
@@ -898,7 +898,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         None => None,
         Some(q) => match parent_of(&all, q, None) {
             Ok(p) => Some(p),
-            Err(refusal) => return Ok(refusal),
+            Err(refusal) => return Ok(*refusal),
         },
     };
     if let Some(issue) = &args.issue
@@ -2270,7 +2270,7 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
             None => None,
             Some(q) => match parent_of(&tickets, q, Some(t.id())) {
                 Ok(id) => Some(id),
-                Err(refusal) => return Ok(refusal),
+                Err(refusal) => return Ok(*refusal),
             },
         };
         if m.part_of != parent {
