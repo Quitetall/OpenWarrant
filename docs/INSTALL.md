@@ -234,7 +234,9 @@ OpenWarrant tracks optional plans and checklists in this repository; run
   and `CLAUDE.md` that exists, or writes an `AGENTS.md` holding only the
   block when neither does. `--file <path>` names another file (created when
   absent); `--stdout` prints the block. A `CLAUDE.md` that is a link to
-  `AGENTS.md` is written once, through the link.
+  `AGENTS.md` is written once, through the link; a link to a file outside
+  the repository (a shared or global `CLAUDE.md`) is refused,
+  `agents-md.link-outside`.
 - A file without the block gets it on the line after its last one. A file
   with it has only the lines between the markers rewritten. Every byte
   outside the markers stays as it was, and a second run changes nothing.

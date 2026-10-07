@@ -107,18 +107,25 @@ fn expand(dir: &Utf8Path, segs: &[&str], out: &mut BTreeSet<Utf8PathBuf>) {
 /// path, each once.
 #[must_use]
 pub fn files(repo: &Repository) -> Vec<Utf8PathBuf> {
+    files_in(&repo.root, &repo.config.instructions.nested)
+}
+
+/// [`files`] for a root and its `nested` globs. A glob that is absolute or
+/// climbs out with `..` matches nothing.
+#[must_use]
+pub fn files_in(root: &Utf8Path, nested: &[String]) -> Vec<Utf8PathBuf> {
     let mut out: BTreeSet<Utf8PathBuf> = ROOT_FILES
         .iter()
-        .map(|f| repo.root.join(f))
+        .map(|f| root.join(f))
         .filter(|p| crate::vfs::is_file(p))
         .collect();
-    for pattern in &repo.config.instructions.nested {
+    for pattern in nested {
         let p = pattern.trim().trim_start_matches("./");
         if p.is_empty() || p.starts_with('/') || p.split('/').any(|s| s == "..") {
             continue;
         }
         let segs: Vec<&str> = p.split('/').filter(|s| !s.is_empty()).collect();
-        expand(&repo.root, &segs, &mut out);
+        expand(root, &segs, &mut out);
     }
     out.into_iter().collect()
 }
@@ -217,7 +224,9 @@ pub fn default_targets(root: &Utf8Path) -> Vec<Utf8PathBuf> {
 /// file is read and checked before any is written, so a refusal writes
 /// nothing; a file that does not exist is created holding the block alone.
 /// A target that is a link to another target (`CLAUDE.md` → `AGENTS.md`) is
-/// written once, through the file it names, and reported as `linked`.
+/// written once, through the file it names, and reported as `linked`. A link
+/// to a file outside the repository (a shared or global CLAUDE.md) is refused,
+/// `agents-md.link-outside`: the block goes only into this repository's files.
 pub fn write_blocks(root: &Utf8Path, targets: &[Utf8PathBuf]) -> Result<Vec<Written>, Refused> {
     /// The file a write lands in, its bytes before (none: absent), after.
     struct Pending {
@@ -231,11 +240,26 @@ pub fn write_blocks(root: &Utf8Path, targets: &[Utf8PathBuf]) -> Result<Vec<Writ
     let mut planned: Vec<(String, Option<Pending>, &'static str)> = Vec::new();
     let mut seen: BTreeSet<Utf8PathBuf> = BTreeSet::new();
     let mut report = Report::default();
-    for path in targets {
-        let real = std::fs::canonicalize(path)
+    let canonical = |p: &Utf8Path| {
+        std::fs::canonicalize(p)
             .ok()
             .and_then(|p| Utf8PathBuf::from_path_buf(p).ok())
-            .unwrap_or_else(|| path.clone());
+    };
+    let real_root = canonical(root).unwrap_or_else(|| root.to_owned());
+    for path in targets {
+        let real = canonical(path).unwrap_or_else(|| path.clone());
+        if real.is_absolute() && !real.starts_with(&real_root) {
+            report.push(Diagnostic::error(
+                "agents-md.link-outside",
+                rel(path),
+                format!(
+                    "{} is a link to {real}, outside the repository; the block goes only into \
+                     the repository's own files. Name another with --file. Nothing was written.",
+                    rel(path)
+                ),
+            ));
+            continue;
+        }
         if !seen.insert(real.clone()) {
             planned.push((rel(path), None, "linked"));
             continue;
@@ -460,6 +484,90 @@ mod tests {
         assert_eq!(
             std::fs::read_to_string(root.join("AGENTS.md")).unwrap(),
             "older\n"
+        );
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_link_is_written_once_and_a_link_outside_is_refused() {
+        let root = scratch("links");
+        let elsewhere = scratch("elsewhere");
+        std::fs::write(root.join("AGENTS.md"), "# Ours\n").unwrap();
+        std::os::unix::fs::symlink("AGENTS.md", root.join("CLAUDE.md")).unwrap();
+        let w = write_blocks(&root, &default_targets(&root)).unwrap();
+        let changes: Vec<&str> = w.iter().map(|x| x.change).collect();
+        assert_eq!(changes, ["inserted", "linked"]);
+        let text = std::fs::read_to_string(root.join("AGENTS.md")).unwrap();
+        assert_eq!(text.matches(instruction::BLOCK_BEGIN).count(), 1);
+        // A CLAUDE.md that is a link to a file outside: refused, untouched.
+        std::fs::remove_file(root.join("CLAUDE.md")).unwrap();
+        std::fs::write(elsewhere.join("CLAUDE.md"), "global\n").unwrap();
+        std::os::unix::fs::symlink(elsewhere.join("CLAUDE.md"), root.join("CLAUDE.md")).unwrap();
+        match write_blocks(&root, &default_targets(&root)) {
+            Err(Refused::Blocks(r)) => assert_eq!(r.diagnostics[0].rule, "agents-md.link-outside"),
+            other => panic!("{other:?}"),
+        }
+        assert_eq!(
+            std::fs::read_to_string(elsewhere.join("CLAUDE.md")).unwrap(),
+            "global\n"
+        );
+        std::fs::remove_dir_all(root).unwrap();
+        std::fs::remove_dir_all(elsewhere).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn nested_globs_find_files_and_skip_build_trees_hidden_dirs_and_links() {
+        let root = scratch("nested");
+        for dir in [
+            "pkg/a",
+            "pkg/b/deep",
+            "target/x",
+            ".hidden",
+            "node_modules/y",
+            "real",
+        ] {
+            std::fs::create_dir_all(root.join(dir)).unwrap();
+        }
+        for f in [
+            "AGENTS.md",
+            "pkg/a/CLAUDE.md",
+            "pkg/b/deep/CLAUDE.md",
+            "target/x/CLAUDE.md",
+            ".hidden/CLAUDE.md",
+            "node_modules/y/CLAUDE.md",
+            "real/CLAUDE.md",
+        ] {
+            std::fs::write(root.join(f), "## A\n").unwrap();
+        }
+        std::os::unix::fs::symlink(root.join("real"), root.join("pkg/link")).unwrap();
+        let rel = |v: Vec<Utf8PathBuf>| -> Vec<String> {
+            v.iter()
+                .map(|p| p.strip_prefix(&root).unwrap().to_string())
+                .collect()
+        };
+        assert_eq!(rel(files_in(&root, &[])), ["AGENTS.md"]);
+        assert_eq!(
+            rel(files_in(&root, &["**/CLAUDE.md".to_owned()])),
+            [
+                "AGENTS.md",
+                "pkg/a/CLAUDE.md",
+                "pkg/b/deep/CLAUDE.md",
+                "real/CLAUDE.md"
+            ]
+        );
+        assert_eq!(
+            rel(files_in(&root, &["pkg/*/CLAUDE.md".to_owned()])),
+            ["AGENTS.md", "pkg/a/CLAUDE.md"]
+        );
+        // Out of the root, or absolute: nothing.
+        assert_eq!(
+            rel(files_in(
+                &root,
+                &["../*/CLAUDE.md".to_owned(), "/etc/*".to_owned()]
+            )),
+            ["AGENTS.md"]
         );
         std::fs::remove_dir_all(root).unwrap();
     }
