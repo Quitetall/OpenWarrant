@@ -328,12 +328,27 @@ fn manifest_template(
          \n\
          title = \"{title}\"\n\
          profile = \"{profile}\"\n\
+         {pin}\
          assurance_level = \"basic\"\n\
          \n\
          # [[implements]]\n\
          # ref = \"sas://WAR-SAS-RQ-000\"\n\
          # contribution = \"partial\"\n\
-         \n"
+         \n",
+        // OW-ADR-0031: the profile file this draft is composed against. The
+        // manifest's bytes are inside the contract digest, so the signature
+        // covers the type; `war check` reports `profile.pin-drift` when the
+        // file moves. A program with no profile file has nothing to pin.
+        pin = definition
+            .digest
+            .as_deref()
+            .map(|d| {
+                format!(
+                    "# The profile file this Warrant is composed against (OW-ADR-0031).\n\
+                     profile_digest = \"{d}\"\n"
+                )
+            })
+            .unwrap_or_default()
     );
     for (ordinal, role, file) in template_atoms(profile) {
         out.push_str(&format!(

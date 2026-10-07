@@ -47,7 +47,7 @@ use crate::compile::atomic;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{RepoError, Repository};
 
-pub use render::{prime, show, tickets};
+pub use render::{Filter, prime, show, tickets, tickets_filtered};
 
 /// Where tickets live unless `[tickets] dir` says otherwise.
 pub const DEFAULT_DIR: &str = "docs/tickets";
@@ -91,6 +91,11 @@ pub mod event {
     pub const ITEM_DONE: &str = "ticket.item_done";
     pub const NOTE_ADDED: &str = "ticket.note_added";
     pub const PROMOTED: &str = "ticket.promoted";
+    /// OW-WAR-0148 M5: `war edit` changed the type, labels, epic or priority.
+    pub const EDITED: &str = "ticket.edited";
+    /// OW-WAR-0148 M5: the linked issue was written back to (or could not
+    /// be): `outcome` is `written` or `unknown`.
+    pub const ISSUE_WRITEBACK: &str = "ticket.issue_writeback";
 }
 
 /// `[tickets]` in `openwarrant.toml`. Every key is optional.
@@ -115,7 +120,7 @@ pub struct Policy {
 
 fn policy_of(root: &Utf8Path) -> Result<Policy, RepoError> {
     let path = root.join(crate::init::CONFIG_FILE);
-    let text = std::fs::read_to_string(&path).map_err(|source| RepoError::Io {
+    let text = crate::vfs::read_to_string(&path).map_err(|source| RepoError::Io {
         context: format!("could not read {path}"),
         source,
     })?;
@@ -343,7 +348,7 @@ impl Store {
 
     /// Every ticket directory (one holding a `manifest.toml`), sorted.
     fn ticket_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
-        let entries = match std::fs::read_dir(&self.dir) {
+        let entries = match crate::vfs::read_dir(&self.dir) {
             Ok(e) => e,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
             Err(source) => {
@@ -359,7 +364,7 @@ impl Store {
             let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
                 continue;
             };
-            if path.join("manifest.toml").is_file() {
+            if crate::vfs::is_file(path.join("manifest.toml")) {
                 out.push(path);
             }
         }
@@ -372,7 +377,7 @@ impl Store {
         let manifest_path = dir.join("manifest.toml");
         let rel = self.rel(&manifest_path);
         let bad = |message: String| Diagnostic::error("ticket.manifest", rel.clone(), message);
-        let text = std::fs::read_to_string(&manifest_path)
+        let text = crate::vfs::read_to_string(&manifest_path)
             .map_err(|e| bad(format!("could not read it: {e}")))?;
         let manifest: TicketManifest =
             toml::from_str(&text).map_err(|e| bad(format!("does not parse: {e}")))?;
@@ -393,7 +398,7 @@ impl Store {
         }
         let atom = |role: &str| -> Result<(Utf8PathBuf, String), Diagnostic> {
             let path = dir.join(manifest.atom_path(role).unwrap_or_default());
-            std::fs::read_to_string(&path)
+            crate::vfs::read_to_string(&path)
                 .map(|t| (path.clone(), t))
                 .map_err(|e| {
                     Diagnostic::error(
@@ -605,7 +610,7 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
 // ---- derived state ---------------------------------------------------------
 
 /// The claim on a ticket's item, or on the whole ticket, if any.
-fn claim_on<'a>(
+pub(crate) fn claim_on<'a>(
     claims: &'a BTreeMap<String, Option<claim::Claim>>,
     ticket: &str,
     item: Option<&str>,
@@ -635,35 +640,46 @@ fn holder(c: Option<&claim::Claim>, now: u64) -> String {
 /// "blocked": `ready_rows` and `claim_cmd` both call it over a fresh
 /// `Store::load_all` of the checklist files, with no cache between them
 /// (t-9d3e).
+///
+/// OW-WAR-0148 M5: a blocker is read as the kernel reads it, a `depends_on`
+/// relation to a global record id (`t-x/i-y` or `t-x`,
+/// [`ticket::Blocker::record_id`]); `war model` emits the same relation.
 fn open_blockers(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
-    let find = |id: &str| tickets.iter().find(|x| x.id() == id);
     item.after
         .iter()
-        .filter_map(|b| match b {
-            Blocker::Item { item: i } => match t.item(i) {
-                Some(x) if x.done => None,
-                Some(_) => Some(i.clone()),
-                None => Some(format!("{i} (unknown)")),
-            },
-            Blocker::Ticket { ticket: id } => match find(id) {
-                Some(x) if x.checklist.is_done() => None,
-                Some(_) => Some(id.clone()),
-                None => Some(format!("{id} (unknown)")),
-            },
-            Blocker::ItemOf {
-                ticket: id,
-                item: i,
-            } => match find(id).and_then(|x| x.item(i)) {
-                Some(x) if x.done => None,
-                Some(_) => Some(format!("{id}/{i}")),
-                None => Some(format!("{id}/{i} (unknown)")),
-            },
+        .filter_map(|b| match record_done(tickets, t, &b.record_id(t.id())) {
+            Some(true) => None,
+            Some(false) => Some(b.to_string()),
+            None => Some(format!("{b} (unknown)")),
         })
         .collect()
 }
 
+/// Whether the ticket record `id` (`t-x` or `t-x/i-y`) is done; `None` when
+/// it names nothing. `t` is consulted first, as the ticket being read now.
+fn record_done(tickets: &[Ticket], t: &Ticket, id: &str) -> Option<bool> {
+    let (tid, iid) = ticket::split_record_id(id);
+    let owner = if tid == t.id() {
+        Some(t)
+    } else {
+        tickets.iter().find(|x| x.id() == tid)
+    }?;
+    match iid {
+        Some(i) => owner.item(i).map(|x| x.done),
+        None => Some(owner.checklist.is_done()),
+    }
+}
+
+/// The tickets `part_of` `id`, in id order: an epic's tickets.
+pub(crate) fn children_of<'a>(tickets: &'a [Ticket], id: &str) -> Vec<&'a Ticket> {
+    tickets
+        .iter()
+        .filter(|x| x.manifest.part_of.as_deref() == Some(id))
+        .collect()
+}
+
 /// A ticket's state given the claims now held.
-fn state_of(t: &Ticket, claims: &BTreeMap<String, Option<claim::Claim>>) -> TicketState {
+pub(crate) fn state_of(t: &Ticket, claims: &BTreeMap<String, Option<claim::Claim>>) -> TicketState {
     if t.checklist.is_done() {
         return TicketState::Done;
     }
@@ -687,7 +703,7 @@ fn rewrite<T>(
     mut edit: impl FnMut(&str) -> Result<(String, T), Box<Outcome>>,
 ) -> Result<Result<T, Box<Outcome>>, RepoError> {
     for _ in 0..8 {
-        let bytes = std::fs::read(path).map_err(io(format!("could not read {path}")))?;
+        let bytes = crate::vfs::read(path).map_err(io(format!("could not read {path}")))?;
         let text = String::from_utf8(bytes.clone())
             .map_err(|e| RepoError::Message(format!("{path}: not UTF-8 ({e})")))?;
         let (next, value) = match edit(&text) {
@@ -726,6 +742,112 @@ pub struct CreateArgs {
     pub items: Vec<String>,
     pub body: Option<String>,
     pub priority: Option<u8>,
+    /// OW-WAR-0148 M5: one of the profile's `[fields] types`.
+    pub kind: Option<String>,
+    /// Labels; refused outside a closed set.
+    pub labels: Vec<String>,
+    /// The ticket (epic) this one is part of: an id or a unique prefix.
+    pub part_of: Option<String>,
+    /// The GitHub issue it was made from, as intake read it.
+    pub issue: Option<crate::plan::intake::Issue>,
+}
+
+/// Why a type or a label set is refused by the profile, as a refusal.
+fn refuse_fields(store: &Store, kind: Option<&str>, labels: &[String]) -> Option<Outcome> {
+    let fields = &store.definition.fields;
+    if let Some(k) = kind {
+        if !ticket::is_field_word(k) {
+            return Some(Outcome::refused(
+                "ticket.type-unknown",
+                String::new(),
+                format!("type {k:?} is not a word (lowercase, [a-z0-9_-])"),
+            ));
+        }
+        if let Some(why) = fields.refuse_type(k) {
+            return Some(Outcome::refused(
+                "ticket.type-unknown",
+                "profiles/ticket.toml",
+                why,
+            ));
+        }
+    }
+    for l in labels {
+        if !ticket::is_field_word(l) {
+            return Some(Outcome::refused(
+                "ticket.label-malformed",
+                String::new(),
+                format!("label {l:?} is not a word (lowercase, [a-z0-9_-], 1 to 40)"),
+            ));
+        }
+        if let Some(why) = fields.refuse_label(l) {
+            return Some(Outcome::refused(
+                "ticket.label-unknown",
+                "profiles/ticket.toml",
+                why,
+            ));
+        }
+    }
+    None
+}
+
+/// `labels`, sorted and unique.
+fn label_set(labels: &[String]) -> Vec<String> {
+    labels
+        .iter()
+        .map(|l| l.trim().to_owned())
+        .filter(|l| !l.is_empty())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
+}
+
+/// Resolve `--part-of` to a ticket id, refusing one that is unknown or that
+/// would make `child` (when it exists) part of itself through the chain.
+fn parent_of(tickets: &[Ticket], query: &str, child: Option<&str>) -> Result<String, Box<Outcome>> {
+    let parent = match resolve(tickets, query) {
+        Ok(Target::Ticket(n)) => tickets[n].id().to_owned(),
+        Ok(Target::Item(..)) => {
+            return Err(Box::new(Outcome::refused(
+                "ticket.part-of",
+                String::new(),
+                format!(
+                    "`--part-of {query}` names an item; a ticket is part of a ticket (an epic)"
+                ),
+            )));
+        }
+        Err(d) => return Err(Box::new(Outcome::from_diagnostic(d))),
+    };
+    if child == Some(parent.as_str()) {
+        return Err(Box::new(Outcome::refused(
+            "ticket.part-of-cycle",
+            String::new(),
+            format!("{parent} cannot be part of itself"),
+        )));
+    }
+    if let Some(child) = child {
+        let mut at = Some(parent.clone());
+        let mut seen = BTreeSet::new();
+        while let Some(id) = at {
+            if id == child {
+                return Err(Box::new(Outcome::refused(
+                    "ticket.part-of-cycle",
+                    String::new(),
+                    format!(
+                        "{child} cannot be part of {parent}: {parent} is already part of {child}, \
+                         through `part_of`"
+                    ),
+                )));
+            }
+            if !seen.insert(id.clone()) {
+                break;
+            }
+            at = tickets
+                .iter()
+                .find(|t| t.id() == id)
+                .and_then(|t| t.manifest.part_of.clone());
+        }
+    }
+    Ok(parent)
 }
 
 fn toml_of(m: &TicketManifest) -> Result<String, RepoError> {
@@ -762,6 +884,37 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         .map(|i| ticket::one_line(i))
         .filter(|i| !i.is_empty())
         .collect();
+    let labels = label_set(&args.labels);
+    if let Some(refusal) = refuse_fields(store, args.kind.as_deref(), &labels) {
+        return Ok(refusal);
+    }
+    let needs_tickets = args.part_of.is_some() || args.issue.is_some();
+    let all = if needs_tickets {
+        store.load_all()?.0
+    } else {
+        Vec::new()
+    };
+    let part_of = match args.part_of.as_deref() {
+        None => None,
+        Some(q) => match parent_of(&all, q, None) {
+            Ok(p) => Some(p),
+            Err(refusal) => return Ok(*refusal),
+        },
+    };
+    if let Some(issue) = &args.issue
+        && let Some(linked) = all.iter().find(|t| t.manifest.issue == Some(issue.number))
+    {
+        return Ok(Outcome::refused(
+            "ticket.issue-linked",
+            store.rel(&linked.dir.join("manifest.toml")),
+            format!(
+                "issue #{} is already ticket {} ({}); one issue, one ticket",
+                issue.number,
+                linked.id(),
+                linked.manifest.title
+            ),
+        ));
+    }
     std::fs::create_dir_all(&store.dir).map_err(io(format!("could not create {}", store.dir)))?;
     let existing = store.ticket_dirs()?.len();
     let uuid = WarUuid::mint().to_string();
@@ -802,6 +955,15 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         created_at: rfc3339(now),
         created_by: store.actor.clone(),
         promoted_to: None,
+        kind: args.kind.clone(),
+        labels: labels.clone(),
+        part_of: part_of.clone(),
+        issue: args.issue.as_ref().map(|i| i.number),
+        issue_url: args
+            .issue
+            .as_ref()
+            .map(|i| i.url.clone())
+            .filter(|u| !u.is_empty()),
         atoms: vec![
             TicketAtom {
                 ordinal: 10,
@@ -847,13 +1009,29 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
     let t = store
         .load(&dir)
         .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))?;
-    store.journal(
-        &t,
-        event::CREATED,
-        &serde_json::json!({"ticket": id, "title": title, "items": made.len()}),
-    )?;
+    let mut payload = serde_json::json!({"ticket": id, "title": title, "items": made.len()});
+    if let Some(issue) = &args.issue {
+        // Where it came from: the issue's number, address and a digest of
+        // its body, never the body as evidence of anything (§74.8).
+        payload["intake"] = serde_json::to_value(issue.record()).unwrap_or_default();
+    }
+    store.journal(&t, event::CREATED, &payload)?;
     let rel = store.rel(&dir);
     let mut human = format!("{id}  {title}\ncreated {rel}/");
+    if let Some(issue) = &args.issue {
+        human.push_str(&format!(
+            "\nfrom GitHub issue #{}{}",
+            issue.number,
+            if issue.url.is_empty() {
+                String::new()
+            } else {
+                format!(" ({})", issue.url)
+            }
+        ));
+    }
+    if let Some(p) = &part_of {
+        human.push_str(&format!("\npart of {p}"));
+    }
     if made.is_empty() {
         human.push_str(&format!(
             "\nno items yet: `war add {id} \"...\"`, or `war claim {id}` and work it whole"
@@ -861,18 +1039,151 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
     } else {
         human.push_str(&format!("\n{} item(s); `war ready` lists them", made.len()));
     }
-    Ok(Outcome::ok(
-        human,
-        serde_json::json!({
-            "schema": "oh.war/ticket-created/v1",
-            "id": id,
-            "uuid": uuid,
-            "title": title,
-            "dir": rel,
-            "priority": priority,
-            "items": made,
-        }),
-    ))
+    let mut result = serde_json::json!({
+        "schema": "oh.war/ticket-created/v1",
+        "id": id,
+        "uuid": uuid,
+        "title": title,
+        "dir": rel,
+        "priority": priority,
+        "items": made,
+    });
+    if let Some(k) = &args.kind {
+        result["type"] = serde_json::json!(k);
+    }
+    if !labels.is_empty() {
+        result["labels"] = serde_json::json!(labels);
+    }
+    if let Some(p) = &part_of {
+        result["part_of"] = serde_json::json!(p);
+    }
+    if let Some(issue) = &args.issue {
+        result["issue"] = serde_json::json!({"number": issue.number, "url": issue.url});
+    }
+    Ok(Outcome::ok(human, result))
+}
+
+/// A refusal for `--issue <n>` when a ticket already holds that issue, read
+/// before anything is fetched.
+pub fn issue_already_linked(store: &Store, n: &str) -> Result<Option<Outcome>, RepoError> {
+    let Ok(number) = n.trim().trim_start_matches('#').parse::<u64>() else {
+        return Ok(None);
+    };
+    let (tickets, _) = store.load_all()?;
+    Ok(tickets
+        .iter()
+        .find(|t| t.manifest.issue == Some(number))
+        .map(|linked| {
+            Outcome::refused(
+                "ticket.issue-linked",
+                store.rel(&linked.dir.join("manifest.toml")),
+                format!(
+                    "issue #{number} is already ticket {} ({}); one issue, one ticket. Nothing \
+                     was fetched",
+                    linked.id(),
+                    linked.manifest.title
+                ),
+            )
+        }))
+}
+
+/// A command-level failure as a refusal by rule: intake's messages open
+/// with their rule (`intake.fetch-not-a-read: ...`).
+#[must_use]
+pub fn refusal_of(e: RepoError) -> Outcome {
+    let message = e.to_string();
+    let rule = message
+        .split_once(": ")
+        .map(|(r, _)| r)
+        .filter(|r| r.contains('.') && !r.contains(' '))
+        .unwrap_or("ticket.create")
+        .to_owned();
+    Outcome::refused(&rule, crate::init::CONFIG_FILE, message)
+}
+
+/// One item per record id: the record's first sentence, then
+/// `(implements <id>)`, so the ticket profile's `implements` relation names
+/// the record (`war impact` finds the item). Refused, by name, for an id no
+/// record atom declares. Reads the record atoms under `docs/records/` and
+/// nothing else.
+pub fn implementing_items(
+    repo: &Repository,
+    ids: &[String],
+) -> Result<Result<Vec<String>, Outcome>, RepoError> {
+    if ids.is_empty() {
+        return Ok(Ok(Vec::new()));
+    }
+    let mut found: BTreeMap<String, String> = BTreeMap::new();
+    for file in crate::records::files(repo) {
+        let Ok(text) = crate::vfs::read_to_string(&file) else {
+            continue;
+        };
+        let Ok(atom) = openwarrant_core::record::parse(&text) else {
+            continue;
+        };
+        for r in atom.records {
+            if ids.contains(&r.id) && !found.contains_key(&r.id) {
+                let span = text.get(r.start..r.end).unwrap_or_default();
+                found.insert(r.id.clone(), first_sentence(span));
+            }
+        }
+    }
+    let mut items = Vec::new();
+    for id in ids {
+        let Some(summary) = found.get(id) else {
+            return Ok(Err(Outcome::refused(
+                "ticket.record-unknown",
+                crate::records::DIR,
+                format!(
+                    "`--implements {id}`: no record atom under {} declares {id}; nothing was \
+                     created",
+                    crate::records::DIR
+                ),
+            )));
+        };
+        let text = if summary.is_empty() {
+            format!("Implement {id}")
+        } else {
+            summary.trim_end_matches('.').to_owned()
+        };
+        items.push(format!("{text} (implements {id})"));
+    }
+    Ok(Ok(items))
+}
+
+/// The first sentence of a record's prose: its span without the heading,
+/// relation lines and blank lines, up to the first `. `.
+fn first_sentence(span: &str) -> String {
+    let mut prose = Vec::new();
+    let mut started = false;
+    for line in span.lines().skip(1) {
+        let t = line.trim();
+        if t.is_empty() {
+            if started {
+                break;
+            }
+            continue;
+        }
+        let first = t.split_whitespace().next().unwrap_or_default();
+        let is_relation = !started
+            && t.split_whitespace().count() >= 2
+            && first
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c == '_' || c == '.')
+            && t.split_whitespace().nth(1).is_some_and(|w| {
+                w.chars().next().is_some_and(|c| c.is_ascii_uppercase()) && w.contains('-')
+            });
+        if is_relation {
+            continue;
+        }
+        started = true;
+        prose.push(t);
+    }
+    let joined = ticket::one_line(&prose.join(" "));
+    match joined.find(". ") {
+        Some(at) => joined[..=at].to_owned(),
+        None => joined,
+    }
 }
 
 /// The items a configured drafter proposes for `sentence`, or a refusal. The
@@ -1059,7 +1370,11 @@ pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, Re
                 }
             };
         if t.checklist.items.is_empty() {
-            rows.push(row(None, t.manifest.title.clone(), None, 0, whole_stale));
+            // An epic with tickets of its own and no items is worked through
+            // its tickets, never whole (OW-WAR-0148 M5).
+            if children_of(tickets, t.id()).is_empty() {
+                rows.push(row(None, t.manifest.title.clone(), None, 0, whole_stale));
+            }
             continue;
         }
         for (order, item) in t.checklist.items.iter().enumerate() {
@@ -1631,7 +1946,20 @@ pub fn done(store: &Store, query: &str, note: Option<&str>) -> Result<Outcome, R
     let state = state_of(&t, &claims);
     let (d, n) = t.checklist.progress();
     let mut human = format!("done {}/{done_id}  ({d}/{n})", t.id());
-    if state == TicketState::Done {
+    // OW-WAR-0148 M5: the ticket just became done. If it was made from an
+    // issue, say so there when write-back is configured.
+    let mut issue_report = None;
+    let mut unknown = None;
+    if state == TicketState::Done
+        && let Some(number) = t.manifest.issue
+    {
+        let (report, line, diag) = issue_writeback(store, &t, number)?;
+        human.push_str(&format!("\n{} is done: every item is ticked", t.id()));
+        human.push('\n');
+        human.push_str(&line);
+        issue_report = Some(report);
+        unknown = diag;
+    } else if state == TicketState::Done {
         human.push_str(&format!("\n{} is done: every item is ticked", t.id()));
     } else if let Ok(rows) = ready_rows(store, std::slice::from_ref(&t))
         && let Some(next) = rows.first()
@@ -1642,16 +1970,156 @@ pub fn done(store: &Store, query: &str, note: Option<&str>) -> Result<Outcome, R
             next.text
         ));
     }
-    Ok(Outcome::ok(
-        human,
-        serde_json::json!({
-            "schema": "oh.war/ticket-done/v1",
-            "ticket": t.id(),
-            "item": done_id,
-            "note": note,
-            "progress": {"done": d, "total": n},
-            "ticket_state": state,
-        }),
+    let mut result = serde_json::json!({
+        "schema": "oh.war/ticket-done/v1",
+        "ticket": t.id(),
+        "item": done_id,
+        "note": note,
+        "progress": {"done": d, "total": n},
+        "ticket_state": state,
+    });
+    if let Some(r) = issue_report {
+        result["issue"] = r;
+    }
+    let mut out = Outcome::ok(human, result);
+    if let Some(d) = unknown {
+        out.report.push(d);
+    }
+    Ok(out)
+}
+
+/// `[intake.writeback]` from `openwarrant.toml`: `Ok(None)` when absent.
+fn writeback_policy(root: &Utf8Path) -> Result<Option<crate::repo::WritebackPolicy>, String> {
+    let path = root.join(crate::init::CONFIG_FILE);
+    let text =
+        crate::vfs::read_to_string(&path).map_err(|e| format!("could not read {path}: {e}"))?;
+    #[derive(Deserialize)]
+    struct File {
+        #[serde(default)]
+        intake: Option<crate::repo::IntakePolicy>,
+    }
+    let file: File =
+        toml::from_str(&text).map_err(|e| format!("{path}: the [intake] table: {e}"))?;
+    Ok(file.intake.and_then(|i| i.writeback))
+}
+
+/// The comment a done ticket leaves on its issue: what was done, item by
+/// item with who and the note, then the ticket's notes.
+#[must_use]
+pub fn writeback_body(t: &Ticket) -> String {
+    let mut body = format!("Done in ticket {}: {}\n\n", t.id(), t.manifest.title);
+    for item in &t.checklist.items {
+        body.push_str(&format!(
+            "- [{}] {}",
+            if item.done { 'x' } else { ' ' },
+            item.text
+        ));
+        match (&item.done_by, &item.done_on) {
+            (Some(by), Some(on)) => body.push_str(&format!(" — done by {by}, {on}")),
+            (Some(by), None) => body.push_str(&format!(" — done by {by}")),
+            _ => {}
+        }
+        if let Some(n) = &item.note {
+            body.push_str(&format!(": {n}"));
+        }
+        body.push('\n');
+    }
+    let notes = render::notes(&t.intent);
+    if !notes.is_empty() {
+        body.push_str("\nNotes:\n\n");
+        for n in &notes {
+            body.push_str(&format!("- {n}\n"));
+        }
+    }
+    body
+}
+
+/// Write back to the issue a ticket was made from, now that it is done:
+/// one comment, one close, as `[intake.writeback]` configures them. Off
+/// unless configured. A write that fails leaves the ticket done (it already
+/// is: the checklist was written first) and reads UNKNOWN, by name, never
+/// silently; nothing is retried or rolled back. Journalled either way.
+fn issue_writeback(
+    store: &Store,
+    t: &Ticket,
+    number: u64,
+) -> Result<(serde_json::Value, String, Option<Diagnostic>), RepoError> {
+    let url = t.manifest.issue_url.clone().unwrap_or_default();
+    let policy = match writeback_policy(&store.root) {
+        Ok(None) => {
+            return Ok((
+                serde_json::json!({"number": number, "url": url, "writeback": "off"}),
+                format!(
+                    "GitHub issue #{number}: not written to ([intake.writeback] is not set); \
+                     close it when you will"
+                ),
+                None,
+            ));
+        }
+        Ok(Some(p)) => Ok(p),
+        Err(why) => Err(why),
+    };
+    let steps = match policy {
+        Ok(p) => crate::plan::intake::write_back(&store.root, &p, number, &writeback_body(t)),
+        Err(why) => vec![crate::plan::intake::Written {
+            step: "configuration".to_owned(),
+            outcome: "unknown".to_owned(),
+            detail: format!("{why}; nothing was started"),
+        }],
+    };
+    let written = steps.iter().all(|s| s.outcome == "written");
+    let outcome = if written { "written" } else { "unknown" };
+    store.journal(
+        t,
+        event::ISSUE_WRITEBACK,
+        &serde_json::json!({"issue": number, "outcome": outcome, "steps": steps}),
+    )?;
+    let said: Vec<String> = steps
+        .iter()
+        .map(|s| {
+            if s.detail.is_empty() {
+                format!("{} {}", s.step, s.outcome)
+            } else {
+                format!("{} {} ({})", s.step, s.outcome, s.detail)
+            }
+        })
+        .collect();
+    let (line, diag) = if written {
+        (
+            format!(
+                "GitHub issue #{number}: {}",
+                steps
+                    .iter()
+                    .map(|s| match s.step.as_str() {
+                        "comment" => "commented",
+                        "close" => "closed",
+                        other => other,
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" and ")
+            ),
+            None,
+        )
+    } else {
+        let message = format!(
+            "GitHub issue #{number} is UNKNOWN: {}. The ticket {} is done and stays done; \
+             nothing was rolled back. Look at the issue, and finish what did not land by hand",
+            said.join("; "),
+            t.id()
+        );
+        (
+            format!("GitHub issue #{number}: UNKNOWN ({})", said.join("; ")),
+            Some(Diagnostic::unknown(
+                "ticket.issue-unknown",
+                store.rel(&t.dir.join("manifest.toml")),
+                message,
+            )),
+        )
+    };
+    Ok((
+        serde_json::json!({"number": number, "url": url, "writeback": outcome, "steps": steps}),
+        line,
+        diag,
     ))
 }
 
@@ -1737,6 +2205,169 @@ pub fn add(store: &Store, query: &str, text: &str, after: &[String]) -> Result<O
     Ok(Outcome::ok(
         format!("added {}/{id}\n{line}", t.id()),
         serde_json::json!({"schema": "oh.war/ticket-item/v1", "ticket": t.id(), "item": id, "text": text, "after": blockers}),
+    ))
+}
+
+// ---- edit (OW-WAR-0148 M5) ---------------------------------------------------
+
+/// What `war edit` changes; `None` leaves a field as it is.
+#[derive(Debug, Clone, Default)]
+pub struct EditArgs {
+    /// `Some(None)`: clear the type.
+    pub kind: Option<Option<String>>,
+    pub add_labels: Vec<String>,
+    pub remove_labels: Vec<String>,
+    /// `Some(None)`: no longer part of anything.
+    pub part_of: Option<Option<String>>,
+    pub priority: Option<u8>,
+}
+
+/// `war edit <ticket>`: set a ticket's type, labels, epic or priority. Each
+/// changes one line of `manifest.toml` (added, replaced or removed) and
+/// nothing else; journalled as `ticket.edited`.
+pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, RepoError> {
+    let (tickets, _) = store.load_all()?;
+    let index = match resolve(&tickets, query) {
+        Ok(Target::Ticket(n)) => n,
+        Ok(Target::Item(..)) => {
+            return Ok(Outcome::refused(
+                "ticket.edit-item",
+                String::new(),
+                format!("`war edit {query}` names an item; type, labels and epic are a ticket's"),
+            ));
+        }
+        Err(d) => return Ok(Outcome::from_diagnostic(d)),
+    };
+    let t = &tickets[index];
+    let mut m = t.manifest.clone();
+    let mut changes = serde_json::Map::new();
+    if let Some(kind) = &args.kind {
+        if let Some(refusal) = refuse_fields(store, kind.as_deref(), &[]) {
+            return Ok(refusal);
+        }
+        if m.kind != *kind {
+            m.kind.clone_from(kind);
+            changes.insert("type".into(), serde_json::json!(kind));
+        }
+    }
+    let added = label_set(&args.add_labels);
+    if let Some(refusal) = refuse_fields(store, None, &added) {
+        return Ok(refusal);
+    }
+    let removed = label_set(&args.remove_labels);
+    let mut labels: BTreeSet<String> = m.labels.iter().cloned().collect();
+    labels.extend(added);
+    for r in &removed {
+        labels.remove(r);
+    }
+    let labels: Vec<String> = labels.into_iter().collect();
+    if labels != m.labels {
+        m.labels.clone_from(&labels);
+        changes.insert("labels".into(), serde_json::json!(labels));
+    }
+    if let Some(p) = &args.part_of {
+        let parent = match p {
+            None => None,
+            Some(q) => match parent_of(&tickets, q, Some(t.id())) {
+                Ok(id) => Some(id),
+                Err(refusal) => return Ok(*refusal),
+            },
+        };
+        if m.part_of != parent {
+            m.part_of.clone_from(&parent);
+            changes.insert("part_of".into(), serde_json::json!(parent));
+        }
+    }
+    if let Some(p) = args.priority {
+        if p > 4 {
+            return Ok(Outcome::refused(
+                "ticket.priority",
+                String::new(),
+                format!("priority {p} is outside 0 (most urgent) ..= 4"),
+            ));
+        }
+        if m.priority != p {
+            m.priority = p;
+            changes.insert("priority".into(), serde_json::json!(p));
+        }
+    }
+    if let Err(why) = m.validate(&store.definition.working_roles()) {
+        return Ok(Outcome::refused(
+            "ticket.manifest",
+            store.rel(&t.dir.join("manifest.toml")),
+            why,
+        ));
+    }
+    if changes.is_empty() {
+        return Ok(Outcome::ok(
+            format!("{}: nothing to change", t.id()),
+            serde_json::json!({"schema": "oh.war/ticket-edit/v1", "ticket": t.id(), "changed": {}}),
+        ));
+    }
+    let manifest_path = t.dir.join("manifest.toml");
+    let edited = m.clone();
+    let written = rewrite(&manifest_path, |text| {
+        let mut next = text.to_owned();
+        let quoted = |s: &str| ticket::toml_string(s);
+        next =
+            ticket::set_manifest_key(&next, "type", edited.kind.as_deref().map(quoted).as_deref());
+        let labels = (!edited.labels.is_empty()).then(|| {
+            format!(
+                "[{}]",
+                edited
+                    .labels
+                    .iter()
+                    .map(|l| quoted(l))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        });
+        next = ticket::set_manifest_key(&next, "labels", labels.as_deref());
+        next = ticket::set_manifest_key(
+            &next,
+            "part_of",
+            edited.part_of.as_deref().map(quoted).as_deref(),
+        );
+        if edited.priority != t.manifest.priority {
+            next = ticket::set_manifest_key(&next, "priority", Some(&edited.priority.to_string()));
+        }
+        // What was written must read back as the manifest asked for.
+        match toml::from_str::<TicketManifest>(&next) {
+            Ok(back) if back == edited => Ok((next, ())),
+            _ => Err(Box::new(Outcome::refused(
+                "ticket.manifest",
+                store.rel(&manifest_path),
+                "the manifest is laid out so that a line edit would not read back as asked \
+                 (a key inside a table?); nothing was written. Edit it by hand",
+            ))),
+        }
+    })?;
+    if let Err(refusal) = written {
+        return Ok(*refusal);
+    }
+    store.journal(
+        t,
+        event::EDITED,
+        &serde_json::Value::Object(changes.clone()),
+    )?;
+    let said: Vec<String> = changes
+        .iter()
+        .map(|(k, v)| match v {
+            serde_json::Value::Null => format!("{k} cleared"),
+            serde_json::Value::String(s) => format!("{k} {s}"),
+            serde_json::Value::Array(a) => format!(
+                "{k} [{}]",
+                a.iter()
+                    .filter_map(|x| x.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+            other => format!("{k} {other}"),
+        })
+        .collect();
+    Ok(Outcome::ok(
+        format!("{}: {}", t.id(), said.join("; ")),
+        serde_json::json!({"schema": "oh.war/ticket-edit/v1", "ticket": t.id(), "changed": changes}),
     ))
 }
 
@@ -1844,7 +2475,18 @@ pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome,
             c => c,
         })
         .collect();
-    let dir = crate::new::run(repo, &title, openwarrant_core::Profile::Delivery)?;
+    // The promotion target is the profile's data (OW-ADR-0031): the core
+    // profile the ticket's working form `extends`, never a name in the code.
+    let target = repo
+        .profiles
+        .resolve(&t.manifest.profile)
+        .ok()
+        .and_then(|p| repo.profiles.definition(&p).and_then(|d| d.extends))
+        .map_or(
+            openwarrant_core::Profile::Delivery,
+            openwarrant_core::Profile::from_core,
+        );
+    let dir = crate::new::run(repo, &title, target)?;
     let alias = dir.file_name().unwrap_or_default().to_owned();
     let intent_path = dir.join("atoms/10-intent.md");
     let description = render::description(&t.intent);

@@ -1,0 +1,14 @@
+{
+  "exit": 2,
+  "outcome": "not_established",
+  "refusal": null,
+  "basis_digest": "sha256:d68c3d1fecfdd19c56793a1e0c615204ea31bfef08b772c6cae8eb3f09b19abc",
+  "model_digest": null,
+  "records": null,
+  "relations": null,
+  "states": null,
+  "host_rules": [
+    "host.not-compiled"
+  ],
+  "projections": []
+}

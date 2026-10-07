@@ -27,6 +27,7 @@ pub mod compile;
 pub mod console;
 pub mod context_select;
 pub mod contract_history;
+pub mod corpus;
 pub mod correct;
 pub mod deliver;
 pub mod diagnostic;
@@ -40,6 +41,8 @@ pub mod evidence;
 pub mod export;
 pub mod frontier;
 pub mod gate_cmd;
+pub mod host;
+pub mod impact;
 pub mod inbox;
 pub mod init;
 pub mod install;
@@ -49,6 +52,7 @@ pub mod kf;
 pub mod mark;
 pub mod mcp;
 pub mod migrate;
+pub mod model;
 pub mod new;
 pub mod next;
 pub mod notice;
@@ -65,8 +69,10 @@ pub mod progress;
 pub mod progress_viewer;
 pub mod projects;
 pub mod questions;
+pub mod records;
 pub mod relations;
 pub mod remedy;
+pub mod render_cmd;
 pub mod repo;
 pub mod resolution_cmd;
 pub mod resolve;
@@ -83,12 +89,14 @@ pub mod sdk;
 pub mod show;
 pub mod sign;
 pub mod standing_cmd;
+pub mod states;
 pub mod status;
 pub mod telemetry;
 pub mod ticket;
 pub mod timeline;
 pub mod tui;
 pub mod verify;
+pub mod vfs;
 pub mod watch;
 pub mod webui;
 
@@ -404,8 +412,10 @@ enum DocumentCommand {
 enum TicketCommand {
     /// Create a ticket and print its id. Workable at once: no signature.
     Create {
-        /// What this work accomplishes, in one sentence.
-        title: String,
+        /// What this work accomplishes, in one sentence. With `--issue`, the
+        /// issue's title unless given.
+        #[arg(required_unless_present_any = ["issue", "issue_file"])]
+        title: Option<String>,
         /// A checklist item; repeat for more. Items can be added later with `war add`.
         #[arg(long = "item", short = 'i', value_name = "TEXT")]
         items: Vec<String>,
@@ -419,6 +429,37 @@ enum TicketCommand {
         /// drafter this is refused and nothing is invented.
         #[arg(long)]
         draft: bool,
+        /// With --draft: the drafter proposes typed records too, and the
+        /// ticket's items implement them (OW-WAR-0148 M7). The records are
+        /// validated as authored ones are, then written to one record atom
+        /// under `docs/records/<area>/`; a refused proposal writes nothing.
+        #[arg(long, requires = "draft", conflicts_with_all = ["kind", "labels", "part_of", "implements", "issue", "issue_file"])]
+        records: bool,
+        /// With --records: the area under `docs/records/` the records land in.
+        #[arg(long, value_name = "NAME", requires = "records")]
+        area: Option<String>,
+        /// What kind of work: one of the ticket profile's `[fields] types`
+        /// (task, bug, feature, chore, epic as shipped).
+        #[arg(long = "type", value_name = "TYPE")]
+        kind: Option<String>,
+        /// A label; repeat for more. Refused outside a closed label set.
+        #[arg(long = "label", short = 'l', value_name = "LABEL")]
+        labels: Vec<String>,
+        /// The ticket (an epic) this one is part of.
+        #[arg(long = "part-of", value_name = "TICKET")]
+        part_of: Option<String>,
+        /// Make the ticket from GitHub issue <N>, read once through
+        /// `[intake] fetch_argv`; the ticket records the link. With
+        /// `[intake.writeback]` set, finishing it comments on and closes the issue.
+        #[arg(long, value_name = "N", conflicts_with = "issue_file")]
+        issue: Option<String>,
+        /// The same from `gh issue view <n> --json number,title,body,url` output in a file.
+        #[arg(long, value_name = "PATH")]
+        issue_file: Option<Utf8PathBuf>,
+        /// An item implementing this record (`REQ-pr1`): its text is the
+        /// record's first sentence and `(implements REQ-pr1)`. Repeatable.
+        #[arg(long, value_name = "RECORD")]
+        implements: Vec<String>,
         /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
@@ -481,8 +522,52 @@ enum TicketCommand {
         actor: Option<String>,
     },
     /// Every ticket, its state (open, in progress, done) and progress.
+    /// Filters narrow it to exactly the tickets every one admits.
     #[command(visible_alias = "ls")]
-    Tickets,
+    Tickets {
+        /// Only tickets of this type.
+        #[arg(long = "type", value_name = "TYPE")]
+        kind: Option<String>,
+        /// Only tickets carrying this label; repeat to require several.
+        #[arg(long = "label", short = 'l', value_name = "LABEL")]
+        labels: Vec<String>,
+        /// open, in_progress, done, or a declared state (in_review) the
+        /// ticket or one of its items holds.
+        #[arg(long, value_name = "STATE")]
+        state: Option<String>,
+        /// A phrase anywhere in the title, description, notes or items
+        /// (case-insensitive).
+        #[arg(long, value_name = "PHRASE")]
+        text: Option<String>,
+        /// Words, each beginning a word somewhere in the title, description,
+        /// notes or items, in any order (case-insensitive).
+        #[arg(long, value_name = "WORDS")]
+        search: Option<String>,
+        /// Only the tickets part of this one (an epic).
+        #[arg(long, value_name = "TICKET")]
+        epic: Option<String>,
+    },
+    /// Change a ticket's type, labels, epic or priority: one line of its
+    /// manifest each, journalled. Nothing else moves.
+    Edit {
+        ticket: String,
+        /// The new type; `none` clears it.
+        #[arg(long = "type", value_name = "TYPE")]
+        kind: Option<String>,
+        /// Add a label; repeatable.
+        #[arg(long = "label", short = 'l', value_name = "LABEL")]
+        labels: Vec<String>,
+        /// Remove a label; repeatable.
+        #[arg(long = "unlabel", value_name = "LABEL")]
+        unlabels: Vec<String>,
+        /// The ticket (epic) this one is part of; `none` detaches it.
+        #[arg(long = "part-of", value_name = "TICKET")]
+        part_of: Option<String>,
+        #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
+        priority: Option<u8>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
     /// Give a claim back without finishing the item.
     Release {
         target: String,
@@ -766,6 +851,16 @@ enum Command {
         /// from in `plan/intake.json`.
         #[arg(long, value_name = "PATH")]
         issue_file: Option<Utf8PathBuf>,
+        /// Draft typed records (`oh.war/records-request/v1`) and the ticket
+        /// whose items implement them, in place of a Warrant (OW-WAR-0148
+        /// M7). Validated by the rules authored records get before anything
+        /// is written; `--reviewed --apply` writes one record atom under
+        /// `docs/records/<area>/` and the ticket.
+        #[arg(long, conflicts_with_all = ["issue", "issue_file"])]
+        records: bool,
+        /// With --records: the area under `docs/records/` the records land in.
+        #[arg(long, value_name = "NAME", requires = "records")]
+        area: Option<String>,
     },
     /// Lower a computational Warrant's stage graph into a BLUT PlanSpec (§49).
     Blut {
@@ -1328,6 +1423,81 @@ enum Command {
         /// One stage; omit for every stage of the Warrant.
         stage: Option<String>,
     },
+    /// What a change to one record affects (OW-WAR-0148 M3): the records that
+    /// reach it through incoming relations, transitively; the Warrants,
+    /// tickets and record atoms that hold or name them; the obligations that
+    /// evaluate them, with verdicts bound to the revision they judged (a
+    /// verdict on an older revision stays recorded and reads stale); the
+    /// roadmap phases and generated views they feed. Read-only.
+    Impact {
+        /// A record id of `war model` (`REQ-pr1`, `OW-WAR-0001/OBL-002`,
+        /// `t-3f2a/i-9c01`).
+        record: String,
+    },
+    /// Render a declared projection of records (OW-WAR-0148 M6): one set of
+    /// records, many documents. `prd`, `architecture`, `test-plan` and
+    /// `agent-packet` ship as document types (profiles/*.toml, `form =
+    /// "document"`); a program declares its own. Prints the rendering
+    /// (Markdown or JSON) and writes nothing; `--json` returns it as
+    /// `oh.war/projection/v1`, every line traced to the record id and
+    /// revision it came from. `war compile` writes the projections of the
+    /// documents an area declares in `docs/records/<area>/documents.toml`.
+    Render {
+        /// The projection's name (`prd`, `architecture`, `test-plan`,
+        /// `agent-packet`).
+        projection: String,
+        /// What to render: a declared document (`password-reset/prd`), a
+        /// record area (`password-reset`), or one record (`REQ-pr1`). Omit
+        /// when exactly one document of the projection's type is declared.
+        #[arg(long = "of")]
+        of: Option<String>,
+        /// A byte budget, in place of the document's or projection's own.
+        /// Over budget is refused by name; nothing is truncated.
+        #[arg(long = "max-bytes")]
+        max_bytes: Option<usize>,
+    },
+    /// The compiled corpus as one document, `oh.war/model/v1` (OW-WAR-0148):
+    /// every record with its revision and governor, every relation, the
+    /// states the builders derive, and a diagnostic per relation whose target
+    /// is not a record. Read-only; the same tree gives the same bytes.
+    Model,
+    // ---- OW-WAR-0148 M4: declared states ---------------------------------
+    /// Enter a declared state on a record (OW-WAR-0148 M4): a refinement of
+    /// a fixed kernel state that the record's profile declares in
+    /// `[[states]]` (`in_review` refines `in_progress`). An authored event in
+    /// the journal of the Warrant or ticket that owns the record. It holds
+    /// only while its fixed parent holds and lapses when the parent stops;
+    /// refining an authenticated state (`verified`), it is entered only while
+    /// that state already holds. It satisfies no resolution check and no
+    /// capability gate.
+    State {
+        /// A record id of `war model`: a ticket, an item (`t-x/i-y`, `i-y`),
+        /// a Warrant or one of its records (`NS-WAR-0001/OBL-001`).
+        record: String,
+        /// The declared state's name.
+        name: String,
+        /// Why, for the next reader; kept in the journal entry.
+        #[arg(long)]
+        note: Option<String>,
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Host the WAR domain for Liminal, `oh.war/liminal-v1` (OW-WAR-0148 M8;
+    /// SAS §82.2; docs/LIMINAL_HOST.md): one request on stdin, one response
+    /// on stdout. Pure — no repository, no file, no network, no process.
+    /// Exit 0 compiled, 1 refused, 2 compiled with something not
+    /// established. `--export` writes the request that reproduces this
+    /// repository's model instead.
+    Host {
+        /// Write this repository's request (honours `--root`).
+        #[arg(long)]
+        export: bool,
+        /// With `--export`: a projection to request, `KIND:SUBJECT`
+        /// (`warrant:OW-WAR-0001`, `warrant:*`). Repeatable.
+        #[arg(long = "projection", value_name = "KIND:SUBJECT", requires = "export")]
+        projections: Vec<String>,
+    },
     /// The stages that can start now (OW-WAR-0068): open, unblocked by
     /// their milestone's `depends_on`, and not yet dispatched. Derived from
     /// the same records a resolution reads; never a status claim.
@@ -1538,6 +1708,11 @@ fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -
                 match d.severity {
                     diagnostic::Severity::Error => eprintln!("refused ({}): {}", d.rule, d.message),
                     diagnostic::Severity::Warn => eprintln!("warning ({}): {}", d.rule, d.message),
+                    // OW-WAR-0148 M5: an outcome nobody can establish (an
+                    // issue write that failed) is said, never swallowed.
+                    diagnostic::Severity::Unknown => {
+                        eprintln!("UNKNOWN ({}): {}", d.rule, d.message);
+                    }
                     _ => {}
                 }
             }
@@ -1602,10 +1777,62 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 body,
                 priority,
                 draft,
+                records,
+                area,
+                kind,
+                labels,
+                part_of,
+                issue,
+                issue_file,
+                implements,
                 actor,
             } => {
                 let (repository, store) = tickets(actor.as_deref())?;
+                // OW-WAR-0148 M5: the issue is read once, before anything is
+                // written; a refusal of the read is the command's refusal.
+                let issue = match (issue, issue_file) {
+                    (Some(n), _) => {
+                        if let Some(refusal) = ticket::issue_already_linked(&store, &n)? {
+                            return Ok(ticket_answer(mode, "create", &refusal));
+                        }
+                        match plan::intake::fetch(&repository, &n) {
+                            Ok(i) => Some(i),
+                            Err(e) => {
+                                return Ok(ticket_answer(mode, "create", &ticket::refusal_of(e)));
+                            }
+                        }
+                    }
+                    (None, Some(path)) => match plan::intake::read_file(&path) {
+                        Ok(i) => Some(i),
+                        Err(e) => return Ok(ticket_answer(mode, "create", &ticket::refusal_of(e))),
+                    },
+                    (None, None) => None,
+                };
+                let title = title
+                    .or_else(|| issue.as_ref().map(|i| i.title.clone()))
+                    .unwrap_or_default();
+                let body = match (issue.as_ref().map(|i| i.body.trim().to_owned()), body) {
+                    (Some(b), Some(extra)) if !b.is_empty() => Some(format!("{b}\n\n{extra}")),
+                    (Some(b), None) if !b.is_empty() => Some(b),
+                    (_, extra) => extra,
+                };
+                if records {
+                    let outcome = plan::records::run_create(
+                        &repository,
+                        &store,
+                        &title,
+                        area.as_deref(),
+                        &items,
+                        body.as_deref(),
+                        priority,
+                    )?;
+                    return Ok(ticket_answer(mode, "create", &outcome));
+                }
                 let mut items = items;
+                match ticket::implementing_items(&repository, &implements)? {
+                    Ok(more) => items.extend(more),
+                    Err(refusal) => return Ok(ticket_answer(mode, "create", &refusal)),
+                }
                 if draft {
                     match ticket::drafted_items(&repository, &title)? {
                         Ok(drafted) => items.extend(drafted),
@@ -1617,6 +1844,10 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     items,
                     body,
                     priority,
+                    kind,
+                    labels,
+                    part_of,
+                    issue,
                 };
                 Ok(ticket_answer(
                     mode,
@@ -1688,9 +1919,53 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     &ticket::prime(&store, target.as_deref())?,
                 ))
             }
-            TicketCommand::Tickets => {
+            TicketCommand::Tickets {
+                kind,
+                labels,
+                state,
+                text,
+                search,
+                epic,
+            } => {
                 let (_, store) = tickets(None)?;
-                Ok(ticket_answer(mode, "tickets", &ticket::tickets(&store)?))
+                let filter = ticket::Filter {
+                    kind,
+                    labels,
+                    state,
+                    text,
+                    search,
+                    epic,
+                };
+                Ok(ticket_answer(
+                    mode,
+                    "tickets",
+                    &ticket::tickets_filtered(&store, &filter)?,
+                ))
+            }
+            TicketCommand::Edit {
+                ticket: target,
+                kind,
+                labels,
+                unlabels,
+                part_of,
+                priority,
+                actor,
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                let none =
+                    |v: Option<String>| v.map(|v| Some(v).filter(|v| v != "none" && v != "-"));
+                let args = ticket::EditArgs {
+                    kind: none(kind),
+                    add_labels: labels,
+                    remove_labels: unlabels,
+                    part_of: none(part_of),
+                    priority,
+                };
+                Ok(ticket_answer(
+                    mode,
+                    "edit",
+                    &ticket::edit(&store, &target, &args)?,
+                ))
             }
             TicketCommand::Release { target, actor } => {
                 let (_, store) = tickets(actor.as_deref())?;
@@ -1723,6 +1998,15 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(tui::run(root, panic_after_setup)?)
         }
         Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
+        // A hosted run opens no repository: the request is the basis.
+        Command::Host {
+            export: false,
+            projections: _,
+        } => Ok(host::run_stdin()),
+        Command::Host {
+            export: true,
+            projections,
+        } => Ok(host::run_export(&open_repo()?, &projections)?),
         Command::Init {
             namespace,
             name,
@@ -2217,6 +2501,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             apply,
             issue,
             issue_file,
+            records,
+            area,
         } => {
             let repository = open_repo()?;
             let mut answer_map: std::collections::BTreeMap<String, String> = answers
@@ -2226,6 +2512,20 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                         .map(|(k, v)| (k.trim().to_owned(), v.to_owned()))
                 })
                 .collect();
+            if records {
+                let args = plan::records::PlanArgs {
+                    sentence: request,
+                    profile,
+                    area,
+                    proposal,
+                    draft,
+                    reviewed,
+                    apply,
+                    out,
+                    answers: answer_map,
+                };
+                return Ok(plan::records::run_plan(mode, &repository, &args)?);
+            }
             // OW-WAR-0141: an issue in place of the sentence, and the answers a
             // human already gave to this input's intake questions.
             let intake = plan::resolve_intake(
@@ -2666,6 +2966,109 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 lan,
                 mode,
             )?)
+        }
+        Command::Impact { record } => {
+            let repository = open_repo()?;
+            gate_cmd::source::remember_tree_reads();
+            let corpus = corpus::Corpus::new(&repository);
+            let (report, impact) = impact::build(&corpus, &record)?;
+            match mode {
+                output::Mode::Human => {
+                    if let Some(i) = &impact {
+                        print!("{}", impact::render(i));
+                    }
+                    for d in report
+                        .diagnostics
+                        .iter()
+                        .filter(|d| d.severity != diagnostic::Severity::Pass)
+                    {
+                        eprintln!("{d}");
+                    }
+                    if let Some(i) = &impact {
+                        println!("\n{}", impact::summary(i));
+                    }
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "impact",
+                    &report,
+                    impact.as_ref().map(output::value),
+                )),
+            }
+        }
+        // ---- OW-WAR-0148 M4: declared states -----------------------------
+        Command::State {
+            record,
+            name,
+            note,
+            actor,
+        } => {
+            let repository = open_repo()?;
+            Ok(ticket_answer(
+                mode,
+                "state",
+                &states::enter(
+                    &repository,
+                    &record,
+                    &name,
+                    note.as_deref(),
+                    actor.as_deref(),
+                )?,
+            ))
+        }
+        Command::Render {
+            projection,
+            of,
+            max_bytes,
+        } => {
+            let repository = open_repo()?;
+            gate_cmd::source::remember_tree_reads();
+            let corpus = corpus::Corpus::new(&repository);
+            let (report, rendered) =
+                render_cmd::run(&corpus, &projection, of.as_deref(), max_bytes)?;
+            match mode {
+                output::Mode::Human => {
+                    if let Some(p) = &rendered {
+                        print!("{}", p.content);
+                    }
+                    for d in report
+                        .diagnostics
+                        .iter()
+                        .filter(|d| d.severity != diagnostic::Severity::Pass)
+                    {
+                        eprintln!("{d}");
+                    }
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "render",
+                    &report,
+                    rendered.as_ref().map(output::value),
+                )),
+            }
+        }
+        Command::Model => {
+            let repository = open_repo()?;
+            gate_cmd::source::remember_tree_reads();
+            let corpus = corpus::Corpus::new(&repository);
+            let (report, model) = model::run(&corpus)?;
+            match mode {
+                output::Mode::Human => {
+                    for d in &model.diagnostics {
+                        println!("{}  {}  {}", d.rule, d.record, d.message);
+                    }
+                    println!("{}", model::summary(&model));
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "model",
+                    &report,
+                    Some(output::value(&model)),
+                )),
+            }
         }
         Command::Roadmap { command } => {
             let repository = open_repo()?;
@@ -3369,12 +3772,20 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             } else {
                 None
             };
-            output::emit(
-                mode,
-                "show",
-                &rendered,
-                serde_json::json!({"alias": alias, "view": view, "rendered": rendered, "review": review}),
-            );
+            // OW-WAR-0148 M4: the declared states on record, only where any is.
+            let declared = if matches!(view.as_str(), "full_warrant" | "status") {
+                states::warrant_section(&repository, &alias).map(|(md, d)| {
+                    rendered.push_str(&md);
+                    d
+                })
+            } else {
+                None
+            };
+            let mut result = serde_json::json!({"alias": alias, "view": view, "rendered": rendered, "review": review});
+            if let Some(d) = declared {
+                result["declared_states"] = serde_json::json!(d);
+            }
+            output::emit(mode, "show", &rendered, result);
             Ok(EXIT_OK)
         }
         Command::Diff { alias, from, to } => {

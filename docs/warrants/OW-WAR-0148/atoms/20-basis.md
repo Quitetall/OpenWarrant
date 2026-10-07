@@ -1,6 +1,6 @@
 ---
 schema: oh.war/atom/v1
-warrant_uuid: 01a0f502-4941-70a1-a446-e1eb77dff191
+warrant_uuid: 01a0feb6-ab80-73a5-abcb-7ade9cfaaeaa
 role: basis
 jurisdiction: authored
 order: 20
@@ -9,20 +9,83 @@ classification: internal
 
 # Basis
 
-## Shared sources and participant boundaries
+## Requirements
 
-- Relevant legacy SAS sections: §47, §48.1–48.5, §49.2–49.3 and §65; OW-WAR-0026, OW-WAR-0027, OW-WAR-0047 and OW-WAR-0108. Live `war sas status` reports 1.1.1 accepted and 1.2.0 proposed. The current generated normative projection reflects the proposed 1.2.0 document; generation does not accept that revision or replace an existing signed contract. This shared draft likewise does not activate new provider rules.
-- OpenWarrant cbe9a8a8: `crates/openwarrant-core/src/seam.rs` defines KatanaReceipt and BlutLineageReceipt. These validators check minimum fields and references, not a provider-authenticated seal. `resolve.rs::runtime_receipts_match_the_basis` has no connected store.
-- Katana checkout 0b0ac9dd1cbf69a2628ea214a4e841c5bd2888e1: `crates/katana/src/exec.rs` returns status, session path, answer, tool summaries and token usage. `crates/katana-mekugi/src/lib.rs` owns an append-only event log and BLAKE3 chain. These interfaces do not supply the complete OpenWarrant KatanaReceipt contract. The scoped Rust search found no dispatch_digest, prompt_ir_digest or receipt_digest producer.
-- BLUT checkout 6eedf207d2c539f65ef5506028d2e0e25e002e50 (rechecked 2026-10-01): `src/framework/lineage.rs` provides read-only job lineage; job/status/artifact APIs own their observations. LineageNode now carries portable input/output content identities alongside preserved legacy hashes. A scoped Rust search under src found no dispatch_digest, receipt_digest or warrant_uuid producer. This checkout differs from the OW47 runtime engine pin. Do not silently attribute its behavior to the old run. No complete dispatch-bound provider receipt has been observed.
-- Retained OW47 successful run: job 20260918-121422-409152626, provider b10f46be930be8f2696a35941fe36a2d7c2ab7c7, engine ffecee56abc87175a55dedc9f92d3537fa5a4227. References and actual failures remain in `../OW-WAR-0047/implementation/`.
-- Provider PR Quitetall/blut-cookbooks#1 remains open at aebd937beb6fee46664ca7bdd691bec3e732a3d3 with the latest visible hosted checks failed on 2026-09-18 (fmt/clippy/tests and secret-scan). Those historical failures do not establish their causes or qualify a newer checkout. The old runtime binary path is now absent. Retained records do not prove a fresh rerun or merge.
+- **RQ-013** (composition is typed, ordered and deterministic): a type now
+  declares its records, relations and capabilities as data. The composition
+  stays deterministic.
+- **RQ-032** (state decomposed into phase, condition, outcome, currency,
+  standing): the fixed kernel states map onto that decomposition. Declared
+  states refine it and never replace it.
+- **RQ-022** (WARs trace to SAS requirements and roadmap): typed relations
+  generalize the trace, and `war impact` walks it.
+- **RQ-025** (supersession preserves the old WAR and marks it non-current):
+  `supersedes` is a core relation kind, unchanged in meaning.
+- **RQ-015** (a missing required atom fails closed): kept. A missing required
+  record or relation fails closed too.
+- **RQ-074** (`war check` is deterministic and agent-free): every new rule is
+  structural.
+- **RQ-075** (generated views are drift-checked): the compiled model is a
+  generated view, drift-checked like the others.
 
-## Blocking unknowns for verified integration
+## Decisions relied on
 
-1. Each provider must publish its receipt schema, exact digest/seal calculation and supported verification interface. An OpenWarrant checksum of stored bytes is not that provider seal.
-2. Katana must supply its own PromptIR identity, effective confinement/capabilities and terminal receipt. OpenWarrant must not reconstruct them from a transcript.
-3. BLUT must provide a stable job-to-dispatch binding and a way to check that status, artifacts and lineage references belong to that job. A matching path or ordinary JSON file is insufficient.
-4. Approval of the cross-project adapter version and source identities remains required where the participating Warrant or repository policy requires verified start.
+- **OW-ADR-0021** (ownership by the latest authorized declaration): this
+  Warrant's set governs the files it declares from its authorization.
+- **OW-ADR-0022** (current by relation): supersession becomes one core
+  relation kind. Its derivation is unchanged.
+- **OW-ADR-0023** (the roadmap is a record): the roadmap is the first type
+  that is accepted but not assured.
+- **OW-WAR-0140's profile registry and OW-WAR-0147's working form**: the
+  seams this Warrant generalizes.
+- **OW-ADR-0031**, drafted with this Warrant and `proposed`: it records the
+  model, and becomes binding only when the owner accepts it.
 
-Preparation and prototype tests may proceed under the owner prompt. These unknowns block claims of provider qualification and verified integration, not ordinary drafting.
+## Assumptions
+
+- **A-001** (high confidence): every per-kind behaviour can be expressed as a
+  capability from the closed set. The hard-coded branches were enumerated on
+  2026-10-02. If one cannot be, it is named, and it escalates rather than
+  gaining a new capability.
+- **A-002** (high confidence): the compiled model can sit on the existing
+  loaders (`load_warrant`, `lower`, `relations::currencies`,
+  `resolve::assess`) without changing how any `CompilationBasis` byte is
+  formed. So no contract digest moves. A byte-identical differential over
+  eight commands on two corpora checks this.
+- **A-003** (medium confidence): recording `profile_digest` in a new
+  manifest is enough to bind the type into the signature, because manifest
+  bytes are already in the contract digest. Old manifests have no field and
+  keep their digests.
+- **Q-001 is a blocking unknown**, recorded with `war ask`. The owner answers
+  it at the signing sitting.
+  - **The conflict:** SAS **RQ-061** says "Liminal owns document semantics
+    and Basis", and **RQ-064** says "OpenWarrant does not duplicate those
+    kernels". A standalone compiler that owns typed document semantics, as
+    the owner directed, contradicts both as written.
+  - **(A)** A SAS revision, proposed with OW-ADR-0031, moves document
+    semantics for OpenWarrant's own records into its compiler and keeps
+    Liminal's role for the documents Liminal holds.
+  - **(B)** This lands as a projection layer beside Liminal, and RQ-061 and
+    RQ-064 are unchanged.
+  - **Recommendation: (A).** The SAS revision is the owner's to accept. This
+    Warrant changes no SAS byte.
+
+## Constraints
+
+- **Frozen:** `WarIr`, the contract digest's inputs, `SCHEMA_PACK_VERSION`
+  0.2.0, the `oh.war/report/v1` envelope, and every signed record's bytes.
+- **Profile file compatibility:** `oh.war/profile/v1` files keep parsing.
+  `form = "working"` maps to the working-form capability default.
+- **Ticket file compatibility:** ticket files on disk stay byte-compatible.
+- **Codex's branch:** `codex/reviewed-subject-binding` is not touched.
+- **Other owners:** files governed by other authorized Warrants are declared
+  here. By OW-ADR-0021 this Warrant governs them from its authorization, and
+  their earlier pins become historical.
+
+## Residual risks
+
+- A rule family left on the "always on" path by mistake. Noticed by: each
+  capability's plant runs a kind without that capability and observes the
+  family not applied.
+- The model drifting from a client's own reading where a client keeps one.
+  Noticed by: the M1 differential and the model's drift check.

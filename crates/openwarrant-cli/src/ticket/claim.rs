@@ -85,7 +85,7 @@ fn nonce() -> String {
 /// Read a lock, if it exists. A lock that exists and does not parse is
 /// `Some(None)`: held, by nobody the file names.
 pub fn read(path: &Utf8Path) -> std::io::Result<Option<Option<Claim>>> {
-    match std::fs::read(path) {
+    match crate::vfs::read(path) {
         Ok(bytes) => Ok(Some(serde_json::from_slice(&bytes).ok())),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e),
@@ -209,7 +209,7 @@ pub fn release(path: &Utf8Path, actor: &str) -> std::io::Result<bool> {
 /// included as held by nobody named.
 pub fn all(dir: &Utf8Path) -> std::io::Result<std::collections::BTreeMap<String, Option<Claim>>> {
     let mut out = std::collections::BTreeMap::new();
-    let entries = match std::fs::read_dir(dir) {
+    let entries = match crate::vfs::read_dir(dir) {
         Ok(e) => e,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(out),
         Err(e) => return Err(e),

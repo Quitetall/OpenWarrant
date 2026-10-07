@@ -1,0 +1,29 @@
+{
+  "api_version": "oh.war/records-proposal/v1",
+  "title": "Password reset, drafted badly",
+  "records": [
+    {
+      "id": "RISK-prf1",
+      "type": "risk",
+      "title": "A reset link is forwarded and used by someone else."
+    },
+    {
+      "id": "REQ-prf1",
+      "type": "requirement",
+      "title": "A reset link is bound to the browser that asked for it.",
+      "relations": [{"kind": "implements", "target": "OUT-nope"}]
+    },
+    {
+      "id": "REQ-pr1",
+      "type": "requirement",
+      "title": "A reset token expires 10 minutes after issue.",
+      "relations": [{"kind": "implements", "target": "OUT-pr1"}]
+    }
+  ],
+  "ticket": {
+    "title": "Harden password reset",
+    "items": [
+      {"text": "Bind the link to the browser", "implements": ["REQ-prf1"]}
+    ]
+  }
+}

@@ -473,15 +473,14 @@ pub mod source {
     pub fn declared(repo: &Repository, key: &str) -> Option<Declared> {
         let key = key.trim_start_matches("gate://");
         let dir = repo.root.join(&repo.config.paths.gates);
-        let entries = dir.read_dir_utf8().ok()?;
+        let entries = crate::vfs::read_dir_utf8(&dir).ok()?;
         let mut paths: Vec<Utf8PathBuf> = entries
-            .filter_map(Result::ok)
-            .map(|e| e.into_path())
+            .into_iter()
             .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
             .collect();
         paths.sort();
         for path in paths {
-            let Ok(text) = std::fs::read_to_string(&path) else {
+            let Ok(text) = crate::vfs::read_to_string(&path) else {
                 continue;
             };
             let Ok(doc) = openwarrant_core::structured::parse(&text) else {
@@ -865,6 +864,25 @@ pub mod source {
     }
 
     fn git(root: &Utf8Path, args: &[&str]) -> Result<Vec<u8>, String> {
+        // OW-WAR-0148 M8: a hosted run (`war host`) spawns nothing; it
+        // answers from its request's observation of this read, or fails as a
+        // missing `git` does. A recording run remembers the answer.
+        match crate::vfs::hosted_git(args) {
+            Some(Some(observed)) => return observed,
+            Some(None) => {
+                return Err(format!(
+                    "`git {}`: a hosted run runs no git, and its request supplied no observation of it",
+                    args.join(" ")
+                ));
+            }
+            None => {}
+        }
+        let outcome = git_uncached(root, args);
+        crate::vfs::record_git(args, &outcome);
+        outcome
+    }
+
+    fn git_uncached(root: &Utf8Path, args: &[&str]) -> Result<Vec<u8>, String> {
         let out = Command::new("git")
             .arg("-C")
             .arg(root.as_str())
@@ -976,7 +994,7 @@ pub mod source {
         for f in &files {
             // A tracked file deleted from the working tree is part of what the
             // gate would now see: its absence, named.
-            let digest = std::fs::read(root.join(f))
+            let digest = crate::vfs::read(root.join(f))
                 .map_or_else(|_| "absent".to_owned(), |b| sha256_hex(&b));
             preimage.push_str(&format!("{f}\0{digest}\n"));
         }
@@ -990,7 +1008,7 @@ pub mod source {
         fixtures
             .iter()
             .map(|f| {
-                std::fs::read(root.join(f))
+                crate::vfs::read(root.join(f))
                     .map(|b| format!("{f}#sha256:{}", sha256_hex(&b)))
                     .map_err(|e| format!("declared fixture {f} cannot be read: {e}"))
             })
@@ -1005,7 +1023,7 @@ pub mod source {
         set.sort();
         let mut preimage = String::new();
         for (id, target) in set {
-            let digest = std::fs::read(root.join(target))
+            let digest = crate::vfs::read(root.join(target))
                 .map_or_else(|_| "absent".to_owned(), |b| sha256_hex(&b));
             preimage.push_str(&format!("{id}\0{target}\0{digest}\n"));
         }

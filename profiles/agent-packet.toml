@@ -1,0 +1,108 @@
+# An agent packet (OW-WAR-0148 M6), as data: a document type. The records one
+# stage of work needs, bounded by a byte budget, each with its provenance.
+# Nothing of it is claimed, authorized, verified or resolved (`form =
+# "document"`), and a packet over its budget is refused by name, never
+# truncated. docs/DOCUMENTS.md walks it; docs/TYPES.md has the reference.
+schema = "oh.war/profile/v1"
+name = "agent-packet"
+form = "document"
+note = "The records one stage needs, from its root (a requirement, or a ticket item that implements one): what to build, why, the rules it must obey, the alternatives already rejected, and how it will be checked. Bounded, with provenance."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["requirement", "outcome", "constraint", "decision", "option", "consequence", "interface"]
+
+[relations]
+allow = ["implements", "constrains", "selected_over", "part_of", "evaluates", "depends_on"]
+
+[[projections]]
+name = "agent-packet"
+title = "Agent packet: {title}"
+intro = "The records this stage needs, and only those. Each carries its id, type, source and revision: cite the id when you act on one. What is not here is out of scope for this stage; if you need it, stop and say so. The rejected alternatives were considered and decided against; do not build them."
+max_bytes = 16000
+sources = "Provenance"
+
+[projections.select]
+types = ["requirement", "outcome", "constraint", "decision", "option", "consequence", "interface", "obligation", "item"]
+through = [
+    "out:implements",
+    "in:constrains",
+    "out:selected_over",
+    "in:part_of:consequence",
+    "in:implements:interface",
+    "in:evaluates",
+    "out:depends_on",
+]
+depth = 3
+
+[[projections.sections]]
+heading = "The work"
+block = "list"
+style = "blocks"
+of = "roots"
+types = ["requirement", "item"]
+provenance = true
+annotate = ["out:implements", "out:depends_on"]
+fields = ["state"]
+
+[[projections.sections]]
+heading = "Why: the outcome it serves"
+block = "list"
+style = "blocks"
+of = "rest"
+types = ["outcome"]
+provenance = true
+empty = "No outcome is recorded for this work."
+
+[[projections.sections]]
+heading = "Rules it must obey"
+block = "list"
+style = "blocks"
+of = "rest"
+types = ["constraint", "decision"]
+provenance = true
+annotate = ["out:constrains"]
+empty = "No constraint or decision applies."
+
+[[projections.sections]]
+heading = "Related requirements"
+block = "list"
+style = "blocks"
+of = "rest"
+types = ["requirement"]
+provenance = true
+annotate = ["in:implements", "in:depends_on", "out:implements"]
+empty = "None: this stage stands on its own."
+
+[[projections.sections]]
+heading = "Rejected alternatives: do not build these"
+block = "list"
+of = "rest"
+types = ["option"]
+annotate = ["in:selected_over"]
+empty = "None recorded."
+
+[[projections.sections]]
+heading = "Consequences to respect"
+block = "list"
+of = "rest"
+types = ["consequence"]
+annotate = ["out:part_of"]
+empty = "None recorded."
+
+[[projections.sections]]
+heading = "Interfaces"
+block = "list"
+style = "blocks"
+of = "rest"
+types = ["interface"]
+provenance = true
+empty = "None recorded."
+
+[[projections.sections]]
+heading = "How it will be checked"
+block = "list"
+of = "rest"
+types = ["obligation"]
+fields = ["scope", "evidence", "verdict"]
+empty = "No obligation evaluates this work yet: say how you checked it, and do not call it verified."

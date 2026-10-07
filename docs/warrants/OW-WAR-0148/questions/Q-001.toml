@@ -1,0 +1,21 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization, and `answered_by` is an attribution, not a proof: a
+# signature binds an ACT, and an answer is not one. `war questions
+# --open` lists what awaits an answer. Regenerated when answered, so
+# a comment added below this header does not survive.
+
+schema = "oh.war/question/v1"
+id = "Q-001"
+warrant = "OW-WAR-0148"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-10-02T22:26:48Z"
+question = "SAS RQ-061 says Liminal owns document semantics and Basis, and RQ-064 says OpenWarrant does not duplicate those kernels. A standalone compiler owning typed document semantics contradicts both as written. (A) a SAS revision, proposed with OW-ADR-0031, moves document semantics for OpenWarrant's own records into its compiler, keeping Liminal's role for documents Liminal holds; or (B) this lands as a projection layer beside Liminal and RQ-061/RQ-064 stand unchanged?"
+blocking = true
+recommended = "A"
+
+[answer]
+answered_by = "person://Brian Lam"
+answered_at = "2026-10-03T00:24:16Z"
+answer = "A"

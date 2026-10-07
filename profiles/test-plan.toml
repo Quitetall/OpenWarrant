@@ -1,0 +1,43 @@
+# A test plan (OW-WAR-0148 M6), as data: a document type. It composes
+# records and declares how to project them, and nothing of it is claimed,
+# authorized, verified or resolved (`form = "document"`): a verdict it shows
+# is read from the corpus, never written by it.
+# docs/DOCUMENTS.md walks it; docs/TYPES.md has the reference.
+schema = "oh.war/profile/v1"
+name = "test-plan"
+form = "document"
+note = "What must hold and how each will be checked: requirements and constraints with the Warrant obligations that `evaluates` them, the scope and evidence each needs, and the verdict recorded so far."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["requirement", "constraint"]
+
+[relations]
+allow = ["evaluates", "implements", "constrains"]
+
+[[projections]]
+name = "test-plan"
+title = "{title}: test plan"
+intro = "What must hold, and how each will be checked. A check is a Warrant obligation that `evaluates` a record; its verdict is read from the corpus, and one given against an earlier revision of the record reads stale. Something with no check is untested, and says so."
+
+[projections.select]
+types = ["requirement", "constraint", "obligation"]
+through = ["in:evaluates"]
+
+[[projections.sections]]
+heading = "Coverage"
+block = "table"
+types = ["requirement", "constraint"]
+columns = ["id", "type", "summary=What must hold", "in:evaluates=Checked by"]
+empty = "No requirement or constraint is recorded."
+
+[[projections.sections]]
+heading = "Checks"
+intro = "Each requirement and constraint with the obligations that evaluate it: the scope each is bounded by and the evidence that would settle it."
+block = "tree"
+types = ["requirement", "constraint"]
+fields = ["scope", "evidence", "verdict"]
+children = [
+    { relation = "in:evaluates", label = "Checked by", empty = "No obligation evaluates this yet: it is untested. Add `- **evaluates:** <ID>` to an obligation of the Warrant that delivers it." },
+]
+empty = "No requirement or constraint is recorded."

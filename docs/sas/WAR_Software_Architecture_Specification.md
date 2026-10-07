@@ -19,7 +19,8 @@
 | Initial optimization target | Software engineering and agentic programming |
 | Eventual scope | Any bounded institutional work |
 | Institutional authority | OpenHuman Knowledge Fabric |
-| Document and context substrate | Liminal |
+| Document and context substrate | Liminal (generic: Nodes, Relations, Workspace Basis, Jurisdiction) |
+| WAR domain schema and compiler | OpenWarrant, hosted by Liminal (§11.3) |
 | Agent runtime | Katana |
 | Typed computational runtime | BLUT |
 | Gate authority | Knowledge Fabric Gate Registry |
@@ -93,7 +94,7 @@ OpenWarrant is not:
 - a model provider;
 - a generic workflow engine;
 - a replacement for Git, CAD, issue trackers, laboratory systems, or financial systems;
-- a replacement for Liminal document semantics;
+- a replacement for Liminal's generic document substrate (Nodes, Relations, Workspace Basis, Jurisdiction, Holders);
 - a replacement for Katana runtime logging and capability enforcement;
 - a replacement for BLUT typed pipeline execution;
 - a legal contract engine in version 1;
@@ -472,7 +473,9 @@ Repositories and subsystems may own WAR source holders and local aliases. Knowle
 
 ### Law 24 — OpenWarrant is not another kernel
 
-OpenWarrant SHALL reuse Liminal for document semantics, Knowledge Fabric for institutional authority, Katana for agent runtime, BLUT for typed computational execution, and native systems for native artifacts.
+OpenWarrant SHALL reuse Liminal for the generic document substrate (Nodes, Relations, Workspace Basis, Jurisdiction, Holders, source maps and projection machinery), Knowledge Fabric for institutional authority, Katana for agent runtime, BLUT for typed computational execution, and native systems for native artifacts.
+
+OpenWarrant owns one domain: the WAR domain — its record types, relation kinds, profiles, capabilities and authority acts. It defines that domain once, as a Liminal-compatible schema and the code that implements it, and Liminal hosts that code rather than re-implementing it (§11.3).
 
 ### Law 25 — Architecture-complete, capability-incremental
 
@@ -538,8 +541,8 @@ These revisions are implementation evidence, not permanent protocol pins. A futu
 | Component | Canonical ownership |
 |---|---|
 | Knowledge Fabric | global WAR and ADR identity; authorization; lifecycle; role authority; judgments; resolution; cross-repository relations; institutional Gate Registry; preservation |
-| OpenWarrant | WAR schemas; canonical WAR IR; validation; file-native authoring; CLI; compilation orchestration; projections; protocol adapters |
-| Liminal | atom/source semantics; Nodes and Relations; Jurisdiction; Holders; Workspace Basis; source maps; semantic graph; human and AI compilation |
+| OpenWarrant | the WAR domain: WAR schemas, record types, relation kinds, profiles and capabilities as a Liminal-compatible schema; canonical WAR IR; the WAR domain compiler and its authority checks; validation; file-native authoring; CLI; projections; protocol adapters |
+| Liminal | the generic document substrate: atom/source semantics; Nodes and Relations; Jurisdiction; Holders; Workspace Basis; source maps; semantic graph; human and AI compilation machinery; hosting the WAR domain compiler |
 | Katana | agent event log; PromptIR; model and tool calls; capability realization; confinement; runtime receipts |
 | BLUT | typed computational DAG; stage execution; resources; cache; status stream; lineage |
 | Git | repository source and commits |
@@ -559,13 +562,18 @@ OpenWarrant SHALL NOT own a second institutional database.
 
 It may maintain disposable indexes and local draft journals. When a WAR is registered, Knowledge Fabric owns authoritative lifecycle and controlled actions.
 
-### 11.3 Liminal is the eventual semantic substrate
+### 11.3 Liminal is the substrate; the WAR domain is OpenWarrant's, hosted by Liminal
 
-The final production compiler SHALL use a versioned Liminal profile for WAR source, composition, provenance, context, and projections.
+Liminal owns the generic document substrate: Nodes, Relations, Workspace Basis, Jurisdiction, Holders, storage, synchronization, repair and the projection machinery.
 
-Until Liminal is qualified, OpenWarrant MAY ship a constrained Markdown/frontmatter adapter that lowers into the same canonical WAR IR.
+OpenWarrant owns the WAR domain and defines it once:
 
-The compatibility adapter SHALL eventually become an importer or differential oracle, not a second permanent definition of WAR semantics.
+- as a declarative schema — profiles, record types, relation kinds, capabilities and the compiled model (`oh.war/model/v1`) — expressed in Liminal's primitives: a record is a Node, a relation is a Relation, a record revision belongs to a Workspace Basis, and who governs a record is a Jurisdiction;
+- as the code that implements what a schema cannot: the authority acts, their refusals, independence, and the resolution checks of §56.
+
+Liminal SHALL run OpenWarrant's WAR domain compiler — hosted as a plugin or through the versioned process protocol of §82.2 — and SHALL NOT re-implement WAR domain semantics.
+
+OpenWarrant MAY run standalone, over its constrained Markdown/frontmatter sources. Standalone and hosted runs SHALL be checked against the same conformance fixtures. Neither is a second definition of WAR semantics: there is one schema and one implementation of it.
 
 ### 11.4 Katana is the agent runtime
 
@@ -4545,20 +4553,21 @@ Includes:
 
 The first adapter handles the constrained WAR atom profile.
 
-### 82.2 Liminal adapter
+### 82.2 Liminal host protocol
 
-The final adapter invokes a pinned Liminal compiler profile through a versioned process protocol (`oh.war/liminal-v1`), across the §75.2 seam: the request and the result are documents, and the command that answers them belongs to the adapter's configuration, not to this specification.
+Liminal hosts the WAR domain compiler through a versioned process protocol (`oh.war/liminal-v1`), until its plugin interface is qualified: Liminal supplies the Workspace Basis and the Nodes and Relations of the WAR records; the pinned OpenWarrant compiler returns the compiled model, diagnostics and projections. The protocol crosses the §75.2 seam: the request and the result are documents, and the command that answers them belongs to the adapter's configuration, not to this specification.
 
-### 82.3 Adapter parity
+### 82.3 Host parity
 
-Before cutover, the Markdown compatibility corpus SHALL be compiled by both adapters and compared for declared observable parity.
+Before cutover, the WAR corpus SHALL be compiled standalone and hosted, by the same pinned compiler, and compared for declared observable parity, with refusal controls that show a difference is caught.
 
 ### 82.4 Cutover
 
-Once Liminal is qualified:
+Once Liminal is qualified as host:
 
-- Liminal becomes production semantic compiler;
-- the Markdown adapter becomes importer/test adapter;
+- Liminal becomes the production substrate for WAR records: storage, Workspace Basis, Jurisdiction, synchronization and repair;
+- OpenWarrant's compiler, run inside Liminal, remains the one definition of WAR domain semantics;
+- the standalone Markdown entry point remains supported and serves as the parity oracle;
 - one production definition remains.
 
 ## 83. Knowledge Fabric integration
@@ -5087,7 +5096,7 @@ The WAR system is acceptable when:
 14. a stateless actor can execute one Dispatch;
 15. Katana authority is not duplicated;
 16. BLUT authority is not duplicated;
-17. Liminal authority is not duplicated;
+17. Liminal's substrate authority is not duplicated, and Liminal does not re-implement WAR domain semantics;
 18. performer claims cannot become independent evidence;
 19. unaskable gates cannot pass;
 20. the assurance case separates evidence, observation, inference, judgment, and resolution;
@@ -5175,9 +5184,9 @@ The following choices were fixed before this draft.
 | 15 | Agents may draft, execute, report, and review but may not self-authorize or self-resolve |
 | 16 | KF owns the Gate Registry; OpenWarrant owns schemas and CLI support |
 | 17 | Amendment classes are local, auto-authorized revision, and manual revision |
-| 18 | Liminal, KF, Katana, and BLUT retain their kernels |
+| 18 | Liminal, KF, Katana, and BLUT retain their kernels; Liminal hosts OpenWarrant's WAR domain compiler |
 | 19 | CLI is hybrid offline Git-native plus KF federation |
-| 20 | Define Liminal protocol now; ship constrained Markdown adapter first |
+| 20 | Define the Liminal host protocol now; ship OpenWarrant standalone first |
 | 21 | UUIDv7 internal identity plus local alias and future official registry ID |
 | 22 | Canonical JSON is portable machine document; generated Markdown is human parent |
 | 23 | SAS is controlled; architecture changes require ADR |
@@ -5467,10 +5476,10 @@ The following requirement IDs provide stable traceability for implementation WAR
 | ID | Requirement |
 |---|---|
 | WAR-SAS-RQ-060 | KF owns authority and lifecycle |
-| WAR-SAS-RQ-061 | Liminal owns document semantics and Basis |
+| WAR-SAS-RQ-061 | Liminal owns the generic document substrate and Basis; OpenWarrant owns the WAR domain schema, which Liminal hosts |
 | WAR-SAS-RQ-062 | Katana owns agent runtime and PromptIR |
 | WAR-SAS-RQ-063 | BLUT owns typed computational execution |
-| WAR-SAS-RQ-064 | OpenWarrant does not duplicate those kernels |
+| WAR-SAS-RQ-064 | OpenWarrant does not duplicate those kernels, and they do not re-implement the WAR domain |
 | WAR-SAS-RQ-065 | Native systems retain artifact authority |
 
 ### CLI and planning

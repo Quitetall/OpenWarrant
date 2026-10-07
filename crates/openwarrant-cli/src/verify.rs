@@ -695,6 +695,8 @@ pub(crate) fn request_from_loaded(
     one: &crate::repo::Loaded,
     performer: &str,
 ) -> Result<VerificationRequest, RepoError> {
+    // OW-ADR-0031: a kind without `verification` asks no verifier anything.
+    one.require(&repo.profiles, openwarrant_core::Capability::Verification)?;
     let alias = one.alias();
     let dir = &one.dir;
     let assurance = one
@@ -814,6 +816,7 @@ pub fn ingest(
 ) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
+    one.require(&repo.profiles, openwarrant_core::Capability::Verification)?;
     let assurance = one
         .validated
         .as_ref()

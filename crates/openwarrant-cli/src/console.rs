@@ -117,7 +117,17 @@ pub fn target_of(p: &Pending) -> String {
 /// The review rows, without evaluating stages a caller already has.
 /// Uses the same authority and question evaluators as the full console.
 pub fn review_rows(repo: &Repository) -> Result<(Vec<Act>, Vec<Question>), RepoError> {
-    let acts: Vec<Act> = sign::pending(repo)?
+    review_rows_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`review_rows`] over a corpus already loaded: the sign queue is the
+/// corpus's.
+pub fn review_rows_with(
+    corpus: &crate::corpus::Corpus,
+) -> Result<(Vec<Act>, Vec<Question>), RepoError> {
+    let repo = corpus.repo();
+    let acts: Vec<Act> = corpus
+        .pending()?
         .iter()
         .enumerate()
         .map(|(i, p)| {
@@ -150,13 +160,21 @@ pub fn review_rows(repo: &Repository) -> Result<(Vec<Act>, Vec<Question>), RepoE
 
 /// Read the whole board from the records. No writes, no prompts.
 pub fn board(repo: &Repository) -> Result<Board, RepoError> {
-    let (acts, questions) = review_rows(repo)?;
-    let stages: Vec<Stage> = crate::frontier::run(repo, None)
+    board_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`board`] over a corpus already loaded.
+pub fn board_with(corpus: &crate::corpus::Corpus) -> Result<Board, RepoError> {
+    let repo = corpus.repo();
+    let (acts, questions) = review_rows_with(corpus)?;
+    let stages: Vec<Stage> = corpus
+        .frontier()
         .map(|(_, f)| {
             f.rows
-                .into_iter()
-                .filter(|r| r.state == crate::frontier::StageState::Open)
-                .filter(|r| r.executor_kind != "human")
+                .iter()
+                .filter(|&r| r.state == crate::frontier::StageState::Open)
+                .filter(|&r| r.executor_kind != "human")
+                .cloned()
                 .map(|r| Stage {
                     command: format!("war dispatch {} {}", r.warrant, r.stage),
                     warrant: r.warrant,

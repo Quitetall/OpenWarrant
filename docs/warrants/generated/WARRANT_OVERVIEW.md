@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-144 Warrant(s) in this repository.
+145 Warrant(s) in this repository.
 
 ## Summary
 
@@ -154,7 +154,8 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0145](docs/warrants/OW-WAR-0145/manifest.toml) | The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0146](docs/warrants/OW-WAR-0146/manifest.toml) | A verification bundle carries what each gate printed, so a blind verifier can see the evidence | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0147](docs/warrants/OW-WAR-0147/manifest.toml) | Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | `draft` | `current` | `valid` | `basic` | 2M / 3S |
-| [OW-WAR-0148](docs/warrants/OW-WAR-0148/manifest.toml) | Shared Katana and BLUT runtime receipt binding contract | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0148](docs/warrants/OW-WAR-0148/manifest.toml) | Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | `authorized` | `current` | `valid` | `basic` | 5M / 5S |
+| [OW-WAR-0149](docs/warrants/OW-WAR-0149/manifest.toml) | Shared Katana and BLUT runtime receipt binding contract | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 
 ## Claimed SAS requirement coverage
 
@@ -170,18 +171,18 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-010` — OW-WAR-0002, OW-WAR-0113
 - `WAR-SAS-RQ-011` — OW-WAR-0002
 - `WAR-SAS-RQ-012` — OW-WAR-0002, OW-WAR-0004, OW-WAR-0057, OW-WAR-0113
-- `WAR-SAS-RQ-013` — OW-WAR-0002, OW-WAR-0113, OW-WAR-0122, OW-WAR-0140
+- `WAR-SAS-RQ-013` — OW-WAR-0002, OW-WAR-0113, OW-WAR-0122, OW-WAR-0140, OW-WAR-0148
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
-- `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005, OW-WAR-0140, OW-WAR-0147
+- `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005, OW-WAR-0140, OW-WAR-0147, OW-WAR-0148
 - `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063, OW-WAR-0064, OW-WAR-0071, OW-WAR-0126, OW-WAR-0128
 - `WAR-SAS-RQ-021` — OW-WAR-0113
-- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063, OW-WAR-0125
+- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063, OW-WAR-0125, OW-WAR-0148
 - `WAR-SAS-RQ-023` — OW-WAR-0123
 - `WAR-SAS-RQ-024` — OW-WAR-0006
-- `WAR-SAS-RQ-025` — OW-WAR-0006
+- `WAR-SAS-RQ-025` — OW-WAR-0006, OW-WAR-0148
 - `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067, OW-WAR-0142, OW-WAR-0144
 - `WAR-SAS-RQ-031` — OW-WAR-0009
-- `WAR-SAS-RQ-032` — OW-WAR-0008, OW-WAR-0113, OW-WAR-0114
+- `WAR-SAS-RQ-032` — OW-WAR-0008, OW-WAR-0113, OW-WAR-0114, OW-WAR-0148
 - `WAR-SAS-RQ-033` — OW-WAR-0009, OW-WAR-0112
 - `WAR-SAS-RQ-034` — OW-WAR-0009, OW-WAR-0144
 - `WAR-SAS-RQ-035` — OW-WAR-0011
@@ -214,8 +215,8 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068, OW-WAR-0141
 - `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068, OW-WAR-0141
 - `WAR-SAS-RQ-073` — OW-WAR-0036
-- `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055, OW-WAR-0112, OW-WAR-0147
-- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116
+- `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055, OW-WAR-0112, OW-WAR-0147, OW-WAR-0148
+- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116, OW-WAR-0148
 - `WAR-SAS-RQ-076` — OW-WAR-0028
 - `WAR-SAS-RQ-077` — OW-WAR-0068
 - `WAR-SAS-RQ-080` — OW-WAR-0003
@@ -330,6 +331,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0145** · roadmap: roadmap://OW-PHASE-6/askable-battery
 - **OW-WAR-0146** · roadmap: roadmap://OW-PHASE-6/verification-pipeline
 - **OW-WAR-0147** · roadmap: roadmap://OW-PHASE-2/tickets
+- **OW-WAR-0148** · roadmap: roadmap://OW-PHASE-1/typed-records
 
 ## Not reported here
 

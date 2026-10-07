@@ -104,7 +104,10 @@ pub enum Pending {
     Resolve {
         alias: String,
         request: ResolutionRequest,
-        profile: String,
+        /// The `profile_outcome` a `satisfied` resolution of this kind records
+        /// (OW-ADR-0031), from its profile's data — `delivered` for delivery.
+        /// `None` records the common outcome's own word.
+        satisfied_outcome: Option<String>,
         /// Present when a resolution is already recorded for this contract and
         /// carries no verified signature. The act is then not a decision to
         /// resolve — that decision is history — but the signature that decision
@@ -293,6 +296,13 @@ fn ownership_of<'a>(
 }
 
 pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
+    pending_with(&crate::corpus::Corpus::new(repo))
+}
+
+/// [`pending`] over a corpus already loaded: each Warrant's load, lowered
+/// contract and assessment are the corpus's.
+pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, RepoError> {
+    let repo = corpus.repo();
     // Loaded once, up front, and NOT swallowed. Every per-Warrant request
     // below reads the register, and their errors are skipped so one broken
     // Warrant does not hide the rest — which meant a broken register (a
@@ -306,19 +316,20 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
     // The ownership index, built on the first correction request and shared
     // by the rest (`correct::request_with`).
     let ownership = std::cell::OnceCell::new();
-    let mut dirs = repo.warrant_dirs()?;
-    dirs.sort();
-    for dir in dirs {
+    let mut entries: Vec<&crate::corpus::Entry> = corpus.entries()?.iter().collect();
+    entries.sort_by(|a, b| a.dir.cmp(&b.dir));
+    for entry in entries {
+        let dir = entry.dir.clone();
         let Some(alias) = dir.file_name().map(str::to_owned) else {
             continue;
         };
-        let Ok(one) = repo.load_warrant(&dir) else {
+        let Some(one) = entry.ok() else {
             continue;
         };
         if one.validated.is_none() || one.basis.is_none() {
             continue;
         }
-        let Ok(request) = authorize::request(repo, &alias) else {
+        let Ok(request) = authorize::request_for(repo, &alias, one, entry.ir().ok()) else {
             continue;
         };
         let authorization = repo.load_authorization(&dir)?;
@@ -382,19 +393,17 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             )
             .is_signed();
             if !signed
-                && let Ok(mut request) = resolution_cmd::request(repo, &alias)
+                && let Ok(mut request) =
+                    resolution_cmd::request_for(repo, &alias, one, entry.ir().ok(), &|| {
+                        entry.assessment(repo).cloned()
+                    })
                 && request.contract_digest == existing.resolution.contract_digest
             {
                 let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
-                let profile = one
-                    .validated
-                    .as_ref()
-                    .map(|v| v.raw.profile.clone())
-                    .unwrap_or_default();
                 out.push(Pending::Resolve {
                     alias: alias.clone(),
                     request,
-                    profile,
+                    satisfied_outcome: satisfied_outcome(repo, one),
                     recorded: Some(RecordedOutcome {
                         common: existing.resolution.common_outcome,
                         profile: existing.resolution.profile_outcome.clone(),
@@ -488,20 +497,19 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             }
             continue;
         }
-        let Ok(mut request) = resolution_cmd::request(repo, &alias) else {
+        let Ok(mut request) =
+            resolution_cmd::request_for(repo, &alias, one, entry.ir().ok(), &|| {
+                entry.assessment(repo).cloned()
+            })
+        else {
             continue;
         };
         if request.requirements_met {
             let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
-            let profile = one
-                .validated
-                .as_ref()
-                .map(|v| v.raw.profile.clone())
-                .unwrap_or_default();
             out.push(Pending::Resolve {
                 alias,
                 request,
-                profile,
+                satisfied_outcome: satisfied_outcome(repo, one),
                 recorded: None,
                 assignment,
             });
@@ -543,6 +551,14 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
         out.push(Pending::AcceptStanding { request });
     }
     Ok(out)
+}
+
+/// The word a `satisfied` resolution of `one`'s kind records, from its
+/// profile's data (OW-ADR-0031).
+fn satisfied_outcome(repo: &Repository, one: &crate::repo::Loaded) -> Option<String> {
+    one.validated
+        .as_ref()
+        .and_then(|v| repo.profiles.kind(&v.profile).satisfied_outcome)
 }
 
 /// The acts `war sign` offers under these options: the pending queue, or —
@@ -756,7 +772,7 @@ pub(crate) fn read_amendments(dir: &Utf8Path) -> Vec<AmendmentSummary> {
 }
 
 fn read_amendment(path: &Utf8Path) -> Option<AmendmentSummary> {
-    let text = std::fs::read_to_string(path).ok()?;
+    let text = crate::vfs::read_to_string(path).ok()?;
     let mut summary = AmendmentSummary {
         id: path.file_stem().unwrap_or_default().to_owned(),
         ..Default::default()
@@ -1321,7 +1337,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
         Pending::Resolve {
             alias,
             request,
-            profile,
+            satisfied_outcome,
             recorded,
             ..
         } => {
@@ -1350,8 +1366,8 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
             }
             let profile_outcome = match recorded {
                 Some(rec) => rec.profile.clone(),
-                None => match (profile.as_str(), outcome) {
-                    ("delivery", CommonOutcome::Satisfied) => "delivered".to_owned(),
+                None => match (satisfied_outcome, outcome) {
+                    (Some(word), CommonOutcome::Satisfied) => word.clone(),
                     _ => outcome.to_string(),
                 },
             };
@@ -2895,6 +2911,22 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         (Some(t), _) => match select(&all, t) {
             Some(p) => vec![p],
             None => {
+                // OW-ADR-0031: a Warrant whose kind lacks `authorization` has
+                // no act to sign, and says which capability it lacks.
+                if let Ok(dir) = repo.warrant_dir(t)
+                    && let Ok(one) = repo.load_warrant(&dir)
+                    && let Err(RepoError::Message(why)) =
+                        one.require(&repo.profiles, openwarrant_core::Capability::Authorization)
+                {
+                    let (rule, message) =
+                        why.split_once(": ").unwrap_or(("capability.absent", &why));
+                    report.push(Diagnostic::error(
+                        rule.to_owned(),
+                        t.to_owned(),
+                        message.to_owned(),
+                    ));
+                    return Ok(report);
+                }
                 report.push(Diagnostic::error(
                     "sign.nothing-pending",
                     t.to_owned(),
@@ -3610,7 +3642,7 @@ mod tests {
     fn a_resolution_that_cannot_be_satisfied_needs_an_outcome_and_refuses_to_guess() {
         let p = Pending::Resolve {
             alias: "OW-WAR-0002".to_owned(),
-            profile: "delivery".to_owned(),
+            satisfied_outcome: Some("delivered".to_owned()),
             recorded: None,
             assignment: None,
             request: ResolutionRequest {
@@ -3677,7 +3709,7 @@ mod tests {
             };
             Pending::Resolve {
                 alias: "OW-X".to_owned(),
-                profile: "delivery".to_owned(),
+                satisfied_outcome: Some("delivered".to_owned()),
                 recorded: None,
                 assignment: n,
                 request: ResolutionRequest {

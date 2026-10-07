@@ -1,0 +1,52 @@
+# An architecture view (OW-WAR-0148 M6), as data: a document type. It
+# composes records and declares how to project them, and nothing of it is
+# claimed, authorized, verified or resolved (`form = "document"`).
+# docs/DOCUMENTS.md walks it; docs/TYPES.md has the reference.
+schema = "oh.war/profile/v1"
+name = "architecture"
+form = "document"
+note = "How the work is built and why: decisions with the alternatives they were chosen over and their consequences, the interfaces, and the constraints, read from records. Requirements are named, not restated."
+capabilities = ["structure", "links"]
+
+# `interface` and `consequence` are its own nouns: an area's records may be
+# governed by `architecture` to hold them.
+[records]
+types = ["decision", "option", "consequence", "interface", "constraint"]
+
+[relations]
+allow = ["selected_over", "part_of", "constrains", "implements", "depends_on"]
+
+[[projections]]
+name = "architecture"
+title = "{title}: architecture"
+intro = "How this is built, and why. Each decision lists the alternatives it was chosen over and what follows from it; requirements are named by id (the PRD states them). Every statement below is a record."
+
+[projections.select]
+types = ["decision", "option", "consequence", "interface", "constraint"]
+through = ["out:selected_over", "in:part_of"]
+
+[[projections.sections]]
+heading = "Decisions"
+block = "tree"
+types = ["decision"]
+annotate = ["out:constrains"]
+children = [
+    { relation = "out:selected_over", label = "Alternatives considered", empty = "No alternative is recorded: a decision without one is a default, not a choice." },
+    { relation = "in:part_of", label = "Consequences" },
+]
+empty = "No decision is recorded."
+
+[[projections.sections]]
+heading = "Interfaces"
+intro = "What the parts expose to each other and to users."
+block = "table"
+types = ["interface"]
+columns = ["id", "summary=Interface", "out:implements=Implements", "out:depends_on=Depends on"]
+empty = "No interface is recorded."
+
+[[projections.sections]]
+heading = "Constraints"
+block = "list"
+types = ["constraint"]
+annotate = ["out:constrains"]
+empty = "None recorded."

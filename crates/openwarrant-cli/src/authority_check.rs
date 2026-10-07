@@ -434,7 +434,7 @@ fn verify_candidates(
     let mut strongest: Option<Verdict> = None;
     let primary = response_path(repo, act, subject);
     for response in candidates {
-        let text = match std::fs::read_to_string(response) {
+        let text = match crate::vfs::read_to_string(response) {
             Ok(t) => t,
             Err(e) => {
                 strongest = Some(Verdict::Unavailable {
@@ -472,7 +472,7 @@ fn verify_candidates(
             }
         }
         let sig = Utf8PathBuf::from(format!("{response}.sig"));
-        if !sig.is_file() {
+        if !crate::vfs::is_file(&sig) {
             // OW-WAR-0072: a response signed as part of a batch carries no
             // `.sig` of its own. It is signed when a batch whose signer is
             // this record's actor, and whose signature verifies as their
@@ -534,7 +534,7 @@ fn candidate_responses(
     let primary = response_path(repo, act, subject);
     let excluded = |p: &Utf8Path| exclude.is_some_and(|e| e == p);
     let mut out = Vec::new();
-    if primary.is_file() && !excluded(&primary) {
+    if crate::vfs::is_file(&primary) && !excluded(&primary) {
         out.push(primary.clone());
     }
     for path in response_files(&dir) {
@@ -562,9 +562,7 @@ fn candidate_responses(
 /// that was a directory read per Warrant per act (t-f815).
 fn response_files(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
     fn list(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
-        dir.read_dir_utf8()
-            .map(|rd| rd.flatten().map(|e| e.path().to_owned()).collect())
-            .unwrap_or_default()
+        crate::vfs::read_dir_utf8(dir).unwrap_or_default()
     }
     static ONCE: std::sync::OnceLock<
         std::sync::Mutex<std::collections::HashMap<Utf8PathBuf, Vec<Utf8PathBuf>>>,
@@ -595,7 +593,7 @@ fn batch_covering(
 ) -> Option<Verdict> {
     let principal = trust.principal.as_str();
     let name = response.file_name()?;
-    let bytes = std::fs::read(response).ok()?;
+    let bytes = crate::vfs::read(response).ok()?;
     let digest = openwarrant_compiler::sha256_hex(&bytes);
     let mut failed = None;
     for (path, batch) in crate::batch_cmd::load_all(repo).iter() {
@@ -603,7 +601,7 @@ fn batch_covering(
             continue;
         }
         let sig = Utf8PathBuf::from(format!("{path}.sig"));
-        if !sig.is_file() {
+        if !crate::vfs::is_file(&sig) {
             continue;
         }
         match ssh_verify(repo, trust, path, &sig) {
@@ -645,7 +643,7 @@ fn ssh_verify(
 ) -> Result<(), SshFailure> {
     let principal = trust.principal.as_str();
     let allowed = trust.allowed.as_path();
-    if !allowed.is_file() {
+    if !crate::vfs::is_file(allowed) {
         return Err(SshFailure::Unavailable(format!(
             "{} does not exist, so no key is allowed to sign anything",
             repo.relative(allowed)
@@ -704,7 +702,7 @@ fn ssh_verify_keyed(
     principal: &str,
 ) -> Result<(), SshFailure> {
     let read = |p: &Utf8Path| {
-        std::fs::read(p).map_err(|e| {
+        crate::vfs::read(p).map_err(|e| {
             SshFailure::Unavailable(format!("could not open {}: {e}", repo.relative(p)))
         })
     };
@@ -727,7 +725,27 @@ fn ssh_verify_keyed(
     if let Some(known) = cache.lock().ok().and_then(|c| c.get(&key).cloned()) {
         return known.map_err(SshFailure::Rejected);
     }
-    let verdict = ssh_verify_uncached(repo, principal, response, sig, allowed);
+    // OW-WAR-0148 M8: a hosted run (`war host`) spawns nothing. It answers
+    // from the observation its request supplied for exactly these bytes, or
+    // fails closed as a missing `ssh-keygen` does. A recording run (`war
+    // host --export`) remembers what `ssh-keygen` answered.
+    let verdict = match crate::vfs::hosted_ssh(&key) {
+        Some(Some(observed)) => observed.map_err(SshFailure::Rejected),
+        Some(None) => Err(SshFailure::Unavailable(
+            "a hosted run runs no ssh-keygen, and its request supplied no observation of this \
+             signature, so it is unchecked. An unchecked signature is not a pass"
+                .to_owned(),
+        )),
+        None => {
+            let verdict = ssh_verify_uncached(repo, principal, response, sig, allowed);
+            match &verdict {
+                Ok(()) => crate::vfs::record_ssh(&key, &Ok(())),
+                Err(SshFailure::Rejected(why)) => crate::vfs::record_ssh(&key, &Err(why.clone())),
+                Err(SshFailure::Unavailable(_)) => {}
+            }
+            verdict
+        }
+    };
     let cached = match &verdict {
         Ok(()) => Some(Ok(())),
         Err(SshFailure::Rejected(why)) => Some(Err(why.clone())),
@@ -938,6 +956,17 @@ impl Drop for AllowedFile {
 /// Read the configured store now. `Err` is the rule and reason every act and
 /// every verdict fails closed with.
 fn read_store(store: &str, test: bool) -> Result<StoreBinding, (&'static str, String)> {
+    // OW-WAR-0148 M8: a store lives outside the repository, so outside any
+    // Workspace Basis. A hosted run reads nothing else, and fails closed.
+    if crate::vfs::is_hosted() {
+        return Err((
+            "authority.verify-unavailable",
+            format!(
+                "the protected store {store} lies outside the hosted basis, and a hosted run \
+                 reads nothing else: it authorizes nobody"
+            ),
+        ));
+    }
     let current = crate::authority_cmd::store::read_current(std::path::Path::new(store), test)
         .map_err(|e| {
             (

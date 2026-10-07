@@ -26,7 +26,7 @@ use std::time::{Duration, Instant};
 use camino::{Utf8Path, Utf8PathBuf};
 use serde::{Deserialize, Serialize};
 
-use crate::repo::{IntakePolicy, RepoError, Repository};
+use crate::repo::{IntakePolicy, RepoError, Repository, WritebackPolicy};
 
 pub const SCHEMA: &str = "oh.war/intake/v1";
 /// The pre-Warrant store: one directory per input, no alias allocated.
@@ -236,24 +236,31 @@ fn fetch_argv(policy: &IntakePolicy, id: &str) -> Result<Vec<String>, RepoError>
         .collect())
 }
 
-fn run_fetch(
-    repo: &Repository,
+/// How a bounded child process ended.
+enum Ran {
+    /// It exited: its status, stdout and stderr.
+    Exited(std::process::ExitStatus, String, String),
+    /// It ran past the deadline and was killed.
+    TimedOut,
+}
+
+/// Run `argv` from `root` with stdin closed and a wall-clock bound, the
+/// environment passed through untouched. `Err` is a spawn or wait failure,
+/// with what failed.
+fn run_bounded(
+    root: &Utf8Path,
     argv: &[String],
     deadline: Duration,
-    id: &str,
-) -> Result<Issue, RepoError> {
+) -> Result<Ran, (String, std::io::Error)> {
     let started = Instant::now();
     let mut child = Command::new(&argv[0])
         .args(&argv[1..])
-        .current_dir(&repo.root)
+        .current_dir(root)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|source| RepoError::Io {
-            context: format!("intake.fetch-failed: could not run {}", argv[0]),
-            source,
-        })?;
+        .map_err(|e| (format!("could not run {}", argv[0]), e))?;
     let mut stdout = child.stdout.take().expect("piped");
     let mut stderr = child.stderr.take().expect("piped");
     let reader = std::thread::spawn(move || {
@@ -264,10 +271,10 @@ fn run_fetch(
         (out, err)
     });
     let status = loop {
-        if let Some(s) = child.try_wait().map_err(|source| RepoError::Io {
-            context: "intake.fetch-failed: could not wait for the fetch command".to_owned(),
-            source,
-        })? {
+        if let Some(s) = child
+            .try_wait()
+            .map_err(|e| ("could not wait for it".to_owned(), e))?
+        {
             break Some(s);
         }
         if started.elapsed() > deadline {
@@ -281,23 +288,51 @@ fn run_fetch(
         // Not joined: a grandchild still holding the pipe would hold this
         // command past the bound it just enforced.
         drop(reader);
-        return Err(RepoError::Message(format!(
-            "intake.fetch-timeout: the fetch command did not finish within {}s and was killed. \
-             Nothing was written",
-            deadline.as_secs()
-        )));
+        return Ok(Ran::TimedOut);
     };
     let (out, err) = reader.join().unwrap_or_default();
+    Ok(Ran::Exited(status, out, err))
+}
+
+/// The first line of a tracker CLI's stderr, bounded: enough to act on, and
+/// never written anywhere (it can name the account).
+fn first_line(err: &str) -> String {
+    err.lines()
+        .next()
+        .unwrap_or("")
+        .chars()
+        .take(200)
+        .collect::<String>()
+}
+
+fn run_fetch(
+    repo: &Repository,
+    argv: &[String],
+    deadline: Duration,
+    id: &str,
+) -> Result<Issue, RepoError> {
+    let (status, out, err) = match run_bounded(&repo.root, argv, deadline) {
+        Ok(Ran::Exited(status, out, err)) => (status, out, err),
+        Ok(Ran::TimedOut) => {
+            return Err(RepoError::Message(format!(
+                "intake.fetch-timeout: the fetch command did not finish within {}s and was \
+                 killed. Nothing was written",
+                deadline.as_secs()
+            )));
+        }
+        Err((what, source)) => {
+            let context = if what.starts_with("could not run") {
+                format!("intake.fetch-failed: {what}")
+            } else {
+                "intake.fetch-failed: could not wait for the fetch command".to_owned()
+            };
+            return Err(RepoError::Io { context, source });
+        }
+    };
     if !status.success() {
         // The stderr of a tracker CLI can name the account; one line of it,
         // bounded, is enough to act on and is not written anywhere.
-        let first = err
-            .lines()
-            .next()
-            .unwrap_or("")
-            .chars()
-            .take(200)
-            .collect::<String>();
+        let first = first_line(&err);
         return Err(RepoError::Message(format!(
             "intake.fetch-failed: the fetch command failed ({status}): {first}. Nothing was \
              written"
@@ -312,6 +347,123 @@ fn run_fetch(
         )));
     }
     Ok(issue)
+}
+
+// ---- write-back (OW-WAR-0148 M5) ---------------------------------------------
+
+/// One write, as it went: which step, and whether it is known to have
+/// happened.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Written {
+    /// `comment` or `close`.
+    pub step: String,
+    /// `written` (the command exited 0), `unknown` (it failed, timed out or
+    /// could not start: whether the tracker changed is not known), or
+    /// `skipped` (an earlier step's outcome is unknown, so this one never
+    /// ran).
+    pub outcome: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub detail: String,
+}
+
+/// Whether `[intake.writeback]` is usable, and why not. Checked before any
+/// process starts.
+fn writeback_argvs(policy: &WritebackPolicy) -> Result<Vec<(&'static str, &[String])>, String> {
+    let mut steps = Vec::new();
+    for (step, argv) in [
+        ("comment", &policy.comment_argv),
+        ("close", &policy.close_argv),
+    ] {
+        if argv.is_empty() {
+            continue;
+        }
+        if !argv.iter().any(|a| a.contains("{id}")) {
+            return Err(format!(
+                "[intake.writeback] {step}_argv has no `{{id}}`: it would write to the same \
+                 issue every time"
+            ));
+        }
+        steps.push((step, argv.as_slice()));
+    }
+    if !policy.comment_argv.is_empty() && !policy.comment_argv.iter().any(|a| a.contains("{body}"))
+    {
+        return Err(
+            "[intake.writeback] comment_argv has no `{body}`: the comment would say nothing"
+                .to_owned(),
+        );
+    }
+    if steps.is_empty() {
+        return Err("[intake.writeback] names neither comment_argv nor close_argv".to_owned());
+    }
+    Ok(steps)
+}
+
+/// Write back to issue `number`: the comment (`body`), then the close, each
+/// once, in that order. A step that fails leaves its outcome `unknown`, and
+/// no later step runs: closing an issue whose summary may not have landed
+/// would hide the work. Nothing here is retried or rolled back.
+#[must_use]
+pub fn write_back(
+    root: &Utf8Path,
+    policy: &WritebackPolicy,
+    number: u64,
+    body: &str,
+) -> Vec<Written> {
+    let steps = match writeback_argvs(policy) {
+        Ok(s) => s,
+        Err(why) => {
+            return vec![Written {
+                step: "configuration".to_owned(),
+                outcome: "unknown".to_owned(),
+                detail: format!("{why}; nothing was started"),
+            }];
+        }
+    };
+    let deadline = Duration::from_secs(if policy.timeout_secs == 0 {
+        30
+    } else {
+        policy.timeout_secs
+    });
+    let id = number.to_string();
+    let mut out = Vec::new();
+    let mut blocked = false;
+    for (step, template) in steps {
+        if blocked {
+            out.push(Written {
+                step: step.to_owned(),
+                outcome: "skipped".to_owned(),
+                detail: "an earlier write's outcome is unknown".to_owned(),
+            });
+            continue;
+        }
+        let argv: Vec<String> = template
+            .iter()
+            .map(|a| a.replace("{id}", &id).replace("{body}", body))
+            .collect();
+        let (outcome, detail) = match run_bounded(root, &argv, deadline) {
+            Ok(Ran::Exited(status, _, _)) if status.success() => ("written", String::new()),
+            Ok(Ran::Exited(status, _, err)) => (
+                "unknown",
+                format!("{} failed ({status}): {}", argv[0], first_line(&err)),
+            ),
+            Ok(Ran::TimedOut) => (
+                "unknown",
+                format!(
+                    "{} did not finish within {}s and was killed",
+                    argv[0],
+                    deadline.as_secs()
+                ),
+            ),
+            Err((what, e)) => ("unknown", format!("{what}: {e}")),
+        };
+        blocked = outcome != "written";
+        out.push(Written {
+            step: step.to_owned(),
+            outcome: outcome.to_owned(),
+            detail,
+        });
+    }
+    out
 }
 
 /// The store key for a sentence with no ticket: its digest, so the same

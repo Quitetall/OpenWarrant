@@ -661,17 +661,16 @@ pub fn load_all(repo: &Repository) -> std::sync::Arc<Vec<(Utf8PathBuf, Batch)>> 
 
 fn load_all_fresh(repo: &Repository) -> Vec<(Utf8PathBuf, Batch)> {
     let dir = repo.root.join(BATCHES);
-    let Ok(rd) = dir.read_dir_utf8() else {
+    let Ok(rd) = crate::vfs::read_dir_utf8(&dir) else {
         return vec![];
     };
     let mut out = Vec::new();
-    for e in rd.flatten() {
-        let p = e.path().to_owned();
+    for p in rd {
         let name = p.file_name().unwrap_or_default();
         if !name.ends_with(".json") || name.ends_with(".refused.json") {
             continue;
         }
-        let Ok(text) = std::fs::read_to_string(&p) else {
+        let Ok(text) = crate::vfs::read_to_string(&p) else {
             continue;
         };
         let Ok(b) = serde_json::from_str::<Batch>(&text) else {

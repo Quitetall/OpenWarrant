@@ -120,16 +120,17 @@ impl AmendmentFile {
 /// order the module doc states. Empty when the directory does not exist.
 #[must_use]
 pub fn files(warrant_dir: &Utf8Path) -> Vec<AmendmentFile> {
-    let Ok(entries) = warrant_dir.join("amendments").read_dir_utf8() else {
+    let Ok(entries) = crate::vfs::read_dir_utf8(&warrant_dir.join("amendments")) else {
         return Vec::new();
     };
     let mut out: Vec<AmendmentFile> = entries
-        .filter_map(Result::ok)
-        .map(|e| e.into_path())
-        .filter(|p| p.is_file() && p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
+        .into_iter()
+        .filter(|p| {
+            crate::vfs::is_file(p) && p.extension().is_some_and(|e| e == "yaml" || e == "yml")
+        })
         .map(|path| {
             let stem = path.file_stem().unwrap_or_default().to_owned();
-            let effective_time = std::fs::read_to_string(&path)
+            let effective_time = crate::vfs::read_to_string(&path)
                 .ok()
                 .and_then(|text| {
                     text.lines().find_map(|l| {

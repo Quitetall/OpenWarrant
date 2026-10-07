@@ -391,6 +391,7 @@ a paired device reads, runs automatic remedies and can ask for a signature here;
         token,
         actor,
         cache: Mutex::new(BTreeMap::new()),
+        corpus: Mutex::new(None),
         act: Arc::new(Mutex::new(ActState::Idle)),
         lan,
         requests: Mutex::new(BTreeMap::new()),
@@ -542,6 +543,10 @@ struct Server {
     actor: Option<String>,
     /// view name → (fingerprint, json)
     cache: Mutex<BTreeMap<String, (u64, Value)>>,
+    /// One compiled corpus per watch fingerprint (OW-WAR-0148): every view
+    /// built while the fingerprint holds reads it, so the status, the sign
+    /// queue and the frontier are built once per change, not once per view.
+    corpus: Mutex<Option<(u64, Arc<crate::corpus::Corpus>)>>,
     act: Arc<Mutex<ActState>>,
     /// `--lan`: the LAN listener's state; `None` for loopback only.
     lan: Option<Lan>,
@@ -1436,6 +1441,24 @@ impl Server {
         crate::watch::fingerprint(&dirs).rotate_left(1) ^ config
     }
 
+    /// The corpus for fingerprint `fp`: the one held when the fingerprint
+    /// has not moved, else the repository re-read (records changed since the
+    /// server began) into a new one.
+    fn corpus_at(&self, fp: u64) -> Result<Arc<crate::corpus::Corpus>, RepoError> {
+        if let Ok(held) = self.corpus.lock()
+            && let Some((f, c)) = held.as_ref()
+            && *f == fp
+        {
+            return Ok(Arc::clone(c));
+        }
+        let repo = Repository::discover(Some(self.repo.root.clone()))?;
+        let corpus = Arc::new(crate::corpus::Corpus::new(&repo));
+        if let Ok(mut held) = self.corpus.lock() {
+            *held = Some((fp, Arc::clone(&corpus)));
+        }
+        Ok(corpus)
+    }
+
     /// A view, cached until the fingerprint moves.
     fn view(&self, name: &str) -> Result<Option<Value>, RepoError> {
         if !VIEWS.contains(&name) {
@@ -1452,8 +1475,9 @@ impl Server {
         // A refresh that fails keeps the last good view and says why beside
         // it — a page that went blank on a bad edit would hide the very
         // state the reader was watching.
-        let built = Repository::discover(Some(self.repo.root.clone()))
-            .and_then(|repo| build_view(&repo, name, self.actor.as_deref()));
+        let built = self
+            .corpus_at(fp)
+            .and_then(|corpus| build_view(&corpus, name, self.actor.as_deref()));
         match built {
             Ok(mut v) => {
                 if let Some(o) = v.as_object_mut() {
@@ -1765,20 +1789,25 @@ fn act_id(kind: &str, key: &str) -> String {
     )
 }
 
-fn build_view(repo: &Repository, name: &str, actor: Option<&str>) -> Result<Value, RepoError> {
+fn build_view(
+    corpus: &crate::corpus::Corpus,
+    name: &str,
+    actor: Option<&str>,
+) -> Result<Value, RepoError> {
+    let repo = corpus.repo();
     Ok(match name {
-        "progress" => progress(repo)?,
-        "queue" => queue(repo, actor)?,
+        "progress" => progress(corpus)?,
+        "queue" => queue(corpus, actor)?,
         "questions" => {
-            let b = crate::console::board(repo)?;
+            let b = crate::console::board_with(corpus)?;
             json!({"questions": b.questions})
         }
         "frontier" => {
-            let (_, f) = crate::frontier::run(repo, None)?;
+            let (_, f) = corpus.frontier()?;
             serde_json::to_value(f).map_err(err)?
         }
         "corpus" => {
-            let s = crate::status::build(repo)?;
+            let s = corpus.status()?;
             let rows: Vec<Value> = s
                 .warrants
                 .iter()
@@ -1792,7 +1821,7 @@ fn build_view(repo: &Repository, name: &str, actor: Option<&str>) -> Result<Valu
                 .collect();
             json!({"warrants": rows})
         }
-        "help" => help(repo)?,
+        "help" => help(corpus)?,
         "tickets" => crate::ticket::board(&crate::ticket::Store::open(repo, None)?)?,
         // `war progress --snapshot`: attributed work reports, their links,
         // the frontier — the viewer's own validated snapshot.
@@ -1803,8 +1832,9 @@ fn build_view(repo: &Repository, name: &str, actor: Option<&str>) -> Result<Valu
 
 /// The Progress page: the canonical roadmap (OW-ADR-0023), each phase with
 /// its members' rungs and unmet counts, the open work, and the unassigned.
-fn progress(repo: &Repository) -> Result<Value, RepoError> {
-    let status = crate::status::build(repo)?;
+fn progress(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
+    let repo = corpus.repo();
+    let status = corpus.status()?;
     let by_alias: BTreeMap<&str, &openwarrant_core::status::WarrantStatus> = status
         .warrants
         .iter()
@@ -1825,7 +1855,7 @@ fn progress(repo: &Repository) -> Result<Value, RepoError> {
         .filter(|o| o.roadmap_ref.is_none())
         .flat_map(|o| o.warrants.iter().map(|a| member(a)))
         .collect();
-    let (roadmap, phases) = match crate::roadmap_cmd::view_with(repo, &status) {
+    let (roadmap, phases) = match crate::roadmap_cmd::view_with(repo, status) {
         Ok((_, v)) => {
             let phases: Vec<Value> = v
                 .phases
@@ -1858,8 +1888,9 @@ fn progress(repo: &Repository) -> Result<Value, RepoError> {
 
 /// The Queue: every pending act with its dry-run verdict; an act id only for
 /// one whose verdict is would-record and that needs no decision.
-fn queue(repo: &Repository, actor: Option<&str>) -> Result<Value, RepoError> {
-    let board = crate::console::board(repo)?;
+fn queue(corpus: &crate::corpus::Corpus, actor: Option<&str>) -> Result<Value, RepoError> {
+    let repo = corpus.repo();
+    let board = crate::console::board_with(corpus)?;
     let opts = crate::sign::Options {
         all: true,
         dry_run: true,
@@ -1987,9 +2018,9 @@ fn decision_flag(message: &str) -> Option<(String, Vec<String>)> {
 
 /// Help: `war next`'s actions, then `war check`'s errors by rule with their
 /// remedies; an `auto` remedy carries an act id.
-fn help(repo: &Repository) -> Result<Value, RepoError> {
-    let next = crate::next::run(repo)?;
-    let check = crate::check::run(repo, None, false)?;
+fn help(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
+    let next = crate::next::run_with(corpus)?;
+    let check = crate::check::run_with(corpus, None, false)?;
     let mut by_rule: BTreeMap<String, (usize, crate::diagnostic::Diagnostic)> = BTreeMap::new();
     for d in check
         .diagnostics

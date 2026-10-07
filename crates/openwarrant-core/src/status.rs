@@ -135,7 +135,8 @@ pub fn phase(n: u8) -> Option<(&'static str, Option<&'static str>)> {
 pub enum WarrantRung {
     /// The manifest did not validate; nothing downstream can be trusted.
     Invalid,
-    /// At least one of §56.1's thirteen is unmet.
+    /// At least one of §56.1's thirteen is unmet, or the Warrant's kind does
+    /// not select `resolution` (OW-ADR-0031) and so never climbs further.
     Draft,
     /// All thirteen met; §38.6 would NOT resolve satisfied (or is unknown).
     ReadyToResolve,
@@ -146,19 +147,27 @@ pub enum WarrantRung {
 }
 
 impl WarrantRung {
-    /// Derive the rung. `resolved` comes only from a record.
+    /// Derive the rung. `resolved` comes only from a record. `resolvable` is
+    /// whether the kind selects `resolution` (OW-ADR-0031): a kind that does
+    /// not stays `Draft`, whatever its checks read, because nothing of it is
+    /// ever resolved — a requirement its capabilities make not applicable is
+    /// not a requirement met.
     #[must_use]
     pub fn derive(
         valid: bool,
         checks: Option<&ResolutionChecks>,
         would_satisfy: Option<bool>,
         resolved: bool,
+        resolvable: bool,
     ) -> Self {
         if !valid {
             return Self::Invalid;
         }
         if resolved {
             return Self::Resolved;
+        }
+        if !resolvable {
+            return Self::Draft;
         }
         match checks {
             Some(c) if c.unmet().is_empty() => {
@@ -674,26 +683,37 @@ mod tests {
     fn resolved_is_reachable_only_from_a_record() {
         let all = ResolutionChecks::all_met();
         assert_eq!(
-            WarrantRung::derive(true, Some(&all), Some(true), false),
+            WarrantRung::derive(true, Some(&all), Some(true), false, true),
             WarrantRung::WouldSatisfy,
             "thirteen met and §38.6 true is still not resolved"
         );
         assert_eq!(
-            WarrantRung::derive(true, Some(&all), Some(true), true),
+            WarrantRung::derive(true, Some(&all), Some(true), true, true),
             WarrantRung::Resolved
         );
         assert_eq!(
-            WarrantRung::derive(true, Some(&all), Some(false), false),
+            WarrantRung::derive(true, Some(&all), Some(false), false, true),
             WarrantRung::ReadyToResolve
         );
         assert_eq!(
-            WarrantRung::derive(true, Some(&ResolutionChecks::default()), Some(true), false),
+            WarrantRung::derive(
+                true,
+                Some(&ResolutionChecks::default()),
+                Some(true),
+                false,
+                true
+            ),
             WarrantRung::Draft,
             "§38.6 cannot lift a Warrant past an unmet requirement"
         );
         assert_eq!(
-            WarrantRung::derive(false, Some(&all), Some(true), true),
+            WarrantRung::derive(false, Some(&all), Some(true), true, true),
             WarrantRung::Invalid
+        );
+        assert_eq!(
+            WarrantRung::derive(true, Some(&all), Some(true), false, false),
+            WarrantRung::Draft,
+            "a kind without `resolution` never climbs past Draft (OW-ADR-0031)"
         );
     }
 

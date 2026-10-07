@@ -197,14 +197,26 @@ struct Bound {
     artifact_manifest_digest: String,
 }
 
-fn bind(alias: &str, one: &crate::repo::Loaded) -> Result<Bound, RepoError> {
+fn bind(
+    alias: &str,
+    one: &crate::repo::Loaded,
+    lowered: Option<&openwarrant_compiler::WarIr>,
+) -> Result<Bound, RepoError> {
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
         return Err(RepoError::Message(format!(
             "{alias}: the manifest did not validate, so there is no contract to resolve"
         )));
     };
-    let ir = openwarrant_compiler::lower(basis, validated)
-        .map_err(|e| RepoError::Message(format!("{alias}: could not compile contract: {e}")))?;
+    let owned;
+    let ir = match lowered {
+        Some(ir) => ir,
+        None => {
+            owned = openwarrant_compiler::lower(basis, validated).map_err(|e| {
+                RepoError::Message(format!("{alias}: could not compile contract: {e}"))
+            })?;
+            &owned
+        }
+    };
     let contract_digest = ir
         .contract_digest()
         .map_err(|e| RepoError::Message(format!("{alias}: could not digest contract: {e}")))?;
@@ -250,11 +262,28 @@ fn bind(alias: &str, one: &crate::repo::Loaded) -> Result<Bound, RepoError> {
 pub fn request(repo: &Repository, alias: &str) -> Result<ResolutionRequest, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
-    let bound = bind(alias, &one)?;
-    let a = assess(repo, &one)?;
+    request_for(repo, alias, &one, None, &|| assess(repo, &one))
+}
+
+/// [`request`] for a Warrant already loaded, with its lowered contract and
+/// its assessment from the caller when it holds them (the corpus). The
+/// contract is bound before the assessment is asked for, as before, so the
+/// first refusal is the same one.
+pub fn request_for(
+    repo: &Repository,
+    alias: &str,
+    one: &crate::repo::Loaded,
+    lowered: Option<&openwarrant_compiler::WarIr>,
+    assessment: &dyn Fn() -> Result<crate::resolve::Assessment, RepoError>,
+) -> Result<ResolutionRequest, RepoError> {
+    let dir = one.dir.clone();
+    // OW-ADR-0031: a kind without `resolution` is never resolved.
+    one.require(&repo.profiles, openwarrant_core::Capability::Resolution)?;
+    let bound = bind(alias, one, lowered)?;
+    let a = assessment()?;
     let register = repo.load_authority_register()?;
     let performer = repo.performer();
-    let declared = declared_obligations(&one);
+    let declared = declared_obligations(one);
     let assumptions = repo.load_rationale(&dir)?;
     let context = PolicyResolutionContext {
         policy_allows: repo.config.policy.allow_automated_resolution,
@@ -374,6 +403,19 @@ pub fn ingest_with(
     }
 
     let dir = repo.warrant_dir(alias)?;
+    // OW-ADR-0031: a kind without `resolution` is never resolved, whatever a
+    // response says.
+    if let Err(RepoError::Message(why)) = repo
+        .load_warrant(&dir)?
+        .require(&repo.profiles, openwarrant_core::Capability::Resolution)
+    {
+        refuse(
+            &mut report,
+            "capability.absent",
+            why.trim_start_matches("capability.absent: ").to_owned(),
+        );
+        return Ok(report);
+    }
     // OW-WAR-0121: the record this act writes, as it is before the act reads
     // anything else. The write refuses if it moved since (`storage.prestate-
     // moved`); a symlink in its place is refused now (`storage.symlink-target`).
@@ -491,7 +533,7 @@ pub fn ingest_with(
         return Ok(report);
     }
     let one = repo.load_warrant(&dir)?;
-    let bound = bind(alias, &one)?;
+    let bound = bind(alias, &one, None)?;
     if response.contract_digest != bound.contract_digest {
         refuse(
             &mut report,
@@ -638,10 +680,12 @@ pub fn ingest_with(
         recorded_at: crate::gate_cmd::receipt::now_rfc3339_public(),
         standing: openwarrant_core::ResolutionStanding::Valid,
     };
+    // §56.3, from the profile's data (OW-ADR-0031): `falsifiable_claims`,
+    // never the resolver's say-so and never the profile's name.
     let falsifiable = one
         .validated
         .as_ref()
-        .is_some_and(|v| matches!(v.profile.as_str(), "experiment" | "feasibility"));
+        .is_some_and(|v| repo.profiles.kind(&v.profile).falsifiable_claims);
     if let Err(e) = resolution.validate(a.checks, falsifiable) {
         refuse(&mut report, "resolution.invalid", format!("{alias}: {e}"));
         return Ok(report);

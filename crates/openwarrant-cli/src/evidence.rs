@@ -358,7 +358,7 @@ pub fn admissible_runs(evidence: &[GateEvidence], contract_digest: Option<&str>)
 /// state (the gate did not complete) rather than a broken file.
 pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidence>, RepoError> {
     let dir = warrant_dir.join(GATE_RUNS_DIR);
-    let Ok(entries) = std::fs::read_dir(&dir) else {
+    let Ok(entries) = crate::vfs::read_dir(&dir) else {
         return Ok(vec![]);
     };
     let mut paths: Vec<Utf8PathBuf> = entries
@@ -367,7 +367,7 @@ pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidenc
         .filter(|p| p.as_str().ends_with(".run.toml"))
         .collect();
     paths.sort();
-    let resolved = warrant_dir.join("resolution.toml").is_file();
+    let resolved = crate::vfs::is_file(warrant_dir.join("resolution.toml"));
     // One answer per gate per load: a Warrant's runs of one gate share it.
     let mut invalidations: std::collections::BTreeMap<
         String,
@@ -376,7 +376,7 @@ pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidenc
 
     let mut out = Vec::with_capacity(paths.len());
     for run_path in paths {
-        let text = std::fs::read_to_string(&run_path).map_err(|source| RepoError::Io {
+        let text = crate::vfs::read_to_string(&run_path).map_err(|source| RepoError::Io {
             context: format!("could not read {run_path}"),
             source,
         })?;
@@ -390,11 +390,12 @@ pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidenc
                 .map(|stem| format!("{stem}.receipt.json"))
                 .unwrap_or_default(),
         );
-        let receipt = if receipt_path.is_file() {
-            let body = std::fs::read_to_string(&receipt_path).map_err(|source| RepoError::Io {
-                context: format!("could not read {receipt_path}"),
-                source,
-            })?;
+        let receipt = if crate::vfs::is_file(&receipt_path) {
+            let body =
+                crate::vfs::read_to_string(&receipt_path).map_err(|source| RepoError::Io {
+                    context: format!("could not read {receipt_path}"),
+                    source,
+                })?;
             Some(serde_json::from_str::<GateReceipt>(&body).map_err(|e| {
                 RepoError::Message(format!(
                     "{}: not a §44.6 receipt: {e}",
@@ -463,6 +464,8 @@ pub fn record(
             "{alias}: the manifest did not validate, so there is no contract to bind a receipt to"
         )));
     };
+    // OW-ADR-0031: a kind without `evidence` binds no receipt.
+    one.require(&repo.profiles, openwarrant_core::Capability::Evidence)?;
     let ir = openwarrant_compiler::lower(basis, validated)
         .map_err(|e| RepoError::Message(format!("{alias}: could not compile contract: {e}")))?;
     let contract_digest = ir
