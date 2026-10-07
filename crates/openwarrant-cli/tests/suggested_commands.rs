@@ -23,7 +23,6 @@
 
 use std::path::{Path, PathBuf};
 
-use clap::CommandFactory;
 use clap::error::ErrorKind;
 use openwarrant_cli::diagnostic::Diagnostic;
 use openwarrant_cli::remedy;
@@ -204,7 +203,7 @@ fn with_cli<T: Send + 'static>(f: impl FnOnce(clap::Command) -> T + Send + 'stat
     // worker is too small for the unoptimized tree (main.rs says the same).
     std::thread::Builder::new()
         .stack_size(8 << 20)
-        .spawn(move || f(openwarrant_cli::Cli::command()))
+        .spawn(move || f(openwarrant_cli::command()))
         .expect("spawn")
         .join()
         .expect("the command tree builds")
