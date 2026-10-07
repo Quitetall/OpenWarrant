@@ -28,22 +28,30 @@ More:
   admin     Set up and maintain: compile, doctor, pins, import, export, hooks
 ```
 
-A new repository reaches its first done in three commands:
+A new repository reaches its first done with four of the daily verbs:
 
 ```sh
 war init
-war create "Fix the login redirect"     # prints t-xxxx and its first item, if any
-war done t-xxxx                         # a Warrant with no open items reads done
+war create "Fix the login redirect"     # prints its id, t-xxxx
+war claim t-xxxx                        # so no other agent finishes it too
+war done t-xxxx
 ```
+
+The M12 target was three, as in Beads. `war done` ticks only what you have
+claimed (OW-WAR-0147 OBL-003: a done that needed no claim would let two
+agents finish one item), and M12 changes placement and help only, so the
+claim stays. Plant 132 records the path as it is.
 
 ## The rules
 
 - **At most twelve daily verbs.** Eleven today; `war start` (M15) is the
-  twelfth. `help` is clap's own and is not counted. Plant 130 counts them.
+  twelfth. `help` is clap's own and is not counted. Plant 130 counts them,
+  and every group's members.
 - **Every earlier spelling is a hidden alias.** `war board` and `war view
   board` parse to the same clap variant and run the same code, so their
   output is the same bytes. There is no deprecation warning on stdout or
-  stderr: scripts and plants compare output. Plant 131 runs each one.
+  stderr: scripts and plants compare output. Plant 131 runs each one both
+  ways and compares the bytes.
 - **The envelope's `command` field does not move.** Each command keeps the
   value it always printed, under either spelling: `war view warrants
   --json` and `war tickets --json` both say `"command": "tickets"`. A new
@@ -235,3 +243,20 @@ value of the `--json` envelope, the same under either spelling.
   `war merge-ticket`, so clones configured earlier keep merging.
 - **`timeline` is new under `view`**: `war status --timeline` under the name
   a reader looks for.
+
+## What still names an earlier spelling, on purpose
+
+Each of these still runs, so nothing here is broken; each keeps its bytes for
+a reason that outweighs one more line in the new spelling.
+
+- Files a resolved Warrant pins and no later Warrant governs (`war admin pins
+  --resolved-only`): their bytes cannot move without a signed correction.
+- Log and banner prefixes (`war ui: act …`, `war ui: pair a device …`):
+  operators and plants read them; they name the program, not a suggestion.
+- The self-signed certificate's common name, git's merge-driver line
+  (`war merge-ticket %O %A %B %P`, already written into clones' git
+  configuration) and the generated TypeScript header.
+- The Claude Code hooks (`.claude/hooks/`): they may run an older `war`,
+  which knows only the earlier spellings.
+- The adopt Warrant's atoms and the program SAS template that `war init
+  --program` writes: they are record content, not suggestions.

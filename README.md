@@ -22,6 +22,10 @@ recent notes. A ticket is two Markdown files you can read on GitHub; no step
 needs a signature or anyone's approval. [The loop in five commands](docs/TICKETS.md).
 Sign-off is opt-in: `war plan promote <ticket>` drafts a Warrant when someone wants it.
 
+`war --help` lists the eleven daily verbs; everything else sits in five groups
+(`war plan`, `war sign`, `war evidence`, `war view`, `war admin`), and every
+earlier spelling still works. [Where each command went](docs/COMMANDS.md).
+
 **Read first: [the current state](docs/generated/CURRENT.md)** — the master
 document `war admin compile` writes from the records, current by construction
 (`docs/generated/CURRENT.md`; its history is `docs/generated/HISTORY.md`).
