@@ -787,10 +787,10 @@ impl Model {
             }
             if let Some(why) = &n.nothing {
                 rows.push(Row {
-                    text: if n.ready.is_empty() {
-                        format!("nothing to do: {why}")
-                    } else {
-                        format!("no Warrant act waits: {why}")
+                    text: match &n.idle {
+                        // M9: the plain line `war next` prints first.
+                        Some(idle) => format!("{idle}: {why}"),
+                        None => format!("no Warrant act waits: {why}"),
                     },
                     command: "war next".to_owned(),
                     sign_target: None,

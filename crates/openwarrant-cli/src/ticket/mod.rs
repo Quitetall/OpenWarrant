@@ -1417,7 +1417,19 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
     let rows = ready_rows(store, &tickets)?;
     let mut human = String::new();
     if rows.is_empty() {
-        human.push_str("nothing is ready: every item is done, claimed or waiting (`war tickets`)");
+        // M9: the same plain first line `war next` prints; ordinary work
+        // goes on either way.
+        if tickets.iter().any(|t| !t.checklist.is_done()) {
+            human.push_str(
+                "nothing tracked is ready; work freely. Every open item is claimed or \
+                 waiting (`war tickets`)",
+            );
+        } else {
+            human.push_str(
+                "nothing tracked; work freely. To track work (optional): `war create \
+                 \"what this work does\"`",
+            );
+        }
     }
     for r in &rows {
         let what = match (&r.item, r.line) {

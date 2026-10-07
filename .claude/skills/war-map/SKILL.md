@@ -19,5 +19,5 @@ Read [shared workflow](../openwarrant/SKILL.md). Method: Matt Pocock's wayfindin
 5. Finish when next implementation scope has no unresolved material decision.
    Return map path, decisions, remaining later-stage questions and next scope.
 
-Research progress is not architecture acceptance. Do not manufacture a blocker
-for implementation choices the user has already delegated.
+Research progress is not architecture acceptance. Implementation choices the user
+has already delegated are the agent's to make, with no blocker invented for them.

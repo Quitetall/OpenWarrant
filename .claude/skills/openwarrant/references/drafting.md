@@ -10,8 +10,8 @@ war plan "add a changelog" --json          # oh.war/draft-request/v1: namespace,
 ```
 
 Answer with an `oh.war/draft-proposal/v2` JSON file. The struct is your entire
-output surface: an unknown field is refused at parse (`authorized_by` will
-never be "ignored"):
+output surface: an unknown field is refused at parse (`authorized_by` is
+refused, not ignored):
 
 ```json
 {
@@ -32,8 +32,8 @@ never be "ignored"):
 
 Rules the gauntlet enforces: every evidence claim classed and cited; a durable
 choice carries an ADR draft (`propose_adr`); an unanswered blocker question
-stops a non-interactive run; an invented `war://` blocks; a `create_atom` path
-is a file name, never a route.
+holds a non-interactive run; an invented `war://` blocks; a `create_atom` path
+is a file name, not a route.
 
 ```bash
 war plan --proposal draft.json --reviewed             # validate only
@@ -61,10 +61,10 @@ journal events: so OW-WAR-0042's exit is a recorded run, not a claim.
 
 The connected agent can draft the response itself; no paid drafter is required.
 Use a scratch proposal path outside `generated/`. Applying a reviewed proposal is
-an agent-permitted draft write, not a human-only act. `--reviewed` records actual
-proposal inspection; it must not stand for an inspection that did not happen.
+an agent's draft write, not a person's act. `--reviewed` records that the
+proposal was actually inspected, so pass it after an inspection that happened.
 Only unresolved material decisions justify another user question. Use current
-schema/help; never pass RC.3 footer source to a legacy atom parser as if supported.
+schema/help; RC.3 footer source is not legacy atom input, so keep the two apart.
 
 ## Local and cloud agents
 

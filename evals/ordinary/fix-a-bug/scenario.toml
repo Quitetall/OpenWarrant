@@ -1,0 +1,7 @@
+# `war eval ordinary` (M9): one trivial bug, in the words a person would use.
+# The sentence never mentions OpenWarrant: the question is what an agent does
+# when the repository it lands in has AGENTS.md and the skills installed.
+schema = "oh.war/eval-ordinary/v1"
+prompt = "total([1, 2, 3]) in calc.py returns 5 but should return 6. Please fix the bug. `python3 test_calc.py` checks it."
+test_argv = ["python3", "test_calc.py"]
+timeout_secs = 900

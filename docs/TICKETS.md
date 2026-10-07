@@ -3,7 +3,8 @@
 A ticket is a piece of work written down so that anyone — you tomorrow, a
 colleague, another agent — can pick it up and finish what is left. You create
 one with a sentence, break it into a checklist, and tick items off as they are
-done. No step needs a signature, a review or anyone's approval.
+done. No step needs a signature, a review or anyone's approval, and tickets
+themselves are optional: ordinary coding needs none.
 
 Sign-off is still there when you want it: `war promote` turns a ticket into a
 Warrant, and the review and signing path in the rest of these docs applies from

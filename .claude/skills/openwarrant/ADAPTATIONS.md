@@ -25,3 +25,8 @@ Audit evidence: [skill audit](../../../docs/design/war-skills-audit.md).
 OW85 update: RC.3 authoring now points to shipped `war sdk` transport. Fixed
 artifact/host-entry proposals are tested separately from model invocation quality.
 Upstream revision and attribution remain unchanged.
+
+M9 update (2026-10-07): every skill leads with "ordinary coding needs no
+Warrant and no ticket", the ticket loop has its own reference, and rules that
+belong to a Warrant with a sign-off step live in references titled for it.
+Upstream revision and attribution remain unchanged.

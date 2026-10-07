@@ -144,7 +144,7 @@ pub fn run_with(
         report.push(Diagnostic::warn(
             "corpus.empty",
             repo.config.paths.warrants.clone(),
-            "no Warrants found; nothing to check",
+            "no Warrants found; nothing to check (ordinary work needs none)",
         ));
         return Ok(report);
     }
@@ -1123,7 +1123,7 @@ fn check_deliverable_digests(
                         format!(
                             "{alias}: {} records sha256:{recorded} for {} and the file is now \
                              sha256:{actual}. No resolution binds this manifest, so the pin is \
-                             out of date rather than violated — `war pins --refresh {alias}`",
+                             out of date rather than violated — `war pins --refresh --alias {alias}`",
                             deliverable.id, deliverable.target_ref
                         ),
                     ));
@@ -2484,7 +2484,7 @@ fn check_parent_citations(
                     Severity::Error,
                     format!(
                         "cite revision {belongs}, or revision {r} at its own digest — `war new \
-                         --parent {parent_alias}` writes the latest exactly"
+                         \"<title>\" --parent {parent_alias}` writes the latest exactly"
                     ),
                 )
             };

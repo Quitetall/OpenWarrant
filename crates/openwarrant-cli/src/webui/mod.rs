@@ -2051,7 +2051,12 @@ fn help(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
     }
     Ok(json!({
         "next": next.actions,
-        "nothing": next.nothing,
+        // M9: the plain first line `war next` prints, ahead of the reason.
+        "nothing": match (&next.idle, &next.nothing) {
+            (Some(idle), Some(why)) => Some(format!("{idle}: {why}")),
+            (Some(idle), None) => Some(idle.clone()),
+            (None, why) => why.clone(),
+        },
         "remedies": remedies,
         "counts": {
             "error": check.count(crate::diagnostic::Severity::Error),

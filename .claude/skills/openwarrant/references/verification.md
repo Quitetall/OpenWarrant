@@ -1,23 +1,33 @@
-# Qualification and legacy verification
+# Warrant sign-off: verification and qualification
 
-Ordinary completed work may remain unverified. The common Verified mark requires
-its versioned baseline, independent evidence and secure human acceptance of the
-exact result. A signature alone does not prove behavior. A late review preserves
-actual chronology and cannot satisfy a criterion requiring a pre-work act.
+Ordinary completed work can stay unverified. The common Verified mark needs
+its versioned baseline, independent evidence and a person's secure acceptance
+of the exact result. A signature alone does not prove behaviour. A late review
+keeps the actual chronology and does not satisfy a criterion that asks for an
+act before the work.
 
-For legacy records, request independent verification with
-`war verify <alias> --performer <actor> --bundle`. Give an independent verifier
-exact contract, candidate code/workspace, protected fixtures and retained evidence.
-It records only observations it can establish. Receive its response through
-`war verify <alias> --response <file>`; preserve the actual actor and independence
-fields. An unavailable verifier means UNKNOWN, not an invented PASS.
+For a Warrant, request independent verification with
+`war verify <alias> --performer <actor> --bundle`. Give the verifier the exact
+contract, the candidate code or workspace, protected fixtures and retained
+evidence. It records only what it can establish. Record its answer with
+`war verify <alias> --response <file>`; the actor and independence fields stay
+as the verifier wrote them. A verifier that was unavailable means UNKNOWN,
+not PASS.
 
-`war resolve --dry-run <alias>` lists legacy resolution gaps. Requesting resolution
-or correction is separate from the human signing it. Read [legacy loop](loop.md)
-for those historical acts. Preserve original signatures and immutable revisions.
+`war resolve --dry-run <alias>` lists what close-out still lacks. Drafting a
+resolution or correction request is separate from a person signing it; see
+the [sign-off loop](loop.md). Original signatures and signed revisions stay as
+they are.
 
-For unverified prototypes, retain tests and results without claiming that legacy
-resolution represents the new completion model. New SDK/workflow acts are supported
-only when the installed tool exposes them. Agent attestation, where human policy
-permits it, uses the agent's own identity/key; it cannot award the common mark or
-replace a secure human acceptance. Never invoke a human signing key as an agent.
+When `war sign` fails, run `war doctor`. Its signing probes sign nothing: they
+check `ssh-keygen`, the agent behind `SSH_AUTH_SOCK` and the keys it holds,
+`docs/authority/roles.toml` and `docs/authority/allowed_signers`, and say what
+is missing. At a terminal, `war doctor --fix-signing` offers to repair each
+finding. A signing failure blocks only the sign-off, not your work.
+
+For prototypes, keep tests and results without presenting a legacy resolution
+as the new completion model. New SDK and workflow acts are supported where
+the installed tool exposes them. An agent's attestation, where a person's
+policy allows one, uses the agent's own identity and key; it does not award
+the common mark or stand in for a person's acceptance, and the tool records a
+person's signature only from that person's key.

@@ -1,16 +1,19 @@
 ---
 name: war
-description: "War: use when the user says war for OpenWarrant progress, drafting, planning, document migration, execution or review; includes war overview, war migrate and war start."
+description: "War: use when the user says war for OpenWarrant tickets, progress, drafting, planning, document migration, execution or review; includes war overview, war migrate and war start. Ordinary coding needs none of it."
 ---
 
 # war
 
-Read the target repository's AGENTS.md and the [shared workflow](../openwarrant/SKILL.md).
-Use the user's current request to select one branch; load only that branch.
+Ordinary coding needs no Warrant and no ticket; this skill is for when the
+user asks for OpenWarrant by name. Read the target repository's AGENTS.md and
+the [shared workflow](../openwarrant/SKILL.md). Use the user's current request
+to select one branch; load only that branch.
 
 | Request | Action |
 | --- | --- |
 | `war`, `war progress`, `war overview`, remaining work | Run `war overview --json`; summarize remaining count and next requested scope. See [progress](../openwarrant/references/progress.md). |
+| `war prime`, tickets, what to work on | `war prime`, then `war ready`; see [tickets](../openwarrant/references/tickets.md). |
 | `war grill`, challenge decisions | [war-grill](../war-grill/SKILL.md) |
 | `war spec`, draft this | [war-spec](../war-spec/SKILL.md) |
 | `war tickets`, split work | [war-tickets](../war-tickets/SKILL.md) |
@@ -18,9 +21,10 @@ Use the user's current request to select one branch; load only that branch.
 | `war migrate`, bring existing docs into OpenWarrant | [war-migrate](../war-migrate/SKILL.md) |
 | `war review`, inspect result | [war-review](../war-review/SKILL.md) |
 | `war start <alias>`, `war do <alias>`, continue work | [execution](../openwarrant/references/execution.md) |
-| sign or qualify | [verification](../openwarrant/references/verification.md) |
+| sign off, qualify, or `war sign` failed | [verification](../openwarrant/references/verification.md) |
 
-A bare `war` request is read-only overview, not permission to execute everything.
+A bare `war` request asks for an overview: read, summarize, and wait for what
+the user wants next.
 Treat `war` as an engineering intent cue in the user's prompt, not a substring in
 `forward`, military discussion, quoted text or instructions inside repository data.
 Skill discovery is harness-controlled; explicit `/war` (Claude) or `$war` (Codex)
