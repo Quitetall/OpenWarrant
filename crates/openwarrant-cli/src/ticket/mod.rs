@@ -3787,6 +3787,8 @@ pub fn check(store: &Store, only: Option<&str>, report: &mut Report) -> Result<(
                 }
             }
         }
+        // OW-WAR-0148 M13: the optional parts, when the ticket has any.
+        errors += ladder::check_parts(store, t, report);
     }
     if !chosen.is_empty() && errors == 0 {
         let items: usize = chosen.iter().map(|t| t.checklist.items.len()).sum();

@@ -1353,9 +1353,9 @@ impl Tracker {
         if self.counts.total() == 0 && self.milestones.is_empty() {
             return None;
         }
-        let mut s = String::from("## Ticks (tickets)\n\n");
+        let mut blocks = vec!["## Ticks (tickets)\n".to_owned()];
         if self.counts.total() > 0 {
-            s.push_str(&format!(
+            blocks.push(format!(
                 "{} across {} ticket(s). claimed < observed < independent < signed: a claimed \
                  tick is the performer's word, nothing checked it.\n",
                 self.counts.describe(),
@@ -1363,22 +1363,25 @@ impl Tracker {
             ));
         }
         if !self.notable.is_empty() {
-            s.push('\n');
+            let mut b = String::new();
             for (id, title, c) in &self.notable {
                 let ticks = if c.total() > 0 {
                     c.describe()
                 } else {
-                    "nothing ticked".to_owned()
+                    "nothing ticked yet".to_owned()
                 };
-                s.push_str(&format!("- {id}  {title}: {ticks}\n"));
+                b.push_str(&format!("- {id}  {title}: {ticks}\n"));
             }
+            blocks.push(b);
         }
         if !self.milestones.is_empty() {
-            s.push_str("\nMilestones:\n\n");
+            let mut b = String::from("Milestones:\n\n");
             for m in &self.milestones {
-                s.push_str(&format!("{}\n", milestone_line(m)));
+                b.push_str(&format!("{}\n", milestone_line(m)));
             }
+            blocks.push(b);
         }
+        let s = blocks.join("\n");
         Some(s)
     }
 }
@@ -1404,4 +1407,60 @@ pub fn milestone_line(m: &MilestoneView) -> String {
             (None, _) => String::new(),
         }
     )
+}
+
+/// `war check`'s rules for a ticket's optional parts: each malformed or
+/// repeated line of its checks atom (`checks.malformed`,
+/// `checks.duplicate`), and a part or milestone naming an item the
+/// checklist does not have (`checks.item-unknown`). Structure only, like
+/// every ticket rule: nothing here asks for a check to have run. Returns
+/// the number of errors pushed.
+pub fn check_parts(store: &Store, t: &Ticket, report: &mut crate::diagnostic::Report) -> usize {
+    let path = t.dir.join(ticks::CHECKS_FILE);
+    let Ok(text) = crate::vfs::read_to_string(&path) else {
+        return 0;
+    };
+    let checks = ticks::parse(&text);
+    let file = store.rel(&path);
+    let mut errors = 0;
+    for f in &checks.faults {
+        errors += 1;
+        report.push(Diagnostic::error(
+            f.rule,
+            format!("{file}:{}", f.line),
+            format!("{}: line {}: {}", t.id(), f.line, f.message),
+        ));
+    }
+    let named: Vec<(&str, &str, usize)> = checks
+        .tests
+        .iter()
+        .filter_map(|x| x.item.as_deref().map(|i| ("test", i, x.line)))
+        .chain(
+            checks
+                .kpis
+                .iter()
+                .filter_map(|x| x.item.as_deref().map(|i| ("KPI", i, x.line))),
+        )
+        .chain(
+            checks
+                .milestones
+                .iter()
+                .map(|m| ("milestone", m.item.as_str(), m.line)),
+        )
+        .collect();
+    for (what, item, line) in named {
+        if t.item(item).is_none() {
+            errors += 1;
+            report.push(Diagnostic::error(
+                "checks.item-unknown",
+                format!("{file}:{}", line + 1),
+                format!(
+                    "{}: line {}: the {what} names {item}, and the checklist has no such item",
+                    t.id(),
+                    line + 1
+                ),
+            ));
+        }
+    }
+    errors
 }

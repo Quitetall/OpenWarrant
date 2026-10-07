@@ -4155,7 +4155,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                             .and_then(|s| ticket::ladder::tracker(&s).ok())
                             .and_then(|t| t.render())
                         {
-                            println!("\n{}", block.trim_end());
+                            let gap = if text.ends_with('\n') { "" } else { "\n" };
+                            println!("{gap}{}", block.trim_end());
                         }
                     }
                 },

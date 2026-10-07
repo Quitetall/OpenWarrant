@@ -42,6 +42,10 @@ More, when you need them:
 | `war create --issue 12` | make the ticket from GitHub issue #12 (below) |
 | `war create "..." --implements REQ-pr1` | one item per record, its text the record's first sentence (docs/TYPES.md) |
 | `war promote <ticket>` | draft a Warrant from the ticket when someone wants sign-off |
+| `war add <ticket> --test "<cmd>"` | an optional part: a test, a KPI (`--kpi <name> --cmd ... --direction max\|min [--target N]`), a milestone (`--milestone "<text>" [--min observed]`); docs/TYPES.md, "Optional parts and the tick ladder" |
+| `war done <item> --check` | run the item's tests and KPIs and tick at **observed** only when they pass; a plain `war done` ticks as **claimed** |
+| `war kpi run <ticket>` | run every KPI, journal each value, and say latest, best and target |
+| `war verify <item>` / `war sign <item> --ssh-sign` | an independent verdict, or a human's sign-off, of one item: the **independent** and **signed** levels |
 
 Every command takes `--json` and answers with the same `oh.war/report/v1`
 envelope as the rest of `war`. Each reads only the ticket files and the claims,

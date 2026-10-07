@@ -485,3 +485,211 @@ records, their file and the proposal's digest. Applying the same proposal
 again is refused, `record.duplicate-id` once per record, naming where each
 already is. No drafter configured is `plan.no-drafter` (`ticket.no-drafter`
 from `war create`), and nothing is invented.
+
+## Optional parts and the tick ladder
+
+A Warrant's minimum is a title. Everything below is optional, and attaches
+to any Warrant, a title-only one included (OW-WAR-0148 M13).
+
+### Parts: tests, KPIs, milestones
+
+```bash
+war add t-3f2a --test "cargo test -p parser"            # the Warrant's own test
+war add t-3f2a/i-9c01 --test "./smoke.sh" --name smoke  # one item's test
+war add t-3f2a --kpi p95_ms --cmd "./bench.sh p95" --direction min --target 120
+war add t-3f2a --milestone "Beta ships" --min observed  # an item with a minimum
+war add t-3f2a/i-9c01 --min independent                 # make an item a milestone
+```
+
+- A **test** is a shell command (`sh -c`, from the repository root); its
+  exit code decides pass or fail. Unnamed, it is `test-1`, `test-2`, ...
+- A **KPI** is a command that prints one number, a direction (`max`: higher
+  is better; `min`: lower is better), an optional `--target`, and a mode:
+  `best` (the default: pass or fail against the target, and the best value
+  kept), `threshold` (pass or fail only; needs a target), `optimise` (a
+  signal only: it never decides a tick, and its best is kept). A KPI
+  without a target decides nothing either.
+- A **milestone** is an item that ticks a marker on the progress tracker,
+  with an optional minimum level.
+
+On a ticket (`t-x`) a test or KPI is the Warrant's and applies to every
+item; on an item (`t-x/i-y`), or given with the text of a new item in the
+same `war add`, it is that item's. Each part added is one line in the
+ticket's optional checks atom and one `ticket.part_added` in its journal.
+`war add` without a part is the item it always was.
+
+### The checks atom
+
+A ticket-encoded Warrant keeps its parts in `atoms/30-checks.md`, written
+on the first part and found by that path (the manifest does not list it).
+A ticket without it has no parts and reads, byte for byte, as before.
+
+```markdown
+# Checks
+
+## Tests
+
+- unit: `cargo test -p parser`
+- smoke: `./smoke.sh` (for i-9c01)
+
+## KPIs
+
+- p95_ms: `./bench.sh p95` · min · target 120 · best
+- coverage: `./cov.sh` · max · optimise
+
+## Milestones
+
+- i-77be · min observed
+```
+
+- A part is a list item in its section: `- <name>: <code span>`, then, for a
+  KPI, ` · max|min`, optionally ` · target <N>`, and ` · best|threshold|optimise`;
+  `(for i-x)` at the end scopes it to an item. The code span carries the
+  command exactly (a command holding backticks takes a longer fence).
+- A milestone is `- <item id>`, optionally ` · min <level>`.
+- Prose, other headings and fenced blocks are a person's and are kept.
+- Each line `war add` writes is appended to its section; nothing else
+  moves. Edit the file by hand and the tool follows it.
+- `war check` reports, by line, a malformed part (`checks.malformed`), a
+  name used twice (`checks.duplicate`), and a part or milestone naming an
+  item the checklist does not have (`checks.item-unknown`).
+
+### The ladder: how a tick was earned
+
+| level | earned by | written on the line |
+|---|---|---|
+| `claimed` | `war done`: the performer says so | `— done by claude, 2026-10-07` (as always) |
+| `observed` | `war done --check`: the tests and KPIs that apply ran and passed; the receipt is journalled | `— done by claude, 2026-10-07 [observed]` |
+| `independent` | `war verify <t-x/i-y> --response <file>`: a verdict by someone other than the performer, with evidence | `... [independent]` |
+| `signed` | `war sign <t-x/i-y> --ssh-sign`: a human's signature over the item's text, verified | `... [signed]` |
+
+`claimed < observed < independent < signed`. A claimed tick writes no
+marker, so every checklist written before the ladder reads as claimed
+ticks, and a parser that predates it reads a marker as part of the date.
+
+**A marker is believed only as far as a record backs it.** `observed` needs
+a passing check of the item in the ticket's journal (`ticket.item_done` or
+`ticket.tick_raised` at that level, carrying each run's verdict, duration,
+output digest and the commit); `independent` a `ticket.tick_verified` whose
+verifier is not the tick's performer; `signed` a `ticket.tick_signed` whose
+response verifies as a human's signature over the item's current text. A
+marker nothing backs reads as the highest level that is backed (`claimed`
+at the floor) and says why. So **a claimed tick never reads as checked,
+verified or signed**, however its line was edited.
+
+`war done <item> --check`:
+
+- runs every test and every KPI that applies (the Warrant's, then the
+  item's) through the gate runner, with its deadline; output lands under
+  `.openwarrant/state/checks/<ticket>/`;
+- ticks at `observed` only when every test passes and every KPI with a
+  target meets it; a KPI that decides nothing is run and recorded;
+- refuses, by name, when one fails (`ticket.check-failed`), and reads
+  **UNKNOWN** (`ticket.check-unknown`) when one could not be established: a
+  command that could not run, timed out, or (a KPI) printed no number.
+  UNKNOWN is never a pass and never a fail. Nothing is ticked either way,
+  the claim stays the agent's, and the round is journalled
+  (`ticket.check_run`);
+- refuses an item with nothing that could fail (`ticket.check-nothing`):
+  observed needs an observation;
+- on a done item, raises its tick to `observed` the same way, keeping who
+  ticked it, when, and its note;
+- composes with M11: `--if-rev` is compared in the same write, the agent's
+  leases are renewed after each run, and its claim is checked again before
+  the tick.
+
+### Minimums
+
+A type sets the least a tick must show, as data in its profile:
+
+```toml
+# profiles/ticket.toml
+[ticks]
+item = "claimed"          # every item (default: claimed)
+milestone = "observed"    # every milestone
+
+[ticks.types]             # a ticket's `type` (from [fields] types): its milestones
+bug = "observed"
+```
+
+An item's minimum is the highest that applies: the profile's `item`; for a
+milestone, also the profile's `milestone`, its ticket type's, and its own
+`--min`. A tick below it is refused, `ticket.tick-below-minimum`, naming
+the minimum, what set it, and the command that reaches it: `war done <item>
+--check` for observed, the verification seam for independent, `war sign
+<item> --ssh-sign` for signed. A level outside the ladder, or a type the
+profile does not declare, is refused when the profile is read,
+`profile.ticks`. No shipped profile declares `[ticks]`.
+
+### KPIs over time
+
+`war kpi run <t-x|t-x/i-y>` runs each KPI that applies, parses the one
+number it prints (the whole output, or its last non-empty line), journals
+every run as `ticket.kpi_run` (value, verdict, direction, target, mode,
+commit), and says each one's latest, best and target. It ticks nothing. A
+run short of its target is a warning, `kpi.target-missed`; a run that
+printed no number, or exited non-zero, is UNKNOWN, `kpi.unknown`, and is
+recorded with no value. `war show` gives the same standing for every KPI.
+
+### Independent and signed
+
+`war verify <t-x/i-y>` writes the request an independent verifier answers:
+the item, its performer (who ticked it, or who holds its claim), the checks
+that apply and the KPI runs on record. The answer is an
+`oh.war/tick-verification-response/v1` (TOML or JSON) whose
+`[verification]` is the same record a Warrant's verdicts are, admitted by
+the same rule: no verifier (`tick.no-verifier`), no evidence
+(`tick.no-evidence`), or a verifier who is the performer
+(`tick.self-verification`) is refused, and so is a response naming another
+performer than the record does (`tick.performer-mismatch`). An
+`established` verdict ticks the item at `independent` (or raises its tick);
+any other is journalled and raises nothing.
+
+`war sign <t-x/i-y> --ssh-sign [--as <human>]` writes
+`docs/authority/responses/<t-x>--<i-y>.signoff.response.toml` (the ticket,
+the item, the sha256 of a statement of its text), signs it with the
+human's key through the ssh agent, and records it only when the signature
+verifies as that human's (`authority_check`, act `sign-off`). The tool
+holds no key. Without `--ssh-sign` nothing is signed (`sign.ssh-required`);
+`--dry-run` shows what would be signed and touches no key.
+
+### Where every tick's level shows
+
+| view | what it shows |
+|---|---|
+| `war show <ticket>` | each done item opens with its level, `(claimed)`, `(observed)`, `(independent: verified by X)`, `(signed: signed off by Y)`, and `; needs <level>` when below its minimum; an open milestone says what it ticks at; a **Checks** section lists tests, KPIs (latest, best, target) and milestones; `--json` items carry `tick` (`level`, `minimum`, `meets_minimum`, `written` and `unbacked` when a marker is not believed) |
+| `war tickets` | `[ticks: 2 claimed, 1 observed]` at the end of a line with ticks; `ticks` in the JSON row |
+| `war status` | a **Ticks** block after the corpus projection (never inside it, so working a ticket moves no generated file); `war status <ticket>` is the ticket's show |
+| `war roadmap` | a **Milestones** section (in a program with a roadmap record): each milestone with the level its tick shows and whether it meets its minimum |
+| `war board` | the same ticks and milestones |
+| `war ui` | a badge per done item, a distinct word and style per level (claimed is muted and dashed), and the milestones on the progress page |
+
+### The create hint
+
+`war create` prints one line suggesting `war add <id> --test "<command>"`:
+a Warrant's smallest form is a title, and a test is what lets a tick be
+observed. It never refuses anything. `[warrants] hints = false` in
+`openwarrant.toml` turns it off.
+
+### Harness bridges
+
+- **The `TaskCompleted` hook** (`.claude/hooks/task-completed.sh`, in the
+  plugin's `hooks.json`): when Claude Code marks one of its tasks completed
+  and the task's subject or description names an item, it runs `war bridge
+  claude-tasks --event - --apply`. It exits 0 on every path and writes
+  nothing on stdout, so it never holds a task; a task naming nothing does
+  nothing. Long-running checks run inside the hook's own timeout.
+- **`war bridge claude-tasks`** reads a Claude Code task list: `--dir`,
+  `--file`, or `~/.claude/tasks/$CLAUDE_CODE_TASK_LIST_ID/` (Claude Code
+  keeps one directory per list there; its hook input names `task_id`,
+  `task_subject` and `task_description`, code.claude.com/docs/en/hooks,
+  "TaskCompleted"). Each completed task that names exactly one item
+  proposes `war done <item> --check`, or `war done <item>` when the item
+  has nothing to check. It prints what it would do and writes only with
+  `--apply`, claiming an item nobody holds first. A tick it cannot make is
+  a warning, `bridge.not-ticked`; the bridge never fails because a check
+  did. The file layout inside a task-list directory is not documented by
+  Claude Code, so it reads the documented field names (`id`/`task_id`,
+  `subject`/`task_subject`, `description`/`task_description`,
+  `status`/`task_status`) and names any other file UNKNOWN
+  (`bridge.task-unreadable`) rather than guess.

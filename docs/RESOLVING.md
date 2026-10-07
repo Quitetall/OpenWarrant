@@ -333,6 +333,7 @@ with the work, so each of those used to stale every receipt of a gate with no
 | `war done`, `war add`, a claim naming a new line | `<tickets>/<t-id>/atoms/15-checklist.md` (the ticket profile's checklist file) |
 | `war note`, `war create` | `<tickets>/<t-id>/atoms/10-intent.md` |
 | `war create`, `war promote` | `<tickets>/<t-id>/manifest.toml` |
+| `war add --test/--kpi/--milestone` (OW-WAR-0148 M13) | `<tickets>/<t-id>/atoms/30-checks.md`, the optional parts |
 
 `<tickets>` is `[tickets] dir` and `<t-id>` a ticket id (`t-` and 3 to 16 of
 `[0-9a-z]`). Nothing under the Warrants root is skipped, whatever
