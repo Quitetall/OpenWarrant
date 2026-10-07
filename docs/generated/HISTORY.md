@@ -18294,7 +18294,7 @@ the second is what the recorded run exposes.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The glossary every Dispatch carries | `CONTEXT.md` | verified |
+| D-001 | The glossary every Dispatch carries | `CONTEXT.md` | drift |
 | D-002 | war frontier: the stages that can start now | `crates/openwarrant-cli/src/frontier.rs` | drift |
 | D-003 | The selector carries the glossary | `crates/openwarrant-cli/src/context_select.rs` | drift |
 | D-004 | /war-grill | `.claude/skills/war-grill/SKILL.md` | drift |
@@ -26535,7 +26535,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-030 | preset: decision, assurance | `crates/openwarrant-cli/templates/presets/decision/60-assurance.md` | verified |
 | D-031 | new.rs: --preset, the TODO skeleton retired | `crates/openwarrant-cli/src/new.rs` | drift |
 | D-032 | lib.rs: the flag | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-033 | CONTEXT.md: the terms | `CONTEXT.md` | verified |
+| D-033 | CONTEXT.md: the terms | `CONTEXT.md` | drift |
 | D-034 | README.md points at CURRENT.md | `README.md` | verified |
 | D-035 | QUICKSTART.md points at CURRENT.md | `QUICKSTART.md` | drift |
 | D-036 | AGENTS.md: read CURRENT.md first | `AGENTS.md` | verified |
@@ -27257,7 +27257,7 @@ assert it with.
 | D-026 | view.json retired | `docs/roadmap/view.json` | verified |
 | D-027 | rc2 plan retired | `docs/design/rc2-implementation-roadmap.json` | verified |
 | D-028 | rc.3 plan retired | `docs/sas/drafts/1.0.0-rc.3/roadmap.json` | verified |
-| D-029 | CONTEXT.md: the term | `CONTEXT.md` | verified |
+| D-029 | CONTEXT.md: the term | `CONTEXT.md` | drift |
 | D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | drift |
 | D-031 | the plants | `conformance/plants.d/70-roadmap.sh` | verified |
 | D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | drift |
@@ -35656,7 +35656,7 @@ test mode is labeled in every record it produces.
 | D-003 | presence flags from the sshsig blob | `crates/openwarrant-core/src/presence.rs` | verified |
 | D-004 | sign records presence; refuses by policy and on actor-key mismatch | `crates/openwarrant-cli/src/sign.rs` | drift |
 | D-005 | revision v2: actor kind and protected policy | `crates/openwarrant-core/src/authority_transition.rs` | verified |
-| D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | verified |
+| D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | drift |
 | D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | drift |
 | D-008 | authority.md: the cutover | `docs/cli/authority.md` | verified |
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | verified |
@@ -37896,7 +37896,7 @@ once, at acceptance, after the blind verifier.
 | D-013 | cli: a covered Warrant is never resolved by a policy service | `crates/openwarrant-cli/src/resolve.rs` | drift |
 | D-014 | the plants | `conformance/plants.d/69-standing.sh` | drift |
 | D-015 | docs/SIGNING.md: routine work under a standing authorization | `docs/SIGNING.md` | verified |
-| D-016 | CONTEXT.md: the term | `CONTEXT.md` | verified |
+| D-016 | CONTEXT.md: the term | `CONTEXT.md` | drift |
 | D-017 | cli: the class acts and the covered verdict | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
 | D-018 | cli: class-act attestations | `crates/openwarrant-cli/src/attest.rs` | verified |
 | D-019 | cli: a covered Warrant's policy-service resolution refused at ingest | `crates/openwarrant-cli/src/resolution_cmd.rs` | drift |
@@ -39587,7 +39587,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-017 | The loop in five commands | `docs/TICKETS.md` | drift |
 | D-018 | Three steps to start | `README.md` | verified |
 | D-019 | Three steps to start | `QUICKSTART.md` | drift |
-| D-020 | Ticket and Claim | `CONTEXT.md` | verified |
+| D-020 | Ticket and Claim | `CONTEXT.md` | drift |
 | D-021 | The working form | `docs/PROFILES.md` | drift |
 
 ### OW-WAR-0148 — Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel
