@@ -7,4 +7,6 @@ later Warrant follows a path this one has already walked.
 
 ## Out of scope
 
-The program's own work. This Warrant delivers the adoption, not a feature.
+Everything else in {{program}}. Features, fixes and every other change go
+ahead without this Warrant and without waiting for it; this one covers only
+the adoption steps above.

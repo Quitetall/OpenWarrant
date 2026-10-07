@@ -17,10 +17,10 @@ Method: Matt Pocock's two-axis review; [provenance](../openwarrant/ADAPTATIONS.m
 3. Obligations axis: an independent verifier gets exact approved constraints,
    candidate code, protected fixtures and evidence in a separate context/workspace.
    It must be able to inspect code and rerun checks. A bundle-only review without
-   executable access cannot claim observations it never made.
+   executable access cannot claim observations it did not make.
 4. Keep each axis separate. State PASS/FAIL/UNKNOWN and evidence for each bounded
    obligation. If independent execution is unavailable, report that gap and continue
-   any permitted ordinary review; performer self-review is never independent proof.
+   the ordinary review; a performer's own review does not count as independent proof.
 5. Return findings, exact subject and qualification gaps. Store a received verifier
    response through the supported tool without altering actor identity or verdicts.
    Human secure acceptance remains separate from an agent's review report.

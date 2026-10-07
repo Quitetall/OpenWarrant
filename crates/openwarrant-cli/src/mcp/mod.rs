@@ -27,20 +27,23 @@ use rmcp::service::{RequestContext, RoleServer};
 
 use crate::repo::{RepoError, Repository};
 
-/// What the server tells a client at `initialize`. Verbatim non-authority:
-/// an agent reading this knows whose act is whose before it calls anything.
-pub const INSTRUCTIONS: &str = "OpenWarrant (`war`) MCP server. It reads and drafts Work \
-Authorization Records for a repository; it holds NO authority. It cannot authorize, resolve, \
-verify, accept a SAS, correct a delivered artifact, or sign anything, and no tool ingests a \
-signed response: those are human acts done at a terminal with `war sign`. Tools ending in \
-`_request` emit the document a human will sign; they write nothing. `war_next` says whose \
-action comes next and whether it is the agent's or a human's. `war_pins` lists the files an \
-agent may not edit (pinned by resolved Warrants). Every tool returns an `oh.war/report/v1` \
-envelope as structured content: `diagnostics[]` name a rule per finding, `verdict` is \
-ready|not_ready, `exit_code` is what the CLI would have exited with. Tickets need none of the \
-authority acts: start with `war_prime`, pick from `war_ready`, `war_claim` an item, do it, \
-`war_done` it; `war_create`, `war_add` and `war_note` keep the ticket's document current. Never \
-ask a human to sign during that work.";
+/// What the server tells a client at `initialize`. It leads with what an
+/// agent most needs to hear (M9): ordinary work needs none of this. The
+/// non-authority facts follow, as what the server does and does not do.
+pub const INSTRUCTIONS: &str = "OpenWarrant (`war`) MCP server. Ordinary work needs none of \
+this: edit, build and test as you would in any repository; no Warrant, ticket or signature is \
+needed to write code. These tools help when you want to track or plan work. Tickets: \
+`war_prime` shows what is open, `war_ready` what can start now, `war_claim` takes an item, \
+`war_done` ticks it off; `war_create`, `war_add` and `war_note` keep the ticket current. No \
+ticket step needs a signature. Warrants are optional work plans; a Warrant whose type has a \
+sign-off step is approved by a person. This server cannot authorize, resolve, verify, accept a \
+SAS, correct a delivered file, or sign anything, and no tool records a signed response: those \
+are human acts done at a terminal with `war sign`. Tools ending in `_request` draft the \
+document a person signs and write nothing. `war_next` lists what is ready and whose step each \
+item is. `war_pins` lists the files closed Warrants pin by digest; a change to one is drafted \
+with `war correct`. Every tool returns an `oh.war/report/v1` envelope as structured content: \
+`diagnostics[]` name a rule per finding, `verdict` is ready|not_ready, `exit_code` is what the \
+CLI would have exited with.";
 
 /// Tool names the server must never register. Asserted by a test below
 /// against the live router, and by a source grep against `tools.rs`.
@@ -253,5 +256,15 @@ mod tests {
         for phrase in ["cannot authorize", "sign anything", "human acts"] {
             assert!(INSTRUCTIONS.contains(phrase), "{phrase}");
         }
+        // M9: the first sentence after the server's name is that ordinary
+        // work needs none of it.
+        let lead = INSTRUCTIONS
+            .split_once(". ")
+            .map(|(_, rest)| rest)
+            .unwrap_or_default();
+        assert!(
+            lead.starts_with("Ordinary work needs none of this"),
+            "{lead}"
+        );
     }
 }

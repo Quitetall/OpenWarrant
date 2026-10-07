@@ -71,9 +71,64 @@ pub fn run(
 /// ticket, and nothing in that loop needs a signature. The `--program`
 /// scaffold does not print it — its three lines are pinned (99-init,
 /// 59-adoption), and asking for the scaffold is asking for the authority layer.
-pub const START_HINT: &str = "start: `war create \"what this work accomplishes\" --item \"...\"`, then \
-     `war ready`, `war claim <id>`, `war done <id>` — no signature needed. Agents run \
-     `war prime` first (AGENTS.md). Sign-off is opt-in: `war promote <ticket>`.";
+pub const START_HINT: &str = "start: ordinary coding needs no ticket and no Warrant. To track work, \
+     `war create \"what this work accomplishes\" --item \"...\"`, then `war ready`, `war claim <id>`, \
+     `war done <id>`; no signature needed. Agents run `war prime` first (AGENTS.md). Sign-off is \
+     opt-in: `war promote <ticket>`.";
+
+/// The namespace `war init` uses when none is given (M9): derived from a
+/// name, so a script or an agent's shell never has to invent one and a
+/// terminal is never asked. The words of `name` (split at anything that is
+/// not a letter or digit, and at a lower-to-upper camelCase step): one word
+/// is that word, uppercased, at most eight characters; several are their
+/// initials. Letters and digits only, so the result always parses as a
+/// namespace; nothing usable gives `WORK`. `letters_only` drops digits, for
+/// `--program`, whose namespace prefixes `<NS>-SAS-RQ-001`.
+#[must_use]
+pub fn derive_namespace(name: &str, letters_only: bool) -> String {
+    let keep = |c: char| c.is_ascii_alphabetic() || (!letters_only && c.is_ascii_digit());
+    let mut words: Vec<String> = Vec::new();
+    for token in name.split(|c: char| !c.is_ascii_alphanumeric()) {
+        let mut word = String::new();
+        let mut prev_lower = false;
+        for c in token.chars() {
+            if c.is_ascii_uppercase() && prev_lower && !word.is_empty() {
+                words.push(std::mem::take(&mut word));
+            }
+            prev_lower = c.is_ascii_lowercase() || c.is_ascii_digit();
+            if keep(c) {
+                word.push(c.to_ascii_uppercase());
+            }
+        }
+        if !word.is_empty() {
+            words.push(word);
+        }
+    }
+    let derived: String = match words.as_slice() {
+        [] => String::new(),
+        [one] => one.chars().take(8).collect(),
+        many => many.iter().filter_map(|w| w.chars().next()).collect(),
+    };
+    if derived.is_empty() {
+        "WORK".to_owned()
+    } else {
+        derived
+    }
+}
+
+/// The directory `war init` acts on: `--root`, else the current directory.
+pub fn init_root(root: Option<Utf8PathBuf>) -> Result<Utf8PathBuf, InitError> {
+    match root {
+        Some(path) => Ok(path),
+        None => {
+            let cwd = std::env::current_dir().map_err(|source| InitError::Io {
+                context: "could not read the current directory".to_owned(),
+                source,
+            })?;
+            Utf8PathBuf::from_path_buf(cwd).map_err(|_| InitError::NonUtf8Path)
+        }
+    }
+}
 
 /// Which commit `war init` records as the adoption baseline (OW-WAR-0124).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -642,9 +697,15 @@ const ADOPT_ASSURANCE: &str = include_str!("../../templates/adopt/60-assurance.m
 /// installing an additive context pointer is a separate, planned operation.
 pub const AGENTS_MD_TEMPLATE: &str = include_str!("../../templates/AGENTS.md.tmpl");
 
+/// The template filled in: the namespace, and the version stamp on its last
+/// line (`<!-- openwarrant agents-md: written by war X -->`), which
+/// `war doctor` and `war prime` read to warn when an older `war` meets text
+/// a newer one wrote (`crate::skew`).
 #[must_use]
 pub fn render_agents_md(namespace: &str) -> String {
-    AGENTS_MD_TEMPLATE.replace("{{namespace}}", namespace)
+    AGENTS_MD_TEMPLATE
+        .replace("{{namespace}}", namespace)
+        .replace("{{war_version}}", env!("CARGO_PKG_VERSION"))
 }
 
 /// Write `AGENTS.md` at the root. Refuses to overwrite unless `force`: an
@@ -713,6 +774,39 @@ mod tests {
         let parsed: RepositoryConfig = toml::from_str(&text).expect("parses");
         assert_eq!(parsed.project.namespace.as_str(), "OW");
 
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    /// M9: a namespace derived from any directory name parses, so plain
+    /// `war init` never refuses for want of one.
+    #[test]
+    fn a_derived_namespace_always_parses() {
+        for (name, want) in [
+            ("OpenWarrant", "OW"),
+            ("my-game-engine", "MGE"),
+            ("engine", "ENGINE"),
+            ("openwarrant", "OPENWARR"),
+            ("2048 game", "2G"),
+            ("s.o2Xc", "SOX"),
+            ("---", "WORK"),
+            ("日本", "WORK"),
+            ("", "WORK"),
+        ] {
+            let got = derive_namespace(name, false);
+            assert_eq!(got, want, "{name:?}");
+            assert!(Namespace::parse(&got).is_ok(), "{name:?} -> {got:?}");
+        }
+        // `--program` wants letters only: digits drop out.
+        assert_eq!(derive_namespace("2048 game", true), "GAME");
+        assert_eq!(derive_namespace("v2", true), "V");
+        assert_eq!(derive_namespace("42", true), "WORK");
+        // A user's `--namespace` is still checked: the override is not
+        // laundered through the derivation.
+        let root = scratch("derived-override");
+        assert!(matches!(
+            run("lower", None, Some(root.clone())),
+            Err(InitError::Namespace(_))
+        ));
         let _ = fs::remove_dir_all(&root);
     }
 
@@ -839,7 +933,27 @@ mod agents_md_tests {
         assert!(out.contains("XX-WAR-NNNN"));
         assert!(!out.contains("{{"), "unrendered placeholder");
         assert!(out.contains("war sign"), "the loop names the human's act");
-        assert!(out.contains("Never verify your own work"));
+        // M9: the first thing an agent reads is that ordinary coding needs
+        // nothing from this kit; the safety facts follow, scoped.
+        let first = out
+            .lines()
+            .find(|l| !l.trim().is_empty() && !l.starts_with('#'))
+            .unwrap_or_default();
+        assert!(
+            first.starts_with("Ordinary coding needs no Warrant and no ticket."),
+            "{first}"
+        );
+        let scoped = out
+            .find("## When a Warrant's type requires sign-off")
+            .expect("the sign-off section");
+        let fact = out
+            .find("Your own work is checked by someone else")
+            .expect("the self-verification fact");
+        assert!(scoped < fact, "the facts live in the scoped section");
+        assert!(out.trim_end().ends_with(&format!(
+            "<!-- openwarrant agents-md: written by war {} -->",
+            env!("CARGO_PKG_VERSION")
+        )));
     }
 
     /// Keep the shipped legacy workflow equal to the linked reference, while

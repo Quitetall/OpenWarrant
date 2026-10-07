@@ -194,7 +194,7 @@ pub struct GateRunParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct PinsParams {
-    /// Only files pinned by RESOLVED Warrants (the ones an agent may not edit).
+    /// Only files pinned by RESOLVED Warrants (a change to one is drafted with `war correct`).
     #[serde(default)]
     pub resolved_only: bool,
 }
@@ -701,7 +701,7 @@ impl WarServer {
 
     #[tool(
         name = "war_pins",
-        description = "Files pinned by Warrants, with state and digest (`war pins`). With resolved_only, the files an agent may not edit. Read-only.",
+        description = "Files pinned by Warrants, with state and digest (`war pins`). With resolved_only, the files closed Warrants pin; a change to one is drafted with `war correct`. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_pins(&self, Parameters(p): Parameters<PinsParams>) -> ToolResult {
@@ -728,7 +728,7 @@ impl WarServer {
 
     #[tool(
         name = "war_next",
-        description = "Whose act comes next — agent or human — and the command for it (`war next`). Never assigns a signing act to an agent. Read-only.",
+        description = "What is ready and whose step each item is, agent or human, with the command for it (`war next`). A signing step is always a human's. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_next(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
