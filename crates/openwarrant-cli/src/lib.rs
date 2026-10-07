@@ -38,12 +38,15 @@ pub mod dispatch;
 pub mod dispatch_bundle_cmd;
 pub mod doctor;
 pub mod document;
+pub mod estimate;
 pub mod eval;
 pub mod eval_ordinary;
 pub mod evidence;
 pub mod export;
 pub mod frontier;
 pub mod gate_cmd;
+pub mod go;
+pub mod graph;
 pub mod host;
 pub mod impact;
 pub mod inbox;
@@ -463,7 +466,8 @@ enum BridgeCommand {
 /// The daily verbs: the only commands `war --help` lists, in this order.
 /// At most twelve (a plant counts them); `war start` (M15) is the twelfth.
 pub const DAILY: &[&str] = &[
-    "init", "create", "next", "claim", "done", "add", "note", "edit", "show", "status", "check",
+    "init", "create", "next", "start", "claim", "done", "add", "note", "edit", "show", "status",
+    "check",
 ];
 
 /// The groups, named under "More:" in `war --help`, each with its purpose
@@ -487,6 +491,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "state",
             "roadmap",
             "frontier",
+            "estimate",
             "questions",
             "ask",
             "answer",
@@ -510,7 +515,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
     (
         "evidence",
         &[
-            "record", "gate", "verify", "prepare", "run", "perform", "submit", "kpi", "mark",
+            "record", "gate", "verify", "prepare", "run", "perform", "go", "submit", "kpi", "mark",
             "document", "eval",
         ],
     ),
@@ -676,6 +681,27 @@ enum DailyCommand {
     /// tracked it says "nothing tracked; work freely": ordinary work needs
     /// no Warrant. A signing step is always a person's.
     Next,
+    /// Start a Warrant's work in a worktree of its own, with its settings.
+    ///
+    /// Claims the item (or a Warrant with no items, or an agent stage
+    /// `<alias>/<stage>`), makes it a git worktree on `war-go/<node>`,
+    /// writes the session's harness settings inside that worktree only (the
+    /// Warrant's declared tools, paths and commands; `[go] allowed_acts`),
+    /// and starts the configured harness there. `--print` shows the command
+    /// and the context instead. Started again, it resumes the same worktree.
+    Start {
+        /// The node: `t-...`, `t-.../i-...`, `i-...`, or `<alias>/<stage>`.
+        #[arg(value_name = "ID")]
+        id: String,
+        /// Print the command and the context; start nothing.
+        #[arg(long)]
+        print: bool,
+        /// The commit the worktree starts from (default HEAD).
+        #[arg(long, value_name = "REV")]
+        base: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
     /// Take an item or a whole Warrant, so no other agent works it.
     ///
     /// An item (`i-...`, `t-.../i-...`) or a whole Warrant (`t-...`).
@@ -812,6 +838,11 @@ enum DailyCommand {
         part_of: Option<String>,
         #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
         priority: Option<u8>,
+        /// When the work is due, YYYY-MM-DD; `none` clears it. A scheduler
+        /// runs work toward an earlier date first, and never before what it
+        /// waits on.
+        #[arg(long, value_name = "DATE")]
+        due: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
@@ -968,7 +999,16 @@ enum PlanCommand {
     Frontier {
         /// One Warrant; omit for every unresolved Warrant.
         alias: Option<String>,
+        /// The whole work graph (OW-WAR-0148 M15): every item, light
+        /// Warrant, stage and record, with what each waits on, and any
+        /// cycle refused by name.
+        #[arg(long, conflicts_with = "alias")]
+        all: bool,
     },
+    /// Estimates learned from the journal (claim to done, by type and
+    /// label), the order ready work starts in, and the critical path
+    /// (OW-WAR-0148 M15).
+    Estimate,
     /// Every question across the corpus, blocking and open first, each with
     /// the command that answers it (OW-WAR-0069).
     Questions {
@@ -1244,6 +1284,36 @@ enum EvidenceCommand {
         /// `prototype://unauthorized` and the work is not authorized work.
         #[arg(long)]
         prototype: bool,
+    },
+    /// Run the work graph: what is ready, critical path first, each node in a
+    /// worktree of its own (OW-WAR-0148 M15).
+    ///
+    /// Each ready node is claimed, given a branch `war-go/<node>`, and handed
+    /// to its executor: the local harness (`[go] harness`) or an external one
+    /// (`[go.executors]`, routed by label). Its answer passes `war evidence
+    /// submit`'s refusals; one that asks to be checked is merged with the
+    /// integration branch, its tests run, and it lands (`[go] land`) and is
+    /// ticked at the level it earned. A crash, timeout, conflict or failed
+    /// check sends it back with a note; after `[go] max_attempts` it is set
+    /// aside for a person. Stops when nothing is ready or a cap is reached,
+    /// and says which. docs/GO.md.
+    Go {
+        /// Start at most this many nodes.
+        #[arg(long, value_name = "N")]
+        max_nodes: Option<usize>,
+        /// Show the ready nodes in the order they would start; start nothing.
+        #[arg(long)]
+        dry_run: bool,
+        /// Put a node set aside for a person back on the frontier.
+        #[arg(long, value_name = "NODE", conflicts_with_all = ["dry_run", "max_nodes"])]
+        retry: Option<String>,
+        /// Also run agent stages of Warrants nobody has signed, as `war
+        /// evidence perform --prototype` does. The operator types this.
+        #[arg(long)]
+        prototype: bool,
+        /// Who the run claims as (default: the acting agent, `@go-<run>`).
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
     },
     /// Ingest a Stage Submission something else produced (§51): it must name a
     /// dispatch this Warrant compiled and may not request its own resolution.
@@ -2244,6 +2314,40 @@ fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -
     output::exit_code(&outcome.report)
 }
 
+/// `war evidence go` and `war start`: what happened, line by line, then any
+/// finding on stderr; under `--json`, the envelope with the result.
+fn go_answer(
+    mode: output::Mode,
+    command: &str,
+    report: &diagnostic::Report,
+    result: serde_json::Value,
+    human: &str,
+) -> u8 {
+    match mode {
+        output::Mode::Human => {
+            print!("{human}");
+            for d in &report.diagnostics {
+                match d.severity {
+                    diagnostic::Severity::Error => eprintln!("refused ({}): {}", d.rule, d.message),
+                    diagnostic::Severity::Warn => eprintln!("warning ({}): {}", d.rule, d.message),
+                    diagnostic::Severity::Unknown => {
+                        eprintln!("UNKNOWN ({}): {}", d.rule, d.message);
+                    }
+                    diagnostic::Severity::Pass => {}
+                }
+            }
+            for n in &report.notes {
+                eprintln!("note: {n}");
+            }
+        }
+        output::Mode::Json => println!(
+            "{}",
+            output::envelope(command, report, (!result.is_null()).then_some(result))
+        ),
+    }
+    output::exit_code(report)
+}
+
 /// What every command needs from the invocation: how to print, and which
 /// repository. The repository stays LAZY: `init`, `sdk`, `install` and
 /// `schemas` must work where no `openwarrant.toml` exists, and `doctor`
@@ -2538,6 +2642,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             unlabels,
             part_of,
             priority,
+            due,
             if_rev,
             actor,
         } => {
@@ -2549,6 +2654,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 remove_labels: unlabels,
                 part_of: none(part_of),
                 priority,
+                due: none(due),
                 if_rev,
             };
             Ok(ticket_answer(
@@ -2784,6 +2890,17 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 }
             }
             Ok(EXIT_OK)
+        }
+        DailyCommand::Start {
+            id,
+            print,
+            base,
+            actor,
+        } => {
+            let repository = ctx.open_repo()?;
+            let opts = go::start::Options { actor, print, base };
+            let (report, result, human) = go::start::run(&repository, &id, &opts)?;
+            Ok(go_answer(mode, "start", &report, result, &human))
         }
         DailyCommand::Next => {
             let repository = ctx.open_repo()?;
@@ -3365,7 +3482,48 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             output::emit(mode, "answers", human.trim_end(), output::value(&answered));
             Ok(EXIT_OK)
         }
-        PlanCommand::Frontier { alias } => {
+        PlanCommand::Frontier { all: true, .. } => {
+            let repository = ctx.open_repo()?;
+            let corpus = corpus::Corpus::new(&repository);
+            let store = ticket::Store::open(&repository, None)?;
+            let (report, g) = graph::build(&corpus, &store)?;
+            match mode {
+                output::Mode::Human => {
+                    print!("{}", graph::render(&g));
+                    Ok(output::finish(mode, "frontier", &report, None))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "frontier",
+                    &report,
+                    Some(output::value(&g)),
+                )),
+            }
+        }
+        PlanCommand::Estimate => {
+            let repository = ctx.open_repo()?;
+            let corpus = corpus::Corpus::new(&repository);
+            let store = ticket::Store::open(&repository, None)?;
+            let prior = match go::policy::load(&repository.root) {
+                Ok(p) => p.prior_secs,
+                Err(d) => {
+                    let mut report = diagnostic::Report::default();
+                    report.push(d);
+                    return Ok(output::finish(mode, "estimate", &report, None));
+                }
+            };
+            let (report, schedule, human) = estimate::run(&corpus, &store, prior)?;
+            if mode == output::Mode::Human {
+                print!("{human}");
+            }
+            Ok(output::finish(
+                mode,
+                "estimate",
+                &report,
+                Some(output::value(&schedule)),
+            ))
+        }
+        PlanCommand::Frontier { alias, .. } => {
             let repository = ctx.open_repo()?;
             let (report, f) = frontier::run(&repository, alias.as_deref())?;
             match mode {
@@ -3981,6 +4139,24 @@ fn run_evidence_member(
             let repository = ctx.open_repo()?;
             let report = run_cmd::submit(&repository, &alias, &file)?;
             Ok(output::finish(mode, "submit", &report, None))
+        }
+        EvidenceCommand::Go {
+            max_nodes,
+            dry_run,
+            retry,
+            prototype,
+            actor,
+        } => {
+            let repository = ctx.open_repo()?;
+            let opts = go::Options {
+                actor,
+                max_nodes,
+                dry_run,
+                retry,
+                prototype,
+            };
+            let (report, result, human) = go::run(&repository, &opts)?;
+            Ok(go_answer(mode, "go", &report, result, &human))
         }
         EvidenceCommand::Document { command } => match command {
             DocumentCommand::Draft {

@@ -358,7 +358,7 @@ pub fn run_with(
 
 /// The repository-relative file a deliverable names, or `None` when it names
 /// something else: a URI, an absolute path, or a path climbing out.
-fn target_path(d: &Deliverable) -> Option<&str> {
+pub(crate) fn target_path(d: &Deliverable) -> Option<&str> {
     if d.kind == DeliverableKind::GitCommit {
         return None;
     }

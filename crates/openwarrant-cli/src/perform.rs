@@ -82,7 +82,7 @@ use openwarrant_core::milestones::ExecutorKind;
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
-const DISPATCHES_DIR: &str = "dispatches";
+pub(crate) const DISPATCHES_DIR: &str = "dispatches";
 /// The extension of a writer record, beside the Dispatch it performs.
 const WRITER_EXT: &str = "writer";
 /// Bounded like the drafter's: a performer that writes a gigabyte to stderr
@@ -328,7 +328,7 @@ fn perform_one(
             &dir,
             uuid.as_deref(),
             stage_id,
-            &outcome,
+            (&outcome.dispatch_id, outcome.seconds),
             kind,
             how,
             report,
@@ -520,7 +520,7 @@ fn all_on(host: &dyn Host, repo: &Repository, prototype: bool) -> Result<Report,
 /// Compile the stage's Dispatch and keep it under `dispatches/` as the record
 /// of what was handed over. `None` when it will not compile — the diagnostics
 /// say why, and nothing was spawned.
-fn compile(
+pub(crate) fn compile(
     repo: &Repository,
     alias: &str,
     stage_id: &str,
@@ -742,7 +742,7 @@ fn hand_over(
 ///
 /// On unix the child leads its own process group (see the spawn above), so a
 /// signal to the negated pid reaches the group.
-fn kill_group(child: &mut Child) {
+pub(crate) fn kill_group(child: &mut Child) {
     #[cfg(unix)]
     if let Some(group) = i32::try_from(child.id())
         .ok()
@@ -777,7 +777,7 @@ pub const EVENT_ENDED: &str = "perform.ended";
 
 /// How a performance ended, as `perform.ended` records it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Ending {
+pub(crate) enum Ending {
     /// The performer answered and the seam accepted the submission.
     Answered,
     /// The performer answered and the seam refused the answer.
@@ -804,7 +804,7 @@ impl Ending {
 
 /// What this performance is, counted from the stage's earlier endings.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Attempt {
+pub(crate) enum Attempt {
     /// No earlier performance of the stage ended.
     Initial,
     /// After an accepted submission: the `n`th repair, where the first
@@ -884,7 +884,7 @@ fn endings(dir: &camino::Utf8Path, stage_id: &str) -> Result<Vec<String>, RepoEr
 
 /// The OW-WAR-0132 admissions. `Some(kind)` when the stage may be performed,
 /// and what kind of attempt it will be; `None` when the report says why not.
-fn hotline_admitted(
+pub(crate) fn hotline_admitted(
     repo: &Repository,
     dir: &camino::Utf8Path,
     alias: &str,
@@ -997,12 +997,12 @@ fn hotline_admitted(
 /// Journal `perform.ended`. A failure to write it is reported, not raised:
 /// the performance happened, and its report must still reach the caller.
 #[allow(clippy::too_many_arguments)]
-fn journal_ended(
+pub(crate) fn journal_ended(
     repo: &Repository,
     dir: &camino::Utf8Path,
     uuid: Option<&str>,
     stage_id: &str,
-    outcome: &Performance,
+    (dispatch_id, seconds): (&str, u64),
     kind: Attempt,
     how: Ending,
     report: &mut Report,
@@ -1020,10 +1020,10 @@ fn journal_ended(
     };
     let payload = serde_json::json!({
         "stage": stage_id,
-        "dispatch_id": outcome.dispatch_id,
+        "dispatch_id": dispatch_id,
         "outcome": how.word(),
         "attempt": kind.word(),
-        "seconds": outcome.seconds,
+        "seconds": seconds,
         // Nothing metered it. Unknown is not zero (Law 15).
         "spend": "unknown",
     });
@@ -1057,17 +1057,17 @@ fn journal_ended(
 /// because a pid alone can be reused: a pid that is alive but started at a
 /// different time is not shown to be the writer, and not shown to be gone.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
-struct WriterRecord {
-    pid: u32,
-    pgid: u32,
+pub(crate) struct WriterRecord {
+    pub(crate) pid: u32,
+    pub(crate) pgid: u32,
     /// Opaque, compared for equality only: clock ticks since boot from
     /// `/proc/<pid>/stat` on Linux, `ps -o lstart=` elsewhere.
-    leader_started: String,
-    stage_id: String,
-    dispatch_id: String,
+    pub(crate) leader_started: String,
+    pub(crate) stage_id: String,
+    pub(crate) dispatch_id: String,
 }
 
-fn writer_path(dir: &camino::Utf8Path, dispatch_id: &str) -> camino::Utf8PathBuf {
+pub(crate) fn writer_path(dir: &camino::Utf8Path, dispatch_id: &str) -> camino::Utf8PathBuf {
     dir.join(DISPATCHES_DIR)
         .join(format!("{dispatch_id}.{WRITER_EXT}"))
 }
@@ -1102,7 +1102,7 @@ fn probe(record: &WriterRecord) -> Liveness {
 
 /// Before compiling: probe every writer record for this stage. `true` when the
 /// stage has no writer that may still write; otherwise the report says why not.
-fn handoff(
+pub(crate) fn handoff(
     repo: &Repository,
     dir: &camino::Utf8Path,
     alias: &str,
@@ -1215,7 +1215,7 @@ fn group_liveness(pgid: u32) -> Liveness {
 }
 
 /// Poll until the group is shown gone, for at most `grace`.
-fn group_gone_within(pgid: u32, grace: Duration) -> bool {
+pub(crate) fn group_gone_within(pgid: u32, grace: Duration) -> bool {
     let until = Instant::now() + grace;
     loop {
         if group_liveness(pgid) == Liveness::Gone {
@@ -1230,7 +1230,7 @@ fn group_gone_within(pgid: u32, grace: Duration) -> bool {
 
 /// The start time of `pid`, or `None` when no such process exists.
 #[cfg(target_os = "linux")]
-fn leader_started(pid: u32) -> Option<String> {
+pub(crate) fn leader_started(pid: u32) -> Option<String> {
     let stat = std::fs::read_to_string(format!("/proc/{pid}/stat")).ok()?;
     // Field 22, `starttime`. The command name (field 2) is in parentheses and
     // may itself contain spaces or parentheses, so count from the last `)`:
@@ -1240,7 +1240,7 @@ fn leader_started(pid: u32) -> Option<String> {
 }
 
 #[cfg(all(unix, not(target_os = "linux")))]
-fn leader_started(pid: u32) -> Option<String> {
+pub(crate) fn leader_started(pid: u32) -> Option<String> {
     let out = Command::new("ps")
         .args(["-o", "lstart=", "-p", &pid.to_string()])
         .env("LC_ALL", "C")
@@ -1253,7 +1253,7 @@ fn leader_started(pid: u32) -> Option<String> {
 }
 
 #[cfg(not(unix))]
-fn leader_started(_pid: u32) -> Option<String> {
+pub(crate) fn leader_started(_pid: u32) -> Option<String> {
     None
 }
 
@@ -1270,7 +1270,7 @@ fn leader_started(_pid: u32) -> Option<String> {
 /// a stage and then goes on prompting, keeps an ordinary Ctrl-C. Inside, they
 /// only record which signal arrived.
 #[cfg(unix)]
-mod cancel {
+pub(crate) mod cancel {
     use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
     use std::sync::{Arc, OnceLock};
 
@@ -1338,7 +1338,7 @@ mod cancel {
 /// No platform without the group kill gets past [`admitted`], so nothing here
 /// is ever armed.
 #[cfg(not(unix))]
-mod cancel {
+pub(crate) mod cancel {
     pub struct Armed;
 
     pub fn arm() -> Result<Armed, String> {

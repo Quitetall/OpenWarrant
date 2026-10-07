@@ -400,6 +400,7 @@ pub fn apply(repo: &Repository, store: &Store, import: &Import) -> Result<Outcom
             issue: None,
             issue_url: None,
             imported_from: Some(p.incoming.source.clone()),
+            due: None,
             atoms: vec![
                 TicketAtom {
                     ordinal: 10,

@@ -126,6 +126,12 @@ pub struct Next {
     /// authority register may answer. UNKNOWN, never silently "waiting".
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub findings: Vec<Finding>,
+    /// OW-WAR-0148 M15: work `war evidence go` set aside for a person (its
+    /// attempts ran out, or its performer asked for a decision), each with
+    /// the reason and the command that puts it back. Absent when there is
+    /// none, so the envelope is the bytes it always was.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub blocked: Vec<crate::go::BlockedNode>,
 }
 
 /// A finding carried into `war next`, in the envelope diagnostic's shape.
@@ -365,6 +371,7 @@ pub fn derive(
         nothing,
         idle: None,
         findings: Vec::new(),
+        blocked: Vec::new(),
     }
 }
 
@@ -447,6 +454,18 @@ pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
     }
     judge(repo, pending, &mut next);
     ready_tickets_with(corpus, &mut next);
+    // OW-WAR-0148 M15: what a run set aside is a person's to look at, and is
+    // not offered as ready meanwhile.
+    if let Ok((tickets, _)) = corpus.tickets() {
+        next.blocked = crate::go::blocked_nodes(tickets);
+        next.ready.retain(|r| {
+            let id = match &r.item {
+                Some(i) => format!("{}/{i}", r.ticket),
+                None => r.ticket.clone(),
+            };
+            !next.blocked.iter().any(|b| b.node == id)
+        });
+    }
     if next.actions.is_empty() && next.ready.is_empty() {
         // M9: an empty list is said as what it means for ordinary work. A
         // ticket store that could not be read counts as tracked: "nothing
@@ -698,6 +717,13 @@ pub fn render(n: &Next) -> String {
     } else if let Some(why) = &n.nothing {
         s.push_str(&format!("no Warrant act waits: {why}\n"));
     }
+    // OW-WAR-0148 M15: after the plain first line, what a run set aside.
+    for b in &n.blocked {
+        s.push_str(&format!(
+            "{:<6} {:<12} {:<10} {}\n{:>6} set aside by `war evidence go` after {} attempt(s): {}\n",
+            "HUMAN", b.node, "look", b.command, "", b.attempts, b.reason
+        ));
+    }
     for f in &n.findings {
         s.push_str(&format!(
             "{} {}{}: {}\n",
@@ -776,6 +802,7 @@ mod tests {
             nothing: None,
             idle: None,
             findings: Vec::new(),
+            blocked: Vec::new(),
         };
         apply_questions(&mut next, &frontier, &report);
         let offered: Vec<&str> = next.actions.iter().map(|a| a.command.as_str()).collect();
@@ -804,6 +831,7 @@ mod tests {
             nothing: None,
             idle: None,
             findings: Vec::new(),
+            blocked: Vec::new(),
         };
         apply_questions(&mut next, &frontier, &crate::diagnostic::Report::default());
         assert!(next.actions.is_empty());
@@ -923,6 +951,7 @@ mod tests {
             nothing: None,
             idle: None,
             findings: Vec::new(),
+            blocked: Vec::new(),
         };
         let out = render(&next);
         let claim = out
@@ -952,6 +981,7 @@ mod tests {
             nothing: Some("no signature is waiting".to_owned()),
             idle: Some(IDLE_UNTRACKED.to_owned()),
             findings: Vec::new(),
+            blocked: Vec::new(),
         };
         let out = render(&next);
         // M9: the first line is permission, the second the reason, the third
@@ -990,6 +1020,7 @@ mod tests {
             nothing: None,
             idle: None,
             findings: Vec::new(),
+            blocked: Vec::new(),
         };
         order(&mut next);
         assert_eq!(next.actions[0].actor, Actor::Agent);

@@ -1104,7 +1104,14 @@ pub fn check_for_tick(
             ),
         ))));
     }
-    let repo = Repository::discover(Some(store.root.clone()))?;
+    // OW-WAR-0148 M15: in the worktree that holds the work, when the caller
+    // names one; the receipt is journalled with the Warrant either way.
+    let repo = Repository::discover(Some(
+        store
+            .check_root
+            .clone()
+            .unwrap_or_else(|| store.root.clone()),
+    ))?;
     let round = run_checks(store, &repo, t, item, checks)?;
     let failed = round.failed();
     let unknown = round.unknown();

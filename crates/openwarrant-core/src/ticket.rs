@@ -91,11 +91,45 @@ pub struct TicketManifest {
     /// manifest written before M10 reads, and writes back, byte for byte.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub imported_from: Option<String>,
+    /// OW-WAR-0148 M15: when the work is due, `YYYY-MM-DD`. A scheduler
+    /// (`war evidence go`) runs work toward an earlier date first; a date
+    /// never reorders what waits on what. Absent from every Warrant that has
+    /// none, so a manifest written before M15 reads, and writes back, byte
+    /// for byte.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub due: Option<String>,
     pub atoms: Vec<TicketAtom>,
 }
 
 const fn default_priority() -> u8 {
     DEFAULT_PRIORITY
+}
+
+/// A `due` date as `(year, month, day)`, when it is one: exactly
+/// `YYYY-MM-DD`, a month 1..=12 and a day that month has (OW-WAR-0148 M15).
+#[must_use]
+pub fn due_date(s: &str) -> Option<(u32, u32, u32)> {
+    let b = s.as_bytes();
+    if b.len() != 10 || b[4] != b'-' || b[7] != b'-' {
+        return None;
+    }
+    let num = |r: std::ops::Range<usize>| -> Option<u32> {
+        let part = s.get(r)?;
+        part.bytes()
+            .all(|c| c.is_ascii_digit())
+            .then(|| part.parse().ok())
+            .flatten()
+    };
+    let (y, m, d) = (num(0..4)?, num(5..7)?, num(8..10)?);
+    let leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
+    let days = match m {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => return None,
+    };
+    (y >= 1 && (1..=days).contains(&d)).then_some((y, m, d))
 }
 
 /// One atom of a ticket, as a Warrant manifest declares one.
@@ -168,6 +202,13 @@ impl TicketManifest {
         {
             return Err(format!(
                 "imported_from {from:?} is not `<format>:<id>` on one line (beads:bd-a1b2)"
+            ));
+        }
+        if let Some(due) = &self.due
+            && due_date(due).is_none()
+        {
+            return Err(format!(
+                "due {due:?} is not a calendar date, YYYY-MM-DD (2026-11-01)"
             ));
         }
         let mut ordinals = BTreeSet::new();
@@ -1281,6 +1322,7 @@ mod tests {
             issue: None,
             issue_url: None,
             imported_from: None,
+            due: None,
             atoms: Vec::new(),
         }
     }
@@ -1336,6 +1378,7 @@ mod tests {
             issue: None,
             issue_url: None,
             imported_from: None,
+            due: None,
             atoms: vec![
                 TicketAtom {
                     ordinal: 10,
@@ -1365,5 +1408,24 @@ mod tests {
         let mut bad = m;
         bad.priority = 9;
         assert!(bad.validate(&roles).is_err());
+    }
+
+    /// OW-WAR-0148 M15: a due date is a calendar date or nothing.
+    #[test]
+    fn a_due_date_is_a_calendar_date() {
+        assert_eq!(due_date("2026-11-01"), Some((2026, 11, 1)));
+        assert_eq!(due_date("2028-02-29"), Some((2028, 2, 29)));
+        for bad in [
+            "2026-02-29",
+            "2026-13-01",
+            "2026-04-31",
+            "2026-1-01",
+            "26-11-01",
+            "2026/11/01",
+            "",
+            "tomorrow",
+        ] {
+            assert!(due_date(bad).is_none(), "{bad:?}");
+        }
     }
 }
