@@ -1,6 +1,6 @@
 # Checklist
 
-- [ ] ticket items as records, blockers as depends_on (i-48e2)
-- [ ] types, labels, epics, filters, search (i-37f1)
-- [ ] war create --issue and opt-in write-back (i-be1d)
-- [ ] 76-ticket-features.sh, 77-typed-demo.sh (i-8747)
+- [x] ticket items as records, blockers as depends_on (i-48e2) — done by claude-m5, 2026-10-07: core ticket::kernel_relations() is the one reading of a ticket's relations (item part_of ticket, depends_on per blocker, promoted_to, part_of epic); war model and the store's blocked check both use it; pre-M5 ticket files read, claim and finish byte-compatible (plant 77 §4); 45-tickets and tickets_cli unchanged and green
+- [x] types, labels, epics, filters, search (i-37f1) — done by claude-m5, 2026-10-07: type/labels/part_of as optional manifest lines, [fields] in profiles/ticket.toml (closed label set refused: ticket.label-unknown), in_review declared state; war edit; war show <epic> lists tickets and progress; war tickets --type/--label/--state/--text/--search/--epic return exact sets; MCP war_tickets/war_create take them
+- [x] war create --issue and opt-in write-back (i-be1d) — done by claude-m5, 2026-10-07: war create --issue/--issue-file through [intake] fetch_argv (the is-a-read refusal unchanged); issue + issue_url in the manifest; [intake.writeback] comment_argv/close_argv run once each when the ticket becomes done; a failed write leaves it done and reads UNKNOWN (ticket.issue-unknown), close skipped, journalled
+- [x] 76-ticket-features.sh, 77-typed-demo.sh (i-8747) — done by claude-m5, 2026-10-07: 77-ticket-features.sh (11 checks) and 78-typed-demo.sh (4 checks) green alone and in the full battery: 1353 passed, 0 failed; docs/TICKETS.md updated
