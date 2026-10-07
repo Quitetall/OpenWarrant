@@ -29,6 +29,22 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Changed
 
+- Ordinary work is ordinary (M9, t-51280). Everything an agent reads says
+  first that ordinary coding needs no Warrant and no ticket: the AGENTS.md
+  template, the skills, the MCP instructions, and `war next` / `war ready`
+  with nothing ready ("nothing tracked; work freely"). Rules for a Warrant
+  with a sign-off step live in a section scoped to it, as what the tool
+  refuses. `war next` lists an agent's acts before the acts a person signs.
+  `war init` asks nothing: without `--namespace` it derives one from the
+  directory name, writes no signing setup, and `--guided` is the opt-in
+  conversation. The plugin's edit guard acts only in an OpenWarrant
+  repository's own trees. Every `sign.*` refusal names what is missing,
+  carries a remedy and ends "This blocks only the sign-off, not your work";
+  `war doctor` probes the signing setup without signing, `war doctor
+  --fix-signing` repairs it at a terminal (writing only absent files), and
+  `war doctor`/`war prime` warn `install.version-skew` when AGENTS.md or the
+  plugin is newer than the binary. Guarded by plant 101-agent-text (a lint
+  over all shipped agent text) and the opt-in `war eval ordinary`.
 - Verification bundles are bounded (t-9f7e). `oh.war/verification-bundle/v2`
   carries its estimate over the whole JSON against `[verify]
   max_bundle_tokens` (default 48000). A Warrant over it gets one bundle per

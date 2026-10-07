@@ -1003,7 +1003,7 @@ mod agents_md_tests {
 // `war init` as a conversation — the line front end (OW-WAR-0112 M4).
 // ---------------------------------------------------------------------------
 
-/// `war init` with no `--namespace`, at a terminal. Drives `guided::Machine`
+/// `war init --guided`, at a terminal. Drives `guided::Machine`
 /// with what the human types; applies each `Effect`; re-reads the tree.
 ///
 /// The invariants the machine cannot hold are held here: the terminal gate

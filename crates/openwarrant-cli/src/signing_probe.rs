@@ -622,6 +622,13 @@ pub fn finish(repo: &Repository, report: &mut Report) {
     for d in &mut report.diagnostics {
         if d.rule == "sign.who" && d.message.starts_with(NO_ELIGIBLE) {
             d.message = no_signer(repo, &d.message);
+        } else if d.rule == "sign.who" && d.message.ends_with("the register permits: nobody") {
+            // `--as <actor>` with nobody eligible: say why the register is
+            // empty when the file is what is missing.
+            let why = no_signer(repo, NO_ELIGIBLE);
+            if why != NO_ELIGIBLE {
+                d.message = format!("{}: {why}", d.message);
+            }
         }
         if is_sign_refusal(d) && !d.message.ends_with(BLOCKS_ONLY) {
             let sep = if d.message.ends_with('.') { " " } else { ". " };
@@ -1211,6 +1218,47 @@ mod tests {
             r.iter()
                 .all(|x| !matches!(x, Repair::Tell(t) if t.contains("war sign")))
         );
+    }
+
+    /// With no roles.toml, both spellings of "nobody eligible" name the
+    /// missing file; the refusal side is the repository above, whose
+    /// register exists, where the message is left as it was.
+    #[test]
+    fn nobody_eligible_names_a_missing_roles_toml() {
+        let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-no-roles-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        crate::init::run("NR", None, Some(root.clone())).unwrap();
+        let repo = Repository::discover(Some(root.clone())).unwrap();
+        let mut r = Report::default();
+        r.push(Diagnostic::error(
+            "sign.who",
+            "x",
+            format!("{NO_ELIGIBLE}: docs/authority/roles.toml gives the role to nobody"),
+        ));
+        r.push(Diagnostic::error(
+            "sign.who",
+            "x",
+            "Ada is not eligible to sign this; the register permits: nobody",
+        ));
+        finish(&repo, &mut r);
+        assert!(
+            r.diagnostics[0]
+                .message
+                .starts_with("docs/authority/roles.toml does not exist"),
+            "{}",
+            r.diagnostics[0].message
+        );
+        assert!(
+            r.diagnostics[1]
+                .message
+                .contains(": docs/authority/roles.toml does not exist"),
+            "{}",
+            r.diagnostics[1].message
+        );
+        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
