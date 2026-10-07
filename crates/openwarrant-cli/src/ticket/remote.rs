@@ -236,13 +236,19 @@ pub fn push(
         .stdout
         .lines()
         .any(|l| l.starts_with('!') && l.contains(refname));
-    let raced = ran.stdout.contains("stale info")
-        || ran.stdout.contains("fetch first")
-        || ran.stdout.contains("non-fast-forward")
-        || ran.stdout.contains("already exists")
-        || ran.stderr.contains("cannot lock ref")
-        || ran.stdout.contains("failed to update ref")
-        || ran.stdout.contains("failed to lock");
+    let said = format!("{}\n{}", ran.stdout, ran.stderr);
+    let raced = [
+        "stale info",
+        "fetch first",
+        "non-fast-forward",
+        "already exists",
+        "cannot lock ref",
+        "failed to update ref",
+        "failed to lock",
+        "incorrect old value",
+    ]
+    .iter()
+    .any(|s| said.contains(s));
     if rejected && raced {
         Push::Lost
     } else {

@@ -3251,11 +3251,16 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
     if let Err(refusal) = written {
         return Ok(*refusal);
     }
-    store.journal(
-        t,
-        event::EDITED,
-        &serde_json::Value::Object(changes.clone()),
-    )?;
+    // M11: each edit is its own event. The changes alone repeat (a priority
+    // set to 3 again, by someone else), and a repeated payload is a journal
+    // idempotency conflict: the manifest was written and the command then
+    // failed. The edit's own id keeps every edit's key distinct.
+    let mut payload = changes.clone();
+    payload.insert(
+        "edit".into(),
+        serde_json::json!(WarUuid::mint().to_string()),
+    );
+    store.journal(t, event::EDITED, &serde_json::Value::Object(payload))?;
     let said: Vec<String> = changes
         .iter()
         .map(|(k, v)| match v {
