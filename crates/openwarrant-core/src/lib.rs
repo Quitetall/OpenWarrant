@@ -18,6 +18,7 @@ pub mod batch;
 pub mod context;
 pub mod deliverable;
 pub mod document;
+pub mod instruction;
 pub mod preflight;
 pub mod presence;
 pub mod projection;

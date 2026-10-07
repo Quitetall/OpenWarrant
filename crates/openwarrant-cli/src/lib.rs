@@ -48,6 +48,7 @@ pub mod impact;
 pub mod inbox;
 pub mod init;
 pub mod install;
+pub mod instructions;
 pub mod invalidation;
 pub mod journal_cmd;
 pub mod kf;
@@ -800,13 +801,28 @@ enum Command {
     },
     /// Write the AGENTS.md this repository ships, for the repository's
     /// namespace. `war init` writes it once; this rewrites (--force) or prints it.
+    /// `--block` keeps only a small managed pointer block in the files you
+    /// already have (M16).
     AgentsMd {
         /// Print to stdout instead of writing.
         #[arg(long)]
         stdout: bool,
         /// Overwrite an existing AGENTS.md.
-        #[arg(long)]
+        #[arg(long, conflicts_with = "block")]
         force: bool,
+        /// Insert or update the managed pointer block (`<!-- openwarrant:begin -->` …
+        /// `<!-- openwarrant:end -->`) in every root AGENTS.md and CLAUDE.md, or in a
+        /// new AGENTS.md when neither exists. It says ordinary coding needs no Warrant
+        /// and that `war prime` shows tracked work, and carries the version stamp.
+        /// Bytes outside the markers are never touched; a second run changes
+        /// nothing. A file with two blocks or an unterminated one is refused by
+        /// name, and then no file is written.
+        #[arg(long)]
+        block: bool,
+        /// With --block: write the block into this file instead (repository-relative;
+        /// created when absent). Repeatable.
+        #[arg(long = "file", value_name = "PATH", requires = "block")]
+        files: Vec<String>,
     },
     /// Create a draft Warrant (§71.2) from a preset: typed atoms, each
     /// heading followed by the question it answers (OW-ADR-0022).
@@ -2240,7 +2256,90 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(EXIT_OK)
         }
 
-        Command::AgentsMd { stdout, force } => {
+        Command::AgentsMd {
+            stdout,
+            force: _,
+            block: true,
+            files,
+        } => {
+            if stdout {
+                println!(
+                    "{}",
+                    openwarrant_core::instruction::block_text(instructions::version())
+                );
+                return Ok(EXIT_OK);
+            }
+            let repository = open_repo()?;
+            let root = &repository.root;
+            let mut report = diagnostic::Report::default();
+            let mut targets = Vec::new();
+            for f in &files {
+                let p = camino::Utf8Path::new(f);
+                if p.is_absolute() || p.components().any(|c| c.as_str() == "..") {
+                    report.push(diagnostic::Diagnostic::error(
+                        "agents-md.file-outside",
+                        f.clone(),
+                        format!(
+                            "{f}: --file names a path relative to the repository root, inside \
+                             it. Nothing was written."
+                        ),
+                    ));
+                } else {
+                    targets.push(root.join(p));
+                }
+            }
+            if !report.diagnostics.is_empty() {
+                return Ok(output::finish(mode, "agents_md", &report, None));
+            }
+            if targets.is_empty() {
+                targets = instructions::default_targets(root);
+            }
+            match instructions::write_blocks(root, &targets) {
+                Ok(written) => {
+                    let human = written
+                        .iter()
+                        .map(|w| {
+                            format!(
+                                "{}: {}",
+                                w.path,
+                                match w.change {
+                                    "created" => "created, holding the openwarrant block",
+                                    "inserted" => "added the openwarrant block at its end",
+                                    "updated" => "updated the openwarrant block",
+                                    "linked" => "a link to a file above; written through it",
+                                    _ => "the openwarrant block is current; nothing changed",
+                                }
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    output::emit(
+                        mode,
+                        "agents_md",
+                        &human,
+                        serde_json::json!({
+                            "block": true,
+                            "version": instructions::version(),
+                            "files": written
+                                .iter()
+                                .map(|w| serde_json::json!({"path": w.path, "change": w.change}))
+                                .collect::<Vec<_>>(),
+                        }),
+                    );
+                    Ok(EXIT_OK)
+                }
+                Err(instructions::Refused::Blocks(report)) => {
+                    Ok(output::finish(mode, "agents_md", &report, None))
+                }
+                Err(instructions::Refused::Io(message)) => Err(message.into()),
+            }
+        }
+        Command::AgentsMd {
+            stdout,
+            force,
+            block: false,
+            files: _,
+        } => {
             let repository = open_repo()?;
             let ns = repository.config.project.namespace.as_str().to_owned();
             if stdout {

@@ -49,6 +49,11 @@ pub fn run(
         Ok(repo) => {
             // M9: text newer than this binary, said before anything it reads.
             report.diagnostics.extend(crate::skew::findings(&repo.root));
+            // M16: the pointer block in CLAUDE.md and AGENTS.md, missing,
+            // stale or malformed.
+            report
+                .diagnostics
+                .extend(crate::instructions::doctor(&repo.root));
             repo
         }
         Err(error) => {

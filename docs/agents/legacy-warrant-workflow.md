@@ -154,4 +154,10 @@ sign-off, not your work.
   Warrant pins (only in a repository with `openwarrant.toml`), and an
   end-of-turn check that reports `war check` errors without holding the turn.
 
+<!-- openwarrant:begin -->
+<!-- Written by `war agents-md --block`, which rewrites the lines between these markers. -->
+Ordinary coding needs no Warrant and no ticket: work here as in any repository.
+OpenWarrant tracks optional plans and checklists in this repository; run
+`war prime` to see what is tracked (open work, who holds what, recent notes).
 <!-- openwarrant agents-md: written by war 1.0.0-alpha.2 -->
+<!-- openwarrant:end -->
