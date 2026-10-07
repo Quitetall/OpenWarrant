@@ -101,7 +101,8 @@ pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
             return;
         }
         for raw in split_sentences(text) {
-            let s = raw.trim().trim_matches(|c| c == '*').trim();
+            let s = strip_emphasis(raw.trim());
+            let s = s.as_str();
             if s.is_empty() {
                 continue;
             }
@@ -285,9 +286,52 @@ pub fn dropped_sections(text: &str) -> Vec<String> {
     found
 }
 
+/// Drop Markdown bold markers from a projected sentence.
+///
+/// The projection re-emits each sentence under its own `**KEYWORD**`, so the
+/// source's emphasis is presentation this view does not need. Trimming only the
+/// ends left the interior close behind whenever a label was written
+/// `**RQ-001. The Fabric SHALL …**`, so the sentence read
+/// `RQ-001. The Fabric SHALL ….** Background follows.` and a reader could not
+/// tell whose asterisks those were. A `**` inside a code span is the source's
+/// text (`docs/**/*.md`), not emphasis, and is kept.
+fn strip_emphasis(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut in_code = false;
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '`' {
+            in_code = !in_code;
+        } else if c == '*' && !in_code && chars.peek() == Some(&'*') {
+            chars.next();
+            continue;
+        }
+        out.push(c);
+    }
+    out.trim().trim_matches('*').trim().to_owned()
+}
+
+/// Whether `text` ends inside a bold span: an odd number of `**` markers
+/// outside code spans. A period there is part of a label such as
+/// `**RQ-001. The Fabric SHALL …**`, not a sentence end.
+fn bold_is_open(text: &str) -> bool {
+    let mut open = false;
+    let mut in_code = false;
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '`' {
+            in_code = !in_code;
+        } else if c == '*' && !in_code && chars.peek() == Some(&'*') {
+            chars.next();
+            open = !open;
+        }
+    }
+    open
+}
+
 /// Split prose into sentences at `. ` followed by an uppercase letter, `(`,
 /// `\`` or a digit — not at every period, since `e.g.` and `§12.4` carry
-/// them. The text's end closes the last sentence.
+/// them, and not inside a bold span. The text's end closes the last sentence.
 fn split_sentences(text: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut current = String::new();
@@ -297,6 +341,7 @@ fn split_sentences(text: &str) -> Vec<String> {
         let c = chars[i];
         current.push(c);
         if c == '.'
+            && !bold_is_open(&current)
             && chars.get(i + 1) == Some(&' ')
             && chars.get(i + 2).is_some_and(|n| {
                 n.is_ascii_uppercase() || matches!(n, '(' | '`' | '*') || n.is_ascii_digit()
@@ -444,5 +489,62 @@ mod normative_tests {
         assert_eq!(got[1].heading, "Dispatch compilation");
         // §3 (the definitions) and the fence and the table row project nothing.
         assert!(got.iter().all(|s| s.section != "3"));
+    }
+
+    /// A heading with no number still clears the section, so an appendix does
+    /// not inherit the lettered section before it.
+    #[test]
+    fn an_unnumbered_heading_still_clears_the_section() {
+        let text = "## 8A. Ingestion\n\nThe reader SHALL admit one item.\n\n## Appendix\n\nThe appendix SHALL be ignored here.\n";
+        let got = normative_sentences(text);
+        assert_eq!(got.len(), 1, "only the numbered section projects: {got:?}");
+        assert_eq!(got[0].section, "8A");
+    }
+
+    /// A period inside a bold span does not end a sentence. Splitting there
+    /// leaves the closing `**` leading the next sentence, which is how a
+    /// requirement label written `**RQ-001. The Fabric SHALL ...**` came apart.
+    #[test]
+    fn a_period_inside_bold_does_not_split_the_sentence() {
+        let text = "## 9. Requirements\n\n**RQ-001. The Fabric SHALL record its sources.** Background follows.\n";
+        let got = normative_sentences(text);
+        assert_eq!(got.len(), 1, "the bold span is one sentence: {got:?}");
+        assert!(
+            !got[0].sentence.contains('*'),
+            "an emphasis marker survived into the sentence: {:?}",
+            got[0].sentence
+        );
+        assert!(got[0].sentence.starts_with("RQ-001."), "{got:?}");
+    }
+
+    /// Bold inside a sentence is the source's presentation; the projection
+    /// adds its own, so the markers go, wherever they sit.
+    #[test]
+    fn interior_emphasis_markers_are_stripped() {
+        let got = normative_sentences(
+            "## 9. Requirements\n\nThe Fabric SHALL **always** record its sources.\n",
+        );
+        assert_eq!(got.len(), 1, "{got:?}");
+        assert_eq!(
+            got[0].sentence,
+            "The Fabric SHALL always record its sources."
+        );
+    }
+
+    /// The refusal beside the two above: a `**` inside a code span is quoted
+    /// text, so it is neither stripped nor counted as an open bold span.
+    #[test]
+    fn a_glob_in_a_code_span_is_kept_and_does_not_hold_a_sentence_open() {
+        let got = normative_sentences(
+            "## 9. Scope\n\nThe tool SHALL read `docs/**/*.md` only. It SHALL NOT recurse.\n",
+        );
+        let sentences: Vec<&str> = got.iter().map(|s| s.sentence.as_str()).collect();
+        assert_eq!(
+            sentences,
+            vec![
+                "The tool SHALL read `docs/**/*.md` only.",
+                "It SHALL NOT recurse."
+            ]
+        );
     }
 }

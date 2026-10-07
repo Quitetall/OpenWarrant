@@ -944,16 +944,16 @@ SAS revision **1.3.0** (accepted), sha256:`97c69198140b6312e0f4da4b19a5cd16a87ea
 
 ### §107 Final doctrine
 
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Establish OpenWarrant repository and Rust workspace**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Implement file-native manifest and atom parser**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Implement canonical WAR IR and RFC 8785 digesting**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Implement generated parent and drift checking**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Implement deterministic `war check`**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Implement Katana-backed `war plan`**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Import the WAR SAS as a controlled KF/Liminal document**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Implement ADR atom and ADR Overview compilation**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Implement KF registration and global identity**.
-- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include **WAR: Implement Stage Dispatch and Katana runtime receipt**.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Establish OpenWarrant repository and Rust workspace.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Implement file-native manifest and atom parser.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Implement canonical WAR IR and RFC 8785 digesting.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Implement generated parent and drift checking.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Implement deterministic `war check`.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Implement Katana-backed `war plan`.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Import the WAR SAS as a controlled KF/Liminal document.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Implement ADR atom and ADR Overview compilation.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Implement KF registration and global identity.
+- **SHOULD** §107: The first OpenWarrant implementation sequence SHOULD include WAR: Implement Stage Dispatch and Katana runtime receipt.
 - **SHALL** §107: Each SHALL reference the applicable requirement IDs in §106.
 
 ## Decisions
