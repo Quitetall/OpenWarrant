@@ -29444,7 +29444,7 @@ truncates nothing.
 | D-007 | Response drafts written atomically before their rename | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-008 | Durable journal appends and journal.torn-tail | `crates/openwarrant-cli/src/journal_cmd.rs` | drift |
 | D-009 | storage.stray-temp in war check | `crates/openwarrant-cli/src/check.rs` | drift |
-| D-010 | The storage protocol, crash points, and the retained-artifact rule | `docs/STORAGE.md` | verified |
+| D-010 | The storage protocol, crash points, and the retained-artifact rule | `docs/STORAGE.md` | drift |
 | D-011 | The storage plants | `conformance/plants.d/53-storage.sh` | verified |
 
 ### OW-WAR-0122 — The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept
@@ -38609,7 +38609,7 @@ OBL-004's.
 | D-005 | lib.rs: the version string, version --probe, __release-check, the notice hook, update's default channel | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-006 | tui/mod.rs binary_row: compares identity, names the remedy | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
 | D-007 | install.sh against the current release contract, into the managed layout | `install.sh` | verified |
-| D-008 | release.yml: OPENWARRANT_RELEASE_TAG at build, install.sh attached | `.github/workflows/release.yml` | verified |
+| D-008 | release.yml: OPENWARRANT_RELEASE_TAG at build, install.sh attached | `.github/workflows/release.yml` | drift |
 | D-009 | The install document | `docs/INSTALL.md` | drift |
 | D-010 | README.md: a pointer to docs/INSTALL.md | `README.md` | verified |
 | D-011 | QUICKSTART.md step 0: a pointer to docs/INSTALL.md | `QUICKSTART.md` | drift |
@@ -39580,7 +39580,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-010 | The ticket tools over MCP | `crates/openwarrant-cli/src/mcp/tools.rs` | drift |
 | D-011 | The MCP instructions name the ticket loop | `crates/openwarrant-cli/src/mcp/mod.rs` | drift |
 | D-012 | The loop, the process race, check and MCP, through the binary | `crates/openwarrant-cli/tests/tickets_cli.rs` | verified |
-| D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | verified |
+| D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | drift |
 | D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | drift |
 | D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | drift |
 | D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | verified |
