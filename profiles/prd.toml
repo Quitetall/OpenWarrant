@@ -1,0 +1,63 @@
+# A product requirements document (OW-WAR-0148 M6), as data: a document
+# type. It composes records and declares how to project them, and nothing
+# of it is claimed, authorized, verified or resolved (`form = "document"`).
+# docs/DOCUMENTS.md walks it; docs/TYPES.md has the reference.
+schema = "oh.war/profile/v1"
+name = "prd"
+form = "document"
+note = "What the work is for, what it must do, what holds it in, and what it will not do: outcomes, requirements, constraints, non-goals and open questions, read from records."
+capabilities = ["structure", "links"]
+
+# The nouns a PRD shows. `non_goal` and `question` are its own: an area's
+# records may be governed by `prd` to hold them.
+[records]
+types = ["outcome", "requirement", "constraint", "non_goal", "question"]
+
+[relations]
+allow = ["implements", "constrains", "depends_on", "part_of"]
+
+[[projections]]
+name = "prd"
+title = "{title}: product requirements"
+intro = "What this work is for, what it must do, and what it will not do. Every statement below is a record, with its id; to change one, edit the record and run `war compile`."
+
+[projections.select]
+types = ["outcome", "requirement", "constraint", "non_goal", "question"]
+
+[[projections.sections]]
+heading = "Outcomes"
+intro = "What a user can do once this ships."
+block = "quote"
+types = ["outcome"]
+empty = "No outcome is recorded: this says what to build, not why."
+
+[[projections.sections]]
+heading = "Requirements"
+intro = "What the work must do. Each says which outcome it serves."
+block = "list"
+types = ["requirement"]
+annotate = ["out:implements", "in:constrains", "out:depends_on"]
+empty = "No requirement is recorded yet."
+
+[[projections.sections]]
+heading = "Constraints"
+intro = "What holds every solution in, whichever is chosen."
+block = "list"
+types = ["constraint"]
+annotate = ["out:constrains"]
+empty = "None recorded."
+
+[[projections.sections]]
+heading = "Non-goals"
+intro = "What this work deliberately does not do."
+block = "list"
+types = ["non_goal"]
+empty = "None recorded."
+
+[[projections.sections]]
+heading = "Open questions"
+intro = "What is not decided yet."
+block = "list"
+types = ["question"]
+annotate = ["out:part_of", "out:constrains"]
+empty = "None open."

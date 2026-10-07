@@ -1,0 +1,22 @@
+# The documents this area's records project into (OW-WAR-0148 M6). `war
+# compile` writes each under generated/, and `war check --generated` says
+# when one differs from a fresh rendering. Never edit those files: edit the
+# records and recompile. docs/DOCUMENTS.md walks it.
+schema = "oh.war/documents/v1"
+title = "Password reset"
+
+[[document]]
+type = "prd"
+
+[[document]]
+type = "architecture"
+
+[[document]]
+type = "test-plan"
+
+# What an agent implementing REQ-pr1 reads: that requirement and only the
+# records it needs, within the packet's 16000-byte budget.
+[[document]]
+type = "agent-packet"
+title = "expire reset tokens (REQ-pr1)"
+roots = ["REQ-pr1"]

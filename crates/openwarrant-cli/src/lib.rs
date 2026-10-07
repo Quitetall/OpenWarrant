@@ -71,6 +71,7 @@ pub mod questions;
 pub mod records;
 pub mod relations;
 pub mod remedy;
+pub mod render_cmd;
 pub mod repo;
 pub mod resolution_cmd;
 pub mod resolve;
@@ -1342,6 +1343,28 @@ enum Command {
         /// A record id of `war model` (`REQ-pr1`, `OW-WAR-0001/OBL-002`,
         /// `t-3f2a/i-9c01`).
         record: String,
+    },
+    /// Render a declared projection of records (OW-WAR-0148 M6): one set of
+    /// records, many documents. `prd`, `architecture`, `test-plan` and
+    /// `agent-packet` ship as document types (profiles/*.toml, `form =
+    /// "document"`); a program declares its own. Prints the rendering
+    /// (Markdown or JSON) and writes nothing; `--json` returns it as
+    /// `oh.war/projection/v1`, every line traced to the record id and
+    /// revision it came from. `war compile` writes the projections of the
+    /// documents an area declares in `docs/records/<area>/documents.toml`.
+    Render {
+        /// The projection's name (`prd`, `architecture`, `test-plan`,
+        /// `agent-packet`).
+        projection: String,
+        /// What to render: a declared document (`password-reset/prd`), a
+        /// record area (`password-reset`), or one record (`REQ-pr1`). Omit
+        /// when exactly one document of the projection's type is declared.
+        #[arg(long = "of")]
+        of: Option<String>,
+        /// A byte budget, in place of the document's or projection's own.
+        /// Over budget is refused by name; nothing is truncated.
+        #[arg(long = "max-bytes")]
+        max_bytes: Option<usize>,
     },
     /// The compiled corpus as one document, `oh.war/model/v1` (OW-WAR-0148):
     /// every record with its revision and governor, every relation, the
@@ -2708,6 +2731,38 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     "impact",
                     &report,
                     impact.as_ref().map(output::value),
+                )),
+            }
+        }
+        Command::Render {
+            projection,
+            of,
+            max_bytes,
+        } => {
+            let repository = open_repo()?;
+            gate_cmd::source::remember_tree_reads();
+            let corpus = corpus::Corpus::new(&repository);
+            let (report, rendered) =
+                render_cmd::run(&corpus, &projection, of.as_deref(), max_bytes)?;
+            match mode {
+                output::Mode::Human => {
+                    if let Some(p) = &rendered {
+                        print!("{}", p.content);
+                    }
+                    for d in report
+                        .diagnostics
+                        .iter()
+                        .filter(|d| d.severity != diagnostic::Severity::Pass)
+                    {
+                        eprintln!("{d}");
+                    }
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "render",
+                    &report,
+                    rendered.as_ref().map(output::value),
                 )),
             }
         }

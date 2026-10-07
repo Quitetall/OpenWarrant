@@ -9776,7 +9776,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-006 | current.rs: the master document | `crates/openwarrant-compiler/src/current.rs` | verified |
 | D-007 | history.rs: the optional history | `crates/openwarrant-compiler/src/history.rs` | verified |
 | D-008 | compile.rs writes and drift-checks both | `crates/openwarrant-cli/src/compile.rs` | drift |
-| D-009 | the compiler's module list | `crates/openwarrant-compiler/src/lib.rs` | verified |
+| D-009 | the compiler's module list | `crates/openwarrant-compiler/src/lib.rs` | drift |
 | D-010 | docs/generated/CURRENT.md | `docs/generated/CURRENT.md` | not_content_addressed |
 | D-011 | docs/generated/HISTORY.md | `docs/generated/HISTORY.md` | not_content_addressed |
 | D-012 | the [generated] history key | `crates/openwarrant-core/src/config.rs` | not_content_addressed |

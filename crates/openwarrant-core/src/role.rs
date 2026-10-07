@@ -850,6 +850,15 @@ pub enum ProfileError {
         name: String,
         detail: String,
     },
+    /// OW-WAR-0148 M6: a document type (`form = "document"`) refused, under
+    /// the rule [`crate::projection`] names.
+    #[error("{file}: document type {name}: {detail} (OW-ADR-0031)")]
+    BadDocument {
+        file: String,
+        name: String,
+        rule: &'static str,
+        detail: String,
+    },
 }
 
 impl ProfileError {
@@ -862,6 +871,7 @@ impl ProfileError {
             Self::CapabilityPrerequisite { .. } => "profile.capability-prerequisite",
             Self::BadCapabilities { .. } => "profile.capabilities",
             Self::BadVocabulary { .. } => "profile.records",
+            Self::BadDocument { rule, .. } => rule,
             _ => "profile.invalid",
         }
     }
@@ -876,6 +886,9 @@ impl ProfileError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProfileRegistry {
     definitions: BTreeMap<String, ProfileDefinition>,
+    /// OW-WAR-0148 M6: the document types (`form = "document"`), by name.
+    /// Never Warrant profiles: [`Self::resolve`] does not know them.
+    documents: BTreeMap<String, crate::projection::DocumentProfile>,
 }
 
 impl Default for ProfileRegistry {
@@ -909,7 +922,10 @@ impl ProfileRegistry {
                 )
             })
             .collect();
-        Self { definitions }
+        Self {
+            definitions,
+            documents: BTreeMap::new(),
+        }
     }
 
     /// The built-in registry plus each `(file name, bytes)` definition.
@@ -922,6 +938,11 @@ impl ProfileRegistry {
     ) -> Result<Self, ProfileError> {
         let mut registry = Self::builtin();
         for (file, bytes) in sources {
+            // OW-WAR-0148 M6: a document type is read by its own parser.
+            if let Some(document) = parse_document_file(file, bytes, &registry)? {
+                registry.documents.insert(document.name.clone(), document);
+                continue;
+            }
             let definition = parse_definition(file, bytes)?;
             if definition.extends.is_some() {
                 registry
@@ -1004,7 +1025,10 @@ impl ProfileRegistry {
     /// admits one by that name (OW-WAR-0148 M3).
     #[must_use]
     pub fn vocabulary(&self, name: &str) -> Option<&crate::relation::Vocabulary> {
-        self.definitions.get(name).map(|d| &d.vocabulary)
+        self.definitions
+            .get(name)
+            .map(|d| &d.vocabulary)
+            .or_else(|| self.documents.get(name).map(|d| &d.vocabulary))
     }
 
     /// The namespaced roles `profile` requires, empty for a core profile.
@@ -1019,6 +1043,96 @@ impl ProfileRegistry {
             })
             .unwrap_or_default()
     }
+}
+
+// ---- OW-WAR-0148 M6: document types (`form = "document"`) and their
+// projections. Additive: a file without `form = "document"` is read by
+// `parse_definition` exactly as before, and a document type is never a
+// Warrant profile (`resolve` does not know it).
+
+impl ProfileRegistry {
+    /// Every document type, by name.
+    pub fn documents(&self) -> impl Iterator<Item = &crate::projection::DocumentProfile> {
+        self.documents.values()
+    }
+
+    /// The document type named `name`.
+    #[must_use]
+    pub fn document(&self, name: &str) -> Option<&crate::projection::DocumentProfile> {
+        self.documents.get(name)
+    }
+
+    /// The projection named `name` and the document type that declares it.
+    /// Projection names are unique across a program's document types.
+    #[must_use]
+    pub fn projection(
+        &self,
+        name: &str,
+    ) -> Option<(
+        &crate::projection::DocumentProfile,
+        &crate::projection::ProjectionDef,
+    )> {
+        self.documents.values().find_map(|d| {
+            d.projections
+                .iter()
+                .find(|p| p.name == name)
+                .map(|p| (d, p))
+        })
+    }
+}
+
+/// A document type, when `bytes` declares `form = "document"`; `None` for
+/// every other profile file. Its name is its file stem, as for every
+/// profile, and its projections' names are unique across the registry.
+fn parse_document_file(
+    file: &str,
+    bytes: &[u8],
+    registry: &ProfileRegistry,
+) -> Result<Option<crate::projection::DocumentProfile>, ProfileError> {
+    use sha2::{Digest as _, Sha256};
+    let Ok(text) = std::str::from_utf8(bytes) else {
+        return Ok(None);
+    };
+    if !crate::projection::is_document_form(text) {
+        return Ok(None);
+    }
+    let stem = file.strip_suffix(".toml").unwrap_or(file);
+    let stem = stem.rsplit('/').next().unwrap_or(stem);
+    let digest = format!(
+        "sha256:{}",
+        Sha256::digest(bytes)
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect::<String>()
+    );
+    let document =
+        crate::projection::parse_document(text, digest).map_err(|e| ProfileError::BadDocument {
+            file: file.to_owned(),
+            name: stem.to_owned(),
+            rule: e.rule,
+            detail: e.detail,
+        })?;
+    if document.name != stem {
+        return Err(ProfileError::NameMismatch {
+            file: file.to_owned(),
+            name: document.name,
+        });
+    }
+    for p in &document.projections {
+        if let Some((other, _)) = registry.projection(&p.name) {
+            return Err(ProfileError::BadDocument {
+                file: file.to_owned(),
+                name: document.name.clone(),
+                rule: "profile.projection",
+                detail: format!(
+                    "projection `{}` is already declared by document type {}; a projection's \
+                     name is unique across the program",
+                    p.name, other.name
+                ),
+            });
+        }
+    }
+    Ok(Some(document))
 }
 
 fn is_profile_name(name: &str) -> bool {

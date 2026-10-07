@@ -75,6 +75,10 @@ fn entries() -> Vec<Entry> {
         // OW-WAR-0148 M3: what a change to one record affects (`war impact`).
         // Additive: the pack version does not move.
         entry::<crate::impact::Impact>("impact"),
+        // OW-WAR-0148 M6: a rendering of a declared projection (`war render
+        // --json`), every line traced to a record and its revision. Additive:
+        // the pack version does not move.
+        entry::<openwarrant_compiler::project::Projection>("projection"),
     ]
 }
 
