@@ -424,6 +424,15 @@ enum TicketCommand {
         /// drafter this is refused and nothing is invented.
         #[arg(long)]
         draft: bool,
+        /// With --draft: the drafter proposes typed records too, and the
+        /// ticket's items implement them (OW-WAR-0148 M7). The records are
+        /// validated as authored ones are, then written to one record atom
+        /// under `docs/records/<area>/`; a refused proposal writes nothing.
+        #[arg(long, requires = "draft")]
+        records: bool,
+        /// With --records: the area under `docs/records/` the records land in.
+        #[arg(long, value_name = "NAME", requires = "records")]
+        area: Option<String>,
         /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
@@ -771,6 +780,16 @@ enum Command {
         /// from in `plan/intake.json`.
         #[arg(long, value_name = "PATH")]
         issue_file: Option<Utf8PathBuf>,
+        /// Draft typed records (`oh.war/records-request/v1`) and the ticket
+        /// whose items implement them, in place of a Warrant (OW-WAR-0148
+        /// M7). Validated by the rules authored records get before anything
+        /// is written; `--reviewed --apply` writes one record atom under
+        /// `docs/records/<area>/` and the ticket.
+        #[arg(long, conflicts_with_all = ["issue", "issue_file"])]
+        records: bool,
+        /// With --records: the area under `docs/records/` the records land in.
+        #[arg(long, value_name = "NAME", requires = "records")]
+        area: Option<String>,
     },
     /// Lower a computational Warrant's stage graph into a BLUT PlanSpec (§49).
     Blut {
@@ -1639,9 +1658,23 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 body,
                 priority,
                 draft,
+                records,
+                area,
                 actor,
             } => {
                 let (repository, store) = tickets(actor.as_deref())?;
+                if records {
+                    let outcome = plan::records::run_create(
+                        &repository,
+                        &store,
+                        &title,
+                        area.as_deref(),
+                        &items,
+                        body.as_deref(),
+                        priority,
+                    )?;
+                    return Ok(ticket_answer(mode, "create", &outcome));
+                }
                 let mut items = items;
                 if draft {
                     match ticket::drafted_items(&repository, &title)? {
@@ -2254,6 +2287,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             apply,
             issue,
             issue_file,
+            records,
+            area,
         } => {
             let repository = open_repo()?;
             let mut answer_map: std::collections::BTreeMap<String, String> = answers
@@ -2263,6 +2298,20 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                         .map(|(k, v)| (k.trim().to_owned(), v.to_owned()))
                 })
                 .collect();
+            if records {
+                let args = plan::records::PlanArgs {
+                    sentence: request,
+                    profile,
+                    area,
+                    proposal,
+                    draft,
+                    reviewed,
+                    apply,
+                    out,
+                    answers: answer_map,
+                };
+                return Ok(plan::records::run_plan(mode, &repository, &args)?);
+            }
             // OW-WAR-0141: an issue in place of the sentence, and the answers a
             // human already gave to this input's intake questions.
             let intake = plan::resolve_intake(
