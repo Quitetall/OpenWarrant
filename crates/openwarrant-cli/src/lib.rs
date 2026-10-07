@@ -389,10 +389,11 @@ enum EvalCommand {
     /// it refuses, asks for a Warrant, or edits nothing. Never run by the
     /// battery with a real agent. evals/ordinary/README.md has the how-to.
     Ordinary {
-        /// The agent's argv, one element per flag (repeat --agent). An
-        /// element `{prompt}` is replaced by the scenario's sentence;
-        /// without one the sentence goes to the agent's stdin.
-        #[arg(long = "agent", value_name = "ARGV")]
+        /// The agent's argv, one element per flag (repeat --agent; an
+        /// element may start with `-`, as in `--agent -p`). An element
+        /// `{prompt}` is replaced by the scenario's sentence; without one
+        /// the sentence goes to the agent's stdin.
+        #[arg(long = "agent", value_name = "ARGV", allow_hyphen_values = true)]
         agent: Vec<String>,
         /// The scenario directory (`scenario.toml` and `repo/`).
         #[arg(long, default_value = eval_ordinary::DEFAULT_SCENARIO, value_name = "DIR")]

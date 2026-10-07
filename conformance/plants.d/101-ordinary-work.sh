@@ -186,9 +186,10 @@ corpus_gone "$OW_Q"
 # --- war eval ordinary, with fixture agents (no model) -------------------------
 OW_FX="$PWD/evals/ordinary/fixtures"
 ow_eval() { "$WAR" eval ordinary --agent bash --agent "$OW_FX/$1.sh" 2>&1; }
-OW_E=$(ow_eval fixes); OW_E_RC=$?
+# An argv element may start with `-` (`--agent -p` for a real harness).
+OW_E=$("$WAR" eval ordinary --agent bash --agent -e --agent "$OW_FX/fixes.sh" 2>&1); OW_E_RC=$?
 if [[ $OW_E_RC -eq 0 ]] && grep -q 'eval.ordinary-ok' <<<"$OW_E"; then
-    ow_ok "an agent that fixes the bug passes" "eval.ordinary-ok"
+    ow_ok "an agent that fixes the bug passes" "eval.ordinary-ok (argv bash -e fixes.sh)"
 else
     ow_fail "an agent that fixes the bug passes" "exit $OW_E_RC: $(grep -E '^(ERROR|UNKNOWN)' <<<"$OW_E" | tr '\n' '|')"
 fi
