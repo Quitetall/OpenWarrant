@@ -368,9 +368,13 @@ impl Model {
             .flatten()
             .map_or_else(|| "none".to_owned(), |r| r.version);
         self.fingerprint = crate::watch::fingerprint(&watched(&repo));
+        // One compiled corpus for this fingerprint (OW-WAR-0148): every pane
+        // below reads it, so the status, queue and frontier are built once
+        // per reload rather than once per pane.
+        let compiled = crate::corpus::Corpus::new(&repo);
 
         // The queue: `war sign --list`, through the console's board.
-        let board = crate::console::board(&repo).ok();
+        let board = crate::console::board_with(&compiled).ok();
         let mut queue = Vec::new();
         let mut questions = Vec::new();
         let mut stage_cmd: BTreeMap<(String, String), String> = BTreeMap::new();
@@ -418,7 +422,7 @@ impl Model {
 
         // The frontier.
         let mut frontier = Vec::new();
-        if let Ok((_, f)) = crate::frontier::run(&repo, None) {
+        if let Ok((_, f)) = compiled.frontier() {
             for r in &f.rows {
                 let cmd = stage_cmd
                     .get(&(r.warrant.clone(), r.stage.clone()))
@@ -448,7 +452,7 @@ impl Model {
         self.rows.insert(Pane::Frontier as u8, frontier);
 
         // The corpus, obligations and evidence: one `status::build`.
-        let status = crate::status::build(&repo).ok();
+        let status = compiled.status().ok();
         let mut corpus = Vec::new();
         let mut obligations = Vec::new();
         let mut evidence = Vec::new();
@@ -460,9 +464,19 @@ impl Model {
                             .to_owned()
                     },
                     |c| {
-                        c.as_pairs()
+                        c.states()
                             .iter()
-                            .map(|(name, met)| format!("{} {name}", if *met { "✓" } else { "✗" }))
+                            .map(|(name, state)| match state {
+                                openwarrant_core::resolution::RequirementState::Met => {
+                                    format!("✓ {name}")
+                                }
+                                openwarrant_core::resolution::RequirementState::Unmet => {
+                                    format!("✗ {name}")
+                                }
+                                openwarrant_core::resolution::RequirementState::NotApplicable(
+                                    cap,
+                                ) => format!("– {name} (not applicable: no `{cap}` capability)"),
+                            })
                             .collect::<Vec<_>>()
                             .join("\n")
                     },
@@ -591,7 +605,10 @@ impl Model {
 
         // The roadmap: phases in dependency order, from `war roadmap`'s view.
         let mut roadmap = Vec::new();
-        match crate::roadmap_cmd::view(&repo) {
+        match compiled
+            .status()
+            .and_then(|s| crate::roadmap_cmd::view_with(&repo, s))
+        {
             Ok((_, v)) => {
                 for p in &v.phases {
                     roadmap.push(Row {
@@ -683,9 +700,9 @@ impl Model {
                 detail: Some(self.setup.question()),
             }],
         );
-        let next = crate::next::run(&repo).ok();
+        let next = crate::next::run_with(&compiled).ok();
         let (doctor, _) = crate::doctor::run(Some(self.root.clone()), None, false);
-        let check = crate::check::run(&repo, None, false).ok();
+        let check = crate::check::run_with(&compiled, None, false).ok();
         self.rows.insert(
             Pane::Help as u8,
             self.help_rows(next.as_ref(), Some(&doctor), check.as_ref()),

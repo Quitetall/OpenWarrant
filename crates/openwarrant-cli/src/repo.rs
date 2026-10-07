@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Repository discovery and loading — the I/O half the core crate refuses (§79.1, §79.4).
 
+use crate::vfs as fs;
 use std::fmt;
-use std::fs;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::{AtomSource, CompilationBasis, SasPin, ScopeSource};
@@ -43,6 +43,28 @@ pub struct IntakePolicy {
     /// Wall-clock bound on one fetch. 0 or absent means 30.
     #[serde(default)]
     pub fetch_timeout_secs: u64,
+    /// OW-WAR-0148 M5, approved by the owner (2026-10-02): `[intake.writeback]`,
+    /// what runs when a ticket made from an issue becomes done. Absent: no
+    /// write ever runs. Kept apart from `fetch_argv`, whose "is a read"
+    /// refusal it does not loosen.
+    #[serde(default)]
+    pub writeback: Option<WritebackPolicy>,
+}
+
+/// `[intake.writeback]`: argv templates, not shell strings. `{id}` is the
+/// issue number; `{body}` is the comment, one argv element.
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WritebackPolicy {
+    /// e.g. `["gh", "issue", "comment", "{id}", "--body", "{body}"]`.
+    #[serde(default)]
+    pub comment_argv: Vec<String>,
+    /// e.g. `["gh", "issue", "close", "{id}"]`.
+    #[serde(default)]
+    pub close_argv: Vec<String>,
+    /// Wall-clock bound on each write. 0 or absent means 30.
+    #[serde(default)]
+    pub timeout_secs: u64,
 }
 
 impl IntakePolicy {
@@ -158,7 +180,7 @@ impl Repository {
         let mut cursor: &Utf8Path = &start;
         loop {
             let candidate = cursor.join(CONFIG_FILE);
-            if candidate.is_file() {
+            if fs::is_file(&candidate) {
                 return Self::open(cursor.to_owned());
             }
             match cursor.parent() {
@@ -356,7 +378,7 @@ impl Repository {
     /// nobody anything — the fail-closed direction.
     pub fn load_authority_register(&self) -> Result<AuthorityRegister, RepoError> {
         let path = self.root.join("docs/authority/roles.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(AuthorityRegister::default());
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -412,7 +434,7 @@ impl Repository {
         dir: &Utf8Path,
     ) -> Result<Option<crate::authorize::AuthorizationRecord>, RepoError> {
         let path = dir.join("authorization.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(None);
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -431,7 +453,7 @@ impl Repository {
         dir: &Utf8Path,
     ) -> Result<Option<crate::resolution_cmd::ResolutionRecord>, RepoError> {
         let path = dir.join("resolution.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(None);
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -448,7 +470,7 @@ impl Repository {
         dir: &Utf8Path,
     ) -> Result<Vec<openwarrant_core::Judgment>, RepoError> {
         let path = dir.join("judgments.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(vec![]);
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -471,7 +493,7 @@ impl Repository {
         dir: &Utf8Path,
     ) -> Result<Option<Vec<openwarrant_core::rationale::Assumption>>, RepoError> {
         let path = dir.join("rationale.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(None);
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -502,7 +524,7 @@ impl Repository {
     /// paths alone."
     pub fn warrant_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
         let dir = self.warrants_dir();
-        if !dir.is_dir() {
+        if !fs::is_dir(&dir) {
             return Ok(vec![]);
         }
         let mut out = Vec::new();
@@ -518,7 +540,7 @@ impl Repository {
             let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
                 continue;
             };
-            if path.join("manifest.toml").is_file() {
+            if fs::is_file(path.join("manifest.toml")) {
                 out.push(path);
             }
         }
@@ -537,7 +559,7 @@ impl Repository {
             !alias.is_empty() && alias != "." && alias != ".." && !alias.contains(['/', '\\']);
         if plain {
             let dir = self.warrants_dir().join(alias);
-            if dir.join("manifest.toml").is_file() {
+            if fs::is_file(dir.join("manifest.toml")) {
                 return Ok(dir);
             }
         }
@@ -679,9 +701,12 @@ impl Repository {
         {
             self.profile_checks(dir, &validated, definition, &atoms, &mut report);
         }
+        if let Some(pin) = &manifest.profile_digest {
+            report.push(self.profile_pin(dir, &validated, pin, &relative_manifest));
+        }
 
         let scope_path = dir.join("scope.toml");
-        let scope = if scope_path.is_file() {
+        let scope = if fs::is_file(&scope_path) {
             match fs::read(&scope_path) {
                 Ok(bytes) => Some(ScopeSource {
                     source: self.relative(&scope_path),
@@ -789,7 +814,7 @@ impl Repository {
     /// would read as "the document is unpinned", which is the wrong direction.
     pub fn load_sas_revisions(&self) -> Result<Vec<openwarrant_core::SasRevision>, RepoError> {
         let dir = self.sas_revisions_dir();
-        if !dir.is_dir() {
+        if !fs::is_dir(&dir) {
             return Ok(vec![]);
         }
         let mut paths: Vec<Utf8PathBuf> = fs::read_dir(&dir)
@@ -924,7 +949,7 @@ impl Repository {
     /// malformed ADR in one run instead of one per invocation.
     pub fn load_adrs(&self) -> Result<AdrCorpus, RepoError> {
         let dir = self.adr_atoms_dir();
-        if !dir.is_dir() {
+        if !fs::is_dir(&dir) {
             return Ok(AdrCorpus::default());
         }
         let mut paths = Vec::new();
@@ -970,7 +995,7 @@ impl Repository {
     /// failed to parse.
     pub fn load_verifications(&self, dir: &Utf8Path) -> Result<VerificationSet, RepoError> {
         let vdir = dir.join("verifications");
-        if !vdir.is_dir() {
+        if !fs::is_dir(&vdir) {
             return Ok(VerificationSet::default());
         }
         let mut paths = Vec::new();
@@ -1018,7 +1043,7 @@ impl Repository {
     /// records so a malformed correction is reported rather than skipped.
     pub fn load_corrections(&self, dir: &Utf8Path) -> Result<CorrectionSet, RepoError> {
         let cdir = dir.join("corrections");
-        if !cdir.is_dir() {
+        if !fs::is_dir(&cdir) {
             return Ok(CorrectionSet::default());
         }
         let mut paths = Vec::new();
@@ -1061,7 +1086,7 @@ impl Repository {
     /// set.
     pub fn load_deliverables(&self, dir: &Utf8Path) -> Result<DeliverableSet, RepoError> {
         let path = dir.join("deliverables.toml");
-        if !path.is_file() {
+        if !fs::is_file(&path) {
             return Ok(DeliverableSet::default());
         }
         let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
@@ -1084,6 +1109,56 @@ impl Repository {
                 records: vec![],
                 failures: vec![(self.relative(&path), e.to_string())],
             }),
+        }
+    }
+
+    /// OW-ADR-0031: the profile file a manifest pinned, against the file as
+    /// it stands. Drift is a warning while the Warrant is unsigned — the
+    /// draft can be re-pinned — and an error once a human has authorized it,
+    /// because the signature covered the type the pin names. A manifest
+    /// without the pin never reaches here.
+    fn profile_pin(
+        &self,
+        dir: &Utf8Path,
+        validated: &ValidatedManifest,
+        pin: &str,
+        manifest_file: &str,
+    ) -> Diagnostic {
+        let alias = validated.alias.to_string();
+        let profile = &validated.profile;
+        let current = self
+            .profiles
+            .definition(profile)
+            .and_then(|d| d.digest.clone());
+        if current.as_deref() == Some(pin) {
+            return Diagnostic::pass(
+                "profile.pinned",
+                format!("{alias}: profile {profile} is the file it was composed against ({pin})"),
+            );
+        }
+        let authorized = self
+            .load_authorization(dir)
+            .ok()
+            .flatten()
+            .is_some_and(|a| {
+                a.revision.state == openwarrant_core::contract::RevisionState::Authorized
+            });
+        let message = format!(
+            "{alias}: profile {profile} was pinned at {pin} and profiles/{profile}.toml is now {}. {}",
+            current.as_deref().unwrap_or("absent"),
+            if authorized {
+                "The authorization signed the type as pinned; the type it now names is not \
+                 the one signed. Restore the profile file, or amend the Warrant and \
+                 re-authorize it"
+            } else {
+                "Unsigned, so the draft may be re-pinned to the file as it stands; once \
+                 authorized this is an error"
+            }
+        );
+        if authorized {
+            Diagnostic::error("profile.pin-drift", manifest_file.to_owned(), message)
+        } else {
+            Diagnostic::warn("profile.pin-drift", manifest_file.to_owned(), message)
         }
     }
 
@@ -1402,6 +1477,45 @@ pub struct Loaded {
 }
 
 impl Loaded {
+    /// The capabilities this Warrant's kind selects (OW-ADR-0031), read from
+    /// `registry`. A manifest that did not validate has no kind; it gets
+    /// every capability, which is the path every Warrant took before kinds
+    /// had capabilities, so nothing it reports goes quiet.
+    #[must_use]
+    pub fn capabilities(
+        &self,
+        registry: &openwarrant_core::role::ProfileRegistry,
+    ) -> openwarrant_core::Capabilities {
+        self.validated
+            .as_ref()
+            .map_or(openwarrant_core::Capabilities::ALL, |v| {
+                registry.capabilities(&v.profile)
+            })
+    }
+
+    /// `Err` naming the absent capability, by rule, when this Warrant's kind
+    /// does not select `cap`: the refusal `war authorize`, `war verify`, `war
+    /// resolve` and `war sign` give a kind that lacks the act's capability.
+    pub fn require(
+        &self,
+        registry: &openwarrant_core::role::ProfileRegistry,
+        cap: openwarrant_core::Capability,
+    ) -> Result<(), RepoError> {
+        if self.capabilities(registry).has(cap) {
+            return Ok(());
+        }
+        let profile = self
+            .validated
+            .as_ref()
+            .map(|v| v.profile.to_string())
+            .unwrap_or_default();
+        Err(RepoError::Message(capability_absent(
+            &self.alias(),
+            &profile,
+            cap,
+        )))
+    }
+
     /// The local alias, taken from the directory name when the manifest could
     /// not be validated.
     #[must_use]
@@ -1431,7 +1545,7 @@ pub fn amendment_sas_revision(dir: &Utf8Path) -> Option<(String, Utf8PathBuf)> {
         .filter(|p| p.extension() == Some("yaml"))
         .collect();
     files.into_iter().rev().find_map(|path| {
-        let text = std::fs::read_to_string(&path).ok()?;
+        let text = fs::read_to_string(&path).ok()?;
         let version = text.lines().find_map(|line| {
             let v = line
                 .strip_prefix("sas_revision:")?
@@ -1506,13 +1620,31 @@ fn header_mismatches(
     out
 }
 
+/// The words of a `capability.absent` refusal (OW-ADR-0031).
+#[must_use]
+pub fn capability_absent(alias: &str, profile: &str, cap: openwarrant_core::Capability) -> String {
+    format!(
+        "capability.absent: {alias}: profile {profile} does not select the `{cap}` \
+         capability, so nothing of it is {}. Its kind is data: profiles/{profile}.toml \
+         (OW-ADR-0031)",
+        match cap {
+            openwarrant_core::Capability::Authorization => "authorized",
+            openwarrant_core::Capability::Verification => "verified",
+            openwarrant_core::Capability::Resolution => "resolved",
+            openwarrant_core::Capability::Evidence => "recorded as evidence",
+            openwarrant_core::Capability::Stages => "dispatched as a stage",
+            _ => "read under it",
+        }
+    )
+}
+
 /// `profiles/*.toml` under `root`, read into a registry (OW-WAR-0140). No
 /// directory means the two core profiles and nothing else. A definition the
 /// registry refuses refuses the repository: a Warrant of that profile would
 /// otherwise read as having an unknown profile, which is not what is wrong.
 pub(crate) fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
     let dir = root.join("profiles");
-    if !dir.is_dir() {
+    if !fs::is_dir(&dir) {
         return Ok(ProfileRegistry::builtin());
     }
     let entries = fs::read_dir(&dir).map_err(|source| RepoError::Io {
@@ -1524,7 +1656,7 @@ pub(crate) fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoErro
         let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
             continue;
         };
-        if path.extension() == Some("toml") && path.is_file() {
+        if path.extension() == Some("toml") && fs::is_file(&path) {
             let bytes = fs::read(&path).map_err(|source| RepoError::Io {
                 context: format!("could not read {path}"),
                 source,
@@ -1537,7 +1669,7 @@ pub(crate) fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoErro
     }
     files.sort();
     ProfileRegistry::with_definitions(files.iter().map(|(f, b)| (f.as_str(), b.as_slice())))
-        .map_err(|e| RepoError::Message(format!("profile.invalid: {e}")))
+        .map_err(|e| RepoError::Message(format!("{}: {e}", e.rule())))
 }
 
 /// Every `scheme://…` token in an atom's text, in order, once each.

@@ -135,7 +135,7 @@ pub(crate) fn shape(input: &Value, typed: &Value) -> Result<(), &'static str> {
         _ => Ok(()),
     }
 }
-pub(super) fn encode(value: &Value, limit: usize) -> Result<Vec<u8>, serde_json::Error> {
+pub(crate) fn encode(value: &Value, limit: usize) -> Result<Vec<u8>, serde_json::Error> {
     struct Bounded {
         bytes: Vec<u8>,
         limit: usize,

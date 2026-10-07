@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-ae2be` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-ae2be"
+uuid = "01a10331-52e1-737d-bd8c-88aaa45d8d20"
+title = "M5: tickets on the kernel, ticket features, GitHub in and out, the demonstration"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-03T19:15:26Z"
+created_by = "claude"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

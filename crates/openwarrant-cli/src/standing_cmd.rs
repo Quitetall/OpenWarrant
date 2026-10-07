@@ -41,6 +41,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_core::contract::{
     ActorKind, Authorization, ContractRevision, Independence, RevisionState,
 };
+use openwarrant_core::role::ProfileRegistry;
 use openwarrant_core::standing::{self, Refusal, StandingAuthorization};
 use serde::{Deserialize, Serialize};
 
@@ -99,15 +100,26 @@ impl ClassFile {
     }
 }
 
+/// Whether a class may cover `profile`: its definition's `standing_coverage`
+/// (OW-ADR-0031). A name the registry does not admit may not be covered.
+fn may_cover(profiles: &ProfileRegistry, profile: &str) -> bool {
+    profiles
+        .resolve(profile)
+        .is_ok_and(|p| profiles.kind(&p).standing_coverage)
+}
+
 /// Read one class file. The name is `<id>@<revision>.toml`, and a record
 /// whose own `id` or `revision` disagrees with its name is refused.
-fn read_class(path: &Utf8Path) -> Option<ClassFile> {
+fn read_class(profiles: &ProfileRegistry, path: &Utf8Path) -> Option<ClassFile> {
     let stem = path.file_name()?.strip_suffix(".toml")?;
     let (id, rev) = stem.split_once('@')?;
     let revision: u32 = rev.parse().ok()?;
-    let bytes = std::fs::read(path).ok()?;
+    let bytes = crate::vfs::read(path).ok()?;
     let sha256 = openwarrant_compiler::sha256_hex(&bytes);
-    let parsed = standing::parse(&String::from_utf8_lossy(&bytes)).and_then(|c| {
+    let parsed = standing::parse_in(&String::from_utf8_lossy(&bytes), &|p| {
+        may_cover(profiles, p)
+    })
+    .and_then(|c| {
         if c.id == id && c.revision == revision {
             Ok(c)
         } else {
@@ -133,13 +145,11 @@ fn read_class(path: &Utf8Path) -> Option<ClassFile> {
 #[must_use]
 pub fn load_all(repo: &Repository) -> Vec<ClassFile> {
     let dir = repo.root.join(DIR);
-    let mut out: Vec<ClassFile> = dir
-        .read_dir_utf8()
+    let mut out: Vec<ClassFile> = crate::vfs::read_dir_utf8(&dir)
         .map(|rd| {
-            rd.flatten()
-                .map(|e| e.path().to_owned())
+            rd.into_iter()
                 .filter(|p| p.extension() == Some("toml"))
-                .filter_map(|p| read_class(&p))
+                .filter_map(|p| read_class(&repo.profiles, &p))
                 .collect()
         })
         .unwrap_or_default();
@@ -151,7 +161,7 @@ pub fn load_all(repo: &Repository) -> Vec<ClassFile> {
 #[must_use]
 pub fn load(repo: &Repository, reference: &str) -> Option<ClassFile> {
     let (id, rev) = standing::parse_reference(reference)?;
-    read_class(&class_path(repo, &id, rev))
+    read_class(&repo.profiles, &class_path(repo, &id, rev))
 }
 
 /// The human act on a class, as its signed response records it.
@@ -176,7 +186,7 @@ pub enum Standing {
 
 fn signed_act(repo: &Repository, act: Act, class: &ClassFile, who_key: &str) -> Option<Verdict> {
     let path = crate::authority_check::response_path(repo, act, &class.subject());
-    let text = std::fs::read_to_string(&path).ok()?;
+    let text = crate::vfs::read_to_string(&path).ok()?;
     let value: toml::Value = toml::from_str(&text).ok()?;
     let who = value.get(who_key).and_then(toml::Value::as_str)?.to_owned();
     Some(crate::authority_check::verify(
@@ -190,7 +200,7 @@ fn signed_act(repo: &Repository, act: Act, class: &ClassFile, who_key: &str) -> 
 
 fn response_field(repo: &Repository, act: Act, class: &ClassFile, key: &str) -> Option<String> {
     let path = crate::authority_check::response_path(repo, act, &class.subject());
-    let text = std::fs::read_to_string(path).ok()?;
+    let text = crate::vfs::read_to_string(path).ok()?;
     let value: toml::Value = toml::from_str(&text).ok()?;
     value
         .get(key)
@@ -366,7 +376,9 @@ pub fn propose(repo: &Repository, file: &Utf8Path, dry_run: bool) -> Result<Repo
         context: format!("could not read {file}"),
         source,
     })?;
-    let class = match standing::parse(&String::from_utf8_lossy(&bytes)) {
+    let class = match standing::parse_in(&String::from_utf8_lossy(&bytes), &|p| {
+        may_cover(&repo.profiles, p)
+    }) {
         Ok(c) => c,
         Err(refusals) => {
             for r in &refusals {
@@ -642,7 +654,7 @@ fn requested_reference(one: &crate::repo::Loaded, flag: Option<&str>) -> Option<
             format!("{}{}", standing::SCHEME, f.trim_start_matches("standing:"))
         });
     }
-    let text = std::fs::read_to_string(one.dir.join("manifest.toml")).ok()?;
+    let text = crate::vfs::read_to_string(one.dir.join("manifest.toml")).ok()?;
     let value: toml::Value = toml::from_str(&text).ok()?;
     value
         .get("standing")?
@@ -1432,7 +1444,7 @@ pub fn accept_ingest_with(
     let refuse = |report: &mut Report, rule: &str, why: String| {
         report.push(Diagnostic::error(rule, at.clone(), why));
     };
-    let Some(class) = read_class(&class_path(repo, id, revision)) else {
+    let Some(class) = read_class(&repo.profiles, &class_path(repo, id, revision)) else {
         refuse(
             &mut report,
             "standing.no-class",
@@ -1568,7 +1580,7 @@ pub fn revoke_ingest_with(
     let refuse = |report: &mut Report, rule: &str, why: String| {
         report.push(Diagnostic::error(rule, at.clone(), why));
     };
-    let Some(class) = read_class(&class_path(repo, id, revision)) else {
+    let Some(class) = read_class(&repo.profiles, &class_path(repo, id, revision)) else {
         refuse(
             &mut report,
             "standing.no-class",
@@ -1714,8 +1726,18 @@ max_deliverables = 1
         let bad = tmp.join("b@1.toml");
         std::fs::write(&good, text).expect("write");
         std::fs::write(&bad, text).expect("write");
-        assert!(read_class(&good).expect("read").parsed.is_ok());
-        assert!(read_class(&bad).expect("read").parsed.is_err());
+        assert!(
+            read_class(&ProfileRegistry::builtin(), &good)
+                .expect("read")
+                .parsed
+                .is_ok()
+        );
+        assert!(
+            read_class(&ProfileRegistry::builtin(), &bad)
+                .expect("read")
+                .parsed
+                .is_err()
+        );
         let _ = std::fs::remove_dir_all(&tmp);
     }
 }

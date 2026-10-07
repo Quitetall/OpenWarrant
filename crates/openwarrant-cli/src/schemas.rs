@@ -69,6 +69,21 @@ fn entries() -> Vec<Entry> {
         // OW-WAR-0114 (OW-ADR-0023): `roadmap.toml`, as `war roadmap` reads it —
         // the core manifest plus `[[placement]]` and `[[retires]]`.
         entry::<crate::roadmap_cmd::Manifest>("roadmap"),
+        // OW-WAR-0148: the compiled corpus every client reads (`war model`).
+        // Additive: the pack version does not move.
+        entry::<crate::model::Model>("model"),
+        // OW-WAR-0148 M3: what a change to one record affects (`war impact`).
+        // Additive: the pack version does not move.
+        entry::<crate::impact::Impact>("impact"),
+        // OW-WAR-0148 M8: `war host`, oh.war/liminal-v1 (SAS §82.2) — the
+        // request Liminal sends and the response it reads. Additive: the
+        // pack version does not move.
+        entry::<crate::host::Request>("liminal-request"),
+        entry::<crate::host::Response>("liminal-response"),
+        // OW-WAR-0148 M6: a rendering of a declared projection (`war render
+        // --json`), every line traced to a record and its revision. Additive:
+        // the pack version does not move.
+        entry::<openwarrant_compiler::project::Projection>("projection"),
     ]
 }
 

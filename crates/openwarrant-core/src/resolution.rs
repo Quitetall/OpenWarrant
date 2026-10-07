@@ -30,6 +30,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::role::{Capabilities, Capability};
 use crate::state::ResolutionStanding;
 use crate::vocab::vocabulary;
 
@@ -137,6 +138,88 @@ pub const RESOLUTION_REQUIREMENTS: [&str; 13] = [
     "resolver holds the role",
 ];
 
+/// The capability each §56.1 requirement belongs to, in the SAS's order
+/// (OW-ADR-0031). A kind lacking it reads that requirement "not applicable",
+/// named — never met.
+pub const REQUIREMENT_CAPABILITY: [Capability; 13] = [
+    Capability::Authorization,
+    Capability::Resolution,
+    Capability::Resolution,
+    Capability::Verification,
+    Capability::Evidence,
+    Capability::Structure,
+    Capability::Structure,
+    Capability::Structure,
+    Capability::Authorization,
+    Capability::Verification,
+    Capability::Authorization,
+    Capability::Stages,
+    Capability::Resolution,
+];
+
+/// The §56.1 requirements a kind's capabilities make not applicable, one bit
+/// per requirement in the SAS's order. Serialized as the requirements' names,
+/// and omitted when empty, so a delivery Warrant's record is unchanged.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct NotApplicable(u16);
+
+impl NotApplicable {
+    /// The requirements whose capability `capabilities` lacks.
+    #[must_use]
+    pub fn for_capabilities(capabilities: Capabilities) -> Self {
+        let mut bits = 0u16;
+        for (i, cap) in REQUIREMENT_CAPABILITY.iter().enumerate() {
+            if !capabilities.has(*cap) {
+                bits |= 1 << i;
+            }
+        }
+        Self(bits)
+    }
+
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
+        self.0 == 0
+    }
+
+    /// Whether requirement `index` (0-based, the SAS's order) is not applicable.
+    #[must_use]
+    pub const fn contains(self, index: usize) -> bool {
+        index < 13 && self.0 & (1 << index) != 0
+    }
+
+    /// Each not-applicable requirement, named, with the capability it lacks.
+    #[must_use]
+    pub fn named(self) -> Vec<(&'static str, Capability)> {
+        (0..13)
+            .filter(|i| self.contains(*i))
+            .map(|i| (RESOLUTION_REQUIREMENTS[i], REQUIREMENT_CAPABILITY[i]))
+            .collect()
+    }
+}
+
+impl Serialize for NotApplicable {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.collect_seq(self.named().into_iter().map(|(name, _)| name))
+    }
+}
+
+impl<'de> Deserialize<'de> for NotApplicable {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let names = Vec::<String>::deserialize(deserializer)?;
+        let mut bits = 0u16;
+        for name in names {
+            let i = RESOLUTION_REQUIREMENTS
+                .iter()
+                .position(|r| *r == name)
+                .ok_or_else(|| {
+                    serde::de::Error::custom(format!("{name:?} is not a §56.1 requirement"))
+                })?;
+            bits |= 1 << i;
+        }
+        Ok(Self(bits))
+    }
+}
+
 /// §56.1 as thirteen named booleans.
 ///
 /// Named rather than a count, so a report can say *which* requirement is unmet.
@@ -156,6 +239,11 @@ pub struct ResolutionChecks {
     pub residual_risks_have_sufficient_authority: bool,
     pub runtime_receipts_match_the_basis: bool,
     pub resolver_holds_the_role: bool,
+    /// Requirements the kind's capabilities make not applicable (OW-ADR-0031).
+    /// Such a requirement's boolean is `false` — it was not met — and it is
+    /// left out of [`Self::unmet`]: it neither blocks nor reads met.
+    #[serde(default, skip_serializing_if = "NotApplicable::is_empty")]
+    pub not_applicable: NotApplicable,
 }
 
 impl ResolutionChecks {
@@ -176,6 +264,7 @@ impl ResolutionChecks {
             residual_risks_have_sufficient_authority: true,
             runtime_receipts_match_the_basis: true,
             resolver_holds_the_role: true,
+            not_applicable: NotApplicable(0),
         }
     }
 
@@ -217,16 +306,47 @@ impl ResolutionChecks {
         ]
     }
 
-    /// The requirements that are not met, named.
+    /// The requirements that are not met, named. A requirement the kind's
+    /// capabilities make not applicable is not among them.
     #[must_use]
     pub fn unmet(self) -> Vec<&'static str> {
         self.as_pairs()
             .into_iter()
-            .filter(|(_, met)| !met)
-            .map(|(name, _)| name)
+            .enumerate()
+            .filter(|(i, (_, met))| !met && !self.not_applicable.contains(*i))
+            .map(|(_, (name, _))| name)
             .collect()
     }
+
+    /// Each requirement with its state: met, unmet, or not applicable with
+    /// the capability the kind lacks.
+    #[must_use]
+    pub fn states(self) -> [(&'static str, RequirementState); 13] {
+        let pairs = self.as_pairs();
+        std::array::from_fn(|i| {
+            let (name, met) = pairs[i];
+            let state = if self.not_applicable.contains(i) {
+                RequirementState::NotApplicable(REQUIREMENT_CAPABILITY[i])
+            } else if met {
+                RequirementState::Met
+            } else {
+                RequirementState::Unmet
+            };
+            (name, state)
+        })
+    }
 }
+
+/// Where one §56.1 requirement stands for one Warrant.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RequirementState {
+    Met,
+    Unmet,
+    /// The kind does not select this capability (OW-ADR-0031).
+    NotApplicable(Capability),
+}
+
+impl ResolutionChecks {}
 
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §56.2's resolution record.
@@ -455,6 +575,32 @@ impl Monitor {
 mod tests {
     use super::*;
     use std::str::FromStr;
+
+    /// OW-ADR-0031: a requirement whose capability the kind lacks neither
+    /// blocks nor reads met, and the field is absent when nothing is.
+    #[test]
+    fn a_not_applicable_requirement_is_named_never_met() {
+        let mut c = ResolutionChecks::all_met();
+        c.runtime_receipts_match_the_basis = false;
+        assert_eq!(c.unmet(), vec!["runtime receipts match the basis"]);
+        c.not_applicable =
+            NotApplicable::for_capabilities(Capabilities::ALL.without(Capability::Stages));
+        assert!(c.unmet().is_empty());
+        assert_eq!(
+            c.states()[11],
+            (
+                "runtime receipts match the basis",
+                RequirementState::NotApplicable(Capability::Stages)
+            )
+        );
+        let json = serde_json::to_string(&c).expect("serializes");
+        assert!(json.contains("\"not_applicable\":[\"runtime receipts match the basis\"]"));
+        let back: ResolutionChecks = serde_json::from_str(&json).expect("round-trips");
+        assert_eq!(back, c);
+        let all = serde_json::to_string(&ResolutionChecks::all_met()).expect("serializes");
+        assert!(!all.contains("not_applicable"), "{all}");
+        assert!(NotApplicable::for_capabilities(Capabilities::ALL).is_empty());
+    }
 
     fn resolution(outcome: CommonOutcome) -> Resolution {
         Resolution {

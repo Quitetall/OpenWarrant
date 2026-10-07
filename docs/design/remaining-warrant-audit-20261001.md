@@ -22,7 +22,7 @@ Counts overlap: one Warrant can have several unmet requirements.
 | residual risks have sufficient authority | 56 |
 | exact authorized Contract Revision | 21 |
 
-The report lists 21 human authority acts. Runtime receipt matching remains unmet for OW-WAR-0045, OW-WAR-0047 and OW-WAR-0071. Shared draft OW-WAR-0148 records the provider/interface work needed; retained OW47 execution is historical evidence, not a fresh dispatch-bound receipt. Required real-user qualification needs actual consenting participants.
+The report lists 21 human authority acts. Runtime receipt matching remains unmet for OW-WAR-0045, OW-WAR-0047 and OW-WAR-0071. Shared draft OW-WAR-0148 (renumbered OW-WAR-0149 on 2026-10-07: its alias collided with the signed typed-records Warrant) records the provider/interface work needed; retained OW47 execution is historical evidence, not a fresh dispatch-bound receipt. Required real-user qualification needs actual consenting participants.
 
 The configured independent verifier invokes a paid-capable Claude command without reliable aggregate spend accounting. The owner's configurable $10 hard-cap default remains binding. Do not launch a real corpus sweep until reliable accounting or an explicitly permitted backend meets that policy. A green planning envelope is not a passed completion gate.
 

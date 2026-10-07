@@ -1,0 +1,8 @@
+schema = "oh.war/sas-acceptance-response/v1"
+version = "1.2.0"
+sha256 = "85f5e7eff8def10702ecd1fcc74f09cc8e0b6ba9d11d1db2b9c24cd576562a9f"
+accepted_by = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Accepting SAS revision 1.2.0 at this digest means the signer adopts it as the governing specification: 63 requirement(s), §106 diff against 1.1.1 of +1 −0 ~0. Every later Warrant traces to this revision until it is superseded. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-10-03T01:29:18Z"
+adr_ref = "OW-ADR-0029"

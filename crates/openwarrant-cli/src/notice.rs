@@ -67,7 +67,7 @@ fn enabled(command: Option<&str>, json: bool) -> bool {
         && !set("CI")
         && !matches!(
             command,
-            Some("update" | "version" | "mcp" | REFRESH_COMMAND)
+            Some("update" | "version" | "mcp" | "host" | REFRESH_COMMAND)
         )
         && std::io::stderr().is_terminal()
 }

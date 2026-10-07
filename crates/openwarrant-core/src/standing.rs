@@ -212,6 +212,12 @@ pub enum Refusal {
     Profile {
         found: String,
     },
+    /// The class names a profile whose data does not allow standing
+    /// coverage (OW-ADR-0031: `standing_coverage`; of the core profiles,
+    /// `delivery` only).
+    ProfileNotCoverable {
+        found: String,
+    },
     Assurance {
         found: String,
     },
@@ -265,7 +271,7 @@ impl Refusal {
             Self::NeverCoverable { .. } => "standing.never-coverable",
             Self::Bound { .. } => "standing.bound",
             Self::OutsideClass { .. } => "standing.outside-class",
-            Self::Profile { .. } => "standing.profile",
+            Self::Profile { .. } | Self::ProfileNotCoverable { .. } => "standing.profile",
             Self::Assurance { .. } => "standing.assurance",
             Self::AdrAtom => "standing.adr",
             Self::ResidualRisk { .. } => "standing.residual-risk",
@@ -308,7 +314,13 @@ impl std::fmt::Display for Refusal {
             ),
             Self::Profile { found } => write!(
                 f,
-                "term `profile`: the Warrant's profile is `{found}`; a class covers `delivery` only"
+                "term `profile`: the Warrant's profile is `{found}`; a class covers its own \
+                 profile only"
+            ),
+            Self::ProfileNotCoverable { found } => write!(
+                f,
+                "term `profile`: `{found}` is not a profile a class may cover; its data does \
+                 not set `standing_coverage` (of the core profiles, `delivery` only)"
             ),
             Self::Assurance { found } => write!(
                 f,
@@ -405,6 +417,18 @@ const BUDGET_TERMS: &[&str] = &[
 /// # Errors
 /// Every refusal found, not only the first.
 pub fn parse(text: &str) -> Result<StandingAuthorization, Vec<Refusal>> {
+    parse_in(text, &|profile| profile == "delivery")
+}
+
+/// [`parse`], with `may_cover` answering whether a profile's data allows
+/// standing coverage (OW-ADR-0031) — the program's registry, not a name.
+///
+/// # Errors
+/// Every refusal found, not only the first.
+pub fn parse_in(
+    text: &str,
+    may_cover: &dyn Fn(&str) -> bool,
+) -> Result<StandingAuthorization, Vec<Refusal>> {
     // Terms first, from the raw table: serde would name one unknown field and
     // stop, and a missing term reads as a type error there.
     let raw: toml::Table =
@@ -443,7 +467,7 @@ pub fn parse(text: &str) -> Result<StandingAuthorization, Vec<Refusal>> {
     }
     let class: StandingAuthorization =
         toml::from_str(text).map_err(|e| vec![Refusal::Malformed { why: e.to_string() }])?;
-    let refusals = validate(&class);
+    let refusals = validate_in(&class, may_cover);
     if refusals.is_empty() {
         Ok(class)
     } else {
@@ -451,9 +475,19 @@ pub fn parse(text: &str) -> Result<StandingAuthorization, Vec<Refusal>> {
     }
 }
 
-/// Every clock-free rule over a parsed class.
+/// Every clock-free rule over a parsed class, `delivery` the only profile a
+/// class may cover (the builtin registry's answer).
 #[must_use]
 pub fn validate(class: &StandingAuthorization) -> Vec<Refusal> {
+    validate_in(class, &|profile| profile == "delivery")
+}
+
+/// [`validate`], with `may_cover` answering from the profile's data.
+#[must_use]
+pub fn validate_in(
+    class: &StandingAuthorization,
+    may_cover: &dyn Fn(&str) -> bool,
+) -> Vec<Refusal> {
     let mut out = Vec::new();
     let bound = |term: &'static str, why: String| Refusal::Bound { term, why };
     if class.schema != SCHEMA {
@@ -492,8 +526,8 @@ pub fn validate(class: &StandingAuthorization) -> Vec<Refusal> {
         }
     }
     out.extend(class_refusals(&class.paths));
-    if class.profile != "delivery" {
-        out.push(Refusal::Profile {
+    if !may_cover(&class.profile) {
+        out.push(Refusal::ProfileNotCoverable {
             found: class.profile.clone(),
         });
     }

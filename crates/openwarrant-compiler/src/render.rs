@@ -529,6 +529,7 @@ mod tests {
             enterprise_id: String::new(),
             title: "Establish the repository".to_owned(),
             profile: "delivery".to_owned(),
+            profile_digest: None,
             assurance_level: Some("basic".to_owned()),
             implements: vec![],
             roadmap: vec![],

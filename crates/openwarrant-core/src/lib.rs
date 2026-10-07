@@ -20,7 +20,10 @@ pub mod deliverable;
 pub mod document;
 pub mod preflight;
 pub mod presence;
+pub mod projection;
 pub mod rationale;
+pub mod record;
+pub mod relation;
 pub mod traceability;
 pub mod verification;
 pub mod verification_record;
@@ -42,6 +45,7 @@ pub mod gate_run;
 pub mod identity;
 pub mod independence;
 pub mod journal;
+pub mod kernel_state;
 pub mod lifecycle;
 pub mod manifest;
 pub mod migration;
@@ -99,7 +103,10 @@ pub use milestones::{
 };
 pub use normative::{NormativeKeyword, NormativeSentence, dropped_sections, normative_sentences};
 pub use obligation::{Disposition, Obligation, ObligationError, ObligationSet, ScopeKind};
-pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
+pub use role::{
+    AtomRole, Capabilities, Capability, Jurisdiction, KindData, Profile, RoleError,
+    is_namespaced_extension_role,
+};
 pub use sas::{
     SAS_REVISION_SCHEMA, SasAcceptance, SasError, SasRevision, SasRevisionState, Section106Diff,
     section_106,

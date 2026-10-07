@@ -73,16 +73,14 @@ pub const OPEN: &str = "open";
 /// A file that does not parse is skipped here; `war check` reports it.
 pub fn find_definition(repo: &Repository, key: &str) -> Option<(Utf8PathBuf, GateDefinition)> {
     let dir = repo.root.join(&repo.config.paths.gates);
-    let mut paths: Vec<Utf8PathBuf> = dir
-        .read_dir_utf8()
+    let mut paths: Vec<Utf8PathBuf> = crate::vfs::read_dir_utf8(&dir)
         .ok()?
-        .filter_map(Result::ok)
-        .map(|e| e.into_path())
+        .into_iter()
         .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
         .collect();
     paths.sort();
     paths.into_iter().find_map(|path| {
-        let text = std::fs::read_to_string(&path).ok()?;
+        let text = crate::vfs::read_to_string(&path).ok()?;
         let doc = openwarrant_core::structured::parse(&text).ok()?;
         let def = openwarrant_core::gate::definition_from_structured(&doc).ok()?;
         (def.key() == key).then_some((path, def))
@@ -521,7 +519,7 @@ pub enum GateInvalidation {
 /// count. `None` when there is no record.
 pub fn counted_record(repo: &Repository, gate: &str) -> Option<Result<InvalidationRecord, String>> {
     let path = record_path(repo, gate);
-    if !path.is_file() {
+    if !crate::vfs::is_file(&path) {
         return None;
     }
     Some(judge_record(repo, gate, &path))
@@ -533,7 +531,7 @@ fn judge_record(
     path: &Utf8Path,
 ) -> Result<InvalidationRecord, String> {
     let rel = repo.relative(path);
-    let text = std::fs::read_to_string(path).map_err(|e| format!("{rel}: {e}"))?;
+    let text = crate::vfs::read_to_string(path).map_err(|e| format!("{rel}: {e}"))?;
     let record: InvalidationRecord =
         toml::from_str(&text).map_err(|e| format!("{rel} is not an invalidation record: {e}"))?;
     if record.schema != RECORD_SCHEMA || record.gate != gate {
@@ -543,7 +541,7 @@ fn judge_record(
         ));
     }
     let response_path = repo.root.join(&record.response);
-    let bytes = std::fs::read(&response_path).map_err(|e| {
+    let bytes = crate::vfs::read(&response_path).map_err(|e| {
         format!(
             "{rel} names the response {}, and it cannot be read: {e}",
             record.response
@@ -639,19 +637,18 @@ pub fn gate_invalidation(repo: &Repository, gate: &str) -> Option<GateInvalidati
 #[must_use]
 pub fn load_disputes(dir: &Utf8Path) -> Vec<(Utf8PathBuf, Result<DisputeRecord, String>)> {
     let ddir = dir.join(DISPUTES_DIR);
-    let Ok(entries) = ddir.read_dir_utf8() else {
+    let Ok(entries) = crate::vfs::read_dir_utf8(&ddir) else {
         return Vec::new();
     };
     let mut paths: Vec<Utf8PathBuf> = entries
-        .filter_map(Result::ok)
-        .map(|e| e.into_path())
+        .into_iter()
         .filter(|p| p.extension() == Some("toml"))
         .collect();
     paths.sort();
     paths
         .into_iter()
         .map(|p| {
-            let parsed = std::fs::read_to_string(&p)
+            let parsed = crate::vfs::read_to_string(&p)
                 .map_err(|e| e.to_string())
                 .and_then(|t| toml::from_str::<DisputeRecord>(&t).map_err(|e| e.to_string()));
             (p, parsed)

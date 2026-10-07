@@ -1,0 +1,5 @@
+# Checklist
+
+- [x] war host speaks oh.war/liminal-v1, pure and bounded (i-fd3a) — done by claude, 2026-10-07: war host (host.rs, vfs.rs): oh.war/liminal-v1 request on stdin, response on stdout; refusals by name before work; limits 256 MiB / 1M JSON values / 50k members, lowerable; exit 0/1/2; strace shows no repository file, no process, no socket. Schemas liminal-request/-response added (pack 0.2.0).
+- [x] conformance/host fixtures (i-dfa8) — done by claude, 2026-10-07: conformance/host: 17 cases (password-reset records, ticket, Warrant+views, nodes-differ, member-withheld, no-repository, 11 refusals); byte + semantic observables; run.sh takes any HOST; regen.sh, make-cases.sh.
+- [x] standalone versus host parity (i-86b6) — done by claude, 2026-10-07: war model == war host --export | war host, byte-identical: this repository (2020 records, 288 Warrant views equal the committed files) and a scratch program (29 records, 4 views). Controls: doctored response fails its case; flipped signature observations move the model. 79-host.sh 13/13.

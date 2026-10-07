@@ -15,7 +15,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use openwarrant_compiler::{ChildRef, lower};
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
 
-use crate::compile::{adr_overview, projections, warrant_overview};
+use crate::compile::{adr_overview, projections};
 
 // OW-WAR-0119: the corpus identity rules. A child of this module, not a
 // sibling in `lib.rs`, because `war check` is their only caller.
@@ -109,9 +109,31 @@ pub fn run(
     only: Option<&str>,
     check_generated: bool,
 ) -> Result<Report, RepoError> {
+    run_with(&crate::corpus::Corpus::new(repo), only, check_generated)
+}
+
+/// [`run`] over a corpus already loaded: each Warrant is loaded and lowered
+/// once, and `--generated` compiles every corpus-wide projection from the
+/// same corpus rather than rebuilding it per projection (OW-WAR-0148).
+pub fn run_with(
+    shared_corpus: &crate::corpus::Corpus,
+    only: Option<&str>,
+    check_generated: bool,
+) -> Result<Report, RepoError> {
+    let repo = shared_corpus.repo();
     let dirs = match only {
         Some(alias) => vec![repo.warrant_dir(alias)?],
-        None => repo.warrant_dirs()?,
+        None => shared_corpus
+            .entries()?
+            .iter()
+            .map(|e| e.dir.clone())
+            .collect(),
+    };
+    let load = |dir: &camino::Utf8Path| -> Result<Loaded, RepoError> {
+        match shared_corpus.entry_at(dir) {
+            Some(e) => e.loaded().cloned(),
+            None => repo.load_warrant(dir),
+        }
     };
 
     let mut report = Report::default();
@@ -129,7 +151,7 @@ pub fn run(
 
     let mut loaded = Vec::new();
     for dir in &dirs {
-        let one = repo.load_warrant(dir)?;
+        let one = load(dir)?;
         loaded.push(one);
     }
 
@@ -144,14 +166,14 @@ pub fn run(
     // rather than reported as unknowable.
     let corpus = if only.is_some() {
         let mut all = Vec::new();
-        for dir in repo.warrant_dirs()? {
-            all.push(repo.load_warrant(&dir)?);
+        for entry in shared_corpus.entries()? {
+            all.push(entry.loaded()?.clone());
         }
         all
     } else {
         loaded.clone()
     };
-    let parent_digests = contract_digests(&corpus);
+    let parent_digests = contract_digests_with(shared_corpus, &corpus);
 
     // §43.1 — local gate candidates. Loaded once for the corpus so an obligation
     // citing a gate can be resolved rather than taken on trust.
@@ -166,7 +188,8 @@ pub fn run(
 
     // OW-ADR-0022: currency is derived from relations, once, over the whole
     // corpus, and read by everything below that asks it.
-    let currencies = crate::relations::currencies(&corpus);
+    // Every Warrant loaded (the `?` above), so this is the corpus's own.
+    let currencies = shared_corpus.currencies();
 
     // §20 and §21 relation conformance (OW-WAR-0043 OBL-004, §91.5 tests 30-35).
     // Built over the WHOLE corpus for the same reason parent digests are: a
@@ -195,26 +218,27 @@ pub fn run(
                 })
             })
             .collect();
-        crate::relations::check(&related, &currencies, &mut report);
+        crate::relations::check(&related, currencies, &mut report);
     }
     // OW-ADR-0023: the roadmap record, and the Warrants it holds to a phase.
     crate::roadmap_cmd::check(repo, &corpus, &mut report);
-    let roadmap = crate::roadmap_cmd::load(repo).ok().flatten();
+    let roadmap = shared_corpus.roadmap().ok().flatten();
 
     // OW-ADR-0021: which Warrant governs each path NOW. Built once — it
     // verifies one attestation per owning Warrant, and the drift decision
     // below asks it for every content-addressed deliverable in the corpus.
-    let ownership = crate::ownership::Ownership::index_with(repo, &currencies)?;
+    let ownership = shared_corpus.ownership()?;
     // OW-WAR-0125: each recorded SAS revision split into sections, read from
     // the document or from history at most once per run.
     let sas_sections = crate::sas::RevisionSections::new(repo);
 
     let shared = Shared {
         corpus: &corpus,
+        currencies,
         parent_digests: &parent_digests,
         gates: &gates,
-        ownership: &ownership,
-        roadmap: roadmap.as_ref(),
+        ownership,
+        roadmap,
         sas_sections: &sas_sections,
     };
     // OW-WAR-0137: the register, once, for every Warrant's assignment.
@@ -375,6 +399,14 @@ pub fn run(
     // whose acceptance no longer verifies over its bytes, is an error.
     crate::standing_cmd::check_classes(repo, &mut report);
 
+    // OW-WAR-0148 M3: record atoms and the relations documents author.
+    // Silent where there are none, so such a program checks as it did.
+    if only.is_none() {
+        crate::records::check(shared_corpus, &mut report);
+        // OW-WAR-0148 M6: declared documents. Silent where there are none.
+        crate::render_cmd::check(shared_corpus, &mut report);
+    }
+
     // Accepting a SAS revision is the act that makes a specification normative
     // for every Warrant that pins it, so it is held to the same rule as an
     // authorization: a human signature over the acceptance response's exact
@@ -426,38 +458,38 @@ pub fn run(
     if check_generated && repo.config.generated.verify_drift {
         drift_check(
             repo,
-            warrant_overview(repo),
+            crate::compile::warrant_overview_with(shared_corpus),
             "warrant-overview",
             &mut report,
         );
         drift_check(repo, adr_overview(repo), "adr-overview", &mut report);
         drift_check(
             repo,
-            crate::status::corpus_status_md(repo),
+            crate::status::corpus_status_md_with(shared_corpus),
             "corpus-status",
             &mut report,
         );
         drift_check(
             repo,
-            crate::status::corpus_status_json(repo),
+            crate::status::corpus_status_json_with(shared_corpus),
             "corpus-status",
             &mut report,
         );
         drift_check(
             repo,
-            crate::status::corpus_status_html(repo),
+            crate::status::corpus_status_html_with(shared_corpus),
             "corpus-status",
             &mut report,
         );
         drift_check(
             repo,
-            crate::timeline::corpus_timeline_json(repo),
+            crate::timeline::corpus_timeline_json_with(shared_corpus),
             "corpus-timeline",
             &mut report,
         );
         drift_check(
             repo,
-            crate::timeline::corpus_pending_json(repo),
+            crate::timeline::corpus_pending_json_with(shared_corpus),
             "corpus-pending",
             &mut report,
         );
@@ -486,13 +518,18 @@ pub fn run(
         // of a Warrant reports under: CURRENT.md is written by `compile` and by
         // nothing else. With `history = false` nothing is compiled for
         // HISTORY.md, so nothing is compared.
-        match crate::compile::master_documents(repo) {
+        match crate::compile::master_documents_with(shared_corpus) {
             Ok(files) => {
                 for file in files {
                     drift_check(repo, Ok(file), "generated", &mut report);
                 }
             }
             Err(e) => drift_check(repo, Err(e), "generated", &mut report),
+        }
+        // OW-WAR-0148 M6: every declared document's projections, rendered
+        // fresh; a hand-edit, or a file no document produces, is drift.
+        if only.is_none() {
+            crate::render_cmd::check_generated(shared_corpus, &mut report);
         }
     }
 
@@ -626,6 +663,29 @@ fn drift_check(
 /// A Warrant that could not be validated has no contract digest and is simply
 /// absent from the map; a child citing it gets an honest "cannot verify" rather
 /// than a comparison against a value invented from broken sources.
+/// [`contract_digests`], reading each digest the corpus already computed
+/// for the same Warrant directory.
+fn contract_digests_with(
+    shared: &crate::corpus::Corpus,
+    corpus: &[Loaded],
+) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    for one in corpus {
+        let Some(validated) = &one.validated else {
+            continue;
+        };
+        let digest = match shared.entry_at(&one.dir) {
+            Some(e) if one.basis.is_some() => e.contract_digest().map(str::to_owned),
+            Some(_) => None,
+            None => contract_digests(std::slice::from_ref(one)).remove(&validated.uuid.to_string()),
+        };
+        if let Some(d) = digest {
+            out.insert(validated.uuid.to_string(), d);
+        }
+    }
+    out
+}
+
 fn contract_digests(corpus: &[Loaded]) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();
     for one in corpus {
@@ -1266,6 +1326,8 @@ fn check_traceability(
 #[derive(Clone, Copy)]
 struct Shared<'a> {
     corpus: &'a [Loaded],
+    /// OW-ADR-0022 currency over `corpus`, derived once.
+    currencies: &'a crate::relations::Currencies,
     /// Contract digests by alias, for a child's citation of its parent.
     parent_digests: &'a BTreeMap<String, String>,
     gates: &'a openwarrant_core::GateRegistry,
@@ -1286,6 +1348,7 @@ fn check_one(
 ) {
     let Shared {
         corpus,
+        currencies,
         parent_digests,
         gates,
         ownership,
@@ -1310,8 +1373,19 @@ fn check_one(
         format!("{alias}: manifest and composition are well-formed"),
     ));
 
-    check_deliverable_digests(repo, one, &alias, ownership, report);
-    check_traceability(repo, one, &alias, roadmap, report);
+    // OW-ADR-0031: each rule family below runs only when the Warrant's kind
+    // selects its capability, and a family that does not run is named here,
+    // never passed in silence. `structure` is always selected.
+    let caps = one.capabilities(&repo.profiles);
+    push_not_applicable(&alias, validated, caps, report);
+    use openwarrant_core::Capability as C;
+
+    if caps.has(C::Resolution) {
+        check_deliverable_digests(repo, one, &alias, ownership, report);
+    }
+    if caps.has(C::Links) {
+        check_traceability(repo, one, &alias, roadmap, report);
+    }
     {
         // §44.6 recorded runs and the §56.2 record, both held to the contract
         // as it compiles NOW (OW-WAR-0059).
@@ -1321,8 +1395,12 @@ fn check_one(
                 .and_then(|ir| ir.contract_digest().ok()),
             _ => None,
         };
-        crate::evidence::check(repo, &one.dir, &alias, current.as_deref(), report);
-        crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
+        if caps.has(C::Evidence) {
+            crate::evidence::check(repo, &one.dir, &alias, current.as_deref(), report);
+        }
+        if caps.has(C::Resolution) {
+            crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
+        }
         let uuid = one.validated.as_ref().map(|v| v.uuid.to_string());
         crate::journal_cmd::check(repo, &one.dir, &alias, uuid.as_deref(), report);
         // §14 — the SAS pin must name a recorded revision, and a Warrant pinned
@@ -1368,7 +1446,8 @@ fn check_one(
         // answer was "it says so in the file". A forged authorization.toml
         // naming the owner passed `war check` with zero errors and satisfied
         // §56.1 requirement 1 (demonstrated 2026-09-19 against 1.0.0-alpha.1).
-        if let Ok(Some(a)) = repo.load_authorization(&one.dir)
+        if caps.has(C::Authorization)
+            && let Ok(Some(a)) = repo.load_authorization(&one.dir)
             && let Some(auth) = &a.revision.authorization
         {
             {
@@ -1402,7 +1481,9 @@ fn check_one(
         }
         // A resolution is the act that says the work is done. It was trusted on
         // content alone for exactly as long as the authorization was.
-        if let Ok(Some(r)) = repo.load_resolution(&one.dir) {
+        if caps.has(C::Resolution)
+            && let Ok(Some(r)) = repo.load_resolution(&one.dir)
+        {
             let verdict = crate::authority_check::verify(
                 repo,
                 crate::authority_check::Act::Resolve,
@@ -1426,7 +1507,9 @@ fn check_one(
         }
         // Each correction moves a delivered file past the wall, so each needs
         // its own signature over its own bytes.
-        if let Ok(set) = repo.load_corrections(&one.dir) {
+        if caps.has(C::Resolution)
+            && let Ok(set) = repo.load_corrections(&one.dir)
+        {
             for (_, c) in &set.records {
                 let subject = format!("{alias}.{}", c.correction.deliverable_id);
                 let verdict = crate::authority_check::verify(
@@ -1452,7 +1535,8 @@ fn check_one(
                 }
             }
         }
-        if let Ok(Some(a)) = repo.load_authorization(&one.dir)
+        if caps.has(C::Authorization)
+            && let Ok(Some(a)) = repo.load_authorization(&one.dir)
             && let Some(v) = &a.sas_revision
             && amended.is_none()
         {
@@ -1508,7 +1592,11 @@ fn check_one(
     // OW-WAR-0019's Intent records why: in the parent project's corpus, 23 of 94
     // declared gates named a tool, script, or crate that was not in the tree.
     // Nothing read those strings, so nothing noticed.
-    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "assurance" && caps.has(C::Evidence))
+    {
         let text = String::from_utf8_lossy(&atom.bytes);
         let file = repo.relative(&one.dir.join(&atom.source));
         let cited = openwarrant_core::gate::cited_gate_uris(&text);
@@ -1543,7 +1631,11 @@ fn check_one(
     // §40 — evidence, observations, inferences and judgments, if the assurance
     // atom records any. §40.7's six prohibited substitutions live here, and until
     // now nothing in any binary read a record they could apply to.
-    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "assurance" && caps.has(C::Evidence))
+    {
         let file = repo.relative(&one.dir.join(&atom.source));
         match openwarrant_core::epistemic::records::parse(&String::from_utf8_lossy(&atom.bytes)) {
             Ok(section) if section.is_empty() => {}
@@ -1633,7 +1725,9 @@ fn check_one(
         }
     }
 
-    check_section_refs(repo, one, &alias, sas_sections, report);
+    if caps.has(C::Links) {
+        check_section_refs(repo, one, &alias, sas_sections, report);
+    }
 
     // §39 / RQ-055: contract-adequacy review, STRUCTURALLY checked.
     //
@@ -1644,7 +1738,11 @@ fn check_one(
     // a repository-wide grep for the old call site returns nothing.
     let requirement =
         openwarrant_core::AdequacyRequirement::for_level(&validated.assurance_level.to_string());
-    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "assurance" && caps.has(C::Verification))
+    {
         let review = openwarrant_core::adequacy::parse(&String::from_utf8_lossy(&atom.bytes));
         let file = repo.relative(&one.dir.join(&atom.source));
 
@@ -1850,7 +1948,11 @@ fn check_one(
     // §23: the milestone graph is parsed and validated, not merely carried.
     // Until OW-WAR-0007 this atom's bytes were hashed and rendered while nothing
     // read them, so a dangling stage_ref or a dependency cycle passed unnoticed.
-    for atom in basis.atoms.iter().filter(|a| a.role == "milestones") {
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "milestones" && caps.has(C::Stages))
+    {
         let text = String::from_utf8_lossy(&atom.bytes);
         match milestones::parse(&text) {
             Ok(graph) => {
@@ -1906,7 +2008,7 @@ fn check_one(
     let obligations = basis
         .atoms
         .iter()
-        .filter(|a| a.role == "assurance")
+        .filter(|a| a.role == "assurance" && caps.has(C::Verification))
         .map(|a| (a, obligation::parse(&String::from_utf8_lossy(&a.bytes))))
         .collect::<Vec<_>>();
     for (atom, parsed) in &obligations {
@@ -1959,7 +2061,7 @@ fn check_one(
     // The optional Bonsai sidecar names assurance obligations. Resolve those
     // names here as well as in the adapter, so an authored scope cannot look
     // valid until its first CI invocation.
-    if basis.scope.is_some() {
+    if basis.scope.is_some() && caps.has(C::Verification) {
         match crate::bonsai::validate_scope(&alias, basis) {
             Ok(()) => report.push(Diagnostic::pass(
                 "bonsai-scope.valid",
@@ -1973,12 +2075,58 @@ fn check_one(
         }
     }
 
-    check_parent_citations(repo, one, &alias, basis, corpus, parent_digests, report);
+    if caps.has(C::Links) {
+        check_parent_citations(repo, one, &alias, basis, corpus, parent_digests, report);
+    }
 
     if check_generated {
-        let children = crate::compile::children_of(&validated.raw.uuid, corpus);
+        let refs: Vec<&Loaded> = corpus.iter().collect();
+        let children = crate::compile::children_of_with(&validated.raw.uuid, &refs, currencies);
         check_drift(repo, &children, one, basis, validated, &alias, report);
     }
+}
+
+/// OW-ADR-0031: name what does not apply to a Warrant because its kind does
+/// not select the capability. One pass of its own rule, listing each absent
+/// capability with the rule families it gates; nothing when every capability
+/// is selected, so a delivery Warrant's report is unchanged.
+fn push_not_applicable(
+    alias: &str,
+    validated: &openwarrant_core::ValidatedManifest,
+    caps: openwarrant_core::Capabilities,
+    report: &mut Report,
+) {
+    use openwarrant_core::Capability as C;
+    let absent: Vec<String> = caps
+        .absent()
+        .map(|c| {
+            let families = match c {
+                C::Structure => "every structural rule",
+                C::Links => "traceability, roadmap, SAS section and parent citations",
+                C::Claims => "claims on work items",
+                C::Acceptance => "acceptance",
+                C::Evidence => "gate citations, recorded runs and §40 records",
+                C::Verification => "obligations, the adequacy review and the machine scope",
+                C::Authorization => "the authorization's signature and SAS pin",
+                C::Resolution => {
+                    "deliverable pins, the resolution's signature and corrections, and §56.1"
+                }
+                C::Stages => "the milestone graph and §56.1 requirement 12's runtime receipts",
+            };
+            format!("`{c}` ({families})")
+        })
+        .collect();
+    if absent.is_empty() {
+        return;
+    }
+    report.push(Diagnostic::pass(
+        "capability.not-applicable",
+        format!(
+            "{alias}: profile {} does not select {}: not applicable, not passed (OW-ADR-0031)",
+            validated.profile,
+            absent.join("; ")
+        ),
+    ));
 }
 
 /// `sas.section-ref` and `sas.section-current` (OW-WAR-0125): an amendment

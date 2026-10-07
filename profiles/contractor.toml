@@ -29,6 +29,21 @@ acceptance_role = "contractor.acceptance"
 # reachable (U-004).
 reference_roles = ["contractor.terms", "contractor.commercial"]
 
+# OW-ADR-0031: the delivery profile's capabilities, unnarrowed. Its outcome
+# word stays the common outcome's, and no standing class may cover it: it
+# sets neither `satisfied_outcome` nor `standing_coverage`.
+capabilities = [
+    "structure",
+    "links",
+    "claims",
+    "acceptance",
+    "evidence",
+    "verification",
+    "authorization",
+    "resolution",
+    "stages",
+]
+
 # The §22.3 fields, grouped into four roles in the profile's own namespace.
 
 [[requires]]

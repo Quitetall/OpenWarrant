@@ -1,0 +1,11 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0148"
+contract_digest = "14127f58e7867f4a7bd424a34689238325a8658b09aa819030a069eada32c231"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0148 (Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel) at this contract digest means the signer accepts its intent, scope and 11 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-10-03T00:24:23Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"
+deliverable_set_digest = "sha256:c04d97cac8b95326d031b5403c0c43021ddb1ce94f4f86ca4d2110f46c7eccf0"
