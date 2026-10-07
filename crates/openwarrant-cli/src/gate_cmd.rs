@@ -631,6 +631,17 @@ pub mod source {
         if let Some(response) = under(rest, crate::bundle::RESPONSES_DIR) {
             return !response.is_empty();
         }
+        // Retaining a prior observation is verification bookkeeping, not a
+        // source change. Only exact hash-named immediate archive files have
+        // this role. Explicit inputs bypass this tree-only classification.
+        if let Some(history) = rest.strip_prefix("history/") {
+            return history.strip_suffix(".toml").is_some_and(|digest| {
+                digest.len() == 64
+                    && digest
+                        .bytes()
+                        .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+            });
+        }
         if rest.contains('/') {
             return false;
         }

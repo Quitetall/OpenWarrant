@@ -63,6 +63,15 @@ tt_assign() { # verify-list, resolve-list (TOML arrays; empty string omits the k
     } > "$TT_W/assignment.toml"
 }
 "$WAR" --root "$PLANT_ROOT" new "An unassigned Warrant beside the assigned one" >/dev/null 2>&1
+# Both synthetic review subjects declare the obligations the verdicts name.
+python3 - "$TT_W/atoms/60-assurance.md" "$TT_U/atoms/60-assurance.md" <<'PY'
+import re,sys
+source=open(sys.argv[1]).read();target=open(sys.argv[2]).read()
+pattern=r"\A---\n.*?\n---\n"
+a=re.match(pattern,source,re.S);b=re.match(pattern,target,re.S)
+assert a and b, "both atoms must have their own metadata"
+open(sys.argv[2],"w").write(target[:b.end()]+source[a.end():])
+PY
 "$WAR" --root "$PLANT_ROOT" compile >/dev/null 2>&1
 git -C "$PLANT_ROOT" add -A >/dev/null 2>&1
 git -C "$PLANT_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "register and a second Warrant" >/dev/null 2>&1
@@ -331,10 +340,14 @@ TT_OUT=$("$WAR" --root "$PLANT_ROOT" verify TT-WAR-0001 --response "$TT_TMP/v-be
 [[ ! -e "$TT_W/verifications/OBL-001.toml" ]]; tt_true "the moved assignment writes nothing" "no verifications/OBL-001.toml" $?
 cp "$TT_TMP/assignment.keep" "$TT_W/assignment.toml"
 tt_verdict "$TT_TMP/v-ada.toml" TT-WAR-0001 OBL-001 Ada
-TT_OUT=$("$WAR" --root "$PLANT_ROOT" verify TT-WAR-0001 --response "$TT_TMP/v-ada.toml" 2>&1); tt_expect "the assigned verifier's verdict" "$TT_OUT" $? 0 'verify.recorded'
+"$WAR" --root "$PLANT_ROOT" verify TT-WAR-0001 --performer claude --bundle --json > "$TT_TMP/v-ada.json"
+python3 "$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" "$TT_TMP/v-ada.json" "$TT_TMP/v-ada.toml" > "$TT_TMP/v-ada-bound.toml"
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" verify TT-WAR-0001 --response "$TT_TMP/v-ada-bound.toml" 2>&1); tt_expect "the assigned verifier's verdict" "$TT_OUT" $? 0 'verify.recorded'
 [[ -f "$TT_W/verifications/OBL-001.toml" ]]; tt_true "the assigned verdict is written" "verifications/OBL-001.toml" $?
 tt_verdict "$TT_TMP/v-ada-u.toml" TT-WAR-0002 OBL-001 Ada
-TT_OUT=$("$WAR" --root "$PLANT_ROOT" verify TT-WAR-0002 --response "$TT_TMP/v-ada-u.toml" 2>&1); tt_expect "unassigned: any distinct verifier, as before" "$TT_OUT" $? 0 'verify.recorded'
+"$WAR" --root "$PLANT_ROOT" verify TT-WAR-0002 --performer claude --bundle --json > "$TT_TMP/v-ada-u.json"
+python3 "$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" "$TT_TMP/v-ada-u.json" "$TT_TMP/v-ada-u.toml" > "$TT_TMP/v-ada-u-bound.toml"
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" verify TT-WAR-0002 --response "$TT_TMP/v-ada-u-bound.toml" 2>&1); tt_expect "unassigned: any distinct verifier, as before" "$TT_OUT" $? 0 'verify.recorded'
 
 # --- OBL-002: a hand-written resolution is narrowed like war sign ------------
 

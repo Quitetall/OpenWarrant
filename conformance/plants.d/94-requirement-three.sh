@@ -31,10 +31,10 @@ done
 [[ -s "$R3_BYTES" ]] || { printf 'PLANT SETUP FAILED: no commit holds %s at the chain head %s\n' "$R3_FILE" "$R3_HEAD" >&2; exit 9; }
 command cp "$R3_BYTES" "$R3_FILE"
 
-# The positive: a corrected deliverable satisfies requirement 3, and the whole
-# Warrant still meets the thirteen.
+# The positive: a corrected deliverable satisfies requirement 3. Other
+# requirements, including fresh independent verification, remain independent.
 out=$("$WAR" resolve "$R3_ALIAS" --dry-run 2>&1)
-if grep -q 'all 13 §56.1 requirements are met' <<< "$out" \
+if grep -q 'resolution.requirement-met .*§56.1 artifact digests verify' <<< "$out" \
     && ! grep -q 'artifact digests verify — not established' <<< "$out"; then
     printf 'ok    %-34s the chain head is the digest it wants\n' "a corrected deliverable resolves"
     PASSED=$((PASSED + 1))

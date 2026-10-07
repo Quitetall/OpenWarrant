@@ -409,7 +409,9 @@ separate_context_compilation = true
 distinct_model_required = true
 distinct_human_required = false
 TOML
-    quiet war verify "$a" --response "$TMP/verdict.toml"
+    war verify "$a" --performer synth-performer --bundle --json > "$TMP/request.json"
+    python3 "$SCRIPT_REPO/conformance/fixtures/verifier/with-subject.py" "$TMP/request.json" "$TMP/verdict.toml" > "$TMP/verdict-bound.toml"
+    quiet war verify "$a" --response "$TMP/verdict-bound.toml"
     if [[ "$RESOLVE_WITH" == sign ]]; then
         quiet war sign "$a" --ssh-sign --as "Scale Signer"
     else

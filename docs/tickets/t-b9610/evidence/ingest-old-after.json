@@ -1,0 +1,32 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "verify.replayed",
+      "file": null,
+      "message": "OBL-001: established by fixture-independent-verifier is already recorded with these exact bytes → docs/warrants/IX-WAR-0003/verifications/OBL-001.toml; an equivalent retry replays and writes nothing"
+    },
+    {
+      "severity": "pass",
+      "rule": "verify.replayed",
+      "file": null,
+      "message": "OBL-002: established by fixture-independent-verifier is already recorded with these exact bytes → docs/warrants/IX-WAR-0003/verifications/OBL-002.toml; an equivalent retry replays and writes nothing"
+    }
+  ],
+  "notes": [
+    "2 verification(s) replayed, nothing written for them",
+    "0 verification(s) recorded, 0 refused. A refused verdict is not written to disk at all — recording it would let an inadmissible verdict read as a verification on the next run."
+  ],
+  "counts": {
+    "pass": 2,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

@@ -13,8 +13,10 @@ BO_GATE=software.repo.war-check@1.0.0
 BO_OUT="$BO_W/gate-runs/software_repo_war-check_1_0_0.stdout.txt"
 mkdir -p "$PLANT_ROOT/docs/gates"
 command cp "docs/gates/$BO_GATE.yaml" "$PLANT_ROOT/docs/gates/"
-# The gate runs ./target/debug/war: the scratch shares this build.
-ln -s "$(readlink -f target)" "$PLANT_ROOT/target"
+# The gate runs ./target/debug/war. Retain its actual bytes in the scratch
+# corpus so required context is readable without following an external link.
+mkdir -p "$PLANT_ROOT/target/debug"
+command cp "$WAR" "$PLANT_ROOT/target/debug/war"
 "$WAR" --root "$PLANT_ROOT" compile >/dev/null 2>&1
 git -C "$PLANT_ROOT" add -A >/dev/null 2>&1
 git -C "$PLANT_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "a gate to record" >/dev/null 2>&1
@@ -115,10 +117,10 @@ fi
 command cp "$BO_W"/verifications/responses/response-*.toml "$BO_W"/verifications/ 2>/dev/null
 BO_INBOX=$("$WAR" --root "$PLANT_ROOT" inbox 2>&1); BO_INBOX_STATUS=$?
 command rm -f "$BO_W"/verifications/response-*.toml
-if [[ $BO_INBOX_STATUS -ne 0 ]] && grep -q 'missing field `obligation`' <<<"$BO_INBOX"; then
-    bo_ok "beside the records, it is refused" "missing field obligation (exit $BO_INBOX_STATUS)"
+if [[ $BO_INBOX_STATUS -ne 0 ]] && grep -q 'unsupported verification record schema.*oh.war/verification-response/v2' <<<"$BO_INBOX"; then
+    bo_ok "beside the records, it is refused" "response schema is not a verification record (exit $BO_INBOX_STATUS)"
 else
-    bo_fail "beside the records, it is refused" "inbox exit $BO_INBOX_STATUS"
+    bo_fail "beside the records, it is refused" "inbox exit $BO_INBOX_STATUS: $BO_INBOX"
 fi
 
 corpus_gone "$PLANT_ROOT"

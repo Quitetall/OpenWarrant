@@ -1,0 +1,49 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify.request",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/verification-request/v1",
+    "warrant": "IX-WAR-0003",
+    "assurance_level": "basic",
+    "performer": "fixture-performer",
+    "obligations": [
+      {
+        "id": "OBL-001",
+        "statement": "the SAS is accepted and pinned",
+        "scope": "`docs/sas/revisions/0.1.0.toml` and this Warrant's compiled basis.",
+        "evidence": "`war sas status` reports 0.1.0 accepted by a named human; `war check` reports no `sas.unrecorded`."
+      },
+      {
+        "id": "OBL-002",
+        "statement": "the loop closed with an independent verification",
+        "scope": "this Warrant's `verifications/` and `resolution.toml`.",
+        "evidence": "a verification whose verifier is not the performer, disposition `established`, and a resolution signed by a human."
+      }
+    ],
+    "inputs": {
+      "authorized_contract_digest": "",
+      "artifact_refs": [
+        "atoms/10-intent.md",
+        "atoms/20-basis.md",
+        "atoms/40-work-order.md",
+        "atoms/45-milestones.yaml",
+        "atoms/60-assurance.md"
+      ],
+      "gate_binding_refs": [],
+      "evidence_refs": [],
+      "required_context_refs": []
+    }
+  }
+}

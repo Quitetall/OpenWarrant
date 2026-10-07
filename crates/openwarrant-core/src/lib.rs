@@ -23,6 +23,7 @@ pub mod presence;
 pub mod rationale;
 pub mod traceability;
 pub mod verification;
+pub mod verification_record;
 mod vocab;
 
 pub mod adequacy;
@@ -96,7 +97,7 @@ pub use milestones::{
     ExecutorKind, MILESTONES_SCHEMA, Milestone, MilestoneError, MilestoneGraph, Port,
     ResponsibilityTier, Stage,
 };
-pub use normative::{NormativeKeyword, NormativeSentence, normative_sentences};
+pub use normative::{NormativeKeyword, NormativeSentence, dropped_sections, normative_sentences};
 pub use obligation::{Disposition, Obligation, ObligationError, ObligationSet, ScopeKind};
 pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
 pub use sas::{

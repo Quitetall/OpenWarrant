@@ -259,13 +259,25 @@ files were empty; the verifier reads them.
     printf '%s' "$alias"
 }
 
-# st_resolvable <root> <alias>...: an independent verification of OBL-001,
-# committed, then the cited gate run over the committed tree and committed.
+# st_resolvable <root> <alias>...: record each gate, then simulate independent
+# verification of those exact receipts and subjects.
 st_resolvable() {
     local root=$1 a
     shift
     for a in "$@"; do
         "$WAR" --root "$root" pins --refresh --alias "$a" >/dev/null 2>&1
+    done
+    "$WAR" --root "$root" compile >/dev/null 2>&1
+    st_commit "$root" "prepared"
+    # One gate run per Warrant, each over projections brought up to date:
+    # a run records evidence the corpus status projects, and the next run's
+    # `war check --generated` would otherwise see the last one's drift.
+    for a in "$@"; do
+        PATH="$ST_TMP/bin:$PATH" "$WAR" --root "$root" evidence record "$a" >/dev/null 2>&1
+        "$WAR" --root "$root" compile >/dev/null 2>&1
+    done
+    st_commit "$root" "evidence"
+    for a in "$@"; do
         cat > "$ST_TMP/verification-$a.toml" <<VERIFY
 schema = "oh.war/verification-response/v1"
 warrant = "$a"
@@ -292,18 +304,12 @@ separate_context_compilation = true
 distinct_model_required = true
 distinct_human_required = false
 VERIFY
-        "$WAR" --root "$root" verify "$a" --response "$ST_TMP/verification-$a.toml" >/dev/null 2>&1
+        "$WAR" --root "$root" verify "$a" --performer claude --bundle --json > "$ST_TMP/request-$a.json"
+        python3 "$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" "$ST_TMP/request-$a.json" "$ST_TMP/verification-$a.toml" > "$ST_TMP/bound-$a.toml"
+        "$WAR" --root "$root" verify "$a" --response "$ST_TMP/bound-$a.toml" >/dev/null 2>&1
     done
     "$WAR" --root "$root" compile >/dev/null 2>&1
     st_commit "$root" "verified"
-    # One gate run per Warrant, each over projections brought up to date:
-    # a run records evidence the corpus status projects, and the next run's
-    # `war check --generated` would otherwise see the last one's drift.
-    for a in "$@"; do
-        PATH="$ST_TMP/bin:$PATH" "$WAR" --root "$root" evidence record "$a" >/dev/null 2>&1
-        "$WAR" --root "$root" compile >/dev/null 2>&1
-    done
-    st_commit "$root" "evidence"
 }
 
 st_sign() { # root target [flags] — one act, ssh-signed as the plant signer

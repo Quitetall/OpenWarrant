@@ -85,10 +85,11 @@ fi
 # 1. Accepting case: a bundle, the verifier's answer to it ingested, and a
 #    `--run` that keeps its response — uncommitted. Every file `war verify`
 #    writes moved, the verdicts were recorded, and the receipt still counts.
-vr_war verify "$VR_A" --performer claude --bundle >/dev/null 2>&1
+vr_war verify "$VR_A" --performer claude --bundle --json > "$VR_TMP/request.json" 2>/dev/null
 VR_B=$(ls "$VR_W"/verifications/bundle-*.json 2>/dev/null | head -1)
 VR_INGEST=""
 if [[ -n "$VR_B" ]]; then
+    OPENWARRANT_REVIEWED_PACKETS=$(python3 -c 'import json,sys;print(json.dumps(json.load(open(sys.argv[1]))["result"]["packets"]))' "$VR_TMP/request.json") \
     bash "$VR_TMP/verifier.sh" "$VR_B" > "$VR_TMP/response.toml" 2>"$VR_TMP/verifier.err"
     VR_INGEST=$(vr_war verify "$VR_A" --response "$VR_TMP/response.toml" 2>&1)
 fi

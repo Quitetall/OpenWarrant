@@ -418,6 +418,10 @@ fn envelope(command: &str, report: &Report, result: Option<serde_json::Value>) -
 /// rule and the message the CLI would have printed, in the same envelope.
 fn refused(command: &str, err: &RepoError) -> ToolResult {
     let mut report = Report::default();
+    if let RepoError::ObservationUnavailable { rule, message } = err {
+        report.push(Diagnostic::unknown(*rule, String::new(), message));
+        return envelope(command, &report, None);
+    }
     report.push(Diagnostic::error(
         "cli.error",
         String::new(),
