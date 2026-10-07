@@ -168,6 +168,10 @@ struct Row {
     promoted_to: Option<String>,
     claims: Vec<claim::Claim>,
     dir: String,
+    /// OW-WAR-0148 M4: declared states on record for the ticket or its
+    /// items, held or lapsed. Absent where there are none.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    declared_states: Vec<crate::states::Declared>,
 }
 
 fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
@@ -189,6 +193,7 @@ fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
             .filter_map(|(_, c)| c.clone())
             .collect(),
         dir: store.rel(&t.dir),
+        declared_states: crate::states::ticket_declared(store, t, claims),
     }
 }
 
@@ -230,8 +235,17 @@ pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
     for t in order {
         let r = row(store, t, &claims);
         let holders: Vec<String> = r.claims.iter().map(|c| c.actor.clone()).collect();
+        let held: Vec<String> = r
+            .declared_states
+            .iter()
+            .filter(|d| !d.lapsed)
+            .map(|d| {
+                let short = d.record.strip_prefix(&format!("{}/", r.id)).unwrap_or(&d.record);
+                format!("{short} {}", d.state)
+            })
+            .collect();
         human.push_str(&format!(
-            "{:<width$}  {:<11}  {:>5}  p{}  {}{}{}\n",
+            "{:<width$}  {:<11}  {:>5}  p{}  {}{}{}{}\n",
             r.id,
             r.state.as_str(),
             format!("{}/{}", r.done, r.total),
@@ -246,6 +260,11 @@ pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
                 .as_ref()
                 .map(|w| format!("  [promoted: {w}]"))
                 .unwrap_or_default(),
+            if held.is_empty() {
+                String::new()
+            } else {
+                format!("  [{}]", held.join(", "))
+            },
         ));
         rows.push(r);
     }
@@ -275,9 +294,14 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let now = now_secs();
     let r = row(store, t, &claims);
     let mut md = format!("# {} — {}\n\n", t.id(), t.manifest.title);
+    let declared = r.declared_states.clone();
+    let ann = |record: Option<String>| {
+        record.map_or_else(String::new, |rid| crate::states::annotate(&declared, &rid))
+    };
     md.push_str(&format!(
-        "{} · {}/{} done · priority {} · created {} by {} · `{}/`\n",
+        "{}{} · {}/{} done · priority {} · created {} by {} · `{}/`\n",
         r.state.as_str(),
+        ann(Some(t.id().to_owned())),
         r.done,
         r.total,
         r.priority,
@@ -301,7 +325,7 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     for item in &t.checklist.items {
         if item.done {
             md.push_str(&format!(
-                "- [x] {}{}{}\n",
+                "- [x] {}{}{}{}\n",
                 item.text,
                 item.id
                     .as_ref()
@@ -315,10 +339,14 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
                     .note
                     .as_ref()
                     .map(|n| format!(": {n}"))
-                    .unwrap_or_default()
+                    .unwrap_or_default(),
+                ann(item.id.as_ref().map(|i| format!("{}/{i}", t.id())))
             ));
         } else {
-            md.push_str(&open_item_line(store, &tickets, t, item, &claims, now));
+            let line = open_item_line(store, &tickets, t, item, &claims, now);
+            md.push_str(line.trim_end_matches('\n'));
+            md.push_str(&ann(item.id.as_ref().map(|i| format!("{}/{i}", t.id()))));
+            md.push('\n');
         }
     }
     let all = notes(&t.intent);

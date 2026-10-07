@@ -67,6 +67,12 @@ pub fn warrant_state(
     let outcome = record.and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
     crate::journal_cmd::load(dir)
         .ok()
+        .map(|mut j| {
+            // A declared state's entry (OW-WAR-0148 M4) is no transition of
+            // the Warrant's phase.
+            j.events.retain(|e| e.event_type != crate::states::ENTERED);
+            j
+        })
         .and_then(|j| crate::journal_cmd::recorded_state(&j, outcome))
         .unwrap_or_else(|| {
             if binds_current_contract {

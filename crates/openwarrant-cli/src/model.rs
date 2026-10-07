@@ -31,7 +31,12 @@
 //! - **States:** what the builders already derive — a Warrant's §24 state,
 //!   its rung and currency, an obligation's disposition, a phase's
 //!   achievement, a checklist's done/open. Each says whether it is
-//!   `recorded` or `computed`.
+//!   `recorded` or `computed`. Beside them, the kernel states
+//!   (OW-WAR-0148 M4): each fixed state that holds, of kind `computed` or
+//!   `authenticated` with its RQ-032 `facet`, and each declared state
+//!   entered, of kind `declared` with what it `refines` and whether it has
+//!   `lapsed`. An item's `in_progress` reads the claim locks, the one input
+//!   outside the tree; a declared state reads the journals.
 //! - **basis_digest:** sha256 over the sorted `(id, revision)` pairs: the
 //!   same tree gives the same digest and the same bytes.
 //!
@@ -110,17 +115,33 @@ pub struct Relation {
     pub to_revision: Option<String>,
 }
 
-/// A state a builder derives for a record.
+/// A state a builder derives for a record, or a kernel state that holds for
+/// it (OW-WAR-0148 M4).
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct State {
     pub record: String,
-    /// `phase`, `rung`, `currency`, `disposition`, `achieved` or `checklist`.
+    /// What the builders derive: `phase`, `rung`, `currency`,
+    /// `disposition`, `achieved` or `checklist`. A kernel state (OW-ADR-0031)
+    /// is `computed`, `authenticated` or `declared`, and its `value` is the
+    /// state's name.
     pub kind: String,
     pub value: String,
-    /// `recorded` (read from a record of an act) or `computed`.
+    /// `recorded` (read from a record of an act), `computed`, or, for a
+    /// declared state, `authored` (an entry in a journal).
     pub provenance: String,
+    /// A fixed kernel state's dimension in SAS §24 / RQ-032's decomposition:
+    /// `phase`, `outcome`, `currency` or `standing`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub facet: Option<String>,
+    /// A declared state's fixed parent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refines: Option<String>,
+    /// A declared state whose parent stopped holding: still on record, and
+    /// no longer held.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub lapsed: bool,
 }
 
 /// A finding about the model itself.
@@ -191,6 +212,9 @@ impl Builder {
             kind: kind.to_owned(),
             value,
             provenance: if recorded { "recorded" } else { "computed" }.to_owned(),
+            facet: None,
+            refines: None,
+            lapsed: false,
         });
     }
     fn diagnose(&mut self, rule: &str, record: &str, message: String) {
@@ -414,6 +438,11 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             );
         }
     }
+
+    // ---- Kernel states (OW-WAR-0148 M4): each fixed state that holds,
+    // computed or authenticated, and each declared state entered, held or
+    // lapsed. Beside the builders' states above, never in place of them.
+    b.states.extend(crate::states::model_states(corpus)?);
 
     // ---- Roadmap phases.
     let objectives: BTreeMap<String, &openwarrant_core::status::ObjectiveStatus> = status

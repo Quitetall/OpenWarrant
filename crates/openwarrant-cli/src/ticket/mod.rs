@@ -605,7 +605,7 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
 // ---- derived state ---------------------------------------------------------
 
 /// The claim on a ticket's item, or on the whole ticket, if any.
-fn claim_on<'a>(
+pub(crate) fn claim_on<'a>(
     claims: &'a BTreeMap<String, Option<claim::Claim>>,
     ticket: &str,
     item: Option<&str>,
@@ -663,7 +663,7 @@ fn open_blockers(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
 }
 
 /// A ticket's state given the claims now held.
-fn state_of(t: &Ticket, claims: &BTreeMap<String, Option<claim::Claim>>) -> TicketState {
+pub(crate) fn state_of(t: &Ticket, claims: &BTreeMap<String, Option<claim::Claim>>) -> TicketState {
     if t.checklist.is_done() {
         return TicketState::Done;
     }

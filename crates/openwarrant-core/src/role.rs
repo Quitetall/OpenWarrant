@@ -647,6 +647,12 @@ pub struct ProfileDefinition {
     /// file's declaration is program data, not kind data: it loosens nothing
     /// an act reads.
     pub vocabulary: crate::relation::Vocabulary,
+    /// OW-WAR-0148 M4: `[[states]]`, the declared refinements of fixed
+    /// kernel states this profile's records may enter (`war state`). Empty
+    /// when the file declares none, and always for a built-in core profile.
+    /// Program data, not kind data: a declared state satisfies no check and
+    /// no gate.
+    pub states: Vec<crate::kernel_state::DeclaredState>,
 }
 
 impl ProfileDefinition {
@@ -728,6 +734,9 @@ struct ProfileFile {
     /// `require = [[from_type, kind, to_type], ...]`.
     #[serde(default)]
     relations: Option<RelationsTable>,
+    /// OW-WAR-0148 M4: `[[states]] name = "...", refines = "<fixed state>"`.
+    #[serde(default)]
+    states: Vec<StateEntry>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -849,6 +858,12 @@ pub enum ProfileError {
         file: String,
         name: String,
         detail: String,
+    },    #[error("{file}: profile {name}: [[states]]: {detail} (OW-ADR-0031)")]
+    BadState {
+        file: String,
+        name: String,
+        rule: &'static str,
+        detail: String,
     },
 }
 
@@ -862,6 +877,7 @@ impl ProfileError {
             Self::CapabilityPrerequisite { .. } => "profile.capability-prerequisite",
             Self::BadCapabilities { .. } => "profile.capabilities",
             Self::BadVocabulary { .. } => "profile.records",
+            Self::BadState { rule, .. } => rule,
             _ => "profile.invalid",
         }
     }
@@ -905,6 +921,7 @@ impl ProfileRegistry {
                         working_core_roles: None,
                         kind: core.kind_data(),
                         vocabulary: crate::relation::Vocabulary::default(),
+                        states: Vec::new(),
                     },
                 )
             })
@@ -934,6 +951,7 @@ impl ProfileRegistry {
                 // (program data, not kind data).
                 core.digest = definition.digest;
                 core.vocabulary = definition.vocabulary;
+                core.states = definition.states;
             }
         }
         Ok(registry)
@@ -1124,6 +1142,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
                 fixed.standing_coverage
             )));
         }
+        let states = parse_states(&owned, &raw.name, fixed.capabilities, &raw)?;
         return Ok(ProfileDefinition {
             name: raw.name,
             core,
@@ -1134,6 +1153,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             reference_roles: Vec::new(),
             digest,
             working_core_roles: None,
+            states,
             kind: fixed,
             vocabulary,
         });
@@ -1237,6 +1257,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             ),
         });
     }
+    let states = parse_states(&owned, &raw.name, kind.capabilities, &raw)?;
     Ok(ProfileDefinition {
         name: raw.name,
         core,
@@ -1247,10 +1268,48 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         reference_roles: raw.reference_roles,
         digest,
         working_core_roles,
+        states,
         kind,
         vocabulary,
     })
 }
+
+// ---- OW-WAR-0148 M4: declared states ----------------------------------------
+
+/// One `[[states]]` entry as written.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StateEntry {
+    name: String,
+    refines: String,
+    /// Prose for a reader; carries no meaning.
+    #[serde(default)]
+    #[allow(dead_code)]
+    note: Option<String>,
+}
+
+/// `[[states]]`: checked by [`crate::kernel_state::declare`] against the
+/// capabilities the kind selects, each refusal under its own rule.
+fn parse_states(
+    file: &str,
+    name: &str,
+    capabilities: Capabilities,
+    raw: &ProfileFile,
+) -> Result<Vec<crate::kernel_state::DeclaredState>, ProfileError> {
+    let entries: Vec<(String, String)> = raw
+        .states
+        .iter()
+        .map(|s| (s.name.clone(), s.refines.clone()))
+        .collect();
+    crate::kernel_state::declare(&entries, capabilities).map_err(|e| ProfileError::BadState {
+        file: file.to_owned(),
+        name: name.to_owned(),
+        rule: e.rule,
+        detail: e.detail,
+    })
+}
+
+// ---- end of declared states -------------------------------------------------
 
 /// `[records]` and `[relations]` (OW-WAR-0148 M3): checked by
 /// [`crate::relation::Vocabulary::declare`], refused `profile.records`.

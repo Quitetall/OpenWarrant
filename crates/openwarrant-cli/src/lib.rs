@@ -87,6 +87,7 @@ pub mod sdk;
 pub mod show;
 pub mod sign;
 pub mod standing_cmd;
+pub mod states;
 pub mod status;
 pub mod telemetry;
 pub mod ticket;
@@ -1348,6 +1349,28 @@ enum Command {
     /// states the builders derive, and a diagnostic per relation whose target
     /// is not a record. Read-only; the same tree gives the same bytes.
     Model,
+    // ---- OW-WAR-0148 M4: declared states ---------------------------------
+    /// Enter a declared state on a record (OW-WAR-0148 M4): a refinement of
+    /// a fixed kernel state that the record's profile declares in
+    /// `[[states]]` (`in_review` refines `in_progress`). An authored event in
+    /// the journal of the Warrant or ticket that owns the record. It holds
+    /// only while its fixed parent holds and lapses when the parent stops;
+    /// refining an authenticated state (`verified`), it is entered only while
+    /// that state already holds. It satisfies no resolution check and no
+    /// capability gate.
+    State {
+        /// A record id of `war model`: a ticket, an item (`t-x/i-y`, `i-y`),
+        /// a Warrant or one of its records (`NS-WAR-0001/OBL-001`).
+        record: String,
+        /// The declared state's name.
+        name: String,
+        /// Why, for the next reader; kept in the journal entry.
+        #[arg(long)]
+        note: Option<String>,
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
     /// The stages that can start now (OW-WAR-0068): open, unblocked by
     /// their milestone's `depends_on`, and not yet dispatched. Derived from
     /// the same records a resolution reads; never a status claim.
@@ -2711,6 +2734,26 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 )),
             }
         }
+        // ---- OW-WAR-0148 M4: declared states -----------------------------
+        Command::State {
+            record,
+            name,
+            note,
+            actor,
+        } => {
+            let repository = open_repo()?;
+            Ok(ticket_answer(
+                mode,
+                "state",
+                &states::enter(
+                    &repository,
+                    &record,
+                    &name,
+                    note.as_deref(),
+                    actor.as_deref(),
+                )?,
+            ))
+        }
         Command::Model => {
             let repository = open_repo()?;
             gate_cmd::source::remember_tree_reads();
@@ -3434,12 +3477,20 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             } else {
                 None
             };
-            output::emit(
-                mode,
-                "show",
-                &rendered,
-                serde_json::json!({"alias": alias, "view": view, "rendered": rendered, "review": review}),
-            );
+            // OW-WAR-0148 M4: the declared states on record, only where any is.
+            let declared = if matches!(view.as_str(), "full_warrant" | "status") {
+                states::warrant_section(&repository, &alias).map(|(md, d)| {
+                    rendered.push_str(&md);
+                    d
+                })
+            } else {
+                None
+            };
+            let mut result = serde_json::json!({"alias": alias, "view": view, "rendered": rendered, "review": review});
+            if let Some(d) = declared {
+                result["declared_states"] = serde_json::json!(d);
+            }
+            output::emit(mode, "show", &rendered, result);
             Ok(EXIT_OK)
         }
         Command::Diff { alias, from, to } => {

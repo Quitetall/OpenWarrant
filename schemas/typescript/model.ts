@@ -4,5 +4,5 @@
 type Def_ModelDiagnostic = ({ "message": (string); "record": (string); "rule": (string); });
 type Def_Record = ({ "governed_by"?: ((string)) | ((null)); "id": (string); "revision": (string); "source": (string); "type": (string); });
 type Def_Relation = ({ "from": (string); "kind": (string); "to": (string); "to_revision"?: ((string)) | ((null)); });
-type Def_State = ({ "kind": (string); "provenance": (string); "record": (string); "value": (string); });
+type Def_State = ({ "facet"?: ((string)) | ((null)); "kind": (string); "lapsed"?: (boolean); "provenance": (string); "record": (string); "refines"?: ((string)) | ((null)); "value": (string); });
 export type Document = ({ "basis_digest": (string); "diagnostics": (Array<(Def_ModelDiagnostic)>); "records": (Array<(Def_Record)>); "relations": (Array<(Def_Relation)>); "schema": (string); "states": (Array<(Def_State)>); });

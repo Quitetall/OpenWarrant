@@ -43,6 +43,7 @@ pub mod gate_run;
 pub mod identity;
 pub mod independence;
 pub mod journal;
+pub mod kernel_state;
 pub mod lifecycle;
 pub mod manifest;
 pub mod migration;

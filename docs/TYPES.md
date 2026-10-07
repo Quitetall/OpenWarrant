@@ -2,7 +2,8 @@
 
 A document's **type** (its profile, `profiles/<name>.toml`) says what it is
 made of and what applies to it (OW-ADR-0031). This page covers the two
-things a type composes: **records** and the **relations** between them.
+things a type composes, **records** and the **relations** between them, and
+the **states** a record can be in.
 `war impact` (below) is what they are for: one change, and everything it
 reaches.
 
@@ -153,6 +154,98 @@ Silent for a program with no record atom and no authored relation. Otherwise
 | `record.relation-malformed` | an `evaluates` bullet naming no record id |
 | `record.relation-required` | a record missing a relation its profile requires |
 | `record.relation-target-unknown` | (a warning) a core relation whose target is no record of the corpus; kept, never dropped |
+
+## States
+
+A record's state is a fixed kernel set plus the refinements its profile
+declares (OW-WAR-0148 M4; OW-ADR-0031). The fixed states map onto SAS §24 /
+RQ-032's decomposition (phase, condition, outcome, currency, standing); they
+name moments in it and replace nothing.
+
+### The fixed set
+
+Each is **computed** from facts the kernel already reads, or
+**authenticated**: it holds only on the record of a human act or an ingested
+independent verdict. A type reaches a state only when its profile selects
+the capability that produces it. Several can hold at once.
+
+| state | kind | capability | facet | holds for |
+|---|---|---|---|---|
+| `draft` | computed | `structure` | phase | a Warrant neither authorized nor resolved |
+| `open` | computed | `claims` | phase | a ticket or item nobody has claimed or finished |
+| `in_progress` | computed | `claims` | phase | an item claimed (it or its ticket) and not done; a ticket with a claim or a done item |
+| `done` | computed | `claims` | phase | an item ticked; a ticket whose every item is |
+| `accepted` | authenticated | `acceptance` | standing | a roadmap phase, once the roadmap record is accepted |
+| `superseded` | computed | `links` | currency | a Warrant an authorized successor supersedes (OW-ADR-0022) |
+| `authorized` | authenticated | `authorization` | phase | a Warrant whose authorization binds the contract as it compiles now |
+| `verified` | authenticated | `verification` | outcome | an obligation an admissible independent verdict establishes |
+| `resolved` | authenticated | `resolution` | phase | a Warrant whose §56.2 record binds the current contract |
+| `achieved` | computed | `links` | outcome | a roadmap phase whose exit Warrant's resolution is recorded |
+
+No profile adds a fixed state, and nobody enters one by hand.
+
+### Declared states
+
+```toml
+# profiles/ticket.toml
+[[states]]
+name = "in_review"
+refines = "in_progress"
+
+# profiles/delivery.toml
+[[states]]
+name = "signed_off"
+refines = "verified"
+```
+
+- `refines` names a fixed state; anything else is refused,
+  `profile.state-refines-unknown`.
+- A name that is a fixed state's is refused, `profile.state-collides`; a
+  name that is not a lowercase word, or is declared twice,
+  `profile.state-invalid`.
+- Refining a state the profile's capabilities never reach (`signed_off` on
+  the ticket profile, which has no `verification`) is refused,
+  `profile.state-unreachable`.
+- A core profile's file may declare states: program data, like its record
+  vocabulary.
+
+```text
+war state <record> <name> [--note TEXT] [--as ACTOR] [--json]
+```
+
+enters one, as a `state.entered` event in the journal of the Warrant or
+ticket that owns the record (`t-x/i-y`, `NS-WAR-0001/OBL-001`). Refused,
+with nothing written:
+
+| rule | what |
+|---|---|
+| `state.record-unknown` | no Warrant or ticket journal owns the record |
+| `state.fixed` | the name is a fixed state's |
+| `state.undeclared` | the record's profile declares no such state |
+| `state.parent-not-holding` | the fixed parent does not hold for the record now; for an authenticated parent (`verified`), the act or verdict behind it must be on record first |
+
+A declared state holds only while its parent holds — for an item's
+`in_progress`, under the claim it was entered under — and reads **lapsed**
+once the parent stops (an item finished, a claim released or re-taken). Of
+two declared states refining the same parent, the later entry is the one on
+record. Entering one again while it holds writes nothing.
+
+A declared state **never satisfies a §56.1 requirement or a capability
+gate**: nothing that evaluates one reads it. It is a qualifier a team can
+see, never a way to read more than its parent.
+
+### Where they show
+
+- `war model --json`: each fixed state that holds, `kind: computed` or
+  `authenticated` with its `facet`, and each declared state entered,
+  `kind: declared` with `refines` and `lapsed`, beside the builders' own
+  states (`phase`, `rung`, `currency`, `disposition`, `achieved`,
+  `checklist`). An item's `in_progress` reads the claim locks, the one input
+  outside the tree.
+- `war show <ticket>`: ` [in_review]` (or ` [in_review, lapsed]`) after the
+  ticket's state or an item's line; `war tickets`: the ones that hold.
+- `war show <alias>` (`full_warrant` and `status` views): a "Declared
+  states" section, only where the Warrant's journal holds one.
 
 ## The model
 
