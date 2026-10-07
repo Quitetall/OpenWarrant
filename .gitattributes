@@ -9,3 +9,9 @@ docs/design/amendment-review/*.log -text
 docs/design/amendment-review/*-signing-preview.txt -text
 conformance/sdk/author/** -text
 docs/warrants/OW-WAR-0076/evidence/sdk-author/** -text
+
+# war (M11): journals are append-only lines, so a merge keeps both sides'.
+**/journal.jsonl merge=union
+# war (M11): ticket checklists merge item by item, notes by appending
+# (`war merge-ticket`; `war merge-ticket --install` configures this clone).
+docs/tickets/*/atoms/*.md merge=war-ticket

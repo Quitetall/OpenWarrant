@@ -417,3 +417,72 @@ if [[ $AL_S -ne 0 && $AL_S2 -ne 0 && $AL_S3 -ne 0 && $AL_S4 -eq 0 && $AL_MOVED -
 else
     cc_fail "a shared alias is refused" "check $AL_S, signed $AL_S2 ($AL_ERR), taken $AL_S3 ($AL_ERR2), renumber $AL_S4, moved $AL_MOVED; $(grep -m1 'alias-duplicate' <<<"$AL_OUT2")"
 fi
+
+# Merge-friendly files. Two branches each tick an adjacent item of one
+# checklist, add an item, write a note, and so append to the ticket's
+# journal. Accepted: `war init` wrote the .gitattributes lines (journals
+# merge=union, ticket atoms merge=war-ticket), and this repository carries
+# them; with the driver configured, the merge is clean: both ticks, both
+# items, both notes under one heading, every journal line of both sides, and
+# `war check` passes. Refused: the same merge with git's text merge forced
+# conflicts in the checklist, the intent and the journal (what the driver and
+# union are for); and one item changed two ways is not merged silently: the
+# driver exits non-zero, ticket.merge-conflict, with git's markers.
+echo "== concurrency: merge-friendly files (M11) =="
+MG_ROOT=$(scratch_corpus MG)
+[[ -d "${MG_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
+git -C "$MG_ROOT" config merge.war-ticket.driver "$CC_WAR merge-ticket %O %A %B %P"
+MG_ATTR=0
+grep -qxF '**/journal.jsonl merge=union' "$MG_ROOT/.gitattributes" && grep -qxF 'docs/tickets/*/atoms/*.md merge=war-ticket' "$MG_ROOT/.gitattributes" \
+    && grep -qxF '**/journal.jsonl merge=union' "$REPO_ROOT/.gitattributes" && MG_ATTR=1
+MG_OUT=$(cc_json "$MG_ROOT" create "Merged" --item "One" --item "Two" --item "Three")
+MG_T=$(cc_field "$MG_OUT" 'v["result"]["id"]')
+MG_I1=$(cc_field "$MG_OUT" 'v["result"]["items"][0]["id"]')
+MG_I2=$(cc_field "$MG_OUT" 'v["result"]["items"][1]["id"]')
+cc_commit "$MG_ROOT" "a ticket"
+MG_BASE=$(git -C "$MG_ROOT" branch --show-current)
+MG_J="$MG_ROOT/docs/tickets/$MG_T/journal.jsonl"; MG_CL="$MG_ROOT/docs/tickets/$MG_T/atoms/15-checklist.md"
+MG_IN="$MG_ROOT/docs/tickets/$MG_T/atoms/10-intent.md"
+MG_J0=$(wc -l <"$MG_J")
+mg_side() {
+    cc_war "$MG_ROOT" claim "$MG_T/$2" --as "$1" >/dev/null 2>&1 && cc_war "$MG_ROOT" done "$MG_T/$2" --as "$1" >/dev/null 2>&1 \
+        && cc_war "$MG_ROOT" add "$MG_T" "Added by $1" --as "$1" >/dev/null 2>&1 \
+        && cc_war "$MG_ROOT" note "$MG_T" "noted by $1" --as "$1" >/dev/null 2>&1 && cc_commit "$MG_ROOT" "$1"
+}
+git -C "$MG_ROOT" checkout -qb left && mg_side lefty "$MG_I1"; MG_L=$?
+MG_JL=$(( $(wc -l <"$MG_J") - MG_J0 ))
+git -C "$MG_ROOT" checkout -q "$MG_BASE" && git -C "$MG_ROOT" checkout -qb right && mg_side righty "$MG_I2"; MG_R=$?
+MG_JR=$(( $(wc -l <"$MG_J") - MG_J0 ))
+MG_PRE=$(git -C "$MG_ROOT" rev-parse HEAD)
+MG_MERGE=$(git -C "$MG_ROOT" -c user.email=plant@invalid -c user.name=plant merge -q --no-edit left 2>&1); MG_S=$?
+MG_TICKS=$(grep -c '^- \[x\]' "$MG_CL"); MG_ADDS=$(grep -c '^- \[ \] Added by' "$MG_CL")
+MG_HEAD=$(grep -c '^## Notes$' "$MG_IN"); MG_NOTES=$(grep -c 'noted by' "$MG_IN")
+MG_JN=$(( $(wc -l <"$MG_J") - MG_J0 ))
+cc_war "$MG_ROOT" check "$MG_T" >/dev/null 2>&1; MG_C=$?
+MG_JC=$(cc_war "$MG_ROOT" check 2>&1 | grep -c 'journal.rewritten')
+if [[ $MG_ATTR -eq 1 && $MG_L -eq 0 && $MG_R -eq 0 && $MG_S -eq 0 && $MG_TICKS -eq 2 && $MG_ADDS -eq 2 && $MG_HEAD -eq 1 \
+    && $MG_NOTES -eq 2 && $MG_JN -eq $((MG_JL + MG_JR)) && $MG_C -eq 0 && $MG_JC -eq 0 ]]; then
+    cc_ok "two branches merge cleanly" "adjacent ticks, two adds, two notes (one heading), $MG_JL+$MG_JR journal lines kept; war check passes"
+else
+    cc_fail "two branches merge cleanly" "attrs $MG_ATTR sides $MG_L/$MG_R merge $MG_S ($MG_MERGE); ticks $MG_TICKS adds $MG_ADDS headings $MG_HEAD notes $MG_NOTES journal +$MG_JN of $MG_JL+$MG_JR; check $MG_C, rewritten $MG_JC"
+fi
+# Refused: git's text merge, forced for these files, conflicts on all three.
+git -C "$MG_ROOT" reset -q --hard "$MG_PRE"
+printf 'docs/tickets/** merge=text\n' > "$MG_ROOT/.git/info/attributes"
+git -C "$MG_ROOT" -c user.email=plant@invalid -c user.name=plant merge -q --no-edit left >/dev/null 2>&1; MG_S=$?
+MG_U=$(git -C "$MG_ROOT" diff --name-only --diff-filter=U | sed 's|.*/||' | sort | tr '\n' ' ')
+git -C "$MG_ROOT" merge --abort >/dev/null 2>&1
+command rm -f "$MG_ROOT/.git/info/attributes"
+# Refused: one item changed two ways, at the driver itself.
+MG_D=$(mktemp -d -p "$CC_TMP")
+printf '# Checklist\n\n- [ ] One (i-0001)\n- [ ] Two (i-0002)\n' > "$MG_D/base"
+printf '# Checklist\n\n- [x] One (i-0001) — done by a\n- [ ] Two (i-0002)\n' > "$MG_D/ours"
+printf '# Checklist\n\n- [ ] One, reworded (i-0001)\n- [ ] Two (i-0002)\n' > "$MG_D/theirs"
+MG_ERR=$(env -u SSH_AUTH_SOCK "$CC_WAR" merge-ticket "$MG_D/base" "$MG_D/ours" "$MG_D/theirs" docs/tickets/t-1/atoms/15-checklist.md 2>&1); MG_S2=$?
+if [[ $MG_S -ne 0 && "$MG_U" == *"10-intent.md"* && "$MG_U" == *"15-checklist.md"* && "$MG_U" == *"journal.jsonl"* \
+    && $MG_S2 -ne 0 ]] && grep -q 'ticket.merge-conflict' <<<"$MG_ERR" && grep -q 'i-0001' <<<"$MG_ERR" \
+    && grep -q '^<<<<<<< ours' "$MG_D/ours"; then
+    cc_ok "what a text merge would conflict" "forced text merge: conflicts in $MG_U; one item changed two ways: ticket.merge-conflict, markers left for a person"
+else
+    cc_fail "what a text merge would conflict" "text merge $MG_S conflicted '$MG_U'; two-way item $MG_S2: $MG_ERR"
+fi

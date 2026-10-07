@@ -269,6 +269,21 @@ reads this machine's claims only; a claim held elsewhere is refused at
 `war claim`. Nothing is signed: the commit is written with `--no-gpg-sign`
 under a fixed `war` identity, and pushes skip hooks.
 
+### Branches that merge
+
+Two agents on two branches tick two adjacent items, each add an item and a
+note: git's text merge reads two touching edits and stops. Ticket files keep
+their layout; `.gitattributes` names a merge driver for them
+(`docs/tickets/*/atoms/*.md merge=war-ticket`), and `war merge-ticket`
+merges a checklist item by item (keyed by id) and an intent's appended notes
+side by side, under one `## Notes` heading. One item changed two different
+ways is not merged for you: the driver leaves git's conflict markers and
+stops the merge (`ticket.merge-conflict`). Journals are append-only lines and
+merge with git's built-in `merge=union`. `war init` writes both
+`.gitattributes` lines and configures the driver for its clone; in a clone
+made since, run `war merge-ticket --install` once. Without the driver git
+merges these files as text, as before.
+
 ### Writes that say what they read
 
 `war done`, `edit`, `note`, `add` and `release` take `--if-rev <revision>`

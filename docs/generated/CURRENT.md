@@ -9236,7 +9236,7 @@ the app shows a `human` remedy and stops.
 | D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | drift |
 | D-019 | The report schema | `schemas/oh.war/report/v1.json` | verified |
 | D-020 | The schema pack | `schemas/pack.json` | drift |
-| D-021 | init, unchanged in behaviour, as a module directory | `crates/openwarrant-cli/src/init/mod.rs` | verified |
+| D-021 | init, unchanged in behaviour, as a module directory | `crates/openwarrant-cli/src/init/mod.rs` | drift |
 | D-022 | The guided init | `crates/openwarrant-cli/src/init/guided.rs` | drift |
 | D-023 | roles.toml.example states the rule | `docs/authority/roles.toml.example` | verified |
 | D-024 | allowed_signers.example states the rule | `docs/authority/allowed_signers.example` | verified |
@@ -12132,7 +12132,7 @@ truncates nothing.
 | D-007 | Response drafts written atomically before their rename | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-008 | Durable journal appends and journal.torn-tail | `crates/openwarrant-cli/src/journal_cmd.rs` | drift |
 | D-009 | storage.stray-temp in war check | `crates/openwarrant-cli/src/check.rs` | drift |
-| D-010 | The storage protocol, crash points, and the retained-artifact rule | `docs/STORAGE.md` | verified |
+| D-010 | The storage protocol, crash points, and the retained-artifact rule | `docs/STORAGE.md` | drift |
 | D-011 | The storage plants | `conformance/plants.d/53-storage.sh` | verified |
 
 #### OW-WAR-0122 — The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept
@@ -18689,7 +18689,7 @@ negative controls.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The optional [adoption] baseline in repository configuration | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
-| D-002 | war init records the baseline, refuses a non-commit, points at existing ADRs | `crates/openwarrant-cli/src/init/mod.rs` | verified |
+| D-002 | war init records the baseline, refuses a non-commit, points at existing ADRs | `crates/openwarrant-cli/src/init/mod.rs` | drift |
 | D-003 | The --baseline flag on war init | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The adopt Warrant's Basis names the baseline and what it does not claim | `crates/openwarrant-cli/templates/adopt/20-basis.md` | verified |
 | D-005 | The guided Baseline step | `crates/openwarrant-cli/src/init/guided.rs` | drift |
@@ -27262,7 +27262,7 @@ responder must not read as "waiting normally".
 | D-007 | The cancel plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/60-perform-cancel.sh` | verified |
 | D-008 | The token plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/83-tokens.sh` | drift |
 | D-009 | war next names no-responder and skips question-blocked stages (AM-002) | `crates/openwarrant-cli/src/next.rs` | drift |
-| D-010 | A new program states allow_unmetered = true (AM-002) | `crates/openwarrant-cli/src/init/mod.rs` | verified |
+| D-010 | A new program states allow_unmetered = true (AM-002) | `crates/openwarrant-cli/src/init/mod.rs` | drift |
 
 ### OW-PHASE-6 — Gate Registry and assurance case
 

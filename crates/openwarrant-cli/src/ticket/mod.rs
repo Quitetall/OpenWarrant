@@ -30,6 +30,7 @@
 //! repository.
 
 pub mod claim;
+pub mod merge;
 pub mod remote;
 mod render;
 
@@ -2416,6 +2417,76 @@ impl Store {
     pub fn renew_all(&self) {
         let renewed = self.renew_held(None);
         let _ = self.renew_remote(&renewed, false);
+    }
+}
+
+// ---- merge driver (M11) ----------------------------------------------------
+
+/// `war merge-ticket <base> <ours> <theirs> [<path>]`: git's merge driver
+/// for ticket files ([`merge`]). The result goes to `ours`, as git expects;
+/// a merge this cannot make is git's text merge, conflict markers and all,
+/// refused `ticket.merge-conflict` so git stops and asks.
+pub fn merge_ticket(
+    base: &Utf8Path,
+    ours: &Utf8Path,
+    theirs: &Utf8Path,
+    path: Option<&str>,
+) -> Result<Outcome, RepoError> {
+    let read = |p: &Utf8Path| {
+        std::fs::read_to_string(p).map_err(|source| RepoError::Io {
+            context: format!("could not read {p}"),
+            source,
+        })
+    };
+    let (o, a, b) = (read(base)?, read(ours)?, read(theirs)?);
+    let shown = path.unwrap_or(ours.as_str()).to_owned();
+    let (how, text) = match merge::merge(&shown, &o, &a, &b) {
+        merge::Merged::Items(t) => ("items", t),
+        merge::Merged::Appends(t) => ("appends", t),
+        merge::Merged::Text(why) => {
+            let ran = std::process::Command::new("git")
+                .args(["merge-file", "-L", "ours", "-L", "base", "-L", "theirs"])
+                .args([ours.as_str(), base.as_str(), theirs.as_str()])
+                .stdin(std::process::Stdio::null())
+                .output()
+                .map_err(|source| RepoError::Io {
+                    context: "could not run git merge-file".to_owned(),
+                    source,
+                })?;
+            if ran.status.success() {
+                return Ok(Outcome::ok(
+                    format!("{shown}: merged as text ({why}; git found no conflict)"),
+                    serde_json::json!({"schema": "oh.war/ticket-merge/v1", "path": shown, "merged": "text"}),
+                ));
+            }
+            return Ok(Outcome::refused(
+                "ticket.merge-conflict",
+                shown.clone(),
+                format!(
+                    "{shown}: {why}, so it was merged as text and the conflict markers are in \
+                     the file. Keep the line each item should have, then `git add` it"
+                ),
+            ));
+        }
+    };
+    std::fs::write(ours, &text).map_err(|source| RepoError::Io {
+        context: format!("could not write {ours}"),
+        source,
+    })?;
+    Ok(Outcome::ok(
+        String::new(),
+        serde_json::json!({"schema": "oh.war/ticket-merge/v1", "path": shown, "merged": how}),
+    ))
+}
+
+/// `war merge-ticket --install`.
+pub fn merge_install(root: &Utf8Path) -> Outcome {
+    match merge::install(root) {
+        Ok(did) => Outcome::ok(
+            did.join("\n"),
+            serde_json::json!({"schema": "oh.war/ticket-merge-install/v1", "did": did}),
+        ),
+        Err(why) => Outcome::refused("ticket.merge-install", ".gitattributes", why),
     }
 }
 

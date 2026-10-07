@@ -600,6 +600,30 @@ enum TicketCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
+    /// git's merge driver for ticket files: checklists item by item, notes
+    /// appended (`merge=war-ticket` in .gitattributes). `--install` writes
+    /// the .gitattributes lines and this clone's git configuration.
+    #[command(hide = true)]
+    MergeTicket {
+        /// The common ancestor's copy (git's %O).
+        #[arg(required_unless_present_any = ["install", "probe"])]
+        base: Option<Utf8PathBuf>,
+        /// Ours (git's %A); the result is written here.
+        #[arg(required_unless_present_any = ["install", "probe"])]
+        ours: Option<Utf8PathBuf>,
+        /// Theirs (git's %B).
+        #[arg(required_unless_present_any = ["install", "probe"])]
+        theirs: Option<Utf8PathBuf>,
+        /// The path in the repository (git's %P).
+        path: Option<String>,
+        /// Configure this clone instead of merging.
+        #[arg(long)]
+        install: bool,
+        /// Exit 0: this war has the driver (what the configured command
+        /// asks before it runs it).
+        #[arg(long)]
+        probe: bool,
+    },
     /// Renew the lease on your claims (or the one named), so no other agent
     /// reclaims them while you work. Every war command you run renews them
     /// too; a claim whose lease runs out is taken by a plain `war claim`.
@@ -2036,6 +2060,36 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     "release",
                     &ticket::release(&store, &target, if_rev.as_deref())?,
                 ))
+            }
+            TicketCommand::MergeTicket {
+                base,
+                ours,
+                theirs,
+                path,
+                install,
+                probe,
+            } => {
+                if probe {
+                    return Ok(EXIT_OK);
+                }
+                let outcome = if install {
+                    let repository = repo::Repository::discover(root.clone())?;
+                    ticket::merge_install(&repository.root)
+                } else {
+                    match (base, ours, theirs) {
+                        (Some(base), Some(ours), Some(theirs)) => {
+                            ticket::merge_ticket(&base, &ours, &theirs, path.as_deref())?
+                        }
+                        _ => unreachable!("clap requires the three files without --install"),
+                    }
+                };
+                if matches!(mode, output::Mode::Human)
+                    && !outcome.is_refused()
+                    && outcome.human.is_empty()
+                {
+                    return Ok(EXIT_OK);
+                }
+                Ok(ticket_answer(mode, "merge-ticket", &outcome))
             }
             TicketCommand::Heartbeat { target, actor } => {
                 let (_, store) = tickets(actor.as_deref())?;
