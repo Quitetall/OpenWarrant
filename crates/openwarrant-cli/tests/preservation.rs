@@ -15,13 +15,17 @@ use std::{
 struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {
+        // Tests run on parallel threads of one process, so the pid and a
+        // nanosecond clock can repeat; a per-process counter cannot.
+        static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let path = std::env::temp_dir().join(format!(
-            "ow-archive-{}-{}",
+            "ow-archive-{}-{}-{}",
             std::process::id(),
             SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
-                .as_nanos()
+                .as_nanos(),
+            NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
         ));
         std::fs::create_dir(&path).unwrap();
         Self(path)
