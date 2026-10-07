@@ -241,6 +241,34 @@ is older than two hours (`claim_ttl_minutes`, counted from when it was
 taken, whatever its renewals) can still be taken with `war claim --steal`,
 journalled with whom it was taken from.
 
+### Claims across machines
+
+Off by default. With
+
+```toml
+[claims]
+remote = "origin"
+```
+
+a claim is also published to that git remote as the ref
+`refs/openwarrant/claims/<ticket>--<item>` (a commit whose message is the
+claim), pushed with `git push --atomic --force-with-lease`, so the remote is
+the compare-and-set: of two machines claiming one item, exactly one push
+lands, and the other is refused by name (`claimed on the remote origin by
+...`) and keeps no lock. The lock on this machine is taken first, so the
+worktrees of one clone settle among themselves before anything is pushed.
+`war done` first checks the remote still gives the claim to you (a lease that
+ran out there may have been taken from another machine), then deletes the
+ref; `war release` deletes it if it is still yours. A claim whose lease ran
+out on another machine is reclaimed across the remote, and journalled from
+its holder. Local renewals are a file touch; the remote's copy of a lease is
+renewed by `war heartbeat`, and by any ticket command once less than half of
+it is left. When the remote cannot be reached the claim is refused
+(`ticket.claim-remote-unreachable`) and nothing is claimed. `war ready`
+reads this machine's claims only; a claim held elsewhere is refused at
+`war claim`. Nothing is signed: the commit is written with `--no-gpg-sign`
+under a fixed `war` identity, and pushes skip hooks.
+
 ### Writes that say what they read
 
 `war done`, `edit`, `note`, `add` and `release` take `--if-rev <revision>`

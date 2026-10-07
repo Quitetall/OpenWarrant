@@ -1381,7 +1381,7 @@ impl Server {
             .and_then(|repo| crate::ticket::Store::open(&repo, self.actor.as_deref()))
             .and_then(|store| {
                 // M11: an act by the holder renews its leases, as the CLI's do.
-                store.renew_held(None);
+                store.renew_all();
                 Ok(store)
             })
             .and_then(|store| match body.act {

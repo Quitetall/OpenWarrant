@@ -261,3 +261,97 @@ if grep -q '"id":2.*warrant.stale-revision' <<<"$CC_MCP" && grep -q '"id":3.*"ex
 else
     cc_fail "if_rev over MCP" "$(head -c 400 <<<"$CC_MCP")"
 fi
+
+# Across machines. Two clones of one bare remote stand for two machines.
+# Accepted: with [claims] unset, a claim publishes nothing; with [claims]
+# remote = "origin", eight agents (four per clone) race for one item and
+# exactly one wins, its claim the remote's ref; done deletes the ref, and the
+# other clone then claims the item; a claim whose lease ran out on the other
+# machine is reclaimed across the remote, journalled from its holder.
+# Refused, by name: the seven losers (ticket.claimed-by-other; the clone that
+# won locally and lost at the remote names the remote's holder and keeps no
+# lock); and a claim when the remote cannot be reached
+# (ticket.claim-remote-unreachable), nothing claimed.
+echo "== concurrency: claims across machines (M11) =="
+CC_X="$CC_TMP/machines"; mkdir -p "$CC_X"
+git -C "$CC_ROOT" checkout -q -- openwarrant.toml
+CC_OUT=$(cc_json "$CC_ROOT" create "Across machines" --item "Contended" --item "Lapsed")
+CC_M=$(cc_field "$CC_OUT" 'v["result"]["id"]')
+CC_MA=$(cc_field "$CC_OUT" 'v["result"]["items"][0]["id"]')
+CC_MB=$(cc_field "$CC_OUT" 'v["result"]["items"][1]["id"]')
+cc_commit "$CC_ROOT" "a ticket for two machines"
+git clone -q --bare "$CC_ROOT" "$CC_X/bare.git" && git clone -q "$CC_X/bare.git" "$CC_X/m1" && git clone -q "$CC_X/bare.git" "$CC_X/m2" \
+    || { printf 'PLANT SETUP FAILED: clones of %s\n' "$CC_ROOT" >&2; exit 9; }
+cc_refs() { git -C "$CC_X/bare.git" for-each-ref --format='%(refname)' refs/openwarrant/; }
+# Off by default.
+cc_war "$CC_X/m1" claim "$CC_M/$CC_MA" --as solo >/dev/null 2>&1; CC_S=$?
+CC_OFF=$(cc_refs)
+cc_war "$CC_X/m1" release "$CC_M/$CC_MA" --as solo >/dev/null 2>&1
+for m in m1 m2; do printf '\n[claims]\nremote = "origin"\n' >> "$CC_X/$m/openwarrant.toml"; done
+cc_claimed() { grep -c '"ticket.claimed"' "$CC_X/$1/docs/tickets/$CC_M/journal.jsonl"; }
+CC_J1=$(cc_claimed m1); CC_J2=$(cc_claimed m2)
+CC_PIDS=()
+for n in 1 2 3 4; do
+    for m in m1 m2; do
+        ( cc_war "$CC_X/$m" claim "$CC_M/$CC_MA" --as "$m-$n" >/dev/null 2>"$CC_X/err.$m-$n"; echo $? >"$CC_X/rc.$m-$n" ) &
+        CC_PIDS+=($!)
+    done
+done
+for pid in "${CC_PIDS[@]}"; do wait "$pid"; done
+CC_WIN=""; CC_NAMED=0
+for f in "$CC_X"/rc.*; do
+    a=${f##*/rc.}
+    if [[ "$(cat "$f")" == 0 ]]; then CC_WIN="$CC_WIN $a"
+    elif grep -q 'ticket.claimed-by-other' "$CC_X/err.$a"; then CC_NAMED=$((CC_NAMED + 1)); fi
+done
+CC_WIN=${CC_WIN# }
+CC_REF="refs/openwarrant/claims/$CC_M--$CC_MA"
+CC_REFACTOR=$(git -C "$CC_X/bare.git" log -1 --format=%B "$CC_REF" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["actor"])' 2>/dev/null)
+CC_WM=${CC_WIN%%-*}; CC_LM=m1; [[ "$CC_WM" == m1 ]] && CC_LM=m2
+CC_LOSERLOCK=0; [[ -e "$CC_X/$CC_LM/.git/openwarrant/claims/$CC_M--$CC_MA.lock" ]] && CC_LOSERLOCK=1
+# One claim journalled, in the winner's clone only.
+CC_JW=$(( $(cc_claimed m1) + $(cc_claimed m2) - CC_J1 - CC_J2 ))
+CC_JL=$(( $(cc_claimed "$CC_LM") - $([[ "$CC_LM" == m1 ]] && echo "$CC_J1" || echo "$CC_J2") ))
+if [[ $CC_S -eq 0 && -z "$CC_OFF" && "$CC_WIN" != *" "* && -n "$CC_WIN" && $CC_NAMED -eq 7 && "$CC_REFACTOR" == "$CC_WIN" \
+    && $CC_LOSERLOCK -eq 0 && $CC_JW -eq 1 && $CC_JL -eq 0 ]] \
+    && grep -q "claimed on the remote .origin. by $CC_WIN" "$CC_X"/err.*; then
+    cc_ok "two machines, one claim" "unset: no ref; set: $CC_WIN of 8 won, its claim the remote's ref; 7 refused by name, the losing clone kept no lock"
+else
+    cc_fail "two machines, one claim" "off '$CC_OFF' ($CC_S); won '$CC_WIN', named $CC_NAMED, ref actor '$CC_REFACTOR', loser lock $CC_LOSERLOCK, journals $CC_JW/$CC_JL; $(cat "$CC_X"/err.* | head -2)"
+fi
+# Done deletes the ref; the other machine then claims it.
+cc_war "$CC_X/$CC_WM" done "$CC_M/$CC_MA" --as "$CC_WIN" >/dev/null 2>&1; CC_S=$?
+CC_AFTER=$(cc_refs)
+CC_ERR=$(cc_war "$CC_X/$CC_LM" claim "$CC_M/$CC_MB" --as other 2>&1 >/dev/null); CC_S2=$?
+if [[ $CC_S -eq 0 && "$CC_AFTER" != *"$CC_M--$CC_MA"* && $CC_S2 -eq 0 ]]; then
+    cc_ok "done gives the item back" "the winner's done deleted $CC_REF; the other machine claimed $CC_MB"
+else
+    cc_fail "done gives the item back" "done $CC_S, refs '$CC_AFTER', other claim $CC_S2: $CC_ERR"
+fi
+cc_war "$CC_X/$CC_LM" release "$CC_M/$CC_MB" --as other >/dev/null 2>&1
+# A holder on the other machine that stopped two minutes ago: its claim, as
+# the remote holds it, with a lease that ran out.
+CC_TREE=$(git -C "$CC_X/$CC_WM" hash-object -t tree -w --stdin </dev/null)
+CC_MSG=$(python3 -c 'import json,sys,time; t=int(time.time())-120; f=lambda s: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(s)); print(json.dumps({"schema":"oh.war/ticket-claim/v1","claim":"01a10000-0000-7000-8000-000000000002","ticket":sys.argv[1],"item":sys.argv[2],"actor":"gone","since":f(t),"since_unix":t,"lease_until":f(t+60),"lease_until_unix":t+60}))' "$CC_M" "$CC_MB")
+CC_C=$(git -C "$CC_X/$CC_WM" -c user.email=plant@invalid -c user.name=plant commit-tree --no-gpg-sign "$CC_TREE" -m "$CC_MSG")
+git -C "$CC_X/$CC_WM" push -q origin "$CC_C:refs/openwarrant/claims/$CC_M--$CC_MB" >/dev/null 2>&1
+CC_OUT=$(cc_war "$CC_X/$CC_LM" claim "$CC_M/$CC_MB" --as heir 2>&1); CC_S=$?
+CC_NOW=$(git -C "$CC_X/bare.git" log -1 --format=%B "refs/openwarrant/claims/$CC_M--$CC_MB" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["actor"])' 2>/dev/null)
+CC_JLINE=$(grep '"ticket.claim_reclaimed"' "$CC_X/$CC_LM/docs/tickets/$CC_M/journal.jsonl")
+if [[ $CC_S -eq 0 && "$CC_NOW" == heir ]] && grep -q 'reclaimed from gone' <<<"$CC_OUT" \
+    && grep -q 'from\\":\\"gone' <<<"$CC_JLINE" && grep -q 'remote\\":\\"origin:refs/openwarrant/claims/' <<<"$CC_JLINE"; then
+    cc_ok "a lapsed lease, reclaimed across" "the remote held gone's claim, its lease out; heir reclaimed it, journalled from gone"
+else
+    cc_fail "a lapsed lease, reclaimed across" "claim $CC_S ($CC_OUT); remote holder '$CC_NOW'"
+fi
+cc_war "$CC_X/$CC_LM" release "$CC_M/$CC_MB" --as heir >/dev/null 2>&1
+# The remote unreachable: refused, nothing claimed here either.
+git -C "$CC_X/$CC_LM" remote set-url origin "$CC_X/no-such-remote.git"
+CC_ERR=$(cc_war "$CC_X/$CC_LM" claim "$CC_M/$CC_MB" --as cut-off 2>&1 >/dev/null); CC_S=$?
+CC_LEFT=0; [[ -e "$CC_X/$CC_LM/.git/openwarrant/claims/$CC_M--$CC_MB.lock" ]] && CC_LEFT=1
+git -C "$CC_X/$CC_LM" remote set-url origin "$CC_X/bare.git"
+if [[ $CC_S -eq 2 && $CC_LEFT -eq 0 ]] && grep -q 'ticket.claim-remote-unreachable' <<<"$CC_ERR" && grep -q 'nothing was claimed' <<<"$CC_ERR"; then
+    cc_ok "an unreachable remote is refused" "ticket.claim-remote-unreachable; no lock left on this machine"
+else
+    cc_fail "an unreachable remote is refused" "exit $CC_S, lock left $CC_LEFT: $CC_ERR"
+fi

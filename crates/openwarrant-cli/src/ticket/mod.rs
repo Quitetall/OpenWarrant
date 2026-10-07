@@ -30,6 +30,7 @@
 //! repository.
 
 pub mod claim;
+pub mod remote;
 mod render;
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -146,7 +147,7 @@ fn lease_secs(minutes: Option<f64>) -> u64 {
     secs
 }
 
-fn policy_of(root: &Utf8Path) -> Result<Policy, RepoError> {
+fn policy_of(root: &Utf8Path) -> Result<(Policy, remote::Policy), RepoError> {
     let path = root.join(crate::init::CONFIG_FILE);
     let text = crate::vfs::read_to_string(&path).map_err(|source| RepoError::Io {
         context: format!("could not read {path}"),
@@ -160,7 +161,19 @@ fn policy_of(root: &Utf8Path) -> Result<Policy, RepoError> {
     let file: File = toml::from_str(&text).map_err(|e| {
         RepoError::Message(format!("tickets.config: {path}: the [tickets] table: {e}"))
     })?;
-    Ok(file.tickets.unwrap_or_default())
+    // M11: `[claims]`, read on its own so its refusal names it.
+    #[derive(Deserialize)]
+    struct Claims {
+        #[serde(default)]
+        claims: Option<remote::Policy>,
+    }
+    let claims: Claims = toml::from_str(&text).map_err(|e| {
+        RepoError::Message(format!("tickets.config: {path}: the [claims] table: {e}"))
+    })?;
+    Ok((
+        file.tickets.unwrap_or_default(),
+        claims.claims.unwrap_or_default(),
+    ))
 }
 
 /// What a command answers: the report (refusals are error diagnostics in it),
@@ -305,6 +318,8 @@ pub struct Store {
     pub ttl_secs: u64,
     /// M11: a claim's lease, in seconds.
     pub lease_secs: u64,
+    /// M11: `[claims] remote`, the git remote claims are published to.
+    pub remote: Option<String>,
     pub compact_days: u64,
     pub definition: ProfileDefinition,
     /// Who this invocation acts as: `--as`, else `OPENWARRANT_ACTOR`, else
@@ -336,7 +351,7 @@ fn io(context: String) -> impl FnOnce(std::io::Error) -> RepoError {
 impl Store {
     /// Open the ticket store of `repo`, acting as `actor` when given.
     pub fn open(repo: &Repository, actor: Option<&str>) -> Result<Self, RepoError> {
-        let policy = policy_of(&repo.root)?;
+        let (policy, claims_policy) = policy_of(&repo.root)?;
         let definition = ticket_definition(&repo.profiles)?;
         let resolve = |p: &str| {
             let p = Utf8PathBuf::from(p);
@@ -369,6 +384,7 @@ impl Store {
             legacy_dirs: std::sync::OnceLock::new(),
             ttl_secs: policy.claim_ttl_minutes.unwrap_or(DEFAULT_TTL_MINUTES) * 60,
             lease_secs: lease_secs(policy.claim_lease_minutes),
+            remote: claims_policy.remote.filter(|r| !r.trim().is_empty()),
             compact_days: policy.compact_after_days.unwrap_or(DEFAULT_COMPACT_DAYS),
             definition,
             actor,
@@ -1956,6 +1972,28 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
             format!("{what}: {other} claimed it at the same moment; released, try another"),
         ));
     }
+    // M11: with a claims remote, the claim holds only once the remote has it.
+    let mut remote_from = None;
+    if let Some(remote_name) = store.remote.as_deref() {
+        match store.publish_claim(remote_name, &path, &mine, &what, steal, now) {
+            Ok(from) => remote_from = from,
+            Err(refusal) => {
+                let _ = claim::release(&path, &store.actor);
+                return Ok(*refusal);
+            }
+        }
+    }
+    // A takeover at the remote is journalled as the local one would be.
+    let mut stolen_from = stolen_from;
+    match remote_from {
+        Some((c, Takeover::Reclaimed)) if reclaimed_from.is_none() && stolen_from.is_none() => {
+            reclaimed_from = Some(c);
+        }
+        Some((c, Takeover::Stolen)) if reclaimed_from.is_none() && stolen_from.is_none() => {
+            stolen_from = Some(Some(c));
+        }
+        _ => {}
+    }
     let mut payload = serde_json::json!({
         "claim": mine.claim,
         "target": what,
@@ -1963,6 +2001,12 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     });
     if !named_now.is_empty() {
         payload["named"] = serde_json::json!(named_now);
+    }
+    if let Some(remote_name) = store.remote.as_deref() {
+        payload["remote"] = serde_json::json!(format!(
+            "{remote_name}:{}",
+            remote::ref_name(path.file_name().unwrap_or_default())
+        ));
     }
     let event_type = match (&stolen_from, &reclaimed_from) {
         (Some(from), _) => {
@@ -2064,16 +2108,24 @@ pub fn release(store: &Store, query: &str, if_rev: Option<&str>) -> Result<Outco
             format!("{what} is not claimed; nothing to release"),
         )),
         Some(Some(c)) if c.actor == store.actor => {
+            // M11: the remote's ref goes too, if it is still the one this
+            // machine published (a lease that ran out there may be someone
+            // else's claim now, and stays).
+            let warning = store.retire_published(&path);
             claim::release(&path, &store.actor).map_err(io(format!("could not release {path}")))?;
             store.journal(
                 t,
                 event::RELEASED,
                 &serde_json::json!({"claim": c.claim, "target": what}),
             )?;
-            Ok(Outcome::ok(
+            let mut out = Outcome::ok(
                 format!("released {what}"),
                 serde_json::json!({"schema": "oh.war/ticket-release/v1", "target": what, "claim": c}),
-            ))
+            );
+            if let Some(w) = warning {
+                out.report.push(w);
+            }
+            Ok(out)
         }
         Some(c) => Ok(Outcome::refused(
             "ticket.claimed-by-other",
@@ -2084,6 +2136,286 @@ pub fn release(store: &Store, query: &str, if_rev: Option<&str>) -> Result<Outco
                 holder(c.as_ref(), now_secs())
             ),
         )),
+    }
+}
+
+// ---- claims across machines (M11) -------------------------------------------
+
+/// How a claim published to the remote came to be this agent's.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Takeover {
+    /// The remote held a claim whose lease had run out.
+    Reclaimed,
+    /// The remote held a claim past the TTL, and `--steal` was given.
+    Stolen,
+    /// The remote held this agent's own earlier claim.
+    Own,
+}
+
+/// The refusal when the claims remote cannot be read or written.
+fn remote_unreachable(store: &Store, remote: &str, what: &str, why: &str, doing: &str) -> Outcome {
+    Outcome::refused(
+        "ticket.claim-remote-unreachable",
+        store.rel(&store.root.join(crate::init::CONFIG_FILE)),
+        format!(
+            "{what}: the claims remote `{remote}` could not be reached ({why}), so {doing}. \
+             With [claims] remote set in {} a claim holds only once that remote has it; retry \
+             when `git push {remote}` works, or remove [claims] remote to claim on this \
+             machine alone",
+            crate::init::CONFIG_FILE
+        ),
+    )
+}
+
+impl Store {
+    /// Publish `mine`, just taken locally at `lock`, to the claims remote.
+    /// `Ok(None)`: published. `Ok(Some((from, how)))`: published over `from`'s
+    /// claim there. `Err`: not published, refused by name; the caller gives
+    /// its local lock back.
+    fn publish_claim(
+        &self,
+        remote_name: &str,
+        lock: &Utf8Path,
+        mine: &claim::Claim,
+        what: &str,
+        steal: bool,
+        now: u64,
+    ) -> Result<Option<(claim::Claim, Takeover)>, Box<Outcome>> {
+        let name = lock.file_name().unwrap_or_default();
+        let refname = remote::ref_name(name);
+        let commit = remote::commit_for(&self.root, mine).map_err(|e| {
+            Box::new(remote_unreachable(
+                self,
+                remote_name,
+                what,
+                &e,
+                "nothing was claimed",
+            ))
+        })?;
+        let mut expect: Option<String> = None;
+        let mut takeover = None;
+        let mut last_holder = None;
+        for _ in 0..4 {
+            match remote::push(
+                &self.root,
+                remote_name,
+                &refname,
+                Some(&commit),
+                expect.as_deref(),
+            ) {
+                remote::Push::Won => {
+                    remote::write_sidecar(
+                        lock,
+                        &remote::Published {
+                            remote: remote_name.to_owned(),
+                            refname,
+                            commit,
+                            lease_until_unix: mine.lease_until_unix.unwrap_or(now),
+                        },
+                    );
+                    return Ok(takeover);
+                }
+                remote::Push::Failed(e) => {
+                    return Err(Box::new(remote_unreachable(
+                        self,
+                        remote_name,
+                        what,
+                        &e,
+                        "nothing was claimed",
+                    )));
+                }
+                remote::Push::Lost => {}
+            }
+            match remote::read(&self.root, remote_name, &refname) {
+                Err(e) => {
+                    return Err(Box::new(remote_unreachable(
+                        self,
+                        remote_name,
+                        what,
+                        &e,
+                        "nothing was claimed",
+                    )));
+                }
+                Ok(remote::Held::Absent) => {
+                    expect = None;
+                    takeover = None;
+                }
+                Ok(remote::Held::At(sha, c)) => {
+                    let how = match &c {
+                        Some(c) if c.actor == self.actor => Some(Takeover::Own),
+                        Some(c) if c.lease_expired(now) => Some(Takeover::Reclaimed),
+                        Some(c) if steal && c.age(now) > self.ttl_secs => Some(Takeover::Stolen),
+                        _ => None,
+                    };
+                    match (how, c) {
+                        (Some(how), Some(c)) => {
+                            expect = Some(sha);
+                            takeover = Some((c, how));
+                        }
+                        (_, c) => {
+                            last_holder = c;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        let hint = last_holder.as_ref().map_or_else(String::new, |c| {
+            format!(
+                ". Its lease runs out in {} unless {} renews it; then `war claim {what}` takes it",
+                render::ago(c.lease_left(now)),
+                c.actor
+            )
+        });
+        Err(Box::new(Outcome::refused(
+            "ticket.claimed-by-other",
+            format!("{remote_name}:{refname}"),
+            format!(
+                "{what} is claimed on the remote `{remote_name}` by {}{hint}",
+                holder(last_holder.as_ref(), now)
+            ),
+        )))
+    }
+
+    /// With a claims remote: whether the remote still has `lock`'s claim as
+    /// this agent's. `Ok(Some(commit))`: yes, at that commit; `Ok(None)`:
+    /// the remote holds nothing for it; `Err`: someone else holds it there,
+    /// or the remote could not be read (refused by name either way).
+    fn remote_holds_mine(
+        &self,
+        remote_name: &str,
+        lock: &Utf8Path,
+        what: &str,
+        doing: &str,
+    ) -> Result<Option<String>, Box<Outcome>> {
+        let name = lock.file_name().unwrap_or_default();
+        let refname = remote::ref_name(name);
+        let now = now_secs();
+        match remote::read(&self.root, remote_name, &refname) {
+            Err(e) => Err(Box::new(remote_unreachable(
+                self,
+                remote_name,
+                what,
+                &e,
+                doing,
+            ))),
+            Ok(remote::Held::Absent) => Ok(None),
+            Ok(remote::Held::At(sha, c)) => {
+                let published = remote::read_sidecar(lock).is_some_and(|p| p.commit == sha);
+                if published || c.as_ref().is_some_and(|c| c.actor == self.actor) {
+                    Ok(Some(sha))
+                } else {
+                    Err(Box::new(Outcome::refused(
+                        "ticket.claimed-by-other",
+                        format!("{remote_name}:{refname}"),
+                        format!(
+                            "{what} is claimed on the remote `{remote_name}` by {}: your lease \
+                             there ran out and it was taken; {doing}",
+                            holder(c.as_ref(), now)
+                        ),
+                    )))
+                }
+            }
+        }
+    }
+
+    /// [`Self::retire_remote`] at the commit this machine last published for
+    /// `lock`, if it published one.
+    fn retire_published(&self, lock: &Utf8Path) -> Option<Diagnostic> {
+        let remote_name = self.remote.as_deref()?;
+        let published = remote::read_sidecar(lock)?;
+        self.retire_remote(remote_name, lock, &published.commit)
+    }
+
+    /// Delete the remote's ref for `lock` if it is still at `commit`; a
+    /// warning when it could not be.
+    fn retire_remote(
+        &self,
+        remote_name: &str,
+        lock: &Utf8Path,
+        commit: &str,
+    ) -> Option<Diagnostic> {
+        let name = lock.file_name().unwrap_or_default();
+        let refname = remote::ref_name(name);
+        remote::remove_sidecar(lock);
+        match remote::push(&self.root, remote_name, &refname, None, Some(commit)) {
+            remote::Push::Won => None,
+            remote::Push::Lost => None,
+            remote::Push::Failed(e) => Some(Diagnostic::warn(
+                "ticket.claim-remote-unreachable",
+                format!("{remote_name}:{refname}"),
+                format!(
+                    "the claim's ref on `{remote_name}` was not deleted ({e}); it reads expired \
+                     once its lease runs out, and a plain `war claim` takes it then"
+                ),
+            )),
+        }
+    }
+
+    /// Republish the leases of `renewed` claims that have a published ref,
+    /// when `force` or when less than half their lease is left there. Returns
+    /// a line per claim the remote no longer gives this agent, and per claim
+    /// whose ref could not be renewed.
+    fn renew_remote(&self, renewed: &[claim::Claim], force: bool) -> Vec<String> {
+        let Some(remote_name) = self.remote.as_deref() else {
+            return Vec::new();
+        };
+        let now = now_secs();
+        let mut problems = Vec::new();
+        for c in renewed {
+            let lock = self.lock_of(&c.ticket, c.item.as_deref());
+            let Some(published) = remote::read_sidecar(&lock) else {
+                continue;
+            };
+            let half = self.lease_secs / 2;
+            if !force && now.saturating_add(half) < published.lease_until_unix {
+                continue;
+            }
+            let commit = match remote::commit_for(&self.root, c) {
+                Ok(commit) => commit,
+                Err(e) => {
+                    problems.push(format!(
+                        "{}: not renewed on `{remote_name}` ({e})",
+                        c.target()
+                    ));
+                    continue;
+                }
+            };
+            match remote::push(
+                &self.root,
+                remote_name,
+                &published.refname,
+                Some(&commit),
+                Some(&published.commit),
+            ) {
+                remote::Push::Won => remote::write_sidecar(
+                    &lock,
+                    &remote::Published {
+                        commit,
+                        lease_until_unix: c.lease_until_unix.unwrap_or(now),
+                        ..published
+                    },
+                ),
+                remote::Push::Lost => problems.push(format!(
+                    "{}: the remote `{remote_name}` no longer has your claim (it was taken there)",
+                    c.target()
+                )),
+                remote::Push::Failed(e) => {
+                    problems.push(format!(
+                        "{}: not renewed on `{remote_name}` ({e})",
+                        c.target()
+                    ));
+                }
+            }
+        }
+        problems
+    }
+
+    /// Renew this actor's leases, here and (past half their lease) on the
+    /// claims remote: what every ticket command does first.
+    pub fn renew_all(&self) {
+        let renewed = self.renew_held(None);
+        let _ = self.renew_remote(&renewed, false);
     }
 }
 
@@ -2137,6 +2469,7 @@ pub fn heartbeat(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         }
     };
     let renewed = store.renew_held(only.as_deref());
+    let remote_problems = store.renew_remote(&renewed, true);
     let human = if renewed.is_empty() {
         format!(
             "{} holds no claim, so there is no lease to renew",
@@ -2153,14 +2486,22 @@ pub fn heartbeat(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         }
         h
     };
-    Ok(Outcome::ok(
+    let mut out = Outcome::ok(
         human,
         serde_json::json!({
             "schema": "oh.war/ticket-heartbeat/v1",
             "actor": store.actor,
             "renewed": renewed,
         }),
-    ))
+    );
+    for p in remote_problems {
+        out.report.push(Diagnostic::warn(
+            "ticket.claim-remote-lease",
+            store.remote.clone().unwrap_or_default(),
+            p,
+        ));
+    }
+    Ok(out)
 }
 
 // ---- done ------------------------------------------------------------------
@@ -2306,6 +2647,21 @@ pub fn done(
     if let Err(refusal) = may_finish(store, t, item_id.as_deref(), &what) {
         return Ok(*refusal);
     }
+    // M11: with a claims remote, the remote must still give the claim to this
+    // agent: a lease that ran out there may have been taken from another
+    // machine.
+    let mut remote_held = None;
+    if let Some(remote_name) = store.remote.as_deref() {
+        let own = store.lock_of(t.id(), item_id.as_deref());
+        let lock = match store.read_claim(&own) {
+            Ok(Some(Some(c))) if c.actor == store.actor => own,
+            _ => store.lock_of(t.id(), None),
+        };
+        match store.remote_holds_mine(remote_name, &lock, &what, "nothing was ticked") {
+            Ok(commit) => remote_held = commit.map(|c| (remote_name.to_owned(), lock, c)),
+            Err(refusal) => return Ok(*refusal),
+        }
+    }
     let actor = store.actor.clone();
     let title = t.manifest.title.clone();
     let wanted = item_id.clone();
@@ -2369,9 +2725,21 @@ pub fn done(
     }
     store.journal(&t, event::ITEM_DONE, &payload)?;
     // The claim is spent: release the item's, and the ticket's once it is done.
-    let _ = claim::release(&store.lock_of(t.id(), Some(&done_id)), &store.actor);
+    let mut remote_warnings = Vec::new();
+    if let Some((remote_name, lock, commit)) = &remote_held {
+        remote_warnings.extend(store.retire_remote(remote_name, lock, commit));
+    }
+    let item_lock = store.lock_of(t.id(), Some(&done_id));
+    if remote_held.as_ref().is_none_or(|(_, l, _)| *l != item_lock) {
+        remote_warnings.extend(store.retire_published(&item_lock));
+    }
+    let _ = claim::release(&item_lock, &store.actor);
     if t.checklist.is_done() {
-        let _ = claim::release(&store.lock_of(t.id(), None), &store.actor);
+        let whole = store.lock_of(t.id(), None);
+        if remote_held.as_ref().is_none_or(|(_, l, _)| *l != whole) {
+            remote_warnings.extend(store.retire_published(&whole));
+        }
+        let _ = claim::release(&whole, &store.actor);
     }
     let claims = store.claims()?;
     let state = state_of(&t, &claims);
@@ -2415,6 +2783,9 @@ pub fn done(
     let mut out = Outcome::ok(human, result);
     if let Some(d) = unknown {
         out.report.push(d);
+    }
+    for w in remote_warnings {
+        out.report.push(w);
     }
     Ok(out)
 }

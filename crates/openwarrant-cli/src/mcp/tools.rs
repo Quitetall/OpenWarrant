@@ -1352,7 +1352,7 @@ impl WarServer {
     ) -> ToolResult {
         // M11: every ticket tool call renews the acting agent's leases.
         let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| {
-            s.renew_held(None);
+            s.renew_all();
             run(&s)
         });
         match outcome {

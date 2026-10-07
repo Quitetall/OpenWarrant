@@ -1809,7 +1809,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         let repository = repo::Repository::discover(root.clone())?;
         projects::touch(&repository.root);
         let store = ticket::Store::open(&repository, actor)?;
-        store.renew_held(None);
+        store.renew_all();
         Ok((repository, store))
     };
     match command {
