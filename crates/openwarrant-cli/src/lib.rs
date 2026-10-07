@@ -1572,8 +1572,10 @@ enum Command {
         #[arg(long, value_name = "REV", requires = "candidate")]
         base: Option<String>,
     },
-    /// What should happen next, and whose act it is. An agent is never handed
-    /// a signing act; it is told that a human must sign, and how.
+    /// What is ready, and whose step it is: ready ticket items first, then an
+    /// agent's acts, then the acts a person signs. With nothing tracked it
+    /// says "nothing tracked; work freely": ordinary work needs no ticket
+    /// and no Warrant. A signing step is always a person's.
     Next,
     /// Warrants waiting on a human act (read-only; OW-WAR-0070).
     Inbox {

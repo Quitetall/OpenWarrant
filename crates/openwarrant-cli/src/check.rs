@@ -144,7 +144,7 @@ pub fn run_with(
         report.push(Diagnostic::warn(
             "corpus.empty",
             repo.config.paths.warrants.clone(),
-            "no Warrants found; nothing to check",
+            "no Warrants found; nothing to check (ordinary work needs none)",
         ));
         return Ok(report);
     }

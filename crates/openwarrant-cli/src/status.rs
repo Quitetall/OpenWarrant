@@ -763,8 +763,8 @@ fn next_actionable(
         None => NothingActionable {
             objective: None,
             blocked_by: vec![],
-            why: "every Objective is either achieved or names no Warrant; there is no \
-                  unachieved work to point at"
+            why: "every Objective is achieved or names no Warrant, so no tracked work is \
+                  waiting"
                 .to_owned(),
         },
     };
