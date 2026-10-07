@@ -18,6 +18,9 @@ repository's AGENTS.md for its own conventions.
   tool holds those rules.
 - Finished and verified are separate: report finished work as finished, and
   as unverified until an independent check says more.
+- At the end of a session, tell the person what waits on them: `war next`
+  lists the approvals and signatures that are a person's, and
+  `war sign inbox` the same list by person. Agents go on working meanwhile.
 - The repository's `CLAUDE.md` and `AGENTS.md` sections are records too
   (`md:CLAUDE.md#testing`): a plan can cite one, and
   `war plan impact md:CLAUDE.md#testing` lists what cites it. The block between

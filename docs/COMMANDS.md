@@ -40,7 +40,15 @@ war done t-xxxx
 The M12 target was three, as in Beads. `war done` ticks only what you have
 claimed (OW-WAR-0147 OBL-003: a done that needed no claim would let two
 agents finish one item), and M12 changes placement and help only, so the
-claim stays. Plant 132 records the path as it is.
+claim stays. Under the vibe preset (M14, docs/PRESETS.md) it is three:
+
+```sh
+war init --vibe
+war create "Fix the login redirect"
+war done t-xxxx                         # claims it first: nobody held it
+```
+
+Plant 132 records both paths.
 
 ## The rules
 
@@ -120,6 +128,8 @@ value of the `--json` envelope, the same under either spelling.
 | `war sign sas` | `war sas` | `sas`, `sas.accept.request` |
 | `war sign inbox` | `war inbox` | `inbox` |
 | `war sign authority` | `war authority` | `authority` |
+| `war sign approve` (M14) | none: new, and only under the group | `sign.approve` |
+| `war sign release` (M14) | none: `war release` is `war admin release` | `sign.release` |
 
 ### `war evidence …`
 
@@ -187,6 +197,7 @@ value of the `--json` envelope, the same under either spelling.
 | `war admin version` | `war version` | `version` |
 | `war admin schemas` (built with `--features schema`) | `war schemas` | `schemas` |
 | `war admin merge-ticket` | `war merge-ticket` | `merge-ticket` |
+| `war admin preset` (M14) | none: new, and only under the group | `preset` |
 
 ### Top level, hidden, no group
 
@@ -243,6 +254,13 @@ value of the `--json` envelope, the same under either spelling.
   `war merge-ticket`, so clones configured earlier keep merging.
 - **`timeline` is new under `view`**: `war status --timeline` under the name
   a reader looks for.
+- **M14 adds three members, each only under its group** (docs/PRESETS.md):
+  `war sign approve` and `war sign release` are a person's acts, so they are
+  `sign`'s; `war admin preset` sets the repository up, so it is `admin`'s.
+  None has a top-level spelling: `war release` already was the claim's
+  release (`war admin release`), and a new command needs no earlier one.
+  The PR gate is a flag of a daily verb, `war check --pr <number>`
+  (envelope `check.pr`); without `--pr`, `war check` reads no network.
 
 ## What still names an earlier spelling, on purpose
 
