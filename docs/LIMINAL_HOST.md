@@ -168,17 +168,21 @@ missing `ssh-keygen` or `git` does. An unchecked signature is not a pass. The
 response names each missing observation as an `unknown`
 (`host.observation-missing`), and the run exits 2.
 
-**Supplied observations are assumed, not authenticated.** A request that
-claims a signature verified makes the hosted model treat it as verified.
-`war host --export` records the observations the standalone compiler actually
-made. A hosted model is only as authoritative as the observations behind it.
-Its response says how many were used.
-
-Moving signature verification inside the boundary needs an owner decision. One
-option is an in-process verifier, which is a second implementation beside
-`ssh-keygen`. The other is for Liminal to hold verdicts as attested Nodes.
-Until then, the standalone compiler stays the oracle for anything
-signature-dependent (SAS §82.4).
+**The host is trusted for its observations** (owner decision, 2026-10-07).
+A request that says a signature verified makes the hosted model treat it as
+verified, and the same goes for a git read. The host that sends the request
+is the trust anchor: it is expected to have run `ssh-keygen -Y verify` or
+`git` itself, or to hold the verdict as an attested Node.
+- `war host` does not check observations again. Its response keeps saying
+  `authenticated: false`, which states that `war` itself checked none, and
+  says how many were used.
+- `war host --export` records the observations the standalone compiler
+  actually made, so a standalone run and a hosted run of the same export
+  agree.
+- What the trust does not cover: a **missing** observation still fails
+  closed, as above. A malformed or duplicated one is still refused
+  (`host.observation`). The standalone compiler keeps verifying everything
+  itself.
 
 **Compatibility limits:**
 

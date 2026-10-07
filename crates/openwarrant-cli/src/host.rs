@@ -27,8 +27,9 @@
 //! the readers otherwise observe outside the bytes — an `ssh-keygen -Y
 //! verify` verdict and a `git` read of history — are answered from the
 //! request's `observations`, keyed by exactly the bytes or arguments they
-//! depend on. They are assumed, never authenticated, and the response says
-//! which were used; absent one, the reader fails closed, exactly as a
+//! depend on. The host is trusted for them (owner decision, 2026-10-07; see
+//! docs/LIMINAL_HOST.md): they are used as given, never re-checked here, and
+//! the response says which were used; absent one, the reader fails closed, exactly as a
 //! missing `ssh-keygen` or `git` does, and the response names each as an
 //! unknown.
 //!
@@ -155,7 +156,8 @@ pub struct Request {
     pub nodes: Vec<Node>,
     /// The WAR relations as Liminal holds them, compared likewise.
     pub relations: Vec<model::Relation>,
-    /// Facts observed outside the bytes, assumed and never authenticated.
+    /// Facts observed outside the bytes, taken on the host's trust and never
+    /// re-checked here.
     #[serde(default, skip_serializing_if = "Observations::is_empty")]
     pub observations: Observations,
     #[serde(default, skip_serializing_if = "Options::is_empty")]
@@ -377,7 +379,7 @@ pub struct Projection {
     pub reason: Option<String>,
 }
 
-/// Which observations the run used. Every one is assumed.
+/// Which observations the run used. Every one is taken on the host's trust.
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -388,7 +390,8 @@ pub struct ObservationUse {
     pub git_supplied: usize,
     pub git_used: usize,
     pub git_missing: usize,
-    /// Always false: a hosted run authenticates no observation.
+    /// Always false: `war` itself authenticates no observation; the host is
+    /// trusted for them (docs/LIMINAL_HOST.md).
     pub authenticated: bool,
 }
 
