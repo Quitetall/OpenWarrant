@@ -39,7 +39,7 @@ g() { git -c user.email=plant@invalid -c user.name=plant "$@"; }
 w() { "$WAR" --root . "$@"; }
 mkdir -p profiles
 cp "$R/profiles/ticket.toml" "$R/profiles/delivery.toml" profiles/
-printf '\n[[states]]\nname = "in_review"\nrefines = "in_progress"\n' >> profiles/ticket.toml
+grep -q '^name = "in_review"$' profiles/ticket.toml || printf '\n[[states]]\nname = "in_review"\nrefines = "in_progress"\n' >> profiles/ticket.toml
 printf '\n[[states]]\nname = "signed_off"\nrefines = "verified"\n\n[[states]]\nname = "acknowledged"\nrefines = "draft"\n' >> profiles/delivery.toml
 w create "Ship the states" -i "write the code" -i "write the plant" >/dev/null
 test -n "$(ls docs/tickets)"

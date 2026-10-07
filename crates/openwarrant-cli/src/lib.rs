@@ -412,8 +412,10 @@ enum DocumentCommand {
 enum TicketCommand {
     /// Create a ticket and print its id. Workable at once: no signature.
     Create {
-        /// What this work accomplishes, in one sentence.
-        title: String,
+        /// What this work accomplishes, in one sentence. With `--issue`, the
+        /// issue's title unless given.
+        #[arg(required_unless_present_any = ["issue", "issue_file"])]
+        title: Option<String>,
         /// A checklist item; repeat for more. Items can be added later with `war add`.
         #[arg(long = "item", short = 'i', value_name = "TEXT")]
         items: Vec<String>,
@@ -427,6 +429,28 @@ enum TicketCommand {
         /// drafter this is refused and nothing is invented.
         #[arg(long)]
         draft: bool,
+        /// What kind of work: one of the ticket profile's `[fields] types`
+        /// (task, bug, feature, chore, epic as shipped).
+        #[arg(long = "type", value_name = "TYPE")]
+        kind: Option<String>,
+        /// A label; repeat for more. Refused outside a closed label set.
+        #[arg(long = "label", short = 'l', value_name = "LABEL")]
+        labels: Vec<String>,
+        /// The ticket (an epic) this one is part of.
+        #[arg(long = "part-of", value_name = "TICKET")]
+        part_of: Option<String>,
+        /// Make the ticket from GitHub issue <N>, read once through
+        /// `[intake] fetch_argv`; the ticket records the link. With
+        /// `[intake.writeback]` set, finishing it comments on and closes the issue.
+        #[arg(long, value_name = "N", conflicts_with = "issue_file")]
+        issue: Option<String>,
+        /// The same from `gh issue view <n> --json number,title,body,url` output in a file.
+        #[arg(long, value_name = "PATH")]
+        issue_file: Option<Utf8PathBuf>,
+        /// An item implementing this record (`REQ-pr1`): its text is the
+        /// record's first sentence and `(implements REQ-pr1)`. Repeatable.
+        #[arg(long, value_name = "RECORD")]
+        implements: Vec<String>,
         /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
@@ -489,8 +513,52 @@ enum TicketCommand {
         actor: Option<String>,
     },
     /// Every ticket, its state (open, in progress, done) and progress.
+    /// Filters narrow it to exactly the tickets every one admits.
     #[command(visible_alias = "ls")]
-    Tickets,
+    Tickets {
+        /// Only tickets of this type.
+        #[arg(long = "type", value_name = "TYPE")]
+        kind: Option<String>,
+        /// Only tickets carrying this label; repeat to require several.
+        #[arg(long = "label", short = 'l', value_name = "LABEL")]
+        labels: Vec<String>,
+        /// open, in_progress, done, or a declared state (in_review) the
+        /// ticket or one of its items holds.
+        #[arg(long, value_name = "STATE")]
+        state: Option<String>,
+        /// A phrase anywhere in the title, description, notes or items
+        /// (case-insensitive).
+        #[arg(long, value_name = "PHRASE")]
+        text: Option<String>,
+        /// Words, each beginning a word somewhere in the title, description,
+        /// notes or items, in any order (case-insensitive).
+        #[arg(long, value_name = "WORDS")]
+        search: Option<String>,
+        /// Only the tickets part of this one (an epic).
+        #[arg(long, value_name = "TICKET")]
+        epic: Option<String>,
+    },
+    /// Change a ticket's type, labels, epic or priority: one line of its
+    /// manifest each, journalled. Nothing else moves.
+    Edit {
+        ticket: String,
+        /// The new type; `none` clears it.
+        #[arg(long = "type", value_name = "TYPE")]
+        kind: Option<String>,
+        /// Add a label; repeatable.
+        #[arg(long = "label", short = 'l', value_name = "LABEL")]
+        labels: Vec<String>,
+        /// Remove a label; repeatable.
+        #[arg(long = "unlabel", value_name = "LABEL")]
+        unlabels: Vec<String>,
+        /// The ticket (epic) this one is part of; `none` detaches it.
+        #[arg(long = "part-of", value_name = "TICKET")]
+        part_of: Option<String>,
+        #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
+        priority: Option<u8>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
     /// Give a claim back without finishing the item.
     Release {
         target: String,
@@ -1615,6 +1683,11 @@ fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -
                 match d.severity {
                     diagnostic::Severity::Error => eprintln!("refused ({}): {}", d.rule, d.message),
                     diagnostic::Severity::Warn => eprintln!("warning ({}): {}", d.rule, d.message),
+                    // OW-WAR-0148 M5: an outcome nobody can establish (an
+                    // issue write that failed) is said, never swallowed.
+                    diagnostic::Severity::Unknown => {
+                        eprintln!("UNKNOWN ({}): {}", d.rule, d.message);
+                    }
                     _ => {}
                 }
             }
@@ -1679,10 +1752,48 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 body,
                 priority,
                 draft,
+                kind,
+                labels,
+                part_of,
+                issue,
+                issue_file,
+                implements,
                 actor,
             } => {
                 let (repository, store) = tickets(actor.as_deref())?;
+                // OW-WAR-0148 M5: the issue is read once, before anything is
+                // written; a refusal of the read is the command's refusal.
+                let issue = match (issue, issue_file) {
+                    (Some(n), _) => {
+                        if let Some(refusal) = ticket::issue_already_linked(&store, &n)? {
+                            return Ok(ticket_answer(mode, "create", &refusal));
+                        }
+                        match plan::intake::fetch(&repository, &n) {
+                            Ok(i) => Some(i),
+                            Err(e) => {
+                                return Ok(ticket_answer(mode, "create", &ticket::refusal_of(e)));
+                            }
+                        }
+                    }
+                    (None, Some(path)) => match plan::intake::read_file(&path) {
+                        Ok(i) => Some(i),
+                        Err(e) => return Ok(ticket_answer(mode, "create", &ticket::refusal_of(e))),
+                    },
+                    (None, None) => None,
+                };
+                let title = title
+                    .or_else(|| issue.as_ref().map(|i| i.title.clone()))
+                    .unwrap_or_default();
+                let body = match (issue.as_ref().map(|i| i.body.trim().to_owned()), body) {
+                    (Some(b), Some(extra)) if !b.is_empty() => Some(format!("{b}\n\n{extra}")),
+                    (Some(b), None) if !b.is_empty() => Some(b),
+                    (_, extra) => extra,
+                };
                 let mut items = items;
+                match ticket::implementing_items(&repository, &implements)? {
+                    Ok(more) => items.extend(more),
+                    Err(refusal) => return Ok(ticket_answer(mode, "create", &refusal)),
+                }
                 if draft {
                     match ticket::drafted_items(&repository, &title)? {
                         Ok(drafted) => items.extend(drafted),
@@ -1694,6 +1805,10 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     items,
                     body,
                     priority,
+                    kind,
+                    labels,
+                    part_of,
+                    issue,
                 };
                 Ok(ticket_answer(
                     mode,
@@ -1765,9 +1880,53 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     &ticket::prime(&store, target.as_deref())?,
                 ))
             }
-            TicketCommand::Tickets => {
+            TicketCommand::Tickets {
+                kind,
+                labels,
+                state,
+                text,
+                search,
+                epic,
+            } => {
                 let (_, store) = tickets(None)?;
-                Ok(ticket_answer(mode, "tickets", &ticket::tickets(&store)?))
+                let filter = ticket::Filter {
+                    kind,
+                    labels,
+                    state,
+                    text,
+                    search,
+                    epic,
+                };
+                Ok(ticket_answer(
+                    mode,
+                    "tickets",
+                    &ticket::tickets_filtered(&store, &filter)?,
+                ))
+            }
+            TicketCommand::Edit {
+                ticket: target,
+                kind,
+                labels,
+                unlabels,
+                part_of,
+                priority,
+                actor,
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                let none =
+                    |v: Option<String>| v.map(|v| Some(v).filter(|v| v != "none" && v != "-"));
+                let args = ticket::EditArgs {
+                    kind: none(kind),
+                    add_labels: labels,
+                    remove_labels: unlabels,
+                    part_of: none(part_of),
+                    priority,
+                };
+                Ok(ticket_answer(
+                    mode,
+                    "edit",
+                    &ticket::edit(&store, &target, &args)?,
+                ))
             }
             TicketCommand::Release { target, actor } => {
                 let (_, store) = tickets(actor.as_deref())?;

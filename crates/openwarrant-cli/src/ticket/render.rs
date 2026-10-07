@@ -172,6 +172,40 @@ struct Row {
     /// items, held or lapsed. Absent where there are none.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     declared_states: Vec<crate::states::Declared>,
+    /// OW-WAR-0148 M5: the ticket's type, labels, epic and issue, each
+    /// absent when the ticket has none.
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    kind: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    labels: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    part_of: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issue: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issue_url: Option<String>,
+    /// For an epic: its tickets (those `part_of` it), done and in all.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tickets: Option<Progress>,
+}
+
+/// `done` of `total`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct Progress {
+    pub done: usize,
+    pub total: usize,
+}
+
+/// An epic's progress over its tickets, or `None` when nothing is part of it.
+fn epic_progress(all: &[Ticket], t: &Ticket, claims: &Claims) -> Option<Progress> {
+    let kids = super::children_of(all, t.id());
+    (!kids.is_empty()).then(|| Progress {
+        done: kids
+            .iter()
+            .filter(|k| state_of(k, claims) == TicketState::Done)
+            .count(),
+        total: kids.len(),
+    })
 }
 
 fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
@@ -194,6 +228,115 @@ fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
             .collect(),
         dir: store.rel(&t.dir),
         declared_states: crate::states::ticket_declared(store, t, claims),
+        kind: t.manifest.kind.clone(),
+        labels: t.manifest.labels.clone(),
+        part_of: t.manifest.part_of.clone(),
+        issue: t.manifest.issue,
+        issue_url: t.manifest.issue_url.clone(),
+        tickets: None,
+    }
+}
+
+/// The row with its epic progress, read over `all`.
+fn row_in(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims) -> Row {
+    let mut r = row(store, t, claims);
+    r.tickets = epic_progress(all, t, claims);
+    r
+}
+
+/// The bracketed tail of a `war tickets` line for M5's fields, empty for a
+/// ticket that has none: `  [bug; backend, auth]  [in t-1a2b]  [epic: 1/3]
+/// [#12]`.
+fn fields_tail(r: &Row, with_parent: bool) -> String {
+    let mut out = String::new();
+    let mut what = Vec::new();
+    if let Some(k) = &r.kind {
+        what.push(k.clone());
+    }
+    if !r.labels.is_empty() {
+        what.push(r.labels.join(", "));
+    }
+    if !what.is_empty() {
+        out.push_str(&format!("  [{}]", what.join("; ")));
+    }
+    if let Some(p) = r.part_of.as_ref().filter(|_| with_parent) {
+        out.push_str(&format!("  [in {p}]"));
+    }
+    if let Some(p) = r.tickets {
+        out.push_str(&format!("  [epic: {}/{} done]", p.done, p.total));
+    }
+    if let Some(n) = r.issue {
+        out.push_str(&format!("  [#{n}]"));
+    }
+    out
+}
+
+// ---- filters and search (OW-WAR-0148 M5) -----------------------------------
+
+/// `war tickets --type/--label/--state/--text/--search/--epic`. Every filter
+/// given must hold; none given lists every ticket, as before.
+#[derive(Debug, Clone, Default)]
+pub struct Filter {
+    pub kind: Option<String>,
+    /// Every label named must be on the ticket.
+    pub labels: Vec<String>,
+    /// `open`, `in_progress`, `done`, or a state the ticket profile declares
+    /// (`in_review`), held by the ticket or one of its items.
+    pub state: Option<String>,
+    /// A phrase, matched case-insensitively anywhere in the ticket's text.
+    pub text: Option<String>,
+    /// Words, each of which must begin a word somewhere in the ticket's text.
+    pub search: Option<String>,
+    /// Only the tickets part of this one (an epic).
+    pub epic: Option<String>,
+}
+
+impl Filter {
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.kind.is_none()
+            && self.labels.is_empty()
+            && self.state.is_none()
+            && self.text.is_none()
+            && self.search.is_none()
+            && self.epic.is_none()
+    }
+}
+
+/// Everything `--text` and `--search` read: the title, the whole intent
+/// (description and notes), and each item's text and done note.
+fn haystack(t: &Ticket) -> String {
+    let mut h = String::with_capacity(t.intent.len() + t.checklist_text.len() + 64);
+    h.push_str(&t.manifest.title);
+    h.push('\n');
+    h.push_str(&t.intent);
+    for item in &t.checklist.items {
+        h.push('\n');
+        h.push_str(&item.text);
+        if let Some(n) = &item.note {
+            h.push('\n');
+            h.push_str(n);
+        }
+    }
+    h.to_lowercase()
+}
+
+/// The words of `text`, lowercase: maximal runs of letters and digits.
+fn words(text: &str) -> Vec<String> {
+    text.split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .map(str::to_lowercase)
+        .collect()
+}
+
+/// A fixed state's name as a filter takes it: `in_progress`, `in-progress`
+/// and `in progress` are one.
+fn fixed_state(name: &str) -> Option<TicketState> {
+    match name.trim().to_lowercase().replace(['-', ' '], "_").as_str() {
+        "open" => Some(TicketState::Open),
+        "in_progress" => Some(TicketState::InProgress),
+        "done" => Some(TicketState::Done),
+        _ => None,
     }
 }
 
@@ -223,8 +366,127 @@ fn sorted<'a>(tickets: &'a [Ticket], claims: &Claims) -> Vec<&'a Ticket> {
 
 /// `war tickets` (`war ls`): every ticket, its state and progress.
 pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
+    tickets_filtered(store, &Filter::default())
+}
+
+/// `war tickets` with filters: exactly the tickets every given filter
+/// admits, in the same order and form. A filter naming a type the profile
+/// does not declare, a label outside a closed set, a state that is neither
+/// fixed nor declared, or an unknown epic is refused by name.
+pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoError> {
     let (tickets, faults) = store.load_all()?;
     let claims = store.claims()?;
+    // Refusals first: a filter that can match nothing by construction is a
+    // typo, never an empty answer.
+    if let Some(k) = &filter.kind
+        && let Some(why) = store.definition.fields.refuse_type(k)
+    {
+        return Ok(super::Outcome::refused(
+            "ticket.filter-type-unknown",
+            "profiles/ticket.toml",
+            why,
+        ));
+    }
+    for l in &filter.labels {
+        if let Some(why) = store.definition.fields.refuse_label(l) {
+            return Ok(super::Outcome::refused(
+                "ticket.label-unknown",
+                "profiles/ticket.toml",
+                why,
+            ));
+        }
+    }
+    let wanted_state = match &filter.state {
+        None => None,
+        Some(s) => match fixed_state(s) {
+            Some(f) => Some(Ok(f)),
+            None if store.definition.states.iter().any(|d| d.name == s.trim()) => {
+                Some(Err(s.trim().to_owned()))
+            }
+            None => {
+                let mut known = vec![
+                    "open".to_owned(),
+                    "in_progress".to_owned(),
+                    "done".to_owned(),
+                ];
+                known.extend(store.definition.states.iter().map(|d| d.name.clone()));
+                return Ok(super::Outcome::refused(
+                    "ticket.filter-state-unknown",
+                    "profiles/ticket.toml",
+                    format!(
+                        "state {s:?} is neither a fixed state nor one the ticket profile declares: {}",
+                        known.join(", ")
+                    ),
+                ));
+            }
+        },
+    };
+    let epic = match &filter.epic {
+        None => None,
+        Some(q) => match resolve(&tickets, q) {
+            Ok(Target::Ticket(n)) => Some(tickets[n].id().to_owned()),
+            Ok(Target::Item(..)) => {
+                return Ok(super::Outcome::refused(
+                    "ticket.unknown",
+                    String::new(),
+                    format!("`--epic {q}` names an item; an epic is a ticket"),
+                ));
+            }
+            Err(d) => return Ok(super::Outcome::from_diagnostic(d)),
+        },
+    };
+    let text = filter.text.as_ref().map(|t| t.trim().to_lowercase());
+    let search = filter.search.as_deref().map(words).unwrap_or_default();
+    let admits = |t: &Ticket, r: &Row| -> bool {
+        if let Some(k) = &filter.kind
+            && r.kind.as_ref() != Some(k)
+        {
+            return false;
+        }
+        if !filter.labels.iter().all(|l| r.labels.contains(l)) {
+            return false;
+        }
+        match &wanted_state {
+            None => {}
+            Some(Ok(f)) => {
+                if r.state != *f {
+                    return false;
+                }
+            }
+            Some(Err(declared)) => {
+                if !r
+                    .declared_states
+                    .iter()
+                    .any(|d| !d.lapsed && &d.state == declared)
+                {
+                    return false;
+                }
+            }
+        }
+        if let Some(e) = &epic
+            && r.part_of.as_ref() != Some(e)
+        {
+            return false;
+        }
+        if text.is_some() || !search.is_empty() {
+            let hay = haystack(t);
+            if let Some(phrase) = &text
+                && !hay.contains(phrase.as_str())
+            {
+                return false;
+            }
+            if !search.is_empty() {
+                let have = words(&hay);
+                if !search
+                    .iter()
+                    .all(|q| have.iter().any(|w| w.starts_with(q.as_str())))
+                {
+                    return false;
+                }
+            }
+        }
+        true
+    };
     let mut human = String::new();
     if tickets.is_empty() {
         human.push_str("no tickets yet: `war create \"what this work accomplishes\"`");
@@ -233,14 +495,20 @@ pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
     let width = order.iter().map(|t| t.id().len()).max().unwrap_or(6);
     let mut rows = Vec::new();
     for t in order {
-        let r = row(store, t, &claims);
+        let r = row_in(store, &tickets, t, &claims);
+        if !filter.is_empty() && !admits(t, &r) {
+            continue;
+        }
         let holders: Vec<String> = r.claims.iter().map(|c| c.actor.clone()).collect();
         let held: Vec<String> = r
             .declared_states
             .iter()
             .filter(|d| !d.lapsed)
             .map(|d| {
-                let short = d.record.strip_prefix(&format!("{}/", r.id)).unwrap_or(&d.record);
+                let short = d
+                    .record
+                    .strip_prefix(&format!("{}/", r.id))
+                    .unwrap_or(&d.record);
                 format!("{short} {}", d.state)
             })
             .collect();
@@ -266,12 +534,32 @@ pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
                 format!("  [{}]", held.join(", "))
             },
         ));
+        // OW-WAR-0148 M5: inserted before the newline, empty for a ticket
+        // with none of the new fields, so an existing ticket's line is as it
+        // was.
+        let tail = fields_tail(&r, true);
+        if !tail.is_empty() {
+            human.pop();
+            human.push_str(&tail);
+            human.push('\n');
+        }
         rows.push(r);
     }
-    let mut out = Outcome::ok(
-        human.trim_end().to_owned(),
-        serde_json::json!({"schema": "oh.war/ticket-list/v1", "tickets": rows}),
-    );
+    if !filter.is_empty() && rows.is_empty() && !tickets.is_empty() {
+        human.push_str("no ticket matches");
+    }
+    let mut result = serde_json::json!({"schema": "oh.war/ticket-list/v1", "tickets": rows});
+    if !filter.is_empty() {
+        result["filter"] = serde_json::json!({
+            "type": filter.kind,
+            "labels": filter.labels,
+            "state": filter.state,
+            "text": filter.text,
+            "search": filter.search,
+            "epic": epic,
+        });
+    }
+    let mut out = Outcome::ok(human.trim_end().to_owned(), result);
     for f in faults {
         out.report.push(crate::diagnostic::Diagnostic::warn(
             f.rule.clone(),
@@ -292,7 +580,7 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let t = &tickets[index];
     let claims = store.claims()?;
     let now = now_secs();
-    let r = row(store, t, &claims);
+    let r = row_in(store, &tickets, t, &claims);
     let mut md = format!("# {} — {}\n\n", t.id(), t.manifest.title);
     let declared = r.declared_states.clone();
     let ann = |record: Option<String>| {
@@ -312,6 +600,31 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     if let Some(w) = &t.manifest.promoted_to {
         md.push_str(&format!("Promoted to Warrant {w} for sign-off.\n"));
     }
+    // OW-WAR-0148 M5: one line for the new fields, only when there are any.
+    let mut facts = Vec::new();
+    if let Some(k) = &t.manifest.kind {
+        facts.push(format!("type {k}"));
+    }
+    if !t.manifest.labels.is_empty() {
+        facts.push(format!("labels {}", t.manifest.labels.join(", ")));
+    }
+    if let Some(p) = &t.manifest.part_of {
+        let title = tickets.iter().find(|x| x.id() == p).map_or_else(
+            || " (unknown)".to_owned(),
+            |x| format!(" ({})", x.manifest.title),
+        );
+        facts.push(format!("part of {p}{title}"));
+    }
+    if let Some(n) = t.manifest.issue {
+        facts.push(match &t.manifest.issue_url {
+            Some(u) => format!("GitHub issue [#{n}]({u})"),
+            None => format!("GitHub issue #{n}"),
+        });
+    }
+    if !facts.is_empty() {
+        md.push_str(&facts.join(" · "));
+        md.push('\n');
+    }
     let body = description(&t.intent);
     if !body.is_empty() {
         md.push('\n');
@@ -319,7 +632,9 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         md.push('\n');
     }
     md.push_str("\n## Checklist\n\n");
-    if t.checklist.items.is_empty() {
+    if t.checklist.items.is_empty() && r.tickets.is_some() {
+        md.push_str("(no items of its own: the work is its tickets, below)\n");
+    } else if t.checklist.items.is_empty() {
         md.push_str("(no items: the ticket is the work — `war add` breaks it down)\n");
     }
     for item in &t.checklist.items {
@@ -349,6 +664,31 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             md.push('\n');
         }
     }
+    // OW-WAR-0148 M5: an epic lists its tickets, each with its state and
+    // progress, and the epic's progress over them.
+    let kids = super::children_of(&tickets, t.id());
+    let mut children = Vec::new();
+    if let Some(p) = r.tickets {
+        md.push_str(&format!("\n## Tickets ({}/{} done)\n\n", p.done, p.total));
+        for k in sorted_refs(kids, &claims) {
+            let kr = row_in(store, &tickets, k, &claims);
+            md.push_str(&format!(
+                "- [{}] {} — {} · {} · {}/{} done{}\n",
+                if kr.state == TicketState::Done {
+                    'x'
+                } else {
+                    ' '
+                },
+                kr.id,
+                kr.title,
+                kr.state.as_str(),
+                kr.done,
+                kr.total,
+                fields_tail(&kr, false)
+            ));
+            children.push(kr);
+        }
+    }
     let all = notes(&t.intent);
     if !all.is_empty() {
         md.push_str("\n## Notes\n\n");
@@ -356,17 +696,42 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             md.push_str(&format!("- {n}\n"));
         }
     }
-    Ok(Outcome::ok(
-        md.trim_end().to_owned(),
-        serde_json::json!({
-            "schema": "oh.war/ticket-show/v1",
-            "ticket": r,
-            "description": body,
-            "items": t.checklist.items,
-            "notes": all,
-            "markdown": md,
-        }),
-    ))
+    let mut result = serde_json::json!({
+        "schema": "oh.war/ticket-show/v1",
+        "ticket": r,
+        "description": body,
+        "items": t.checklist.items,
+        "notes": all,
+        "markdown": md,
+    });
+    if !children.is_empty() {
+        result["tickets"] = serde_json::to_value(&children).unwrap_or_default();
+    }
+    Ok(Outcome::ok(md.trim_end().to_owned(), result))
+}
+
+/// `tickets` in `war tickets`' order.
+fn sorted_refs<'a>(mut tickets: Vec<&'a Ticket>, claims: &Claims) -> Vec<&'a Ticket> {
+    let rank = |s: TicketState| match s {
+        TicketState::InProgress => 0,
+        TicketState::Open => 1,
+        TicketState::Done => 2,
+    };
+    tickets.sort_by(|a, b| {
+        (
+            rank(state_of(a, claims)),
+            a.manifest.priority,
+            &a.manifest.created_at,
+            a.id(),
+        )
+            .cmp(&(
+                rank(state_of(b, claims)),
+                b.manifest.priority,
+                &b.manifest.created_at,
+                b.id(),
+            ))
+    });
+    tickets
 }
 
 /// `war prime [<ticket>]`: what an arriving agent (or person) reads first.

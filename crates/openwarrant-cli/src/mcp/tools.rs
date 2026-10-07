@@ -37,9 +37,41 @@ pub struct CreateParams {
     /// 0 (most urgent) to 4; default 2.
     #[serde(default)]
     pub priority: Option<u8>,
+    /// One of the ticket profile's `[fields] types` (OW-WAR-0148 M5).
+    #[serde(default, rename = "type")]
+    pub kind: Option<String>,
+    /// Labels; refused outside a closed label set.
+    #[serde(default)]
+    pub labels: Vec<String>,
+    /// The ticket (an epic) this one is part of.
+    #[serde(default)]
+    pub part_of: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
     #[serde(default)]
     pub actor: Option<String>,
+}
+
+/// `war tickets` filters (OW-WAR-0148 M5); none given lists every ticket.
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct TicketsParams {
+    /// Only tickets of this type.
+    #[serde(default, rename = "type")]
+    pub kind: Option<String>,
+    /// Only tickets carrying every one of these labels.
+    #[serde(default)]
+    pub labels: Vec<String>,
+    /// open, in_progress, done, or a declared state (in_review).
+    #[serde(default)]
+    pub state: Option<String>,
+    /// A phrase anywhere in the ticket's text (case-insensitive).
+    #[serde(default)]
+    pub text: Option<String>,
+    /// Words, each beginning a word of the ticket's text, any order.
+    #[serde(default)]
+    pub search: Option<String>,
+    /// Only the tickets part of this one (an epic).
+    #[serde(default)]
+    pub epic: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
@@ -1016,11 +1048,21 @@ impl WarServer {
 
     #[tool(
         name = "war_tickets",
-        description = "Every ticket with its state (open, in progress, done) and progress (`war tickets`). Read-only.",
+        description = "Every ticket with its state (open, in progress, done) and progress (`war tickets`), optionally filtered by type, labels, state, a phrase, search words or epic: exactly the tickets every filter admits. Read-only.",
         annotations(read_only_hint = true)
     )]
-    fn war_tickets(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
-        self.ticket("tickets", None, crate::ticket::tickets)
+    fn war_tickets(&self, Parameters(p): Parameters<TicketsParams>) -> ToolResult {
+        let filter = crate::ticket::Filter {
+            kind: p.kind,
+            labels: p.labels,
+            state: p.state,
+            text: p.text,
+            search: p.search,
+            epic: p.epic,
+        };
+        self.ticket("tickets", None, |s| {
+            crate::ticket::tickets_filtered(s, &filter)
+        })
     }
 
     #[tool(
@@ -1034,6 +1076,10 @@ impl WarServer {
             items: p.items,
             body: p.body,
             priority: p.priority,
+            kind: p.kind,
+            labels: p.labels,
+            part_of: p.part_of,
+            issue: None,
         };
         self.ticket("create", p.actor.as_deref(), |s| {
             crate::ticket::create(s, &args)
