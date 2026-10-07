@@ -27861,7 +27861,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-001 | war ui: the hardened loopback server | `crates/openwarrant-cli/src/webui/mod.rs` | drift |
 | D-002 | the page | `crates/openwarrant-cli/src/webui/assets/index.html` | verified |
 | D-003 | the page's script | `crates/openwarrant-cli/src/webui/assets/app.js` | drift |
-| D-004 | the page's style | `crates/openwarrant-cli/src/webui/assets/app.css` | drift |
+| D-004 | the page's style | `crates/openwarrant-cli/src/webui/assets/app.css` | verified |
 | D-005 | the shared parser; no inline CSP | `crates/openwarrant-cli/src/progress_viewer/server.rs` | verified |
 | D-006 | war progress --serve is war ui | `crates/openwarrant-cli/src/progress_viewer.rs` | drift |
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
