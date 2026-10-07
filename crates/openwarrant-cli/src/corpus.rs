@@ -31,6 +31,9 @@
 //! Errors are kept as their message and returned as [`RepoError::Message`]
 //! with the same text: a consumer that propagated a load error before
 //! propagates the same words now, and one that skipped it still skips it.
+//! The exception is an observation that could not be made
+//! ([`RepoError::ObservationUnavailable`]), which comes back as itself so it
+//! still reads UNKNOWN rather than as an error.
 
 use std::sync::OnceLock;
 
@@ -41,12 +44,40 @@ use crate::repo::{AdrCorpus, Loaded, RepoError, Repository};
 use crate::resolve::Assessment;
 
 fn kept<T>(
-    cell: &OnceLock<Result<T, String>>,
+    cell: &OnceLock<Result<T, Kept>>,
     f: impl FnOnce() -> Result<T, RepoError>,
 ) -> Result<&T, RepoError> {
-    cell.get_or_init(|| f().map_err(|e| e.to_string()))
+    cell.get_or_init(|| f().map_err(Kept::of))
         .as_ref()
-        .map_err(|e| RepoError::Message(e.clone()))
+        .map_err(Kept::error)
+}
+
+/// An error as the corpus keeps it. An observation that could not be made
+/// stays one (the caller reports it UNKNOWN, exit 2, as an uncached read
+/// would); every other error is kept as its message.
+#[derive(Debug, Clone)]
+pub(crate) enum Kept {
+    Unavailable { rule: &'static str, message: String },
+    Message(String),
+}
+
+impl Kept {
+    fn of(error: RepoError) -> Self {
+        match error {
+            RepoError::ObservationUnavailable { rule, message } => Self::Unavailable { rule, message },
+            other => Self::Message(other.to_string()),
+        }
+    }
+
+    fn error(&self) -> RepoError {
+        match self {
+            Self::Unavailable { rule, message } => RepoError::ObservationUnavailable {
+                rule,
+                message: message.clone(),
+            },
+            Self::Message(message) => RepoError::Message(message.clone()),
+        }
+    }
 }
 
 /// Every readable ticket, and a diagnostic per unreadable one.
@@ -56,18 +87,16 @@ pub type Tickets = (Vec<crate::ticket::Ticket>, Vec<Diagnostic>);
 #[derive(Debug)]
 pub struct Entry {
     pub dir: Utf8PathBuf,
-    loaded: Result<Loaded, String>,
-    ir: OnceLock<Result<openwarrant_compiler::WarIr, String>>,
+    loaded: Result<Loaded, Kept>,
+    ir: OnceLock<Result<openwarrant_compiler::WarIr, Kept>>,
     contract: OnceLock<Option<String>>,
-    assessment: OnceLock<Result<Assessment, String>>,
+    assessment: OnceLock<Result<Assessment, Kept>>,
 }
 
 impl Entry {
     /// The Warrant as `Repository::load_warrant` read it, or its error.
     pub fn loaded(&self) -> Result<&Loaded, RepoError> {
-        self.loaded
-            .as_ref()
-            .map_err(|e| RepoError::Message(e.clone()))
+        self.loaded.as_ref().map_err(Kept::error)
     }
 
     /// The Warrant, when it loaded.
@@ -127,16 +156,16 @@ impl Entry {
 /// The corpus: every Warrant and the corpus-level values built from them.
 pub struct Corpus {
     repo: Repository,
-    entries: OnceLock<Result<Vec<Entry>, String>>,
+    entries: OnceLock<Result<Vec<Entry>, Kept>>,
     currencies: OnceLock<crate::relations::Currencies>,
-    status: OnceLock<Result<openwarrant_core::status::CorpusStatus, String>>,
-    pending: OnceLock<Result<Vec<crate::sign::Pending>, String>>,
-    frontier: OnceLock<Result<(Report, crate::frontier::Frontier), String>>,
-    ownership: OnceLock<Result<crate::ownership::Ownership, String>>,
-    roadmap: OnceLock<Result<Option<crate::roadmap_cmd::Loaded>, String>>,
-    tickets: OnceLock<Result<Tickets, String>>,
-    adrs: OnceLock<Result<AdrCorpus, String>>,
-    sas_revisions: OnceLock<Result<Vec<openwarrant_core::SasRevision>, String>>,
+    status: OnceLock<Result<openwarrant_core::status::CorpusStatus, Kept>>,
+    pending: OnceLock<Result<Vec<crate::sign::Pending>, Kept>>,
+    frontier: OnceLock<Result<(Report, crate::frontier::Frontier), Kept>>,
+    ownership: OnceLock<Result<crate::ownership::Ownership, Kept>>,
+    roadmap: OnceLock<Result<Option<crate::roadmap_cmd::Loaded>, Kept>>,
+    tickets: OnceLock<Result<Tickets, Kept>>,
+    adrs: OnceLock<Result<AdrCorpus, Kept>>,
+    sas_revisions: OnceLock<Result<Vec<openwarrant_core::SasRevision>, Kept>>,
     records: OnceLock<crate::records::Records>,
 }
 
@@ -191,7 +220,7 @@ impl Corpus {
                 .warrant_dirs()?
                 .into_iter()
                 .map(|dir| Entry {
-                    loaded: self.repo.load_warrant(&dir).map_err(|e| e.to_string()),
+                    loaded: self.repo.load_warrant(&dir).map_err(Kept::of),
                     dir,
                     ir: OnceLock::new(),
                     contract: OnceLock::new(),
