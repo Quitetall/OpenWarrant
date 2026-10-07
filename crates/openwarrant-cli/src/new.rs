@@ -292,16 +292,19 @@ fn parent_citation(repo: &Repository, alias: &str) -> Result<String, RepoError> 
     ))
 }
 
-/// One past the highest ordinal currently present.
+/// One past the highest ordinal present in the working tree or on any local
+/// or remote-tracking branch (M11): two branches allocating in parallel no
+/// longer take the same number, as `main` and a feature branch both took
+/// OW-WAR-0148 on 2026-10-07.
 fn next_ordinal(repo: &Repository) -> Result<u32, RepoError> {
     let mut highest = 0u32;
     for dir in repo.warrant_dirs()? {
-        let Some(name) = dir.file_name() else {
-            continue;
-        };
-        if let Some((_, digits)) = name.rsplit_once("-WAR-")
-            && let Ok(n) = digits.parse::<u32>()
-        {
+        if let Some(n) = dir.file_name().and_then(crate::alias::ordinal) {
+            highest = highest.max(n);
+        }
+    }
+    for names in crate::alias::on_branches(repo).values() {
+        for n in names.iter().filter_map(|n| crate::alias::ordinal(n)) {
             highest = highest.max(n);
         }
     }

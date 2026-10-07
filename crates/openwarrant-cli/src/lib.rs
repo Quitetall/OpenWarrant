@@ -10,6 +10,7 @@ use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
 pub mod acceptance;
+pub mod alias;
 pub mod amendment_id;
 pub mod attest;
 pub mod authority_check;
@@ -767,6 +768,15 @@ enum Command {
         /// authorized revision is refused and nothing is created.
         #[arg(long, value_name = "ALIAS")]
         parent: Option<String>,
+    },
+    /// Give an unsigned Warrant a free alias: its `local_alias`, its
+    /// directory, and a journal line. A Warrant with an authorization keeps
+    /// its alias; that is refused by name.
+    Renumber {
+        /// The Warrant's alias now.
+        alias: String,
+        /// The alias to give it; refused if any branch this clone knows has it.
+        new: String,
     },
     /// Validate deterministically, without any agent (§71.7).
     Check {
@@ -3933,6 +3943,27 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         Command::Doctor { alias, generated } => {
             let (report, result) = doctor::run(root.clone(), alias.as_deref(), generated);
             Ok(output::finish(mode, "doctor", &report, Some(result)))
+        }
+        Command::Renumber { alias, new } => {
+            let repository = open_repo()?;
+            let done = alias::renumber(&repository, &alias, &new)?;
+            match mode {
+                output::Mode::Human => {
+                    for d in &done.report.diagnostics {
+                        if d.severity == diagnostic::Severity::Error {
+                            eprintln!("refused ({}): {}", d.rule, d.message);
+                        }
+                    }
+                    if done.report.is_ready() {
+                        println!("{}", done.human);
+                    }
+                }
+                output::Mode::Json => println!(
+                    "{}",
+                    output::envelope("renumber", &done.report, Some(done.result.clone()))
+                ),
+            }
+            Ok(output::exit_code(&done.report))
         }
         Command::Check { alias, generated } => {
             let repository = open_repo()?;

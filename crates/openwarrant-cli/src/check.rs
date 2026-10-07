@@ -174,6 +174,8 @@ pub fn run_with(
         loaded.clone()
     };
     let parent_digests = contract_digests_with(shared_corpus, &corpus);
+    // M11: an alias names one Warrant (`warrant.alias-duplicate`).
+    crate::alias::check_duplicates(repo, &corpus, only, &mut report);
 
     // §43.1 — local gate candidates. Loaded once for the corpus so an obligation
     // citing a gate can be resolved rather than taken on trust.

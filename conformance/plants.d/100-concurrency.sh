@@ -355,3 +355,65 @@ if [[ $CC_S -eq 2 && $CC_LEFT -eq 0 ]] && grep -q 'ticket.claim-remote-unreachab
 else
     cc_fail "an unreachable remote is refused" "exit $CC_S, lock left $CC_LEFT: $CC_ERR"
 fi
+
+# Alias safety across branches. A scratch program (AL) and a clone of it.
+# Accepted: `war new` allocates past an alias a local branch holds, and past
+# one a remote-tracking branch holds after a fetch; `war renumber` gives an
+# unsigned Warrant a free alias (local_alias, directory, journal line), and
+# `war check` is then clean of the duplicate. Refused, by name: two Warrants
+# sharing an alias (warrant.alias-duplicate, both UUIDs named); renumbering
+# a Warrant with an authorization.toml (warrant.renumber-signed); and
+# renumbering onto an alias a branch holds (warrant.alias-taken).
+echo "== concurrency: aliases across branches (M11) =="
+AL_ROOT=$(scratch_corpus AL)
+[[ -d "${AL_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
+al_new() { cc_field "$(cc_json "$1" new "$2")" 'v["result"]["alias"] if "alias" in v["result"] else v["result"]["dir"].rsplit("/",1)[-1]'; }
+AL_BASE=$(git -C "$AL_ROOT" branch --show-current)
+AL_HIGH=$(cd "$AL_ROOT/docs/warrants" && printf '%s\n' AL-WAR-* | sed 's/AL-WAR-//' | sort -n | tail -1)
+AL_N=$((10#$AL_HIGH))
+al_alias() { printf 'AL-WAR-%04d' "$1"; }
+git -C "$AL_ROOT" checkout -qb side
+AL_SIDE=$(al_new "$AL_ROOT" "On the side branch")
+cc_commit "$AL_ROOT" "side"
+git -C "$AL_ROOT" checkout -q "$AL_BASE"
+AL_MAIN=$(al_new "$AL_ROOT" "On the base branch")
+cc_commit "$AL_ROOT" "base"
+git clone -q "$AL_ROOT" "$CC_TMP/al-clone" >/dev/null 2>&1
+git -C "$AL_ROOT" checkout -qb side2
+AL_SIDE2=$(al_new "$AL_ROOT" "On another branch")
+cc_commit "$AL_ROOT" "side2"
+git -C "$AL_ROOT" checkout -q "$AL_BASE"
+git -C "$CC_TMP/al-clone" fetch -q origin >/dev/null 2>&1
+AL_CLONE=$(al_new "$CC_TMP/al-clone" "In the clone, after a fetch")
+if [[ "$AL_SIDE" == "$(al_alias $((AL_N + 1)))" && "$AL_MAIN" == "$(al_alias $((AL_N + 2)))" \
+    && "$AL_SIDE2" == "$(al_alias $((AL_N + 3)))" && "$AL_CLONE" == "$(al_alias $((AL_N + 4)))" ]]; then
+    cc_ok "war new allocates past branches" "side took $AL_SIDE, so the base branch got $AL_MAIN, not $AL_SIDE again; the clone, after a fetch, got $AL_CLONE past origin/side2's $AL_SIDE2"
+else
+    cc_fail "war new allocates past branches" "highest was $AL_HIGH; side $AL_SIDE, base $AL_MAIN, side2 $AL_SIDE2, clone $AL_CLONE"
+fi
+# Two Warrants sharing an alias: the newer one's manifest says the older's.
+AL_DUP=$(al_new "$AL_ROOT" "A copy that kept its alias")
+sed -i "s/^local_alias = \"$AL_DUP\"/local_alias = \"$AL_MAIN\"/" "$AL_ROOT/docs/warrants/$AL_DUP/manifest.toml"
+AL_U1=$(sed -n 's/^uuid = "\(.*\)"/\1/p' "$AL_ROOT/docs/warrants/$AL_MAIN/manifest.toml")
+AL_U2=$(sed -n 's/^uuid = "\(.*\)"/\1/p' "$AL_ROOT/docs/warrants/$AL_DUP/manifest.toml")
+AL_OUT=$(cc_war "$AL_ROOT" check 2>&1); AL_S=$?
+# Refused: a signed Warrant keeps its alias; a branch's alias is taken.
+: > "$AL_ROOT/docs/warrants/$AL_MAIN/authorization.toml"
+AL_ERR=$(cc_war "$AL_ROOT" renumber "$AL_MAIN" "$(al_alias 90)" 2>&1 >/dev/null); AL_S2=$?
+command rm -f "$AL_ROOT/docs/warrants/$AL_MAIN/authorization.toml"
+AL_ERR2=$(cc_war "$AL_ROOT" renumber "$AL_DUP" "$AL_SIDE2" 2>&1 >/dev/null); AL_S3=$?
+AL_FREE=$(al_alias 91)
+cc_war "$AL_ROOT" renumber "$AL_DUP" "$AL_FREE" >/dev/null 2>&1; AL_S4=$?
+AL_OUT2=$(cc_war "$AL_ROOT" check 2>&1)
+AL_MOVED=0; [[ -d "$AL_ROOT/docs/warrants/$AL_FREE" && ! -e "$AL_ROOT/docs/warrants/$AL_DUP" ]] && AL_MOVED=1
+if [[ $AL_S -ne 0 && $AL_S2 -ne 0 && $AL_S3 -ne 0 && $AL_S4 -eq 0 && $AL_MOVED -eq 1 ]] \
+    && line_has -F 'warrant.alias-duplicate' -F "$AL_U1" <<<"$AL_OUT" && line_has -F 'warrant.alias-duplicate' -F "$AL_U2" <<<"$AL_OUT" \
+    && grep -q 'warrant.renumber-signed' <<<"$AL_ERR" && grep -q 'authorization.toml' <<<"$AL_ERR" \
+    && grep -q 'warrant.alias-taken' <<<"$AL_ERR2" && grep -q 'branch side2' <<<"$AL_ERR2" \
+    && ! grep -q 'warrant.alias-duplicate' <<<"$AL_OUT2" \
+    && grep -q "^local_alias = \"$AL_FREE\"$" "$AL_ROOT/docs/warrants/$AL_FREE/manifest.toml" \
+    && grep -q '"draft.renumbered"' "$AL_ROOT/docs/warrants/$AL_FREE/journal.jsonl"; then
+    cc_ok "a shared alias is refused" "check named both UUIDs; renumber refused a signed one and a branch's alias, then moved $AL_DUP to $AL_FREE (journalled); check clean of it"
+else
+    cc_fail "a shared alias is refused" "check $AL_S, signed $AL_S2 ($AL_ERR), taken $AL_S3 ($AL_ERR2), renumber $AL_S4, moved $AL_MOVED; $(grep -m1 'alias-duplicate' <<<"$AL_OUT2")"
+fi
