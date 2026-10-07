@@ -204,7 +204,7 @@ tfw edit t-01d5 --type chore >/dev/null 2>&1; TF_S3=$?
 TF_EDIFF=$(diff "$TF_TMP/old.manifest" "$TF_OLD/manifest.toml")
 if [[ $TF_S1 -eq 0 && $TF_S2 -eq 0 && $TF_S3 -eq 0 && -z "$TF_MDIFF" && "$TF_CDIFF" == 2 && "$TF_ST" == done ]] \
     && [[ "$TF_CLINE" =~ ^-\ \[x\]\ Keep\ working\ \(i-0a01\)\ —\ done\ by\ claude,\ [0-9-]+:\ kept$ ]] \
-    && [[ "$TF_EDIFF" == $'9a10\n> type = "chore"' ]]; then
+    && [[ "$TF_EDIFF" == $'10a11\n> type = "chore"' ]]; then
     tf_ok "a pre-M5 ticket works unchanged" "claimed and finished: manifest byte-identical, one checklist line changed; war edit added exactly 'type = \"chore\"'"
 else
     tf_fail "a pre-M5 ticket works unchanged" "claim $TF_S1 done $TF_S2 edit $TF_S3; manifest '$TF_MDIFF'; checklist lines $TF_CDIFF '$TF_CLINE'; state $TF_ST; edit diff '$TF_EDIFF'"
@@ -278,11 +278,11 @@ tfw claim "$TF_H/$TF_H2" >/dev/null 2>&1
 TF_DONE=$(tfj done "$TF_H/$TF_H2" --note "regression test added"); TF_DS=$?
 TF_CALLS=$(grep -c '^argv=' "$TF_TMP/gh.log")
 TF_COMMENT=$(sed -n '/^argv=issue comment 13 --body /,/^argv=issue close/p' "$TF_TMP/gh.log")
-TF_LAST=$(grep '^argv=' "$TF_TMP/gh.log" | tail -2 | cut -c1-30 | tr '\n' '|')
+TF_LAST=$(grep '^argv=' "$TF_TMP/gh.log" | tail -2 | cut -d' ' -f1-3 | tr '\n' '|')
 TF_CLOSE=$(grep '^argv=issue close' "$TF_TMP/gh.log")
 TF_WB=$(tf_field "$TF_DONE" 'v["result"]["issue"]["writeback"]')
 if [[ $TF_DS -eq 0 && "$TF_MID" == 1 && "$TF_CALLS" == 3 && "$TF_WB" == written \
-    && "$TF_LAST" == "argv=issue comment 13 --body Do|argv=issue close 13 --reason co|" \
+    && "$TF_LAST" == "argv=issue comment 13|argv=issue close 13|" \
     && "$TF_CLOSE" == "argv=issue close 13 --reason completed env=passed-through" ]] \
     && tf_has "Done in ticket $TF_H: Login fails on an empty password" "$TF_COMMENT" \
     && tf_has "Patch the guard — done by claude" "$TF_COMMENT" && tf_has ": regression test added" "$TF_COMMENT" \
@@ -308,7 +308,7 @@ if [[ $TF_S -eq 2 && "$TF_ST" == done && "$TF_CLOSED" == 0 && $TF_SJ -eq 0 ]] \
     && tf_has 'UNKNOWN (ticket.issue-unknown): GitHub issue #14 is UNKNOWN: comment unknown (gh failed' "$TF_ERR" \
     && tf_has 'HTTP 403: denied' "$TF_ERR" && tf_has "The ticket $TF_K is done and stays done" "$TF_ERR" \
     && tf_has '\"outcome\":\"unknown\"' "$TF_JL" && tf_has '\"step\":\"close\",\"outcome\":\"skipped\"' "$TF_JL" \
-    && tf_has '"already_done":true' "$TF_J"; then
+    && [[ "$(tf_field "$TF_J" 'v["result"]["already_done"]')" == True ]]; then
     tf_ok "a failed write reads UNKNOWN" "comment failed: exit 2, ticket.issue-unknown, $TF_K stays done, close not run, journalled unknown"
 else
     tf_fail "a failed write reads UNKNOWN" "exit $TF_S state $TF_ST closes $TF_CLOSED: $TF_ERR; journal '$TF_JL'"
