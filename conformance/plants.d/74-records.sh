@@ -18,8 +18,8 @@
 # carried in the model and changes no check, status or readiness; after
 # REQ-pr1 changes, `war impact REQ-pr1` names the implementing item, the
 # Warrant naming it, OBL-001 with its verdict bound to the old revision
-# (stale, still recorded), the phase and the generated views; nothing the
-# verification recorded moves.
+# (stale: still recorded as established, unknown for current work), the
+# phase and the generated views; nothing the verification recorded moves.
 # Refused, each by rule: a duplicate id (record.duplicate-id), a type the
 # profile does not declare (record.type-undeclared, kernel types included), a
 # core kind it does not allow (record.relation-undeclared), a word that is no
@@ -261,7 +261,7 @@ rp_impact() {
 import json, sys
 i = json.load(sys.stdin)["result"]
 for e in i["evaluations"]:
-    print("eval", e["obligation"], e["verdict"], e["reads"], e.get("bound_revision", "-"), e["current_revision"])
+    print("eval", e["obligation"], e["verdict"], e["reads"], e.get("bound_revision", "-"), e["current_revision"], "recorded=" + e.get("recorded", "-"))
 for a in i["affected"]:
     print("affected", a["id"], a["via"]["kind"])
 for d in i["documents"]:
@@ -274,7 +274,7 @@ for p in i["projections"]:
 ' 2>&1
 }
 RP_I0=$(rp_impact)
-if rp_line "^eval RP-WAR-0001/OBL-001 established current $RP_REV0 $RP_REV0\$" "$RP_I0" >/dev/null; then
+if rp_line "^eval RP-WAR-0001/OBL-001 established current $RP_REV0 $RP_REV0 recorded=established\$" "$RP_I0" >/dev/null; then
     rp_ok "a verdict on this revision is current" "OBL-001 established, bound to REQ-pr1's revision now"
 else
     rp_fail "a verdict on this revision is current" "$(rp_line '^eval' "$RP_I0"); prepare: $(rp_line '(prepared|ERROR)' "$RP_PREP")"
@@ -295,15 +295,15 @@ for want in \
     "^affected RP-WAR-0001/OBL-001 evaluates\$" \
     "^doc RP-WAR-0001 names REQ-pr1 in atoms/20-basis\.md\$" \
     "^doc $RP_T holds $RP_T/$RP_I\$" \
-    "^eval RP-WAR-0001/OBL-001 established stale $RP_REV0 $RP_REV1\$" \
+    "^eval RP-WAR-0001/OBL-001 unknown stale $RP_REV0 $RP_REV1 recorded=established\$" \
     "^phase RP-PHASE-1 RP-WAR-0001\$" \
     "^proj docs/warrants/RP-WAR-0001/generated/WAR\.md\$" \
     "^proj docs/warrants/generated/CORPUS_STATUS\.json\$"; do
     rp_line "$want" "$RP_I1" >/dev/null || RP_MISS="$RP_MISS [$want]"
 done
 if [[ -z "$RP_MISS" && "$RP_REV1" != "$RP_REV0" && $RP_HS -eq 0 && "$RP_DIRTY" == " M $RP_REC " ]] \
-    && rp_line '^WARN +impact\.evaluation-stale .*The verdict \(established\) stays recorded' "$RP_H1" >/dev/null; then
-    rp_ok "impact names what a change affects" "the item, the Warrant's basis, OBL-001 established but stale, RP-PHASE-1, WAR.md and the corpus views; only the record file changed"
+    && rp_line '^WARN +impact\.evaluation-stale .*The verdict \(established\) stays recorded.*for current work it reads unknown' "$RP_H1" >/dev/null; then
+    rp_ok "impact names what a change affects" "the item, the Warrant's basis, OBL-001 recorded established but stale and unknown for current work, RP-PHASE-1, WAR.md and the corpus views; only the record file changed"
 else
     rp_fail "impact names what a change affects" "missing:$RP_MISS; dirty '$RP_DIRTY'; human exit $RP_HS"
 fi

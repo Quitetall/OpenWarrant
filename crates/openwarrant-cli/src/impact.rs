@@ -115,9 +115,14 @@ pub struct Evaluation {
     pub obligation: String,
     /// The record it evaluates.
     pub target: String,
-    /// The disposition as the corpus reads it now, if it has one.
+    /// The disposition as the corpus reads it now, if it has one. A verdict
+    /// whose reviewed subject no longer matches reads `unknown` here.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub verdict: Option<String>,
+    /// The disposition the stored verification record holds, as written,
+    /// whether or not it still counts for current work.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recorded: Option<String>,
     /// The revision the `evaluates` relation pins.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bound_revision: Option<String>,
@@ -188,17 +193,31 @@ pub fn build(corpus: &Corpus, id: &str) -> Result<(Report, Option<Impact>), Repo
             e.obligation.clone(),
             format!(
                 "{} evaluated {} at {}; it is {} now. The verdict ({}) stays recorded, bound to \
-                 the revision it judged",
+                 the revision it judged; for current work it reads {}",
                 e.obligation,
                 e.target,
                 e.bound_revision.as_deref().unwrap_or_default(),
                 e.current_revision,
+                e.recorded.as_deref().unwrap_or("none"),
                 e.verdict.as_deref().unwrap_or("none")
             ),
         ));
     }
     report.push(Diagnostic::pass("impact.walked", summary(&impact)));
     Ok((report, Some(impact)))
+}
+
+/// The disposition `<alias>/<OBL-id>`'s stored verification record holds,
+/// read as written. `None` when there is no record or it cannot be read.
+fn recorded_verdict(corpus: &Corpus, obligation: &str) -> Option<String> {
+    let (alias, id) = obligation.split_once('/')?;
+    let repo = corpus.repo();
+    let dir = repo.warrant_dir(alias).ok()?;
+    let set = repo.load_verifications(&dir).ok()?;
+    set.records
+        .iter()
+        .find(|r| r.obligation == id)
+        .map(|r| r.disposition.to_string())
 }
 
 fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impact {
@@ -344,6 +363,7 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
                 obligation: r.from.clone(),
                 target: r.to.clone(),
                 verdict: state(&r.from, "disposition"),
+                recorded: recorded_verdict(corpus, &r.from),
                 bound_revision: r.to_revision.clone(),
                 current_revision: current,
                 reads: reads.to_owned(),
@@ -506,10 +526,11 @@ pub fn render(i: &Impact) -> String {
             .map_or_else(|| "no revision".to_owned(), |b| short(b).to_owned());
         let _ = writeln!(
             s,
-            "  {} evaluates {}: verdict {}, bound to {bound}, reads {} ({} is {} now)",
+            "  {} evaluates {}: verdict {} (recorded {}), bound to {bound}, reads {} ({} is {} now)",
             e.obligation,
             e.target,
             e.verdict.as_deref().unwrap_or("none"),
+            e.recorded.as_deref().unwrap_or("none"),
             e.reads,
             e.target,
             short(&e.current_revision)

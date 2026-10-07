@@ -3,7 +3,7 @@
 // Structural types only; retain JSON Schema runtime validation.
 type Def_Affected = ({ "depth": (number); "id": (string); "revision": (string); "source": (string); "type": (string); "via": (Def_Relation); });
 type Def_Document = ({ "because": (Array<(string)>); "id": (string); "kind": (string); });
-type Def_Evaluation = ({ "bound_revision"?: ((string)) | ((null)); "current_revision": (string); "obligation": (string); "reads": (string); "target": (string); "verdict"?: ((string)) | ((null)); });
+type Def_Evaluation = ({ "bound_revision"?: ((string)) | ((null)); "current_revision": (string); "obligation": (string); "reads": (string); "recorded"?: ((string)) | ((null)); "target": (string); "verdict"?: ((string)) | ((null)); });
 type Def_Phase = ({ "achieved"?: ((string)) | ((null)); "id": (string); "via": (Array<(string)>); });
 type Def_Projection = ({ "path": (string); "scope": (string); "selects": (Array<(string)>); });
 type Def_Relation = ({ "from": (string); "kind": (string); "to": (string); "to_revision"?: ((string)) | ((null)); });

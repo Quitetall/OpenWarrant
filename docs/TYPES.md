@@ -104,8 +104,11 @@ it was written against: `war impact REQ-pr1` and `war model --json` show the
 revision now. The pin is in the assurance atom, so the Warrant's contract
 digest covers it and a signature over the contract covers which bytes were
 judged. When the record changes, the verdict stays recorded, bound to the
-revision it judged, and reads **stale**; an unpinned `evaluates` reads
-**unbound** (nobody can say which bytes it judged).
+revision it judged, and reads **stale**. Where the change also moves the
+Warrant's reviewed subject, the verdict no longer counts for current work:
+impact shows it `recorded` as it was written (`established`) and its
+`verdict` now as `unknown`. An unpinned `evaluates` reads **unbound**
+(nobody can say which bytes it judged).
 
 ## What a profile declares
 
@@ -270,8 +273,8 @@ it is what its change reaches; what it points at is not), and lists
   Warrant whose basis names `REQ-pr1`, the ticket whose item implements it,
   the record atom that declares it;
 - **evaluations**: each obligation that `evaluates` an affected record, with
-  its verdict as recorded and whether it reads `current`, `stale` or
-  `unbound`;
+  its verdict now, its verdict as recorded, and whether it reads `current`,
+  `stale` or `unbound`;
 - **phases** the affected Warrants are placed in, whose progress is
   recomputed from them;
 - **projections** known to include an affected Warrant or phase: its own
