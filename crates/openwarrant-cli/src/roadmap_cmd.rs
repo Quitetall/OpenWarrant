@@ -302,7 +302,7 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             "roadmap.unaccepted",
             file.clone(),
             format!(
-                "roadmap: the atoms (sha256:{}) are not an accepted revision; record them with `war roadmap propose`, then a human accepts with `war sign roadmap --ssh-sign`",
+                "roadmap: the atoms (sha256:{}) are not an accepted revision; record them with `war plan roadmap propose`, then a human accepts with `war sign roadmap --ssh-sign`",
                 &loaded.digest[..12]
             ),
         ));
@@ -341,7 +341,7 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             Some(w) if !fs::is_file(w.dir.join("authorization.toml")) => Some((
                 "roadmap.placement-unsigned",
                 format!(
-                    "{} is unsigned; give it its own ref with `war roadmap assign {} {}`",
+                    "{} is unsigned; give it its own ref with `war plan roadmap assign {} {}`",
                     p.warrant, p.warrant, p.phase
                 ),
             )),
@@ -392,11 +392,11 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             repo.relative(&w.dir.join("manifest.toml")),
             if signed {
                 format!(
-                    "{alias}: names no roadmap phase (§6.4) and is signed, so its manifest cannot take a ref until it is amended; place it with a `[[placement]]` in roadmap.toml and accept the revision (`war roadmap` shows the phases)"
+                    "{alias}: names no roadmap phase (§6.4) and is signed, so its manifest cannot take a ref until it is amended; place it with a `[[placement]]` in roadmap.toml and accept the revision (`war plan roadmap` shows the phases)"
                 )
             } else {
                 format!(
-                    "{alias}: names no roadmap phase (§6.4); `war roadmap` lists the phases, and `war roadmap assign {alias} <phase>` writes the ref"
+                    "{alias}: names no roadmap phase (§6.4); `war plan roadmap` lists the phases, and `war plan roadmap assign {alias} <phase>` writes the ref"
                 )
             },
         ));
@@ -428,7 +428,7 @@ pub fn check_ref(
         "roadmap.unknown-phase",
         file.to_owned(),
         format!(
-            "{alias}: roadmap://{id} names a phase the roadmap does not declare; `war roadmap` lists the phases"
+            "{alias}: roadmap://{id} names a phase the roadmap does not declare; `war plan roadmap` lists the phases"
         ),
     ));
     false
@@ -564,7 +564,8 @@ pub fn render(v: &View) -> String {
         } else if let Some(p) = v.pending_revision {
             format!("revision {p} proposed, awaiting `war sign roadmap --ssh-sign`")
         } else {
-            "not accepted — `war roadmap propose`, then `war sign roadmap --ssh-sign`".to_owned()
+            "not accepted — `war plan roadmap propose`, then `war sign roadmap --ssh-sign`"
+                .to_owned()
         }
     );
     for p in &v.phases {
@@ -623,7 +624,7 @@ pub fn assign(repo: &Repository, alias: &str, target: &str) -> Result<Report, Re
         report.push(Diagnostic::error(
             "roadmap.unknown-phase",
             repo.relative(&manifest_path),
-            format!("{phase} is not a phase of the roadmap; `war roadmap` lists them"),
+            format!("{phase} is not a phase of the roadmap; `war plan roadmap` lists them"),
         ));
         return Ok(report);
     }
@@ -888,7 +889,7 @@ pub fn accept_ingest_with(
             &mut report,
             "roadmap.stale-digest",
             format!(
-                "response signs {}, revision {n} records {}, the roadmap is now {}; the atoms moved after proposal — `war roadmap propose` again and sign that",
+                "response signs {}, revision {n} records {}, the roadmap is now {}; the atoms moved after proposal — `war plan roadmap propose` again and sign that",
                 response.sha256, rec.sha256, loaded.digest
             ),
         );

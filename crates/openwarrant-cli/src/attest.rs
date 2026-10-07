@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war attest` — attestations for ssh-signed acts (OW-ADR-0015).
+//! `war sign attest` — attestations for ssh-signed acts (OW-ADR-0015).
 //!
 //! After `war sign --ssh-sign` ingests an authorization, resolution,
 //! correction or SAS acceptance, an in-toto Statement about the records that
@@ -9,10 +9,10 @@
 //! `docs/sas/revisions/attestations/sas-accept-<version>-<n>.dsse.json`.
 //!
 //! Only ssh-signed acts are attested: a TTY signature has no key. Acts made
-//! before this existed are unattested; git is their witness, and `war attest
+//! before this existed are unattested; git is their witness, and `war sign attest
 //! list` says so rather than pretending.
 //!
-//! Verification (`war attest verify`) rebuilds the PAE from the payload,
+//! Verification (`war sign attest verify`) rebuilds the PAE from the payload,
 //! re-armors the SSHSIG blob, and hands both to `ssh-keygen -Y verify`
 //! against the human-written `allowed_signers`, with the principal taken from
 //! the predicate's actor through `roles.toml` — never from a flag. It also
@@ -27,7 +27,7 @@
 //! relied on (`gate_run_refs`) and that receipt's run, stdout and stderr. A
 //! receipt's own seal covers only its own fields, so a receipt replaced by a
 //! freshly minted one reseals and passes every check that reads the seal; the
-//! attested digest is what catches it. `war attest --custody <alias>` reports
+//! attested digest is what catches it. `war sign attest --custody <alias>` reports
 //! each §41.5 field per relied-on receipt as present or `UNKNOWN` with a
 //! reason, fails on any subject that moved (`attest.custody-drift`), and with
 //! `--record <auditor>` writes `custody-audit.toml` — refused to the
@@ -561,7 +561,7 @@ fn which_ssh_keygen() -> Option<()> {
         .map(|_| ())
 }
 
-/// `war attest <alias> --verify` / `--list`.
+/// `war sign attest <alias> --verify` / `--list`.
 pub fn run(repo: &Repository, target: &str, verify: bool) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let (dir, what) = if repo.warrant_dir(target).is_ok() {
@@ -874,7 +874,7 @@ fn qualification_of(repo: &Repository, gate_key: &str) -> CustodyField {
     }
 }
 
-/// `war attest <alias> --custody [--record <auditor>]`.
+/// `war sign attest <alias> --custody [--record <auditor>]`.
 ///
 /// Returns the report and, when there is a resolution, the audit itself.
 pub fn custody(

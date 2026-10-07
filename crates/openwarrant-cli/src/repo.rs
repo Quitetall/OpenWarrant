@@ -1328,7 +1328,7 @@ impl Repository {
                 file,
                 format!(
                     "{alias}: acceptance authority {actor:?} does not hold `resolver` in \
-                     docs/authority/roles.toml; acceptance is `war resolve`, and no other \
+                     docs/authority/roles.toml; acceptance is `war sign resolve`, and no other \
                      role grants it"
                 ),
             ));
@@ -1337,7 +1337,7 @@ impl Repository {
             RULE,
             format!(
                 "{alias}: acceptance authority {actor:?} is a human holding resolver; \
-                 acceptance is `war resolve` by that actor"
+                 acceptance is `war sign resolve` by that actor"
             ),
         ))
     }

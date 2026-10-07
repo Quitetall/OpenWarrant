@@ -8,7 +8,7 @@
 //! came with:
 //!
 //! - **AGENTS.md** ends with `<!-- openwarrant agents-md: written by war X -->`,
-//!   filled in by the `war` that wrote it (`war init`, `war agents-md`). The
+//!   filled in by the `war` that wrote it (`war init`, `war admin agents-md`). The
 //!   same line sits inside the managed block (M16) in `AGENTS.md` or
 //!   `CLAUDE.md`, and is read from either.
 //! - **The Claude Code plugin manifest** (`.claude-plugin/plugin.json`)

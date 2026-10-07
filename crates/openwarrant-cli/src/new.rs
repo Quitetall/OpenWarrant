@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war new` — create a draft Warrant (SAS §71.2).
+//! `war plan new` — create a draft Warrant (SAS §71.2).
 
 use std::fs::{self, OpenOptions};
 use std::io::Write as _;
@@ -23,7 +23,7 @@ const MAX_ALLOCATION_ATTEMPTS: u32 = 64;
 /// The next ordinal is chosen from what exists, and the manifest is created with
 /// `create_new(true)` — `O_EXCL`. If another process took that ordinal between
 /// the scan and the create, the create fails with `AlreadyExists` and we pick
-/// again. Two concurrent `war new` invocations therefore produce two distinct
+/// again. Two concurrent `war plan new` invocations therefore produce two distinct
 /// aliases, never one file with two authors.
 ///
 /// This is not hypothetical. While these Warrants were being planned, an ADR was
@@ -34,7 +34,7 @@ pub fn run(repo: &Repository, title: &str, profile: Profile) -> Result<Utf8PathB
     run_profile(repo, title, default_preset(&profile), &profile, None)
 }
 
-/// The presets `war new --preset` offers (OW-ADR-0022), with the profile
+/// The presets `war plan new --preset` offers (OW-ADR-0022), with the profile
 /// each composes. `feature` and `fix` are `delivery`; `decision` is the ADR
 /// profile.
 pub const PRESETS: &[(&str, Profile)] = &[
@@ -232,7 +232,7 @@ pub fn run_profile(
     })
 }
 
-/// `war new <title> --parent <alias>` (SAS §71.2, OW-WAR-0123): a new draft
+/// `war plan new <title> --parent <alias>` (SAS §71.2, OW-WAR-0123): a new draft
 /// whose manifest cites its parent exactly — the parent's `war://` identity,
 /// its latest authorized revision and that revision's digest, read from the
 /// parent's `authorization.toml` (§20.2, RQ-023).

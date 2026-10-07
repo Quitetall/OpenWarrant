@@ -1,6 +1,6 @@
 # Batch open Warrant questions
 
-1. Run `war questions --open --json` in the target repository. Inspect the report
+1. Run `war plan questions --open --json` in the target repository. Inspect the report
    as well as the question list. If records are unreadable, report the exact gaps;
    do not describe the partial list as every open question.
 2. Present every returned question in one numbered review round, preserving its
@@ -11,7 +11,7 @@
 3. Reuse explicit answers already supplied by the user; ask only unresolved items.
    Preserve unanswered items. Technical advice does not grant governing authority.
 4. An answer to a Warrant question is a person's act: prepare the exact
-   `war answer` commands for them from the live CLI help, under their own name;
+   `war plan answer` commands for them from the live CLI help, under their own name;
    the tool records the responder it is given and checks the actor. Keep
    proposed answers as drafts until the answer is recorded.
 5. Reread the open queue. Report which answers were recorded, which remain drafts,

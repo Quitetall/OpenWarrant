@@ -59,7 +59,7 @@ pub struct TicketManifest {
     pub created_at: String,
     pub created_by: String,
     /// The Warrant this ticket was promoted into, once someone asked for
-    /// sign-off (`war promote`).
+    /// sign-off (`war plan promote`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub promoted_to: Option<String>,
     /// OW-WAR-0148 M5: what kind of work this is (`bug`, `feature`, `chore`,
@@ -85,8 +85,8 @@ pub struct TicketManifest {
     pub issue_url: Option<String>,
     /// OW-WAR-0148 M10: where an imported Warrant came from, as
     /// `<format>:<id>` (`beads:bd-a1b2`, `openspec:add-2fa`,
-    /// `speckit:001-photo-albums`). `war import` reads it to skip what it
-    /// already brought in, and `war export beads` to give the issue its
+    /// `speckit:001-photo-albums`). `war admin import` reads it to skip what it
+    /// already brought in, and `war admin export beads` to give the issue its
     /// original id back. Absent from every Warrant made any other way, so a
     /// manifest written before M10 reads, and writes back, byte for byte.
     #[serde(default, skip_serializing_if = "Option::is_none")]

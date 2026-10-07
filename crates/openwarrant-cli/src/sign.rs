@@ -2109,8 +2109,8 @@ pub(crate) fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Resul
         if signed {
             return Err(format!(
                 "{final_path} already holds a SIGNED response for this exact digest. Ingest it \
-                 with the act's own command (`war authorize <alias> --response <file>`, `war \
-                 resolve <alias> --response <file>` or `war sas accept <version> --response \
+                 with the act's own command (`war sign authorize <alias> --response <file>`, `war sign \
+                 resolve <alias> --response <file>` or `war sign sas accept <version> --response \
                  <file>`) or remove it; it is not overwritten"
             ));
         }
@@ -2340,7 +2340,7 @@ pub(crate) fn ssh_sign_file(
                 "{allowed_signers} does not exist; --ssh-sign verifies every signature against \
                  it. It needs one line for {principal}: `{principal} \
                  namespaces=\"oh.war/response,oh.war/dsse\" <key from ssh-add -L>`, written by a \
-                 person (`war doctor --fix-signing` at a terminal offers to write it)"
+                 person (`war admin doctor --fix-signing` at a terminal offers to write it)"
             )
         } else {
             format!("{allowed_signers} could not be read: {e}")

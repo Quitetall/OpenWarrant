@@ -582,17 +582,17 @@ impl fmt::Display for Profile {
 /// The schema a profile definition file declares.
 pub const PROFILE_SCHEMA: &str = "oh.war/profile/v1";
 
-/// A namespaced role a profile requires, with what `war new` writes for it.
+/// A namespaced role a profile requires, with what `war plan new` writes for it.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RequiredExtensionRole {
     /// The namespaced role, e.g. `contractor.terms`.
     pub role: String,
-    /// The ordinal `war new` gives its atom.
+    /// The ordinal `war plan new` gives its atom.
     pub ordinal: u32,
     /// The atom's file name under `atoms/`.
     pub file: String,
-    /// The atom body `war new` writes below the frontmatter.
+    /// The atom body `war plan new` writes below the frontmatter.
     pub stub: String,
 }
 
@@ -648,7 +648,7 @@ pub struct ProfileDefinition {
     /// an act reads.
     pub vocabulary: crate::relation::Vocabulary,
     /// OW-WAR-0148 M4: `[[states]]`, the declared refinements of fixed
-    /// kernel states this profile's records may enter (`war state`). Empty
+    /// kernel states this profile's records may enter (`war plan state`). Empty
     /// when the file declares none, and always for a built-in core profile.
     /// Program data, not kind data: a declared state satisfies no check and
     /// no gate.

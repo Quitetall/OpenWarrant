@@ -73,7 +73,7 @@ if [[ $? -eq 0 ]] \
     && [[ $(wc -l <<<"$GI_OUT3") -eq 3 ]] \
     && grep -q '^initialized Plant Program' <<<"$GI_OUT3" \
     && grep -q '^scaffolded Plant Program: ' <<<"$GI_OUT3" \
-    && grep -q '^next: edit the SAS, `war sas propose 0.1.0`' <<<"$GI_OUT3"; then
+    && grep -q '^next: edit the SAS, `war sign sas propose 0.1.0`' <<<"$GI_OUT3"; then
     printf 'ok    %-34s examples only, three lines\n' "scripted scaffold unchanged"
     PASSED=$((PASSED + 1))
 else

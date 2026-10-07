@@ -45,7 +45,7 @@ IB_RC=$?
 IB_SIZE=$(wc -c < "$IB_TMP/claude.0")
 if [[ $IB_RC -eq 0 ]] && cmp -s <(head -c "$IB_SIZE" "$IB_ROOT/CLAUDE.md") "$IB_TMP/claude.0" \
     && [[ $(ib_count "$IB_BEGIN" "$IB_ROOT/CLAUDE.md") == 1 && $(ib_count "$IB_END" "$IB_ROOT/CLAUDE.md") == 1 ]] \
-    && grep -q 'war prime' "$IB_ROOT/CLAUDE.md" && cmp -s "$IB_ROOT/AGENTS.md" "$IB_TMP/agents.0" \
+    && grep -q 'war view prime' "$IB_ROOT/CLAUDE.md" && cmp -s "$IB_ROOT/AGENTS.md" "$IB_TMP/agents.0" \
     && grep -q '^CLAUDE.md: added the openwarrant block' <<<"$IB_OUT"; then
     ib_ok "block inserted, old bytes a prefix" "CLAUDE.md keeps its $IB_SIZE bytes; AGENTS.md (from init) already current"
 else

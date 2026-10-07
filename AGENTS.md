@@ -11,11 +11,11 @@ Explicit execution requests permit scoped unverified work subject to named gates
 ## Tickets: the default work loop
 
 For ordinary work, use tickets ([docs/TICKETS.md](docs/TICKETS.md)): run
-`war prime` first, then `war ready`, `war claim <item>`, do it,
+`war view prime` first, then `war next`, `war claim <item>`, do it,
 `war done <item> --note "..."`, and `war note <ticket> "..."` for context the
 next agent needs. Nothing in that loop needs a signature; never ask the human
 to sign during it. Warrants are the opt-in authority layer a ticket enters only
-through `war promote`, and the records this repository governs itself with.
+through `war plan promote`, and the records this repository governs itself with.
 
 **When a ticket needs sign-off**, the performer rules of the
 [legacy Warrant workflow](docs/agents/legacy-warrant-workflow.md) bind in full:
@@ -27,7 +27,7 @@ signature a step of the ticket loop.
 ## Read the context needed for this task
 
 - **First, always:** read [`docs/generated/CURRENT.md`](docs/generated/CURRENT.md),
-  the master document `war compile` writes (OW-ADR-0022): every current Warrant
+  the master document `war admin compile` writes (OW-ADR-0022): every current Warrant
   expanded, the SAS in force, accepted decisions, who governs each path, who may
   sign and the queue already judged by the dry run. A replaced Warrant is one
   line of lineage there; its text is in `docs/generated/HISTORY.md`.
@@ -35,7 +35,7 @@ signature a step of the ticket loop.
   then the linked companion for the feature. RC.3 is an unaccepted candidate;
   the draft does not establish implemented behavior or rewrite signed history.
 - **Repository changes:** read [CONTRIBUTING.md](CONTRIBUTING.md), inspect the
-  checkout and existing changes, and check `war pins --resolved-only` before edits.
+  checkout and existing changes, and check `war admin pins --resolved-only` before edits.
   Use the checkout's built `target/debug/war` when PATH points to an older binary.
 - **Existing Warrant records, signing requests, evidence or corrections:** read
   [legacy Warrant workflow](docs/agents/legacy-warrant-workflow.md) before acting.
@@ -63,7 +63,7 @@ it does not replace host instructions or require their conversion into Warrants.
 Put shared OpenWarrant guidance in one source. Where another harness needs an
 entry, add a short pointer stating when to read that source. Preserve existing
 instructions, user edits and symlink targets; do not run an overwrite command to
-install guidance. Current `war agents-md --force` replaces the whole file and is
+install guidance. Current `war admin agents-md --force` replaces the whole file and is
 not an integration operation. Additive installer support remains planned.
 
 When preparing context, retain source identity, revision, scope and rule meaning.

@@ -11,13 +11,13 @@
 //!     requirement 1's own reading), `resolved` (a §56.2 record binding the
 //!     current contract), `superseded` (OW-ADR-0022 currency);
 //!   - an obligation: `verified` (an admissible independent verdict on record
-//!     establishes it — the reading `war resolve` makes);
+//!     establishes it — the reading `war sign resolve` makes);
 //!   - a ticket and its items: `open`, `in_progress`, `done`, from the
 //!     checklist and the claims `war claim` holds;
 //!   - a roadmap phase: `achieved` (its exit Warrant's resolution is
 //!     recorded) and `accepted` (the roadmap record is accepted).
 //! - **Declared states** come from a profile's `[[states]]` and are entered
-//!   by `war state`, an authored event in the journal of the Warrant or
+//!   by `war plan state`, an authored event in the journal of the Warrant or
 //!   ticket that owns the record (`state.entered`). One holds while its
 //!   fixed parent holds — for an item's `in_progress`, under the same claim
 //!   it was entered under — and reads `lapsed` once the parent stops. Of two
@@ -414,7 +414,7 @@ pub fn warrant_section(repo: &Repository, alias: &str) -> Option<(String, Vec<De
 
 // ---- `war state` -----------------------------------------------------------
 
-/// What `war state` acts on, once resolved.
+/// What `war plan state` acts on, once resolved.
 struct Subject {
     record: String,
     /// `ticket t-x` or `Warrant NS-WAR-0001`, for messages.
@@ -478,9 +478,9 @@ fn subject(
             "state.record-unknown",
             "",
             format!(
-                "{query} is not a record a journal owns: `war state` takes a Warrant \
+                "{query} is not a record a journal owns: `war plan state` takes a Warrant \
                  (`NS-WAR-0001`), one of its records (`NS-WAR-0001/OBL-001`), a ticket or an \
-                 item. `war model` lists record ids"
+                 item. `war plan model` lists record ids"
             ),
         )
     };
@@ -523,7 +523,7 @@ fn subject(
     }))
 }
 
-/// `war state <record> <name> [--note]`: enter a declared state, as an
+/// `war plan state <record> <name> [--note]`: enter a declared state, as an
 /// authored event in the owning journal. Refused, by rule and with nothing
 /// written: a record no journal owns (`state.record-unknown`), a fixed
 /// state's name (`state.fixed`), a name the record's profile does not

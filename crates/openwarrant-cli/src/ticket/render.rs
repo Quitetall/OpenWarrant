@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-//! What a person or an arriving agent reads: `war prime`, `war show`,
-//! `war tickets`. Plain Markdown, in the words of the work — no rule names,
+//! What a person or an arriving agent reads: `war view prime`, `war show`,
+//! `war view tickets`. Plain Markdown, in the words of the work — no rule names,
 //! no section numbers.
 
 use std::collections::BTreeMap;
@@ -307,7 +307,7 @@ fn row_in(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims) -> Row {
     r
 }
 
-/// The bracketed tail of a `war tickets` line for M5's fields, empty for a
+/// The bracketed tail of a `war view tickets` line for M5's fields, empty for a
 /// ticket that has none: `  [bug; backend, auth]  [in t-1a2b]  [epic: 1/3]
 /// [#12]`.
 fn fields_tail(r: &Row, with_parent: bool) -> String {
@@ -336,7 +336,7 @@ fn fields_tail(r: &Row, with_parent: bool) -> String {
 
 // ---- filters and search (OW-WAR-0148 M5) -----------------------------------
 
-/// `war tickets --type/--label/--state/--text/--search/--epic`. Every filter
+/// `war view tickets --type/--label/--state/--text/--search/--epic`. Every filter
 /// given must hold; none given lists every ticket, as before.
 #[derive(Debug, Clone, Default)]
 pub struct Filter {
@@ -461,7 +461,7 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
     list(store, &Others::default(), filter)
 }
 
-/// `war warrants` (`war tickets`, `war ls`): every Warrant, whatever its
+/// `war view warrants` (`war view tickets`, `war view ls`): every Warrant, whatever its
 /// encoding, with its type, state and progress. The light ones first, in
 /// the order work takes them (`result.tickets`, as before M10); then the
 /// directory ones and the ones read in place (`result.warrants`).
@@ -1045,7 +1045,7 @@ fn checks_section(
     md
 }
 
-/// `tickets` in `war tickets`' order.
+/// `tickets` in `war view tickets`' order.
 fn sorted_refs<'a>(mut tickets: Vec<&'a Ticket>, claims: &Claims) -> Vec<&'a Ticket> {
     let rank = |s: TicketState| match s {
         TicketState::InProgress => 0,
@@ -1069,7 +1069,7 @@ fn sorted_refs<'a>(mut tickets: Vec<&'a Ticket>, claims: &Claims) -> Vec<&'a Tic
     tickets
 }
 
-/// `war prime [<ticket>]`: what an arriving agent (or person) reads first.
+/// `war view prime [<ticket>]`: what an arriving agent (or person) reads first.
 /// Open tickets with only their remaining items, who holds which claim, recent
 /// notes, and done tickets compacted: a done ticket older than
 /// `[tickets] compact_after_days` is one line.
@@ -1107,7 +1107,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
         recent.len() + old.len()
     ));
     md.push_str(
-        "How to work: `war ready` lists what can start now; `war claim <id>` takes one; do it; \
+        "How to work: `war next` lists what can start now; `war claim <id>` takes one; do it; \
          `war done <id> --note \"what you did\"` ticks it. Leave anything the next person needs \
          with `war note <warrant> \"...\"`. No step needs a signature or anyone's approval.\n",
     );
@@ -1235,7 +1235,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
     ))
 }
 
-/// `war prime <ticket>`: one ticket in full, remaining items only.
+/// `war view prime <ticket>`: one ticket in full, remaining items only.
 fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u64) -> Outcome {
     let (d, n) = t.checklist.progress();
     let checks = super::ladder::checks_of(t);

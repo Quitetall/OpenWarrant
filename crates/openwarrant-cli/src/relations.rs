@@ -71,7 +71,7 @@ fn child_listed(corpus: &[Related<'_>], report: &mut Report) {
                 parent.manifest_file.clone(),
                 format!(
                     "{}: has {} child WAR(s) but no generated view is committed, so §20.4's \
-                     child list cannot be checked. Run `war compile`.",
+                     child list cannot be checked. Run `war admin compile`.",
                     parent.alias,
                     children.len()
                 ),

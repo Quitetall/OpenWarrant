@@ -255,7 +255,7 @@ HD_N=$(python3 - "$HD_TMP/n.json" "$HD_W" << 'PY'
 import json, sys
 r = json.load(open(sys.argv[1])).get("result") or {}
 f = [x for x in r.get("findings", []) if x.get("rule") == "question.no-responder"]
-offered = [a["command"] for a in r.get("actions", []) if a.get("command", "").startswith(f"war dispatch {sys.argv[2]} STAGE-001")]
+offered = [a["command"] for a in r.get("actions", []) if a.get("command", "").startswith(f"war admin dispatch {sys.argv[2]} STAGE-001")]
 print(f"{f[0]['severity']} {f[0].get('file') or ''}" if f else "none", "offered" if offered else "held")
 PY
 )

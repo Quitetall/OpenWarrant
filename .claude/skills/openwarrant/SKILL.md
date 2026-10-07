@@ -10,9 +10,9 @@ repository. OpenWarrant is optional planning and tracking. Read the target
 repository's AGENTS.md for its own conventions.
 
 - A **Warrant** is a work plan; optional. The lightest one, a **ticket**, tracks
-  a piece of work as a checklist: `war prime`, `war ready`, `war claim <item>`,
+  a piece of work as a checklist: `war view prime`, `war next`, `war claim <item>`,
   do it, `war done <item> --note "..."`. No step needs a signature.
-  [Tickets](references/tickets.md) has the loop; `war warrants` lists every
+  [Tickets](references/tickets.md) has the loop; `war view warrants` lists every
   Warrant, whatever its encoding.
 - A Warrant whose type has a sign-off step adds a person's approval, and the
   tool holds those rules.
@@ -20,9 +20,9 @@ repository's AGENTS.md for its own conventions.
   as unverified until an independent check says more.
 - The repository's `CLAUDE.md` and `AGENTS.md` sections are records too
   (`md:CLAUDE.md#testing`): a plan can cite one, and
-  `war impact md:CLAUDE.md#testing` lists what cites it. The block between
+  `war plan impact md:CLAUDE.md#testing` lists what cites it. The block between
   `<!-- openwarrant:begin -->` and `<!-- openwarrant:end -->` is kept by
-  `war agents-md --block`; the rest of each file is yours to edit.
+  `war admin agents-md --block`; the rest of each file is yours to edit.
 
 ## Locate and select
 
@@ -30,7 +30,7 @@ repository's AGENTS.md for its own conventions.
    In this source repository, prefer the checkout's `target/debug/war` over an
    older one on PATH.
 2. For intent routing, read [war](../war/SKILL.md). Live CLI output outranks a
-   skill example. `war overview` and `war frontier` describe records; neither
+   skill example. `war view overview` and `war plan frontier` describe records; neither
    is a gate on ordinary work.
 3. Apply the requested scope. Behaviour the installed CLI lacks is reported as
    unsupported.
@@ -51,7 +51,7 @@ repository's AGENTS.md for its own conventions.
 
 Report what you observed. Actors, signatures, verifier verdicts, test results
 and completion come from the records and tools that hold them; what could not
-be observed is UNKNOWN. Generated views are rebuilt with `war compile`. Other
+be observed is UNKNOWN. Generated views are rebuilt with `war admin compile`. Other
 work goes ahead while one scope waits.
 
 Methods/provenance: [adaptation record](../openwarrant/ADAPTATIONS.md),

@@ -198,7 +198,7 @@ pub fn build(corpus: &Corpus, id: &str) -> Result<(Report, Option<Impact>), Repo
             "impact.unknown-record",
             id.to_owned(),
             format!(
-                "{id} is not a record of this corpus ({} records); `war model --json` lists \
+                "{id} is not a record of this corpus ({} records); `war plan model --json` lists \
                  every record id",
                 model.records.len()
             ),

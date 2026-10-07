@@ -38,7 +38,7 @@
 //!
 //! # Derived, and labelled as such
 //!
-//! Nothing here reads a resolution record, because none exists — `war resolve`
+//! Nothing here reads a resolution record, because none exists — `war sign resolve`
 //! refuses to write one without an authorizer. Every Warrant carries
 //! [`Provenance::Derived`], and the document says once, at the top, why every
 //! row reads the way it does.
@@ -351,7 +351,7 @@ pub struct ObligationView {
     /// refuse to count: self-verified, evidence-free, or insufficiently
     /// independent. It is NOT a disposition a verifier may write — no record
     /// carries that word — and it exists so the page cannot show `established`
-    /// for a claim `war resolve` treats as unestablished.
+    /// for a claim `war sign resolve` treats as unestablished.
     pub disposition: String,
     /// Why the verification behind this row does not count, when it does not.
     #[serde(default, skip_serializing_if = "Option::is_none")]

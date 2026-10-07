@@ -1,7 +1,7 @@
 # SDK artifacts
 
 Use this branch for RC.3 source documents or supplied-record evaluation. Inspect
-`war sdk --help`, then read the [CLI profile](../../../../conformance/sdk/cli/README.md)
+`war admin sdk --help`, then read the [CLI profile](../../../../conformance/sdk/cli/README.md)
 for the selected operation's exact fields. Use `author` or `edit` for new document
 bytes, then `validate`. These operations run offline and do not need a repository.
 The CLI returns source text inside a JSON result; `--output` saves that JSON to a

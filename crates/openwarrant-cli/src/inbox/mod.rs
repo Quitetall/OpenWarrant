@@ -19,7 +19,7 @@ pub struct Item {
     pub state: openwarrant_core::Phase,
     pub awaited_act: HumanAct,
     pub waiting_since: Option<String>,
-    /// OW-WAR-0137 — on `war inbox --as <actor>`, whether this act is
+    /// OW-WAR-0137 — on `war sign inbox --as <actor>`, whether this act is
     /// assigned to that actor by name. Absent (false) on the shared inbox.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub assigned: bool,
@@ -76,7 +76,7 @@ pub fn run(repo: &Repository) -> Result<Inbox, RepoError> {
     run_as(repo, None)
 }
 
-/// OW-WAR-0137 — `war inbox --as <actor>`: the same inbox, keeping only the
+/// OW-WAR-0137 — `war sign inbox --as <actor>`: the same inbox, keeping only the
 /// signing acts `actor` may take now (per `sign::eligible`, which an
 /// assignment has already narrowed), acts assigned to them by name first.
 /// Questions stay: answering one is no role's act. `None` is [`run`].

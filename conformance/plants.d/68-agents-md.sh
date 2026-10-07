@@ -43,7 +43,7 @@ am_ordinary_first() {
     [[ $heading == '## Tracking work with tickets (optional)' ]] || return 1
     [[ -n $tickets && -n $signoff && -n $fact ]] || return 1
     (( tickets < signoff && signoff < fact )) || return 1
-    grep -q 'war prime' <<<"$t" \
+    grep -q 'war view prime' <<<"$t" \
         && grep -q 'No step in this loop needs a signature' <<<"$t" \
         && grep -q 'A disposition comes from the verifier' <<<"$t" \
         && grep -q 'Unknown is reported as UNKNOWN' <<<"$t" \

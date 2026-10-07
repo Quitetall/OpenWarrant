@@ -1,13 +1,13 @@
 # Progress lookup
 
-Human-facing progress uses HTML. Run `war progress --html`; return the emitted
+Human-facing progress uses HTML. Run `war view progress --html`; return the emitted
 artifact path as the link for where the work ended. Default output is
 `.openwarrant/state/progress.html`. An explicit path selects another snapshot.
-Regenerate before claiming current state. `war progress --serve` starts the same
+Regenerate before claiming current state. `war view progress --serve` starts the same
 read-only view on loopback, refreshed every five seconds by default; consult
 `--help` for port and interval options. Return its URL when a live view is wanted.
 
-For machine lookup, use `war overview --json` (`war progress` is the same command).
+For machine lookup, use `war view overview --json` (`war view progress` is the same command).
 Default JSON/text lists unresolved legacy records; `--all` includes resolutions.
 Remaining means unresolved, not unfinished code. On an older binary without
 HTML support, link the existing generated `CORPUS_STATUS.html` and disclose its
@@ -22,7 +22,7 @@ not an SDK assurance record. Unknown implementation stays unknown, and legacy
 resolution alone does not supply the new Verified mark.
 
 For one legacy record: `war status <alias> --json`. Human acts: `war next --json`.
-Open questions: `war questions --open --json`. Stages: `war frontier --json`.
+Open questions: `war plan questions --open --json`. Stages: `war plan frontier --json`.
 Follow named actors; a pending signature is no reason to wait on other work.
 On lookup failure, report UNKNOWN and the diagnostics rather than zero
 remaining. The live view keeps its last good snapshot and labels a stale or

@@ -175,7 +175,7 @@ pub fn stage_dispatch(ir: &WarIr, basis: &CompilationBasis) -> String {
     out.push_str(
         "\n*The stage graph, not a Stage Dispatch. A dispatch is compiled per \
          stage per attempt against a context manifest and an attempt basis \
-         (§47.1) — `war dispatch <alias> <stage-id>` produces one.*\n",
+         (§47.1) — `war admin dispatch <alias> <stage-id>` produces one.*\n",
     );
     out.push_str(&atoms_by_role(basis, &["milestones", "work_order"]));
     out

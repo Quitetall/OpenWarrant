@@ -2,7 +2,7 @@
 //! One compiled corpus, built once per process (OW-WAR-0148 M1).
 //!
 //! Before this, every corpus-level builder loaded the corpus for itself:
-//! `war compile` built the corpus status about six times, `resolve::assess`
+//! `war admin compile` built the corpus status about six times, `resolve::assess`
 //! ran once in status and again in the frontier for every Warrant, and the
 //! web UI, TUI and MCP server each rebuilt all of it per view. A [`Corpus`]
 //! holds what they share:

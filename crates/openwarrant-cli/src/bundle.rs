@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war verify <alias> --bundle` / `--run` — the verification bundle and a
+//! `war evidence verify <alias> --bundle` / `--run` — the verification bundle and a
 //! configured verifier (slice C3; SAS §46, §75.2).
 //!
-//! The request `war verify` emits names obligations; a blind verifier then
+//! The request `war evidence verify` emits names obligations; a blind verifier then
 //! has to go and find the atoms, the deliverables, the receipts and the
 //! plants by itself, in a context that is not the performer's. Sessions did
 //! that with a script. The bundle is that script inside the tool: canonical
@@ -900,7 +900,7 @@ fn echoed_headers(source: &str) -> Vec<String> {
 /// That field is the absolute path of the checkout the gate ran in — a fact
 /// about the performer's machine, not about the work. Carried, it made the
 /// bundle (its bytes, its digest, its token estimate) depend on where the
-/// repository sits: `war eval`'s scratch programs are named with a PID and a
+/// repository sits: `war evidence eval`'s scratch programs are named with a PID and a
 /// nanosecond count whose digit counts vary, and the same fixture measured
 /// 3043 and 3042 tokens (t-ade4). A bundle is a function of the tree and the
 /// configuration only; the receipt file in the tree still holds the field,
@@ -1572,7 +1572,7 @@ fn over_budget(report: &mut Report, repo: &Repository, path: &Utf8PathBuf, b: &B
     }
 }
 
-/// `war verify <alias> --bundle`: write them and say what each holds.
+/// `war evidence verify <alias> --bundle`: write them and say what each holds.
 pub fn emit(
     repo: &Repository,
     alias: &str,
@@ -1696,7 +1696,7 @@ fn call(
     })
 }
 
-/// `war verify <alias> --run`: the configured verifier on each bundle, then
+/// `war evidence verify <alias> --run`: the configured verifier on each bundle, then
 /// the unchanged ingest of each answer. A bundle whose call fails or times
 /// out records nothing for its obligations and is reported by name; the
 /// others are still ingested — each obligation is judged on its own.
@@ -1802,7 +1802,7 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
     Ok(report)
 }
 
-/// Where `war verify --run` keeps each verifier's whole response, under the
+/// Where `war evidence verify --run` keeps each verifier's whole response, under the
 /// Warrant's `verifications/`: a subdirectory, so no reader of the
 /// per-obligation records parses it as one.
 pub const RESPONSES_DIR: &str = "responses";
@@ -1860,7 +1860,7 @@ mod tests {
         let mut line = String::from("{\"revision\":\"1.1.0\",\"body\":\"");
         line.push_str(&"x".repeat(60_000));
         line.push_str("\",\"source_sha256\":\"abc123\"}");
-        let terms = vec!["war compile".to_owned(), "source_sha256".to_owned()];
+        let terms = vec!["war admin compile".to_owned(), "source_sha256".to_owned()];
         let w = byte_windows(&line, 4096, &terms);
         let all: String = w.iter().map(|e| e.text.as_str()).collect();
         assert!(all.contains("\"revision\":\"1.1.0\""), "the head");

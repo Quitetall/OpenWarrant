@@ -416,7 +416,7 @@ pub fn record_prefix(feature: &str) -> String {
     }
 }
 
-/// `war import speckit <dir>`: each feature a Warrant in the light
+/// `war admin import speckit <dir>`: each feature a Warrant in the light
 /// encoding, its tasks the items. Its functional requirements and success
 /// criteria become records in `docs/records/<feature>/10-speckit.md` where
 /// the program's record format admits them (the `delivery` profile

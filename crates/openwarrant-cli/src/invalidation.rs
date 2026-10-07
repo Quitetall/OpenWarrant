@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war gate invalidate` — §45's invalidation, request and ingest
+//! `war evidence gate invalidate` — §45's invalidation, request and ingest
 //! (OW-WAR-0136, RQ-057, §91.10 test 75).
 //!
 //! Invalidating a Gate Definition disputes every resolution that materially
@@ -12,7 +12,7 @@
 //!
 //! Invalidating is a human act, the same two-half seam as the others:
 //!
-//! - **The request** (`war gate invalidate <gate>@<version> --grounds …`)
+//! - **The request** (`war evidence gate invalidate <gate>@<version> --grounds …`)
 //!   names the gate, its definition's digest, the grounds, every resolution
 //!   the sweep would dispute, by alias, and who may sign. It writes nothing.
 //! - **The response** is signed with `war sign <gate>@<version> --grounds …
@@ -389,7 +389,7 @@ fn sha256_file(path: &Utf8Path) -> Result<String, RepoError> {
     Ok(format!("sha256:{}", sha256_hex(&bytes)))
 }
 
-/// `war gate invalidate <gate>@<version> --grounds <text>`: the request.
+/// `war evidence gate invalidate <gate>@<version> --grounds <text>`: the request.
 pub fn request(
     repo: &Repository,
     gate: &str,
@@ -678,7 +678,7 @@ fn load_response(path: &Utf8Path) -> Result<InvalidationResponse, RepoError> {
     toml::from_str(&text).map_err(|e| RepoError::Message(format!("{path}: {e}")))
 }
 
-/// `war gate invalidate <gate>@<version> --response <file>`: ingest a
+/// `war evidence gate invalidate <gate>@<version> --response <file>`: ingest a
 /// human's signed invalidation. Every refusal happens before anything is
 /// written.
 pub fn ingest(repo: &Repository, gate: &str, path: &Utf8Path) -> Result<Report, RepoError> {

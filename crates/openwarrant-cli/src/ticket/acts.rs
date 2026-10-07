@@ -3,7 +3,7 @@
 //! M13): `independent`, from a verification by someone other than the
 //! performer, and `signed`, from a human's signature.
 //!
-//! # Independent: `war verify <t-x/i-y>`
+//! # Independent: `war evidence verify <t-x/i-y>`
 //!
 //! The same seam as a Warrant's verification (`crate::verify`), at the size
 //! of one item. Without `--response` it writes the request: the item, its
@@ -40,7 +40,7 @@ use super::{Outcome, Store, Target, Ticket, resolve};
 use crate::diagnostic::Diagnostic;
 use crate::repo::{RepoError, Repository};
 
-/// The request `war verify <item>` writes.
+/// The request `war evidence verify <item>` writes.
 pub const REQUEST_SCHEMA: &str = "oh.war/tick-verification-request/v1";
 /// The response it ingests.
 pub const RESPONSE_SCHEMA: &str = "oh.war/tick-verification-response/v1";
@@ -98,12 +98,12 @@ fn performer_of(store: &Store, t: &Ticket, item: &str, what: &str) -> Result<Str
         .ok_or_else(|| {
             format!(
                 "{what} is open and nobody holds it; its performer claims it first (`war claim \
-                 {what}`), then `war verify {what}` names them"
+                 {what}`), then `war evidence verify {what}` names them"
             )
         })
 }
 
-/// `war verify <t-x/i-y>`: the request an independent verifier answers.
+/// `war evidence verify <t-x/i-y>`: the request an independent verifier answers.
 pub fn verify_request(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
     let (t, item) = match item_of(&tickets, query, "a verification") {
@@ -149,7 +149,7 @@ pub fn verify_request(store: &Store, query: &str) -> Result<Outcome, RepoError> 
                  ticket, item, and a [verification] table (obligation = \"{what}\", performer = \
                  \"{performer}\", disposition = established|refuted|not_established, evidence = \
                  what you examined, and [verification.verifier] with actor, kind and the nine \
-                 independence booleans). `war verify {what} --response <file>` ingests it."
+                 independence booleans). `war evidence verify {what} --response <file>` ingests it."
             ),
         },
     });
@@ -157,7 +157,7 @@ pub fn verify_request(store: &Store, query: &str) -> Result<Outcome, RepoError> 
     Ok(Outcome::ok(human, request))
 }
 
-/// `war verify <t-x/i-y> --response <file>`: ingest an independent verdict
+/// `war evidence verify <t-x/i-y> --response <file>`: ingest an independent verdict
 /// about one item.
 pub fn verify_ingest(
     store: &Store,

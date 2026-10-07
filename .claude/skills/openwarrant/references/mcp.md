@@ -1,6 +1,6 @@
 # Over MCP
 
-`war mcp` serves the CLI to any harness over stdio (`war mcp --describe`
+`war admin mcp` serves the CLI to any harness over stdio (`war admin mcp --describe`
 prints the table). Every tool answers with the `oh.war/report/v1` envelope as
 structured content. Ordinary work needs none of these tools.
 

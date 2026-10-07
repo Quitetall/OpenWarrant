@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! `war eval` (1.0 plan F1): the agent loop, measured.
+//! `war evidence eval` (1.0 plan F1): the agent loop, measured.
 //!
 //! A task is one vague sentence and what the loop around it should produce.
 //! For each task the harness scaffolds a throwaway program (`war init
@@ -14,7 +14,7 @@
 //! score is `would_resolve_satisfied` under the blind verifier, and the
 //! record says that requirement 1 of the thirteen (an authorization) is
 //! unmet in every scratch program. A score is a ladder rung — would-satisfy,
-//! partial, over-budget, refused, errored — and `war eval verify` reports a
+//! partial, over-budget, refused, errored — and `war evidence eval verify` reports a
 //! delta per task, never a percentage.
 //!
 //! Every step runs as a child `war --json` in the scratch program, so the
@@ -981,7 +981,7 @@ fn short_sha(repo: &Repository) -> String {
         .unwrap_or_else(|| "nogit".to_owned())
 }
 
-/// `war eval run`.
+/// `war evidence eval run`.
 pub fn run(
     repo: &Repository,
     opts: &Options,
@@ -1134,7 +1134,7 @@ pub fn run(
     Ok((report, result, out))
 }
 
-/// `war eval verify`: a result against the committed baseline, per task.
+/// `war evidence eval verify`: a result against the committed baseline, per task.
 pub fn verify(
     repo: &Repository,
     result_path: &Utf8Path,

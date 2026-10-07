@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war verify` — the independent-verification seam (SAS §46, §38.5, §75.2).
+//! `war evidence verify` — the independent-verification seam (SAS §46, §38.5, §75.2).
 //!
 //! # Two halves, and why this command cannot verify anything itself
 //!
-//! `war verify <alias>` EMITS a verification request. `war verify <alias>
+//! `war evidence verify <alias>` EMITS a verification request. `war evidence verify <alias>
 //! --response <file>` INGESTS the verdicts something else returned. Nothing in
 //! between runs a model, and that is the design rather than a gap.
 //!

@@ -8,12 +8,12 @@
 //! - **`war check` refuses a shared alias** (`warrant.alias-duplicate`): two
 //!   Warrants whose directory names or `local_alias` fields name the same
 //!   alias, both UUIDs named.
-//! - **`war new` allocates past every branch.** The next ordinal is one past
+//! - **`war plan new` allocates past every branch.** The next ordinal is one past
 //!   the highest under the Warrants directory in the working tree AND on
 //!   every local and remote-tracking branch, read with one `git
 //!   for-each-ref` and one `git cat-file --batch` (no checkout, no per-branch
 //!   process).
-//! - **`war renumber <alias> <new>`** moves an unsigned Warrant to a free
+//! - **`war admin renumber <alias> <new>`** moves an unsigned Warrant to a free
 //!   alias: `local_alias`, the directory, and a journal line. A Warrant with
 //!   an `authorization.toml` is refused by name: its alias is in what was
 //!   signed.
@@ -25,7 +25,7 @@ use std::process::{Command, Stdio};
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{Loaded, RepoError, Repository};
 
-/// The ordinal of an alias (`OW-WAR-0148` → 148), as `war new` reads one.
+/// The ordinal of an alias (`OW-WAR-0148` → 148), as `war plan new` reads one.
 #[must_use]
 pub fn ordinal(alias: &str) -> Option<u32> {
     alias
@@ -198,7 +198,7 @@ pub fn check_duplicates(
             .collect();
         let fix = match unsigned.first() {
             Some(a) => format!(
-                "; give one a free alias with `war renumber {a} <new alias>` (an unsigned \
+                "; give one a free alias with `war admin renumber {a} <new alias>` (an unsigned \
                  Warrant only)"
             ),
             None => String::new(),
@@ -215,7 +215,7 @@ pub fn check_duplicates(
     }
 }
 
-/// What `war renumber` did.
+/// What `war admin renumber` did.
 #[derive(Debug)]
 pub struct Renumbered {
     pub report: Report,
@@ -233,7 +233,7 @@ fn refused(rule: &str, file: String, message: String) -> Renumbered {
     }
 }
 
-/// `war renumber <alias> <new>`: give an unsigned Warrant a free alias.
+/// `war admin renumber <alias> <new>`: give an unsigned Warrant a free alias.
 pub fn renumber(repo: &Repository, alias: &str, new: &str) -> Result<Renumbered, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let manifest_path = dir.join("manifest.toml");
@@ -293,7 +293,7 @@ pub fn renumber(repo: &Repository, alias: &str, new: &str) -> Result<Renumbered,
             "warrant.alias-taken",
             rel_manifest,
             format!(
-                "{new} is taken: {}. Pick another (`war new` allocates past every branch)",
+                "{new} is taken: {}. Pick another (`war plan new` allocates past every branch)",
                 taken_by.join(", ")
             ),
         ));
@@ -327,7 +327,7 @@ pub fn renumber(repo: &Repository, alias: &str, new: &str) -> Result<Renumbered,
     )?;
     let human = format!(
         "renumbered {alias} to {new}: {} is now {}, and its local_alias {new}. \
-         `war compile` regenerates its views; a reference to {alias} written by hand elsewhere \
+         `war admin compile` regenerates its views; a reference to {alias} written by hand elsewhere \
          still says {alias}",
         repo.relative(&dir),
         repo.relative(&target)

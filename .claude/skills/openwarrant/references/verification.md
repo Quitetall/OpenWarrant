@@ -7,22 +7,22 @@ keeps the actual chronology and does not satisfy a criterion that asks for an
 act before the work.
 
 For a Warrant, request independent verification with
-`war verify <alias> --performer <actor> --bundle`. Give the verifier the exact
+`war evidence verify <alias> --performer <actor> --bundle`. Give the verifier the exact
 contract, the candidate code or workspace, protected fixtures and retained
 evidence. It records only what it can establish. Record its answer with
-`war verify <alias> --response <file>`; the actor and independence fields stay
+`war evidence verify <alias> --response <file>`; the actor and independence fields stay
 as the verifier wrote them. A verifier that was unavailable means UNKNOWN,
 not PASS.
 
-`war resolve --dry-run <alias>` lists what close-out still lacks. Drafting a
+`war sign resolve --dry-run <alias>` lists what close-out still lacks. Drafting a
 resolution or correction request is separate from a person signing it; see
 the [sign-off loop](loop.md). Original signatures and signed revisions stay as
 they are.
 
-When `war sign` fails, run `war doctor`. Its signing probes sign nothing: they
+When `war sign` fails, run `war admin doctor`. Its signing probes sign nothing: they
 check `ssh-keygen`, the agent behind `SSH_AUTH_SOCK` and the keys it holds,
 `docs/authority/roles.toml` and `docs/authority/allowed_signers`, and say what
-is missing. At a terminal, `war doctor --fix-signing` offers to repair each
+is missing. At a terminal, `war admin doctor --fix-signing` offers to repair each
 finding. A signing failure blocks only the sign-off, not your work.
 
 For prototypes, keep tests and results without presenting a legacy resolution

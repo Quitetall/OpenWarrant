@@ -4,7 +4,7 @@ A document's **type** (its profile, `profiles/<name>.toml`) says what it is
 made of and what applies to it (OW-ADR-0031). This page covers the two
 things a type composes, **records** and the **relations** between them, and
 the **states** a record can be in.
-`war impact` (below) is what they are for: one change, and everything it
+`war plan impact` (below) is what they are for: one change, and everything it
 reaches. The last section, "One Warrant, three encodings", covers the
 Warrant itself: one noun, one id space, one list, and work brought in from
 Beads, OpenSpec and Spec Kit.
@@ -88,7 +88,7 @@ and never edited by the reader (M16). Each `##` section of the root
 - Inside a fenced code block a heading is text, as in a record atom; an
   unclosed fence runs to the end of the file and is not refused here.
 - The **managed block** (`<!-- openwarrant:begin -->` …
-  `<!-- openwarrant:end -->`, written by `war agents-md --block`) is no
+  `<!-- openwarrant:end -->`, written by `war admin agents-md --block`) is no
   section and inside none, so restamping it moves no revision. A malformed
   block (two of them, or one that never closes) is a warning,
   `instruction.block-malformed`; the sections outside it are still read.
@@ -107,9 +107,9 @@ constrains md:CLAUDE.md#testing
 ```
 
 A Warrant's atoms or a ticket's text that name `md:CLAUDE.md#testing` are
-found by `war impact` as documents citing it. The CLAUDE.md file itself is
+found by `war plan impact` as documents citing it. The CLAUDE.md file itself is
 never written to with the active Warrant's context: what changes lives in
-`war prime`, and the file stays stable.
+`war view prime`, and the file stays stable.
 
 ## Relations
 
@@ -125,7 +125,7 @@ A relation is `{from, kind, to}`, and `to` may pin a revision of its target
   `causes`, `qualifies`, `selected_over`.
 - **Namespaced**, `<namespace>.<name>` (`x.mentions`, `contractor.bills`):
   carried, shown in the model, and **inert**. A namespaced relation drives no
-  state, no readiness and no check, needs no declaration, and `war impact`
+  state, no readiness and no check, needs no declaration, and `war plan impact`
   lists it without walking it. A profile cannot give one kernel meaning.
 - Any other word is refused (`record.relation-kind-unknown`).
 
@@ -145,7 +145,7 @@ single-use.", "constrains everything" and "see md:CLAUDE.md for the rules"
 are prose); a line with the shape whose target does not parse is refused.
 
 **Pin what you judged.** An obligation's `evaluates` should pin the revision
-it was written against: `war impact REQ-pr1` and `war model --json` show the
+it was written against: `war plan impact REQ-pr1` and `war plan model --json` show the
 revision now. The pin is in the assurance atom, so the Warrant's contract
 digest covers it and a signature over the contract covers which bytes were
 judged. When the record changes, the verdict stays recorded, bound to the
@@ -259,7 +259,7 @@ refines = "verified"
   vocabulary.
 
 ```text
-war state <record> <name> [--note TEXT] [--as ACTOR] [--json]
+war plan state <record> <name> [--note TEXT] [--as ACTOR] [--json]
 ```
 
 enters one, as a `state.entered` event in the journal of the Warrant or
@@ -285,30 +285,30 @@ see, never a way to read more than its parent.
 
 ### Where they show
 
-- `war model --json`: each fixed state that holds, `kind: computed` or
+- `war plan model --json`: each fixed state that holds, `kind: computed` or
   `authenticated` with its `facet`, and each declared state entered,
   `kind: declared` with `refines` and `lapsed`, beside the builders' own
   states (`phase`, `rung`, `currency`, `disposition`, `achieved`,
   `checklist`). An item's `in_progress` reads the claim locks, the one input
   outside the tree.
 - `war show <ticket>`: ` [in_review]` (or ` [in_review, lapsed]`) after the
-  ticket's state or an item's line; `war tickets`: the ones that hold.
+  ticket's state or an item's line; `war view tickets`: the ones that hold.
 - `war show <alias>` (`full_warrant` and `status` views): a "Declared
   states" section, only where the Warrant's journal holds one.
 
 ## The model
 
-`war model --json` (`oh.war/model/v1`) carries record atoms' records beside
+`war plan model --json` (`oh.war/model/v1`) carries record atoms' records beside
 the corpus's own (Warrants, obligations, items, phases…), and their
 relations beside the existing kinds, each with `to_revision` when it pins
 one. Each instruction section is there too, type `instruction`, its source
 the file that holds it. Every refusal above is also a model diagnostic under its rule, and an
 unknown target is `model.relation-target-unknown`.
 
-## `war impact <record>`
+## `war plan impact <record>`
 
 ```text
-war impact REQ-pr1 [--json]
+war plan impact REQ-pr1 [--json]
 ```
 
 Walks **incoming** relations from the record, transitively (what points at
@@ -429,12 +429,12 @@ selected records' incoming relations are shown). Every rendering ends with a
 provenance table of each selected record and its revision, so the bytes move
 when a selected record changes and never when another does. A record named
 only at the far end of an outgoing relation — the architecture view's
-"Constrains REQ-pr1" — is **mentioned**, not selected. `war impact` lists
+"Constrains REQ-pr1" — is **mentioned**, not selected. `war plan impact` lists
 exactly the declared projections that select its record.
 
 ### Trace
 
-`war render … --json` returns `oh.war/projection/v1`: the content, its
+`war plan render … --json` returns `oh.war/projection/v1`: the content, its
 digest and size, the budget, `selects` (each record's id, type, revision,
 source and the bytes rendered from it), `mentions`, and `trace` — every
 output line in runs, each with its origin: `record` (id and revision),
@@ -442,7 +442,7 @@ output line in runs, each with its origin: `record` (id and revision),
 document type and its profile file's digest: headings, intros, table
 headers).
 
-### Documents, `war render` and `war compile`
+### Documents, `war plan render` and `war admin compile`
 
 An area declares its documents in `docs/records/<area>/documents.toml`
 (`oh.war/documents/v1`): each a `type`, optionally a `name` (default: the
@@ -450,10 +450,10 @@ type), `title` (default: the file's), `roots` (default: every record of the
 area) and `max_bytes`. Its id is `<area>/<name>`.
 
 ```text
-war render <projection> [--of <document | area | record>] [--max-bytes N] [--json]
+war plan render <projection> [--of <document | area | record>] [--max-bytes N] [--json]
 ```
 
-prints the rendering and writes nothing. `war compile` writes each
+prints the rendering and writes nothing. `war admin compile` writes each
 declared document's projections to `docs/records/<area>/generated/`; `war
 check --generated` renders them again and compares.
 
@@ -465,7 +465,7 @@ check --generated` renders them again and compares.
 | `projection.missing` | a declared projection not yet compiled |
 | `projection.compile` | a declared projection that cannot be rendered (over budget, an unknown root) |
 | `projection.over-budget` | a rendering over its budget: refused by name with the records that cost the most; nothing is truncated |
-| `projection.unknown`, `projection.of-missing`, `projection.of-unknown`, `projection.root-unknown` | `war render` was asked for something that is not there |
+| `projection.unknown`, `projection.of-missing`, `projection.of-unknown`, `projection.root-unknown` | `war plan render` was asked for something that is not there |
 
 ## From a sentence to records
 
@@ -528,8 +528,8 @@ writes nothing: not the atom, not the ticket, not a scratch file.
 record atom, `docs/records/<area>/<NN>-<slug>.md` (the next free `NN`,
 never overwriting), whose frontmatter names the profile and whose prelude
 names the sentence; then a ticket through `war create` whose items read
-`… (implements REQ-pre1)`, so `war model` carries each item's `implements`
-and `war impact REQ-pre1` reaches the item. The ticket's body names the
+`… (implements REQ-pre1)`, so `war plan model` carries each item's `implements`
+and `war plan impact REQ-pre1` reaches the item. The ticket's body names the
 records, their file and the proposal's digest. Applying the same proposal
 again is refused, `record.duplicate-id` once per record, naming where each
 already is. No drafter configured is `plan.no-drafter` (`ticket.no-drafter`
@@ -545,8 +545,8 @@ byte: nothing is migrated, and no signed digest moves.
 
 | encoding | where | its type | written by |
 |---|---|---|---|
-| light | `docs/tickets/<t-id>/`: a manifest, an intent and a checklist | the working form (`profiles/ticket.toml`); its own `type` (bug, feature, ...) beside | `war create`, `war import` |
-| directory | `docs/warrants/<alias>/`: a manifest and the atoms its profile requires | its profile: `delivery`, `decision`, ... | `war new`, `war plan --apply`, `war promote` |
+| light | `docs/tickets/<t-id>/`: a manifest, an intent and a checklist | the working form (`profiles/ticket.toml`); its own `type` (bug, feature, ...) beside | `war create`, `war admin import` |
+| directory | `docs/warrants/<alias>/`: a manifest and the atoms its profile requires | its profile: `delivery`, `decision`, ... | `war plan new`, `war plan --apply`, `war plan promote` |
 | read in place | an OpenSpec change or a Spec Kit feature an `[[adapters]]` entry names | `openspec`, `speckit` | the tool that owns the folder; `war` never writes it |
 
 There is no third file format. The light encoding is already the small
@@ -566,11 +566,11 @@ written before it reads and writes back unchanged).
 The shape routes the id, so nothing is read to decide where it goes.
 `war show <id>` and `war status <id>` take any of them: a light Warrant
 renders as its document, a directory one as its §17.5 projection, one read
-in place from its folder. `war impact` takes any record id of the model.
+in place from its folder. `war plan impact` takes any record id of the model.
 
 ### The list
 
-`war warrants` (also `war tickets`, `war ls`) lists every Warrant: the
+`war view warrants` (also `war view tickets`, `war view ls`) lists every Warrant: the
 light ones first, in the order work takes them (`result.tickets`, as
 before), then the directory ones and the ones read in place
 (`result.warrants`, each with `profile`, `encoding`, `state` and
@@ -589,7 +589,7 @@ title where they cannot read more. Labels and epics are the light
 encoding's. A type that is neither, or a state that is none, is refused
 (`ticket.filter-type-unknown`, `ticket.filter-state-unknown`).
 
-`war ready` lists the items that can be claimed now, which are the light
+`war view ready` lists the items that can be claimed now, which are the light
 Warrants'; `war next` adds the directory Warrants' acts and ready stages.
 A Warrant read in place is never claimed here: its tasks are ticked in its
 own files, by its own tool.
@@ -597,14 +597,14 @@ own files, by its own tool.
 ### Bringing work in
 
 ```bash
-war import beads issues.jsonl      # Beads' issue JSONL, as `bd export` writes it
-war import openspec .              # each change of openspec/changes/ (archive/ is not read)
-war import speckit .               # each feature of specs/
-war export beads > issues.jsonl    # every light Warrant, as Beads issue JSONL
+war admin import beads issues.jsonl      # Beads' issue JSONL, as `bd export` writes it
+war admin import openspec .              # each change of openspec/changes/ (archive/ is not read)
+war admin import speckit .               # each feature of specs/
+war admin export beads > issues.jsonl    # every light Warrant, as Beads issue JSONL
 ```
 
 Each imported change, feature or issue becomes a light Warrant whose
-tasks are its items, worked with `war ready`, `claim` and `done` like any
+tasks are its items, worked with `war next`, `claim` and `done` like any
 other.
 
 - **Deterministic.** An imported Warrant's id is `t-` and 8 hex of the
@@ -620,7 +620,7 @@ other.
 
 | Beads (`internal/types/types.go`, `cmd/bd/export.go`) | the Warrant |
 |---|---|
-| `id` | `imported_from = "beads:<id>"`; `war export beads` gives it back |
+| `id` | `imported_from = "beads:<id>"`; `war admin export beads` gives it back |
 | `title` | its title, and the text of its one item |
 | `description`; `design`, `acceptance_criteria`, `notes` | its description; the other three as `## Design`, `## Acceptance criteria`, `## Notes from Beads` |
 | `status` | `closed`: the item ticked, with `closed_at` and `close_reason` on its line; any other built-in status reads open, and the import says which |
@@ -672,7 +672,7 @@ Refused by rule, each writing nothing:
 | `openspec.requirement-duplicate`, `speckit.record-duplicate` | a requirement or record declared twice |
 | `import.target-unknown`, `import.part-of-cycle`, `import.blocker-cycle` | a reference to nothing in the input or the program, or one that comes back to itself |
 | `import.format-unknown` | a format other than `beads`, `openspec`, `speckit` |
-| `export.beads-flags` | `war export beads` with a §68 flag |
+| `export.beads-flags` | `war admin export beads` with a §68 flag |
 
 ### Read in place
 
@@ -690,7 +690,7 @@ kind = "speckit"
 path = "specs"
 ```
 
-`war warrants`, `war show`, `war status`, `war model`, `war impact` and
+`war view warrants`, `war show`, `war status`, `war plan model`, `war plan impact` and
 `war check` then read those folders on every call, with the readers the
 import uses, and never write them. Each change or feature is a Warrant
 (`change`, `feature` in the model), each task an `item` `part_of` it, each
@@ -700,7 +700,7 @@ of its own bytes. Relations: a change `implements` the requirements its
 deltas add or modify (`openspec.removes` and `openspec.renames` are
 namespaced: carried, inert); a Spec Kit task `implements` the story its
 `[US1]` names and any `FR-` it names, and `depends_on` the tasks it says
-it depends on. So `war impact openspec:auth-session#session-expiry` names
+it depends on. So `war plan impact openspec:auth-session#session-expiry` names
 the change that modifies the requirement and that change's tasks.
 
 `war status` prints a "Read in place" section (and `read_in_place` under
@@ -789,7 +789,7 @@ A ticket without it has no parts and reads, byte for byte, as before.
 |---|---|---|
 | `claimed` | `war done`: the performer says so | `— done by claude, 2026-10-07` (as always) |
 | `observed` | `war done --check`: the tests and KPIs that apply ran and passed; the receipt is journalled | `— done by claude, 2026-10-07 [observed]` |
-| `independent` | `war verify <t-x/i-y> --response <file>`: a verdict by someone other than the performer, with evidence | `... [independent]` |
+| `independent` | `war evidence verify <t-x/i-y> --response <file>`: a verdict by someone other than the performer, with evidence | `... [independent]` |
 | `signed` | `war sign <t-x/i-y> --ssh-sign`: a human's signature over the item's text, verified | `... [signed]` |
 
 `claimed < observed < independent < signed`. A claimed tick writes no
@@ -852,7 +852,7 @@ profile does not declare, is refused when the profile is read,
 
 ### KPIs over time
 
-`war kpi run <t-x|t-x/i-y>` runs each KPI that applies, parses the one
+`war evidence kpi run <t-x|t-x/i-y>` runs each KPI that applies, parses the one
 number it prints (the whole output, or its last non-empty line), journals
 every run as `ticket.kpi_run` (value, verdict, direction, target, mode,
 commit), and says each one's latest, best and target. It ticks nothing. A
@@ -862,7 +862,7 @@ recorded with no value. `war show` gives the same standing for every KPI.
 
 ### Independent and signed
 
-`war verify <t-x/i-y>` writes the request an independent verifier answers:
+`war evidence verify <t-x/i-y>` writes the request an independent verifier answers:
 the item, its performer (who ticked it, or who holds its claim), the checks
 that apply and the KPI runs on record. The answer is an
 `oh.war/tick-verification-response/v1` (TOML or JSON) whose
@@ -887,11 +887,11 @@ holds no key. Without `--ssh-sign` nothing is signed (`sign.ssh-required`);
 | view | what it shows |
 |---|---|
 | `war show <ticket>` | each done item opens with its level, `(claimed)`, `(observed)`, `(independent: verified by X)`, `(signed: signed off by Y)`, and `; needs <level>` when below its minimum; an open milestone says what it ticks at; a **Checks** section lists tests, KPIs (latest, best, target) and milestones; `--json` items carry `tick` (`level`, `minimum`, `meets_minimum`, `written` and `unbacked` when a marker is not believed) |
-| `war tickets` | `[ticks: 2 claimed, 1 observed]` at the end of a line with ticks; `ticks` in the JSON row |
+| `war view tickets` | `[ticks: 2 claimed, 1 observed]` at the end of a line with ticks; `ticks` in the JSON row |
 | `war status` | a **Ticks** block after the corpus projection (never inside it, so working a ticket moves no generated file); `war status <ticket>` is the ticket's show |
-| `war roadmap` | a **Milestones** section (in a program with a roadmap record): each milestone with the level its tick shows and whether it meets its minimum |
-| `war board` | the same ticks and milestones |
-| `war ui` | a badge per done item, a distinct word per level (claimed is drawn muted, never as a checked one; a tick below its minimum as a warning), and the milestones on the progress page |
+| `war plan roadmap` | a **Milestones** section (in a program with a roadmap record): each milestone with the level its tick shows and whether it meets its minimum |
+| `war view board` | the same ticks and milestones |
+| `war view ui` | a badge per done item, a distinct word per level (claimed is drawn muted, never as a checked one; a tick below its minimum as a warning), and the milestones on the progress page |
 
 ### The create hint
 
@@ -904,11 +904,11 @@ observed. It never refuses anything. `[warrants] hints = false` in
 
 - **The `TaskCompleted` hook** (`.claude/hooks/task-completed.sh`, in the
   plugin's `hooks.json`): when Claude Code marks one of its tasks completed
-  and the task's subject or description names an item, it runs `war bridge
+  and the task's subject or description names an item, it runs `war admin bridge
   claude-tasks --event - --apply`. It exits 0 on every path and writes
   nothing on stdout, so it never holds a task; a task naming nothing does
   nothing. Long-running checks run inside the hook's own timeout.
-- **`war bridge claude-tasks`** reads a Claude Code task list: `--dir`,
+- **`war admin bridge claude-tasks`** reads a Claude Code task list: `--dir`,
   `--file`, or `~/.claude/tasks/$CLAUDE_CODE_TASK_LIST_ID/` (Claude Code
   keeps one directory per list there; its hook input names `task_id`,
   `task_subject` and `task_description`, code.claude.com/docs/en/hooks,

@@ -8,20 +8,20 @@ place.
 
 ```bash
 war next                                   # what is ready, and whose step it is
-war new "What this work accomplishes"      # docs/warrants/<NS>-WAR-NNNN/
+war plan new "What this work accomplishes" # docs/warrants/<NS>-WAR-NNNN/
 # fill in the atoms (AGENTS.md, "Writing the atoms")
 war check <alias>                          # deterministic; no agent, no network
-war compile && war check --generated       # views written; no drift
-war authorize <alias>                      # drafts the approval request
+war admin compile && war check --generated # views written; no drift
+war sign authorize <alias>                 # drafts the approval request
 #   a person signs: `war sign <alias> --ssh-sign` (one dialog)
-war pins --resolved-only                   # the files closed Warrants pin
+war admin pins --resolved-only             # the files closed Warrants pin
 # deliver; declare each file in deliverables.toml
 war evidence record <alias>                # run the cited checks; record receipts
-war verify <alias> --performer <you>       # the request for an independent verifier
+war evidence verify <alias> --performer <you> # the request for an independent verifier
 # hand it to something that is not you, then record what comes back:
-war verify <alias> --response <file>
-war resolve --dry-run <alias>              # what is still missing before close-out
-war resolve <alias>                        # drafts the close-out request
+war evidence verify <alias> --response <file>
+war sign resolve --dry-run <alias>         # what is still missing before close-out
+war sign resolve <alias>                   # drafts the close-out request
 #   a person signs: `war sign <alias> --ssh-sign`
 ```
 
@@ -30,11 +30,11 @@ war resolve <alias>                        # drafts the close-out request
 `war next --json` gives every signing step to a person.
 
 A file a closed Warrant pins changes through the correction act: edit it,
-`war correct <alias> <D-id>` drafts the request, and a person signs it with
+`war sign correct <alias> <D-id>` drafts the request, and a person signs it with
 `war sign <alias>/<D-id> --kind behaviour-change|added-refusal --meaning "..."`.
 The tool refuses a correction when nothing drifted.
 
-If `war sign` fails, `war doctor` checks the signing setup without signing
+If `war sign` fails, `war admin doctor` checks the signing setup without signing
 anything and says what to fix. A signing failure blocks only the sign-off,
 not your work.
 
@@ -50,6 +50,6 @@ only when the sentence's reasoning matters.
 A stage in `45-milestones.yaml` may declare what its Dispatch carries:
 `context_sections: ["40-work-order.md#Deliverables"]`, `context_atoms`,
 `context_artifacts` (repository paths), `context_external` (URIs, recorded
-and not fetched). `war dispatch <alias> <stage> --emit-context ctx.json`
+and not fetched). `war admin dispatch <alias> <stage> --emit-context ctx.json`
 shows what was selected and what was omitted, each with its reason; a section
 that does not exist is refused with the headings that do.

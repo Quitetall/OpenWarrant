@@ -9,9 +9,9 @@
 //! path = "openspec"      # relative to the repository root, or absolute
 //! ```
 //!
-//! With an entry, `war warrants`, `war show <id>`, `war status`,
-//! `war model`, `war impact` and `war check` read the folder on every call
-//! with the same readers `war import` uses ([`super::openspec`],
+//! With an entry, `war view warrants`, `war show <id>`, `war status`,
+//! `war plan model`, `war plan impact` and `war check` read the folder on every call
+//! with the same readers `war admin import` uses ([`super::openspec`],
 //! [`super::speckit`]): a repository that keeps working in those tools gets
 //! the list, the status and impact analysis without switching. Nothing here
 //! opens a file for writing.
@@ -170,7 +170,7 @@ impl Adapted {
         self.faults().map(Fault::warn).collect()
     }
 
-    /// Every Warrant read in place, as `war warrants` lists it.
+    /// Every Warrant read in place, as `war view warrants` lists it.
     #[must_use]
     pub fn rows(&self) -> Vec<Row> {
         self.trees
@@ -252,7 +252,7 @@ pub fn show(repo: &Repository, id: &str) -> Outcome {
                 md.push_str(&format!("\nNamed by: {}\n", changed_by.join(", ")));
             }
             md.push_str(&format!(
-                "\n`war impact {id}` lists what a change to it reaches.\n"
+                "\n`war plan impact {id}` lists what a change to it reaches.\n"
             ));
             return Outcome::ok(
                 md.trim_end().to_owned(),
@@ -275,7 +275,7 @@ pub fn show(repo: &Repository, id: &str) -> Outcome {
                 )
             } else {
                 format!(
-                    "no Warrant read in place is {id:?}; `war warrants --type openspec` (or \
+                    "no Warrant read in place is {id:?}; `war view warrants --type openspec` (or \
                      speckit) lists them"
                 )
             },

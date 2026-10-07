@@ -5,7 +5,7 @@
 //! status, the assessment, tickets, record atoms — read through these
 //! functions instead of `std::fs`, so one implementation serves two sources:
 //!
-//! - **Disk** (the default, and the only mode outside `war host`): every
+//! - **Disk** (the default, and the only mode outside `war admin host`): every
 //!   function is the `std::fs` call it replaces, byte for byte.
 //! - **Hosted** ([`hosted`]): the files are a Workspace Basis held in memory
 //!   (an `oh.war/liminal-v1` request). A path under the virtual root is
@@ -15,7 +15,7 @@
 //!   of the tree's history — are answered from the request's `observations`
 //!   or, absent one, fail closed exactly as a missing tool does.
 //! - **Recording** ([`recording`]): disk mode, remembering every file read,
-//!   listed or found, and every observation made, so `war host --export` can
+//!   listed or found, and every observation made, so `war admin host --export` can
 //!   write the request that reproduces the run.
 //!
 //! The mode is per thread and scoped to one closure; the readers on the
@@ -526,7 +526,7 @@ pub fn record_git(args: &[&str], outcome: &GitOutcome) {
     }
 }
 
-/// Install a hosted tree's observations (builder for `war host`).
+/// Install a hosted tree's observations (builder for `war admin host`).
 impl Tree {
     pub fn with_observations(
         mut self,

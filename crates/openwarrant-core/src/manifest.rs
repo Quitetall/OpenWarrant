@@ -48,7 +48,7 @@ pub enum ManifestError {
     #[error(
         "profile {profile} is a working form: a record of it is not a Warrant of the \
          contract corpus. It lives under the tickets directory and becomes a Warrant by \
-         promotion into `{core}` (`war promote`), which then requires every core role"
+         promotion into `{core}` (`war plan promote`), which then requires every core role"
     )]
     WorkingFormProfile { profile: Profile, core: String },
     #[error(

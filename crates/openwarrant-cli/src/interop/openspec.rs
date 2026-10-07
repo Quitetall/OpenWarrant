@@ -429,7 +429,7 @@ pub fn read(repo: &Repository, root: &Utf8Path) -> Tree {
     tree
 }
 
-/// `war import openspec <dir>`: each change a Warrant in the light
+/// `war admin import openspec <dir>`: each change a Warrant in the light
 /// encoding, its tasks the items, its spec deltas named in its
 /// description. Refused, with every fault named, when anything in the
 /// folder does not read.

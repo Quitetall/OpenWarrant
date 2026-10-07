@@ -2,9 +2,9 @@
 //! RFC 3339 validation without a date crate.
 //!
 //! Every authority record carries an `effective_time`, and until this existed
-//! nothing checked it: `war sas accept` ingested a literal placeholder into an
+//! nothing checked it: `war sign sas accept` ingested a literal placeholder into an
 //! immutable record (found by the Knowledge Fabric team the first time they used
-//! it), and `war authorize` had the same gap. The 57 authorizations on file are
+//! it), and `war sign authorize` had the same gap. The 57 authorizations on file are
 //! well-formed because one tool generated them — not because anything refused a
 //! bad one.
 //!

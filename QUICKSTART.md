@@ -11,20 +11,24 @@ war create "Describe the outcome" --item "First step" --item "Second step"
 Ordinary coding needs none of this: tickets are there when you want the work
 tracked.
 
+`war --help` fits on one screen: the daily verbs, then the five groups
+(`war <group> --help` lists each). docs/COMMANDS.md maps every command, old
+spellings included; they all still work.
+
 Then work it — no signature, no human step, each command well under a second:
 
 ```bash
-war ready                      # what can start now
+war next                       # what can start now
 war claim t-3f2a/i-9c01        # take an item (refused, by name, if someone holds it)
 war done t-3f2a/i-9c01 --note "what you did"
-war prime                      # what the next agent reads first
+war view prime                 # what the next agent reads first
 ```
 
 `docs/TICKETS.md` has the whole loop. The rest of this page is the governed
 path, which a ticket joins only when someone asks for sign-off
-(`war promote <ticket>`).
+(`war plan promote <ticket>`).
 
-Read `docs/generated/CURRENT.md` first: the master document `war compile`
+Read `docs/generated/CURRENT.md` first: the master document `war admin compile`
 writes (OW-ADR-0022) — every current Warrant expanded, the SAS in force, who
 governs what, and the queue with each signing command already judged by the
 dry run. In this repository it is [here](docs/generated/CURRENT.md).
@@ -39,9 +43,9 @@ From an existing Git repository, initialize once:
 
 ```bash
 war init --namespace APP --name "My project"
-war new "Describe the outcome" --preset feature   # or fix, decision
-war compile                                        # also writes docs/generated/CURRENT.md
-war overview
+war plan new "Describe the outcome" --preset feature  # or fix, decision
+war admin compile                                     # also writes docs/generated/CURRENT.md
+war view overview
 ```
 
 These commands initialize records and show progress; they do not launch a coding
@@ -49,12 +53,12 @@ agent or award verification. Your connected agent does the implementation. An
 existing `AGENTS.md` or `CLAUDE.md` is kept: initialization adds only a small
 managed block at its end, between `<!-- openwarrant:begin -->` and
 `<!-- openwarrant:end -->`, saying ordinary coding needs no Warrant and that
-`war prime` shows tracked work. `war agents-md --block` keeps that block current
+`war view prime` shows tracked work. `war admin agents-md --block` keeps that block current
 and touches nothing outside it ([INSTALL](docs/INSTALL.md#the-pointer-block-in-claudemd-and-agentsmd));
-`war agents-md --force` would replace the whole file with the full guide.
+`war admin agents-md --force` would replace the whole file with the full guide.
 
 For legacy approvals, `war sign APP-WAR-0001` shows the exact pending act and asks
-for confirmation. `war console` supplies a terminal checklist. SSH signing is a
+for confirmation. `war view console` supplies a terminal checklist. SSH signing is a
 separate option; terminal confirmation alone is not cryptographic human presence.
 A complete guided prototype-first setup flow is not yet shipped.
 
@@ -73,7 +77,7 @@ reading takes.
 cargo install --path crates/openwarrant-cli     # or a release tarball; `war --version`
 ```
 
-Or install a release that `war update` keeps current:
+Or install a release that `war admin update` keeps current:
 `curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`
 ([docs/INSTALL.md](docs/INSTALL.md)).
 
@@ -100,8 +104,8 @@ ssh-add -c ~/.ssh/id_ed25519      # -c: every signature asks you. Test Deny befo
 Or let `war init --guided` at a terminal ask for these and write both files
 from your answers — once; no command edits them afterwards, and the agent entry
 it writes is `performer` only (OW-ADR-0021, Consequences). In a repository
-already set up, `war doctor --fix-signing` offers the same for whichever file
-is missing, and `war doctor` alone says what the signing setup lacks without
+already set up, `war admin doctor --fix-signing` offers the same for whichever file
+is missing, and `war admin doctor` alone says what the signing setup lacks without
 signing anything. Read the comments in the examples; the one thing `war`
 cannot check is that the key was loaded with `-c` — `war init --guided` asks,
 and records your answer as yours.
@@ -109,37 +113,37 @@ and records your answer as yours.
 ## 3. Accept the SAS
 
 ```bash
-war sas propose 0.1.0            # agent: records the document's digest and its §106 rows
-war sign 0.1.0 --ssh-sign        # HUMAN: one dialog
+war sign sas propose 0.1.0  # agent: records the document's digest and its §106 rows
+war sign 0.1.0 --ssh-sign   # HUMAN: one dialog
 ```
 
 ## 4. Authorize the first Warrant
 
 ```bash
-war check && war compile && war check --generated
-war authorize DM-WAR-0001        # agent: the request, showing what a signature would mean
+war check && war admin compile && war check --generated
+war sign authorize DM-WAR-0001   # agent: the request, showing what a signature would mean
 war sign DM-WAR-0001 --ssh-sign  # HUMAN: one dialog; an attestation is written beside the record
 ```
 
 ## 5. Deliver, record evidence, get it verified by someone else
 
 ```bash
-war pins --resolved-only         # what you may not edit (nothing yet)
+war admin pins --resolved-only   # what you may not edit (nothing yet)
 # do the work; declare each file in docs/warrants/DM-WAR-0001/deliverables.toml
 war evidence record DM-WAR-0001  # runs the cited gate, mints a §44.6 receipt
-war verify DM-WAR-0001 --performer claude > request.toml
+war evidence verify DM-WAR-0001 --performer claude > request.toml
 # hand request.toml to a SEPARATE context — another session, another model, a person
-war verify DM-WAR-0001 --response verdicts.toml
+war evidence verify DM-WAR-0001 --response verdicts.toml
 ```
 
-`war verify --response` refuses a verdict whose verifier is the performer and
+`war evidence verify --response` refuses a verdict whose verifier is the performer and
 writes nothing.
 
 ## 6. Resolve
 
 ```bash
-war resolve --dry-run DM-WAR-0001   # the thirteen §56.1 requirements, honestly
-war resolve DM-WAR-0001             # agent: the request
+war sign resolve --dry-run DM-WAR-0001 # the thirteen §56.1 requirements, honestly
+war sign resolve DM-WAR-0001        # agent: the request
 war sign DM-WAR-0001 --ssh-sign     # HUMAN: one dialog
 war status                          # DM-WAR-0001: resolved / RQ-001: satisfied
 ```
@@ -147,7 +151,7 @@ war status                          # DM-WAR-0001: resolved / RQ-001: satisfied
 At every step `war next` says whose act comes next. It never hands an agent a
 signature.
 
-Leave `war watch --notify-send` running in a terminal and the two human
+Leave `war view watch --notify-send` running in a terminal and the two human
 steps announce themselves when the agent reaches them.
 
 ## From an agent harness
@@ -156,14 +160,14 @@ Claude Code: add this repository as a plugin (`claude plugin marketplace add
 <path>`, `/plugin install openwarrant@openwarrant`) — the skill, the MCP server
 and two hooks (an edit guard for generated and pinned files, active only in a
 repository with `openwarrant.toml`, and an end-of-turn check that reports
-`war check` errors without blocking). Any other harness: `war mcp` over
-stdio; `war mcp --describe` lists the tools and what is deliberately not one.
+`war check` errors without blocking). Any other harness: `war admin mcp` over
+stdio; `war admin mcp --describe` lists the tools and what is deliberately not one.
 
 ## Worked examples
 
 `docs/EXAMPLES/` — a code Warrant walked end to end from this repository's own
 records.
 
-Measuring a drafter instead of using one: `war eval run --drafter <argv>` runs
+Measuring a drafter instead of using one: `war evidence eval run --drafter <argv>` runs
 twelve fixed tasks in throwaway programs and scores each on a ladder; see
 `docs/EVAL.md`.
