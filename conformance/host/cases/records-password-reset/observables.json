@@ -1,0 +1,12 @@
+{
+  "exit": 0,
+  "outcome": "compiled",
+  "refusal": null,
+  "basis_digest": "sha256:47aa55630c0a37f8fd568e8989e5951e9e8a9e938d99343fa6feaf8cb8027443",
+  "model_digest": "sha256:a8cb673c7e6b520d42655089c519d5fdf246c0e614f099f8356b90cee4f9eb29",
+  "records": 25,
+  "relations": 11,
+  "states": 16,
+  "host_rules": [],
+  "projections": []
+}
