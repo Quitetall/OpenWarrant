@@ -880,6 +880,10 @@ pub fn apply(
         items: plan.items.iter().map(item_line).collect(),
         body: Some(body),
         priority: plan.priority,
+        kind: None,
+        labels: Vec::new(),
+        part_of: None,
+        issue: None,
     };
     let outcome = match crate::ticket::create(store, &args) {
         Ok(o) => o,

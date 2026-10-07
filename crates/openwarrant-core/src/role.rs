@@ -653,6 +653,53 @@ pub struct ProfileDefinition {
     /// Program data, not kind data: a declared state satisfies no check and
     /// no gate.
     pub states: Vec<crate::kernel_state::DeclaredState>,
+    /// OW-WAR-0148 M5: `[fields]`, the values a working-form record's
+    /// optional fields may take (a ticket's `type` and `labels`). Empty when
+    /// the file declares none. Program data: it selects no capability and
+    /// loosens nothing an act reads.
+    pub fields: FieldsDecl,
+}
+
+/// `[fields]` of a working-form profile (OW-WAR-0148 M5).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct FieldsDecl {
+    /// The types a record may have. A type outside them is refused; with
+    /// none declared, a record has no type.
+    pub types: Vec<String>,
+    /// The labels this program names. Open unless `labels_closed`.
+    pub labels: Vec<String>,
+    /// Only the declared labels are admitted; any other is refused by rule
+    /// (`ticket.label-unknown`).
+    pub labels_closed: bool,
+}
+
+impl FieldsDecl {
+    /// Why `kind` is refused as a type, if it is.
+    #[must_use]
+    pub fn refuse_type(&self, kind: &str) -> Option<String> {
+        if self.types.iter().any(|t| t == kind) {
+            return None;
+        }
+        Some(if self.types.is_empty() {
+            format!("type {kind:?}: the ticket profile declares no types ([fields] types)")
+        } else {
+            format!(
+                "type {kind:?} is not one the ticket profile declares: {}",
+                self.types.join(", ")
+            )
+        })
+    }
+
+    /// Why `label` is refused, if it is: only when the set is closed.
+    #[must_use]
+    pub fn refuse_label(&self, label: &str) -> Option<String> {
+        (self.labels_closed && !self.labels.iter().any(|l| l == label)).then(|| {
+            format!(
+                "label {label:?} is not in the ticket profile's closed label set: {}",
+                self.labels.join(", ")
+            )
+        })
+    }
 }
 
 impl ProfileDefinition {
@@ -737,6 +784,21 @@ struct ProfileFile {
     /// OW-WAR-0148 M4: `[[states]] name = "...", refines = "<fixed state>"`.
     #[serde(default)]
     states: Vec<StateEntry>,
+    /// OW-WAR-0148 M5: `[fields] types = [...]`, `labels = [...]`,
+    /// `labels_closed = bool`. A working form only.
+    #[serde(default)]
+    fields: Option<FieldsTable>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct FieldsTable {
+    #[serde(default)]
+    types: Vec<String>,
+    #[serde(default)]
+    labels: Vec<String>,
+    #[serde(default)]
+    labels_closed: bool,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -858,11 +920,19 @@ pub enum ProfileError {
         file: String,
         name: String,
         detail: String,
-    },    #[error("{file}: profile {name}: [[states]]: {detail} (OW-ADR-0031)")]
+    },
+    #[error("{file}: profile {name}: [[states]]: {detail} (OW-ADR-0031)")]
     BadState {
         file: String,
         name: String,
         rule: &'static str,
+        detail: String,
+    },
+    /// OW-WAR-0148 M5: `[fields]` refused.
+    #[error("{file}: profile {name}: [fields]: {detail}")]
+    BadFields {
+        file: String,
+        name: String,
         detail: String,
     },
     /// OW-WAR-0148 M6: a document type (`form = "document"`) refused, under
@@ -886,6 +956,7 @@ impl ProfileError {
             Self::CapabilityPrerequisite { .. } => "profile.capability-prerequisite",
             Self::BadCapabilities { .. } => "profile.capabilities",
             Self::BadVocabulary { .. } => "profile.records",
+            Self::BadFields { .. } => "profile.fields",
             Self::BadState { rule, .. } => rule,
             Self::BadDocument { rule, .. } => rule,
             _ => "profile.invalid",
@@ -935,6 +1006,7 @@ impl ProfileRegistry {
                         kind: core.kind_data(),
                         vocabulary: crate::relation::Vocabulary::default(),
                         states: Vec::new(),
+                        fields: FieldsDecl::default(),
                     },
                 )
             })
@@ -1257,6 +1329,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             )));
         }
         let states = parse_states(&owned, &raw.name, fixed.capabilities, &raw)?;
+        parse_fields(&owned, &raw.name, false, &raw)?;
         return Ok(ProfileDefinition {
             name: raw.name,
             core,
@@ -1270,6 +1343,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             states,
             kind: fixed,
             vocabulary,
+            fields: FieldsDecl::default(),
         });
     }
 
@@ -1372,6 +1446,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         });
     }
     let states = parse_states(&owned, &raw.name, kind.capabilities, &raw)?;
+    let fields = parse_fields(&owned, &raw.name, working_core_roles.is_some(), &raw)?;
     Ok(ProfileDefinition {
         name: raw.name,
         core,
@@ -1385,6 +1460,53 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         states,
         kind,
         vocabulary,
+        fields,
+    })
+}
+
+// ---- OW-WAR-0148 M5: a working form's fields ---------------------------------
+
+fn parse_fields(
+    file: &str,
+    name: &str,
+    working: bool,
+    raw: &ProfileFile,
+) -> Result<FieldsDecl, ProfileError> {
+    let Some(table) = &raw.fields else {
+        return Ok(FieldsDecl::default());
+    };
+    let bad = |detail: String| ProfileError::BadFields {
+        file: file.to_owned(),
+        name: name.to_owned(),
+        detail,
+    };
+    if !working {
+        return Err(bad(
+            "only a working form (`form = \"working\"`, a ticket) declares fields".to_owned(),
+        ));
+    }
+    for (what, words) in [("type", &table.types), ("label", &table.labels)] {
+        let mut seen = BTreeSet::new();
+        for w in words {
+            if !crate::ticket::is_field_word(w) {
+                return Err(bad(format!(
+                    "{what} {w:?} is not a word (lowercase, [a-z0-9_-], 1 to 40)"
+                )));
+            }
+            if !seen.insert(w.as_str()) {
+                return Err(bad(format!("{what} {w:?} is declared twice")));
+            }
+        }
+    }
+    if table.labels_closed && table.labels.is_empty() {
+        return Err(bad(
+            "labels_closed with no labels would refuse every label; declare the set".to_owned(),
+        ));
+    }
+    Ok(FieldsDecl {
+        types: table.types.clone(),
+        labels: table.labels.clone(),
+        labels_closed: table.labels_closed,
     })
 }
 
@@ -2112,6 +2234,56 @@ stub = "# Checklist"
                 .working_roles()
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn a_working_form_declares_its_fields_and_nothing_else_may() {
+        let with = |fields: &str| format!("{WORKING}\n[fields]\n{fields}\n");
+        let registry = ProfileRegistry::with_definitions([(
+            "profiles/task.toml",
+            with("types = [\"bug\", \"chore\"]\nlabels = [\"ui\"]\nlabels_closed = true")
+                .as_bytes(),
+        )])
+        .expect("parses");
+        let task = registry.resolve("task").expect("admitted");
+        let fields = &registry.definition(&task).expect("defined").fields;
+        assert_eq!(fields.types, vec!["bug".to_owned(), "chore".to_owned()]);
+        assert!(fields.refuse_type("bug").is_none());
+        assert!(fields.refuse_type("epic").is_some());
+        assert!(fields.refuse_label("ui").is_none());
+        assert!(
+            fields
+                .refuse_label("api")
+                .expect("closed")
+                .contains("closed label set")
+        );
+        // Absent: no types, labels open.
+        let plain = ProfileRegistry::with_definitions([("profiles/task.toml", WORKING.as_bytes())])
+            .expect("parses");
+        let def = plain
+            .definition(&plain.resolve("task").expect("task"))
+            .expect("def");
+        assert!(
+            def.fields.refuse_type("bug").is_some() && def.fields.refuse_label("any").is_none()
+        );
+        for bad in [
+            "types = [\"Bug\"]",
+            "labels = [\"two words\"]",
+            "types = [\"bug\", \"bug\"]",
+            "labels_closed = true",
+            "colours = [\"red\"]",
+        ] {
+            let e =
+                ProfileRegistry::with_definitions([("profiles/task.toml", with(bad).as_bytes())]);
+            assert!(e.is_err(), "{bad}");
+        }
+        // A contract form has no fields.
+        let e = ProfileRegistry::with_definitions([(
+            "profiles/lab.toml",
+            format!("{EXT}\n[fields]\ntypes = [\"bug\"]\n").as_bytes(),
+        )])
+        .expect_err("contract form");
+        assert_eq!(e.rule(), "profile.fields");
     }
 
     #[test]

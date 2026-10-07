@@ -62,6 +62,27 @@ pub struct TicketManifest {
     /// sign-off (`war promote`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub promoted_to: Option<String>,
+    /// OW-WAR-0148 M5: what kind of work this is (`bug`, `feature`, `chore`,
+    /// `epic`, ...), one of the types the ticket profile declares in
+    /// `[fields] types`. Absent from every ticket that has none, so a
+    /// manifest written before M5 reads, and writes back, byte for byte.
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<String>,
+    /// Free labels, sorted and unique; the profile may close the set
+    /// (`[fields] labels_closed`). Absent when empty.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub labels: Vec<String>,
+    /// The ticket (an epic, typically) this one is part of: the kernel's
+    /// `part_of` relation, ticket to ticket.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub part_of: Option<String>,
+    /// The GitHub issue this ticket was made from (`war create --issue`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issue: Option<u64>,
+    /// That issue's public URL, as the read returned it (no user-info, query
+    /// or fragment).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issue_url: Option<String>,
     pub atoms: Vec<TicketAtom>,
 }
 
@@ -109,6 +130,31 @@ impl TicketManifest {
                 self.priority
             ));
         }
+        if let Some(kind) = &self.kind
+            && !is_field_word(kind)
+        {
+            return Err(format!(
+                "type {kind:?} is not a word (lowercase, [a-z0-9_-], 1 to 40)"
+            ));
+        }
+        for label in &self.labels {
+            if !is_field_word(label) {
+                return Err(format!(
+                    "label {label:?} is not a word (lowercase, [a-z0-9_-], 1 to 40)"
+                ));
+            }
+        }
+        if let Some(parent) = &self.part_of {
+            if !is_ticket_id(parent) {
+                return Err(format!("part_of {parent:?} is not a ticket id"));
+            }
+            if parent == &self.id {
+                return Err("part_of names the ticket itself".to_owned());
+            }
+        }
+        if self.issue_url.is_some() && self.issue.is_none() {
+            return Err("issue_url without issue: the link names no issue number".to_owned());
+        }
         let mut ordinals = BTreeSet::new();
         let mut roles = BTreeSet::new();
         for atom in &self.atoms {
@@ -144,6 +190,177 @@ impl TicketManifest {
             .find(|a| a.role == role)
             .map(|a| a.path.as_str())
     }
+}
+
+/// A type or label word: lowercase ASCII letters, digits, `-` and `_`,
+/// starting with a letter or digit, 1 to 40 characters. One token, so a
+/// filter and a search read it exactly.
+#[must_use]
+pub fn is_field_word(s: &str) -> bool {
+    (1..=40).contains(&s.len())
+        && s.chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        && s.chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_')
+}
+
+// ---- the kernel's view (OW-WAR-0148 M5) ------------------------------------
+
+/// One relation a ticket authors, in the kernel's terms: every id global
+/// (`t-x`, `t-x/i-y`, a Warrant alias). The model and the ticket store read
+/// the same list, so "what an item waits on" has one interpretation.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct KernelRelation {
+    pub from: String,
+    /// `part_of`, `depends_on` or `promoted_to`.
+    pub kind: &'static str,
+    pub to: String,
+}
+
+impl Blocker {
+    /// The global record id this blocker names, from the ticket `ticket`:
+    /// `t-x/i-y` for an item (of this ticket or another), `t-x` for a whole
+    /// ticket.
+    #[must_use]
+    pub fn record_id(&self, ticket: &str) -> String {
+        match self {
+            Self::Item { item } => format!("{ticket}/{item}"),
+            Self::Ticket { ticket } => ticket.clone(),
+            Self::ItemOf { ticket, item } => format!("{ticket}/{item}"),
+        }
+    }
+}
+
+/// Every relation a ticket authors, in file order: each named item
+/// `part_of` the ticket and `depends_on` each blocker; the ticket
+/// `promoted_to` its Warrant and `part_of` its parent ticket.
+#[must_use]
+pub fn kernel_relations(manifest: &TicketManifest, checklist: &Checklist) -> Vec<KernelRelation> {
+    let tid = manifest.id.as_str();
+    let mut out = Vec::new();
+    if let Some(w) = &manifest.promoted_to {
+        out.push(KernelRelation {
+            from: tid.to_owned(),
+            kind: "promoted_to",
+            to: w.clone(),
+        });
+    }
+    if let Some(parent) = &manifest.part_of {
+        out.push(KernelRelation {
+            from: tid.to_owned(),
+            kind: "part_of",
+            to: parent.clone(),
+        });
+    }
+    for item in &checklist.items {
+        let Some(iid) = &item.id else { continue };
+        let id = format!("{tid}/{iid}");
+        out.push(KernelRelation {
+            from: id.clone(),
+            kind: "part_of",
+            to: tid.to_owned(),
+        });
+        for b in &item.after {
+            out.push(KernelRelation {
+                from: id.clone(),
+                kind: "depends_on",
+                to: b.record_id(tid),
+            });
+        }
+    }
+    out
+}
+
+/// Split a global ticket record id into (ticket, item).
+#[must_use]
+pub fn split_record_id(id: &str) -> (&str, Option<&str>) {
+    match id.split_once('/') {
+        Some((t, i)) => (t, Some(i)),
+        None => (id, None),
+    }
+}
+
+/// `text` with the top-level `key = value` line set to `value` (a TOML
+/// value, already rendered), inserted after the last top-level key when
+/// absent, or removed when `value` is `None`. Every other byte is kept: a
+/// manifest a human edited keeps its comments, order and spacing.
+#[must_use]
+pub fn set_manifest_key(text: &str, key: &str, value: Option<&str>) -> String {
+    let lines: Vec<&str> = text.split_inclusive('\n').collect();
+    let first_table = lines
+        .iter()
+        .position(|l| l.trim_start().starts_with('['))
+        .unwrap_or(lines.len());
+    let is_key = |l: &str| {
+        let t = l.trim_start();
+        t.strip_prefix(key)
+            .is_some_and(|rest| rest.trim_start().starts_with('='))
+    };
+    let newline = if text.contains("\r\n") { "\r\n" } else { "\n" };
+    let mut out = String::with_capacity(text.len() + 64);
+    if let Some(at) = lines[..first_table].iter().position(|l| is_key(l)) {
+        for (i, l) in lines.iter().enumerate() {
+            if i == at {
+                if let Some(v) = value {
+                    let (_, term) = body_of(l);
+                    out.push_str(&format!("{key} = {v}"));
+                    out.push_str(term);
+                }
+            } else {
+                out.push_str(l);
+            }
+        }
+        return out;
+    }
+    let Some(v) = value else {
+        return text.to_owned();
+    };
+    // After the last top-level key line (a blank or a comment before the
+    // first table stays where it is).
+    let insert_after = lines[..first_table].iter().rposition(|l| {
+        let t = l.trim();
+        !t.is_empty() && !t.starts_with('#')
+    });
+    let line = format!("{key} = {v}{newline}");
+    match insert_after {
+        None => {
+            out.push_str(&line);
+            out.push_str(text);
+        }
+        Some(at) => {
+            for (i, l) in lines.iter().enumerate() {
+                out.push_str(l);
+                if i == at {
+                    if !l.ends_with('\n') {
+                        out.push_str(newline);
+                    }
+                    out.push_str(&line);
+                }
+            }
+        }
+    }
+    out
+}
+
+/// A TOML basic string.
+#[must_use]
+pub fn toml_string(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\t' => out.push_str("\\t"),
+            '\r' => out.push_str("\\r"),
+            c if c.is_control() => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
 }
 
 // ---- identifiers ---------------------------------------------------------
@@ -975,6 +1192,95 @@ mod tests {
     }
 
     #[test]
+    fn a_manifest_key_is_set_in_place_and_nothing_else_moves() {
+        let m = "# comment\nschema = \"oh.war/ticket/v1\"\nid = \"t-3f2a\"\ncreated_by = \"claude\"\n\n[[atoms]]\nordinal = 10\n";
+        let added = set_manifest_key(m, "type", Some("\"bug\""));
+        assert_eq!(
+            added,
+            "# comment\nschema = \"oh.war/ticket/v1\"\nid = \"t-3f2a\"\ncreated_by = \"claude\"\ntype = \"bug\"\n\n[[atoms]]\nordinal = 10\n"
+        );
+        let changed = set_manifest_key(&added, "type", Some("\"chore\""));
+        assert_eq!(changed, added.replace("\"bug\"", "\"chore\""));
+        // `types`, `ordinal` inside a table: never the key.
+        assert_eq!(set_manifest_key(&changed, "type", None), m);
+        assert_eq!(set_manifest_key(m, "ordinal", None), m);
+        assert_eq!(toml_string("a \"q\" \\ b"), "\"a \\\"q\\\" \\\\ b\"");
+    }
+
+    #[test]
+    fn the_kernel_reads_items_blockers_and_links_as_relations() {
+        let c = parse(
+            "- [ ] a (i-0001)\n- [ ] b (i-0002, after i-0001, t-9c01, t-9c01/i-0003)\n- [ ] no id\n",
+        );
+        let mut m = manifest();
+        m.promoted_to = Some("OW-WAR-0001".into());
+        m.part_of = Some("t-epic".into());
+        let r: Vec<(String, &str, String)> = kernel_relations(&m, &c)
+            .into_iter()
+            .map(|r| (r.from, r.kind, r.to))
+            .collect();
+        let want = |f: &str, k: &'static str, t: &str| (f.to_owned(), k, t.to_owned());
+        assert_eq!(
+            r,
+            vec![
+                want("t-3f2a", "promoted_to", "OW-WAR-0001"),
+                want("t-3f2a", "part_of", "t-epic"),
+                want("t-3f2a/i-0001", "part_of", "t-3f2a"),
+                want("t-3f2a/i-0002", "part_of", "t-3f2a"),
+                want("t-3f2a/i-0002", "depends_on", "t-3f2a/i-0001"),
+                want("t-3f2a/i-0002", "depends_on", "t-9c01"),
+                want("t-3f2a/i-0002", "depends_on", "t-9c01/i-0003"),
+            ]
+        );
+        assert_eq!(split_record_id("t-9c01/i-0003"), ("t-9c01", Some("i-0003")));
+        assert_eq!(split_record_id("t-9c01"), ("t-9c01", None));
+    }
+
+    fn manifest() -> TicketManifest {
+        TicketManifest {
+            schema: TICKET_SCHEMA.into(),
+            id: "t-3f2a".into(),
+            uuid: "0199a0d2-1e89-7990-8b2c-5a43577b5ce5".into(),
+            title: "A ticket".into(),
+            profile: TICKET_PROFILE.into(),
+            priority: 2,
+            created_at: "2026-09-25T00:00:00Z".into(),
+            created_by: "claude".into(),
+            promoted_to: None,
+            kind: None,
+            labels: Vec::new(),
+            part_of: None,
+            issue: None,
+            issue_url: None,
+            atoms: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn new_fields_are_absent_unless_set_and_validated_when_set() {
+        let m = manifest();
+        let text = toml::to_string(&m).expect("toml");
+        for key in ["type", "labels", "part_of", "issue"] {
+            assert!(!text.contains(&format!("{key} =")), "{key} in {text}");
+        }
+        let mut bad = m.clone();
+        bad.labels = vec!["Not A Word".into()];
+        assert!(bad.validate(&[]).unwrap_err().contains("label"));
+        let mut bad = m.clone();
+        bad.part_of = Some("t-3f2a".into());
+        assert!(bad.validate(&[]).unwrap_err().contains("itself"));
+        let mut ok = m;
+        ok.kind = Some("bug".into());
+        ok.labels = vec!["backend".into()];
+        ok.issue = Some(12);
+        ok.issue_url = Some("https://github.com/o/r/issues/12".into());
+        assert_eq!(ok.validate(&[]), Ok(()));
+        let back: TicketManifest =
+            toml::from_str(&toml::to_string(&ok).expect("toml")).expect("parse");
+        assert_eq!(back, ok);
+    }
+
+    #[test]
     fn a_manifest_is_validated_against_the_profile_roles() {
         let m = TicketManifest {
             schema: TICKET_SCHEMA.into(),
@@ -986,6 +1292,11 @@ mod tests {
             created_at: "2026-09-25T00:00:00Z".into(),
             created_by: "claude".into(),
             promoted_to: None,
+            kind: None,
+            labels: Vec::new(),
+            part_of: None,
+            issue: None,
+            issue_url: None,
             atoms: vec![
                 TicketAtom {
                     ordinal: 10,

@@ -545,8 +545,10 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     file_digest(&manifest).unwrap_or_else(|| digest(t.checklist_text.as_bytes())),
                     None,
                 );
-                if let Some(w) = &t.manifest.promoted_to {
-                    b.relate(&tid, "promoted_to", w);
+                // OW-WAR-0148 M5: the ticket's relations as the ticket store
+                // itself reads them (`part_of`, `depends_on`, `promoted_to`).
+                for r in openwarrant_core::ticket::kernel_relations(&t.manifest, &t.checklist) {
+                    b.relate(&r.from, r.kind, &r.to);
                 }
                 let lines: Vec<&str> = t.checklist_text.split_inclusive('\n').collect();
                 let mut all_done = !t.checklist.items.is_empty();
@@ -562,25 +564,12 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                         digest(line.as_bytes()),
                         Some(tid.clone()),
                     );
-                    b.relate(&id, "part_of", &tid);
                     b.state(
                         &id,
                         "checklist",
                         if item.done { "done" } else { "open" }.to_owned(),
                         false,
                     );
-                    for blocker in &item.after {
-                        let to = match blocker {
-                            openwarrant_core::ticket::Blocker::Item { item } => {
-                                format!("{tid}/{item}")
-                            }
-                            openwarrant_core::ticket::Blocker::Ticket { ticket } => ticket.clone(),
-                            openwarrant_core::ticket::Blocker::ItemOf { ticket, item } => {
-                                format!("{ticket}/{item}")
-                            }
-                        };
-                        b.relate(&id, "depends_on", &to);
-                    }
                 }
                 b.state(
                     &tid,

@@ -36918,7 +36918,7 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The intake record, its file reader and the optional fetch adapter | `crates/openwarrant-cli/src/intake.rs` | verified |
+| D-001 | The intake record, its file reader and the optional fetch adapter | `crates/openwarrant-cli/src/intake.rs` | drift |
 | D-002 | war plan --issue / --issue-file, policy review, pre-Warrant questions | `crates/openwarrant-cli/src/plan.rs` | drift |
 | D-003 | Intake questions listed and answered beside Warrant questions | `crates/openwarrant-cli/src/questions.rs` | verified |
 | D-004 | The [intake] table, absent by default | `crates/openwarrant-cli/src/repo.rs` | drift |
@@ -39454,7 +39454,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-001 | The ticket profile: a working form of delivery | `profiles/ticket.toml` | drift |
 | D-002 | The registry's working form (form, core_roles, BadForm) | `crates/openwarrant-core/src/role.rs` | drift |
 | D-003 | A Warrant naming a working-form profile is refused | `crates/openwarrant-core/src/manifest.rs` | drift |
-| D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | verified |
+| D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | drift |
 | D-005 | The ticket module | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | drift |
 | D-007 | Claims: hard-link locks, steal, release | `crates/openwarrant-cli/src/ticket/claim.rs` | drift |

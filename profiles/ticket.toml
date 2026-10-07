@@ -44,3 +44,21 @@ file = "15-checklist.md"
 stub = """# Checklist
 
 """
+
+# OW-WAR-0148 M5: what a ticket's optional fields may hold. `type` is one of
+# `types` (`war create --type bug`); labels are free words unless
+# `labels_closed = true`, when only `labels` are admitted and any other is
+# refused by rule (`ticket.label-unknown`). Both are absent from a ticket
+# that sets neither, so tickets written before M5 read byte for byte.
+[fields]
+types = ["task", "bug", "feature", "chore", "epic"]
+labels = []
+labels_closed = false
+
+# OW-WAR-0148 M4/M5: a declared refinement a ticket or an item may enter with
+# `war state <item> in_review`. It holds while the item is claimed (in
+# progress) and lapses when it is done; `war tickets --state in_review`
+# finds it. It satisfies nothing: done is still the ticked box.
+[[states]]
+name = "in_review"
+refines = "in_progress"

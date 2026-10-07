@@ -43,6 +43,28 @@ pub struct IntakePolicy {
     /// Wall-clock bound on one fetch. 0 or absent means 30.
     #[serde(default)]
     pub fetch_timeout_secs: u64,
+    /// OW-WAR-0148 M5, approved by the owner (2026-10-02): `[intake.writeback]`,
+    /// what runs when a ticket made from an issue becomes done. Absent: no
+    /// write ever runs. Kept apart from `fetch_argv`, whose "is a read"
+    /// refusal it does not loosen.
+    #[serde(default)]
+    pub writeback: Option<WritebackPolicy>,
+}
+
+/// `[intake.writeback]`: argv templates, not shell strings. `{id}` is the
+/// issue number; `{body}` is the comment, one argv element.
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WritebackPolicy {
+    /// e.g. `["gh", "issue", "comment", "{id}", "--body", "{body}"]`.
+    #[serde(default)]
+    pub comment_argv: Vec<String>,
+    /// e.g. `["gh", "issue", "close", "{id}"]`.
+    #[serde(default)]
+    pub close_argv: Vec<String>,
+    /// Wall-clock bound on each write. 0 or absent means 30.
+    #[serde(default)]
+    pub timeout_secs: u64,
 }
 
 impl IntakePolicy {
