@@ -217,7 +217,9 @@ pub fn declare(
         if !is_word(name) {
             return Err(DeclarationError {
                 rule: "profile.state-invalid",
-                detail: format!("declared state {name:?} is not a lowercase word ([a-z][a-z0-9_-]*)"),
+                detail: format!(
+                    "declared state {name:?} is not a lowercase word ([a-z][a-z0-9_-]*)"
+                ),
             });
         }
         if out.iter().any(|d| d.name == *name) {
@@ -278,7 +280,11 @@ mod tests {
 
     #[test]
     fn a_refinement_is_admitted() {
-        let d = declare(&decl(&[("in_review", "in_progress")]), Capabilities::WORKING).unwrap();
+        let d = declare(
+            &decl(&[("in_review", "in_progress")]),
+            Capabilities::WORKING,
+        )
+        .unwrap();
         assert_eq!(d[0].refines, FixedState::InProgress);
     }
 
@@ -301,7 +307,10 @@ mod tests {
             rule(&[("a", "done"), ("a", "open")], Capabilities::ALL),
             "profile.state-invalid"
         );
-        assert_eq!(rule(&[("In Review", "done")], Capabilities::ALL), "profile.state-invalid");
+        assert_eq!(
+            rule(&[("In Review", "done")], Capabilities::ALL),
+            "profile.state-invalid"
+        );
     }
 
     #[test]
@@ -317,8 +326,8 @@ mod tests {
 
         let bad = b"schema = \"oh.war/profile/v1\"\nname = \"lab\"\nextends = \"delivery\"\n\
             approved = false\n[[states]]\nname = \"in_review\"\nrefines = \"reviewing\"\n";
-        let e = ProfileRegistry::with_definitions([("profiles/lab.toml", bad.as_slice())])
-            .unwrap_err();
+        let e =
+            ProfileRegistry::with_definitions([("profiles/lab.toml", bad.as_slice())]).unwrap_err();
         assert_eq!(e.rule(), "profile.state-refines-unknown");
         assert!(e.to_string().contains("\"reviewing\""), "{e}");
     }
