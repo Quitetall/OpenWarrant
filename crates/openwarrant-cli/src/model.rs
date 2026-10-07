@@ -19,6 +19,10 @@
 //! - **Revision:** the digest of the record's own bytes where it has them
 //!   (a Warrant's compiled contract, a question's file, an item's line);
 //!   otherwise the digest of the atom or file that holds it.
+//! - **Read in place** (OW-WAR-0148 M10): each OpenSpec change (`change`)
+//!   or Spec Kit feature (`feature`) a `[[adapters]]` entry names, its tasks
+//!   (`item`) and its requirements, outcomes and stories, each with the
+//!   revision of its own bytes, and the relations its folder states.
 //! - **Authored records** (OW-WAR-0148 M3): every record of a record atom
 //!   under `docs/records/`, with its type (a profile noun) and the revision
 //!   of its own byte span; and the relations documents author — record
@@ -609,6 +613,58 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             }
         }
         Err(e) => b.diagnose("model.tickets-unreadable", "tickets", e.to_string()),
+    }
+
+    // ---- Read in place (OW-WAR-0148 M10): each OpenSpec change or Spec
+    // Kit feature an `[[adapters]]` entry names, its tasks as items and its
+    // requirements, outcomes and stories as records, with their relations;
+    // what its folder does not let be read is a diagnostic by rule.
+    let adapted = corpus.adapters();
+    for f in adapted.faults() {
+        b.diagnose(f.rule, &f.place(), f.message.clone());
+    }
+    for tree in &adapted.trees {
+        let kind = match tree.kind {
+            "openspec" => "change",
+            _ => "feature",
+        };
+        for w in &tree.warrants {
+            b.record(
+                w.id.clone(),
+                kind,
+                w.source.clone(),
+                w.revision.clone(),
+                None,
+            );
+            b.state(&w.id, "checklist", w.state().to_owned(), false);
+            for t in &w.tasks {
+                b.record(
+                    t.id.clone(),
+                    "item",
+                    w.tasks_file.clone().unwrap_or_default(),
+                    t.revision.clone(),
+                    Some(w.id.clone()),
+                );
+                b.state(
+                    &t.id,
+                    "checklist",
+                    if t.done { "done" } else { "open" }.to_owned(),
+                    false,
+                );
+            }
+        }
+        for r in &tree.records {
+            b.record(
+                r.id.clone(),
+                r.kind,
+                r.source.clone(),
+                r.revision.clone(),
+                None,
+            );
+        }
+        for (from, kind, to) in &tree.relations {
+            b.relate(from, kind, to);
+        }
     }
 
     // ---- Record atoms and authored relations (OW-WAR-0148 M3): records

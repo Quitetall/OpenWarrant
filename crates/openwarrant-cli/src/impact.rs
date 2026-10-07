@@ -295,12 +295,16 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
         }
     };
     let authored = corpus.records();
+    let adapted = corpus.adapters();
     for id in &reached {
         if let Some(r) = authored.get(id) {
             because(&r.source, "records", format!("declares {id}"));
         } else if let Some(r) = authored.instruction(id) {
             // M16: the instruction file that holds the section.
             because(&r.source, "instruction", format!("declares {id}"));
+        } else if let Some((kind, source)) = adapted.source_of(id) {
+            // M10: a folder read in place declares it.
+            because(&source, kind, format!("declares {id}"));
         } else if let Some((head, _)) = id.split_once('/')
             && let Some(holder) = records.get(head)
         {

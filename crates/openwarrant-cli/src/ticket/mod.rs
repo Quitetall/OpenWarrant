@@ -49,7 +49,9 @@ use crate::compile::atomic;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{RepoError, Repository};
 
-pub use render::{Filter, prime, show, tickets, tickets_filtered};
+pub use render::{
+    Filter, Others, description, list, notes, prime, show, tickets, tickets_filtered,
+};
 
 /// Where tickets live unless `[tickets] dir` says otherwise.
 pub const DEFAULT_DIR: &str = "docs/tickets";
@@ -70,7 +72,7 @@ const DEFAULT_COMPACT_DAYS: u64 = 7;
 const BUILTIN_PROFILE: &str = include_str!("../../../../profiles/ticket.toml");
 
 /// Where `war create` writes a ticket's intent atom, relative to its directory.
-const INTENT_FILE: &str = "atoms/10-intent.md";
+pub(crate) const INTENT_FILE: &str = "atoms/10-intent.md";
 
 /// The files the ticket loop writes while a ticket is worked (t-5d82), for
 /// the evidence tree rule to skip: a ticket is a record about the work, not
@@ -187,7 +189,7 @@ pub struct Outcome {
 }
 
 impl Outcome {
-    fn ok(human: impl Into<String>, result: serde_json::Value) -> Self {
+    pub(crate) fn ok(human: impl Into<String>, result: serde_json::Value) -> Self {
         Self {
             report: Report::default(),
             human: human.into(),
@@ -195,7 +197,7 @@ impl Outcome {
         }
     }
 
-    fn refused(rule: &str, file: impl Into<String>, message: impl Into<String>) -> Self {
+    pub(crate) fn refused(rule: &str, file: impl Into<String>, message: impl Into<String>) -> Self {
         let message = message.into();
         let mut report = Report::default();
         report.push(Diagnostic::error(rule, file, message.clone()));
@@ -206,7 +208,7 @@ impl Outcome {
         }
     }
 
-    fn from_diagnostic(d: Diagnostic) -> Self {
+    pub(crate) fn from_diagnostic(d: Diagnostic) -> Self {
         let mut report = Report::default();
         let human = d.message.clone();
         report.push(d);
@@ -422,7 +424,7 @@ impl Store {
         }
     }
 
-    fn checklist_file(&self) -> &str {
+    pub(crate) fn checklist_file(&self) -> &str {
         self.definition
             .required_extension_roles
             .iter()
@@ -430,7 +432,7 @@ impl Store {
             .map_or("15-checklist.md", |r| r.file.as_str())
     }
 
-    fn checklist_ordinal(&self) -> u32 {
+    pub(crate) fn checklist_ordinal(&self) -> u32 {
         self.definition
             .required_extension_roles
             .iter()
@@ -438,7 +440,7 @@ impl Store {
             .map_or(15, |r| r.ordinal)
     }
 
-    fn checklist_stub(&self) -> String {
+    pub(crate) fn checklist_stub(&self) -> String {
         self.definition
             .required_extension_roles
             .iter()
@@ -447,7 +449,7 @@ impl Store {
     }
 
     /// Every ticket directory (one holding a `manifest.toml`), sorted.
-    fn ticket_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
+    pub(crate) fn ticket_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
         let entries = match crate::vfs::read_dir(&self.dir) {
             Ok(e) => e,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
@@ -490,8 +492,8 @@ impl Store {
                 "ticket.id-mismatch",
                 rel,
                 format!(
-                    "the directory is {} and the manifest's id is {}; a ticket's directory is \
-                     its id",
+                    "the directory is {} and the manifest's id is {}; a light Warrant's \
+                     directory is its id",
                     dir.file_name().unwrap_or_default(),
                     manifest.id
                 ),
@@ -627,7 +629,7 @@ impl Store {
         renewed
     }
 
-    fn journal(
+    pub(crate) fn journal(
         &self,
         t: &Ticket,
         event_type: &str,
@@ -739,7 +741,7 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
             },
             String::new(),
             if found.is_empty() {
-                format!("no {what} is {query:?}; `war ready` and `war tickets` list them")
+                format!("no {what} is {query:?}; `war ready` and `war warrants` list them")
             } else {
                 format!(
                     "{query:?} names more than one {what}: {}. Give more of the id",
@@ -750,7 +752,7 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
     };
     let find_ticket = |q: &str| -> Result<usize, Diagnostic> {
         let ids: Vec<&str> = tickets.iter().map(Ticket::id).collect();
-        let id = pick(&ids, q).map_err(|found| unknown("ticket", &found))?;
+        let id = pick(&ids, q).map_err(|found| unknown("Warrant", &found))?;
         Ok(tickets
             .iter()
             .position(|t| t.id() == id)
@@ -795,7 +797,7 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
         "ticket.unknown",
         String::new(),
         format!(
-            "{query:?} is not a ticket (t-...), an item (i-...) or an item of a ticket (t-.../i-...)"
+            "{query:?} is not a light Warrant (t-...), an item (i-...) or an item of one (t-.../i-...)"
         ),
     ))
 }
@@ -1073,7 +1075,7 @@ fn parent_of(tickets: &[Ticket], query: &str, child: Option<&str>) -> Result<Str
                 "ticket.part-of",
                 String::new(),
                 format!(
-                    "`--part-of {query}` names an item; a ticket is part of a ticket (an epic)"
+                    "`--part-of {query}` names an item; a Warrant is part of a Warrant (an epic)"
                 ),
             )));
         }
@@ -1112,12 +1114,12 @@ fn parent_of(tickets: &[Ticket], query: &str, child: Option<&str>) -> Result<Str
     Ok(parent)
 }
 
-fn toml_of(m: &TicketManifest) -> Result<String, RepoError> {
+pub(crate) fn toml_of(m: &TicketManifest) -> Result<String, RepoError> {
     let body = toml::to_string(m)
         .map_err(|e| RepoError::Message(format!("could not render the ticket manifest: {e}")))?;
     Ok(format!(
-        "# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside\n\
-         # this file are the ticket; `war show {}` renders them. Nothing here is signed.\n{body}",
+        "# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms\n\
+         # beside this file are the Warrant; `war show {}` renders them. Nothing here is signed.\n{body}",
         m.id
     ))
 }
@@ -1129,7 +1131,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         return Ok(Outcome::refused(
             "ticket.title-empty",
             String::new(),
-            "a ticket needs a title: `war create \"what this work accomplishes\"`",
+            "a Warrant needs a title: `war create \"what this work accomplishes\"`",
         ));
     }
     let priority = args.priority.unwrap_or(DEFAULT_PRIORITY);
@@ -1170,7 +1172,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
             "ticket.issue-linked",
             store.rel(&linked.dir.join("manifest.toml")),
             format!(
-                "issue #{} is already ticket {} ({}); one issue, one ticket",
+                "issue #{} is already Warrant {} ({}); one issue, one Warrant",
                 issue.number,
                 linked.id(),
                 linked.manifest.title
@@ -1201,7 +1203,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
     }
     let Some(dir) = dir else {
         return Err(RepoError::Message(
-            "ticket.id: every length of this ticket's id is taken".to_owned(),
+            "ticket.id: every length of this Warrant's id is taken".to_owned(),
         ));
     };
     let id = dir.file_name().unwrap_or_default().to_owned();
@@ -1226,6 +1228,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
             .as_ref()
             .map(|i| i.url.clone())
             .filter(|u| !u.is_empty()),
+        imported_from: None,
         atoms: vec![
             TicketAtom {
                 ordinal: 10,
@@ -1340,7 +1343,7 @@ pub fn issue_already_linked(store: &Store, n: &str) -> Result<Option<Outcome>, R
                 "ticket.issue-linked",
                 store.rel(&linked.dir.join("manifest.toml")),
                 format!(
-                    "issue #{number} is already ticket {} ({}); one issue, one ticket. Nothing \
+                    "issue #{number} is already Warrant {} ({}); one issue, one Warrant. Nothing \
                      was fetched",
                     linked.id(),
                     linked.manifest.title
@@ -1693,7 +1696,7 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
         if tickets.iter().any(|t| !t.checklist.is_done()) {
             human.push_str(
                 "nothing tracked is ready; work freely. Every open item is claimed or \
-                 waiting (`war tickets`)",
+                 waiting (`war warrants`)",
             );
         } else {
             human.push_str(
@@ -1709,10 +1712,12 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
                 "{} (line {line}, no id yet: `war claim {}` names it)",
                 r.text, r.ticket
             ),
-            (None, None) => format!("{} (no items: the ticket is the work)", r.text),
+            (None, None) => format!("{} (no items: the Warrant is the work)", r.text),
         };
         human.push_str(&format!("{:<16} p{}  {what}", r.target(), r.priority));
-        if r.item.is_some() || r.line.is_some() {
+        // M10: an item that is its Warrant's title (an imported issue's one
+        // item) is not named twice.
+        if (r.item.is_some() || r.line.is_some()) && r.text != r.title {
             human.push_str(&format!("  — {}", r.title));
         }
         if let Some(c) = &r.stale_claim {
@@ -1828,7 +1833,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 "ticket.claimed-by-other",
                 store.rel(&store.lock_path(t.id(), None)),
                 format!(
-                    "{what}: the whole ticket {} is claimed by {}",
+                    "{what}: the whole Warrant {} is claimed by {}",
                     t.id(),
                     holder(c, now)
                 ),
@@ -2075,7 +2080,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     };
     match &next_open {
         Some(next) => human.push_str(&format!(
-            "\nnext: `war done {}/{next} --note \"...\"` (the ticket is done when its last item is)",
+            "\nnext: `war done {}/{next} --note \"...\"` (the Warrant is done when its last item is)",
             t.id()
         )),
         None => human.push_str(&format!(
@@ -2633,7 +2638,7 @@ fn may_finish(
             "ticket.claimed-by-other",
             store.rel(&whole_path),
             format!(
-                "{what}: the whole ticket is claimed by {}",
+                "{what}: the whole Warrant is claimed by {}",
                 holder(c.as_ref(), now)
             ),
         )));
@@ -2701,7 +2706,7 @@ pub fn done(
                 store.rel(&t.checklist_path),
                 format!(
                     "{what} still has {} open item(s): {}. Finish each (`war done <item>`); the \
-                     ticket reads done when the last one is",
+                     Warrant reads done when the last one is",
                     open.len(),
                     open.join(", ")
                 ),
@@ -2849,7 +2854,7 @@ pub fn done(
         && let Some(next) = rows.first()
     {
         human.push_str(&format!(
-            "\nnext in this ticket: {}  {}",
+            "\nnext in this Warrant: {}  {}",
             next.target(),
             next.text
         ));
@@ -2894,7 +2899,7 @@ fn writeback_policy(root: &Utf8Path) -> Result<Option<crate::repo::WritebackPoli
 /// item with who and the note, then the ticket's notes.
 #[must_use]
 pub fn writeback_body(t: &Ticket) -> String {
-    let mut body = format!("Done in ticket {}: {}\n\n", t.id(), t.manifest.title);
+    let mut body = format!("Done in Warrant {}: {}\n\n", t.id(), t.manifest.title);
     for item in &t.checklist.items {
         body.push_str(&format!(
             "- [{}] {}",
@@ -3136,7 +3141,7 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
             return Ok(Outcome::refused(
                 "ticket.edit-item",
                 String::new(),
-                format!("`war edit {query}` names an item; type, labels and epic are a ticket's"),
+                format!("`war edit {query}` names an item; type, labels and epic are a Warrant's"),
             ));
         }
         Err(d) => return Ok(Outcome::from_diagnostic(d)),

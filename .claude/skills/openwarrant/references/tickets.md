@@ -1,7 +1,7 @@
 # Tickets
 
-A ticket is work written down as a checklist so anyone can pick it up. It is
-optional: ordinary coding needs no ticket.
+A ticket is a Warrant in its lightest form: work written down as a checklist
+so anyone can pick it up. It is optional: ordinary coding needs no ticket.
 
 ```bash
 war prime                                      # open tickets, remaining items, claims, recent notes
@@ -19,8 +19,11 @@ No step needs a signature or anyone's approval. The file is the state:
 edit is read as written. Name yourself with `--as <name>` (or
 `OPENWARRANT_ACTOR`) when several agents share the repository.
 
-Finding work: `war tickets --search "<words>"`, `war tickets --state
-in_progress`, `war tickets --type bug`, `war show <ticket>`.
+Finding work: `war warrants --search "<words>"`, `war warrants --state
+in_progress`, `war warrants --type bug`, `war show <id>` (`war tickets` is the
+older name of `war warrants`). The list also holds the directory Warrants and
+any OpenSpec or Spec Kit folder read in place; `war import` brings Beads,
+OpenSpec or Spec Kit work in as tickets.
 
 Over MCP the loop is `war_prime`, `war_ready`, `war_claim`, `war_done`,
 `war_create`, `war_add`, `war_note`, `war_show` and `war_tickets`

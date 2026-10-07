@@ -49,6 +49,7 @@ pub mod inbox;
 pub mod init;
 pub mod install;
 pub mod instructions;
+pub mod interop;
 pub mod invalidation;
 pub mod journal_cmd;
 pub mod kf;
@@ -102,6 +103,7 @@ pub mod timeline;
 pub mod tui;
 pub mod verify;
 pub mod vfs;
+pub mod warrants;
 pub mod watch;
 pub mod webui;
 
@@ -427,16 +429,21 @@ enum DocumentCommand {
     },
 }
 
-/// The ticket loop (OW-WAR-0147; docs/TICKETS.md), flattened into the top
-/// level: `war create`, not `war ticket create`. Its own enum so clap builds
-/// these subcommands in their own frame; one enum holding every subcommand
-/// overflowed a test thread's stack while clap assembled it.
+/// The Warrant loop (OW-WAR-0147; OW-WAR-0148 M10; docs/TICKETS.md),
+/// flattened into the top level: `war create`, not `war ticket create`. A
+/// Warrant made here is in its light encoding (what earlier releases called
+/// a ticket). Its own enum so clap builds these subcommands in their own
+/// frame; one enum holding every subcommand overflowed a test thread's
+/// stack while clap assembled it.
 ///
 /// None of these commands asks a human for anything or signs anything, and
-/// each reads only the ticket files and the claims directory.
+/// each reads only the light Warrants' files and the claims directory
+/// (`war warrants` also reads each directory Warrant's manifest and
+/// journal).
 #[derive(Subcommand)]
 enum TicketCommand {
-    /// Create a ticket and print its id. Workable at once: no signature.
+    /// Create a Warrant (a ticket) and print its id: a title is enough.
+    /// Workable at once: no signature.
     Create {
         /// What this work accomplishes, in one sentence. With `--issue`, the
         /// issue's title unless given.
@@ -445,7 +452,7 @@ enum TicketCommand {
         /// A checklist item; repeat for more. Items can be added later with `war add`.
         #[arg(long = "item", short = 'i', value_name = "TEXT")]
         items: Vec<String>,
-        /// Context, decisions, links: Markdown for the ticket's description.
+        /// Context, decisions, links: Markdown for the Warrant's description.
         #[arg(long, value_name = "MARKDOWN")]
         body: Option<String>,
         /// 0 (most urgent) to 4; default 2. `war ready` lists urgent work first.
@@ -456,7 +463,7 @@ enum TicketCommand {
         #[arg(long)]
         draft: bool,
         /// With --draft: the drafter proposes typed records too, and the
-        /// ticket's items implement them (OW-WAR-0148 M7). The records are
+        /// Warrant's items implement them (OW-WAR-0148 M7). The records are
         /// validated as authored ones are, then written to one record atom
         /// under `docs/records/<area>/`; a refused proposal writes nothing.
         #[arg(long, requires = "draft", conflicts_with_all = ["kind", "labels", "part_of", "implements", "issue", "issue_file"])]
@@ -464,18 +471,18 @@ enum TicketCommand {
         /// With --records: the area under `docs/records/` the records land in.
         #[arg(long, value_name = "NAME", requires = "records")]
         area: Option<String>,
-        /// What kind of work: one of the ticket profile's `[fields] types`
-        /// (task, bug, feature, chore, epic as shipped).
+        /// What kind of work: one of the working form's `[fields] types`
+        /// in profiles/ticket.toml (task, bug, feature, chore, epic as shipped).
         #[arg(long = "type", value_name = "TYPE")]
         kind: Option<String>,
         /// A label; repeat for more. Refused outside a closed label set.
         #[arg(long = "label", short = 'l', value_name = "LABEL")]
         labels: Vec<String>,
-        /// The ticket (an epic) this one is part of.
-        #[arg(long = "part-of", value_name = "TICKET")]
+        /// The Warrant (an epic) this one is part of.
+        #[arg(long = "part-of", value_name = "WARRANT")]
         part_of: Option<String>,
-        /// Make the ticket from GitHub issue <N>, read once through
-        /// `[intake] fetch_argv`; the ticket records the link. With
+        /// Make the Warrant from GitHub issue <N>, read once through
+        /// `[intake] fetch_argv`; the Warrant records the link. With
         /// `[intake.writeback]` set, finishing it comments on and closes the issue.
         #[arg(long, value_name = "N", conflicts_with = "issue_file")]
         issue: Option<String>,
@@ -490,16 +497,17 @@ enum TicketCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// What can start now: open, unclaimed, unblocked items across tickets,
-    /// most urgent and oldest first.
+    /// What can start now: open, unclaimed, unblocked items across
+    /// Warrants, most urgent and oldest first. A directory Warrant's ready
+    /// stages are in `war next`.
     Ready {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// Take an item (`i-...`, `t-.../i-...`) or a whole ticket (`t-...`), so no
-    /// other agent works it. Refused, by name, when someone else holds it.
+    /// Take an item (`i-...`, `t-.../i-...`) or a whole Warrant (`t-...`), so
+    /// no other agent works it. Refused, by name, when someone else holds it.
     Claim {
-        /// An item or ticket id, or a unique prefix of one.
+        /// An item or Warrant id, or a unique prefix of one.
         target: String,
         /// Take a claim older than `[tickets] claim_ttl_minutes` (default 120). Journalled.
         #[arg(long)]
@@ -507,15 +515,15 @@ enum TicketCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// Tick a claimed item in the ticket's checklist and release the claim.
-    /// A ticket reads done when every item is.
+    /// Tick a claimed item in the Warrant's checklist and release the claim.
+    /// A Warrant reads done when every item is.
     Done {
-        /// An item id (or a ticket with no items left open).
+        /// An item id (or a Warrant with no items left open).
         target: String,
         /// What was done, for the next reader; written on the item's line.
         #[arg(long)]
         note: Option<String>,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -523,16 +531,17 @@ enum TicketCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// Append an item to a ticket's checklist.
+    /// Append an item to a Warrant's checklist.
     Add {
-        /// The ticket.
+        /// The Warrant.
+        #[arg(value_name = "WARRANT")]
         ticket: String,
         /// The item, one line.
         text: String,
-        /// What the item waits on: an item of this ticket, a ticket, or `t-x/i-y`. Repeatable.
-        #[arg(long, value_name = "ITEM|TICKET")]
+        /// What the item waits on: an item of this Warrant, a Warrant, or `t-x/i-y`. Repeatable.
+        #[arg(long, value_name = "ITEM|WARRANT")]
         after: Vec<String>,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -540,13 +549,13 @@ enum TicketCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// Append a dated note to a ticket: context for the next agent or person.
+    /// Append a dated note to a Warrant: context for the next agent or person.
     Note {
-        /// The ticket (or one of its items).
+        /// The Warrant (or one of its items).
         target: String,
         /// The note; Markdown, may span lines.
         text: String,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -554,26 +563,30 @@ enum TicketCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// What an arriving agent or person reads first: open tickets with their
+    /// What an arriving agent or person reads first: open Warrants with their
     /// remaining items, who holds what, recent notes, done work compacted.
     Prime {
-        /// One ticket in full instead.
+        /// One Warrant in full instead.
+        #[arg(value_name = "WARRANT")]
         ticket: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// Every ticket, its state (open, in progress, done) and progress.
-    /// Filters narrow it to exactly the tickets every one admits.
-    #[command(visible_alias = "ls")]
+    /// Every Warrant, its type, state and progress: the light ones (tickets)
+    /// first, then those with a directory, then those read in place.
+    /// Filters narrow it to exactly the Warrants every one admits.
+    #[command(name = "warrants", visible_aliases = ["tickets", "ls"])]
     Tickets {
-        /// Only tickets of this type.
+        /// Only Warrants of this type: a light one's type (bug), or a
+        /// profile (delivery, decision, ticket, openspec, speckit).
         #[arg(long = "type", value_name = "TYPE")]
         kind: Option<String>,
-        /// Only tickets carrying this label; repeat to require several.
+        /// Only Warrants carrying this label; repeat to require several.
         #[arg(long = "label", short = 'l', value_name = "LABEL")]
         labels: Vec<String>,
-        /// open, in_progress, done, or a declared state (in_review) the
-        /// ticket or one of its items holds.
+        /// open, in_progress, done, a declared state (in_review) the
+        /// Warrant or one of its items holds, or a phase a directory
+        /// Warrant's journal records (draft, authorized, resolved).
         #[arg(long, value_name = "STATE")]
         state: Option<String>,
         /// A phrase anywhere in the title, description, notes or items
@@ -584,13 +597,14 @@ enum TicketCommand {
         /// notes or items, in any order (case-insensitive).
         #[arg(long, value_name = "WORDS")]
         search: Option<String>,
-        /// Only the tickets part of this one (an epic).
-        #[arg(long, value_name = "TICKET")]
+        /// Only the Warrants part of this one (an epic).
+        #[arg(long, value_name = "WARRANT")]
         epic: Option<String>,
     },
-    /// Change a ticket's type, labels, epic or priority: one line of its
+    /// Change a Warrant's type, labels, epic or priority: one line of its
     /// manifest each, journalled. Nothing else moves.
     Edit {
+        #[arg(value_name = "WARRANT")]
         ticket: String,
         /// The new type; `none` clears it.
         #[arg(long = "type", value_name = "TYPE")]
@@ -601,12 +615,12 @@ enum TicketCommand {
         /// Remove a label; repeatable.
         #[arg(long = "unlabel", value_name = "LABEL")]
         unlabels: Vec<String>,
-        /// The ticket (epic) this one is part of; `none` detaches it.
-        #[arg(long = "part-of", value_name = "TICKET")]
+        /// The Warrant (epic) this one is part of; `none` detaches it.
+        #[arg(long = "part-of", value_name = "WARRANT")]
         part_of: Option<String>,
         #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
         priority: Option<u8>,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -617,7 +631,7 @@ enum TicketCommand {
     /// Give a claim back without finishing the item.
     Release {
         target: String,
-        /// Write only if the item (or ticket) is still at this revision, the
+        /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war show --json` gave; refused `warrant.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
@@ -653,14 +667,16 @@ enum TicketCommand {
     /// reclaims them while you work. Every war command you run renews them
     /// too; a claim whose lease runs out is taken by a plain `war claim`.
     Heartbeat {
-        /// One claimed item or ticket; omit for every claim you hold.
+        /// One claimed item or Warrant; omit for every claim you hold.
         target: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// Draft a delivery Warrant from a ticket, for when someone wants
-    /// sign-off. Opt-in: the authority layer starts here, not before.
+    /// Draft a directory Warrant (delivery) from a light one, for when
+    /// someone wants sign-off. Opt-in: the authority layer starts here, not
+    /// before.
     Promote {
+        #[arg(value_name = "WARRANT")]
         ticket: String,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
@@ -1080,9 +1096,12 @@ enum Command {
         #[command(subcommand)]
         command: EvidenceCommand,
     },
-    /// Render one of §17.5's projections (§17.5).
+    /// Show a Warrant by its id: a light one (`t-...`, or one of its items),
+    /// a directory one (its alias, as one of §17.5's projections), or one
+    /// read in place (`openspec:<change>`, `speckit:<feature>`).
     Show {
-        /// The Warrant's local alias.
+        /// The Warrant's id: `t-...`, an alias, `openspec:...` or `speckit:...`.
+        #[arg(value_name = "ID")]
         alias: String,
         /// Which projection. Defaults to the full Warrant.
         #[arg(long, default_value = "full_warrant")]
@@ -1127,9 +1146,13 @@ enum Command {
         cmd: preservation::Command,
     },
 
-    /// §68 portable export and round trip.
+    /// §68 portable export and round trip; or, as `war export beads`, every
+    /// light Warrant (a ticket) as Beads issue JSONL on stdout, in the shape
+    /// `bd export` writes, which `war import beads` reads back (OW-WAR-0148
+    /// M10).
     Export {
-        /// The Warrant's local alias (§68). Not needed with --progress.
+        /// The Warrant's local alias (§68), or `beads`. Not needed with
+        /// --progress.
         #[arg(required_unless_present_any = ["progress", "verify_progress"])]
         alias: Option<String>,
         /// Write the progress bundle (`oh.war/progress-bundle/v1`) — the corpus
@@ -1151,6 +1174,25 @@ enum Command {
         /// Record that the preserved evidence bytes were reconnected.
         #[arg(long)]
         reconnect: bool,
+    },
+
+    /// Bring work in as Warrants (OW-WAR-0148 M10): `beads <file.jsonl>`
+    /// (Beads' issue JSONL, as `bd export` writes it), `openspec <dir>` (each
+    /// change of an OpenSpec folder) or `speckit <dir>` (each feature of a
+    /// Spec Kit `specs/` folder). Each becomes a light Warrant (a ticket)
+    /// with its tasks as items. Running it again changes nothing; input it
+    /// cannot map is refused by name, and a refusal writes nothing. To keep
+    /// working in those tools instead, read the folder in place:
+    /// `[[adapters]]` in openwarrant.toml (docs/TYPES.md).
+    Import {
+        /// `beads`, `openspec` or `speckit`.
+        format: String,
+        /// The Beads JSONL file, or the OpenSpec or Spec Kit folder (or the
+        /// folder holding `openspec/` or `specs/`).
+        path: Utf8PathBuf,
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
     },
 
     /// §67 Knowledge Fabric seam. `health` reads; `act` WRITES and needs
@@ -1695,10 +1737,10 @@ enum Command {
         #[arg(long, value_name = "REV", requires = "candidate")]
         base: Option<String>,
     },
-    /// What is ready, and whose step it is: ready ticket items first, then an
-    /// agent's acts, then the acts a person signs. With nothing tracked it
-    /// says "nothing tracked; work freely": ordinary work needs no ticket
-    /// and no Warrant. A signing step is always a person's.
+    /// What is ready, and whose step it is: ready items of light Warrants
+    /// first, then an agent's acts, then the acts a person signs. With
+    /// nothing tracked it says "nothing tracked; work freely": ordinary work
+    /// needs no Warrant. A signing step is always a person's.
     Next,
     /// Warrants waiting on a human act (read-only; OW-WAR-0070).
     Inbox {
@@ -1738,8 +1780,10 @@ enum Command {
     /// per-Warrant form §72.5 names. Every count is a ladder; nothing is a
     /// percentage.
     Status {
-        /// A Warrant's local alias. Omit for the whole corpus. (`--json` is the
-        /// global flag; for the corpus it yields the canonical projection.)
+        /// A Warrant's id (an alias, `t-...`, `openspec:...`, `speckit:...`).
+        /// Omit for the whole corpus. (`--json` is the global flag; for the
+        /// corpus it yields the canonical projection.)
+        #[arg(value_name = "ID")]
         alias: Option<String>,
         /// The corpus timeline (`oh.war/corpus-timeline/v1`) instead of the status.
         /// (One projection per call: `timeline` excludes `pending`, and both
@@ -2068,7 +2112,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 search,
                 epic,
             } => {
-                let (_, store) = tickets(None)?;
+                let (repository, store) = tickets(None)?;
                 let filter = ticket::Filter {
                     kind,
                     labels,
@@ -2077,10 +2121,13 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     search,
                     epic,
                 };
+                // M10: one list, every encoding. The envelope keeps the
+                // command name it always had.
+                let others = ticket::Others::of(&repository)?;
                 Ok(ticket_answer(
                     mode,
                     "tickets",
-                    &ticket::tickets_filtered(&store, &filter)?,
+                    &ticket::list(&store, &others, &filter)?,
                 ))
             }
             TicketCommand::Edit {
@@ -2172,9 +2219,44 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 ))
             }
         },
-        Command::Show { alias, .. } if ticket::is_ticket_ref(&alias) => {
+        // M10: one id space. A light Warrant's id shows it whole, wherever
+        // the command is `show` or `status`; an alias falls through to the
+        // directory Warrant's projections below.
+        Command::Show { alias, .. } if warrants::kind_of(&alias) == warrants::IdKind::Light => {
             let (_, store) = tickets(None)?;
             Ok(ticket_answer(mode, "show", &ticket::show(&store, &alias)?))
+        }
+        Command::Status {
+            alias: Some(alias), ..
+        } if warrants::kind_of(&alias) == warrants::IdKind::Light => {
+            let (_, store) = tickets(None)?;
+            Ok(ticket_answer(
+                mode,
+                "status",
+                &ticket::show(&store, &alias)?,
+            ))
+        }
+        // M10: a Warrant read in place shows from its folder, written to
+        // never.
+        Command::Show { alias, .. }
+            if warrants::kind_of(&alias) == warrants::IdKind::ReadInPlace =>
+        {
+            let repository = open_repo()?;
+            Ok(ticket_answer(
+                mode,
+                "show",
+                &interop::adapters::show(&repository, &alias),
+            ))
+        }
+        Command::Status {
+            alias: Some(alias), ..
+        } if warrants::kind_of(&alias) == warrants::IdKind::ReadInPlace => {
+            let repository = open_repo()?;
+            Ok(ticket_answer(
+                mode,
+                "status",
+                &interop::adapters::show(&repository, &alias),
+            ))
         }
         Command::Tui { panic_after_setup } => {
             if matches!(mode, output::Mode::Json) {
@@ -2566,6 +2648,85 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let (human, result) = preservation::run(root.clone(), cmd)?;
             output::emit(mode, "archive", &human, result);
             Ok(EXIT_OK)
+        }
+        // M10: `war export beads`. An alias is `NS-WAR-NNNN`, so the word can
+        // name nothing else.
+        Command::Export {
+            alias: Some(format),
+            force,
+            round_trip,
+            reconnect,
+            progress: None,
+            verify_progress: None,
+        } if format == "beads" => {
+            if force || round_trip || reconnect {
+                let mut report = diagnostic::Report::default();
+                report.push(diagnostic::Diagnostic::error(
+                    "export.beads-flags",
+                    String::new(),
+                    "--force, --round-trip and --reconnect are the §68 package's; \
+                     `war export beads` takes none of them",
+                ));
+                return Ok(output::finish(mode, "export", &report, None));
+            }
+            let (_, store) = tickets(None)?;
+            let (jsonl, warnings) = interop::beads::export(&store)?;
+            let mut report = diagnostic::Report::default();
+            for w in warnings {
+                report.push(w);
+            }
+            match mode {
+                output::Mode::Human => {
+                    for d in &report.diagnostics {
+                        eprintln!("{d}");
+                    }
+                    print!("{jsonl}");
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "export",
+                    &report,
+                    Some(serde_json::json!({
+                        "schema": "oh.war/export-beads/v1",
+                        "issues": jsonl.lines().count(),
+                        "jsonl": jsonl,
+                    })),
+                )),
+            }
+        }
+        Command::Import {
+            format,
+            path,
+            actor,
+        } => {
+            let (repository, store) = tickets(actor.as_deref())?;
+            let path = interop::resolve(&repository, &path);
+            let read = match format.as_str() {
+                "beads" => interop::beads::read(&repository, &store, &path),
+                "openspec" => interop::openspec::import(&repository, &store, &path),
+                "speckit" => interop::speckit::import(&repository, &store, &path),
+                other => {
+                    return Ok(ticket_answer(
+                        mode,
+                        "import",
+                        &interop::write::refused(&[interop::Fault::new(
+                            "import.format-unknown",
+                            "",
+                            0,
+                            format!(
+                                "{other:?} is not a format this build imports: beads, \
+                                 openspec, speckit"
+                            ),
+                        )]),
+                    ));
+                }
+            };
+            let outcome = match read {
+                Ok(import) => interop::write::apply(&repository, &store, &import)?,
+                Err(faults) => interop::write::refused(&faults),
+            };
+            Ok(ticket_answer(mode, "import", &outcome))
         }
         Command::Export {
             alias,
@@ -4052,15 +4213,27 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     // --json it rides inside the envelope as `result`, so the
                     // committed CORPUS_STATUS.json (written by `compile`) and
                     // this output agree on the payload.
+                    // M10: with `[[adapters]]`, the Warrants read in place
+                    // follow (`read_in_place`). They are never written into
+                    // the committed projection: their folders are another
+                    // tool's, and change without a compile.
                     output::Mode::Json => {
                         let (_, text) = status::corpus_status_json(&repository)?;
-                        let value: serde_json::Value = serde_json::from_str(&text)
+                        let mut value: serde_json::Value = serde_json::from_str(&text)
                             .map_err(|e| repo::RepoError::Message(format!("corpus status: {e}")))?;
+                        let adapted = interop::adapters::load(&repository);
+                        if !adapted.is_empty() {
+                            value["read_in_place"] = interop::adapters::status(&adapted).1;
+                        }
                         output::emit(mode, "status", &text, value);
                     }
                     output::Mode::Human => {
                         let (_, text) = status::corpus_status_md(&repository)?;
                         println!("{text}");
+                        let adapted = interop::adapters::load(&repository);
+                        if !adapted.is_empty() {
+                            print!("{}", interop::adapters::status(&adapted).0);
+                        }
                     }
                 },
             }
@@ -4243,6 +4416,16 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
                 return Ok(output::finish(mode, "check", &report, None));
             }
+            // M10: a Warrant read in place is checked for what its folder
+            // says, read where it is; nothing is written.
+            if let Some(a) = alias
+                .as_deref()
+                .filter(|a| warrants::kind_of(a) == warrants::IdKind::ReadInPlace)
+            {
+                let mut report = diagnostic::Report::default();
+                interop::adapters::check(&repository, Some(a), &mut report);
+                return Ok(output::finish(mode, "check", &report, None));
+            }
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
             let mut report = check::run(&repository, alias.as_deref(), generated)?;
@@ -4255,6 +4438,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                         e.to_string(),
                     )),
                 }
+                interop::adapters::check(&repository, None, &mut report);
             }
             // A non-zero exit for an unsound Warrant is what lets CI gate on it.
             Ok(output::finish(mode, "check", &report, None))

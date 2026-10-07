@@ -14,7 +14,8 @@
 //! - one `resolve::assess` per Warrant;
 //! - the corpus status, the sign queue, the frontier, the ownership index;
 //! - the roadmap record, the tickets, the ADRs and the SAS revisions;
-//! - the record atoms and the relations documents author (OW-WAR-0148 M3).
+//! - the record atoms and the relations documents author (OW-WAR-0148 M3);
+//! - the folders `[[adapters]]` reads in place (OW-WAR-0148 M10).
 //!
 //! Every derived value is computed on first use and kept for the life of the
 //! corpus: a command that never asks for the frontier never pays for it, and
@@ -169,6 +170,7 @@ pub struct Corpus {
     adrs: OnceLock<Result<AdrCorpus, Kept>>,
     sas_revisions: OnceLock<Result<Vec<openwarrant_core::SasRevision>, Kept>>,
     records: OnceLock<crate::records::Records>,
+    adapters: OnceLock<crate::interop::adapters::Adapted>,
 }
 
 impl std::fmt::Debug for Corpus {
@@ -203,6 +205,7 @@ impl Corpus {
             adrs: OnceLock::new(),
             sas_revisions: OnceLock::new(),
             records: OnceLock::new(),
+            adapters: OnceLock::new(),
         }
     }
 
@@ -317,6 +320,13 @@ impl Corpus {
         self.records.get_or_init(|| crate::records::load(self))
     }
 
+    /// The folders `[[adapters]]` reads in place (OW-WAR-0148 M10), once.
+    /// Infallible: what could not be read is a fault inside, by rule.
+    pub fn adapters(&self) -> &crate::interop::adapters::Adapted {
+        self.adapters
+            .get_or_init(|| crate::interop::adapters::load(&self.repo))
+    }
+
     /// The recorded SAS revisions, once.
     pub fn sas_revisions(&self) -> Result<&[openwarrant_core::SasRevision], RepoError> {
         kept(&self.sas_revisions, || self.repo.load_sas_revisions()).map(Vec::as_slice)
@@ -369,6 +379,7 @@ pub fn working_tree_fingerprint(repo: &Repository) -> Option<u64> {
     dirs.push(crate::roadmap_cmd::dir(repo));
     dirs.push(repo.root.join(crate::records::DIR));
     dirs.extend(crate::ticket::watched(repo));
+    dirs.extend(crate::interop::adapters::watched(repo));
     crate::watch::fingerprint(&dirs).hash(&mut h);
     let meta = |p: &Utf8Path| {
         std::fs::metadata(p).ok().map(|m| {

@@ -31,19 +31,19 @@ pub struct CreateParams {
     /// Checklist items, one line each. May be empty: `war_add` adds later.
     #[serde(default)]
     pub items: Vec<String>,
-    /// Context, decisions, links: Markdown for the ticket's description.
+    /// Context, decisions, links: Markdown for the Warrant's description.
     #[serde(default)]
     pub body: Option<String>,
     /// 0 (most urgent) to 4; default 2.
     #[serde(default)]
     pub priority: Option<u8>,
-    /// One of the ticket profile's `[fields] types` (OW-WAR-0148 M5).
+    /// One of the working form's `[fields] types` (OW-WAR-0148 M5).
     #[serde(default, rename = "type")]
     pub kind: Option<String>,
     /// Labels; refused outside a closed label set.
     #[serde(default)]
     pub labels: Vec<String>,
-    /// The ticket (an epic) this one is part of.
+    /// The Warrant (an epic) this one is part of.
     #[serde(default)]
     pub part_of: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
@@ -51,25 +51,25 @@ pub struct CreateParams {
     pub actor: Option<String>,
 }
 
-/// `war tickets` filters (OW-WAR-0148 M5); none given lists every ticket.
+/// `war warrants` filters (OW-WAR-0148 M5); none given lists every Warrant.
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct TicketsParams {
-    /// Only tickets of this type.
+    /// Only Warrants of this type: a light one's type (bug), or a profile (delivery, openspec).
     #[serde(default, rename = "type")]
     pub kind: Option<String>,
-    /// Only tickets carrying every one of these labels.
+    /// Only Warrants carrying every one of these labels.
     #[serde(default)]
     pub labels: Vec<String>,
     /// open, in_progress, done, or a declared state (in_review).
     #[serde(default)]
     pub state: Option<String>,
-    /// A phrase anywhere in the ticket's text (case-insensitive).
+    /// A phrase anywhere in the Warrant's text (case-insensitive).
     #[serde(default)]
     pub text: Option<String>,
-    /// Words, each beginning a word of the ticket's text, any order.
+    /// Words, each beginning a word of the Warrant's text, any order.
     #[serde(default)]
     pub search: Option<String>,
-    /// Only the tickets part of this one (an epic).
+    /// Only the Warrants part of this one (an epic).
     #[serde(default)]
     pub epic: Option<String>,
 }
@@ -83,7 +83,7 @@ pub struct ActorParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct ClaimParams {
-    /// An item (`i-...`, `t-.../i-...`) or a whole ticket (`t-...`); a unique prefix works.
+    /// An item (`i-...`, `t-.../i-...`) or a whole light Warrant (`t-...`); a unique prefix works.
     pub target: String,
     /// Take a claim older than the TTL (`[tickets] claim_ttl_minutes`). Journalled.
     #[serde(default)]
@@ -105,7 +105,7 @@ pub struct HeartbeatParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct DoneParams {
-    /// The claimed item (or a ticket with nothing left open).
+    /// The claimed item (or a Warrant with nothing left open).
     pub target: String,
     /// What was done, written on the item's line for the next reader.
     #[serde(default)]
@@ -122,11 +122,11 @@ pub struct DoneParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct AddParams {
-    /// The ticket.
+    /// The Warrant (`t-...`).
     pub ticket: String,
     /// The item, one line.
     pub text: String,
-    /// What the item waits on: items of this ticket, tickets, or `t-x/i-y`.
+    /// What the item waits on: items of this Warrant, Warrants, or `t-x/i-y`.
     #[serde(default)]
     pub after: Vec<String>,
     /// Write only if the target is still at this revision (from `war_show`'s
@@ -141,7 +141,7 @@ pub struct AddParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct NoteParams {
-    /// The ticket (or one of its items).
+    /// The Warrant (or one of its items).
     pub target: String,
     /// The note, Markdown.
     pub text: String,
@@ -157,7 +157,7 @@ pub struct NoteParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct PrimeParams {
-    /// One ticket in full; omit for every open ticket.
+    /// One Warrant in full; omit for every open one.
     #[serde(default)]
     pub ticket: Option<String>,
 }
@@ -190,7 +190,7 @@ pub struct StatusParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct ShowParams {
-    /// Local alias, or a ticket id (`t-...`): a ticket renders as its document.
+    /// A Warrant's id: an alias, a light one (`t-...`), or one read in place (`openspec:...`, `speckit:...`).
     pub alias: String,
     /// View name: `full_warrant` (default), `status`, or another `war show --view`.
     #[serde(default = "default_view")]
@@ -623,12 +623,22 @@ impl WarServer {
 
     #[tool(
         name = "war_show",
-        description = "Render a Warrant view (`war show <alias> --view <view>`), or a ticket (`war show t-...`) as the document a person reads. Read-only.",
+        description = "Show a Warrant by its id as the document a person reads: an alias as one of its views (`war show <alias> --view <view>`), a light Warrant (`war show t-...`), or one read in place (`openspec:...`, `speckit:...`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_show(&self, Parameters(p): Parameters<ShowParams>) -> ToolResult {
-        if crate::ticket::is_ticket_ref(&p.alias) {
-            return self.ticket("show", None, |s| crate::ticket::show(s, &p.alias));
+        match crate::warrants::kind_of(&p.alias) {
+            crate::warrants::IdKind::Light => {
+                return self.ticket("show", None, |s| crate::ticket::show(s, &p.alias));
+            }
+            crate::warrants::IdKind::ReadInPlace => {
+                let alias = p.alias.clone();
+                let repo = self.repo.clone();
+                return self.ticket("show", None, move |_| {
+                    Ok(crate::interop::adapters::show(&repo, &alias))
+                });
+            }
+            crate::warrants::IdKind::Directory => {}
         }
         value_of(
             "show",
@@ -1057,7 +1067,7 @@ impl WarServer {
 
     #[tool(
         name = "war_prime",
-        description = "Read this first (`war prime`): open tickets with their remaining items, who holds which claim, recent notes, done work compacted. Markdown in result.markdown. Read-only.",
+        description = "Read this first (`war prime`): open Warrants with their remaining items, who holds which claim, recent notes, done work compacted. Markdown in result.markdown. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_prime(&self, Parameters(p): Parameters<PrimeParams>) -> ToolResult {
@@ -1068,7 +1078,7 @@ impl WarServer {
 
     #[tool(
         name = "war_ready",
-        description = "What can start now (`war ready`): open, unclaimed, unblocked ticket items, most urgent and oldest first. Read-only.",
+        description = "What can start now (`war ready`): open, unclaimed, unblocked items of light Warrants, most urgent and oldest first. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_ready(&self, Parameters(p): Parameters<ActorParams>) -> ToolResult {
@@ -1077,7 +1087,7 @@ impl WarServer {
 
     #[tool(
         name = "war_tickets",
-        description = "Every ticket with its state (open, in progress, done) and progress (`war tickets`), optionally filtered by type, labels, state, a phrase, search words or epic: exactly the tickets every filter admits. Read-only.",
+        description = "Every Warrant with its type, state and progress (`war warrants`, also `war tickets`): light ones in result.tickets, directory and read-in-place ones in result.warrants; optionally filtered by type, labels, state, a phrase, search words or epic: exactly the Warrants every filter admits. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_tickets(&self, Parameters(p): Parameters<TicketsParams>) -> ToolResult {
@@ -1090,13 +1100,14 @@ impl WarServer {
             epic: p.epic,
         };
         self.ticket("tickets", None, |s| {
-            crate::ticket::tickets_filtered(s, &filter)
+            let others = crate::ticket::Others::of(&self.repo)?;
+            crate::ticket::list(s, &others, &filter)
         })
     }
 
     #[tool(
         name = "war_create",
-        description = "Create a ticket (`war create`): a title, optional checklist items and description. Workable at once; nothing is signed. Returns the ticket id (t-...).",
+        description = "Create a Warrant (`war create`, a ticket): a title, optional checklist items and description. Workable at once; nothing is signed. Returns its id (t-...).",
         annotations(read_only_hint = false)
     )]
     fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
@@ -1117,7 +1128,7 @@ impl WarServer {
 
     #[tool(
         name = "war_claim",
-        description = "Claim an item or a whole ticket (`war claim`) so no other agent works it: atomic, journalled, refused by name when someone else holds it. `steal` takes a claim past its TTL.",
+        description = "Claim an item or a whole light Warrant (`war claim`) so no other agent works it: atomic, journalled, refused by name when someone else holds it. `steal` takes a claim past its TTL.",
         annotations(read_only_hint = false)
     )]
     fn war_claim(&self, Parameters(p): Parameters<ClaimParams>) -> ToolResult {
@@ -1128,7 +1139,7 @@ impl WarServer {
 
     #[tool(
         name = "war_heartbeat",
-        description = "Renew the lease on your claims (`war heartbeat`), or on the one named, so no other agent reclaims them while you work. Every ticket tool call renews them too; a claim whose lease runs out is taken by a plain claim.",
+        description = "Renew the lease on your claims (`war heartbeat`), or on the one named, so no other agent reclaims them while you work. Every call of the Warrant loop's tools renews them too; a claim whose lease runs out is taken by a plain claim.",
         annotations(read_only_hint = false)
     )]
     fn war_heartbeat(&self, Parameters(p): Parameters<HeartbeatParams>) -> ToolResult {
@@ -1139,7 +1150,7 @@ impl WarServer {
 
     #[tool(
         name = "war_done",
-        description = "Finish a claimed item (`war done`): ticks its checkbox in the ticket's checklist with who, when and an optional note, journals it, releases the claim.",
+        description = "Finish a claimed item (`war done`): ticks its checkbox in the Warrant's checklist with who, when and an optional note, journals it, releases the claim.",
         annotations(read_only_hint = false)
     )]
     fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
@@ -1150,7 +1161,7 @@ impl WarServer {
 
     #[tool(
         name = "war_add",
-        description = "Append an item to a ticket's checklist (`war add`), optionally waiting on other items or tickets (`after`).",
+        description = "Append an item to a Warrant's checklist (`war add`), optionally waiting on other items or Warrants (`after`).",
         annotations(read_only_hint = false)
     )]
     fn war_add(&self, Parameters(p): Parameters<AddParams>) -> ToolResult {
@@ -1161,7 +1172,7 @@ impl WarServer {
 
     #[tool(
         name = "war_note",
-        description = "Append a dated note to a ticket (`war note`): the durable context the next agent or person reads in `war prime`.",
+        description = "Append a dated note to a Warrant (`war note`): the durable context the next agent or person reads in `war prime`.",
         annotations(read_only_hint = false)
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
