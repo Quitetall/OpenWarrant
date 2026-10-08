@@ -521,7 +521,7 @@ pub fn current_records(
                                 .is_ok_and(|stored| stored.binds(&current, &packets))
                                 && packets_cover(
                                     repo,
-                                    &one.alias(),
+                                    one,
                                     &current,
                                     &packets,
                                     std::slice::from_ref(&record.obligation),
@@ -568,7 +568,7 @@ pub use openwarrant_core::verification_record::ReviewedPacket;
 /// rebuild a packet after review: prior verdicts can legitimately have changed.
 pub(crate) fn packets_cover(
     repo: &Repository,
-    alias: &str,
+    one: &crate::repo::Loaded,
     reviewed: &ReviewedSubject,
     packets: &[ReviewedPacket],
     obligations: &[String],
@@ -577,7 +577,25 @@ pub(crate) fn packets_cover(
     if packets.is_empty() {
         return Ok(false);
     }
-    let directory = repo.relative(&repo.warrant_dir(alias)?.join("verifications"));
+    // Use the caller's captured contract, including the private Git-candidate
+    // tree at acceptance. Never reload task text from a newer working tree.
+    let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
+        return Ok(false);
+    };
+    let contract_digest = openwarrant_compiler::lower(basis, validated)
+        .and_then(|ir| ir.contract_digest())
+        .map_err(|e| RepoError::Message(e.to_string()))?;
+    if contract_digest != reviewed.contract_digest {
+        return Ok(false);
+    }
+    let alias = one.alias();
+    let directory = repo.relative(&one.dir.join("verifications"));
+    let mut expected = request_with_subject(repo, one, performer, reviewed.clone())?;
+    // Reference order is not meaning. Existing packets may retain declaration
+    // order; comparing sorted vectors still rejects omitted/extra/duplicate refs.
+    expected.inputs.artifact_refs.sort();
+    let expected_atoms = serde_json::to_value(crate::bundle::contract_atoms(basis))
+        .map_err(|e| RepoError::Message(e.to_string()))?;
     let mut covered = std::collections::BTreeSet::new();
     for reference in packets {
         // The existing canonical bundle digest is bare hexadecimal. Do not
@@ -625,7 +643,7 @@ pub(crate) fn packets_cover(
         {
             return Ok(false);
         }
-        let Some(request) = packet
+        let Some(mut request) = packet
             .get("request")
             .and_then(|v| serde_json::from_value::<VerificationRequest>(v.clone()).ok())
         else {
@@ -635,12 +653,26 @@ pub(crate) fn packets_cover(
             || request.warrant != alias
             || request.performer != performer
             || &request.reviewed_subject != reviewed
+            || request.assurance_level != expected.assurance_level
         {
             return Ok(false);
         }
-        let context_refs: Vec<_> = reviewed.context_sources.keys().cloned().collect();
-        if request.inputs.required_context_refs != context_refs {
+        request.inputs.artifact_refs.sort();
+        if request.inputs != expected.inputs || packet["atoms"] != expected_atoms {
             return Ok(false);
+        }
+        let mut ids = std::collections::BTreeSet::new();
+        if request
+            .obligations
+            .iter()
+            .any(|o| !ids.insert(&o.id) || !expected.obligations.contains(o))
+        {
+            return Ok(false);
+        }
+        match packet["scope"].as_str() {
+            Some("warrant") if request.obligations == expected.obligations => {}
+            Some("obligation") if request.obligations.len() == 1 => {}
+            _ => return Ok(false),
         }
         if !context::packet_sources_match(&packet, reviewed) {
             return Ok(false);
@@ -669,10 +701,21 @@ pub(crate) fn request_from_loaded(
     one: &crate::repo::Loaded,
     performer: &str,
 ) -> Result<VerificationRequest, RepoError> {
+    one.require(&repo.profiles, openwarrant_core::Capability::Verification)?;
+    request_with_subject(repo, one, performer, subject(repo, one)?)
+}
+
+/// Assemble task fields from the captured basis and subject, without another
+/// filesystem snapshot that could mix two revisions in one review request.
+fn request_with_subject(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    performer: &str,
+    reviewed_subject: ReviewedSubject,
+) -> Result<VerificationRequest, RepoError> {
     // OW-ADR-0031: a kind without `verification` asks no verifier anything.
     one.require(&repo.profiles, openwarrant_core::Capability::Verification)?;
     let alias = one.alias();
-    let dir = &one.dir;
     let assurance = one
         .validated
         .as_ref()
@@ -711,13 +754,12 @@ pub(crate) fn request_from_loaded(
         .as_ref()
         .map(|b| b.atoms.iter().map(|a| a.source.clone()).collect())
         .unwrap_or_default();
-    for deliverable in repo.load_deliverables(dir)?.records {
-        if !artifact_refs.contains(&deliverable.target_ref) {
-            artifact_refs.push(deliverable.target_ref);
+    for reference in reviewed_subject.artifacts.keys() {
+        if !artifact_refs.contains(reference) {
+            artifact_refs.push(reference.clone());
         }
     }
 
-    let reviewed_subject = subject(repo, one)?;
     let required_context_refs = reviewed_subject.context_sources.keys().cloned().collect();
     Ok(VerificationRequest {
         schema: REQUEST_SCHEMA.to_owned(),
@@ -900,7 +942,7 @@ pub fn ingest(
             for v in &response.verifications {
                 if !packets_cover(
                     repo,
-                    alias,
+                    &one,
                     reviewed,
                     &response.reviewed_packets,
                     &ids,

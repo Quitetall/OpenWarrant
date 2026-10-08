@@ -81,6 +81,20 @@ pub struct BundledAtom {
     pub text: String,
 }
 
+/// Exact contract atoms, shared by packet construction and retained review checks.
+pub(crate) fn contract_atoms(basis: &openwarrant_compiler::CompilationBasis) -> Vec<BundledAtom> {
+    basis
+        .atoms
+        .iter()
+        .map(|a| BundledAtom {
+            path: a.source.clone(),
+            role: a.role.clone(),
+            sha256: sha256_hex(&a.bytes),
+            text: String::from_utf8_lossy(&a.bytes).into_owned(),
+        })
+        .collect()
+}
+
 /// Consecutive lines of a file, numbered from 1, exactly as in the file.
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct Excerpt {
@@ -705,17 +719,7 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
         .flatten()
         .map(|a| a.revision.contract_digest)
         .unwrap_or_default();
-    let mut atoms = Vec::new();
-    if let Some(basis) = &one.basis {
-        for a in &basis.atoms {
-            atoms.push(BundledAtom {
-                path: a.source.clone(),
-                role: a.role.clone(),
-                sha256: sha256_hex(&a.bytes),
-                text: String::from_utf8_lossy(&a.bytes).into_owned(),
-            });
-        }
-    }
+    let atoms = one.basis.as_ref().map(contract_atoms).unwrap_or_default();
     let files: Vec<File> = repo
         .load_deliverables(&dir)
         .map(|set| {
