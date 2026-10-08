@@ -203,7 +203,8 @@ omission, replacement and duplication through the public CLI, followed by exact
 restoration. `84-review-source-closure.sh` plants a rehashed missing fixture,
 requires `verify.packet-binding` without record/journal writes, then restores
 the original packet. The old executable fails the plant by accepting the
-incomplete packet. Corrected-build validation is pending. This control does not
+incomplete packet. The corrected build passes the plant and all 37 targeted
+CLI controls; full-gate and independent qualification remain pending. This control does not
 authenticate the verifier, freeze a hostile same-account workspace, guarantee
 complete transitive task context or qualify a production Warrant.
 
