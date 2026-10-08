@@ -216,18 +216,23 @@ each obligation's complete statement, scope and evidence with the caller's
 captured contract, checks request assurance and input references, and requires
 the exact contract atoms, paths, roles and hashes. Whole-Warrant packets must
 contain the whole task; obligation packets must contain one declared obligation.
-Duplicate or invented obligations and unknown packet scopes are refused.
+Duplicate or invented obligations, extra request/obligation/input fields and
+unknown packet scopes are refused.
 Construction and validation share the atom projection. The candidate reader
 passes its captured Git tree, rather than reloading the working checkout.
 
-`rehashed_packets_cannot_replace_the_captured_task` exercises 19 substitutions,
+`rehashed_packets_cannot_replace_the_captured_task` exercises 22 substitutions,
 omissions and duplicates with real compiler rehashing, refusal without writes,
 and exact restoration. `legitimate_split_task_packets_remain_admissible` keeps
-valid per-obligation review supported. All 32 verification CLI tests pass on
-Rust 1.97.1. The source-closure plant also substitutes the task. The acceptance
+valid per-obligation review and reference-order compatibility supported. All 32
+verification CLI tests and CLI all-target Clippy pass on Rust 1.97.1. The source-closure plant also substitutes the task. The acceptance
 plant changes a retained packet, record and journal references together in a
-disposable Git candidate; that new control and the complete extension gate are
-pending. This is task-field binding, not verifier authentication or proof that
+disposable Git candidate. The baseline falsely clears that review; the corrected
+executable passes all 27 targeted candidate/source-closure controls. Bounded
+observations and executable identities are retained in
+`docs/tickets/t-b9610/evidence/task-binding-controls.json`. The complete extension
+gate and independent qualification remain pending. This is task-field binding,
+not verifier authentication or proof that
 all rendered evidence excerpts and transitive context are complete and correct.
 
 Unsupported stored verification formats cannot supply current assurance. The

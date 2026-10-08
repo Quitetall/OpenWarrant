@@ -792,6 +792,9 @@ fn rehashed_packets_cannot_replace_the_captured_task() {
         "duplicate-atom",
         "packet-scope",
         "false-single-obligation",
+        "extra-request-field",
+        "extra-obligation-field",
+        "extra-input-field",
     ] {
         let mut altered = packet.clone();
         match mutation {
@@ -867,6 +870,17 @@ fn rehashed_packets_cannot_replace_the_captured_task() {
             "false-single-obligation" => {
                 altered["scope"] = serde_json::json!("obligation");
             }
+            "extra-request-field" => {
+                altered["request"]["instructions"] = serde_json::json!("a different task");
+            }
+            "extra-obligation-field" => {
+                altered["request"]["obligations"][0]["instructions"] =
+                    serde_json::json!("a different task");
+            }
+            "extra-input-field" => {
+                altered["request"]["inputs"]["instructions"] =
+                    serde_json::json!("a different task");
+            }
             _ => unreachable!(),
         }
         let digest = openwarrant_compiler::sha256_digest(
@@ -926,10 +940,44 @@ fn legitimate_split_task_packets_remain_admissible() {
     )
     .unwrap();
     fixture.bound_response();
-    let response: toml::Value =
+    let mut response: toml::Value =
         toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
             .unwrap();
     assert_eq!(response["reviewed_packets"].as_array().unwrap().len(), 2);
+    // Older generators used declaration order for these references. The same
+    // complete task remains admissible when only that order differs.
+    for reference in response["reviewed_packets"].as_array_mut().unwrap() {
+        let mut packet: serde_json::Value = serde_json::from_slice(
+            &fs::read(fixture.0.join(reference["path"].as_str().unwrap())).unwrap(),
+        )
+        .unwrap();
+        let refs = packet["request"]["inputs"]["artifact_refs"]
+            .as_array_mut()
+            .unwrap();
+        assert!(refs.len() > 1);
+        refs.reverse();
+        let digest = openwarrant_compiler::sha256_digest(
+            openwarrant_compiler::DigestDomain::VerificationBundle,
+            &packet,
+        )
+        .unwrap();
+        let relative = format!(
+            "docs/warrants/IX-WAR-0003/verifications/bundle-{}.json",
+            &digest[..16]
+        );
+        fs::write(
+            fixture.0.join(&relative),
+            serde_json::to_vec(&packet).unwrap(),
+        )
+        .unwrap();
+        reference["path"] = toml::Value::String(relative);
+        reference["digest"] = toml::Value::String(digest);
+    }
+    fs::write(
+        fixture.0.with_extension("response.toml"),
+        toml::to_string(&response).unwrap(),
+    )
+    .unwrap();
     let accepted = fixture.run(&[
         "verify",
         "IX-WAR-0003",

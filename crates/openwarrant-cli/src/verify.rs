@@ -649,6 +649,13 @@ pub(crate) fn packets_cover(
         else {
             return Ok(false);
         };
+        // Do not silently discard an extra instruction-bearing field while
+        // validating the task that the verifier actually received.
+        if serde_json::to_value(&request).map_err(|e| RepoError::Message(e.to_string()))?
+            != packet["request"]
+        {
+            return Ok(false);
+        }
         if request.schema != REQUEST_SCHEMA
             || request.warrant != alias
             || request.performer != performer

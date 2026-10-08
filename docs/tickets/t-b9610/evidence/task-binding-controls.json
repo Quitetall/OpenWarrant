@@ -1,0 +1,35 @@
+{
+  "schema": "oh.war/bounded-observation/v1",
+  "observed_at": "2026-10-08T22:48:02.751356+00:00",
+  "scope": "Synthetic disposable CLI and Git-candidate task-binding controls only; not production assurance",
+  "baseline": {
+    "binary_sha256": "7a42ebbbb3bcc00702bac5d1ce400f03687733be94fe96e799c6c2627984d65a",
+    "candidate_observation": "FAIL  a substituted task cannot clear review setup 0; exit 0: PASS acceptance.unchanged               AV-WAR-0001: unchanged at 65d99c0844f0 since cf9b6542a528 (re-verified) \u2014 0 path(s) moved, none in scope (inputs: src/**)|",
+    "transport_observation": "Weaker obligation accepted; both synthetic verdicts recorded",
+    "plants_passed": 25,
+    "plants_failed": 2
+  },
+  "corrected": {
+    "binary_sha256": "d790c823dde5e39985f2ef7676f5f53d7f6a2cad2cee7b99f0b31a9a62761f6d",
+    "rust": "1.97.1",
+    "cli_tests_passed": 32,
+    "task_mutation_cases": 22,
+    "plants_passed": 27,
+    "plants_failed": 0,
+    "candidate_observation": "ok    a substituted task cannot clear review packet, record and event identities agree; captured contract differs",
+    "clippy": "CLI all-targets, -D warnings: PASS",
+    "source_sha256": {
+      "crates/openwarrant-cli/src/verify.rs": "2f16e23cc445aafe855004f7697b5cfbc8898cb4ea02b9afe1d6493bf94f726f",
+      "crates/openwarrant-cli/src/acceptance.rs": "19e9c179c68c90f9e50f213c0322c90fb1debf7a1994e9349537221f44ec23e0",
+      "crates/openwarrant-cli/src/bundle.rs": "4cda91223caec194e5b4d561f9ddd271e780a5b5f4f0167460be1fc61a8595c2",
+      "crates/openwarrant-cli/tests/verification_subject_cli.rs": "1784912a58e05d48932db70cffea3dc6c22cfa42f66ae73ed1d23fdfb62cfeac"
+    }
+  },
+  "not_established": [
+    "complete extension gate",
+    "independent qualification",
+    "all rendered evidence and transitive context closure",
+    "hostile same-account custody/race protection",
+    "live Warrant acceptance"
+  ]
+}
