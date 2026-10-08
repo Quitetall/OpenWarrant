@@ -1,10 +1,25 @@
 # OW-WAR-0148: proposed path amendment
 
-**Draft only.** Revision 1 remains authoritative. This directory proposes a
-revision; it does not authorize one, qualify the implementations or resolve the
+## Current repair route: restore the signed paths
+
+The implementation repair moves the three real files to the existing signed
+paths instead. Their bytes remain unchanged, and Rust's `states` module keeps
+its public name through `#[path = "state_cmd.rs"]`. No wrapper or empty file
+stands in for an implementation. The authorization, delivery declarations,
+work order and assurance scopes remain unchanged; Git records the renames.
+Fresh compilation and the relevant checks are still required before merge.
+
+The analysis and patch below are retained as an **unused alternative**. They
+describe the earlier inspected commit, not a pending authority act. Do not
+apply the patch as part of the restoration. An amendment is required only if
+the delivery declarations are changed; restoring the implementations to the
+already authorized paths does not make that change.
+
+**Unused draft only.** Revision 1 remains authoritative. The retained alternative
+proposes a revision; it does not authorize one, qualify the implementations or resolve the
 Warrant. No signed record, active atom or delivery declaration was changed.
 
-## What needs to change
+## What the alternative amendment would change
 
 Three required deliverables name planned paths that do not exist. The actual
 implementations are committed under these names:
@@ -30,7 +45,7 @@ authorization bytes, current authored sources, proposed source bytes and
 actual implementation bytes. These are SHA-256 observations for this review,
 not a new protocol digest domain or proof of independent verification.
 
-## Why an amendment is needed
+## Why changing the declarations would need an amendment
 
 The delivery set is part of authorization. Changing its paths changes what the
 authorization covers, even when the intended implementation is the same.
