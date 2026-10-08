@@ -319,9 +319,11 @@ impl Captured {
 
     pub(crate) fn matches(&self, packet: &Value) -> Result<bool, RepoError> {
         let src = &self.0;
-        if packet["authorized_contract_digest"] != src.authorized_contract_digest
-            || packet["plants"] != value(&src.plants)?
-        {
+        // Authorization is independently checked from signed records. This
+        // optional display describes packet creation, not the current trust
+        // state: a review captured before authorization must survive signing
+        // that same contract (55-evidence-signing.sh).
+        if packet["plants"] != value(&src.plants)? {
             return Ok(false);
         }
         let Some(raw_files) = packet["deliverables"].as_array() else {

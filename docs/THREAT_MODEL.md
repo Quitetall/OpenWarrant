@@ -256,6 +256,10 @@ record and journal identities. These are synthetic controls, not production
 verification. Full gates and independent qualification must be observed separately.
 This does not authenticate reviewers, establish complete transitive context,
 validate every historical assertion, or contain a hostile same-account writer.
+In particular, the optional authorization pointer describes packet creation;
+current authorization is checked from signed records. Signing the unchanged
+contract must not invalidate a review captured before that authorization.
+`55-evidence-signing.sh` exercises this transition and subsequent resolution.
 
 Unsupported stored verification formats cannot supply current assurance. The
 shared SDK decoder keeps an unsupported schema distinct from malformed supported
