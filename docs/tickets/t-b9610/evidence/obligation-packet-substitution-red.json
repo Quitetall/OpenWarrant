@@ -1,0 +1,49 @@
+{
+  "fixture": "/mnt/4tb/development/tmp/ow-required-source-probe-se0nvui0",
+  "baseline_binary_sha256": "7a42ebbbb3bcc00702bac5d1ce400f03687733be94fe96e799c6c2627984d65a",
+  "original_digest_reproduced": true,
+  "altered_request": "first obligation statement replaced without changing its reviewed subject",
+  "original_packet": {
+    "path": "docs/warrants/IX-WAR-0003/verifications/bundle-bac1f0cef12a0dd6.json",
+    "digest": "bac1f0cef12a0dd6597ff155a6994ecebc2452dd8608f9c191e4e7d63c025719"
+  },
+  "mutated_packet": {
+    "path": "docs/warrants/IX-WAR-0003/verifications/bundle-13dbd6ffe0d5135a.json",
+    "digest": "13dbd6ffe0d5135af45a1d6e658d3d7e44d49836a2dd31ce76239057498d8b43"
+  },
+  "ingest": {
+    "schema": "oh.war/report/v1",
+    "command": "verify",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "verify.recorded",
+        "file": null,
+        "message": "OBL-001: established by fixture-independent-verifier"
+      },
+      {
+        "severity": "pass",
+        "rule": "verify.recorded",
+        "file": null,
+        "message": "OBL-002: established by fixture-independent-verifier"
+      }
+    ],
+    "notes": [
+      "2 verification(s) recorded, 0 refused. A refused verdict is not written to disk at all \u2014 recording it would let an inadmissible verdict read as a verification on the next run."
+    ],
+    "counts": {
+      "pass": 2,
+      "warn": 0,
+      "unknown": 0,
+      "error": 0,
+      "worst": "pass"
+    },
+    "verdict": "well_formed",
+    "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+    "exit_code": 0
+  },
+  "verdict_files_written": [
+    true,
+    true
+  ]
+}
