@@ -1019,7 +1019,6 @@ mod tests {
         }
 
         struct Fixture {
-            source: PathBuf,
             root: Utf8PathBuf,
             scratch: PathBuf,
         }
@@ -1031,6 +1030,11 @@ mod tests {
                     .and_then(Path::parent)
                     .expect("workspace root")
                     .to_owned();
+                Self::from_source(&source)
+            }
+
+            fn from_source(source: &Path) -> Self {
+                let source = source.to_owned();
                 let unique = format!(
                     "openwarrant-bonsai-qualification-{}-{}",
                     std::process::id(),
@@ -1039,16 +1043,22 @@ mod tests {
                 let scratch = std::env::temp_dir().join(unique);
                 let root = scratch.join("worktree");
                 fs::create_dir_all(&scratch).expect("fixture directory");
+                // Git worktrees share refs and configuration. Keep only the
+                // object store shared read-only; each fixture owns its refs,
+                // remote URL, index and worktree registration independently.
+                let head = git_output(&source, &["rev-parse", "HEAD"]);
                 run_git(
                     &source,
                     &[
-                        "worktree",
-                        "add",
-                        "--detach",
+                        "clone",
+                        "--quiet",
+                        "--shared",
+                        "--no-checkout",
+                        source.to_str().expect("UTF-8 source"),
                         root.to_str().expect("UTF-8 path"),
-                        "HEAD",
                     ],
                 );
+                run_git(&root, &["checkout", "--quiet", "--detach", &head]);
                 run_git(
                     &root,
                     &[
@@ -1061,7 +1071,6 @@ mod tests {
                 let base = git_output(&root, &["rev-parse", "HEAD"]);
                 run_git(&root, &["update-ref", "refs/remotes/origin/main", &base]);
                 Self {
-                    source,
                     root: Utf8PathBuf::from_path_buf(root).expect("UTF-8 path"),
                     scratch,
                 }
@@ -1134,12 +1143,6 @@ mod tests {
 
         impl Drop for Fixture {
             fn drop(&mut self) {
-                let root = self.root.as_str();
-                let _ = Command::new("git")
-                    .arg("-C")
-                    .arg(&self.source)
-                    .args(["worktree", "remove", "--force", root])
-                    .status();
                 let _ = fs::remove_dir_all(&self.scratch);
             }
         }
@@ -1171,6 +1174,81 @@ mod tests {
                 .expect("UTF-8 git output")
                 .trim()
                 .to_owned()
+        }
+
+        #[test]
+        fn qualification_scope_is_independent_of_another_fixtures_git_refs() {
+            // The parent is disposable too: the failing implementation shares
+            // refs, so this control must never mutate the real repository.
+            struct Parent(PathBuf);
+            impl Drop for Parent {
+                fn drop(&mut self) {
+                    let _ = fs::remove_dir_all(&self.0);
+                }
+            }
+            let parent = Parent(std::env::temp_dir().join(format!(
+                "openwarrant-bonsai-source-{}-{}",
+                std::process::id(),
+                FIXTURE_COUNTER.fetch_add(1, Ordering::Relaxed)
+            )));
+            fs::create_dir_all(&parent.0).expect("isolated source parent");
+            let source = parent.0.join("source");
+            let original = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .and_then(Path::parent)
+                .expect("workspace root")
+                .to_owned();
+            run_git(
+                &original,
+                &[
+                    "clone",
+                    "--quiet",
+                    "--shared",
+                    original.to_str().unwrap(),
+                    source.to_str().unwrap(),
+                ],
+            );
+            let earlier = git_output(&source, &["rev-parse", "HEAD"]);
+            fs::write(source.join("foreign-branch.txt"), "earlier change\n").unwrap();
+            run_git(&source, &["add", "foreign-branch.txt"]);
+            run_git(
+                &source,
+                &[
+                    "-c",
+                    "user.name=Fixture",
+                    "-c",
+                    "user.email=fixture@example.invalid",
+                    "commit",
+                    "-m",
+                    "earlier fixture revision",
+                ],
+            );
+            let own = Fixture::from_source(&source);
+            own.commit("outside-warrant.txt", "own change\n");
+            let other = Fixture::from_source(&source);
+            // A builder on an older revision publishes its own fixture base.
+            run_git(
+                other.root.as_std_path(),
+                &["update-ref", "refs/remotes/origin/main", &earlier],
+            );
+            let evidence = check(
+                &own.repo(),
+                "OW-WAR-0050",
+                &own.base(),
+                &own.head(),
+                Utf8Path::new(own.bonsai(BonsaiOutput::Clean).as_str()),
+            )
+            .expect("scope check after another fixture changes its base");
+            assert_eq!(evidence.verdict, EvidenceVerdict::Fail);
+            assert_eq!(
+                evidence
+                    .scope_findings
+                    .iter()
+                    .map(|f| f.path.as_str())
+                    .collect::<Vec<_>>(),
+                ["outside-warrant.txt"],
+                "another fixture's commit must not appear in this candidate's evidence"
+            );
         }
 
         #[test]

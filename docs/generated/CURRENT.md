@@ -29308,7 +29308,7 @@ and human administrator confirmation of GitHub settings.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Warrant-bound Bonsai evidence adapter | `crates/openwarrant-cli/src/bonsai.rs` | verified |
+| D-001 | Warrant-bound Bonsai evidence adapter | `crates/openwarrant-cli/src/bonsai.rs` | drift |
 | D-002 | Machine scope bound into the compilation basis | `bonsai.toml` | verified |
 
 #### OW-WAR-0059 — Commit gate receipts as evidence and record the first resolutions
