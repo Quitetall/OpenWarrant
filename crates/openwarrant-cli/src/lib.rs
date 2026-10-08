@@ -89,6 +89,7 @@ pub mod sdk;
 pub mod show;
 pub mod sign;
 pub mod standing_cmd;
+#[path = "state_cmd.rs"]
 pub mod states;
 pub mod status;
 pub mod telemetry;

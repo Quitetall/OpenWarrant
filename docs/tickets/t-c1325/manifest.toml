@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-c1325` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-c1325"
+uuid = "01a11d70-280a-715d-820c-02db8ce18ccc"
+title = "Keep typed-document compile output inside the JSON envelope"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-08T21:34:11Z"
+created_by = "codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

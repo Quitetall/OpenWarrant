@@ -2,7 +2,7 @@
 //! `--json` (SAS §76.4): every envelope has the frozen keys, the exit code in
 //! the envelope equals the process's, and stdout is exactly one JSON value.
 //!
-//! Runs the shipped binary against the repository's own corpus, read-only.
+//! Reads the repository's own corpus; compilation writes only disposable fixtures.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -142,6 +142,12 @@ fn compile_emits_one_envelope_and_reports_skipped_warrants() {
         &repo_root().join("conformance/fixtures/inbox/repository"),
         &root,
     );
+    // Typed document projections must obey the same one-envelope transport as
+    // Warrant projections. The old inbox-only fixture never exercised them.
+    copy(&repo_root().join("profiles"), &root.join("profiles"));
+    let documents = root.join("docs/records/password-reset");
+    copy(&repo_root().join("docs/records/password-reset"), &documents);
+    std::fs::remove_dir_all(documents.join("generated")).unwrap();
     let out = Command::new(env!("CARGO_BIN_EXE_war"))
         .args(["compile", "--json"])
         .current_dir(&root)
@@ -158,6 +164,20 @@ fn compile_emits_one_envelope_and_reports_skipped_warrants() {
     assert!(out.stderr.is_empty(), "machine mode leaked terminal output");
     assert!(v["result"]["written"].as_u64().unwrap() > 0);
     assert!(v["result"]["skipped"].as_array().is_some());
+    for name in ["prd", "architecture", "test-plan", "agent-packet"] {
+        assert!(documents.join(format!("generated/{name}.md")).is_file());
+    }
+    let human = Command::new(env!("CARGO_BIN_EXE_war"))
+        .arg("compile")
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(human.status.success());
+    assert!(
+        String::from_utf8_lossy(&human.stdout)
+            .contains("compiled docs/records/password-reset/generated/prd.md"),
+        "terminal users still receive document progress"
+    );
     // A valid config with an invalid authored Warrant must disclose the skip.
     let manifest = root.join("docs/warrants/IX-WAR-0001/manifest.toml");
     assert!(manifest.exists());

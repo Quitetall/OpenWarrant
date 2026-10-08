@@ -642,34 +642,8 @@ pub(crate) fn packets_cover(
         if request.inputs.required_context_refs != context_refs {
             return Ok(false);
         }
-        for (path, digest) in &reviewed.context_sources {
-            let Some(sources) = packet["required_sources"].as_array() else {
-                return Ok(false);
-            };
-            let matching: Vec<_> = sources
-                .iter()
-                .filter(|source| source["path"] == *path)
-                .collect();
-            let [source] = matching.as_slice() else {
-                return Ok(false);
-            };
-            let contents = match (source["text"].as_str(), source.get("bytes")) {
-                (Some(text), None) => text.as_bytes().to_vec(),
-                (None, Some(bytes)) => {
-                    let Ok(bytes) = serde_json::from_value::<Vec<u8>>(bytes.clone()) else {
-                        return Ok(false);
-                    };
-                    bytes
-                }
-                _ => return Ok(false),
-            };
-            if source["present"] != true
-                || source["kind"] != "governing-sas"
-                || source["sha256"] != *digest
-                || bytes_digest(&contents) != *digest
-            {
-                return Ok(false);
-            }
+        if !context::packet_sources_match(&packet, reviewed) {
+            return Ok(false);
         }
         covered.extend(request.obligations.into_iter().map(|o| o.id));
     }

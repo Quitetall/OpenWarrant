@@ -752,6 +752,109 @@ fn offline_bundle_carries_exact_gate_and_fixture_sources() {
 }
 
 #[test]
+fn rehashed_packets_cannot_omit_or_replace_required_review_sources() {
+    let fixture = Fixture::new();
+    let gates = fixture.0.join("docs/gates");
+    fs::create_dir_all(&gates).unwrap();
+    let gate = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap()
+        + "\nfixtures: [\"fixtures/required.bin\"]\n";
+    fs::write(gates.join("software.repo.war-check@1.0.0.yaml"), gate).unwrap();
+    fs::create_dir_all(fixture.0.join("fixtures")).unwrap();
+    fs::write(fixture.0.join("fixtures/required.bin"), [0, 255, 13, 10]).unwrap();
+    fixture.bound_response();
+    let response_path = fixture.0.with_extension("response.toml");
+    let original_response = fs::read_to_string(&response_path).unwrap();
+    let response: toml::Value = toml::from_str(&original_response).unwrap();
+    assert_eq!(response["reviewed_packets"].as_array().unwrap().len(), 1);
+    let packet_path = fixture
+        .0
+        .join(response["reviewed_packets"][0]["path"].as_str().unwrap());
+    let packet: serde_json::Value =
+        serde_json::from_slice(&fs::read(packet_path).unwrap()).unwrap();
+    let snapshot = || {
+        [
+            "verifications/OBL-001.toml",
+            "verifications/OBL-002.toml",
+            "journal.jsonl",
+        ]
+        .map(|path| fs::read(fixture.0.join("docs/warrants/IX-WAR-0003").join(path)).ok())
+    };
+    let before = snapshot();
+    for (kind, mutation) in [
+        ("fixture", "omit"),
+        ("fixture", "replace"),
+        ("fixture", "duplicate"),
+        ("gate-definition", "omit"),
+        ("gate-definition", "replace"),
+        ("gate-definition", "duplicate"),
+    ] {
+        let mut altered = packet.clone();
+        let sources = altered["required_sources"].as_array_mut().unwrap();
+        let index = sources.iter().position(|s| s["kind"] == kind).unwrap();
+        match mutation {
+            "omit" => {
+                sources.remove(index);
+            }
+            "replace" => {
+                sources[index].as_object_mut().unwrap().remove("bytes");
+                sources[index]["text"] = serde_json::json!("substituted review input");
+            }
+            "duplicate" => sources.push(sources[index].clone()),
+            _ => unreachable!(),
+        }
+        // Rehash the altered packet with the real canonical implementation:
+        // checking only its new identity would accept this incomplete context.
+        let digest = openwarrant_compiler::sha256_digest(
+            openwarrant_compiler::DigestDomain::VerificationBundle,
+            &altered,
+        )
+        .unwrap();
+        let relative = format!(
+            "docs/warrants/IX-WAR-0003/verifications/bundle-{}.json",
+            &digest[..16]
+        );
+        fs::write(
+            fixture.0.join(&relative),
+            serde_json::to_vec(&altered).unwrap(),
+        )
+        .unwrap();
+        let mut changed_response = response.clone();
+        changed_response["reviewed_packets"][0]["path"] = toml::Value::String(relative);
+        changed_response["reviewed_packets"][0]["digest"] = toml::Value::String(digest);
+        fs::write(&response_path, toml::to_string(&changed_response).unwrap()).unwrap();
+        let refused = fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--response",
+            "response.toml",
+            "--json",
+        ]);
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.packet-binding"),
+            "{kind} {mutation}: {refused}"
+        );
+        assert_eq!(snapshot(), before, "{kind} {mutation}");
+    }
+    fs::write(response_path, original_response).unwrap();
+    let accepted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+}
+
+#[test]
 fn changed_declared_gate_input_refuses_old_review_without_writes() {
     let fixture = Fixture::new();
     fs::create_dir_all(fixture.0.join("docs/gates")).unwrap();
