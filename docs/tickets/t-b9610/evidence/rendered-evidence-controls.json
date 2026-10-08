@@ -1,0 +1,38 @@
+{
+  "schema": "oh.war/bounded-observation/v1",
+  "observed_at": "2026-10-08T23:09:52.135863+00:00",
+  "scope": "Synthetic disposable CLI and Git-candidate rendered-evidence controls only; not production assurance",
+  "baseline": {
+    "binary_sha256": "d790c823dde5e39985f2ef7676f5f53d7f6a2cad2cee7b99f0b31a9a62761f6d",
+    "plants_passed": 26,
+    "plants_failed": 3,
+    "observations": [
+      "FAIL  substituted deliverable cannot clear review setup 0; exit 0: PASS acceptance.unchanged               AV-WAR-0001: unchanged at 40c434d726e8 since 2984e0c9ecc5 (re-verified) \u2014 0 path(s) moved, none in scope (inputs: src/**)|",
+      "FAIL  substituted stdout cannot clear review setup 0; exit 0: PASS acceptance.unchanged               AV-WAR-0001: unchanged at f11db340cc88 since 2984e0c9ecc5 (re-verified) \u2014 0 path(s) moved, none in scope (inputs: src/**)|",
+      "FAIL  required review source closure     public CLI closure control failed (1)"
+    ]
+  },
+  "corrected": {
+    "binary_sha256": "6211222d53129ec608f7984ac09dcd7c24160d39c655b6f9cfaa63b5c4c4c0b7",
+    "rust": "1.97.1",
+    "verification_cli_tests_passed": 33,
+    "bundle_unit_tests_passed": 12,
+    "rendered_mutation_cases": 24,
+    "plants_passed": 29,
+    "plants_failed": 0,
+    "clippy": "CLI all-targets -D warnings: PASS",
+    "source_sha256": {
+      "crates/openwarrant-cli/src/verify.rs": "e9ec8edf7b4e7642e7372d128a817a21079fb95311f687dd01ce7fa3d40fa60b",
+      "crates/openwarrant-cli/src/bundle.rs": "96b324208d063457219ff48f6b36d4636ba50de7fba5205e7adde60a20a3e091",
+      "crates/openwarrant-cli/src/bundle/rendered.rs": "7c6be8e780de49f3157060762db8dfe03a909f5848ae8fcd9c82c7b845acc10b",
+      "crates/openwarrant-cli/tests/verification_subject_cli.rs": "689a460ea95f71748df5596f414756d07acf75351229f0b308408a5f0f104857"
+    }
+  },
+  "not_established": [
+    "full extension gate",
+    "independent qualification",
+    "all historical assertions or transitive context closure",
+    "hostile same-account custody/race protection",
+    "live Warrant acceptance"
+  ]
+}

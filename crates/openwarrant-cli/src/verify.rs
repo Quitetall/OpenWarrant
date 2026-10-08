@@ -597,6 +597,7 @@ pub(crate) fn packets_cover(
     let expected_atoms = serde_json::to_value(crate::bundle::contract_atoms(basis))
         .map_err(|e| RepoError::Message(e.to_string()))?;
     let mut covered = std::collections::BTreeSet::new();
+    let mut captured = None;
     for reference in packets {
         // The existing canonical bundle digest is bare hexadecimal. Do not
         // introduce a prefix or another preimage representation here.
@@ -682,6 +683,17 @@ pub(crate) fn packets_cover(
             _ => return Ok(false),
         }
         if !context::packet_sources_match(&packet, reviewed) {
+            return Ok(false);
+        }
+        let captured = match &captured {
+            Some(captured) => captured,
+            None => captured.insert(crate::bundle::rendered::Captured::new(
+                repo,
+                one,
+                expected.clone(),
+            )?),
+        };
+        if !captured.matches(&packet)? {
             return Ok(false);
         }
         covered.extend(request.obligations.into_iter().map(|o| o.id));

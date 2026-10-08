@@ -235,6 +235,28 @@ gate and independent qualification remain pending. This is task-field binding,
 not verifier authentication or proof that
 all rendered evidence excerpts and transitive context are complete and correct.
 
+A third disposable probe retained the actual source digest but replaced the
+code shown in `deliverables[].text`. The baseline accepted both synthetic
+verdicts. Rendered-evidence validation now compares delivered metadata and text
+with captured file bytes, checks real prefix/excerpt cuts and their line numbers,
+and checks each gate run, receipt, stdout and stderr against captured evidence.
+Gate assembly uses the already captured evidence sources instead of reading a
+second stream snapshot. One captured evidence set serves all packets in a review.
+Plant snippets, deliverable selection and derived evidence pointers must also
+match that set. Rehashing a substituted display does not establish that match.
+
+The public CLI mutation test exercises 24 code, gate-output, plant and evidence
+pointer substitutions, omissions, duplicates and extra fields; each must refuse
+without verdict/journal writes, and exact restoration must work. Unit controls
+cover every byte cut of representative UTF-8, binary and ASCII heads/tails,
+including replacement characters at a cut, plus excerpt positions and repetition.
+The source-closure and Git-candidate plants also substitute rendered code; the
+candidate plant separately substitutes stdout while preserving consistent packet,
+record and journal identities. These are synthetic controls, not production
+verification. Full gates and independent qualification must be observed separately.
+This does not authenticate reviewers, establish complete transitive context,
+validate every historical assertion, or contain a hostile same-account writer.
+
 Unsupported stored verification formats cannot supply current assurance. The
 shared SDK decoder keeps an unsupported schema distinct from malformed supported
 data. Repository observation reports the unsupported schema as `UNKNOWN`; packet
