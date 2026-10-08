@@ -933,7 +933,9 @@ pub fn run(
                 atomic::write_if(&path, &contents, &before)?;
                 written += 1;
             }
-            println!("compiled {}", repo.relative(&path));
+            if human {
+                println!("compiled {}", repo.relative(&path));
+            }
         }
         let mut projections = vec![
             warrant_overview_with(&shared)?,
