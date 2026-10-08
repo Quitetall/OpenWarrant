@@ -5,3 +5,4 @@ Getting a Warrant ready for the owner's one sitting is a multi-step procedure an
 ## Notes
 
 - **2026-09-26 15:21 UTC, claude:** i-2644 (run it over the wave) is left open on purpose: the owner runs war prepare over the real corpus after merge (the implementer was told not to). Suggested: war prepare --all --dry-run first to see the plan; then war prepare --all --jobs 4 from a clean tree with a git identity; the commit it makes before evidence has commit signing off.
+- **2026-10-08 21:32 UTC, codex:** OW-WAR-0148 preparation refuses three planned filenames. Exact unapplied reconciliation proposal and hashes: docs/design/ow148-path-amendment. Existing implementations are states.rs, 77-ticket-features.sh, 78-typed-demo.sh. Keep revision 1 immutable; new authorization is not ready (sign.nothing-pending on unchanged corpus). No actual corpus sweep or paid verifier run performed.
