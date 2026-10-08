@@ -186,6 +186,27 @@ control storage. This draft grants no authority and qualifies no live Warrant.
 
 ### Experimental stored-review boundary (OW-ADR-0030)
 
+A packet can have a correct canonical digest while omitting required review
+inputs. A disposable public CLI probe removed a required binary fixture,
+recomputed the packet identity and observed both synthetic verdicts accepted.
+Canonical identity alone was therefore insufficient evidence of context closure.
+
+The proposed ingestion control checks every required SAS source, fixture and
+gate-evidence source against the reviewed subject's exact digest, and checks
+each gate definition's bytes and gate identity. Missing or substituted sources,
+duplicate paths, duplicate gate identities and unbound extra sources cannot
+supply current verification. Explicitly missing inputs remain missing; this
+control does not turn their absence into successful execution evidence.
+
+`rehashed_packets_cannot_omit_or_replace_required_review_sources` exercises
+omission, replacement and duplication through the public CLI, followed by exact
+restoration. `84-review-source-closure.sh` plants a rehashed missing fixture,
+requires `verify.packet-binding` without record/journal writes, then restores
+the original packet. The old executable fails the plant by accepting the
+incomplete packet. Corrected-build validation is pending. This control does not
+authenticate the verifier, freeze a hostile same-account workspace, guarantee
+complete transitive task context or qualify a production Warrant.
+
 Unsupported stored verification formats cannot supply current assurance. The
 shared SDK decoder keeps an unsupported schema distinct from malformed supported
 data. Repository observation reports the unsupported schema as `UNKNOWN`; packet

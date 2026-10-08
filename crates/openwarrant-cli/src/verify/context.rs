@@ -5,6 +5,100 @@ use std::collections::BTreeMap;
 
 use crate::repo::{Loaded, RepoError, Repository};
 
+/// A packet identity binds the bytes supplied, not their completeness. Check
+/// every exact review source against the subject before accepting a verdict.
+/// This reads only the retained packet, never substitutes newer workspace data.
+pub(crate) fn packet_sources_match(
+    packet: &serde_json::Value,
+    subject: &crate::verify::ReviewedSubject,
+) -> bool {
+    let Some(sources) = packet["required_sources"].as_array() else {
+        return false;
+    };
+    let mut paths = std::collections::BTreeSet::new();
+    if sources.iter().any(|source| {
+        source["path"]
+            .as_str()
+            .is_none_or(|path| !paths.insert(path))
+    }) {
+        return false;
+    }
+    let mut checked = std::collections::BTreeSet::new();
+    for (kind, expected) in [
+        ("governing-sas", &subject.context_sources),
+        ("fixture", &subject.fixtures),
+        ("gate-evidence", &subject.gate_evidence),
+    ] {
+        for (path, digest) in expected {
+            let Some(source) = sources.iter().find(|source| source["path"] == *path) else {
+                return false;
+            };
+            if source["kind"] != kind || !source_matches(source, digest) {
+                return false;
+            }
+            checked.insert(path.as_str());
+        }
+    }
+    let mut gates = std::collections::BTreeSet::new();
+    for source in sources.iter().filter(|s| s["kind"] == "gate-definition") {
+        let Some(Some(bytes)) = source_bytes(source) else {
+            return false;
+        };
+        let Some(definition) = std::str::from_utf8(&bytes)
+            .ok()
+            .and_then(|text| openwarrant_core::structured::parse(text).ok())
+        else {
+            return false;
+        };
+        let key = format!(
+            "{}@{}",
+            definition.scalar("gate_id").unwrap_or_default(),
+            definition.scalar("version").unwrap_or_default()
+        );
+        let Some(digest) = subject.gate_definitions.get(&key) else {
+            return false;
+        };
+        if digest == "missing" || !source_matches(source, digest) || !gates.insert(key) {
+            return false;
+        }
+        // Every path was checked above; no duplicate source can acquire a
+        // second meaning by appearing later in the array.
+        checked.insert(source["path"].as_str().unwrap());
+    }
+    checked.len() == sources.len()
+        && subject
+            .gate_definitions
+            .iter()
+            .all(|(key, digest)| digest == "missing" || gates.contains(key))
+}
+
+fn source_matches(source: &serde_json::Value, digest: &str) -> bool {
+    if source["sha256"] != digest {
+        return false;
+    }
+    match source_bytes(source) {
+        Some(Some(bytes)) => {
+            format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)) == digest
+        }
+        Some(None) => digest == "missing",
+        None => false,
+    }
+}
+
+/// Distinguish an explicit missing source from malformed or ambiguous content.
+fn source_bytes(source: &serde_json::Value) -> Option<Option<Vec<u8>>> {
+    match (
+        source["present"].as_bool()?,
+        source.get("text"),
+        source.get("bytes"),
+    ) {
+        (false, None, None) => Some(None),
+        (true, Some(text), None) => Some(Some(text.as_str()?.as_bytes().to_vec())),
+        (true, None, Some(bytes)) => Some(Some(serde_json::from_value(bytes.clone()).ok()?)),
+        _ => None,
+    }
+}
+
 fn unavailable(message: impl Into<String>) -> RepoError {
     RepoError::ObservationUnavailable {
         rule: "verify.context-unavailable",
