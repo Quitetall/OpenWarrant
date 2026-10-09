@@ -327,3 +327,18 @@ candidate extension leaves the contract canonicalizer and pinned-SAS meanings
 unchanged. It does not complete transitive ADR selection, context closure,
 verifier authentication, private custody or production qualification. Extension
 runtime checks and full gates must be observed separately.
+
+## Standalone read-only board snapshots
+
+`war board --html` is a static snapshot, separate from the signing UI in entry
+13a. Its fixed stylesheet uses `style-src 'unsafe-inline'` to wrap long source
+lines; `default-src 'none'`, `base-uri 'none'` and `form-action 'none'` still deny
+scripts, network resources, base URLs and form actions. Record text is HTML
+escaped and is never inserted into the stylesheet. The snapshot contains no
+signing controls. A person who replaces the HTML file can replace its controls;
+the file does not provide authenticated authority.
+
+`board_cli.rs` checks escaped/read-only output, source parity and corrupt-record
+refusal. The retained OW-WAR-0104 offline browser observation checks actual file
+rendering, all Warrant rows, no script/image nodes, offline state and narrow layout.
+These checks are bounded presentation evidence, not independent assurance.

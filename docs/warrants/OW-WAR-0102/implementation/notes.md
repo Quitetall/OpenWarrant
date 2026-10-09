@@ -22,3 +22,10 @@ Tracker integration correction: OW41/101/102 used invalid `in_progress`; the
 viewer requires `in-progress`. OW101/102 also lacked required source revisions.
 Authored records now use valid spelling and exact observed source commits, while
 all remain incomplete. This fixes our reporting error; no evidence gate is loosened.
+
+2026-10-09 follow-up: the missing offline observation is now recorded in
+[offline-20261009/README.md](offline-20261009/README.md). Current readable layout,
+exact evidence expansion, hostile text and pending work were observed in a fresh
+owned headless browser with network offline. Complete configured web suite passed
+212 tests. Earlier failures and downloads remain intact. Implementation complete,
+unverified; formal assurance is separate.
