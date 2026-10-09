@@ -282,13 +282,15 @@ pub(crate) fn verify_authorization_record(
         .as_deref()
         .is_some_and(|reference| reference.starts_with(openwarrant_core::standing::SCHEME))
     {
-        return verify(
+        return crate::standing_cmd::covered_verdict(
             repo,
-            Act::Authorize,
             subject,
             &auth.authorizer,
             Some(&record.revision.contract_digest),
-        );
+        )
+        .unwrap_or_else(|| Verdict::Unavailable {
+            why: "the claimed standing authorization could not be re-derived".into(),
+        });
     }
     verify_responses(
         repo,

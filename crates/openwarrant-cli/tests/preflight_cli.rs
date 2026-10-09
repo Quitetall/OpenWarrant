@@ -201,6 +201,22 @@ fn unavailable_configured_store_never_falls_back_to_signed_legacy_authority() {
     assert_eq!(unavailable["result"]["readiness"], "not_ready");
     std::fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn claimed_standing_policy_cannot_reuse_an_ordinary_signature() {
+    let root = fixture("standing-policy");
+    let record = root.join("docs/warrants/IX-WAR-0003/authorization.toml");
+    let original = std::fs::read_to_string(&record).unwrap();
+    std::fs::write(
+        &record,
+        format!("{original}\npolicy_basis = \"standing://never-accepted@1\"\n"),
+    )
+    .unwrap();
+    let forged = run(&root, "IX-WAR-0003");
+    assert_eq!(check(&forged, "authorization valid")["status"], "fail");
+    assert_eq!(forged["result"]["readiness"], "not_ready");
+    std::fs::remove_dir_all(root).unwrap();
+}
 #[test]
 fn missing_atom_and_cyclic_graph_refuse_with_named_checks() {
     let root = fixture("bad-inputs");
