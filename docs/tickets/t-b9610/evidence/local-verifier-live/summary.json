@@ -1,0 +1,16 @@
+{
+  "scope": "synthetic corpus, real local model; no production qualification",
+  "warrant": "IX-WAR-0005",
+  "war_sha256": "0445b741468b5b34974818aafd4f145e4c8b8ea4e491df943bb16cd48d8f4469",
+  "client_sha256": "24069f21cfc5d1117070ce952b3e7698fae1a1eec799b8d131f76fe737275bad",
+  "model": "qwen3.6-27b-uncensored-heretic-v2-q4_k_m",
+  "stale_response_refused_without_writes": true,
+  "previous_record_bytes_retained": true,
+  "fresh_review_binds_changed_subject": true,
+  "missing_execution_not_established": true,
+  "authority_unchanged": true,
+  "dispositions": {
+    "OBL-001": "established",
+    "OBL-002": "not_established"
+  }
+}
