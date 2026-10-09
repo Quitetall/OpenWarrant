@@ -341,7 +341,7 @@ fn verify_register(
     // The register decides who may sign and under which principal. It is
     // human-written and committed; an agent editing it is a commit a reviewer
     // sees, which is the control §27.2 relies on.
-    let register = match repo.load_authority_register() {
+    let register = match repo.load_legacy_authority_register() {
         Ok(r) => r,
         Err(e) => {
             return Verdict::Unavailable {
@@ -1042,7 +1042,12 @@ pub(crate) fn signer_for(
                 via: store.describe(),
             }),
             Err(v) => {
-                let legacy = crate::sign::principal_of(repo, actor).ok();
+                let legacy = repo
+                    .load_legacy_authority_register()
+                    .ok()
+                    .and_then(|register| {
+                        register.actor(actor).and_then(|a| a.ssh_principal.clone())
+                    });
                 match (v, legacy) {
                     (Verdict::NotHuman { why }, Some(principal)) => Err((
                         "authority.legacy-fallback",
