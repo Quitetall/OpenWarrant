@@ -1,0 +1,10 @@
+{
+  "openwarrant_head": "057e80737d74093af22149bdaa6ad0a50c5bdb29",
+  "provider_head": "cbb33663f278be95aa5805b47b4f33de5ceea50a",
+  "engine_head": "2502a4dd6385b077f21dd500851a99a6ec1795c9",
+  "provider_manifest_override": "/home/brianklam/Projects/OpenWarrant/docs/implementation-evidence/provider-runtime-20261009/runtime-Cargo.toml",
+  "provider_lock": "/home/brianklam/Projects/OpenWarrant/docs/implementation-evidence/provider-runtime-20261009/runtime-Cargo.lock",
+  "provider_owned_store": "/home/brianklam/Projects/BLUT/docs/runtime-evidence/openwarrant-0047-20261009-rehearsed",
+  "lineage_copied_into_warrant": false,
+  "qualified": false
+}

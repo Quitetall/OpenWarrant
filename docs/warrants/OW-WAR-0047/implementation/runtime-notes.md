@@ -89,3 +89,13 @@ these later tests do not rewrite that observation or its binary identity.
 ## Current provider integration, 2026-10-09
 
 The old billing and PR120 next steps were rechecked. A targeted secret-scan retry passes; PR120 already merged with its hosted gate green. The conflicting provider repair branch now integrates current main, including credential-free registry dependencies and expanded CI. A current Clippy failure was observed and addressed narrowly; final candidate and pending hosted run are recorded in [the new observation](provider-integration-20261009/README.md). Earlier failures and successful runtime source identities remain unchanged. A successful test of the older binary is not a runtime observation of this combined source.
+
+## Fresh current-engine execution, 2026-10-09
+
+The merged standard cookbook and current BLUT main now have a fresh actual Linux
+run of the unchanged graph. Both stages completed with zero cache hits and exact
+source/output bytes. Provider tests 118/0 and scoped Clippy pass with the explicit
+engine source override. Resource measurements, rehearsal, actual job queries and
+the incompatible-port refusal are retained in the
+[current runtime observation](current-runtime-20261009/README.md). This does not
+rewrite prior source identities or establish independent acceptance.

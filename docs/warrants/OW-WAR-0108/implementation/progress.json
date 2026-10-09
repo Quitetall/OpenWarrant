@@ -3,19 +3,20 @@
   "warrant": "OW-WAR-0108",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "8e44d03223129eccd9649fc1fd0a74ff09f7f9be",
-  "summary": "Owned dataset provider repair integrated and merged via blut-cookbooks PR1 at cbb33663. All five provider hosted checks pass on exact candidate b8a83b2. Prior OpenWarrant integration PR120 is merged. Fresh runtime binding for combined provider/current engine and independent acceptance remain open. Unverified.",
+  "revision": "53368e791e752c22d0aeeb217ff36e07187d0665",
+  "summary": "Fresh real Linux runtime passed with merged dataset provider cbb33663 and current BLUT engine 2502a4dd: unchanged two-stage PlanSpec, done status, zero cache hits and exact three-record output bytes. Provider tests 118/0 and scoped Clippy pass for this source combination. Independent acceptance and current evidence integration gates remain open; unverified.",
   "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/references.json",
     "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log",
     "docs/warrants/OW-WAR-0108/implementation/full-gate-90b1eae.log.gz",
     "docs/warrants/OW-WAR-0108/implementation/gate-audit.md",
-    "docs/warrants/OW-WAR-0047/implementation/provider-integration-20261009/README.md"
+    "docs/warrants/OW-WAR-0047/implementation/provider-integration-20261009/README.md",
+    "docs/warrants/OW-WAR-0047/implementation/current-runtime-20261009/references.json",
+    "docs/warrants/OW-WAR-0047/implementation/current-runtime-20261009/provider-tests.log"
   ],
   "next_steps": [
-    "On an unloaded machine, bind fresh unchanged-graph runtime observations to merged provider source and current registry engine dependencies.",
-    "Run current OpenWarrant evidence integration gates; retain exact candidate identities and original failures.",
-    "Obtain independent verification and human acceptance separately; no dispositions are self-assigned."
+    "Complete the current evidence integration projections, record checks and full gate at the exact candidate revision.",
+    "Obtain independent verification and human acceptance separately; retained runtime observations do not assign dispositions or confer assurance."
   ]
 }
