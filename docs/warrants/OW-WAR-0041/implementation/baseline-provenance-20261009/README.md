@@ -56,3 +56,5 @@ corrected expectation checks truthful byte-equality and live-source wording.
 Initial and corrected outputs are retained. Full repository gate remains separate.
 
 Final all-target CLI Clippy passes with warnings denied.
+
+Complete CLI library unit suite: **348 tests passed, zero failures** on this source branch.
