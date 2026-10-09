@@ -435,6 +435,8 @@ else
     st_fail "inside the class: authorized" "exit $SB_STATUS: $(st_errors "$SB_OUT$(grep '^ERROR' <<<"$SB_CHECK")")"
 fi
 # ...and it can start at once: a dispatch needs no further signature.
+# Exact required source holders need the prepared bytes in Git, not another signature.
+st_commit "$SB" "retain the covered Warrant sources before verified dispatch"
 SB_OUT=$(sb dispatch "$SB_W1" STAGE-001 2>&1)
 if grep -q 'dispatch.compiled' <<<"$SB_OUT"; then
     st_ok "a covered Warrant starts at once" "dispatch.compiled, no signature asked"
@@ -704,6 +706,7 @@ SC_A=()
 for n in 1 2 3; do
     SC_A+=("$(st_warrant "$SC" "standing://routine@1" "Covered change $n" "src/c$n.rs")")
 done
+st_commit "$SC" "retain the covered three source contracts"
 for a in "${SC_A[@]}"; do
     sc standing apply "$a" >/dev/null 2>&1
     sc dispatch "$a" STAGE-001 >/dev/null 2>&1

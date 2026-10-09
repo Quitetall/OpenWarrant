@@ -1,0 +1,119 @@
+{
+  "retained_at_commit": "f3ac4b163a4aeea56eccbfb369be4eb6d2fc3627",
+  "original_byte_sha256": "3d05bc7099e47c42cc090750f37f1d6e06345fd0e6be6bddde0258a678fbd54a",
+  "original_declared_commit": "b54310897a72320b475e1da8d7d20f26972cce45",
+  "frozen_source_commit": "b54310897a72320b475e1da8d7d20f26972cce45",
+  "measurement_differences": [
+    {
+      "measure": "auto-authorizable fraction",
+      "original": {
+        "value": 0,
+        "method": "Warrants authorizable without human action: zero, and MEASURED zero \u2014 \u00a756.1 requirement 10 is unmet for every Warrant, so none is auto-authorizable"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not evaluate per-Warrant authorization eligibility; a constant zero is not a measurement"
+      }
+    },
+    {
+      "measure": "clarification count",
+      "original": {
+        "not_measurable_yet": "\u00a774.6's interview has never run \u2014 `war plan` has no agent on the other side of the \u00a775.2 seam, so no question has been asked to count"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate interview questions or clarification events"
+      }
+    },
+    {
+      "measure": "compute and model cost",
+      "original": {
+        "not_measurable_yet": "no cost is metered for any run in this repository"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate metered run costs"
+      }
+    },
+    {
+      "measure": "escalation count and class",
+      "original": {
+        "not_measurable_yet": "no \u00a731 escalation has occurred; the count is unknown rather than zero because nothing records escalations even when they do"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate escalation events and their classes"
+      }
+    },
+    {
+      "measure": "gate failure cause",
+      "original": {
+        "not_measurable_yet": "gate runs mint receipts but nothing aggregates causes across them, so a cause distribution cannot be reported"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate gate failure causes across receipts"
+      }
+    },
+    {
+      "measure": "human authoring minutes",
+      "original": {
+        "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate instrumented session durations; Git timestamps do not measure human or wall time"
+      }
+    },
+    {
+      "measure": "interview questions",
+      "original": {
+        "not_measurable_yet": "\u00a774.6's interview has never run \u2014 `war plan` has no agent on the other side of the \u00a775.2 seam, so no question has been asked to count"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate interview questions or clarification events"
+      }
+    },
+    {
+      "measure": "post-resolution escapes",
+      "original": {
+        "not_measurable_yet": "no Warrant has been resolved; an escape after resolution is undefined while the count of resolutions is zero"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not correlate defects with prior resolution subjects"
+      }
+    },
+    {
+      "measure": "reopenings",
+      "original": {
+        "not_measurable_yet": "no Warrant has been resolved, so none can have been reopened. This is a consequence of \u00a756.1 requirement 10, not of missing instrumentation"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate reopening events"
+      }
+    },
+    {
+      "measure": "replay, repair, restart",
+      "original": {
+        "not_measurable_yet": "no execution has been replayed, repaired or restarted, and no receipt store exists to have recorded one"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate execution replay, repair or restart receipts"
+      }
+    },
+    {
+      "measure": "time to first usable artifact",
+      "original": {
+        "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate instrumented session durations; Git timestamps do not measure human or wall time"
+      }
+    },
+    {
+      "measure": "wall time",
+      "original": {
+        "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
+      },
+      "frozen_parent": {
+        "not_measurable_yet": "this collector does not aggregate instrumented session durations; Git timestamps do not measure human or wall time"
+      }
+    }
+  ],
+  "comparison_is_retrospective": true,
+  "before_tuning_requirement_established": false
+}

@@ -342,3 +342,25 @@ the file does not provide authenticated authority.
 refusal. The retained OW-WAR-0104 offline browser observation checks actual file
 rendering, all Warrant rows, no script/image nodes, offline state and narrow layout.
 These checks are bounded presentation evidence, not independent assurance.
+
+## Dispatch subject and source holders
+
+`war dispatch` compares the verified authorization subject with the current
+compiled contract digest before emitting a packet. An old signed subject cannot
+authorize changed atoms (`dispatch.stale-authorization`). Explicit `--prototype`
+may proceed under `prototype://unauthorized`; no old authority is borrowed.
+
+A Git holder is retained only when its local committed blob matches the selected
+source bytes. Section holders name the full parent source. A nested OpenWarrant
+project cannot borrow its containing repository's HEAD. Missing required source
+bindings report `dispatch.required-holder-unestablished` (UNKNOWN); observed
+required-byte contradictions report `dispatch.required-holder-mismatch` (ERROR).
+Both refuse authorized emission before packet, context and dispatch journal writes.
+Optional unestablished holders are left floating and reported. Reads disable lazy
+fetch and inherited Git routing, with per-source and total resource bounds.
+
+Controls: `conformance/plants.d/83-dispatch-admission.sh`, public CLI integration
+controls in `dispatch_bundle_cli.rs`, and local Git-holder tests in `dispatch.rs`.
+This check does not establish harness isolation, provider enforcement, independent
+verification, or the authority of a prototype result. Later workspace changes must
+still be checked by the workflow that executes or accepts the packet.

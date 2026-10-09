@@ -100,6 +100,16 @@ fn unobserved_eligibility_is_not_measured_zero() {
     );
     let report = telemetry_report(&result);
     assert_eq!(report["result"]["operation"], "record");
+    assert_eq!(
+        report["result"]["source_basis"]["kind"],
+        "live-working-tree"
+    );
+    assert_eq!(
+        report["result"]["source_basis"]["immutable_sources_established"],
+        false
+    );
+    assert!(report["result"]["source_basis"]["resolved_source_commit"].is_null());
+
     let measurement: serde_json::Value =
         serde_json::from_slice(&std::fs::read(root.join("measurement.json")).unwrap()).unwrap();
     assert_eq!(report["result"]["baseline"], measurement);
@@ -156,6 +166,14 @@ fn unobserved_eligibility_is_not_measured_zero() {
     let report = telemetry_report(&verified);
     assert_eq!(report["result"]["operation"], "verify");
     assert_eq!(report["result"]["unchanged"], true);
+    assert_eq!(
+        report["result"]["source_basis"]["immutable_sources_established"],
+        false
+    );
+    assert_eq!(
+        report["result"]["source_basis"]["before_tuning_established"],
+        false
+    );
     let attached = Command::new(env!("CARGO_BIN_EXE_war"))
         .args([
             "telemetry",
@@ -179,6 +197,41 @@ fn unobserved_eligibility_is_not_measured_zero() {
     assert_eq!(report["result"]["warrant"], "IX-WAR-0002");
     assert_eq!(report["result"]["reviewer"], "fixture-reviewer");
     let original = std::fs::read(root.join("measurement.json")).unwrap();
+    let repeated = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            head.trim(),
+            "--out",
+            "measurement.json",
+            "--json",
+        ])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(repeated.status.success());
+    assert_eq!(
+        std::fs::read(root.join("measurement.json")).unwrap(),
+        original
+    );
+    let collision = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            "a-different-declared-label",
+            "--out",
+            "measurement.json",
+            "--json",
+        ])
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(!collision.status.success());
+    assert_eq!(
+        std::fs::read(root.join("measurement.json")).unwrap(),
+        original
+    );
+
     let mut drifted = original.clone();
     drifted.push(b'\n');
     std::fs::write(root.join("measurement.json"), &drifted).unwrap();
@@ -257,14 +310,9 @@ fn unobserved_eligibility_is_not_measured_zero() {
         .output()
         .unwrap();
     assert!(human.status.success());
-    assert!(
-        String::from_utf8(human.stdout)
-            .unwrap()
-            .starts_with(&format!(
-                "telemetry baseline at {} is unchanged (untracked work read from ",
-                head.trim()
-            ))
-    );
+    let human = String::from_utf8(human.stdout).unwrap();
+    assert!(human.starts_with("telemetry artifact bytes are unchanged; source: live working tree"));
+    assert!(human.contains("--commit is a declared label, not a source pin"));
     assert_eq!(
         std::fs::read(root.join("measurement.json")).unwrap(),
         original

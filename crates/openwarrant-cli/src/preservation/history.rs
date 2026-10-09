@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-fn git(repo: &Repository, args: &[&str], limit: usize) -> Result<Vec<u8>, Error> {
+pub(crate) fn git(repo: &Repository, args: &[&str], limit: usize) -> Result<Vec<u8>, Error> {
     let mut child = Command::new("git")
         .current_dir(&repo.root)
         .args(["--no-pager", "--no-replace-objects"])

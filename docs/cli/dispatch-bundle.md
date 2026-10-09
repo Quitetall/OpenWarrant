@@ -138,3 +138,19 @@ the caller's allowlist, calculate a policy join, or establish execution readines
 The caller must establish actor/runtime/provider/tool/destination policy and apply
 this check to every source it discloses. The SDK performs no network or repository
 lookup. `execution_authorized` and `semantic_closure_established` remain false.
+
+## Authorization when compiling a Dispatch
+
+A signature must cover the current compiled contract. A changed contract refuses
+with `dispatch.stale-authorization` before any output or journal write. Request a
+new authorization for governed execution, or use `war dispatch ... --prototype`
+for unverified work. The latter records prototype authority when the current
+contract cannot be authorized; it never borrows the old signature.
+
+Git context holders refer to verified local source bytes. Missing or unreadable
+required blobs prevent authorized emission as UNKNOWN. Required source bytes
+that contradict the committed blob prevent it as ERROR. Optional sources may
+remain floating, with an empty `commit_sha` and a warning. A nested project that
+has no Git root of its own cannot claim its containing repository's HEAD. Local
+reads are bounded to 4 MiB per source and 32 MiB total, without lazy fetch.
+Prototype packets remain available and report these unestablished holders.
