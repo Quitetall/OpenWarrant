@@ -2795,10 +2795,6 @@ pub(crate) fn principal_of(repo: &Repository, actor: &str) -> Result<String, Str
         })
 }
 
-pub(crate) fn allowed_signers_path(repo: &Repository) -> Utf8PathBuf {
-    repo.root.join("docs/authority/allowed_signers")
-}
-
 /// Remove a draft and the signature sitting beside it.
 ///
 /// A `.sig` whose `.toml` is gone signs nothing, and to anyone listing the
