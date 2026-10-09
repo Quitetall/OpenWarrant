@@ -1,0 +1,25 @@
+{
+  "schema": "oh.war/viewer-report-observation/v1",
+  "source_base": "9791ea9ed132c29757e455366826ef913ebfa8e6",
+  "observations": {
+    "OW-WAR-0102": {
+      "state": "completed",
+      "error": null,
+      "revision": "9791ea9ed132c29757e455366826ef913ebfa8e6",
+      "source_digest": "0c0dba3e578727bc192bd1dcb18a81ce96b90009b12be2af4fb55e3e045b2f78"
+    },
+    "OW-WAR-0104": {
+      "state": "completed",
+      "error": null,
+      "revision": "9791ea9ed132c29757e455366826ef913ebfa8e6",
+      "source_digest": "db9bb0ea835c21c62186819f512b268f8c94e6193b44f87a0926d8e211c61a04"
+    },
+    "OW-WAR-0149": {
+      "state": "in-progress",
+      "error": null,
+      "revision": "545df0dea71e24eef26c3334adc5d21a5887044b",
+      "source_digest": "841a802ec75dc480746dde9f2d55c8b70236412248912e13fdec51c318112e6c"
+    }
+  },
+  "qualified": false
+}
