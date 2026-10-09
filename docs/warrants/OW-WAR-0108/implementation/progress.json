@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0108",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "8e44d03223129eccd9649fc1fd0a74ff09f7f9be",
+  "revision": "53368e791e752c22d0aeeb217ff36e07187d0665",
   "summary": "Fresh real Linux runtime passed with merged dataset provider cbb33663 and current BLUT engine 2502a4dd: unchanged two-stage PlanSpec, done status, zero cache hits and exact three-record output bytes. Provider tests 118/0 and scoped Clippy pass for this source combination. Independent acceptance and current evidence integration gates remain open; unverified.",
   "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
   "evidence": [
