@@ -271,3 +271,139 @@ fn unobserved_eligibility_is_not_measured_zero() {
     );
     std::fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn derived_report_uses_exact_historical_sources_and_discloses_ratios() {
+    let root = std::env::temp_dir().join(format!("ow-derived-integrity-{}", std::process::id()));
+    copy_tree(
+        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../conformance/fixtures/inbox/repository"),
+        &root,
+    );
+    let git = |args: &[&str]| {
+        let result = Command::new("git")
+            .args(args)
+            .current_dir(&root)
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        String::from_utf8(result.stdout).unwrap().trim().to_owned()
+    };
+    git(&["init", "-q"]);
+    git(&["add", "."]);
+    git(&[
+        "-c",
+        "user.name=Fixture",
+        "-c",
+        "user.email=fixture@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-qm",
+        "initial fixtures",
+    ]);
+    git(&[
+        "-c",
+        "user.name=Fixture",
+        "-c",
+        "user.email=fixture@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "--allow-empty",
+        "-qm",
+        "IX-WAR-0003 tracked work",
+    ]);
+    let commit = git(&["rev-parse", "HEAD"]);
+    let run = |out: &str| {
+        Command::new(env!("CARGO_BIN_EXE_war"))
+            .args([
+                "telemetry",
+                "--commit",
+                &commit,
+                "--derived",
+                "--out",
+                out,
+                "--json",
+            ])
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .current_dir(&root)
+            .output()
+            .unwrap()
+    };
+    let first = run("derived.json");
+    assert!(
+        first.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&first.stdout),
+        String::from_utf8_lossy(&first.stderr)
+    );
+    let report = telemetry_report(&first);
+    let baseline = &report["result"]["baseline"];
+    assert_eq!(baseline["schema"], "oh.war/telemetry-baseline/v2");
+    assert_eq!(baseline["commit"], commit);
+    let ratio = &baseline["derived"]["untracked-work rate"]["ratio"];
+    assert_eq!(
+        (ratio["numerator"].as_u64(), ratio["denominator"].as_u64()),
+        (Some(1), Some(2))
+    );
+    assert_eq!(ratio["denominator_scale"], 1);
+    assert!(
+        baseline["derived"]["human control minutes per accepted WAR"]["not_measurable_yet"]
+            .as_str()
+            .unwrap()
+            .contains("instrumented")
+    );
+    let original = std::fs::read(root.join("derived.json")).unwrap();
+    std::fs::write(
+        root.join("docs/warrants/IX-WAR-0003/manifest.toml"),
+        "broken current manifest",
+    )
+    .unwrap();
+    let repeated = run("derived.json");
+    assert!(
+        repeated.status.success(),
+        "{}",
+        String::from_utf8_lossy(&repeated.stdout)
+    );
+    assert_eq!(telemetry_report(&repeated)["result"]["baseline"], *baseline);
+    assert_eq!(std::fs::read(root.join("derived.json")).unwrap(), original);
+    std::fs::write(root.join("different.json"), b"retained prior artifact").unwrap();
+    let refused = run("different.json");
+    assert!(!refused.status.success());
+    assert_eq!(
+        std::fs::read(root.join("different.json")).unwrap(),
+        b"retained prior artifact"
+    );
+    let bad = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "telemetry",
+            "--commit",
+            "0000000000000000000000000000000000000000",
+            "--derived",
+            "--out",
+            "missing.json",
+            "--json",
+        ])
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .current_dir(&root)
+        .output()
+        .unwrap();
+    assert!(!bad.status.success());
+    assert!(!root.join("missing.json").exists());
+    assert!(telemetry_report(&bad)["diagnostics"].as_array().unwrap().iter().any(|d|d["rule"]=="telemetry.observation-unavailable" && d["severity"]=="unknown"));
+    #[cfg(unix)]
+    {
+        std::os::unix::fs::symlink("derived.json", root.join("linked.json")).unwrap();
+        let linked = run("linked.json");
+        assert!(!linked.status.success());
+        assert_eq!(std::fs::read(root.join("derived.json")).unwrap(), original);
+    }
+    std::fs::remove_dir_all(root).unwrap();
+}

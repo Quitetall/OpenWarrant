@@ -68,7 +68,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 109 |
+| artifact digests verify | 111 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
@@ -191,9 +191,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0036` Implement normative-decision detection and proposed-ADR generation | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0037` Implement `war diff`: semantic difference between revisions | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0038` Implement the existing-ADR importer, preserving unknown classes | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
-| `OW-WAR-0039` Implement telemetry, unit economics, and untracked-work detection | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0039` Implement telemetry, unit economics, and untracked-work detection | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0040` Implement the Liminal adapter and measured parity harness | draft | unknown | 1 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0041` Discharge the Phase 0 exit: real telemetry distributions, with a baseline | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0041` Discharge the Phase 0 exit: real telemetry distributions, with a baseline | draft | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0042` Discharge the Phase 2 exit: a vague request becomes a reviewable draft | draft | unknown | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0043` Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
 | `OW-WAR-0044` Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |

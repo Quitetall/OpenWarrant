@@ -1043,6 +1043,10 @@ enum Command {
         /// The commit this baseline is taken at (§94, OBL-001).
         #[arg(long)]
         commit: String,
+        /// Candidate v2 derived metrics from exact retained Git sources.
+        /// Keeps the default legacy report and retained artifacts unchanged.
+        #[arg(long, conflicts_with = "attach")]
+        derived: bool,
         /// Where to write the baseline artifact.
         #[arg(long, default_value = "artifacts/telemetry-baseline.json")]
         out: camino::Utf8PathBuf,
@@ -2400,7 +2404,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
 
         Command::Telemetry {
             commit,
-            out,
+            mut out,
+            derived,
             verify,
             attach,
             warrant,
@@ -2423,7 +2428,14 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 );
                 return Ok(EXIT_OK);
             }
-            let baseline = telemetry::take(&repository, &commit)?;
+            let baseline = if derived {
+                telemetry::take_derived(&repository, &commit)?
+            } else {
+                telemetry::take(&repository, &commit)?
+            };
+            if derived && out.as_str() == "artifacts/telemetry-baseline.json" {
+                out = format!("artifacts/telemetry-derived-{}.json", baseline.commit).into();
+            }
             let rendered = telemetry::render(&baseline)?;
             if verify {
                 let existing = std::fs::read_to_string(&out)
@@ -2459,14 +2471,18 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     repo::RepoError::Message(format!("cannot create {parent}: {e}"))
                 })?;
             }
-            std::fs::write(&out, &rendered)
-                .map_err(|e| repo::RepoError::Message(format!("cannot write {out}: {e}")))?;
+            if derived {
+                telemetry::publish(&out, rendered.as_bytes())?;
+            } else {
+                std::fs::write(&out, &rendered)
+                    .map_err(|e| repo::RepoError::Message(format!("cannot write {out}: {e}")))?;
+            }
             let untaken = baseline
                 .measures
                 .values()
                 .filter(|m| matches!(m, telemetry::Measure::NotYet { .. }))
                 .count();
-            let human = format!(
+            let mut human = format!(
                 "telemetry baseline written to {out}\n  {} of {} §94 measures taken; {untaken} \
                  recorded `not_measurable_yet` with a reason\n  {} §95 untracked-work \
                  candidate(s), read from {}\n  {} §100 metrics, every one `no baseline` — one measurement \
@@ -2477,6 +2493,14 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 telemetry::history_read(&baseline),
                 baseline.success_metrics.len()
             );
+            if derived {
+                let ratios = baseline
+                    .derived
+                    .values()
+                    .filter(|value| matches!(value, telemetry::Measure::Ratio { .. }))
+                    .count();
+                human.push_str(&format!("\n  {ratios} of {} derived metrics reported as exact ratios; remaining inputs stay explicitly unmeasured\n  source subject: {}", baseline.derived.len(), baseline.commit));
+            }
             output::emit(
                 mode,
                 "telemetry",

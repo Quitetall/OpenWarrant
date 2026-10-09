@@ -2286,7 +2286,7 @@ Human authoring cost is approximate. Treating it as precise would be its own fal
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Telemetry, unit economics and untracked-work detection (§94, §95, §100) | `crates/openwarrant-cli/src/telemetry.rs` | verified |
+| D-001 | Telemetry, unit economics and untracked-work detection (§94, §95, §100) | `crates/openwarrant-cli/src/telemetry.rs` | drift |
 
 #### OW-WAR-0041 — Discharge the Phase 0 exit: real telemetry distributions, with a baseline
 
@@ -2594,7 +2594,7 @@ lands.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | `war telemetry`: §94 measures over the repository's real history, with a recorded baseline | `crates/openwarrant-cli/src/telemetry.rs` | verified |
+| D-001 | `war telemetry`: §94 measures over the repository's real history, with a recorded baseline | `crates/openwarrant-cli/src/telemetry.rs` | drift |
 | D-002 | The recorded §94 baseline at a named commit, with each §100 metric valued or marked no-baseline | `artifacts/telemetry-baseline.json` | verified |
 
 #### OW-WAR-0100 — Report unsupported telemetry as unknown without changing historical baselines
@@ -18693,7 +18693,7 @@ negative controls.
 | D-003 | The --baseline flag on war init | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The adopt Warrant's Basis names the baseline and what it does not claim | `crates/openwarrant-cli/templates/adopt/20-basis.md` | verified |
 | D-005 | The guided Baseline step | `crates/openwarrant-cli/src/init/guided.rs` | drift |
-| D-006 | Untracked work from the baseline, in the repository's namespace | `crates/openwarrant-cli/src/telemetry.rs` | verified |
+| D-006 | Untracked work from the baseline, in the repository's namespace | `crates/openwarrant-cli/src/telemetry.rs` | drift |
 | D-007 | Adopting OpenWarrant in a repository with history | `docs/ADOPTING.md` | verified |
 | D-008 | The adoption plants | `conformance/plants.d/59-adoption.sh` | verified |
 

@@ -31,10 +31,17 @@ use openwarrant_core::lifecycle::{DERIVED_METRICS, TELEMETRY_MEASURES};
 
 use crate::repo::{RepoError, Repository};
 
+mod derived;
+pub use derived::publish;
+pub use derived::take as take_derived;
+
 /// One §94 measure: a number, or a stated reason it cannot be taken.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum Measure {
+    Ratio {
+        ratio: openwarrant_core::telemetry_metrics::ExactRatio,
+    },
     Taken {
         value: u64,
         method: String,
@@ -187,6 +194,14 @@ fn unmeasurable(measure: &str) -> Option<&'static str> {
 
 /// Take the baseline.
 pub fn take(repo: &Repository, commit: &str) -> Result<Baseline, RepoError> {
+    take_with_candidates(repo, commit, None)
+}
+
+fn take_with_candidates(
+    repo: &Repository,
+    commit: &str,
+    candidates: Option<Vec<String>>,
+) -> Result<Baseline, RepoError> {
     let dirs = repo.warrant_dirs()?;
     let loaded: Vec<_> = dirs
         .iter()
@@ -238,7 +253,10 @@ pub fn take(repo: &Repository, commit: &str) -> Result<Baseline, RepoError> {
         })
         .sum();
 
-    let untracked = untracked_candidates(repo)?;
+    let untracked = match candidates {
+        Some(c) => c,
+        None => untracked_candidates(repo)?,
+    };
 
     let mut measures = BTreeMap::new();
     for name in TELEMETRY_MEASURES {
@@ -330,6 +348,12 @@ pub fn take(repo: &Repository, commit: &str) -> Result<Baseline, RepoError> {
 /// baseline's range, or all of it. Printed beside the count (R-001).
 #[must_use]
 pub fn history_read(b: &Baseline) -> String {
+    if b.schema == "oh.war/telemetry-baseline/v2" {
+        return match &b.adoption_baseline {
+            Some(id) => format!("{id}..{} (the selected retained commit)", b.commit),
+            None => format!("all history through {} (no adoption baseline)", b.commit),
+        };
+    }
     match &b.adoption_baseline {
         Some(id) => format!("{id}..HEAD (the [adoption] baseline)"),
         None => "all history (no [adoption] baseline)".to_owned(),
@@ -378,6 +402,10 @@ fn untracked_candidates(repo: &Repository) -> Result<Vec<String>, RepoError> {
     // The prefix is THIS repository's namespace (OW-WAR-0124): in `ACME`, a
     // commit citing `ACME-WAR-0001` is tracked and one citing only
     // `OW-WAR-0001` is not — that alias names no Warrant here.
+    Ok(candidate_lines(repo, &out.stdout))
+}
+
+fn candidate_lines(repo: &Repository, history: &[u8]) -> Vec<String> {
     let prefix = format!("{}-WAR-", repo.config.project.namespace.as_str());
     let cites_warrant = |subject: &str| {
         subject.split_whitespace().any(|w| {
@@ -386,14 +414,14 @@ fn untracked_candidates(repo: &Repository) -> Result<Vec<String>, RepoError> {
                 || w.starts_with("war://") && w.len() > "war://".len()
         })
     };
-    Ok(String::from_utf8_lossy(&out.stdout)
+    String::from_utf8_lossy(history)
         .lines()
         .filter(|l| {
             let subject = l.split_once(' ').map_or("", |(_, s)| s);
             !cites_warrant(subject)
         })
         .map(ToOwned::to_owned)
-        .collect())
+        .collect()
 }
 
 /// §95 — attach a Warrant relation to an untracked-work candidate, with review.

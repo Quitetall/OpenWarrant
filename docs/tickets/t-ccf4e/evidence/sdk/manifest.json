@@ -1,0 +1,26 @@
+{
+  "kind": "performer-observation-inventory",
+  "scope": "Pure SDK calculation controls; no actual user session measurement or independent assurance",
+  "files": {
+    "red.log.gz": {
+      "original_sha256": "9246b87b773b18fc06b25e19b21472450418e64427b2ea6fb4feef2a7e37aef1",
+      "compressed_sha256": "88adaa99cc60f0bf922acd8ece0785451e90397528e61641de5abe99e51a109b"
+    },
+    "green.log.gz": {
+      "original_sha256": "e8722b23a6f0c826652b5a00f3773b1e4d4fd29cafe115c5c5e4b3f9eba4f96d",
+      "compressed_sha256": "07b3867967da029d3b9d123266c6ce476e3ba2b1708b342819c10d61e453cfc8"
+    },
+    "clippy.log.gz": {
+      "original_sha256": "847636f576610d640289c6deaa9f1e8497995434ef3c1b05c0a07e8af900d822",
+      "compressed_sha256": "81d76607a450d23a2bb2b0383501f726b0d731736566480122da37ec5b328636"
+    },
+    "unit-compile-error.log.gz": {
+      "original_sha256": "c5b0f5b4b51d8d4a4ab66ff97eaf0c407cacc067eb9b46b1e085ae3cdc1e759a",
+      "compressed_sha256": "8ba355fe1d7566a50e85fbd6da678015beb6b16434b43a41cc9499bebb9102b4"
+    }
+  },
+  "sources": {
+    "crates/openwarrant-core/src/telemetry_metrics.rs": "bc540cfe998b87e160b22920eeefa3135f2ac9ae0f60035bccb1c11c8978207c",
+    "crates/openwarrant-core/tests/derived_metrics.rs": "e07d3c7eb3697a33edd247e3b6c0e63ffb8156c9a2f93a6dc8460db2b0df547b"
+  }
+}
