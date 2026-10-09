@@ -3,16 +3,18 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Candidate pure SDK receipt matching boundary implemented with synthetic refusal controls. Real provider protocols, capture/store, CLI and resolver integration remain incomplete; no qualification or assurance claimed.",
-  "notes": "docs/warrants/OW-WAR-0149/implementation/sdk-boundary.md",
+  "summary": "Candidate SDK checks receipts against every runtime stage in the current captured basis, with canonical dispatch and contract binding and per-stage unknown/refused observations. Native provider protocols, durable capture/store and legacy resolver integration remain incomplete.",
+  "notes": "docs/warrants/OW-WAR-0149/implementation/current-basis-assessment.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
-    "docs/warrants/OW-WAR-0149/implementation/sdk-clippy.log"
+    "docs/warrants/OW-WAR-0149/implementation/sdk-clippy.log",
+    "docs/warrants/OW-WAR-0149/implementation/current-basis-tests.log",
+    "docs/warrants/OW-WAR-0149/implementation/current-basis-clippy.log"
   ],
   "next_steps": [
     "Publish and agree provider-owned receipt and verification interfaces.",
-    "Implement durable attributable capture and current-basis resolver assessment.",
+    "Implement attributable capture, stored current-attempt selection and legacy resolver integration using the candidate whole-basis assessment.",
     "Run real provider integrations and required independent/participant checks."
   ],
-  "revision": "545df0dea71e24eef26c3334adc5d21a5887044b"
+  "revision": "cd8ef7988d250937667ec23eb36d766a1b0350a5"
 }
