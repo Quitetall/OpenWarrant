@@ -1,0 +1,14 @@
+{
+  "provider_candidate": "b8a83b232ac8afb7cd6a2286a7b3f0e0d9bcfd47",
+  "provider_main": "bd67e7e6b40bf3eafa766ae5b19038a41d3b9f24",
+  "candidate_run": 37909563116,
+  "prior_run": 37909313366,
+  "prior_rust_job": 113750344714,
+  "prior_rust_failure_sha256": "bd9c13f472962630b5aa21ca8e6b02eaa20610712388d8c4df8aedb9f9416952",
+  "runtime_observed_for_current_candidate": false,
+  "qualified": false,
+  "provider_merge": "cbb33663f278be95aa5805b47b4f33de5ceea50a",
+  "hosted_checks": "all five passed",
+  "rust_tests_passed": 118,
+  "rust_ci_success_sha256": "82c3a4fe6af1807a78d5411e0e56ebdf0d525b11f6f2d63666a8e8bc4a9530e0"
+}

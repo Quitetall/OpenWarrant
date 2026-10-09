@@ -3,18 +3,19 @@
   "warrant": "OW-WAR-0108",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "136c1b3bdfbdbff68f4aadecd19b41cc4e6a37eb",
-  "summary": "Shared BLUT repair and real two-stage runtime evidence retained. Standalone OpenWarrant gate passes 14 steps and 308 controls at 90b1eae; provider tests pass 96. Provider hosted CI blocked by account restriction; integration remains incomplete and unverified.",
+  "revision": "8e44d03223129eccd9649fc1fd0a74ff09f7f9be",
+  "summary": "Owned dataset provider repair integrated and merged via blut-cookbooks PR1 at cbb33663. All five provider hosted checks pass on exact candidate b8a83b2. Prior OpenWarrant integration PR120 is merged. Fresh runtime binding for combined provider/current engine and independent acceptance remain open. Unverified.",
   "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/references.json",
     "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log",
     "docs/warrants/OW-WAR-0108/implementation/full-gate-90b1eae.log.gz",
-    "docs/warrants/OW-WAR-0108/implementation/gate-audit.md"
+    "docs/warrants/OW-WAR-0108/implementation/gate-audit.md",
+    "docs/warrants/OW-WAR-0047/implementation/provider-integration-20261009/README.md"
   ],
   "next_steps": [
-    "Clear provider CI account restriction and validate exact provider repair revision.",
-    "Run final OpenWarrant PR #120 integration checks against main; parent PR #118 merged at 2dba896c.",
-    "Preserve separate independent verification and human acceptance requirements."
+    "On an unloaded machine, bind fresh unchanged-graph runtime observations to merged provider source and current registry engine dependencies.",
+    "Run current OpenWarrant evidence integration gates; retain exact candidate identities and original failures.",
+    "Obtain independent verification and human acceptance separately; no dispositions are self-assigned."
   ]
 }
