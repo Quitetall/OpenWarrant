@@ -1,0 +1,22 @@
+{
+  "schema": "oh.war/evidence-packaging-observation/v1",
+  "qualified": false,
+  "captures": [
+    {
+      "original_name": "baseline-current-board.json",
+      "stored_name": "baseline-current-board.json.gz",
+      "original_bytes": 1676609,
+      "original_sha256": "3f9ad2b1f85798d8056b72a26b085bdcb24cac85bc4292c512f7b9308d95d52d",
+      "compressed_sha256": "a20b8980fb94c4b26f3bac46faf1f779882d663c4c6ce34a2012be428fbc2203",
+      "round_trip_equal": true
+    },
+    {
+      "original_name": "current-board.json",
+      "stored_name": "current-board.json.gz",
+      "original_bytes": 1676609,
+      "original_sha256": "9d85992295c9c5aa3812fe35878f1fe7221459b5ede9804a4457d3772c796f2a",
+      "compressed_sha256": "7003d6f5eca57f13ccb2dbb4b3c07cb49f13ef54b7c9b93c61909fadd28e0ca7",
+      "round_trip_equal": true
+    }
+  ]
+}

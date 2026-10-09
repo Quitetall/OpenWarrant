@@ -1,10 +1,10 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0104",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "7e9b9752bdb0febfffe3c2b1a289b4f718de874a",
-  "summary": "Read-only board, configurable roadmap and next-work preview implemented and merged via PR129, unverified. Exact-head CI passed at 32a3d88a; roadmap offline controls observed by owner. Separate legacy-board offline observation remains pending.",
+  "revision": "9791ea9ed132c29757e455366826ef913ebfa8e6",
+  "summary": "Read-only board, configurable roadmap and next-work preview complete, unverified. Separate actual offline board now observed with all 145 rows; line wrapping fixes horizontal overflow and passes narrow viewport and public CLI checks. Prior roadmap evidence preserved.",
   "notes": "docs/warrants/OW-WAR-0104/implementation/roadmap-progress.md",
   "evidence": [
     "docs/warrants/OW-WAR-0069/implementation/board-notes.md",
@@ -12,10 +12,13 @@
     "docs/warrants/OW-WAR-0069/implementation/board-web-tests.log",
     "docs/warrants/OW-WAR-0069/implementation/board-browser-qa.md",
     "docs/warrants/OW-WAR-0104/implementation/roadmap-gate-9464101.log.gz",
-    "docs/warrants/OW-WAR-0104/implementation/offline-roadmap-human-observation.json"
+    "docs/warrants/OW-WAR-0104/implementation/offline-roadmap-human-observation.json",
+    "docs/warrants/OW-WAR-0104/implementation/offline-board-20261009/README.md",
+    "docs/warrants/OW-WAR-0104/implementation/offline-board-20261009/browser-observation.json",
+    "docs/warrants/OW-WAR-0104/implementation/offline-board-20261009/board-cli-tests.log"
   ],
   "next_steps": [
-    "Record separate legacy-board offline rendering observation; roadmap observation covers a different artifact",
-    "Keep OW69 historical reconciliation separate; independent assurance and human signatures remain separate"
+    "Use independent verification and secure human acceptance only when pursuing qualification.",
+    "Keep historical reconciliation and the real-user study separate; this report confers no assurance."
   ]
 }
