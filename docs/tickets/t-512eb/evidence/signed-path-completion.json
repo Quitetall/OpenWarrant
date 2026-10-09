@@ -1,0 +1,59 @@
+{
+  "schema": "oh.war/bounded-observation/v1",
+  "scope": "Implementation path restoration ticket only; not OW-WAR-0148 acceptance or independent qualification",
+  "observed_main": "7bfc4514b0d827bc57b386a5e0bccd4fba39ae48",
+  "files": [
+    {
+      "path": "docs/warrants/OW-WAR-0148/authorization.toml",
+      "sha256": "bcf71be5c895fc7c46585e80e395d5c13e73486f0f5196c7d1759802c3b4e2d8",
+      "unchanged": true
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0148/deliverables.toml",
+      "sha256": "a5fc26a59e0631e256dfd7fa1f8d2ad07a1ce2363fe6d18d423af83d2aa0bc96",
+      "unchanged": true
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0148/atoms/40-work-order.md",
+      "sha256": "c0673c20fb26260bc343928643b23e4bfef2e41cbead7053a32e4995c67d6ecf",
+      "unchanged": true
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0148/atoms/60-assurance.md",
+      "sha256": "f6cf6125ee40cb375c9afd11de25edb3c68d793311a49fe59a7bf96e217f5534",
+      "unchanged": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/state_cmd.rs",
+      "sha256": "bc8be2de05855dc9598149f851fda356b8f56058a20bd796466e69aa573ce043",
+      "same_original_implementation_bytes": true
+    },
+    {
+      "path": "conformance/plants.d/76-ticket-features.sh",
+      "sha256": "b608c22cf3734d6be2c5e336f413dc1564ba3909a51fd670983ace1b68031de0",
+      "same_original_implementation_bytes": true
+    },
+    {
+      "path": "conformance/plants.d/77-typed-demo.sh",
+      "sha256": "5f4185cec82118fb0205837390846722b3eecc47e5332119958f1581da679f42",
+      "same_original_implementation_bytes": true
+    }
+  ],
+  "states_api_retained": true,
+  "gates": [
+    {
+      "pr": 148,
+      "tested_head": "7829fed4fc91229b282ce06415731b6de9d9e09b",
+      "local": "14 steps, 1376 plants / 0 failures",
+      "hosted": "PASS"
+    },
+    {
+      "pr": 150,
+      "tested_head": "186d8279b40ba1da888d7793decd9c3a6c20eed7",
+      "local": "14 steps, 1379 plants / 0 failures",
+      "hosted": "PASS",
+      "run": "https://github.com/Quitetall/OpenWarrant/actions/runs/37859982587"
+    }
+  ],
+  "signed_records_changed": false
+}
