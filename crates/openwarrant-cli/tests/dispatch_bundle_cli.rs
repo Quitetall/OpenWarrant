@@ -699,6 +699,26 @@ fn detached_disclosure_preserves_opaque_labels_and_rejects_resealed_metadata() {
     );
     assert!(!out.status.success());
     assert!(String::from_utf8_lossy(&out.stdout).contains("classification-denied"));
+    let out = war(
+        &root,
+        &[
+            "dispatch-bundle",
+            "check",
+            dest.to_str().unwrap(),
+            "--expected-digest",
+            &digest,
+            "--read",
+            "atoms/45-milestones.yaml",
+            "--allow-classification",
+            "internal",
+            "--json",
+        ],
+    );
+    assert!(!out.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(report["counts"]["unknown"], 1);
+    assert_eq!(report["counts"]["error"], 0);
+    assert!(report["result"]["content"].is_null());
     let mut forged: b::Bundle = serde_json::from_slice(&bytes).unwrap();
     forged
         .context

@@ -128,7 +128,7 @@ case variations expand. The same public SDK operation is
 against its full captured provenance source, not its headerless slice. The source
 label must match the captured context metadata; changing and rehashing metadata
 does not bypass that check. Missing source labels report
-`classification-unestablished`; mismatches and denied labels refuse before
+`classification-unestablished` as UNKNOWN with no returned content; mismatches and denied labels refuse before
 returning the requested text. Integrity checks of old captures remain compatible;
 a new disclosure check will reject a label previously inferred without a source.
 

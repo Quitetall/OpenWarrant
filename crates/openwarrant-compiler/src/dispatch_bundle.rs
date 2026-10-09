@@ -45,6 +45,12 @@ pub struct Bundle {
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
 pub struct Error(pub String);
+impl Error {
+    /// Missing classification is unavailable evidence, not an observed denial.
+    pub fn is_classification_unestablished(&self) -> bool {
+        self.0.starts_with("classification-unestablished:")
+    }
+}
 type Result<T> = std::result::Result<T, Error>;
 fn invalid(message: impl Into<String>) -> Error {
     Error(message.into())

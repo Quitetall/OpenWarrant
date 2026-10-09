@@ -42,3 +42,6 @@ for flags in [("--check-classification",), ("--allow-classification", "internal"
 args[-1] = "atoms/45-milestones.yaml"
 answer = run(*args, "--allow-classification", "internal", ok=False)
 assert "classification-unestablished" in str(answer)
+assert answer["counts"]["unknown"] == 1 and answer["counts"]["error"] == 0
+assert answer["result"]["content"] is None
+assert answer["result"]["source_classification_status"] == "unknown"

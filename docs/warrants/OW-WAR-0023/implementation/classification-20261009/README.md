@@ -15,7 +15,8 @@ Historical packets and signed records remain unchanged.
 The public offline SDK and CLI can check disclosure of one selected source under
 an independently supplied exact label allowlist. Checks use retained full source
 bytes, including section provenance, and reject an unlisted/unknown/mismatched
-label. This does not qualify a whole package or establish the caller's authority,
+label. Missing declarations produce UNKNOWN with no disclosed text, distinct from
+an observed policy denial. This does not qualify a whole package or establish the caller's authority,
 provider-policy join, execution readiness, semantic closure or harness isolation.
 It is a primitive that a provider/workflow must invoke under its own trusted
 actor/runtime/provider/tool/destination policy before disclosure.

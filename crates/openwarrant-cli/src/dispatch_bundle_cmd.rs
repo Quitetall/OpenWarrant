@@ -276,14 +276,25 @@ pub fn run(
             }
             let classification_checked = check_classification || !allow_classification.is_empty();
             if classification_checked {
-                checked
-                    .require_source_classification(
-                        reference
-                            .as_deref()
-                            .ok_or_else(|| err("classification-needs-reference"))?,
-                        &allow_classification,
-                    )
-                    .map_err(err)?;
+                if let Err(e) = checked.require_source_classification(
+                    reference
+                        .as_deref()
+                        .ok_or_else(|| err("classification-needs-reference"))?,
+                    &allow_classification,
+                ) {
+                    if !e.is_classification_unestablished() {
+                        return Err(err(e));
+                    }
+                    report.push(Diagnostic::unknown(
+                        "dispatch-bundle.classification-unestablished",
+                        file.as_str(),
+                        e.to_string(),
+                    ));
+                    return Ok((
+                        report,
+                        serde_json::json!({"schema":bundle::SCHEMA,"bundle_digest":expected_digest,"content":null,"source_classification_checked":false,"source_classification_status":"unknown","execution_authorized":false,"semantic_closure_established":false}),
+                    ));
+                }
             }
             let content = reference
                 .as_deref()
