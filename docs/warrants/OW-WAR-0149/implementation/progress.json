@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Candidate SDK/CLI now retains dispatch/journal-bound runtime captures atomically and checks whole-basis receipt eligibility. Captures survive source loss and exact replay; native provider interfaces, authenticated collection, stored current-attempt selection and legacy resolver integration remain incomplete.",
+  "summary": "Candidate SDK/CLI now retains immutable runtime captures and reassesses explicit selections against actual current dispatch/journal sources, fresh native verification and every runtime stage. Historical attempts cannot clear later work. Native provider interfaces, authenticated collection and legacy resolver integration remain incomplete.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -11,12 +11,14 @@
     "docs/warrants/OW-WAR-0149/implementation/current-basis-tests.log",
     "docs/warrants/OW-WAR-0149/implementation/current-basis-clippy.log",
     "docs/warrants/OW-WAR-0149/implementation/capture-tests.log",
-    "docs/warrants/OW-WAR-0149/implementation/capture-clippy.log"
+    "docs/warrants/OW-WAR-0149/implementation/capture-clippy.log",
+    "docs/warrants/OW-WAR-0149/implementation/selection-tests.log",
+    "docs/warrants/OW-WAR-0149/implementation/selection-clippy.log"
   ],
   "next_steps": [
     "Publish and agree provider-owned native receipt and verification surfaces.",
-    "Integrate authenticated collector/build observations and stored current-attempt selection; wire the legacy resolver under the required correction/successor route.",
+    "Integrate authenticated collector/build observations and connect the stored current-attempt assessment to the legacy resolver under the required correction/successor route.",
     "Run actual provider integrations and independent/participant qualification; do not infer assurance from retained captures."
   ],
-  "revision": "21c48f4a1d0d63d06105c8e612151f8d7eee7304"
+  "revision": "fc0624c0653be5e709035d2a6babb7655497fc8b"
 }

@@ -42,6 +42,9 @@ fn value(out: &Output) -> Value {
 }
 impl Fixture {
     fn new() -> Self {
+        Self::with_runtime_count(usize::MAX)
+    }
+    fn with_runtime_count(count: usize) -> Self {
         fn copy(a: &Path, b: &Path) {
             fs::create_dir_all(b).unwrap();
             for e in fs::read_dir(a).unwrap() {
@@ -67,9 +70,10 @@ impl Fixture {
             &root,
         );
         let graph = root.join("docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml");
-        let text = fs::read_to_string(&graph).unwrap().replace(
+        let text = fs::read_to_string(&graph).unwrap().replacen(
             "executor_kind: \"agent\"",
             "executor_kind: \"katana\"\n    executor_ref: \"synthetic\"",
+            count,
         );
         fs::write(graph, text).unwrap();
         let target = root.join("dispatch.pending.json");
@@ -330,7 +334,7 @@ impl ReceiptVerifier for SyntheticVerifier {
 }
 #[test]
 fn sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write() {
-    let f = Fixture::new();
+    let f = Fixture::with_runtime_count(1);
     let repo = openwarrant_cli::repo::Repository::open(
         camino::Utf8PathBuf::from_path_buf(f.root.clone()).unwrap(),
     )
@@ -395,4 +399,226 @@ fn sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write() {
         "synthetic-provider-seal"
     );
     assert_eq!(response["assurance_granted"], false);
+    let selected = [capture::Selection {
+        stage_id: f.dispatch.stage_id.clone(),
+        capture_digest: response["digest"].as_str().unwrap().into(),
+    }];
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| None)
+            .unwrap()
+            .standing,
+        ReceiptStanding::Unknown
+    );
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| Some(verify(&v)))
+            .unwrap()
+            .standing,
+        ReceiptStanding::Matches
+    );
+    // Stored MATCHES is never reused when current native verification disagrees.
+    v.facts.binding.attempt_id = "wrong-new-native-observation".into();
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| Some(verify(&v)))
+            .unwrap()
+            .standing,
+        ReceiptStanding::Refused
+    );
+    v.facts.binding.attempt_id = f.dispatch.attempt_id.clone();
+    let intent = f.root.join("docs/warrants/IX-WAR-0003/atoms/10-intent.md");
+    let original = fs::read(&intent).unwrap();
+    let mut changed = original.clone();
+    changed.extend_from_slice(b"\nsource changed during native assessment\n");
+    let changed_result = capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| {
+        fs::write(&intent, &changed).unwrap();
+        Some(verify(&v))
+    })
+    .unwrap_err();
+    assert_eq!(changed_result.code, "runtime.selection-changed");
+    assert!(changed_result.unknown);
+    fs::write(&intent, original).unwrap();
+    let partial = Fixture::new();
+    v.facts.binding = RuntimeBinding::from_dispatch(&partial.dispatch);
+    if let NativeReceipt::Katana(receipt) = &mut v.facts.receipt {
+        receipt.dispatch_digest = partial.dispatch.dispatch_digest.clone();
+    }
+    let response = value(&partial.import());
+    let selected = [capture::Selection {
+        stage_id: partial.dispatch.stage_id.clone(),
+        capture_digest: response["result"]["digest"].as_str().unwrap().into(),
+    }];
+    let repo = openwarrant_cli::repo::Repository::open(
+        camino::Utf8PathBuf::from_path_buf(partial.root.clone()).unwrap(),
+    )
+    .unwrap();
+    let result =
+        capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| Some(verify(&v))).unwrap();
+    assert_eq!(result.standing, ReceiptStanding::Unknown);
+    assert_eq!(result.stages[0].receipt.standing, ReceiptStanding::Matches);
+    assert_eq!(
+        result.stages[1].receipt.code,
+        "runtime-basis.receipt-missing"
+    );
+}
+
+#[test]
+fn current_selection_is_read_only_and_missing_native_support_stays_unknown() {
+    let f = Fixture::new();
+    let response = value(&f.import());
+    let digest = response["result"]["digest"].as_str().unwrap();
+    let path = f
+        .root
+        .join(response["result"]["reference"].as_str().unwrap());
+    let prior = fs::read(&path).unwrap();
+    let selected = json!({"schema":"oh.war/runtime-selection-request/v1-draft.1", "selections":[{"stage_id":"STAGE-001", "capture_digest":digest}]});
+    fs::write(
+        f.root.join("selected.json"),
+        serde_json::to_vec(&selected).unwrap(),
+    )
+    .unwrap();
+    fs::remove_file(f.root.join("receipt.bin")).unwrap();
+    let out = war(
+        &f.root,
+        &[
+            "runtime",
+            "assess",
+            "IX-WAR-0003",
+            "--selection",
+            "selected.json",
+            "--json",
+        ],
+    );
+    assert!(!out.status.success());
+    let result = value(&out);
+    assert_eq!(result["diagnostics"][0]["severity"], "unknown");
+    assert_eq!(
+        result["result"]["stages"][0]["receipt"]["code"],
+        "runtime.verifier-unavailable"
+    );
+    assert_eq!(result["result"]["saved_native_observations_used"], false);
+    assert_eq!(result["result"]["assurance_granted"], false);
+    assert_eq!(fs::read(&path).unwrap(), prior);
+    let repo = openwarrant_cli::repo::Repository::open(
+        camino::Utf8PathBuf::from_path_buf(f.root.clone()).unwrap(),
+    )
+    .unwrap();
+    let empty = capture::assess_selected(&repo, "IX-WAR-0003", &[], |_, _| None).unwrap();
+    assert_eq!(empty.standing, ReceiptStanding::Unknown);
+    assert_eq!(
+        empty.stages[0].receipt.code,
+        "runtime-basis.receipt-missing"
+    );
+    let mut selections: Vec<capture::Selection> =
+        serde_json::from_value(selected["selections"].clone()).unwrap();
+    selections.push(selections[0].clone());
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selections, |_, _| None)
+            .unwrap_err()
+            .code,
+        "runtime.selection-ambiguous"
+    );
+    selections.truncate(1);
+    selections[0].stage_id = "wrong".into();
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selections, |_, _| None)
+            .unwrap_err()
+            .code,
+        "runtime.selection-stage"
+    );
+    assert_eq!(fs::read(&path).unwrap(), prior);
+}
+
+#[test]
+fn later_recorded_attempt_prevents_fallback_to_historical_capture() {
+    let f = Fixture::new();
+    let response = value(&f.import());
+    let selected = [capture::Selection {
+        stage_id: f.dispatch.stage_id.clone(),
+        capture_digest: response["result"]["digest"].as_str().unwrap().into(),
+    }];
+    let pending = f.root.join("new-attempt.json");
+    let out = war(
+        &f.root,
+        &[
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--prototype",
+            "--emit",
+            pending.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let next: StageDispatch = serde_json::from_slice(&fs::read(&pending).unwrap()).unwrap();
+    assert_ne!(next.attempt_id, f.dispatch.attempt_id);
+    fs::rename(
+        pending,
+        f.root.join(format!(
+            "docs/warrants/IX-WAR-0003/dispatches/{}.json",
+            next.dispatch_id
+        )),
+    )
+    .unwrap();
+    let repo = openwarrant_cli::repo::Repository::open(
+        camino::Utf8PathBuf::from_path_buf(f.root.clone()).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| None)
+            .unwrap_err()
+            .code,
+        "runtime.selection-superseded-attempt"
+    );
+    assert!(capture::show(&repo, "IX-WAR-0003", &selected[0].capture_digest).is_ok());
+    assert_eq!(fs::read_dir(f.storage()).unwrap().count(), 1);
+}
+
+#[test]
+fn unknown_versions_and_stale_sources_do_not_invoke_provider_policy() {
+    let f = Fixture::new();
+    let response = value(&f.import());
+    let repo = openwarrant_cli::repo::Repository::open(
+        camino::Utf8PathBuf::from_path_buf(f.root.clone()).unwrap(),
+    )
+    .unwrap();
+    let original_digest = response["result"]["digest"].as_str().unwrap();
+    let mut record =
+        capture::show(&repo, "IX-WAR-0003", original_digest).unwrap()["record"].clone();
+    record["declared_capture"]["schema"] = "future-schema".into();
+    record["declared_capture"]["future_field"] = true.into();
+    let bytes = openwarrant_compiler::to_canonical_bytes(&record).unwrap();
+    let hash = openwarrant_compiler::sha256_hex(&bytes);
+    fs::write(f.storage().join(format!("capture-{hash}.json")), bytes).unwrap();
+    let selected = [capture::Selection {
+        stage_id: f.dispatch.stage_id.clone(),
+        capture_digest: format!("sha256:{hash}"),
+    }];
+    let calls = std::cell::Cell::new(0);
+    let resolve = |_: &StageDispatch, _: &ProviderInterface| {
+        calls.set(calls.get() + 1);
+        None
+    };
+    let future = capture::assess_selected(&repo, "IX-WAR-0003", &selected, resolve).unwrap_err();
+    assert_eq!(future.code, "runtime.capture-unsupported-schema");
+    assert!(future.unknown);
+    assert_eq!(calls.get(), 0);
+    let intent = f.root.join("docs/warrants/IX-WAR-0003/atoms/10-intent.md");
+    let mut changed = fs::read(&intent).unwrap();
+    changed.extend_from_slice(b"\nchanged contract\n");
+    fs::write(intent, changed).unwrap();
+    let selected = [capture::Selection {
+        stage_id: f.dispatch.stage_id.clone(),
+        capture_digest: original_digest.into(),
+    }];
+    let stale = capture::assess_selected(&repo, "IX-WAR-0003", &selected, resolve).unwrap();
+    assert_eq!(stale.standing, ReceiptStanding::Refused);
+    assert_eq!(
+        stale.stages[0].receipt.code,
+        "runtime-basis.dispatch-mismatch"
+    );
+    assert_eq!(calls.get(), 0);
 }

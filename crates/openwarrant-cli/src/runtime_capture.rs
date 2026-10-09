@@ -3,6 +3,10 @@
 //! Source reads are bounded and descriptor-relative; publication never replaces
 //! a retained object. Local checksums establish byte identity, not authenticity.
 mod recorded;
+mod selection;
+pub use selection::{
+    REQUEST_SCHEMA as SELECTION_REQUEST_SCHEMA, Selection, SelectionRequest, assess_selected,
+};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::{
@@ -38,6 +42,12 @@ pub enum Command {
     },
     /// Inspect a retained content-addressed capture, including original bytes. Does not trust historical verdicts or establish execution.
     Show { alias: String, digest: String },
+    /// Reassess explicitly selected captures against current recorded attempts. No native adapter is configured by this CLI.
+    Assess {
+        alias: String,
+        #[arg(long)]
+        selection: Utf8PathBuf,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -121,6 +131,43 @@ fn native(receipt: &ReceiptAssessment) -> Value {
     json!({"standing":match receipt.standing {ReceiptStanding::Matches=>"matches", ReceiptStanding::Refused=>"refused", ReceiptStanding::Unknown=>"unknown"},"code":receipt.code,"detail":receipt.detail,"raw_digest":receipt.raw_digest,"provider_receipt_digest":receipt.provider_receipt_digest,"cost_observation":match receipt.cost_observation {Observation::Established=>"established",Observation::Refuted=>"refuted",Observation::Unknown=>"unknown"}})
 }
 
+fn provider(request: &Request) -> Result<ProviderInterface, Fault> {
+    Ok(ProviderInterface {
+        kind: match request.provider.kind.as_str() {
+            "katana" => ProviderKind::Katana,
+            "blut" => ProviderKind::Blut,
+            _ => {
+                return Err(fault(
+                    "runtime.capture-unsupported-provider",
+                    "provider kind not supported by this candidate",
+                    true,
+                ));
+            }
+        },
+        identity: request.provider.identity.clone(),
+        version: request.provider.version.clone(),
+    })
+}
+fn expectation<'a>(
+    dispatch: &'a openwarrant_core::execution::StageDispatch,
+    provider: &'a ProviderInterface,
+    verification: Option<&Verification<'a>>,
+) -> RuntimeExpectation<'a> {
+    RuntimeExpectation {
+        dispatch,
+        provider,
+        registry_digest: verification.and_then(|v| v.registry_digest),
+        authorized_capabilities: verification
+            .as_ref()
+            .and_then(|v| v.authorized_capabilities),
+        confinement_required: verification.is_none_or(|v| v.confinement_required),
+        hard_spend_cap_required: verification
+            .as_ref()
+            .is_some_and(|v| v.hard_spend_cap_required),
+        max_receipt_bytes: RECEIPT_LIMIT,
+    }
+}
+
 /// Capture and atomically retain one source-bound observation. An unavailable
 /// native verifier permits explicitly unverified retention, never qualification.
 /// Known binding/native mismatches refuse before publication. Exact replay has
@@ -169,36 +216,10 @@ pub fn import(
             false,
         ));
     }
-    let provider = ProviderInterface {
-        kind: match request.provider.kind.as_str() {
-            "katana" => ProviderKind::Katana,
-            "blut" => ProviderKind::Blut,
-            _ => {
-                return Err(fault(
-                    "runtime.capture-unsupported-provider",
-                    "provider kind not supported by this candidate",
-                    true,
-                ));
-            }
-        },
-        identity: request.provider.identity.clone(),
-        version: request.provider.version.clone(),
-    };
+    let provider = provider(request)?;
     let recorded = recorded::load(repo, alias, &request.dispatch_id)?;
     let raw = read(repo, Utf8Path::new(&request.receipt), RECEIPT_LIMIT)?;
-    let expectation = RuntimeExpectation {
-        dispatch: &recorded.dispatch,
-        provider: &provider,
-        registry_digest: verification.as_ref().and_then(|v| v.registry_digest),
-        authorized_capabilities: verification
-            .as_ref()
-            .and_then(|v| v.authorized_capabilities),
-        confinement_required: verification.as_ref().is_none_or(|v| v.confinement_required),
-        hard_spend_cap_required: verification
-            .as_ref()
-            .is_some_and(|v| v.hard_spend_cap_required),
-        max_receipt_bytes: RECEIPT_LIMIT,
-    };
+    let expectation = expectation(&recorded.dispatch, &provider, verification.as_ref());
     let assessment = assess_runtime_basis(
         &recorded.basis,
         &recorded.validated,
@@ -345,15 +366,46 @@ pub fn run(repo: &Repository, command: Command) -> (Report, Value) {
             import(repo, &alias, &request, None)
         })(),
         Command::Show { alias, digest } => show(repo, &alias, &digest),
+        Command::Assess { alias, selection } => (|| {
+            let value = decode(&read(repo, &selection, REQUEST_LIMIT)?)?;
+            if value["schema"] != selection::REQUEST_SCHEMA {
+                return Err(fault(
+                    "runtime.selection-unsupported-schema",
+                    "unsupported selection request",
+                    true,
+                ));
+            }
+            let selected: SelectionRequest = serde_json::from_value(value)
+                .map_err(|e| fault("runtime.selection-request", e, false))?;
+            let assessed = assess_selected(repo, &alias, &selected.selections, |_, _| None)?;
+            Ok(selection::render(&assessed))
+        })(),
     };
     let mut report = Report::default();
     report.notes.push("Capture retention and byte integrity only. Collector declarations and saved native verdicts do not establish authentication, execution, current-basis eligibility or assurance.".into());
     match result {
         Ok(value) => {
-            report.push(Diagnostic::pass(
-                "runtime.capture",
-                "source-bound capture operation completed; native standing is separate",
-            ));
+            let diagnostic = match value["standing"].as_str() {
+                Some("unknown") => Diagnostic::unknown(
+                    "runtime.selection-incomplete",
+                    "",
+                    "current receipt eligibility is unknown; see stage observations",
+                ),
+                Some("refused") => Diagnostic::error(
+                    "runtime.selection-refused",
+                    "",
+                    "current receipt eligibility refused; see stage observations",
+                ),
+                Some("matches") => Diagnostic::pass(
+                    "runtime.selection-matches",
+                    "current receipt bindings match; no assurance granted",
+                ),
+                _ => Diagnostic::pass(
+                    "runtime.capture",
+                    "source-bound capture operation completed; native standing is separate",
+                ),
+            };
+            report.push(diagnostic);
             (report, value)
         }
         Err(e) => {
