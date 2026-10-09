@@ -1,0 +1,21 @@
+{
+  "source": "62a860095a57b7c8240427dff6870a78b99fb390",
+  "public_red": "SSH fixture signature verifies independently; baseline Preflight leaves authorization unknown",
+  "preflight_tests": {
+    "standing": "PASS",
+    "passed": 8,
+    "failed": 0
+  },
+  "clippy": {
+    "standing": "PASS",
+    "scope": "openwarrant-cli --all-targets",
+    "rust": "1.97.1"
+  },
+  "initial_shared_build": {
+    "standing": "UNKNOWN",
+    "exit_code": 124,
+    "reason": "package/artifact cache locks; no test ran"
+  },
+  "qualification": false,
+  "human_acceptance": false
+}
