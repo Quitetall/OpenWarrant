@@ -35066,7 +35066,7 @@ this level requires. The author does not record them.
 |---|---|---|---|
 | D-001 | Gate invalidation: the request, the record, and §45's sweep over the corpus | `crates/openwarrant-cli/src/invalidation.rs` | drift |
 | D-002 | The invalidate act, and receipts as subjects of a resolve attestation | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
-| D-003 | war attest --custody: the §41.5 audit of a resolution's evidence | `crates/openwarrant-cli/src/attest.rs` | verified |
+| D-003 | war attest --custody: the §41.5 audit of a resolution's evidence | `crates/openwarrant-cli/src/attest.rs` | drift |
 | D-004 | Standing read from disputes: resolution.disputed in war check | `crates/openwarrant-cli/src/resolution_cmd.rs` | drift |
 | D-005 | A receipt of an invalidated gate is not admissible | `crates/openwarrant-cli/src/evidence.rs` | not_content_addressed |
 | D-006 | The war gate invalidate and war attest --custody flags | `crates/openwarrant-cli/src/lib.rs` | drift |
@@ -35895,7 +35895,7 @@ test mode is labeled in every record it produces.
 | D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | verified |
 | D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | drift |
 | D-008 | authority.md: the cutover | `docs/cli/authority.md` | verified |
-| D-009 | the plants | `conformance/plants.d/58-authn.sh` | verified |
+| D-009 | the plants | `conformance/plants.d/58-authn.sh` | drift |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | drift |
 | D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | verified |
@@ -37176,7 +37176,7 @@ once, at acceptance, after the blind verifier.
 | D-015 | docs/SIGNING.md: routine work under a standing authorization | `docs/SIGNING.md` | verified |
 | D-016 | CONTEXT.md: the term | `CONTEXT.md` | verified |
 | D-017 | cli: the class acts and the covered verdict | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
-| D-018 | cli: class-act attestations | `crates/openwarrant-cli/src/attest.rs` | verified |
+| D-018 | cli: class-act attestations | `crates/openwarrant-cli/src/attest.rs` | drift |
 | D-019 | cli: a covered Warrant's policy-service resolution refused at ingest | `crates/openwarrant-cli/src/resolution_cmd.rs` | drift |
 | D-020 | cli: the class acts in war next | `crates/openwarrant-cli/src/next.rs` | drift |
 | D-021 | cli: the class acts in the console | `crates/openwarrant-cli/src/console.rs` | drift |
