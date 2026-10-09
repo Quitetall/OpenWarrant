@@ -30567,7 +30567,7 @@ negative controls.
 | D-005 | The guided Baseline step | `crates/openwarrant-cli/src/init/guided.rs` | drift |
 | D-006 | Untracked work from the baseline, in the repository's namespace | `crates/openwarrant-cli/src/telemetry.rs` | drift |
 | D-007 | Adopting OpenWarrant in a repository with history | `docs/ADOPTING.md` | verified |
-| D-008 | The adoption plants | `conformance/plants.d/59-adoption.sh` | verified |
+| D-008 | The adoption plants | `conformance/plants.d/59-adoption.sh` | drift |
 
 ### OW-WAR-0125 — The SAS as atoms: sections as governed records with their own currency
 
