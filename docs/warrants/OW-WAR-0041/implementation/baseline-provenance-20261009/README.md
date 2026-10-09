@@ -58,3 +58,5 @@ Initial and corrected outputs are retained. Full repository gate remains separat
 Final all-target CLI Clippy passes with warnings denied.
 
 Complete CLI library unit suite: **348 tests passed, zero failures** on this source branch.
+
+Selected battery wrapper: **2 controls passed, zero failures**, including the positive generated corpus and the public telemetry control family.
