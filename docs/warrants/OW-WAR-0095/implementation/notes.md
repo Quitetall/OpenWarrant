@@ -29,3 +29,9 @@ storage failure can leave only the flushed trail; no intervals may be guessed.
 See the README for the bounded operator commands and retained retest history.
 OW95 remains blocked on actual consenting participants and selected workflow
 build/scenario readiness. No signed record or obligation disposition changed.
+
+## Participant availability — 2026-10-09
+
+The owner confirmed that no participants are available yet and directed
+implementation to continue. OW95 retains its prepared three-developer scope;
+no real session, consent, observation or qualification is fabricated.

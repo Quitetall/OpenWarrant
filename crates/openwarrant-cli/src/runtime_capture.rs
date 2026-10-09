@@ -124,6 +124,20 @@ pub(super) fn read(repo: &Repository, path: &Utf8Path, limit: usize) -> Result<V
 pub(super) fn decode(bytes: &[u8]) -> Result<Value, Fault> {
     crate::sdk::wire::decode_value(bytes).map_err(|e| fault("runtime.capture-syntax", e, false))
 }
+
+/// Read one bounded repository-relative selection request. Unknown schema
+/// versions cannot be silently interpreted as the current request.
+pub fn read_selection(repo: &Repository, path: &Utf8Path) -> Result<SelectionRequest, Fault> {
+    let value = decode(&read(repo, path, REQUEST_LIMIT)?)?;
+    if value["schema"] != selection::REQUEST_SCHEMA {
+        return Err(fault(
+            "runtime.selection-unsupported-schema",
+            "unsupported selection request",
+            true,
+        ));
+    }
+    serde_json::from_value(value).map_err(|e| fault("runtime.selection-request", e, false))
+}
 fn blob(reference: &str, bytes: &[u8]) -> Value {
     json!({"reference":reference,"digest":format!("sha256:{}",sha256_hex(bytes)),"base64":base64_encode(bytes)})
 }
@@ -394,16 +408,7 @@ pub fn run(repo: &Repository, command: Command) -> (Report, Value) {
         })(),
         Command::Show { alias, digest } => show(repo, &alias, &digest),
         Command::Assess { alias, selection } => (|| {
-            let value = decode(&read(repo, &selection, REQUEST_LIMIT)?)?;
-            if value["schema"] != selection::REQUEST_SCHEMA {
-                return Err(fault(
-                    "runtime.selection-unsupported-schema",
-                    "unsupported selection request",
-                    true,
-                ));
-            }
-            let selected: SelectionRequest = serde_json::from_value(value)
-                .map_err(|e| fault("runtime.selection-request", e, false))?;
+            let selected = read_selection(repo, &selection)?;
             let assessed = assess_selected(repo, &alias, &selected.selections, |_, _| None)?;
             Ok(selection::render(&assessed))
         })(),
