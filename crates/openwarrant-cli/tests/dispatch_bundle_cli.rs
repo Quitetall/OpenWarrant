@@ -521,3 +521,262 @@ fn input_attachments_are_required_and_packaging_is_deterministic_and_non_overwri
     assert_eq!(fs::read(one).unwrap(), before);
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn detached_disclosure_preserves_opaque_labels_and_rejects_resealed_metadata() {
+    use openwarrant_compiler::{DigestDomain, dispatch_bundle as b, sha256_digest};
+    let root = fixture("classification");
+    optional_atom(&root, true);
+    let dir = root.join("repo/docs/warrants/IX-WAR-0003/atoms");
+    let intent = dir.join("10-intent.md");
+    fs::write(
+        &intent,
+        fs::read_to_string(&intent)
+            .unwrap()
+            .replace("classification: internal", "classification: customer-X"),
+    )
+    .unwrap();
+    let note = dir.join("70-note.md");
+    fs::write(
+        &note,
+        fs::read_to_string(&note).unwrap().replacen(
+            "order: 70",
+            "order: 70\nclassification: customer-X",
+            1,
+        ),
+    )
+    .unwrap();
+    fs::write(
+        root.join("repo/CONTEXT.md"),
+        "---\nclassification: customer-X\n---\n# Glossary\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("repo/notes.md"),
+        "---\nclassification: customer-Y\n---\n# Artifact\n",
+    )
+    .unwrap();
+    let graph = dir.join("45-milestones.yaml");
+    fs::write(
+        &graph,
+        fs::read_to_string(&graph).unwrap().replace(
+            "executor_ref: \"agent://fixture\"",
+            "executor_ref: \"agent://fixture\"\n    context_artifacts: [\"notes.md\"]",
+        ),
+    )
+    .unwrap();
+    let (d, c) = compiled(&root);
+    let context: serde_json::Value = serde_json::from_slice(&fs::read(&c).unwrap()).unwrap();
+    for id in [
+        "atoms/10-intent.md",
+        "atoms/70-note.md#Selected",
+        "CONTEXT.md",
+    ] {
+        assert_eq!(
+            context["included"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|i| i["id"] == id)
+                .unwrap()["classification"],
+            "customer-X"
+        );
+    }
+    assert_eq!(context["effective_classification"], "");
+    assert!(
+        context["unresolved"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v.as_str().unwrap().contains("classification-policy"))
+    );
+    assert_eq!(
+        context["included"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|i| i["id"] == "atoms/45-milestones.yaml")
+            .unwrap()["classification"],
+        ""
+    );
+    let dest = root.join("bundle.json");
+    let out = create(&root, &d, &c, &dest, &[]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let bytes = fs::read(&dest).unwrap();
+    let digest = b::content_digest(&bytes);
+    fs::remove_dir_all(root.join("repo")).unwrap();
+    let checked = b::check(&bytes, &digest).unwrap();
+    for id in [
+        "atoms/10-intent.md",
+        "atoms/70-note.md#Selected",
+        "CONTEXT.md",
+    ] {
+        checked
+            .require_source_classification(id, &["customer-X".into()])
+            .unwrap();
+        for labels in [
+            vec![],
+            vec!["internal".into()],
+            vec!["*".into()],
+            vec!["Customer-X".into()],
+        ] {
+            assert!(
+                checked
+                    .require_source_classification(id, &labels)
+                    .unwrap_err()
+                    .to_string()
+                    .contains("classification-denied")
+            );
+        }
+    }
+    checked
+        .require_source_classification("notes.md", &["customer-Y".into()])
+        .unwrap();
+    assert!(
+        checked
+            .require_source_classification("notes.md", &["customer-X".into()])
+            .unwrap_err()
+            .to_string()
+            .contains("classification-denied")
+    );
+    assert!(
+        checked
+            .require_source_classification("atoms/45-milestones.yaml", &["internal".into()])
+            .unwrap_err()
+            .to_string()
+            .contains("classification-unestablished")
+    );
+    assert!(
+        checked
+            .require_source_classification(
+                &checked.dispatch().workspace_basis_ref,
+                &["customer-X".into()]
+            )
+            .unwrap_err()
+            .to_string()
+            .contains("classification-not-context")
+    );
+    let out = war(
+        &root,
+        &[
+            "dispatch-bundle",
+            "check",
+            dest.to_str().unwrap(),
+            "--expected-digest",
+            &digest,
+            "--read",
+            "atoms/70-note.md#Selected",
+            "--allow-classification",
+            "customer-X",
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(report["result"]["source_classification_checked"], true);
+    assert_eq!(report["result"]["execution_authorized"], false);
+    let out = war(
+        &root,
+        &[
+            "dispatch-bundle",
+            "check",
+            dest.to_str().unwrap(),
+            "--expected-digest",
+            &digest,
+            "--read",
+            "atoms/10-intent.md",
+            "--check-classification",
+            "--json",
+        ],
+    );
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("classification-denied"));
+    let mut forged: b::Bundle = serde_json::from_slice(&bytes).unwrap();
+    forged
+        .context
+        .included
+        .iter_mut()
+        .find(|i| i.id == "atoms/70-note.md#Selected")
+        .unwrap()
+        .classification = "internal".into();
+    forged.dispatch.context_manifest_digest =
+        sha256_digest(DigestDomain::ContextManifest, &forged.context).unwrap();
+    forged.dispatch.context_manifest_ref = format!(
+        "artifact://context-manifest/sha256:{}",
+        forged.dispatch.context_manifest_digest
+    );
+    forged.dispatch.dispatch_digest.clear();
+    forged.dispatch.dispatch_digest =
+        sha256_digest(DigestDomain::Dispatch, &forged.dispatch).unwrap();
+    let bytes = forged.encode().unwrap();
+    let forged = b::check(&bytes, &b::content_digest(&bytes)).unwrap();
+    assert!(
+        forged
+            .require_source_classification("atoms/70-note.md#Selected", &["internal".into()])
+            .unwrap_err()
+            .to_string()
+            .contains("classification-source-mismatch")
+    );
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn unfetched_labels_stay_unknown_and_malformed_selected_metadata_refuses_before_emit() {
+    let root = fixture("classification-unresolved");
+    let graph = root.join("repo/docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml");
+    let original = fs::read_to_string(&graph).unwrap();
+    fs::write(
+        &graph,
+        original.replace(
+            "executor_ref: \"agent://fixture\"",
+            "executor_ref: \"agent://fixture\"\n    context_external: [\"external://fixture\"]",
+        ),
+    )
+    .unwrap();
+    let (_, c) = compiled(&root);
+    let context: serde_json::Value = serde_json::from_slice(&fs::read(c).unwrap()).unwrap();
+    let external = context["included"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["id"] == "external://fixture")
+        .unwrap();
+    assert_eq!(external["classification"], "");
+    assert_eq!(external["trust"], "external_untrusted");
+    fs::write(
+        root.join("repo/bad.md"),
+        "---\nclassification:\n  - customer-X\n---\nBody",
+    )
+    .unwrap();
+    fs::write(
+        &graph,
+        original.replace(
+            "executor_ref: \"agent://fixture\"",
+            "executor_ref: \"agent://fixture\"\n    context_artifacts: [\"bad.md\"]",
+        ),
+    )
+    .unwrap();
+    let out = war(
+        &root.join("repo"),
+        &[
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--emit",
+            root.join("refused.json").to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("dispatch.classification-source"));
+    assert!(!root.join("refused.json").exists());
+    fs::remove_dir_all(root).unwrap();
+}

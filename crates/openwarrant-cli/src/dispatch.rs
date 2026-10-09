@@ -204,15 +204,30 @@ pub fn run(
         .budget_tokens
         .unwrap_or_else(|| repo.config.context.budget());
     let (included, omitted, item_bytes) = (selection.included, selection.omitted, selection.bytes);
+    // Labels are opaque: a common explicit label needs no invented ordering.
+    // Mixed or missing labels need a provider's policy; retain them exactly and
+    // record that no effective classification has been established.
+    let labels: std::collections::BTreeSet<&str> =
+        included.iter().map(|i| i.classification.as_str()).collect();
+    let effective_classification = if labels.len() == 1 && !labels.contains("") {
+        labels.iter().next().unwrap().to_string()
+    } else {
+        String::new()
+    };
+    let unresolved = if effective_classification.is_empty() {
+        vec!["classification-policy: effective classification unestablished; mixed or missing source labels require provider policy".to_owned()]
+    } else {
+        vec![]
+    };
     let mut context = ContextManifest {
         workspace_basis_ref: format!("basis://{}", basis.manifest_source),
         workspace_basis_digest: ir.integrity.workspace_basis_digest.clone(),
         included,
         omitted,
-        unresolved: vec![],
+        unresolved,
         conflicts: vec![],
         conflict_check: ConflictCheck::default(),
-        effective_classification: "internal".to_owned(),
+        effective_classification,
         policy_digest: String::new(),
         compiler_digest: format!("openwarrant-cli/{}", env!("CARGO_PKG_VERSION")),
     };

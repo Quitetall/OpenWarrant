@@ -349,6 +349,47 @@ impl CheckedBundle {
             None => self.bundle.source(id).map(Cow::Borrowed),
         }
     }
+    /// Check disclosure of one selected source under the caller's independently
+    /// established label allowlist. Labels match exactly; no ranking, wildcard,
+    /// repository authority, effective join or whole-package clearance is inferred.
+    /// Sections use their full provenance source. Missing labels refuse, including
+    /// old captures whose manifest asserted `internal` without a source declaration.
+    pub fn require_source_classification(&self, id: &str, allowed: &[String]) -> Result<()> {
+        let item = self
+            .bundle
+            .context
+            .included
+            .iter()
+            .find(|i| i.id == id)
+            .ok_or_else(|| invalid(format!("classification-not-context: {id}")))?;
+        let source = if item.selector_sections.is_empty()
+            || self
+                .bundle
+                .contract
+                .source_and_composition
+                .atoms
+                .iter()
+                .any(|a| a.source == id)
+        {
+            self.bundle.source(id)?
+        } else {
+            self.bundle
+                .source(&format!("provenance://{}", item.holder.path))?
+        };
+        let label = openwarrant_core::context::declared_classification(source)
+            .map_err(convert)?
+            .ok_or_else(|| invalid(format!("classification-unestablished: {id}")))?;
+        require(
+            item.classification == label,
+            &format!("classification-source-mismatch: {id}"),
+        )?;
+        require(
+            allowed.iter().any(|l| l == &label),
+            &format!("classification-denied: {id}: {label}"),
+        )?;
+        Ok(())
+    }
+
     /// Exact membership is a pre-action decision for a caller's trusted policy.
     /// This does not execute or sandbox anything. A caller must establish policy
     /// authority independently, then enforce this decision before using a tool.
