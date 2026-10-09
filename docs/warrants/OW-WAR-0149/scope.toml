@@ -32,7 +32,7 @@ path_glob = "crates/openwarrant-compiler/src/runtime_basis.rs"
 obligation_refs = ["OBL-001", "OBL-003"]
 
 [[scope]]
-path_glob = "crates/openwarrant-core/src/document/runtime*"
+path_glob = "crates/openwarrant-core/src/document/runtime.rs"
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 
 [[scope]]
