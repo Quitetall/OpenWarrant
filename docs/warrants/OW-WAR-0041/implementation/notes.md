@@ -27,11 +27,16 @@ an empty amendment set, and actual Git history detection.
 
 ## Remaining scope
 
-Public CLI regression passes on Rust 1.97.1 (see `regression.log`). Full gate is pending. The eight derived metrics still
-need defined, observed inputs and calculations. A current measurement cannot
-prove the historical before-tuning baseline requirement. Independent review and
-any reconciliation of historical obligations remain outstanding; no completion
-or assurance disposition is asserted.
+Public CLI regression passes on Rust 1.97.1. Eight exact derived calculations
+are implemented in the SDK; the frozen CLI observes four corresponding populations.
+Four metrics still need actual correlated event/window inputs. The historical
+original artifact is retained, but its label alone does not prove frozen collection
+or the intended before-tuning cutoff. Independent review and any reconciliation
+remain outstanding; no completion or assurance disposition is asserted.
+
+[Current source-provenance audit and publication repair](baseline-provenance-20261009/README.md)
+retains original bytes, the retrospective exact-source comparison and public
+refusal controls. Both collectors now refuse overwriting different prior bytes.
 
 ## Initial integration failure
 
