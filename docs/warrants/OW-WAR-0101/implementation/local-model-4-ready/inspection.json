@@ -1,0 +1,65 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "observer": "agent://codex",
+  "independent_verification": false,
+  "task": "add a changelog",
+  "source_revision": "e7125db4127c51ba907c2a212d6091717b483109",
+  "adapter_exit_code": 0,
+  "elapsed_seconds": 23.95427528899745,
+  "observed_model": "Qwen3.6-27B-uncensored-heretic-v2-Q4_K_M.gguf",
+  "finish_reason": "stop",
+  "usage": {
+    "completion_tokens": 783,
+    "prompt_tokens": 1404,
+    "total_tokens": 2187,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "visible_tokens": 782
+    }
+  },
+  "checks": [
+    {
+      "claim": "Exact retained request reused",
+      "result": "PASS",
+      "evidence": "request.json SHA256 equals local-model-3/request.json"
+    },
+    {
+      "claim": "Draft concerns requested project changelog",
+      "result": "PASS",
+      "evidence": "Changelog title; work_order names CHANGELOG.md and README.md, not an existing Warrant"
+    },
+    {
+      "claim": "Exact five atom roles and fixed milestone template",
+      "result": "PASS",
+      "evidence": "Adapter local schema validation exited zero; unmodified proposal.stdout.txt"
+    },
+    {
+      "claim": "Positive and refusal checks concern requested deliverables",
+      "result": "PASS",
+      "evidence": "assurance names nonempty CHANGELOG.md and README link, with missing/empty/link-absent refusal cases"
+    },
+    {
+      "claim": "Non-applying proposal validation",
+      "result": "PASS",
+      "evidence": "semantic-validation.json plan.applicable; no --apply used"
+    }
+  ],
+  "review_needed": [
+    "Intent scope All future commits and releases is open-ended; bound the implementation and treat ongoing maintenance separately before approval.",
+    "Choose changelog format and automation level, which the draft correctly lists as uncertain.",
+    "Presence and grep checks are draft suggestions, not observed executable acceptance fixtures or proof of changelog quality."
+  ],
+  "not_established": [
+    "General planning quality, repeated-run reliability, prompt-injection resistance or other model capability",
+    "Actual changelog implementation or execution of its proposed checks",
+    "Independent verification, human acceptance, qualification or production readiness"
+  ],
+  "paid_calls": false,
+  "cost": "unknown (local execution; no provider billing call)",
+  "hard_spend_cap_enforced": false,
+  "applied": false,
+  "qualified": false
+}

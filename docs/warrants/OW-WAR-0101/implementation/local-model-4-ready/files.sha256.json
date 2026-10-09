@@ -1,0 +1,19 @@
+{
+  "adapter-tests.log": "6b2cc1a44814190de0f4e62b0fd645df7ba9f98773fd148cb8b6604c5195a2cd",
+  "adapter.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "backend-request.json": "0ba0fc88648b6e3bc94541a77ba5776ff4ac47db23e97978ec8934ce6d2dd069",
+  "backend-response.json": "678ed469e2a9437ac23fcfdeebb9a93b3c9ec77d3aa8fba760dc022f44c88753",
+  "capture.py.txt": "3975ccd22fc15050182ea25a536b1f0249250f86f0ce2d1a20a265b6a849f056",
+  "cleanup-request.json": "188c2528f11f1c0000da993bcca73e5d748179a680a1f6e54a542907e2102689",
+  "cleanup-result.json": "761a8acd0e7378be63ac0b9be24b177d5430e5a7bbb2597290cd1ba9db83a65f",
+  "identity.json": "5f0b22ee144988e0a20ec0008707eb13778245a86b397964918ccb5f6e2514c9",
+  "inspection.json": "1451a842dc68467c95170fef740026d5155badcbb0d4f4d0e31bcea533d3cbe3",
+  "inspection.md": "83ec161cf932c7454c1b143b692eb976d773bdbbad6073471eaf1e4ac68a45b8",
+  "preflight.log": "65f03983eaa5de7bf585ffe973b4e6a62afd3e1259d2fc2cfc89602ea1ed9c1f",
+  "proposal.stdout.txt": "e5f70c2c5d4e4bbd4234ff122095857e6b2777acd0b39746c0381095abb11e0f",
+  "request.json": "da2e564de21b8773e4c4d4b5e2d12db23a7b9ea092682c7d63f012b4af05eb39",
+  "result.json": "f2c1658d6917db8f60324c3d06985cee316298b4878d13a8796a2f6d19eb48c6",
+  "runtime.json": "a2de266c55738b469fc59b68516177703de83cf178626afffbd7b42139904cb1",
+  "semantic-validation.json": "7a4a6ed6cbc2657cc1d15e8b43acdd0b4902f6a8076e1ee4d4d478cfb5bb9807",
+  "server.log": "61a8e4ffd0bf5aab74e7e006d743d7ec432f60c2c4d359958f9670d15b8ac0dc"
+}

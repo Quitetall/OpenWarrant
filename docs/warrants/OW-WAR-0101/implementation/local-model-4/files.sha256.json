@@ -1,0 +1,11 @@
+{
+  "adapter.stderr.txt": "9368a07660a9b150e819cea43c1e9bcda1c2cd97947c697c611cfca7ca1af40f",
+  "backend-request.json": "0ba0fc88648b6e3bc94541a77ba5776ff4ac47db23e97978ec8934ce6d2dd069",
+  "backend-response.json": "baa09177700f64520a799fd2628bb3663c1486b25e17e4a507f2e6c81bef957c",
+  "capture.py.txt": "15844b7d3684ed7f8f37af6dc14673373abdd059680952967175ece5efb14a54",
+  "identity.json": "97d4dfd320afae9268b32701ea8a32cbd162f8b99e3fd094db6402381294ae05",
+  "inspection.md": "624b28ae1423face9a0dc2bffe281caaeecbf99d9112a95bdf27a7453db73499",
+  "proposal.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "request.json": "da2e564de21b8773e4c4d4b5e2d12db23a7b9ea092682c7d63f012b4af05eb39",
+  "result.json": "ced0f523b7dba5976f6ec0073ba27b348a47163266238720a032d5fc276e0180"
+}

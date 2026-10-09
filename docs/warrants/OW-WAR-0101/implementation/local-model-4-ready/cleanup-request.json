@@ -1,0 +1,12 @@
+{
+  "owned_lamu_pid": 1533844,
+  "argv": [
+    "/home/brianklam/.local/bin/lamu",
+    "serve",
+    "--port",
+    "8020"
+  ],
+  "signal": "SIGINT",
+  "reason": "bounded observation finished; last backend log reports all slots idle",
+  "completion": "pending process observation"
+}
