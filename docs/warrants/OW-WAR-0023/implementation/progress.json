@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0023",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "6587ec27",
+  "revision": "6587ec27469581a89005a5af3e061c20f4475713",
   "summary": "Portable legacy Dispatch transport, source-bound offline classification checks and exact current authorization/source-holder admission delivered, unverified. Broader semantic closure, provider policy and native runtime qualification remain.",
   "notes": "docs/warrants/OW-WAR-0023/implementation/notes.md",
   "evidence": [

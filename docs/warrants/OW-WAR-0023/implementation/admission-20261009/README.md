@@ -33,3 +33,8 @@ remain authorized. Initial failures are retained, not represented as passing.
 Full repository gate and independent qualification remain separate. This work
 adds admission and source-binding checks, not harness isolation, provider semantic
 closure, native receipt qualification, human acceptance or Warrant resolution.
+
+The corrected selected battery passes **52 controls, zero failures**, including
+unchanged authorized Dispatch positives, context/budget refusals, the new admission
+control and idempotent submit/signing fixture controls. The positive generated
+corpus check also passes. No owner key or real authority act was used by the fixture.
