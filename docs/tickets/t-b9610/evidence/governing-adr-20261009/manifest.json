@@ -13,7 +13,11 @@
     },
     "cli-tests.log": {
       "sha256": "3e44c09a308a5b7cec910bc58d06a5f9320f4f0f553ab71bceef1b694e7019bb",
-      "bytes": 3512
+      "bytes": 3512,
+      "retained_at": "cli-tests.log.gz",
+      "compressed_sha256": "36a04abeb298a44647b9fe4a020f2ed4d0ff13abde04fa5ae494ce7b581cefce",
+      "compressed_bytes": 1373,
+      "roundtrip_equal": true
     },
     "clippy.log": {
       "sha256": "64bc39cdf8f4478c4be73c767915dfd0418ef1b7c7c829de2116ce33dbd05c54",
@@ -85,7 +89,11 @@
     },
     "bundle-unit-tests.log": {
       "sha256": "2cdf72295b3acb698a3288189e71f44f241acb9d348f4ae7d35762486c808533",
-      "bytes": 1393
+      "bytes": 1393,
+      "retained_at": "bundle-unit-tests.log.gz",
+      "compressed_sha256": "2f247390c949672a274e458aa2b8ac8a360ad8d6c38dabe3f05a1bd97cb00067",
+      "compressed_bytes": 658,
+      "roundtrip_equal": true
     }
   },
   "record_kind": "diagnostic inventory, not a verification or authority record",

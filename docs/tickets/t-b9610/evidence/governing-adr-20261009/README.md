@@ -19,3 +19,5 @@ The original failed logs above remain unchanged. The candidate now carries exact
 All 41 public CLI regressions, scoped all-target Clippy and formatting pass on Rust 1.97.1. The original minimal and pinned probes pass; the malformed-relation probe now observes UNKNOWN. The extended required-sources conformance control passes using the immutable candidate executable identified in manifest.json. The actual OW-WAR-0007 request now names the existing accepted ADR0003 and its pinned SAS; this is a read-only request, not a verifier response or current assurance. Full gates are pending.
 
 The proposed ADR0030 describes this candidate selection. No signature, disposition, v1 canonicalization/domain change or final context/custody qualification was created. This does not infer transitive dependencies from prose or finish ticket i-37a7.
+
+Raw CLI and bundle test logs are retained losslessly as .log.gz files. manifest.json records original and compressed hashes and verified byte equality after decompression. The original files remain in commit 6855e285; no observation was trimmed.
