@@ -111,3 +111,7 @@ The public CLI regression was observed failing before this connection: it named
 only a generic unmet requirement, with no missing-stage observation. The SDK
 controls use a clearly synthetic provider and establish consumer behavior only,
 not Katana/BLUT qualification or actual sandbox enforcement.
+
+### Reporting scope
+
+The draft `scope.toml` maps runtime capture, assessment and resolution consumer paths to the existing OBL-001 through OBL-004. It pins the existing repository Bonsai policy and public source revision for report generation. This is a reporting boundary, not authorization, a coverage verdict, native provider qualification or a participant acceptance. The first PR169 report refused because this sidecar was absent; the refusal is retained in external implementation evidence.
