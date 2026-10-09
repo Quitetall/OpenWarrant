@@ -121,15 +121,18 @@ fi
 
 # --- OBL-002: untracked work counts from the baseline, in ACME ---------------
 
-ad_telemetry() { "$AD_WAR" --root "$1" telemetry --commit plant --out "$AD_TMP/telemetry.json" 2>&1; }
+# Every observation retains its own file; a changed history must not overwrite a baseline.
+ad_telemetry() { "$AD_WAR" --root "$1" telemetry --commit plant --out "$AD_TELEMETRY" 2>&1; }
+AD_TELEMETRY="$AD_TMP/telemetry-1.json"
 AD_T=$(ad_telemetry "$AD_A")
 if [[ "$(ad_candidates "$AD_T")" == 0 ]] && grep -Fq "$AD_HEAD..HEAD" <<<"$AD_T" \
-    && grep -Fq "\"adoption_baseline\": \"$AD_HEAD\"" "$AD_TMP/telemetry.json"; then
+    && grep -Fq "\"adoption_baseline\": \"$AD_HEAD\"" "$AD_TELEMETRY"; then
     ad_ok "0 candidates right after init" "read from $AD_HEAD..HEAD"
 else
     ad_fail "0 candidates right after init" "$(tr '\n' '|' <<<"$AD_T")"
 fi
 ad_git "$AD_A" add -A >/dev/null && ad_git "$AD_A" commit -qm "adopt openwarrant" >/dev/null
+AD_TELEMETRY="$AD_TMP/telemetry-2.json"
 AD_T=$(ad_telemetry "$AD_A")
 if [[ "$(ad_candidates "$AD_T")" == 1 ]]; then
     ad_ok "one uncited commit is 1 candidate" "1"
@@ -137,6 +140,7 @@ else
     ad_fail "one uncited commit is 1 candidate" "$(tr '\n' '|' <<<"$AD_T")"
 fi
 ad_commit "$AD_A" "feat: the widget (ACME-WAR-0001)" src/widget.txt
+AD_TELEMETRY="$AD_TMP/telemetry-3.json"
 AD_T=$(ad_telemetry "$AD_A")
 if [[ "$(ad_candidates "$AD_T")" == 1 ]]; then
     ad_ok "an ACME-WAR citation is tracked" "still 1"
@@ -145,10 +149,11 @@ else
 fi
 # The refusal: another namespace's alias names no Warrant here.
 ad_commit "$AD_A" "feat: the gadget (OW-WAR-0001)" src/gadget.txt
+AD_TELEMETRY="$AD_TMP/telemetry-4.json"
 AD_T=$(ad_telemetry "$AD_A")
 if [[ "$(ad_candidates "$AD_T")" == 2 ]] \
-    && grep -Fq 'feat: the gadget (OW-WAR-0001)' "$AD_TMP/telemetry.json" \
-    && ! grep -Fq 'the widget (ACME-WAR-0001)' "$AD_TMP/telemetry.json"; then
+    && grep -Fq 'feat: the gadget (OW-WAR-0001)' "$AD_TELEMETRY" \
+    && ! grep -Fq 'the widget (ACME-WAR-0001)' "$AD_TELEMETRY"; then
     ad_ok "an OW-WAR citation is not tracked" "2"
 else
     ad_fail "an OW-WAR citation is not tracked" "$(tr '\n' '|' <<<"$AD_T")"
@@ -159,9 +164,10 @@ AD_A2="$AD_TMP/acme-unbounded"
 cp -a "$AD_A" "$AD_A2"
 sed -i -e '/^\[adoption\]$/d' -e '/^baseline = /d' "$AD_A2/openwarrant.toml"
 assert_gone '[adoption]' "$AD_A2/openwarrant.toml"
+AD_TELEMETRY="$AD_TMP/telemetry-5.json"
 AD_T=$(ad_telemetry "$AD_A2")
 if [[ "$(ad_candidates "$AD_T")" == 5 ]] && grep -Fq 'all history' <<<"$AD_T" \
-    && ! grep -Fq 'adoption_baseline' "$AD_TMP/telemetry.json"; then
+    && ! grep -Fq 'adoption_baseline' "$AD_TELEMETRY"; then
     ad_ok "no baseline reads all history" "5, named as all history"
 else
     ad_fail "no baseline reads all history" "$(tr '\n' '|' <<<"$AD_T")"
