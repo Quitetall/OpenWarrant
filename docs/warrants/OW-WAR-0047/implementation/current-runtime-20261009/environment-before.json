@@ -1,0 +1,21 @@
+{
+  "cpu_count": 32,
+  "load_average": [
+    1.2080078125,
+    5.16748046875,
+    9.669921875
+  ],
+  "sampled_idle_fraction": 0.9555214723926381,
+  "memory": {
+    "MemTotal": 67168759808,
+    "MemAvailable": 28063715328
+  },
+  "memory_pressure": "some avg10=0.00 avg60=0.04 avg300=0.06 total=1149773477\nfull avg10=0.00 avg60=0.04 avg300=0.06 total=883846869\n",
+  "conditions": {
+    "load_below_half_cpu_count": true,
+    "idle_at_least_80_percent": true,
+    "available_memory_at_least_8_gib": true,
+    "memory_pressure_avg10_zero": true
+  },
+  "qualified": false
+}

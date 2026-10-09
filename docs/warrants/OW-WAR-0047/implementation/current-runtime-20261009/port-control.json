@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/mnt/4tb/OpenWarrant/target/debug/war",
+    "--root",
+    "/mnt/4tb/tmp/openwarrant-provider-port-control",
+    "blut",
+    "OW-WAR-0047",
+    "--verify",
+    "/mnt/4tb/OpenWarrant/target/debug/blut-standard",
+    "--json"
+  ],
+  "exit_code": 1,
+  "mutation": "STAGE-003 input corpus:war/corpus -> corpus:war/not-a-kind in owned disposable control only",
+  "original_sha256": "c240b53cfb61a93f0414c2e45f37ccd81dbb3cdf95d9ae301d1f68f3deda43f8",
+  "original_restored": true,
+  "canonical_sources_changed": false,
+  "qualified": false
+}

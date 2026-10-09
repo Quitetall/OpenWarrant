@@ -1,0 +1,10 @@
+{
+  "provider_commit": "cbb33663f278be95aa5805b47b4f33de5ceea50a",
+  "engine_commit": "2502a4dd6385b077f21dd500851a99a6ec1795c9",
+  "binary_path": "/mnt/4tb/OpenWarrant/target/debug/blut-standard",
+  "binary_sha256": "6d7fdb1321f33ce9f387f8ec55b944a5c90fbe7bb76301945d30f6b399b1273c",
+  "manifest_sha256": "7c75d893a1195c234df857a3818d79500b452b9056c2a86ad1cdf125ca81e618",
+  "lock_sha256": "918906c819947f05a8402393800b98b5135e27f623372854c2325af206f6d7d3",
+  "engine_override": true,
+  "qualified": false
+}
