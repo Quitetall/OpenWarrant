@@ -79,6 +79,7 @@ pub mod resolve;
 pub mod roadmap_cmd;
 pub mod roadmap_edit;
 pub mod run_cmd;
+pub mod runtime_capture;
 pub mod sas;
 pub mod sas_repin;
 #[cfg(feature = "schema")]
@@ -599,6 +600,11 @@ enum Command {
         /// Also save the result envelope to a new file; existing files are never replaced.
         #[arg(long)]
         output: Option<Utf8PathBuf>,
+    },
+    /// Retain or inspect dispatch-bound runtime captures. Retention is not native verification.
+    Runtime {
+        #[command(subcommand)]
+        command: runtime_capture::Command,
     },
     /// The app: every pane of the corpus, the queue, help and setup, in the
     /// terminal. `war` with no arguments is the same thing (OW-WAR-0112).
@@ -2003,6 +2009,10 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(tui::run(root, panic_after_setup)?)
         }
         Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
+        Command::Runtime { command } => {
+            let (report, result) = runtime_capture::run(&open_repo()?, command);
+            Ok(output::finish(mode, "runtime", &report, Some(result)))
+        }
         // A hosted run opens no repository: the request is the basis.
         Command::Host {
             export: false,

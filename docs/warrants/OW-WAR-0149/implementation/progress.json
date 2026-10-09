@@ -3,18 +3,20 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Candidate SDK checks receipts against every runtime stage in the current captured basis, with canonical dispatch and contract binding and per-stage unknown/refused observations. Native provider protocols, durable capture/store and legacy resolver integration remain incomplete.",
-  "notes": "docs/warrants/OW-WAR-0149/implementation/current-basis-assessment.md",
+  "summary": "Candidate SDK/CLI now retains dispatch/journal-bound runtime captures atomically and checks whole-basis receipt eligibility. Captures survive source loss and exact replay; native provider interfaces, authenticated collection, stored current-attempt selection and legacy resolver integration remain incomplete.",
+  "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
     "docs/warrants/OW-WAR-0149/implementation/sdk-clippy.log",
     "docs/warrants/OW-WAR-0149/implementation/current-basis-tests.log",
-    "docs/warrants/OW-WAR-0149/implementation/current-basis-clippy.log"
+    "docs/warrants/OW-WAR-0149/implementation/current-basis-clippy.log",
+    "docs/warrants/OW-WAR-0149/implementation/capture-tests.log",
+    "docs/warrants/OW-WAR-0149/implementation/capture-clippy.log"
   ],
   "next_steps": [
-    "Publish and agree provider-owned receipt and verification interfaces.",
-    "Implement attributable capture, stored current-attempt selection and legacy resolver integration using the candidate whole-basis assessment.",
-    "Run real provider integrations and required independent/participant checks."
+    "Publish and agree provider-owned native receipt and verification surfaces.",
+    "Integrate authenticated collector/build observations and stored current-attempt selection; wire the legacy resolver under the required correction/successor route.",
+    "Run actual provider integrations and independent/participant qualification; do not infer assurance from retained captures."
   ],
   "revision": "cd8ef7988d250937667ec23eb36d766a1b0350a5"
 }
