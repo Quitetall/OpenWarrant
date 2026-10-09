@@ -1,0 +1,10 @@
+schema = "oh.war/deliverables/v1"
+[[deliverable]]
+id = "D-001"
+title = "bounded local verifier control"
+kind = "file"
+target_ref = "local-review-control.txt"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]

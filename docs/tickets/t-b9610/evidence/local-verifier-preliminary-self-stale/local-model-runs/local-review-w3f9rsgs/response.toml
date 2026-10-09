@@ -1,0 +1,86 @@
+schema = "oh.war/verification-response/v2"
+warrant = "IX-WAR-0005"
+[[reviewed_packets]]
+path = "docs/warrants/IX-WAR-0005/verifications/bundle-99228ef947ccc79e.json"
+digest = "99228ef947ccc79e156cb7e36b759dfdb0312a6c54ee6acd0d3462036576300d"
+[reviewed_subject]
+contract_digest = "bcdd2ea2368320588752268af4e9e86085ef5b987e5dfe88bc428cfd8660474b"
+[reviewed_subject.artifacts]
+"local-review-control.txt" = "sha256:8f4f9f0e0268e18df6a669662cd330fd21b7a9f0173609ea7ee7d41e03c4d987"
+[reviewed_subject.context_sources]
+[reviewed_subject.gate_definitions]
+[reviewed_subject.fixtures]
+[reviewed_subject.gate_evidence]
+[reviewed_subject.gate_inputs]
+"docs/authority/allowed_signers" = "sha256:e32d8ef273b1006e5ea5e71ba91a09a73334cb8dcc9a6eefc2b6507f472fbb96"
+"docs/authority/roles.toml" = "sha256:e3bf7451686cf037f3fcd18cad8a7ce55cc06082ca535b5200933b0e79572869"
+"docs/warrants/IX-WAR-0001/atoms/10-intent.md" = "sha256:b1c0f365a904e72721b668a1dfabeeb0b889f9ddc744960c66bacb3b0f556a31"
+"docs/warrants/IX-WAR-0001/atoms/20-basis.md" = "sha256:43da2f4a33c7509b55a1d118541a506721c2de7d0108dab159c080684c02c313"
+"docs/warrants/IX-WAR-0001/atoms/40-work-order.md" = "sha256:11235aec1e991a8a54b71bb74566c63e50c115913bbee9caddb557e10cb45d80"
+"docs/warrants/IX-WAR-0001/atoms/45-milestones.yaml" = "sha256:1b713ebd482c679e5d488d772cc4d4fd92edb87f04b423b1796c147a5a828cf3"
+"docs/warrants/IX-WAR-0001/atoms/60-assurance.md" = "sha256:20a72b8917c64a6ffc9f49d1b646dba7c42d18d32e9f61b2614bc482ef6ef8aa"
+"docs/warrants/IX-WAR-0001/manifest.toml" = "sha256:fe5f25bcfe20b24e5178436f98ee6ac97f72a117137ce289caf9052b1484ae2d"
+"docs/warrants/IX-WAR-0002/atoms/10-intent.md" = "sha256:2182411e1bdeea68eae148233cc466ac2abfdce78f8d7a98bfc82a8336723164"
+"docs/warrants/IX-WAR-0002/atoms/20-basis.md" = "sha256:5e4236969b2503d7e14745b4bb1c80c9c7fbbcdb4f7f1b316d7737ca5e712377"
+"docs/warrants/IX-WAR-0002/atoms/40-work-order.md" = "sha256:ae05dd265015483e70827456e851d912d56979196a8bdd575e852507291f8b1e"
+"docs/warrants/IX-WAR-0002/atoms/45-milestones.yaml" = "sha256:1b713ebd482c679e5d488d772cc4d4fd92edb87f04b423b1796c147a5a828cf3"
+"docs/warrants/IX-WAR-0002/atoms/60-assurance.md" = "sha256:48df5c24bb91351a7720433f4e5f3a7cea9e99a40a9fbd08e0e25bcd0c93e836"
+"docs/warrants/IX-WAR-0002/manifest.toml" = "sha256:090de3d8cb70a2c8b8bf90f9416a1c570d4d59041833dee23036158f2fe030b0"
+"docs/warrants/IX-WAR-0003/atoms/10-intent.md" = "sha256:6f684407926bc197d731db0ee1614bcc8445b5b5635a2234f101eec7c5654cff"
+"docs/warrants/IX-WAR-0003/atoms/20-basis.md" = "sha256:f13182873ecce1357bffbe57fd2a54c20d0181ffd3f654ebcf84df80fc47510f"
+"docs/warrants/IX-WAR-0003/atoms/40-work-order.md" = "sha256:03649adf4c32e685b16ed02b8de28713a0e3e02184537ff42396dc84c5dd1c22"
+"docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml" = "sha256:1b713ebd482c679e5d488d772cc4d4fd92edb87f04b423b1796c147a5a828cf3"
+"docs/warrants/IX-WAR-0003/atoms/60-assurance.md" = "sha256:fe5f3884b129a815a4c6f688927d07cbec2c0cfdffa5206459aea0e4012c8898"
+"docs/warrants/IX-WAR-0003/manifest.toml" = "sha256:47e10e78bc89bb2f19b0494154ec497ad0e30261f0007ca566799ad8d8802b1b"
+"docs/warrants/IX-WAR-0004/atoms/10-intent.md" = "sha256:2bdf151af7aee519ae58a013734793bdedbc2cac642895670de8ff34d238cebf"
+"docs/warrants/IX-WAR-0004/atoms/20-basis.md" = "sha256:1ec1d1032c6e1cb37c1b5f0e6af779ecdf3f24e1dc3dbbbcb328e35360367412"
+"docs/warrants/IX-WAR-0004/atoms/40-work-order.md" = "sha256:3dbe2ba6ff5a2e333e9972fdfae8420d2ad2bd9ce4f6cc775365e69a72ffbb45"
+"docs/warrants/IX-WAR-0004/atoms/45-milestones.yaml" = "sha256:1b713ebd482c679e5d488d772cc4d4fd92edb87f04b423b1796c147a5a828cf3"
+"docs/warrants/IX-WAR-0004/atoms/60-assurance.md" = "sha256:e024e6f71ef1e0aedc2a7ae78352762686df13cfa202b2fbafbd709187cacaf1"
+"docs/warrants/IX-WAR-0004/manifest.toml" = "sha256:383613eab58549fba0148092db97474ba85eba4d37b906551b238176b87c2346"
+"docs/warrants/IX-WAR-0005/atoms/10-intent.md" = "sha256:eaa879bca9bcb7d7073d8b8867f2795f1017094eec002fd6dae041dd899e2f90"
+"docs/warrants/IX-WAR-0005/atoms/20-basis.md" = "sha256:d06c5c3e59fa347c861b2a27c1327751a7327340e8777115066ff5ceefd16542"
+"docs/warrants/IX-WAR-0005/atoms/40-work-order.md" = "sha256:2d5334b0abfd7ae7cae65a2ae879603305e6dd76f0a4dd237d610b270c5b7277"
+"docs/warrants/IX-WAR-0005/atoms/45-milestones.yaml" = "sha256:1b713ebd482c679e5d488d772cc4d4fd92edb87f04b423b1796c147a5a828cf3"
+"docs/warrants/IX-WAR-0005/atoms/60-assurance.md" = "sha256:0e31f2ee37ec7ff851d277b6dc2a602512203683912a43fab7b386750e8a0c09"
+"docs/warrants/IX-WAR-0005/deliverables.toml" = "sha256:ab0f019224570e23e04d43306e87594ca154665082649a92e12a3bcc5839a43b"
+"docs/warrants/IX-WAR-0005/manifest.toml" = "sha256:6efe9626cecc161aac7808db22a56dce4b0a7287706a5d1cd0c0fe7ec4749079"
+"local-review-control.txt" = "sha256:8f4f9f0e0268e18df6a669662cd330fd21b7a9f0173609ea7ee7d41e03c4d987"
+"openwarrant.toml" = "sha256:a3da61244b56a49f5c20d87fb56bf26306c162c01dbd0d8ceaa9f9c0691a1efe"
+[reviewed_subject.gate_links]
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "deliverable D-001 (local-review-control.txt) contains text 'READY: alpha\\n', confirming the first five characters are READY"
+performer = "codex"
+[verifications.verifier]
+actor = "local-lamu-verifier (qwen3.6-27b-uncensored-heretic-v2-q4_k_m)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = false
+distinct_human_required = false
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "gate_runs array is empty and no execution receipts or observed outputs are included in the deliverables"
+performer = "codex"
+[verifications.verifier]
+actor = "local-lamu-verifier (qwen3.6-27b-uncensored-heretic-v2-q4_k_m)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = false
+distinct_human_required = false

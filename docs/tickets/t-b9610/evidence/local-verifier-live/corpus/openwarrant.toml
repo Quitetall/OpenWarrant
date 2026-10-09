@@ -1,0 +1,35 @@
+schema = "oh.war/repository-config/v1"
+
+[project]
+name = "Inbox"
+namespace = "IX"
+
+[paths]
+sas = "docs/sas"
+roadmap = "docs/roadmap"
+adrs = "docs/adr"
+warrants = "docs/warrants"
+gates = "docs/gates"
+receipts = "docs/receipts"
+
+[generated]
+commit = true
+verify_drift = true
+
+[policy]
+allow_automated_resolution = false
+
+[plan]
+drafter_argv = []
+drafter_timeout_secs = 0
+drafter_name = ""
+
+[context]
+
+[verify]
+verifier_argv = ["/usr/bin/python3", "/mnt/4tb/tmp/ow-eval-bound-review-order/tools/verifier/local-verifier.py", "--endpoint", "http://127.0.0.1:8020", "--model", "qwen3.6-27b-uncensored-heretic-v2-q4_k_m", "--log-root", "/mnt/2tb/ow-local-verifier-live-final2/model-runs"]
+verifier_timeout_secs = 900
+max_excerpt_bytes = 0
+
+[run]
+default_wall_time_seconds = 0
