@@ -32,3 +32,10 @@ Do not substitute this static-board evidence for those interactive observations.
 Implementation completion remains unverified: no independent disposition, human
 signature or assurance mark is claimed. Legacy OW69 question reconciliation keeps
 its actual historical state.
+
+The large JSON corpus captures are stored as `.json.gz` to keep routine diffs and
+agent context small. `json-capture-packaging.json` records original and compressed
+hashes and verified byte-identical decompression. Nothing is omitted. For browser
+reproduction, expand the two `.json.gz` captures to their original filenames in a
+disposable checkout before running the retained, unchanged harness. Original plain
+captures also remain in Git commit 3fc2b47c; this packaging grants no authority.
