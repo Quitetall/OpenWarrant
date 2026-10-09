@@ -1,0 +1,48 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== human authentication: presence and key binding (OW-WAR-0138) ==
+ok    an ordinary key signs, unverified  sign.presence unverified; attestation predicate says so
+ok    a touched security key, verified   flags 0x01 read from the signature; predicate verified
+ok    an ordinary key, refused by policy sign.presence-required; no record, no response
+ok    a security key with no touch, refused flags 0x00 → sign.presence-required; nothing recorded
+ok    a flipped flag byte fails verification sign.ssh-refused before any presence is read
+ok    another actor's key, refused       sign.actor-key-mismatch names the key's principal; nothing recorded
+ok    the bound human signs under policy recorded; authority.signed; --verify reads presence verified
+ok    a flag flipped on disk is invalid  authority.signature-invalid; --verify reads no presence
+ok    a batch by an ordinary key, refused sign.presence-required; no batch, no record
+ok    a batch by a touched key, recorded batch.recorded, presence verified
+ok    no store: works, warns unprotected one authority.unprotected; the register's forged human verifies (row 6 today)
+ok    a v1 store loads and grants nobody status reads v1; authority.store-v1; a sign refused, nothing recorded
+ok    an unsigned policy change, refused no signature: authority-signer; a signature over other policy: invalid; head unmoved
+ok    the store's human signs            recorded; authority.signed through the store, labeled a test store
+ok    the register's human, refused      authority.legacy-fallback on authorize, on resolve, and at signing
+ok    another key under the store, refused sign.actor-key-mismatch; the store binds that key to nobody
+ok    protected attestation key lookup   retained DSSE verifies under current store key
+ok    allow_automated_resolution edited  policy.unprotected-divergence names both values; the store's false governs
+ok    [independence] set true, not counted a divergence; war check reports the store's undeclared
+ok    the store requires presence        an ordinary key refused though openwarrant.toml says false
+ok    a grant removed, the next act refused authority.not-granted at the new head; nothing recorded
+ok    revocation reaches the read path   the earlier act reads authority.not-granted at the new head
+ok    a store the reader can write       authority.verify-unavailable on read and sign; nothing recorded
+ok    an unreadable store                authority.verify-unavailable on read and sign; nothing recorded
+ok    a test store claimed as protected  authority.verify-unavailable on read and sign; nothing recorded
+ok    the store unset, the register back authority.unprotected; the legacy path as before
+protected grant visible; malformed legacy ignored; unavailable store refused
+ok    protected role consumers           current grant; irrelevant legacy ignored; missing store refused
+ok    a resolved claim in the roadmap is refused rejected by roadmap.status-claim (§56.2)
+ok    a roadmap ref into another program is refused rejected by roadmap.wrong-namespace (XX)
+ok    sas accept refuses effective_time = soon rejected by sas.effective-time (RFC 3339)
+== batch act (OW-WAR-0072) ==
+ok    a batch without --ssh-sign         batch.needs-ssh (exit 2)
+ok    a target that awaits nothing       batch.unknown-act (exit 2)
+ok    an act named twice                 batch.duplicate-act (exit 2)
+ok    a refused batch writes nothing     no batch, no response left behind
+ok    a batch dry run                    batch.would-record (exit 0)
+ok    a batch dry run writes nothing     no batch, no response left behind
+ok    a failure mid-record records nothing batch.incomplete, docs/ byte-identical
+ok    a batch records every act          2 act(s), one batch signature
+ok    the check believes the batch       2 record(s) signed through the batch
+ok    the batch is attested              one envelope over the batch verifies
+ok    a batch covers exact bytes only    the edited response is not covered

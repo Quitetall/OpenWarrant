@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-protected-authority-consumers/conformance/fixtures/authority-consumers/control.py", line 36, in <module>
+    request()  # Legacy signer names must never replace the protected grant.
+    ~~~~~~~^^
+  File "/mnt/4tb/tmp/openwarrant-protected-authority-consumers/conformance/fixtures/authority-consumers/control.py", line 34, in request
+    assert answer["result"]["eligible_authorizers"] == ["Synthetic Store Human"], answer["result"]["eligible_authorizers"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['Fixture Human']
