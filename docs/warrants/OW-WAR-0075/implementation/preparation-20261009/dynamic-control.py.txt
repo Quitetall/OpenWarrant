@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0
+import hashlib,json,pathlib,shutil,subprocess,tempfile
+root=pathlib.Path('/mnt/4tb/tmp/ow-phase1-delivery-wave')
+out=root/'docs/warrants/OW-WAR-0075/implementation/preparation-20261009'
+binary=pathlib.Path('/mnt/2tb/ow-phase1-delivery-target/debug/examples/sdk_probe')
+with tempfile.TemporaryDirectory(prefix='ow75-dynamic-',dir='/mnt/2tb') as temp:
+ fixtures=pathlib.Path(temp)
+ shutil.copytree(root/'conformance/sdk/document',fixtures/'document')
+ suite=json.loads((fixtures/'document/cases.json').read_text())
+ case=dict(suite['cases'][0]);case.update(id='PROBE-DYNAMIC',file='unseen-runtime-source.md')
+ suite['cases'].append(case)
+ (fixtures/'document/cases.json').write_text(json.dumps(suite))
+ source=(fixtures/'document/minimal-rc3.md').read_bytes()
+ unseen=fixtures/'document/unseen-runtime-source.md';unseen.write_bytes(source)
+ (out/'unseen-valid.md').write_bytes(source)
+ (out/'dynamic-cases.json').write_text(json.dumps(suite,indent=2)+'\n')
+ observations=[]
+ for name,data,expected in [('valid',source,0),('invalid',source+b'\nnot permitted after the footer\n',1)]:
+  unseen.write_bytes(data)
+  result=subprocess.run([str(binary),'--scope','75','--fixtures',str(fixtures)],capture_output=True,timeout=60)
+  (out/f'dynamic-{name}.stdout').write_bytes(result.stdout)
+  (out/f'dynamic-{name}.stderr').write_bytes(result.stderr)
+  (out/f'unseen-{name}.md').write_bytes(data)
+  observed={'case':name,'exit_code':result.returncode,'expected_exit_code':expected,'source_sha256':hashlib.sha256(data).hexdigest()}
+  observations.append(observed)
+  assert result.returncode==expected,observed
+  assert (b'PASS PROBE-DYNAMIC' if expected==0 else b'FAIL PROBE-DYNAMIC') in result.stdout
+ x={'kind':'performer-observed-sdk-refusal','warrant':'OW-WAR-0075','binary':str(binary),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'toolchain':subprocess.check_output(['rustc','--version'],cwd=root,text=True).strip(),'observations':observations,'tracked_fixtures_changed':False,'independent_verification':False,'qualified':False}
+ (out/'dynamic-result.json').write_text(json.dumps(x,indent=2)+'\n')
+ print(json.dumps(x))

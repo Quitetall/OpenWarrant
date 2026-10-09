@@ -1,0 +1,25 @@
+{
+  "kind": "performer-observed-sdk-refusal",
+  "warrant": "OW-WAR-0075",
+  "binary": "/mnt/2tb/ow-phase1-delivery-target/debug/examples/sdk_probe",
+  "binary_sha256": "a9fd492adc5c085947a673b531107d9ac61d76c7e9e1f620c781dfba75201228",
+  "source_revision": "94cf616a401408b6ac75a17f12cbecb96cef53e9",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "observations": [
+    {
+      "case": "valid",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "source_sha256": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"
+    },
+    {
+      "case": "invalid",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "source_sha256": "4b36ecbcd8c1a777a0975789c1e5054c4627d8913ecde001d3940b760965a3fb"
+    }
+  ],
+  "tracked_fixtures_changed": false,
+  "independent_verification": false,
+  "qualified": false
+}

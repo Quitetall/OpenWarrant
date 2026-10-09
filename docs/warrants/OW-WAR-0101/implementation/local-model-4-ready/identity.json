@@ -1,0 +1,34 @@
+{
+  "model": {
+    "path": "/home/brianklam/models/qwen3.6-27b-heretic/Qwen3.6-27B-uncensored-heretic-v2-Q4_K_M.gguf",
+    "sha256": "fff48e694756411a69d17eb0cb5355a36566ecfc2d9939d04ea2653d5e860938",
+    "bytes": 16547403360
+  },
+  "server": {
+    "path": "/home/brianklam/local-llm/beellama.cpp/build/bin/llama-server",
+    "sha256": "346d39be71551f7e323d6db7e49d48c48c0fec1912eb2ef50d7c320598f7d4a5",
+    "bytes": 9628488
+  },
+  "adapter": {
+    "path": "/mnt/4tb/tmp/ow-local-drafting-observation/tools/drafting/local_drafter.py",
+    "sha256": "852e6de52d3db95a38292867da5f22c1c14c139ffbd2e05eb87d7b0657cc67a8",
+    "bytes": 7879
+  },
+  "request": {
+    "path": "/mnt/4tb/tmp/ow-local-drafting-observation/docs/warrants/OW-WAR-0101/implementation/local-model-4-ready/request.json",
+    "sha256": "da2e564de21b8773e4c4d4b5e2d12db23a7b9ea092682c7d63f012b4af05eb39",
+    "bytes": 2393
+  },
+  "source_revision": "e7125db4127c51ba907c2a212d6091717b483109",
+  "paid_calls": false,
+  "gpu_layers": 99,
+  "context_tokens": 32768,
+  "local_backend_port": 8001,
+  "lamu_version": "0.6.0+2a26299",
+  "cost": "unknown (local execution; no provider billing call)",
+  "hard_spend_cap_enforced": false,
+  "max_output_tokens": 1600,
+  "process_deadline_seconds": 300,
+  "applied": false,
+  "qualified": false
+}
