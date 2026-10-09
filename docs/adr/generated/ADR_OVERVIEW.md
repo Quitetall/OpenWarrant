@@ -3577,6 +3577,16 @@ closure and independent custody still need their own qualification.
 
 ## Retained packet storage
 
+The candidate v2 reader rejects unknown root members and missing required
+members, including after the sender recomputes the packet digest. The configured
+reviewer receives the whole packet, so extra members can carry instructions
+outside the checked sources. Creation metadata must use its defined types:
+unsigned token counts, a Boolean budget flag, the native token-method identifier,
+and an empty or 64-hex-character authorization digest. That digest remains
+creation-time display; active authority is checked independently. A packet
+captured before signing the same contract remains usable after signing. These
+checks change neither the canonicalizer nor the digest domain.
+
 The draft storage implementation reuses identical retained bytes and refuses different bytes at the same filename. New packets are staged and synced, then published without replacing an existing name. A competing publisher must supply identical bytes; it cannot truncate the winning packet. Directory-relative file handles refuse link traversal, and packet reads inspect regular files through the opened descriptor.
 
 Missing, unreadable or unsupported retained files report UNKNOWN. Observed identity/content mismatches remain refusals. History remains intact; regeneration is not permission to repair or overwrite retained evidence.

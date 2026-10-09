@@ -1,0 +1,35 @@
+{
+  "kind": "diagnostic-inventory",
+  "scope": "Synthetic packet and compatibility observations; no independent verdict or authority act",
+  "files": {
+    "root-regression-red.log.gz": {
+      "original_sha256": "87ddcae00586da447c5a087ae4d9e595df75b8afb0710448edf7024e166754fd",
+      "compressed_sha256": "fdaa1b5c3e9ff9840fcdac37fa6acf3f0e774b4136a2d23d69fcc9e17b644c33"
+    },
+    "minimal-red.log.gz": {
+      "original_sha256": "80d2762d1f1616d86b4cc62971adde53311c1eab6e2afba78d615a064eb67d9e",
+      "compressed_sha256": "94d15339e8ece61438f7785b043a1536446d046f1c40c219aec047732cbf627a"
+    },
+    "hosted-gate-failure.log.gz": {
+      "original_sha256": "83b22dff4a989cc3183d048f287c1f5389afb00dab1b6de689977282a11adde1",
+      "compressed_sha256": "7f927a9e67d7555fee0eda97bc609aa5af9b19482b61a874655d20fac1454c77"
+    },
+    "local-gate-failure.log.gz": {
+      "original_sha256": "119b532d14dc16430c01f2741fdeb3a1d4ed048813ee7a7dc96cfb215be6ddda",
+      "compressed_sha256": "ad446ad2448cf135f275b2a899b4a03a53a40b5892c9ef9d1cd6ed3303473829"
+    },
+    "cli-tests.log.gz": {
+      "original_sha256": "b036d14966d8e83d9a48838dcf69269b54d340fab8028ef4e01ac87bb7580c26",
+      "compressed_sha256": "e5b5ed7c6be65b4cc5a41c3b840764b431a01a81dfbeb532f2344b4ad4f4b6d4"
+    },
+    "closure-control.log.gz": {
+      "original_sha256": "de32d49db5ab2dde65186bedfe9fa6b4fb48e984d57c0842b4eab4ff4546ec71",
+      "compressed_sha256": "db98798dbc0efa27d674eb3c8ebe07ebf02b73e0d4c4441d67fa543649ca379c"
+    },
+    "plain-adr-green.json.gz": {
+      "original_sha256": "c63d28dcbd9f0faf8eb932b17ab1fb591fc6a82820b659fbe714f1bf59134c59",
+      "compressed_sha256": "b5c81ab4930e6f77e0c82892f0976ec04d2598ab85bdc35198d5ded95b395015"
+    }
+  },
+  "candidate_binary_sha256": "6998090bd755edf866ebdceb3fcaa8b9e671fc080ded0b4976817d48c90c2222"
+}
