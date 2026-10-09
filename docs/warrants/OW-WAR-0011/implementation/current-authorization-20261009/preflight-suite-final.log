@@ -1,0 +1,17 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/openwarrant-preflight-authorization/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.84s
+     Running tests/preflight_cli.rs (/mnt/4tb/OpenWarrant/target/debug/deps/preflight_cli-56ab27a5285c8f63)
+
+running 9 tests
+test unknown_runtime_blocks_without_omitting_any_dimension ... ok
+test read_only_and_human_output_names_all_dimensions ... ok
+test unavailable_authorization_is_not_reported_absent ... ok
+test later_graph_cannot_hide_an_earlier_failure ... ok
+test signed_commitment_does_not_claim_runtime_or_side_effect_authority ... ok
+test unavailable_configured_store_never_falls_back_to_signed_legacy_authority ... ok
+test claimed_standing_policy_cannot_reuse_an_ordinary_signature ... ok
+test missing_atom_and_cyclic_graph_refuse_with_named_checks ... ok
+test unsigned_mismatched_or_revoked_authorization_cannot_pass_preflight ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.85s
+

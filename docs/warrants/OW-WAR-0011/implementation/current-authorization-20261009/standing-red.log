@@ -1,0 +1,24 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/openwarrant-preflight-authorization/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 12.32s
+     Running tests/preflight_cli.rs (/mnt/4tb/OpenWarrant/target/debug/deps/preflight_cli-56ab27a5285c8f63)
+
+running 1 test
+test claimed_standing_policy_cannot_reuse_an_ordinary_signature ... FAILED
+
+failures:
+
+---- claimed_standing_policy_cannot_reuse_an_ordinary_signature stdout ----
+
+thread 'claimed_standing_policy_cannot_reuse_an_ordinary_signature' (773323) panicked at crates/openwarrant-cli/tests/preflight_cli.rs:216:5:
+assertion `left == right` failed
+  left: String("pass")
+ right: "fail"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    claimed_standing_policy_cannot_reuse_an_ordinary_signature
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test preflight_cli`

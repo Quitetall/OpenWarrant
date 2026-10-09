@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0011",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "62a860095a57b7c8240427dff6870a78b99fb390",
+  "revision": "8dd895ea954f75bfe6d52d7976178b1c53cce02e",
   "summary": "Partial Preflight lists all six dimensions and now checks exact signed authorization fields and current configured authorizer grants without legacy fallback from a configured store. Live actor/gate/context/side-effect observations and signed checker wording correction remain. Unverified.",
   "notes": "docs/warrants/OW-WAR-0011/implementation/notes.md",
   "evidence": [

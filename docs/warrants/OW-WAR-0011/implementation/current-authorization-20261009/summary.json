@@ -1,9 +1,9 @@
 {
-  "source": "62a860095a57b7c8240427dff6870a78b99fb390",
+  "source": "8dd895ea954f75bfe6d52d7976178b1c53cce02e",
   "public_red": "SSH fixture signature verifies independently; baseline Preflight leaves authorization unknown",
   "preflight_tests": {
     "standing": "PASS",
-    "passed": 8,
+    "passed": 9,
     "failed": 0
   },
   "clippy": {
@@ -17,5 +17,7 @@
     "reason": "package/artifact cache locks; no test ran"
   },
   "qualification": false,
-  "human_acceptance": false
+  "human_acceptance": false,
+  "standing_red": "An ordinary valid signature incorrectly passed when the record claimed an unaccepted standing policy; the public regression failed before the fix.",
+  "fmt": "PASS"
 }
