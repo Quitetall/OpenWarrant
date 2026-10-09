@@ -657,7 +657,8 @@ fn required_sources(
     let mut required = std::collections::BTreeMap::new();
     let mut found = std::collections::BTreeSet::new();
     for (path, digest) in &subject.context_sources {
-        required.insert(path.clone(), ("governing-sas", digest.clone()));
+        let kind = crate::verify::context::source_kind(path, &context_sources[path]);
+        required.insert(path.clone(), (kind, digest.clone()));
     }
     // Input bindings identify the reviewed workspace. They do not grant
     // permission to publish every source as blind reviewer context.

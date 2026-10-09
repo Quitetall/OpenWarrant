@@ -1,0 +1,6 @@
+{"command": ["/mnt/2tb/ow-main-9791e-war", "verify", "IX-WAR-0003", "--performer", "synthetic-performer", "--bundle", "--json"], "exit": 0, "reviewed_context": {"docs/sas/Inbox_SAS.md": "sha256:5c574de9701969a62c44d317791bccb90cf613400cf65c09567c710bbaf8614a"}, "required_sources": ["docs/sas/Inbox_SAS.md"], "expected": "docs/adr/atoms/IX-ADR-0001.md", "synthetic": true}
+Traceback (most recent call last):
+  File "/mnt/2tb/ow-governing-context-repro/reproduce.py", line 43, in <module>
+    assert 'docs/adr/atoms/IX-ADR-0001.md' in required,'governing decision omitted from offline verifier context'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: governing decision omitted from offline verifier context

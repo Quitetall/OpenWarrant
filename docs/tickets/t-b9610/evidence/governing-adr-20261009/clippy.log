@@ -1,0 +1,8 @@
+    Checking ring v0.17.14
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-governing-review-context/crates/openwarrant-cli)
+    Checking openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-governing-review-context/crates/openwarrant-core)
+    Checking rustls-webpki v0.103.15
+    Checking rustls v0.23.45
+    Checking ureq v3.4.2
+    Checking openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow-governing-review-context/crates/openwarrant-compiler)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 57.56s

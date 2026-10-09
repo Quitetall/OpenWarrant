@@ -24,8 +24,19 @@ pub(crate) fn packet_sources_match(
         return false;
     }
     let mut checked = std::collections::BTreeSet::new();
+    for (path, digest) in &subject.context_sources {
+        let Some(source) = sources.iter().find(|source| source["path"] == *path) else {
+            return false;
+        };
+        let Some(Some(bytes)) = source_bytes(source) else {
+            return false;
+        };
+        if source["kind"] != source_kind(path, &bytes) || !source_matches(source, digest) {
+            return false;
+        }
+        checked.insert(path.as_str());
+    }
     for (kind, expected) in [
-        ("governing-sas", &subject.context_sources),
         ("fixture", &subject.fixtures),
         ("gate-evidence", &subject.gate_evidence),
     ] {
@@ -87,6 +98,14 @@ fn source_matches(source: &serde_json::Value, digest: &str) -> bool {
 
 /// Distinguish an explicit missing source from malformed or ambiguous content.
 fn source_bytes(source: &serde_json::Value) -> Option<Option<Vec<u8>>> {
+    if source.as_object()?.keys().any(|key| {
+        !matches!(
+            key.as_str(),
+            "path" | "kind" | "sha256" | "present" | "text" | "bytes"
+        )
+    }) {
+        return None;
+    }
     match (
         source["present"].as_bool()?,
         source.get("text"),
@@ -99,6 +118,20 @@ fn source_bytes(source: &serde_json::Value) -> Option<Option<Vec<u8>>> {
     }
 }
 
+/// Identify the native source type from the captured bytes, not a filename or
+/// a packet author's label. This label neither accepts an ADR nor grants trust.
+pub(crate) fn source_kind(path: &str, bytes: &[u8]) -> &'static str {
+    if std::str::from_utf8(bytes)
+        .ok()
+        .and_then(|text| openwarrant_core::adr::AdrRecord::parse(path, text).ok())
+        .is_some()
+    {
+        "governing-adr"
+    } else {
+        "governing-sas"
+    }
+}
+
 fn unavailable(message: impl Into<String>) -> RepoError {
     RepoError::ObservationUnavailable {
         rule: "verify.context-unavailable",
@@ -106,12 +139,129 @@ fn unavailable(message: impl Into<String>) -> RepoError {
     }
 }
 
-/// No pin means no implicit SAS prerequisite for prototype work. A pin means
-/// the exact recorded revision must be recoverable, including its full rules.
+/// No pin means no implicit SAS prerequisite. Explicit current ADRs governing
+/// this exact Warrant still apply. Preserve full bytes, never paraphrase rules.
 pub(crate) fn capture(
     repo: &Repository,
     one: &Loaded,
 ) -> Result<BTreeMap<String, Vec<u8>>, RepoError> {
+    let mut sources = capture_sas(repo, one)?;
+    let directory = repo.relative(&repo.adr_atoms_dir());
+    let warrant = one
+        .validated
+        .as_ref()
+        .ok_or_else(|| unavailable("invalid Warrant identity"))?;
+    let target = format!("war://{}", warrant.uuid);
+    // Retain native alias relations already present in the historical corpus;
+    // do not rewrite their bytes into newly invented UUID relations.
+    let legacy_target = format!("war://{}", one.alias());
+    let mut identities = std::collections::BTreeSet::new();
+    for path in adr_paths(repo, &directory)? {
+        if repo.source_links.contains_key(&path) {
+            return Err(unavailable(format!("ADR source {path} is a link")));
+        }
+        let bytes = crate::progress_viewer::source::read(
+            repo.root.as_std_path(),
+            std::path::Path::new(&path),
+            usize::MAX - 1,
+        )
+        .map_err(|error| unavailable(format!("cannot read ADR {path}: {error}")))?;
+        let text = std::str::from_utf8(&bytes)
+            .map_err(|error| unavailable(format!("cannot parse ADR {path}: {error}")))?;
+        let metadata = match openwarrant_core::frontmatter::parse(text) {
+            Ok(metadata) => metadata,
+            // Plain Markdown decisions can be explicit contract atoms. They
+            // are carried there, without inventing a native governs relation.
+            Err(openwarrant_core::frontmatter::FrontmatterError::MissingOpenFence) => continue,
+            Err(error) => {
+                return Err(unavailable(format!(
+                    "ADR applicability unavailable at {path}: {error}"
+                )));
+            }
+        };
+        let governs = match metadata.get("governs") {
+            None => &[][..],
+            Some(value) => value.as_list().ok_or_else(|| {
+                unavailable(format!("ADR {path} has a non-list governs relation"))
+            })?,
+        };
+        if !governs.contains(&target) && !governs.contains(&legacy_target) {
+            continue;
+        }
+        let decision = openwarrant_core::adr::AdrRecord::parse(&path, text)
+            .map_err(|error| unavailable(format!("cannot parse governing ADR {path}: {error}")))?;
+        if !decision.status.is_current() {
+            continue;
+        }
+        if !identities.insert(decision.uuid) {
+            return Err(unavailable(
+                "governing ADR identity has multiple current sources",
+            ));
+        }
+        if sources.insert(path, bytes).is_some() {
+            return Err(unavailable(
+                "one source cannot supply both the pinned SAS and a governing ADR",
+            ));
+        }
+    }
+    Ok(sources)
+}
+
+/// Enumerate the same immediate native ADR namespace as the repository reader.
+/// An ignored source or a .md directory must not become an absent decision.
+/// Open directory components by descriptor so namespace replacement cannot
+/// follow a link outside the repository. Actual files use the same safe reader.
+#[cfg(unix)]
+fn adr_paths(repo: &Repository, directory: &str) -> Result<Vec<String>, RepoError> {
+    use rustix::fs::{Dir, Mode, OFlags, open, openat};
+    let flags =
+        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC;
+    let mut current = open(repo.root.as_std_path(), flags, Mode::empty())
+        .map_err(|error| unavailable(format!("cannot open context root: {error}")))?;
+    for part in std::path::Path::new(directory).components() {
+        if !matches!(part, std::path::Component::Normal(_)) {
+            return Err(unavailable(
+                "ADR namespace must be repository-relative without traversal",
+            ));
+        }
+        current = match openat(&current, part.as_os_str(), flags, Mode::empty()) {
+            Ok(next) => next,
+            Err(rustix::io::Errno::NOENT) => return Ok(vec![]),
+            Err(error) => {
+                return Err(unavailable(format!(
+                    "cannot open ADR namespace {directory}: {error}"
+                )));
+            }
+        };
+    }
+    let entries = Dir::new(current)
+        .map_err(|error| unavailable(format!("cannot enumerate ADR namespace: {error}")))?;
+    let mut paths = vec![];
+    for entry in entries {
+        let entry =
+            entry.map_err(|error| unavailable(format!("cannot enumerate ADR source: {error}")))?;
+        if !entry.file_name().to_bytes().ends_with(b".md") {
+            continue;
+        }
+        let name = entry
+            .file_name()
+            .to_str()
+            .map_err(|error| unavailable(format!("unsupported ADR source name: {error}")))?;
+        paths.push(format!("{directory}/{name}"));
+    }
+    paths.sort();
+    Ok(paths)
+}
+
+#[cfg(not(unix))]
+fn adr_paths(_repo: &Repository, _directory: &str) -> Result<Vec<String>, RepoError> {
+    Err(unavailable(
+        "safe ADR namespace reads currently support Linux and macOS",
+    ))
+}
+
+/// A pin requires exact retained SAS bytes, including the full rules.
+fn capture_sas(repo: &Repository, one: &Loaded) -> Result<BTreeMap<String, Vec<u8>>, RepoError> {
     let Some(pin) = one.basis.as_ref().and_then(|basis| basis.sas.as_ref()) else {
         return Ok(BTreeMap::new());
     };
