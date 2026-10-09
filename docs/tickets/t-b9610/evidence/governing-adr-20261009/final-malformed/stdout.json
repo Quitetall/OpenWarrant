@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "error",
+  "diagnostics": [
+    {
+      "severity": "unknown",
+      "rule": "verify.context-unavailable",
+      "file": null,
+      "message": "ADR docs/adr/atoms/IX-ADR-0001.md has a non-list governs relation"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 1,
+    "error": 0,
+    "worst": "unknown"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

@@ -1,0 +1,22 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-governing-review-context/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 19s
+     Running tests/verification_subject_cli.rs (/mnt/2tb/ow-contract-source-target/debug/deps/verification_subject_cli-a43821a808e11189)
+
+running 1 test
+test governing_rule_tampering_and_stale_reviews_write_nothing ... FAILED
+
+failures:
+
+---- governing_rule_tampering_and_stale_reviews_write_nothing stdout ----
+
+thread 'governing_rule_tampering_and_stale_reviews_write_nothing' (3456743) panicked at crates/openwarrant-cli/tests/verification_subject_cli.rs:186:9:
+extra-instruction: {"schema":"oh.war/report/v1","command":"verify","diagnostics":[{"severity":"pass","rule":"verify.recorded","file":null,"message":"OBL-001: established by fixture-independent-verifier"},{"severity":"pass","rule":"verify.recorded","file":null,"message":"OBL-002: established by fixture-independent-verifier"}],"notes":["2 verification(s) recorded, 0 refused. A refused verdict is not written to disk at all — recording it would let an inadmissible verdict read as a verification on the next run."],"counts":{"pass":2,"warn":0,"unknown":0,"error":0,"worst":"pass"},"verdict":"well_formed","verdict_line":"WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)","exit_code":0}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    governing_rule_tampering_and_stale_reviews_write_nothing
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 37 filtered out; finished in 0.18s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test verification_subject_cli`

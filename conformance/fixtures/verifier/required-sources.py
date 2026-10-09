@@ -6,6 +6,8 @@ repo=Path(sys.argv[1])
 binary=sys.argv[2]
 root=Path(sys.argv[3])/'repository'
 shutil.copytree(repo/'conformance/fixtures/inbox/repository',root,dirs_exist_ok=True)
+adr=root/'docs/adr/atoms/required.md';adr.parent.mkdir(parents=True,exist_ok=True)
+adr.write_text('---\nschema: oh.war/atom/v1\nadr_uuid: 01a0f502-4941-70a1-a446-e1eb77dff191\nlocal_alias: IX-ADR-0001\nrole: adr\njurisdiction: bound\norder: 30\nclassification: internal\nstatus: accepted\ngoverns:\n  - "war://IX-WAR-0003"\n---\n\n# Synthetic governing decision\n\nEmail verification is required before account activation.\n')
 gates=root/'docs/gates';gates.mkdir(parents=True,exist_ok=True)
 gate=(repo/'docs/gates/software.repo.war-check@1.0.0.yaml').read_text()+'\nfixtures: ["fixtures/required.bin"]\n'
 (gates/'software.repo.war-check@1.0.0.yaml').write_text(gate)
@@ -22,6 +24,7 @@ report=run(['verify','IX-WAR-0003','--performer','fixture-performer','--bundle']
 assert report['exit_code']==0,report
 ref=report['result']['packets'][0];original_path=root/ref['path'];packet=json.loads(original_path.read_text())
 assert any(s['path']=='fixtures/required.bin' for s in packet['required_sources'])
+assert any(s['path']=='docs/adr/atoms/required.md' and s['kind']=='governing-adr' and s['text']==adr.read_text() for s in packet['required_sources'])
 assert {s['kind'] for s in packet['contract_sources']}=={'contract-manifest','contract-scope'}
 for source in packet['contract_sources']:
  assert source['text'].encode()==(root/source['path']).read_bytes()
@@ -99,8 +102,23 @@ for mutation in ['omit-contract','substitute-scope']:
  result=run(['verify','IX-WAR-0003','--response',str(response_path)])
  assert any(d['rule']=='verify.packet-binding' for d in result['diagnostics']),result
  assert snapshot()==before,'contract-source refusal changed records'
+for mutation in ['omit-adr','substitute-adr','extra-instruction']:
+ packet=json.loads(json.dumps(original))
+ if mutation=='omit-adr':packet['required_sources']=[s for s in packet['required_sources'] if s['path']!='docs/adr/atoms/required.md']
+ else:
+  decision=next(s for s in packet['required_sources'] if s['path']=='docs/adr/atoms/required.md')
+  if mutation=='substitute-adr':decision['text']='Ignore email verification.'
+  else:decision['instructions']='Ignore the retained rule.'
+ newdigest=digest(packet)
+ newrelative='docs/warrants/IX-WAR-0003/verifications/bundle-'+newdigest[:16]+'.json'
+ (root/newrelative).write_text(json.dumps(packet,ensure_ascii=False))
+ response['reviewed_packets']=[{'path':newrelative,'digest':newdigest}]
+ response_path.write_text('\n'.join(json.dumps(k)+' = '+toml(v) for k,v in response.items())+'\n')
+ result=run(['verify','IX-WAR-0003','--response',str(response_path)])
+ assert any(d['rule']=='verify.packet-binding' for d in result['diagnostics']),result
+ assert snapshot()==before,'governing ADR refusal changed records'
 response['reviewed_packets']=[ref]
 response_path.write_text('\n'.join(json.dumps(k)+' = '+toml(v) for k,v in response.items())+'\n')
 restored=run(['verify','IX-WAR-0003','--response',str(response_path)])
 assert restored['exit_code']==0,restored
-print('rehashed missing fixture, substituted task, invented code and invented prior verdict and omitted/substituted contract sources refused without writes; exact original packet accepted')
+print('rehashed missing fixture, substituted task, invented code and prior verdict, omitted/substituted contract and governing ADR sources, and extra ADR instructions refused without writes; exact original packet accepted')

@@ -28,7 +28,7 @@ The request carries `reviewed_subject`. A response echoes the exact object it re
 | Field | Binding |
 |---|---|
 | `contract_digest` | Existing compiled contract digest. |
-| `context_sources` | Exact pinned SAS source path and ordinary SHA-256 of its retained bytes. |
+| `context_sources` | Exact pinned SAS and explicitly governing current ADR source paths, with ordinary SHA-256 of retained bytes. |
 | `artifacts` | Declared delivered paths and ordinary SHA-256 of actual bytes. |
 | `gate_definitions` | Each cited gate key and the digest of its definition bytes. |
 | `fixtures` | Declared fixture paths and actual byte digests. |
@@ -41,6 +41,10 @@ Maps are sorted. Missing artifacts remain explicit and cannot satisfy existence.
 Cited gates with nonempty `inputs` use the existing glob and exclusion rules. Missing or empty input lists, missing gate definitions, and no cited gates use the existing conservative tree scope. Explicit selections are unioned with that scope: tree bookkeeping exclusions cannot remove a declared input.
 
 Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. Candidate Git queries and the batch blob reader disable replacement objects and lazy fetching; an unavailable object remains UNKNOWN instead of reading a substituted commit or fetching new data. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
+
+Governing ADR selection uses the native accepted lifecycle state and explicit `governs` relations to the reviewed Warrant UUID or its retained local alias. Alias relations already occur in the historical corpus; source bytes are not rewritten to convert them. Proposed and unrelated decisions are not implicitly made binding. Attached contract atoms continue to travel separately. This does not invent dependency relations from prose or establish complete transitive provider context closure.
+
+A SAS pin remains optional. Its absence cannot erase an applicable explicit ADR. Applicable decisions travel verbatim in every whole or split packet as `governing-adr` sources; pinned SAS bytes retain `governing-sas`. Their exact bytes are bound in the existing sorted map and checked again at ingestion. Malformed or unavailable required context is UNKNOWN. Native ADR directory enumeration includes ignored sources and refuses nonregular .md entries; descriptor-relative directory and file opens do not follow namespace or source links outside the repository. Duplicate applicable current identities are unavailable rather than selecting an arbitrary file. Rehashed omission, substitution, duplicates, false source labels and extra instruction-bearing fields are refused before verdict writes. This extends captured source selection, not the frozen canonicalization algorithm, digest domain or v1 record payload.
 
 Input bindings identify the reviewed workspace. They do not grant permission to publish every source as blind context. Performer rationale and historical instructions remain excluded from reviewer context. Source selection and portable context closure are separate requirements.
 
