@@ -1,0 +1,314 @@
+schema = "oh.war/deliverables/v1"
+
+# PROPOSAL ONLY. This is not the active deliverables.toml.
+# Review the set and ownership before any adoption; no signature or delivery is claimed.
+
+[[deliverable]]
+id = "D-001"
+title = "conformance/sdk/document/README.md"
+kind = "file"
+target_ref = "conformance/sdk/document/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-002"
+title = "conformance/sdk/document/adr.md"
+kind = "file"
+target_ref = "conformance/sdk/document/adr.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-003"
+title = "conformance/sdk/document/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/document/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "conformance/sdk/document/combined-depth.md"
+kind = "file"
+target_ref = "conformance/sdk/document/combined-depth.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/sdk/document/compact-deps.md"
+kind = "file"
+target_ref = "conformance/sdk/document/compact-deps.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/sdk/document/context-background.md"
+kind = "file"
+target_ref = "conformance/sdk/document/context-background.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "conformance/sdk/document/context-binding.md"
+kind = "file"
+target_ref = "conformance/sdk/document/context-binding.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-008"
+title = "conformance/sdk/document/crlf-unicode.md"
+kind = "file"
+target_ref = "conformance/sdk/document/crlf-unicode.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/document/duplicate-key.md"
+kind = "file"
+target_ref = "conformance/sdk/document/duplicate-key.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/document/duplicate-unit.md"
+kind = "file"
+target_ref = "conformance/sdk/document/duplicate-unit.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-011"
+title = "conformance/sdk/document/fenced-markers.md"
+kind = "file"
+target_ref = "conformance/sdk/document/fenced-markers.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-012"
+title = "conformance/sdk/document/invalid-utf8.bin"
+kind = "file"
+target_ref = "conformance/sdk/document/invalid-utf8.bin"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-013"
+title = "conformance/sdk/document/malformed-footer.md"
+kind = "file"
+target_ref = "conformance/sdk/document/malformed-footer.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-014"
+title = "conformance/sdk/document/minimal-rc2.md"
+kind = "file"
+target_ref = "conformance/sdk/document/minimal-rc2.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-015"
+title = "conformance/sdk/document/minimal-rc3.md"
+kind = "file"
+target_ref = "conformance/sdk/document/minimal-rc3.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-016"
+title = "conformance/sdk/document/missing-outcome.md"
+kind = "file"
+target_ref = "conformance/sdk/document/missing-outcome.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-017"
+title = "conformance/sdk/document/sas.md"
+kind = "file"
+target_ref = "conformance/sdk/document/sas.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-018"
+title = "conformance/sdk/document/trailing.md"
+kind = "file"
+target_ref = "conformance/sdk/document/trailing.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-019"
+title = "conformance/sdk/document/unknown-optional.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unknown-optional.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-020"
+title = "conformance/sdk/document/unknown-required.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unknown-required.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-021"
+title = "conformance/sdk/document/unresolved-required.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unresolved-required.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-022"
+title = "conformance/sdk/document/wrapped.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrapped.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-023"
+title = "conformance/sdk/document/wrong-schema.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrong-schema.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-024"
+title = "conformance/sdk/document/wrong-title.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrong-title.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-025"
+title = "crates/openwarrant-core/examples/sdk_probe.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/examples/sdk_probe.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-026"
+title = "crates/openwarrant-core/src/document/metadata.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/metadata.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-027"
+title = "crates/openwarrant-core/src/document/mod.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/mod.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-028"
+title = "crates/openwarrant-core/src/document/references.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/references.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-029"
+title = "crates/openwarrant-core/src/document/scan.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/scan.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-030"
+title = "crates/openwarrant-core/src/document/validate.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/validate.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-031"
+title = "docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
