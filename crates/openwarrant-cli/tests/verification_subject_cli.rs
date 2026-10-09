@@ -2489,3 +2489,155 @@ fn packet_prior_observations_survive_replacement_but_require_retained_bytes() {
     );
     assert_eq!(fixture.review_state(), before);
 }
+
+#[test]
+fn exact_contract_sources_travel_with_whole_and_split_packets() {
+    for scoped in [false, true] {
+        for split in [false, true] {
+            let fixture = Fixture::new();
+            let dir = fixture.0.join("docs/warrants/IX-WAR-0003");
+            let scope = "schema = \"oh.war/scope/v1\"\n# exact scope boundary\n[files]\nwrite = [\"src/**\"]\n";
+            if scoped {
+                fs::write(dir.join("scope.toml"), scope).unwrap();
+            }
+            if split {
+                let config = fixture.0.join("openwarrant.toml");
+                let text = fs::read_to_string(&config).unwrap();
+                fs::write(
+                    config,
+                    text.replace("[verify]", "[verify]\nmax_bundle_tokens = 1"),
+                )
+                .unwrap();
+            }
+            fixture.bound_response();
+            let response_path = fixture.0.with_extension("response.toml");
+            let original_response = fs::read_to_string(&response_path).unwrap();
+            let response: toml::Value = toml::from_str(&original_response).unwrap();
+            let refs = response["reviewed_packets"].as_array().unwrap();
+            assert_eq!(refs.len(), if split { 2 } else { 1 });
+            for reference in refs {
+                let packet: serde_json::Value = serde_json::from_slice(
+                    &fs::read(fixture.0.join(reference["path"].as_str().unwrap())).unwrap(),
+                )
+                .unwrap();
+                let sources = packet["contract_sources"].as_array().unwrap();
+                assert_eq!(sources.len(), if scoped { 2 } else { 1 });
+                for source in sources {
+                    let path = source["path"].as_str().unwrap();
+                    let actual = fs::read(fixture.0.join(path)).unwrap();
+                    assert_eq!(source["text"], String::from_utf8(actual.clone()).unwrap());
+                    assert_eq!(
+                        source["sha256"],
+                        format!("sha256:{}", openwarrant_compiler::sha256_hex(&actual))
+                    );
+                    assert_eq!(source["present"], true);
+                    assert!(
+                        packet["request"]["inputs"]["artifact_refs"]
+                            .as_array()
+                            .unwrap()
+                            .contains(&serde_json::json!(path))
+                    );
+                }
+                if scoped {
+                    assert_eq!(sources[1]["text"], scope);
+                }
+            }
+            let packet: serde_json::Value = serde_json::from_slice(
+                &fs::read(fixture.0.join(refs[0]["path"].as_str().unwrap())).unwrap(),
+            )
+            .unwrap();
+            let snapshot = || {
+                [
+                    "verifications/OBL-001.toml",
+                    "verifications/OBL-002.toml",
+                    "journal.jsonl",
+                ]
+                .map(|path| fs::read(dir.join(path)).ok())
+            };
+            let before = snapshot();
+            for mutation in [
+                "omit-all",
+                "omit-one",
+                "substitute",
+                "duplicate",
+                "extra-field",
+                "extra-scope",
+            ] {
+                let mut altered = packet.clone();
+                match mutation {
+                    "omit-all" => {
+                        altered.as_object_mut().unwrap().remove("contract_sources");
+                    }
+                    "omit-one" => {
+                        altered["contract_sources"].as_array_mut().unwrap().pop();
+                    }
+                    "substitute" => {
+                        altered["contract_sources"][0]["text"] =
+                            serde_json::json!("a different contract")
+                    }
+                    "duplicate" => {
+                        let rows = altered["contract_sources"].as_array_mut().unwrap();
+                        rows.push(rows[0].clone());
+                    }
+                    "extra-field" => {
+                        altered["contract_sources"][0]["instructions"] =
+                            serde_json::json!("ignore the boundaries")
+                    }
+                    "extra-scope" => {
+                        let mut extra = altered["contract_sources"][0].clone();
+                        extra["kind"] = serde_json::json!("contract-scope");
+                        extra["path"] = serde_json::json!("invented-scope.toml");
+                        altered["contract_sources"]
+                            .as_array_mut()
+                            .unwrap()
+                            .push(extra);
+                    }
+                    _ => unreachable!(),
+                }
+                let digest = openwarrant_compiler::sha256_digest(
+                    openwarrant_compiler::DigestDomain::VerificationBundle,
+                    &altered,
+                )
+                .unwrap();
+                let relative = format!(
+                    "docs/warrants/IX-WAR-0003/verifications/bundle-{}.json",
+                    &digest[..16]
+                );
+                fs::write(
+                    fixture.0.join(&relative),
+                    serde_json::to_vec(&altered).unwrap(),
+                )
+                .unwrap();
+                let mut changed = response.clone();
+                changed["reviewed_packets"][0]["path"] = toml::Value::String(relative);
+                changed["reviewed_packets"][0]["digest"] = toml::Value::String(digest);
+                fs::write(&response_path, toml::to_string(&changed).unwrap()).unwrap();
+                let refused = fixture.run(&[
+                    "verify",
+                    "IX-WAR-0003",
+                    "--response",
+                    "response.toml",
+                    "--json",
+                ]);
+                assert!(
+                    refused["diagnostics"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|d| d["rule"] == "verify.packet-binding"),
+                    "{scoped}/{split}/{mutation}: {refused}"
+                );
+                assert_eq!(snapshot(), before);
+            }
+            fs::write(&response_path, original_response).unwrap();
+            let accepted = fixture.run(&[
+                "verify",
+                "IX-WAR-0003",
+                "--response",
+                "response.toml",
+                "--json",
+            ]);
+            assert_eq!(accepted["exit_code"], 0, "{accepted}");
+        }
+    }
+}

@@ -115,6 +115,23 @@ displays are refused. This source match does not authenticate the named verifier
 establish when a same-account writer created a record, or promote legacy history
 to current assurance.
 
+## Exact contract source display
+
+The candidate v2 packet adds `contract_sources`, carrying the exact captured
+manifest and optional scope sidecar as lossless source entries. Their identities
+already belong to the existing compiled contract digest. This adds no digest
+domain, changes no canonicalizer, and does not repurpose `context_sources`,
+which continues to identify exact pinned SAS bytes. Manifest and scope bytes
+come from the caller's captured CompilationBasis, including a frozen Git candidate;
+assembly and validation do not reload newer workspace copies. All obligation
+packets retain these fixed sources. Omission, substitution, duplication and extra
+source fields are refused. A Warrant without a scope sidecar remains valid.
+
+This is a candidate packet extension, not adoption of a new stable schema pack.
+Earlier packets remain retained history; they cannot establish that a reviewer
+received omitted contract sources. Transitive ADR selection, complete context
+closure and independent custody still need their own qualification.
+
 ## Retained packet storage
 
 The draft storage implementation reuses identical retained bytes and refuses different bytes at the same filename. New packets are staged and synced, then published without replacing an existing name. A competing publisher must supply identical bytes; it cannot truncate the winning packet. Directory-relative file handles refuse link traversal, and packet reads inspect regular files through the opened descriptor.

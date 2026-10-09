@@ -307,3 +307,23 @@ writes. These are synthetic source-binding controls. They do not authenticate
 verifiers, prove historical chronology against a same-account attacker, or
 establish complete transitive context, custody, race protection or production
 qualification. Full extension gates must be observed separately.
+
+
+A fifth disposable capture included a scope sidecar in the compiled contract,
+but its packet contained neither the exact manifest nor the sidecar bytes. A
+contract digest cannot show the reviewer an omitted boundary. Candidate packets
+now carry `contract_sources`: the exact manifest and optional scope from the
+captured CompilationBasis, losslessly encoded and retained in every whole or
+obligation packet. Packet admission compares their complete source entries with
+that captured basis, including private Git candidates; it does not reload the
+worktree or treat a matching declared digest as proof of the displayed text.
+
+The CLI control exercises whole and split packets, with and without a sidecar,
+plus rehashed omissions, substitutions, duplicates, extra fields and invented
+scope entries. Each mutation must refuse without record/journal writes; exact
+restoration must succeed. The source-closure plant separately checks exact
+manifest/scope bytes and rehashed contract omission/scope substitution. This
+candidate extension leaves the contract canonicalizer and pinned-SAS meanings
+unchanged. It does not complete transitive ADR selection, context closure,
+verifier authentication, private custody or production qualification. Extension
+runtime checks and full gates must be observed separately.

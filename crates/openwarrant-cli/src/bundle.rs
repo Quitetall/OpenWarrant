@@ -208,6 +208,8 @@ pub struct Bundle {
     pub request: crate::verify::VerificationRequest,
     pub obligation_evidence: Vec<ObligationEvidence>,
     pub atoms: Vec<BundledAtom>,
+    /// Exact manifest and optional scope bytes from the captured contract.
+    pub contract_sources: Vec<RequiredSource>,
     pub required_sources: Vec<RequiredSource>,
     pub deliverables: Vec<BundledDeliverable>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -582,6 +584,7 @@ struct Sources {
     authorized_contract_digest: String,
     request: crate::verify::VerificationRequest,
     atoms: Vec<BundledAtom>,
+    contract_sources: Vec<RequiredSource>,
     required_sources: Vec<RequiredSource>,
     files: Vec<File>,
     runs: Vec<Run>,
@@ -600,6 +603,40 @@ struct Sources {
     budget: u64,
     root: Utf8PathBuf,
     warrant_dir: Utf8PathBuf,
+}
+
+/// Contract identity already binds these bytes. Carry them too so a blind
+/// reviewer can inspect the work boundaries rather than receive only a hash.
+pub(crate) fn contract_sources(
+    basis: &openwarrant_compiler::CompilationBasis,
+) -> Vec<RequiredSource> {
+    std::iter::once((
+        basis.manifest_source.as_str(),
+        "contract-manifest",
+        basis.manifest_bytes.as_slice(),
+    ))
+    .chain(basis.scope.as_ref().map(|scope| {
+        (
+            scope.source.as_str(),
+            "contract-scope",
+            scope.bytes.as_slice(),
+        )
+    }))
+    .map(|(path, kind, raw)| {
+        let (text, bytes) = match String::from_utf8(raw.to_vec()) {
+            Ok(text) => (Some(text), None),
+            Err(error) => (None, Some(error.into_bytes())),
+        };
+        RequiredSource {
+            path: path.into(),
+            kind: kind.into(),
+            sha256: format!("sha256:{}", sha256_hex(raw)),
+            text,
+            bytes,
+            present: true,
+        }
+    })
+    .collect()
 }
 
 fn required_sources(
@@ -813,6 +850,7 @@ fn load_from_loaded(
         authorized_contract_digest,
         request,
         atoms,
+        contract_sources: one.basis.as_ref().map(contract_sources).unwrap_or_default(),
         required_sources,
         files,
         runs,
@@ -1277,6 +1315,7 @@ fn warrant_bundle(src: &Sources) -> Result<Bundle, RepoError> {
         request: src.request.clone(),
         obligation_evidence,
         atoms: src.atoms.clone(),
+        contract_sources: src.contract_sources.clone(),
         required_sources: src.required_sources.clone(),
         deliverables,
         deliverables_not_carried: vec![],
@@ -1408,6 +1447,7 @@ fn obligation_bundle_at(
         request,
         obligation_evidence: vec![evidence],
         atoms: src.atoms.clone(),
+        contract_sources: src.contract_sources.clone(),
         required_sources: src.required_sources.clone(),
         deliverables,
         deliverables_not_carried,

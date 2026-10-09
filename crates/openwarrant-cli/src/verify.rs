@@ -596,6 +596,8 @@ pub(crate) fn packets_cover(
     expected.inputs.artifact_refs.sort();
     let expected_atoms = serde_json::to_value(crate::bundle::contract_atoms(basis))
         .map_err(|e| RepoError::Message(e.to_string()))?;
+    let expected_contract_sources = serde_json::to_value(crate::bundle::contract_sources(basis))
+        .map_err(|e| RepoError::Message(e.to_string()))?;
     let mut covered = std::collections::BTreeSet::new();
     let mut captured = None;
     for reference in packets {
@@ -666,7 +668,10 @@ pub(crate) fn packets_cover(
             return Ok(false);
         }
         request.inputs.artifact_refs.sort();
-        if request.inputs != expected.inputs || packet["atoms"] != expected_atoms {
+        if request.inputs != expected.inputs
+            || packet["atoms"] != expected_atoms
+            || packet["contract_sources"] != expected_contract_sources
+        {
             return Ok(false);
         }
         let mut ids = std::collections::BTreeSet::new();
@@ -759,9 +764,9 @@ fn request_with_subject(
         }
     }
 
-    // Artifact references are repository paths, deliberately not contents: a
-    // verifier reads the tree itself, so nothing here can be a curated excerpt
-    // chosen by the performer.
+    // References name captured contract sources and declared delivered files.
+    // Packet assembly supplies their bytes; paths alone cannot establish what
+    // the independent reviewer received.
     //
     // Two sources, and the second one matters more. The Warrant's own atoms say
     // what was PROMISED. The declared deliverables (§37) say what was
@@ -773,7 +778,14 @@ fn request_with_subject(
     let mut artifact_refs: Vec<String> = one
         .basis
         .as_ref()
-        .map(|b| b.atoms.iter().map(|a| a.source.clone()).collect())
+        .map(|b| {
+            let mut refs = vec![b.manifest_source.clone()];
+            refs.extend(b.atoms.iter().map(|a| a.source.clone()));
+            if let Some(scope) = &b.scope {
+                refs.push(scope.source.clone());
+            }
+            refs
+        })
         .unwrap_or_default();
     for reference in reviewed_subject.artifacts.keys() {
         if !artifact_refs.contains(reference) {

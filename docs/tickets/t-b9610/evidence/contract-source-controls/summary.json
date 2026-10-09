@@ -1,0 +1,31 @@
+{
+  "schema": "oh.war/bounded-observation/v1",
+  "observed_at": "2026-10-09T02:27:27.349280+00:00",
+  "scope": "Synthetic disposable corpus; no model call, production verdict or human act",
+  "baseline_binary_sha256": "a682285e586ee91ee05f63fec7f0e3fcb5255feb1e94a739e2b50dcdf3b689ba",
+  "baseline_result": "Exact manifest and scope bytes absent from packet despite compiled contract identity",
+  "corrected_binary_sha256": "a20ff55d6456da7efcb8f13e7c3c0b60fdbd4b63be2611cae9a8ddf1aa44c78b",
+  "rust": "1.97.1",
+  "verification_cli_tests": {
+    "passed": 36,
+    "failed": 0
+  },
+  "bundle_unit_tests": {
+    "passed": 10,
+    "failed": 0
+  },
+  "clippy": "CLI all targets -D warnings: PASS",
+  "public_control": "Exact manifest/scope carried; rehashed contract omission and scope substitution refused without writes; exact original restored and accepted",
+  "coverage": [
+    "whole and split packets, with and without scope",
+    "rehashed omission of all or one contract source",
+    "substitution, duplicate, extra field and invented scope refusal"
+  ],
+  "not_established": [
+    "full extension gate",
+    "transitive ADR/context closure",
+    "verifier authentication and independent custody",
+    "same-account race containment",
+    "production qualification and stable-format adoption"
+  ]
+}
