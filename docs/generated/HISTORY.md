@@ -35699,7 +35699,7 @@ test mode is labeled in every record it produces.
 | D-005 | revision v2: actor kind and protected policy | `crates/openwarrant-core/src/authority_transition.rs` | verified |
 | D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | verified |
 | D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | drift |
-| D-008 | authority.md: the cutover | `docs/cli/authority.md` | verified |
+| D-008 | authority.md: the cutover | `docs/cli/authority.md` | drift |
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | drift |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | drift |
