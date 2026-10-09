@@ -3,18 +3,19 @@
   "warrant": "OW-WAR-0023",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "b6846f7f8e077b794b16102f1a63cc1e93000006",
-  "summary": "Portable legacy Dispatch transport and offline capability membership delivered, unverified. Exact sources/support refs, integrity refusals and default denial implemented. Broader semantic-selection/classification and runtime evidence remain.",
+  "revision": "1f0835c4dc6bcdcd6b1d94927c73a30166287ef4",
+  "summary": "Portable legacy Dispatch transport and source-bound offline classification disclosure checks delivered, unverified. Explicit source labels preserved; unknown labels and policy joins stay unestablished. Broader semantic closure, provider policy and runtime enforcement remain.",
   "notes": "docs/warrants/OW-WAR-0023/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0023/implementation/evidence/focused-tests.log",
     "docs/warrants/OW-WAR-0023/implementation/evidence/clippy.log",
     "docs/warrants/OW-WAR-0023/implementation/evidence/independent-review.md",
     "docs/warrants/OW-WAR-0023/implementation/evidence/gate-before-final-metadata-fix.log",
-    "docs/warrants/OW-WAR-0023/implementation/evidence/refusal-controls.log"
+    "docs/warrants/OW-WAR-0023/implementation/evidence/refusal-controls.log",
+    "docs/warrants/OW-WAR-0023/implementation/classification-20261009/README.md"
   ],
   "next_steps": [
-    "Provider/workflow evidence or explicit reconciliation for broader semantic selection and classification requirements.",
+    "Complete hosted gate for source-label/disclosure candidate, then provider-owned semantic selection and classification-policy integration or explicit reconciliation.",
     "Harness must enforce pre-action capability decisions under independently established authority.",
     "Human assurance and legacy resolution remain separate."
   ]
