@@ -574,6 +574,24 @@ pub fn pending_for(repo: &Repository, opts: &Options) -> Result<Vec<Pending>, Re
     pending(repo)
 }
 
+/// Preserve the trusted-source reason when a requested actor is excluded.
+/// An assignment refusal is never replaced by a broader store role grant.
+pub(crate) fn who_with_authority(
+    repo: &Repository,
+    p: &Pending,
+    opts: &Options,
+) -> Result<String, (&'static str, String)> {
+    let choice = who(p, opts);
+    if matches!(&choice, Err(("sign.who", _)))
+        && repo.config.authority.is_some()
+        && let Some(actor) = &opts.actor
+        && let Err(refusal) = crate::authority_check::signer_for(repo, actor, &[act_of(p)])
+    {
+        return Err(refusal);
+    }
+    choice
+}
+
 /// OW-WAR-0137 — narrow a resolve act's eligible list by the Warrant's
 /// assignment, in place. The list only ever shrinks: it is filtered by
 /// [`authorize::assignment::narrow`], or emptied when the assignment is not
@@ -1880,7 +1898,7 @@ fn dry_run(
     // `.draft.toml` in the temp directory (three were found, 2026-09-25).
     let _cleanup = RemoveOnDrop(tmp.clone());
     for p in chosen {
-        let actor = match who(p, opts) {
+        let actor = match who_with_authority(repo, p, opts) {
             Ok(a) => a,
             Err((rule, why)) => {
                 report.push(Diagnostic::error(rule, line(p), why));
@@ -2885,6 +2903,22 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         ));
         return Ok(report);
     }
+    // A missing/unsupported configured trust source is named before the
+    // queue asks for its grants. No key or response is written by this check.
+    match crate::authority_check::binding(repo) {
+        crate::authority_check::Binding::Failed { rule, why } => {
+            report.push(Diagnostic::error(rule, "war sign".to_owned(), why));
+            return Ok(report);
+        }
+        crate::authority_check::Binding::Store(store) if store.revision.version() < 2 => {
+            let actor = opts.actor.as_deref().unwrap_or("<unspecified actor>");
+            if let Err((rule, why)) = crate::authority_check::signer_for(repo, actor, &[]) {
+                report.push(Diagnostic::error(rule, "war sign".to_owned(), why));
+                return Ok(report);
+            }
+        }
+        _ => {}
+    }
     let mut all = pending_for(repo, opts)?;
     // OW-WAR-0136: an invalidation is pending only when a human names the
     // gate — nothing in the records asks for one — so it is built here, from
@@ -2973,7 +3007,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
     }
 
     for p in chosen {
-        let actor = match who(p, opts) {
+        let actor = match who_with_authority(repo, p, opts) {
             Ok(a) => a,
             Err((rule, why)) => {
                 report.push(Diagnostic::error(rule, line(p), why));
