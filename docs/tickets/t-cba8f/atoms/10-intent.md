@@ -5,3 +5,4 @@ Current resolve.rs treats every Katana/BLUT stage as unmet because no store/impo
 ## Notes
 
 - **2026-10-01 01:13 UTC, codex:** Shared draft OW-WAR-0148 (renumbered OW-WAR-0149 on 2026-10-07: its alias collided with the signed typed-records Warrant) is the single cross-project contract. Current Katana exec/log interfaces and BLUT lineage/job interfaces lack a complete observed dispatch-bound receipt protocol; provider seal/schema and explicit participant revision responses remain open. Former OW47 runtime binary is absent now. Preserve historical actual run, do not pretend a fresh rerun or provider merge.
+- **2026-10-09 03:50 UTC, codex:** Candidate SDK runtime receipt matching boundary and synthetic refusal tests added under OW-WAR-0149. No provider wire format/seal invented. Provider producers/verifiers, capture store, CLI and resolver remain incomplete; all ticket items stay open. See docs/warrants/OW-WAR-0149/implementation/sdk-boundary.md.

@@ -20,6 +20,7 @@ mod metadata;
 pub mod packet;
 pub mod records;
 mod references;
+pub mod runtime;
 mod scan;
 pub mod schedule;
 pub mod source;

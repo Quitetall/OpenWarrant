@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0149",
+  "work_state": "in_progress",
+  "reported_by": "agent://codex",
+  "summary": "Candidate pure SDK receipt matching boundary implemented with synthetic refusal controls. Real provider protocols, capture/store, CLI and resolver integration remain incomplete; no qualification or assurance claimed.",
+  "notes": "docs/warrants/OW-WAR-0149/implementation/sdk-boundary.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
+    "docs/warrants/OW-WAR-0149/implementation/sdk-clippy.log"
+  ],
+  "next_steps": [
+    "Publish and agree provider-owned receipt and verification interfaces.",
+    "Implement durable attributable capture and current-basis resolver assessment.",
+    "Run real provider integrations and required independent/participant checks."
+  ],
+  "revision": "dd50763a"
+}
