@@ -13,7 +13,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::repo::Repository;
 
-pub(super) struct Snapshot {
+pub(crate) struct Snapshot {
     pub repository: Repository,
     pub history_root: Utf8PathBuf,
     _temporary: Temporary,

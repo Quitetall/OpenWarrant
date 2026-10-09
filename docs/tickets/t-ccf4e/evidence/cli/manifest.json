@@ -1,0 +1,27 @@
+[
+  {
+    "file": "ow-derived-cli-regression-red.log.gz",
+    "original_sha256": "0bac1b60216c30f6cd5c3409d27bb94a518873a698d4c8c49632cf9b5ad4e676",
+    "bytes": 1455
+  },
+  {
+    "file": "ow-derived-cli-final.log.gz",
+    "original_sha256": "fcdad3b5abbcc27e4e55bcc58b84ee27eb971bdca73936f8a33afb7ef99913d3",
+    "bytes": 559
+  },
+  {
+    "file": "ow-derived-conformance.log.gz",
+    "original_sha256": "09a0fa6ab538d3e77c8e812158e7a9d8f35f42765bdd8875aa33f7cb7bde31a7",
+    "bytes": 189
+  },
+  {
+    "file": "ow-derived-main-report.json.gz",
+    "original_sha256": "6e62de087d93a2395d06498792a561f2801f24d74e22a9eebd1ecfa32b645bf9",
+    "bytes": 119202
+  },
+  {
+    "file": "ow-derived-main-8ffbbb42.json.gz",
+    "original_sha256": "00ad20f5ab25f553c2eb4cb1ee2357d325703aaca71385aba9ed590055a0de50",
+    "bytes": 114511
+  }
+]
