@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0111",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "b223fc241c04eceffcec570acf6a13c6e99fd083",
+  "revision": "ae1c2f3fd980336531de65965d62a80ac4b388c0",
   "summary": "Retained external provider status captures now reconnect exact Dispatch, journal and reconstructed contract/stage in source-detached archive queries. A real BLUT status observation survives full source-worktree removal, with native trust UNKNOWN. SAS-prefixed digest reconstruction repaired; native sealed receipts, historical reconciliation and formal qualification remain open.",
   "notes": "docs/warrants/OW-WAR-0111/implementation/runtime-basis.md",
   "evidence": [
