@@ -1,0 +1,13 @@
+{
+  "case": "isolated fixture: executor_ref added to signed contract, no --prototype supplied",
+  "exit_code": 0,
+  "packet_emitted": true,
+  "actual_contract_digest": "284c2dc0d70ac739e1fd7613567a4ae4cc6cfefd765fa2667a3a6d633db0f9f0",
+  "recorded_authorization_contract_digest": "80cf692301f430b859c0cb03923ddc188eee8b2a0e939d73dacc0007d82f9061",
+  "same_contract": false,
+  "prototype_warning_present": false,
+  "floating_holder_warning_present": true,
+  "binary_sha256": "5811a45fe3a8fad74a8f4e852aebd2e6ff4379c3f5acd42dcedd0b8e49d5bca1",
+  "provider_execution": false,
+  "assurance": false
+}
