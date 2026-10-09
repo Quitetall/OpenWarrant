@@ -17,10 +17,14 @@ gate=(repo/'docs/gates/software.repo.war-check@1.0.0.yaml').read_text()+'\nfixtu
 def run(args):
  p=subprocess.run([binary,*args,'--json'],cwd=root,capture_output=True,text=True)
  return json.loads(p.stdout)
+(root/'docs/warrants/IX-WAR-0003/scope.toml').write_text('schema = "oh.war/scope/v1"\n# exact scope marker\n[files]\nwrite = ["src/**"]\n')
 report=run(['verify','IX-WAR-0003','--performer','fixture-performer','--bundle'])
 assert report['exit_code']==0,report
 ref=report['result']['packets'][0];original_path=root/ref['path'];packet=json.loads(original_path.read_text())
 assert any(s['path']=='fixtures/required.bin' for s in packet['required_sources'])
+assert {s['kind'] for s in packet['contract_sources']}=={'contract-manifest','contract-scope'}
+for source in packet['contract_sources']:
+ assert source['text'].encode()==(root/source['path']).read_bytes()
 def digest(payload):
  def check(value):
   assert not isinstance(value,float)
@@ -83,8 +87,20 @@ response_path.write_text('\n'.join(json.dumps(k)+' = '+toml(v) for k,v in respon
 result=run(['verify','IX-WAR-0003','--response',str(response_path)])
 assert any(d['rule']=='verify.packet-binding' for d in result['diagnostics']),result
 assert snapshot()==before,'prior verdict refusal changed records'
+for mutation in ['omit-contract','substitute-scope']:
+ packet=json.loads(json.dumps(original))
+ if mutation=='omit-contract':packet.pop('contract_sources')
+ else:packet['contract_sources'][1]['text']='weaker scope substituted after capture'
+ newdigest=digest(packet)
+ newrelative='docs/warrants/IX-WAR-0003/verifications/bundle-'+newdigest[:16]+'.json'
+ (root/newrelative).write_text(json.dumps(packet,ensure_ascii=False))
+ response['reviewed_packets']=[{'path':newrelative,'digest':newdigest}]
+ response_path.write_text('\n'.join(json.dumps(k)+' = '+toml(v) for k,v in response.items())+'\n')
+ result=run(['verify','IX-WAR-0003','--response',str(response_path)])
+ assert any(d['rule']=='verify.packet-binding' for d in result['diagnostics']),result
+ assert snapshot()==before,'contract-source refusal changed records'
 response['reviewed_packets']=[ref]
 response_path.write_text('\n'.join(json.dumps(k)+' = '+toml(v) for k,v in response.items())+'\n')
 restored=run(['verify','IX-WAR-0003','--response',str(response_path)])
 assert restored['exit_code']==0,restored
-print('rehashed missing fixture, substituted task, invented code and invented prior verdict refused without writes; exact original packet accepted')
+print('rehashed missing fixture, substituted task, invented code and invented prior verdict and omitted/substituted contract sources refused without writes; exact original packet accepted')

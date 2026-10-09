@@ -1,0 +1,10 @@
+{
+  "scope": "synthetic corpus; no verdict or authority act",
+  "binary_sha256": "a682285e586ee91ee05f63fec7f0e3fcb5255feb1e94a739e2b50dcdf3b689ba",
+  "contract_digest": "5cda0ec02d30e45ba9ae46ad8a4a0e24d52f814acbed1c7cf9b14ab63a1952ec",
+  "scope_sha256": "7cbabb56c17f42debc51ec9aa49e39fe434a046402277eeb465ae5b112fa84a2",
+  "contract_sources": null,
+  "required_source_paths": [],
+  "exact_scope_text_in_packet": false,
+  "manifest_bytes_carried": false
+}
