@@ -308,6 +308,51 @@ fn choice(src: &Sources, o: &RequestedObligation) -> (String, Vec<Vec<String>>) 
 /// resnapshot between obligation packets.
 pub(crate) struct Captured(Sources);
 
+/// The reviewer receives the whole JSON object. Unknown members must not carry
+/// instructions outside the checked sources, even with a recomputed digest.
+fn packet_shape(packet: &Value) -> bool {
+    const REQUIRED: &[&str] = &[
+        "schema",
+        "warrant",
+        "scope",
+        "authorized_contract_digest",
+        "request",
+        "obligation_evidence",
+        "atoms",
+        "contract_sources",
+        "required_sources",
+        "deliverables",
+        "plants",
+        "gate_runs",
+        "prior_verifications",
+        "budget_tokens",
+        "over_budget",
+        "estimated_tokens",
+        "token_method",
+    ];
+    let Some(fields) = packet.as_object() else {
+        return false;
+    };
+    if REQUIRED.iter().any(|key| !fields.contains_key(*key))
+        || fields
+            .keys()
+            .any(|key| !REQUIRED.contains(&key.as_str()) && key != "deliverables_not_carried")
+    {
+        return false;
+    }
+    let Some(authority) = packet["authorized_contract_digest"].as_str() else {
+        return false;
+    };
+    // This is creation-time display metadata, not the active authority root.
+    // An unsigned capture can legitimately survive later contract signing.
+    (authority.is_empty()
+        || (authority.len() == 64 && authority.bytes().all(|b| b.is_ascii_hexdigit())))
+        && packet["budget_tokens"].as_u64().is_some()
+        && packet["estimated_tokens"].as_u64().is_some()
+        && packet["over_budget"].as_bool().is_some()
+        && packet["token_method"].as_str() == Some(openwarrant_core::tokens::METHOD)
+}
+
 impl Captured {
     pub(crate) fn new(
         repo: &Repository,
@@ -318,6 +363,9 @@ impl Captured {
     }
 
     pub(crate) fn matches(&self, packet: &Value) -> Result<bool, RepoError> {
+        if !packet_shape(packet) {
+            return Ok(false);
+        }
         let src = &self.0;
         // Authorization is independently checked from signed records. This
         // optional display describes packet creation, not the current trust
