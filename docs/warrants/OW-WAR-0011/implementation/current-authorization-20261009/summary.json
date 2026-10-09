@@ -19,5 +19,16 @@
   "qualification": false,
   "human_acceptance": false,
   "standing_red": "An ordinary valid signature incorrectly passed when the record claimed an unaccepted standing policy; the public regression failed before the fix.",
-  "fmt": "PASS"
+  "fmt": "PASS",
+  "cli_units": {
+    "standing": "UNKNOWN",
+    "exit_code": 124,
+    "deadline_seconds": 300,
+    "individual_passes_observed": 349,
+    "unfinished": "Bonsai pilot qualification control"
+  },
+  "projection_generation": {
+    "initial": "UNKNOWN deadline 180 seconds",
+    "retry": "PASS after local test processes finished"
+  }
 }
