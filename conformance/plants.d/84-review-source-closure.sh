@@ -7,7 +7,7 @@ python3 "$REPO_ROOT/conformance/fixtures/verifier/required-sources.py" \
     "$REPO_ROOT" "$REPO_ROOT/${WAR#./}" "$VS_TMP"
 VS_STATUS=$?
 if [[ "$VS_STATUS" -eq 0 ]]; then
-    printf 'ok    %-34s missing fixture refused; exact packet restored\n' "required review source closure"
+    printf 'ok    %-34s missing fixture, task and code substitution refused; exact packet restored\n' "required review source closure"
     PASSED=$((PASSED + 1))
 else
     printf 'FAIL  %-34s public CLI closure control failed (%s)\n' "required review source closure" "$VS_STATUS"

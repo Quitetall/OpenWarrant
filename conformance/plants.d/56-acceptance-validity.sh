@@ -395,6 +395,77 @@ then
 else
     av_fail "portable packet retains gate evidence" "exit $AV_STATUS; required evidence bytes were not carried"
 fi
+# Self-consistent retained identities do not authorize a different review task.
+# Change the packet, record and event together in this disposable Git candidate;
+# the captured contract still asks the original question.
+for AV_PACKET_FIELD in task deliverable stdout; do
+python3 - "$PLANT_ROOT" "$AV_A" "$AV_PACKET_FIELD" <<'PY_TASK'
+import hashlib, json, sys, tomllib
+from pathlib import Path
+root, alias, field = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+folder = root / "docs/warrants" / alias
+record_path = folder / "verifications/OBL-001.toml"
+record_text = record_path.read_text()
+record = tomllib.loads(record_text)
+old = record["reviewed_packets"][0]
+packet = json.loads((root / old["path"]).read_text())
+def digest(payload):
+    def supported(value):
+        assert not isinstance(value, float)
+        if isinstance(value, dict):
+            assert all(k.isascii() for k in value)
+            for v in value.values(): supported(v)
+        elif isinstance(value, list):
+            for v in value: supported(v)
+    supported(payload)
+    data = json.dumps({"digest_domain":"oh.war/verification-bundle/v1", "payload":payload},
+                      ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()
+    return hashlib.sha256(data).hexdigest()
+# No substitute canonicalization: this bounded fixture must first reproduce
+# the identity emitted by the actual compiler before the attack is attempted.
+assert digest(packet) == old["digest"]
+if field == "task":
+    packet["request"]["obligations"][0]["statement"] = "a weaker substituted task"
+elif field == "deliverable":
+    packet["deliverables"][0]["text"] = "invented implementation shown to reviewer"
+else:
+    packet["gate_runs"][0]["stdout"]["text"] = "invented successful gate output"
+new_digest = digest(packet)
+new = {"path": str(record_path.parent.relative_to(root) / ("bundle-" + new_digest[:16] + ".json")),
+       "digest": new_digest}
+(root / new["path"]).write_text(json.dumps(packet, ensure_ascii=False))
+before_digest = "sha256:" + hashlib.sha256(record_text.encode()).hexdigest()
+record_text = record_text.replace(old["path"], new["path"]).replace(old["digest"], new["digest"])
+record_path.write_text(record_text)
+assert tomllib.loads(record_text)["reviewed_packets"] == [new]
+after_digest = "sha256:" + hashlib.sha256(record_path.read_bytes()).hexdigest()
+journal = folder / "journal.jsonl"
+rows = [json.loads(line) for line in journal.read_text().splitlines() if line]
+changed = 0
+for row in rows:
+    if row.get("type") != "verification.recorded": continue
+    payload = json.loads(row["payload"])
+    if payload["record_digest"] != before_digest: continue
+    assert payload["reviewed_packets"] == [old]
+    payload["reviewed_packets"] = [new]
+    payload["record_digest"] = after_digest
+    row["payload"] = json.dumps(payload)
+    changed += 1
+assert changed == 1, changed
+journal.write_text(''.join(json.dumps(row) + '\n' for row in rows))
+PY_TASK
+AV_TASK_STATUS=$?
+av_commit "a rehashed retained review substitutes $AV_PACKET_FIELD"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_TASK_STATUS -eq 0 && $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt'; then
+    av_ok "substituted $AV_PACKET_FIELD cannot clear review" "packet, record and event identities agree; captured source differs"
+else
+    av_fail "substituted $AV_PACKET_FIELD cannot clear review" "setup $AV_TASK_STATUS; exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+git -C "$PLANT_ROOT" reset -q --hard "$AV_REVIEWED"
+done
+unset AV_TASK_STATUS AV_PACKET_FIELD
+
 # A bound review belongs to this Warrant and the verifier named by its record.
 for AV_IDENTITY in actor_ref warrant_uuid; do
     python3 - "$PLANT_ROOT/docs/warrants/$AV_A/journal.jsonl" "$AV_IDENTITY" <<'PY_IDENTITY'

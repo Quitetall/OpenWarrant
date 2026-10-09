@@ -10,6 +10,10 @@ gates=root/'docs/gates';gates.mkdir(parents=True,exist_ok=True)
 gate=(repo/'docs/gates/software.repo.war-check@1.0.0.yaml').read_text()+'\nfixtures: ["fixtures/required.bin"]\n'
 (gates/'software.repo.war-check@1.0.0.yaml').write_text(gate)
 (root/'fixtures').mkdir();(root/'fixtures/required.bin').write_bytes(bytes([0,255,13,10]))
+(root/'feature.txt').write_text('actual reviewed implementation\n')
+(root/'docs/warrants/IX-WAR-0003/deliverables.toml').write_text(
+ 'schema = "oh.war/deliverables/v1"\n[[deliverable]]\nid = "D-001"\ntitle = "Observed implementation"\n'
+ 'target_ref = "feature.txt"\nkind = "file"\nrequired = true\ncontent_addressed = false\nprovenance_required = false\n')
 def run(args):
  p=subprocess.run([binary,*args,'--json'],cwd=root,capture_output=True,text=True)
  return json.loads(p.stdout)
@@ -29,6 +33,7 @@ def digest(payload):
  data=json.dumps({'digest_domain':'oh.war/verification-bundle/v1','payload':payload},ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
  return hashlib.sha256(data).hexdigest()
 assert digest(packet)==ref['digest'],'probe must reproduce existing canonical digest before mutation'
+original=json.loads(json.dumps(packet))
 packet['required_sources']=[s for s in packet['required_sources'] if s['path']!='fixtures/required.bin']
 newdigest=digest(packet);newrelative='docs/warrants/IX-WAR-0003/verifications/bundle-'+newdigest[:16]+'.json'
 (root/newrelative).write_text(json.dumps(packet,ensure_ascii=False))
@@ -46,8 +51,30 @@ before=snapshot()
 result=run(['verify','IX-WAR-0003','--response',str(response_path)])
 assert any(d['rule']=='verify.packet-binding' for d in result['diagnostics']),result
 assert snapshot()==before,'refusal changed verdicts or journal'
+# A complete source set cannot justify a substituted question, either.
+packet=json.loads(json.dumps(original))
+packet['request']['obligations'][0]['statement']='a weaker substituted task'
+newdigest=digest(packet)
+newrelative='docs/warrants/IX-WAR-0003/verifications/bundle-'+newdigest[:16]+'.json'
+(root/newrelative).write_text(json.dumps(packet,ensure_ascii=False))
+response['reviewed_packets']=[{'path':newrelative,'digest':newdigest}]
+response_path.write_text('\n'.join(json.dumps(k)+' = '+toml(v) for k,v in response.items())+'\n')
+result=run(['verify','IX-WAR-0003','--response',str(response_path)])
+assert any(d['rule']=='verify.packet-binding' for d in result['diagnostics']),result
+assert snapshot()==before,'task refusal changed verdicts or journal'
+# Exact hashes do not justify showing invented implementation bytes.
+packet=json.loads(json.dumps(original))
+packet['deliverables'][0]['text']='invented implementation shown to reviewer\n'
+newdigest=digest(packet)
+newrelative='docs/warrants/IX-WAR-0003/verifications/bundle-'+newdigest[:16]+'.json'
+(root/newrelative).write_text(json.dumps(packet,ensure_ascii=False))
+response['reviewed_packets']=[{'path':newrelative,'digest':newdigest}]
+response_path.write_text('\n'.join(json.dumps(k)+' = '+toml(v) for k,v in response.items())+'\n')
+result=run(['verify','IX-WAR-0003','--response',str(response_path)])
+assert any(d['rule']=='verify.packet-binding' for d in result['diagnostics']),result
+assert snapshot()==before,'rendered-code refusal changed verdicts or journal'
 response['reviewed_packets']=[ref]
 response_path.write_text('\n'.join(json.dumps(k)+' = '+toml(v) for k,v in response.items())+'\n')
 restored=run(['verify','IX-WAR-0003','--response',str(response_path)])
 assert restored['exit_code']==0,restored
-print('rehashed missing fixture refused without writes; exact original packet accepted')
+print('rehashed missing fixture, substituted task and invented code refused without writes; exact original packet accepted')

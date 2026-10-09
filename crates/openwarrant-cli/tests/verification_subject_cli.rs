@@ -752,6 +752,447 @@ fn offline_bundle_carries_exact_gate_and_fixture_sources() {
 }
 
 #[test]
+fn rendered_code_and_evidence_cannot_be_replaced_under_real_source_hashes() {
+    let fixture = Fixture::new();
+    fs::write(
+        fixture.0.join("feature.rs"),
+        "// actual source\n#[test]\nfn observed() {}\n",
+    )
+    .unwrap();
+    fs::write(
+        fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/deliverables.toml"),
+        r#"
+schema = "oh.war/deliverables/v1"
+[[deliverable]]
+id = "D-001"
+title = "actual feature"
+kind = "file"
+target_ref = "feature.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+"#,
+    )
+    .unwrap();
+    let runs = fixture.0.join("docs/warrants/IX-WAR-0003/gate-runs");
+    fs::create_dir_all(&runs).unwrap();
+    fs::write(runs.join("probe.run.toml"), "id = \"probe\"\ngate = \"fixture.probe@1.0.0\"\naskability = \"askable\"\nexecution_status = \"completed\"\nverdict = \"pass\"\n").unwrap();
+    fs::write(runs.join("probe.stdout.txt"), "observed gate output\n").unwrap();
+    fs::write(runs.join("probe.stderr.txt"), "").unwrap();
+    let plants = fixture.0.join("conformance/plants.d");
+    fs::create_dir_all(&plants).unwrap();
+    fs::write(
+        plants.join("probe.sh"),
+        "# plant IX-WAR-0003 actual control\n",
+    )
+    .unwrap();
+    fixture.bound_response();
+    let response_path = fixture.0.with_extension("response.toml");
+    let original = fs::read_to_string(&response_path).unwrap();
+    let response: toml::Value = toml::from_str(&original).unwrap();
+    let packet: serde_json::Value = serde_json::from_slice(
+        &fs::read(
+            fixture
+                .0
+                .join(response["reviewed_packets"][0]["path"].as_str().unwrap()),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(packet["gate_runs"].as_array().unwrap().len(), 1);
+    assert_eq!(packet["plants"].as_array().unwrap().len(), 1);
+    let snapshot = || {
+        [
+            "verifications/OBL-001.toml",
+            "verifications/OBL-002.toml",
+            "journal.jsonl",
+        ]
+        .map(|p| fs::read(fixture.0.join("docs/warrants/IX-WAR-0003").join(p)).ok())
+    };
+    let before = snapshot();
+    for mutation in [
+        "code-text",
+        "code-digest",
+        "code-title",
+        "code-bytes",
+        "code-lines",
+        "code-tests",
+        "omit-code",
+        "duplicate-code",
+        "hide-code",
+        "stdout-text",
+        "stdout-digest",
+        "run-verdict",
+        "run-id",
+        "omit-run",
+        "duplicate-run",
+        "stream-mismatch",
+        "plant-text",
+        "plant-line",
+        "omit-plant",
+        "selection",
+        "terms",
+        "named-paths",
+        "extra-code",
+        "extra-stream",
+    ] {
+        let mut altered = packet.clone();
+        match mutation {
+            "code-text" => {
+                altered["deliverables"][0]["text"] = serde_json::json!("invented implementation")
+            }
+            "code-digest" => {
+                altered["deliverables"][0]["sha256"] = serde_json::json!("invented digest")
+            }
+            "code-title" => {
+                altered["deliverables"][0]["title"] = serde_json::json!("invented title")
+            }
+            "code-bytes" => altered["deliverables"][0]["bytes"] = serde_json::json!(999),
+            "code-lines" => altered["deliverables"][0]["lines"] = serde_json::json!(999),
+            "code-tests" => {
+                altered["deliverables"][0]["test_names"] = serde_json::json!(["invented_test"])
+            }
+            "omit-code" => {
+                altered["deliverables"].as_array_mut().unwrap().clear();
+            }
+            "duplicate-code" => {
+                let d = altered["deliverables"][0].clone();
+                altered["deliverables"].as_array_mut().unwrap().push(d);
+            }
+            "hide-code" => altered["deliverables"][0]["present"] = serde_json::json!(false),
+            "stdout-text" => {
+                altered["gate_runs"][0]["stdout"]["text"] =
+                    serde_json::json!("invented gate output")
+            }
+            "stdout-digest" => {
+                altered["gate_runs"][0]["stdout"]["sha256"] = serde_json::json!("invented digest")
+            }
+            "run-verdict" => altered["gate_runs"][0]["run"]["verdict"] = serde_json::json!("fail"),
+            "run-id" => altered["gate_runs"][0]["run_id"] = serde_json::json!("invented-run"),
+            "omit-run" => {
+                altered["gate_runs"].as_array_mut().unwrap().clear();
+            }
+            "duplicate-run" => {
+                let r = altered["gate_runs"][0].clone();
+                altered["gate_runs"].as_array_mut().unwrap().push(r);
+            }
+            "stream-mismatch" => {
+                altered["gate_runs"][0]["stdout"]["mismatch"] = serde_json::json!(true)
+            }
+            "plant-text" => altered["plants"][0]["text"] = serde_json::json!("invented plant"),
+            "plant-line" => altered["plants"][0]["line"] = serde_json::json!(999),
+            "omit-plant" => {
+                altered["plants"].as_array_mut().unwrap().clear();
+            }
+            "selection" => {
+                altered["obligation_evidence"][0]["selection"] =
+                    serde_json::json!("invented selection")
+            }
+            "terms" => {
+                altered["obligation_evidence"][0]["terms"] =
+                    serde_json::json!([{"term":"invented"}])
+            }
+            "named-paths" => {
+                altered["obligation_evidence"][0]["named_paths"] =
+                    serde_json::json!([{"term":"invented"}])
+            }
+            "extra-code" => {
+                altered["deliverables"][0]["instructions"] =
+                    serde_json::json!("unbound instructions")
+            }
+            "extra-stream" => {
+                altered["gate_runs"][0]["stdout"]["instructions"] =
+                    serde_json::json!("unbound instructions")
+            }
+            _ => unreachable!(),
+        }
+        let digest = openwarrant_compiler::sha256_digest(
+            openwarrant_compiler::DigestDomain::VerificationBundle,
+            &altered,
+        )
+        .unwrap();
+        let relative = format!(
+            "docs/warrants/IX-WAR-0003/verifications/bundle-{}.json",
+            &digest[..16]
+        );
+        fs::write(
+            fixture.0.join(&relative),
+            serde_json::to_vec(&altered).unwrap(),
+        )
+        .unwrap();
+        let mut changed = response.clone();
+        changed["reviewed_packets"][0]["path"] = toml::Value::String(relative);
+        changed["reviewed_packets"][0]["digest"] = toml::Value::String(digest);
+        fs::write(&response_path, toml::to_string(&changed).unwrap()).unwrap();
+        let refused = fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--response",
+            "response.toml",
+            "--json",
+        ]);
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.packet-binding"),
+            "{mutation}: {refused}"
+        );
+        assert_eq!(snapshot(), before, "{mutation}");
+    }
+    fs::write(response_path, original).unwrap();
+    let restored = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(restored["exit_code"], 0, "{restored}");
+}
+
+#[test]
+fn rehashed_packets_cannot_replace_the_captured_task() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let response_path = fixture.0.with_extension("response.toml");
+    let original_response = fs::read_to_string(&response_path).unwrap();
+    let response: toml::Value = toml::from_str(&original_response).unwrap();
+    let packet_path = fixture
+        .0
+        .join(response["reviewed_packets"][0]["path"].as_str().unwrap());
+    let packet: serde_json::Value =
+        serde_json::from_slice(&fs::read(packet_path).unwrap()).unwrap();
+    let snapshot = || {
+        [
+            "verifications/OBL-001.toml",
+            "verifications/OBL-002.toml",
+            "journal.jsonl",
+        ]
+        .map(|path| fs::read(fixture.0.join("docs/warrants/IX-WAR-0003").join(path)).ok())
+    };
+    let before = snapshot();
+    for mutation in [
+        "statement",
+        "scope",
+        "evidence",
+        "omit-obligation",
+        "duplicate-obligation",
+        "unknown-obligation",
+        "assurance",
+        "omit-input",
+        "extra-input",
+        "gate-input",
+        "evidence-input",
+        "authority-input",
+        "atom-text",
+        "atom-path",
+        "atom-role",
+        "omit-atom",
+        "duplicate-atom",
+        "packet-scope",
+        "false-single-obligation",
+        "extra-request-field",
+        "extra-obligation-field",
+        "extra-input-field",
+    ] {
+        let mut altered = packet.clone();
+        match mutation {
+            "statement" | "scope" | "evidence" => {
+                altered["request"]["obligations"][0][mutation] = serde_json::json!("weaker task");
+            }
+            "omit-obligation" => {
+                altered["request"]["obligations"]
+                    .as_array_mut()
+                    .unwrap()
+                    .remove(0);
+            }
+            "duplicate-obligation" => {
+                let first = altered["request"]["obligations"][0].clone();
+                altered["request"]["obligations"]
+                    .as_array_mut()
+                    .unwrap()
+                    .push(first);
+            }
+            "unknown-obligation" => {
+                altered["request"]["obligations"][0]["id"] = serde_json::json!("OBL-999");
+            }
+            "assurance" => {
+                altered["request"]["assurance_level"] = serde_json::json!("substituted");
+            }
+            "omit-input" => {
+                altered["request"]["inputs"]["artifact_refs"]
+                    .as_array_mut()
+                    .unwrap()
+                    .remove(0);
+            }
+            "extra-input" => {
+                altered["request"]["inputs"]["artifact_refs"]
+                    .as_array_mut()
+                    .unwrap()
+                    .push(serde_json::json!("unbound.txt"));
+            }
+            "gate-input" => {
+                altered["request"]["inputs"]["gate_binding_refs"] =
+                    serde_json::json!(["unbound-gate"]);
+            }
+            "evidence-input" => {
+                altered["request"]["inputs"]["evidence_refs"] =
+                    serde_json::json!(["unbound-evidence"]);
+            }
+            "authority-input" => {
+                altered["request"]["inputs"]["authorized_contract_digest"] =
+                    serde_json::json!("invented authority");
+            }
+            "atom-text" => {
+                altered["atoms"][0]["text"] = serde_json::json!("substituted contract atom");
+                // Even a self-consistent atom hash cannot replace the captured contract.
+                altered["atoms"][0]["sha256"] = serde_json::json!(
+                    openwarrant_compiler::sha256_hex(b"substituted contract atom")
+                );
+            }
+            "atom-path" => {
+                altered["atoms"][0]["path"] = serde_json::json!("unbound.md");
+            }
+            "atom-role" => {
+                altered["atoms"][0]["role"] = serde_json::json!("unbound");
+            }
+            "omit-atom" => {
+                altered["atoms"].as_array_mut().unwrap().remove(0);
+            }
+            "duplicate-atom" => {
+                let first = altered["atoms"][0].clone();
+                altered["atoms"].as_array_mut().unwrap().push(first);
+            }
+            "packet-scope" => {
+                altered["scope"] = serde_json::json!("unknown");
+            }
+            "false-single-obligation" => {
+                altered["scope"] = serde_json::json!("obligation");
+            }
+            "extra-request-field" => {
+                altered["request"]["instructions"] = serde_json::json!("a different task");
+            }
+            "extra-obligation-field" => {
+                altered["request"]["obligations"][0]["instructions"] =
+                    serde_json::json!("a different task");
+            }
+            "extra-input-field" => {
+                altered["request"]["inputs"]["instructions"] =
+                    serde_json::json!("a different task");
+            }
+            _ => unreachable!(),
+        }
+        let digest = openwarrant_compiler::sha256_digest(
+            openwarrant_compiler::DigestDomain::VerificationBundle,
+            &altered,
+        )
+        .unwrap();
+        let relative = format!(
+            "docs/warrants/IX-WAR-0003/verifications/bundle-{}.json",
+            &digest[..16]
+        );
+        fs::write(
+            fixture.0.join(&relative),
+            serde_json::to_vec(&altered).unwrap(),
+        )
+        .unwrap();
+        let mut changed_response = response.clone();
+        changed_response["reviewed_packets"][0]["path"] = toml::Value::String(relative);
+        changed_response["reviewed_packets"][0]["digest"] = toml::Value::String(digest);
+        fs::write(&response_path, toml::to_string(&changed_response).unwrap()).unwrap();
+        let refused = fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--response",
+            "response.toml",
+            "--json",
+        ]);
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.packet-binding"),
+            "{mutation}: {refused}"
+        );
+        assert_eq!(snapshot(), before, "{mutation}");
+    }
+    fs::write(response_path, original_response).unwrap();
+    let accepted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+}
+
+#[test]
+fn legitimate_split_task_packets_remain_admissible() {
+    let fixture = Fixture::new();
+    let config = fixture.0.join("openwarrant.toml");
+    let settings = fs::read_to_string(&config).unwrap();
+    fs::write(
+        config,
+        settings.replace("[verify]", "[verify]\nmax_bundle_tokens = 1"),
+    )
+    .unwrap();
+    fixture.bound_response();
+    let mut response: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    assert_eq!(response["reviewed_packets"].as_array().unwrap().len(), 2);
+    // Older generators used declaration order for these references. The same
+    // complete task remains admissible when only that order differs.
+    for reference in response["reviewed_packets"].as_array_mut().unwrap() {
+        let mut packet: serde_json::Value = serde_json::from_slice(
+            &fs::read(fixture.0.join(reference["path"].as_str().unwrap())).unwrap(),
+        )
+        .unwrap();
+        let refs = packet["request"]["inputs"]["artifact_refs"]
+            .as_array_mut()
+            .unwrap();
+        assert!(refs.len() > 1);
+        refs.reverse();
+        let digest = openwarrant_compiler::sha256_digest(
+            openwarrant_compiler::DigestDomain::VerificationBundle,
+            &packet,
+        )
+        .unwrap();
+        let relative = format!(
+            "docs/warrants/IX-WAR-0003/verifications/bundle-{}.json",
+            &digest[..16]
+        );
+        fs::write(
+            fixture.0.join(&relative),
+            serde_json::to_vec(&packet).unwrap(),
+        )
+        .unwrap();
+        reference["path"] = toml::Value::String(relative);
+        reference["digest"] = toml::Value::String(digest);
+    }
+    fs::write(
+        fixture.0.with_extension("response.toml"),
+        toml::to_string(&response).unwrap(),
+    )
+    .unwrap();
+    let accepted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+}
+
+#[test]
 fn rehashed_packets_cannot_omit_or_replace_required_review_sources() {
     let fixture = Fixture::new();
     let gates = fixture.0.join("docs/gates");

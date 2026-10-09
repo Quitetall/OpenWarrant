@@ -399,7 +399,7 @@ fn reverified(
             };
             if !crate::verify::packets_cover(
                 repo,
-                &one.alias(),
+                one,
                 &candidate_subject,
                 &packets,
                 &[o.to_owned()],

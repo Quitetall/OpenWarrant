@@ -49,12 +49,13 @@
 //! configured verifier too. A response answering an obligation its bundle did
 //! not carry is refused unread.
 
+pub(crate) mod rendered;
 pub(crate) mod store;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::digest::sha256_hex;
 use openwarrant_compiler::{DigestDomain, sha256_digest};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
@@ -81,15 +82,29 @@ pub struct BundledAtom {
     pub text: String,
 }
 
+/// Exact contract atoms, shared by packet construction and retained review checks.
+pub(crate) fn contract_atoms(basis: &openwarrant_compiler::CompilationBasis) -> Vec<BundledAtom> {
+    basis
+        .atoms
+        .iter()
+        .map(|a| BundledAtom {
+            path: a.source.clone(),
+            role: a.role.clone(),
+            sha256: sha256_hex(&a.bytes),
+            text: String::from_utf8_lossy(&a.bytes).into_owned(),
+        })
+        .collect()
+}
+
 /// Consecutive lines of a file, numbered from 1, exactly as in the file.
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Excerpt {
     pub start_line: usize,
     pub end_line: usize,
     pub text: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BundledDeliverable {
     pub id: String,
     pub title: String,
@@ -111,11 +126,11 @@ pub struct BundledDeliverable {
     pub text: Option<String>,
     /// In an obligation-scope bundle, the lines carried of a file too large
     /// for its share of the budget.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub excerpts: Vec<Excerpt>,
     /// Why this file is in an obligation-scope bundle: `obligation_refs`, or
     /// the path in the obligation that names it.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub carried_because: Vec<String>,
     /// `#[test]` function names, for a Rust source deliverable (whole file).
     pub test_names: Vec<String>,
@@ -698,76 +713,56 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let request = crate::verify::request_from_loaded(repo, &one, performer)?;
-    let required_sources = required_sources(repo, &request.reviewed_subject, &one)?;
+    load_from_loaded(repo, &one, request)
+}
+
+fn load_from_loaded(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    request: crate::verify::VerificationRequest,
+) -> Result<Sources, RepoError> {
+    let dir = one.dir.clone();
+    let alias = one.alias();
+    let alias = alias.as_str();
+    let required_sources = required_sources(repo, &request.reviewed_subject, one)?;
     let authorized_contract_digest = repo
         .load_authorization(&dir)
         .ok()
         .flatten()
         .map(|a| a.revision.contract_digest)
         .unwrap_or_default();
-    let mut atoms = Vec::new();
-    if let Some(basis) = &one.basis {
-        for a in &basis.atoms {
-            atoms.push(BundledAtom {
-                path: a.source.clone(),
-                role: a.role.clone(),
-                sha256: sha256_hex(&a.bytes),
-                text: String::from_utf8_lossy(&a.bytes).into_owned(),
-            });
-        }
+    let atoms = one.basis.as_ref().map(contract_atoms).unwrap_or_default();
+    let deliveries = repo.load_deliverables(&dir)?;
+    if !deliveries.failures.is_empty() {
+        return Err(rendered::unavailable(
+            "deliverable declarations changed during capture",
+        ));
     }
-    let files: Vec<File> = repo
-        .load_deliverables(&dir)
-        .map(|set| {
-            set.records
-                .into_iter()
-                .map(|record| {
-                    let read = std::fs::read(repo.root.join(&record.target_ref))
-                        .map_err(|e| format!("unreadable: {e}"));
-                    File { record, read }
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let mut files = Vec::new();
+    let mut observed = std::collections::BTreeMap::new();
+    for record in deliveries.records {
+        let bytes = crate::verify::file_bytes(repo, &record.target_ref)?;
+        observed.insert(
+            record.target_ref.clone(),
+            bytes
+                .as_ref()
+                .map(|b| format!("sha256:{}", sha256_hex(b)))
+                .unwrap_or_else(|| "missing".into()),
+        );
+        let read =
+            bytes.ok_or_else(|| format!("unreadable: {}", std::io::Error::from_raw_os_error(2)));
+        files.push(File { record, read });
+    }
+    if observed != request.reviewed_subject.artifacts {
+        return Err(rendered::unavailable(
+            "delivered bytes changed during capture",
+        ));
+    }
     // OW-WAR-0146: what each gate printed travels with the run. A verifier
     // deciding from the bundle alone cannot settle an obligation whose
     // evidence is a gate's output if the output is not there — the first
     // blind run (OW-WAR-0004) said so for every obligation.
-    let runs = crate::evidence::load(repo, &dir)
-        .map(|ev| {
-            ev.iter()
-                .map(|e| {
-                    let receipt = e.receipt.as_ref().map(carried_receipt);
-                    let stream = |name: &str| {
-                        let from_receipt = receipt
-                            .as_ref()
-                            .and_then(|r| r[format!("{name}_ref")].as_str())
-                            .map(|rel| repo.root.join(rel));
-                        let beside = Utf8PathBuf::from(
-                            e.run_path
-                                .as_str()
-                                .replace(".run.toml", &format!(".{name}.txt")),
-                        );
-                        Stream {
-                            bytes: std::fs::read(from_receipt.unwrap_or(beside)).ok(),
-                            recorded: receipt
-                                .as_ref()
-                                .and_then(|r| r[format!("{name}_digest")].as_str())
-                                .map(str::to_owned),
-                        }
-                    };
-                    Run {
-                        gate: e.run.gate.clone(),
-                        run_id: e.run.id.clone(),
-                        run: serde_json::to_value(&e.run).unwrap_or_default(),
-                        receipt: receipt.clone(),
-                        stdout: stream("stdout"),
-                        stderr: stream("stderr"),
-                    }
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let runs = rendered::runs_from_sources(&required_sources)?;
     // An unsupported stored format is an unavailable observation, not an
     // empty review history that may be silently omitted from the packet.
     let prior = repo.load_verifications(&dir)?.records;

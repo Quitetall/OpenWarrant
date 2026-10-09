@@ -204,9 +204,62 @@ restoration. `84-review-source-closure.sh` plants a rehashed missing fixture,
 requires `verify.packet-binding` without record/journal writes, then restores
 the original packet. The old executable fails the plant by accepting the
 incomplete packet. The corrected build passes the plant and all 37 targeted
-CLI controls; full-gate and independent qualification remain pending. This control does not
+CLI controls; PR #148 subsequently passed the complete local and hosted gates.
+Independent qualification remains pending. This control does not
 authenticate the verifier, freeze a hostile same-account workspace, guarantee
 complete transitive task context or qualify a production Warrant.
+
+A second disposable probe preserved every required source but substituted an
+obligation's statement, then recomputed the canonical packet identity. The
+baseline accepted both synthetic verdicts. The task-binding extension compares
+each obligation's complete statement, scope and evidence with the caller's
+captured contract, checks request assurance and input references, and requires
+the exact contract atoms, paths, roles and hashes. Whole-Warrant packets must
+contain the whole task; obligation packets must contain one declared obligation.
+Duplicate or invented obligations, extra request/obligation/input fields and
+unknown packet scopes are refused.
+Construction and validation share the atom projection. The candidate reader
+passes its captured Git tree, rather than reloading the working checkout.
+
+`rehashed_packets_cannot_replace_the_captured_task` exercises 22 substitutions,
+omissions and duplicates with real compiler rehashing, refusal without writes,
+and exact restoration. `legitimate_split_task_packets_remain_admissible` keeps
+valid per-obligation review and reference-order compatibility supported. All 32
+verification CLI tests and CLI all-target Clippy pass on Rust 1.97.1. The source-closure plant also substitutes the task. The acceptance
+plant changes a retained packet, record and journal references together in a
+disposable Git candidate. The baseline falsely clears that review; the corrected
+executable passes all 27 targeted candidate/source-closure controls. Bounded
+observations and executable identities are retained in
+`docs/tickets/t-b9610/evidence/task-binding-controls.json`. The complete extension
+gate and independent qualification remain pending. This is task-field binding,
+not verifier authentication or proof that
+all rendered evidence excerpts and transitive context are complete and correct.
+
+A third disposable probe retained the actual source digest but replaced the
+code shown in `deliverables[].text`. The baseline accepted both synthetic
+verdicts. Rendered-evidence validation now compares delivered metadata and text
+with captured file bytes, checks real prefix/excerpt cuts and their line numbers,
+and checks each gate run, receipt, stdout and stderr against captured evidence.
+Gate assembly uses the already captured evidence sources instead of reading a
+second stream snapshot. One captured evidence set serves all packets in a review.
+Plant snippets, deliverable selection and derived evidence pointers must also
+match that set. Rehashing a substituted display does not establish that match.
+
+The public CLI mutation test exercises 24 code, gate-output, plant and evidence
+pointer substitutions, omissions, duplicates and extra fields; each must refuse
+without verdict/journal writes, and exact restoration must work. Unit controls
+cover every byte cut of representative UTF-8, binary and ASCII heads/tails,
+including replacement characters at a cut, plus excerpt positions and repetition.
+The source-closure and Git-candidate plants also substitute rendered code; the
+candidate plant separately substitutes stdout while preserving consistent packet,
+record and journal identities. These are synthetic controls, not production
+verification. Full gates and independent qualification must be observed separately.
+This does not authenticate reviewers, establish complete transitive context,
+validate every historical assertion, or contain a hostile same-account writer.
+In particular, the optional authorization pointer describes packet creation;
+current authorization is checked from signed records. Signing the unchanged
+contract must not invalidate a review captured before that authorization.
+`55-evidence-signing.sh` exercises this transition and subsequent resolution.
 
 Unsupported stored verification formats cannot supply current assurance. The
 shared SDK decoder keeps an unsupported schema distinct from malformed supported
