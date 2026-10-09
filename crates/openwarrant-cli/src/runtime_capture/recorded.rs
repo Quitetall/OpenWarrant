@@ -13,6 +13,7 @@ pub(super) struct Recorded {
     pub directory: Utf8PathBuf,
     pub basis: CompilationBasis,
     pub validated: ValidatedManifest,
+    pub latest_for_stage: bool,
 }
 
 pub(super) fn load(repo: &Repository, alias: &str, id: &str) -> Result<Recorded, Fault> {
@@ -73,6 +74,7 @@ pub(super) fn load(repo: &Repository, alias: &str, id: &str) -> Result<Recorded,
         ));
     }
     let mut matching = vec![];
+    let mut latest_dispatch_id = None;
     let mut journal = openwarrant_core::journal::Journal::default();
     for line in journal_bytes
         .split(|b| *b == b'\n')
@@ -87,6 +89,16 @@ pub(super) fn load(repo: &Repository, alias: &str, id: &str) -> Result<Recorded,
             continue;
         }
         let payload = decode(event.payload.as_bytes())?;
+        if payload["stage"] == dispatch.stage_id {
+            if event.warrant_uuid != basis.manifest.uuid {
+                return Err(fault(
+                    "runtime.capture-recorded-binding",
+                    "stage compile event belongs to a different Warrant",
+                    false,
+                ));
+            }
+            latest_dispatch_id = payload["dispatch_id"].as_str().map(str::to_owned);
+        }
         if payload["dispatch_id"] != id {
             continue;
         }
@@ -121,5 +133,6 @@ pub(super) fn load(repo: &Repository, alias: &str, id: &str) -> Result<Recorded,
         directory,
         basis,
         validated,
+        latest_for_stage: latest_dispatch_id.as_deref() == Some(id),
     })
 }

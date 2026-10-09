@@ -9,6 +9,7 @@ A collector supplies one repository-relative JSON request. The agent or operator
 ```sh
 war runtime import OW-WAR-0149 --request capture-request.json --json
 war runtime show OW-WAR-0149 sha256:<returned-content-digest> --json
+war runtime assess OW-WAR-0149 --selection selected-captures.json --json
 ```
 
 The SDK entry points are `openwarrant_cli::runtime_capture::import` and `show`. This filesystem implementation belongs to the reference CLI library; the core receipt matcher remains pure. The command emits the usual report envelope. Successful retention is separate from native eligibility, which is explicitly UNKNOWN when no native verification adapter is available. `show` inspects retained data and never trusts saved native verdicts.
@@ -55,4 +56,25 @@ Receipt bytes are limited to 4 MiB, request metadata to 16 KiB, retained envelop
 
 Public CLI and SDK tests cover actual local source capture and synthetic provider facts. No native provider was executed or qualified by these fixtures. `conformance/fixtures/runtime-capture/control.py` independently drives the public CLI for replay, stale basis, collision, alteration and source-loss controls. The code uses existing local SHA-256 byte identities and existing canonical Dispatch hashing; it defines no provider seal or hash domain.
 
-OW-WAR-0149 and its broader ticket remain open: actual provider-owned interfaces, authenticated collector/build observations, stored current-attempt selection, legacy resolver integration, real positive provider runs and independent/participant acceptance are not complete.
+## Current-attempt selection
+
+`assess_selected` is the candidate read-only SDK interface. A caller explicitly selects one retained capture per stage; the SDK obtains the dispatch and compile event from the actual local records. The last appended `dispatch.compiled` event for that stage defines the local compile frontier. A later attempt prevents fallback to a historical success, even if the later attempt has no receipt yet. This does not make the local journal an authenticated execution log or define a scheduler's active worker.
+
+The CLI accepts a repository-relative selection request:
+
+```json
+{
+  "schema": "oh.war/runtime-selection-request/v1-draft.1",
+  "selections": [
+    { "stage_id": "STAGE-001", "capture_digest": "sha256:<capture-content-digest>" }
+  ]
+}
+```
+
+Duplicate stage selections, wrong stages, superseded attempts, altered captures and mismatched dispatch/event snapshots refuse. Missing stage evidence and unavailable current sources remain UNKNOWN. Original receipt loss does not prevent reassessment of retained receipt bytes, but missing current dispatch/journal sources prevent establishing current eligibility. Historical `show` remains available separately.
+
+The SDK callback supplies a freshly resolved native verifier and dispatch-specific policy. Saved native verdicts and collector declarations never supply those facts. The CLI currently supplies no native adapter, so selected runtime stages remain UNKNOWN. Native matches establish receipt eligibility only, not assurance. The assessor checks every runtime stage through the existing whole-basis compiler interface and detects observed source/attempt changes before returning. Callers still own locking and execution isolation; rechecks do not provide a transaction or a malicious same-UID sandbox.
+
+Selection is bounded to 256 captures, 32 MiB aggregate selected source bytes, and the existing per-source limits. No record, event, signature or activation is written by assessment.
+
+OW-WAR-0149 and its broader ticket remain open: actual provider-owned interfaces, authenticated collector/build observations, legacy resolver integration, real positive provider runs and independent/participant acceptance are not complete.

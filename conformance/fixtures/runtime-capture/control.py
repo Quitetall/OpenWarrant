@@ -46,6 +46,15 @@ retained = root / first["reference"]
 original = retained.read_bytes()
 assert run("runtime", "import", "IX-WAR-0003", "--request", "request.json")["result"]["digest"] == first["digest"]
 assert retained.read_bytes() == original
+selection = {"schema": "oh.war/runtime-selection-request/v1-draft.1",
+             "selections": [{"stage_id": "STAGE-001", "capture_digest": first["digest"]}]}
+(root / "selection.json").write_text(json.dumps(selection))
+unknown = run("runtime", "assess", "IX-WAR-0003", "--selection", "selection.json", ok=False)
+assert unknown["diagnostics"][0]["severity"] == "unknown"
+assert unknown["result"]["stages"][0]["receipt"]["code"] == "runtime.verifier-unavailable"
+assert not unknown["result"]["saved_native_observations_used"]
+assert not unknown["result"]["assurance_granted"]
+assert retained.read_bytes() == original
 intent = directory / "atoms/10-intent.md"
 before = intent.read_bytes()
 intent.write_bytes(before + b"\nchanged current contract\n")
@@ -59,6 +68,13 @@ assert retained.read_bytes() == b"conflicting occupant"
 altered = run("runtime", "show", "IX-WAR-0003", first["digest"], ok=False)
 assert altered["diagnostics"][0]["rule"] == "runtime.capture-altered"
 retained.write_bytes(original)  # Restore only this planted fixture, never an authored record.
+run("dispatch", "IX-WAR-0003", "STAGE-001", "--prototype", "--emit", str(pending))
+next_dispatch = json.loads(pending.read_bytes())
+assert next_dispatch["attempt_id"] != dispatch["attempt_id"]
+pending.rename(directory / "dispatches" / (next_dispatch["dispatch_id"] + ".json"))
+stale = run("runtime", "assess", "IX-WAR-0003", "--selection", "selection.json", ok=False)
+assert stale["diagnostics"][0]["rule"] == "runtime.selection-superseded-attempt"
+assert retained.read_bytes() == original
 (root / "receipt.bin").unlink()
 shutil.rmtree(directory / "dispatches")
 shown = run("runtime", "show", "IX-WAR-0003", first["digest"])["result"]
