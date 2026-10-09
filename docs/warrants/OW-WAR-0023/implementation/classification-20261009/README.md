@@ -27,7 +27,7 @@ Rust 1.97.1. Ten portable-Dispatch integration tests pass, including actual sour
 repository deletion, section/whole source/artifact/glossary labels, missing labels,
 opaque case/wildcard denial and a forged manifest with all local hashes recomputed.
 A separate parser test checks missing, binary, malformed and duplicate declarations.
-All-target CLI Clippy passes with warnings denied. The public CLI plant checks
+Final all-target CLI Clippy passes with warnings denied. The intermediate nested-if lint refusal and its corrected final run are both retained. The public CLI plant checks
 actual offline allow/deny/unknown behavior. Logs are beside this document.
 
 Full hosted repository gate, provider integration, independent qualification and
