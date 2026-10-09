@@ -69,3 +69,9 @@ open. No signed records, older captures or assurance dispositions were rewritten
 signed subject comparison, exact local Git source holders, named missing/mismatch
 refusals before outputs, and explicit prototype fallback. No signature or assurance
 is awarded. Full hosted gate and provider/native qualification remain open.
+
+## Combined integration preparation
+
+[Retained failures and corrected controls](integration-20261009/README.md):
+all 81 affected battery controls pass after truthful fixture preparation.
+Full hosted gate and independent/provider qualification remain separate.
