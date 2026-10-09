@@ -38,3 +38,5 @@ The corrected selected battery passes **52 controls, zero failures**, including
 unchanged authorized Dispatch positives, context/budget refusals, the new admission
 control and idempotent submit/signing fixture controls. The positive generated
 corpus check also passes. No owner key or real authority act was used by the fixture.
+
+The complete CLI library unit suite also passes: **350 tests, zero failures**.
