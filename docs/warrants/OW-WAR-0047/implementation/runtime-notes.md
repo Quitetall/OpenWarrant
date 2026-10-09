@@ -85,3 +85,7 @@ occupying the destination remains intact, and the temporary copy is removed.
 This test-only change passes all 96 workspace tests, fmt and all-target clippy.
 The successful runtime remains explicitly bound to the earlier b10f46b source;
 these later tests do not rewrite that observation or its binary identity.
+
+## Current provider integration, 2026-10-09
+
+The old billing and PR120 next steps were rechecked. A targeted secret-scan retry passes; PR120 already merged with its hosted gate green. The conflicting provider repair branch now integrates current main, including credential-free registry dependencies and expanded CI. A current Clippy failure was observed and addressed narrowly; final candidate and pending hosted run are recorded in [the new observation](provider-integration-20261009/README.md). Earlier failures and successful runtime source identities remain unchanged. A successful test of the older binary is not a runtime observation of this combined source.
