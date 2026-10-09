@@ -41,3 +41,7 @@ The coarse UNKNOWN status suggestion adds no defect; observations carry reasons.
   proposed digest is `sha256:e929310b3bbfb10be68801f3e750e313deffc8f9cfd6ea8a3b5e80151f37aeb9`.
   This patch is a review artifact, not an applied or signed correction.
 - Human acceptance and legacy resolution remain separate acts.
+
+## Current authorization consumer
+
+[Exact payload, current grant and refusal evidence](current-authorization-20261009/README.md) records the incremental authorization check. This is not full readiness, deployed authority isolation or Warrant qualification. Original observations and the prepared human-only wording correction remain unchanged.

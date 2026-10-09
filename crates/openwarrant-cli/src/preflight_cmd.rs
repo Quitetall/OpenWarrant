@@ -43,7 +43,65 @@ pub struct ResultView {
     limits: &'static str,
     dimensions: Vec<Dimension>,
 }
-const LIMITS: &str = "Partial local assessment. No live actor path, provider, secret, protected gate or side-effect authority is exercised. No receipt is ingested and no recorded state changes. Prototype work is governed by its own explicit action gates.";
+const LIMITS: &str = "Partial local assessment. Recorded authorization is checked against current configured roles and signed response bytes; an unprotected legacy register is not execution isolation. No live actor path, provider, secret, protected gate or side-effect authority is exercised. No receipt is ingested and no recorded state changes. Prototype work is governed by its own explicit action gates.";
+
+fn authorization_observation(
+    repo: &Repository,
+    alias: &str,
+    record: &crate::authorize::AuthorizationRecord,
+) -> (Status, String) {
+    use openwarrant_core::contract::{ActorKind, RevisionState};
+    if record.schema != crate::authorize::AUTHORIZATION_SCHEMA {
+        return (
+            Status::Unknown,
+            "Unsupported authorization record schema.".into(),
+        );
+    }
+    let Some(auth) = &record.revision.authorization else {
+        return (
+            Status::Fail,
+            "Recorded revision carries no authorization.".into(),
+        );
+    };
+    if record.warrant != alias
+        || record.revision.state != RevisionState::Authorized
+        || auth.actor_kind != ActorKind::Human
+        || auth.acting_role != "authorizer"
+        || auth.meaning.trim().is_empty()
+    {
+        return (Status::Fail, "Authorization does not name this subject, an authorized revision and a human authorizer with a stated meaning.".into());
+    }
+    if let Err(error) = openwarrant_core::timestamp::validate_rfc3339_utc(&auth.effective_time) {
+        return (
+            Status::Fail,
+            format!("Invalid authorization effective time: {error}"),
+        );
+    }
+    let register = match repo.load_authority_register() {
+        Ok(register) => register,
+        Err(error) => return (Status::Unknown, error.to_string()),
+    };
+    let Some(assignment) = register.actor(&auth.authorizer) else {
+        return (
+            Status::Fail,
+            "Authorizer has no current configured role assignment.".into(),
+        );
+    };
+    if let Err(error) = assignment.may_authorize(record.revision.proposer.as_deref().unwrap_or(""))
+    {
+        return (
+            Status::Fail,
+            format!("Current authorizer grant refused: {error}"),
+        );
+    }
+    let verdict = crate::authority_check::verify_authorization_record(repo, alias, record);
+    let status = match verdict {
+        crate::authority_check::Verdict::Signed { .. } => Status::Pass,
+        crate::authority_check::Verdict::Unavailable { .. } => Status::Unknown,
+        _ => Status::Fail,
+    };
+    (status, format!("{}: {}", verdict.rule(), verdict.why()))
+}
 
 pub fn run(repo: &Repository, alias: &str) -> Result<(ResultView, Report), RepoError> {
     let dir = repo.warrant_dir(alias)?;
@@ -183,6 +241,9 @@ pub fn run(repo: &Repository, alias: &str) -> Result<(ResultView, Report), RepoE
                                 "Fresh compilation reproduces recorded contract digest {digest}. This does not validate the authorizer's authority."
                             ),
                         );
+                        let (status, observation) =
+                            authorization_observation(repo, alias, &authorization);
+                        record("authorization valid", status, observation);
                     }
                     Ok(Some(_)) => record(
                         "authorization valid",

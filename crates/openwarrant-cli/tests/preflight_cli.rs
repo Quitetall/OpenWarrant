@@ -90,12 +90,20 @@ fn check<'a>(v: &'a serde_json::Value, name: &str) -> &'a serde_json::Value {
         .unwrap()
 }
 #[test]
-fn reproduced_commitment_does_not_claim_authority_or_runtime() {
+fn signed_commitment_does_not_claim_runtime_or_side_effect_authority() {
     let root = fixture("digest");
     let v = run(&root, "IX-WAR-0003");
     assert_eq!(check(&v, "profile valid")["status"], "pass");
     assert_eq!(check(&v, "contract digest reproducible")["status"], "pass");
-    assert_eq!(check(&v, "authorization valid")["status"], "unknown");
+    assert_eq!(check(&v, "authorization valid")["status"], "pass");
+    assert!(
+        check(&v, "authorization valid")["observation"]
+            .as_str()
+            .unwrap()
+            .contains("authority.signed")
+    );
+    assert_eq!(v["result"]["readiness"], "not_ready");
+    assert_eq!(v["result"]["dimensions"][5]["status"], "unknown");
     assert_eq!(v["result"]["state_persisted"], false);
     assert!(
         v["result"]["meaning"]
@@ -112,6 +120,101 @@ fn reproduced_commitment_does_not_claim_authority_or_runtime() {
         v["result"]["contract_digest"],
         changed["result"]["contract_digest"]
     );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn unsigned_mismatched_or_revoked_authorization_cannot_pass_preflight() {
+    let root = fixture("authorization-controls");
+    assert_eq!(
+        check(&run(&root, "IX-WAR-0003"), "authorization valid")["status"],
+        "pass"
+    );
+    let response = root.join("docs/authority/responses/IX-WAR-0003.response.toml");
+    let signature = response.with_extension("toml.sig");
+    let signed_bytes = std::fs::read(&signature).unwrap();
+    std::fs::remove_file(&signature).unwrap();
+    let unsigned = run(&root, "IX-WAR-0003");
+    let observed = check(&unsigned, "authorization valid");
+    assert_eq!(observed["status"], "fail");
+    assert!(
+        observed["observation"]
+            .as_str()
+            .unwrap()
+            .contains("authority.unsigned")
+    );
+
+    std::fs::write(&signature, signed_bytes).unwrap();
+    // Keep the signed response intact but forge the record's meaning. A signed
+    // digest is not evidence that someone signed these altered authorization fields.
+    let record = root.join("docs/warrants/IX-WAR-0003/authorization.toml");
+    let original = std::fs::read_to_string(&record).unwrap();
+    std::fs::write(
+        &record,
+        original.replace(
+            "Synthetic test data only; no authority or acceptance is claimed.",
+            "A different meaning never signed by the fixture authorizer.",
+        ),
+    )
+    .unwrap();
+    let forged = run(&root, "IX-WAR-0003");
+    let observed = check(&forged, "authorization valid");
+    assert_eq!(observed["status"], "fail");
+    assert!(
+        observed["observation"]
+            .as_str()
+            .unwrap()
+            .contains("authority.signature-invalid")
+    );
+    std::fs::write(&record, original).unwrap();
+
+    let roles = root.join("docs/authority/roles.toml");
+    let original = std::fs::read_to_string(&roles).unwrap();
+    std::fs::write(&roles, original.replace("\"authorizer\", ", "")).unwrap();
+    let revoked = run(&root, "IX-WAR-0003");
+    assert_eq!(check(&revoked, "authorization valid")["status"], "fail");
+    assert_eq!(revoked["result"]["state_persisted"], false);
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn unavailable_configured_store_never_falls_back_to_signed_legacy_authority() {
+    let root = fixture("store-unavailable");
+    assert_eq!(
+        check(&run(&root, "IX-WAR-0003"), "authorization valid")["status"],
+        "pass"
+    );
+    let config = root.join("openwarrant.toml");
+    let original = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(
+        &config,
+        format!(
+            "{original}\n[authority]\nstore = {:?}\nunprotected_test_store = true\n",
+            root.join("missing-store").to_str().unwrap()
+        ),
+    )
+    .unwrap();
+    let unavailable = run(&root, "IX-WAR-0003");
+    let observed = check(&unavailable, "authorization valid");
+    assert_eq!(observed["status"], "unknown");
+    assert!(observed["observation"].as_str().unwrap().contains("store"));
+    assert_eq!(unavailable["result"]["readiness"], "not_ready");
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn claimed_standing_policy_cannot_reuse_an_ordinary_signature() {
+    let root = fixture("standing-policy");
+    let record = root.join("docs/warrants/IX-WAR-0003/authorization.toml");
+    let original = std::fs::read_to_string(&record).unwrap();
+    std::fs::write(
+        &record,
+        format!("{original}\npolicy_basis = \"standing://never-accepted@1\"\n"),
+    )
+    .unwrap();
+    let forged = run(&root, "IX-WAR-0003");
+    assert_eq!(check(&forged, "authorization valid")["status"], "fail");
+    assert_eq!(forged["result"]["readiness"], "not_ready");
     std::fs::remove_dir_all(root).unwrap();
 }
 #[test]

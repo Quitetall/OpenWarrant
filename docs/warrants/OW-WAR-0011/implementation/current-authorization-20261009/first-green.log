@@ -1,0 +1,11 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/openwarrant-preflight-authorization/crates/openwarrant-cli)
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-preflight-authorization/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-preflight-authorization/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 15s
+     Running tests/preflight_cli.rs (/mnt/4tb/OpenWarrant/target/debug/deps/preflight_cli-56ab27a5285c8f63)
+
+running 1 test
+test signed_commitment_does_not_claim_runtime_or_side_effect_authority ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.65s
+

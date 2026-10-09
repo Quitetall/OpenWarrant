@@ -16,7 +16,15 @@ graph, runtime, gates and authority. Each check reports `pass`, `fail` or
 This is a **partial local assessment**, not full Preflight qualification. The
 command validates local manifests, loads atoms, parses milestone graphs and
 compares a freshly compiled contract digest with a recorded commitment. That
-comparison does not authenticate its authorizer. Local Git or filesystem access
+comparison alone does not authenticate its authorizer. The authorization check also
+requires the exact recorded human authorization payload to match a signed response
+and a current configured authorizer grant. Standing authorization is re-derived
+through its existing signed-class coverage check. Missing signatures and known
+revoked grants fail; unavailable trust or verification stays unknown. A configured
+store never falls back to working-tree roles or keys. An unprotected legacy
+register remains an operator trust assumption, not execution isolation.
+
+Local Git or filesystem access
 cannot establish the eventual actor's runtime, provider, secrets, network path,
 protected gate environment or side-effect authority. Those checks remain unknown.
 
@@ -35,7 +43,8 @@ not an addition to the frozen schema pack or a signed Preflight receipt.
 
 ## Remaining OW-WAR-0011 scope
 
-The live actor path and complete gate/authority observations are not implemented.
+Current authorization signature and role checks do not establish the live actor
+path or complete gate/side-effect authority observations. These are not implemented.
 OW-WAR-0011 therefore remains partial, as its recorded basis requires. The old
 `war check` success text still says Preflight is not implemented. Its source is
 pinned by resolved OW-WAR-0005/D-002 and needs a human-signed correction before
