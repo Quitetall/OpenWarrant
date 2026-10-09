@@ -16,7 +16,7 @@
     "docs/warrants/OW-WAR-0023/implementation/admission-20261009/README.md"
   ],
   "next_steps": [
-    "Complete repository gate for admission candidate; then provider-owned semantic selection, classification-policy and native enforcement or explicit reconciliation.",
+    "Full admission candidate passed the 14-step gate and merged via PR167 at 301faf1c. Provider-owned semantic selection, classification-policy and native enforcement or explicit reconciliation remain.",
     "Harness must enforce pre-action capability decisions under independently established authority.",
     "Human assurance and legacy resolution remain separate."
   ]

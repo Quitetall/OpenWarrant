@@ -1,0 +1,12 @@
+{
+  "source": "ca729ebceae2ca94dc7d607ee634f2f524ff21a4",
+  "runtime_capture_tests": 11,
+  "runtime_capture_failures": 0,
+  "all_target_cli_clippy": "PASS",
+  "cli_units_overall": "UNKNOWN",
+  "cli_units_exit": 124,
+  "cli_units_deadline_seconds": 300,
+  "individual_unit_pass_observations": 349,
+  "native_provider_qualification": false,
+  "human_acceptance": false
+}

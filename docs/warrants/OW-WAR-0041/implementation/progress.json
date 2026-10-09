@@ -13,7 +13,7 @@
     "docs/warrants/OW-WAR-0041/implementation/baseline-provenance-20261009/README.md"
   ],
   "next_steps": [
-    "Complete repository gate for publication/provenance candidate.",
+    "Publication/provenance candidate passed the 14-step gate and merged via PR167 at 301faf1c. Actual correlated human-time, safety, repair-follow-up and escape-window inputs remain.",
     "Record actual correlated human-time, safety, repair-follow-up and escape-window inputs.",
     "Obtain independent historical before-tuning review or prepare an explicit governed reconciliation; preserve original records."
   ]

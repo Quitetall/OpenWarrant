@@ -82,3 +82,32 @@ OW-WAR-0149 and its broader ticket remain open: actual provider-owned interfaces
 ## Offline source inspection
 
 `inspect_retained(bytes, alias, digest)` performs the same bounded envelope and embedded blob identity checks as live `show`, without repository or provider I/O. Neither operation trusts saved native verdicts. `war archive runtime-basis` now exposes these retained captures with separately checked Dispatch/journal and reconstructed contract/stage connections. Missing sources and unsupported versions remain gaps; contradictory binding and altered content refuse. See OW-WAR-0111's [capture reconnection observation](../../OW-WAR-0111/implementation/capture-reconnection-20261009/README.md). Source reconnection does not establish a provider seal, current worker, native execution eligibility or assurance.
+
+## Resolution consumer — 2026-10-09
+
+Requirement 12 now uses current-source runtime assessment rather than a constant
+refusal for every runtime stage. `resolve::assess_with_runtime` accepts explicit
+retained selections and a dispatch-specific trusted native verifier/policy
+resolver. It recomputes the same thirteen checks; a matching runtime receipt
+clears only requirement 12, not authorization, independent verification or human
+acceptance. The capture store is re-read and saved native verdicts are ignored.
+Source changes, superseded attempts and conflicting native facts remain unmet.
+
+The reference CLI can inspect a selection with:
+
+```sh
+war resolve OW-WAR-0149 --dry-run --runtime-selection selected-captures.json --json
+```
+
+This flag is read-only and requires `--dry-run`. It does not configure a native
+verifier. Missing native support stays UNKNOWN even if the retained capture
+contains a historical matching observation. Normal request, signing and response
+ingestion remain fail-closed until a trusted native adapter and its governing
+participant agreement are established. No generic command or untrusted JSON
+assertion is promoted into a native verifier. No new receipt hash domain or
+resolution wire format is introduced.
+
+The public CLI regression was observed failing before this connection: it named
+only a generic unmet requirement, with no missing-stage observation. The SDK
+controls use a clearly synthetic provider and establish consumer behavior only,
+not Katana/BLUT qualification or actual sandbox enforcement.
