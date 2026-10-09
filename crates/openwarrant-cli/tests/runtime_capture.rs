@@ -195,6 +195,193 @@ fn unverified_capture_is_replayable_and_survives_loss_of_original_inputs() {
 }
 
 #[test]
+fn archive_reconnects_capture_sources_offline_without_trusting_native_verdicts() {
+    use openwarrant_compiler::preservation::{Archive, Limits};
+    let f = Fixture::with_runtime_count(1);
+    let imported = f.import();
+    assert!(imported.status.success());
+    let archive_path = f.root.join("source-archive.json");
+    let exported = war(
+        &f.root,
+        &[
+            "archive",
+            "export",
+            "IX-WAR-0003",
+            archive_path.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        exported.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&exported.stdout),
+        String::from_utf8_lossy(&exported.stderr)
+    );
+    let archive_bytes = fs::read(&archive_path).unwrap();
+    fs::remove_dir_all(f.root.join("docs")).unwrap();
+    fs::remove_file(f.root.join("receipt.bin")).unwrap();
+    fs::remove_file(f.root.join("openwarrant.toml")).unwrap();
+    let query = |path: &Path| {
+        war(
+            &f.root,
+            &["archive", "runtime-basis", path.to_str().unwrap(), "--json"],
+        )
+    };
+    let result = query(&archive_path);
+    assert!(
+        result.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let inventory = &value(&result)["result"]["provider_capture_inventory"];
+    assert_eq!(inventory["records"].as_array().unwrap().len(), 1);
+    let record = &inventory["records"][0];
+    assert_eq!(record["dispatch_source_reconnected"], true);
+    assert_eq!(record["contract_stage_reconstructed"], true);
+    assert_eq!(record["native_verification"], "unknown");
+    assert_eq!(record["saved_native_observation_is_trusted"], false);
+    assert_eq!(inventory["execution_coverage_established"], false);
+    assert_eq!(inventory["native_authentication_established"], false);
+    assert_eq!(record["current_attempt_eligibility_established"], false);
+    assert_eq!(record["assurance_granted"], false);
+    let inert = f.root.join("inert");
+    let imported = war(
+        &f.root,
+        &[
+            "archive",
+            "import",
+            archive_path.to_str().unwrap(),
+            inert.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    // This fixture has intentionally incomplete whole-project coverage. Querying
+    // retained observations must not relax the import's complete-coverage gate.
+    assert!(!imported.status.success());
+    assert!(
+        format!(
+            "{} {}",
+            String::from_utf8_lossy(&imported.stdout),
+            String::from_utf8_lossy(&imported.stderr)
+        )
+        .contains("required coverage unavailable")
+    );
+    assert!(!inert.exists());
+    let offline = f.root.join("offline");
+    fs::create_dir(&offline).unwrap();
+    let again = offline.join("archive.json");
+    fs::write(&again, &archive_bytes).unwrap();
+    fs::remove_file(&archive_path).unwrap();
+    assert_eq!(
+        value(&query(&again))["result"]["provider_capture_inventory"],
+        *inventory
+    );
+    let original = Archive::decode(&archive_bytes, Limits::default()).unwrap();
+    let mut missing = original.clone();
+    missing.records.retain(|r| {
+        !r.path
+            .ends_with(&format!("/dispatches/{}.json", f.dispatch.dispatch_id))
+    });
+    // Coverage references are transport declarations; remove the vanished path too.
+    for coverage in missing.coverage.values_mut() {
+        if let openwarrant_compiler::preservation::Coverage::Retained { paths } = coverage {
+            paths.retain(|p| !p.ends_with(&format!("/dispatches/{}.json", f.dispatch.dispatch_id)));
+        }
+    }
+    let missing_path = f.root.join("missing.json");
+    fs::write(&missing_path, missing.encode(Limits::default()).unwrap()).unwrap();
+    let out = query(&missing_path);
+    assert!(out.status.success());
+    let report = value(&out);
+    let inventory = &report["result"]["provider_capture_inventory"];
+    assert_eq!(
+        inventory["records"][0]["dispatch_source_reconnected"],
+        false
+    );
+    assert!(
+        inventory["unresolved"]
+            .to_string()
+            .contains("dispatch source not retained")
+    );
+    let changed_capture = |change: fn(&mut Value)| {
+        let mut forged = original.clone();
+        let capture = forged
+            .records
+            .iter_mut()
+            .find(|r| r.path.contains("/runtime-receipts/"))
+            .unwrap();
+        let bytes =
+            openwarrant_core::attestation::base64_decode(capture.base64.as_ref().unwrap()).unwrap();
+        let mut source: Value = serde_json::from_slice(&bytes).unwrap();
+        change(&mut source);
+        let altered = openwarrant_compiler::to_canonical_bytes(&source).unwrap();
+        let hex = openwarrant_compiler::sha256_hex(&altered);
+        let old_path = capture.path.clone();
+        capture.path = format!(
+            "{}/capture-{hex}.json",
+            old_path.rsplit_once('/').unwrap().0
+        );
+        let new_path = capture.path.clone();
+        capture.digest = format!("sha256:{hex}");
+        capture.base64 = Some(openwarrant_core::attestation::base64_encode(&altered));
+        for coverage in forged.coverage.values_mut() {
+            if let openwarrant_compiler::preservation::Coverage::Retained { paths } = coverage {
+                for p in paths {
+                    if *p == old_path {
+                        *p = new_path.clone();
+                    }
+                }
+            }
+        }
+        forged
+    };
+    let forged = changed_capture(|source| {
+        source["observation"]["binding"]["attempt"] = json!("different-attempt")
+    });
+    let forged_path = f.root.join("forged.json");
+    fs::write(&forged_path, forged.encode(Limits::default()).unwrap()).unwrap();
+    let out = query(&forged_path);
+    assert!(!out.status.success());
+    assert!(
+        format!(
+            "{} {}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        )
+        .contains("does not bind the exact dispatch")
+    );
+    let future =
+        changed_capture(|source| source["schema"] = json!("oh.war/runtime-capture/future"));
+    let future_path = f.root.join("future.json");
+    fs::write(&future_path, future.encode(Limits::default()).unwrap()).unwrap();
+    let out = query(&future_path);
+    assert!(out.status.success());
+    let report = value(&out);
+    let inventory = &report["result"]["provider_capture_inventory"];
+    assert!(inventory["records"].as_array().unwrap().is_empty());
+    assert!(
+        inventory["unresolved"]
+            .to_string()
+            .contains("runtime.capture-unsupported-schema")
+    );
+    let saved_pass = changed_capture(|source| {
+        source["native_observation"]["standing"] = json!("matches");
+        source["native_observation_is_trusted_on_read"] = json!(true);
+        source["assurance_granted"] = json!(true);
+    });
+    let saved_path = f.root.join("saved-pass.json");
+    fs::write(&saved_path, saved_pass.encode(Limits::default()).unwrap()).unwrap();
+    let out = query(&saved_path);
+    assert!(out.status.success());
+    let report = value(&out);
+    let record = &report["result"]["provider_capture_inventory"]["records"][0];
+    assert_eq!(record["native_verification"], "unknown");
+    assert_eq!(record["saved_native_observation_is_trusted"], false);
+    assert_eq!(record["assurance_granted"], false);
+}
+
+#[test]
 fn wrong_recorded_binding_stale_current_basis_and_corrupt_capture_do_not_publish() {
     let f = Fixture::new();
     let out = f.import();

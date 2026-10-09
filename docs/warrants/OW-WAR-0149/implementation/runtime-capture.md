@@ -78,3 +78,7 @@ The SDK callback supplies a freshly resolved native verifier and dispatch-specif
 Selection is bounded to 256 captures, 32 MiB aggregate selected source bytes, and the existing per-source limits. No record, event, signature or activation is written by assessment.
 
 OW-WAR-0149 and its broader ticket remain open: actual provider-owned interfaces, authenticated collector/build observations, legacy resolver integration, real positive provider runs and independent/participant acceptance are not complete.
+
+## Offline source inspection
+
+`inspect_retained(bytes, alias, digest)` performs the same bounded envelope and embedded blob identity checks as live `show`, without repository or provider I/O. Neither operation trusts saved native verdicts. `war archive runtime-basis` now exposes these retained captures with separately checked Dispatch/journal and reconstructed contract/stage connections. Missing sources and unsupported versions remain gaps; contradictory binding and altered content refuse. See OW-WAR-0111's [capture reconnection observation](../../OW-WAR-0111/implementation/capture-reconnection-20261009/README.md). Source reconnection does not establish a provider seal, current worker, native execution eligibility or assurance.

@@ -1,0 +1,28 @@
+{
+  "binary_byte_identity": "sha256:d299a6953b3179f385335eb85a3e79f24393b76677c984cb6bde0bb625842929",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "source_base": "99c30f5086e4843f34803122c9f443381f5788ab",
+  "source_uncommitted_candidate": true,
+  "focused_checks": [
+    {
+      "check": "tests",
+      "exit_code": 0
+    },
+    {
+      "check": "sas-pin",
+      "exit_code": 0
+    },
+    {
+      "check": "preservation",
+      "exit_code": 0
+    },
+    {
+      "check": "clippy",
+      "exit_code": 0
+    }
+  ],
+  "public_cli_controls_exit_code": 0,
+  "full_gate": "pending",
+  "independent_verdict": "not_provided",
+  "qualified": false
+}

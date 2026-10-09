@@ -67,7 +67,13 @@ run("runtime", "import", "IX-WAR-0003", "--request", "request.json", ok=False)
 assert retained.read_bytes() == b"conflicting occupant"
 altered = run("runtime", "show", "IX-WAR-0003", first["digest"], ok=False)
 assert altered["diagnostics"][0]["rule"] == "runtime.capture-altered"
+bad_archive = scratch / "altered-capture-archive.json"
+run("archive", "export", "IX-WAR-0003", str(bad_archive))
+refused = run("archive", "runtime-basis", str(bad_archive), ok=False)
+assert "runtime.capture-altered" in refused["diagnostics"][0]["message"]
 retained.write_bytes(original)  # Restore only this planted fixture, never an authored record.
+archive = scratch / "retained-capture-archive.json"
+run("archive", "export", "IX-WAR-0003", str(archive))
 run("dispatch", "IX-WAR-0003", "STAGE-001", "--prototype", "--emit", str(pending))
 next_dispatch = json.loads(pending.read_bytes())
 assert next_dispatch["attempt_id"] != dispatch["attempt_id"]
@@ -81,3 +87,13 @@ shown = run("runtime", "show", "IX-WAR-0003", first["digest"])["result"]
 assert not shown["native_observation_is_trusted"] and not shown["assurance_granted"]
 assert shown["record"]["observation"]["result_digest"] is None
 assert len(list((directory / "runtime-receipts").iterdir())) == 1
+
+root.rename(scratch / "repository-detached")
+assert not root.exists()
+query = run("archive", "runtime-basis", str(archive))["result"]["provider_capture_inventory"]
+assert len(query["records"]) == 1
+assert query["records"][0]["dispatch_source_reconnected"]
+assert query["records"][0]["contract_stage_reconstructed"]
+assert query["records"][0]["native_verification"] == "unknown"
+assert not query["records"][0]["assurance_granted"]
+assert not query["execution_coverage_established"] and not query["native_authentication_established"]

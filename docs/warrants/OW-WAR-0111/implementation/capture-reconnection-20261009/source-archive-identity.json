@@ -1,0 +1,13 @@
+{
+  "source_main": "99c30f5086e4843f34803122c9f443381f5788ab",
+  "archive_byte_identity": "sha256:3bd91b2e32ec159d6c3b8792f62efb2d9fcd3da969764d5ec2e5695f4e3085c1",
+  "archive_digest": "sha256:5e4a68bb9b7928faa3a8b2cfc8c25076fe04c7547e9c8a2c308a8b25d7ac0beb",
+  "capture_digest": "sha256:deecda9b3b2e4718973774fe089275f7dfabd683617cfb02c67d55d306683a77",
+  "source_repository_removed_before_query": true,
+  "whole_project_archive_complete": false,
+  "native_status_only": true,
+  "native_dispatch_binding_established": false,
+  "native_seal_verified": false,
+  "authority_activated": false,
+  "qualified": false
+}

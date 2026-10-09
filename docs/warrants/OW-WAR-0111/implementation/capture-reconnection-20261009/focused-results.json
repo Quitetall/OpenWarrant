@@ -1,0 +1,18 @@
+[
+  {
+    "check": "tests",
+    "exit_code": 0
+  },
+  {
+    "check": "sas-pin",
+    "exit_code": 0
+  },
+  {
+    "check": "preservation",
+    "exit_code": 0
+  },
+  {
+    "check": "clippy",
+    "exit_code": 0
+  }
+]

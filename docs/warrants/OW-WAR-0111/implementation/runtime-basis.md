@@ -92,3 +92,7 @@ audit passed. Audit reported two moderate vulnerabilities below its high
 failure threshold. Local gate excludes CI-only full-history secret scanning.
 Full log and structured observation retained beside this note. Hosted run
 35378231324 remains queued; no hosted pass or assurance is inferred.
+
+## Retained provider captures, 2026-10-09
+
+[Source-detached capture query](capture-reconnection-20261009/README.md) inventories exact retained runtime observations and reconnects archived Dispatch, compile event and contract/stage sources. The same public inspection module handles retained envelope and blob identities in both live and offline reads. The real BLUT status observation remains UNKNOWN for native verification: it predates the collector Dispatch and is not a native sealed execution receipt. The SAS pin reader's double-prefix defect was reproduced against an unchanged actual archive and repaired without editing that archive or its source records. Broader native integration and historical/provider qualification remain unfinished.

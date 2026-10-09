@@ -1,0 +1,44 @@
+{
+  "source_worktree_absent": true,
+  "real_native_job": "20261009-131242-620252367",
+  "native_job_predates_dispatch": true,
+  "native_status_payload_not_dispatch_bound_receipt": true,
+  "command_exit_code": 0,
+  "inventory": {
+    "records": [
+      {
+        "source": "docs/warrants/OW-WAR-0047/runtime-receipts/capture-deecda9b3b2e4718973774fe089275f7dfabd683617cfb02c67d55d306683a77.json",
+        "capture_digest": "sha256:deecda9b3b2e4718973774fe089275f7dfabd683617cfb02c67d55d306683a77",
+        "binding": {
+          "attempt": "01a12111-2b43-72b7-8f1f-ad535a7c1e3d",
+          "contract_digest": "f987d39f897ee8c138d01585cbfc6fa0363e5d91c738733885b07d12bd187578",
+          "dispatch_digest": "e8e0703c4def364044027c60416f99e7495539726f9468e75ca61f256d705356",
+          "stage": "STAGE-003",
+          "warrant": "war://01a021a6-0dfd-7e45-b33b-749b95409cd1"
+        },
+        "provider_declaration": {
+          "identity": "cookbook:cbb33663f278be95aa5805b47b4f33de5ceea50a;engine:2502a4dd6385b077f21dd500851a99a6ec1795c9",
+          "kind": "blut",
+          "version": "blut/native-job-status-observation/v0;complete-receipt-interface-unavailable"
+        },
+        "original_receipt_ref": "blut://jobs/20261009-131242-620252367/status-only",
+        "receipt_bytes_digest": "sha256:9c33660ba0e324696074b334cec6230d338150856292a0c828156a50cdb882f9",
+        "dispatch_source_reconnected": true,
+        "contract_stage_reconstructed": false,
+        "native_verification": "unknown",
+        "saved_native_observation_is_trusted": false,
+        "current_attempt_eligibility_established": false,
+        "assurance_granted": false
+      }
+    ],
+    "unresolved": [
+      "docs/warrants/OW-WAR-0047/runtime-receipts/capture-deecda9b3b2e4718973774fe089275f7dfabd683617cfb02c67d55d306683a77.json: exact captured contract/stage not reconstructed in this source snapshot"
+    ],
+    "execution_coverage_established": false,
+    "native_authentication_established": false
+  },
+  "stage_inventory_gaps": [
+    "docs/warrants/OW-WAR-0047/manifest.toml: contract binding unavailable: retained IR contract differs from reconstructed snapshot"
+  ],
+  "qualified": false
+}

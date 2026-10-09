@@ -307,14 +307,43 @@ pub fn show(repo: &Repository, alias: &str, digest: &str) -> Result<Value, Fault
         .map_err(|e| fault("runtime.capture-path", e, false))?
         .join(format!("runtime-receipts/capture-{hex}.json"));
     let bytes = read(repo, &relative, RECORD_LIMIT)?;
-    if sha256_hex(&bytes) != hex {
+    let record = inspect_retained(&bytes, alias, digest)?;
+    Ok(
+        json!({"reference":relative.as_str(),"digest":format!("sha256:{hex}"),"record":record,"native_observation_is_trusted":false,"assurance_granted":false}),
+    )
+}
+
+/// Inspect retained bytes without repository or provider access. Content and
+/// embedded blob identities are checked; declarations and saved native verdicts
+/// are not authenticated, current-attempt eligibility or assurance.
+pub fn inspect_retained(bytes: &[u8], alias: &str, digest: &str) -> Result<Value, Fault> {
+    let hex = digest.strip_prefix("sha256:").unwrap_or(digest);
+    if bytes.len() > RECORD_LIMIT {
+        return Err(fault(
+            "runtime.capture-limit",
+            "capture exceeds retained byte limit",
+            false,
+        ));
+    }
+    if hex.len() != 64
+        || !hex
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    {
+        return Err(fault(
+            "runtime.capture-digest",
+            "lowercase SHA-256 content identity required",
+            false,
+        ));
+    }
+    if sha256_hex(bytes) != hex {
         return Err(fault(
             "runtime.capture-altered",
             "retained bytes do not match the referenced content identity",
             false,
         ));
     }
-    let record = decode(&bytes)?;
+    let record = decode(bytes)?;
     if record["schema"] != SCHEMA {
         return Err(fault(
             "runtime.capture-unsupported-schema",
@@ -344,9 +373,7 @@ pub fn show(repo: &Repository, alias: &str, digest: &str) -> Result<Value, Fault
             ));
         }
     }
-    Ok(
-        json!({"reference":relative.as_str(),"digest":format!("sha256:{hex}"),"record":record,"native_observation_is_trusted":false,"assurance_granted":false}),
-    )
+    Ok(record)
 }
 
 pub fn run(repo: &Repository, command: Command) -> (Report, Value) {

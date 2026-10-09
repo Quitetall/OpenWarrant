@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Expose checked retained capture references and exact dispatch/journal/contract reconnection in offline runtime archive queries; preserve unknown native trust and prove source-detached and refusal controls (i-870f) — done by codex, 2026-10-09: Offline retained-capture query and shared byte inspector implemented. Actual BLUT status observation reconnects after source-worktree deletion; native eligibility stays UNKNOWN. Ten capture tests, eighteen preservation tests, SAS-pin regression, all-target CLI Clippy and public CLI positive/refusal controls pass. Full hosted integration gate remains a separate pending merge gate; no Warrant closure or assurance is claimed.
