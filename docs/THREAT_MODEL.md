@@ -288,3 +288,22 @@ checks the captured prestate; retention unavailability aborts before any active
 replacement. Existing archives are not rewritten. The public CLI history
 regression is red on the prior binary; current runtime verification is pending.
 The ordinary atomic writer's remaining same-uid race limits still apply.
+
+
+A fourth disposable probe inserted an invented prior verifier observation and
+recomputed the real packet identity. The baseline executable accepted it.
+The prior-observation check now requires each displayed payload to match an
+active or retained historical record for the same Warrant. Retained history
+must match its raw-byte SHA-256 filename. Duplicate, malformed and extra-field
+displays are refused. Descriptor-safe reads refuse links and unavailable files;
+unsupported stored schemas remain UNKNOWN. Empty prior history remains valid.
+
+`rehashed_packet_cannot_invent_a_prior_verdict` and the source-closure plant
+exercise refusal without verdict/journal writes. The replacement regression
+keeps a real legacy observation in the packet, replaces the active record with
+a new v2 observation, and checks that replay still works through retained
+history. Renaming that history under an incorrect hash then refuses without
+writes. These are synthetic source-binding controls. They do not authenticate
+verifiers, prove historical chronology against a same-account attacker, or
+establish complete transitive context, custody, race protection or production
+qualification. Full extension gates must be observed separately.
