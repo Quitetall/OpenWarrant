@@ -33,6 +33,19 @@ root = scratch / "unchanged"
 shutil.copytree(fixture, root)
 refused(root, "dispatch.required-holder-unestablished", "unknown")
 
+# The current signed bytes are restored after committing a different source.
+# This is an observed contradiction, not an unavailable observation.
+root = scratch / "mismatch"
+shutil.copytree(fixture, root)
+intent = root / "docs/warrants/IX-WAR-0003/atoms/10-intent.md"
+original = intent.read_bytes()
+intent.write_bytes(original + b"\nNot the signed source\n")
+for args in [("init",), ("add", "."), ("commit", "-m", "fixture")]:
+    result = subprocess.run(["git", "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", *args], cwd=root, capture_output=True, timeout=15)
+    assert result.returncode == 0, result.stderr.decode()
+intent.write_bytes(original)
+refused(root, "dispatch.required-holder-mismatch", "error")
+
 root = scratch / "changed"
 shutil.copytree(fixture, root)
 graph = root / "docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml"

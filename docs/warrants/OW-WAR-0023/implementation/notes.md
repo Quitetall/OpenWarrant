@@ -62,3 +62,10 @@ forged metadata even after local digest recomputation. See
 This is a disclosure primitive. Provider policy, semantic closure, runtime/harness
 enforcement, full-package clearance and independent/human qualification remain
 open. No signed records, older captures or assurance dispositions were rewritten.
+
+## Dispatch admission — 2026-10-09
+
+[Implementation and observed controls](admission-20261009/README.md): current
+signed subject comparison, exact local Git source holders, named missing/mismatch
+refusals before outputs, and explicit prototype fallback. No signature or assurance
+is awarded. Full hosted gate and provider/native qualification remain open.
