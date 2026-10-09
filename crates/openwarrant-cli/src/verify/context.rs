@@ -168,9 +168,17 @@ pub(crate) fn capture(
         .map_err(|error| unavailable(format!("cannot read ADR {path}: {error}")))?;
         let text = std::str::from_utf8(&bytes)
             .map_err(|error| unavailable(format!("cannot parse ADR {path}: {error}")))?;
-        let metadata = openwarrant_core::frontmatter::parse(text).map_err(|error| {
-            unavailable(format!("ADR applicability unavailable at {path}: {error}"))
-        })?;
+        let metadata = match openwarrant_core::frontmatter::parse(text) {
+            Ok(metadata) => metadata,
+            // Plain Markdown decisions can be explicit contract atoms. They
+            // are carried there, without inventing a native governs relation.
+            Err(openwarrant_core::frontmatter::FrontmatterError::MissingOpenFence) => continue,
+            Err(error) => {
+                return Err(unavailable(format!(
+                    "ADR applicability unavailable at {path}: {error}"
+                )));
+            }
+        };
         let governs = match metadata.get("governs") {
             None => &[][..],
             Some(value) => value.as_list().ok_or_else(|| {

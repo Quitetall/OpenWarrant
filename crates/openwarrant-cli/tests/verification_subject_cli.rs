@@ -8,6 +8,39 @@ use std::{
 
 struct Fixture(PathBuf);
 
+#[test]
+fn explicit_plain_markdown_adr_remains_carried_as_a_contract_atom() {
+    let fixture = Fixture::new();
+    let directory = fixture.0.join("docs/adr/atoms");
+    fs::create_dir_all(&directory).unwrap();
+    let source = "# Bound scratch decision\n\nThe scratch contract uses this decision.\n";
+    fs::write(directory.join("bound.md"), source).unwrap();
+    let manifest = fixture.0.join("docs/warrants/IX-WAR-0003/manifest.toml");
+    let mut text = fs::read_to_string(&manifest).unwrap();
+    text.push_str("\n[[atoms]]\nordinal = 35\nrole = \"adr\"\npath = \"../../adr/atoms/bound.md\"\nrequired = true\n");
+    fs::write(manifest, text).unwrap();
+    fixture.bound_response();
+    let response: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    let packet: serde_json::Value = serde_json::from_slice(
+        &fs::read(
+            fixture
+                .0
+                .join(response["reviewed_packets"][0]["path"].as_str().unwrap()),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert!(
+        packet["atoms"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|atom| atom["text"] == source)
+    );
+}
+
 fn governing_adr(fixture: &Fixture, name: &str, status: &str, target: &str) -> String {
     let uuid = format!(
         "01a0f502-4941-70a1-a446-e1eb77dff19{}",
