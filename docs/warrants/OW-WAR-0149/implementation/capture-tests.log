@@ -1,0 +1,14 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/openwarrant-runtime-receipt-capture/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 21.23s
+     Running tests/runtime_capture.rs (/mnt/4tb/OpenWarrant/target/debug/deps/runtime_capture-e44c971e9081565f)
+
+running 6 tests
+test unsupported_capture_version_remains_unknown_without_publication ... ok
+test sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write ... ok
+test missing_compile_event_wrong_provider_and_duplicate_json_members_do_not_write ... ok
+test unverified_capture_is_replayable_and_survives_loss_of_original_inputs ... ok
+test wrong_recorded_binding_stale_current_basis_and_corrupt_capture_do_not_publish ... ok
+test traversal_symlink_and_oversized_inputs_leave_retained_bytes_intact ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.70s
+

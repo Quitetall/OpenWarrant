@@ -1,0 +1,58 @@
+# Dispatch-bound runtime capture
+
+Candidate reference SDK and CLI implementation, 2026-10-09. Performer-reported work only; no native provider qualification, independent verdict, participant acceptance or human signature.
+
+## Use
+
+A collector supplies one repository-relative JSON request. The agent or operator runs:
+
+```sh
+war runtime import OW-WAR-0149 --request capture-request.json --json
+war runtime show OW-WAR-0149 sha256:<returned-content-digest> --json
+```
+
+The SDK entry points are `openwarrant_cli::runtime_capture::import` and `show`. This filesystem implementation belongs to the reference CLI library; the core receipt matcher remains pure. The command emits the usual report envelope. Successful retention is separate from native eligibility, which is explicitly UNKNOWN when no native verification adapter is available. `show` inspects retained data and never trusts saved native verdicts.
+
+The command reads `dispatches/<dispatch_id>.json` from the selected Warrant and requires exactly one matching `dispatch.compiled` journal event. It obtains the Warrant, contract, stage and attempt from those source records, checks the existing canonical Dispatch digest, and checks the current captured Compilation Basis. A caller's request cannot substitute those fields. These local records establish source binding, not authentic execution or authority.
+
+## Request
+
+```json
+{
+  "schema": "oh.war/runtime-capture-request/v1-draft.1",
+  "dispatch_id": "<retained-dispatch-id>",
+  "receipt": "provider-output/receipt.bin",
+  "provider": {
+    "kind": "katana",
+    "identity": "<provider-build-identity>",
+    "version": "<provider-owned-interface-version>"
+  },
+  "metadata": {
+    "observation_id": "<collector-observation-id>",
+    "observed_at": "<RFC3339-collector-time>",
+    "original_receipt_ref": "<exact-original-native-reference>",
+    "binary_identity": null,
+    "source_identity": null,
+    "transport": "<actual-command-or-transport>",
+    "argv": [],
+    "exit_code": null,
+    "status": "<observed-provider-status>"
+  }
+}
+```
+
+Metadata preserves the collector's declarations. Missing build identity and exit observations remain null; neither means zero, success or an authenticated identity. Native status text is retained, not interpreted as completed execution. The configured performer identifies the collector as an unverified agent; this is not an authenticated human identity.
+
+## Retention and trust
+
+A single content-addressed JSON envelope holds exact receipt, Dispatch and matched compile-event bytes, their local byte identities, collector declarations, a source-binding observation and the separately labeled native observation. Its `oh.war/runtime-capture/v1-draft.1` schema is a candidate local transport/storage envelope, not a provider-native wire format or an assurance record. Pre-result source observations use a separate draft schema: the existing RC.2 assurance Record requires a result digest, and capture must not invent one. The embedded import-source hash identifies `runtime_capture.rs`, not the complete binary or source closure.
+
+The provider retains ownership of native seals and verification. A trusted SDK caller may supply a `ReceiptVerifier` and dispatch-resolved capability, confinement, registry and spend facts; wrong native bindings refuse before publication. The CLI currently has no configured native adapter and retains bound source data as unverified. Unknown cost remains unknown. Stored native observations must be verified again against the current recorded attempt and policy before eligibility; file checksums and saved PASS-like values do not provide that trust.
+
+Receipt bytes are limited to 4 MiB, request metadata to 16 KiB, retained envelopes to 16 MiB, and source JSON uses duplicate-member/node/depth controls. Reads refuse traversal and link following; nonregular sources cannot block reads. Publication reuses descriptor-relative, no-overwrite, complete-byte retention. Exact replay preserves bytes and the name, including after unrelated journal appends. Changed collector metadata is a different observation. Source loss does not delete the retained bytes; altered retained objects and conflicting occupants are refused. These controls do not isolate a malicious same-UID writer or authenticate declarations.
+
+## Evidence and remaining work
+
+Public CLI and SDK tests cover actual local source capture and synthetic provider facts. No native provider was executed or qualified by these fixtures. `conformance/fixtures/runtime-capture/control.py` independently drives the public CLI for replay, stale basis, collision, alteration and source-loss controls. The code uses existing local SHA-256 byte identities and existing canonical Dispatch hashing; it defines no provider seal or hash domain.
+
+OW-WAR-0149 and its broader ticket remain open: actual provider-owned interfaces, authenticated collector/build observations, stored current-attempt selection, legacy resolver integration, real positive provider runs and independent/participant acceptance are not complete.

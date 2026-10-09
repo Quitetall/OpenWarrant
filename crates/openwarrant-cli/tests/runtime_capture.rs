@@ -1,0 +1,398 @@
+// SPDX-License-Identifier: Apache-2.0
+//! Actual local CLI captures; provider receipt fixtures and adapters are synthetic.
+use openwarrant_cli::runtime_capture::{self as capture, Request, Verification};
+use openwarrant_core::{
+    document::{records::raw_digest, runtime::*},
+    execution::StageDispatch,
+    seam::KatanaReceipt,
+};
+use serde_json::{Value, json};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::{Command, Output},
+};
+
+struct Fixture {
+    root: PathBuf,
+    dispatch: StageDispatch,
+}
+impl Drop for Fixture {
+    fn drop(&mut self) {
+        fs::remove_dir_all(&self.root).unwrap();
+    }
+}
+fn war(root: &Path, args: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(args)
+        .arg("--root")
+        .arg(root)
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .output()
+        .unwrap()
+}
+fn value(out: &Output) -> Value {
+    serde_json::from_slice(&out.stdout).unwrap_or_else(|e| {
+        panic!(
+            "{e}: {} {}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        )
+    })
+}
+impl Fixture {
+    fn new() -> Self {
+        fn copy(a: &Path, b: &Path) {
+            fs::create_dir_all(b).unwrap();
+            for e in fs::read_dir(a).unwrap() {
+                let e = e.unwrap();
+                if e.file_type().unwrap().is_dir() {
+                    copy(&e.path(), &b.join(e.file_name()));
+                } else {
+                    fs::copy(e.path(), b.join(e.file_name())).unwrap();
+                }
+            }
+        }
+        let root = std::env::temp_dir().join(format!(
+            "ow-capture-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        copy(
+            &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../conformance/fixtures/inbox/repository"),
+            &root,
+        );
+        let graph = root.join("docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml");
+        let text = fs::read_to_string(&graph).unwrap().replace(
+            "executor_kind: \"agent\"",
+            "executor_kind: \"katana\"\n    executor_ref: \"synthetic\"",
+        );
+        fs::write(graph, text).unwrap();
+        let target = root.join("dispatch.pending.json");
+        let out = war(
+            &root,
+            &[
+                "dispatch",
+                "IX-WAR-0003",
+                "STAGE-001",
+                "--prototype",
+                "--emit",
+                target.to_str().unwrap(),
+            ],
+        );
+        assert!(
+            out.status.success(),
+            "{} {}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let dispatch: StageDispatch = serde_json::from_slice(&fs::read(&target).unwrap()).unwrap();
+        fs::create_dir_all(root.join("docs/warrants/IX-WAR-0003/dispatches")).unwrap();
+        fs::rename(
+            target,
+            root.join(format!(
+                "docs/warrants/IX-WAR-0003/dispatches/{}.json",
+                dispatch.dispatch_id
+            )),
+        )
+        .unwrap();
+        fs::write(
+            root.join("receipt.bin"),
+            b"synthetic native receipt bytes\0\xff",
+        )
+        .unwrap();
+        let f = Self { root, dispatch };
+        f.request();
+        f
+    }
+    fn request(&self) -> Value {
+        let req = json!({"schema":capture::REQUEST_SCHEMA,"dispatch_id":self.dispatch.dispatch_id,"receipt":"receipt.bin",
+          "provider":{"kind":"katana","identity":"synthetic-build","version":"synthetic-interface/v1"},
+          "metadata":{"observation_id":"synthetic-capture-1","observed_at":"2026-10-09T12:00:00Z","original_receipt_ref":"provider://synthetic/session/receipt","binary_identity":"synthetic-binary-declaration","source_identity":"synthetic-source-declaration","transport":"fixture-file","argv":[],"exit_code":0,"status":"synthetic-completed-status"}});
+        fs::write(
+            self.root.join("capture-request.json"),
+            serde_json::to_vec(&req).unwrap(),
+        )
+        .unwrap();
+        req
+    }
+    fn import(&self) -> Output {
+        war(
+            &self.root,
+            &[
+                "runtime",
+                "import",
+                "IX-WAR-0003",
+                "--request",
+                "capture-request.json",
+                "--json",
+            ],
+        )
+    }
+    fn storage(&self) -> PathBuf {
+        self.root.join("docs/warrants/IX-WAR-0003/runtime-receipts")
+    }
+}
+
+#[test]
+fn unverified_capture_is_replayable_and_survives_loss_of_original_inputs() {
+    let f = Fixture::new();
+    let out = f.import();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let response = value(&out);
+    let digest = response["result"]["digest"].as_str().unwrap();
+    assert_eq!(
+        response["result"]["native_observation"]["standing"],
+        "unknown"
+    );
+    assert_eq!(response["result"]["assurance_granted"], false);
+    let path = f
+        .root
+        .join(response["result"]["reference"].as_str().unwrap());
+    let bytes = fs::read(&path).unwrap();
+    // Later unrelated journal events must not change exact replay identity.
+    let journal = f.root.join("docs/warrants/IX-WAR-0003/journal.jsonl");
+    let mut text = fs::read_to_string(&journal).unwrap();
+    text.push_str(" \t\n");
+    text.push_str(&serde_json::to_string(&json!({"v":1,"id":"synthetic-note-event","warrant_uuid":f.dispatch.warrant_ref.strip_prefix("war://").unwrap(),"type":"fixture.note","class":"draft_history","actor_ref":"agent://fixture","occurred_at":"2026-10-09T12:00:00Z","payload":"{}","idempotency_key":"fixture-note"})).unwrap());
+    text.push('\n');
+    fs::write(journal, text).unwrap();
+    assert!(f.import().status.success());
+    assert_eq!(fs::read(&path).unwrap(), bytes);
+    assert_eq!(fs::read_dir(f.storage()).unwrap().count(), 1);
+    fs::remove_file(f.root.join("receipt.bin")).unwrap();
+    fs::remove_dir_all(f.root.join("docs/warrants/IX-WAR-0003/dispatches")).unwrap();
+    let out = war(
+        &f.root,
+        &["runtime", "show", "IX-WAR-0003", digest, "--json"],
+    );
+    assert!(out.status.success());
+    let result = value(&out);
+    assert_eq!(result["result"]["native_observation_is_trusted"], false);
+    let raw = result["result"]["record"]["receipt"]["base64"]
+        .as_str()
+        .unwrap();
+    assert_eq!(
+        openwarrant_core::attestation::base64_decode(raw).unwrap(),
+        b"synthetic native receipt bytes\0\xff"
+    );
+    assert_eq!(
+        result["result"]["record"]["observation"]["provenance"]["authenticity"],
+        "unverified"
+    );
+}
+
+#[test]
+fn wrong_recorded_binding_stale_current_basis_and_corrupt_capture_do_not_publish() {
+    let f = Fixture::new();
+    let out = f.import();
+    assert!(out.status.success());
+    let response = value(&out);
+    let path = f
+        .root
+        .join(response["result"]["reference"].as_str().unwrap());
+    let prior = fs::read(&path).unwrap();
+    let dispatch_path = f.root.join(format!(
+        "docs/warrants/IX-WAR-0003/dispatches/{}.json",
+        f.dispatch.dispatch_id
+    ));
+    let original = fs::read(&dispatch_path).unwrap();
+    let mut altered = f.dispatch.clone();
+    altered.attempt_id = "wrong-attempt".into();
+    fs::write(&dispatch_path, serde_json::to_vec(&altered).unwrap()).unwrap();
+    let out = f.import();
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("runtime.capture-recorded-binding"));
+    assert_eq!(fs::read(&path).unwrap(), prior);
+    fs::write(dispatch_path, original).unwrap();
+    let intent = f.root.join("docs/warrants/IX-WAR-0003/atoms/10-intent.md");
+    fs::write(intent, b"changed current source").unwrap();
+    let out = f.import();
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("runtime-basis.dispatch-mismatch"));
+    assert_eq!(fs::read_dir(f.storage()).unwrap().count(), 1);
+    fs::write(&path, b"altered retained capture").unwrap();
+    let out = war(
+        &f.root,
+        &[
+            "runtime",
+            "show",
+            "IX-WAR-0003",
+            response["result"]["digest"].as_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("runtime.capture-altered"));
+}
+
+#[test]
+fn missing_compile_event_wrong_provider_and_duplicate_json_members_do_not_write() {
+    let f = Fixture::new();
+    let journal = f.root.join("docs/warrants/IX-WAR-0003/journal.jsonl");
+    let original = fs::read(&journal).unwrap();
+    fs::write(&journal, b"\n").unwrap();
+    let out = f.import();
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("runtime.capture-recorded-dispatch"));
+    assert!(!f.storage().exists());
+    fs::write(journal, original).unwrap();
+    let mut req = f.request();
+    req["provider"]["kind"] = "blut".into();
+    fs::write(
+        f.root.join("capture-request.json"),
+        serde_json::to_vec(&req).unwrap(),
+    )
+    .unwrap();
+    assert!(!f.import().status.success());
+    assert!(!f.storage().exists());
+    let original = serde_json::to_string(&f.request()).unwrap();
+    fs::write(
+        f.root.join("capture-request.json"),
+        original.replacen("{", "{\"dispatch_id\":\"other\",", 1),
+    )
+    .unwrap();
+    let out = f.import();
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("runtime.capture-syntax"));
+    assert!(!f.storage().exists());
+}
+
+#[test]
+fn traversal_symlink_and_oversized_inputs_leave_retained_bytes_intact() {
+    let f = Fixture::new();
+    let out = f.import();
+    assert!(out.status.success());
+    let result = value(&out);
+    let path = f.root.join(result["result"]["reference"].as_str().unwrap());
+    let prior = fs::read(&path).unwrap();
+    let mut req = f.request();
+    req["receipt"] = "../receipt.bin".into();
+    fs::write(
+        f.root.join("capture-request.json"),
+        serde_json::to_vec(&req).unwrap(),
+    )
+    .unwrap();
+    assert!(!f.import().status.success());
+    #[cfg(unix)]
+    {
+        fs::remove_file(f.root.join("receipt.bin")).unwrap();
+        std::os::unix::fs::symlink(&path, f.root.join("receipt.bin")).unwrap();
+        f.request();
+        assert!(!f.import().status.success());
+        fs::remove_file(f.root.join("receipt.bin")).unwrap();
+    }
+    fs::write(f.root.join("receipt.bin"), vec![b'x'; 4 * 1024 * 1024 + 1]).unwrap();
+    f.request();
+    assert!(!f.import().status.success());
+    assert_eq!(fs::read(&path).unwrap(), prior);
+    assert_eq!(fs::read_dir(f.storage()).unwrap().count(), 1);
+}
+
+#[test]
+fn unsupported_capture_version_remains_unknown_without_publication() {
+    let f = Fixture::new();
+    fs::write(
+        f.root.join("capture-request.json"),
+        br#"{"schema":"oh.war/runtime-capture-request/future","future_field":true}"#,
+    )
+    .unwrap();
+    let out = f.import();
+    assert!(!out.status.success());
+    let result = value(&out);
+    assert_eq!(result["diagnostics"][0]["severity"], "unknown");
+    assert_eq!(
+        result["diagnostics"][0]["rule"],
+        "runtime.capture-unsupported-schema"
+    );
+    assert!(!f.storage().exists());
+}
+
+struct SyntheticVerifier {
+    interface: ProviderInterface,
+    facts: VerifiedReceipt,
+}
+impl ReceiptVerifier for SyntheticVerifier {
+    fn interface(&self) -> &ProviderInterface {
+        &self.interface
+    }
+    fn verify(&self, _: &[u8]) -> Result<VerifiedReceipt, ProviderFailure> {
+        Ok(self.facts.clone())
+    }
+}
+#[test]
+fn sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write() {
+    let f = Fixture::new();
+    let repo = openwarrant_cli::repo::Repository::open(
+        camino::Utf8PathBuf::from_path_buf(f.root.clone()).unwrap(),
+    )
+    .unwrap();
+    let request: Request = serde_json::from_value(f.request()).unwrap();
+    let raw = fs::read(f.root.join("receipt.bin")).unwrap();
+    let interface = ProviderInterface {
+        kind: ProviderKind::Katana,
+        identity: "synthetic-build".into(),
+        version: "synthetic-interface/v1".into(),
+    };
+    let facts = VerifiedReceipt {
+        interface: interface.clone(),
+        raw_digest: raw_digest(&raw),
+        binding: RuntimeBinding::from_dispatch(&f.dispatch),
+        receipt: NativeReceipt::Katana(KatanaReceipt {
+            session_id: "synthetic-session".into(),
+            dispatch_digest: f.dispatch.dispatch_digest.clone(),
+            prompt_ir_digest: "synthetic-prompt".into(),
+            provider_model_identity: "synthetic-model".into(),
+            runtime_event_log_head: "synthetic-event-log".into(),
+            confinement: "synthetic-sandbox".into(),
+            usage: "unmetered".into(),
+            terminal_runtime_status: "completed".into(),
+            receipt_digest: "synthetic-provider-seal".into(),
+            ..Default::default()
+        }),
+        outcome: RuntimeOutcome::Completed,
+        execution: Observation::Established,
+        confinement: Observation::Established,
+        metered_cost: Observation::Unknown,
+        spend_cap: Observation::Unknown,
+        registry_digest: None,
+    };
+    let mut v = SyntheticVerifier { interface, facts };
+    v.facts.binding.attempt_id = "wrong".into();
+    fn verify(verifier: &SyntheticVerifier) -> Verification<'_> {
+        Verification {
+            verifier,
+            registry_digest: None,
+            authorized_capabilities: Some(&[]),
+            confinement_required: true,
+            hard_spend_cap_required: false,
+        }
+    }
+    assert_eq!(
+        capture::import(&repo, "IX-WAR-0003", &request, Some(verify(&v)))
+            .unwrap_err()
+            .code,
+        "runtime.binding-mismatch"
+    );
+    assert!(!f.storage().exists());
+    v.facts.binding.attempt_id = f.dispatch.attempt_id.clone();
+    let response = capture::import(&repo, "IX-WAR-0003", &request, Some(verify(&v))).unwrap();
+    assert_eq!(response["native_observation"]["standing"], "matches");
+    assert_eq!(
+        response["native_observation"]["cost_observation"],
+        "unknown"
+    );
+    assert_eq!(
+        response["native_observation"]["provider_receipt_digest"],
+        "synthetic-provider-seal"
+    );
+    assert_eq!(response["assurance_granted"], false);
+}
