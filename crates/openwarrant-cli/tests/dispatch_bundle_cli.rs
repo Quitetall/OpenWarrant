@@ -52,6 +52,7 @@ fn portable_context_survives_removal_of_source_repository_and_denies_unlisted_ca
             "dispatch",
             "IX-WAR-0003",
             "STAGE-001",
+            "--prototype",
             "--emit",
             dispatch.to_str().unwrap(),
             "--emit-context",
@@ -140,6 +141,7 @@ fn compiled(root: &Path) -> (PathBuf, PathBuf) {
             "dispatch",
             "IX-WAR-0003",
             "STAGE-001",
+            "--prototype",
             "--emit",
             d.to_str().unwrap(),
             "--emit-context",
@@ -790,6 +792,7 @@ fn unfetched_labels_stay_unknown_and_malformed_selected_metadata_refuses_before_
             "dispatch",
             "IX-WAR-0003",
             "STAGE-001",
+            "--prototype",
             "--emit",
             root.join("refused.json").to_str().unwrap(),
             "--json",
@@ -798,5 +801,107 @@ fn unfetched_labels_stay_unknown_and_malformed_selected_metadata_refuses_before_
     assert!(!out.status.success());
     assert!(String::from_utf8_lossy(&out.stdout).contains("dispatch.classification-source"));
     assert!(!root.join("refused.json").exists());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn changed_contract_refuses_old_authorization_without_writing_then_allows_prototype() {
+    let root = fixture("stale-authorization");
+    let repo = root.join("repo");
+    let warrant = repo.join("docs/warrants/IX-WAR-0003");
+    let journal = warrant.join("journal.jsonl");
+    let before = fs::read(&journal).ok();
+    let authorization = fs::read(warrant.join("authorization.toml")).unwrap();
+    let d = root.join("dispatch.json");
+    let c = root.join("context.json");
+    let args = [
+        "dispatch",
+        "IX-WAR-0003",
+        "STAGE-001",
+        "--emit",
+        d.to_str().unwrap(),
+        "--emit-context",
+        c.to_str().unwrap(),
+        "--json",
+    ];
+    let out = war(&repo, &args);
+    assert!(!out.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert!(
+        report["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v["rule"] == "dispatch.stale-authorization")
+    );
+    assert!(!d.exists() && !c.exists());
+    assert_eq!(fs::read(&journal).ok(), before);
+    assert_eq!(
+        fs::read(warrant.join("authorization.toml")).unwrap(),
+        authorization
+    );
+    let mut prototype = args.to_vec();
+    prototype.push("--prototype");
+    let out = war(&repo, &prototype);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    assert!(String::from_utf8_lossy(&out.stdout).contains("dispatch.prototype"));
+    assert!(d.exists() && c.exists());
+    let context: serde_json::Value = serde_json::from_slice(&fs::read(&c).unwrap()).unwrap();
+    assert!(
+        context["included"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|i| i["holder"]["kind"] == "git")
+            .all(|i| i["holder"]["commit_sha"] == "")
+    );
+    assert_eq!(
+        fs::read(warrant.join("authorization.toml")).unwrap(),
+        authorization
+    );
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn current_signed_contract_without_immutable_holder_is_unknown_without_writes() {
+    let root = fixture("missing-holder");
+    let repo = root.join("repo");
+    let warrant = repo.join("docs/warrants/IX-WAR-0003");
+    // Restore the original signed fixture, without changing its authorization.
+    fs::copy(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../conformance/fixtures/inbox/repository/docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml"), warrant.join("atoms/45-milestones.yaml")).unwrap();
+    let journal = warrant.join("journal.jsonl");
+    let before = fs::read(&journal).ok();
+    let d = root.join("dispatch.json");
+    let c = root.join("context.json");
+    let out = war(
+        &repo,
+        &[
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--emit",
+            d.to_str().unwrap(),
+            "--emit-context",
+            c.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(!out.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(report["counts"]["unknown"], 1);
+    assert_eq!(report["counts"]["error"], 0);
+    assert!(
+        report["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v["rule"] == "dispatch.required-holder-unestablished")
+    );
+    assert!(!d.exists() && !c.exists());
+    assert_eq!(fs::read(&journal).ok(), before);
     fs::remove_dir_all(root).unwrap();
 }
