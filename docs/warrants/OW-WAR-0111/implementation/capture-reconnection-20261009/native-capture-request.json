@@ -1,0 +1,25 @@
+{
+  "schema": "oh.war/runtime-capture-request/v1-draft.1",
+  "dispatch_id": "01a12111-2b43-72b7-8f1f-ad54c3c689a2",
+  "receipt": "native-jobs-observation.json",
+  "provider": {
+    "kind": "blut",
+    "identity": "cookbook:cbb33663f278be95aa5805b47b4f33de5ceea50a;engine:2502a4dd6385b077f21dd500851a99a6ec1795c9",
+    "version": "blut/native-job-status-observation/v0;complete-receipt-interface-unavailable"
+  },
+  "metadata": {
+    "observation_id": "native-job-status-20261009-131242-620252367",
+    "observed_at": "2026-10-09T14:29:31.601145+00:00",
+    "original_receipt_ref": "blut://jobs/20261009-131242-620252367/status-only",
+    "binary_identity": "sha256:6d7fdb1321f33ce9f387f8ec55b944a5c90fbe7bb76301945d30f6b399b1273c",
+    "source_identity": "cookbook:cbb33663;engine:2502a4dd;explicit-build-override",
+    "transport": "actual local jobs --json; historical job predates this dispatch; no native dispatch binding",
+    "argv": [
+      "/mnt/4tb/OpenWarrant/target/debug/blut-standard",
+      "jobs",
+      "--json"
+    ],
+    "exit_code": 0,
+    "status": "done (status observation only; dispatch-bound completion UNKNOWN)"
+  }
+}

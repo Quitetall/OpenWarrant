@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Source-derived provider query basis, not a trust or execution verdict.
+mod captures;
 mod stage_contract;
 mod stages;
 
@@ -32,6 +33,13 @@ pub(super) fn run(input: &Path, limits: Limits) -> Result<(String, serde_json::V
     let ir: openwarrant_compiler::WarIr =
         serde_json::from_slice(&files[IR_PATH]).map_err(|e| Error(e.to_string()))?;
     let stage_inventory = stages::inventory(&files, directory)?;
+    let capture_inventory = captures::inventory(
+        &files,
+        directory,
+        &ir.identity.local_alias,
+        &subject,
+        &stage_inventory,
+    )?;
     let current_digest = ir.contract_digest().map_err(|e| Error(e.to_string()))?;
     let source = format!("{directory}/authorization.toml");
     let mut retained = BTreeSet::new();
@@ -75,6 +83,7 @@ pub(super) fn run(input: &Path, limits: Limits) -> Result<(String, serde_json::V
             "current_contract":{"revision":ir.contract_revision,"digest":current_digest},
             "retained_contracts":retained,
             "stage_inventory":stage_inventory,
+            "provider_capture_inventory":capture_inventory,
             "contract_history_coverage":archive.coverage.get("contract revisions"),
             "authority_activated":false,
             "qualified":false
