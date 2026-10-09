@@ -952,6 +952,20 @@ pub fn check(corpus: &crate::corpus::Corpus, report: &mut Report) {
     }
 }
 
+/// A `war plan types add` or `war plan type` answer at a terminal: what was
+/// done on stdout, a refusal or a warning on stderr, by rule.
+pub fn print_human(report: &Report) {
+    use crate::diagnostic::Severity;
+    for d in &report.diagnostics {
+        match d.severity {
+            Severity::Error => eprintln!("refused ({}): {}", d.rule, d.message),
+            Severity::Warn => eprintln!("warning ({}): {}", d.rule, d.message),
+            Severity::Unknown => eprintln!("UNKNOWN ({}): {}", d.rule, d.message),
+            _ => println!("{}", d.message),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1010,20 +1024,6 @@ mod tests {
             let name = f.rsplit('/').next().unwrap();
             let on_disk = std::fs::read_to_string(root.join("profiles").join(name)).unwrap();
             assert_eq!(on_disk, b, "{name}");
-        }
-    }
-}
-
-/// A `war plan types add` or `war plan type` answer at a terminal: what was
-/// done on stdout, a refusal or a warning on stderr, by rule.
-pub fn print_human(report: &Report) {
-    use crate::diagnostic::Severity;
-    for d in &report.diagnostics {
-        match d.severity {
-            Severity::Error => eprintln!("refused ({}): {}", d.rule, d.message),
-            Severity::Warn => eprintln!("warning ({}): {}", d.rule, d.message),
-            Severity::Unknown => eprintln!("UNKNOWN ({}): {}", d.rule, d.message),
-            _ => println!("{}", d.message),
         }
     }
 }
