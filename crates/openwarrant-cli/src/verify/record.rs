@@ -78,3 +78,86 @@ pub(crate) fn retain_previous(
         }
     }
 }
+
+/// Prior observations are optional background, never current qualification.
+/// Check displayed claims against retained source records rather than today's
+/// active list alone: ingesting a newer review must not stale its own packet.
+/// This checks recorded bytes, not verifier authenticity or independent custody.
+pub(crate) fn prior_matches(
+    repo: &crate::repo::Repository,
+    dir: &camino::Utf8Path,
+    shown: &serde_json::Value,
+) -> Result<bool, crate::repo::RepoError> {
+    use crate::repo::RepoError;
+    let unavailable = |rule, message: &str| RepoError::ObservationUnavailable {
+        rule,
+        message: message.into(),
+    };
+    let Some(rows) = shown.as_array() else {
+        return Ok(false);
+    };
+    let mut claims = Vec::new();
+    for row in rows {
+        let Ok(claim) = serde_json::from_value::<Verification>(row.clone()) else {
+            return Ok(false);
+        };
+        if serde_json::to_value(&claim).map_err(|e| RepoError::Message(e.to_string()))? != *row
+            || claims.contains(&claim)
+        {
+            return Ok(false);
+        }
+        claims.push(claim);
+    }
+    if claims.is_empty() {
+        return Ok(true);
+    }
+    let mut retained = Vec::new();
+    let base = dir.join("verifications");
+    for (directory, history) in [(&base, false), (&base.join("history"), true)] {
+        let metadata = match std::fs::symlink_metadata(directory) {
+            Ok(metadata) => metadata,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => return Err(unavailable("verify.history-unavailable", &e.to_string())),
+        };
+        if !metadata.is_dir() || metadata.file_type().is_symlink() {
+            return Err(unavailable(
+                "verify.history-unavailable",
+                "review history is not a regular directory",
+            ));
+        }
+        let entries = std::fs::read_dir(directory)
+            .map_err(|e| unavailable("verify.history-unavailable", &e.to_string()))?;
+        for entry in entries {
+            let entry =
+                entry.map_err(|e| unavailable("verify.history-unavailable", &e.to_string()))?;
+            let Ok(path) = camino::Utf8PathBuf::from_path_buf(entry.path()) else {
+                continue;
+            };
+            if path.extension() != Some("toml") {
+                continue;
+            }
+            let relative = path
+                .strip_prefix(&repo.root)
+                .map_err(|e| RepoError::Message(e.to_string()))?;
+            let bytes = crate::bundle::store::read(&repo.root, relative)?;
+            // A retained historical name is the ordinary hash of its original
+            // bytes. Do not introduce another canonicalization or digest domain.
+            if history
+                && path.file_stem() != Some(openwarrant_compiler::sha256_hex(&bytes).as_str())
+            {
+                continue;
+            }
+            let Ok(text) = std::str::from_utf8(&bytes) else {
+                continue;
+            };
+            match decode(text) {
+                Ok(record) => retained.push(record.verification),
+                Err(openwarrant_core::verification_record::VerificationRecordError::UnsupportedSchema { schema }) => {
+                    return Err(unavailable("verify.record-schema-unsupported", &format!("{relative}: unsupported verification record {schema}")));
+                }
+                Err(_) => {}
+            }
+        }
+    }
+    Ok(claims.iter().all(|claim| retained.contains(claim)))
+}

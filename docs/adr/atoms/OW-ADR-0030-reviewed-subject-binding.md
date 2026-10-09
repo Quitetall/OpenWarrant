@@ -105,6 +105,16 @@ Contract and packet digests retain their existing Rust canonicalizers and digest
 
 Packets carry exact required pinned-SAS, gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. The draft locates the captured SAS version/digest in retained revision records, uses descriptor-safe current reads, and recovers matching historical Git bytes locally when needed. Candidate snapshots cannot borrow mutable checkout history. The historical-source extension freezes the candidate commit and reads regular source blobs only from that commit’s retained ancestors, with replacement objects and lazy fetching disabled. Matching content must have the exact pinned SHA-256; a newer source file or unrelated branch cannot substitute. An unavailable pinned source is UNKNOWN. This extension has a reproduced CLI failure and is awaiting its green qualification run. Packet qualification also checks the full carried source against its subject digest. Request and packet assembly reuse one loaded Warrant. This SAS slice is under test; complete transitive governing-context closure remains open.
 
+Prior-verification displays are optional historical background, not current
+qualification. Every displayed observation must exactly match a decoded active
+record or retained historical record for that Warrant. Historical files must
+retain their original raw-byte SHA-256 filename. Do not compare only with the
+current active list: replacing an active review must not invalidate the packet
+that carried the earlier observation. Invented, duplicate, malformed or extended
+displays are refused. This source match does not authenticate the named verifier,
+establish when a same-account writer created a record, or promote legacy history
+to current assurance.
+
 ## Retained packet storage
 
 The draft storage implementation reuses identical retained bytes and refuses different bytes at the same filename. New packets are staged and synced, then published without replacing an existing name. A competing publisher must supply identical bytes; it cannot truncate the winning packet. Directory-relative file handles refuse link traversal, and packet reads inspect regular files through the opened descriptor.

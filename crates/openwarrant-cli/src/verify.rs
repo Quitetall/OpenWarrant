@@ -682,7 +682,9 @@ pub(crate) fn packets_cover(
             Some("obligation") if request.obligations.len() == 1 => {}
             _ => return Ok(false),
         }
-        if !context::packet_sources_match(&packet, reviewed) {
+        if !record::prior_matches(repo, &one.dir, &packet["prior_verifications"])?
+            || !context::packet_sources_match(&packet, reviewed)
+        {
             return Ok(false);
         }
         let captured = match &captured {

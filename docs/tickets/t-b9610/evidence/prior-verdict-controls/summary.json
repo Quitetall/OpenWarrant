@@ -1,0 +1,24 @@
+{
+  "schema": "oh.war/bounded-observation/v1",
+  "observed_at": "2026-10-09T02:03:18.744188+00:00",
+  "scope": "Synthetic disposable corpora only; no production verdict or authority act",
+  "baseline_binary_sha256": "0445b741468b5b34974818aafd4f145e4c8b8ea4e491df943bb16cd48d8f4469",
+  "baseline_result": "Rehashed invented prior observation accepted; probe assertion fails",
+  "corrected_binary_sha256": "a682285e586ee91ee05f63fec7f0e3fcb5255feb1e94a739e2b50dcdf3b689ba",
+  "corrected_result": "Four public CLI substitutions refused without record/journal writes; exact original packet accepted",
+  "rust": "1.97.1",
+  "verification_cli_tests_passed": 35,
+  "verification_cli_tests_failed": 0,
+  "clippy": "CLI all targets -D warnings passed",
+  "additional_controls": [
+    "legitimate prior observations survive active-record replacement and replay",
+    "incorrect raw-history hash refused without writes",
+    "duplicate/malformed/altered/extra-field prior observations refused without writes"
+  ],
+  "not_established": [
+    "full extension gate",
+    "complete transitive governing context and metadata closure",
+    "independent custody and same-account race protection",
+    "production qualification or human acceptance"
+  ]
+}

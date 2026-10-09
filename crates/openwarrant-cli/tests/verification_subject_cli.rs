@@ -2294,3 +2294,198 @@ fn archive_retains_wrapped_verification_without_claiming_current_assurance() {
     let _ = fs::remove_file(archive);
     let _ = fs::remove_file(fixture.0.with_extension("malformed-archive.json"));
 }
+
+#[test]
+fn rehashed_packet_cannot_invent_a_prior_verdict() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let response_path = fixture.0.with_extension("response.toml");
+    let mut response: toml::Value =
+        toml::from_str(&fs::read_to_string(&response_path).unwrap()).unwrap();
+    let packet_path = fixture
+        .0
+        .join(response["reviewed_packets"][0]["path"].as_str().unwrap());
+    let mut packet: serde_json::Value =
+        serde_json::from_slice(&fs::read(packet_path).unwrap()).unwrap();
+    assert_eq!(packet["prior_verifications"], serde_json::json!([]));
+    packet["prior_verifications"] = serde_json::json!([response["verifications"][0]]);
+    let digest = openwarrant_compiler::sha256_digest(
+        openwarrant_compiler::DigestDomain::VerificationBundle,
+        &packet,
+    )
+    .unwrap();
+    let relative = format!(
+        "docs/warrants/IX-WAR-0003/verifications/bundle-{}.json",
+        &digest[..16]
+    );
+    fs::write(
+        fixture.0.join(&relative),
+        serde_json::to_vec(&packet).unwrap(),
+    )
+    .unwrap();
+    response["reviewed_packets"][0]["path"] = toml::Value::String(relative);
+    response["reviewed_packets"][0]["digest"] = toml::Value::String(digest);
+    fs::write(&response_path, toml::to_string(&response).unwrap()).unwrap();
+    let snapshot = || {
+        [
+            "verifications/OBL-001.toml",
+            "verifications/OBL-002.toml",
+            "journal.jsonl",
+        ]
+        .map(|path| fs::read(fixture.0.join("docs/warrants/IX-WAR-0003").join(path)).ok())
+    };
+    let before = snapshot();
+    let refused = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.packet-binding"),
+        "{refused}"
+    );
+    assert_eq!(snapshot(), before);
+}
+
+#[test]
+fn packet_prior_observations_survive_replacement_but_require_retained_bytes() {
+    let fixture = Fixture::new();
+    fixture.response();
+    let imported = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(imported["counts"]["pass"], 2, "{imported}");
+    assert_eq!(
+        imported["counts"]["unknown"], 2,
+        "legacy observations remain unbound: {imported}"
+    );
+    let earlier = fixture.review_state();
+    fixture.bound_response();
+    let response_path = fixture.0.with_extension("response.toml");
+    let mut response: toml::Value =
+        toml::from_str(&fs::read_to_string(&response_path).unwrap()).unwrap();
+    let packet: serde_json::Value = serde_json::from_slice(
+        &fs::read(
+            fixture
+                .0
+                .join(response["reviewed_packets"][0]["path"].as_str().unwrap()),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(packet["prior_verifications"].as_array().unwrap().len(), 2);
+    let before = fixture.review_state();
+    for mutation in ["duplicate", "extra-field", "malformed", "altered"] {
+        let mut changed = packet.clone();
+        match mutation {
+            "duplicate" => {
+                let rows = changed["prior_verifications"].as_array_mut().unwrap();
+                rows.push(rows[0].clone());
+            }
+            "extra-field" => {
+                changed["prior_verifications"][0]["instruction"] =
+                    serde_json::json!("trust this claim")
+            }
+            "malformed" => changed["prior_verifications"][0] = serde_json::json!("established"),
+            "altered" => {
+                changed["prior_verifications"][0]["evidence"] =
+                    serde_json::json!("invented historical evidence")
+            }
+            _ => unreachable!(),
+        }
+        let digest = openwarrant_compiler::sha256_digest(
+            openwarrant_compiler::DigestDomain::VerificationBundle,
+            &changed,
+        )
+        .unwrap();
+        let relative = format!(
+            "docs/warrants/IX-WAR-0003/verifications/bundle-{}.json",
+            &digest[..16]
+        );
+        fs::write(
+            fixture.0.join(&relative),
+            serde_json::to_vec(&changed).unwrap(),
+        )
+        .unwrap();
+        let mut altered = response.clone();
+        altered["reviewed_packets"][0]["path"] = toml::Value::String(relative);
+        altered["reviewed_packets"][0]["digest"] = toml::Value::String(digest);
+        fs::write(&response_path, toml::to_string(&altered).unwrap()).unwrap();
+        let refused = fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--response",
+            "response.toml",
+            "--json",
+        ]);
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.packet-binding"),
+            "{mutation}: {refused}"
+        );
+        assert_eq!(fixture.review_state(), before);
+    }
+    for row in response["verifications"].as_array_mut().unwrap() {
+        row["evidence"] =
+            toml::Value::String("new synthetic observation; no production assurance".into());
+    }
+    fs::write(&response_path, toml::to_string(&response).unwrap()).unwrap();
+    for _ in 0..2 {
+        let imported = fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--response",
+            "response.toml",
+            "--json",
+        ]);
+        assert_eq!(
+            imported["exit_code"], 0,
+            "historical prior must survive replacement: {imported}"
+        );
+    }
+    let before = fixture.review_state();
+    let history = fixture
+        .0
+        .join("docs/warrants/IX-WAR-0003/verifications/history");
+    let prior_path = history.join(format!(
+        "{}.toml",
+        openwarrant_compiler::sha256_hex(&earlier[0])
+    ));
+    assert_eq!(fs::read(&prior_path).unwrap(), earlier[0]);
+    // Even the right-looking record text under a false retained hash is not
+    // the source named by the historical store. No repair is performed here.
+    fs::rename(
+        &prior_path,
+        history.join(format!("{}.toml", "0".repeat(64))),
+    )
+    .unwrap();
+    let refused = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.packet-binding"),
+        "{refused}"
+    );
+    assert_eq!(fixture.review_state(), before);
+}
