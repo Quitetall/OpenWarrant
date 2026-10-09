@@ -942,6 +942,10 @@ enum Command {
         /// Report the thirteen §56.1 requirements and stop.
         #[arg(long)]
         dry_run: bool,
+        /// Bounded repository-relative retained capture selections. Read-only;
+        /// this CLI has no native verifier and cannot reuse saved verdicts.
+        #[arg(long, requires = "dry_run")]
+        runtime_selection: Option<camino::Utf8PathBuf>,
         /// A resolver's signed response to ingest (§56.2). Without it and
         /// without --dry-run, the resolution REQUEST is emitted: what a
         /// signature would bind, which outcomes §38.6 permits, and who may sign.
@@ -2884,11 +2888,36 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         Command::Resolve {
             alias,
             dry_run,
+            runtime_selection,
             response,
         } => {
             let repository = open_repo()?;
             if dry_run {
-                let report = resolve::run(&repository, &alias)?;
+                let report = match runtime_selection {
+                    Some(path) => match runtime_capture::read_selection(&repository, &path) {
+                        Ok(selected) => {
+                            resolve::run_selected(&repository, &alias, &selected.selections)?
+                        }
+                        Err(fault) => {
+                            let mut report = diagnostic::Report::default();
+                            report.push(if fault.unknown {
+                                diagnostic::Diagnostic::unknown(
+                                    fault.code,
+                                    path.to_string(),
+                                    fault.message,
+                                )
+                            } else {
+                                diagnostic::Diagnostic::error(
+                                    fault.code,
+                                    path.to_string(),
+                                    fault.message,
+                                )
+                            });
+                            report
+                        }
+                    },
+                    None => resolve::run(&repository, &alias)?,
+                };
                 return Ok(output::finish(mode, "resolve.dry_run", &report, None));
             }
             match response {

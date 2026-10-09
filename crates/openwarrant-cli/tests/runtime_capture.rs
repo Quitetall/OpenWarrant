@@ -602,8 +602,61 @@ fn sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write() {
             .standing,
         ReceiptStanding::Matches
     );
+    let one = repo
+        .load_warrant(&repo.warrant_dir("IX-WAR-0003").unwrap())
+        .unwrap();
+    let native = |_: &StageDispatch, _: &ProviderInterface| Some(verify(&v));
+    let resolution = openwarrant_cli::resolve::assess_with_runtime(
+        &repo,
+        &one,
+        &[],
+        openwarrant_cli::resolve::runtime::Input {
+            selections: &selected,
+            native: &native,
+        },
+    )
+    .unwrap();
+    assert!(resolution.checks.runtime_receipts_match_the_basis);
+    assert_eq!(
+        resolution.runtime_receipts.standing,
+        ReceiptStanding::Matches
+    );
+    assert!(!resolution.checks.exact_authorized_contract_revision);
+    assert!(!resolution.checks.independence_requirements_met);
+    let unavailable = |_: &StageDispatch, _: &ProviderInterface| None;
+    let resolution = openwarrant_cli::resolve::assess_with_runtime(
+        &repo,
+        &one,
+        &[],
+        openwarrant_cli::resolve::runtime::Input {
+            selections: &selected,
+            native: &unavailable,
+        },
+    )
+    .unwrap();
+    assert!(!resolution.checks.runtime_receipts_match_the_basis);
+    assert_eq!(
+        resolution.runtime_receipts.standing,
+        ReceiptStanding::Unknown
+    );
     // Stored MATCHES is never reused when current native verification disagrees.
     v.facts.binding.attempt_id = "wrong-new-native-observation".into();
+    let native = |_: &StageDispatch, _: &ProviderInterface| Some(verify(&v));
+    let resolution = openwarrant_cli::resolve::assess_with_runtime(
+        &repo,
+        &one,
+        &[],
+        openwarrant_cli::resolve::runtime::Input {
+            selections: &selected,
+            native: &native,
+        },
+    )
+    .unwrap();
+    assert!(!resolution.checks.runtime_receipts_match_the_basis);
+    assert_eq!(
+        resolution.runtime_receipts.standing,
+        ReceiptStanding::Refused
+    );
     assert_eq!(
         capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| Some(verify(&v)))
             .unwrap()
@@ -622,6 +675,26 @@ fn sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write() {
     .unwrap_err();
     assert_eq!(changed_result.code, "runtime.selection-changed");
     assert!(changed_result.unknown);
+    let native = |_: &StageDispatch, _: &ProviderInterface| Some(verify(&v));
+    let resolution = openwarrant_cli::resolve::assess_with_runtime(
+        &repo,
+        &one,
+        &[],
+        openwarrant_cli::resolve::runtime::Input {
+            selections: &selected,
+            native: &native,
+        },
+    )
+    .unwrap();
+    assert!(!resolution.checks.runtime_receipts_match_the_basis);
+    assert_eq!(
+        resolution.runtime_receipts.code,
+        "runtime.resolution-basis-changed"
+    );
+    assert_eq!(
+        resolution.runtime_receipts.standing,
+        ReceiptStanding::Unknown
+    );
     fs::write(&intent, original).unwrap();
     let partial = Fixture::new();
     v.facts.binding = RuntimeBinding::from_dispatch(&partial.dispatch);
@@ -683,6 +756,26 @@ fn current_selection_is_read_only_and_missing_native_support_stays_unknown() {
     );
     assert_eq!(result["result"]["saved_native_observations_used"], false);
     assert_eq!(result["result"]["assurance_granted"], false);
+    let out = war(
+        &f.root,
+        &[
+            "resolve",
+            "IX-WAR-0003",
+            "--dry-run",
+            "--runtime-selection",
+            "selected.json",
+            "--json",
+        ],
+    );
+    let resolution = value(&out);
+    assert!(
+        resolution["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "runtime.verifier-unavailable" && d["severity"] == "unknown")
+    );
+    assert!(!out.status.success());
     assert_eq!(fs::read(&path).unwrap(), prior);
     let repo = openwarrant_cli::repo::Repository::open(
         camino::Utf8PathBuf::from_path_buf(f.root.clone()).unwrap(),
@@ -808,4 +901,19 @@ fn unknown_versions_and_stale_sources_do_not_invoke_provider_policy() {
         "runtime-basis.dispatch-mismatch"
     );
     assert_eq!(calls.get(), 0);
+}
+
+#[test]
+fn resolution_names_missing_current_runtime_receipts_as_unknown() {
+    let f = Fixture::with_runtime_count(1);
+    let out = war(&f.root, &["resolve", "IX-WAR-0003", "--dry-run", "--json"]);
+    let report = value(&out);
+    assert!(
+        report["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "runtime-basis.receipt-missing" && d["severity"] == "unknown"),
+        "resolution must name its missing runtime source: {report}"
+    );
 }
