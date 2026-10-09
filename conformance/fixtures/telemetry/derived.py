@@ -12,8 +12,8 @@ git('init', '-q');git('add', '.');git('commit', '-qm', 'initial fixtures')
 first = git('rev-parse', 'HEAD')
 git('commit', '--allow-empty', '-qm', 'IX-WAR-0003 tracked work')
 commit = git('rev-parse', 'HEAD')
-def run(out, subject=commit):
-    result = subprocess.run([binary, 'telemetry', '--commit', subject, '--derived', '--out', out, '--json'], cwd=root, env=env, capture_output=True, text=True)
+def run(out, subject=commit, derived=True):
+    result = subprocess.run([binary, 'telemetry', '--commit', subject, *(['--derived'] if derived else []), '--out', out, '--json'], cwd=root, env=env, capture_output=True, text=True, timeout=30)
     report = json.loads(result.stdout)
     assert report['schema']=='oh.war/report/v1'
     return report
@@ -22,6 +22,8 @@ assert report['exit_code']==0,report
 baseline = report['result']['baseline']
 assert baseline['schema']=='oh.war/telemetry-baseline/v2'
 assert baseline['commit']==commit
+assert report['result']['source_basis']['immutable_sources_established'] is True
+assert report['result']['source_basis']['resolved_source_commit']==commit
 ratio = baseline['derived']['untracked-work rate']['ratio']
 assert (ratio['numerator'],ratio['denominator'],ratio['denominator_scale'])==(1,2,1)
 assert 'instrumented' in baseline['derived']['human control minutes per accepted WAR']['not_measurable_yet']
@@ -53,3 +55,20 @@ assert scoped['exit_code']==0,scoped
 ratio = scoped['result']['baseline']['derived']['untracked-work rate']['ratio']
 assert (ratio['numerator'],ratio['denominator'])==(0,2),scoped
 print('exact history ratios, frozen source selection, scoped adoption denominator, honest missing time, no deltas, byte-preserving replay, collision/link refusal and missing-commit UNKNOWN passed')
+
+# Legacy v1 remains byte-compatible, but cannot overwrite retained observations
+# or turn an arbitrary --commit label into an immutable source claim.
+legacy = run('legacy.json', 'declared-label-only', derived=False)
+assert legacy['exit_code']==0,legacy
+assert legacy['result']['baseline']['schema']=='oh.war/telemetry-baseline/v1'
+assert legacy['result']['source_basis']['kind']=='live-working-tree'
+assert legacy['result']['source_basis']['immutable_sources_established'] is False
+assert legacy['result']['source_basis']['resolved_source_commit'] is None
+prior = (root/'legacy.json').read_bytes()
+assert run('legacy.json', 'declared-label-only', derived=False)['exit_code']==0
+assert (root/'legacy.json').read_bytes()==prior
+assert run('legacy.json', 'different-label', derived=False)['exit_code']!=0
+assert (root/'legacy.json').read_bytes()==prior
+assert run('linked.json', 'declared-label-only', derived=False)['exit_code']!=0
+assert (root/'derived.json').read_bytes()==original
+print('legacy idempotent publication, differing/link refusal and honest live-source report passed')

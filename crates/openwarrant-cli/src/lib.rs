@@ -1046,7 +1046,7 @@ enum Command {
 
     /// §94 telemetry baseline, §95 untracked-work candidates, §100 metrics.
     Telemetry {
-        /// The commit this baseline is taken at (§94, OBL-001).
+        /// Legacy declared commit label; with --derived, the exact retained Git source subject.
         #[arg(long)]
         commit: String,
         /// Candidate v2 derived metrics from exact retained Git sources.
@@ -2446,6 +2446,20 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             if derived && out.as_str() == "artifacts/telemetry-baseline.json" {
                 out = format!("artifacts/telemetry-derived-{}.json", baseline.commit).into();
             }
+            let source_basis = serde_json::json!({
+                "kind": if derived { "frozen-retained-git" } else { "live-working-tree" },
+                "declared_commit": commit,
+                "resolved_source_commit": if derived { Some(baseline.commit.as_str()) } else { None },
+                "immutable_sources_established": derived,
+                "history_read": telemetry::history_read(&baseline),
+                "before_tuning_established": false,
+                "qualification_established": false,
+            });
+            let source_note = if derived {
+                format!("source: exact retained Git revision {}", baseline.commit)
+            } else {
+                "source: live working tree; --commit is a declared label, not a source pin. Use --derived for exact retained Git sources".to_owned()
+            };
             let rendered = telemetry::render(&baseline)?;
             if verify {
                 let existing = std::fs::read_to_string(&out)
@@ -2454,7 +2468,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 // while the doc claims byte-for-byte agreement.
                 if existing == rendered {
                     let human = format!(
-                        "telemetry baseline at {commit} is unchanged (untracked work read from {})",
+                        "telemetry artifact bytes are unchanged; {source_note} (untracked work read from {})",
                         telemetry::history_read(&baseline)
                     );
                     output::emit(
@@ -2466,6 +2480,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                             "commit": commit,
                             "path": out.as_str(),
                             "unchanged": true,
+                            "source_basis": source_basis,
                         }),
                     );
                     return Ok(EXIT_OK);
@@ -2481,12 +2496,9 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     repo::RepoError::Message(format!("cannot create {parent}: {e}"))
                 })?;
             }
-            if derived {
-                telemetry::publish(&out, rendered.as_bytes())?;
-            } else {
-                std::fs::write(&out, &rendered)
-                    .map_err(|e| repo::RepoError::Message(format!("cannot write {out}: {e}")))?;
-            }
+            // A baseline is a retained observation. Both collectors use the
+            // same no-overwrite publisher; replay may reuse identical bytes.
+            telemetry::publish(&out, rendered.as_bytes())?;
             let untaken = baseline
                 .measures
                 .values()
@@ -2503,6 +2515,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 telemetry::history_read(&baseline),
                 baseline.success_metrics.len()
             );
+            human.push_str(&format!("\n  {source_note}"));
             if derived {
                 let ratios = baseline
                     .derived
@@ -2519,6 +2532,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     "operation": "record",
                     "path": out.as_str(),
                     "baseline": baseline,
+                    "source_basis": source_basis,
                 }),
             );
             Ok(EXIT_OK)
