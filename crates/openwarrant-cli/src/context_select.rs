@@ -18,7 +18,7 @@
 use camino::Utf8Path;
 use openwarrant_compiler::CompilationBasis;
 use openwarrant_core::context::{
-    ContextItem, ContextRole, Holder, Omission, Precedence, TrustClass,
+    ContextItem, ContextRole, Holder, Omission, Precedence, TrustClass, declared_classification,
 };
 use openwarrant_core::milestones::Stage;
 use sha2::Digest;
@@ -153,9 +153,12 @@ pub fn select(
         }
         let full = repo.root.join(path);
         match std::fs::read(&full) {
-            Ok(content) => {
-                artifact_items.push((path.clone(), sha256_hex(&content), content.len() as u64))
-            }
+            Ok(content) => artifact_items.push((
+                path.clone(),
+                sha256_hex(&content),
+                content.len() as u64,
+                label(&content, path, &mut refusals),
+            )),
             Err(e) => refusals.push(Refusal {
                 rule: "dispatch.artifact-missing",
                 message: format!("{}: context_artifacts names {path:?}: {e}", stage.id),
@@ -180,7 +183,7 @@ pub fn select(
                 holder: holder(repo.relative(&warrant_dir.join(&atom.source))),
                 content_digest: format!("sha256:{}", sha256_hex(&atom.bytes)),
                 selector_sections: vec![],
-                classification: "internal".to_owned(),
+                classification: label(&atom.bytes, &atom.source, &mut refusals),
                 trust: TrustClass::AuthoritativeInternal,
                 taints: vec![],
                 precedence: Some(Precedence::AuthorizedWarContract),
@@ -216,13 +219,13 @@ pub fn select(
             holder: holder(repo.relative(&warrant_dir.join(source))),
             content_digest: format!("sha256:{}", sha256_hex(body.as_bytes())),
             selector_sections: vec![heading.clone()],
-            classification: "internal".to_owned(),
+            classification: label(&atom.bytes, &atom.source, &mut refusals),
             trust: TrustClass::AuthoritativeInternal,
             taints: vec![],
             precedence: Some(Precedence::AuthorizedWarContract),
         });
     }
-    for (path, digest, len) in artifact_items {
+    for (path, digest, len, classification) in artifact_items {
         bytes.push((path.clone(), len));
         included.push(ContextItem {
             id: path.clone(),
@@ -231,7 +234,7 @@ pub fn select(
             holder: holder(path),
             content_digest: format!("sha256:{digest}"),
             selector_sections: vec![],
-            classification: "internal".to_owned(),
+            classification,
             trust: TrustClass::InternalUnverified,
             taints: vec![],
             precedence: Some(Precedence::InformativeSource),
@@ -250,7 +253,7 @@ pub fn select(
             holder: holder("CONTEXT.md".to_owned()),
             content_digest: format!("sha256:{}", sha256_hex(&body)),
             selector_sections: vec![],
-            classification: "internal".to_owned(),
+            classification: label(&body, "CONTEXT.md", &mut refusals),
             trust: TrustClass::AuthoritativeInternal,
             taints: vec![],
             precedence: Some(Precedence::InformativeSource),
@@ -270,11 +273,14 @@ pub fn select(
             // Recorded, never fetched: no digest can honestly be claimed.
             content_digest: String::new(),
             selector_sections: vec![],
-            classification: "internal".to_owned(),
+            classification: String::new(),
             trust: TrustClass::ExternalUntrusted,
             taints: vec!["unfetched".to_owned()],
             precedence: Some(Precedence::InformativeSource),
         });
+    }
+    if !refusals.is_empty() {
+        return Err(refusals);
     }
     included.sort_by(|a, b| a.id.cmp(&b.id));
     omitted.sort_by(|a, b| a.id.cmp(&b.id));
@@ -284,6 +290,19 @@ pub fn select(
         omitted,
         bytes,
     })
+}
+
+fn label(bytes: &[u8], id: &str, refusals: &mut Vec<Refusal>) -> String {
+    match declared_classification(bytes) {
+        Ok(label) => label.unwrap_or_default(),
+        Err(e) => {
+            refusals.push(Refusal {
+                rule: "dispatch.classification-source",
+                message: format!("{id}: {e}"),
+            });
+            String::new()
+        }
+    }
 }
 
 /// Why `path` is not a file of the repository at `root`, or `None` if it is.
