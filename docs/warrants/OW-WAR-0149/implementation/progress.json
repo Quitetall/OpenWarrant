@@ -38,7 +38,7 @@
     "docs/warrants/OW-WAR-0149/implementation/native-host-assessment-20261010/README.md"
   ],
   "next_steps": [
-    "Complete a populated actual Katana provider roundtrip with protected host configuration; add protected BLUT job-directory custody and native CLI/workflow integration without deriving keys, heads or permissions from receipts.",
+    "Add and qualify explicit sealed-descriptor transport with Katana before claiming actual native acceptance: current native O_NOFOLLOW file transport rejects procfs descriptors. Then add protected BLUT job custody and native CLI/workflow integration; preserve the shared contract and participant requirements.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],

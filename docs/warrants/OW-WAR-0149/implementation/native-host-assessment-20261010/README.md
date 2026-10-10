@@ -28,3 +28,11 @@ The CLI test first failed on the missing `--native-store` option. The completed 
 This populated fixture uses a signed, selected `/usr/bin/true` image that produces no valid native receipt. It proves fresh native refusal through the configured CLI path, not an actual Katana receipt acceptance or a production human act. Original RED, final observations and source hashes are retained beside this note.
 
 Generated-document compilation and check completed: 2,028 passes, 625 warnings, zero errors and zero unknowns. This checks record/projection integrity and runs no execution gate. Protected-main CI remains separate.
+
+## Native transport gap confirmed from source
+
+Katana PR12 is merged. At provider revision `9ed4c1a5dff697654efb88b2b13a8dc239ddd272`, `crates/katana/src/openwarrant_receipt.rs::read_file` opens native input paths with `O_NOFOLLOW`. It rejects the final procfs descriptor link used by the current sealed-input SDK. Thus the populated `/usr/bin/true` refusal fixture does not prove that this provider can consume the sealed log. Actual native acceptance remains unestablished.
+
+BLUT PR103, `Quitetall/blut`, is open at `eca4ec7db2adea3a12f76243311c643e84cbb472`. Its `src/framework/openwarrant_receipt.rs::read_transport` rejects symlinks and uses `O_NOFOLLOW`; it also requires directory-shaped job inputs. Hosted implementation checks passed, but its CLA check currently fails. This observation grants no contributor agreement or merge permission.
+
+The next implementation must define and test an explicit sealed-descriptor transport at the provider boundary, preserving ordinary file no-follow checks. The provider must check a regular opened descriptor, finite bytes and kernel immutability; it must not accept arbitrary links or infer trust from a checksum. Original receipt hash domains and binding meanings remain unchanged. Shared contract/participant responses and exact provider identities remain separate from prototype implementation, as this Warrant's work order requires. A real populated native roundtrip and refusal controls must pass before claiming this transport works.
