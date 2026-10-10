@@ -1,20 +1,20 @@
 {
-  "rmcp@3.3.0": {
-    "file": "rust-sdk-LICENSE",
-    "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
-    "source_commit": "3e636cab26c013eca5131103c03d20237f12c4df",
-    "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/3e636cab26c013eca5131103c03d20237f12c4df/LICENSE"
-  },
-  "rmcp-macros@3.3.0": {
-    "file": "rust-sdk-LICENSE",
-    "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
-    "source_commit": "3e636cab26c013eca5131103c03d20237f12c4df",
-    "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/3e636cab26c013eca5131103c03d20237f12c4df/LICENSE"
-  },
   "qrcodegen@1.8.0": {
     "file": "QR-Code-generator-Readme.markdown",
     "sha256": "0f8441b248157c13e43c8963ffe1af9eabb3287e24871303c8b16395b6cb7a01",
     "source_commit": "720f62bddb7226106071d4728c292cb1df519ceb",
     "url": "https://raw.githubusercontent.com/nayuki/QR-Code-generator/720f62bddb7226106071d4728c292cb1df519ceb/Readme.markdown"
+  },
+  "rmcp-macros@3.5.0": {
+    "file": "rust-sdk-LICENSE",
+    "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+    "source_commit": "0cde3c5cf3e6aff0cc852ce6045f107e95991f48",
+    "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/0cde3c5cf3e6aff0cc852ce6045f107e95991f48/LICENSE"
+  },
+  "rmcp@3.5.0": {
+    "file": "rust-sdk-LICENSE",
+    "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+    "source_commit": "0cde3c5cf3e6aff0cc852ce6045f107e95991f48",
+    "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/0cde3c5cf3e6aff0cc852ce6045f107e95991f48/LICENSE"
   }
 }
