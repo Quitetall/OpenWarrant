@@ -1,0 +1,20 @@
+{
+  "same_frozen_checkout": "/mnt/4tb/tmp/openwarrant-board-shared-corpus",
+  "observations": [
+    {
+      "name": "before",
+      "seconds": 7.843848058953881,
+      "exit": 0,
+      "stdout_bytes": 1679220,
+      "sha256": "ed0083c5f04fac2c19c4fc462fe6912ac911e971dd8462685cdef631f5c53715"
+    },
+    {
+      "name": "after",
+      "seconds": 5.354476803040598,
+      "exit": 0,
+      "stdout_bytes": 1679220,
+      "sha256": "ed0083c5f04fac2c19c4fc462fe6912ac911e971dd8462685cdef631f5c53715"
+    }
+  ],
+  "exact_response_equal": true
+}
