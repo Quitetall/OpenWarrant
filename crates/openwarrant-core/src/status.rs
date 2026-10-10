@@ -606,6 +606,21 @@ pub struct CorpusStatus {
     pub repository_url: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub generated_by: Option<GeneratedBy>,
+    /// OW-WAR-0148 M18: how many of the program's development documents a
+    /// type governs. Absent from a status written before it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_coverage: Option<DocumentCoverage>,
+}
+
+/// typed / total over the development documents `war` indexes
+/// (OW-WAR-0148 M18): a ladder of counts, never a percentage. A document is
+/// typed when a store's type, a record area, the instruction reader or an
+/// adoption reads it; every other indexed document is untyped.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocumentCoverage {
+    pub typed: usize,
+    pub untyped: usize,
+    pub total: usize,
 }
 
 impl CorpusStatus {

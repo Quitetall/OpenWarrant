@@ -13,6 +13,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use openwarrant_compiler::{ChildRef, lower};
+use openwarrant_core::projection::Store;
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
 
 use crate::compile::{adr_overview, projections};
@@ -289,15 +290,18 @@ pub fn run_with(
 
     // ADR corpus (§19). A malformed ADR is an error; the Overview is a
     // projection and drift-checks exactly like a Warrant parent (§19.7).
+    // OW-WAR-0148 M18: the `adr` type's rules, under its `structure`.
+    let adr_structure =
+        crate::types::has(repo, Store::Adr, openwarrant_core::Capability::Structure);
     let adrs = repo.load_adrs()?;
-    for (path, err) in &adrs.failures {
+    for (path, err) in adrs.failures.iter().filter(|_| adr_structure) {
         report.push(Diagnostic::error(
             "adr.malformed",
             path.clone(),
             err.to_string(),
         ));
     }
-    if adrs.failures.is_empty() && !adrs.records.is_empty() {
+    if adr_structure && adrs.failures.is_empty() && !adrs.records.is_empty() {
         report.push(Diagnostic::pass(
             "adr.parsed",
             format!("{} ADR(s) parsed", adrs.records.len()),
@@ -312,7 +316,12 @@ pub fn run_with(
     // compared them: the digest appeared in six places, all prose.
     // Reproducing the same lossy extraction is not a completeness check.
     // This also covers a source whose first revision is not recorded yet.
-    if let Ok((path, bytes)) = repo.sas_document() {
+    // OW-WAR-0148 M18: the `spec` type's rules: the document's structure
+    // here, its acceptance below.
+    let spec_caps = crate::types::caps(repo, Store::Sas);
+    if spec_caps.has(openwarrant_core::Capability::Structure)
+        && let Ok((path, bytes)) = repo.sas_document()
+    {
         let dropped = openwarrant_core::dropped_sections(&String::from_utf8_lossy(&bytes));
         if dropped.is_empty() {
             report.push(Diagnostic::pass(
@@ -325,13 +334,17 @@ pub fn run_with(
             }
         }
     }
-    match repo.load_sas_revisions() {
-        Err(err) => report.push(Diagnostic::error(
+    let sas_revisions = spec_caps
+        .has(openwarrant_core::Capability::Acceptance)
+        .then(|| repo.load_sas_revisions());
+    match sas_revisions {
+        None => {}
+        Some(Err(err)) => report.push(Diagnostic::error(
             "sas.revision-malformed",
             repo.config.paths.sas.clone(),
             err.to_string(),
         )),
-        Ok(revisions) => match crate::sas::pin_of(&revisions) {
+        Some(Ok(revisions)) => match crate::sas::pin_of(&revisions) {
             None => report.push(Diagnostic::warn(
                 "sas.unrecorded",
                 repo.config.paths.sas.clone(),
@@ -407,6 +420,9 @@ pub fn run_with(
         crate::records::check(shared_corpus, &mut report);
         // OW-WAR-0148 M6: declared documents. Silent where there are none.
         crate::render_cmd::check(shared_corpus, &mut report);
+        // OW-WAR-0148 M18: docs/types.toml and the document index. Silent
+        // for a program with neither a types file nor a bad [documents].
+        crate::types::check(shared_corpus, &mut report);
     }
 
     // Accepting a SAS revision is the act that makes a specification normative
@@ -414,7 +430,12 @@ pub fn run_with(
     // authorization: a human signature over the acceptance response's exact
     // bytes, naming the digest of the document accepted. Leaving this act out
     // would have left one path where a record is believed for its contents.
-    let sas_revisions = repo.load_sas_revisions().unwrap_or_default();
+    // OW-WAR-0148 M18: the `spec` type's `acceptance`.
+    let sas_revisions = if spec_caps.has(openwarrant_core::Capability::Acceptance) {
+        repo.load_sas_revisions().unwrap_or_default()
+    } else {
+        Vec::new()
+    };
     let sas_pin = crate::sas::pin_of(&sas_revisions).map(|p| p.version.clone());
     for rev in &sas_revisions {
         let Some(acceptance) = &rev.acceptance else {
@@ -582,7 +603,13 @@ pub fn run_with(
     if !check_generated {
         report.note("generated-view drift — pass --generated to compare committed projections");
     }
-    if only.is_none() {
+    if only.is_none()
+        && crate::types::has(
+            repo,
+            Store::Roadmap,
+            openwarrant_core::Capability::Structure,
+        )
+    {
         check_roadmap_status_claims(repo, &mut report);
     }
 
@@ -1205,8 +1232,16 @@ fn check_traceability(
     };
     let file = repo.relative(&one.dir.join("manifest.toml"));
     let mut bad = 0usize;
+    // OW-WAR-0148 M18: a roadmap ref is the `roadmap` type's to read: its
+    // grammar under `structure`, the phase it names under `links`.
+    let roadmap_caps = crate::types::caps(repo, Store::Roadmap);
+    let roadmap_refs: &[_] = if roadmap_caps.has(openwarrant_core::Capability::Structure) {
+        &basis.manifest.roadmap
+    } else {
+        &[]
+    };
 
-    for r in &basis.manifest.roadmap {
+    for r in roadmap_refs {
         match RoadmapRef::parse(&r.r#ref) {
             Err(err) => {
                 report.push(Diagnostic::error(
@@ -1234,6 +1269,7 @@ fn check_traceability(
             }
             // OW-ADR-0023: with a roadmap record, the phase must be one of its
             // phases; without one, §98's 0..=10.
+            Ok(_) if !roadmap_caps.has(openwarrant_core::Capability::Links) => {}
             Ok(parsed) => match roadmap {
                 Some(rm) => {
                     if !crate::roadmap_cmd::check_ref(rm, alias, &parsed, &file, report) {
@@ -1317,7 +1353,7 @@ fn check_traceability(
             format!(
                 "{alias}: {} requirement ref(s) and {} roadmap ref(s) parse",
                 basis.manifest.implements.len(),
-                basis.manifest.roadmap.len()
+                roadmap_refs.len()
             ),
         ));
     }
@@ -1411,7 +1447,10 @@ fn check_one(
         // authorization's.
         let all = repo.load_sas_revisions().unwrap_or_default();
         let amended = crate::repo::amendment_sas_revision(&one.dir);
-        if let Some((v, amendment_path)) = &amended {
+        // OW-WAR-0148 M18: a SAS pin resolves into the `spec` type's store,
+        // under its `links`.
+        let sas_links = crate::types::has(repo, Store::Sas, C::Links);
+        if let Some((v, amendment_path)) = amended.as_ref().filter(|_| sas_links) {
             let file = repo.relative(amendment_path);
             match all.iter().find(|r| &r.version == v) {
                 None => report.push(Diagnostic::error(
@@ -1538,6 +1577,7 @@ fn check_one(
             }
         }
         if caps.has(C::Authorization)
+            && sas_links
             && let Ok(Some(a)) = repo.load_authorization(&one.dir)
             && let Some(v) = &a.sas_revision
             && amended.is_none()
@@ -1727,7 +1767,7 @@ fn check_one(
         }
     }
 
-    if caps.has(C::Links) {
+    if caps.has(C::Links) && crate::types::has(repo, Store::Sas, C::Links) {
         check_section_refs(repo, one, &alias, sas_sections, report);
     }
 

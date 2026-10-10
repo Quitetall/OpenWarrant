@@ -64,7 +64,7 @@ fi
 # build with the `schema` feature only. M14 added `sign approve`, `sign
 # release` and `admin preset`, under their groups only.
 declare -A SS_MEMBERS=(
-    [plan]="new promote render impact model state roadmap frontier questions ask answer answers"
+    [plan]="new promote render impact model state roadmap types type frontier questions ask answer answers"
     [sign]="authorize resolve correct amend attest standing sas inbox authority approve release"
     [evidence]="record gate verify prepare run perform submit kpi mark document eval"
     [view]="ui tui board console watch overview warrants ready prime timeline"

@@ -577,6 +577,8 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
     }
 
     Ok(CorpusStatus {
+        // OW-WAR-0148 M18: typed / total over the indexed documents.
+        document_coverage: Some(corpus.documents().coverage()),
         repository_url: repo.config.project.repository_url.clone(),
         generated_by: Some(openwarrant_core::status::GeneratedBy {
             war_version: env!("CARGO_PKG_VERSION").to_owned(),

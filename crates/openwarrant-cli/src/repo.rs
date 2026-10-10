@@ -1682,7 +1682,11 @@ pub fn capability_absent(alias: &str, profile: &str, cap: openwarrant_core::Capa
 pub(crate) fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
     let dir = root.join("profiles");
     if !fs::is_dir(&dir) {
-        return Ok(ProfileRegistry::builtin());
+        // OW-WAR-0148 M18: the types this build ships (the roadmap, the
+        // specification, ADRs, releases, incidents) are admitted without a
+        // file, as the ticket profile is.
+        return ProfileRegistry::with_builtins(std::iter::empty(), crate::types::builtins())
+            .map_err(|e| RepoError::Message(format!("{}: {e}", e.rule())));
     }
     let entries = fs::read_dir(&dir).map_err(|source| RepoError::Io {
         context: format!("could not read {dir}"),
@@ -1705,8 +1709,11 @@ pub(crate) fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoErro
         }
     }
     files.sort();
-    ProfileRegistry::with_definitions(files.iter().map(|(f, b)| (f.as_str(), b.as_slice())))
-        .map_err(|e| RepoError::Message(format!("{}: {e}", e.rule())))
+    let registry = ProfileRegistry::with_builtins(
+        files.iter().map(|(f, b)| (f.as_str(), b.as_slice())),
+        crate::types::builtins(),
+    );
+    registry.map_err(|e| RepoError::Message(format!("{}: {e}", e.rule())))
 }
 
 /// Every `scheme://…` token in an atom's text, in order, once each.

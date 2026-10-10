@@ -36,6 +36,7 @@ pub mod diagnostic;
 pub mod diff_target;
 pub mod dispatch;
 pub mod dispatch_bundle_cmd;
+pub mod doc_index;
 pub mod doctor;
 pub mod document;
 pub mod eval;
@@ -109,6 +110,7 @@ pub mod telemetry;
 pub mod ticket;
 pub mod timeline;
 pub mod tui;
+pub mod types;
 pub mod verify;
 pub mod vfs;
 pub mod warrants;
@@ -184,6 +186,22 @@ enum RoadmapCommand {
     /// opened; the atom is written, the revision proposed, and one
     /// `war sign roadmap --ssh-sign` raises the dialog.
     Edit,
+}
+
+/// `war plan types …` (OW-WAR-0148 M18).
+#[derive(clap::Subcommand, Debug)]
+enum TypesCommand {
+    /// Install a pack of document types into profiles/: `ops`, `quality`
+    /// (packs/<name>/ of this repository) or a directory holding a
+    /// pack.toml. Every profile is admitted beside this program's types
+    /// before anything is written; a refused one installs nothing.
+    Add {
+        /// A pack name (packs/<name>/) or a directory.
+        pack: String,
+        /// Say what would be installed, and write nothing.
+        #[arg(long)]
+        dry_run: bool,
+    },
 }
 
 /// `war sign standing` (OW-ADR-0029): a class of routine work one human
@@ -493,6 +511,8 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "model",
             "state",
             "roadmap",
+            "types",
+            "type",
             "frontier",
             "questions",
             "ask",
@@ -1001,6 +1021,25 @@ enum PlanCommand {
     Roadmap {
         #[command(subcommand)]
         command: Option<RoadmapCommand>,
+    },
+    /// The document types this program admits (OW-WAR-0148 M18): each
+    /// with its form, the store it reads, its capabilities and where it
+    /// comes from (built in, profiles/, a pack). `add` installs a pack.
+    Types {
+        #[command(subcommand)]
+        command: Option<TypesCommand>,
+    },
+    /// Adopt a document in place as a document type (OW-WAR-0148 M18):
+    /// records `path → type` in docs/types.toml, and never writes the
+    /// document. An untyped document counts against `war status`'s
+    /// document coverage; an adopted one counts for it.
+    Type {
+        /// The document: a path in this repository.
+        file: String,
+        /// A document type: `release`, `incident`, `exit-report`, `prd`, or a
+        /// pack's (`war plan types` lists them).
+        #[arg(value_name = "TYPE")]
+        doc_type: String,
     },
     /// The stages that can start now (OW-WAR-0068): open, unblocked by
     /// their milestone's `depends_on`, and not yet dispatched. Derived from
@@ -3586,6 +3625,59 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     None,
                 )),
             }
+        }
+        PlanCommand::Types { command } => {
+            let repository = ctx.open_repo()?;
+            match command {
+                None => {
+                    let types = types::list(&repository);
+                    let mut report = diagnostic::Report::default();
+                    report.push(diagnostic::Diagnostic::pass(
+                        "types.listed",
+                        format!("{} type(s)", types.len()),
+                    ));
+                    match mode {
+                        output::Mode::Human => {
+                            print!("{}", types::render(&types));
+                            Ok(EXIT_OK)
+                        }
+                        output::Mode::Json => Ok(output::finish(
+                            mode,
+                            "types",
+                            &report,
+                            Some(output::value(&types)),
+                        )),
+                    }
+                }
+                Some(TypesCommand::Add { pack, dry_run }) => {
+                    let (report, installed) = types::add(&repository, &pack, dry_run)?;
+                    if mode == output::Mode::Human {
+                        types::print_human(&report);
+                        return Ok(output::exit_code(&report));
+                    }
+                    Ok(output::finish(
+                        mode,
+                        "types.add",
+                        &report,
+                        installed.as_ref().map(output::value),
+                    ))
+                }
+            }
+        }
+        PlanCommand::Type { file, doc_type } => {
+            let repository = ctx.open_repo()?;
+            let corpus = corpus::Corpus::new(&repository);
+            let (report, adopted) = types::adopt(&corpus, &file, &doc_type)?;
+            if mode == output::Mode::Human {
+                types::print_human(&report);
+                return Ok(output::exit_code(&report));
+            }
+            Ok(output::finish(
+                mode,
+                "type",
+                &report,
+                adopted.as_ref().map(output::value),
+            ))
         }
         PlanCommand::Ask {
             alias,
