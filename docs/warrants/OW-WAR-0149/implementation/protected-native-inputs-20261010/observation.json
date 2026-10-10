@@ -1,0 +1,42 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "warrant": "OW-WAR-0149",
+  "performed_by": "agent://codex",
+  "source_files": {
+    "crates/openwarrant-cli/src/runtime_capture/protected_input.rs": "sha256:13689ca979d51612b9dfe4875797dd660eca7b921017b282069066d6efcd035a",
+    "crates/openwarrant-cli/src/runtime_capture.rs": "sha256:64ef51b39d6e5f0d7c946f49674cf3968251a843ce83707daf9ba16bdee8c3a1",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "sha256:3c4dcfd711c46ad1528c6fd9a05b0a04112537c7e8c3008eae7bd5b41a40b6ba"
+  },
+  "platform": "Linux",
+  "rust": "1.97.1",
+  "normal_collector_tests": {
+    "passed": 7,
+    "ignored": 2
+  },
+  "explicit_namespace_test": {
+    "passed": 1,
+    "controls": [
+      "Unprivileged execution UID 1 acquired operator-owned data matching an independently fixed SHA-256 literal.",
+      "Child process read original bytes from the sealed image after in-place source mutation and path replacement.",
+      "Mode-writable private image refused descriptor write and truncation; adding execute permission refused.",
+      "Writable source, symlink, wrong approved digest and exceeded byte budget refused."
+    ]
+  },
+  "clippy_all_features_all_targets": "PASS",
+  "fmt_check": "PASS",
+  "assurance_granted": false,
+  "authority_activated": false,
+  "native_cli_wiring_completed": false,
+  "generated_document_check": {
+    "state": "PASS",
+    "counts": {
+      "pass": 2028,
+      "warn": 625,
+      "unknown": 0,
+      "error": 0,
+      "worst": "warn"
+    },
+    "evidence": "protected-input-generated-check.json.gz",
+    "prior_attempt": "240-second timeout without verdict retained as UNKNOWN; subsequent bounded check completed"
+  }
+}

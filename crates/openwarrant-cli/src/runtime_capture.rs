@@ -8,8 +8,10 @@ pub mod collector_loading;
 pub mod collector_signature;
 pub(crate) mod contract_snapshot;
 pub mod katana_process;
+pub mod native_host;
 mod process;
 pub mod protected_executable;
+pub mod protected_input;
 mod recorded;
 mod selection;
 pub use selection::{
@@ -50,11 +52,14 @@ pub enum Command {
     },
     /// Inspect a retained content-addressed capture, including original bytes. Does not trust historical verdicts or establish execution.
     Show { alias: String, digest: String },
-    /// Reassess explicitly selected captures against current recorded attempts. No native adapter is configured by this CLI.
+    /// Reassess explicit captures. Opt into operator-protected native Katana configuration; otherwise native eligibility stays unknown.
     Assess {
         alias: String,
         #[arg(long)]
         selection: Utf8PathBuf,
+        /// Protected authority store with runtime-host.json and runtime-native.json. Never read native policy from the receipt or workspace.
+        #[arg(long)]
+        native_store: Option<std::path::PathBuf>,
     },
 }
 
@@ -432,14 +437,27 @@ pub fn run(repo: &Repository, command: Command) -> (Report, Value) {
             import(repo, &alias, &request, None)
         })(),
         Command::Show { alias, digest } => show(repo, &alias, &digest),
-        Command::Assess { alias, selection } => (|| {
+        Command::Assess {
+            alias,
+            selection,
+            native_store,
+        } => (|| {
             let selected = read_selection(repo, &selection)?;
-            let assessed = assess_selected(repo, &alias, &selected.selections, |_, _| None)?;
+            let native = native_store
+                .as_ref()
+                .map(|store| {
+                    native_host::NativeAssessment::load(repo, &alias, &selected.selections, store)
+                })
+                .transpose()?;
+            let assessed =
+                assess_selected(repo, &alias, &selected.selections, |dispatch, provider| {
+                    native.as_ref().and_then(|n| n.resolve(dispatch, provider))
+                })?;
             Ok(selection::render(&assessed))
         })(),
     };
     let mut report = Report::default();
-    report.notes.push("Capture retention and byte integrity only. Collector declarations and saved native verdicts do not establish authentication, execution, current-basis eligibility or assurance.".into());
+    report.notes.push("Capture retention does not establish native eligibility. Assessment requires current sources and fresh provider verification; collector declarations and saved verdicts grant no assurance.".into());
     match result {
         Ok(value) => {
             let diagnostic = match value["standing"].as_str() {
