@@ -21,3 +21,5 @@ receipts remain in the Actions artifacts and at
 `/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-kf-recovery-20261010/phase1-current-linux/`
 and the adjacent `phase1-current-macos/` directory. These are failed observations,
 not verifier dispositions or human acceptance.
+
+The corrected native run [38071530139](https://github.com/Quitetall/OpenWarrant/actions/runs/38071530139) passed on Linux. macOS reached the same selected target and failed to compile a separate collector test: `rustix::fs::mkfifoat` is unavailable on that target. The FIFO fixture now uses the Unix `mkfifo -m 600` command, as the existing progress-viewer fixture does. The assertion still requires refusal of non-regular enrollment files. All three collector-loading tests passed locally on Rust 1.97.1; the next macOS run must establish portability. No hosted pass or phase qualification is claimed.

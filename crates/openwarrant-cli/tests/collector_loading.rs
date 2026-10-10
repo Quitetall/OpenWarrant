@@ -92,12 +92,16 @@ fn symlinks_and_non_regular_enrollment_sources_are_refused() {
         Err(Fault::Rejected(_))
     ));
     let fifo = p.join("fifo");
-    rustix::fs::mkfifoat(
-        rustix::fs::CWD,
-        &fifo,
-        rustix::fs::Mode::RUSR | rustix::fs::Mode::WUSR,
-    )
-    .unwrap();
+    // mkfifoat is not exposed by rustix on macOS. Use the same Unix
+    // fixture command as the progress-viewer FIFO refusal test.
+    assert!(
+        std::process::Command::new("mkfifo")
+            .args(["-m", "600"])
+            .arg(&fifo)
+            .status()
+            .unwrap()
+            .success()
+    );
     assert!(matches!(
         LoadedEnrollment::load(&p, "fixture", &fifo, &verifier),
         Err(Fault::Rejected("regular enrollment file required"))
