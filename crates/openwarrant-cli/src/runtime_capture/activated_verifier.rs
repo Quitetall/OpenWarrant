@@ -17,8 +17,9 @@ pub struct ActivatedVerifier {
     warrant: String,
     provider: Provider,
     digest: String,
+    host: Option<super::collector_loading::HostObservation>,
 }
-fn failure(fault: Fault) -> ProviderFailure {
+pub(super) fn failure(fault: Fault) -> ProviderFailure {
     match fault {
         Fault::Rejected(message) => ProviderFailure::Rejected(message.into()),
         Fault::Unavailable(message) => ProviderFailure::Unavailable(message.into()),
@@ -66,11 +67,23 @@ impl ActivatedVerifier {
             warrant: warrant.into(),
             provider,
             digest,
+            host: None,
         };
         result.check()?;
         Ok(result)
     }
+    pub(super) fn with_host(
+        mut self,
+        host: super::collector_loading::HostObservation,
+    ) -> Result<Self, ProviderFailure> {
+        self.host = Some(host);
+        self.check()?;
+        Ok(self)
+    }
     pub fn check(&self) -> Result<(), ProviderFailure> {
+        if let Some(host) = &self.host {
+            host.check().map_err(failure)?;
+        }
         self.enrollment
             .allows_active(Use {
                 repository: &self.repository,

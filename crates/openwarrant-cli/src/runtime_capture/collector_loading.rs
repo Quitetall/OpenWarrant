@@ -18,6 +18,128 @@ pub struct LoadedEnrollment {
     authenticated: AuthenticatedEnrollment,
     active_digest: Option<String>,
 }
+/// Operator-owned local host settings, not a document-standard authority act.
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HostConfig {
+    #[serde(rename = "schema")]
+    _schema: String,
+    repository: String,
+    repository_root: PathBuf,
+    collector: String,
+    execution_uid: u32,
+}
+
+/// Host-observed identities cannot be replaced by a capture's principal labels.
+pub struct HostEnrollment {
+    repository: String,
+    collector: String,
+    enrollment: LoadedEnrollment,
+    observation: HostObservation,
+}
+pub(super) struct HostObservation {
+    store: PathBuf,
+    bytes: Vec<u8>,
+}
+impl HostObservation {
+    pub(super) fn check(&self) -> Result<(), Fault> {
+        if host_bytes(&self.store)? != self.bytes {
+            return Err(Fault::Rejected("runtime host configuration changed"));
+        }
+        Ok(())
+    }
+}
+impl HostEnrollment {
+    pub fn repository(&self) -> &str {
+        &self.repository
+    }
+    pub fn collector(&self) -> &str {
+        &self.collector
+    }
+    /// Acquires an already-activated enrollment using the protected host's
+    /// identities. This records no activation. Native input custody remains
+    /// a host responsibility; surrounding checks are not atomic launch fencing.
+    pub fn acquire_verifier(
+        self,
+        warrant: &str,
+        provider: &openwarrant_core::document::runtime::ProviderInterface,
+        executable: &Path,
+    ) -> Result<
+        super::activated_verifier::ActivatedVerifier,
+        openwarrant_core::document::runtime::ProviderFailure,
+    > {
+        self.observation
+            .check()
+            .map_err(super::activated_verifier::failure)?;
+        super::activated_verifier::ActivatedVerifier::acquire(
+            self.enrollment,
+            &self.repository,
+            &self.collector,
+            warrant,
+            provider,
+            executable,
+        )?
+        .with_host(self.observation)
+    }
+}
+fn host_bytes(store: &Path) -> Result<Vec<u8>, Fault> {
+    snapshot_for_execution(store)?;
+    #[cfg(not(unix))]
+    {
+        Err(Fault::Unavailable(
+            "protected runtime host unsupported on this platform",
+        ))
+    }
+    #[cfg(unix)]
+    {
+        use rustix::fs::{Mode, OFlags};
+        use std::os::unix::fs::MetadataExt;
+        let path = store.join("runtime-host.json");
+        let fd = rustix::fs::open(
+            &path,
+            OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW | OFlags::NONBLOCK,
+            Mode::empty(),
+        )
+        .map_err(|e| {
+            if e == rustix::io::Errno::LOOP {
+                Fault::Rejected("runtime host source is a symlink")
+            } else {
+                Fault::Unavailable("runtime host configuration unavailable")
+            }
+        })?;
+        let file = fs::File::from(fd);
+        let metadata = file
+            .metadata()
+            .map_err(|_| Fault::Unavailable("runtime host metadata unavailable"))?;
+        let owner = fs::symlink_metadata(store)
+            .map_err(|_| Fault::Unavailable("runtime host owner unavailable"))?
+            .uid();
+        if !metadata.is_file() || metadata.uid() != owner || metadata.mode() & 0o022 != 0 {
+            return Err(Fault::Rejected(
+                "regular operator-owned runtime host configuration required",
+            ));
+        }
+        if crate::authority_cmd::store::effective_write_access(&path)
+            .map_err(|_| Fault::Unavailable("runtime host effective access unavailable"))?
+        {
+            return Err(Fault::Rejected(
+                "runtime host configuration is writable by the executor",
+            ));
+        }
+        if metadata.len() > 65_536 {
+            return Err(Fault::Rejected("runtime host configuration budget"));
+        }
+        let mut bytes = Vec::new();
+        file.take(65_537)
+            .read_to_end(&mut bytes)
+            .map_err(|_| Fault::Unavailable("runtime host configuration read unavailable"))?;
+        if bytes.len() > 65_536 {
+            return Err(Fault::Rejected("runtime host configuration budget"));
+        }
+        snapshot_for_execution(store)?;
+        Ok(bytes)
+    }
+}
 fn absolute(path: &Path) -> Result<(), Fault> {
     if !path.is_absolute() || path.components().any(|p| matches!(p, Component::ParentDir)) {
         return Err(Fault::Rejected(
@@ -123,6 +245,54 @@ fn current_for_execution(root: &Path) -> Result<Revision, Fault> {
     Ok(snapshot_for_execution(root)?.revision)
 }
 impl LoadedEnrollment {
+    /// Read the operator's protected UID-to-collector/repository binding. The
+    /// caller supplies the actual workspace path, never principal labels.
+    /// Missing settings remain unavailable; there is no legacy-name fallback.
+    pub fn load_host(
+        authority_store: &Path,
+        repository_root: &Path,
+        verifier: &OpenSshSignatureCheck,
+    ) -> Result<HostEnrollment, Fault> {
+        absolute(repository_root)?;
+        let bytes = host_bytes(authority_store)?;
+        let value = crate::sdk::wire::decode_value(&bytes)
+            .map_err(|_| Fault::Rejected("runtime host configuration syntax"))?;
+        if value["schema"] != "oh.war/runtime-host-config/v1-draft.1" {
+            return Err(Fault::Unavailable(
+                "runtime host configuration schema unsupported",
+            ));
+        }
+        let config: HostConfig = serde_json::from_value(value)
+            .map_err(|_| Fault::Rejected("runtime host configuration fields"))?;
+        absolute(&config.repository_root)?;
+        let actual = repository_root
+            .canonicalize()
+            .map_err(|_| Fault::Unavailable("runtime host repository unavailable"))?;
+        if actual != config.repository_root {
+            return Err(Fault::Rejected("runtime host repository path mismatch"));
+        }
+        #[cfg(unix)]
+        if config.execution_uid != rustix::process::geteuid().as_raw() {
+            return Err(Fault::Rejected("runtime host execution account mismatch"));
+        }
+        let enrollment = Self::load_active(
+            authority_store,
+            &config.repository,
+            &config.collector,
+            verifier,
+        )?;
+        let observation = HostObservation {
+            store: authority_store.to_owned(),
+            bytes,
+        };
+        observation.check()?;
+        Ok(HostEnrollment {
+            repository: config.repository,
+            collector: config.collector,
+            enrollment,
+            observation,
+        })
+    }
     /// Load the operator-selected configuration. The trusted host still supplies
     /// the store and authenticated collector identity; this method does not
     /// turn an arbitrary caller-provided principal name into authentication.
