@@ -515,6 +515,77 @@ pub fn run_with(
     Ok(recorded)
 }
 
+/// `war init --vibe | --team | --regulated` (OW-WAR-0148 M14): after the
+/// plain init, `[preset]` and `[roles]` appended to `openwarrant.toml` with
+/// the preset's defaults; `--team` and `--regulated` also write the signing
+/// examples (`docs/authority/*.example`, never the real files, which are a
+/// human's). Returns the lines to print. Plain `war init` never calls this,
+/// so it writes no preset and behaves exactly as before.
+pub fn apply_preset(
+    root: Option<Utf8PathBuf>,
+    preset: crate::preset::Preset,
+) -> Result<Vec<String>, InitError> {
+    use crate::preset::Preset;
+    let root = init_root(root)?;
+    let config_path = root.join(CONFIG_FILE);
+    let io = |context: String| move |source: std::io::Error| InitError::Io { context, source };
+    let text =
+        fs::read_to_string(&config_path).map_err(io(format!("could not read {config_path}")))?;
+    let (updated, _) =
+        crate::preset::switch(&text, Some(preset), false).map_err(|why| InitError::Io {
+            context: format!("could not write the {preset} preset into {config_path}"),
+            source: std::io::Error::other(why),
+        })?;
+    fs::write(&config_path, updated).map_err(io(format!("could not write {config_path}")))?;
+    let d = preset.defaults();
+    let mut lines = vec![format!(
+        "preset {preset}: ticks at least {}, signing {}, the PR gate {}; [roles] admin {}, \
+         maintain {}, write {}, read and outsiders {} (docs/PRESETS.md; `war admin preset` shows \
+         or switches it)",
+        d.ticks.as_str(),
+        d.signing.as_str(),
+        if d.pr_requires_official { "on" } else { "off" },
+        d.roles[0].1,
+        d.roles[1].1,
+        d.roles[2].1,
+        d.roles[4].1,
+    )];
+    match preset {
+        Preset::Vibe => lines.push(
+            "vibe: `war done <id>` claims an unclaimed item itself, so the first done is `war \
+             create \"...\"` then `war done <id>`; nothing here asks for a signature"
+                .to_owned(),
+        ),
+        Preset::Team | Preset::Regulated => {
+            let auth = root.join("docs/authority");
+            fs::create_dir_all(&auth).map_err(io(format!("could not create {auth}")))?;
+            let mut wrote = Vec::new();
+            for (name, body) in [
+                ("roles.toml.example", ROLES_EXAMPLE),
+                ("allowed_signers.example", ALLOWED_SIGNERS_EXAMPLE),
+            ] {
+                let p = auth.join(name);
+                if !p.exists() {
+                    fs::write(&p, body).map_err(io(format!("could not write {p}")))?;
+                    wrote.push(format!("docs/authority/{name}"));
+                }
+            }
+            lines.push(format!(
+                "signing ({}): {}copy them to roles.toml and allowed_signers when a person \
+                 signs; `war admin doctor --fix-signing` walks it. Agents never wait on a \
+                 signature",
+                d.signing.as_str(),
+                if wrote.is_empty() {
+                    String::new()
+                } else {
+                    format!("wrote {}; ", wrote.join(" and "))
+                }
+            ));
+        }
+    }
+    Ok(lines)
+}
+
 /// `war init --program`: everything `run` writes, plus a SAS the tool can read,
 /// the authority examples, the repository's own gate, and a first Warrant
 /// whose atoms are real. `war check` on the result exits 0, and `war sign sas

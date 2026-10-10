@@ -61,21 +61,26 @@ pub mod model;
 pub mod new;
 pub mod next;
 pub mod notice;
+pub mod notify;
+pub mod official;
 pub mod output;
 pub mod overview;
 pub mod ownership;
 pub mod perform;
 pub mod pins;
 pub mod plan;
+pub mod pr_gate;
 pub mod preflight_cmd;
 pub mod prepare;
 pub mod preservation;
+pub mod preset;
 pub mod progress;
 pub mod progress_viewer;
 pub mod projects;
 pub mod questions;
 pub mod records;
 pub mod relations;
+pub mod release_cmd;
 pub mod remedy;
 pub mod render_cmd;
 pub mod repo;
@@ -507,6 +512,8 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "sas",
             "inbox",
             "authority",
+            "approve",
+            "release",
         ],
     ),
     (
@@ -557,6 +564,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "version",
             "schemas",
             "merge-ticket",
+            "preset",
         ],
     ),
 ];
@@ -614,6 +622,19 @@ enum DailyCommand {
         /// unless it names a commit in HEAD's history.
         #[arg(long, value_name = "COMMIT", conflicts_with = "guided")]
         baseline: Option<String>,
+        /// The vibe preset (docs/PRESETS.md): no signatures, no PR gate, and
+        /// `war done` claims an unclaimed item itself. Without a preset flag,
+        /// no preset is written and nothing changes.
+        #[arg(long, conflicts_with_all = ["guided", "team", "regulated"])]
+        vibe: bool,
+        /// The team preset: the PR gate on, signatures batched at release,
+        /// and the signing examples under docs/authority/.
+        #[arg(long, conflicts_with_all = ["guided", "regulated"])]
+        team: bool,
+        /// The regulated preset: every tick observed, signatures at merge, a
+        /// test (or a formal Warrant) from everyone, and the signing examples.
+        #[arg(long, conflicts_with = "guided")]
+        regulated: bool,
     },
     /// Create a Warrant (a ticket) and print its id: a title is enough.
     ///
@@ -864,6 +885,23 @@ enum DailyCommand {
         /// Also compare committed generated views against a fresh compilation.
         #[arg(long)]
         generated: bool,
+        /// The PR gate (docs/PRESETS.md): read PR <NUMBER> through `gh api`
+        /// and pass only when it cites a Warrant official at its author's
+        /// level. This reads the network; a call that fails is UNKNOWN,
+        /// never a pass.
+        #[arg(long, value_name = "NUMBER", conflicts_with_all = ["alias", "generated"])]
+        pr: Option<String>,
+        /// With --pr: the repository, `owner/name` (default:
+        /// $GITHUB_REPOSITORY, else what `gh repo view` names).
+        #[arg(long, value_name = "OWNER/NAME", requires = "pr")]
+        repo: Option<String>,
+        /// With --pr: append the Markdown summary to this file
+        /// ($GITHUB_STEP_SUMMARY in CI).
+        #[arg(long, value_name = "FILE", requires = "pr")]
+        summary: Option<Utf8PathBuf>,
+        /// With --pr: post the summary as a comment on the PR through `gh`.
+        #[arg(long, requires = "pr")]
+        comment: bool,
     },
 }
 
@@ -1943,6 +1981,86 @@ enum ViewGroup {
     Timeline,
 }
 
+/// `war sign …`: the members, and the two acts new with OW-WAR-0148 M14.
+/// Neither is a top-level spelling: `war release` was always the claim's
+/// release (`war admin release`), so only the group's spelling exists.
+#[derive(Subcommand)]
+enum SignGroup {
+    #[command(flatten)]
+    Member(SignCommand),
+    /// Approve a Warrant as an official plan (docs/PRESETS.md).
+    ///
+    /// Without `--ssh-sign`, the request: what an approval binds, who may
+    /// sign it, recorded in the Warrant's journal so `war next` and `war
+    /// sign inbox` list it, and `[notify]` run. Nothing is signed and no key
+    /// is asked. With `--ssh-sign`, a person's approval, signed with their
+    /// key and recorded only when the signature verifies as theirs, by a
+    /// roster principal whose role in `[roles.roster]` allows the Warrant's
+    /// kind.
+    Approve {
+        /// A light Warrant's id (`t-...`).
+        #[arg(value_name = "WARRANT")]
+        id: String,
+        /// Sign as this person (required when more than one may).
+        #[arg(long = "as", value_name = "HUMAN")]
+        actor: Option<String>,
+        /// Your own words, appended to the drafted meaning.
+        #[arg(long)]
+        meaning: Option<String>,
+        /// Sign with your ssh key (`docs/authority/allowed_signers`).
+        #[arg(long)]
+        ssh_sign: bool,
+        /// Draft the approval and say whether it would be recorded; writes
+        /// nothing, touches no key.
+        #[arg(long, conflicts_with = "ssh_sign")]
+        dry_run: bool,
+    },
+    /// Sign what the preset asks for before a release, in one batch.
+    ///
+    /// Lists every act awaiting a signature (`war sign --list`), drafts the
+    /// ones one signature can carry, and says which sign alone or in a
+    /// second batch. Without `--ssh-sign` it is the request: nothing is
+    /// written, no key is asked, and `[notify]` runs. With `--ssh-sign` it is
+    /// `war sign --batch`, each response's meaning naming the release. Under
+    /// the vibe preset nothing is asked for.
+    Release {
+        /// The release, as you tag it (`v1.2.0`).
+        tag: String,
+        /// Sign as this person (required when more than one may).
+        #[arg(long = "as", value_name = "HUMAN")]
+        actor: Option<String>,
+        /// Sign the batch with your ssh key.
+        #[arg(long)]
+        ssh_sign: bool,
+        /// Judge the batch as the signature would, and stop; writes nothing.
+        #[arg(long, conflicts_with = "ssh_sign")]
+        dry_run: bool,
+    },
+}
+
+/// `war admin …`: the members, and `preset`, new with OW-WAR-0148 M14 and
+/// only under the group.
+#[allow(clippy::large_enum_variant)]
+#[derive(Subcommand)]
+enum AdminGroup {
+    #[command(flatten)]
+    Member(AdminCommand),
+    /// Show the repo preset, or switch it (docs/PRESETS.md).
+    ///
+    /// `vibe`, `team` or `regulated` rewrites `[preset]` in openwarrant.toml
+    /// with the preset's defaults, and writes its `[roles]` when the file
+    /// has none; `none` removes `[preset]`. Every other byte of the file is
+    /// kept. Alone, it shows the preset in force and what follows from it.
+    Preset {
+        /// vibe, team, regulated, or none.
+        name: Option<String>,
+        /// Also write the preset's [roles] over the table in the file
+        /// ([roles.roster] is kept).
+        #[arg(long, requires = "name")]
+        reset_roles: bool,
+    },
+}
+
 /// `war plan`: a drafting request alone, or one of the group's members.
 #[derive(clap::Args)]
 struct PlanArgs {
@@ -2001,7 +2119,7 @@ struct PlanArgs {
 #[derive(clap::Args)]
 struct SignArgs {
     #[command(subcommand)]
-    command: Option<SignCommand>,
+    command: Option<SignGroup>,
     /// A Warrant alias, a SAS version, `<alias>/<D-id>` (a correction),
     /// `roadmap`, or `<gate_id>@<version>` (a gate invalidation, with
     /// --grounds). Omit with --list or --all.
@@ -2128,7 +2246,7 @@ enum Command {
     /// the integrations (MCP, SDK, Liminal host, git's merge driver).
     Admin {
         #[command(subcommand)]
-        command: AdminCommand,
+        command: AdminGroup,
     },
     // Every earlier spelling: each group's members once more at the top
     // level, hidden by `command()` so help never lists them.
@@ -2228,6 +2346,47 @@ pub fn entrypoint() -> ExitCode {
     };
     notice::after(leaf, json);
     code
+}
+
+/// OW-WAR-0148 M14: under a preset (or a `[roles]` table), `war show` and
+/// `war status <id>` of a light Warrant end with whether it is official, and
+/// why. Without one the answer is the bytes it always was.
+fn with_official(
+    repository: &repo::Repository,
+    id: &str,
+    mut outcome: ticket::Outcome,
+) -> ticket::Outcome {
+    if outcome.is_refused() {
+        return outcome;
+    }
+    if let Some((md, value)) = official_section(repository, id) {
+        if !outcome.human.ends_with('\n') {
+            outcome.human.push('\n');
+        }
+        outcome.human.push_str(md.trim_end());
+        if let Some(obj) = outcome.result.as_object_mut() {
+            obj.insert("official".to_owned(), value);
+        }
+    }
+    outcome
+}
+
+/// The `## Official` section and its JSON for one Warrant, when a preset
+/// (or `[roles]`) is configured; `None` otherwise.
+fn official_section(
+    repository: &repo::Repository,
+    id: &str,
+) -> Option<(String, serde_json::Value)> {
+    let policy = preset::Policy::read_or_default(&repository.root);
+    if !policy.configured() {
+        return None;
+    }
+    let subject = official::subject(repository, id).ok()?;
+    let standing = official::local(repository, &policy, subject);
+    Some((
+        standing.section(&policy),
+        serde_json::to_value(&standing).unwrap_or_default(),
+    ))
 }
 
 /// Print a ticket command's answer and return its exit code: the rendering
@@ -2361,7 +2520,13 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         Command::EvidenceMember(c) => run_evidence_member(&ctx, c),
         Command::View { command } => run_view(&ctx, command),
         Command::ViewMember(c) => run_view_member(&ctx, c),
-        Command::Admin { command } | Command::AdminMember(command) => run_admin(&ctx, command),
+        Command::Admin {
+            command: AdminGroup::Member(command),
+        }
+        | Command::AdminMember(command) => run_admin(&ctx, command),
+        Command::Admin {
+            command: AdminGroup::Preset { name, reset_roles },
+        } => run_preset(&ctx, name.as_deref(), reset_roles),
         Command::ReleaseCheck => {
             notice::refresh();
             Ok(EXIT_OK)
@@ -2578,8 +2743,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
         DailyCommand::Show { alias, .. }
             if warrants::kind_of(&alias) == warrants::IdKind::Light =>
         {
-            let (_, store) = ctx.tickets(None)?;
-            Ok(ticket_answer(mode, "show", &ticket::show(&store, &alias)?))
+            let (repository, store) = ctx.tickets(None)?;
+            let shown = with_official(&repository, &alias, ticket::show(&store, &alias)?);
+            Ok(ticket_answer(mode, "show", &shown))
         }
         // M10: a Warrant read in place shows from its folder, written to
         // never.
@@ -2615,9 +2781,21 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             } else {
                 None
             };
+            // OW-WAR-0148 M14: whether it is official, under a preset only.
+            let official = if matches!(view.as_str(), "full_warrant" | "status") {
+                official_section(&repository, &alias).map(|(md, v)| {
+                    rendered.push_str(&md);
+                    v
+                })
+            } else {
+                None
+            };
             let mut result = serde_json::json!({"alias": alias, "view": view, "rendered": rendered, "review": review});
             if let Some(d) = declared {
                 result["declared_states"] = serde_json::json!(d);
+            }
+            if let Some(v) = official {
+                result["official"] = v;
             }
             output::emit(mode, "show", &rendered, result);
             Ok(EXIT_OK)
@@ -2625,12 +2803,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
         DailyCommand::Status {
             alias: Some(alias), ..
         } if warrants::kind_of(&alias) == warrants::IdKind::Light => {
-            let (_, store) = ctx.tickets(None)?;
-            Ok(ticket_answer(
-                mode,
-                "status",
-                &ticket::show(&store, &alias)?,
-            ))
+            let (repository, store) = ctx.tickets(None)?;
+            let shown = with_official(&repository, &alias, ticket::show(&store, &alias)?);
+            Ok(ticket_answer(mode, "status", &shown))
         }
         DailyCommand::Status {
             alias: Some(alias), ..
@@ -2687,12 +2862,15 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     // OW-WAR-0137, OBL-004: who acted, from the records.
                     let review = status::review_of(&repository, &repository.warrant_dir(&alias)?)?;
                     rendered.push_str(&status::render_review(&review));
-                    output::emit(
-                        mode,
-                        "status",
-                        &rendered,
-                        serde_json::json!({"alias": alias, "view": "status", "rendered": rendered, "review": review}),
-                    );
+                    let official = official_section(&repository, &alias).map(|(md, v)| {
+                        rendered.push_str(&md);
+                        v
+                    });
+                    let mut result = serde_json::json!({"alias": alias, "view": "status", "rendered": rendered, "review": review});
+                    if let Some(v) = official {
+                        result["official"] = v;
+                    }
+                    output::emit(mode, "status", &rendered, result);
                 }
                 None => match mode {
                     // The corpus projection IS canonical JSON already; under
@@ -2710,6 +2888,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         let adapted = interop::adapters::load(&repository);
                         if !adapted.is_empty() {
                             value["read_in_place"] = interop::adapters::status(&adapted).1;
+                        }
+                        // OW-WAR-0148 M14: each Warrant's officialness, under
+                        // a preset only; never in the committed projection.
+                        let policy = preset::Policy::read_or_default(&repository.root);
+                        if policy.configured() {
+                            value["official"] =
+                                serde_json::json!(official::corpus(&repository, &policy));
                         }
                         output::emit(mode, "status", &text, value);
                     }
@@ -2732,6 +2917,16 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                             let gap = if text.ends_with('\n') { "" } else { "\n" };
                             println!("{gap}{}", block.trim_end());
                         }
+                        // OW-WAR-0148 M14: under a preset, whether each
+                        // Warrant is official, after the projection.
+                        let policy = preset::Policy::read_or_default(&repository.root);
+                        if policy.configured() {
+                            let standings = official::corpus(&repository, &policy);
+                            println!(
+                                "\n{}",
+                                official::corpus_block(&standings, &policy).trim_end()
+                            );
+                        }
                     }
                 },
             }
@@ -2744,7 +2939,19 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             guided,
             non_interactive: _,
             baseline,
+            vibe,
+            team,
+            regulated,
         } => {
+            // OW-WAR-0148 M14: the preset is written after everything plain
+            // init writes, so without a flag the bytes are today's.
+            let preset = [
+                (vibe, preset::Preset::Vibe),
+                (team, preset::Preset::Team),
+                (regulated, preset::Preset::Regulated),
+            ]
+            .into_iter()
+            .find_map(|(on, p)| on.then_some(p));
             let chosen = baseline
                 .as_deref()
                 .map_or(init::Baseline::Head, init::Baseline::Named);
@@ -2798,6 +3005,11 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     }
                 }
             }
+            if let Some(p) = preset {
+                for line in init::apply_preset(ctx.root.clone(), p)? {
+                    println!("{line}");
+                }
+            }
             Ok(EXIT_OK)
         }
         DailyCommand::Next => {
@@ -2813,7 +3025,53 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             );
             Ok(EXIT_OK)
         }
-        DailyCommand::Check { alias, generated } => {
+        DailyCommand::Check {
+            pr: Some(pr),
+            repo,
+            summary,
+            comment,
+            ..
+        } => {
+            let repository = ctx.open_repo()?;
+            let args = pr_gate::Args {
+                pr,
+                repo,
+                summary,
+                comment,
+            };
+            let (mut report, answer) = pr_gate::run(&repository, &args);
+            pr_gate::publish(&repository, &args, &mut report, &answer);
+            match mode {
+                output::Mode::Human => {
+                    for d in &report.diagnostics {
+                        println!("{d}");
+                    }
+                    println!(
+                        "PR #{} in {}: {}",
+                        answer.pr,
+                        if answer.repo.is_empty() {
+                            "?"
+                        } else {
+                            answer.repo.as_str()
+                        },
+                        match answer.verdict {
+                            "pass" => "passes",
+                            "not_required" => "passes (the preset does not require it)",
+                            "refused" => "refused",
+                            _ => "UNKNOWN, never a pass",
+                        }
+                    );
+                }
+                output::Mode::Json => println!(
+                    "{}",
+                    output::envelope("check.pr", &report, Some(output::value(&answer)))
+                ),
+            }
+            Ok(output::exit_code(&report))
+        }
+        DailyCommand::Check {
+            alias, generated, ..
+        } => {
             let repository = ctx.open_repo()?;
             // A ticket is checked for its structure only (OW-WAR-0147): never
             // for a signature, evidence or verification it does not need.
@@ -2852,6 +3110,15 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     )),
                 }
                 interop::adapters::check(&repository, None, &mut report);
+                // OW-WAR-0148 M14: a [preset], [roles] or [notify] table that
+                // does not read is refused by key; an absent one says nothing.
+                if let Err(e) = preset::Policy::read(&repository.root) {
+                    report.push(diagnostic::Diagnostic::error(
+                        preset::CONFIG_RULE,
+                        init::CONFIG_FILE.to_owned(),
+                        e,
+                    ));
+                }
             }
             // A non-zero exit for an unsound Warrant is what lets CI gate on it.
             Ok(output::finish(mode, "check", &report, None))
@@ -3328,8 +3595,23 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             blocking,
         } => {
             let repository = ctx.open_repo()?;
-            let report =
+            let mut report =
                 questions::ask(&repository, &alias, &stage, &question, &recommend, blocking)?;
+            // OW-WAR-0148 M14: a question waits on a person; `[notify]` says
+            // so when it is configured.
+            if report.is_ready()
+                && let Some(d) = notify::human_waits(
+                    &repository.root,
+                    &notify::Wait {
+                        event: "question.asked",
+                        subject: &alias,
+                        message: &format!("{alias}/{stage} asks: {question}"),
+                        command: &format!("war plan questions {alias}"),
+                    },
+                )
+            {
+                report.push(d);
+            }
             Ok(output::finish(mode, "ask", &report, None))
         }
         PlanCommand::Answer {
@@ -3403,9 +3685,63 @@ fn run_sign(ctx: &Ctx, args: SignArgs) -> Result<u8, Box<dyn std::error::Error>>
     let mode = ctx.mode;
     match args {
         SignArgs {
-            command: Some(command),
+            command: Some(SignGroup::Member(command)),
             ..
         } => run_sign_member(ctx, command),
+        // OW-WAR-0148 M14: a person's approval of a Warrant.
+        SignArgs {
+            command:
+                Some(SignGroup::Approve {
+                    id,
+                    actor,
+                    meaning,
+                    ssh_sign,
+                    dry_run,
+                }),
+            ..
+        } => {
+            let repository = ctx.open_repo()?;
+            let store = ticket::Store::open(&repository, None)?;
+            let args = official::ApproveArgs {
+                actor,
+                meaning,
+                ssh_sign,
+                dry_run,
+            };
+            Ok(ticket_answer(
+                mode,
+                "sign.approve",
+                &official::approve(&repository, &store, &id, &args)?,
+            ))
+        }
+        // OW-WAR-0148 M14: one batch of what the preset asks before a release.
+        SignArgs {
+            command:
+                Some(SignGroup::Release {
+                    tag,
+                    actor,
+                    ssh_sign,
+                    dry_run,
+                }),
+            ..
+        } => {
+            let repository = ctx.open_repo()?;
+            let (report, result, human) =
+                release_cmd::run(&repository, &tag, actor, ssh_sign, dry_run)?;
+            match mode {
+                output::Mode::Human => {
+                    if !human.is_empty() {
+                        println!("{human}");
+                    }
+                    check::print(&report);
+                }
+                output::Mode::Json => println!(
+                    "{}",
+                    output::envelope("sign.release", &report, Some(result))
+                ),
+            }
+            Ok(output::exit_code(&report))
+        }
 
         // OW-WAR-0148 M13: a human's sign-off of one ticket item.
         SignArgs {
@@ -3645,6 +3981,19 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
                         output::value(&request),
                     );
                     if request.requirements_met {
+                        // OW-WAR-0148 M14: `[notify]`, when configured.
+                        notify::say(
+                            notify::human_waits(
+                                &repository.root,
+                                &notify::Wait {
+                                    event: "resolve.requested",
+                                    subject: &alias,
+                                    message: &format!("{alias} waits on a resolution"),
+                                    command: &format!("war sign {alias}"),
+                                },
+                            )
+                            .as_ref(),
+                        );
                         eprintln!(
                             "# {alias}: all 13 §56.1 requirements met. Permitted outcomes: {}. \
                              Eligible resolvers: {}.",
@@ -3857,6 +4206,19 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
                     eprintln!(
                         "# Fill in authorizer, acting_role, meaning and effective_time, then:\n\
                          #   war sign authorize {alias} --response <file>"
+                    );
+                    // OW-WAR-0148 M14: `[notify]`, when configured.
+                    notify::say(
+                        notify::human_waits(
+                            &repository.root,
+                            &notify::Wait {
+                                event: "authorize.requested",
+                                subject: &alias,
+                                message: &format!("{alias} waits on an authorization"),
+                                command: &format!("war sign {alias}"),
+                            },
+                        )
+                        .as_ref(),
                     );
                     Ok(EXIT_OK)
                 }
@@ -4416,6 +4778,83 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             Ok(EXIT_OK)
         }
     }
+}
+
+/// `war admin preset [<name>] [--reset-roles]` (OW-WAR-0148 M14).
+fn run_preset(
+    ctx: &Ctx,
+    name: Option<&str>,
+    reset_roles: bool,
+) -> Result<u8, Box<dyn std::error::Error>> {
+    let mode = ctx.mode;
+    let repository = ctx.open_repo()?;
+    let path = repository.root.join(init::CONFIG_FILE);
+    let refused = |rule: &str, why: String| {
+        ticket_answer(
+            mode,
+            "preset",
+            &ticket::Outcome::refused(rule, init::CONFIG_FILE, why),
+        )
+    };
+    let Some(name) = name else {
+        return Ok(match preset::Policy::read(&repository.root) {
+            Ok(policy) => {
+                output::emit(mode, "preset", &policy.render(), output::value(&policy));
+                EXIT_OK
+            }
+            Err(e) => refused(preset::CONFIG_RULE, e),
+        });
+    };
+    let to = if name == "none" {
+        None
+    } else if let Some(p) = preset::Preset::parse(name) {
+        Some(p)
+    } else {
+        return Ok(refused(
+            "preset.unknown",
+            format!(
+                "{name:?} is not a preset: `war admin preset vibe`, `team`, `regulated`, or \
+                 `none`; nothing was written"
+            ),
+        ));
+    };
+    let text = std::fs::read_to_string(&path).map_err(|source| repo::RepoError::Io {
+        context: format!("could not read {path}"),
+        source,
+    })?;
+    let (updated, switched) = match preset::switch(&text, to, reset_roles) {
+        Ok(v) => v,
+        Err(why) => return Ok(refused(preset::CONFIG_RULE, why)),
+    };
+    if updated != text {
+        std::fs::write(&path, &updated).map_err(|source| repo::RepoError::Io {
+            context: format!("could not write {path}"),
+            source,
+        })?;
+    }
+    let policy = preset::Policy::from_text(&updated)
+        .map_err(|e| repo::RepoError::Message(format!("{}: {e}", preset::CONFIG_RULE)))?;
+    let roles = match switched.roles {
+        "written" => "its [roles] written".to_owned(),
+        "kept" => format!(
+            "your [roles] kept (`war admin preset {name} --reset-roles` writes the preset's)"
+        ),
+        _ => "no [roles] table".to_owned(),
+    };
+    let human = format!(
+        "preset {} -> {}; {roles}\n{}",
+        switched.from.map_or("none", preset::Preset::as_str),
+        switched.to.map_or("none", preset::Preset::as_str),
+        policy.render()
+    );
+    Ok(ticket_answer(
+        mode,
+        "preset",
+        &ticket::Outcome::ok(
+            human,
+            serde_json::json!({"switched": switched, "policy": policy}),
+        ),
+    ))
 }
 
 fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error::Error>> {

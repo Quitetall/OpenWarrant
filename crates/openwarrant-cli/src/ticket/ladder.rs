@@ -80,10 +80,15 @@ pub fn minimum(
     item: Option<&str>,
 ) -> (Level, MinimumSource) {
     let milestone = item.and_then(|i| checks.milestone(i)).map(|m| m.min);
-    store
+    let (level, source) = store
         .definition
         .ticks
-        .minimum(t.manifest.kind.as_deref(), milestone)
+        .minimum(t.manifest.kind.as_deref(), milestone);
+    // OW-WAR-0148 M14: the repo preset's floor, when it is higher.
+    if store.tick_floor > level {
+        return (store.tick_floor, MinimumSource::Preset);
+    }
+    (level, source)
 }
 
 /// The command that ticks an item at `level`, for a refusal to name.

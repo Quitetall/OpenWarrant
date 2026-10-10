@@ -126,6 +126,10 @@ pub struct Next {
     /// authority register may answer. UNKNOWN, never silently "waiting".
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub findings: Vec<Finding>,
+    /// OW-WAR-0148 M14: under a preset that signs at release, the one
+    /// command that signs the queue above in one batch. Absent otherwise.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub release: Option<String>,
 }
 
 /// A finding carried into `war next`, in the envelope diagnostic's shape.
@@ -365,6 +369,7 @@ pub fn derive(
         nothing,
         idle: None,
         findings: Vec::new(),
+        release: None,
     }
 }
 
@@ -446,6 +451,7 @@ pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
         next.nothing = None;
     }
     judge(repo, pending, &mut next);
+    preset_acts(repo, &mut next);
     ready_tickets_with(corpus, &mut next);
     if next.actions.is_empty() && next.ready.is_empty() {
         // M9: an empty list is said as what it means for ordinary work. A
@@ -549,6 +555,62 @@ pub fn judge(repo: &Repository, pending: &[Pending], next: &mut Next) {
                 }),
         );
     }
+    order(next);
+}
+
+/// OW-WAR-0148 M14: the human acts a preset adds, only where one (or a
+/// `[roles]` table) is configured: each approval someone asked for (`war
+/// sign approve <id> --ssh-sign`, judged by its own dry run), and, when the
+/// preset signs at release and two or more acts wait, the one command that
+/// signs them in a batch. Without a preset the list is what it always was.
+pub fn preset_acts(repo: &Repository, next: &mut Next) {
+    let policy = crate::preset::Policy::read_or_default(&repo.root);
+    if !policy.configured() {
+        return;
+    }
+    let signing_acts = next
+        .actions
+        .iter()
+        .filter(|a| a.actor == Actor::Human && a.command.starts_with("war sign "))
+        .count();
+    if policy.signing == crate::preset::Signing::Release && signing_acts >= 2 {
+        next.release = Some(format!(
+            "{signing_acts} acts above can be signed in one sitting at release: `war sign \
+             release <tag>` lists them and drafts the one batch"
+        ));
+    }
+    let requested = crate::official::requested(repo);
+    if requested.is_empty() {
+        return;
+    }
+    let store = crate::ticket::Store::open(repo, None).ok();
+    for r in requested {
+        let judged = store.as_ref().map_or(
+            Judged::WouldRefuse {
+                rule: "sign.dry-run-failed".to_owned(),
+            },
+            |st| {
+                let args = crate::official::ApproveArgs {
+                    dry_run: true,
+                    ..crate::official::ApproveArgs::default()
+                };
+                verdict(crate::official::approve(repo, st, &r.warrant, &args).map(|o| o.report))
+            },
+        );
+        next.actions.push(Action {
+            actor: Actor::Human,
+            warrant: r.warrant.clone(),
+            action: "approve".to_owned(),
+            command: r.command.clone(),
+            why: format!(
+                "{} asked for an approval of this {} Warrant (\"{}\"); approved, it is official",
+                r.requested_by, r.kind, r.title
+            ),
+            judged: Some(judged),
+        });
+    }
+    next.nothing = None;
+    next.idle = None;
     order(next);
 }
 
@@ -690,6 +752,9 @@ pub fn render(n: &Next) -> String {
             a.why
         ));
     }
+    if let Some(r) = &n.release {
+        s.push_str(&format!("{:>6} {r}\n", ""));
+    }
     if let Some(lines) = idle_lines(n) {
         for l in lines {
             s.push_str(&l);
@@ -776,6 +841,7 @@ mod tests {
             nothing: None,
             idle: None,
             findings: Vec::new(),
+            release: None,
         };
         apply_questions(&mut next, &frontier, &report);
         let offered: Vec<&str> = next.actions.iter().map(|a| a.command.as_str()).collect();
@@ -804,6 +870,7 @@ mod tests {
             nothing: None,
             idle: None,
             findings: Vec::new(),
+            release: None,
         };
         apply_questions(&mut next, &frontier, &crate::diagnostic::Report::default());
         assert!(next.actions.is_empty());
@@ -923,6 +990,7 @@ mod tests {
             nothing: None,
             idle: None,
             findings: Vec::new(),
+            release: None,
         };
         let out = render(&next);
         let claim = out
@@ -952,6 +1020,7 @@ mod tests {
             nothing: Some("no signature is waiting".to_owned()),
             idle: Some(IDLE_UNTRACKED.to_owned()),
             findings: Vec::new(),
+            release: None,
         };
         let out = render(&next);
         // M9: the first line is permission, the second the reason, the third
@@ -990,6 +1059,7 @@ mod tests {
             nothing: None,
             idle: None,
             findings: Vec::new(),
+            release: None,
         };
         order(&mut next);
         assert_eq!(next.actions[0].actor, Actor::Agent);

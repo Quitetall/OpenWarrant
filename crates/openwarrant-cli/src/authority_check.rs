@@ -87,6 +87,11 @@ pub enum Act {
     /// `<ticket>--<item>`; it moves the tick to `signed` on the ladder and
     /// authorizes nothing else.
     SignOff,
+    /// OW-WAR-0148 M14 — a human approves a Warrant as an official plan,
+    /// over a statement of its id, title, description, items and tests.
+    /// Subject `<id>`; it makes the Warrant official for the roles the
+    /// approver's role allows, and authorizes nothing else.
+    Approve,
 }
 
 impl Act {
@@ -108,6 +113,7 @@ impl Act {
             Self::AcceptStanding => "oh.war/standing-acceptance-response/v1",
             Self::RevokeStanding => "oh.war/standing-revocation-response/v1",
             Self::SignOff => "oh.war/tick-signoff-response/v1",
+            Self::Approve => "oh.war/warrant-approval-response/v1",
         }
     }
 
@@ -122,6 +128,7 @@ impl Act {
             Self::AcceptStanding => "standing authorization",
             Self::RevokeStanding => "standing revocation",
             Self::SignOff => "sign-off",
+            Self::Approve => "approval",
         }
     }
 }
@@ -207,6 +214,7 @@ pub fn response_stem(act: Act, subject: &str) -> String {
         Act::Invalidate => format!("{subject}.invalidation"),
         Act::RevokeStanding => format!("{subject}.revocation"),
         Act::SignOff => format!("{subject}.signoff"),
+        Act::Approve => format!("{subject}.approval"),
     }
 }
 
@@ -928,6 +936,9 @@ const fn role_for(act: Act) -> &'static str {
         | Act::AcceptRoadmap
         | Act::AcceptStanding
         | Act::RevokeStanding => "authorizer",
+        // OW-WAR-0148 M14: approving a plan says the work may go ahead, as
+        // an authorization does.
+        Act::Approve => "authorizer",
     }
 }
 

@@ -232,7 +232,10 @@ Nobody signed anything. The next agent's `war view prime` shows only what is lef
 agent works on it. A second agent's claim is refused and names who holds it and
 since when. Of two agents claiming at the same instant, exactly one wins.
 `war done` refuses an item nobody claimed, or someone else did, so two agents
-never finish the same thing.
+never finish the same thing. Under the vibe preset (`war init --vibe`,
+docs/PRESETS.md) a `war done` on an item nobody holds and nothing blocks
+claims it first, journalled as a claim and then the tick; one someone else
+holds is still refused.
 
 Claims are lock files, never committed; every claim, release and steal is
 also a line in the ticket's journal, which is. In a git checkout the locks

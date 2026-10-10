@@ -228,6 +228,8 @@ pub enum MinimumSource {
     Type,
     /// The milestone's own `min` (`war add --milestone ... --min`).
     Milestone,
+    /// The repo preset's `[preset] ticks` (OW-WAR-0148 M14).
+    Preset,
 }
 
 impl MinimumSource {
@@ -239,6 +241,7 @@ impl MinimumSource {
             Self::ProfileMilestone => "the profile's [ticks] milestone minimum",
             Self::Type => "the minimum the ticket's type sets ([ticks.types])",
             Self::Milestone => "the milestone's own minimum",
+            Self::Preset => "the repo preset's [preset] ticks minimum",
         }
     }
 }

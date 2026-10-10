@@ -275,3 +275,74 @@ file that exists prints the lines to add by hand, because no command edits
 those files once written (OW-ADR-0021). Every `war sign` refusal names the
 missing piece, carries a remedy, and ends "This blocks only the sign-off, not
 your work."
+
+## The PR gate as a required status check
+
+`war check --pr <number>` passes a pull request only when it cites a Warrant
+that is official at its author's level (docs/PRESETS.md). The composite
+action `.github/actions/openwarrant-check` runs it in CI. It uses no other
+action: it builds `war` from its own commit with `cargo` (preinstalled on
+GitHub's runners), or, with `war-version`, installs that release through
+`install.sh`, which verifies the published checksum.
+
+Add a workflow to the repository the gate guards, pinning both actions by
+commit:
+
+```yaml
+# .github/workflows/openwarrant.yml
+name: openwarrant
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+  pull_request_review:
+    types: [submitted, dismissed]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  openwarrant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
+        # with:
+        #   war-version: v1.0.0-alpha.3   # a release instead of a build
+        #   comment: "true"               # also comment; needs pull-requests: write
+```
+
+The job reruns when someone reviews, because an approving review can be
+what makes the cited Warrant official. Its inputs are `pr` (default: the
+event's), `github-token` (default: `github.token`), `war-version`,
+`comment` and `working-directory`; its output `verdict` is `pass`,
+`not_required`, `refused` or `unknown`. The job summary carries the gate's
+table either way.
+
+Then make it required with a ruleset:
+
+1. Settings, then Rules, then Rulesets, then **New ruleset**, then **New
+   branch ruleset**.
+2. Name it, set **Enforcement status** to Active, and under **Target
+   branches** add the default branch (or every branch PRs merge into).
+3. Tick **Require status checks to pass**, then **Add checks**, and choose
+   `openwarrant` (the job's name; it is offered once the workflow has run
+   on a PR). Leave **Require branches to be up to date** as your repository
+   prefers.
+4. Optionally tick **Require a pull request before merging** with one
+   approval, so a person's review is asked for anyway, and **Dismiss stale
+   pull request approvals when new commits are pushed**, which agrees with
+   the gate counting an approval only at the head commit.
+5. Save. A PR whose check is refused or UNKNOWN cannot merge.
+
+GitHub's rulesets cannot condition on who opened the PR; the check does,
+which is why it reads the author's role itself.
+
+Pull requests from forks get a read-only `GITHUB_TOKEN` under
+`pull_request`, which can read the PR, its reviews and a collaborator's
+permission on a public repository. If a call is refused, the check is
+UNKNOWN and fails: it never passes on what it could not read, and a
+maintainer reruns it. A repository that runs it under
+`pull_request_target` instead must keep the job to what it is here:
+`war` built from the pinned action, the PR's files read as data, and none
+of the PR's code run.
+
+This repository's own `.github/workflows/ci.yml` does not run the gate.

@@ -51,6 +51,14 @@ The candidate is not signed adoption or proof of shipped behavior.
   (`constrains md:CLAUDE.md#testing`) and `war plan impact` follows the citations.
 - **Preset:** the typed skeleton `war plan new --preset` writes: each heading and the
   question it answers. Presets ask; the author answers.
+- **Repo preset:** `vibe`, `team` or `regulated` in `openwarrant.toml`'s `[preset]`
+  (`war init --vibe`, `war admin preset`): the least every tick shows, when signatures
+  are asked for, and whether the PR gate needs an official Warrant. Absent, nothing
+  changes (docs/PRESETS.md). Not `[[sign.preset]]`, a signer's saved reason.
+- **Official Warrant:** one made by someone whose role (`[roles]`, mirroring GitHub's)
+  allows its kind (vibe, tested, formal), or approved by such a person: `war sign
+  approve` with a roster key, or an approving GitHub review read by `war check --pr`.
+  It authorizes nothing; unofficial Warrants are worked like any other.
 - **Work stop:** declared scope complete, with generated progress and evidence links.
 - **Agent/harness stop:** interrupted execution, not completion.
 

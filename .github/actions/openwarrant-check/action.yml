@@ -1,0 +1,101 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# The OpenWarrant PR gate as a GitHub Action (OW-WAR-0148 M14; docs/PRESETS.md,
+# docs/INSTALL.md "The PR gate as a required status check").
+#
+# It runs `war check --pr <number>`: the pull request passes only when it
+# cites a Warrant that is official at its author's level. The author's role,
+# the reviews and the base branch's [preset] and [roles] are read through
+# `gh api`; a call that fails is UNKNOWN and fails the check, never passes it.
+#
+# Pin it by commit, as every action should be:
+#   - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
+#
+# It uses no other action. `war` is built from this action's own commit
+# (the code the workflow pinned) unless `war-version` names a release, which
+# install.sh downloads and verifies against its published checksum.
+name: OpenWarrant check
+description: >-
+  Pass a pull request only when it cites a Warrant that is official at its
+  author's level. Run it as a required status check.
+author: OpenWarrant
+branding:
+  icon: check-circle
+  color: gray-dark
+inputs:
+  pr:
+    description: The pull request number. Defaults to the triggering event's.
+    required: false
+    default: ${{ github.event.pull_request.number }}
+  github-token:
+    description: >-
+      The token gh reads the PR, its reviews and each person's role with.
+      `--comment` also needs pull-requests (or issues) write.
+    required: false
+    default: ${{ github.token }}
+  war-version:
+    description: >-
+      A released war to install, by tag (v1.0.0-alpha.3). Empty builds war
+      from this action's commit with cargo.
+    required: false
+    default: ""
+  comment:
+    description: Also post the gate's summary as a comment on the PR ("true").
+    required: false
+    default: "false"
+  working-directory:
+    description: The checkout the cited Warrants are read from.
+    required: false
+    default: "."
+outputs:
+  verdict:
+    description: pass, not_required, refused or unknown.
+    value: ${{ steps.check.outputs.verdict }}
+runs:
+  using: composite
+  steps:
+    - name: Install war
+      shell: bash
+      env:
+        WAR_VERSION: ${{ inputs.war-version }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        root="$RUNNER_TEMP/openwarrant"
+        mkdir -p "$root/bin"
+        src=$(cd "$ACTION_PATH/../../.." && pwd)
+        if [[ -n "$WAR_VERSION" ]]; then
+          OW_VERSION="$WAR_VERSION" OW_BIN_DIR="$root/bin" XDG_DATA_HOME="$root/data" \
+            bash "$src/install.sh"
+        else
+          CARGO_TARGET_DIR="$root/target" cargo build --locked --release \
+            -p openwarrant-cli --manifest-path "$src/Cargo.toml"
+          cp "$root/target/release/war" "$root/bin/war"
+        fi
+        echo "$root/bin" >> "$GITHUB_PATH"
+        "$root/bin/war" --version
+    - name: Check the pull request
+      id: check
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PR: ${{ inputs.pr }}
+        COMMENT: ${{ inputs.comment }}
+        OPENWARRANT_NO_UPDATE_CHECK: "1"
+      run: |
+        set -uo pipefail
+        args=(check --pr "$PR" --summary "$GITHUB_STEP_SUMMARY")
+        if [[ "$COMMENT" == "true" ]]; then
+          args+=(--comment)
+        fi
+        out="$RUNNER_TEMP/openwarrant/check.json"
+        war --json "${args[@]}" > "$out"
+        rc=$?
+        verdict=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["result"]["verdict"])' "$out" 2>/dev/null || echo unknown)
+        echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+        python3 -c 'import json,sys
+        v = json.load(open(sys.argv[1]))
+        for d in v.get("diagnostics", []):
+            print("%s %s: %s" % (d["severity"].upper(), d["rule"], d["message"]))' "$out" 2>/dev/null || cat "$out"
+        exit "$rc"
