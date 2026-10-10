@@ -1,0 +1,9 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-capture-currency/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s
+     Running tests/all.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/all-cc62655d0acd30f1)
+
+running 1 test
+test runtime_capture::sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write has been running for over 60 seconds
+test runtime_capture::sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 79.85s

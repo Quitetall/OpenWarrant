@@ -3,8 +3,7 @@
   "warrant": "OW-WAR-0096",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "74707a894729cc6970d793d2102edee0450acf0a",
-  "summary": "Current-store authority consumers and atomic activation receipts remain implemented. A public Repository::open bypass using CAP_DAC_OVERRIDE plus unsigned agent_uid reassignment was reproduced and repaired: every non-owner reader now receives the actual effective-permission check. Local unit, integration, Clippy and separate-UID controls passed. The candidate full hosted gate remains pending. Protected deployment and human key custody/presence remain unestablished.",
+  "summary": "Current-store authority consumers and atomic activation receipts remain implemented. A public Repository::open bypass using CAP_DAC_OVERRIDE plus unsigned agent_uid reassignment was reproduced and repaired: every non-owner reader now receives the actual effective-permission check. Local unit, integration, Clippy and separate-UID controls passed. The reader-identity predecessor passed its full hosted gate and merged through protected main in PR188. This privileged-reader candidate still requires its own hosted gate. Protected deployment and human key custody/presence remain unestablished. This candidate refuses privileged non-owner Linux reader profiles that metadata/EACCESS checks cannot establish as protected. CAP_FOWNER and latent permitted-capability mutation controls passed; actual deployment remains unqualified.",
   "notes": "docs/warrants/OW-WAR-0096/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0096/implementation/evidence/gate.log",
@@ -15,7 +14,8 @@
     "docs/warrants/OW-WAR-0096/implementation/activation-receipts/evidence/gate.log",
     "docs/warrants/OW-WAR-0096/implementation/activation-receipts/evidence/review.md",
     "docs/warrants/OW-WAR-0096/implementation/consumer-cutover-20261009/native-refusal-controls.log",
-    "docs/warrants/OW-WAR-0096/implementation/reader-identity-20261010/README.md"
+    "docs/warrants/OW-WAR-0096/implementation/reader-identity-20261010/README.md",
+    "docs/warrants/OW-WAR-0096/implementation/reader-privileges-20261010/README.md"
   ],
   "next_steps": [
     "Provision protected operator/key environment and independently bootstrap real authority.",

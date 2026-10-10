@@ -14,6 +14,7 @@ import urllib.request
 
 from server import Server, publish
 from test_verifier_snapshot import SnapshotFixture
+from verifier_snapshot import Snapshot
 from verifier_service import Verification
 from verifier_attestation import NAMESPACE
 from verifier_policy import PROTECTIONS
@@ -78,6 +79,28 @@ class VerifierServiceTests(SnapshotFixture, unittest.TestCase):
         self.assertEqual(self.service.listing()['jobs'], [])
         self.server.verification = None
         self.assertEqual(self.call('/api/verification')[0], 409)
+
+    def test_changed_dependency_source_refuses_preparation_without_a_job(self):
+        dependency = "00000000-0000-4000-8000-000000000004"
+        dependency_policy = {**copy.deepcopy(self.policy), "dependencies": []}
+        self.executor.config["warrants"][dependency] = dependency_policy
+        self.policy["dependencies"] = [dependency]
+        self.row["policy"] = copy.deepcopy(self.policy)
+        self.records["dependency-attempt"] = {**copy.deepcopy(self.row),
+            "warrant_id": dependency, "policy": copy.deepcopy(dependency_policy)}
+        sources = {self.warrant: self.source, dependency: copy.deepcopy(self.source)}
+        self.executor.store.get = lambda id: sources[id]
+        # Current dependency is sufficient; changed saved source must not be
+        # treated as the old configured result before preparation creates a job.
+        self.assertEqual(Snapshot(self.executor, self.id, self.config_path, self.issuer_path)()["source_sha256"], self.source["source_sha256"])
+        code, prepared = self.call('/api/verification', self.fields)
+        self.assertEqual(code, 200, prepared)
+        sources[dependency]["source_sha256"] = "c" * 64
+        changed = {**self.fields, "verification_id": "00000000-0000-4000-8000-000000000005"}
+        code, refusal = self.call('/api/verification', changed)
+        self.assertEqual(code, 409, refusal)
+        self.assertFalse(refusal["qualified"])
+        self.assertEqual(self.service.listing()["jobs"], [prepared])
 
     def dispatch_fixture(self):
         root = self.executor.root

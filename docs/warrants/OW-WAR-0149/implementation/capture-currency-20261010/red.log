@@ -1,0 +1,18 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 52s
+     Running tests/all.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/all-cc62655d0acd30f1)
+
+running 1 test
+
+thread 'runtime_capture::sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write' (3914605) panicked at crates/openwarrant-cli/tests/runtime_capture.rs:1163:6:
+called `Result::unwrap_err()` on an `Ok` value: Object {"retained": Bool(true), "digest": String("sha256:3954e67d13df82b078a8560cb5cf04b7596667a812d863e78fd7ce444c0253e7"), "reference": String("docs/warrants/IX-WAR-0003/runtime-receipts/capture-3954e67d13df82b078a8560cb5cf04b7596667a812d863e78fd7ce444c0253e7.json"), "native_observation": Object {"standing": String("matches"), "code": String("runtime.matches"), "detail": String("provider-verified receipt matches this dispatch; no assurance is issued"), "raw_digest": String("sha256:9025681e7565a4fff93e07ff5556fafc7919472c5f55eeecaf1612c90b087cf7"), "provider_receipt_digest": String("synthetic-provider-seal"), "cost_observation": String("unknown")}, "assurance_granted": Bool(false)}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test runtime_capture::sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write ... FAILED
+
+failures:
+
+failures:
+    runtime_capture::sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 30.05s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

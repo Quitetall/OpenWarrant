@@ -535,6 +535,22 @@ pub(crate) fn effective_write_access(path: &Path) -> Result<bool> {
     }
 }
 
+/// Mode and EACCESS checks cannot establish protection against a privileged
+/// reader that can change permissions or identity. Normal Linux execution
+/// readers currently require empty effective/permitted capability sets.
+/// Operator-owner inspection is separate; unavailable observations fail closed.
+pub(crate) fn unprivileged_reader() -> Result<()> {
+    #[cfg(target_os = "linux")]
+    {
+        let caps = rustix::thread::capabilities(None)
+            .map_err(|_| err("authority-store-reader-privileges-unavailable"))?;
+        if !caps.effective.is_empty() || !caps.permitted.is_empty() {
+            return Err(err("authority-store-reader-privileges-unqualified"));
+        }
+    }
+    Ok(())
+}
+
 #[cfg(unix)]
 fn reader_guard(root: &Path, state: &Path, agent: Option<u32>, test: bool) -> Result<()> {
     use std::os::unix::fs::MetadataExt;
@@ -570,6 +586,9 @@ fn reader_guard(root: &Path, state: &Path, agent: Option<u32>, test: bool) -> Re
         if !reader_owns_root && effective_write_access(path)? {
             return Err(err("authority-store-writable-by-reader"));
         }
+    }
+    if !reader_owns_root {
+        unprivileged_reader()?;
     }
     Ok(())
 }

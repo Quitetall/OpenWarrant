@@ -56,6 +56,21 @@ class VerifierSnapshotTests(SnapshotFixture, unittest.TestCase):
         self.row["policy"] = copy.deepcopy(self.policy)
         with self.assertRaises(VerificationError): self.snapshot()
 
+    def test_changed_dependency_source_refuses_current_snapshot(self):
+        dependency = "00000000-0000-4000-8000-000000000004"
+        dependency_policy = {**copy.deepcopy(self.policy), "dependencies": []}
+        self.executor.config["warrants"][dependency] = dependency_policy
+        self.policy["dependencies"] = [dependency]
+        self.row["policy"] = copy.deepcopy(self.policy)
+        self.records["dependency-attempt"] = {**copy.deepcopy(self.row),
+            "warrant_id": dependency, "policy": copy.deepcopy(dependency_policy)}
+        sources = {self.warrant: self.source, dependency: copy.deepcopy(self.source)}
+        self.executor.store.get = lambda id: sources[id]
+        self.assertEqual(self.snapshot()["source_sha256"], self.source["source_sha256"])
+        sources[dependency]["source_sha256"] = "c" * 64
+        with self.assertRaisesRegex(VerificationError, "Dependency source changed"):
+            self.snapshot()
+
     def test_changed_source_policy_harness_and_worktree_refuse(self):
         original = copy.deepcopy(self.row)
         for patch in ({"worktree": str(self.executor.root / "unrelated")}, {"harness_argv": ["other"]},

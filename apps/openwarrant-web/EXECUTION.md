@@ -48,7 +48,11 @@ A configured `verified_start: true` refuses because this adapter has no secure
 verified-start path. Translate all applicable Warrant start requirements into
 owner-reviewed configuration; free text is not an executable permission policy.
 Dependencies name other configured draft UUIDs and require completed results for
-their exact configured source digests. Every accepted result remains unverified.
+their exact configured source digests. Preview and start also read each dependency's
+current saved source. A changed dependency refuses new work even when its old
+result still matches the startup configuration. Historical results and source
+revisions remain intact; the owner must update policy and obtain a matching result
+before that dependency can satisfy a new start. Every accepted result remains unverified.
 No declaration in configuration is itself independent evidence of containment.
 
 ## Protocol and public API

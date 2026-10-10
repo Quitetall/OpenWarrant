@@ -266,6 +266,21 @@ pub fn import(
     {
         return Err(fault(stage.receipt.code, &stage.receipt.detail, false));
     }
+    // Native verification may outlive the source snapshot. Do not publish a
+    // previously matching observation after a source/attempt change is observed.
+    // This is a fresh comparison, not a transaction or writer isolation.
+    let current = recorded::load(repo, alias, &request.dispatch_id)?;
+    if current.basis != recorded.basis
+        || current.dispatch_bytes != recorded.dispatch_bytes
+        || current.event_bytes != recorded.event_bytes
+        || current.latest_for_stage != recorded.latest_for_stage
+    {
+        return Err(fault(
+            "runtime.capture-changed",
+            "basis or recorded attempt changed during capture verification; no capture published",
+            true,
+        ));
+    }
     let actor = format!("agent://{}", repo.performer());
     // Capture is a pre-result source observation, not an RC.2 assurance
     // Record (which requires an exact result digest). Do not invent a result.

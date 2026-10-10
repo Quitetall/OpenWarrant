@@ -1,0 +1,12 @@
+    Checking toml_datetime v0.6.11
+    Checking chrono v0.4.45
+    Checking serde_json v1.0.151
+    Checking toml_edit v0.22.27
+    Checking schemars v1.2.2
+    Checking serde_jcs v0.2.0
+    Checking ureq v3.4.2
+    Checking toml v0.8.23
+    Checking openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-capture-currency/crates/openwarrant-core)
+    Checking rmcp v3.5.0
+    Checking openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-capture-currency/crates/openwarrant-compiler)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 58.19s

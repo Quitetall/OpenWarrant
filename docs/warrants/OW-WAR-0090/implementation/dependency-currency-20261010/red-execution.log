@@ -1,0 +1,17 @@
+F
+======================================================================
+FAIL: test_changed_dependency_source_refuses_start_and_preserves_history (__main__.ExecutionTests.test_changed_dependency_source_refuses_start_and_preserves_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-reference-dependency-currency/apps/openwarrant-web/test_execution.py", line 750, in test_changed_dependency_source_refuses_start_and_preserves_history
+    self.assertEqual(preview["state"], "blocked", preview)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'ready' != 'blocked'
+- ready
++ blocked
+ : {'schema': 'oh.war/start-preview/v1', 'subject': {'warrant_id': '85f0576b-9cc7-4684-bff0-b24b6c9669a1', 'source_sha256': 'f5bc5dfe5b5a93df095d8b88bff334457b9e078582868f4a88c918866255a1e6'}, 'state': 'ready', 'reason': 'Configured start requirements satisfied', 'dispatch_permitted': False, 'qualified': False, 'remaining_checks': ['worktree identity', 'exclusive writer claim', 'harness launch']}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.557s
+
+FAILED (failures=1)

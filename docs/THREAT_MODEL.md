@@ -440,3 +440,47 @@ same control accepts the genuine store owner's read and an ordinary non-owner
 read without the capability. See the retained [reproduction and results](warrants/OW-WAR-0096/implementation/reader-identity-20261010/README.md).
 This does not authenticate the caller, qualify other privilege profiles, prove
 protected host deployment, or supply human acceptance.
+
+
+### Source changes during runtime capture verification
+
+Capture import reloads the current source basis, retained Dispatch bytes, matched
+compile-event bytes and stage-attempt frontier after native verification and
+before publication. An observed change returns `runtime.capture-changed` as
+UNKNOWN and publishes no capture. Existing retained objects stay unchanged.
+Unrelated journal appends still permit replay when the selected event and frontier
+remain unchanged; historical inspection remains separate from current eligibility.
+
+The public SDK control changes a valid intent source inside a synthetic native
+verifier. Before repair, import published a matching observation against the old
+basis. After repair it refuses publication and preserves the prior capture bytes
+and count. The fixture does not authenticate provider execution. This fresh
+comparison is not atomic fencing: a trusted host must serialize or isolate writers
+to prevent changes after the final read or changes hidden between reads.
+
+
+### Privileges that can change a protected file's permissions
+
+An EACCESS write check describes current permission; it does not prove that a
+process cannot change the mode first. The namespace control observes UID 1 with
+only CAP_FOWNER: direct write is denied, but chmod of an operator-owned readonly
+probe and the subsequent write succeed. Before repair, active enrollment loading
+still accepted that account.
+
+Normal Linux non-owner authority reads and collector execution reads now require
+empty current effective and permitted capability sets. The kernel capability
+observation uses `capget`, not a caller-supplied claim or parsed configuration.
+A privileged or unavailable observation cannot establish this filesystem
+protection profile; it stays unavailable/UNKNOWN, with no fallback. Genuine
+operator-owner inspection and explicit prototype paths keep their existing roles.
+This is a conservative supported-profile boundary, not a claim that every
+capability allows a write or that an empty set proves isolation.
+
+The explicit control also drops effective CAP_FOWNER while retaining it as
+permitted, observes both readers refusing, then re-enables it and performs the
+actual mutation. Existing zero-capability reader, owner, direct-write capability,
+activation, scope and revocation controls remain. Separate host deployment,
+trusted store selection, caller identity, sudo/setuid/exec paths, other OS privilege
+models, inherited privilege transitions, key custody and launch fencing remain
+outside this observation. Stronger containment of a privileged reader is not
+qualified by these metadata checks.

@@ -1,0 +1,68 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-reader-privileges/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 49.23s
+     Running tests/all.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/all-f122474e5599c0af)
+
+running 1 test
+
+running 1 test
+
+running 1 test
+missing-account UID 2: verification UNKNOWN; no cryptographic verdict inferred
+test collector_signature::namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.01s
+
+
+general authority reader: actual store owner accepted
+
+running 1 test
+permission editor UID 1: EACCESS denied direct write; CAP_FOWNER changed operator file mode and actual write succeeded
+permission editor protected enrollment: accepted=false; fault=Some(Unavailable("execution privileges cannot establish protected authority"))
+permission editor: both collector and general authority reader refuse unsupported privilege profile
+test collector_signature::namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.00s
+
+
+
+running 1 test
+permission editor UID 1: EACCESS denied direct write; CAP_FOWNER changed operator file mode and actual write succeeded
+latent permission editor: effective capabilities empty; permitted CAP_FOWNER retained
+permission editor protected enrollment: accepted=false; fault=Some(Unavailable("execution privileges cannot establish protected authority"))
+permission editor: both collector and general authority reader refuse unsupported privilege profile
+latent permission editor: permitted capability re-enabled and actual mutation succeeded
+test collector_signature::namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.00s
+
+
+
+running 1 test
+capable executor observation: accepted=false; fault=Some(Rejected("authority store is writable by the executor"))
+capable execution UID 1: actual write succeeded; authority loading refused effective write capability
+general authority reader after unsigned UID reassignment: accepted=false
+test collector_signature::namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.00s
+
+
+
+running 1 test
+general authority reader: non-owner without effective write capability accepted
+activated verifier: sealed execution passed; inactive enrollment, repository, collector, scope, provider and writable executable refused
+execution UID 1: sealed approved image survived operator path replacement; fresh mismatched bytes, writable image, symlink and script refused
+activated verifier: changed selection and signed revocation refused before execution
+execution UID 1: authority write refused; activated enrollment accepted; inactive enrollment unavailable; changed selection, mismatched UID and signed revocation refused
+test collector_signature::namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.15s
+
+operator UID 0: real normal-mode CLI bootstrap and activation, software signature; fixture removed; no human acceptance or host-account qualification claimed
+test collector_signature::namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.25s
+
+
+test collector_signature::protected_namespace_roundtrip ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.36s

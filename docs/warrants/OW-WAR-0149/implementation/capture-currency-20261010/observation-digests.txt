@@ -1,0 +1,6 @@
+687986302880473c653119c8282f71652ca674e76882eca68319ecf126dfd006  crates/openwarrant-cli/src/runtime_capture.rs
+4703baad9b095f8f7c022964f2cacdbdfb2481359d0249b45d9a8ee4d94b9455  crates/openwarrant-cli/tests/runtime_capture.rs
+61e75575ac87e3b46838d185a8d67066a31a4f210065579839b7ca8977929328  docs/warrants/OW-WAR-0149/implementation/capture-currency-20261010/red.log
+b0505d1e92189affcde2081ddaa8c5d58abf6e8b840c91e1705f0c5ceeb659f5  docs/warrants/OW-WAR-0149/implementation/capture-currency-20261010/green.log
+20433b5a172c330c1c72662382397fb37b7958c342eb1adbc28c48d9fff10971  docs/warrants/OW-WAR-0149/implementation/capture-currency-20261010/integration.log
+31af35664da2ec5ce8f1406b2a6676b3bb242b0f5ad3e1fb4543005aeef733b8  docs/warrants/OW-WAR-0149/implementation/capture-currency-20261010/clippy.log
