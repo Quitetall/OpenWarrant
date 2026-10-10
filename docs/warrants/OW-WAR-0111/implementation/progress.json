@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0111",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Experimental content-bearing archives retain exact contract history and native verifier inputs. Native CPU archive and recovered real OW11 corpus archive pass actual isolated KF preservation and source-detached OW reconstruction with identical bytes; no authority or assurance is activated. Current combined main gate, independent qualification and format adoption remain.",
+  "summary": "Experimental content-bearing archives retain exact contract history and native verifier inputs. Native CPU archive and recovered real OW11 corpus archive pass actual isolated KF preservation and source-detached OW reconstruction with identical bytes; no authority or assurance is activated. Archive-preservation integration merged through main after the complete 14-step gate and 1,598 passing plants. Independent qualification and format adoption remain.",
   "notes": "docs/warrants/OW-WAR-0111/implementation/runtime-basis.md",
   "evidence": [
     "docs/warrants/OW-WAR-0111/implementation/kf-source-complete-roundtrip.md",
@@ -25,10 +25,10 @@
     "docs/warrants/OW-WAR-0111/implementation/real-corpus-responses-20261010/README.md",
     "docs/warrants/OW-WAR-0111/implementation/native-preservation-20261010/README.md",
     "docs/warrants/OW-WAR-0111/implementation/original-verdict-recovery-20261010/observation.json",
-    "docs/warrants/OW-WAR-0111/implementation/real-corpus-kf-20261010/observation.json"
+    "docs/warrants/OW-WAR-0111/implementation/real-corpus-kf-20261010/observation.json",
+    "docs/warrants/OW-WAR-0111/implementation/main-preservation-gate-20261010/README.md"
   ],
   "next_steps": [
-    "Pass the full repository gate for this combined main candidate and merge through protected main.",
     "Obtain independent verification of the exact archive format, category coverage and real preservation subjects.",
     "Accept the drafted archive-format decision before promoting this experimental format as a standard; human acceptance and legacy resolution remain separate."
   ],

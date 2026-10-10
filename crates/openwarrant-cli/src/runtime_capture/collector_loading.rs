@@ -40,16 +40,27 @@ pub struct HostEnrollment {
 pub(super) struct HostObservation {
     store: PathBuf,
     bytes: Vec<u8>,
+    native: Option<Vec<u8>>,
 }
 impl HostObservation {
     pub(super) fn check(&self) -> Result<(), Fault> {
         if host_bytes(&self.store)? != self.bytes {
             return Err(Fault::Rejected("runtime host configuration changed"));
         }
+        if let Some(bytes) = &self.native
+            && configuration_bytes(&self.store, "runtime-native.json")? != *bytes
+        {
+            return Err(Fault::Rejected("runtime native configuration changed"));
+        }
         Ok(())
     }
 }
 impl HostEnrollment {
+    pub(super) fn with_native_configuration(mut self, bytes: Vec<u8>) -> Result<Self, Fault> {
+        self.observation.native = Some(bytes);
+        self.observation.check()?;
+        Ok(self)
+    }
     pub fn repository(&self) -> &str {
         &self.repository
     }
@@ -83,6 +94,9 @@ impl HostEnrollment {
     }
 }
 fn host_bytes(store: &Path) -> Result<Vec<u8>, Fault> {
+    configuration_bytes(store, "runtime-host.json")
+}
+pub(super) fn configuration_bytes(store: &Path, name: &str) -> Result<Vec<u8>, Fault> {
     snapshot_for_execution(store)?;
     #[cfg(not(unix))]
     {
@@ -94,7 +108,7 @@ fn host_bytes(store: &Path) -> Result<Vec<u8>, Fault> {
     {
         use rustix::fs::{Mode, OFlags};
         use std::os::unix::fs::MetadataExt;
-        let path = store.join("runtime-host.json");
+        let path = store.join(name);
         let fd = rustix::fs::open(
             &path,
             OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW | OFlags::NONBLOCK,
@@ -284,6 +298,7 @@ impl LoadedEnrollment {
         let observation = HostObservation {
             store: authority_store.to_owned(),
             bytes,
+            native: None,
         };
         observation.check()?;
         Ok(HostEnrollment {

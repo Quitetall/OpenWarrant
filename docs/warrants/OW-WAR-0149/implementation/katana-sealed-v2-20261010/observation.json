@@ -1,0 +1,67 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "reported_by": "agent://codex",
+  "source_revision": "bedb28b01d2a591e9bc1d16f6429a95561a15b68",
+  "katana_revision": "640ca745a8a8fc7df97e5bea68049489f920fbb7",
+  "katana_main_merge": "9f2f531e1af29cf07e510c11dd9c6dd9de02d6ef",
+  "katana_pr": "https://github.com/Quitetall/katana/pull/13",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/runtime_capture/katana_process.rs": "074683738abf30adbebf14ed492371690711bb9156484b367e9c7bac43c873ce",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "da25f22e0313b73215c288f3cd9d0a288dd868cbac1e0761fe072bfe633bec7c"
+  },
+  "native_binaries": {
+    "openwarrant_verifier": "b4dcbe4f257926c731d839c7ec32a5e1f5ecae18f7c1b9f645e91524ba5d9947",
+    "openwarrant_fixture_producer": "e5cf8105006b2b3d533d5f6735d700552a6a4281894f25fa11d9d60cdad5cb09"
+  },
+  "logs": {
+    "katana-sealed-transport-red.log": {
+      "sha256": "faf0974cb0ccfdb1a125dae1f33c366d1f783ff1d57b794084d06671be9e6b9d",
+      "bytes": 8275
+    },
+    "katana-sealed-all-tests.log": {
+      "sha256": "47d2c8b95333bfd4a91d27e9e0d746a27be215f5ebd31ed0ead5a624048c77f4",
+      "bytes": 1015
+    },
+    "katana-sealed-clippy.log": {
+      "sha256": "70589b4d2e069288300bdcd4fe60592a990052548abac921a894822c00c908fd",
+      "bytes": 6735
+    },
+    "katana-v2-sdk-native-namespace.log": {
+      "sha256": "d41d1be5a2389e02b3fb031f686d4269c58c4d3ce794bbb8878820f6e3487b8b",
+      "bytes": 4842
+    },
+    "katana-v2-sdk-native-namespace-rerun.log": {
+      "sha256": "843c32c3bef715727ab6dda3f0852e2951e5a934be6b643e3da79a7f25b38fcc",
+      "bytes": 4375
+    },
+    "katana-v2-sdk-runtime-final.log": {
+      "sha256": "e0f1b11368224da74a45ae1c6b5194d45c7fb075a068520cb3e6f5454902d973",
+      "bytes": 3218
+    },
+    "katana-v2-sdk-collector-final.log": {
+      "sha256": "8ae19369676de59d4b48e8c9fdef890b502fbf7ce6aa640498c18d1e1b5d2d63",
+      "bytes": 933
+    },
+    "katana-v2-sdk-default-final.log": {
+      "sha256": "508baa809deed0c425b07bacbff65b46235382f5ea6ebe340c33ade8a963a0ca",
+      "bytes": 4267
+    },
+    "katana-v2-sdk-clippy-final.log": {
+      "sha256": "29d0f9417890bd5727f4fe8e1313c088fd2affabd6b63c0027af1a993d70c9b2",
+      "bytes": 4396
+    }
+  },
+  "actual_native_cli_roundtrip_observed": true,
+  "runtime_tests_passed": 26,
+  "runtime_tests_ignored": 2,
+  "collector_tests_passed": 4,
+  "collector_tests_ignored": 2,
+  "default_two_uid_namespace": "PASS",
+  "native_two_uid_namespace": "PASS",
+  "clippy_all_features_all_targets": "PASS",
+  "assurance_granted": false,
+  "production_human_presence_established": false,
+  "cost_metered": false,
+  "confinement_established": false,
+  "protected_blut_job_custody_established": false
+}

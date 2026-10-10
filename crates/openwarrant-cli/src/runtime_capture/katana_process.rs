@@ -13,6 +13,7 @@ use std::{path::PathBuf, process::Command, time::Duration};
 
 use crate::repo::Repository;
 pub const RESPONSE_SCHEMA: &str = "katana/openwarrant-verification/v1";
+pub const SEALED_RESPONSE_SCHEMA: &str = "katana/openwarrant-verification/v2";
 
 pub struct KatanaProcessConfig {
     pub provider: ProviderInterface,
@@ -28,6 +29,7 @@ pub struct KatanaProcessVerifier {
     config: KatanaProcessConfig,
     binding: RuntimeBinding,
     protection: Option<super::activated_verifier::ActivatedVerifier>,
+    input: Option<super::protected_input::ProtectedInput>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -71,6 +73,36 @@ fn digest(s: &str) -> bool {
     })
 }
 impl KatanaProcessVerifier {
+    /// Host-bound activated execution with a retained sealed log. The expected
+    /// head and policy must still be selected by the independently trusted host.
+    pub fn for_protected_host(
+        repo: &Repository,
+        alias: &str,
+        dispatch_id: &str,
+        mut config: KatanaProcessConfig,
+        host: super::collector_loading::HostEnrollment,
+        input: super::protected_input::ProtectedInput,
+    ) -> Result<Self, ProviderFailure> {
+        if config.provider.version != SEALED_RESPONSE_SCHEMA {
+            return Err(ProviderFailure::Unsupported(
+                "protected Katana logs require explicit native v2 sealed-log transport".into(),
+            ));
+        }
+        config.event_log = input.argument().to_owned();
+        let mut result = Self::for_recorded_dispatch(repo, alias, dispatch_id, config)?;
+        let warrant = result
+            .binding
+            .warrant_ref
+            .strip_prefix("war://")
+            .ok_or_else(|| rejected("canonical recorded Warrant reference required"))?;
+        result.protection = Some(host.acquire_verifier(
+            warrant,
+            &result.config.provider,
+            &result.config.executable,
+        )?);
+        result.input = Some(input);
+        Ok(result)
+    }
     /// Opt-in activated, sealed verifier. Host identities and native source
     /// custody remain the caller's responsibility; this grants no assurance.
     pub fn for_activated_collector(
@@ -109,7 +141,8 @@ impl KatanaProcessVerifier {
     ) -> Result<Self, ProviderFailure> {
         if config.provider.kind != ProviderKind::Katana
             || config.provider.identity.trim().is_empty()
-            || config.provider.version != RESPONSE_SCHEMA
+            || ![RESPONSE_SCHEMA, SEALED_RESPONSE_SCHEMA]
+                .contains(&config.provider.version.as_str())
             || !digest(&config.trusted_log_head)
             || config.timeout.is_zero()
             || config.timeout > Duration::from_secs(60)
@@ -139,6 +172,7 @@ impl KatanaProcessVerifier {
             config,
             binding: RuntimeBinding::from_dispatch(&recorded.dispatch),
             protection: None,
+            input: None,
         })
     }
     fn map(&self, raw: &[u8], value: Value) -> Result<VerifiedReceipt, ProviderFailure> {
@@ -235,7 +269,11 @@ impl ReceiptVerifier for KatanaProcessVerifier {
             .env_clear()
             .arg("--receipt")
             .arg(receipt)
-            .arg("--log")
+            .arg(if self.config.provider.version == SEALED_RESPONSE_SCHEMA {
+                "--sealed-log"
+            } else {
+                "--log"
+            })
             .arg(&self.config.event_log)
             .arg("--binding")
             .arg(binding)
@@ -245,13 +283,13 @@ impl ReceiptVerifier for KatanaProcessVerifier {
             let args = command.get_args().map(|a| a.to_owned()).collect::<Vec<_>>();
             let (success, bytes) =
                 protection.run(&args, self.config.timeout, self.config.max_response_bytes)?;
-            super::process::decode_response(success, &bytes, RESPONSE_SCHEMA)?
+            super::process::decode_response(success, &bytes, &self.config.provider.version)?
         } else {
             super::process::verify_response(
                 command,
                 self.config.timeout,
                 self.config.max_response_bytes,
-                RESPONSE_SCHEMA,
+                &self.config.provider.version,
             )?
         };
         self.map(raw, value)
