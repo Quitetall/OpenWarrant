@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0111",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Retained external provider status captures now reconnect exact Dispatch, journal and reconstructed contract/stage in source-detached archive queries. A real BLUT status observation survives full source-worktree removal, with native trust UNKNOWN. SAS-prefixed digest reconstruction repaired; native sealed receipts, historical reconciliation and formal qualification remain open. The full native CPU fixture now passed actual KF database/object-store recovery, with populated historical record families, exact source contracts and version-pinned bytes. OpenWarrant reconstructed the returned archive and validated its native fixture after offline replay; changed signature/job controls refused. Both original KF scenarios, test types, lint and formatting passed. A real corpus sample, format adoption, independent qualification and hosted integration remain.",
+  "summary": "Retained external provider status captures now reconnect exact Dispatch, journal and reconstructed contract/stage in source-detached archive queries. A real BLUT status observation survives full source-worktree removal, with native trust UNKNOWN. SAS-prefixed digest reconstruction repaired; native sealed receipts, historical reconciliation and formal qualification remain open. The full native CPU fixture now passed actual KF database/object-store recovery, with populated historical record families, exact source contracts and version-pinned bytes. OpenWarrant reconstructed the returned archive and validated its native fixture after offline replay; changed signature/job controls refused. Both original KF scenarios, test types, lint and formatting passed. A real corpus sample, format adoption, independent qualification and hosted integration remain. Real OW11 response-envelope parsing repaired and all 24 preservation tests passed; missing historical journal bytes still block complete import. Actual corpus recovery remains partial.",
   "notes": "docs/warrants/OW-WAR-0111/implementation/runtime-basis.md",
   "evidence": [
     "docs/warrants/OW-WAR-0111/implementation/kf-source-complete-roundtrip.md",
@@ -21,7 +21,8 @@
     "docs/warrants/OW-WAR-0111/implementation/contract-snapshots-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/dispatch-retention-20261010/README.md",
     "docs/warrants/OW-WAR-0111/implementation/archive-limits-20261010/README.md",
-    "docs/warrants/OW-WAR-0111/implementation/native-kf-recovery-20261010/README.md"
+    "docs/warrants/OW-WAR-0111/implementation/native-kf-recovery-20261010/README.md",
+    "docs/warrants/OW-WAR-0111/implementation/real-corpus-responses-20261010/README.md"
   ],
   "next_steps": [
     "Capture-query candidate merged via PR165 at ca3c5a3e; later full integration gate PR167 passed 14 steps and 1386 controls. Native sealed provider records and qualification remain.",

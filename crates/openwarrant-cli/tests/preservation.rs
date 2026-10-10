@@ -2098,3 +2098,99 @@ fn explicit_content_budget_covers_all_external_evidence() {
     ]));
     assert_eq!(std::fs::read(f.0.join("again.json")).unwrap(), bytes);
 }
+
+#[test]
+fn archived_verifier_responses_are_envelopes_not_individual_verdicts() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Response retention fixture",
+    ]));
+    success(f.run(&["new", "Preserve responses without accepting their verdicts"]));
+    install_schema_pack(&f);
+    let response_dir =
+        f.0.join("docs/warrants/ARCH-WAR-0002/verifications/responses");
+    std::fs::create_dir_all(&response_dir).unwrap();
+    for args in [
+        vec!["init", "-q"],
+        vec!["add", "docs", "schemas", "openwarrant.toml"],
+        vec!["commit", "-qm", "fixture source"],
+    ] {
+        let output = Command::new("git")
+            .current_dir(&f.0)
+            .args([
+                "-c",
+                "user.name=Archive Fixture",
+                "-c",
+                "user.email=archive@example.invalid",
+            ])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+    }
+    // No verdict is ingested and no assurance is awarded. These are inert source envelopes.
+    for version in ["v1", "v2"] {
+        let response = format!(
+            "schema = \"oh.war/verification-response/{version}\"\nwarrant = \"ARCH-WAR-0002\"\nverifications = []\n"
+        );
+        std::fs::write(response_dir.join("response.toml"), response.as_bytes()).unwrap();
+        let output = format!("response-{version}.json");
+        success(f.run(&["archive", "export", "ARCH-WAR-0002", &output, "--history"]));
+        let archive = Archive::decode(
+            &std::fs::read(f.0.join(&output)).unwrap(),
+            Limits::default(),
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                archive.coverage["assurance case"],
+                Coverage::Retained { .. }
+            ),
+            "{:?}",
+            archive.coverage["assurance case"]
+        );
+        let record = archive
+            .records
+            .iter()
+            .find(|record| {
+                record.path == "docs/warrants/ARCH-WAR-0002/verifications/responses/response.toml"
+            })
+            .unwrap();
+        assert_eq!(
+            record.digest,
+            format!("sha256:{}", sha256_hex(response.as_bytes()))
+        );
+        success(f.run(&["archive", "inspect", &output]));
+    }
+    for (name, response) in [
+        ("malformed", "schema = ["),
+        (
+            "unknown",
+            "schema = 'oh.war/verification-response/v99'\nwarrant = 'ARCH-WAR-0002'\nverifications = []\n",
+        ),
+        (
+            "wrong-subject",
+            "schema = 'oh.war/verification-response/v1'\nwarrant = 'ARCH-WAR-0099'\nverifications = []\n",
+        ),
+    ] {
+        std::fs::write(response_dir.join("response.toml"), response).unwrap();
+        let output = format!("invalid-{name}.json");
+        success(f.run(&["archive", "export", "ARCH-WAR-0002", &output, "--history"]));
+        let archive = Archive::decode(
+            &std::fs::read(f.0.join(&output)).unwrap(),
+            Limits::default(),
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                archive.coverage["assurance case"],
+                Coverage::Unavailable { .. }
+            ),
+            "{name}"
+        );
+    }
+}

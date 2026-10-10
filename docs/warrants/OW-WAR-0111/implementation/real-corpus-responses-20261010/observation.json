@@ -1,0 +1,28 @@
+{
+  "schema": "openwarrant/implementation-observation/v1",
+  "warrant": "OW-WAR-0111",
+  "tested_base": "f600c8f1",
+  "source_hashes": {
+    "crates/openwarrant-cli/src/preservation/cases.rs": "sha256:2e543dd771376b85d0df271b8eeb3b321266357ab5b9c1a3e10956d413c4bde9",
+    "crates/openwarrant-cli/tests/preservation.rs": "sha256:d4689aca8816ff58eb7a860f0ce57da55264b919c7fa6767a99fdb85e440e19b"
+  },
+  "preservation_tests": {
+    "passed": 24,
+    "failed": 0
+  },
+  "clippy_all_features_all_targets": "PASS",
+  "fmt": "PASS",
+  "real_ow11": {
+    "archive_digest": "sha256:58fd67ba15d1aeaffc90cf84fe17098df208dc0bb95b86dec257ea850c737b71",
+    "complete": false,
+    "remaining_categories": [
+      "actions and relevant audit receipts"
+    ],
+    "assurance_case_source_coverage": "retained",
+    "complete_import": "REFUSED: preservation: required coverage unavailable",
+    "destination_created": false
+  },
+  "assurance": false,
+  "formal_resolution": false,
+  "raw_evidence_directory": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-kf-recovery-20261010"
+}

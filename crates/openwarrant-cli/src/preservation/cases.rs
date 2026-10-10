@@ -73,6 +73,27 @@ pub(super) fn coverage(
                         .insert(format!("{path}: unsupported or unreadable judgment record"));
                 }
             }
+        } else if local.starts_with("verifications/responses/") && local.ends_with(".toml") {
+            // Responses are source envelopes, not the individual stored verdicts
+            // produced by ingest. Retention never admits or reissues a judgment.
+            let prefix = path.strip_suffix(source).unwrap_or_default();
+            let manifest_path = format!("{prefix}{directory}/manifest.toml");
+            let response = text().and_then(|text| {
+                toml::from_str::<crate::verify::VerificationResponse>(text)
+                    .map_err(|error| error.to_string())
+            });
+            let manifest = files.get(&manifest_path).and_then(|bytes| {
+                std::str::from_utf8(bytes)
+                    .ok()
+                    .and_then(|text| toml::from_str::<openwarrant_core::Manifest>(text).ok())
+            });
+            if !matches!((response, manifest), (Ok(response), Some(manifest))
+                if crate::verify::validate_envelope(&response, &manifest.local_alias).is_ok())
+            {
+                assurance_gaps.insert(format!(
+                    "{path}: unsupported, unreadable or wrong-subject verification response"
+                ));
+            }
         } else if local.starts_with("verifications/") && local.ends_with(".toml") {
             if text()
                 .and_then(|text| {
