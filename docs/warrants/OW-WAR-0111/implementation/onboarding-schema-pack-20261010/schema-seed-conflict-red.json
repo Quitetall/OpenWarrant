@@ -1,0 +1,6 @@
+{
+  "old_cli_exit": 0,
+  "old_cli_created_configuration": true,
+  "original_pack_preserved": true,
+  "expected_fixed_behavior": "refuse before creating configuration"
+}
