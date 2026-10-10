@@ -41,12 +41,13 @@
     "docs/warrants/OW-WAR-0149/implementation/blut-sealed-native-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/blut-protected-host-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-resolution-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/runtime-selection-http-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/runtime-selection-http-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/http-fixture-discovery-20261010/README.md"
   ],
   "next_steps": [
     "Connect workbench draft/attempt execution to retained native captures and complete human-resolution handling. External BLUT PR103/104 need genuine contributor agreement; OW95 has no participants yet. No CLA, participant acceptance or signature is fabricated.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "e1b84dd74fe51a9210bae1680bbcb6fb2a74af77"
+  "revision": "4127d0d78ff9870eceb8cd0a2e1b9ed1f09c5a02"
 }

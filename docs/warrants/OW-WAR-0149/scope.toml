@@ -94,3 +94,11 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "crates/openwarrant-cli/tests/collector_signature.rs"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "apps/openwarrant-web/test_execution.py"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "apps/openwarrant-web/test_verifier_service.py"
+obligation_refs = ["OBL-001", "OBL-003"]

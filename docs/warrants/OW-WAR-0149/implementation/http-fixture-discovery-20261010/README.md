@@ -1,0 +1,8 @@
+# Real runtime fixture discovery and bounded observation
+
+CI discovery found that runtime cases inherited by drafting/execution test subclasses ran against alternate stub SDKs. The runtime cases now use a separate real-CLI fixture; all three assertions remain intact. Common startup observation waits up to 30 seconds for the durable session file and cleans up its own failed child. Execution fixtures use that same helper. Test clients observe replies for 30 seconds; execution, admission and spend deadlines are unchanged. Source inspection confirms a 15-second connection shutdown timer and three-second socket I/O timeout. Connection shutdown does not cancel a durable write; after a lost reply, read state before retrying. This corrects the earlier documentation-only claim that no end-to-end connection limit existed.
+
+The hosted workflow suite passed on `f2f1a069` (run 38091232017/job 114327913540), before the later observation-only cleanup changes. Local full discovery after fixture separation ran 218 tests with one startup failure and two timeouts; the next 218-test run had one remote disconnect. The affected concurrent-edit case passed in isolation. A separate verifier trace observed a 4.140605-second fsync followed by another still-pending fsync when its former five-second client observation expired. Original failures are retained; they are not rewritten as success or attributed to an unproven cause.
+
+The release gate and the exact final candidate's hosted workflow remain separate requirements. This is performer evidence, not independent Warrant verification, production availability qualification or human acceptance. No durability write, expected refusal, execution limit or authority gate was removed.
+
