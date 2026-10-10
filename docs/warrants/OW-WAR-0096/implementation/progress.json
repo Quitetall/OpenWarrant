@@ -3,8 +3,8 @@
   "warrant": "OW-WAR-0096",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "8ac35d86",
-  "summary": "Configured role requests and standalone attestations now use current store grants and keys without legacy fallback. Atomic activation receipts remain retained. Protected deployment and human key custody/presence remain unestablished.",
+  "revision": "74707a894729cc6970d793d2102edee0450acf0a",
+  "summary": "Current-store authority consumers and atomic activation receipts remain implemented. A public Repository::open bypass using CAP_DAC_OVERRIDE plus unsigned agent_uid reassignment was reproduced and repaired: every non-owner reader now receives the actual effective-permission check. Local unit, integration, Clippy and separate-UID controls passed. The candidate full hosted gate remains pending. Protected deployment and human key custody/presence remain unestablished.",
   "notes": "docs/warrants/OW-WAR-0096/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0096/implementation/evidence/gate.log",
@@ -14,7 +14,8 @@
     "docs/warrants/OW-WAR-0096/implementation/evidence/review.md",
     "docs/warrants/OW-WAR-0096/implementation/activation-receipts/evidence/gate.log",
     "docs/warrants/OW-WAR-0096/implementation/activation-receipts/evidence/review.md",
-    "docs/warrants/OW-WAR-0096/implementation/consumer-cutover-20261009/native-refusal-controls.log"
+    "docs/warrants/OW-WAR-0096/implementation/consumer-cutover-20261009/native-refusal-controls.log",
+    "docs/warrants/OW-WAR-0096/implementation/reader-identity-20261010/README.md"
   ],
   "next_steps": [
     "Provision protected operator/key environment and independently bootstrap real authority.",

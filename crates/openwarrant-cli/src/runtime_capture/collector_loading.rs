@@ -187,8 +187,16 @@ impl LoadedEnrollment {
     pub fn enrollment(&self) -> &Enrollment {
         self.authenticated.enrollment()
     }
-    /// Fresh authority is required at every use. The host still fences launch
-    /// and protects the approved executable; this is not an atomic launch API.
+    /// Require an observed operator activation, then check fresh authority and
+    /// current selection. Authentication-only loading cannot satisfy this path.
+    pub fn allows_active(&self, input: Use<'_>) -> Result<(), Fault> {
+        if self.active_digest.is_none() {
+            return Err(Fault::Unavailable("collector activation not observed"));
+        }
+        self.allows(input)
+    }
+
+    /// Fresh authority is required at every use. This is not atomic launch fencing.
     pub fn allows(&self, input: Use<'_>) -> Result<(), Fault> {
         let snapshot = snapshot_for_execution(&self.authority_store)?;
         if let Some(digest) = &self.active_digest

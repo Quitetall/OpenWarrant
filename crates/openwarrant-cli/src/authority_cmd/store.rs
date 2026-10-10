@@ -551,6 +551,11 @@ fn reader_guard(root: &Path, state: &Path, agent: Option<u32>, test: bool) -> Re
     let Some(agent) = agent else {
         return Err(err("authority-store-separate-account-required"));
     };
+    // An owner may inspect their operator store. For every other reader,
+    // actual effective permissions must be checked independently of unsigned
+    // agent_uid: a capable process must not reassign it to bypass this guard.
+    let reader_owns_root =
+        fs::symlink_metadata(root).map_err(err)?.uid() == rustix::process::geteuid().as_raw();
     for path in root.ancestors().chain(std::iter::once(state)) {
         let m = fs::symlink_metadata(path).map_err(err)?;
         if m.file_type().is_symlink() {
@@ -562,8 +567,8 @@ fn reader_guard(root: &Path, state: &Path, agent: Option<u32>, test: bool) -> Re
                  other can write, the store or an ancestor",
             ));
         }
-        if rustix::process::geteuid().as_raw() == agent && effective_write_access(path)? {
-            return Err(err("authority-store-writable-by-agent"));
+        if !reader_owns_root && effective_write_access(path)? {
+            return Err(err("authority-store-writable-by-reader"));
         }
     }
     Ok(())

@@ -31,6 +31,7 @@ pub struct BlutProcessConfig {
 pub struct BlutProcessVerifier {
     config: BlutProcessConfig,
     binding: RuntimeBinding,
+    protection: Option<super::activated_verifier::ActivatedVerifier>,
 }
 
 #[derive(Deserialize)]
@@ -194,6 +195,34 @@ fn rejected(e: impl ToString) -> ProviderFailure {
 }
 
 impl BlutProcessVerifier {
+    /// Opt-in activated, sealed verifier. Host identities and native source
+    /// custody remain the caller's responsibility; this grants no assurance.
+    pub fn for_activated_collector(
+        repo: &Repository,
+        alias: &str,
+        dispatch_id: &str,
+        config: BlutProcessConfig,
+        enrollment: super::collector_loading::LoadedEnrollment,
+        repository: &str,
+        collector: &str,
+    ) -> Result<Self, ProviderFailure> {
+        let mut result = Self::for_recorded_dispatch(repo, alias, dispatch_id, config)?;
+        let warrant = result
+            .binding
+            .warrant_ref
+            .strip_prefix("war://")
+            .ok_or_else(|| rejected("canonical recorded Warrant reference required"))?;
+        result.protection = Some(super::activated_verifier::ActivatedVerifier::acquire(
+            enrollment,
+            repository,
+            collector,
+            warrant,
+            &result.config.provider,
+            &result.config.executable,
+        )?);
+        Ok(result)
+    }
+
     /// Bind to a retained Dispatch and its matching compile event. This is
     /// local record integrity, not authentication, permission or current-basis
     /// eligibility. The capture/basis assessor must still check current sources.
@@ -240,6 +269,7 @@ impl BlutProcessVerifier {
         Ok(Self {
             config,
             binding: RuntimeBinding::from_dispatch(&recorded.dispatch),
+            protection: None,
         })
     }
 }
@@ -256,6 +286,9 @@ impl ReceiptVerifier for BlutProcessVerifier {
         }
         if raw_receipt.is_empty() || raw_receipt.len() > 4 * 1024 * 1024 {
             return Err(rejected("native receipt byte budget"));
+        }
+        if let Some(protection) = &self.protection {
+            protection.check()?;
         }
         let scratch = super::process::Scratch::create(&self.config.scratch_root, "blut")?;
         let receipt = scratch.write("receipt.json", raw_receipt)?;
@@ -281,12 +314,19 @@ impl ReceiptVerifier for BlutProcessVerifier {
             .arg(&self.config.job)
             .arg("--producer-executable")
             .arg(&self.config.producer_executable);
-        let native = super::process::verify_response(
-            command,
-            self.config.timeout,
-            self.config.max_response_bytes,
-            RESPONSE_SCHEMA,
-        )?;
+        let native = if let Some(protection) = &self.protection {
+            let args = command.get_args().map(|a| a.to_owned()).collect::<Vec<_>>();
+            let (success, bytes) =
+                protection.run(&args, self.config.timeout, self.config.max_response_bytes)?;
+            super::process::decode_response(success, &bytes, RESPONSE_SCHEMA)?
+        } else {
+            super::process::verify_response(
+                command,
+                self.config.timeout,
+                self.config.max_response_bytes,
+                RESPONSE_SCHEMA,
+            )?
+        };
         self.map(raw_receipt, native)
     }
 }
