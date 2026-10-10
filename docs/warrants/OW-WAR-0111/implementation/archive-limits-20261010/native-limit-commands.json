@@ -1,0 +1,57 @@
+[
+  {
+    "name": "native-inspect",
+    "argv": [
+      "/mnt/4tb/tmp/openwarrant-archive-resource-limits/target/debug/war",
+      "--json",
+      "archive",
+      "inspect",
+      "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-dispatch-retention-20261010/native-history.archive.json",
+      "--max-archive-bytes",
+      "1048576",
+      "--max-records",
+      "4096",
+      "--max-content-bytes",
+      "1048576"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "native-basis",
+    "argv": [
+      "/mnt/4tb/tmp/openwarrant-archive-resource-limits/target/debug/war",
+      "--json",
+      "archive",
+      "runtime-basis",
+      "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-dispatch-retention-20261010/native-history.archive.json",
+      "--max-archive-bytes",
+      "1048576",
+      "--max-records",
+      "4096",
+      "--max-content-bytes",
+      "1048576"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "native-export",
+    "argv": [
+      "/mnt/4tb/tmp/openwarrant-archive-resource-limits/target/debug/war",
+      "--json",
+      "--root",
+      "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-dispatch-retention-20261010/source",
+      "archive",
+      "export",
+      "ND-WAR-0001",
+      "/mnt/4tb/tmp/openwarrant-archive-resource-limits/docs/warrants/OW-WAR-0111/implementation/archive-limits-20261010/native-export.archive.json",
+      "--history",
+      "--max-archive-bytes",
+      "1048576",
+      "--max-records",
+      "4096",
+      "--max-content-bytes",
+      "1048576"
+    ],
+    "returncode": 0
+  }
+]

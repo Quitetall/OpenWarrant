@@ -1949,3 +1949,152 @@ fn init_preserves_matching_readonly_schema_sources_and_fills_missing_members() {
         Coverage::Retained { .. }
     ));
 }
+
+#[test]
+fn explicit_archive_limits_preserve_large_records_without_implicit_budget_growth() {
+    let f = Fixture::new();
+    let mut archive = Archive::decode(&f.archive(false), Limits::default()).unwrap();
+    let binary = vec![0x5a; 16 * 1024 * 1024 + 1];
+    archive.records.push(Record {
+        path: "runtime/producer.bin".into(),
+        digest: format!("sha256:{}", sha256_hex(&binary)),
+        base64: Some(base64_encode(&binary)),
+    });
+    archive.coverage.insert(
+        "runtime receipt refs".into(),
+        Coverage::Retained {
+            paths: vec!["runtime/producer.bin".into()],
+        },
+    );
+    let limits = Limits {
+        content_bytes: 17 * 1024 * 1024,
+        ..Limits::default()
+    };
+    let bytes = archive.encode(limits).unwrap();
+    std::fs::write(f.0.join("source.json"), &bytes).unwrap();
+    refusal(
+        f.run(&["archive", "import", "source.json", "default"]),
+        "embedded content exceeds limit",
+    );
+    assert!(!f.0.join("default").exists());
+    success(f.run(&[
+        "archive",
+        "import",
+        "source.json",
+        "imported",
+        "--max-content-bytes",
+        "17825792",
+    ]));
+    std::fs::remove_file(f.0.join("source.json")).unwrap();
+    refusal(
+        f.run(&["archive", "reexport", "imported", "default.json"]),
+        "embedded content exceeds limit",
+    );
+    assert!(!f.0.join("default.json").exists());
+    success(f.run(&[
+        "archive",
+        "reexport",
+        "imported",
+        "again.json",
+        "--max-content-bytes",
+        "17825792",
+    ]));
+    assert_eq!(std::fs::read(f.0.join("again.json")).unwrap(), bytes);
+    assert_eq!(
+        std::fs::read(f.0.join("imported/records/runtime/producer.bin")).unwrap(),
+        binary
+    );
+}
+
+#[test]
+fn explicit_archive_limits_refuse_before_creating_destinations() {
+    let f = Fixture::new();
+    f.archive(false);
+    refusal(
+        f.run(&[
+            "archive",
+            "import",
+            "source.json",
+            "byte-limited",
+            "--max-archive-bytes",
+            "1",
+        ]),
+        "Source exceeds byte limit",
+    );
+    assert!(!f.0.join("byte-limited").exists());
+    refusal(
+        f.run(&[
+            "archive",
+            "import",
+            "source.json",
+            "record-limited",
+            "--max-records",
+            "2",
+        ]),
+        "record count outside limit",
+    );
+    assert!(!f.0.join("record-limited").exists());
+    success(f.run(&[
+        "archive",
+        "import",
+        "source.json",
+        "exact-records",
+        "--max-records",
+        "3",
+    ]));
+    for option in [
+        "--max-archive-bytes",
+        "--max-records",
+        "--max-content-bytes",
+    ] {
+        for value in ["0", "unlimited", "18446744073709551615"] {
+            refusal(
+                f.run(&["archive", "import", "source.json", "invalid", option, value]),
+                "limit must be",
+            );
+            assert!(!f.0.join("invalid").exists());
+        }
+    }
+}
+
+#[test]
+fn explicit_content_budget_covers_all_external_evidence() {
+    let f = Fixture::new();
+    let bytes = f.archive(true);
+    // Each record is less than 40 bytes; their aggregate is greater than 40.
+    refusal(
+        f.run(&[
+            "archive",
+            "import",
+            "source.json",
+            "too-small",
+            "--evidence",
+            "evidence",
+            "--max-content-bytes",
+            "40",
+        ]),
+        "Source exceeds byte limit",
+    );
+    assert!(!f.0.join("too-small").exists());
+    success(f.run(&[
+        "archive",
+        "import",
+        "source.json",
+        "imported",
+        "--evidence",
+        "evidence",
+        "--max-content-bytes",
+        "256",
+    ]));
+    std::fs::remove_dir_all(f.0.join("evidence")).unwrap();
+    std::fs::remove_file(f.0.join("source.json")).unwrap();
+    success(f.run(&[
+        "archive",
+        "reexport",
+        "imported",
+        "again.json",
+        "--max-content-bytes",
+        "256",
+    ]));
+    assert_eq!(std::fs::read(f.0.join("again.json")).unwrap(), bytes);
+}

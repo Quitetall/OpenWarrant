@@ -1,0 +1,12 @@
+{
+  "original_archive_sha256": "a544fa3ec9f66620143fbc47d89416e18f417bfdc4557935bcacba57e328b35f",
+  "explicit_budget_archive_sha256": "514bbdf511c01e4805d2fcd45568744f69a0dcd87b5df9e63d9530afc42e29fc",
+  "archive_bytes_unchanged": false,
+  "native_reference_coverage_established": false,
+  "authority_activated": false,
+  "same_source_default_and_explicit_exports_identical": true,
+  "same_source_default_archive_sha256": "514bbdf511c01e4805d2fcd45568744f69a0dcd87b5df9e63d9530afc42e29fc",
+  "original_archive_changed_record_paths": [
+    "__ow_archive__/producer.json"
+  ]
+}
