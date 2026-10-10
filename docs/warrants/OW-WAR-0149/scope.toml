@@ -102,3 +102,8 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "apps/openwarrant-web/test_verifier_service.py"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Read-only runtime review request; unsigned reporting scope, no signing grant.
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/resolution_cmd.rs"
+obligation_refs = ["OBL-001", "OBL-003"]

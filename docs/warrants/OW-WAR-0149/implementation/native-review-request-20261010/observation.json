@@ -1,0 +1,71 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "source_commit": "18d0ebd05fc8f5ba38520db2359ab3ded55c3076",
+  "reported_by": "agent://codex",
+  "qualified": false,
+  "records": [
+    {
+      "path": "native-request-red.log.gz",
+      "uncompressed_sha256": "5f01bf7f7d3edc118118e5b8dc1b9378e3f610316ec4d7e60544f15aa5e4e6f8"
+    },
+    {
+      "path": "native-request-green.log.gz",
+      "uncompressed_sha256": "54f74ba0b5e5ec75ddde549e8ac0d57a8e0b64cef0edf4ddd1603164aae1dbe5"
+    },
+    {
+      "path": "native-request-green-rerun.log.gz",
+      "uncompressed_sha256": "9441a5b6d505cd2c68271c3695c0cfed60563ce33a744adbcc8609f49126309c"
+    },
+    {
+      "path": "native-request-runtime-regressions.log.gz",
+      "uncompressed_sha256": "1b228ad0b680ac8211bdc68aa94b3ba57e092645998b914e68f2a87a1e6b7da5"
+    },
+    {
+      "path": "native-request-runtime-final.log.gz",
+      "uncompressed_sha256": "fb991c6344322464bb63a55ee484a0f77cf429cbd981779ff56de46590c7c2ed"
+    },
+    {
+      "path": "native-request-runtime-published-fixture.log.gz",
+      "uncompressed_sha256": "fa895da8126600fe033e6270c1107a0cb3767c6c6e40742f4280a49b97136160"
+    },
+    {
+      "path": "native-request-legacy-envelopes.log.gz",
+      "uncompressed_sha256": "ed8ba24970139489fd08f5579fecf8b3cbffff5159b4db2d864a76e80cbca7ac"
+    },
+    {
+      "path": "native-request-katana.log.gz",
+      "uncompressed_sha256": "73cf56472d9d199f10bd9d86b2657bfdcfbf24baed358f829cabade03325cc11"
+    },
+    {
+      "path": "native-request-katana-final.log.gz",
+      "uncompressed_sha256": "61dedd6c495f695a4cf8daeeb5952ffda26fc313d21e6d328e97b737b47ba3cc"
+    },
+    {
+      "path": "native-request-blut-final.log.gz",
+      "uncompressed_sha256": "ddc91994c25357ba24d59403df3ec24a477f5924ef7f936adcbe6fd254de1170"
+    },
+    {
+      "path": "native-request-clippy.log.gz",
+      "uncompressed_sha256": "66e92ffb56c389b8c114f3ca4a683023afc705c9ec7aed9c8c53497911eacc1c"
+    }
+  ],
+  "runtime_regressions": {
+    "passed": 31,
+    "ignored": 2
+  },
+  "legacy_envelopes": {
+    "passed": 7
+  },
+  "native_fixtures": [
+    "Katana PASS",
+    "BLUT PASS"
+  ],
+  "response_ingestion": "UNKNOWN: unsupported, refused without reading a response or writing a resolution",
+  "remaining": [
+    "Exact signed native response and record binding",
+    "Fresh reassessment during signing and ingestion",
+    "Typed signature-match reproduction and hardening",
+    "Workbench contract identity mapping",
+    "Independent, production and participant qualification"
+  ]
+}
