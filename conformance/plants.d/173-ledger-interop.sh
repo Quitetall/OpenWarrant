@@ -124,4 +124,4 @@ else
     li_fail "a malformed note is refused" "$LI_BROKEN"
 fi
 
-command rm -rf "$LI_TMP"
+command rm -rf "$LI_TMP" "$LI_ROOT"

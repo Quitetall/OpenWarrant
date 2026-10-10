@@ -149,4 +149,4 @@ else
     lg_fail "a malformed atom is refused" "exit $LG_BAD_RC: $(grep -m1 ledger <<<"$LG_BAD")"
 fi
 
-command rm -rf "$LG_TMP"
+command rm -rf "$LG_TMP" "$LG_ROOT"

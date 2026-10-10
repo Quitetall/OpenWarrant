@@ -124,4 +124,4 @@ else
     sc_fail "a tampered statement is refused" "unknown '$SC_T_UNKNOWN'; one '$SC_T_ONE'; type '$SC_T_TYPE'; digest '$SC_T_DIGEST'"
 fi
 
-command rm -rf "$SC_TMP"
+command rm -rf "$SC_TMP" "$SC_ROOT"
