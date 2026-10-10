@@ -20,7 +20,7 @@ Otherwise use the discovery steps below.
 3. Persist answers, declared assumptions and unresolved decisions in the draft
    request/proposal. A governing decision needs an authorized responder; ordinary
    technical advice can come from another agent and remains advice.
-4. Stop interviewing once the requested outcome and next bounded scope are clear.
+4. Finish interviewing once the requested outcome and next bounded scope are clear.
    If drafting is requested, continue with [war-spec](../war-spec/SKILL.md).
    Completion means a durable question/answer record and explicit remaining gaps.
 

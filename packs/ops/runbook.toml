@@ -1,0 +1,37 @@
+# A runbook (pack `ops` 1.0.0): the steps an operator takes, in order, and
+# the check that says each worked. Nothing of it is claimed, authorized,
+# verified or resolved (`form = "document"`).
+schema = "oh.war/profile/v1"
+name = "runbook"
+form = "document"
+note = "The steps an operator takes for one situation, in order, each with the check that says it worked."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["runbook", "step", "check"]
+
+[relations]
+allow = ["part_of", "depends_on", "evaluates"]
+
+[[projections]]
+name = "runbook"
+title = "{title}: runbook"
+
+[projections.select]
+types = ["runbook", "step", "check"]
+through = ["in:part_of", "in:evaluates"]
+
+[[projections.sections]]
+heading = "When to use it"
+block = "list"
+style = "blocks"
+types = ["runbook"]
+empty = "No runbook record is recorded."
+
+[[projections.sections]]
+heading = "Steps"
+block = "tree"
+types = ["step"]
+annotate = ["out:depends_on"]
+children = [{ relation = "in:evaluates", label = "Check", empty = "No check says this step worked." }]
+empty = "No step is recorded."

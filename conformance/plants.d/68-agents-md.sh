@@ -26,39 +26,49 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# t-67ed: the rendered template leads with the ticket loop; the Warrant rules
-# follow as the opt-in "When a ticket needs sign-off" and keep every performer
-# rule. The same predicate must refuse a template planted performer-first.
-am_tickets_first() {
-    local t=$1 first tickets signoff performer
-    first=$(grep -m1 '^## ' <<<"$t")
-    tickets=$(grep -n -m1 '^## Start here: tickets' <<<"$t" | cut -d: -f1)
-    signoff=$(grep -n -m1 '^## When a ticket needs sign-off' <<<"$t" | cut -d: -f1)
-    performer=$(grep -n -m1 'You are a \*\*performer\*\*' <<<"$t" | cut -d: -f1)
-    [[ $first == '## Start here: tickets' ]] || return 1
-    [[ -n $tickets && -n $signoff && -n $performer ]] || return 1
-    (( tickets < signoff && signoff < performer )) || return 1
-    grep -q 'war prime' <<<"$t" && grep -q 'Never ask the human to sign' <<<"$t" \
-        && grep -q 'Never verify your own work' <<<"$t" \
-        && grep -q 'Never write a disposition you did not receive' <<<"$t" \
-        && grep -q 'Never edit a generated file' <<<"$t" \
-        && grep -q 'Never change a document to make a tool happy' <<<"$t"
+# M9 (after t-67ed): the rendered template's first sentence says ordinary
+# coding needs no Warrant and no ticket; the ticket loop comes next; the rules
+# for a Warrant with a sign-off step live in the section scoped to it, and all
+# five safety facts are still there, said as what the tool does. The same
+# predicate must refuse a template planted performer-first, and one whose
+# opening line is a prohibition.
+am_ordinary_first() {
+    local t=$1 first heading tickets signoff fact
+    first=$(grep -v -e '^#' -e '^[[:space:]]*$' <<<"$t" | head -1)
+    heading=$(grep -m1 '^## ' <<<"$t")
+    tickets=$(grep -n -m1 '^## Tracking work with tickets (optional)' <<<"$t" | cut -d: -f1)
+    signoff=$(grep -n -m1 "^## When a Warrant's type requires sign-off" <<<"$t" | cut -d: -f1)
+    fact=$(grep -n -m1 'Your own work is checked by someone else' <<<"$t" | cut -d: -f1)
+    [[ $first == 'Ordinary coding needs no Warrant and no ticket.'* ]] || return 1
+    [[ $heading == '## Tracking work with tickets (optional)' ]] || return 1
+    [[ -n $tickets && -n $signoff && -n $fact ]] || return 1
+    (( tickets < signoff && signoff < fact )) || return 1
+    grep -q 'war view prime' <<<"$t" \
+        && grep -q 'No step in this loop needs a signature' <<<"$t" \
+        && grep -q 'A disposition comes from the verifier' <<<"$t" \
+        && grep -q 'Unknown is reported as UNKNOWN' <<<"$t" \
+        && grep -q 'Generated files are rebuilt, not edited' <<<"$t" \
+        && grep -q "A checker's input is fixed at its source" <<<"$t" \
+        && ! grep -q 'You are a \*\*performer\*\*' <<<"$t"
 }
 AM_TPL=$(./target/debug/war agents-md --stdout)
-if am_tickets_first "$AM_TPL"; then
-    printf 'ok    %-34s tickets first, sign-off opt-in, rules kept\n' "agents-md leads with tickets"
+if am_ordinary_first "$AM_TPL"; then
+    printf 'ok    %-34s ordinary work first, sign-off scoped, five facts kept\n' "agents-md leads with ordinary work"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s template order or a performer rule lost\n' "agents-md leads with tickets"
+    printf 'FAIL  %-34s template order, opening line or a safety fact lost\n' "agents-md leads with ordinary work"
     FAILED=$((FAILED + 1))
 fi
-# Plant: the performer section moved above the tickets, as the file opened
-# before t-67ed. The predicate must refuse it.
+# Plants: the performer section moved above everything, as the file opened
+# before t-67ed; and an opening line that forbids work. Each must be refused.
 AM_BAD=$(awk 'NR==1{print; print ""; print "## Legacy governed acts: permissions"; print ""; print "You are a **performer**."; next} {print}' <<<"$AM_TPL")
-if ! am_tickets_first "$AM_BAD"; then
-    printf 'ok    %-34s a performer-first template refused\n' "agents-md order check refuses"
+AM_BAD2=$(awk 'NR==3{print "Do not write code without a Warrant."; next} {print}' <<<"$AM_TPL")
+if ! am_ordinary_first "$AM_BAD" && ! am_ordinary_first "$AM_BAD2"; then
+    printf 'ok    %-34s performer-first and prohibition-first refused\n' "agents-md order check refuses"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s a performer-first template passed\n' "agents-md order check refuses"
+    printf 'FAIL  %-34s a performer-first or prohibition-first template passed\n' "agents-md order check refuses"
     FAILED=$((FAILED + 1))
 fi
+unset AM_TPL AM_BAD AM_BAD2
+unset -f am_ordinary_first

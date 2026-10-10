@@ -4,7 +4,7 @@
 //! The owner's condition on roadmap signatures was that they cost almost
 //! nothing: "if a human wants it, they don't need to trudge through
 //! documentation hell to do so." So a human never opens the phases atom.
-//! `war roadmap edit` shows the phases, takes one-letter commands, and ends
+//! `war plan roadmap edit` shows the phases, takes one-letter commands, and ends
 //! in exactly one act: the atom is written, the revision proposed, and one
 //! `war sign roadmap --ssh-sign` child raises the key's dialog.
 //!
@@ -282,7 +282,7 @@ const HELP: &str = "\
   q            quit without saving
 ";
 
-/// `war roadmap edit`: the line front end. Returns the exit code.
+/// `war plan roadmap edit`: the line front end. Returns the exit code.
 pub fn run(repo: &Repository) -> Result<u8, RepoError> {
     if !crate::sign::at_a_terminal() {
         let mut report = crate::diagnostic::Report::default();
@@ -290,7 +290,7 @@ pub fn run(repo: &Repository) -> Result<u8, RepoError> {
             "roadmap.edit-no-tty",
             "-".to_owned(),
             "the roadmap is edited only from answers typed at a terminal; an agent proposes \
-             with `war roadmap propose` after editing the atom, and a human signs",
+             with `war plan roadmap propose` after editing the atom, and a human signs",
         ));
         crate::check::print(&report);
         return Ok(crate::EXIT_NOT_READY);

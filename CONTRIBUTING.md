@@ -68,13 +68,13 @@ are hash ids (`t-xxxx`, `i-xxxx`). Two other names were sequential and
 collided; both are now safe to create on any branch:
 
 - **Amendments** (`docs/warrants/<alias>/amendments/`, §31). Start one with
-  `war amend <alias>`: it writes `AM-<n>-<hash>.yaml`, where `<n>` is one more
+  `war sign amend <alias>`: it writes `AM-<n>-<hash>.yaml`, where `<n>` is one more
   than the highest ordinal on your branch (the number people cite) and
   `<hash>` is 4-16 lowercase hex digits minted fresh, and leaves the fields
   only a person can state empty — `war check` refuses the record
   (`amendment.invalid`) until they are written. Two branches that both write
   amendment 4 get `AM-004-1f3a` and `AM-004-c07e`: two files, no conflict.
-  `war sas repin` mints the same way. **Order** is by ordinal, then the
+  `war sign sas repin` mints the same way. **Order** is by ordinal, then the
   record's `effective_time`, then file name, so same-numbered amendments from
   two branches sort by when they take effect. Records named `AM-<n>` before
   this scheme keep their names and bytes — signed contracts cite them — and
@@ -92,7 +92,7 @@ collided; both are now safe to create on any branch:
 
 ## Making a change
 
-1. **Open a Warrant.** `war new "<title>"` — this project is built through its
+1. **Open a Warrant.** `war plan new "<title>"` — this project is built through its
    own Warrants (SAS §93). Fill in the intent, basis, work order, milestones,
    and assurance atoms.
 2. **Write the decision down if it is one.** A normative decision is a
@@ -100,7 +100,7 @@ collided; both are now safe to create on any branch:
    authorized by the Warrant's autonomy envelope is an execution choice, not a
    new decision.
 3. **Build and gate.** `cargo build --workspace && cargo xtask gate`.
-4. **Recompile projections.** `war compile`, then `war check --generated` to
+4. **Recompile projections.** `war admin compile`, then `war check --generated` to
    confirm no drift. Generated files are committed in this repository.
 5. **Open a pull request.** Describe the diff you are actually submitting, not
    the state of the tree.
@@ -114,6 +114,23 @@ it did not reproduce.
 
 Do not describe the tree; describe the diff. A message claiming "5 manifests" when
 the diff contains 4 makes the log unusable as evidence.
+
+## Releasing: what moves with the version
+
+The Claude Code plugin's version moves **every release**: `.claude-plugin/plugin.json`
+carries the `war` release it ships with as its `version`, equal to
+`crates/openwarrant-cli/Cargo.toml`'s. A unit test
+(`skew::tests::the_shipped_plugin_tracks_this_release`) fails a version bump
+that leaves the plugin behind. The same bump regenerates
+`docs/agents/legacy-warrant-workflow.md` (`war admin agents-md --stdout >
+docs/agents/legacy-warrant-workflow.md`), because the AGENTS.md template ends
+with the version that wrote it.
+
+Both stamps are how `war admin doctor` and `war view prime` warn about version skew
+(`install.version-skew`): an AGENTS.md or plugin newer than the running `war`
+describes commands the binary may not have, and an agent would read the old
+binary's refusal as a rule of the repository. An equal or older stamp, or none,
+says nothing. `crates/openwarrant-cli/src/skew.rs` is the mechanism.
 
 ## Signing, and what it does not defend
 

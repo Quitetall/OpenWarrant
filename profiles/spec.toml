@@ -1,0 +1,56 @@
+# The specification (SAS §101) as a type (OW-WAR-0148 M18): one store, read
+# where it is, and no longer a special case of the kernel.
+#
+# Its records are the SAS store's: the one document under docs/sas/, split
+# losslessly into its numbered sections and subsections (OW-ADR-0028), its
+# §106 requirements, and revisions/<version>.toml. Nothing here changes how
+# that store is read or signed. A revision's digest is the sha256 of the
+# document's bytes, as before, and the SAS text is never edited by reading
+# it. The rules that apply, each through a capability this type selects:
+#
+# - structure: no unsupported numbered heading hides a normative statement
+#   (sas-normative.section-labels, sas-normative.section-dropped).
+# - links: a Warrant's SAS pin and its section citations resolve
+#   (sas.pin-unknown, sas.pin-superseded, sas.pin-historical,
+#   sas.repin-unknown-requirement, sas.repin-resolved, sas.section-ref,
+#   sas.section-current).
+# - acceptance: the document is held to an accepted revision's digest, and
+#   each acceptance carries a human signature (sas.unrecorded, sas.pinned,
+#   sas.proposed-unaccepted, sas.digest-drift, sas.revision-malformed).
+#   The specification reaches the fixed state `accepted` while its bytes
+#   are an accepted revision's.
+#
+# It declares no [[states]] of its own: a declared state is entered in a
+# Warrant's or a ticket's journal, and nothing journals a section.
+# docs/TYPES.md, "Every development document is a type".
+schema = "oh.war/profile/v1"
+name = "spec"
+form = "document"
+encoding = "sas"
+note = "What the system is: the specification, its sections and its §106 requirements, held in docs/sas/ and accepted by a human one revision at a time."
+capabilities = ["structure", "links", "acceptance"]
+
+[records]
+types = ["spec", "section", "requirement"]
+
+[relations]
+allow = ["part_of"]
+
+# Rendered on request (`war plan render spec-requirements`), never written:
+# the compiled extracts of the specification stay NORMATIVE.md and
+# SECTIONS.md under docs/sas/generated/.
+[[projections]]
+name = "spec-requirements"
+title = "{title}: requirements"
+intro = "Every requirement of §106 as the specification states it now. A Warrant traces to one with `[[implements]]`; `war status` reads how far each is met."
+
+[projections.select]
+types = ["spec", "requirement"]
+through = ["in:part_of:requirement"]
+
+[[projections.sections]]
+heading = "Requirements"
+block = "table"
+types = ["requirement"]
+columns = ["id", "summary=Requirement"]
+empty = "The specification states no §106 requirement."

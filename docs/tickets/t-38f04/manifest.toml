@@ -1,0 +1,21 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-38f04` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-38f04"
+uuid = "01a11589-cd1e-7577-b430-9b6201d9f4cf"
+title = "M18: every development document is a type"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-07T08:45:14Z"
+created_by = "claude"
+type = "feature"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

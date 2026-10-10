@@ -258,7 +258,17 @@ pub fn revision_path(loaded: &Loaded, n: u32) -> Utf8PathBuf {
 /// The record's own rules, and the ones that need the whole corpus.
 /// Per-ref rules (`roadmap.unknown-phase`) run in `check_traceability`,
 /// beside the ref's grammar.
+///
+/// OW-WAR-0148 M18: these are the `roadmap` type's rules, each gated on a
+/// capability it selects (profiles/roadmap.toml): `structure` reads the
+/// record, `acceptance` holds it to a signed revision, `links` holds the
+/// Warrants to its phases. A type that selects none of them is not read.
 pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Report) {
+    use openwarrant_core::Capability as C;
+    let caps = crate::types::caps(repo, openwarrant_core::projection::Store::Roadmap);
+    if !caps.has(C::Structure) {
+        return;
+    }
     let file = repo.relative(&dir(repo).join("roadmap.toml"));
     let loaded = match load(repo) {
         Ok(None) => return,
@@ -272,7 +282,9 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             return;
         }
     };
-    check_signatures(repo, &loaded, report);
+    if caps.has(C::Acceptance) {
+        check_signatures(repo, &loaded, report);
+    }
     report.push(Diagnostic::pass(
         "roadmap.valid",
         format!(
@@ -282,7 +294,9 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
         ),
     ));
 
-    if loaded.is_accepted() {
+    if !caps.has(C::Acceptance) {
+        // Nothing of the record is held to a signature.
+    } else if loaded.is_accepted() {
         let rev = loaded.accepted().map_or(0, |r| r.revision);
         report.push(Diagnostic::pass(
             "roadmap.accepted",
@@ -302,12 +316,15 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             "roadmap.unaccepted",
             file.clone(),
             format!(
-                "roadmap: the atoms (sha256:{}) are not an accepted revision; record them with `war roadmap propose`, then a human accepts with `war sign roadmap --ssh-sign`",
+                "roadmap: the atoms (sha256:{}) are not an accepted revision; record them with `war plan roadmap propose`, then a human accepts with `war sign roadmap --ssh-sign`",
                 &loaded.digest[..12]
             ),
         ));
     }
 
+    if !caps.has(C::Links) {
+        return;
+    }
     // Which Warrants are replaced — by relation, not by a field.
     let superseded: BTreeSet<String> = corpus
         .iter()
@@ -341,7 +358,7 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             Some(w) if !fs::is_file(w.dir.join("authorization.toml")) => Some((
                 "roadmap.placement-unsigned",
                 format!(
-                    "{} is unsigned; give it its own ref with `war roadmap assign {} {}`",
+                    "{} is unsigned; give it its own ref with `war plan roadmap assign {} {}`",
                     p.warrant, p.warrant, p.phase
                 ),
             )),
@@ -392,11 +409,11 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             repo.relative(&w.dir.join("manifest.toml")),
             if signed {
                 format!(
-                    "{alias}: names no roadmap phase (§6.4) and is signed, so its manifest cannot take a ref until it is amended; place it with a `[[placement]]` in roadmap.toml and accept the revision (`war roadmap` shows the phases)"
+                    "{alias}: names no roadmap phase (§6.4) and is signed, so its manifest cannot take a ref until it is amended; place it with a `[[placement]]` in roadmap.toml and accept the revision (`war plan roadmap` shows the phases)"
                 )
             } else {
                 format!(
-                    "{alias}: names no roadmap phase (§6.4); `war roadmap` lists the phases, and `war roadmap assign {alias} <phase>` writes the ref"
+                    "{alias}: names no roadmap phase (§6.4); `war plan roadmap` lists the phases, and `war plan roadmap assign {alias} <phase>` writes the ref"
                 )
             },
         ));
@@ -428,7 +445,7 @@ pub fn check_ref(
         "roadmap.unknown-phase",
         file.to_owned(),
         format!(
-            "{alias}: roadmap://{id} names a phase the roadmap does not declare; `war roadmap` lists the phases"
+            "{alias}: roadmap://{id} names a phase the roadmap does not declare; `war plan roadmap` lists the phases"
         ),
     ));
     false
@@ -448,6 +465,11 @@ pub struct View {
     pub accepted: bool,
     pub pending_revision: Option<u32>,
     pub phases: Vec<PhaseView>,
+    /// OW-WAR-0148 M13: the milestones tickets carry, each with the level
+    /// its tick shows and whether that meets its minimum. Absent when no
+    /// ticket has one.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub milestones: Vec<crate::ticket::ladder::MilestoneView>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -530,6 +552,11 @@ pub fn view_with(
             accepted: loaded.is_accepted(),
             pending_revision: loaded.pending().map(|r| r.revision),
             phases,
+            milestones: crate::ticket::Store::open(repo, None)
+                .ok()
+                .and_then(|s| crate::ticket::ladder::tracker(&s).ok())
+                .map(|t| t.milestones)
+                .unwrap_or_default(),
         },
     ))
 }
@@ -554,7 +581,8 @@ pub fn render(v: &View) -> String {
         } else if let Some(p) = v.pending_revision {
             format!("revision {p} proposed, awaiting `war sign roadmap --ssh-sign`")
         } else {
-            "not accepted — `war roadmap propose`, then `war sign roadmap --ssh-sign`".to_owned()
+            "not accepted — `war plan roadmap propose`, then `war sign roadmap --ssh-sign`"
+                .to_owned()
         }
     );
     for p in &v.phases {
@@ -577,6 +605,17 @@ pub fn render(v: &View) -> String {
         }
         if !p.open.is_empty() {
             s.push_str(&format!("    no Warrant yet: {}\n", p.open.join(", ")));
+        }
+    }
+    // OW-WAR-0148 M13: a ticket's milestones tick their marker here, each
+    // with the level it was earned at.
+    if !v.milestones.is_empty() {
+        s.push_str("\nMilestones (ticket items; claimed < observed < independent < signed)\n");
+        for m in &v.milestones {
+            s.push_str(&format!(
+                "    {}\n",
+                crate::ticket::ladder::milestone_line(m)
+            ));
         }
     }
     s
@@ -602,7 +641,7 @@ pub fn assign(repo: &Repository, alias: &str, target: &str) -> Result<Report, Re
         report.push(Diagnostic::error(
             "roadmap.unknown-phase",
             repo.relative(&manifest_path),
-            format!("{phase} is not a phase of the roadmap; `war roadmap` lists them"),
+            format!("{phase} is not a phase of the roadmap; `war plan roadmap` lists them"),
         ));
         return Ok(report);
     }
@@ -867,7 +906,7 @@ pub fn accept_ingest_with(
             &mut report,
             "roadmap.stale-digest",
             format!(
-                "response signs {}, revision {n} records {}, the roadmap is now {}; the atoms moved after proposal — `war roadmap propose` again and sign that",
+                "response signs {}, revision {n} records {}, the roadmap is now {}; the atoms moved after proposal — `war plan roadmap propose` again and sign that",
                 response.sha256, rec.sha256, loaded.digest
             ),
         );

@@ -237,7 +237,7 @@ fn fetch_argv(policy: &IntakePolicy, id: &str) -> Result<Vec<String>, RepoError>
 }
 
 /// How a bounded child process ended.
-enum Ran {
+pub(crate) enum Ran {
     /// It exited: its status, stdout and stderr.
     Exited(std::process::ExitStatus, String, String),
     /// It ran past the deadline and was killed.
@@ -246,15 +246,26 @@ enum Ran {
 
 /// Run `argv` from `root` with stdin closed and a wall-clock bound, the
 /// environment passed through untouched. `Err` is a spawn or wait failure,
-/// with what failed.
-fn run_bounded(
+/// with what failed. Also the PR gate's `gh` calls and `[notify]` (M14).
+pub(crate) fn run_bounded(
     root: &Utf8Path,
     argv: &[String],
+    deadline: Duration,
+) -> Result<Ran, (String, std::io::Error)> {
+    run_bounded_env(root, argv, &[], deadline)
+}
+
+/// [`run_bounded`] with `vars` added to the environment it passes through.
+pub(crate) fn run_bounded_env(
+    root: &Utf8Path,
+    argv: &[String],
+    vars: &[(&str, &str)],
     deadline: Duration,
 ) -> Result<Ran, (String, std::io::Error)> {
     let started = Instant::now();
     let mut child = Command::new(&argv[0])
         .args(&argv[1..])
+        .envs(vars.iter().copied())
         .current_dir(root)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -296,7 +307,7 @@ fn run_bounded(
 
 /// The first line of a tracker CLI's stderr, bounded: enough to act on, and
 /// never written anywhere (it can name the account).
-fn first_line(err: &str) -> String {
+pub(crate) fn first_line(err: &str) -> String {
     err.lines()
         .next()
         .unwrap_or("")

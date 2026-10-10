@@ -1,0 +1,38 @@
+# An exploratory test charter (pack `quality` 1.0.0): what a session set
+# out to explore, and what it found. A finding is a record of what was
+# seen; it verifies nothing.
+schema = "oh.war/profile/v1"
+name = "test-charter"
+form = "document"
+note = "What an exploratory test session set out to explore, and what it found."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["charter", "mission", "finding"]
+
+[relations]
+allow = ["part_of", "evaluates"]
+
+[[projections]]
+name = "test-charter"
+title = "{title}: test charter"
+
+[projections.select]
+types = ["charter", "mission", "finding"]
+through = ["in:part_of", "in:evaluates"]
+
+[[projections.sections]]
+heading = "Missions"
+block = "tree"
+types = ["mission"]
+children = [
+    { relation = "in:evaluates", label = "Found", empty = "Nothing is recorded as found for this mission yet." },
+]
+empty = "No mission is recorded."
+
+[[projections.sections]]
+heading = "Findings"
+block = "list"
+types = ["finding"]
+annotate = ["out:evaluates"]
+empty = "No finding is recorded."

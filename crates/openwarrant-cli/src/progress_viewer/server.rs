@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war progress --serve` is `war ui` opened at its Progress page
+//! `war view progress --serve` is `war view ui` opened at its Progress page
 //! (OW-WAR-0116). The read-only server that lived here allowed inline script
 //! and style and carried no session token; the web UI replaces it with one
 //! hardened loopback server (`crate::webui`), so there is one set of

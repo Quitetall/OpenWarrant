@@ -14,7 +14,7 @@
 //! running.
 //!
 //! So: [`observe`] answers "which binary is this" before anything else needs
-//! asking, `war version` prints it, `war doctor` includes it, and
+//! asking, `war admin version` prints it, `war admin doctor` includes it, and
 //! [`update`] replaces the install with a release from GitHub — refusing,
 //! rather than clobbering, anything it did not put there.
 //!
@@ -40,7 +40,7 @@ pub const RELEASES: &str = "https://api.github.com/repos/Quitetall/OpenWarrant/r
 /// conformance plants use to serve fixture releases from a local server.
 pub const RELEASES_ENV: &str = "OPENWARRANT_RELEASES_URL";
 
-/// The bootstrap, for an install `war update` does not manage. `docs/INSTALL.md`
+/// The bootstrap, for an install `war admin update` does not manage. `docs/INSTALL.md`
 /// prints the same line; the conformance plant compares the two.
 pub const INSTALL_SH_LINE: &str =
     "curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash";
@@ -98,7 +98,7 @@ pub struct Install {
     /// Every `war` on `PATH`, in `PATH` order. More than one entry is the
     /// warning this type exists for.
     pub on_path: Vec<OnPath>,
-    /// Where `war update` installs, and where a managed symlink points.
+    /// Where `war admin update` installs, and where a managed symlink points.
     pub install_root: Utf8PathBuf,
 }
 
@@ -201,7 +201,7 @@ pub fn observe() -> Install {
 }
 
 impl Install {
-    /// Whether `war update` put this entry in place: a symlink resolving
+    /// Whether `war admin update` put this entry in place: a symlink resolving
     /// inside the install root. Nothing else is ever repointed.
     #[must_use]
     pub fn is_managed(&self, entry: &OnPath) -> bool {
@@ -211,13 +211,13 @@ impl Install {
     }
 
     /// The one command that gets this install to at least `min_version`:
-    /// `war update --to <v>` when a managed link is on PATH, the `install.sh`
+    /// `war admin update --to <v>` when a managed link is on PATH, the `install.sh`
     /// line otherwise. OW-WAR-0130's `compat.war-too-old` names it (Q-003).
     #[must_use]
     pub fn remedy(&self, min_version: &str) -> String {
         let min = min_version.trim_start_matches('v');
         if self.on_path.iter().any(|e| self.is_managed(e)) {
-            format!("war update --to {min}")
+            format!("war admin update --to {min}")
         } else {
             INSTALL_SH_LINE.to_owned()
         }
@@ -233,7 +233,7 @@ impl Install {
         )
     }
 
-    /// The facts, as diagnostics, so `war version` and `war doctor` report the
+    /// The facts, as diagnostics, so `war admin version` and `war admin doctor` report the
     /// same thing in the same words.
     #[must_use]
     pub fn report(&self) -> Report {
@@ -302,7 +302,7 @@ impl Install {
         }
         report.push(Diagnostic::pass(
             "install.root",
-            format!("`war update` installs into {}", self.install_root),
+            format!("`war admin update` installs into {}", self.install_root),
         ));
         report
     }
@@ -523,7 +523,7 @@ pub fn releases(timeout: Option<Duration>) -> Result<Vec<Release>, String> {
     Ok(out)
 }
 
-/// What `war update` was asked for.
+/// What `war admin update` was asked for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Channel {
     /// Published releases that are not prereleases.
@@ -597,7 +597,7 @@ fn standing(install: &Install, release: &Release, channel: Channel) -> Option<Di
             "build",
             format!(
                 "this build is {} {}{}{}, not the release {}: same version, not the same build. \
-                 `war update --to {current} --force` installs the release",
+                 `war admin update --to {current} --force` installs the release",
                 install.identity.class.as_str(),
                 current,
                 install
@@ -671,7 +671,7 @@ pub fn newest(channel: Channel, timeout: Duration) -> Result<Release, String> {
     pick(releases(Some(timeout))?, channel, None)
 }
 
-/// The command that brings one unmanaged `war` under `war update`.
+/// The command that brings one unmanaged `war` under `war admin update`.
 fn unmanaged_remedy(entry: &OnPath) -> String {
     let under_cargo = entry
         .path
@@ -679,7 +679,7 @@ fn unmanaged_remedy(entry: &OnPath) -> String {
         .is_some_and(|dir| dir.ends_with(".cargo/bin"));
     if entry.kind == Kind::Binary && under_cargo {
         format!(
-            "`cargo install` put it there; update it the same way: {CARGO_LINE}. (`war update` \
+            "`cargo install` put it there; update it the same way: {CARGO_LINE}. (`war admin update` \
              manages only the links it creates.)"
         )
     } else {
@@ -765,7 +765,7 @@ pub fn update(channel: Channel, want: Option<&str>, force: bool) -> Report {
                 "update.unmanaged",
                 entry.path.to_string(),
                 format!(
-                    "{} is a {} `war update` did not install, and nothing on PATH is. It is \
+                    "{} is a {} `war admin update` did not install, and nothing on PATH is. It is \
                      never overwritten; {}",
                     entry.path,
                     entry.kind,
@@ -1202,6 +1202,6 @@ mod tests {
             resolved: root.join("1.0.0/bin/war"),
             kind: Kind::Symlink,
         });
-        assert_eq!(install.remedy("v99.0.0"), "war update --to 99.0.0");
+        assert_eq!(install.remedy("v99.0.0"), "war admin update --to 99.0.0");
     }
 }

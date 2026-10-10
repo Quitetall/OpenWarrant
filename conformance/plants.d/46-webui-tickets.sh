@@ -58,7 +58,8 @@ assert t["items"][0]["text"] == "Web item" and t["items"][0]["ready"] is True
     wt_expect "a ticket act on a non-ticket" "$(wt_post -H "Origin: $WT_B" -d '{"act":"claim","target":"WT-WAR-0001"}')" 400
     wt_expect "a ticket act by GET" "$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $WT_TOK" "$WT_B/api/ticket")" 405
     wt_expect "done before any claim" "$(wt_post -H "Origin: $WT_B" -d "{\"act\":\"done\",\"target\":\"$WT_TT\"}")" 409
-    if grep -q '^- \[ \] Web item' "$WT_CL" && [[ -z "$(ls -A "$PLANT_ROOT/.openwarrant/state/claims" 2>/dev/null)" ]]; then
+    # M11: claims live under git's common directory, shared by every worktree.
+    if grep -q '^- \[ \] Web item' "$WT_CL" && [[ -z "$(ls -A "$PLANT_ROOT/.git/openwarrant/claims" 2>/dev/null)" ]]; then
         printf 'ok    %-34s no claim, box unticked\n' "the refusals wrote nothing"; PASSED=$((PASSED + 1))
     else
         printf 'FAIL  %-34s %s\n' "the refusals wrote nothing" "$(grep 'Web item' "$WT_CL")"; FAILED=$((FAILED + 1))

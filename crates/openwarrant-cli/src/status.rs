@@ -4,15 +4,15 @@
 //!
 //! # What this reads, and what it refuses to read
 //!
-//! Every input is a record: manifests, atoms, the sidecar records `war resolve`
+//! Every input is a record: manifests, atoms, the sidecar records `war sign resolve`
 //! reads (deliverables, verifications, rationale, authorization, judgments),
 //! and SAS §106 for the requirement titles. It computes each Warrant through
-//! [`crate::resolve::assess`] — the same function `war resolve` uses — so the
+//! [`crate::resolve::assess`] — the same function `war sign resolve` uses — so the
 //! two cannot disagree.
 //!
 //! It does NOT read `docs/roadmap/PRODUCTION_ROADMAP.md`'s status column. That
 //! file says "resolved" forty-eight times; no resolution record exists on
-//! disk, and `war resolve` refuses to write one. A hand-written claim is not a
+//! disk, and `war sign resolve` refuses to write one. A hand-written claim is not a
 //! record, and the projection says so in its caveats rather than choosing
 //! between the two.
 //!
@@ -577,6 +577,8 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
     }
 
     Ok(CorpusStatus {
+        // OW-WAR-0148 M18: typed / total over the indexed documents.
+        document_coverage: Some(corpus.documents().coverage()),
         repository_url: repo.config.project.repository_url.clone(),
         generated_by: Some(openwarrant_core::status::GeneratedBy {
             war_version: env!("CARGO_PKG_VERSION").to_owned(),
@@ -634,7 +636,7 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
                 version: None,
                 digest: None,
                 requirements: counts,
-                note: "No SAS revision is recorded (`war sas propose`). The requirement ladder is \
+                note: "No SAS revision is recorded (`war sign sas propose`). The requirement ladder is \
                        against §106 as read from the document on disk."
                     .to_owned(),
             },
@@ -806,8 +808,8 @@ fn next_actionable(
         None => NothingActionable {
             objective: None,
             blocked_by: vec![],
-            why: "every Objective is either achieved or names no Warrant; there is no \
-                  unachieved work to point at"
+            why: "every Objective is achieved or names no Warrant, so no tracked work is \
+                  waiting"
                 .to_owned(),
         },
     };

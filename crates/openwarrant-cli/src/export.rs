@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war export` — §68's portable export and round trip.
+//! `war admin export` — §68's portable export and round trip.
 //!
 //! This legacy metadata envelope does not carry a content-bearing archive or an
 //! importer. Its category labels and atom digest are insufficient preservation

@@ -34,6 +34,7 @@ Top level:
 | `caveats[]` | — | what this projection does not read, in words |
 | `repository_url` | `openwarrant.toml [project] repository_url` | optional; where the records live |
 | `generated_by.war_version` | — | the binary that compiled this |
+| `document_coverage` | the document index (OW-WAR-0148 M18; docs/TYPES.md) | `typed`, `untyped`, `total`: how many indexed development documents a type governs; counts, never a percentage |
 
 Each `warrants[]` entry:
 

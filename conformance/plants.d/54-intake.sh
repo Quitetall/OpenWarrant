@@ -233,7 +233,7 @@ for key in (skey, "github-21"):
         errs.append(f"questions for {key}: {qs}")
     acts = [a for a in n["result"]["actions"] if a["warrant"] == key]
     if len(acts) != 1 or acts[0]["actor"] != "human" or acts[0]["action"] != "answer" \
-            or not acts[0]["command"].startswith(f"war answer {key} Q-001") or "war plan " not in acts[0]["why"]:
+            or not acts[0]["command"].startswith(f"war plan answer {key} Q-001") or "war plan " not in acts[0]["why"]:
         errs.append(f"next for {key}: {acts}")
 print("ok" if not errs else "; ".join(errs))
 PY

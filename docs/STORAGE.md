@@ -171,6 +171,29 @@ observe the crash points above. It also looks for the name in
 `UNKNOWN` when it is not, because an older binary lacks the hook for the
 wrong reason.
 
+## Many writers at once (M11)
+
+- **Ticket rewrites hold a directory lock.** `write_if` compares the
+  prestate and then renames: two steps, so two writers could both pass the
+  compare and the second rename would drop the first one's line. Every
+  ticket rewrite (`done`, `edit`, `note`, `add`, a claim naming unnamed
+  lines) holds an advisory lock (`flock`) on the file's directory across its
+  read, edit and rename; the kernel releases it however the process ends.
+- **Claims** are hard-linked lock files under git's common directory, shared
+  by every worktree of a clone, with leases renewed by touching the lock;
+  optionally published to a git remote as refs pushed with
+  `--force-with-lease` (docs/TICKETS.md, "Claims").
+- **Aliases.** `war new` allocates one past the highest ordinal in the
+  working tree and on every local and remote-tracking branch, so two
+  branches no longer take the same number; `war check` refuses two Warrants
+  that answer to one alias (`warrant.alias-duplicate`); `war renumber
+  <alias> <new>` moves an unsigned Warrant to a free alias and journals it
+  (`draft.renumbered`), and refuses a Warrant with an authorization.
+- **Merges.** Journals are `merge=union` in `.gitattributes`: two branches
+  that each appended lines keep both sides' lines, and the result still
+  extends each side's committed journal. Ticket checklists and intents merge
+  through `war merge-ticket` (docs/TICKETS.md, "Branches that merge").
+
 ## Retained artifacts
 
 A signed or resolved record is kept exactly as it was written. Specifically:

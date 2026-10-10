@@ -1,12 +1,12 @@
 {
   "name": "openwarrant",
   "owner": { "name": "OpenWarrant" },
-  "description": "OpenWarrant: Work Authorization Records for agents — skill, MCP server, pin guard, stop check.",
+  "description": "OpenWarrant: optional planning and tracking for agents; ordinary coding needs none of it.",
   "plugins": [
     {
       "name": "openwarrant",
       "source": "./",
-      "description": "Work Authorization Records for agents: skill, MCP server, pin guard, stop check."
+      "description": "Optional planning and tracking for agents: skills, MCP server, an edit guard for OpenWarrant repositories, an end-of-turn check."
     }
   ]
 }

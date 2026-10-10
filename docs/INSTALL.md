@@ -194,3 +194,163 @@ profile of the running binary, and every `war` on `PATH`.
 `war version --json` carries them under `result.build`. A build of the same
 version as a release, but not the release itself, is told `update.unreleased`
 by `war update --check`, never `update.current`.
+
+## Version skew: text newer than the binary
+
+An agent follows AGENTS.md and the plugin's skills; `war` is whatever binary
+`PATH` finds. When the text is newer, it names commands the binary may not
+have, and an agent would read the old binary's refusal as a rule of the
+repository. Two stamps say which `war` the text came with:
+
+- AGENTS.md ends with `<!-- openwarrant agents-md: written by war X -->`,
+  written by the `war init` or `war agents-md` that made it. The line sits
+  inside the managed block (below), so a CLAUDE.md carrying the block is
+  read the same way;
+- the Claude Code plugin's `.claude-plugin/plugin.json` `version` is the
+  `war` release it ships with (it moves every release), read from the
+  repository root and from `$CLAUDE_PLUGIN_ROOT` when the harness sets it.
+
+`war doctor` and `war prime` compare each stamp with the running version and
+warn `install.version-skew`, naming both versions and the update command,
+when the stamp is newer. An equal or older stamp, or a file with none (written
+before the stamps existed), says nothing.
+
+## The pointer block in CLAUDE.md and AGENTS.md
+
+An agent reads the repository's `CLAUDE.md` or `AGENTS.md` before anything
+else. `war` keeps one small block in them, and nothing more:
+
+```markdown
+<!-- openwarrant:begin -->
+<!-- Written by `war agents-md --block`, which rewrites the lines between these markers. -->
+Ordinary coding needs no Warrant and no ticket: work here as in any repository.
+OpenWarrant tracks optional plans and checklists in this repository; run
+`war prime` to see what is tracked (open work, who holds what, recent notes).
+<!-- openwarrant agents-md: written by war 1.0.0 -->
+<!-- openwarrant:end -->
+```
+
+- `war agents-md --block` inserts or updates it in every root `AGENTS.md`
+  and `CLAUDE.md` that exists, or writes an `AGENTS.md` holding only the
+  block when neither does. `--file <path>` names another file (created when
+  absent); `--stdout` prints the block. A `CLAUDE.md` that is a link to
+  `AGENTS.md` is written once, through the link; a link to a file outside
+  the repository (a shared or global `CLAUDE.md`) is refused,
+  `agents-md.link-outside`.
+- A file without the block gets it on the line after its last one. A file
+  with it has only the lines between the markers rewritten. Every byte
+  outside the markers stays as it was, and a second run changes nothing.
+- The block never holds the Warrant you are working on or any other state
+  that changes: `war prime` says that, and the file stays stable.
+- Refused by rule, with nothing written to any file: a file with two blocks
+  (`agents-md.block-duplicate`), a block that never closes
+  (`agents-md.block-unterminated`), an end marker with no begin
+  (`agents-md.block-unopened`), and a file whose last code fence never
+  closes (`agents-md.fence-unclosed`). Each names the line to fix.
+- `war init` writes the full AGENTS.md guide (which ends with the block)
+  when there is none, and adds the block to an `AGENTS.md` or `CLAUDE.md`
+  you already have, printing one line per file it touched.
+- `war doctor` reports each root file's block: `doctor.agents-block` when it
+  is this `war`'s, `doctor.agents-block-missing`, `doctor.agents-block-stale`
+  (written by an older `war`, or edited between the markers), and
+  `doctor.agents-block-malformed`. A block a newer `war` wrote is version
+  skew, not stale.
+
+The sections of these files are also records that plans can cite
+(`md:CLAUDE.md#testing`); [docs/TYPES.md](TYPES.md) has the details.
+
+## Signing setup: `war doctor`
+
+Ordinary work needs no signing setup. When a person wants to sign off with
+`war sign --ssh-sign`, `war doctor` probes what that needs without signing
+anything: `ssh-keygen` on `PATH`, the agent behind `SSH_AUTH_SOCK` and the
+keys `ssh-add -L` lists, `docs/authority/roles.toml` (a human with the
+authorizer or resolver role and an `ssh_principal`), and an
+`docs/authority/allowed_signers` line for that principal whose key the agent
+holds. Each missing piece is a WARN that says what to run or add. At a
+terminal, `war doctor --fix-signing` walks through them: it signs nothing,
+writes `roles.toml` or `allowed_signers` only when the file does not exist
+yet (from your answers, after showing the exact bytes and asking), and for a
+file that exists prints the lines to add by hand, because no command edits
+those files once written (OW-ADR-0021). Every `war sign` refusal names the
+missing piece, carries a remedy, and ends "This blocks only the sign-off, not
+your work."
+
+## The PR gate as a required status check
+
+`war check --pr <number>` passes a pull request only when it cites a Warrant
+that is official at its author's level (docs/PRESETS.md). The composite
+action `.github/actions/openwarrant-check` runs it in CI. It uses no other
+action: it builds `war` from its own commit with `cargo` (preinstalled on
+GitHub's runners), or, with `war-version`, installs that release through
+`install.sh`, which verifies the published checksum.
+
+Add a workflow to the repository the gate guards, pinning both actions by
+commit:
+
+```yaml
+# .github/workflows/openwarrant.yml
+name: openwarrant
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+  pull_request_review:
+    types: [submitted, dismissed]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  openwarrant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
+        # with:
+        #   war-version: v1.0.0-alpha.3   # a release instead of a build
+        #   comment: "true"               # also comment; needs pull-requests: write
+```
+
+The job reruns when someone reviews, because an approving review can be
+what makes the cited Warrant official. Its inputs are `pr` (default: the
+event's), `github-token` (default: `github.token`), `war-version`,
+`comment`, `working-directory` and `score`; its output `verdict` is `pass`,
+`not_required`, `refused` or `unknown`. The job summary carries the gate's
+table either way.
+
+It also scores the checkout (docs/SCORE.md): the report goes to the job
+summary, and the outputs `score`, `level` and `score-dir` (the badge, report
+page and in-toto statement) let a later step upload or publish them;
+`score: "false"` skips it. With `[score] floor = true` in the base branch's
+openwarrant.toml, the check also refuses a PR that lowers the level. The
+base is scored from the clone, so give `actions/checkout` `fetch-depth: 0`;
+without the base commit the floor is UNKNOWN, which fails the check.
+
+Then make it required with a ruleset:
+
+1. Settings, then Rules, then Rulesets, then **New ruleset**, then **New
+   branch ruleset**.
+2. Name it, set **Enforcement status** to Active, and under **Target
+   branches** add the default branch (or every branch PRs merge into).
+3. Tick **Require status checks to pass**, then **Add checks**, and choose
+   `openwarrant` (the job's name; it is offered once the workflow has run
+   on a PR). Leave **Require branches to be up to date** as your repository
+   prefers.
+4. Optionally tick **Require a pull request before merging** with one
+   approval, so a person's review is asked for anyway, and **Dismiss stale
+   pull request approvals when new commits are pushed**, which agrees with
+   the gate counting an approval only at the head commit.
+5. Save. A PR whose check is refused or UNKNOWN cannot merge.
+
+GitHub's rulesets cannot condition on who opened the PR; the check does,
+which is why it reads the author's role itself.
+
+Pull requests from forks get a read-only `GITHUB_TOKEN` under
+`pull_request`, which can read the PR, its reviews and a collaborator's
+permission on a public repository. If a call is refused, the check is
+UNKNOWN and fails: it never passes on what it could not read, and a
+maintainer reruns it. A repository that runs it under
+`pull_request_target` instead must keep the job to what it is here:
+`war` built from the pinned action, the PR's files read as data, and none
+of the PR's code run.
+
+This repository's own `.github/workflows/ci.yml` does not run the gate.

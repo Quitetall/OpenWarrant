@@ -34,6 +34,13 @@
 //!   (`record.relation-required`). A namespaced kind is carried and inert.
 //! - **Targets.** A relation whose target is no record of the corpus is a
 //!   warning (`record.relation-target-unknown`), kept, never dropped.
+//! - **Instruction sections** (M16, [`crate::instructions`]): each `##`
+//!   section of the root `CLAUDE.md` and `AGENTS.md` (and nested files the
+//!   config names) is a record `md:<file>#<slug>` of type `instruction`, so a
+//!   relation can cite one (`constrains md:CLAUDE.md#testing`). They are read
+//!   apart from record atoms: no profile governs them, they count in no
+//!   `records.well-formed` total, and a malformed block in one is a warning
+//!   (`instruction.block-malformed`), never a refusal of the file.
 //!
 //! Nothing here is written.
 
@@ -97,6 +104,10 @@ pub struct Records {
     pub faults: Vec<Fault>,
     /// Record atoms read.
     pub files: usize,
+    /// Instruction-file sections (M16), in file order, then heading order.
+    pub instructions: Vec<Record>,
+    /// What could not be read in an instruction file: warnings, never errors.
+    pub instruction_faults: Vec<Fault>,
 }
 
 impl Records {
@@ -106,8 +117,17 @@ impl Records {
         self.records.iter().find(|r| r.id == id)
     }
 
+    /// The instruction section named `id` (`md:CLAUDE.md#testing`), if one
+    /// exists.
+    #[must_use]
+    pub fn instruction(&self, id: &str) -> Option<&Record> {
+        self.instructions.iter().find(|r| r.id == id)
+    }
+
     /// Whether there is anything to report: a record atom, or a relation
-    /// authored elsewhere, or a fault.
+    /// authored elsewhere, or a fault. Instruction sections alone are not:
+    /// every repository with a `CLAUDE.md` has them, and its check stays
+    /// what it was until something cites one.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.files == 0 && self.relations.is_empty() && self.faults.is_empty()
@@ -324,6 +344,11 @@ pub fn load_with(corpus: &Corpus, proposed: &[(String, String)]) -> Records {
         }
     }
 
+    // ---- Instruction files' sections (M16): records no profile governs.
+    let (instructions, faults, _) = crate::instructions::read(repo);
+    out.instructions = instructions;
+    out.instruction_faults = faults;
+
     // ---- Obligations' `evaluates`, governed by their Warrant's profile.
     if let Ok(entries) = corpus.entries() {
         for e in entries {
@@ -447,7 +472,12 @@ pub fn load_with(corpus: &Corpus, proposed: &[(String, String)]) -> Records {
 /// a program whose records name only records pays nothing more.
 #[must_use]
 pub fn unknown_targets<'a>(corpus: &Corpus, records: &'a Records) -> Vec<&'a Relation> {
-    let local: BTreeSet<&str> = records.records.iter().map(|r| r.id.as_str()).collect();
+    let local: BTreeSet<&str> = records
+        .records
+        .iter()
+        .chain(&records.instructions)
+        .map(|r| r.id.as_str())
+        .collect();
     let rest: Vec<&Relation> = records
         .relations
         .iter()
@@ -471,6 +501,19 @@ pub fn unknown_targets<'a>(corpus: &Corpus, records: &'a Records) -> Vec<&'a Rel
 /// authored relation, so its check is what it was.
 pub fn check(corpus: &Corpus, report: &mut Report) {
     let records = corpus.records();
+    // An instruction file's malformed block is the file owner's to fix and
+    // blocks nothing: a warning, said even where nothing else is read.
+    for f in &records.instruction_faults {
+        report.push(Diagnostic::warn(
+            f.rule,
+            if f.line > 0 {
+                format!("{}:{}", f.file, f.line)
+            } else {
+                f.file.clone()
+            },
+            f.message.clone(),
+        ));
+    }
     if records.is_empty() {
         return;
     }
@@ -496,8 +539,21 @@ pub fn check(corpus: &Corpus, report: &mut Report) {
             format!("{}:{}", r.source, r.line),
             format!(
                 "line {}: {} {} {}: {} is not a record of this corpus; the relation is kept, \
-                 not dropped",
-                r.line, r.from, r.kind, r.target.id, r.target.id
+                 not dropped{}",
+                r.line,
+                r.from,
+                r.kind,
+                r.target.id,
+                r.target.id,
+                if r.target
+                    .id
+                    .starts_with(openwarrant_core::instruction::ID_PREFIX)
+                {
+                    ". A section's id is `md:<file>#<slug>`, its slug the heading as GitHub \
+                     anchors it; `war plan model --json` lists every section"
+                } else {
+                    ""
+                }
             ),
         ));
     }
