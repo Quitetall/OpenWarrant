@@ -192,3 +192,14 @@ A consumed claim without
 a live process observation is UNKNOWN after interruption; it cannot relaunch.
 Tests use synthetic processes and disposable machine keys, not independent human
 review or deployment sandbox qualification.
+
+## Current dependency sources
+
+Verifier snapshots read the current saved source of each configured direct
+dependency. Its digest must match the configured dependency policy, alongside the
+existing exact completed-result and stopped-writer checks. This applies before
+preparation and when the controller refreshes its inputs for dispatch or review.
+Changing a dependency cannot create a new verifier job against its old configured
+source. Previously prepared jobs and historical execution results remain retained;
+this check does not confer assurance, implement transitive source invalidation or
+fence mutations outside the controller's lock.

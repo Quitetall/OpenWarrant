@@ -1,0 +1,14 @@
+F....
+======================================================================
+FAIL: test_changed_dependency_source_refuses_current_snapshot (test_verifier_snapshot.VerifierSnapshotTests.test_changed_dependency_source_refuses_current_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-reference-dependency-currency/apps/openwarrant-web/test_verifier_snapshot.py", line 71, in test_changed_dependency_source_refuses_current_snapshot
+    with self.assertRaisesRegex(VerificationError, "Dependency source changed"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: VerificationError not raised
+
+----------------------------------------------------------------------
+Ran 5 tests in 2.559s
+
+FAILED (failures=1)

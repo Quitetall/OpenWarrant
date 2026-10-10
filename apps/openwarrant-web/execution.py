@@ -314,6 +314,9 @@ class Executor:
             "Repair cycle limit reached",
         )
         for dep in p["dependencies"]:
+            require(self.store.get(dep)["source_sha256"]
+                    == self.config["warrants"][dep]["source_sha256"],
+                    "Required dependency source changed")
             require(
                 any(
                     r["warrant_id"] == dep

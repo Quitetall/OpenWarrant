@@ -42,6 +42,8 @@ class Snapshot:
                 for row in records.values()), "Current dependency completion unavailable")
             require(all(row["execution_state"] == "stopped" for row in records.values()
                         if row["warrant_id"] == dependency), "Dependency writer active or unknown")
+            require(e.store.get(dependency)["source_sha256"]
+                    == e.config["warrants"][dependency]["source_sha256"], "Dependency source changed")
         source = e.store.get(warrant)
         require(source["source_sha256"] == execution_policy["source_sha256"], "Warrant source changed")
         expected_path = e.root / ("worktree-" + warrant)

@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_changed_dependency_source_refuses_preparation_without_a_job (test_verifier_service.VerifierServiceTests.test_changed_dependency_source_refuses_preparation_without_a_job)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-reference-dependency-currency/apps/openwarrant-web/test_verifier_service.py", line 101, in test_changed_dependency_source_refuses_preparation_without_a_job
+    self.assertEqual(code, 409, refusal)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 409 : {'verification_id': '00000000-0000-4000-8000-000000000005', 'state': 'prepared', 'record': {'schema': 'oh.war/verifier-job/v1', 'verification_id': '00000000-0000-4000-8000-000000000005', 'sequence': 1, 'previous_sha256': None, 'request': {'schema': 'oh.war/verification-request/v1', 'verification_id': '00000000-0000-4000-8000-000000000005', 'warrant_id': '00000000-0000-4000-8000-000000000002', 'source_sha256': '41cf6794ba4200b839c53531555f0f3998df4cbb01a4d5cb0b94e3ca5e23947d', 'candidate_revision': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'policy_sha256': '66fe39a03ca20965d36c46c34232f2a308f1fe0348d67cc6fc71d8301ee8230d', 'performer': 'worker', 'verifier': 'reviewer', 'checks': [['check']], 'source': 'source'}, 'basis_sha256': 'c1efef98a557b4f2fc1d70fac98012cde36ec41dd2b1e1fa8a95d3b8eada5fc7'}, 'qualified': False, 'attempt_id': '00000000-0000-4000-8000-000000000001', 'request': {'schema': 'oh.war/verification-request/v1', 'verification_id': '00000000-0000-4000-8000-000000000005', 'warrant_id': '00000000-0000-4000-8000-000000000002', 'source_sha256': '41cf6794ba4200b839c53531555f0f3998df4cbb01a4d5cb0b94e3ca5e23947d', 'candidate_revision': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'policy_sha256': '66fe39a03ca20965d36c46c34232f2a308f1fe0348d67cc6fc71d8301ee8230d', 'performer': 'worker', 'verifier': 'reviewer', 'checks': [['check']], 'source': 'source'}, 'basis_sha256': 'c1efef98a557b4f2fc1d70fac98012cde36ec41dd2b1e1fa8a95d3b8eada5fc7', 'dispatch_permitted': False, 'evidence_state': 'not_received', 'effective_verdict': 'unknown', 'human_review_required': False}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.517s
+
+FAILED (failures=1)
