@@ -12,6 +12,7 @@ pub mod native_host;
 mod process;
 pub mod protected_executable;
 pub mod protected_input;
+pub mod protected_job;
 mod recorded;
 mod selection;
 pub use selection::{
