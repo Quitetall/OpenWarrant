@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Stored current-attempt assessment now feeds resolution requirement 12 through an explicit trusted native SDK seam, with a read-only CLI selection diagnostic. Historical verdicts cannot clear current work. Native provider interfaces, authenticated collection and actual end-to-end qualification remain incomplete.",
+  "summary": "Current-attempt assessment feeds resolution requirement 12 through a trusted native SDK seam. A candidate BLUT process adapter now binds retained Dispatch records and bounds verifier responses; transport fixtures are synthetic. Actual provider integration, authenticated custody and independent/participant qualification remain incomplete.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -14,7 +14,8 @@
     "docs/warrants/OW-WAR-0149/implementation/capture-clippy.log",
     "docs/warrants/OW-WAR-0149/implementation/selection-tests.log",
     "docs/warrants/OW-WAR-0149/implementation/selection-clippy.log",
-    "docs/warrants/OW-WAR-0149/implementation/resolution-consumer-20261009/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/resolution-consumer-20261009/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/README.md"
   ],
   "next_steps": [
     "Publish and agree provider-owned native receipt and verification surfaces.",

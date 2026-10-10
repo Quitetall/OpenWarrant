@@ -1,5 +1,11 @@
 # Dispatch-bound runtime capture
 
+The candidate BLUT process verifier is documented in
+[BLUT process adapter](blut-process-20261009/README.md). It requires explicit
+host-trusted configuration. Synthetic public transport tests do not establish
+native seal validation or provider qualification; default CLI enrollment remains
+unimplemented.
+
 Candidate reference SDK and CLI implementation, 2026-10-09. Performer-reported work only; no native provider qualification, independent verdict, participant acceptance or human signature.
 
 ## Use

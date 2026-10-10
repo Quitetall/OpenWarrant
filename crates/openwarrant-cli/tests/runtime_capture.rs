@@ -45,6 +45,9 @@ impl Fixture {
         Self::with_runtime_count(usize::MAX)
     }
     fn with_runtime_count(count: usize) -> Self {
+        Self::with_executor(count, "katana")
+    }
+    fn with_executor(count: usize, executor: &str) -> Self {
         fn copy(a: &Path, b: &Path) {
             fs::create_dir_all(b).unwrap();
             for e in fs::read_dir(a).unwrap() {
@@ -72,7 +75,7 @@ impl Fixture {
         let graph = root.join("docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml");
         let text = fs::read_to_string(&graph).unwrap().replacen(
             "executor_kind: \"agent\"",
-            "executor_kind: \"katana\"\n    executor_ref: \"synthetic\"",
+            &format!("executor_kind: \"{executor}\"\n    executor_ref: \"synthetic\""),
             count,
         );
         fs::write(graph, text).unwrap();
@@ -140,6 +143,258 @@ impl Fixture {
     fn storage(&self) -> PathBuf {
         self.root.join("docs/warrants/IX-WAR-0003/runtime-receipts")
     }
+}
+
+#[cfg(unix)]
+#[test]
+fn blut_process_unavailable_evidence_stays_unknown_for_a_recorded_dispatch() {
+    use capture::blut_process::{BlutProcessConfig, BlutProcessVerifier};
+    use std::{os::unix::fs::PermissionsExt, time::Duration};
+    let f = Fixture::with_executor(usize::MAX, "blut");
+    let executable = f.root.join("provider.sh");
+    fs::write(&executable, "#!/bin/sh\nprintf '%s\\n' '{\"schema\":\"blut/openwarrant-verification/v1\",\"status\":\"unavailable\",\"assurance\":\"not-established\",\"reason\":\"native job absent\"}'\nexit 1\n").unwrap();
+    fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let config = BlutProcessConfig {
+        provider: ProviderInterface {
+            kind: ProviderKind::Blut,
+            identity: "synthetic-protocol-process".into(),
+            version: "blut/openwarrant-verification/v1".into(),
+        },
+        executable,
+        public_key: f.root.join("public-key.bin"),
+        plan: f.root.join("plan.json"),
+        job: f.root.join("native-job"),
+        producer_executable: f.root.join("producer"),
+        scratch_root: f.root.clone(),
+        timeout: Duration::from_secs(1),
+        max_response_bytes: 4 * 1024 * 1024,
+    };
+    let verifier = BlutProcessVerifier::for_recorded_dispatch(
+        &repo,
+        "IX-WAR-0003",
+        &f.dispatch.dispatch_id,
+        config,
+    )
+    .unwrap();
+    assert_eq!(
+        verifier.verify(b"synthetic native bytes").unwrap_err(),
+        ProviderFailure::Unavailable("native job absent".into())
+    );
+    assert!(!f.root.join("native-job").exists());
+    assert!(!fs::read_dir(&f.root).unwrap().any(|e| {
+        e.unwrap()
+            .file_name()
+            .to_string_lossy()
+            .starts_with("ow-blut-verify-")
+    }));
+}
+
+#[cfg(unix)]
+#[test]
+fn blut_process_maps_native_facts_without_awarding_assurance_or_relabeling_hashes() {
+    // This neighbor is a synthetic process-protocol fixture, NOT a native seal verifier.
+    use capture::blut_process::{BlutProcessConfig, BlutProcessVerifier};
+    use std::{os::unix::fs::PermissionsExt, time::Duration};
+    let f = Fixture::with_executor(1, "blut");
+    let executable = f.root.join("provider.sh");
+    fs::write(
+        &executable,
+        "#!/bin/sh\nexec /bin/cat \"${6%/*}/native-response.json\"\n",
+    )
+    .unwrap();
+    fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+    let hash = format!("blake3:{}", "a".repeat(64));
+    let lineage = json!({"path":"status.jsonl","bytes":7,"digest":hash,"mode":33188});
+    fs::write(f.root.join("native-response.json"), serde_json::to_vec(&json!({
+        "schema":"blut/openwarrant-verification/v1","status":"validated","assurance":"not-established",
+        "native":{"binding":{"warrant_ref":f.dispatch.warrant_ref,"contract_digest":f.dispatch.contract_digest,
+            "dispatch_digest":f.dispatch.dispatch_digest,"stage_id":f.dispatch.stage_id,"attempt_id":f.dispatch.attempt_id},
+            "outcome":"completed","run_id":"00000000-0000-4000-8000-000000000001","receipt_digest":hash,
+            "registry_digest":hash,"native_files":[lineage.clone(),{"path":"stage/output.txt","bytes":26,"digest":hash,"mode":33188}],
+            "lineage_reference":lineage}
+    })).unwrap()).unwrap();
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let config = BlutProcessConfig {
+        provider: ProviderInterface {
+            kind: ProviderKind::Blut,
+            identity: "synthetic-protocol-process".into(),
+            version: "blut/openwarrant-verification/v1".into(),
+        },
+        executable,
+        public_key: f.root.join("public-key.bin"),
+        plan: f.root.join("plan.json"),
+        job: f.root.join("native-job"),
+        producer_executable: f.root.join("producer"),
+        scratch_root: f.root.clone(),
+        timeout: Duration::from_secs(5),
+        max_response_bytes: 4 * 1024 * 1024,
+    };
+    let verifier = BlutProcessVerifier::for_recorded_dispatch(
+        &repo,
+        "IX-WAR-0003",
+        &f.dispatch.dispatch_id,
+        config,
+    )
+    .unwrap();
+    let mapped = verifier.verify(b"synthetic original receipt").unwrap();
+    assert_eq!(
+        mapped.raw_digest,
+        "sha256:3e92e2c9df3a15bd2f3a7dd1ec505b4b5a199fb4e3a81b6bedeb0bff1703ca4a"
+    );
+    assert_eq!(mapped.binding, RuntimeBinding::from_dispatch(&f.dispatch));
+    assert_eq!(mapped.outcome, RuntimeOutcome::Completed);
+    assert_eq!(mapped.execution, Observation::Established);
+    assert_eq!(mapped.confinement, Observation::Unknown);
+    assert_eq!(mapped.metered_cost, Observation::Unknown);
+    assert_eq!(mapped.spend_cap, Observation::Unknown);
+    assert_eq!(mapped.registry_digest.as_deref(), Some(hash.as_str()));
+    let NativeReceipt::Blut(native) = mapped.receipt else {
+        panic!("BLUT native receipt required")
+    };
+    assert_eq!(native.receipt_digest, hash);
+    assert!(native.lineage_ref.contains("status.jsonl"));
+    assert!(
+        native
+            .artifact_refs
+            .iter()
+            .any(|p| p.contains("stage/output.txt"))
+    );
+    let original: Value =
+        serde_json::from_slice(&fs::read(f.root.join("native-response.json")).unwrap()).unwrap();
+    for (pointer, replacement) in [
+        ("/native/binding/attempt_id", json!("another-attempt")),
+        ("/native/registry_digest", json!("sha256:wrong-domain")),
+        ("/native/outcome", json!("invented-success")),
+        ("/native/lineage_reference", Value::Null),
+        ("/native/lineage_reference/bytes", json!(8)),
+        ("/native/native_files/1/path", json!("../escape")),
+        ("/native/native_files/1/path", json!("status.jsonl")),
+        ("/assurance", json!("verified")),
+        ("/status", json!("unavailable")),
+    ] {
+        let mut changed = original.clone();
+        *changed.pointer_mut(pointer).unwrap() = replacement;
+        fs::write(
+            f.root.join("native-response.json"),
+            serde_json::to_vec(&changed).unwrap(),
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                verifier.verify(b"synthetic original receipt"),
+                Err(ProviderFailure::Rejected(_))
+            ),
+            "{pointer}"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn blut_process_refuses_bad_responses_and_bounds_nonresponsive_providers() {
+    use capture::blut_process::{BlutProcessConfig, BlutProcessVerifier};
+    use std::{os::unix::fs::PermissionsExt, time::Duration};
+    let f = Fixture::with_executor(1, "blut");
+    let executable = f.root.join("provider.sh");
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    for (script, limit, expected) in [
+        ("printf '%s\\n' '{broken}'", 1024, "syntax"),
+        (
+            "printf '%s\\n' '{\"schema\":\"blut/openwarrant-verification/v1\",\"schema\":\"blut/openwarrant-verification/v1\"}'",
+            1024,
+            "syntax",
+        ),
+        ("/usr/bin/head -c 4096 /dev/zero", 64, "budget"),
+        ("/usr/bin/head -c 4096 /dev/zero >&2", 64, "budget"),
+        ("/bin/sleep 5", 1024, "deadline"),
+    ] {
+        fs::write(&executable, format!("#!/bin/sh\n{script}\n")).unwrap();
+        fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+        let config = BlutProcessConfig {
+            provider: ProviderInterface {
+                kind: ProviderKind::Blut,
+                identity: "synthetic-protocol-process".into(),
+                version: "blut/openwarrant-verification/v1".into(),
+            },
+            executable: executable.clone(),
+            public_key: f.root.join("public-key.bin"),
+            plan: f.root.join("plan.json"),
+            job: f.root.join("native-job"),
+            producer_executable: f.root.join("producer"),
+            scratch_root: f.root.clone(),
+            timeout: Duration::from_secs(1),
+            max_response_bytes: limit,
+        };
+        let verifier = BlutProcessVerifier::for_recorded_dispatch(
+            &repo,
+            "IX-WAR-0003",
+            &f.dispatch.dispatch_id,
+            config,
+        )
+        .unwrap();
+        let error = verifier.verify(b"synthetic original receipt").unwrap_err();
+        match expected {
+            "budget" => assert_eq!(
+                error,
+                ProviderFailure::Rejected("native verifier output byte budget".into())
+            ),
+            "deadline" => assert_eq!(
+                error,
+                ProviderFailure::Unavailable(
+                    "native verifier deadline exceeded; no result established".into()
+                )
+            ),
+            _ => assert!(matches!(error, ProviderFailure::Rejected(_)), "{error:?}"),
+        }
+        assert!(!f.root.join("native-job").exists());
+        assert!(!fs::read_dir(&f.root).unwrap().any(|e| {
+            e.unwrap()
+                .file_name()
+                .to_string_lossy()
+                .starts_with("ow-blut-verify-")
+        }));
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn blut_verifier_does_not_inherit_the_callers_environment() {
+    use capture::blut_process::{BlutProcessConfig, BlutProcessVerifier};
+    use std::{os::unix::fs::PermissionsExt, time::Duration};
+    // Cargo config supplies this benign marker. No private secret is planted.
+    assert_eq!(std::env::var("OPENWARRANT_NO_PROJECTS").unwrap(), "1");
+    let f = Fixture::with_executor(1, "blut");
+    let executable = f.root.join("provider.sh");
+    fs::write(&executable, "#!/bin/sh\nif [ \"${OPENWARRANT_NO_PROJECTS+x}\" = x ]; then\n printf '%s\\n' '{\"schema\":\"blut/openwarrant-verification/v1\",\"status\":\"rejected\",\"assurance\":\"not-established\",\"reason\":\"inherited caller context\"}'\nelse\n printf '%s\\n' '{\"schema\":\"blut/openwarrant-verification/v1\",\"status\":\"unavailable\",\"assurance\":\"not-established\",\"reason\":\"isolated context\"}'\nfi\nexit 1\n").unwrap();
+    fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let config = BlutProcessConfig {
+        provider: ProviderInterface {
+            kind: ProviderKind::Blut,
+            identity: "synthetic-protocol-process".into(),
+            version: "blut/openwarrant-verification/v1".into(),
+        },
+        executable,
+        public_key: f.root.join("public-key.bin"),
+        plan: f.root.join("plan.json"),
+        job: f.root.join("native-job"),
+        producer_executable: f.root.join("producer"),
+        scratch_root: f.root.clone(),
+        timeout: Duration::from_secs(5),
+        max_response_bytes: 4 * 1024 * 1024,
+    };
+    let verifier = BlutProcessVerifier::for_recorded_dispatch(
+        &repo,
+        "IX-WAR-0003",
+        &f.dispatch.dispatch_id,
+        config,
+    )
+    .unwrap();
+    assert_eq!(
+        verifier.verify(b"synthetic original receipt").unwrap_err(),
+        ProviderFailure::Unavailable("isolated context".into())
+    );
 }
 
 #[test]

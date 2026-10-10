@@ -1,0 +1,24 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-blut-process-verifier/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 11s
+     Running tests/runtime_capture.rs (/mnt/4tb/OpenWarrant/target/debug/deps/runtime_capture-41d4745cf65d13b4)
+
+running 1 test
+test blut_verifier_does_not_inherit_the_callers_environment ... FAILED
+
+failures:
+
+---- blut_verifier_does_not_inherit_the_callers_environment stdout ----
+
+thread 'blut_verifier_does_not_inherit_the_callers_environment' (1304944) panicked at crates/openwarrant-cli/tests/runtime_capture.rs:319:5:
+assertion `left == right` failed
+  left: Rejected("inherited caller context")
+ right: Unavailable("isolated context")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    blut_verifier_does_not_inherit_the_callers_environment
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.70s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test runtime_capture`

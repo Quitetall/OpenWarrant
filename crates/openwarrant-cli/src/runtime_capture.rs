@@ -2,6 +2,7 @@
 //! Reference SDK/CLI capture store (OW-WAR-0149), not a native receipt protocol.
 //! Source reads are bounded and descriptor-relative; publication never replaces
 //! a retained object. Local checksums establish byte identity, not authenticity.
+pub mod blut_process;
 mod recorded;
 mod selection;
 pub use selection::{
