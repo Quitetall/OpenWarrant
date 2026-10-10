@@ -120,10 +120,23 @@ if ! git diff --quiet -- "${PLANT_PATHS[@]}" \
     exit 1
 fi
 
+# Preserve all pre-existing Dispatch files, tracked or untracked. Only a
+# Dispatch absent at battery entry is a disposable output of these plants.
+declare -A INITIAL_DISPATCHES=()
+while IFS= read -r -d '' path; do
+    INITIAL_DISPATCHES["$path"]=1
+done < <(git -C "$REPO_ROOT" ls-files --cached --others -z -- 'docs/warrants/*/dispatches/*.json')
+
 PASSED=0
 FAILED=0
 
 restore() {
+    local dispatch
+    while IFS= read -r -d '' dispatch; do
+        if [[ ! ${INITIAL_DISPATCHES["$dispatch"]+present} ]]; then
+            /usr/bin/rm -f -- "$REPO_ROOT/$dispatch"
+        fi
+    done < <(git -C "$REPO_ROOT" ls-files --others -z -- 'docs/warrants/*/dispatches/*.json')
     git -C "$REPO_ROOT" checkout -- "${PLANT_PATHS[@]}" 2>/dev/null || true
     # `git checkout` restores TRACKED files and leaves untracked ones behind, so
     # a plant that CREATES a file is not undone by it. AM-999 is exactly that —
