@@ -1,0 +1,102 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "source_commit": "df9924731ab353fc1327892c35e0c32f0aa085d9",
+  "reported_by": "agent://codex",
+  "qualified": false,
+  "records": [
+    {
+      "path": "runtime-inline-red.log.gz",
+      "uncompressed_sha256": "b932a9bcb4fc3d2c118f740797bd42fa71dc733ce5ab0bdb167e6a0cc0609441"
+    },
+    {
+      "path": "runtime-inline-green.log.gz",
+      "uncompressed_sha256": "5b52718367b63c3e401991cb5f308a2193fc9037e35c7999d7723d2e8dcd7aa8"
+    },
+    {
+      "path": "runtime-inline-green-rerun.log.gz",
+      "uncompressed_sha256": "0f2246abb39fa3da24317a4d0e883937b4d519cc601718964621715f432d5ea3"
+    },
+    {
+      "path": "runtime-inline-all.log.gz",
+      "uncompressed_sha256": "f84a8ac33be1bab9f39d905fa42c4962ecefdc8d094ec58a33561d623c38e436"
+    },
+    {
+      "path": "runtime-inline-missing-final.log.gz",
+      "uncompressed_sha256": "402ea415439edac8ee9b2120cba192911496f9bc433d9b5f4495001cd73b5de6"
+    },
+    {
+      "path": "runtime-inline-blut.log.gz",
+      "uncompressed_sha256": "42d569119d10bee2e017f9b18d5f88ec6c7421d889b88c67cf9a76d1b58ab2b3"
+    },
+    {
+      "path": "runtime-inline-katana.log.gz",
+      "uncompressed_sha256": "1a302d8e12fec7389d7706e308b5a0ac1cd9f4c74fb1200c5a4a6211c17284cf"
+    },
+    {
+      "path": "runtime-inline-clippy-final.log.gz",
+      "uncompressed_sha256": "004abca72749f63b9c085d3766b66d19fc32d23f8b8c79e4aad671407c0096e0"
+    },
+    {
+      "path": "runtime-inline-http-red.log.gz",
+      "uncompressed_sha256": "bedb9d91a9587191b4841abd0716f1da3b515126a870a210074ee1cf24c7c20e"
+    },
+    {
+      "path": "runtime-inline-http-final-rerun.log.gz",
+      "uncompressed_sha256": "481d07a6d5913f552b0a2037d755b8bc44ee6fcd63c37b8f55e5603eae14e608"
+    },
+    {
+      "path": "runtime-inline-http-readiness-final.log.gz",
+      "uncompressed_sha256": "74149054493e999a53dddb4cd06c9eefdac1368d0ccc9512651769b848083bfe"
+    },
+    {
+      "path": "runtime-inline-merge-http.log.gz",
+      "uncompressed_sha256": "8a0065cc6f80c99f810aa6821e8719d716d6d3c18ff531e3d3ec6b71d8be91d7"
+    },
+    {
+      "path": "runtime-inline-workflow-discovery.log.gz",
+      "uncompressed_sha256": "319c44f02e30ed120d96fa3f93620293db96c601dc40d3a531255c899dc4a43c"
+    },
+    {
+      "path": "runtime-inline-workflow-final.log.gz",
+      "uncompressed_sha256": "a9bf7d05ad994e7ab35f2a074685fa7a00b034c8ee24dacefc0353b19f1b7f23"
+    },
+    {
+      "path": "runtime-inline-verifier-service-isolated.log.gz",
+      "uncompressed_sha256": "47b8a79d2e27770f54459a3c524f533c24949b3efcffa93db9f2958f331d4a97"
+    },
+    {
+      "path": "runtime-inline-verifier-service-observation.log.gz",
+      "uncompressed_sha256": "8819417831a5a4ef03847e1aa52bbf9f5bc74c6a0450b4bc3b135ed7d82fe2af"
+    },
+    {
+      "path": "runtime-inline-verifier-latency.trace.gz",
+      "uncompressed_sha256": "1bd23d188905e14d5703cad1580e52890f382b2310ceb3be3cea1e6000f5f2bf"
+    }
+  ],
+  "runtime_regressions": {
+    "passed": 30,
+    "ignored": 2
+  },
+  "native_namespace": [
+    "Katana PASS",
+    "BLUT PASS"
+  ],
+  "http_protocol": {
+    "passed": 14
+  },
+  "merge_runtime_cases": {
+    "passed": 5
+  },
+  "local_full_workflow": {
+    "tests": 220,
+    "errors": 7,
+    "result": "FAIL"
+  },
+  "clippy": "PASS Rust 1.97.1 all features/all targets",
+  "remaining": [
+    "Draft-to-Dispatch contract mapping",
+    "Native human-resolution request/ingestion",
+    "Production custody, accounting, confinement and independent qualification",
+    "OW95 actual participants"
+  ]
+}
