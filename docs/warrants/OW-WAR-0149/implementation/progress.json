@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected Katana and BLUT SDK/CLI native assessment and sealed job-tree capture are implemented, unverified. Actual native two-account fixture roundtrips and refusal controls passed. Production custody, participant/independent qualification and workflow integration remain.",
+  "summary": "Protected Katana and BLUT SDK/CLI native assessment, sealed job capture and native resolution dry runs are implemented, unverified. Actual two-account fixture roundtrips and refusal controls passed. Authenticated workflow/human-resolution integration, production custody and independent/participant qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -39,12 +39,13 @@
     "docs/warrants/OW-WAR-0149/implementation/katana-sealed-v2-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/protected-job-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/blut-sealed-native-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/blut-protected-host-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/blut-protected-host-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-resolution-20261010/README.md"
   ],
   "next_steps": [
-    "Finish native workflow integration and independent qualification; external BLUT PR103/104 require genuine contributor agreement. No CLA or participant approval is fabricated.",
+    "Connect protected native assessment to authenticated workflows and human-resolution handling. External BLUT PR103/104 require genuine contributor agreement. No CLA, participant acceptance or signature is fabricated.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "50c3deab7b53551e1683984f31989219d5b91a64"
+  "revision": "950d31d8fba4d82c72bbc1c4822f9e092b39055d"
 }
