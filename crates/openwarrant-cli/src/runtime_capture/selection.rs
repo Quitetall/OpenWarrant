@@ -195,7 +195,7 @@ pub fn assess_selected<'a>(
     Ok(assessed)
 }
 
-pub(super) fn render(value: &RuntimeBasisAssessment) -> Value {
+pub(crate) fn render(value: &RuntimeBasisAssessment) -> Value {
     fn label(standing: ReceiptStanding) -> &'static str {
         match standing {
             ReceiptStanding::Matches => "matches",

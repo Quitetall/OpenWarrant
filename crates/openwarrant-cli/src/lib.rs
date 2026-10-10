@@ -1169,12 +1169,13 @@ enum SignCommand {
         /// Report the thirteen §56.1 requirements and stop.
         #[arg(long)]
         dry_run: bool,
-        /// Bounded retained capture selection file, or - for stdin. Read-only;
-        /// saved native verdicts are never reused.
-        #[arg(long, requires = "dry_run")]
+        /// Bounded retained capture selection file, or - for stdin. Read-only
+        /// dry run or runtime review packet; native response ingestion is not
+        /// yet supported. Saved native verdicts are never reused.
+        #[arg(long)]
         runtime_selection: Option<camino::Utf8PathBuf>,
         /// Operator-protected native host policy. Requires explicit retained
-        /// selections and a dry run; never activates authority or signs.
+        /// selections; never activates authority or signs.
         #[arg(long, requires = "runtime_selection")]
         native_store: Option<std::path::PathBuf>,
         /// A resolver's signed response to ingest (§56.2). Without it and
@@ -4397,6 +4398,70 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
                     None => resolve::run(&repository, &alias)?,
                 };
                 return Ok(output::finish(mode, "resolve.dry_run", &report, None));
+            }
+            if let Some(selection_path) = runtime_selection {
+                let refusal = |fault: runtime_capture::Fault| {
+                    let mut report = diagnostic::Report::default();
+                    report.push(if fault.unknown {
+                        diagnostic::Diagnostic::unknown(
+                            fault.code,
+                            selection_path.to_string(),
+                            fault.message,
+                        )
+                    } else {
+                        diagnostic::Diagnostic::error(
+                            fault.code,
+                            selection_path.to_string(),
+                            fault.message,
+                        )
+                    });
+                    output::finish(mode, "resolve.runtime_request", &report, None)
+                };
+                let selected =
+                    match runtime_capture::read_selection_input(&repository, &selection_path) {
+                        Ok(selected) => selected,
+                        Err(fault) => return Ok(refusal(fault)),
+                    };
+                if response.is_some() {
+                    return Ok(refusal(runtime_capture::Fault {
+                        code: "resolution.native-response-unavailable",
+                        message: "native selection binding in human signing and response ingestion remains unavailable; no response read or resolution written".into(),
+                        unknown: true,
+                    }));
+                }
+                let native = match native_store
+                    .as_ref()
+                    .map(|store| {
+                        runtime_capture::native_host::NativeAssessment::load(
+                            &repository,
+                            &alias,
+                            &selected.selections,
+                            store,
+                        )
+                    })
+                    .transpose()
+                {
+                    Ok(native) => native,
+                    Err(fault) => return Ok(refusal(fault)),
+                };
+                let provider = |dispatch: &openwarrant_core::execution::StageDispatch,
+                    interface: &openwarrant_core::document::runtime::ProviderInterface| {
+                    native.as_ref().and_then(|n| n.resolve(dispatch, interface))
+                };
+                let (request, report) = resolution_cmd::request_with_runtime(
+                    &repository,
+                    &alias,
+                    resolve::runtime::Input {
+                        selections: &selected.selections,
+                        native: &provider,
+                    },
+                )?;
+                return Ok(output::finish(
+                    mode,
+                    "resolve.runtime_request",
+                    &report,
+                    Some(output::value(&request)),
+                ));
             }
             match response {
                 Some(path) => {
