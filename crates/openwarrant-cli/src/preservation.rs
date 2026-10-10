@@ -10,6 +10,7 @@ mod history;
 pub(crate) use history::git as local_git;
 mod identity;
 mod native_inputs;
+mod recovery;
 mod runtime_basis;
 
 use camino::Utf8PathBuf;
@@ -53,6 +54,17 @@ impl ResourceLimits {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Retain an original Git verdict blob referenced by this Warrant's journal.
+    /// This restores historical bytes only; no current verdict or authority changes.
+    RecoverVerification {
+        alias: String,
+        #[arg(long)]
+        git_blob: String,
+        #[arg(long)]
+        record_digest: String,
+        #[command(flatten)]
+        limits: ResourceLimits,
+    },
     /// Retain explicit native verifier inputs as inert data; never execute or trust them.
     RetainRuntime {
         alias: String,
@@ -130,7 +142,8 @@ pub fn run(
     command: Command,
 ) -> Result<(String, serde_json::Value), Error> {
     let limits = match &command {
-        Command::RetainRuntime { limits, .. }
+        Command::RecoverVerification { limits, .. }
+        | Command::RetainRuntime { limits, .. }
         | Command::Inspect { limits, .. }
         | Command::RuntimeBasis { limits, .. }
         | Command::Export { limits, .. }
@@ -138,6 +151,15 @@ pub fn run(
         | Command::Reexport { limits, .. } => limits.resolve(),
     };
     let (message, mut value) = match command {
+        Command::RecoverVerification {
+            alias,
+            git_blob,
+            record_digest,
+            ..
+        } => {
+            let repo = crate::repo::Repository::discover(root).map_err(|e| Error(e.to_string()))?;
+            recovery::verification(&repo, &alias, &git_blob, &record_digest, limits)
+        }
         Command::RetainRuntime {
             alias,
             capture,

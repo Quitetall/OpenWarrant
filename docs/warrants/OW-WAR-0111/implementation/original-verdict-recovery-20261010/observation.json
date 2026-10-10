@@ -1,0 +1,30 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "assurance_granted": false,
+  "git_blob": "3087b87e800c6ce8ca92f2f5d8722827930e652e",
+  "recovered_digest": "sha256:d6a9d2cd4d280bb185ee14d2d2fa07f485dd746b1f412f0f94050a2c54b8086c",
+  "archive_sha256": "c6c38432b92dcb5980783ac3d2817919e3652a4c7cc5fc0cac5e37f37d525967",
+  "archive_bytes": 24755820,
+  "records": 1078,
+  "coverage": {
+    "ADR refs and accepted bodies where policy permits": "absent",
+    "Compilation Basis": "retained",
+    "actions and relevant audit receipts": "retained",
+    "artifacts": "retained",
+    "assurance case": "retained",
+    "canonical IR": "retained",
+    "complete identity": "retained",
+    "contract revisions": "retained",
+    "evidence manifest": "retained",
+    "exact atom revisions and digests": "retained",
+    "resolution and standing": "absent",
+    "runtime receipt refs": "absent",
+    "schema and compiler identity": "retained",
+    "source manifest": "retained"
+  },
+  "source_detached_import": true,
+  "byte_identical_reexport": true,
+  "runtime_basis_reconstructed": true,
+  "cost": "no model calls",
+  "toolchain": "Rust 1.97.1"
+}

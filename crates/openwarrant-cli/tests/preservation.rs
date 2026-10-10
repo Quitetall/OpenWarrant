@@ -2194,3 +2194,104 @@ fn archived_verifier_responses_are_envelopes_not_individual_verdicts() {
         );
     }
 }
+
+#[test]
+fn recover_original_verification_blob_requires_exact_existing_journal_reference() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Recovery fixture",
+    ]));
+    success(f.run(&["new", "Retain original verification history"]));
+    let directory = f.0.join("docs/warrants/ARCH-WAR-0001");
+    let bytes = b"obligation = \"OBL-001\"\ndisposition = \"not_established\"\nevidence = \"synthetic recovery fixture\"\nperformer = \"fixture-performer\"\n[verifier]\nactor = \"fixture-verifier\"\nkind = \"agent\"\n[verifier.independence]\nperformer_transcript_blind = false\nperformer_rationale_blind = false\nseparate_writable_workspace = false\ncannot_modify_subject_artifacts = false\ncannot_modify_gate_definition = false\ncannot_modify_gate_fixtures = false\nseparate_context_compilation = false\ndistinct_model_required = false\ndistinct_human_required = false\n";
+    let digest = format!("sha256:{}", sha256_hex(bytes));
+    std::fs::write(f.0.join("old.toml"), bytes).unwrap();
+    assert!(
+        Command::new("git")
+            .args(["init", "-q"])
+            .current_dir(&f.0)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let output = Command::new("git")
+        .args(["hash-object", "-w", "old.toml"])
+        .current_dir(&f.0)
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let oid = String::from_utf8(output.stdout).unwrap().trim().to_owned();
+    let journal = directory.join("journal.jsonl");
+    let original = std::fs::read_to_string(&journal).unwrap();
+    let mut event: serde_json::Value =
+        serde_json::from_str(original.lines().next().unwrap()).unwrap();
+    event["id"] = "fixture-recovered-verdict".into();
+    event["idempotency_key"] = "fixture-recovered-verdict".into();
+    event["type"] = "verification.recorded".into();
+    event["actor_ref"] = "agent://fixture-verifier".into();
+    event["payload"] = serde_json::json!({"record_digest":digest,"obligation":"OBL-001","disposition":"not_established"}).to_string().into();
+    let run = |hash: &str| {
+        f.run(&[
+            "archive",
+            "recover-verification",
+            "ARCH-WAR-0001",
+            "--git-blob",
+            &oid,
+            "--record-digest",
+            hash,
+        ])
+    };
+    refusal(run(&digest), "existing journal reference required");
+    std::fs::write(&journal, format!("{original}{}\n", event)).unwrap();
+    refusal(
+        run(&format!("sha256:{}", "0".repeat(64))),
+        "verification blob digest mismatch",
+    );
+    for field in ["actor_ref", "warrant_uuid"] {
+        let mut wrong = event.clone();
+        wrong[field] = "unrelated-fixture".into();
+        std::fs::write(&journal, format!("{original}{wrong}\n")).unwrap();
+        refusal(run(&digest), "existing journal reference required");
+    }
+    for field in ["obligation", "disposition"] {
+        let mut wrong = event.clone();
+        let mut payload: serde_json::Value =
+            serde_json::from_str(wrong["payload"].as_str().unwrap()).unwrap();
+        payload[field] = "unrelated-fixture".into();
+        wrong["payload"] = payload.to_string().into();
+        std::fs::write(&journal, format!("{original}{wrong}\n")).unwrap();
+        refusal(run(&digest), "existing journal reference required");
+    }
+    std::fs::write(&journal, format!("{original}{event}\n")).unwrap();
+    refusal(
+        f.run(&[
+            "archive",
+            "recover-verification",
+            "ARCH-WAR-0001",
+            "--git-blob",
+            "HEAD:old.toml",
+            "--record-digest",
+            &digest,
+        ]),
+        "canonical Git blob object id required",
+    );
+    assert!(!directory.join("verifications/history").exists());
+    let active = directory.join("verifications/OBL-001.toml");
+    std::fs::create_dir_all(active.parent().unwrap()).unwrap();
+    std::fs::write(&active, b"current fixture record remains untouched").unwrap();
+    success(run(&digest));
+    let retained = directory.join(format!("verifications/history/{}.toml", sha256_hex(bytes)));
+    assert_eq!(std::fs::read(&retained).unwrap(), bytes);
+    assert_eq!(
+        std::fs::read(&active).unwrap(),
+        b"current fixture record remains untouched"
+    );
+    success(run(&digest));
+    std::fs::write(&retained, b"conflicting occupant").unwrap();
+    assert!(!run(&digest).status.success());
+    assert_eq!(std::fs::read(&retained).unwrap(), b"conflicting occupant");
+}
