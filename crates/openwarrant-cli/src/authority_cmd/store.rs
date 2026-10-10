@@ -154,6 +154,18 @@ fn lock(_: &Path) -> Result<()> {
     Err(err("authority-store-platform-unsupported"))
 }
 fn load(root: &Path, test: bool) -> Result<State> {
+    #[cfg(unix)]
+    if !test {
+        use std::os::unix::fs::MetadataExt;
+        let m = fs::symlink_metadata(root.join("state.json")).map_err(err)?;
+        if !m.is_file()
+            || m.file_type().is_symlink()
+            || m.uid() != rustix::process::geteuid().as_raw()
+            || m.mode() & 0o022 != 0
+        {
+            return Err(err("authority-store-state-unsafe-owner-or-mode"));
+        }
+    }
     let bytes = read(&root.join("state.json"))?;
     let state: State = serde_json::from_slice(&bytes).map_err(err)?;
     if serde_jcs::to_vec(&state).map_err(err)? != bytes {
@@ -416,5 +428,102 @@ mod tests {
         assert!(!reader_safe(operator, 0o40770, agent), "group-writable");
         assert!(!reader_safe(operator, 0o40702, agent), "other-writable");
         assert!(!reader_safe(0, 0o41777, agent), "/tmp-like");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sharing_is_explicit_and_never_allows_other_account_writes() {
+        use super::*;
+        use std::os::unix::fs::PermissionsExt;
+        // A normal authority store must not have a world-writable /tmp ancestor.
+        // This disposable test stays in the isolated checkout and is removed.
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join(format!(".authority-sharing-{}", std::process::id()));
+        fs::create_dir(&root).unwrap();
+        fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+        let genesis = Revision {
+            schema: sdk::REVISION_SCHEMA.into(), repository: "fixture".into(), sequence: 0,
+            principals: BTreeMap::from([("owner".into(), sdk::Principal {
+                public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".into(),
+                roles: std::collections::BTreeSet::from(["authority-admin".into()]), actor: None, kind: None,
+            })]), policy: None,
+        };
+        let agent = rustix::process::geteuid().as_raw().checked_add(1).unwrap();
+        assert!(
+            bootstrap(
+                &root,
+                genesis.clone(),
+                &genesis.digest().unwrap(),
+                Some(agent),
+                None,
+                true,
+                true
+            )
+            .unwrap_err()
+            .to_string()
+            .contains("requires-protected-mode")
+        );
+        let view = bootstrap(
+            &root,
+            genesis.clone(),
+            &genesis.digest().unwrap(),
+            Some(agent),
+            None,
+            false,
+            true,
+        )
+        .unwrap();
+        assert_eq!(view["execution_readable"], true);
+        assert_eq!(view["human_review_established"], false);
+        let state = root.join("state.json");
+        assert_eq!(
+            fs::metadata(&root).unwrap().permissions().mode() & 0o777,
+            0o755
+        );
+        assert_eq!(
+            fs::metadata(&state).unwrap().permissions().mode() & 0o777,
+            0o644
+        );
+        status(&root, false).unwrap();
+        fs::set_permissions(&state, fs::Permissions::from_mode(0o666)).unwrap();
+        assert!(
+            status(&root, false)
+                .unwrap_err()
+                .to_string()
+                .contains("state-unsafe-owner-or-mode")
+        );
+        fs::set_permissions(&state, fs::Permissions::from_mode(0o644)).unwrap();
+        fs::set_permissions(&root, fs::Permissions::from_mode(0o777)).unwrap();
+        assert!(
+            status(&root, false)
+                .unwrap_err()
+                .to_string()
+                .contains("unsafe-owner-or-mode")
+        );
+        fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+        fs::remove_file(&state).unwrap();
+        bootstrap(
+            &root,
+            genesis.clone(),
+            &genesis.digest().unwrap(),
+            Some(agent),
+            None,
+            false,
+            false,
+        )
+        .unwrap();
+        assert_eq!(
+            fs::metadata(&root).unwrap().permissions().mode() & 0o777,
+            0o700
+        );
+        assert_eq!(
+            fs::metadata(&state).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+        assert!(
+            !fs::read_to_string(&state)
+                .unwrap()
+                .contains("execution_readable")
+        );
+        fs::remove_dir_all(root).unwrap();
     }
 }
