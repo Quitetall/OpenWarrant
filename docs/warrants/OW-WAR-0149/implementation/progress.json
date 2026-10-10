@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Runtime receipt and activated native verifier SDK controls are implemented, unverified. Operator-owned host configuration now binds actual execution UID and repository path to collector identity and refuses changed mappings around native launch. Native preservation/KF observations are retained under OW111; actual CLI/workflow wiring, native input custody and independent qualification remain.",
+  "summary": "Runtime receipt and activated native verifier SDK controls are implemented, unverified. Protected host configuration binds actual execution identity; sealed native-data snapshots preserve approved bytes and reject writes, executable mode changes and source violations. Actual adapter/CLI wiring, job-directory custody and independent qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -33,12 +33,13 @@
     "docs/warrants/OW-WAR-0096/implementation/reader-privileges-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/dispatch-retention-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-inputs-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/runtime-host-identity-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/runtime-host-identity-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/protected-native-inputs-20261010/README.md"
   ],
   "next_steps": [
     "Wire protected host identity resolution, independently protected native input/policy configuration and the native adapter into actual CLI/workflow assessment; never derive keys, trusted log heads or permissions from the receipt.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "6784d127aee9c8326d78c2b4c9d08f48f4a6966a"
+  "revision": "287b7431467719f5d7ddc70fd0949746d9de76c6"
 }
