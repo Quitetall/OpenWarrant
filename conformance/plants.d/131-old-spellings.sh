@@ -41,6 +41,13 @@ SP_A=$(cd "$PLANT_ROOT/docs/warrants" && find . -maxdepth 1 -name 'SP-WAR-*' -pr
 # differ by the second between two calls, whatever their spelling.
 sp create "Plant ticket" --item "First" --item "Second" >/dev/null 2>&1
 sp create "Another" >/dev/null 2>&1
+# The scratch corpus compiled before its baseline commit, so its score
+# (.openwarrant/score, gitignored, M17) names no commit. The first compile
+# after that commit records it and counts those files in `written`; every
+# compile after it, on the same tree, writes nothing. Compile once here, so
+# `compile` and `admin compile` below both start from a current tree, as
+# every other pair does.
+sp compile >/dev/null 2>&1
 
 # run <file-prefix> <args...>: stdout, stderr and the exit code, to files.
 sp_run() {
