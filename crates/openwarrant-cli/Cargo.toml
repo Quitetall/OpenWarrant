@@ -4,7 +4,7 @@ name = "openwarrant-cli"
 # module, so the CLI is linked once per `cargo test`, not once per file.
 autotests = false
 description = "The `war` command line interface for Work Authorization Records."
-version = "1.0.0-alpha.2"
+version = "1.0.0-alpha.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

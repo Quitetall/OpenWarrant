@@ -6,7 +6,57 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.3] — 2026-10-09
+
 ### Added
+
+- One compiled model (OW-WAR-0148 M1). `war plan model` emits
+  `oh.war/model/v1`, the records, relations, states and diagnostics every
+  client reads from one corpus built once per process.
+- Typed records and relations (M3): `## <ID> · <type>` record atoms, a
+  closed core set of relation kinds, and `war plan impact <record>`, which
+  names what a change affects.
+- Fixed kernel states, plus declared states that only refine one (M4):
+  `war plan state`.
+- Tickets on the record kernel (M5): types, labels, epics, filters and
+  search; `war create --issue` reads a GitHub issue, and opt-in
+  `[intake.writeback]` comments on and closes it when the work is done.
+- Projections declared as data (M6): PRD, architecture view, test plan and
+  agent packet render from one set of records (`war plan render`).
+- From a prompt to typed records (M7): `war plan --records`.
+- `war admin host` (M8) speaks `oh.war/liminal-v1`: pure, over in-memory
+  files, with conformance fixtures. The host is trusted for the observations
+  it supplies; a missing one fails closed.
+- Tickets are Warrants (M10): one id space, `war view warrants`, and
+  `war admin import|export` for Beads JSONL, OpenSpec and Spec Kit, plus
+  read-in-place `[[adapters]]` that write nothing into those folders.
+- Concurrency (M11): claims shared across a clone's worktrees, leases with
+  `war admin heartbeat`, `--if-rev` compare-and-set
+  (`warrant.stale-revision`), cross-machine claims through a git ref,
+  `warrant.alias-duplicate`, `war admin renumber`, and a ticket merge driver.
+- Optional parts and the tick ladder (M13): `war add <id> --test|--kpi|
+  --milestone`; every tick records how it was earned (claimed < observed <
+  independent < signed); `war done --check`; `war evidence kpi run`.
+- Presets, roles and official Warrants (M14): `war init --vibe|--team|
+  --regulated`; `[roles]` mirroring GitHub levels; `war sign approve` and
+  batched `war sign release`; `war check --pr`, shipped as the GitHub
+  Action `.github/actions/openwarrant-check`, requires an official Warrant
+  at the author's level. Under `--vibe`, `war done` claims for you.
+- The native graph executor (M15): `war start <id>` runs one node in its own
+  worktree with session-only harness settings; `war evidence go` runs the
+  frontier until nothing is ready, with a concurrency cap, budgets, retries,
+  and estimates learned from the journal. Executors are pluggable (a local
+  harness argv, GitHub Agent HQ, Gas Town via the Beads export); every
+  result comes back through `war submit`'s refusals.
+- CLAUDE.md and AGENTS.md (M16): `war admin agents-md --block` keeps a small
+  managed block; their `##` sections become `instruction` records that
+  Warrants can cite and `war plan impact` follows.
+- Every development document is a type (M18): `roadmap`, `spec` and `adr`
+  profiles read today's stores unchanged; ROADMAP.md is a projection;
+  `release`, `incident` and exit-report types in the core; `ops` and
+  `quality` packs (`war plan types add <pack>`). Development docs no type
+  claims appear as `document` records and count against the score's
+  document coverage; `war plan type <file> <type>` adopts one in place.
 
 - The compliance score and the file ledger (OW-WAR-0148 M17; docs/SCORE.md,
   docs/LEDGER.md). `war status` ends with a score from 1 to 1000, a
@@ -51,6 +101,12 @@ Notable changes to OpenWarrant. Format loosely follows
   checks. `ResolutionChecks` gains `not_applicable`, omitted when empty.
 
 ### Changed
+
+- A small surface (M12): `war --help` lists 12 daily verbs (`init create
+  next start claim done add note edit show status check`) and five groups
+  (`plan`, `sign`, `evidence`, `view`, `admin`). Every earlier spelling
+  still works, hidden, with byte-identical output; messages and docs use the
+  new ones (docs/COMMANDS.md).
 
 - Ordinary work is ordinary (M9, t-51280). Everything an agent reads says
   first that ordinary coding needs no Warrant and no ticket: the AGENTS.md
