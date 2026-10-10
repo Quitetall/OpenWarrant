@@ -1,0 +1,17 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/ow-authority-transition-admission/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized] target(s) in 1m 07s
+     Running tests/all.rs (/mnt/4tb/build/cargo/f4/239f058ca60b41/debug/deps/all-913e54b69a5a3578)
+
+running 9 tests
+test collector_signature::namespace_fixture_entry ... ignored, subprocess fixture entry; not an operator enrollment or human act
+test collector_signature::protected_namespace_roundtrip ... ignored, requires provisioned unshare subordinate UID/GID mapping; run explicitly
+test collector_signature::unavailable_scratch_and_invalid_deadlines_do_not_pass ... ok
+test collector_loading::symlinks_and_non_regular_enrollment_sources_are_refused ... ok
+test collector_loading::an_executor_owned_store_cannot_become_trusted_by_claiming_another_uid ... ok
+test collector_signature::real_openssh_verifies_exact_bytes_without_inferring_presence ... ok
+test collector_signature::enrollment_checks_use_real_crypto_and_keep_presence_requirements ... ok
+test collector_signature::authenticated_software_sk_flags_are_observed_only_after_crypto ... ok
+test collector_loading::unavailable_sources_stay_unknown_and_bad_wire_is_rejected ... ok
+
+test result: ok. 7 passed; 0 failed; 2 ignored; 0 measured; 208 filtered out; finished in 0.98s
+
