@@ -1,4 +1,4 @@
 # Checklist
 
-- [ ] find which concurrent git operation reorders or adds scope findings (i-fa9d)
-- [ ] make the fixture independent of other processes' worktree operations (i-8482)
+- [x] find which concurrent git operation reorders or adds scope findings (i-fa9d) — done by codex, 2026-10-08: Old fixture update-ref refs/remotes/origin/main is shared between worktrees. Disposable Bonsai check reproduction on an older-base publication returns foreign-branch.txt plus outside-warrant.txt instead of only outside-warrant.txt. Historic failing process identity remains unobserved; deterministic mechanism reproduced.
+- [x] make the fixture independent of other processes' worktree operations (i-8482) — done by codex, 2026-10-08: Private clone per fixture isolates refs, remote config, index and cleanup, sharing only immutable Git objects. All 12 Bonsai tests pass; two simultaneous runs each pass 12/12; workspace all-target Clippy passes Rust1.97.1. Full local and hosted gates pending; no independent Warrant verification or resolution claimed.

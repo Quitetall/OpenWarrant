@@ -3,18 +3,20 @@
   "warrant": "OW-WAR-0023",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "b6846f7f8e077b794b16102f1a63cc1e93000006",
-  "summary": "Portable legacy Dispatch transport and offline capability membership delivered, unverified. Exact sources/support refs, integrity refusals and default denial implemented. Broader semantic-selection/classification and runtime evidence remain.",
+  "revision": "6587ec27469581a89005a5af3e061c20f4475713",
+  "summary": "Portable legacy Dispatch transport, source-bound offline classification checks and exact current authorization/source-holder admission delivered, unverified. Broader semantic closure, provider policy and native runtime qualification remain.",
   "notes": "docs/warrants/OW-WAR-0023/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0023/implementation/evidence/focused-tests.log",
     "docs/warrants/OW-WAR-0023/implementation/evidence/clippy.log",
     "docs/warrants/OW-WAR-0023/implementation/evidence/independent-review.md",
     "docs/warrants/OW-WAR-0023/implementation/evidence/gate-before-final-metadata-fix.log",
-    "docs/warrants/OW-WAR-0023/implementation/evidence/refusal-controls.log"
+    "docs/warrants/OW-WAR-0023/implementation/evidence/refusal-controls.log",
+    "docs/warrants/OW-WAR-0023/implementation/classification-20261009/README.md",
+    "docs/warrants/OW-WAR-0023/implementation/admission-20261009/README.md"
   ],
   "next_steps": [
-    "Provider/workflow evidence or explicit reconciliation for broader semantic selection and classification requirements.",
+    "Full admission candidate passed the 14-step gate and merged via PR167 at 301faf1c. Provider-owned semantic selection, classification-policy and native enforcement or explicit reconciliation remain.",
     "Harness must enforce pre-action capability decisions under independently established authority.",
     "Human assurance and legacy resolution remain separate."
   ]

@@ -28,6 +28,7 @@ pub mod lower;
 pub mod preservation;
 pub mod project;
 pub mod render;
+pub mod runtime_basis;
 pub mod warrant_overview;
 
 pub use adr_overview::render as render_adr_overview;

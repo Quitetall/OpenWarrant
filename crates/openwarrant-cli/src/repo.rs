@@ -367,16 +367,53 @@ impl Repository {
         Ok(file.intake)
     }
 
-    /// Role assignments in force for this repository (§27.4).
-    ///
-    /// `docs/authority/roles.toml` is authored by a human and by nothing else.
-    /// There is no `war authority grant`: a command that could write this file
-    /// would let an agent assign itself the roles §27.2 exists to withhold, so
-    /// the register is read-only to every tool in this workspace.
-    ///
-    /// An absent file yields an empty register, and an empty register grants
-    /// nobody anything — the fail-closed direction.
+    /// Current role grants from the configured authority source (§27.4).
+    /// A configured store never falls back to working-tree assignments. This
+    /// in-memory projection grants no new authority and invents no activation
+    /// actor or date; signatures still verify against the current store.
     pub fn load_authority_register(&self) -> Result<AuthorityRegister, RepoError> {
+        match crate::authority_check::binding(self) {
+            crate::authority_check::Binding::Register => self.load_legacy_authority_register(),
+            crate::authority_check::Binding::Failed { rule, why } => {
+                Err(RepoError::Message(format!("{rule}: {why}")))
+            }
+            crate::authority_check::Binding::Store(store) => {
+                if store.revision.version() < 2 {
+                    return Err(RepoError::Message(
+                        "authority.actor-binding-unavailable: a v1 store names no actor; no legacy fallback".to_owned(),
+                    ));
+                }
+                let mut assignments = Vec::new();
+                for (principal, entry) in &store.revision.principals {
+                    let (Some(actor), Some(kind)) = (&entry.actor, entry.kind) else {
+                        continue; // An authority key with no actor signs no Warrant act.
+                    };
+                    let roles: std::collections::BTreeSet<ActorRole> = entry
+                        .roles
+                        .iter()
+                        .filter_map(|role| role.parse().ok())
+                        .collect();
+                    if roles.is_empty() {
+                        continue; // Store-management roles are not Warrant roles.
+                    }
+                    assignments.push(RoleAssignment {
+                        actor: actor.clone(),
+                        actor_kind: kind,
+                        roles,
+                        assigned_by: store.describe(),
+                        effective_time: "unknown".to_owned(),
+                        note: Some("Current protected grant projection; activation actor and effective time are not established here".to_owned()),
+                        ssh_principal: Some(principal.clone()),
+                    });
+                }
+                Ok(AuthorityRegister::new(assignments))
+            }
+        }
+    }
+
+    /// Historical/local assignments, used only without a store or to explain
+    /// a refused legacy-only signature. Never a fallback grant for a store.
+    pub(crate) fn load_legacy_authority_register(&self) -> Result<AuthorityRegister, RepoError> {
         let path = self.root.join("docs/authority/roles.toml");
         if !fs::is_file(&path) {
             return Ok(AuthorityRegister::default());

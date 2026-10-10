@@ -1,0 +1,107 @@
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-runtime-basis/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.07s
+     Running unittests src/lib.rs (/mnt/4tb/OpenWarrant/target/debug/deps/openwarrant_compiler-4e6f39e17a0d6d41)
+
+running 80 tests
+test adr_overview::tests::an_empty_corpus_says_so_rather_than_rendering_an_empty_table ... ok
+test adr_overview::tests::empty_sections_are_omitted ... ok
+test adr_overview::tests::output_is_independent_of_input_order ... ok
+test adr_overview::tests::currency_is_reported_per_adr ... ok
+test canonical::tests::digests_are_stable_across_runs ... ok
+test adr_overview::tests::renders_summary_buckets_and_full_bodies ... ok
+test canonical::tests::keys_sort_by_utf16_code_unit_not_utf8_bytes ... ok
+test canonical::tests::the_preimage_has_the_shape_the_sas_specifies ... ok
+test canonical::tests::source_key_order_does_not_affect_the_digest ... ok
+test canonical::tests::es6_number_boundaries ... ok
+test current::tests::a_namespaced_extension_is_rendered_and_a_bare_unknown_is_not ... ok
+test current::tests::a_program_without_a_record_says_so ... ok
+test canonical::tests::every_domain_pair_yields_a_distinct_digest ... ok
+test current::tests::a_replaced_subject_is_one_line_and_none_of_its_text ... ok
+test current::tests::every_row_is_a_known_role_and_none_is_compiler_produced ... ok
+test current::tests::a_subject_without_extensions_has_no_extensions_section ... ok
+test current::tests::an_extension_atom_renders_verbatim_under_extensions_after_every_row ... ok
+test current::tests::atoms_render_in_role_order_verbatim ... ok
+test current::tests::sections_come_in_the_declared_order ... ok
+test digest::tests::all_sixteen_domains_are_present ... ok
+test current::tests::the_roadmap_renders_phases_in_order_with_exit_members_and_rungs ... ok
+test digest::tests::domain_uris_are_namespaced_and_versioned ... ok
+test digest::tests::sha256_matches_published_vectors ... ok
+test digest::tests::domain_uris_are_unique ... ok
+test dispatch::tests::a_wrapped_bullet_is_one_instruction_and_an_unindented_line_is_not ... ok
+test history::tests::the_history_carries_every_roadmap_revision ... ok
+test history::tests::the_history_expands_what_the_master_document_replaces ... ok
+test ir::tests::a_minimal_ir_round_trips_through_its_own_canonical_form ... ok
+test ir::tests::canonical_output_is_stable_across_two_computations ... ok
+test ir::tests::absent_enterprise_id_is_omitted_not_empty ... ok
+test lower::schema_pack_tests::the_committed_pack_declares_the_version_inside_every_digest ... ok
+test ir::tests::api_version_and_kind_are_pinned ... ok
+test ir::tests::pre_scope_documents_remain_readable_under_the_minor_schema_bump ... ok
+test ir::tests::generated_sections_do_not_move_the_contract_digest ... ok
+test ir::tests::extensions_survive_a_round_trip ... ok
+test preservation::tests::missing_tampered_and_unavailable_content_cannot_reconnect ... ok
+test lower::tests::an_unallocated_enterprise_id_is_absent ... ok
+test ir::tests::absent_and_empty_differ ... ok
+test lower::tests::workspace_basis_and_composition_digests_differ ... ok
+test lower::tests::relations_are_carried_through ... ok
+test ir::tests::contract_content_moves_the_contract_digest ... ok
+test dispatch::tests::an_item_both_included_and_omitted_is_refused ... ok
+test canonical::tests::official_rfc8785_vectors ... ok
+test dispatch::tests::one_source_at_two_revisions_is_refused ... ok
+test lower::tests::atom_order_affects_the_composition_digest ... ok
+test render::tests::absent_roles_produce_no_empty_headings ... ok
+test project::tests::renders_every_block_and_traces_every_line ... ok
+test render::tests::every_source_atom_appears_in_the_provenance_table ... ok
+test preservation::tests::refuses_unsafe_paths_versions_omissions_and_limits ... ok
+test preservation::tests::refuses_duplicate_json_keys_and_record_collisions ... ok
+test render::tests::an_unallocated_enterprise_id_renders_as_such ... ok
+test render::tests::atom_frontmatter_is_stripped_from_the_parent ... ok
+test dispatch::tests::a_required_atom_dropped_from_context_is_refused_by_name ... ok
+test warrant_overview::tests::an_empty_corpus_says_so ... ok
+test dispatch::tests::an_unbound_stage_and_a_repair_without_evidence_are_refused ... ok
+test warrant_overview::tests::coverage_is_labelled_as_claimed_not_verified ... ok
+test warrant_overview::tests::derived_state_is_reported_and_labelled_derived ... ok
+test warrant_overview::tests::lists_every_warrant ... ok
+test project::tests::the_json_renderer_carries_the_same_selection_one_record_per_line ... ok
+test warrant_overview::tests::recorded_state_is_not_labelled_derived ... ok
+test warrant_overview::tests::output_is_independent_of_input_order ... ok
+test lower::tests::lowering_is_deterministic ... ok
+test dispatch::tests::the_dispatch_digest_is_recomputable_from_the_packet ... ok
+test warrant_overview::tests::requirement_coverage_attributes_each_requirement_to_its_warrants ... ok
+test warrant_overview::tests::the_currency_column_is_the_derived_one ... ok
+test render::tests::canonical_json_ends_with_exactly_one_newline ... ok
+test project::tests::a_change_moves_exactly_the_renderings_that_select_it ... ok
+test render::tests::machine_scope_is_rendered_from_the_bound_sidecar ... ok
+test project::tests::over_budget_is_refused_by_name_and_an_unknown_root_too ... ok
+test render::tests::the_generated_header_is_present_and_complete ... ok
+test render::tests::the_rendered_parent_does_not_feed_the_contract_digest ... ok
+test lower::tests::atom_digests_track_atom_bytes ... ok
+test preservation::tests::canonical_codec_preserves_exact_bytes_and_extensions ... ok
+test render::tests::rendering_is_byte_identical_across_runs ... ok
+test dispatch::tests::a_dispatch_is_byte_deterministic_for_fixed_ids ... ok
+test lower::tests::scope_bytes_move_the_contract_digest ... ok
+test dispatch::tests::one_source_at_two_digests_is_refused_and_both_are_named ... ok
+test dispatch::tests::the_compiler_refuses_over_budget_and_emits_at_budget ... ok
+test corpus_status::tests::the_banner_precedes_the_title_and_the_renderer_divides_nothing ... ok
+test corpus_status::tests::every_committed_war_json_carries_the_sas_pin ... ok
+
+test result: ok. 80 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/runtime_basis.rs (/mnt/4tb/OpenWarrant/target/debug/deps/runtime_basis-8d9941518aaccf85)
+
+running 7 tests
+test duplicate_stage_ids_across_sources_do_not_collapse_into_one_requirement ... ok
+test valid_nonruntime_inventory_passes_but_missing_or_malformed_sources_do_not ... ok
+test duplicate_attempts_and_unrelated_receipts_are_refused ... ok
+test hard_spend_cap_cannot_be_satisfied_by_an_unknown_cost ... ok
+test one_receipt_cannot_satisfy_two_stages_and_cost_stays_unknown ... ok
+test wrong_provider_missing_verifier_and_failed_execution_stay_distinct ... ok
+test modified_dispatch_or_current_contract_is_refused ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests openwarrant_compiler
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

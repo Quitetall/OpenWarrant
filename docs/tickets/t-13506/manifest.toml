@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-13506` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-13506"
+uuid = "01a12203-3caf-7388-b036-3fd911e610dc"
+title = "Use the configured authority source consistently for role consumers"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-09T18:53:19Z"
+created_by = "codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

@@ -84,6 +84,7 @@ pub mod resolve;
 pub mod roadmap_cmd;
 pub mod roadmap_edit;
 pub mod run_cmd;
+pub mod runtime_capture;
 pub mod sas;
 pub mod sas_repin;
 #[cfg(feature = "schema")]
@@ -96,6 +97,7 @@ pub mod sign;
 pub mod signing_probe;
 pub mod skew;
 pub mod standing_cmd;
+#[path = "state_cmd.rs"]
 pub mod states;
 pub mod status;
 pub mod telemetry;
@@ -511,7 +513,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
         "evidence",
         &[
             "record", "gate", "verify", "prepare", "run", "perform", "submit", "kpi", "mark",
-            "document", "eval",
+            "document", "eval", "runtime",
         ],
     ),
     (
@@ -1041,6 +1043,10 @@ enum SignCommand {
         /// Report the thirteen §56.1 requirements and stop.
         #[arg(long)]
         dry_run: bool,
+        /// Bounded repository-relative retained capture selections. Read-only;
+        /// this CLI has no native verifier and cannot reuse saved verdicts.
+        #[arg(long, requires = "dry_run")]
+        runtime_selection: Option<camino::Utf8PathBuf>,
         /// A resolver's signed response to ingest (§56.2). Without it and
         /// without --dry-run, the resolution REQUEST is emitted: what a
         /// signature would bind, which outcomes §38.6 permits, and who may sign.
@@ -1127,6 +1133,11 @@ enum SignCommand {
 /// hidden, into the top level.
 #[derive(Subcommand)]
 enum EvidenceCommand {
+    /// Retain or inspect dispatch-bound runtime captures. Retention is not native verification.
+    Runtime {
+        #[command(subcommand)]
+        command: runtime_capture::Command,
+    },
     /// Inspect or run local gate definitions (§44).
     Gate {
         #[command(subcommand)]
@@ -1776,9 +1787,13 @@ enum AdminCommand {
 
     /// §94 telemetry baseline, §95 untracked-work candidates, §100 metrics.
     Telemetry {
-        /// The commit this baseline is taken at (§94, OBL-001).
+        /// Legacy declared commit label; with --derived, the exact retained Git source subject.
         #[arg(long)]
         commit: String,
+        /// Candidate v2 derived metrics from exact retained Git sources.
+        /// Keeps the default legacy report and retained artifacts unchanged.
+        #[arg(long, conflicts_with = "attach")]
+        derived: bool,
         /// Where to write the baseline artifact.
         #[arg(long, default_value = "artifacts/telemetry-baseline.json")]
         out: camino::Utf8PathBuf,
@@ -3581,11 +3596,36 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
         SignCommand::Resolve {
             alias,
             dry_run,
+            runtime_selection,
             response,
         } => {
             let repository = ctx.open_repo()?;
             if dry_run {
-                let report = resolve::run(&repository, &alias)?;
+                let report = match runtime_selection {
+                    Some(path) => match runtime_capture::read_selection(&repository, &path) {
+                        Ok(selected) => {
+                            resolve::run_selected(&repository, &alias, &selected.selections)?
+                        }
+                        Err(fault) => {
+                            let mut report = diagnostic::Report::default();
+                            report.push(if fault.unknown {
+                                diagnostic::Diagnostic::unknown(
+                                    fault.code,
+                                    path.to_string(),
+                                    fault.message,
+                                )
+                            } else {
+                                diagnostic::Diagnostic::error(
+                                    fault.code,
+                                    path.to_string(),
+                                    fault.message,
+                                )
+                            });
+                            report
+                        }
+                    },
+                    None => resolve::run(&repository, &alias)?,
+                };
                 return Ok(output::finish(mode, "resolve.dry_run", &report, None));
             }
             match response {
@@ -3852,6 +3892,10 @@ fn run_evidence_member(
 ) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
+        EvidenceCommand::Runtime { command } => {
+            let (report, result) = runtime_capture::run(&ctx.open_repo()?, command);
+            Ok(output::finish(mode, "runtime", &report, Some(result)))
+        }
         EvidenceCommand::Kpi {
             command: KpiCommand::Run { target, actor },
         } => {
@@ -4824,7 +4868,8 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
 
         AdminCommand::Telemetry {
             commit,
-            out,
+            mut out,
+            derived,
             verify,
             attach,
             warrant,
@@ -4847,7 +4892,28 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                 );
                 return Ok(EXIT_OK);
             }
-            let baseline = telemetry::take(&repository, &commit)?;
+            let baseline = if derived {
+                telemetry::take_derived(&repository, &commit)?
+            } else {
+                telemetry::take(&repository, &commit)?
+            };
+            if derived && out.as_str() == "artifacts/telemetry-baseline.json" {
+                out = format!("artifacts/telemetry-derived-{}.json", baseline.commit).into();
+            }
+            let source_basis = serde_json::json!({
+                "kind": if derived { "frozen-retained-git" } else { "live-working-tree" },
+                "declared_commit": commit,
+                "resolved_source_commit": if derived { Some(baseline.commit.as_str()) } else { None },
+                "immutable_sources_established": derived,
+                "history_read": telemetry::history_read(&baseline),
+                "before_tuning_established": false,
+                "qualification_established": false,
+            });
+            let source_note = if derived {
+                format!("source: exact retained Git revision {}", baseline.commit)
+            } else {
+                "source: live working tree; --commit is a declared label, not a source pin. Use --derived for exact retained Git sources".to_owned()
+            };
             let rendered = telemetry::render(&baseline)?;
             if verify {
                 let existing = std::fs::read_to_string(&out)
@@ -4856,7 +4922,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                 // while the doc claims byte-for-byte agreement.
                 if existing == rendered {
                     let human = format!(
-                        "telemetry baseline at {commit} is unchanged (untracked work read from {})",
+                        "telemetry artifact bytes are unchanged; {source_note} (untracked work read from {})",
                         telemetry::history_read(&baseline)
                     );
                     output::emit(
@@ -4868,6 +4934,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                             "commit": commit,
                             "path": out.as_str(),
                             "unchanged": true,
+                            "source_basis": source_basis,
                         }),
                     );
                     return Ok(EXIT_OK);
@@ -4883,14 +4950,15 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                     repo::RepoError::Message(format!("cannot create {parent}: {e}"))
                 })?;
             }
-            std::fs::write(&out, &rendered)
-                .map_err(|e| repo::RepoError::Message(format!("cannot write {out}: {e}")))?;
+            // A baseline is a retained observation. Both collectors use the
+            // same no-overwrite publisher; replay may reuse identical bytes.
+            telemetry::publish(&out, rendered.as_bytes())?;
             let untaken = baseline
                 .measures
                 .values()
                 .filter(|m| matches!(m, telemetry::Measure::NotYet { .. }))
                 .count();
-            let human = format!(
+            let mut human = format!(
                 "telemetry baseline written to {out}\n  {} of {} §94 measures taken; {untaken} \
                  recorded `not_measurable_yet` with a reason\n  {} §95 untracked-work \
                  candidate(s), read from {}\n  {} §100 metrics, every one `no baseline` — one measurement \
@@ -4901,6 +4969,15 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                 telemetry::history_read(&baseline),
                 baseline.success_metrics.len()
             );
+            human.push_str(&format!("\n  {source_note}"));
+            if derived {
+                let ratios = baseline
+                    .derived
+                    .values()
+                    .filter(|value| matches!(value, telemetry::Measure::Ratio { .. }))
+                    .count();
+                human.push_str(&format!("\n  {ratios} of {} derived metrics reported as exact ratios; remaining inputs stay explicitly unmeasured\n  source subject: {}", baseline.derived.len(), baseline.commit));
+            }
             output::emit(
                 mode,
                 "telemetry",
@@ -4909,6 +4986,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                     "operation": "record",
                     "path": out.as_str(),
                     "baseline": baseline,
+                    "source_basis": source_basis,
                 }),
             );
             Ok(EXIT_OK)

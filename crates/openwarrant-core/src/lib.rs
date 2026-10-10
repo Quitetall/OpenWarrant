@@ -25,6 +25,7 @@ pub mod projection;
 pub mod rationale;
 pub mod record;
 pub mod relation;
+pub mod telemetry_metrics;
 pub mod traceability;
 pub mod verification;
 pub mod verification_record;

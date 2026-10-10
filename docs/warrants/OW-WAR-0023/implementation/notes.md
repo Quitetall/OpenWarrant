@@ -48,3 +48,30 @@ supplies the pre-action decision only. Authority, policy revocation, verified
 start and human acceptance cannot be inferred from a caller-provided digest.
 Candidate format adoption and formal assurance remain separate. Stable 1.0 is
 not published by this work.
+
+
+## Source classification continuation (2026-10-09)
+
+Explicit labels now survive legacy context selection. Missing and unfetched
+labels remain unknown; mixed labels do not become an invented `internal` join.
+The detached reader can check one selected source against an external caller's
+exact label allowlist, using full captured source/provenance bytes and refusing
+forged metadata even after local digest recomputation. See
+[classification evidence](classification-20261009/README.md) and
+[public interface](../../../cli/dispatch-bundle.md#source-classification-disclosure-check).
+This is a disclosure primitive. Provider policy, semantic closure, runtime/harness
+enforcement, full-package clearance and independent/human qualification remain
+open. No signed records, older captures or assurance dispositions were rewritten.
+
+## Dispatch admission — 2026-10-09
+
+[Implementation and observed controls](admission-20261009/README.md): current
+signed subject comparison, exact local Git source holders, named missing/mismatch
+refusals before outputs, and explicit prototype fallback. No signature or assurance
+is awarded. Full hosted gate and provider/native qualification remain open.
+
+## Combined integration preparation
+
+[Retained failures and corrected controls](integration-20261009/README.md):
+all 81 affected battery controls pass after truthful fixture preparation.
+Full hosted gate and independent/provider qualification remain separate.

@@ -1,0 +1,28 @@
+{
+  "schema": "oh.war/bounded-observation/v1",
+  "observed_at": "2026-10-08T23:31:53.355202+00:00",
+  "scope": "Synthetic signing transition and rendered-evidence controls in disposable corpora only; no production authority act",
+  "regression": {
+    "binary_sha256": "6211222d53129ec608f7984ac09dcd7c24160d39c655b6f9cfaa63b5c4c4c0b7",
+    "signing_controls_passed": 4,
+    "signing_controls_failed": 2,
+    "cause": "Historical optional packet authorization pointer compared to current signed authorization; a review captured before signing the unchanged contract was incorrectly discarded"
+  },
+  "corrected": {
+    "binary_sha256": "0445b741468b5b34974818aafd4f145e4c8b8ea4e491df943bb16cd48d8f4469",
+    "rust": "1.97.1",
+    "verification_cli_tests_passed": 33,
+    "bundle_unit_tests_passed": 12,
+    "signing_candidate_source_controls_passed": 34,
+    "signing_candidate_source_controls_failed": 0,
+    "clippy": "CLI all-targets -D warnings: PASS",
+    "rendered_validator_sha256": "ae5f25774a0acb777972c65ac7fc8c30bcb4cd4fe11516d867f3e3124662efd8"
+  },
+  "not_established": [
+    "full final-head gate",
+    "independent qualification",
+    "all historical assertions and transitive context closure",
+    "hostile same-account custody/race protection",
+    "production Warrant acceptance"
+  ]
+}

@@ -3455,7 +3455,7 @@ The request carries `reviewed_subject`. A response echoes the exact object it re
 | Field | Binding |
 |---|---|
 | `contract_digest` | Existing compiled contract digest. |
-| `context_sources` | Exact pinned SAS source path and ordinary SHA-256 of its retained bytes. |
+| `context_sources` | Exact pinned SAS and explicitly governing current ADR source paths, with ordinary SHA-256 of retained bytes. |
 | `artifacts` | Declared delivered paths and ordinary SHA-256 of actual bytes. |
 | `gate_definitions` | Each cited gate key and the digest of its definition bytes. |
 | `fixtures` | Declared fixture paths and actual byte digests. |
@@ -3468,6 +3468,10 @@ Maps are sorted. Missing artifacts remain explicit and cannot satisfy existence.
 Cited gates with nonempty `inputs` use the existing glob and exclusion rules. Missing or empty input lists, missing gate definitions, and no cited gates use the existing conservative tree scope. Explicit selections are unioned with that scope: tree bookkeeping exclusions cannot remove a declared input.
 
 Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. Candidate Git queries and the batch blob reader disable replacement objects and lazy fetching; an unavailable object remains UNKNOWN instead of reading a substituted commit or fetching new data. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
+
+Governing ADR selection uses the native accepted lifecycle state and explicit `governs` relations to the reviewed Warrant UUID or its retained local alias. Alias relations already occur in the historical corpus; source bytes are not rewritten to convert them. Proposed and unrelated decisions are not implicitly made binding. Attached contract atoms continue to travel separately. This does not invent dependency relations from prose or establish complete transitive provider context closure.
+
+A SAS pin remains optional. Its absence cannot erase an applicable explicit ADR. Applicable decisions travel verbatim in every whole or split packet as `governing-adr` sources; pinned SAS bytes retain `governing-sas`. Their exact bytes are bound in the existing sorted map and checked again at ingestion. Malformed or unavailable required context is UNKNOWN. Native ADR directory enumeration includes ignored sources and refuses nonregular .md entries; descriptor-relative directory and file opens do not follow namespace or source links outside the repository. Duplicate applicable current identities are unavailable rather than selecting an arbitrary file. Rehashed omission, substitution, duplicates, false source labels and extra instruction-bearing fields are refused before verdict writes. This extends captured source selection, not the frozen canonicalization algorithm, digest domain or v1 record payload.
 
 Input bindings identify the reviewed workspace. They do not grant permission to publish every source as blind context. Performer rationale and historical instructions remain excluded from reviewer context. Source selection and portable context closure are separate requirements.
 
@@ -3532,7 +3536,44 @@ Contract and packet digests retain their existing Rust canonicalizers and digest
 
 Packets carry exact required pinned-SAS, gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. The draft locates the captured SAS version/digest in retained revision records, uses descriptor-safe current reads, and recovers matching historical Git bytes locally when needed. Candidate snapshots cannot borrow mutable checkout history. The historical-source extension freezes the candidate commit and reads regular source blobs only from that commit’s retained ancestors, with replacement objects and lazy fetching disabled. Matching content must have the exact pinned SHA-256; a newer source file or unrelated branch cannot substitute. An unavailable pinned source is UNKNOWN. This extension has a reproduced CLI failure and is awaiting its green qualification run. Packet qualification also checks the full carried source against its subject digest. Request and packet assembly reuse one loaded Warrant. This SAS slice is under test; complete transitive governing-context closure remains open.
 
+Prior-verification displays are optional historical background, not current
+qualification. Every displayed observation must exactly match a decoded active
+record or retained historical record for that Warrant. Historical files must
+retain their original raw-byte SHA-256 filename. Do not compare only with the
+current active list: replacing an active review must not invalidate the packet
+that carried the earlier observation. Invented, duplicate, malformed or extended
+displays are refused. This source match does not authenticate the named verifier,
+establish when a same-account writer created a record, or promote legacy history
+to current assurance.
+
+## Exact contract source display
+
+The candidate v2 packet adds `contract_sources`, carrying the exact captured
+manifest and optional scope sidecar as lossless source entries. Their identities
+already belong to the existing compiled contract digest. This adds no digest
+domain, changes no canonicalizer, and does not repurpose `context_sources`,
+which continues to identify exact pinned SAS bytes. Manifest and scope bytes
+come from the caller's captured CompilationBasis, including a frozen Git candidate;
+assembly and validation do not reload newer workspace copies. All obligation
+packets retain these fixed sources. Omission, substitution, duplication and extra
+source fields are refused. A Warrant without a scope sidecar remains valid.
+
+This is a candidate packet extension, not adoption of a new stable schema pack.
+Earlier packets remain retained history; they cannot establish that a reviewer
+received omitted contract sources. Transitive ADR selection, complete context
+closure and independent custody still need their own qualification.
+
 ## Retained packet storage
+
+The candidate v2 reader rejects unknown root members and missing required
+members, including after the sender recomputes the packet digest. The configured
+reviewer receives the whole packet, so extra members can carry instructions
+outside the checked sources. Creation metadata must use its defined types:
+unsigned token counts, a Boolean budget flag, the native token-method identifier,
+and an empty or 64-hex-character authorization digest. That digest remains
+creation-time display; active authority is checked independently. A packet
+captured before signing the same contract remains usable after signing. These
+checks change neither the canonicalizer nor the digest domain.
 
 The draft storage implementation reuses identical retained bytes and refuses different bytes at the same filename. New packets are staged and synced, then published without replacing an existing name. A competing publisher must supply identical bytes; it cannot truncate the winning packet. Directory-relative file handles refuse link traversal, and packet reads inspect regular files through the opened descriptor.
 
@@ -14879,7 +14920,7 @@ and human administrator confirmation of GitHub settings.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Warrant-bound Bonsai evidence adapter | `crates/openwarrant-cli/src/bonsai.rs` | verified |
+| D-001 | Warrant-bound Bonsai evidence adapter | `crates/openwarrant-cli/src/bonsai.rs` | drift |
 | D-002 | Machine scope bound into the compilation basis | `bonsai.toml` | verified |
 
 ### OW-WAR-0055 — Compute the goal hierarchy: war status and the corpus projection
@@ -29773,7 +29814,7 @@ breaking the corpus.
 | D-001 | The grammar of the SAS 1.1.0 atom format: standard and tool conformance, divergences, proposed SAS text | `docs/GRAMMAR.md` | verified |
 | D-002 | atom.header: the atom header checked against its manifest entry | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-003 | The grammar plants: header, reader, positive controls, drift control | `conformance/plants.d/57-grammar.sh` | verified |
-| D-004 | The dispatch-bundle test fixture writes a well-formed atom header (AM-001) | `crates/openwarrant-cli/tests/dispatch_bundle_cli.rs` | verified |
+| D-004 | The dispatch-bundle test fixture writes a well-formed atom header (AM-001) | `crates/openwarrant-cli/tests/dispatch_bundle_cli.rs` | drift |
 
 ### OW-WAR-0123 — A child cites the exact revision of its parent, and a moved parent is a finding
 
@@ -33706,12 +33747,12 @@ this level requires. The author does not record them.
 |---|---|---|---|
 | D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | drift |
 | D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | drift |
-| D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | verified |
+| D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | drift |
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | drift |
 | D-005 | The evidence-reuse and context plants | `conformance/plants.d/55-evidence-reuse.sh` | verified |
 | D-006 | When recorded evidence still counts: the reuse rule and the compiler's three rules | `docs/RESOLVING.md` | drift |
 | D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | drift |
-| D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | verified |
+| D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | drift |
 | D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | drift |
 | D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | drift |
 | D-011 | The eval baseline, re-recorded (AM-002) | `evals/baseline.json` | verified |
@@ -35658,8 +35699,8 @@ test mode is labeled in every record it produces.
 | D-005 | revision v2: actor kind and protected policy | `crates/openwarrant-core/src/authority_transition.rs` | verified |
 | D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | drift |
 | D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | drift |
-| D-008 | authority.md: the cutover | `docs/cli/authority.md` | verified |
-| D-009 | the plants | `conformance/plants.d/58-authn.sh` | verified |
+| D-008 | authority.md: the cutover | `docs/cli/authority.md` | drift |
+| D-009 | the plants | `conformance/plants.d/58-authn.sh` | drift |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | drift |
 | D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | verified |
@@ -40299,7 +40340,7 @@ Out of scope: rewriting provider conversations, copying BLUT lineage into a Warr
 
 ## Shared sources and participant boundaries
 
-- Relevant legacy SAS sections: §47, §48.1–48.5, §49.2–49.3 and §65; OW-WAR-0026, OW-WAR-0027, OW-WAR-0047 and OW-WAR-0108. Live `war sas status` reports 1.1.1 accepted and 1.2.0 proposed. The current generated normative projection reflects the proposed 1.2.0 document; generation does not accept that revision or replace an existing signed contract. This shared draft likewise does not activate new provider rules.
+- Relevant legacy SAS sections: §47, §48.1–48.5, §49.2–49.3 and §65; OW-WAR-0026, OW-WAR-0027, OW-WAR-0047 and OW-WAR-0108. Rechecked on 2026-10-09 UTC, `war sas status` reports 1.3.0 accepted, sha256:97c69198140b, matching the current document. Older accepted revisions remain historical records. Generation does not accept a revision or replace an existing signed contract. This shared draft likewise does not activate new provider rules.
 - OpenWarrant cbe9a8a8: `crates/openwarrant-core/src/seam.rs` defines KatanaReceipt and BlutLineageReceipt. These validators check minimum fields and references, not a provider-authenticated seal. `resolve.rs::runtime_receipts_match_the_basis` has no connected store.
 - Katana checkout 0b0ac9dd1cbf69a2628ea214a4e841c5bd2888e1: `crates/katana/src/exec.rs` returns status, session path, answer, tool summaries and token usage. `crates/katana-mekugi/src/lib.rs` owns an append-only event log and BLAKE3 chain. These interfaces do not supply the complete OpenWarrant KatanaReceipt contract. The scoped Rust search found no dispatch_digest, prompt_ir_digest or receipt_digest producer.
 - BLUT checkout 6eedf207d2c539f65ef5506028d2e0e25e002e50 (rechecked 2026-10-01): `src/framework/lineage.rs` provides read-only job lineage; job/status/artifact APIs own their observations. LineageNode now carries portable input/output content identities alongside preserved legacy hashes. A scoped Rust search under src found no dispatch_digest, receipt_digest or warrant_uuid producer. This checkout differs from the OW47 runtime engine pin. Do not silently attribute its behavior to the old run. No complete dispatch-bound provider receipt has been observed.

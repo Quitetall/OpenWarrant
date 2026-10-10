@@ -561,6 +561,14 @@ else
     sk_fail "another key under the store, refused" "exit $SK_STATUS: $(grep -E '^ERROR' <<<"$SK_OUT" | head -1)"
 fi
 
+# The same protected key verifies the DSSE trail without trusting local keys.
+SK_ATTEST=$(st_war attest SK-WAR-0008 --verify)
+if grep -q 'PASS attest.verified' <<<"$SK_ATTEST"; then
+    sk_ok "protected attestation key lookup" "retained DSSE verifies under current store key"
+else
+    sk_fail "protected attestation key lookup" "$(grep -E '^(ERROR|UNKNOWN)' <<<"$SK_ATTEST" | head -2 | tr '\n' '|')"
+fi
+
 # OBL-003: openwarrant.toml edited against the store is a divergence, and
 # the store's value is the one read.
 st_toml policy "allow_automated_resolution = true"

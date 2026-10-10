@@ -7,6 +7,7 @@ mod cases;
 mod context;
 mod contracts;
 mod history;
+pub(crate) use history::git as local_git;
 mod identity;
 mod runtime_basis;
 

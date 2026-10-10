@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify",
+  "diagnostics": [
+    {
+      "severity": "error",
+      "rule": "verify.subject-stale",
+      "file": "/mnt/2tb/ow-local-verifier-live-final2/old-response.toml",
+      "message": "the response reviewed a different contract or artifact snapshot; nothing was written"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

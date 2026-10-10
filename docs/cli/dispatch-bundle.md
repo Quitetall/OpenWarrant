@@ -99,3 +99,58 @@ unstated architecture rule, establish classification policy, or prove semantic
 selection closure. A provider owns those judgments. Unknown dependencies must
 remain explicit rather than being guessed from prose. Context bytes can be
 portable even when execution code, runtime, credentials or approvals are absent.
+
+## Source classification disclosure check
+
+The legacy selector now preserves an atom's explicit `classification` scalar,
+including on a selected section. Repository artifacts and `CONTEXT.md` use their
+own explicit restricted Markdown header when present. Non-Markdown, unlabelled,
+and unfetched sources have no established classification. They are never silently
+relabeled `internal`. Malformed declared metadata refuses compilation.
+
+Labels are opaque, case-sensitive policy labels. When all selected sources carry
+the same explicit label the manifest records it. Mixed or missing labels leave
+`effective_classification` empty and record an unresolved classification-policy
+entry. The CLI does not invent a lattice, policy digest or permission. Existing
+Dispatch bytes and captures are not rewritten.
+
+A workflow can check one selected source before disclosure, offline:
+
+```sh
+war dispatch-bundle check bundle.json --expected-digest sha256:BUNDLE_DIGEST \
+  --read atoms/10-intent.md --allow-classification customer-X --json
+```
+
+`--check-classification` with no allowed label denies every declared label.
+Repeated `--allow-classification` flags supply exact membership. Neither `*` nor
+case variations expand. The same public SDK operation is
+`require_source_classification(reference, allowed_labels)`. A section is checked
+against its full captured provenance source, not its headerless slice. The source
+label must match the captured context metadata; changing and rehashing metadata
+does not bypass that check. Missing source labels report
+`classification-unestablished` as UNKNOWN with no returned content; mismatches and denied labels refuse before
+returning the requested text. Integrity checks of old captures remain compatible;
+a new disclosure check will reject a label previously inferred without a source.
+
+This checks only the named selected context source and its provenance. It does
+not establish clearance for support records or the complete package, authenticate
+the caller's allowlist, calculate a policy join, or establish execution readiness.
+The caller must establish actor/runtime/provider/tool/destination policy and apply
+this check to every source it discloses. The SDK performs no network or repository
+lookup. `execution_authorized` and `semantic_closure_established` remain false.
+
+## Authorization when compiling a Dispatch
+
+A signature must cover the current compiled contract. A changed contract refuses
+with `dispatch.stale-authorization` before any output or journal write. Request a
+new authorization for governed execution, or use `war dispatch ... --prototype`
+for unverified work. The latter records prototype authority when the current
+contract cannot be authorized; it never borrows the old signature.
+
+Git context holders refer to verified local source bytes. Missing or unreadable
+required blobs prevent authorized emission as UNKNOWN. Required source bytes
+that contradict the committed blob prevent it as ERROR. Optional sources may
+remain floating, with an empty `commit_sha` and a warning. A nested project that
+has no Git root of its own cannot claim its containing repository's HEAD. Local
+reads are bounded to 4 MiB per source and 32 MiB total, without lazy fetch.
+Prototype packets remain available and report these unestablished holders.

@@ -49,9 +49,10 @@ plant_cmd "an unknown gate is refused" "run.unknown-gate" "ops.nothing" 2 \
 run_cleanup
 
 # Over wall time: the gate's argv is replaced by a sleep longer than the bound.
+# The mutated contract runs explicitly as prototype; stale authority cannot be reused.
 plant_cmd "a run over its wall time is a timeout" "run.timeout" "block" 2 \
     "sed -i 's|^argv: \\[\"true\"\\]|argv: [\"sleep\", \"3\"]|' docs/gates/ops.echo@1.0.0.yaml; sed -i 's|wall_time_seconds: 5|wall_time_seconds: 1|' $RUN_MS; assert_present 'sleep' docs/gates/ops.echo@1.0.0.yaml" \
-    run "$RUN_ALIAS" STAGE-001
+    run "$RUN_ALIAS" STAGE-001 --prototype
 run_cleanup
 
 # `war submit`: a submission requesting its own resolution is refused and NOT

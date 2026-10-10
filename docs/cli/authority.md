@@ -109,6 +109,13 @@ head, and the protected policy keys from its `policy` table. `roles.toml` and
 `authority.verify-unavailable`, never a fall back. The roles a v2 principal needs
 are `authorizer` (authorize, correct, accept) and `resolver` (resolve).
 
+Requests, pending-act eligibility and standalone attestations also use that
+configured source. Invalid local role syntax does not change current store
+grants. A v1 store cannot supply actor bindings and cannot fall back to local
+roles. Readable role projections identify the store and head; their effective
+time is unknown, not an invented activation timestamp. Legacy records can still
+be inspected for diagnostic purposes without granting protected authority.
+
 One command at a time. The operator runs each in the protected environment
 unless it says otherwise.
 

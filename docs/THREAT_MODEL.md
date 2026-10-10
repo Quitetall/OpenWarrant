@@ -186,6 +186,81 @@ control storage. This draft grants no authority and qualifies no live Warrant.
 
 ### Experimental stored-review boundary (OW-ADR-0030)
 
+A packet can have a correct canonical digest while omitting required review
+inputs. A disposable public CLI probe removed a required binary fixture,
+recomputed the packet identity and observed both synthetic verdicts accepted.
+Canonical identity alone was therefore insufficient evidence of context closure.
+
+The proposed ingestion control checks every required SAS source, fixture and
+gate-evidence source against the reviewed subject's exact digest, and checks
+each gate definition's bytes and gate identity. Missing or substituted sources,
+duplicate paths, duplicate gate identities and unbound extra sources cannot
+supply current verification. Explicitly missing inputs remain missing; this
+control does not turn their absence into successful execution evidence.
+
+`rehashed_packets_cannot_omit_or_replace_required_review_sources` exercises
+omission, replacement and duplication through the public CLI, followed by exact
+restoration. `84-review-source-closure.sh` plants a rehashed missing fixture,
+requires `verify.packet-binding` without record/journal writes, then restores
+the original packet. The old executable fails the plant by accepting the
+incomplete packet. The corrected build passes the plant and all 37 targeted
+CLI controls; PR #148 subsequently passed the complete local and hosted gates.
+Independent qualification remains pending. This control does not
+authenticate the verifier, freeze a hostile same-account workspace, guarantee
+complete transitive task context or qualify a production Warrant.
+
+A second disposable probe preserved every required source but substituted an
+obligation's statement, then recomputed the canonical packet identity. The
+baseline accepted both synthetic verdicts. The task-binding extension compares
+each obligation's complete statement, scope and evidence with the caller's
+captured contract, checks request assurance and input references, and requires
+the exact contract atoms, paths, roles and hashes. Whole-Warrant packets must
+contain the whole task; obligation packets must contain one declared obligation.
+Duplicate or invented obligations, extra request/obligation/input fields and
+unknown packet scopes are refused.
+Construction and validation share the atom projection. The candidate reader
+passes its captured Git tree, rather than reloading the working checkout.
+
+`rehashed_packets_cannot_replace_the_captured_task` exercises 22 substitutions,
+omissions and duplicates with real compiler rehashing, refusal without writes,
+and exact restoration. `legitimate_split_task_packets_remain_admissible` keeps
+valid per-obligation review and reference-order compatibility supported. All 32
+verification CLI tests and CLI all-target Clippy pass on Rust 1.97.1. The source-closure plant also substitutes the task. The acceptance
+plant changes a retained packet, record and journal references together in a
+disposable Git candidate. The baseline falsely clears that review; the corrected
+executable passes all 27 targeted candidate/source-closure controls. Bounded
+observations and executable identities are retained in
+`docs/tickets/t-b9610/evidence/task-binding-controls.json`. The complete extension
+gate and independent qualification remain pending. This is task-field binding,
+not verifier authentication or proof that
+all rendered evidence excerpts and transitive context are complete and correct.
+
+A third disposable probe retained the actual source digest but replaced the
+code shown in `deliverables[].text`. The baseline accepted both synthetic
+verdicts. Rendered-evidence validation now compares delivered metadata and text
+with captured file bytes, checks real prefix/excerpt cuts and their line numbers,
+and checks each gate run, receipt, stdout and stderr against captured evidence.
+Gate assembly uses the already captured evidence sources instead of reading a
+second stream snapshot. One captured evidence set serves all packets in a review.
+Plant snippets, deliverable selection and derived evidence pointers must also
+match that set. Rehashing a substituted display does not establish that match.
+
+The public CLI mutation test exercises 24 code, gate-output, plant and evidence
+pointer substitutions, omissions, duplicates and extra fields; each must refuse
+without verdict/journal writes, and exact restoration must work. Unit controls
+cover every byte cut of representative UTF-8, binary and ASCII heads/tails,
+including replacement characters at a cut, plus excerpt positions and repetition.
+The source-closure and Git-candidate plants also substitute rendered code; the
+candidate plant separately substitutes stdout while preserving consistent packet,
+record and journal identities. These are synthetic controls, not production
+verification. Full gates and independent qualification must be observed separately.
+This does not authenticate reviewers, establish complete transitive context,
+validate every historical assertion, or contain a hostile same-account writer.
+In particular, the optional authorization pointer describes packet creation;
+current authorization is checked from signed records. Signing the unchanged
+contract must not invalidate a review captured before that authorization.
+`55-evidence-signing.sh` exercises this transition and subsequent resolution.
+
 Unsupported stored verification formats cannot supply current assurance. The
 shared SDK decoder keeps an unsupported schema distinct from malformed supported
 data. Repository observation reports the unsupported schema as `UNKNOWN`; packet
@@ -213,3 +288,79 @@ checks the captured prestate; retention unavailability aborts before any active
 replacement. Existing archives are not rewritten. The public CLI history
 regression is red on the prior binary; current runtime verification is pending.
 The ordinary atomic writer's remaining same-uid race limits still apply.
+
+
+A fourth disposable probe inserted an invented prior verifier observation and
+recomputed the real packet identity. The baseline executable accepted it.
+The prior-observation check now requires each displayed payload to match an
+active or retained historical record for the same Warrant. Retained history
+must match its raw-byte SHA-256 filename. Duplicate, malformed and extra-field
+displays are refused. Descriptor-safe reads refuse links and unavailable files;
+unsupported stored schemas remain UNKNOWN. Empty prior history remains valid.
+
+`rehashed_packet_cannot_invent_a_prior_verdict` and the source-closure plant
+exercise refusal without verdict/journal writes. The replacement regression
+keeps a real legacy observation in the packet, replaces the active record with
+a new v2 observation, and checks that replay still works through retained
+history. Renaming that history under an incorrect hash then refuses without
+writes. These are synthetic source-binding controls. They do not authenticate
+verifiers, prove historical chronology against a same-account attacker, or
+establish complete transitive context, custody, race protection or production
+qualification. Full extension gates must be observed separately.
+
+
+A fifth disposable capture included a scope sidecar in the compiled contract,
+but its packet contained neither the exact manifest nor the sidecar bytes. A
+contract digest cannot show the reviewer an omitted boundary. Candidate packets
+now carry `contract_sources`: the exact manifest and optional scope from the
+captured CompilationBasis, losslessly encoded and retained in every whole or
+obligation packet. Packet admission compares their complete source entries with
+that captured basis, including private Git candidates; it does not reload the
+worktree or treat a matching declared digest as proof of the displayed text.
+
+The CLI control exercises whole and split packets, with and without a sidecar,
+plus rehashed omissions, substitutions, duplicates, extra fields and invented
+scope entries. Each mutation must refuse without record/journal writes; exact
+restoration must succeed. The source-closure plant separately checks exact
+manifest/scope bytes and rehashed contract omission/scope substitution. This
+candidate extension leaves the contract canonicalizer and pinned-SAS meanings
+unchanged. It does not complete transitive ADR selection, context closure,
+verifier authentication, private custody or production qualification. Extension
+runtime checks and full gates must be observed separately.
+
+## Standalone read-only board snapshots
+
+`war board --html` is a static snapshot, separate from the signing UI in entry
+13a. Its fixed stylesheet uses `style-src 'unsafe-inline'` to wrap long source
+lines; `default-src 'none'`, `base-uri 'none'` and `form-action 'none'` still deny
+scripts, network resources, base URLs and form actions. Record text is HTML
+escaped and is never inserted into the stylesheet. The snapshot contains no
+signing controls. A person who replaces the HTML file can replace its controls;
+the file does not provide authenticated authority.
+
+`board_cli.rs` checks escaped/read-only output, source parity and corrupt-record
+refusal. The retained OW-WAR-0104 offline browser observation checks actual file
+rendering, all Warrant rows, no script/image nodes, offline state and narrow layout.
+These checks are bounded presentation evidence, not independent assurance.
+
+## Dispatch subject and source holders
+
+`war dispatch` compares the verified authorization subject with the current
+compiled contract digest before emitting a packet. An old signed subject cannot
+authorize changed atoms (`dispatch.stale-authorization`). Explicit `--prototype`
+may proceed under `prototype://unauthorized`; no old authority is borrowed.
+
+A Git holder is retained only when its local committed blob matches the selected
+source bytes. Section holders name the full parent source. A nested OpenWarrant
+project cannot borrow its containing repository's HEAD. Missing required source
+bindings report `dispatch.required-holder-unestablished` (UNKNOWN); observed
+required-byte contradictions report `dispatch.required-holder-mismatch` (ERROR).
+Both refuse authorized emission before packet, context and dispatch journal writes.
+Optional unestablished holders are left floating and reported. Reads disable lazy
+fetch and inherited Git routing, with per-source and total resource bounds.
+
+Controls: `conformance/plants.d/83-dispatch-admission.sh`, public CLI integration
+controls in `dispatch_bundle_cli.rs`, and local Git-holder tests in `dispatch.rs`.
+This check does not establish harness isolation, provider enforcement, independent
+verification, or the authority of a prototype result. Later workspace changes must
+still be checked by the workflow that executes or accepts the packet.

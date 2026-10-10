@@ -40,3 +40,42 @@ history. Do not use a selected retest to hide earlier failures. Keep identities,
 private consent details, secrets and repository contents outside public records.
 
 Checks: `python3 -m unittest discover -s conformance/study -v`.
+
+## Capture a session
+
+Prepare a private metadata JSON file with `participant`, `build_commit`,
+`inputs_sha256`, `scenario`, `consent_confirmed`, `assisted`, and `failures`.
+Use only pseudonyms and redacted text. Optional `retest_of` points to the retained
+prior attempt. The recorder refuses additional metadata fields; it does not
+prove the operator obtained consent or chose the correct build.
+
+Run `python3 conformance/study/record.py --metadata metadata.json --out P1-attempt1.json`.
+The clock starts in **setup**. Send one JSON command per line:
+
+```json
+{"category":"administration"}
+{"category":"review"}
+{"category":"implementation"}
+{"category":"waiting"}
+{"category":"excluded","reason":"redacted interruption"}
+{"assisted":true}
+{"failure":"redacted observed failure"}
+{"finish":"completed"}
+```
+
+Categories change at command processing time, using `monotonic_ns`. Commands and
+operator actions take real time and remain in the current category. Assistance
+cannot be erased. Outcome is an operator claim, not an independent judgment.
+The recorder writes measured intervals and an adjacent append-only event trail
+with raw-byte digest; neither file is signed or protected against later edits.
+The evaluator checks session arithmetic; it does not authenticate that trail.
+
+EOF, SIGINT, SIGTERM, deadline or invalid input retain an unknown interrupted
+session. A clock failure leaves timing unknown. SIGKILL, power loss or storage
+failure can leave only the flushed event trail; retain it and do not guess a
+completed session. Default deadline is two hours, configurable downward with
+`--max-seconds`. Commands are bounded to 4096 bytes, events to 1024 and failure
+notes to 100. Existing session or event files are refused, including symlinks;
+use a new filename for every attempt. Publication never overwrites an attempt.
+Exit 0 records the operator's completed claim; 1 records failed or unknown;
+2 reports setup/storage errors. Every record remains unqualified.

@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+# Run from the repository root. Original observation is read, never changed.
+import sys, json, html, re
+from pathlib import Path
+sys.path.insert(0, 'apps/openwarrant-web')
+from reporting import render
+source = Path('docs/warrants/OW-WAR-0102/implementation/browser-report.html')
+retained = json.loads(html.unescape(re.search(r'<pre>(.*?)</pre>', source.read_text(), re.S)[1]))
+r = retained['attempt']; attempt = r['attempt_id']
+view = render({attempt:r}, {r['warrant_id']:r['policy']}, attempt, word='WORK_DONE')
+out = Path('docs/warrants/OW-WAR-0102/implementation/offline-20261009')
+(out/'current-render.html').write_text(view['html'])
+(out/'current-render.json').write_text(json.dumps(view, indent=2)+'\n')
+# Explicit synthetic presentation control, not an actual implementation record.
+r = {**r, 'notes':'<img src="https://example.invalid/trap" onerror="alert(1)"><script>alert(2)</script>', 'next_steps':['Review <unsafe> notes']}
+view = render({attempt:r}, {r['warrant_id']:r['policy'], 'synthetic-pending':{'source_sha256':'c'*64}}, attempt, word='SYNTHETIC_DONE')
+(out/'hostile-render.html').write_text(view['html'])
+(out/'hostile-render.json').write_text(json.dumps(view, indent=2)+'\n')

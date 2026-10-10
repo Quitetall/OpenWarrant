@@ -1,0 +1,43 @@
+{
+  "verifier": "local-lamu-verifier",
+  "model": "qwen3.6-27b-uncensored-heretic-v2-q4_k_m",
+  "endpoint": "http://127.0.0.1:8020",
+  "bundle_sha256": "11f6f2bbd5ce94e85d849ae01723df23564f73fc7ca7d49d3c95106f2113e269",
+  "started_at_unix": 1791508776.5193288,
+  "client_sha256": "24069f21cfc5d1117070ce952b3e7698fae1a1eec799b8d131f76fe737275bad",
+  "max_tokens": 4096,
+  "timeout_seconds": 600,
+  "tools": [],
+  "client_fallback": false,
+  "qualification": "not inferred from transport",
+  "health_before": {
+    "models_loaded": 1,
+    "service": "lamu",
+    "status": "ok"
+  },
+  "status": "answered",
+  "usage": {
+    "completion_tokens": 1188,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1098,
+      "visible_tokens": 89
+    },
+    "context_window": {
+      "n_ctx": 32768,
+      "n_ctx_train": 131072,
+      "near_full": false,
+      "occupancy_ratio": 0.176,
+      "prompt_tokens": 5780,
+      "source": "engine_prompt_tokens"
+    },
+    "prompt_tokens": 5780,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 6968
+  },
+  "api_charge_usd": null,
+  "local_compute_cost": "not measured",
+  "cost_basis": "client does not meter charges; establish a local-only provider before use",
+  "finished_at_unix": 1791508792.7041912
+}

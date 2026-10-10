@@ -1,9 +1,9 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0101",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "summary": "Local adapter now refuses unsupported profile/assurance before backend contact and preserves task/context separately. Four transport/refusal tests pass; third real-model run still failed task fidelity. Unverified and incomplete.",
+  "summary": "Narrow local adapter and bounded real observation complete, unverified. Four refusal/transport tests pass; unchanged adapter produced a task-faithful changelog starting draft on exact local 27B model and passed non-applying validation. Draft still needs scope/fixture review; all earlier failures and loading 503 retained.",
   "notes": "docs/warrants/OW-WAR-0101/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0101/implementation/tests.log",
@@ -11,12 +11,16 @@
     "docs/warrants/OW-WAR-0101/implementation/local-model/semantic-validation.json",
     "docs/warrants/OW-WAR-0101/implementation/local-model-2/inspection.md",
     "docs/warrants/OW-WAR-0101/implementation/task-context/tests.log",
-    "docs/warrants/OW-WAR-0101/implementation/local-model-3/inspection.md"
+    "docs/warrants/OW-WAR-0101/implementation/local-model-3/inspection.md",
+    "docs/warrants/OW-WAR-0101/implementation/local-model-4/inspection.md",
+    "docs/warrants/OW-WAR-0101/implementation/local-model-4-ready/inspection.json",
+    "docs/warrants/OW-WAR-0101/implementation/local-model-4-ready/semantic-validation.json",
+    "docs/warrants/OW-WAR-0101/implementation/local-model-4-ready/adapter-tests.log"
   ],
   "next_steps": [
-    "Qualify a capable explicitly configured backend or a separately tested planning approach; do not relabel structural success as task fidelity.",
-    "Finish PR #119 checks; preserve all three failed observations.",
-    "Keep document application, independent verification and human qualification separate."
+    "Review and bound any generated draft before applying it; this observation applied nothing.",
+    "Use independent verification and secure human acceptance only when pursuing qualification.",
+    "Do not infer general model reliability or production readiness from one successful draft."
   ],
-  "revision": "c62fd2ff98436568d9a34313582583ae3b43785c"
+  "revision": "e7125db4127c51ba907c2a212d6091717b483109"
 }

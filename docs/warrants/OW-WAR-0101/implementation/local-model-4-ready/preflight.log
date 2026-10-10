@@ -1,0 +1,114 @@
+git=/usr/bin/git
+lamu=/home/brianklam/.local/bin/lamu
+katana=/home/brianklam/.local/state/katana/tui-tests/2026-10-08-artifact-final/katana
+repo=/mnt/4tb/tmp/ow-local-drafting-observation
+branch=codex/local-drafting-observation
+status_begin
+status_end
+lamu 0.6.0 (git:2a26299)
+lamu_doctor_begin
+{
+  "arch": "x86_64",
+  "checks": [
+    {
+      "detail": "lamu 0.6.0 (git:2a26299) — /home/brianklam/.local/lib/lamu/0.6.0+2a26299/bin/lamu",
+      "name": "build",
+      "status": "pass"
+    },
+    {
+      "detail": "/home/brianklam/llama.cpp/build/bin/llama-server (via LAMU_LLAMACPP_DIR / llama.cpp checkout; ggml_cuda_init: found 1 CUDA devices (Total VRAM: 24140 MiB):)",
+      "name": "llama-server",
+      "status": "pass"
+    },
+    {
+      "detail": "/home/brianklam/.local/bin/tritium-serve-cuda (tritium-serve 1.1.0-rc.2 (source-git:1925b2554c5a7be5c04f0925730de010fb2bfac4)); /home/brianklam/.local/bin/tritium-serve (tritium-serve 1.1.0-rc.2 (source-git:1925b2554c5a7be5c04f0925730de010fb2bfac4))",
+      "name": "tritium-serve",
+      "status": "pass"
+    },
+    {
+      "detail": "24564 MB VRAM visible",
+      "name": "gpu (nvml)",
+      "status": "pass"
+    },
+    {
+      "detail": "/usr/bin/bwrap",
+      "name": "sandbox (bwrap)",
+      "status": "pass"
+    },
+    {
+      "detail": "/home/brianklam/.config/secrets/keys.enc.env loaded 8 name(s): DEEPSEEK_API_KEY, LAMU_RESEARCH_MODEL, LAMU_REVIEW_MODELS, MIMO_API_KEY, MIMO_BASE_URL, OPENAI_API_KEY, OPENROUTER_API_KEY, HF_TOKEN; already in the environment: none",
+      "name": "credentials",
+      "status": "pass"
+    },
+    {
+      "detail": "/home/brianklam/.local/share/lamu/models.yaml (26 models)",
+      "name": "model registry",
+      "status": "pass"
+    },
+    {
+      "detail": "/home/brianklam/models — 555 GiB free",
+      "name": "models dir disk",
+      "status": "pass"
+    },
+    {
+      "detail": "HF_TOKEN set",
+      "name": "hf token",
+      "status": "pass"
+    },
+    {
+      "detail": "auto",
+      "name": "routing mode",
+      "status": "pass"
+    },
+    {
+      "detail": "http://127.0.0.1:8888 not running yet; managed by LAMU: container lamu-searxng exited (podman); auto-starts on the first search; a running lamu serve/start stops it after 900s idle. `lamu searxng start` starts it now",
+      "name": "searxng",
+      "status": "pass"
+    },
+    {
+      "detail": "local embedder 'nomic-embed-text-v1.5.q8_0' (loads on first use)",
+      "name": "semantic memory",
+      "status": "pass"
+    },
+    {
+      "detail": "lamu serve is up and healthy",
+      "name": "serve :8020",
+      "status": "pass"
+    },
+    {
+      "detail": "running, started outside LAMU's autostart; LAMU never stops it; serves lamu memory remember|recall|forget|supersede|scope-*, lamu context, lamu service, lamu chat, TUI chat (Enter) and model load/unload (l/u)",
+      "name": "service: lamu serve",
+      "status": "pass"
+    },
+    {
+      "detail": "not configured — generate_image requires ComfyUI: install ComfyUI (a dir with .venv/bin/python and main.py) and add a registry entry with `backend: comfyui`, `modality: image`, `path: <ComfyUI dir>`; LAMU spawns it on the first generate_image",
+      "name": "service: comfyui",
+      "status": "pass"
+    },
+    {
+      "detail": "not configured — text_to_speech requires fish-speech: for local speech, install fish-speech (repo with .venv and tools/api_server.py) and add a registry entry with `backend: fish_speech`, `modality: tts`, `path: <repo>/checkpoints/<model>`; LAMU spawns it on the first text_to_speech. The cloud path needs FISH_AUDIO_API_KEY instead",
+      "name": "service: fish-speech",
+      "status": "pass"
+    },
+    {
+      "detail": "6 of 26 entries do not work (never routed; loads refuse; `lamu show <name>` says how to fix one):\n- draft-35: requires a safetensors engine\n- gemma-4-26b-dflash: requires a safetensors engine\n- qwen3.6-27b-dflash-draft: requires a safetensors engine\n- qwen3.6-27b-exl3: requires tabbyAPI (exllamav3)\n- qwen36-27b-ternary-salt-provisional: model file missing: /mnt/4tb/tmp/qwen36-ptq-b3-r2-r3-565abdee\n- qwen36-35b-a3b-dflash: requires a safetensors engine",
+      "name": "model usability",
+      "status": "warn"
+    },
+    {
+      "detail": "none chosen: model \"lamu\"/\"main\"/\"default\" refuses until you run `lamu use <name>`",
+      "name": "default model",
+      "status": "warn"
+    }
+  ],
+  "failed": 0,
+  "os": "linux",
+  "version": "0.6.0",
+  "warned": 2
+}
+lamu_doctor_end
+katana 0.4.0
+lamu_endpoint_begin
+{"active_model":null,"available":true,"loading":false,"loading_model":null,"routing_mode":"auto","vram_total_gb":23.98828125,"vram_used_gb":2.162109375}
+lamu_endpoint_end
+sandbox=bubblewrap:/usr/bin/bwrap

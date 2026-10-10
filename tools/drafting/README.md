@@ -49,8 +49,12 @@ containment or a filesystem audit of the separately managed model service.
 
 Run tests: `python3 -m unittest discover -s tools/drafting -v`.
 Synthetic HTTP fixtures prove transport/refusal only. These tests do not establish real-model quality or end-to-end application.
-The first constrained-model observation returned structural output, but invented
-existing-Warrant scope and malformed milestone YAML. Retained evidence prompted
-the fixed milestone template. A second real-model run preserved that template but
-still drafted the wrong deliverable. Both failures remain retained; the revised
-task/context message layout requires a new observation.
+Three retained 4B-model attempts failed task fidelity, including the revised
+task/context layout. The unchanged adapter later produced a task-faithful changelog
+starting draft on an explicitly selected local Qwen 27B backend; non-applying
+proposal validation passed. Scope wording and acceptance checks still need review.
+This is one bounded observation, not general planning qualification. Raw output,
+the preceding loading refusal, identities and limitations are under
+`docs/warrants/OW-WAR-0101/implementation/local-model-4-ready/` and `local-model-4/`.
+All three earlier failed observations remain in `local-model/`, `local-model-2/`
+and `local-model-3/` under the same implementation directory.

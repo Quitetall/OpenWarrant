@@ -32,15 +32,15 @@ fi
 
 plant_cmd "a section that does not exist is refused" "dispatch.section-missing" "its headings are" 2 \
     "sed -i 's|40-work-order.md#Deliverables|40-work-order.md#Nope|' $MS; assert_present '#Nope' $MS" \
-    dispatch OW-WAR-0047 STAGE-002 --emit "$CTX_TMP/x.json"
+    dispatch OW-WAR-0047 STAGE-002 --prototype --emit "$CTX_TMP/x.json"
 
 plant_cmd "an unknown atom is refused" "dispatch.unknown-atom" "99-nothing.md" 2 \
     "sed -i 's|^    context_external: .*$|    context_atoms: [\"99-nothing.md\"]|' $MS; assert_present '99-nothing.md' $MS" \
-    dispatch OW-WAR-0047 STAGE-002 --emit "$CTX_TMP/x.json"
+    dispatch OW-WAR-0047 STAGE-002 --prototype --emit "$CTX_TMP/x.json"
 
 plant_cmd "a missing artifact is refused" "dispatch.artifact-missing" "no/such/file.txt" 2 \
     "sed -i 's|^    context_external: .*$|    context_artifacts: [\"no/such/file.txt\"]|' $MS; assert_present 'no/such/file.txt' $MS" \
-    dispatch OW-WAR-0047 STAGE-002 --emit "$CTX_TMP/x.json"
+    dispatch OW-WAR-0047 STAGE-002 --prototype --emit "$CTX_TMP/x.json"
 
 # A milestone carrying a stage's context field is refused by the graph reader.
 plant "a milestone may not carry context fields" "milestones.invalid" "context_sections" 2 \

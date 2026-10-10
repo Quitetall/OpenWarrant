@@ -1,0 +1,7 @@
+Existing synthetic fixture signature independently verifies
+{'name': 'authorization valid', 'status': 'unknown', 'observation': 'This requirement has no sufficient local observation; record syntax or a digest alone cannot establish it.'}
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-preflight-authorization-controls/public-red.py", line 13, in <module>
+    assert observation['status']=='pass', 'Preflight must verify current signature, not leave signed authorization unexamined'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Preflight must verify current signature, not leave signed authorization unexamined

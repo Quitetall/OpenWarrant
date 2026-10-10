@@ -18,17 +18,18 @@
 //! to this command produce two different packets, correctly: they are two
 //! attempts. Two calls to the compiler with the same ids produce one.
 
+use std::collections::BTreeMap;
 use std::fs;
-use std::process::Command;
 
 use camino::Utf8Path;
 use openwarrant_compiler::dispatch::TokenInputs;
 use openwarrant_compiler::{DispatchError, DispatchInputs, compile_dispatch, dispatch_json, lower};
-use openwarrant_core::context::{ConflictCheck, ContextManifest};
+use openwarrant_core::context::{ConflictCheck, ContextItem, ContextManifest};
 use openwarrant_core::execution::{
     Attempt, AttemptKind, CapabilityAuthorization, ResourceEnvelope,
 };
 use openwarrant_core::milestones;
+use sha2::Digest;
 
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
@@ -79,7 +80,7 @@ pub fn run(
     // Prototyping before authorization is legitimate — it is how most work
     // starts — so it is admitted explicitly, named in the packet, and never the
     // default.
-    let authority_ref = match repo.load_authorization(&dir) {
+    let mut authority_ref = match repo.load_authorization(&dir) {
         Ok(Some(record)) => {
             let verdict = record.revision.authorization.as_ref().map(|auth| {
                 crate::authority_check::verify(
@@ -127,20 +128,27 @@ pub fn run(
             "prototype://unauthorized".to_owned()
         }
     };
-    if authority_ref.starts_with("prototype://") {
-        report.push(Diagnostic::warn(
-            "dispatch.prototype",
-            repo.relative(&dir),
-            format!(
-                "{alias}: compiled for an UNAUTHORIZED contract at the operator's request. The packet records `prototype://unauthorized`; no work done from it is authorized work"
-            ),
-        ));
-    }
-
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
         return Err(RepoError::Message(format!("{alias} could not be compiled")));
     };
     let ir = lower(basis, validated).map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
+    let current_contract = ir
+        .contract_digest()
+        .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
+    if authority_ref
+        .strip_prefix("authorization://")
+        .is_some_and(|signed| signed != current_contract)
+    {
+        if !prototype {
+            report.push(Diagnostic::error(
+                "dispatch.stale-authorization",
+                repo.relative(&dir.join("authorization.toml")),
+                format!("{alias}: signed authorization covers another contract revision; no packet written. Request authorization for this revision, or use --prototype for unverified work"),
+            ));
+            return Ok(report);
+        }
+        authority_ref = "prototype://unauthorized".to_owned();
+    }
 
     // The stage and the milestone that cites it, from the validated graph.
     let mut graph: Option<milestones::MilestoneGraph> = None;
@@ -181,7 +189,7 @@ pub fn run(
     // §33 — the context manifest. Slice C1: stage-relevant selection —
     // required atoms, plus whatever the stage declares (atoms, sections,
     // artifacts, external refs); everything else omitted with a true reason.
-    let commit = git_head(&repo.root);
+    let commit = git_head(repo);
     let selection = match crate::context_select::select(repo, &dir, basis, stage, commit.as_deref())
     {
         Ok(s) => s,
@@ -203,16 +211,61 @@ pub fn run(
     let budget_tokens = stage
         .budget_tokens
         .unwrap_or_else(|| repo.config.context.budget());
-    let (included, omitted, item_bytes) = (selection.included, selection.omitted, selection.bytes);
+    let (mut included, omitted, item_bytes) =
+        (selection.included, selection.omitted, selection.bytes);
+    let holders = check_holders(repo, &dir, basis, commit.as_deref(), &mut included);
+    if !authority_ref.starts_with("prototype://")
+        && included
+            .iter()
+            .any(|i| i.required && i.holder.commit_sha.is_empty())
+    {
+        if !prototype {
+            let contradicted = included
+                .iter()
+                .any(|i| i.required && holders.mismatched.contains(&i.id));
+            let diagnostic = if contradicted {
+                Diagnostic::error
+            } else {
+                Diagnostic::unknown
+            };
+            report.push(diagnostic(
+                if contradicted { "dispatch.required-holder-mismatch" } else { "dispatch.required-holder-unestablished" },
+                repo.relative(&dir.join("manifest.toml")),
+                format!("{alias}: required context bytes could not be established at the selected Git revision: {}; no packet written", holders.unpinned.join(", ")),
+            ));
+            return Ok(report);
+        }
+        authority_ref = "prototype://unauthorized".to_owned();
+    }
+    if authority_ref.starts_with("prototype://") {
+        report.push(Diagnostic::warn("dispatch.prototype", repo.relative(&dir),
+            format!("{alias}: compiled as prototype://unauthorized; no authorized work or assurance is claimed")));
+    }
+
+    // Labels are opaque: a common explicit label needs no invented ordering.
+    // Mixed or missing labels need a provider's policy; retain them exactly and
+    // record that no effective classification has been established.
+    let labels: std::collections::BTreeSet<&str> =
+        included.iter().map(|i| i.classification.as_str()).collect();
+    let effective_classification = if labels.len() == 1 && !labels.contains("") {
+        labels.iter().next().unwrap().to_string()
+    } else {
+        String::new()
+    };
+    let unresolved = if effective_classification.is_empty() {
+        vec!["classification-policy: effective classification unestablished; mixed or missing source labels require provider policy".to_owned()]
+    } else {
+        vec![]
+    };
     let mut context = ContextManifest {
         workspace_basis_ref: format!("basis://{}", basis.manifest_source),
         workspace_basis_digest: ir.integrity.workspace_basis_digest.clone(),
         included,
         omitted,
-        unresolved: vec![],
+        unresolved,
         conflicts: vec![],
         conflict_check: ConflictCheck::default(),
-        effective_classification: "internal".to_owned(),
+        effective_classification,
         policy_digest: String::new(),
         compiler_digest: format!("openwarrant-cli/{}", env!("CARGO_PKG_VERSION")),
     };
@@ -221,15 +274,11 @@ pub fn run(
     // two versions), which was not (semantic disagreement), and what the
     // check found; a finding is then refused by the compiler, by name.
     context.conflict_check = ConflictCheck::of(&context);
-    if commit.is_none() {
+    if !holders.unpinned.is_empty() {
         report.push(Diagnostic::warn(
             "dispatch.floating-holder",
             repo.relative(&dir.join("manifest.toml")),
-            format!(
-                "{alias}: could not read the git HEAD, so every context item's holder has no \
-                 commit_sha and is floating (§33.5). A draft may float; an authorized \
-                 dispatch may not."
-            ),
+            format!("{alias}: sources not established at the selected Git revision have empty commit_sha: {}", holders.unpinned.join(", ")),
         ));
     }
 
@@ -393,15 +442,222 @@ pub fn run(
 
 /// The current commit, if this is a git checkout. `None` is reported, not
 /// papered over with a placeholder that looks like a revision.
-fn git_head(root: &Utf8Path) -> Option<String> {
-    let out = Command::new("git")
-        .args(["rev-parse", "HEAD"])
-        .current_dir(root)
-        .output()
-        .ok()?;
-    if !out.status.success() {
+fn git_head(repo: &Repository) -> Option<String> {
+    let prefix =
+        crate::preservation::local_git(repo, &["rev-parse", "--show-prefix"], 4096).ok()?;
+    if !prefix.is_empty() && prefix != b"\n" {
         return None;
     }
-    let sha = String::from_utf8(out.stdout).ok()?.trim().to_owned();
-    (sha.len() == 40 && sha.bytes().all(|b| b.is_ascii_hexdigit())).then_some(sha)
+    let out =
+        crate::preservation::local_git(repo, &["rev-parse", "--verify", "HEAD^{commit}"], 128)
+            .ok()?;
+    let sha = String::from_utf8(out).ok()?.trim().to_owned();
+    (matches!(sha.len(), 40 | 64) && sha.bytes().all(|b| b.is_ascii_hexdigit())).then_some(sha)
+}
+
+/// A Git holder describes selected bytes, not merely a nearby HEAD. Resolve only
+/// local objects under fixed limits. Optional missing sources may float; required
+/// ones prevent authorized emission. No signature or source record is changed.
+fn source_digest(bytes: &[u8]) -> String {
+    let hex: String = sha2::Sha256::digest(bytes)
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect();
+    format!("sha256:{hex}")
+}
+
+#[derive(Default)]
+struct HolderChecks {
+    unpinned: Vec<String>,
+    mismatched: Vec<String>,
+}
+
+fn check_holders(
+    repo: &Repository,
+    dir: &Utf8Path,
+    basis: &openwarrant_compiler::CompilationBasis,
+    commit: Option<&str>,
+    included: &mut [ContextItem],
+) -> HolderChecks {
+    let mut budget = 32 * 1024 * 1024;
+    let mut digests: BTreeMap<String, Option<String>> = BTreeMap::new();
+    let mut checks = HolderChecks::default();
+    for item in included.iter_mut().filter(|i| i.holder.kind == "git") {
+        let path = &item.holder.path;
+        let actual = digests.entry(path.clone()).or_insert_with(|| {
+            let commit = commit?;
+            let object = format!("{commit}:./{path}");
+            let bytes = crate::preservation::local_git(
+                repo,
+                &["cat-file", "blob", &object],
+                budget.min(4 * 1024 * 1024),
+            )
+            .ok()?;
+            budget = budget.checked_sub(bytes.len())?;
+            Some(source_digest(&bytes))
+        });
+        // A section's holder names its full parent source, not the excerpt.
+        let expected = basis
+            .atoms
+            .iter()
+            .find(|a| repo.relative(&dir.join(&a.source)) == *path)
+            .map(|a| source_digest(&a.bytes))
+            .unwrap_or_else(|| item.content_digest.clone());
+        if actual.as_ref() != Some(&expected) {
+            item.holder.commit_sha.clear();
+            checks.unpinned.push(item.id.clone());
+            if actual.is_some() {
+                checks.mismatched.push(item.id.clone());
+            }
+        }
+    }
+    checks
+}
+
+#[cfg(test)]
+mod holder_tests {
+    use super::*;
+    use camino::Utf8PathBuf;
+    use std::process::Command;
+
+    fn git(root: &Utf8Path, args: &[&str]) {
+        let out = Command::new("git")
+            .current_dir(root)
+            .args([
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=/dev/null",
+                "-c",
+                "user.name=Fixture",
+                "-c",
+                "user.email=fixture@example.invalid",
+            ])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+    fn fixture(name: &str) -> Utf8PathBuf {
+        fn copy(a: &std::path::Path, b: &std::path::Path) {
+            fs::create_dir_all(b).unwrap();
+            for e in fs::read_dir(a).unwrap() {
+                let e = e.unwrap();
+                if e.file_type().unwrap().is_dir() {
+                    copy(&e.path(), &b.join(e.file_name()));
+                } else {
+                    fs::copy(e.path(), b.join(e.file_name())).unwrap();
+                }
+            }
+        }
+        let root = Utf8PathBuf::from_path_buf(
+            std::env::temp_dir().join(format!("ow-dispatch-holder-{name}-{}", std::process::id())),
+        )
+        .unwrap();
+        copy(
+            &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../conformance/fixtures/inbox/repository"),
+            root.as_std_path(),
+        );
+        root
+    }
+    fn selected(repo: &Repository) -> (openwarrant_compiler::CompilationBasis, Vec<ContextItem>) {
+        let dir = repo.warrant_dir("IX-WAR-0003").unwrap();
+        let one = repo.load_warrant(&dir).unwrap();
+        let basis = one.basis.unwrap();
+        let graph = milestones::parse(
+            std::str::from_utf8(
+                &basis
+                    .atoms
+                    .iter()
+                    .find(|a| a.role == "milestones")
+                    .unwrap()
+                    .bytes,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let items = crate::context_select::select(
+            repo,
+            &dir,
+            &basis,
+            &graph.stages[0],
+            git_head(repo).as_deref(),
+        )
+        .unwrap()
+        .included;
+        (basis, items)
+    }
+    #[test]
+    fn holders_match_actual_committed_bytes_and_not_dirty_sources() {
+        let root = fixture("bytes");
+        git(&root, &["init"]);
+        git(&root, &["add", "."]);
+        git(&root, &["commit", "-m", "fixture"]);
+        let repo = Repository::open(root.clone()).unwrap();
+        let dir = repo.warrant_dir("IX-WAR-0003").unwrap();
+        let head = git_head(&repo).unwrap();
+        fs::write(root.join("unrelated-untracked.txt"), "unrelated").unwrap();
+        let (basis, mut items) = selected(&repo);
+        assert!(
+            check_holders(&repo, &dir, &basis, Some(&head), &mut items)
+                .unpinned
+                .is_empty()
+        );
+        assert!(
+            items
+                .iter()
+                .filter(|i| i.required)
+                .all(|i| i.holder.commit_sha == head)
+        );
+        let intent = dir.join("atoms/10-intent.md");
+        let mut text = fs::read_to_string(&intent).unwrap();
+        text.push_str("\nDirty source not in HEAD\n");
+        fs::write(&intent, text).unwrap();
+        let (basis, mut items) = selected(&repo);
+        let missing = check_holders(&repo, &dir, &basis, Some(&head), &mut items);
+        assert!(missing.unpinned.contains(&"atoms/10-intent.md".to_owned()));
+        assert!(
+            missing
+                .mismatched
+                .contains(&"atoms/10-intent.md".to_owned())
+        );
+        assert!(
+            items
+                .iter()
+                .find(|i| i.id == "atoms/10-intent.md")
+                .unwrap()
+                .holder
+                .commit_sha
+                .is_empty()
+        );
+        assert!(
+            items
+                .iter()
+                .filter(|i| i.required && i.id != "atoms/10-intent.md")
+                .all(|i| i.holder.commit_sha == head)
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn nested_project_does_not_borrow_containing_git_head() {
+        let parent = fixture("nested");
+        git(&parent, &["init"]);
+        git(&parent, &["add", "."]);
+        git(&parent, &["commit", "-m", "fixture"]);
+        let nested = parent.join("nested-project");
+        fs::create_dir(&nested).unwrap();
+        fs::copy(
+            parent.join("openwarrant.toml"),
+            nested.join("openwarrant.toml"),
+        )
+        .unwrap();
+        let repo = Repository::open(nested).unwrap();
+        assert!(git_head(&repo).is_none());
+        fs::remove_dir_all(parent).unwrap();
+    }
 }

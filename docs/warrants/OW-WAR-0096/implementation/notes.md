@@ -43,3 +43,24 @@ Receipt source f5acf9c subsequently passed full gate: 14/14 steps, 308 plants,
 Rust 1.97.1. LAMU commit review PASS WITH NITS; verified non-defects retained in
 activation-receipts/evidence/review.md. Protected deployment and consumer cutover
 remain unestablished; OW96 remains in progress.
+
+## Configured authority consumer cutover — 2026-10-09
+
+Requests and role consumers now use the configured store's current v2 actor,
+kind, principal and known Warrant roles. A malformed repository roles file does
+not replace that source. An unavailable or v1 store does not fall back to local
+grants. The projected assignment records identify the store/head; effective
+time remains unknown because this projection does not establish activation time.
+Standalone attestation emission and verification use the same current public
+keys. Legacy forensic checks remain diagnostic and grant no protected authority.
+
+The public CLI regression failed before the change, offering the fixture's local
+human instead of the configured store actor. After the change, 42 targeted
+controls pass, including native grant removal, forged local roles, unavailable
+stores, protected-key attestation and exact batch signing. Earlier failed
+diagnostic controls were repaired in production code, without weakening plants.
+See [retained controls](consumer-cutover-20261009/native-refusal-controls.log).
+Tests use disposable fixture keys and an explicitly unprotected test store; no
+real store was activated and no human acceptance is implied. Protected operator
+deployment, actual human key custody/presence, cancellation and separate-account
+isolation remain unestablished. This Warrant remains in progress.

@@ -1,0 +1,1 @@
+{"result":"PASS","browser":"HeadlessChrome/153.0.8010.12","pages":[{"name":"hostile-report","title":"OpenWarrant work report","details":1,"offlineFetchControl":"TypeError"},{"name":"report","title":"OpenWarrant work report","details":1,"offlineFetchControl":"TypeError"},{"name":"board","title":"OpenWarrant board","details":0,"offlineFetchControl":"TypeError"}]}

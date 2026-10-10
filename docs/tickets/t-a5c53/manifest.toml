@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-a5c53` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-a5c53"
+uuid = "01a12148-7f34-7217-b9bd-f1d9670ed422"
+title = "Preserve source classification in legacy Dispatch selection and portable disclosure checks"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-09T15:29:21Z"
+created_by = "claude"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

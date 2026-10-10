@@ -67,13 +67,13 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 |---|---|
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
+| artifact digests verify | 116 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 115 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
 | residual risks have sufficient authority | 57 |
-| required deliverables exist | 55 |
+| required deliverables exist | 54 |
 | exact authorized Contract Revision | 21 |
 | runtime receipts match the basis | 2 |
 
@@ -202,7 +202,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0047` Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | unknown | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | unknown | 0 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | unknown | 1 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | unknown | 1 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | resolved | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | unknown | 0 | 0 of 2 | artifact digests verify |
@@ -296,7 +296,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0148` Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | draft | unknown | 0 | 0 of 5 | required deliverables exist |
+| `OW-WAR-0148` Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0149` Shared Katana and BLUT runtime receipt binding contract | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
 
 ## Not reported here

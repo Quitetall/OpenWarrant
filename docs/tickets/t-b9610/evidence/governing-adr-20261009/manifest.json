@@ -1,0 +1,105 @@
+{
+  "synthetic_controls": true,
+  "actual_request": "actual-OW-WAR-0007-request.json",
+  "binary_sha256": "ef9c9f30152e10349668e92a4c2a951a0967d90c5969ded5344105dcd0975da6",
+  "files": {
+    "actual-OW-WAR-0007-request.json": {
+      "sha256": "1f9badf3993edc6947ed9a125ff98abbd58b60ceb2244f3e6be8a28a431d1581",
+      "bytes": 829008
+    },
+    "adr-omission-regression-red.log": {
+      "sha256": "e57aa0e994f48391d025ca123450f01a310776e239e449f54ccadf6a57b8a704",
+      "bytes": 6166
+    },
+    "cli-tests.log": {
+      "sha256": "3e44c09a308a5b7cec910bc58d06a5f9320f4f0f553ab71bceef1b694e7019bb",
+      "bytes": 3512,
+      "retained_at": "cli-tests.log.gz",
+      "compressed_sha256": "36a04abeb298a44647b9fe4a020f2ed4d0ff13abde04fa5ae494ce7b581cefce",
+      "compressed_bytes": 1373,
+      "roundtrip_equal": true
+    },
+    "clippy.log": {
+      "sha256": "64bc39cdf8f4478c4be73c767915dfd0418ef1b7c7c829de2116ce33dbd05c54",
+      "bytes": 517
+    },
+    "closure-control.log": {
+      "sha256": "8007c225e23c50ae5de421e8263af85bcf69a0b98e3e4f6c0f473e12183d2621",
+      "bytes": 215
+    },
+    "extra-instruction-regression-red.log": {
+      "sha256": "c21241bd5816dd3a5ec2d2f66f87d4af44ed927daa6574a138c3e6a23db0fcd5",
+      "bytes": 1722
+    },
+    "final-malformed/run.log": {
+      "sha256": "ebc7804e9665457948b7a7c0ec912adb09829d785fed3f64da84d97bd048df81",
+      "bytes": 387
+    },
+    "final-malformed/stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "final-malformed/stdout.json": {
+      "sha256": "f19e409e3ef4b168227b99a45efeab31481d4fc93f39af343e318e680e51db78",
+      "bytes": 467
+    },
+    "final-minimal/run.log": {
+      "sha256": "695567ea11d6c7d7a9d32bf97a634ba14007e63b59a5dcf15cce09fed68b5f49",
+      "bytes": 402
+    },
+    "final-minimal/stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "final-minimal/stdout.json": {
+      "sha256": "179a7bf8a878f32cdafa22e4d4ecdaaca05f7e4c0ee3827e6d8cc5e424fcf4c7",
+      "bytes": 2873
+    },
+    "final-pinned/run.log": {
+      "sha256": "82a1875e914f330633bca9051d98413d25ea58ed8efe69e71a9c51a60cfa9d3d",
+      "bytes": 527
+    },
+    "final-pinned/stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "final-pinned/stdout.json": {
+      "sha256": "a6b97540092f262120da2d6d4ec80d5c1087d382d5d9772ba873d67a6ea8e217",
+      "bytes": 3205
+    },
+    "malformed-relation-red.log": {
+      "sha256": "53e8e14e27c7aa59abf1bee77953eb1915426cfdb11bce72ed4bd9f223286829",
+      "bytes": 2863
+    },
+    "malformed-relation.py": {
+      "sha256": "a776545e57b7e744691c7f5d59b06189690d3dd09584f3c9d10f2c15165936d3",
+      "bytes": 2098
+    },
+    "minimal.log": {
+      "sha256": "e65829bd26e7d375f9272ec261deafcf2c2ff2d1835d4483bbe17e0847ef0dda",
+      "bytes": 611
+    },
+    "pinned-corrected.log": {
+      "sha256": "f121e7c25bcd48902df6be6bb1ce3c45b070bd6b23085eb19aeed3bf3e12aacd",
+      "bytes": 730
+    },
+    "reproduce.py": {
+      "sha256": "3269b5aaf08e60467c5c0725f1bae978206857d33e2584e0778a94fe9b4bbaa2",
+      "bytes": 2526
+    },
+    "bundle-unit-tests.log": {
+      "sha256": "2cdf72295b3acb698a3288189e71f44f241acb9d348f4ae7d35762486c808533",
+      "bytes": 1393,
+      "retained_at": "bundle-unit-tests.log.gz",
+      "compressed_sha256": "2f247390c949672a274e458aa2b8ac8a360ad8d6c38dabe3f05a1bd97cb00067",
+      "compressed_bytes": 658,
+      "roundtrip_equal": true
+    }
+  },
+  "record_kind": "diagnostic inventory, not a verification or authority record",
+  "source_digests": {
+    "crates/openwarrant-cli/src/verify/context.rs": "aa47ee36e98d887c0568c2fa79b2f1b3fb83a1a4c74cb7f950bf9fe73c8785f9",
+    "crates/openwarrant-cli/src/bundle.rs": "6c7011f773fb1bd6451e3c281f6044ce9e3cd680066f0e2111aead7005e17146",
+    "crates/openwarrant-cli/tests/verification_subject_cli.rs": "a7cc555e34ae8805bccfa1cba449b5b0a5732646e31b52096625a02b6d127007"
+  }
+}

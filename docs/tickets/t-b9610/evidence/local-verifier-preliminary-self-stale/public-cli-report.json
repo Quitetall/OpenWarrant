@@ -1,0 +1,29 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify.run",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "verify.bundle",
+      "file": null,
+      "message": "IX-WAR-0005 [OBL-001, OBL-002]: bundle 99228ef947ccc79e156cb7e36b759dfdb0312a6c54ee6acd0d3462036576300d (warrant scope, ~2801 tokens) written to docs/warrants/IX-WAR-0005/verifications/bundle-99228ef947ccc79e.json"
+    },
+    {
+      "severity": "error",
+      "rule": "verify.subject-stale",
+      "file": "/mnt/2tb/ow-local-verifier-real-duk5l694/docs/warrants/IX-WAR-0005/verifications/responses/response-99228ef947ccc79e.toml",
+      "message": "the response reviewed a different contract or artifact snapshot; nothing was written"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

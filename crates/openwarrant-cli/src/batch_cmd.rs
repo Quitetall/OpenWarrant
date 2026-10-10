@@ -198,14 +198,7 @@ pub fn run(
             continue;
         }
         // A class act names why a signer is refused (agent by kind, SelfAct).
-        let chosen_actor = if matches!(
-            p,
-            Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. }
-        ) {
-            sign::who(p, opts)
-        } else {
-            sign::choose_actor(sign::eligible(p), opts).map_err(|why| ("sign.who", why))
-        };
+        let chosen_actor = sign::who_with_authority(repo, p, opts);
         let actor = match chosen_actor {
             Ok(a) => a,
             Err((rule, why)) => {

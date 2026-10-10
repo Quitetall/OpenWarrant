@@ -1,0 +1,37 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify.run",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "verify.bundle",
+      "file": null,
+      "message": "IX-WAR-0005 [OBL-001, OBL-002]: bundle dc948bf997a75453a84c0264b769239670de36bbc123664c78c96143be5644e4 (warrant scope, ~2801 tokens) written to docs/warrants/IX-WAR-0005/verifications/bundle-dc948bf997a75453.json"
+    },
+    {
+      "severity": "pass",
+      "rule": "verify.recorded",
+      "file": null,
+      "message": "OBL-001: established by local-lamu-verifier (qwen3.6-27b-uncensored-heretic-v2-q4_k_m)"
+    },
+    {
+      "severity": "pass",
+      "rule": "verify.recorded",
+      "file": null,
+      "message": "OBL-002: not_established by local-lamu-verifier (qwen3.6-27b-uncensored-heretic-v2-q4_k_m)"
+    }
+  ],
+  "notes": [
+    "2 verification(s) recorded, 0 refused. A refused verdict is not written to disk at all — recording it would let an inadmissible verdict read as a verification on the next run."
+  ],
+  "counts": {
+    "pass": 3,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

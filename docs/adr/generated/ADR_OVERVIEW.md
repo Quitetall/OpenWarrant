@@ -3467,7 +3467,7 @@ The request carries `reviewed_subject`. A response echoes the exact object it re
 | Field | Binding |
 |---|---|
 | `contract_digest` | Existing compiled contract digest. |
-| `context_sources` | Exact pinned SAS source path and ordinary SHA-256 of its retained bytes. |
+| `context_sources` | Exact pinned SAS and explicitly governing current ADR source paths, with ordinary SHA-256 of retained bytes. |
 | `artifacts` | Declared delivered paths and ordinary SHA-256 of actual bytes. |
 | `gate_definitions` | Each cited gate key and the digest of its definition bytes. |
 | `fixtures` | Declared fixture paths and actual byte digests. |
@@ -3480,6 +3480,10 @@ Maps are sorted. Missing artifacts remain explicit and cannot satisfy existence.
 Cited gates with nonempty `inputs` use the existing glob and exclusion rules. Missing or empty input lists, missing gate definitions, and no cited gates use the existing conservative tree scope. Explicit selections are unioned with that scope: tree bookkeeping exclusions cannot remove a declared input.
 
 Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. Candidate Git queries and the batch blob reader disable replacement objects and lazy fetching; an unavailable object remains UNKNOWN instead of reading a substituted commit or fetching new data. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
+
+Governing ADR selection uses the native accepted lifecycle state and explicit `governs` relations to the reviewed Warrant UUID or its retained local alias. Alias relations already occur in the historical corpus; source bytes are not rewritten to convert them. Proposed and unrelated decisions are not implicitly made binding. Attached contract atoms continue to travel separately. This does not invent dependency relations from prose or establish complete transitive provider context closure.
+
+A SAS pin remains optional. Its absence cannot erase an applicable explicit ADR. Applicable decisions travel verbatim in every whole or split packet as `governing-adr` sources; pinned SAS bytes retain `governing-sas`. Their exact bytes are bound in the existing sorted map and checked again at ingestion. Malformed or unavailable required context is UNKNOWN. Native ADR directory enumeration includes ignored sources and refuses nonregular .md entries; descriptor-relative directory and file opens do not follow namespace or source links outside the repository. Duplicate applicable current identities are unavailable rather than selecting an arbitrary file. Rehashed omission, substitution, duplicates, false source labels and extra instruction-bearing fields are refused before verdict writes. This extends captured source selection, not the frozen canonicalization algorithm, digest domain or v1 record payload.
 
 Input bindings identify the reviewed workspace. They do not grant permission to publish every source as blind context. Performer rationale and historical instructions remain excluded from reviewer context. Source selection and portable context closure are separate requirements.
 
@@ -3544,7 +3548,44 @@ Contract and packet digests retain their existing Rust canonicalizers and digest
 
 Packets carry exact required pinned-SAS, gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. The draft locates the captured SAS version/digest in retained revision records, uses descriptor-safe current reads, and recovers matching historical Git bytes locally when needed. Candidate snapshots cannot borrow mutable checkout history. The historical-source extension freezes the candidate commit and reads regular source blobs only from that commit’s retained ancestors, with replacement objects and lazy fetching disabled. Matching content must have the exact pinned SHA-256; a newer source file or unrelated branch cannot substitute. An unavailable pinned source is UNKNOWN. This extension has a reproduced CLI failure and is awaiting its green qualification run. Packet qualification also checks the full carried source against its subject digest. Request and packet assembly reuse one loaded Warrant. This SAS slice is under test; complete transitive governing-context closure remains open.
 
+Prior-verification displays are optional historical background, not current
+qualification. Every displayed observation must exactly match a decoded active
+record or retained historical record for that Warrant. Historical files must
+retain their original raw-byte SHA-256 filename. Do not compare only with the
+current active list: replacing an active review must not invalidate the packet
+that carried the earlier observation. Invented, duplicate, malformed or extended
+displays are refused. This source match does not authenticate the named verifier,
+establish when a same-account writer created a record, or promote legacy history
+to current assurance.
+
+## Exact contract source display
+
+The candidate v2 packet adds `contract_sources`, carrying the exact captured
+manifest and optional scope sidecar as lossless source entries. Their identities
+already belong to the existing compiled contract digest. This adds no digest
+domain, changes no canonicalizer, and does not repurpose `context_sources`,
+which continues to identify exact pinned SAS bytes. Manifest and scope bytes
+come from the caller's captured CompilationBasis, including a frozen Git candidate;
+assembly and validation do not reload newer workspace copies. All obligation
+packets retain these fixed sources. Omission, substitution, duplication and extra
+source fields are refused. A Warrant without a scope sidecar remains valid.
+
+This is a candidate packet extension, not adoption of a new stable schema pack.
+Earlier packets remain retained history; they cannot establish that a reviewer
+received omitted contract sources. Transitive ADR selection, complete context
+closure and independent custody still need their own qualification.
+
 ## Retained packet storage
+
+The candidate v2 reader rejects unknown root members and missing required
+members, including after the sender recomputes the packet digest. The configured
+reviewer receives the whole packet, so extra members can carry instructions
+outside the checked sources. Creation metadata must use its defined types:
+unsigned token counts, a Boolean budget flag, the native token-method identifier,
+and an empty or 64-hex-character authorization digest. That digest remains
+creation-time display; active authority is checked independently. A packet
+captured before signing the same contract remains usable after signing. These
+checks change neither the canonicalizer nor the digest domain.
 
 The draft storage implementation reuses identical retained bytes and refuses different bytes at the same filename. New packets are staged and synced, then published without replacing an existing name. A competing publisher must supply identical bytes; it cannot truncate the winning packet. Directory-relative file handles refuse link traversal, and packet reads inspect regular files through the opened descriptor.
 

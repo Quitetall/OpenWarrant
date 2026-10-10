@@ -251,7 +251,7 @@ pub fn verify_excluding(
     bound_digest: Option<&str>,
     exclude: Option<&Utf8Path>,
 ) -> Verdict {
-    let verdict = verify_responses(repo, act, subject, actor, bound_digest, exclude);
+    let verdict = verify_responses(repo, act, subject, actor, bound_digest, exclude, None);
     // OW-ADR-0029: an authorization no response signs may still be one a
     // human signed — through a class. Asked only when the ordinary answer is
     // not `Signed`, and only of a record whose `policy_basis` names a class;
@@ -271,6 +271,46 @@ pub fn verify_excluding(
     verdict
 }
 
+/// Check the exact persisted authorization payload, not merely a response that
+/// mentions its digest. The caller checks the current contract and role grant.
+/// Standing coverage is re-derived by the existing class verifier; it has no
+/// per-Warrant response to compare. This read grants no execution permission.
+pub(crate) fn verify_authorization_record(
+    repo: &Repository,
+    subject: &str,
+    record: &crate::authorize::AuthorizationRecord,
+) -> Verdict {
+    let Some(auth) = &record.revision.authorization else {
+        return Verdict::Unsigned {
+            why: "the record carries no authorization".into(),
+        };
+    };
+    if auth
+        .policy_basis
+        .as_deref()
+        .is_some_and(|reference| reference.starts_with(openwarrant_core::standing::SCHEME))
+    {
+        return crate::standing_cmd::covered_verdict(
+            repo,
+            subject,
+            &auth.authorizer,
+            Some(&record.revision.contract_digest),
+        )
+        .unwrap_or_else(|| Verdict::Unavailable {
+            why: "the claimed standing authorization could not be re-derived".into(),
+        });
+    }
+    verify_responses(
+        repo,
+        Act::Authorize,
+        subject,
+        &auth.authorizer,
+        Some(&record.revision.contract_digest),
+        None,
+        Some(record),
+    )
+}
+
 /// [`verify_excluding`] over signed responses and batches only.
 fn verify_responses(
     repo: &Repository,
@@ -279,12 +319,13 @@ fn verify_responses(
     actor: &str,
     bound_digest: Option<&str>,
     exclude: Option<&Utf8Path>,
+    expected: Option<&crate::authorize::AuthorizationRecord>,
 ) -> Verdict {
     // Every response whose name starts with this subject: the current one and
     // any retired sibling. `war sign` retires a superseded response by renaming
     // it to carry its digest (§34.4 — supersede, never erase), so the signature
     // for an earlier act of the same subject lives under a different name.
-    let candidates = candidate_responses(repo, act, subject, exclude);
+    let mut candidates = candidate_responses(repo, act, subject, exclude);
     if candidates.is_empty() {
         return Verdict::Unsigned {
             why: format!(
@@ -296,6 +337,50 @@ fn verify_responses(
                 act.response_schema()
             ),
         };
+    }
+
+    if let Some(record) = expected {
+        let auth = record
+            .revision
+            .authorization
+            .as_ref()
+            .expect("checked caller");
+        let mut unavailable = None;
+        candidates.retain(|path| {
+            let text = match crate::vfs::read_to_string(path) {
+                Ok(text) => text,
+                Err(error) => {
+                    unavailable = Some(format!(
+                        "{} could not be read: {error}",
+                        repo.relative(path)
+                    ));
+                    return false;
+                }
+            };
+            let Ok(response) = toml::from_str::<crate::authorize::AuthorizationResponse>(&text)
+            else {
+                return false;
+            };
+            response.schema == crate::authorize::RESPONSE_SCHEMA
+                && response.warrant == subject
+                && response.contract_digest == record.revision.contract_digest
+                && response.authorizer == auth.authorizer
+                && response.acting_role == auth.acting_role
+                && response.meaning == auth.meaning
+                && response.effective_time == auth.effective_time
+                && response.independence == auth.independence
+                && response.policy_basis == auth.policy_basis
+        });
+        if candidates.is_empty() {
+            return match unavailable {
+                Some(why) => Verdict::Unavailable { why },
+                None => Verdict::Invalid {
+                    why: format!(
+                        "no typed authorization response matches the exact recorded subject, digest, actor, role, meaning, time, independence and policy for {subject}"
+                    ),
+                },
+            };
+        }
     }
 
     match binding(repo) {
@@ -349,7 +434,7 @@ fn verify_register(
     // The register decides who may sign and under which principal. It is
     // human-written and committed; an agent editing it is a commit a reviewer
     // sees, which is the control §27.2 relies on.
-    let register = match repo.load_authority_register() {
+    let register = match repo.load_legacy_authority_register() {
         Ok(r) => r,
         Err(e) => {
             return Verdict::Unavailable {
@@ -1052,7 +1137,12 @@ pub(crate) fn signer_for(
                 via: store.describe(),
             }),
             Err(v) => {
-                let legacy = crate::sign::principal_of(repo, actor).ok();
+                let legacy = repo
+                    .load_legacy_authority_register()
+                    .ok()
+                    .and_then(|register| {
+                        register.actor(actor).and_then(|a| a.ssh_principal.clone())
+                    });
                 match (v, legacy) {
                     (Verdict::NotHuman { why }, Some(principal)) => Err((
                         "authority.legacy-fallback",

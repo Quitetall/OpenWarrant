@@ -76,7 +76,7 @@ use serde::Serialize;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{RepoError, Repository};
 
-mod tree;
+pub(crate) mod tree;
 
 pub const SCHEMA: &str = "oh.war/acceptance/v1";
 
@@ -399,7 +399,7 @@ fn reverified(
             };
             if !crate::verify::packets_cover(
                 repo,
-                &one.alias(),
+                one,
                 &candidate_subject,
                 &packets,
                 &[o.to_owned()],

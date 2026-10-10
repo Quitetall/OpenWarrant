@@ -1,0 +1,74 @@
+[
+  {
+    "operation": "registry",
+    "argv": [
+      "/mnt/4tb/OpenWarrant/target/debug/blut-standard",
+      "registry",
+      "export",
+      "--pretty"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.005570482986513525,
+    "cwd": "/mnt/4tb/tmp/openwarrant-runtime-capture-selection",
+    "qualified": false
+  },
+  {
+    "operation": "lowering",
+    "argv": [
+      "/mnt/4tb/OpenWarrant/target/debug/war",
+      "--root",
+      "/mnt/4tb/tmp/openwarrant-runtime-capture-selection",
+      "blut",
+      "OW-WAR-0047",
+      "--verify",
+      "/mnt/4tb/OpenWarrant/target/debug/blut-standard",
+      "--emit",
+      "/home/brianklam/Projects/BLUT/docs/runtime-evidence/openwarrant-0047-20261009-rehearsed/plan.json",
+      "--json"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.041382785013411194,
+    "cwd": "/mnt/4tb/tmp/openwarrant-runtime-capture-selection",
+    "qualified": false
+  },
+  {
+    "operation": "rehearsal",
+    "argv": [
+      "/mnt/4tb/OpenWarrant/target/debug/blut-standard",
+      "plan",
+      "run",
+      "/home/brianklam/Projects/BLUT/docs/runtime-evidence/openwarrant-0047-20261009-rehearsed/plan.json",
+      "--dry-run"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.004147583997109905,
+    "cwd": "/mnt/4tb/tmp/openwarrant-runtime-capture-selection",
+    "qualified": false
+  },
+  {
+    "operation": "run",
+    "argv": [
+      "/mnt/4tb/OpenWarrant/target/debug/blut-standard",
+      "plan",
+      "run",
+      "/home/brianklam/Projects/BLUT/docs/runtime-evidence/openwarrant-0047-20261009-rehearsed/plan.json",
+      "--no-cache"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.09810154099250212,
+    "cwd": "/mnt/4tb/tmp/openwarrant-runtime-capture-selection",
+    "qualified": false
+  },
+  {
+    "operation": "jobs",
+    "argv": [
+      "/mnt/4tb/OpenWarrant/target/debug/blut-standard",
+      "jobs",
+      "--json"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.003991285018855706,
+    "cwd": "/mnt/4tb/tmp/openwarrant-runtime-capture-selection",
+    "qualified": false
+  }
+]

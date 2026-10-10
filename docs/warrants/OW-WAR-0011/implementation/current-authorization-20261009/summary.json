@@ -1,0 +1,34 @@
+{
+  "source": "8dd895ea954f75bfe6d52d7976178b1c53cce02e",
+  "public_red": "SSH fixture signature verifies independently; baseline Preflight leaves authorization unknown",
+  "preflight_tests": {
+    "standing": "PASS",
+    "passed": 9,
+    "failed": 0
+  },
+  "clippy": {
+    "standing": "PASS",
+    "scope": "openwarrant-cli --all-targets",
+    "rust": "1.97.1"
+  },
+  "initial_shared_build": {
+    "standing": "UNKNOWN",
+    "exit_code": 124,
+    "reason": "package/artifact cache locks; no test ran"
+  },
+  "qualification": false,
+  "human_acceptance": false,
+  "standing_red": "An ordinary valid signature incorrectly passed when the record claimed an unaccepted standing policy; the public regression failed before the fix.",
+  "fmt": "PASS",
+  "cli_units": {
+    "standing": "UNKNOWN",
+    "exit_code": 124,
+    "deadline_seconds": 300,
+    "individual_passes_observed": 349,
+    "unfinished": "Bonsai pilot qualification control"
+  },
+  "projection_generation": {
+    "initial": "UNKNOWN deadline 180 seconds",
+    "retry": "PASS after local test processes finished"
+  }
+}

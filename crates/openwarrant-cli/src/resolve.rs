@@ -86,6 +86,8 @@ use crate::authorize::AuthorizationRecord;
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
+pub mod runtime;
+
 /// Compute §56.1's thirteen from the corpus as it stands.
 ///
 /// Each is answered from a record or answered `false`. Nothing is assumed true
@@ -98,6 +100,7 @@ fn evaluate(
     deliverables: &[Deliverable],
     gate_runs: &[GateRun],
     authority: &Authority<'_>,
+    runtime: &openwarrant_compiler::runtime_basis::RuntimeBasisAssessment,
 ) -> ResolutionChecks {
     let validated = one.validated.as_ref();
     let basis = one.basis.as_ref();
@@ -220,7 +223,8 @@ fn evaluate(
         required_judgments_exist: authority.required_judgments_exist(),
         independence_requirements_met: independence_met,
         residual_risks_have_sufficient_authority: authority.residual_risks_are_covered(),
-        runtime_receipts_match_the_basis: runtime_receipts_match_the_basis(basis),
+        runtime_receipts_match_the_basis: runtime.standing
+            == openwarrant_core::document::runtime::ReceiptStanding::Matches,
         resolver_holds_the_role: authority.a_resolver_is_eligible(&assurance, &declared),
         not_applicable: NotApplicable::default(),
     };
@@ -525,7 +529,8 @@ pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[
     })
 }
 
-/// §56.1 requirement 12 — runtime receipts match the basis.
+/// Conservative source-only compatibility helper. The actual resolution gate
+/// uses [`runtime::Input`] and fresh current-attempt assessment.
 ///
 /// # Which stages this is actually about
 ///
@@ -547,8 +552,8 @@ pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[
 /// # Where this is strict
 ///
 /// A Warrant with a `katana` or `blut` stage needs a receipt matched to its
-/// compilation basis. The store/import seam is not connected here yet, so
-/// those Warrants report unmet. Retained OW-WAR-0047 observations include an
+/// compilation basis. This compatibility helper accepts no receipt store or
+/// native verifier, so it cannot establish those receipts. Retained OW-WAR-0047 observations include an
 /// actual BLUT execution; they are not a dispatch-bound receipt store. Provider
 /// checkouts and historical runs must not be confused with matching receipts.
 ///
@@ -598,9 +603,8 @@ pub fn runtime_receipts_match_the_basis(
             .count();
     }
 
-    // No receipt store exists yet, so any runtime stage is unmet. Written as a
-    // comparison rather than `runtime_stages == 0` so that wiring receipts in
-    // later is a change to this one expression.
+    // Source-only callers cannot establish a runtime receipt. Resolution uses
+    // the current store assessment instead of this compatibility helper.
     runtime_stages == 0
 }
 
@@ -719,6 +723,8 @@ pub struct Assessment {
     /// The digest the Warrant compiles to now; `None` when it will not compile.
     pub current_contract_digest: Option<String>,
     pub checks: ResolutionChecks,
+    /// Fresh current-source assessment, never a saved capture verdict.
+    pub runtime_receipts: openwarrant_compiler::runtime_basis::RuntimeBasisAssessment,
     /// §38.6 — beside the thirteen, never folded in.
     pub would_resolve_satisfied: Option<bool>,
     /// Obligation ids with an admissible verification that permits satisfaction.
@@ -774,6 +780,18 @@ pub fn assess_with(
     one: &crate::repo::Loaded,
     evidence: &[crate::evidence::GateEvidence],
 ) -> Result<Assessment, RepoError> {
+    assess_with_runtime(repo, one, evidence, runtime::Input::unavailable())
+}
+
+/// Assess the same thirteen requirements with explicit retained runtime
+/// selections and a trusted native provider/policy resolver. This read-only SDK
+/// seam grants no authority, records no resolution and clears no other gate.
+pub fn assess_with_runtime(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    evidence: &[crate::evidence::GateEvidence],
+    runtime: runtime::Input<'_>,
+) -> Result<Assessment, RepoError> {
     // The digest the Warrant compiles to right now, which requirement 1 compares
     // the signature against. A Warrant that will not compile yields `None`, and
     // requirement 1 is then unanswerable rather than satisfied.
@@ -783,7 +801,7 @@ pub fn assess_with(
             .and_then(|ir| ir.contract_digest().ok()),
         _ => None,
     };
-    assess_with_digest(repo, one, evidence, current_contract_digest)
+    assess_with_runtime_digest(repo, one, evidence, current_contract_digest, runtime)
 }
 
 /// [`assess_with`], given the digest the Warrant compiles to now — computed
@@ -794,6 +812,22 @@ pub fn assess_with_digest(
     one: &crate::repo::Loaded,
     evidence: &[crate::evidence::GateEvidence],
     current_contract_digest: Option<String>,
+) -> Result<Assessment, RepoError> {
+    assess_with_runtime_digest(
+        repo,
+        one,
+        evidence,
+        current_contract_digest,
+        runtime::Input::unavailable(),
+    )
+}
+
+fn assess_with_runtime_digest(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    evidence: &[crate::evidence::GateEvidence],
+    current_contract_digest: Option<String>,
+    runtime: runtime::Input<'_>,
 ) -> Result<Assessment, RepoError> {
     let dir = &one.dir;
     let verifications = repo.load_verifications(dir)?;
@@ -823,6 +857,7 @@ pub fn assess_with_digest(
     };
 
     let gate_runs = crate::evidence::admissible_runs(evidence, current_contract_digest.as_deref());
+    let runtime_receipts = runtime.assess(repo, one);
     let checks = evaluate(
         repo,
         one,
@@ -830,6 +865,7 @@ pub fn assess_with_digest(
         &deliverables.records,
         &gate_runs,
         &authority,
+        &runtime_receipts,
     );
 
     // §38.6, reported alongside the thirteen and never folded into them. See
@@ -878,6 +914,7 @@ pub fn assess_with_digest(
     Ok(Assessment {
         current_contract_digest,
         checks,
+        runtime_receipts,
         would_resolve_satisfied,
         established,
         unestablished,
@@ -890,6 +927,16 @@ pub fn assess_with_digest(
 
 /// `war sign resolve <alias> --dry-run`.
 pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
+    run_selected(repo, alias, &[])
+}
+
+/// Read-only CLI assessment with explicit retained captures. Native provider
+/// support is unavailable here; saved successes never clear requirement 12.
+pub fn run_selected(
+    repo: &Repository,
+    alias: &str,
+    selections: &[crate::runtime_capture::Selection],
+) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
@@ -907,7 +954,19 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
         return Ok(report);
     }
 
-    let assessment = assess(repo, &one)?;
+    let evidence = crate::evidence::load(repo, &one.dir)?;
+    let assessment = assess_with_runtime(
+        repo,
+        &one,
+        &evidence,
+        runtime::Input {
+            selections,
+            ..runtime::Input::unavailable()
+        },
+    )?;
+    if !assessment.checks.not_applicable.contains(11) {
+        runtime::report(&mut report, alias, &assessment.runtime_receipts);
+    }
     for (path, why) in &assessment.deliverable_failures {
         report.push(Diagnostic::error(
             "deliverables.malformed",

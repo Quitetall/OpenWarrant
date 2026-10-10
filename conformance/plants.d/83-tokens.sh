@@ -26,7 +26,7 @@ fi
 # names what to cut.
 plant_cmd "an over-budget stage is refused" "dispatch.over-budget" "largest:" 2 \
     "sed -i 's|^    executor_ref: \"materialize_dataset_path\"$|    executor_ref: \"materialize_dataset_path\"\n    budget_tokens: 10|' $MS; assert_present 'budget_tokens: 10' $MS" \
-    dispatch OW-WAR-0047 STAGE-002 --emit "$TOK_TMP/x.json"
+    dispatch OW-WAR-0047 STAGE-002 --prototype --emit "$TOK_TMP/x.json"
 
 # A budget that is not a non-negative integer is a malformed milestones atom.
 plant "a non-numeric budget is refused" "milestones.invalid" "budget_tokens" 2 \

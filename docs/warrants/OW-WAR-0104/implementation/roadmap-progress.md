@@ -167,3 +167,10 @@ yields 100%. Unscoped/empty groups still suppress percentages. Four model tests,
 eight viewer integration tests and embedded JavaScript syntax checking pass.
 Browser at isolated port 38527 rendered 65/106 as 61% and 10/11 as 90%.
 Retained red/green and viewer logs accompany this note.
+
+2026-10-09 follow-up: separate legacy-board offline rendering is now recorded in
+[offline-board-20261009/README.md](offline-board-20261009/README.md). All 145
+Warrant rows appear; static line wrapping fixes observed horizontal overflow and
+passes a 375px browser check. This observation does not replace the prior
+interactive roadmap evidence. Implementation complete, unverified; no historical
+answer, independent disposition or human signature was inferred.

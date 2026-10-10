@@ -1,0 +1,18 @@
+{
+  "job_id": "20261009-131242-620252367",
+  "qualified": false,
+  "lineage_ref": "/home/brianklam/Projects/BLUT/docs/runtime-evidence/openwarrant-0047-20261009-rehearsed/lineage.stdout",
+  "lineage_sha256": "cc6d33bed750d8fef1d908a0e893538a7e386f4f764420be19b6bd4ae3a9012d",
+  "artifacts_ref": "/home/brianklam/Projects/BLUT/docs/runtime-evidence/openwarrant-0047-20261009-rehearsed/artifacts.stdout",
+  "artifacts_sha256": "07d1ac050f0a3d23a218721c1c843e0759df74e025dcd9fdf81eed5be42c1a2f",
+  "source_sha256": "1d6818cd3e5dbe603f2040a5182dde23e69df9e1bf000e7f51f8d8903e052c4b",
+  "registry_bytes_sha256": "8c5c7bec73d0764211640cd43ad20608743a403535fdc7922f968c5551273ef1",
+  "plan_bytes_sha256": "3da3913aad7fd98a53621f21010848b187f232e77c596f865d3767c6d0bedbd5",
+  "owned_dataset_ref": "/home/brianklam/Projects/BLUT/docs/runtime-evidence/openwarrant-0047-20261009-rehearsed/jobs/20261009-131242-620252367/stages/0-materialize_dataset_path/dataset.jsonl",
+  "filtered_dataset_ref": "/home/brianklam/Projects/BLUT/docs/runtime-evidence/openwarrant-0047-20261009-rehearsed/jobs/20261009-131242-620252367/stages/1-filter_dataset/filtered.jsonl",
+  "plan_semantics_unchanged": true,
+  "owned_and_filtered_equal_source": true,
+  "observed_stages": 2,
+  "cache_hits": 0,
+  "source_record_count": 3
+}

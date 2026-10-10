@@ -3,8 +3,8 @@
   "warrant": "OW-WAR-0047",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "1c852b064ce20de9befb4724052bb9292c2f04a4",
-  "summary": "Provider repair executes original BLUT graph successfully: two stages, real artifact receipts and external lineage reference; exact port-refusal control passes. Provider tests 95/95 plus fmt/clippy pass. Provider PR integration and hosted checks remain open due GitHub billing restriction. Unverified.",
+  "revision": "53368e791e752c22d0aeeb217ff36e07187d0665",
+  "summary": "Fresh real Linux runtime passed with merged dataset provider cbb33663 and current BLUT engine 2502a4dd: unchanged two-stage PlanSpec, done status, zero cache hits and exact three-record output bytes. Provider tests 118/0 and scoped Clippy pass for this source combination. Independent acceptance and current evidence integration gates remain open; unverified.",
   "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/identity.json",
@@ -18,11 +18,14 @@
     "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/artifacts.json",
     "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/references.json",
     "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/port-probe.json",
-    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log"
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log",
+    "docs/warrants/OW-WAR-0047/implementation/provider-integration-20261009/README.md",
+    "docs/warrants/OW-WAR-0047/implementation/current-runtime-20261009/references.json",
+    "docs/warrants/OW-WAR-0047/implementation/current-runtime-20261009/provider-tests.log"
   ],
   "next_steps": [
-    "Clear provider GitHub Actions billing/spending restriction and run required hosted checks for blut-cookbooks PR #1.",
-    "Integrate shared provider repair and retain exact source/binary/registry provenance; do not substitute a published-release claim.",
-    "Obtain independent verification and human acceptance for legacy resolution; no dispositions are self-assigned."
+    "Complete the current evidence integration projections, record checks and full gate at the exact candidate revision.",
+    "Obtain independent verification and human acceptance separately; retained runtime observations do not assign dispositions or confer assurance.",
+    "Complete OW-WAR-0149 native receipt binding and resolver integration for formal runtime eligibility."
   ]
 }

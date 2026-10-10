@@ -41,3 +41,18 @@ fidelity again. It invented OW-WAR-0100 and offered self-descriptive assurance
 instead of deliverable checks. See local-model-3/ for unchanged raw output,
 identities, non-applying validation and inspection. Server stopped cleanly; no
 paid calls, applied Warrant or qualification. Prompt layout is not a proven fix.
+
+## 27B local observation, 2026-10-09
+
+The unchanged adapter now has a successful task-faithful starting-draft observation
+on an explicitly selected local Qwen 27B backend. The exact retained request yielded
+CHANGELOG.md and a README link with deliverable-specific positive/refusal checks.
+Four transport/refusal tests and the non-applying proposal pipeline pass. A loading
+503 and the subsequent complete raw response are both retained; no historical
+failure was repaired or deleted. See local-model-4-ready/inspection.md for bounds.
+
+OW101's adapter and bounded observation scope is implementation-complete, unverified.
+This does not claim autonomous general planning: the draft still needs review of
+its open-ended ongoing-maintenance wording, format choice and fixture quality.
+Nothing was applied. No independent dispositions, signatures or marks were written.
+Formal verification and acceptance remain separate from this performer report.

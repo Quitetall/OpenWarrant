@@ -1,0 +1,23 @@
+{
+  "scope": "Observed local runtime for the explicit scratch control only; process metadata is not provider attestation",
+  "lamu_version": "lamu 0.6.0 (git:2a26299)",
+  "lamu_source_inspected": "2a26299:lamu-rs/lamu-api/src/openai_compat.rs::chat_completions -> resolve_and_ensure_loaded -> local backend port",
+  "processes": [
+    {
+      "pid": 4007409,
+      "executable": "/home/brianklam/.local/lib/lamu/0.6.0+2a26299/bin/lamu",
+      "sha256": "b16858208345b2cc794e075e6e843a76e7bb24041eec081d4c8f5240bd45ddb4",
+      "cwd": "/mnt/4tb/OpenWarrant",
+      "kind": "local-inference-service"
+    },
+    {
+      "pid": 4029263,
+      "executable": "/home/brianklam/local-llm/beellama.cpp/build/bin/llama-server",
+      "sha256": "346d39be71551f7e323d6db7e49d48c48c0fec1912eb2ef50d7c320598f7d4a5",
+      "cwd": "/mnt/4tb/OpenWarrant",
+      "kind": "local-model-engine"
+    }
+  ],
+  "paid_model_calls": 0,
+  "cost_note": "Observed local processes and local backend; client monetary meter remains unknown, not zero"
+}

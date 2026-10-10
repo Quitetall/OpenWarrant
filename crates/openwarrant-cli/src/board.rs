@@ -123,7 +123,7 @@ pub fn html(board: &Board, report: &Report) -> String {
         report.diagnostics
     ));
     format!(
-        "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; base-uri 'none'; form-action 'none'\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>OpenWarrant board</title><body><h1>OpenWarrant board</h1><p>Offline, read-only snapshot. No signing or network actions.</p><pre>{text}</pre><h2>Diagnostics</h2><pre>{diagnostics}</pre></body></html>\n"
+        "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>OpenWarrant board</title><style>body{{font:16px system-ui;max-width:1050px;margin:2rem auto;padding:1rem}}pre{{white-space:pre-wrap;overflow-wrap:anywhere}}</style><body><h1>OpenWarrant board</h1><p>Offline, read-only snapshot. No signing or network actions.</p><pre>{text}</pre><h2>Diagnostics</h2><pre>{diagnostics}</pre></body></html>\n"
     )
 }
 

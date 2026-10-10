@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "deliver",
+  "diagnostics": [
+    {
+      "severity": "error",
+      "rule": "deliver.none-declared",
+      "file": "docs/warrants/OW-WAR-0075/deliverables.toml",
+      "message": "OW-WAR-0075 declares no deliverable: declare it in deliverables.toml (§37.1) first. Delivery is recorded against a declaration, never instead of one"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

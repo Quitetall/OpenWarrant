@@ -1,0 +1,54 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify.bundle",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "verify.bundle",
+      "file": null,
+      "message": "IX-WAR-0003 [OBL-001, OBL-002]: bundle fa275a360c44d5728f621d2111d1d63facaec96a6c70a50d4537635372099c3f written to docs/warrants/IX-WAR-0003/verifications/bundle-fa275a360c44d572.json — warrant scope, 2 obligation(s), 5 atom(s), 0 deliverable(s) carried (0 truncated, 0 not carried), 0 plant line(s), 0 gate run(s), 0 prior verification(s); 3 named path(s) not carried, 3 named term(s) shown nowhere; ~2708 of 48000 tokens (oh.war/token-estimate/bytes-div-4/v1)"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/review-packets/v1",
+    "reviewed_subject": {
+      "contract_digest": "80cf692301f430b859c0cb03923ddc188eee8b2a0e939d73dacc0007d82f9061",
+      "context_sources": {
+        "docs/adr/atoms/IX-ADR-0001.md": "sha256:1aa804d215d4892714ad86ab3e0b4fc25e4afad91a1b2d8df87afad48b1282f6"
+      },
+      "artifacts": {},
+      "gate_definitions": {
+        "software.repo.war-check@1.0.0": "missing"
+      },
+      "gate_inputs": {
+        "docs/adr/atoms/IX-ADR-0001.md": "sha256:1aa804d215d4892714ad86ab3e0b4fc25e4afad91a1b2d8df87afad48b1282f6",
+        "docs/authority/allowed_signers": "sha256:e32d8ef273b1006e5ea5e71ba91a09a73334cb8dcc9a6eefc2b6507f472fbb96",
+        "docs/authority/roles.toml": "sha256:e3bf7451686cf037f3fcd18cad8a7ce55cc06082ca535b5200933b0e79572869",
+        "docs/warrants/IX-WAR-0003/atoms/10-intent.md": "sha256:6f684407926bc197d731db0ee1614bcc8445b5b5635a2234f101eec7c5654cff",
+        "docs/warrants/IX-WAR-0003/atoms/20-basis.md": "sha256:f13182873ecce1357bffbe57fd2a54c20d0181ffd3f654ebcf84df80fc47510f",
+        "docs/warrants/IX-WAR-0003/atoms/40-work-order.md": "sha256:03649adf4c32e685b16ed02b8de28713a0e3e02184537ff42396dc84c5dd1c22",
+        "docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml": "sha256:1b713ebd482c679e5d488d772cc4d4fd92edb87f04b423b1796c147a5a828cf3",
+        "docs/warrants/IX-WAR-0003/atoms/60-assurance.md": "sha256:fe5f3884b129a815a4c6f688927d07cbec2c0cfdffa5206459aea0e4012c8898",
+        "docs/warrants/IX-WAR-0003/manifest.toml": "sha256:47e10e78bc89bb2f19b0494154ec497ad0e30261f0007ca566799ad8d8802b1b",
+        "openwarrant.toml": "sha256:cf1821ddd892f0736d10d2df9262f3b2b675c2a76982a19c5d344adf3af74671"
+      }
+    },
+    "packets": [
+      {
+        "path": "docs/warrants/IX-WAR-0003/verifications/bundle-fa275a360c44d572.json",
+        "digest": "fa275a360c44d5728f621d2111d1d63facaec96a6c70a50d4537635372099c3f"
+      }
+    ]
+  }
+}

@@ -174,6 +174,33 @@ impl Holder {
     }
 }
 
+/// Read an explicit legacy source label without inferring a default or rank.
+/// Non-Markdown bytes and sources without a label are unclassified. A section
+/// inherits its full source's label; callers must supply the full bytes here.
+pub fn declared_classification(bytes: &[u8]) -> Result<Option<String>, ClassificationError> {
+    let Ok(text) = std::str::from_utf8(bytes) else {
+        return Ok(None);
+    };
+    if !text.lines().next().is_some_and(|line| line.trim() == "---") {
+        return Ok(None);
+    }
+    let header = crate::frontmatter::parse(text)?;
+    match header.get("classification") {
+        None => Ok(None),
+        Some(crate::frontmatter::Value::Scalar(label)) if label.trim().is_empty() => Ok(None),
+        Some(crate::frontmatter::Value::Scalar(label)) => Ok(Some(label.clone())),
+        Some(_) => Err(ClassificationError::NotScalar),
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ClassificationError {
+    #[error("{0}")]
+    Frontmatter(#[from] crate::frontmatter::FrontmatterError),
+    #[error("classification must be one opaque scalar label")]
+    NotScalar,
+}
+
 /// §33.1's context item.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContextItem {
@@ -868,6 +895,33 @@ mod tests {
                     format!("{}:sha256:two", "1".repeat(40)),
                 ],
             }]
+        );
+    }
+}
+
+#[cfg(test)]
+mod classification_tests {
+    use super::*;
+    #[test]
+    fn source_labels_are_explicit_and_opaque() {
+        assert_eq!(
+            declared_classification(b"---\nclassification: customer-X\n---\nbody").unwrap(),
+            Some("customer-X".into())
+        );
+        for bytes in [
+            &b"body"[..],
+            &b"schema: yaml\nclassification: internal"[..],
+            &b"---\nclassification: \n---\nbody"[..],
+            &b"\xff"[..],
+        ] {
+            assert_eq!(declared_classification(bytes).unwrap(), None);
+        }
+        assert!(matches!(
+            declared_classification(b"---\nclassification:\n  - internal\n---"),
+            Err(ClassificationError::NotScalar)
+        ));
+        assert!(
+            declared_classification(b"---\nclassification: one\nclassification: two\n---").is_err()
         );
     }
 }

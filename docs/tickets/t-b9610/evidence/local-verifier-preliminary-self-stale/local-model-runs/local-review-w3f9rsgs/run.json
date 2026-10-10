@@ -1,0 +1,35 @@
+{
+  "verifier": "local-lamu-verifier",
+  "model": "qwen3.6-27b-uncensored-heretic-v2-q4_k_m",
+  "endpoint": "http://127.0.0.1:8020",
+  "bundle_sha256": "79abb2934ecc5bf28c0c232befddba2b8d9e50b2b6da5e65caa60d38883fb26e",
+  "started_at_unix": 1791508321.8460565,
+  "tools": [],
+  "client_fallback": false,
+  "qualification": "not inferred from transport",
+  "status": "answered",
+  "usage": {
+    "completion_tokens": 690,
+    "completion_tokens_details": {
+      "reasoning_tokens": 593,
+      "visible_tokens": 96
+    },
+    "context_window": {
+      "n_ctx": 32768,
+      "n_ctx_train": 131072,
+      "near_full": false,
+      "occupancy_ratio": 0.167,
+      "prompt_tokens": 5459,
+      "source": "engine_prompt_tokens"
+    },
+    "prompt_tokens": 5459,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 6149
+  },
+  "api_charge_usd": null,
+  "local_compute_cost": "not measured",
+  "cost_basis": "client does not meter charges; establish a local-only provider before use",
+  "finished_at_unix": 1791508473.0093355
+}

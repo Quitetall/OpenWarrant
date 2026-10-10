@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-fa114` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-fa114"
+uuid = "01a1227b-41c6-720d-9fd5-ddc8ad7095af"
+title = "Check current authorization in read-only Preflight"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-09T21:04:25Z"
+created_by = "codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

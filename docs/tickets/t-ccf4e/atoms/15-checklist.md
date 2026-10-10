@@ -1,0 +1,5 @@
+# Checklist
+
+- [x] Implement exact derived metric calculations and explicit population semantics (i-c401) — done by codex, 2026-10-09: Pure SDK calculation operation implemented with explicit count/time units, exact rational output, source/population disclosure and refusal/unknown semantics. Five public API tests and focused Clippy pass on Rust 1.97.1. Caller observations remain unauthenticated; CLI collection, actual measurements and full batch gates remain open. See evidence/sdk/README.md.
+- [x] Expose candidate report through opt-in CLI and prove refusal controls (i-bab3) — done by codex, 2026-10-09: Opt-in exact-subject v2 CLI implemented; two CLI tests and public conformance controls pass. Refuses missing subjects, links and differing retained artifacts; preserves legacy default. Full batch gate remains pending.
+- [x] Capture actual current measurement and retain historical baseline limits (i-4594) — done by codex, 2026-10-09: Captured actual main 8ffbbb42 observation and retained raw output in evidence/cli. Four missing event/instrumentation metrics and historical pre-tuning baseline remain explicitly unmeasured; OW-WAR-0041 is not closed.

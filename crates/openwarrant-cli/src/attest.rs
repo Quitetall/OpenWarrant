@@ -322,11 +322,12 @@ pub fn emit_with_key(
 /// `allowed_signers` (so `ssh-keygen` asks the agent, and the agent asks the
 /// human once more). Returns the attestation path.
 pub fn emit(repo: &Repository, a: &Attestable<'_>) -> Result<Utf8PathBuf, RepoError> {
-    let allowed = crate::sign::allowed_signers_path(repo);
-    let text = std::fs::read_to_string(&allowed)
+    let signer = crate::authority_check::signer_for(repo, a.actor, &[])
+        .map_err(|(rule, why)| RepoError::Message(format!("attest.not-signed: {rule}: {why}")))?;
+    let allowed = &signer.allowed;
+    let text = std::fs::read_to_string(allowed)
         .map_err(|e| RepoError::Message(format!("attest.not-signed: {allowed}: {e}")))?;
-    let principal = crate::sign::principal_of(repo, a.actor)
-        .map_err(|why| RepoError::Message(format!("attest.not-signed: {why}")))?;
+    let principal = signer.principal.clone();
     let pubkey = crate::sign::pubkey_for_principal(&text, &principal)
         .map_err(|why| RepoError::Message(format!("attest.not-signed: {allowed}: {why}")))?;
     let keyid =
@@ -502,13 +503,13 @@ pub fn verify_file(repo: &Repository, path: &Utf8Path, report: &mut Report) {
         .get("actor")
         .and_then(serde_json::Value::as_str)
         .unwrap_or("");
-    let principal = match crate::sign::principal_of(repo, actor) {
-        Ok(p) => p,
-        Err(why) => {
+    let signer = match crate::authority_check::signer_for(repo, actor, &[]) {
+        Ok(signer) => signer,
+        Err((rule, why)) => {
             report.push(Diagnostic::error(
                 "attest.unknown-principal",
                 rel,
-                format!("predicate actor {actor:?}: {why}"),
+                format!("predicate actor {actor:?}: {rule}: {why}"),
             ));
             return;
         }
@@ -531,23 +532,22 @@ pub fn verify_file(repo: &Repository, path: &Utf8Path, report: &mut Report) {
         return;
     }
     let pae_bytes = pae(PAYLOAD_TYPE, &payload);
-    match verify_pae(
-        &crate::sign::allowed_signers_path(repo),
-        &principal,
-        &pae_bytes,
-        &sig.sig,
-    ) {
+    match verify_pae(&signer.allowed, &signer.principal, &pae_bytes, &sig.sig) {
         Ok(()) if !drifted => report.push(Diagnostic::pass(
             "attest.verified",
             format!(
-                "{rel}: {act} attested by {principal} ({}), {} subject(s) intact",
+                "{rel}: {act} attested by {} ({}), {} subject(s) intact",
+                signer.principal,
                 sig.keyid,
                 statement.subject.len()
             ),
         )),
         Ok(()) => report.push(Diagnostic::pass(
             "attest.signature-verified",
-            format!("{rel}: signature verifies as {principal}, but a subject drifted (above)"),
+            format!(
+                "{rel}: signature verifies as {}, but a subject drifted (above)",
+                signer.principal
+            ),
         )),
         Err(why) => report.push(Diagnostic::error("attest.failed", rel, why)),
     }

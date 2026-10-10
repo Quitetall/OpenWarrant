@@ -1,0 +1,108 @@
+{
+  "workspace_basis_ref": "basis://docs/warrants/IX-WAR-0003/manifest.toml",
+  "workspace_basis_digest": "e7151e831a7eb3a502aa2176ed73e2bf5ad3f70fe462e95be437e2e003816a40",
+  "included": [
+    {
+      "id": "atoms/10-intent.md",
+      "role": "normative",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "Inbox",
+        "commit_sha": "",
+        "path": "docs/warrants/IX-WAR-0003/atoms/10-intent.md"
+      },
+      "content_digest": "sha256:6f684407926bc197d731db0ee1614bcc8445b5b5635a2234f101eec7c5654cff",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "atoms/20-basis.md",
+      "role": "governing",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "Inbox",
+        "commit_sha": "",
+        "path": "docs/warrants/IX-WAR-0003/atoms/20-basis.md"
+      },
+      "content_digest": "sha256:f13182873ecce1357bffbe57fd2a54c20d0181ffd3f654ebcf84df80fc47510f",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "atoms/40-work-order.md",
+      "role": "normative",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "Inbox",
+        "commit_sha": "",
+        "path": "docs/warrants/IX-WAR-0003/atoms/40-work-order.md"
+      },
+      "content_digest": "sha256:03649adf4c32e685b16ed02b8de28713a0e3e02184537ff42396dc84c5dd1c22",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "atoms/45-milestones.yaml",
+      "role": "normative",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "Inbox",
+        "commit_sha": "",
+        "path": "docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml"
+      },
+      "content_digest": "sha256:c6707e13e1670997224b1a4f1676b5cde0b04adfba54365f56be2dee7e32caec",
+      "selector_sections": [],
+      "classification": "",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "atoms/60-assurance.md",
+      "role": "normative",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "Inbox",
+        "commit_sha": "",
+        "path": "docs/warrants/IX-WAR-0003/atoms/60-assurance.md"
+      },
+      "content_digest": "sha256:fe5f3884b129a815a4c6f688927d07cbec2c0cfdffa5206459aea0e4012c8898",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    }
+  ],
+  "omitted": [],
+  "unresolved": [
+    "classification-policy: effective classification unestablished; mixed or missing source labels require provider policy"
+  ],
+  "conflicts": [],
+  "conflict_check": {
+    "checked": [
+      "same-source-two-versions"
+    ],
+    "unchecked": [
+      "semantic: two different sources that disagree (§33.4) — no mechanical rule detects it, and the empty `conflicts` list is not a claim that none exists"
+    ],
+    "found": []
+  },
+  "effective_classification": "",
+  "policy_digest": "",
+  "compiler_digest": "openwarrant-cli/1.0.0-alpha.2"
+}

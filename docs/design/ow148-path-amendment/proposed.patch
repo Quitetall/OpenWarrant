@@ -1,0 +1,71 @@
+--- a/docs/warrants/OW-WAR-0148/deliverables.toml
++++ b/docs/warrants/OW-WAR-0148/deliverables.toml
+@@ -407,7 +407,7 @@
+ id = "D-041"
+ title = "war state"
+ kind = "file"
+-target_ref = "crates/openwarrant-cli/src/state_cmd.rs"
++target_ref = "crates/openwarrant-cli/src/states.rs"
+ required = true
+ content_addressed = false
+ provenance_required = false
+@@ -507,7 +507,7 @@
+ id = "D-051"
+ title = "Plant: ticket features and GitHub"
+ kind = "file"
+-target_ref = "conformance/plants.d/76-ticket-features.sh"
++target_ref = "conformance/plants.d/77-ticket-features.sh"
+ required = true
+ content_addressed = false
+ provenance_required = false
+@@ -517,7 +517,7 @@
+ id = "D-052"
+ title = "Plant: the password-reset demonstration"
+ kind = "file"
+-target_ref = "conformance/plants.d/77-typed-demo.sh"
++target_ref = "conformance/plants.d/78-typed-demo.sh"
+ required = true
+ content_addressed = false
+ provenance_required = false
+--- a/docs/warrants/OW-WAR-0148/atoms/40-work-order.md
++++ b/docs/warrants/OW-WAR-0148/atoms/40-work-order.md
+@@ -98,7 +98,7 @@
+ 13. `crates/openwarrant-core/src/lifecycle.rs` (new):
+     - the fixed states, each `computed` or `authenticated`;
+     - `[[states]] name/refines` in profiles;
+-    - `war state <id> <name>` (`crates/openwarrant-cli/src/state_cmd.rs`,
++    - `war state <id> <name>` (`crates/openwarrant-cli/src/states.rs`,
+       new), journaled.
+     - A declared state holds only while its parent holds.
+ 
+@@ -120,8 +120,8 @@
+ Across all milestones:
+ 
+ 16. Plants: `conformance/plants.d/72-model.sh`, `73-capabilities.sh`,
+-    `74-records.sh`, `75-states.sh`, `76-ticket-features.sh`,
+-    `77-typed-demo.sh` (the password-reset demonstration); `45-tickets.sh`
++    `74-records.sh`, `75-states.sh`, `77-ticket-features.sh`,
++    `78-typed-demo.sh` (the password-reset demonstration); `45-tickets.sh`
+     extended. Tests: `crates/openwarrant-cli/tests/model_cli.rs`.
+ 17. `docs/adr/atoms/OW-ADR-0031-typed-records.md` (proposed),
+     `docs/TYPES.md` (new), `docs/PROFILES.md`, `docs/TICKETS.md`,
+--- a/docs/warrants/OW-WAR-0148/atoms/60-assurance.md
++++ b/docs/warrants/OW-WAR-0148/atoms/60-assurance.md
+@@ -138,7 +138,7 @@
+   - Refusing: a blocked item is still refused claim (`ticket.blocked`).
+ 
+ ### OBL-010 — ticket features
+-- **scope:** a scratch program (`76-ticket-features.sh`).
++- **scope:** a scratch program (`77-ticket-features.sh`).
+ - **gate:** `gate://ops.conformance.plants@1.1.0`
+ - **evidence:**
+   - Accepting: `war tickets --type`, `--label`, `--state`, `--text` and
+@@ -151,7 +151,7 @@
+ - **scope:**
+   - a fake `gh` on PATH that records its argv and environment, on a scratch
+     program;
+-  - the password-reset demonstration (`77-typed-demo.sh`).
++  - the password-reset demonstration (`78-typed-demo.sh`).
+   - No claim about the real GitHub service.
+ - **gate:** `gate://ops.conformance.plants@1.1.0`
+ - **evidence:**

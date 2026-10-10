@@ -1,0 +1,15 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-runtime-receipt-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.11s
+     Running tests/document_runtime.rs (/mnt/2tb/ow-phase1-delivery-target/debug/deps/document_runtime-61eddef51c05c263)
+
+running 7 tests
+test absence_unsupported_and_unavailable_remain_unknown_but_bad_seals_refuse ... ok
+test exact_verified_facts_match_without_becoming_an_assurance_mark_or_zero_cost ... ok
+test incomplete_expectations_and_empty_capture_never_call_provider ... ok
+test hard_cap_needs_observed_accounting_and_enforcement_and_bounds_precede_provider_call ... ok
+test every_dispatch_binding_component_and_raw_capture_must_match ... ok
+test provider_identity_version_native_kind_and_minimum_fields_are_checked ... ok
+test policy_registry_execution_terminal_and_limits_cannot_be_inferred_from_receipt_text ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

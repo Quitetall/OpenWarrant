@@ -41,6 +41,13 @@ pub enum Command {
         /// Read one captured reference as UTF-8; no repository or network lookup.
         #[arg(long)]
         read: Option<String>,
+        /// Before --read, require the source's explicit classification to match
+        /// the caller's allowlist. No actor authority or whole-package clearance.
+        #[arg(long, requires = "read")]
+        check_classification: bool,
+        /// Exact opaque source labels permitted by the caller's established policy.
+        #[arg(long, requires = "read")]
+        allow_classification: Vec<String>,
         /// Refuse unless every requested capability is listed by the trusted policy.
         #[arg(long)]
         require_capability: Vec<String>,
@@ -256,6 +263,8 @@ pub fn run(
             file,
             expected_digest,
             read: reference,
+            check_classification,
+            allow_classification,
             require_capability,
             trusted_policy_digest,
         } => {
@@ -264,6 +273,28 @@ pub fn run(
                 checked
                     .require_capability(capability, trusted_policy_digest.as_deref())
                     .map_err(err)?;
+            }
+            let classification_checked = check_classification || !allow_classification.is_empty();
+            if classification_checked
+                && let Err(e) = checked.require_source_classification(
+                    reference
+                        .as_deref()
+                        .ok_or_else(|| err("classification-needs-reference"))?,
+                    &allow_classification,
+                )
+            {
+                if !e.is_classification_unestablished() {
+                    return Err(err(e));
+                }
+                report.push(Diagnostic::unknown(
+                    "dispatch-bundle.classification-unestablished",
+                    file.as_str(),
+                    e.to_string(),
+                ));
+                return Ok((
+                    report,
+                    serde_json::json!({"schema":bundle::SCHEMA,"bundle_digest":expected_digest,"content":null,"source_classification_checked":false,"source_classification_status":"unknown","execution_authorized":false,"semantic_closure_established":false}),
+                ));
             }
             let content = reference
                 .as_deref()
@@ -278,7 +309,7 @@ pub fn run(
                 "dispatch-bundle.integrity",
                 "Portable bytes and bindings checked offline; no execution performed.",
             ));
-            serde_json::json!({"schema":bundle::SCHEMA,"bundle_digest":expected_digest,"dispatch_digest":checked.dispatch().dispatch_digest,"content":content,"capabilities_checked":require_capability,"execution_authorized":false,"semantic_closure_established":false})
+            serde_json::json!({"schema":bundle::SCHEMA,"bundle_digest":expected_digest,"dispatch_digest":checked.dispatch().dispatch_digest,"content":content,"capabilities_checked":require_capability,"source_classification_checked":classification_checked,"execution_authorized":false,"semantic_closure_established":false})
         }
     };
     report.note("Bundle integrity and capability membership are not human assurance, semantic closure, or sandbox enforcement. Caller establishes authority; harness enforces actions.");
