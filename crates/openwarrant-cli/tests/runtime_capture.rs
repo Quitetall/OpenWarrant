@@ -316,6 +316,103 @@ impl Fixture {
     }
 }
 
+#[test]
+fn capture_uses_an_emitted_dispatch_without_manual_record_surgery() {
+    let mut f = Fixture::with_runtime_count(1);
+    let emitted = f.root.join("fresh-emitted.json");
+    let out = war(
+        &f.root,
+        &[
+            "admin",
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--prototype",
+            "--emit",
+            emitted.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    f.dispatch = serde_json::from_slice(&fs::read(&emitted).unwrap()).unwrap();
+    f.request();
+    let captured = f.import();
+    assert!(
+        captured.status.success(),
+        "{}",
+        String::from_utf8_lossy(&captured.stdout)
+    );
+    assert_eq!(value(&captured)["result"]["assurance_granted"], false);
+    assert_eq!(
+        value(&captured)["result"]["native_observation"]["standing"],
+        "unknown"
+    );
+    let retained = f.root.join(format!(
+        "docs/warrants/IX-WAR-0003/dispatches/{}.json",
+        f.dispatch.dispatch_id
+    ));
+    assert_eq!(fs::read(&retained).unwrap(), fs::read(&emitted).unwrap());
+}
+
+#[cfg(unix)]
+#[test]
+fn dispatch_retention_refuses_linked_store_without_a_new_compile_event() {
+    use std::os::unix::fs::symlink;
+    let f = Fixture::with_runtime_count(1);
+    let directory = f.root.join("docs/warrants/IX-WAR-0003");
+    let journal = fs::read(directory.join("journal.jsonl")).unwrap();
+    let packet =
+        fs::read(directory.join(format!("dispatches/{}.json", f.dispatch.dispatch_id))).unwrap();
+    fs::rename(
+        directory.join("dispatches"),
+        directory.join("previous-dispatches"),
+    )
+    .unwrap();
+    let outside = f.root.join("foreign-store");
+    fs::create_dir(&outside).unwrap();
+    fs::write(outside.join("owner-file"), b"unchanged owner bytes").unwrap();
+    symlink(&outside, directory.join("dispatches")).unwrap();
+    let emitted = f.root.join("refused-emitted.json");
+    let out = war(
+        &f.root,
+        &[
+            "admin",
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--prototype",
+            "--emit",
+            emitted.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(!out.status.success());
+    assert!(
+        value(&out)["diagnostics"]
+            .to_string()
+            .contains("dispatch.retention-unavailable")
+    );
+    assert_eq!(fs::read(directory.join("journal.jsonl")).unwrap(), journal);
+    assert_eq!(
+        fs::read(directory.join(format!(
+            "previous-dispatches/{}.json",
+            f.dispatch.dispatch_id
+        )))
+        .unwrap(),
+        packet
+    );
+    assert!(!emitted.exists());
+    assert_eq!(fs::read_dir(&outside).unwrap().count(), 1);
+    assert_eq!(
+        fs::read(outside.join("owner-file")).unwrap(),
+        b"unchanged owner bytes"
+    );
+}
+
 #[cfg(unix)]
 #[test]
 fn blut_process_unavailable_evidence_stays_unknown_for_a_recorded_dispatch() {
