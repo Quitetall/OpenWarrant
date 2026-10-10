@@ -10,6 +10,7 @@ pub(crate) mod contract_snapshot;
 pub mod katana_process;
 mod process;
 pub mod protected_executable;
+pub mod protected_input;
 mod recorded;
 mod selection;
 pub use selection::{

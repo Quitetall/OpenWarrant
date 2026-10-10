@@ -510,6 +510,63 @@ fn namespace_fixture_entry() {
         let program = root.join("protected-verifier");
         let approved_digest = fs::read_to_string(root.join("verifier.sha256")).unwrap();
         let protected = ProtectedExecutable::acquire(&program, &approved_digest).unwrap();
+        use openwarrant_cli::runtime_capture::protected_input::ProtectedInput;
+        let input = ProtectedInput::acquire(
+            &root.join("protected-native-input"),
+            "be87a744322f9c87607271fa3da73181dcb6992b39c5603a10799efd23b80f78",
+            128,
+        )
+        .unwrap();
+        for (path, digest, budget) in [
+            (
+                root.join("writable-native-input"),
+                "be87a744322f9c87607271fa3da73181dcb6992b39c5603a10799efd23b80f78",
+                128,
+            ),
+            (
+                root.join("linked-native-input"),
+                "be87a744322f9c87607271fa3da73181dcb6992b39c5603a10799efd23b80f78",
+                128,
+            ),
+            (
+                root.join("protected-native-input"),
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                128,
+            ),
+            (
+                root.join("protected-native-input"),
+                "be87a744322f9c87607271fa3da73181dcb6992b39c5603a10799efd23b80f78",
+                4,
+            ),
+        ] {
+            assert!(matches!(
+                ProtectedInput::acquire(&path, digest, budget),
+                Err(ProviderFailure::Rejected(_))
+            ));
+        }
+        let observed = Command::new("/usr/bin/cat")
+            .arg(input.argument())
+            .output()
+            .unwrap();
+        assert!(observed.status.success());
+        assert_eq!(observed.stdout, b"approved native input\n");
+        assert_eq!(input.bytes(), 22);
+        assert_eq!(
+            input.digest(),
+            "be87a744322f9c87607271fa3da73181dcb6992b39c5603a10799efd23b80f78"
+        );
+        // The executor owns this image: demonstrate the seal, not mode bits.
+        fs::set_permissions(input.argument(), fs::Permissions::from_mode(0o600)).unwrap();
+        let mut write = fs::OpenOptions::new()
+            .write(true)
+            .open(input.argument())
+            .unwrap();
+        use std::io::Write;
+        assert!(write.write_all(b"tampered").is_err());
+        drop(write);
+        assert!(fs::write(input.argument(), b"tampered").is_err());
+        assert!(fs::set_permissions(input.argument(), fs::Permissions::from_mode(0o500)).is_err());
+
         assert!(matches!(
             ProtectedExecutable::acquire(&root.join("writable-verifier"), &approved_digest),
             Err(ProviderFailure::Rejected(_))
@@ -719,6 +776,20 @@ fn namespace_fixture_entry() {
                 .success()
         );
         assert!(protected.run(&[], Duration::from_secs(3), 1024).unwrap().0);
+        let observed = Command::new("/usr/bin/cat")
+            .arg(input.argument())
+            .output()
+            .unwrap();
+        assert!(observed.status.success());
+        assert_eq!(observed.stdout, b"approved native input\n");
+        assert_eq!(
+            fs::read(root.join("protected-native-input")).unwrap(),
+            b"operator replaced native input\n"
+        );
+        println!(
+            "protected input: child read retained bytes after path replacement; writes, writable source, symlink, digest and byte-budget violations refused"
+        );
+
         assert!(matches!(
             ProtectedExecutable::acquire(&program, &approved_digest),
             Err(ProviderFailure::Rejected(_))
@@ -800,6 +871,31 @@ fn namespace_fixture_entry() {
     )
     .unwrap();
     let scratch = root.join("worker-scratch");
+
+    fs::write(
+        root.join("protected-native-input"),
+        b"approved native input\n",
+    )
+    .unwrap();
+    let mut original_input = fs::OpenOptions::new()
+        .write(true)
+        .open(root.join("protected-native-input"))
+        .unwrap();
+    fs::write(
+        root.join("writable-native-input"),
+        b"approved native input\n",
+    )
+    .unwrap();
+    fs::set_permissions(
+        root.join("writable-native-input"),
+        fs::Permissions::from_mode(0o666),
+    )
+    .unwrap();
+    std::os::unix::fs::symlink(
+        root.join("protected-native-input"),
+        root.join("linked-native-input"),
+    )
+    .unwrap();
     fs::create_dir(&scratch).unwrap();
     rustix::fs::chown(
         &scratch,
@@ -1191,6 +1287,21 @@ fn namespace_fixture_entry() {
     )
     .unwrap();
     fs::rename(root.join("replacement-verifier"), &program).unwrap();
+    use std::io::Write;
+    original_input
+        .write_all(b"operator changed original bytes\n")
+        .unwrap();
+    fs::write(
+        root.join("replacement-native-input"),
+        b"operator replaced native input\n",
+    )
+    .unwrap();
+    fs::rename(
+        root.join("replacement-native-input"),
+        root.join("protected-native-input"),
+    )
+    .unwrap();
+
     replacement.enrollment.verifier_digest = format!(
         "sha256:{}",
         openwarrant_compiler::sha256_hex(&fs::read(&program).unwrap())
