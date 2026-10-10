@@ -2676,7 +2676,12 @@ impl Ctx {
     /// touch per lock it holds, nothing more. The ticket commands renew for
     /// their own `--as`.
     fn open_repo(&self) -> Result<repo::Repository, repo::RepoError> {
-        let r = repo::Repository::discover(self.root.clone());
+        // An explicit root is a boundary, not a starting point for ancestor
+        // discovery. Never operate on a parent program when this one is absent.
+        let r = match &self.root {
+            Some(path) => repo::Repository::open(path.clone()),
+            None => repo::Repository::discover(None),
+        };
         if let Ok(r) = &r {
             projects::touch(&r.root);
             ticket::renew_ambient(r);

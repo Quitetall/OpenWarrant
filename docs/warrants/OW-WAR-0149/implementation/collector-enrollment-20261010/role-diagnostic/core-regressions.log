@@ -1,0 +1,833 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-runtime-collector-auth/crates/openwarrant-core)
+    Finished `test` profile [unoptimized] target(s) in 25.91s
+     Running unittests src/lib.rs (/mnt/4tb/OpenWarrant/target/debug/deps/openwarrant_core-b1c304fe10d62341)
+
+running 595 tests
+test adequacy::tests::a_heading_that_merely_mentions_the_word_is_not_a_review ... ok
+test adequacy::tests::a_review_without_a_question_fails ... ok
+test adequacy::tests::a_missing_review_fails_at_controlled ... ok
+test adequacy::tests::a_placeholder_is_not_an_executed_attack ... ok
+test adequacy::tests::an_absent_section_is_absent ... ok
+test adequacy::tests::both_corpus_question_forms_are_recognised ... ok
+test adequacy::tests::a_stated_absence_of_attacks_is_not_an_attack ... ok
+test adequacy::tests::missing_executed_attacks_does_not_fail_validation_at_controlled ... ok
+test adequacy::tests::executed_attacks_and_outcomes_are_read ... ok
+test adequacy::tests::ordinary_prose_is_not_mistaken_for_the_adversarial_question ... ok
+test adequacy::tests::no_inline_sentence_counts_as_an_executed_attack ... ok
+test adequacy::tests::outcome_vocabulary_matches_the_sas ... ok
+test adequacy::tests::the_requirement_table_matches_the_sas ... ok
+test adr::tests::every_status_maps_to_an_appendix_a_section ... ok
+test adr::tests::falsified_and_rejected_are_distinct ... ok
+test adr::tests::only_accepted_is_current ... ok
+test adr::tests::missing_required_keys_fail_closed ... ok
+test adr::tests::parses_an_adr_atom ... ok
+test attestation::tests::armor_round_trips_and_dearmor_refuses_what_is_not_armor ... ok
+test adr::tests::supersession_relations_are_read_in_both_directions ... ok
+test adr::tests::unknown_status_is_refused ... ok
+test attestation::tests::base64_round_trips_and_refuses_junk ... ok
+test attestation::tests::pae_matches_the_dsse_spec_vector ... ok
+test authority::tests::a_human_may_not_authorize_their_own_proposal ... ok
+test authority::tests::a_human_may_not_resolve_their_own_delivery ... ok
+test authority::tests::a_human_resolver_needs_no_policy_grant ... ok
+test authority::tests::an_agent_may_never_accept_residual_risk ... ok
+test authority::tests::an_agent_may_not_authorize_even_someone_elses_proposal ... ok
+test authority::tests::an_assignment_granting_nothing_is_invalid ... ok
+test authority::tests::an_empty_register_has_no_eligible_resolver ... ok
+test attestation::tests::open_checks_structure_before_any_cryptography ... ok
+test authority::tests::an_unknown_role_fails_closed ... ok
+test authority::tests::each_policy_service_condition_refuses_on_its_own ... ok
+test authority::tests::holding_a_role_is_required_before_exercising_it ... ok
+test authority::tests::role_names_round_trip_through_display ... ok
+test authority::tests::the_register_finds_only_admissible_resolvers ... ok
+test authority_transition::tests::a_v1_revision_carrying_v2_fields_is_refused ... ok
+test authority_transition::tests::a_security_key_is_accepted_in_v2_only ... ok
+test authority_transition::tests::a_v2_revision_needs_a_policy_and_whole_actor_bindings ... ok
+test autonomy::tests::a_revision_without_a_named_authority_is_refused_by_band ... ok
+test autonomy::tests::an_unrecognised_change_blocks_rather_than_being_guessed ... ok
+test authority_transition::tests::a_v1_revision_keeps_its_bytes_and_digest ... ok
+test autonomy::tests::an_amendment_round_trips_through_json ... ok
+test authority_transition::tests::a_policy_change_moves_the_signing_bytes ... ok
+test autonomy::tests::each_missing_required_field_is_named ... ok
+test autonomy::tests::declaring_prior_artifacts_inadmissible_forces_a_re_preflight ... ok
+test autonomy::tests::only_local_choices_avoid_a_revision ... ok
+test autonomy::tests::a_complete_amendment_validates ... ok
+test autonomy::tests::stricter_and_weaker_gates_are_different_bands ... ok
+test autonomy::tests::the_ambiguity_default_is_block_and_propose ... ok
+test autonomy::tests::the_three_bands_match_the_sas ... ok
+test autonomy::tests::vocabularies_round_trip ... ok
+test batch::tests::a_sound_batch_validates_and_covers_by_name_and_digest ... ok
+test authority_transition::tests::a_v2_revision_round_trips_under_its_own_domain ... ok
+test batch::tests::it_refuses_by_name ... ok
+test config::tests::a_correction_preset_without_a_kind_is_refused ... ok
+test config::tests::a_malformed_requires_war_is_refused_by_validation ... ok
+test config::tests::absolute_paths_are_refused ... ok
+test config::tests::default_config_validates ... ok
+test config::tests::default_generated_policy_commits_and_verifies ... ok
+test config::tests::a_version_requirement_admits_and_refuses_as_cargo_would ... ok
+test config::tests::an_authority_store_is_absolute_and_absent_by_default ... ok
+test config::tests::empty_path_is_refused ... ok
+test config::tests::equal_values_are_no_divergence_and_a_failed_store_closes_every_key ... ok
+test config::tests::namespace_rules ... ok
+test config::tests::unknown_schema_fails_closed ... ok
+test config::tests::the_store_governs_and_a_differing_file_value_is_a_divergence ... ok
+test config::tests::perform_spend_and_attempt_defaults ... ok
+test context::tests::a_floating_holder_is_detected ... ok
+test context::classification_tests::source_labels_are_explicit_and_opaque ... ok
+test authority_transition::tests::v1_to_v2_is_a_transition_and_v2_to_v1_is_refused ... ok
+test context::tests::a_normative_item_must_be_pinned ... ok
+test config::tests::user_presence_is_off_unless_written ... ok
+test context::tests::a_required_item_cannot_be_omitted_to_fit_a_budget ... ok
+test context::tests::a_required_item_that_did_not_resolve_blocks ... ok
+test context::tests::a_summary_cannot_launder_its_weakest_source ... ok
+test context::tests::a_summary_claiming_its_inherited_trust_is_fine ... ok
+test context::tests::a_summary_may_claim_less_trust_than_it_inherits ... ok
+test context::tests::a_summary_with_no_sources_inherits_nothing ... ok
+test context::tests::a_manifest_round_trips_through_json ... ok
+test context::tests::an_item_with_no_holder_is_refused ... ok
+test config::tests::adoption_is_absent_unless_recorded ... ok
+test context::tests::an_optional_item_may_be_omitted_with_a_reason ... ok
+test context::tests::an_unresolved_tie_blocks_the_manifest ... ok
+test context::tests::precedence_decides_and_ties_block ... ok
+test context::tests::the_context_roles_match_the_sas ... ok
+test context::tests::the_precedence_order_matches_the_sas ... ok
+test context::tests::the_conflict_check_names_what_it_ran_for_and_what_it_found ... ok
+test context::tests::the_trust_classes_match_the_sas ... ok
+test context::tests::weakest_of_nothing_is_nothing ... ok
+test context::tests::vocabularies_round_trip_and_name_their_alternatives ... ok
+test contract::tests::a_human_may_authorize_their_own_proposal ... ok
+test contract::tests::a_prior_revision_keeps_its_digest_after_an_amendment_is_authorized ... ok
+test contract::tests::amendment_creates_a_new_revision_with_a_predecessor ... ok
+test contract::tests::an_agent_may_authorize_a_proposal_it_did_not_make ... ok
+test contract::tests::an_agent_may_not_authorize_its_own_proposal ... ok
+test contract::tests::an_authorization_must_record_its_acting_role_and_meaning ... ok
+test contract::tests::coverage_reports_what_is_missing ... ok
+test contract::tests::full_coverage_is_recognised ... ok
+test contract::tests::out_of_order_transitions_are_refused ... ok
+test contract::tests::partial_and_complete_coverage_are_distinguishable ... ok
+test contract::tests::separate_role_is_not_four_eyes ... ok
+test contract::tests::the_draft_propose_authorize_chain_works ... ok
+test contract::tests::the_seventeen_elements_match_the_sas ... ok
+test correction::tests::a_gap_and_a_superseded_digest_that_never_existed_are_refused_by_name ... ok
+test correction::tests::a_two_step_chain_resolves_to_the_last_new_digest_regardless_of_input_order ... ok
+test correction::tests::an_empty_chain_is_the_recorded_digest ... ok
+test correction::tests::a_valid_correction_validates_and_each_field_is_refused_on_its_own ... ok
+test correction::tests::kind_round_trips_through_serde_and_from_str ... ok
+test deliverable::tests::a_complete_deliverable_validates ... ok
+test deliverable::tests::a_deliverable_citing_an_undeclared_obligation_is_refused ... ok
+test deliverable::tests::a_report_must_reference_its_raw_evidence ... ok
+test deliverable::tests::a_report_that_replaces_its_sources_is_refused ... ok
+test deliverable::tests::a_deliverable_round_trips_through_json ... ok
+test deliverable::tests::a_submission_manifest_is_not_a_deliverable ... ok
+test deliverable::tests::an_artifact_with_no_inputs_is_still_valid ... ok
+test deliverable::tests::content_addressing_without_a_digest_is_refused ... ok
+test deliverable::tests::vocabularies_round_trip ... ok
+test deliverable::tests::each_missing_provenance_field_is_named ... ok
+test drafting::tests::a_durable_choice_without_an_adr_draft_is_refused ... ok
+test drafting::tests::a_failed_step_blocks_and_says_why ... ok
+test drafting::tests::a_gate_result_claim_must_name_a_run ... ok
+test drafting::tests::an_operation_outside_the_vocabulary_is_refused ... ok
+test drafting::tests::an_unrun_pipeline_cannot_apply ... ok
+test drafting::tests::a_proposal_round_trips_through_json ... ok
+test drafting::tests::each_pre_write_step_blocks_application_on_its_own ... ok
+test drafting::tests::existing_evidence_must_cite_something ... ok
+test drafting::tests::ranking_orders_questions_but_never_drops_a_blocker ... ok
+test drafting::tests::the_application_steps_match_the_sas ... ok
+test drafting::tests::the_atom_operations_match_the_sas ... ok
+test drafting::tests::the_evidence_classes_match_the_sas ... ok
+test drafting::tests::the_module_states_what_it_cannot_check ... ok
+test drafting::tests::vocabularies_round_trip ... ok
+test drafting::tests::unanswered_blocking_questions_stop_progress ... ok
+test drafting_v2::tests::each_operation_names_what_it_cannot_do_without ... ok
+test drafting_v2::tests::the_output_surface_is_still_closed ... ok
+test epistemic::judgment_authority_tests::a_bad_authority_is_not_reported_as_a_bad_class ... ok
+test drafting_v2::tests::v2_parses_and_validates_and_v1_is_refused_by_version ... ok
+test epistemic::judgment_authority_tests::both_of_42s_authorities_parse ... ok
+test epistemic::tests::a_generated_report_is_not_raw_evidence ... ok
+test epistemic::tests::a_judgment_without_meaning_or_role_is_invalid ... ok
+test epistemic::tests::a_performer_report_cannot_be_admitted_as_independent ... ok
+test epistemic::tests::a_performer_report_is_admissible_as_what_it_is ... ok
+test epistemic::tests::a_test_pass_is_not_a_universal_coverage_claim ... ok
+test epistemic::tests::a_verifier_may_be_independent ... ok
+test epistemic::tests::all_six_prohibited_substitutions_are_enumerated ... ok
+test epistemic::tests::an_agent_recommendation_is_not_an_authorized_judgment ... ok
+test epistemic::tests::evidence_without_a_digest_is_refused ... ok
+test epistemic::tests::an_observation_without_a_method_is_refused ... ok
+test epistemic::tests::gate_verdicts_and_resolutions_do_not_substitute_for_each_other ... ok
+test epistemic::tests::model_confidence_is_not_an_authorized_judgment ... ok
+test epistemic::tests::observations_carry_what_claims_cannot ... ok
+test epistemic::tests::vocabularies_match_the_sas ... ok
+test execution::tests::a_decision_cannot_become_normative_without_an_adr ... ok
+test execution::tests::a_discovered_gap_cannot_be_repaired_in_place ... ok
+test execution::tests::a_performer_cannot_request_resolution ... ok
+test execution::tests::a_performer_cannot_upgrade_its_own_report_to_evidence ... ok
+test execution::tests::a_repair_dispatch_carries_what_failed ... ok
+test execution::tests::a_dispatch_round_trips_through_json ... ok
+test execution::tests::a_repair_needs_the_prior_failure_evidence ... ok
+test execution::tests::a_replay_whose_basis_changed_is_not_a_replay ... ok
+test execution::tests::a_submission_validates_every_remedy_it_carries ... ok
+test execution::tests::actor_projections_may_differ_in_form_but_not_in_contract ... ok
+test execution::tests::dispatch_compilation_cannot_omit_a_required_normative_source ... ok
+test execution::tests::each_remedy_names_its_missing_field ... ok
+test execution::tests::every_attempt_has_one_parent_except_the_initial ... ok
+test execution::tests::observation_admissibility_defaults_to_performer_report_only ... ok
+test execution::tests::only_a_restart_requires_authorization ... ok
+test execution::tests::every_section_47_1_field_is_present_by_name ... ok
+test execution::tests::refs_and_api_version_are_required ... ok
+test execution::tests::the_four_remedies_stay_distinct ... ok
+test execution::tests::the_gap_dispositions_match_the_sas ... ok
+test execution::tests::the_requested_actions_match_the_sas ... ok
+test execution::tests::vocabularies_round_trip ... ok
+test frontmatter::tests::a_line_without_a_colon_is_refused ... ok
+test frontmatter::tests::a_list_item_before_any_key_is_refused ... ok
+test frontmatter::tests::a_list_under_a_non_empty_scalar_is_refused ... ok
+test frontmatter::tests::a_lone_quote_is_refused ... ok
+test frontmatter::tests::accepts_a_utf8_bom ... ok
+test frontmatter::tests::an_indented_mapping_is_reported_as_nesting_not_as_a_list_problem ... ok
+test frontmatter::tests::anchors_and_aliases_are_refused ... ok
+test frontmatter::tests::comments_and_blank_lines_are_ignored ... ok
+test frontmatter::tests::duplicate_key_is_refused ... ok
+test frontmatter::tests::missing_open_fence_is_refused ... ok
+test frontmatter::tests::nested_mappings_are_refused ... ok
+test frontmatter::tests::parses_a_real_atom_header ... ok
+test frontmatter::tests::parses_block_sequences ... ok
+test frontmatter::tests::preserves_key_order_and_unknown_keys ... ok
+test frontmatter::tests::unclosed_fence_is_refused ... ok
+test frontmatter::tests::tags_flow_collections_and_block_scalars_are_refused ... ok
+test frontmatter::tests::unterminated_quote_is_refused ... ok
+test frontmatter::tests::values_may_contain_colons ... ok
+test gate::tests::a_binding_pinning_a_stale_digest_is_refused ... ok
+test gate::tests::a_binding_to_an_unregistered_gate_is_refused ... ok
+test gate::tests::a_binding_round_trips_through_json ... ok
+test gate::tests::a_binding_with_no_subject_is_refused ... ok
+test gate::tests::a_declared_fault_class_with_no_detection_result_is_refused ... ok
+test gate::tests::a_definition_without_a_version_is_refused ... ok
+test gate::tests::a_deprecated_gate_remains_bindable ... ok
+test gate::tests::a_draft_gate_cannot_be_bound ... ok
+test gate::tests::a_duplicate_definition_is_refused_and_a_new_version_is_not ... ok
+test gate::tests::a_fault_class_that_was_not_detected_does_not_count ... ok
+test gate::tests::a_gate_declaring_no_qualification_at_all_is_a_legal_draft ... ok
+test gate::tests::a_partial_qualification_is_validated_not_dropped ... ok
+test gate::tests::a_placeholder_qualification_digest_is_refused ... ok
+test gate::tests::a_qualified_lifecycle_without_a_qualification_record_is_refused ... ok
+test gate::tests::a_well_formed_definition_validates_and_binds ... ok
+test gate::tests::an_invalidated_gate_cannot_be_bound ... ok
+test gate::tests::an_obligation_citing_a_nonexistent_gate_is_refused_by_name ... ok
+test gate::tests::citations_are_read_from_declared_bullets ... ok
+test gate::tests::citations_split_on_whitespace_as_well_as_commas ... ok
+test gate::tests::evidence_policy_defaults_refuse_performer_authored_reports ... ok
+test gate::tests::gate_uris_parse_and_malformed_ones_are_named ... ok
+test gate::tests::prose_mentioning_a_gate_uri_is_not_a_citation ... ok
+test gate::tests::provenance_defaults_to_local_candidate ... ok
+test gate::tests::qualification_without_negative_controls_is_refused ... ok
+test gate::tests::qualification_without_positive_controls_is_refused ... ok
+test gate::tests::the_lifecycle_matches_the_sas ... ok
+test gate_run::tests::a_completed_run_must_say_which_way_it_went ... ok
+test gate_run::tests::a_complete_receipt_validates_and_each_missing_scalar_is_named ... ok
+test gate_run::tests::a_cycle_between_resolutions_terminates ... ok
+test gate_run::tests::a_mutating_gate_is_quarantined_even_when_fully_declared ... ok
+test gate_run::tests::a_raw_shell_string_needs_a_gate_that_owns_shell_parsing ... ok
+test gate_run::tests::a_required_unknown_blocks_resolution ... ok
+test gate_run::tests::a_run_round_trips_through_json ... ok
+test gate_run::tests::a_tally_counts_by_execution_status ... ok
+test gate_run::tests::a_timed_out_run_cannot_claim_a_verdict ... ok
+test gate_run::tests::an_unaskable_run_cannot_record_a_verdict ... ok
+test gate_run::tests::an_unaskable_run_that_claims_to_have_executed_is_refused ... ok
+test gate_run::tests::an_unaskable_run_without_a_reason_code_is_refused ... ok
+test gate_run::tests::an_unknown_label_is_not_quietly_failed ... ok
+test gate_run::tests::could_not_ask_labels_do_not_migrate_to_failed ... ok
+test gate_run::tests::could_not_ask_never_collapses_into_failed ... ok
+test gate_run::tests::every_legacy_label_maps_into_a_migration_class ... ok
+test gate_run::tests::every_migrated_class_is_coherent_and_only_passed_passes ... ok
+test gate_run::tests::every_triple_except_one_fails_a_required_pass ... ok
+test gate_run::tests::invalidation_propagates_transitively_and_stops_at_the_unrelated ... ok
+test gate_run::tests::not_run_has_no_legacy_label ... ok
+test gate_run::tests::invalidation_rewrites_no_history ... ok
+test gate_run::tests::no_unaskable_run_can_satisfy_a_required_pass ... ok
+test gate_run::tests::the_execution_statuses_match_the_sas ... ok
+test gate_run::tests::the_migration_vocabulary_matches_the_sas ... ok
+test gate_run::tests::the_labels_plus_not_run_cover_the_ten_classes_exactly ... ok
+test gate_run::tests::the_sas_worked_examples_validate ... ok
+test gate_run::tests::vocabularies_round_trip_through_their_strings ... ok
+test gate_run::tests::zero_selected_tests_is_a_reason_code_but_not_a_migration_class ... ok
+test identity::tests::alias_round_trips ... ok
+test identity::tests::minted_identities_are_distinct ... ok
+test identity::tests::same_alias_different_repositories_are_distinct_records ... ok
+test identity::tests::hyphenated_namespace_survives ... ok
+test independence::tests::a_distinct_model_does_not_substitute_for_a_distinct_human ... ok
+test independence::tests::a_verifier_that_can_alter_the_measurement_fails_every_level ... ok
+test identity::tests::minted_identity_is_v7 ... ok
+test identity::tests::namespace_mismatch_is_refused ... ok
+test identity::tests::non_v7_uuid_is_refused ... ok
+test identity::tests::malformed_aliases_are_refused ... ok
+test independence::tests::independence_none_satisfies_nothing ... ok
+test independence::tests::missing_dimensions_are_named_not_counted ... ok
+test independence::tests::persuasive_input_is_refused_by_name ... ok
+test independence::tests::the_blind_verifier_input_lists_match_the_sas ... ok
+test independence::tests::the_defaults_meet_controlled_but_not_high_assurance ... ok
+test independence::tests::the_dimensions_match_the_sas_defaults ... ok
+test independence::tests::the_minimums_match_the_sas ... ok
+test independence::tests::transcript_blindness_alone_is_not_blindness ... ok
+test independence::tests::vocabularies_round_trip ... ok
+test journal::tests::a_duplicate_event_id_is_refused ... ok
+test journal::tests::a_recorded_at_smuggled_through_the_payload_is_refused ... ok
+test journal::tests::a_rewritten_journal_is_detected ... ok
+test journal::tests::a_round_trip_that_changed_the_digest_fails ... ok
+test journal::tests::a_round_trip_with_matching_digests_and_no_differences_passes ... ok
+test journal::tests::a_round_trip_without_reconnecting_evidence_is_not_a_round_trip ... ok
+test journal::tests::a_semantic_difference_fails_even_with_matching_digests ... ok
+test journal::tests::a_vacuous_round_trip_is_refused ... ok
+test journal::tests::after_registration_the_journal_cannot_record_facts_of_its_own ... ok
+test journal::tests::the_event_classes_split_on_what_survives_registration ... ok
+test journal::tests::the_event_envelope_has_no_recorded_at_field ... ok
+test journal::tests::the_export_contents_match_the_sas ... ok
+test journal::tests::vocabularies_round_trip ... ok
+test kernel_state::tests::a_refinement_is_admitted ... ok
+test kernel_state::tests::every_fixed_state_has_a_kind_a_capability_and_a_facet ... ok
+test journal::tests::every_required_export_content_is_required ... ok
+test kernel_state::tests::refusals_are_named ... ok
+test lifecycle::tests::a_relation_cannot_be_fabricated_after_the_fact ... ok
+test lifecycle::tests::a_supersession_cannot_leave_unresolved_work_unaddressed ... ok
+test lifecycle::tests::a_supersession_states_its_reason ... ok
+test lifecycle::tests::an_unrecognised_decision_is_not_assumed_exempt ... ok
+test lifecycle::tests::dropping_an_item_requires_a_reason ... ok
+test lifecycle::tests::retired_warrants_remain_available ... ok
+test lifecycle::tests::the_adr_relations_match_the_sas ... ok
+test lifecycle::tests::the_consequence_test_overrides_the_exemption_list ... ok
+test lifecycle::tests::the_projections_match_the_sas ... ok
+test lifecycle::tests::the_superseded_banner_matches_the_sas ... ok
+test kernel_state::tests::a_profile_file_carries_its_states ... ok
+test lifecycle::tests::the_telemetry_measures_and_derived_metrics_match_the_sas ... ok
+test lifecycle::tests::the_tracking_identifiers_match_the_sas ... ok
+test lifecycle::tests::vocabularies_round_trip ... ok
+test lifecycle::tests::work_carrying_a_tracking_identifier_is_not_a_candidate ... ok
+test manifest::tests::a_decision_profile_requires_an_adr_atom ... ok
+test manifest::tests::a_program_profile_is_unknown_to_the_builtin_registry ... ok
+test manifest::tests::a_direct_cycle_is_detected ... ok
+test manifest::tests::a_longer_cycle_is_detected ... ok
+test manifest::tests::a_self_parent_is_detected ... ok
+test manifest::tests::a_well_formed_delivery_manifest_validates ... ok
+test manifest::tests::alias_from_another_namespace_is_refused ... ok
+test manifest::tests::an_external_parent_is_not_a_cycle ... ok
+test manifest::tests::assurance_level_defaults_to_basic_and_drives_adequacy ... ok
+test manifest::tests::atom_source_shape_is_enforced ... ok
+test manifest::tests::an_acyclic_corpus_has_no_cycles ... ok
+test manifest::tests::duplicate_ordinal_is_refused ... ok
+test manifest::tests::declaring_a_generated_role_is_refused ... ok
+test manifest::tests::locally_set_enterprise_id_is_refused ... ok
+test manifest::tests::missing_required_atom_is_refused ... ok
+test manifest::tests::parent_without_contract_revision_is_refused ... ok
+test manifest::tests::unknown_namespaced_role_marked_required_is_refused ... ok
+test manifest::tests::a_working_form_profile_is_refused_as_a_warrant ... ok
+test manifest::tests::unknown_optional_namespaced_role_is_preserved ... ok
+test manifest::tests::unknown_required_role_is_refused ... ok
+test manifest::tests::unknown_schema_is_refused ... ok
+test migration::tests::a_breaking_change_needs_a_major_bump_and_an_adr ... ok
+test migration::tests::a_digest_from_some_other_body_is_rejected ... ok
+test manifest::tests::a_profile_required_role_is_admitted_and_its_absence_refused ... ok
+test migration::tests::a_heading_that_is_only_a_note_maps_to_nothing ... ok
+test migration::tests::a_historical_claim_is_a_different_type_from_a_resolution ... ok
+test manifest::tests::a_profile_role_is_admitted_for_its_profile_only ... ok
+test migration::tests::a_legacy_completion_line_is_not_a_verified_resolution ... ok
+test migration::tests::a_legacy_gate_command_stays_unqualified_until_all_five_conditions_hold ... ok
+test migration::tests::am_001_normalisation_reaches_the_row_a_heading_means ... ok
+test migration::tests::an_edited_body_no_longer_matches_its_recorded_digest ... ok
+test migration::tests::an_empty_body_reports_the_original_not_preserved_not_a_mismatch ... ok
+test migration::tests::an_enterprise_id_cannot_be_derived_locally ... ok
+test migration::tests::an_unmapped_element_is_not_guessed ... ok
+test migration::tests::an_unregistered_draft_cannot_claim_global_standing ... ok
+test migration::tests::migration_preserves_the_original_body ... ok
+test migration::tests::normalisation_only_ever_shortens ... ok
+test migration::tests::protocol_versions_parse_and_reject_malformed ... ok
+test migration::tests::the_frozen_exact_matcher_is_unchanged_by_the_amendment ... ok
+test migration::tests::the_invented_sections_are_not_swept_up_by_normalisation ... ok
+test migration::tests::the_legacy_mapping_table_matches_the_sas ... ok
+test migration::tests::unknown_optional_extensions_survive_and_required_ones_fail_closed ... ok
+test migration::tests::vocabularies_round_trip ... ok
+test milestones::tests::a_dangling_dependency_is_refused ... ok
+test milestones::tests::a_dangling_stage_ref_is_refused ... ok
+test milestones::tests::a_milestone_carrying_a_stage_field_is_refused ... ok
+test milestones::tests::an_unknown_schema_is_refused ... ok
+test milestones::tests::a_dependency_cycle_is_refused ... ok
+test milestones::tests::a_stage_carrying_a_milestone_field_is_refused ... ok
+test milestones::tests::an_untyped_port_is_refused ... ok
+test milestones::tests::parses_a_valid_graph ... ok
+test milestones::tests::duplicate_ids_are_refused ... ok
+test milestones::tests::tier_and_executor_kind_are_orthogonal ... ok
+test normative::normative_tests::a_glob_in_a_code_span_is_kept_and_does_not_hold_a_sentence_open ... ok
+test normative::normative_tests::a_period_inside_bold_does_not_split_the_sentence ... ok
+test milestones::tests::typed_ports_parse ... ok
+test milestones::tests::unknown_executor_kinds_and_tiers_are_refused ... ok
+test normative::normative_tests::interior_emphasis_markers_are_stripped ... ok
+test normative::normative_tests::a_year_at_the_start_of_a_sentence_is_not_a_list_item ... ok
+test normative::normative_tests::an_unnumbered_heading_still_clears_the_section ... ok
+test normative::normative_tests::keywords_are_whole_uppercase_words_strongest_first ... ok
+test normative::normative_tests::section_numbers_refuse_titles_and_malformed_components ... ok
+test normative::normative_tests::section_three_is_not_always_a_language_definition ... ok
+test normative::normative_tests::lettered_sections_and_subsections_keep_exact_identity ... ok
+test obligation::tests::a_bounded_claim_may_use_sampling ... ok
+test obligation::tests::a_dangling_obligation_ref_is_refused ... ok
+test obligation::tests::a_performer_report_admitted_as_a_performer_report_is_fine ... ok
+test obligation::tests::a_universal_claim_established_by_sampling_is_refused ... ok
+test obligation::tests::a_performer_report_cannot_be_admitted_as_independent ... ok
+test obligation::tests::aggregation_matches_38_6 ... ok
+test obligation::tests::aggregation_refuses_to_conclude_with_an_undisposed_obligation ... ok
+test obligation::tests::an_empty_set_has_no_verdict ... ok
+test obligation::tests::an_external_origin_may_be_admitted_as_independent ... ok
+test obligation::tests::an_obligation_without_evidence_is_refused ... ok
+test normative::normative_tests::sentences_are_projected_with_their_section_and_lead_ins_prefix_their_bullets ... ok
+test obligation::tests::an_obligation_without_scope_is_refused ... ok
+test obligation::tests::duplicate_obligation_ids_are_refused ... ok
+test obligation::tests::not_applicable_does_not_permit_satisfaction_by_itself ... ok
+test obligation::tests::obligations_without_the_new_channels_are_unaffected ... ok
+test obligation::tests::vocabularies_match_the_sas ... ok
+test preflight::tests::an_absent_check_is_not_run_not_passed ... ok
+test preflight::tests::blocking_checks_are_reported_in_the_specifications_order ... ok
+test preflight::tests::a_receipt_cannot_claim_readiness_it_has_not_earned ... ok
+test preflight::tests::readiness_requires_a_receipt_to_exist ... ok
+test presence::tests::a_flipped_flag_byte_parses_and_is_not_thereby_verified ... ok
+test preflight::tests::vocabularies_round_trip ... ok
+test presence::tests::a_malformed_signature_is_an_error_not_a_presence ... ok
+test obligation::tests::parses_the_corpus_shape ... ok
+test preflight::tests::a_receipt_round_trips_through_json ... ok
+test presence::tests::a_security_key_without_the_flag_is_unverified ... ok
+test preflight::tests::the_receipt_states_what_it_does_not_prove ... ok
+test preflight::tests::the_check_groups_and_counts_match_the_sas ... ok
+test presence::tests::base64_round_trips_what_openssh_writes ... ok
+test presence::tests::an_ordinary_key_is_never_verified ... ok
+test preflight::tests::not_run_blocks_exactly_as_failed_does ... ok
+test presence::tests::an_ecdsa_security_key_is_read_the_same_way ... ok
+test presence::tests::a_touched_security_key_is_verified ... ok
+test presence::tests::user_verification_is_read_beside_presence ... ok
+test presence::tests::the_signature_names_the_key_allowed_signers_lists ... ok
+test projection::tests::steps_parse_with_direction_and_type ... ok
+test rationale::tests::a_decision_node_must_bind_an_adr ... ok
+test rationale::tests::a_diamond_is_not_a_cycle ... ok
+test rationale::tests::a_fact_with_a_source_validates ... ok
+test rationale::tests::a_forecast_missing_any_field_is_named ... ok
+test rationale::tests::a_priority_cannot_be_filed_as_a_fact ... ok
+test rationale::tests::a_self_loop_is_a_cycle ... ok
+test rationale::tests::an_acyclic_claim_graph_validates ... ok
+test rationale::tests::an_assumption_validated_by_a_gate_that_depends_on_it_is_refused ... ok
+test rationale::tests::an_indirect_cycle_is_found_and_named ... ok
+test rationale::tests::an_option_missing_a_required_part_is_named ... ok
+test rationale::tests::each_status_requires_the_field_that_earns_its_name ... ok
+test projection::tests::a_document_type_parses_with_its_projections ... ok
+test rationale::tests::the_epistemic_statuses_match_the_sas ... ok
+test rationale::tests::the_node_classes_match_the_sas ... ok
+test rationale::tests::the_rationale_edges_match_the_sas ... ok
+test rationale::tests::vocabularies_round_trip ... ok
+test record::tests::obligations_declare_what_they_evaluate ... ok
+test record::tests::prose_is_not_a_relation ... ok
+test record::tests::records_open_at_headings_and_carry_their_relations ... ok
+test relation::tests::a_namespaced_kind_is_inert_and_a_bare_unknown_word_is_refused ... ok
+test record::tests::malformed_atoms_are_refused_by_line ... ok
+test relation::tests::core_kinds_cover_the_structural_six_and_every_rationale_edge ... ok
+test relation::tests::a_vocabulary_is_checked_when_declared ... ok
+test relation::tests::implements_phrases_read_only_implements ... ok
+test relation::tests::record_ids_and_targets ... ok
+test resolution::tests::a_dispute_moves_standing_without_touching_the_original ... ok
+test resolution::tests::a_dispute_must_state_all_six_things ... ok
+test resolution::tests::a_failed_delivery_cannot_be_dressed_up_as_falsified ... ok
+test resolution::tests::a_fully_verified_resolution_records ... ok
+test resolution::tests::a_monitor_needs_a_metric_and_a_condition ... ok
+test record::tests::spans_are_exact_and_contiguous_and_one_edit_moves_one_revision ... ok
+test resolution::tests::a_resolution_must_state_what_it_means ... ok
+test resolution::tests::a_not_applicable_requirement_is_named_never_met ... ok
+test resolution::tests::annulment_leaves_the_original_historical ... ok
+test resolution::tests::a_resolution_round_trips_through_json ... ok
+test resolution::tests::monitoring_is_not_a_completion_proof_by_default ... ok
+test resolution::tests::each_of_the_thirteen_blocks_resolution_on_its_own ... ok
+test resolution::tests::supersession_does_not_invalidate_the_superseded ... ok
+test resolution::tests::the_monitor_actions_match_the_sas ... ok
+test resolution::tests::the_resolution_requirements_match_the_sas ... ok
+test resolution::tests::vocabularies_round_trip ... ok
+test roadmap::tests::the_detail_diff_names_exit_tier_order_and_open_work ... ok
+test roadmap::tests::a_sound_atom_parses_in_dependency_order ... ok
+test roadmap::tests::the_diff_names_what_moved ... ok
+test projection::tests::a_document_type_selects_no_authority ... ok
+test role::tests::a_core_profile_cannot_be_redefined ... ok
+test role::tests::authored_roles_exclude_compiler_produced_ones ... ok
+test role::tests::canonical_ordinals_match_the_sas_table ... ok
+test roadmap::tests::a_member_list_or_a_status_is_refused_by_name ... ok
+test projection::tests::undeclared_types_and_kinds_are_refused_by_rule ... ok
+test role::tests::jurisdiction_write_permission_is_exhaustive ... ok
+test role::tests::namespaced_extension_roles_are_recognised_as_such ... ok
+test roadmap::tests::it_refuses_by_name ... ok
+test role::tests::ordinals_are_strictly_ascending_in_declaration_order ... ok
+test role::tests::profile_required_roles_match_the_sas ... ok
+test role::tests::roles_round_trip_through_their_names ... ok
+test role::tests::an_extension_resolves_to_its_core_profile ... ok
+test role::tests::a_working_form_names_its_roles_and_is_known_as_one ... ok
+test role::tests::the_decisions_section_is_composed_of_adr_atoms ... ok
+test role::tests::unknown_jurisdiction_is_refused ... ok
+test role::tests::an_extension_narrows_and_never_widens ... ok
+test role::tests::unknown_profile_is_refused ... ok
+test role::tests::unknown_role_is_refused ... ok
+test sas::tests::a_removed_id_is_refused_and_an_added_or_retitled_one_is_not ... ok
+test sas::tests::an_accepted_revision_cannot_be_accepted_again ... ok
+test sas::tests::an_agent_may_not_accept ... ok
+test sas::tests::an_architecture_changing_revision_needs_an_adr ... ok
+test sas::tests::section_106_reads_only_requirement_rows ... ok
+test role::tests::profiles_declare_their_record_vocabulary ... ok
+test sas::tests::section_98_ignores_an_exit_outside_a_phase_section ... ok
+test sas::tests::section_98_reads_program_phase_table_without_importing_other_sections ... ok
+test sas::tests::section_98_reads_separate_exit_columns_and_preserves_missing_exits ... ok
+test sas::tests::section_98_reads_titles_and_exit_bullets_and_says_none_when_absent ... ok
+test sas::tests::validate_refuses_a_bad_digest_and_an_accepted_without_acceptance ... ok
+test role::tests::the_core_profile_files_restate_the_sas ... ok
+test role::tests::core_kinds_select_their_capabilities ... ok
+test sas_sections::tests::an_unfenced_heading_is_a_section ... ok
+test seam::tests::a_bare_key_with_no_value_reproduces_nothing ... ok
+test seam::tests::a_client_cannot_assign_recorded_at ... ok
+test sas_sections::tests::references_parse_and_resolve ... ok
+test seam::tests::a_fenced_block_is_still_a_copy ... ok
+test sas_sections::tests::a_diff_names_only_the_section_that_changed ... ok
+test seam::tests::a_lineage_ref_holding_lineage_is_refused ... ok
+test sas_sections::tests::sections_are_the_boundaries_outside_fences ... ok
+test sas_sections::tests::join_of_split_is_the_input_and_ranges_cover_it ... ok
+test role::tests::a_working_form_is_refused_on_every_malformation ... ok
+test role::tests::capabilities_are_a_closed_set_with_prerequisites ... ok
+test role::tests::a_working_form_declares_its_fields_and_nothing_else_may ... ok
+test seam::tests::a_receipt_for_a_different_dispatch_is_refused ... ok
+test seam::tests::a_receipt_that_references_nothing_is_refused ... ok
+test seam::tests::a_warrants_own_stage_key_is_not_bluts_lineage ... ok
+test role::tests::an_extension_is_refused_on_every_malformation ... ok
+test seam::tests::an_action_outside_the_vocabulary_is_refused ... ok
+test seam::tests::unpinned_identities_are_refused ... ok
+test seam::tests::an_incompatible_port_kind_is_rejected_not_coerced ... ok
+test seam::tests::version_drift_fails_rather_than_overwrites ... ok
+test seam::tests::vocabularies_round_trip ... ok
+test seam::tests::the_receipt_holds_a_prompt_ir_digest_and_not_prompt_ir ... ok
+test seam::tests::cutover_is_refused_until_parity_holds ... ok
+test sections::tests::a_section_runs_to_the_next_heading_of_its_level_and_fences_do_not_count ... ok
+test standing::tests::a_reference_round_trips ... ok
+test seam::tests::lineage_in_key_position_is_caught_in_yaml_json_and_markdown ... ok
+test seam::tests::prose_about_lineage_is_not_lineage ... ok
+test standing::tests::epoch_seconds_agrees_with_known_instants ... ok
+test seam::tests::realizing_more_than_was_authorized_is_a_containment_failure ... ok
+test seam::tests::parity_must_cover_the_whole_corpus ... ok
+test standing::tests::an_unknown_or_missing_term_is_refused_by_name ... ok
+test seam::tests::blut_lineage_is_referenced_not_reproduced ... ok
+test seam::tests::an_unpinned_registry_is_refused ... ok
+test state::tests::a_resolved_warrant_does_not_re_enter_the_lifecycle ... ok
+test state::tests::annulment_does_not_erase_the_outcome ... ok
+test seam::tests::idempotency_replays_equivalents_and_rejects_conflicts ... ok
+test state::tests::blocking_does_not_erase_phase ... ok
+test state::tests::illegal_transitions_are_refused ... ok
+test seam::tests::headings_prefixes_and_inline_code_are_not_copies ... ok
+test seam::tests::each_missing_minimum_receipt_field_is_named ... ok
+test state::tests::material_amendment_returns_to_authorized ... ok
+test seam::tests::parity_with_no_declared_observables_asserts_nothing ... ok
+test standing::tests::globs_match_and_overlap_as_documented ... ok
+test seam::tests::the_controlled_action_vocabulary_matches_the_sas ... ok
+test state::tests::the_core_transition_chain_is_legal ... ok
+test state::tests::provenance_is_carried_and_displayed ... ok
+test state::tests::the_dimensions_are_independent ... ok
+test state::tests::the_sas_truthful_combinations_validate ... ok
+test standing::tests::the_q002_bounds_hold ... ok
+test state::tests::unknown_values_are_refused_by_dimension ... ok
+test state::tests::untruthful_combinations_are_refused ... ok
+test state::tests::vocabularies_match_the_sas ... ok
+test status::tests::ladders_count_every_rung_and_nothing_else ... ok
+test status::tests::phases_cover_zero_through_ten_and_only_nine_have_exits ... ok
+test status::contract_compat_tests::a_warrant_status_written_before_the_platform_fields_still_parses ... ok
+test status::tests::resolved_is_reachable_only_from_a_record ... ok
+test standing::tests::in_force_refuses_after_expiry_revocation_and_the_count ... ok
+test standing::tests::a_contract_inside_is_covered_and_each_term_refuses_on_its_own ... ok
+test status::tests::rungs_order_from_least_to_most_done ... ok
+test structured::tests::a_comma_inside_a_quoted_flow_item_is_not_a_separator ... ok
+test structured::tests::a_line_without_a_colon_is_refused ... ok
+test structured::tests::a_sequence_item_before_any_key_is_refused ... ok
+test structured::tests::an_unterminated_quote_in_a_flow_list_is_still_refused ... ok
+test sas::tests::section_6_10_states_that_a_sas_and_a_warrant_are_the_same_class_of_artifact ... ok
+test structured::tests::anchors_aliases_and_tags_are_refused ... ok
+test structured::tests::backslash_is_not_an_escape_in_this_grammar ... ok
+test structured::tests::comments_and_blank_lines_are_ignored ... ok
+test structured::tests::deeper_nesting_is_refused ... ok
+test structured::tests::duplicate_keys_are_refused ... ok
+test structured::tests::empty_flow_lists_parse ... ok
+test structured::tests::multi_document_streams_are_refused ... ok
+test structured::tests::nested_flow_collections_are_refused ... ok
+test structured::tests::short_uppercase_tokens_are_not_implicitly_typed ... ok
+test structured::tests::parses_a_real_milestones_atom ... ok
+test structured::tests::unterminated_quotes_are_refused ... ok
+test ticket::tests::a_manifest_is_validated_against_the_profile_roles ... ok
+test ticket::tests::a_manifest_key_is_set_in_place_and_nothing_else_moves ... ok
+test ticket::tests::cross_ticket_blockers_parse ... ok
+test ticket::tests::crlf_and_a_missing_final_newline_survive_a_write ... ok
+test ticket::tests::an_unnamed_line_is_named_in_place ... ok
+test ticket::tests::an_appended_item_follows_the_last_task_and_moves_nothing ... ok
+test ticket::tests::ids_are_well_formed_and_lengthen_as_the_repository_grows ... ok
+test ticket::tests::items_are_read_in_file_order_with_their_parts ... ok
+test ticket::tests::every_fault_is_named_with_its_line ... ok
+test ticket::tests::rendering_an_unchanged_item_gives_back_its_line ... ok
+test standing::tests::a_tui_class_parses_and_a_class_naming_authority_is_refused ... ok
+test ticket::tests::the_kernel_reads_items_blockers_and_links_as_relations ... ok
+test ticket::tests::new_fields_are_absent_unless_set_and_validated_when_set ... ok
+test timestamp::tests::placeholders_and_near_misses_are_refused_with_the_right_reason ... ok
+test timestamp::tests::the_shapes_this_repository_writes_all_validate ... ok
+test tokens::tests::the_estimate_rounds_up_and_names_its_method ... ok
+test traceability::tests::a_claim_alone_does_not_satisfy_a_requirement ... ok
+test ticket::tests::ticking_one_item_changes_only_its_line_byte_for_byte ... ok
+test traceability::tests::a_roadmap_ref_outside_the_grammar_is_refused ... ok
+test sas::tests::the_eleven_phases_and_their_exits_are_the_roadmap_records_not_section_98 ... ok
+test traceability::tests::all_four_steps_are_required ... ok
+test traceability::tests::a_roadmap_ref_parses_with_and_without_a_slug ... ok
+test traceability::tests::an_evidenced_supersession_supersedes ... ok
+test traceability::tests::history_must_be_preserved ... ok
+test traceability::tests::no_links_means_unaddressed ... ok
+test traceability::tests::only_the_exit_slug_has_a_meaning ... ok
+test traceability::tests::partial_and_investigation_cannot_satisfy_alone ... ok
+test traceability::tests::roadmap_refs_order_by_phase_then_slug ... ok
+test traceability::tests::status_is_derived_and_cannot_be_assigned ... ok
+test traceability::tests::statuses_derive_across_a_corpus ... ok
+test traceability::tests::the_contribution_values_match_the_sas ... ok
+test traceability::tests::the_sas_example_identifiers_parse ... ok
+test traceability::tests::unstable_or_malformed_identifiers_are_refused ... ok
+test traceability::tests::vocabularies_round_trip ... ok
+test verification::tests::a_model_reviewer_does_not_meet_high_assurance ... ok
+test verification::tests::a_negative_verdict_is_still_admissible ... ok
+test verification::tests::a_read_only_reviewer_meets_basic_and_controlled ... ok
+test verification::tests::a_verdict_without_evidence_is_refused ... ok
+test verification::tests::a_verifier_that_could_alter_the_measurement_is_refused_at_every_level ... ok
+test verification::tests::an_unnamed_verifier_is_refused ... ok
+test verification::tests::self_verification_is_refused ... ok
+test verification::tests::the_reviewer_profile_claims_eight_of_nine_dimensions ... ok
+test adequacy::tests::the_real_corpus_review_state_is_what_is_claimed ... ok
+test obligation::tests::every_obligation_in_this_repository_parses ... ok
+test structured::tests::every_milestones_atom_in_this_repository_parses ... ok
+test milestones::tests::every_milestone_graph_in_this_repository_validates ... ok
+test rationale::tests::a_deep_chain_does_not_overflow_the_stack ... ok
+
+test result: ok. 595 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+     Running tests/authority_transition.rs (/mnt/4tb/OpenWarrant/target/debug/deps/authority_transition-69b94ec00b5b349f)
+
+running 8 tests
+test key_principal_and_resource_controls_reject_unsafe_inputs ... ok
+test sequence_cannot_alias_through_json_number_rounding ... ok
+test prior_admin_can_rotate_but_new_admin_cannot_authorize_itself ... ok
+test changes_bind_exact_signing_bytes_and_distinct_digest_domains ... ok
+test recovery_uses_previous_recovery_role_not_proposed_policy ... ok
+test canonical_codec_rejects_unknown_duplicate_and_oversized_records ... ok
+test repository_parent_replay_and_admin_removal_refuse ... ok
+test transition_checks_wire_bound_even_for_direct_sdk_structs ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/derived_metrics.rs (/mnt/4tb/OpenWarrant/target/debug/deps/derived_metrics-0cd236457bcd9159)
+
+running 5 tests
+test all_eight_names_have_defined_quantity_or_fraction_semantics ... ok
+test exact_counts_preserve_noninteger_rates_and_large_values ... ok
+test impossible_fraction_unknown_metric_and_unattributable_terms_are_refused ... ok
+test subminute_duration_and_conversion_are_preserved_without_overflow ... ok
+test missing_observations_and_empty_populations_are_not_zero ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document-4310860252065167)
+
+running 13 tests
+test nul_diagnostic_identifies_actual_byte_after_unicode_crlf ... ok
+test malformed_footer_and_unit_framing_never_yield_partial_documents ... ok
+test minimal_document_preserves_original_bytes_and_exact_units ... ok
+test combined_dotted_and_inline_depth_is_bounded_before_recursive_allocation ... ok
+test framing_preserves_fenced_markers_crlf_and_explicit_legacy_ranges ... ok
+test context_kind_requires_at_least_one_nonempty_unit ... ok
+test limits_are_positive_inclusive_and_refuse_without_truncation ... ok
+test validation_distinguishes_kind_requirements_from_external_readiness ... ok
+test unknown_extensions_preserve_content_and_block_only_required_interpretation ... ok
+test footer_wrappers_and_dependency_spellings_preserve_meaning_not_bytes ... ok
+test metadata_subset_refuses_multiline_and_nonportable_values_before_producing_document ... ok
+test toml_10_and_core_field_contract_refusals_are_explicit ... ok
+test local_reference_syntax_is_checked_without_resolving_missing_sources ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document_adapter.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_adapter-8a3bfa2641ff7872)
+
+running 3 tests
+test malformed_tasks_and_deep_records_refuse_before_provider_call ... ok
+test provider_unavailable_never_falls_back_and_semantic_claims_remain_separate ... ok
+test explicit_negotiation_and_response_identity_refuse_wrong_boundaries ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/document_author.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_author-220f779e494463c6)
+
+running 6 tests
+test edit_batch_is_bounded_before_copying_values ... ok
+test explicit_rc2_edits_keep_adapter_and_original_bytes ... ok
+test author_round_trip_and_edit_preserves_other_bytes ... ok
+test title_edit_updates_heading_preserves_crlf_and_refuses_conflict ... ok
+test refuses_injection_duplicates_invalid_values_and_limits_without_partial_output ... ok
+test preserves_unknown_extensions_compact_dependencies_and_fenced_markers ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document_author_resources.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_author_resources-d1de48eb465fb294)
+
+running 1 test
+test oversized_edit_batch_refuses_before_copying_the_whole_batch ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document_condition.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_condition-5492381153b38d7c)
+
+running 3 tests
+test limits_count_entries_across_fields_and_utf8_bytes_without_cloning ... ok
+test condition_syntax_accepts_f4_fields_and_refuses_unknown_operators ... ok
+test malformed_conditions_never_become_unknown_applicability ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document_legacy.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_legacy-b3f9806939b6b4c7)
+
+running 8 tests
+test unrelated_unresolved_history_does_not_gate_new_work_but_named_failure_does ... ok
+test historical_colon_names_are_preserved_but_drive_and_traversal_paths_refuse ... ok
+test explicit_import_roundtrips_original_bytes_without_new_authority ... ok
+test successor_keeps_both_versions_without_copying_old_authority ... ok
+test tiny_limits_refuse_import_before_retaining_blobs_and_metadata ... ok
+test oversized_json_strings_keys_and_escapes_refuse_before_decoding ... ok
+test signed_legacy_inventory_keeps_resolution_subjects_and_refuses_tampering ... ok
+test corruption_missing_files_escaping_paths_and_unknown_editions_refuse ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/document_packet.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_packet-12035be96c88a959)
+
+running 7 tests
+test structured_digest_bounds_actual_canonical_bytes_and_depth ... ok
+test incomplete_basis_refuses_even_with_valid_hashes ... ok
+test bounded_packet_decode_accepts_example_and_refuses_schema_and_duplicate_fields ... ok
+test package_integrity_refuses_tampering_extra_files_and_noncanonical_manifest ... ok
+test packet_integrity_checks_exact_source_ranges_and_entry_accounting ... ok
+test typed_packet_integrity_enforces_json_budget ... ok
+test self_consistent_incomplete_package_is_integrity_only_and_missing_routing_blob_refuses ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/document_records.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_records-5c0161cb3325d4f3)
+
+running 13 tests
+test claims_and_missing_contract_never_establish_assurance ... ok
+test agent_act_rejects_array_encoded_structs_without_panicking ... ok
+test explicit_action_gates_and_qualification_timing_stay_separate ... ok
+test claimed_authenticity_is_not_trust_and_unavailable_is_not_pass ... ok
+test delegated_adoption_needs_human_policy_and_cannot_edit_effective_policy ... ok
+test exact_trust_binding_rejects_spoofed_actor_changed_bytes_and_duplicate_payload_keys ... ok
+test permission_constraints_do_not_disappear_under_a_human_signature ... ok
+test unverified_agent_completion_is_valid_but_cannot_be_human_acceptance ... ok
+test unsigned_payload_digest_preserves_absent_fields_and_excludes_attestation ... ok
+test explicit_null_optional_source_fields_remain_valid ... ok
+test exact_qualification_requires_all_checks_independence_and_secure_human_act ... ok
+test unknown_and_failure_remain_distinct_and_artifact_quota_applies ... ok
+test independent_controls_reject_claims_self_review_missing_isolation_and_wrong_contract ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/document_runtime.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_runtime-7c0b4bf791ff9866)
+
+running 7 tests
+test absence_unsupported_and_unavailable_remain_unknown_but_bad_seals_refuse ... ok
+test incomplete_expectations_and_empty_capture_never_call_provider ... ok
+test hard_cap_needs_observed_accounting_and_enforcement_and_bounds_precede_provider_call ... ok
+test every_dispatch_binding_component_and_raw_capture_must_match ... ok
+test exact_verified_facts_match_without_becoming_an_assurance_mark_or_zero_cost ... ok
+test provider_identity_version_native_kind_and_minimum_fields_are_checked ... ok
+test policy_registry_execution_terminal_and_limits_cannot_be_inferred_from_receipt_text ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document_schedule.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_schedule-534dfbf72a60cccc)
+
+running 6 tests
+test dependent_stage_waits_while_independent_preparation_can_start ... ok
+test estimates_are_optional_advisory_metadata_with_provenance ... ok
+test future_output_can_be_unpinned_but_competing_results_need_selection ... ok
+test cycles_and_conflicting_facts_refuse_instead_of_returning_ready_work ... ok
+test facts_bind_exact_contract_stage_result_and_required_meaning ... ok
+test malformed_duplicate_and_over_limit_inputs_never_return_partial_readiness ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document_source.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_source-e876549ae8f2233a)
+
+running 11 tests
+test aliases_share_checked_bytes_but_each_length_claim_is_checked ... ok
+test limits_cover_empty_calls_metadata_total_bytes_and_output ... ok
+test supplied_opaque_bytes_get_exact_identity_without_io_or_authority ... ok
+test source_descriptions_refuse_unsafe_paths_and_invalid_provenance ... ok
+test codecs_refuse_duplicate_fields_wrong_domains_and_unsafe_ranges ... ok
+test parsed_identity_comes_from_validated_original_document ... ok
+test bound_reference_must_match_named_unit_exactly ... ok
+test one_digest_cannot_have_incompatible_parsed_and_opaque_interpretations ... ok
+test reference_encoding_matches_canonical_vector_and_retains_exact_revision ... ok
+test source_lock_is_order_independent_and_refuses_ambiguous_capture ... ok
+test snapshot_table_checks_actual_blobs_and_rejects_conflicting_claims ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document_workflow_records.rs (/mnt/4tb/OpenWarrant/target/debug/deps/document_workflow_records-99f19e89eb42e3bf)
+
+running 8 tests
+test completion_and_qualification_are_separate_in_context_views ... ok
+test batch_acceptance_binds_exact_manifest_member_profile_and_evidence ... ok
+test shared_contract_mismatch_and_timeout_as_completion_refuse ... ok
+test resume_requires_fencing_for_work_changes_and_next_tool_boundary_for_harness ... ok
+test evidence_loss_preserves_history_and_exact_duplicates_can_retain_support ... ok
+test stale_overview_cannot_emit_safeword_or_undo_completed_work ... ok
+test stop_states_and_scalar_reference_limits_remain_explicit ... ok
+test confirmed_feature_handoff_uses_pointers_without_completing_parent ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/runtime_collector.rs (/mnt/4tb/OpenWarrant/target/debug/deps/runtime_collector-a347fafcc58f886e)
+
+running 8 tests
+test known_role_denial_does_not_become_unknown_when_actor_kind_is_missing ... ok
+test canonical_wire_refuses_duplicates_unknown_fields_and_unbounded_inputs ... ok
+test agent_self_grant_unsigned_and_changed_payload_refuse ... ok
+test undeclared_signer_kind_is_unknown_but_a_known_agent_admin_refuses ... ok
+test authority_changes_invalidate_enrollment_and_already_authenticated_grant ... ok
+test current_human_admin_can_enroll_only_exact_declared_inputs ... ok
+test provider_identity_version_collector_and_repository_cannot_be_substituted ... ok
+test missing_signature_observation_and_missing_required_presence_are_unknown ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/skill_artifacts.rs (/mnt/4tb/OpenWarrant/target/debug/deps/skill_artifacts-edc36b81f656818e)
+
+running 1 test
+test stage_artifact_preserves_dependency_and_refuses_cycle ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/verification_record.rs (/mnt/4tb/OpenWarrant/target/debug/deps/verification_record-12f7607ef8b3ec5f)
+
+running 2 tests
+test sdk_reads_bound_v2_and_preserves_unbound_v1_without_promoting_it ... ok
+test published_candidate_schema_is_explicit_v2_and_keeps_the_active_pack_frozen ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/audit_context_package.rs (/mnt/4tb/OpenWarrant/target/debug/examples/audit_context_package-25008ad0e111cd55)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/record_schemas.rs (/mnt/4tb/OpenWarrant/target/debug/examples/record_schemas-c4606d84eee1d4ba)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples/sdk_probe.rs (/mnt/4tb/OpenWarrant/target/debug/examples/sdk_probe-6cf589303d94e09a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

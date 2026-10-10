@@ -1,0 +1,22 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-blut-process-verifier/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.70s
+     Running tests/runtime_capture.rs (/mnt/4tb/OpenWarrant/target/debug/deps/runtime_capture-41d4745cf65d13b4)
+
+running 1 test
+test blut_process_maps_native_facts_without_awarding_assurance_or_relabeling_hashes ... FAILED
+
+failures:
+
+---- blut_process_maps_native_facts_without_awarding_assurance_or_relabeling_hashes stdout ----
+
+thread 'blut_process_maps_native_facts_without_awarding_assurance_or_relabeling_hashes' (932215) panicked at crates/openwarrant-cli/tests/runtime_capture.rs:221:65:
+called `Result::unwrap()` on an `Err` value: Unsupported("native fact mapping not implemented yet")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    blut_process_maps_native_facts_without_awarding_assurance_or_relabeling_hashes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.34s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test runtime_capture`

@@ -1,0 +1,16 @@
+   Compiling ring v0.17.14
+   Compiling rustls v0.23.45
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-blut-process-verifier/crates/openwarrant-cli)
+   Compiling rustls-webpki v0.103.15
+   Compiling ureq v3.4.2
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 48s
+     Running tests/root_flag.rs (/mnt/4tb/OpenWarrant/target/debug/deps/root_flag-d6a1ec91d52834e8)
+
+running 4 tests
+test a_root_with_no_repository_names_that_root_and_not_the_cwd ... ok
+test an_sdk_caller_still_gets_an_envelope_behind_the_root_flag ... ok
+test an_explicit_empty_child_cannot_select_its_parent_repository ... ok
+test a_scaffolded_program_is_reachable_from_outside_it has been running for over 60 seconds
+test a_scaffolded_program_is_reachable_from_outside_it ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 114.07s

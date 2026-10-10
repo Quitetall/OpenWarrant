@@ -1,0 +1,9 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-blut-process-verifier/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 53.68s
+     Running tests/runtime_capture.rs (/mnt/4tb/OpenWarrant/target/debug/deps/runtime_capture-41d4745cf65d13b4)
+
+running 1 test
+PASS actual CPU/native seal/capture/current resolution; tampered signature/output and wrong catalog refused; missing job UNKNOWN; no assurance
+test actual_blut_cpu_receipt_roundtrips_through_capture_and_current_resolution ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 2.96s
