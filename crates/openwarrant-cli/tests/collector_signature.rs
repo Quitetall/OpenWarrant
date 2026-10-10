@@ -238,6 +238,14 @@ fn enrollment_checks_use_real_crypto_and_keep_presence_requirements() {
 }
 
 #[cfg(target_os = "linux")]
+fn namespace_entry_name() -> String {
+    module_path!().split_once("::").map_or_else(
+        || "namespace_fixture_entry".to_owned(),
+        |(_, module)| format!("{module}::namespace_fixture_entry"),
+    )
+}
+
+#[cfg(target_os = "linux")]
 #[test]
 #[ignore = "requires provisioned unshare subordinate UID/GID mapping; run explicitly"]
 fn protected_namespace_roundtrip() {
@@ -256,7 +264,7 @@ fn protected_namespace_roundtrip() {
         .arg(std::env::current_exe().unwrap())
         .args([
             "--exact",
-            "namespace_fixture_entry",
+            namespace_entry_name().as_str(),
             "--ignored",
             "--nocapture",
         ])
@@ -269,7 +277,12 @@ fn protected_namespace_roundtrip() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    println!("{}", String::from_utf8_lossy(&output.stdout));
+    let text = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        text.contains("operator UID 0:") && text.contains("execution UID 1:"),
+        "namespace subprocesses must actually run both account observations: {text}"
+    );
+    println!("{text}");
 }
 
 #[cfg(target_os = "linux")]
@@ -469,7 +482,7 @@ fn namespace_fixture_entry() {
         .env("TMPDIR", &scratch)
         .args([
             "--exact",
-            "namespace_fixture_entry",
+            namespace_entry_name().as_str(),
             "--ignored",
             "--nocapture",
         ])
