@@ -18,7 +18,7 @@ REPO = Path(__file__).resolve().parents[2]
 WAR = os.environ.get("OW_TEST_WAR", str(REPO / "target/debug/war"))
 
 
-class WorkflowTests(unittest.TestCase):
+class ServiceFixture(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
@@ -45,7 +45,10 @@ class WorkflowTests(unittest.TestCase):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
         )
-        for _ in range(200):
+        # Observe readiness, not a startup latency claim. A durable session-file
+        # fsync can exceed four seconds on a busy disk; keep it, with a deadline.
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
             if self.session.exists():
                 break
             if self.proc.poll() is not None:
@@ -54,6 +57,13 @@ class WorkflowTests(unittest.TestCase):
                 self.tmp.cleanup()
                 self.fail(message)
             time.sleep(0.02)
+        if not self.session.exists():
+            self.proc.terminate()
+            self.proc.wait(timeout=10)
+            message = self.proc.stderr.read().decode()
+            self.proc.stderr.close()
+            self.tmp.cleanup()
+            self.fail("server startup unavailable: " + message)
         self.assertTrue(self.session.exists(), "server startup")
         info = json.loads(self.session.read_text())
         self.url = info["url"]
@@ -96,6 +106,8 @@ class WorkflowTests(unittest.TestCase):
             "context": "Preserve existing identity rules.",
         }
 
+
+class WorkflowTests(ServiceFixture):
     def test_create_sdk_source_and_restart(self):
         draft = self.draft()
         status, created = self.call("/api/warrants", "POST", draft)
@@ -284,6 +296,56 @@ class WorkflowTests(unittest.TestCase):
             stored["title"] = "Corrupted title"
         path.write_text(json.dumps(stored))
         self.assertEqual(self.call("/api/warrants/" + draft["id"])[0], 409)
+
+
+class RuntimeWorkflowTests(ServiceFixture):
+    def test_runtime_assessment_reports_missing_corpus_receipts_without_qualification(self):
+        status, result = self.call("/api/runtime-assessment", "POST", {
+            "warrant": "OW-WAR-0047", "selections": []
+        })
+        self.assertEqual(status, 200, result)
+        self.assertIs(result["qualified"], False)
+        self.assertEqual(result["state"], "unknown")
+        report = result["report"]
+        self.assertEqual(report["schema"], "oh.war/report/v1")
+        self.assertIs(report["result"]["assurance_granted"], False)
+        self.assertTrue(any(s["receipt"]["code"] == "runtime-basis.receipt-missing"
+                            for s in report["result"]["stages"]), report)
+
+    def test_runtime_assessment_refuses_client_policy_and_bad_selections(self):
+        valid = {"warrant": "OW-WAR-0047", "selections": []}
+        for fields in [
+            {**valid, "native_store": "/client-selected-policy"},
+            {**valid, "qualified": True},
+            {**valid, "warrant": "../authority/roles.toml"},
+            {**valid, "selections": True},
+            {**valid, "selections": [{"stage_id": "STAGE-001", "capture_digest": "wrong"}]},
+        ]:
+            status, result = self.call("/api/runtime-assessment", "POST", fields)
+            self.assertEqual(status, 400, result)
+            self.assertIs(result["qualified"], False)
+        status, _ = self.call("/api/runtime-assessment", "POST", valid,
+                              {"Authorization": "Bearer wrong"})
+        self.assertEqual(status, 401)
+        status, _ = self.call("/api/runtime-assessment", "POST", valid,
+                              {"Origin": "https://other.example"})
+        self.assertEqual(status, 403)
+
+    def test_runtime_assessment_preserves_protected_store_refusal(self):
+        self.stop()
+        native = self.root / "executor-owned-store"
+        native.mkdir(mode=0o700)
+        self.server_args = ["--native-store", str(native)]
+        self.start()
+        status, result = self.call("/api/runtime-assessment", "POST", {
+            "warrant": "OW-WAR-0047", "selections": []
+        })
+        self.assertEqual(status, 200, result)
+        self.assertEqual(result["state"], "refused")
+        self.assertIs(result["qualified"], False)
+        self.assertEqual(result["report"]["diagnostics"][0]["rule"], "runtime.native-host")
+        self.assertEqual(result["report"]["diagnostics"][0]["severity"], "error")
+        self.assertIn("writable by the executor", result["report"]["diagnostics"][0]["message"])
 
 
 if __name__ == "__main__":

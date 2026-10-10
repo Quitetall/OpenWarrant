@@ -1169,10 +1169,14 @@ enum SignCommand {
         /// Report the thirteen §56.1 requirements and stop.
         #[arg(long)]
         dry_run: bool,
-        /// Bounded repository-relative retained capture selections. Read-only;
-        /// this CLI has no native verifier and cannot reuse saved verdicts.
+        /// Bounded retained capture selection file, or - for stdin. Read-only;
+        /// saved native verdicts are never reused.
         #[arg(long, requires = "dry_run")]
         runtime_selection: Option<camino::Utf8PathBuf>,
+        /// Operator-protected native host policy. Requires explicit retained
+        /// selections and a dry run; never activates authority or signs.
+        #[arg(long, requires = "runtime_selection")]
+        native_store: Option<std::path::PathBuf>,
         /// A resolver's signed response to ingest (§56.2). Without it and
         /// without --dry-run, the resolution REQUEST is emitted: what a
         /// signature would bind, which outcomes §38.6 permits, and who may sign.
@@ -4359,15 +4363,19 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
             alias,
             dry_run,
             runtime_selection,
+            native_store,
             response,
         } => {
             let repository = ctx.open_repo()?;
             if dry_run {
                 let report = match runtime_selection {
-                    Some(path) => match runtime_capture::read_selection(&repository, &path) {
-                        Ok(selected) => {
-                            resolve::run_selected(&repository, &alias, &selected.selections)?
-                        }
+                    Some(path) => match runtime_capture::read_selection_input(&repository, &path) {
+                        Ok(selected) => resolve::run_selected_with_native_store(
+                            &repository,
+                            &alias,
+                            &selected.selections,
+                            native_store.as_deref(),
+                        )?,
                         Err(fault) => {
                             let mut report = diagnostic::Report::default();
                             report.push(if fault.unknown {

@@ -5,7 +5,9 @@
 use openwarrant_core::document::runtime::ProviderFailure;
 use std::path::{Path, PathBuf};
 
-const MAX_BYTES: usize = 128 * 1024 * 1024;
+// BLUT retained producer identity can be up to 1 GiB. Caller budgets remain
+// explicit, and native host v1 still caps aggregate capture at 128 MiB.
+const MAX_BYTES: usize = 1024 * 1024 * 1024;
 
 pub struct ProtectedInput {
     #[cfg(target_os = "linux")]
@@ -13,6 +15,7 @@ pub struct ProtectedInput {
     argument: PathBuf,
     digest: String,
     bytes: usize,
+    source_mode: u32,
 }
 impl ProtectedInput {
     /// Capture an operator-owned regular file into a non-executable sealed
@@ -60,6 +63,11 @@ impl ProtectedInput {
     }
     pub fn bytes(&self) -> usize {
         self.bytes
+    }
+    /// Original opened regular-file mode, including its type bits. The sealed
+    /// image remains data-only; this preserves native job metadata, not execute permission.
+    pub fn source_mode(&self) -> u32 {
+        self.source_mode
     }
 }
 fn rejected(message: &str) -> ProviderFailure {
@@ -159,5 +167,6 @@ fn acquire_linux(
         argument,
         digest,
         bytes: bytes.len(),
+        source_mode: metadata.mode(),
     })
 }

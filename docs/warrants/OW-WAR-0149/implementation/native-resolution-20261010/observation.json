@@ -1,0 +1,63 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "source_revision": "950d31d8fba4d82c72bbc1c4822f9e092b39055d",
+  "reported_by": "agent://codex",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/lib.rs": "0c869e11f84d0e344ce8bdd3def8edef1c3d18d47f4a581b0ae7c5256356c8dc",
+    "crates/openwarrant-cli/src/resolve.rs": "0825b2468616bc75e31f8a4f1e990d441be1488aa3127f2427afe34316898b6c",
+    "crates/openwarrant-cli/src/resolve/runtime.rs": "c63e25067ef83fd29a14341038ccabdf3ad43f898ed5882cce684d4c791b715d",
+    "crates/openwarrant-cli/src/runtime_capture.rs": "88c443ca88c575cb36db2e30fc843e1a36b77b3597270a4721f7c7765a99aa2e",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "bd331fa013d939f64ca29afc05cf6d4fcfb6e6f5c2a4236cb525cbde30835b22",
+    "crates/openwarrant-cli/tests/runtime_capture.rs": "0f893495e8d4e4c1d11d11cb48c6f0ec229d7a829dbf7d4d2430301a148ee809"
+  },
+  "logs": {
+    "native-resolution-red.log": {
+      "sha256": "79fbfcfe69dcf73c1de96cf6f38049173678ba7c1d05edb7474b80bc89d3b1a8",
+      "bytes": 4636
+    },
+    "native-resolution-green.log": {
+      "sha256": "62269c6708965f006effe7e7dc249b25dacfe882961d4639acee1303e5ad830e",
+      "bytes": 4695
+    },
+    "native-resolution-runtime-final.log": {
+      "sha256": "922caa1fea1cb007901a38b54a456e7031d192033bb385ba0b0764d69bab02b4",
+      "bytes": 3330
+    },
+    "native-resolution-requirement.log": {
+      "sha256": "b9b43d0d72221f3b7132226c3189479addecf9f00e057a0755af4b2809c105e0",
+      "bytes": 4695
+    },
+    "native-resolution-default.log": {
+      "sha256": "fa76d133e373ceddefc9b7fbf665d2540aefa53550e7ab33960c2658d0018ede",
+      "bytes": 4434
+    },
+    "native-resolution-katana-final.log": {
+      "sha256": "95d8a05b4be31808e9816a201daed1aba7de2c758e6e637628004b072d662274",
+      "bytes": 4254
+    },
+    "native-resolution-clippy-final.log": {
+      "sha256": "4958db22fb01a30c4d414935ff8c78bd6adef8cc821682e898be3a4c4fa10b74",
+      "bytes": 185
+    },
+    "native-resolution-flag-refusal.log": {
+      "sha256": "ba7f755ed7d2dffc4141b6f20523a6f856fe8e06110d53dbff9c2d4d3c7f9978",
+      "bytes": 265
+    },
+    "native-resolution-envelope.log": {
+      "sha256": "6fd9c2bcab947845866e1c6ec83197d61fcb551ccfaaac2e16c9f009baea9e50",
+      "bytes": 194
+    }
+  },
+  "blut_native_requirement_only": "PASS",
+  "katana_native_requirement_only": "PASS",
+  "invalid_provider_does_not_clear_runtime_requirement": "PASS",
+  "executor_owned_store_refused_both_paths": "PASS",
+  "missing_selection_or_dry_run_refused": "PASS",
+  "runtime_tests_passed": 26,
+  "runtime_tests_ignored": 2,
+  "clippy_all_features_all_targets": "PASS",
+  "assurance_granted": false,
+  "human_resolution_recorded": false,
+  "independent_qualification": "UNKNOWN",
+  "corpus_envelope_regression": "PASS"
+}

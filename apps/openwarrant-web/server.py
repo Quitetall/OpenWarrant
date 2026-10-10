@@ -14,10 +14,12 @@ import socket
 import subprocess
 import tempfile
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from socketserver import ThreadingMixIn
 
+from harness import bounded_command
 from availability import Availability
 from dispatch_queue import DispatchQueue
 from execution import ExecutionError, Executor
@@ -109,9 +111,10 @@ def publish(path, data):
 
 
 class SDK:
-    def __init__(self, war, repo):
+    def __init__(self, war, repo, native_store=None):
         self.war = war
         self.repo = repo
+        self.native_store = native_store
 
     def run(self, request, overview=False, board=False):
         args = (
@@ -145,6 +148,49 @@ class SDK:
         ):
             raise Refusal(422, "SDK refused input")
         return body["result"]
+
+    def assess_runtime(self, fields):
+        if not isinstance(fields, dict) or set(fields) != {"warrant", "selections"}:
+            raise Refusal(400, "Only warrant and selections are accepted")
+        alias, selections = fields["warrant"], fields["selections"]
+        if not isinstance(alias, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", alias):
+            raise Refusal(400, "Invalid corpus Warrant alias")
+        if not isinstance(selections, list) or len(selections) > 256:
+            raise Refusal(400, "Expected at most 256 explicit capture selections")
+        for selected in selections:
+            if (not isinstance(selected, dict) or set(selected) != {"stage_id", "capture_digest"}
+                    or not isinstance(selected["stage_id"], str) or not selected["stage_id"].strip()
+                    or len(selected["stage_id"]) > 1024
+                    or not isinstance(selected["capture_digest"], str)
+                    or not re.fullmatch(r"sha256:[0-9a-f]{64}", selected["capture_digest"])):
+                raise Refusal(400, "Invalid stage or capture digest")
+        request = json.dumps({"schema": "oh.war/runtime-selection-request/v1-draft.1",
+                              "selections": selections}).encode()
+        if len(request) > 16384:
+            raise Refusal(413, "Capture selection exceeds 16 KiB")
+        args = [str(self.war), "runtime", "assess", alias, "--selection", "-",
+                "--json", "--root", str(self.repo)]
+        if self.native_store is not None:
+            args += ["--native-store", str(self.native_store)]
+        try:
+            code, out, _ = bounded_command(args, self.repo, request, time.monotonic() + 10, {})
+        except (OSError, TimeoutError, subprocess.SubprocessError) as error:
+            raise Refusal(503, "Runtime assessment unavailable; eligibility is unknown") from error
+        report = decode(out)
+        if (not isinstance(report, dict) or report.get("schema") != "oh.war/report/v1"
+                or type(report.get("exit_code")) is not int or report["exit_code"] != code
+                or code not in (0, 1, 2) or report.get("command") not in ("runtime", "error")
+                or not isinstance(report.get("counts"), dict)
+                or any(type(report["counts"].get(k)) is not int or report["counts"][k] < 0
+                       for k in ("error", "unknown"))):
+            raise Refusal(503, "Unexpected runtime assessment response")
+        state = "refused" if report["counts"]["error"] else "unknown" if report["counts"]["unknown"] else "matches"
+        if state == "matches" and (not isinstance(report.get("result"), dict)
+                                   or report["result"].get("standing") != "matches"
+                                   or report["result"].get("assurance_granted") is not False):
+            raise Refusal(503, "Unexpected successful runtime assessment")
+        return {"schema": "oh.war/reference-runtime-assessment/v1-draft.1",
+                "warrant": alias, "state": state, "qualified": False, "report": report}
 
     def author(self, fields, revision):
         title = fields["title"]
@@ -617,7 +663,7 @@ class Handler(BaseHTTPRequestHandler):
             if (
                 self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal or verifier_dispute or verifier_reverify)
             ) or (
-                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops", "/api/queue", "/api/queue/cancel")
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runtime-assessment", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops", "/api/queue", "/api/queue/cancel")
             ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
@@ -635,6 +681,10 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if self.path == "/api/runtime-assessment":
+                    if self.command != "POST":
+                        raise Refusal(405, "Runtime assessment requires POST")
+                    return self.reply(200, store.sdk.assess_runtime(fields))
                 if self.path in ('/api/queue', '/api/queue/cancel'):
                     if self.server.dispatch_queue is None:
                         raise Refusal(409, 'Agent queue not configured')
@@ -735,6 +785,8 @@ def main():
     parser.add_argument("--state", type=Path, required=True)
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--session-file", type=Path, required=True)
+    parser.add_argument("--native-store", type=Path,
+                        help="Operator-protected native policy for read-only corpus assessment")
     parser.add_argument("--execution-config", type=Path)
     parser.add_argument("--availability-config", type=Path)
     parser.add_argument("--drafting-config", type=Path)
@@ -749,7 +801,8 @@ def main():
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", args.completion_word):
         parser.error("completion word must contain 1-64 letters, digits, underscore or hyphen")
     store = Store(
-        args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+        args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True),
+                        args.native_store.resolve(strict=True) if args.native_store else None)
     )
     token = secrets.token_hex(32)
     server = Server(("127.0.0.1", args.port), store, token)

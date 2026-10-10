@@ -18,7 +18,7 @@ pub struct Input<'a> {
 }
 
 impl Input<'_> {
-    /// The reference CLI has no configured native verifier. Missing evidence
+    /// No native verifier is supplied on this path. Missing evidence
     /// stays UNKNOWN; valid contracts with no runtime stages can still match.
     pub fn unavailable() -> Self {
         Self {

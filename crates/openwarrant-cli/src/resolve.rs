@@ -930,12 +930,24 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     run_selected(repo, alias, &[])
 }
 
-/// Read-only CLI assessment with explicit retained captures. Native provider
-/// support is unavailable here; saved successes never clear requirement 12.
+/// Read-only CLI assessment with explicit retained captures and no native
+/// provider configured. Saved successes never clear requirement 12.
 pub fn run_selected(
     repo: &Repository,
     alias: &str,
     selections: &[crate::runtime_capture::Selection],
+) -> Result<Report, RepoError> {
+    run_selected_with_native_store(repo, alias, selections, None)
+}
+
+/// Read-only resolution assessment with explicit operator-protected native
+/// policy. Authentication and capture selection are shared with runtime assess;
+/// no saved verdict, activation, signature or resolution is written.
+pub fn run_selected_with_native_store(
+    repo: &Repository,
+    alias: &str,
+    selections: &[crate::runtime_capture::Selection],
+    native_store: Option<&std::path::Path>,
 ) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
@@ -954,6 +966,30 @@ pub fn run_selected(
         return Ok(report);
     }
 
+    let native = match native_store
+        .map(|store| {
+            crate::runtime_capture::native_host::NativeAssessment::load(
+                repo, alias, selections, store,
+            )
+        })
+        .transpose()
+    {
+        Ok(native) => native,
+        Err(fault) => {
+            let mut report = Report::default();
+            report.push(if fault.unknown {
+                Diagnostic::unknown(fault.code, "", fault.message)
+            } else {
+                Diagnostic::error(fault.code, "", fault.message)
+            });
+            return Ok(report);
+        }
+    };
+    let provider =
+        |dispatch: &openwarrant_core::execution::StageDispatch,
+         interface: &openwarrant_core::document::runtime::ProviderInterface| {
+            native.as_ref().and_then(|n| n.resolve(dispatch, interface))
+        };
     let evidence = crate::evidence::load(repo, &one.dir)?;
     let assessment = assess_with_runtime(
         repo,
@@ -961,7 +997,7 @@ pub fn run_selected(
         &evidence,
         runtime::Input {
             selections,
-            ..runtime::Input::unavailable()
+            native: &provider,
         },
     )?;
     if !assessment.checks.not_applicable.contains(11) {

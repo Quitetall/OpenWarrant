@@ -1,0 +1,46 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "reported_by": "agent://codex",
+  "revision": "6626d3a66d88b87e7ee26023d21dc3bd4842eab3",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/runtime_capture/protected_job.rs": "ba92b8ea84cdc10ad96b827350afe62a859235e75c760a6635c323b201c00860",
+    "crates/openwarrant-cli/src/runtime_capture/protected_input.rs": "862d81d142accd35986e1552408d76cc33cbb693943bab35fafb8406b2a8df5c",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "4de76603695fdae2cd84317b9e95e387be4ff7bb9f04d0bdbec0743ce741a950"
+  },
+  "logs": {
+    "protected-job-red.log": {
+      "sha256": "c239fefe3bced44c14cc4fb0fbf64598010126cb540be1e21dd66db477d3b07e",
+      "bytes": 848
+    },
+    "protected-job-green.log": {
+      "sha256": "2ecfd71681342f4a076f99d496a63cb2b46366e142e3a9914b3ac8ec1bddc426",
+      "bytes": 4924
+    },
+    "protected-job-final.log": {
+      "sha256": "d0c1a8169ae758c9e74733fe8e3aeaed8256d15403bc0d7bdcd7d265447bd62a",
+      "bytes": 4548
+    },
+    "protected-job-clippy.log": {
+      "sha256": "d64af9406656d5071cfca5784b2e6bca10f8c35fd7cf62b5df2c2a5e7963eb3c",
+      "bytes": 5442
+    },
+    "protected-job-native-regression.log": {
+      "sha256": "47ea5952209cbf85abdbf5910bfa566d156c8d1dd1c8aba0065439d6eba6f482",
+      "bytes": 4423
+    },
+    "protected-job-runtime.log": {
+      "sha256": "0db91fba7043d0ffaf1906c83e40a875f5fdd79d84d364430e3206d88cb2b23c",
+      "bytes": 3218
+    }
+  },
+  "sdk_protected_job_snapshot": "PASS",
+  "explicit_two_uid_namespace": "PASS",
+  "actual_katana_regression": "PASS",
+  "runtime_tests_passed": 26,
+  "runtime_tests_ignored": 2,
+  "clippy_all_features_all_targets": "PASS",
+  "blut_sealed_transport_connected": false,
+  "blut_native_cli_roundtrip_observed": false,
+  "assurance_granted": false,
+  "production_custody_established": false
+}

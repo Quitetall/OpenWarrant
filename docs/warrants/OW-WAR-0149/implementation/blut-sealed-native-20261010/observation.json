@@ -1,0 +1,145 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "scripted_binding_only": true,
+  "actual_cli_native_receipt": "PASS",
+  "original_job_absent_still_verified": "PASS",
+  "mutable_key_descriptor_refused": "PASS",
+  "mixed_transports_refused": "PASS",
+  "native": {
+    "assurance": "not-established",
+    "native": {
+      "binding": {
+        "attempt_id": "no-authority-fixture",
+        "contract_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "dispatch_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "stage_id": "scripted-transport-only",
+        "warrant_ref": "war://01a0f502-4941-70a1-a446-e1eb77dff191"
+      },
+      "lineage_reference": {
+        "bytes": 329,
+        "digest": "blake3:d30c6dd3a22a3019a99007e041d478cc2389e4d63c0404b3b735f3cdc78fb839",
+        "mode": 33188,
+        "path": "status.jsonl"
+      },
+      "native_files": [
+        {
+          "bytes": 851,
+          "digest": "blake3:6c81787ecc3c55840ca62124288ee8ecea42ea696a2aec4391a9e14111db9c95",
+          "mode": 33188,
+          "path": "_cache/v1/artifacts/189f062c911ec07c7454455602bb42bc13a75df2cc3eeee2ef8dbf1bd39717ea"
+        },
+        {
+          "bytes": 261,
+          "digest": "blake3:66f1668f82c69896fd4d3a986da8c3a4515c0e0a1f0862fd418ed996077d3898",
+          "mode": 33188,
+          "path": "_cache/v1/cache-invocations/eeec944e4e4f03946668b89d350ebd30e865bff3f270721f83c8a16c62aed524"
+        },
+        {
+          "bytes": 378,
+          "digest": "blake3:f5412787944759225662d54776469e64aed3a77a0df567dd6cacac4b447d66fa",
+          "mode": 33188,
+          "path": "_openwarrant_inputs/binding.json"
+        },
+        {
+          "bytes": 252,
+          "digest": "blake3:ed2872377d659594319d59d1f8195bf0b3ec0340e10add0e63c41c50155a10b6",
+          "mode": 33188,
+          "path": "_openwarrant_inputs/plan.json"
+        },
+        {
+          "bytes": 4863,
+          "digest": "blake3:02d69c7682d784ddf42c4047157ff4af6e9bac6a0b15929408cf2f5f247b8871",
+          "mode": 33188,
+          "path": "_openwarrant_inputs/registry.json"
+        },
+        {
+          "bytes": 275,
+          "digest": "blake3:4c22512c3b189b746821dd8ac36a06a511dbf6635980b324bf6d0d20d8c16054",
+          "mode": 33188,
+          "path": "args.json"
+        },
+        {
+          "bytes": 234,
+          "digest": "blake3:5795182d92dfe08005635272f0f313237e9689211f14712f9df3b7088501cd09",
+          "mode": 33188,
+          "path": "stages/0-connector_object/cache-proof.json"
+        },
+        {
+          "bytes": 129,
+          "digest": "blake3:69e12ef2a93aa4d2c18f34759cce6f1518ec040c012a7705ef503e050a9b5cfe",
+          "mode": 33188,
+          "path": "stages/0-connector_object/object.ref.json"
+        },
+        {
+          "bytes": 344,
+          "digest": "blake3:1231682423d0c8c8e2eac58c53374420a2379f4599698e01c7accc2bb9cb9c4b",
+          "mode": 33188,
+          "path": "stages/0-connector_object/output.metadata.json"
+        },
+        {
+          "bytes": 329,
+          "digest": "blake3:d30c6dd3a22a3019a99007e041d478cc2389e4d63c0404b3b735f3cdc78fb839",
+          "mode": 33188,
+          "path": "status.jsonl"
+        }
+      ],
+      "outcome": "completed",
+      "receipt_digest": "blake3:7b20b78ffb8623a9aa720245d214f6f9ef29b9849d17ee1f6da15ed499885f60",
+      "registry_digest": "blake3:02d69c7682d784ddf42c4047157ff4af6e9bac6a0b15929408cf2f5f247b8871",
+      "run_id": "0f497108-fa0b-45cc-9b87-2da71600bb5c"
+    },
+    "schema": "blut/openwarrant-verification/v2",
+    "status": "validated"
+  },
+  "test_key_only": true,
+  "assurance_granted": false,
+  "source_revision": "d60a9aa5d779c9f2044badf668af34facea602b7",
+  "binaries": {
+    "openwarrant_fixture_producer": "b76310d2e86b244d6202bc8070731f31f08b438208e1e55581097145a3624822",
+    "openwarrant_verifier": "3e58b799e584a0db296ee83998de434f569b0a2aef597570b487ccd91e92b47e"
+  },
+  "logs": {
+    "blut-sealed-red.log": {
+      "sha256": "54ff3a32621a142cb8cf17fcc928ce85a5e47977fe7e082f9128069cbaaafc3e",
+      "bytes": 9335
+    },
+    "blut-sealed-green.log": {
+      "sha256": "91f4f30c2bd0c176787c4535e04f9e0f221a2faf3939f49334460a3525178647",
+      "bytes": 1234
+    },
+    "blut-sealed-green-rerun.log": {
+      "sha256": "5642c103d18cb518d0e21cfb44fa0a6a2f9ed8ea73a270a667b2a7a174cef6e9",
+      "bytes": 462
+    },
+    "blut-sealed-clippy.log": {
+      "sha256": "19af37e0e68b3583ea995ef313c65a6605d4222b529bc124067405e36fba18f8",
+      "bytes": 8883
+    },
+    "blut-sealed-final-tests.log": {
+      "sha256": "f20e75f46f6e013a6c08b698057a971864c6624fcdcdc64d63ef1961e500f5ac",
+      "bytes": 1341
+    },
+    "blut-sealed-clippy-final.log": {
+      "sha256": "6cd9c270e5535523956cca9bd5f238bb9d50a4c50a7c68bb0ed9435e0bdb3a63",
+      "bytes": 149
+    },
+    "blut-sealed-examples-final.log": {
+      "sha256": "cd58c1feb20f4c6fa0debe1f66c87866e6f56a4fc97f786df1643f35a32eb2ea",
+      "bytes": 148
+    }
+  },
+  "provider_pr": "https://github.com/Quitetall/blut/pull/104",
+  "provider_documentation_revision": "4600e86fd7083ab0d91b44036b108f3f716f4517",
+  "toolchain": "rustc 1.99.0",
+  "native_receipt_tests_passed": 12,
+  "native_helper_ignored_by_default": 1,
+  "openwarrant_protected_cli_connected": false,
+  "production_custody_established": false,
+  "source_sha256": {
+    "Cargo.toml": "f852fa0c565d5bd026836a1345565bf91855dffb5eb97d62e30032d3268d5e88",
+    "Cargo.lock": "30c8a6850fa6951bc2fa8759530f0ced9c35d88944468a6c858f4eb122943d01",
+    "src/framework/openwarrant_receipt.rs": "ad15fa66204207aaaf84a96e87ed7aa7e92559cb23958598fd86c71cbc82603a",
+    "src/cli/openwarrant.rs": "1478fb21557498b40a227d7bd658853c1a8b99dd6469eea9f00ecf2c474181ae",
+    "tests/openwarrant_receipt.rs": "efcf10c6d9ea74b37f033dcfe7f7d282b708d2c64cf01338ba99a8d29501a5b5"
+  }
+}

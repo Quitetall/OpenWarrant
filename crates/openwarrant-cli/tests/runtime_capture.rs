@@ -1742,29 +1742,127 @@ fn cli_native_assessment_refuses_executor_owned_authority_store() {
     let store = f.root.join("forged-store");
     fs::create_dir(&store).unwrap();
     fs::write(store.join("state.json"), b"{}").unwrap();
-    let out = war(
-        &f.root,
-        &[
+    for args in [
+        vec![
             "runtime",
             "assess",
             "IX-WAR-0003",
             "--selection",
             "selected.json",
-            "--native-store",
-            store.to_str().unwrap(),
-            "--json",
         ],
-    );
-    assert!(!out.status.success());
-    let result = value(&out);
-    assert_eq!(result["diagnostics"][0]["rule"], "runtime.native-host");
-    assert_eq!(result["diagnostics"][0]["severity"], "error");
-    assert!(
-        result["diagnostics"][0]["message"]
-            .as_str()
+        vec![
+            "resolve",
+            "IX-WAR-0003",
+            "--dry-run",
+            "--runtime-selection",
+            "selected.json",
+        ],
+    ] {
+        let mut args = args;
+        args.extend(["--native-store", store.to_str().unwrap(), "--json"]);
+        let out = war(&f.root, &args);
+        assert!(!out.status.success());
+        let result = value(&out);
+        assert_eq!(result["diagnostics"][0]["rule"], "runtime.native-host");
+        assert_eq!(result["diagnostics"][0]["severity"], "error");
+        assert!(
+            result["diagnostics"][0]["message"]
+                .as_str()
+                .unwrap()
+                .contains("writable by the executor")
+        );
+    }
+}
+
+#[test]
+fn cli_selection_accepts_stdin_without_creating_repository_input_files() {
+    use std::{io::Write, process::Stdio};
+    let f = Fixture::with_runtime_count(1);
+    let response = value(&f.import());
+    let selected = json!({"schema":"oh.war/runtime-selection-request/v1-draft.1", "selections":[{"stage_id":"STAGE-001", "capture_digest":response["result"]["digest"]}]});
+    for args in [
+        vec!["runtime", "assess", "IX-WAR-0003", "--selection", "-"],
+        vec![
+            "resolve",
+            "IX-WAR-0003",
+            "--dry-run",
+            "--runtime-selection",
+            "-",
+        ],
+    ] {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(args)
+            .args(["--json", "--root"])
+            .arg(&f.root)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        child
+            .stdin
+            .take()
             .unwrap()
-            .contains("writable by the executor")
-    );
+            .write_all(&serde_json::to_vec(&selected).unwrap())
+            .unwrap();
+        let out = child.wait_with_output().unwrap();
+        let report = value(&out);
+        if report["command"] == "runtime" {
+            assert_eq!(report["result"]["stages"][0]["stage_id"], "STAGE-001");
+            assert_eq!(
+                report["result"]["stages"][0]["receipt"]["code"],
+                "runtime.verifier-unavailable"
+            );
+            assert_eq!(
+                report["result"]["stages"][0]["receipt"]["standing"],
+                "unknown"
+            );
+            assert_eq!(report["result"]["assurance_granted"], false);
+        } else {
+            assert!(
+                report["diagnostics"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|d| d["rule"] == "runtime.verifier-unavailable"
+                        && d["severity"] == "unknown"),
+                "{report}"
+            );
+        }
+        assert!(!out.status.success());
+    }
+}
+
+#[test]
+fn cli_stdin_selection_refuses_oversize_and_duplicate_fields_and_keeps_future_schema_unknown() {
+    use std::{io::Write, process::Stdio};
+    let f = Fixture::with_runtime_count(1);
+    let mut padded =
+        br#"{"schema":"oh.war/runtime-selection-request/v1-draft.1","selections":[]}"#.to_vec();
+    padded.resize(16 * 1024 + 1, b' ');
+    for (input, rule, severity) in [
+        (padded, "runtime.selection-limit", "error"),
+        (br#"{"schema":"oh.war/runtime-selection-request/v1-draft.1","schema":"other","selections":[]}"#.to_vec(), "runtime.capture-syntax", "error"),
+        (br#"{"schema":"future-selection-v9","selections":[]}"#.to_vec(), "runtime.selection-unsupported-schema", "unknown"),
+    ] {
+        for args in [
+            vec!["runtime", "assess", "IX-WAR-0003", "--selection", "-"],
+            vec!["resolve", "IX-WAR-0003", "--dry-run", "--runtime-selection", "-"],
+        ] {
+            let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+                .args(args).args(["--json", "--root"]).arg(&f.root)
+                .env("OPENWARRANT_NO_PROJECTS", "1")
+                .stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped())
+                .spawn().unwrap();
+            child.stdin.take().unwrap().write_all(&input).unwrap();
+            let out = child.wait_with_output().unwrap();
+            let report = value(&out);
+            assert!(!out.status.success());
+            assert_eq!(report["diagnostics"][0]["rule"], rule);
+            assert_eq!(report["diagnostics"][0]["severity"], severity);
+        }
+    }
 }
 
 #[test]
