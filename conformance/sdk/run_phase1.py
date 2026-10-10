@@ -81,7 +81,7 @@ def main():
         'build':['cargo','build','--locked','-p','openwarrant-cli','--bin','war','--message-format=json'],
         'fixtures':['cargo','run','--locked','-p','openwarrant-core','--example','sdk_probe','--','--scope','85','--fixtures','conformance/sdk'],
         'core':['cargo','test','--locked','-p','openwarrant-core','--tests'],
-        'cli':['cargo','test','--locked','-p','openwarrant-cli','--test','sdk_cli'],
+        'cli':['cargo','test','--locked','-p','openwarrant-cli','--test','all','sdk_cli::'],
         'skills':[sys.executable,'conformance/sdk/skills/check_artifacts.py','--war','<built executable>'],
         'context':[sys.executable,'-m','unittest','discover','-s','conformance/sdk/skills','-p','test_*.py'],
         'stage':['cargo','test','--locked','-p','openwarrant-core','--test','skill_artifacts'],
