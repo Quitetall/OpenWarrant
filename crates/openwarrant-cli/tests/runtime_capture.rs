@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! Actual local CLI captures; provider receipt fixtures and adapters are synthetic.
+//! Local CLI capture controls plus an opt-in real native BLUT CPU roundtrip.
 use openwarrant_cli::runtime_capture::{self as capture, Request, Verification};
 use openwarrant_core::{
     document::{records::raw_digest, runtime::*},
@@ -1170,5 +1170,191 @@ fn resolution_names_missing_current_runtime_receipts_as_unknown() {
             .iter()
             .any(|d| d["rule"] == "runtime-basis.receipt-missing" && d["severity"] == "unknown"),
         "resolution must name its missing runtime source: {report}"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+#[ignore = "requires separately built BLUT fixture producer and native verifier"]
+fn actual_blut_cpu_receipt_roundtrips_through_capture_and_current_resolution() {
+    use capture::blut_process::{BlutProcessConfig, BlutProcessVerifier};
+    use std::time::Duration;
+    let producer =
+        PathBuf::from(std::env::var_os("OW_BLUT_FIXTURE_PRODUCER").expect("fixture producer"));
+    let native_verifier =
+        PathBuf::from(std::env::var_os("OW_BLUT_NATIVE_VERIFIER").expect("native verifier"));
+    assert!(producer.is_absolute() && native_verifier.is_absolute());
+    let f = Fixture::with_executor(1, "blut");
+    let binding = f.root.join("checked-binding.json");
+    fs::write(&binding, serde_json::to_vec(&json!({
+        "warrant_ref": f.dispatch.warrant_ref, "contract_digest":f.dispatch.contract_digest,
+        "dispatch_digest":f.dispatch.dispatch_digest,"stage_id":f.dispatch.stage_id,"attempt_id":f.dispatch.attempt_id
+    })).unwrap()).unwrap();
+    let native = f.root.join("native-run");
+    let produced = Command::new("/usr/bin/timeout")
+        .arg("120")
+        .arg(&producer)
+        .args([&binding, &native])
+        .env_clear()
+        .output()
+        .unwrap();
+    assert!(
+        produced.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&produced.stdout),
+        String::from_utf8_lossy(&produced.stderr)
+    );
+    let metadata: Value =
+        serde_json::from_slice(&fs::read(native.join("fixture.json")).unwrap()).unwrap();
+    assert_eq!(metadata["test_key_only"], true);
+    assert_eq!(metadata["assurance"], "not-established");
+    let catalog = metadata["expected_catalog_digest"].as_str().unwrap();
+    let interface = ProviderInterface {
+        kind: ProviderKind::Blut,
+        identity: "actual-local-blut-test-build".into(),
+        version: "blut/openwarrant-verification/v1".into(),
+    };
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let verifier = BlutProcessVerifier::for_recorded_dispatch(
+        &repo,
+        "IX-WAR-0003",
+        &f.dispatch.dispatch_id,
+        BlutProcessConfig {
+            provider: interface.clone(),
+            executable: native_verifier,
+            public_key: native.join("public-key.bin"),
+            plan: native.join("plan.json"),
+            job: native.join("job"),
+            producer_executable: native.join("producer.original"),
+            scratch_root: f.root.clone(),
+            timeout: Duration::from_secs(60),
+            max_response_bytes: 1024 * 1024,
+        },
+    )
+    .unwrap();
+    let raw = fs::read(native.join("receipt.json")).unwrap();
+    let receipt = verifier.verify(&raw).unwrap();
+    assert_eq!(receipt.binding, RuntimeBinding::from_dispatch(&f.dispatch));
+    assert_eq!(receipt.outcome, RuntimeOutcome::Completed);
+    assert_eq!(receipt.registry_digest.as_deref(), Some(catalog));
+    assert_eq!(receipt.confinement, Observation::Unknown);
+    assert_eq!(receipt.metered_cost, Observation::Unknown);
+    assert_eq!(receipt.spend_cap, Observation::Unknown);
+    let NativeReceipt::Blut(ref blut) = receipt.receipt else {
+        panic!("native BLUT receipt required")
+    };
+    assert!(blut.lineage_ref.ends_with("/status.jsonl"));
+    assert!(
+        blut.artifact_refs
+            .iter()
+            .any(|p| p.ends_with("/object.ref.json"))
+    );
+    // Alter otherwise valid transport: the actual native signature must refuse.
+    let mut altered: Value = serde_json::from_slice(&raw).unwrap();
+    let octet = altered["signature"][0].as_u64().unwrap();
+    altered["signature"][0] = json!(octet ^ 1);
+    assert!(matches!(
+        verifier.verify(&serde_json::to_vec(&altered).unwrap()),
+        Err(ProviderFailure::Rejected(_))
+    ));
+    // Alter a same-length actual output. The original signed table must refuse.
+    let fixture: Value = serde_json::from_slice(&raw).unwrap();
+    let payload: Vec<u8> = serde_json::from_value(fixture["payload"].clone()).unwrap();
+    let payload: Value = serde_json::from_slice(&payload).unwrap();
+    let file = payload["native_files"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|f| {
+            f["path"]
+                .as_str()
+                .is_some_and(|p| p.ends_with("/object.ref.json"))
+        })
+        .unwrap();
+    let output = native.join("job").join(file["path"].as_str().unwrap());
+    let bytes = fs::read(&output).unwrap();
+    let mut changed = bytes.clone();
+    changed[0] ^= 1;
+    fs::write(&output, changed).unwrap();
+    assert!(matches!(
+        verifier.verify(&raw),
+        Err(ProviderFailure::Rejected(_))
+    ));
+    fs::write(&output, &bytes).unwrap();
+    let mut request = f.request();
+    request["provider"] =
+        json!({"kind":"blut","identity":interface.identity,"version":interface.version});
+    request["receipt"] = json!("native-run/receipt.json");
+    request["metadata"]["original_receipt_ref"] = json!("fixture://actual-local-blut-run");
+    request["metadata"]["transport"] = json!("local fixture producer and native process verifier");
+    let request: Request = serde_json::from_value(request).unwrap();
+    fn policy<'a>(verifier: &'a BlutProcessVerifier, registry: &'a str) -> Verification<'a> {
+        Verification {
+            verifier,
+            registry_digest: Some(registry),
+            authorized_capabilities: Some(&[]),
+            confinement_required: false,
+            hard_spend_cap_required: false,
+        }
+    }
+    assert_eq!(
+        capture::import(
+            &repo,
+            "IX-WAR-0003",
+            &request,
+            Some(policy(&verifier, "blake3:unrelated"))
+        )
+        .unwrap_err()
+        .code,
+        "runtime.registry-mismatch"
+    );
+    assert!(!f.storage().exists());
+    let captured = capture::import(
+        &repo,
+        "IX-WAR-0003",
+        &request,
+        Some(policy(&verifier, catalog)),
+    )
+    .unwrap();
+    assert_eq!(captured["native_observation"]["standing"], "matches");
+    assert_eq!(captured["assurance_granted"], false);
+    let selected = [capture::Selection {
+        stage_id: f.dispatch.stage_id.clone(),
+        capture_digest: captured["digest"].as_str().unwrap().into(),
+    }];
+    let one = repo
+        .load_warrant(&repo.warrant_dir("IX-WAR-0003").unwrap())
+        .unwrap();
+    let resolve_native =
+        |_: &StageDispatch, _: &ProviderInterface| Some(policy(&verifier, catalog));
+    let resolution = openwarrant_cli::resolve::assess_with_runtime(
+        &repo,
+        &one,
+        &[],
+        openwarrant_cli::resolve::runtime::Input {
+            selections: &selected,
+            native: &resolve_native,
+        },
+    )
+    .unwrap();
+    assert!(resolution.checks.runtime_receipts_match_the_basis);
+    assert!(!resolution.checks.exact_authorized_contract_revision);
+    assert!(!resolution.checks.independence_requirements_met);
+    fs::rename(native.join("job"), native.join("unavailable-job")).unwrap();
+    assert!(matches!(
+        verifier.verify(&raw),
+        Err(ProviderFailure::Unavailable(_))
+    ));
+    // Historical MATCHES cannot replace native evidence that is unavailable now.
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| Some(policy(
+            &verifier, catalog
+        )))
+        .unwrap()
+        .standing,
+        ReceiptStanding::Unknown
+    );
+    println!(
+        "PASS actual CPU/native seal/capture/current resolution; tampered signature/output and wrong catalog refused; missing job UNKNOWN; no assurance"
     );
 }

@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Current-attempt assessment feeds resolution requirement 12 through a trusted native SDK seam. A candidate BLUT process adapter now binds retained Dispatch records and bounds verifier responses; transport fixtures are synthetic. Actual provider integration, authenticated custody and independent/participant qualification remain incomplete.",
+  "summary": "Current-attempt assessment feeds resolution requirement 12 through a trusted native SDK seam. A bounded BLUT process adapter verified a real local CPU receipt against a recorded prototype Dispatch; signature and catalog mismatches refused, and a missing current job remained UNKNOWN. Authenticated operator custody, other providers and independent/participant qualification remain incomplete.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -15,7 +15,10 @@
     "docs/warrants/OW-WAR-0149/implementation/selection-tests.log",
     "docs/warrants/OW-WAR-0149/implementation/selection-clippy.log",
     "docs/warrants/OW-WAR-0149/implementation/resolution-consumer-20261009/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/blut-native-roundtrip-20261009.md",
+    "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/native-regression.log",
+    "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/root-boundary-green.log"
   ],
   "next_steps": [
     "Publish and agree provider-owned native receipt and verification surfaces.",

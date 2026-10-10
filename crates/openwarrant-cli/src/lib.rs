@@ -1756,7 +1756,12 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     // Every command that opened a repository remembers it for the hub
     // (OW-WAR-0115): best-effort, and nothing it does changes the result.
     let open_repo = || {
-        let r = repo::Repository::discover(root.clone());
+        // An explicit root is a boundary, not a starting point for ancestor
+        // discovery. Never operate on a parent program when this one is absent.
+        let r = match &root {
+            Some(path) => repo::Repository::open(path.clone()),
+            None => repo::Repository::discover(None),
+        };
         if let Ok(r) = &r {
             projects::touch(&r.root);
         }

@@ -57,8 +57,12 @@ The final pinned Rust 1.97.1 public capture run passed all 15 tests
 and `war compile --json` exited zero. The aggregate repository gate is a
 separate check; these results do not stand in for it.
 
-Still required: a real BLUT native job and seal from the exact recorded Dispatch,
-trusted catalog/key/build custody, connection into configured workflow policy,
+A real local CPU job and seal now bind a recorded prototype Dispatch; see
+[the bounded roundtrip observation](../blut-native-roundtrip-20261009.md).
+BLUT checkpoint `eca4ec7` also passed hosted technical CI; its CLA check remains
+failed. The native test uses deliberately public test material.
+
+Still required: trusted operator catalog/key/build custody, connection into configured workflow policy,
 Katana's provider-owned interface, and independent/participant qualification.
 OW-WAR-0149 remains in progress. The default CLI still has no enrolled trusted
 native verifier.
