@@ -107,3 +107,8 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "crates/openwarrant-cli/src/resolution_cmd.rs"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Resolution signature candidate binding; unsigned reporting scope only.
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/authority_check.rs"
+obligation_refs = ["OBL-001", "OBL-003"]
