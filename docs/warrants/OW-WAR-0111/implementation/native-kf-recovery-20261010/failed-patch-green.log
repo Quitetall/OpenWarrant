@@ -1,0 +1,28 @@
+
+ RUN  v4.1.11 /mnt/4tb/tmp/openwarrant-kf-native-roundtrip
+
+ ❯ tests/database/warrant-preservation.test.ts (3 tests | 1 failed | 2 skipped) 10685ms
+   ↓ preserves kf-source Warrant archive after source shutdown
+   ↓ preserves local-runtime Warrant archive after source shutdown
+   × preserves native-runtime Warrant archive after source shutdown 10684ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/database/warrant-preservation.test.ts > preserves native-runtime Warrant archive after source shutdown
+Error: ENOENT: no such file or directory, open '/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/tests/fixtures/openwarrant-preservation/native-runtime-complete-archive.json'
+ ❯ preservesArchive tests/database/warrant-preservation.test.ts:31:26
+     29|     const fixtures = await seedFixtures(source.adminPool);
+     30|     const dispatch = createFabricDispatcher(source.pool);
+     31|     const archiveBytes = await readFile(
+       |                          ^
+     32|       new URL(
+     33|         `../fixtures/openwarrant-preservation/${fixture}-complete-arch…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 skipped (3)
+   Start at  12:19:00
+   Duration  12.04s (transform 984ms, setup 0ms, import 1.29s, tests 10.69s, environment 0ms)
+
