@@ -6,6 +6,7 @@ pub mod activated_verifier;
 pub mod blut_process;
 pub mod collector_loading;
 pub mod collector_signature;
+pub(crate) mod contract_snapshot;
 pub mod katana_process;
 mod process;
 pub mod protected_executable;
@@ -284,6 +285,8 @@ pub fn import(
     let actor = format!("agent://{}", repo.performer());
     // Capture is a pre-result source observation, not an RC.2 assurance
     // Record (which requires an exact result digest). Do not invent a result.
+    // Retain sources separately; old capture payloads and native receipts are unchanged.
+    contract_snapshot::retain(repo, &recorded)?;
     let observation = json!({
         "schema":"oh.war/runtime-source-observation/v1-draft.1",
         "id":metadata.observation_id,"actor":{"id":actor,"kind":"agent","role":"collector"},

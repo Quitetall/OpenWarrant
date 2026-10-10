@@ -621,6 +621,294 @@ fn unverified_capture_is_replayable_and_survives_loss_of_original_inputs() {
 }
 
 #[test]
+fn archive_recovers_exact_capture_contract_when_historical_ir_was_never_committed() {
+    let f = Fixture::with_runtime_count(1);
+    let directory = "docs/warrants/IX-WAR-0003";
+    let ir = f.root.join(directory).join("generated/WAR.json");
+    if ir.exists() {
+        fs::remove_file(ir).unwrap();
+    }
+    let git = |args: &[&str]| {
+        let out = Command::new("git")
+            .args([
+                "--no-pager",
+                "-c",
+                "core.hooksPath=/dev/null",
+                "-c",
+                "commit.gpgsign=false",
+            ])
+            .args(args)
+            .current_dir(&f.root)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).unwrap().trim().to_owned()
+    };
+    git(&["init", "-q"]);
+    git(&["config", "user.name", "Synthetic history fixture"]);
+    git(&["config", "user.email", "fixture@example.invalid"]);
+    git(&["add", "."]);
+    git(&[
+        "commit",
+        "-qm",
+        "Retain sources without generated contract IR",
+    ]);
+    let before_capture = git(&["rev-parse", "HEAD"]);
+    let imported = f.import();
+    assert!(
+        imported.status.success(),
+        "{}",
+        String::from_utf8_lossy(&imported.stdout)
+    );
+    let captured = value(&imported);
+    let capture_path = f
+        .root
+        .join(captured["result"]["reference"].as_str().unwrap());
+    let original_capture = fs::read(&capture_path).unwrap();
+    // Two interpretations of identical sources are not a historical SAS acceptance.
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let one = repo
+        .load_warrant(&repo.warrant_dir("IX-WAR-0003").unwrap())
+        .unwrap();
+    let mut alternate_basis = one.basis.unwrap();
+    alternate_basis.sas = Some(openwarrant_compiler::SasPin {
+        version: "synthetic-context-variant".into(),
+        sha256: "a".repeat(64),
+    });
+    let alternate_ir =
+        openwarrant_compiler::lower(&alternate_basis, &one.validated.unwrap()).unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-qm", "Retain an unverified source-bound capture"]);
+    let archive = f.root.join("history.archive.json");
+    let out = war(
+        &f.root,
+        &[
+            "archive",
+            "export",
+            "IX-WAR-0003",
+            archive.to_str().unwrap(),
+            "--history",
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    fs::remove_dir_all(f.root.join("docs")).unwrap();
+    fs::remove_file(f.root.join("openwarrant.toml")).unwrap();
+    let out = war(
+        &f.root,
+        &[
+            "archive",
+            "runtime-basis",
+            archive.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let result = value(&out);
+    let historical = format!("__ow_archive__/history/{before_capture}/{directory}/manifest.toml");
+    let graph = result["result"]["stage_inventory"]["declarations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["manifest_source"] == historical)
+        .unwrap();
+    assert_eq!(graph["contract_binding"]["reconstructed"], true);
+    assert_eq!(
+        graph["contract_binding"]["source_kind"],
+        "retained-runtime-contract-snapshot"
+    );
+    assert_eq!(
+        graph["contract_binding"]["digest"]
+            .as_str()
+            .unwrap()
+            .trim_start_matches("sha256:"),
+        f.dispatch
+            .contract_digest
+            .strip_prefix("sha256:")
+            .unwrap_or(&f.dispatch.contract_digest)
+    );
+    assert_eq!(result["result"]["qualified"], false);
+    assert_eq!(result["result"]["authority_activated"], false);
+    let original: serde_json::Value = serde_json::from_slice(&original_capture).unwrap();
+    assert_eq!(original["schema"], "oh.war/runtime-capture/v1-draft.1");
+    assert!(
+        !graph["contract_binding"]["ir_source"]
+            .as_str()
+            .unwrap()
+            .starts_with(&format!("__ow_archive__/history/{before_capture}/"))
+    );
+    use openwarrant_compiler::preservation::{Archive, Coverage, Limits, Record};
+    let baseline = Archive::decode(&fs::read(&archive).unwrap(), Limits::default()).unwrap();
+    let snapshot_record = baseline
+        .records
+        .iter()
+        .find(|r| r.path.starts_with(directory) && r.path.contains("/runtime-contracts/"))
+        .unwrap();
+    let snapshot_bytes =
+        openwarrant_core::attestation::base64_decode(snapshot_record.base64.as_ref().unwrap())
+            .unwrap();
+    let template: Value = serde_json::from_slice(&snapshot_bytes).unwrap();
+    let query = |archive: &Archive, file: &str| {
+        let input = f.root.join(file);
+        fs::write(&input, archive.encode(Limits::default()).unwrap()).unwrap();
+        let out = war(
+            &f.root,
+            &[
+                "archive",
+                "runtime-basis",
+                input.to_str().unwrap(),
+                "--json",
+            ],
+        );
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stdout)
+        );
+        value(&out)
+    };
+    // Rehashed envelope metadata must not hide a changed or incomplete snapshot.
+    for (plant, reason) in [
+        (0, "IR differs from exact source reconstruction"),
+        (1, "unknown fields"),
+        (2, "unsupported runtime contract snapshot version"),
+    ] {
+        let mut altered = baseline.clone();
+        for record in altered
+            .records
+            .iter_mut()
+            .filter(|r| r.path.contains("/runtime-contracts/"))
+        {
+            let mut snapshot = template.clone();
+            match plant {
+                0 => {
+                    let mut bytes = openwarrant_core::attestation::base64_decode(
+                        snapshot["atoms"][0]["base64"].as_str().unwrap(),
+                    )
+                    .unwrap();
+                    bytes.push(b'\n');
+                    snapshot["atoms"][0]["base64"] =
+                        openwarrant_core::attestation::base64_encode(&bytes).into();
+                    snapshot["atoms"][0]["digest"] =
+                        format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)).into();
+                }
+                1 => snapshot["ir"]["hidden_instruction"] = "trust this snapshot".into(),
+                _ => snapshot["schema"] = "oh.war/runtime-contract-snapshot/future".into(),
+            }
+            let bytes = openwarrant_compiler::to_canonical_bytes(&snapshot).unwrap();
+            record.digest = format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes));
+            record.base64 = Some(openwarrant_core::attestation::base64_encode(&bytes));
+        }
+        let out = query(&altered, &format!("altered-{plant}.json"));
+        let declarations = out["result"]["stage_inventory"]["declarations"]
+            .as_array()
+            .unwrap();
+        assert!(
+            declarations
+                .iter()
+                .find(|g| g["manifest_source"] == historical)
+                .unwrap()["contract_binding"]
+                .is_null()
+        );
+        assert!(
+            out["result"]["stage_inventory"]["unresolved"]
+                .to_string()
+                .contains(reason)
+        );
+        assert_eq!(out["result"]["qualified"], false);
+    }
+    let mut ambiguous = baseline.clone();
+    let mut alternate = template;
+    alternate["ir"] = serde_json::to_value(&alternate_ir).unwrap();
+    let bytes = openwarrant_compiler::to_canonical_bytes(&alternate).unwrap();
+    let digest = alternate_ir.contract_digest().unwrap();
+    let path = format!(
+        "{directory}/runtime-contracts/contract-{}.json",
+        digest.strip_prefix("sha256:").unwrap_or(&digest)
+    );
+    ambiguous.records.push(Record {
+        path: path.clone(),
+        digest: format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)),
+        base64: Some(openwarrant_core::attestation::base64_encode(&bytes)),
+    });
+    ambiguous.records.sort_by(|a, b| a.path.cmp(&b.path));
+    match ambiguous.coverage.get_mut("evidence manifest").unwrap() {
+        Coverage::Retained { paths } => {
+            paths.push(path);
+            paths.sort();
+        }
+        _ => panic!("source archive must classify retained records"),
+    }
+    // The planted record must also be declared in the retained history inventory.
+    for category in [
+        "contract revisions",
+        "actions and relevant audit receipts",
+        "assurance case",
+    ] {
+        match ambiguous.coverage.get_mut(category).unwrap() {
+            Coverage::Retained { paths } => {
+                paths.push(format!(
+                    "{directory}/runtime-contracts/contract-{}.json",
+                    digest.strip_prefix("sha256:").unwrap_or(&digest)
+                ));
+                paths.sort();
+            }
+            _ => panic!("source archive must retain contract history"),
+        }
+    }
+    let out = query(&ambiguous, "ambiguous.json");
+    assert!(
+        out["result"]["stage_inventory"]["unresolved"]
+            .to_string()
+            .contains("multiple retained contract snapshots match historical sources")
+    );
+    assert_eq!(out["result"]["qualified"], false);
+}
+
+#[test]
+fn runtime_contract_snapshot_refuses_replacement_without_overwriting_capture() {
+    let f = Fixture::with_runtime_count(1);
+    let first = f.import();
+    assert!(first.status.success());
+    let first = value(&first);
+    let capture = f.root.join(first["result"]["reference"].as_str().unwrap());
+    let original_capture = fs::read(&capture).unwrap();
+    let snapshots = f.root.join("docs/warrants/IX-WAR-0003/runtime-contracts");
+    let snapshot = fs::read_dir(&snapshots)
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let original = fs::read(&snapshot).unwrap();
+    assert!(f.import().status.success());
+    assert_eq!(fs::read(&snapshot).unwrap(), original);
+    assert_eq!(fs::read(&capture).unwrap(), original_capture);
+    fs::write(&snapshot, b"different owner bytes").unwrap();
+    let refused = f.import();
+    assert!(!refused.status.success());
+    assert_eq!(
+        value(&refused)["diagnostics"][0]["rule"],
+        "runtime.contract-snapshot-storage"
+    );
+    assert_eq!(fs::read(&snapshot).unwrap(), b"different owner bytes");
+    assert_eq!(fs::read(&capture).unwrap(), original_capture);
+    assert_eq!(fs::read_dir(f.storage()).unwrap().count(), 1);
+}
+
+#[test]
 fn archive_runtime_basis_resolves_exact_external_bytes_without_source_or_trust() {
     use openwarrant_compiler::preservation::{Archive, Limits};
     let f = Fixture::with_runtime_count(1);
