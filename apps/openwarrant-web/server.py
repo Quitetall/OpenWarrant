@@ -172,18 +172,7 @@ class SDK:
                 "--json", "--root", str(self.repo)]
         if self.native_store is not None:
             args += ["--native-store", str(self.native_store)]
-        try:
-            code, out, _ = bounded_command(args, self.repo, request, time.monotonic() + 10, {})
-        except (OSError, TimeoutError, subprocess.SubprocessError) as error:
-            raise Refusal(503, "Runtime assessment unavailable; eligibility is unknown") from error
-        report = decode(out)
-        if (not isinstance(report, dict) or report.get("schema") != "oh.war/report/v1"
-                or type(report.get("exit_code")) is not int or report["exit_code"] != code
-                or code not in (0, 1, 2) or report.get("command") not in ("runtime", "error")
-                or not isinstance(report.get("counts"), dict)
-                or any(type(report["counts"].get(k)) is not int or report["counts"][k] < 0
-                       for k in ("error", "unknown"))):
-            raise Refusal(503, "Unexpected runtime assessment response")
+        report = self._runtime_call(args, request)
         state = "refused" if report["counts"]["error"] else "unknown" if report["counts"]["unknown"] else "matches"
         if state == "matches" and (not isinstance(report.get("result"), dict)
                                    or report["result"].get("standing") != "matches"
@@ -191,6 +180,54 @@ class SDK:
             raise Refusal(503, "Unexpected successful runtime assessment")
         return {"schema": "oh.war/reference-runtime-assessment/v1-draft.1",
                 "warrant": alias, "state": state, "qualified": False, "report": report}
+
+    def _runtime_call(self, args, request):
+        try:
+            code, out, _ = bounded_command(args, self.repo, request, time.monotonic() + 10, {})
+        except (OSError, TimeoutError, subprocess.SubprocessError) as error:
+            raise Refusal(503, "Runtime operation unavailable; outcome is unknown") from error
+        try:
+            report = decode(out)
+        except Refusal as error:
+            raise Refusal(503, "Unexpected runtime response; outcome is unknown") from error
+        if (not isinstance(report, dict) or report.get("schema") != "oh.war/report/v1"
+                or type(report.get("exit_code")) is not int or report["exit_code"] != code
+                or code not in (0, 1, 2) or report.get("command") not in ("runtime", "error")
+                or not isinstance(report.get("counts"), dict)
+                or any(type(report["counts"].get(k)) is not int or report["counts"][k] < 0
+                       for k in ("error", "unknown"))):
+            raise Refusal(503, "Unexpected runtime assessment response")
+        # Report readiness uses 0/2 for both ERROR and UNKNOWN. The CLI's
+        # outer fatal-error envelope uses 1; do not swap its meaning with 2.
+        expected = 2 if report["counts"]["error"] or report["counts"]["unknown"] else 0
+        if (report["command"] == "runtime" and code != expected
+                or report["command"] == "error" and (code != 1 or not report["counts"]["error"])):
+            raise Refusal(503, "Contradictory runtime response; outcome is unknown")
+        return report
+
+    def capture_runtime(self, fields):
+        if (not isinstance(fields, dict) or set(fields) != {"warrant", "capture"}
+                or not isinstance(fields["capture"], dict)):
+            raise Refusal(400, "Only warrant and inline capture are accepted")
+        alias = fields["warrant"]
+        if not isinstance(alias, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", alias):
+            raise Refusal(400, "Invalid corpus Warrant alias")
+        request = json.dumps(fields["capture"]).encode()
+        if len(request) > 6 * 1024 * 1024:
+            raise Refusal(413, "Inline capture exceeds 6 MiB")
+        report = self._runtime_call([str(self.war), "runtime", "import-inline", alias,
+                                    "--request", "-", "--json", "--root", str(self.repo)], request)
+        state = "refused" if report["counts"]["error"] else "unknown" if report["counts"]["unknown"] else "retained"
+        if state == "retained":
+            result = report.get("result")
+            if (not isinstance(result, dict) or result.get("retained") is not True
+                    or result.get("assurance_granted") is not False
+                    or not isinstance(result.get("digest"), str)
+                    or not re.fullmatch(r"sha256:[0-9a-f]{64}", result["digest"])):
+                raise Refusal(503, "Unexpected capture response; retention is unknown")
+        return {"schema": "oh.war/reference-runtime-capture/v1-draft.1",
+                "warrant": alias, "state": state, "retained": state == "retained",
+                "qualified": False, "report": report}
 
     def author(self, fields, revision):
         title = fields["title"]
@@ -663,7 +700,7 @@ class Handler(BaseHTTPRequestHandler):
             if (
                 self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal or verifier_dispute or verifier_reverify)
             ) or (
-                self.command == "POST" and self.path in ("/api/warrants", "/api/runtime-assessment", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops", "/api/queue", "/api/queue/cancel")
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runtime-captures", "/api/runtime-assessment", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops", "/api/queue", "/api/queue/cancel")
             ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
@@ -675,12 +712,14 @@ class Handler(BaseHTTPRequestHandler):
                 if len(lengths) != 1 or not re.fullmatch(r"[0-9]{1,8}", lengths[0]):
                     raise Refusal(400, "One Content-Length required")
                 size = int(lengths[0])
-                if size > BODY_LIMIT:
+                if size > (6 * 1024 * 1024 + 1024 if self.path == "/api/runtime-captures" else BODY_LIMIT):
                     raise Refusal(413, "Request body limit exceeded")
                 body = self.rfile.read(size)
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if self.path == "/api/runtime-captures":
+                    return self.reply(200, store.sdk.capture_runtime(fields))
                 if self.path == "/api/runtime-assessment":
                     if self.command != "POST":
                         raise Refusal(405, "Runtime assessment requires POST")

@@ -41,6 +41,8 @@ pub const REQUEST_SCHEMA: &str = "oh.war/runtime-capture-request/v1-draft.1";
 const RECORD_LIMIT: usize = 16 * 1024 * 1024;
 const RECEIPT_LIMIT: usize = 4 * 1024 * 1024;
 const REQUEST_LIMIT: usize = 16 * 1024;
+pub const INLINE_SCHEMA: &str = "oh.war/runtime-capture-inline/v1-draft.1";
+const INLINE_LIMIT: usize = 6 * 1024 * 1024;
 
 #[derive(clap::Subcommand)]
 pub enum Command {
@@ -48,6 +50,13 @@ pub enum Command {
     Import {
         alias: String,
         /// Repository-relative JSON capture request supplied by the collector.
+        #[arg(long)]
+        request: Utf8PathBuf,
+    },
+    /// Retain supplied receipt bytes against a recorded Dispatch. No saved verdict or authority is accepted.
+    ImportInline {
+        alias: String,
+        /// Bounded inline capture envelope file, or - for stdin.
         #[arg(long)]
         request: Utf8PathBuf,
     },
@@ -238,6 +247,81 @@ pub fn import(
     request: &Request,
     verification: Option<Verification<'_>>,
 ) -> Result<Value, Fault> {
+    import_source(repo, alias, request, None, verification)
+}
+
+/// Retain exact supplied bytes, with a content-addressed source reference.
+/// This does not authenticate transport or grant authority. Existing file
+/// imports keep their path checks and semantics.
+pub fn import_receipt(
+    repo: &Repository,
+    alias: &str,
+    request: &Request,
+    receipt: &[u8],
+    verification: Option<Verification<'_>>,
+) -> Result<Value, Fault> {
+    if receipt.len() > RECEIPT_LIMIT {
+        return Err(fault(
+            "runtime.capture-limit",
+            "receipt exceeds 4 MiB",
+            false,
+        ));
+    }
+    if request.receipt != format!("receipt://sha256:{}", sha256_hex(receipt)) {
+        return Err(fault(
+            "runtime.capture-inline-reference",
+            "inline receipt reference must name the exact supplied bytes",
+            false,
+        ));
+    }
+    import_source(repo, alias, request, Some(receipt), verification)
+}
+
+/// Decode a bounded portable capture envelope and retain its original bytes.
+/// Future schemas stay UNKNOWN; duplicate or unexpected fields refuse.
+pub fn import_inline(
+    repo: &Repository,
+    alias: &str,
+    bytes: &[u8],
+    verification: Option<Verification<'_>>,
+) -> Result<Value, Fault> {
+    if bytes.len() > INLINE_LIMIT {
+        return Err(fault(
+            "runtime.capture-limit",
+            "inline capture exceeds 6 MiB",
+            false,
+        ));
+    }
+    let value = decode(bytes)?;
+    if value["schema"] != INLINE_SCHEMA {
+        return Err(fault(
+            "runtime.capture-unsupported-schema",
+            "unsupported inline capture schema",
+            true,
+        ));
+    }
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Inline {
+        schema: String,
+        request: Request,
+        receipt_base64: String,
+    }
+    let inline: Inline =
+        serde_json::from_value(value).map_err(|e| fault("runtime.capture-request", e, false))?;
+    debug_assert_eq!(inline.schema, INLINE_SCHEMA);
+    let raw = base64_decode(&inline.receipt_base64)
+        .map_err(|e| fault("runtime.capture-inline-encoding", e, false))?;
+    import_receipt(repo, alias, &inline.request, &raw, verification)
+}
+
+fn import_source(
+    repo: &Repository,
+    alias: &str,
+    request: &Request,
+    supplied: Option<&[u8]>,
+    verification: Option<Verification<'_>>,
+) -> Result<Value, Fault> {
     let encoded =
         serde_json::to_vec(request).map_err(|e| fault("runtime.capture-request", e, false))?;
     if encoded.len() > REQUEST_LIMIT {
@@ -278,14 +362,21 @@ pub fn import(
     }
     let provider = provider(request)?;
     let recorded = recorded::load(repo, alias, &request.dispatch_id)?;
-    let raw = read(repo, Utf8Path::new(&request.receipt), RECEIPT_LIMIT)?;
+    let owned;
+    let raw = match supplied {
+        Some(bytes) => bytes,
+        None => {
+            owned = read(repo, Utf8Path::new(&request.receipt), RECEIPT_LIMIT)?;
+            &owned
+        }
+    };
     let expectation = expectation(&recorded.dispatch, &provider, verification.as_ref());
     let assessment = assess_runtime_basis(
         &recorded.basis,
         &recorded.validated,
         &[RuntimeStageEvidence {
             expectation,
-            raw_receipt: &raw,
+            raw_receipt: raw,
             verifier: verification.as_ref().map(|v| v.verifier),
         }],
     );
@@ -337,7 +428,7 @@ pub fn import(
     let record = json!({"schema":SCHEMA,"alias":alias,"declared_capture":request,"observation":observation,
         "dispatch":blob(&recorded.dispatch_ref,&recorded.dispatch_bytes),
         "compile_event":blob(&recorded.event_ref,&recorded.event_bytes),
-        "receipt":blob(&request.receipt,&raw),"native_observation":native(&stage.receipt),
+        "receipt":blob(&request.receipt,raw),"native_observation":native(&stage.receipt),
         "native_observation_is_trusted_on_read":false,"assurance_granted":false});
     let bytes = openwarrant_compiler::to_canonical_bytes(&record)
         .map_err(|e| fault("runtime.capture-encoding", e, false))?;
@@ -468,6 +559,21 @@ pub fn run(repo: &Repository, command: Command) -> (Report, Value) {
             let request: Request = serde_json::from_value(value)
                 .map_err(|e| fault("runtime.capture-request", e, false))?;
             import(repo, &alias, &request, None)
+        })(),
+        Command::ImportInline { alias, request } => (|| {
+            let bytes = if request.as_str() == "-" {
+                use std::io::Read;
+                let mut bytes = Vec::new();
+                std::io::stdin()
+                    .lock()
+                    .take(INLINE_LIMIT as u64 + 1)
+                    .read_to_end(&mut bytes)
+                    .map_err(|e| fault("runtime.capture-input", e, true))?;
+                bytes
+            } else {
+                read(repo, &request, INLINE_LIMIT)?
+            };
+            import_inline(repo, &alias, &bytes, None)
         })(),
         Command::Show { alias, digest } => show(repo, &alias, &digest),
         Command::Assess {

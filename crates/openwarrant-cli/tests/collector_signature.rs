@@ -996,7 +996,35 @@ fn namespace_fixture_entry() {
             "{}",
             String::from_utf8_lossy(&imported.stdout)
         );
+        let file_imported: serde_json::Value = serde_json::from_slice(&imported.stdout).unwrap();
+        let raw = fs::read(scratch.join("receipt.bin")).unwrap();
+        let mut inline_request: serde_json::Value =
+            serde_json::from_slice(&fs::read(scratch.join("capture.json")).unwrap()).unwrap();
+        inline_request["receipt"] = serde_json::json!(format!(
+            "receipt://{}",
+            openwarrant_core::document::records::raw_digest(&raw)
+        ));
+        let inline = serde_json::to_vec(&serde_json::json!({
+            "schema":"oh.war/runtime-capture-inline/v1-draft.1",
+            "request":inline_request,"receipt_base64":base64_encode(&raw)
+        }))
+        .unwrap();
+        let imported = run_input(
+            &["runtime", "import-inline", "IX-WAR-0003", "--request", "-"],
+            &inline,
+        );
+        assert!(
+            imported.status.success(),
+            "{} {}",
+            String::from_utf8_lossy(&imported.stdout),
+            String::from_utf8_lossy(&imported.stderr)
+        );
         let imported: serde_json::Value = serde_json::from_slice(&imported.stdout).unwrap();
+        assert_ne!(
+            imported["result"]["digest"],
+            file_imported["result"]["digest"]
+        );
+        assert_eq!(imported["result"]["assurance_granted"], false);
         fs::write(scratch.join("selected.json"), serde_json::to_vec(&serde_json::json!({"schema":"oh.war/runtime-selection-request/v1-draft.1", "selections":[{"stage_id":"STAGE-001", "capture_digest":imported["result"]["digest"]}]})).unwrap()).unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
         while !root.join("native-adapter-configured").exists() {

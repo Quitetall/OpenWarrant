@@ -69,13 +69,7 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
         )
-        for _ in range(200):
-            if self.session.exists():
-                break
-            if self.proc.poll() is not None:
-                self.fail(self.proc.stderr.read().decode())
-            time.sleep(0.02)
-        self.assertTrue(self.session.exists())
+        self.wait_session()
         info = json.loads(self.session.read_text())
         self.url = info["url"]
         self.token = info["token"]

@@ -2726,3 +2726,150 @@ fn native_input_mismatches_and_limits_refuse_before_manifest_publication() {
         );
     }
 }
+
+#[test]
+fn inline_capture_retains_exact_bytes_without_receipt_files_and_refuses_wrong_reference() {
+    use openwarrant_core::attestation::base64_encode;
+    use std::{io::Write, process::Stdio};
+    let f = Fixture::with_runtime_count(1);
+    let raw = fs::read(f.root.join("receipt.bin")).unwrap();
+    let mut request = f.request();
+    request["receipt"] = json!(format!("receipt://{}", raw_digest(&raw)));
+    request["metadata"]["transport"] = json!("inline-fixture");
+    fs::remove_file(f.root.join("receipt.bin")).unwrap();
+    fs::remove_file(f.root.join("capture-request.json")).unwrap();
+    let invoke = |request: &Value| {
+        let input = json!({"schema":"oh.war/runtime-capture-inline/v1-draft.1",
+            "request":request,"receipt_base64":base64_encode(&raw)});
+        let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args([
+                "runtime",
+                "import-inline",
+                "IX-WAR-0003",
+                "--request",
+                "-",
+                "--json",
+                "--root",
+            ])
+            .arg(&f.root)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(&serde_json::to_vec(&input).unwrap())
+            .unwrap();
+        child.wait_with_output().unwrap()
+    };
+    let out = invoke(&request);
+    assert!(
+        out.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let report = value(&out);
+    assert_eq!(report["result"]["assurance_granted"], false);
+    let digest = report["result"]["digest"].as_str().unwrap();
+    let shown = value(&war(
+        &f.root,
+        &["runtime", "show", "IX-WAR-0003", digest, "--json"],
+    ));
+    assert_eq!(
+        shown["result"]["record"]["receipt"]["base64"],
+        base64_encode(&raw)
+    );
+    assert_eq!(
+        shown["result"]["record"]["dispatch"]["digest"],
+        raw_digest(
+            &fs::read(f.root.join(format!(
+                "docs/warrants/IX-WAR-0003/dispatches/{}.json",
+                f.dispatch.dispatch_id
+            )))
+            .unwrap()
+        )
+    );
+    assert_eq!(value(&invoke(&request))["result"]["digest"], digest);
+    let count = fs::read_dir(f.storage()).unwrap().count();
+    request["receipt"] = json!("receipt://sha256:wrong");
+    let refused = value(&invoke(&request));
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "runtime.capture-inline-reference")
+    );
+    assert_eq!(fs::read_dir(f.storage()).unwrap().count(), count);
+}
+
+#[test]
+fn inline_capture_refuses_malformed_frames_and_keeps_missing_dispatch_unknown() {
+    use openwarrant_core::attestation::base64_encode;
+    let f = Fixture::with_runtime_count(1);
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let raw = b"inline unverified receipt";
+    let mut request = f.request();
+    request["receipt"] = json!(format!("receipt://{}", raw_digest(raw)));
+    let valid = json!({"schema":"oh.war/runtime-capture-inline/v1-draft.1", "request":request, "receipt_base64":base64_encode(raw)});
+    let mut future = valid.clone();
+    future["schema"] = json!("oh.war/runtime-capture-inline/v999");
+    let mut extra = valid.clone();
+    extra["qualified"] = json!(true);
+    let mut malformed = valid.clone();
+    malformed["receipt_base64"] = json!("???");
+    for (input, code, unknown) in [
+        (
+            br#"{"schema":"x","schema":"y"}"#.to_vec(),
+            "runtime.capture-syntax",
+            false,
+        ),
+        (
+            serde_json::to_vec(&future).unwrap(),
+            "runtime.capture-unsupported-schema",
+            true,
+        ),
+        (
+            serde_json::to_vec(&extra).unwrap(),
+            "runtime.capture-request",
+            false,
+        ),
+        (
+            serde_json::to_vec(&malformed).unwrap(),
+            "runtime.capture-inline-encoding",
+            false,
+        ),
+        (
+            vec![b' '; 6 * 1024 * 1024 + 1],
+            "runtime.capture-limit",
+            false,
+        ),
+    ] {
+        let error = capture::import_inline(&repo, "IX-WAR-0003", &input, None).unwrap_err();
+        assert_eq!(error.code, code);
+        assert_eq!(error.unknown, unknown);
+        assert!(!f.storage().exists());
+    }
+    let request: Request = serde_json::from_value(request).unwrap();
+    let error = capture::import_receipt(
+        &repo,
+        "IX-WAR-0003",
+        &request,
+        &vec![0; 4 * 1024 * 1024 + 1],
+        None,
+    )
+    .unwrap_err();
+    assert_eq!(error.code, "runtime.capture-limit");
+    assert!(!f.storage().exists());
+    let mut request = request;
+    request.dispatch_id = "00000000-0000-7000-8000-000000000001".into();
+    let error = capture::import_receipt(&repo, "IX-WAR-0003", &request, raw, None).unwrap_err();
+    assert_eq!(error.code, "runtime.capture-source-unavailable");
+    assert!(error.unknown);
+    assert!(!f.storage().exists());
+}

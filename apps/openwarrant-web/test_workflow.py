@@ -18,7 +18,7 @@ REPO = Path(__file__).resolve().parents[2]
 WAR = os.environ.get("OW_TEST_WAR", str(REPO / "target/debug/war"))
 
 
-class WorkflowTests(unittest.TestCase):
+class ServiceFixture(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
@@ -33,7 +33,7 @@ class WorkflowTests(unittest.TestCase):
                 "--war",
                 WAR,
                 "--repo",
-                str(REPO),
+                str(getattr(self, "repo", REPO)),
                 "--state",
                 str(self.root / "state"),
                 "--port",
@@ -45,6 +45,12 @@ class WorkflowTests(unittest.TestCase):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
         )
+        self.wait_session()
+        info = json.loads(self.session.read_text())
+        self.url = info["url"]
+        self.token = info["token"]
+
+    def wait_session(self):
         # Observe readiness, not a startup latency claim. A durable session-file
         # fsync can exceed four seconds on a busy disk; keep it, with a deadline.
         deadline = time.monotonic() + 30
@@ -65,9 +71,6 @@ class WorkflowTests(unittest.TestCase):
             self.tmp.cleanup()
             self.fail("server startup unavailable: " + message)
         self.assertTrue(self.session.exists(), "server startup")
-        info = json.loads(self.session.read_text())
-        self.url = info["url"]
-        self.token = info["token"]
 
     def stop(self):
         self.proc.terminate()
@@ -91,7 +94,7 @@ class WorkflowTests(unittest.TestCase):
             method=method,
         )
         try:
-            r = urllib.request.urlopen(req, timeout=15)
+            r = urllib.request.urlopen(req, timeout=30)
         except urllib.error.HTTPError as e:
             r = e
         with r:
@@ -106,6 +109,8 @@ class WorkflowTests(unittest.TestCase):
             "context": "Preserve existing identity rules.",
         }
 
+
+class WorkflowTests(ServiceFixture):
     def test_create_sdk_source_and_restart(self):
         draft = self.draft()
         status, created = self.call("/api/warrants", "POST", draft)
@@ -189,54 +194,6 @@ class WorkflowTests(unittest.TestCase):
         status, _ = self.call("/api/board", method="POST", data={})
         self.assertEqual(status, 404)
 
-    def test_runtime_assessment_reports_missing_corpus_receipts_without_qualification(self):
-        status, result = self.call("/api/runtime-assessment", "POST", {
-            "warrant": "OW-WAR-0047", "selections": []
-        })
-        self.assertEqual(status, 200, result)
-        self.assertIs(result["qualified"], False)
-        self.assertEqual(result["state"], "unknown")
-        report = result["report"]
-        self.assertEqual(report["schema"], "oh.war/report/v1")
-        self.assertIs(report["result"]["assurance_granted"], False)
-        self.assertTrue(any(s["receipt"]["code"] == "runtime-basis.receipt-missing"
-                            for s in report["result"]["stages"]), report)
-
-    def test_runtime_assessment_refuses_client_policy_and_bad_selections(self):
-        valid = {"warrant": "OW-WAR-0047", "selections": []}
-        for fields in [
-            {**valid, "native_store": "/client-selected-policy"},
-            {**valid, "qualified": True},
-            {**valid, "warrant": "../authority/roles.toml"},
-            {**valid, "selections": True},
-            {**valid, "selections": [{"stage_id": "STAGE-001", "capture_digest": "wrong"}]},
-        ]:
-            status, result = self.call("/api/runtime-assessment", "POST", fields)
-            self.assertEqual(status, 400, result)
-            self.assertIs(result["qualified"], False)
-        status, _ = self.call("/api/runtime-assessment", "POST", valid,
-                              {"Authorization": "Bearer wrong"})
-        self.assertEqual(status, 401)
-        status, _ = self.call("/api/runtime-assessment", "POST", valid,
-                              {"Origin": "https://other.example"})
-        self.assertEqual(status, 403)
-
-    def test_runtime_assessment_preserves_protected_store_refusal(self):
-        self.stop()
-        native = self.root / "executor-owned-store"
-        native.mkdir(mode=0o700)
-        self.server_args = ["--native-store", str(native)]
-        self.start()
-        status, result = self.call("/api/runtime-assessment", "POST", {
-            "warrant": "OW-WAR-0047", "selections": []
-        })
-        self.assertEqual(status, 200, result)
-        self.assertEqual(result["state"], "refused")
-        self.assertIs(result["qualified"], False)
-        self.assertEqual(result["report"]["diagnostics"][0]["rule"], "runtime.native-host")
-        self.assertEqual(result["report"]["diagnostics"][0]["severity"], "error")
-        self.assertIn("writable by the executor", result["report"]["diagnostics"][0]["message"])
-
     def test_project_inventory_keeps_legacy_and_work_separate(self):
         status, project = self.call("/api/project")
         self.assertEqual(status, 200, project)
@@ -282,7 +239,7 @@ class WorkflowTests(unittest.TestCase):
                 "--war",
                 WAR,
                 "--repo",
-                str(REPO),
+                str(getattr(self, "repo", REPO)),
                 "--state",
                 str(self.root / "state"),
                 "--port",
@@ -342,6 +299,155 @@ class WorkflowTests(unittest.TestCase):
             stored["title"] = "Corrupted title"
         path.write_text(json.dumps(stored))
         self.assertEqual(self.call("/api/warrants/" + draft["id"])[0], 409)
+
+
+class RuntimeWorkflowTests(ServiceFixture):
+    def test_runtime_capture_uses_recorded_attempt_and_preserves_unverified_history(self):
+        import base64
+        import hashlib
+        import shutil
+        self.stop()
+        self.repo = self.root / "corpus"
+        shutil.copytree(REPO / "conformance/fixtures/inbox/repository", self.repo)
+        milestones = self.repo / "docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml"
+        milestones.write_text(milestones.read_text().replace(
+            'executor_kind: "agent"', 'executor_kind: "katana"\n    executor_ref: "synthetic"', 1))
+        packet = self.repo / "dispatch.pending.json"
+        def dispatch():
+            subprocess.run([WAR, "dispatch", "IX-WAR-0003", "STAGE-001", "--prototype",
+                            "--emit", str(packet), "--json"], cwd=self.repo,
+                           capture_output=True, timeout=15, check=True)
+            return json.loads(packet.read_bytes())
+        current = dispatch()
+        self.start()
+        raw = b"synthetic unsigned inline receipt"
+        receipt = "receipt://sha256:" + hashlib.sha256(raw).hexdigest()
+        capture = {"schema": "oh.war/runtime-capture-inline/v1-draft.1",
+                   "receipt_base64": base64.b64encode(raw).decode(),
+                   "request": {"schema": "oh.war/runtime-capture-request/v1-draft.1",
+                               "dispatch_id": current["dispatch_id"], "receipt": receipt,
+                               "provider": {"kind": "katana", "identity": "synthetic", "version": "fixture/v1"},
+                               "metadata": {"observation_id": "http-inline-fixture", "observed_at": "2026-10-10T00:00:00Z",
+                                            "original_receipt_ref": "provider://synthetic/receipt", "binary_identity": None,
+                                            "source_identity": None, "transport": "http-fixture", "argv": [],
+                                            "exit_code": 0, "status": "synthetic"}}}
+        fields = {"warrant": "IX-WAR-0003", "capture": capture}
+        status, result = self.call("/api/runtime-captures", "POST", fields)
+        self.assertEqual(status, 200, result)
+        self.assertTrue(result["retained"])
+        self.assertFalse(result["qualified"])
+        self.assertEqual(result["report"]["result"]["native_observation"]["standing"], "unknown")
+        identity = result["report"]["result"]["digest"]
+        status, replay = self.call("/api/runtime-captures", "POST", fields)
+        self.assertEqual(status, 200, replay)
+        self.assertEqual(replay["report"]["result"]["digest"], identity)
+        directory = self.repo / "docs/warrants/IX-WAR-0003/runtime-receipts"
+        retained = next(directory.glob("capture-*.json"))
+        record = json.loads(retained.read_bytes())
+        self.assertEqual(record["receipt"]["base64"], base64.b64encode(raw).decode())
+        self.assertEqual(record["observation"]["binding"]["attempt"], current["attempt_id"])
+        self.assertIs(record["assurance_granted"], False)
+        for invalid, expected in [(dict(fields, native_store="/client-policy"), 400),
+                                  (dict(fields, qualified=True), 400)]:
+            status, result = self.call("/api/runtime-captures", "POST", invalid)
+            self.assertEqual(status, expected, result)
+        bad = json.loads(json.dumps(fields))
+        bad["capture"]["request"]["receipt"] = "receipt://sha256:wrong"
+        status, result = self.call("/api/runtime-captures", "POST", bad)
+        self.assertEqual(status, 200, result)
+        self.assertEqual(result["state"], "refused")
+        self.assertFalse(result["retained"])
+        self.assertEqual(len(list(directory.glob("capture-*.json"))), 1)
+        for headers, expected in [({"Authorization": "Bearer wrong"}, 401),
+                                  ({"Origin": "https://foreign.example"}, 403)]:
+            status, result = self.call("/api/runtime-captures", "POST", fields, headers)
+            self.assertEqual(status, expected, result)
+        dispatch()  # A later actual compiled attempt prevents historical fallback.
+        status, result = self.call("/api/runtime-assessment", "POST", {
+            "warrant": "IX-WAR-0003", "selections": [{"stage_id": "STAGE-001", "capture_digest": identity}]})
+        self.assertEqual(status, 200, result)
+        self.assertEqual(result["state"], "refused")
+        self.assertFalse(result["qualified"])
+        self.assertTrue(any(d["rule"] == "runtime.selection-superseded-attempt"
+                            for d in result["report"]["diagnostics"]), result)
+        self.assertEqual(json.loads(retained.read_bytes()), record)
+
+    def test_runtime_assessment_reports_missing_corpus_receipts_without_qualification(self):
+        status, result = self.call("/api/runtime-assessment", "POST", {
+            "warrant": "OW-WAR-0047", "selections": []
+        })
+        self.assertEqual(status, 200, result)
+        self.assertIs(result["qualified"], False)
+        self.assertEqual(result["state"], "unknown")
+        report = result["report"]
+        self.assertEqual(report["schema"], "oh.war/report/v1")
+        self.assertIs(report["result"]["assurance_granted"], False)
+        self.assertTrue(any(s["receipt"]["code"] == "runtime-basis.receipt-missing"
+                            for s in report["result"]["stages"]), report)
+
+    def test_runtime_assessment_refuses_client_policy_and_bad_selections(self):
+        valid = {"warrant": "OW-WAR-0047", "selections": []}
+        for fields in [
+            {**valid, "native_store": "/client-selected-policy"},
+            {**valid, "qualified": True},
+            {**valid, "warrant": "../authority/roles.toml"},
+            {**valid, "selections": True},
+            {**valid, "selections": [{"stage_id": "STAGE-001", "capture_digest": "wrong"}]},
+        ]:
+            status, result = self.call("/api/runtime-assessment", "POST", fields)
+            self.assertEqual(status, 400, result)
+            self.assertIs(result["qualified"], False)
+        status, _ = self.call("/api/runtime-assessment", "POST", valid,
+                              {"Authorization": "Bearer wrong"})
+        self.assertEqual(status, 401)
+        status, _ = self.call("/api/runtime-assessment", "POST", valid,
+                              {"Origin": "https://other.example"})
+        self.assertEqual(status, 403)
+
+    def test_runtime_assessment_preserves_protected_store_refusal(self):
+        self.stop()
+        native = self.root / "executor-owned-store"
+        native.mkdir(mode=0o700)
+        self.server_args = ["--native-store", str(native)]
+        self.start()
+        status, result = self.call("/api/runtime-assessment", "POST", {
+            "warrant": "OW-WAR-0047", "selections": []
+        })
+        self.assertEqual(status, 200, result)
+        self.assertEqual(result["state"], "refused")
+        self.assertIs(result["qualified"], False)
+        self.assertEqual(result["report"]["diagnostics"][0]["rule"], "runtime.native-host")
+        self.assertEqual(result["report"]["diagnostics"][0]["severity"], "error")
+        self.assertIn("writable by the executor", result["report"]["diagnostics"][0]["message"])
+
+
+class RuntimeProtocolTests(unittest.TestCase):
+    def test_bad_backend_reports_never_claim_capture_or_qualification(self):
+        import server
+        report = {"schema": "oh.war/report/v1", "command": "runtime", "exit_code": 0,
+                  "counts": {"error": 0, "unknown": 0}, "result": {}}
+        cases = [
+            ("assess", dict(report, result={"standing": "matches", "assurance_granted": True}), 0),
+            ("assess", dict(report, exit_code=2), 2),
+            ("capture", dict(report, result={"retained": True, "digest": "sha256:" + "0" * 64,
+                                             "assurance_granted": True}), 0),
+            ("capture", "not a JSON report", 0),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            program = root / "synthetic-protocol.py"
+            for operation, body, code in cases:
+                output = body if isinstance(body, str) else json.dumps(body)
+                program.write_text("#!" + sys.executable + "\nimport sys\nsys.stdout.write(" + repr(output)
+                                   + ")\nsys.exit(" + str(code) + ")\n")
+                program.chmod(0o700)
+                sdk = server.SDK(program, root)
+                with self.assertRaises(server.Refusal) as refused:
+                    if operation == "assess":
+                        sdk.assess_runtime({"warrant": "OW-WAR-0047", "selections": []})
+                    else:
+                        sdk.capture_runtime({"warrant": "OW-WAR-0047", "capture": {}})
+                self.assertEqual(refused.exception.status, 503)
 
 
 if __name__ == "__main__":
