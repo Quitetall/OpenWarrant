@@ -596,6 +596,15 @@ else
 fi
 
 # A policy key the store turns on governs a real consumer: presence.
+# This case has its own disposable store. Once presence is required, the
+# ordinary fixture key cannot turn it off; later revocation cases must not
+# silently bypass that policy to reset their setup.
+ST_WITHOUT_PRESENCE=$ST_DIR
+ST_DIR="$SK_TMP/presence-store"
+mkdir -m 0700 "$ST_DIR"
+/usr/bin/cp "$ST_WITHOUT_PRESENCE/state.json" "$ST_DIR/state.json"
+st_seal
+st_config on
 st_policy "$SK_TMP/presence.json" true
 st_transition presence --policy "$SK_TMP/presence.json" --role authority-admin --role authorizer --role resolver
 sk_sign SK-WAR-0009 "Plain Signer"
@@ -606,6 +615,30 @@ if [[ $SK_STATUS -ne 0 ]] && grep -q 'ERROR sign.presence-required .*by the stor
 else
     sk_fail "the store requires presence" "exit $SK_STATUS: $(grep -E '^ERROR' <<<"$SK_OUT" | head -1)"
 fi
+
+# Proposed policy relaxation does not authorize its own adoption. A valid
+# ordinary signature has no presence observation: UNKNOWN, with no new head.
+st_unseal
+"$WAR" authority status --store "$ST_DIR" --emit "$SK_TMP/down.cur.json" --unprotected-test-store >/dev/null 2>&1
+"$WAR" authority draft --current "$SK_TMP/down.cur.json" --principal plain \
+    --policy "$SK_TMP/policy.json" --role authority-admin --role authorizer --role resolver \
+    --emit "$SK_TMP/down.next.json" >/dev/null 2>&1 || st_setup_failed "draft presence downgrade"
+"$WAR" authority propose --current "$SK_TMP/down.cur.json" --next "$SK_TMP/down.next.json" \
+    --emit "$SK_TMP/down.change.json" >/dev/null 2>&1 || st_setup_failed "propose presence downgrade"
+ST_PRESENCE_BEFORE=$(st_head)
+SK_DOWNGRADE=$("$WAR" authority approve --store "$ST_DIR" --proposal "$SK_TMP/down.change.json" --principal plain \
+    --key "$SK_TMP/plain.pub" --activate --unprotected-test-store 2>&1); SK_D=$?
+ST_PRESENCE_AFTER=$(st_head)
+if [[ $SK_D -eq 2 && -n "$ST_PRESENCE_BEFORE" && "$ST_PRESENCE_BEFORE" == "$ST_PRESENCE_AFTER" ]] \
+    && grep -q 'UNKNOWN authority-user-presence-unknown' <<<"$SK_DOWNGRADE"; then
+    sk_ok "ordinary signature cannot relax required presence" "UNKNOWN, unchanged authority head"
+else
+    sk_fail "ordinary signature cannot relax required presence" "exit $SK_D, head $ST_PRESENCE_BEFORE → $ST_PRESENCE_AFTER"
+fi
+st_seal
+ST_DIR=$ST_WITHOUT_PRESENCE
+unset ST_WITHOUT_PRESENCE
+st_config on
 
 # The store removes the human's grant: the next act is refused at the new head.
 st_transition revoke --policy "$SK_TMP/policy.json" --role authority-admin --role resolver

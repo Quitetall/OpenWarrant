@@ -342,3 +342,28 @@ unprotected. Adding a key to this list later is a store revision.
 | The loopback page's token guards the local server and is never a cookie | `webui/mod.rs` loopback route; `63-webui.sh`; THREAT_MODEL row 13a |
 | A paired device's credential reads and requests, and never signs or causes a signature | `pairing.rs` `Store::authenticate`, `mod.rs` `serve_lan`, `start_act` (`act.host-only`), `request_at_host`; `59-webui-lan.sh` OBL-002, OBL-003; THREAT_MODEL row 13b |
 | The device credential is issued only by a `y` typed at the host, and stored only as a hash outside the repository | `mod.rs` `pair`, `pairing.rs` `Store::issue`, `Store::open`; `59-webui-lan.sh` OBL-002, OBL-004; `pairing.rs` unit tests |
+
+## New authority activation and retained history
+
+New v2 authority activation uses the signer's role and actor kind from the
+current protected revision. The signer must be human. An agent or policy service
+cannot change its own permissions, including through a proposal that changes its
+own kind to human. A current v2 principal with no actor binding leaves eligibility
+UNKNOWN. Approval, activation and `authority check` use this prospective admission.
+
+If the current policy requires user presence, the host checks authenticator flags
+only after every signature has passed cryptographic verification. An ordinary SSH
+signature supplies no evidence of presence (UNKNOWN). An authenticated security-key
+signature with the presence flag clear is refused. The proposed policy cannot
+turn off the current policy for its own adoption. These checks do not establish
+personal review or private-key custody.
+
+Retained authority history keeps its original signature and role validation.
+This change does not rewrite old records or retroactively apply new admission to
+them. Legacy v1 retains its existing role-only activation contract; it has no
+actor-kind or presence policy and cannot supply those v2 assurances. Upgrade to v2
+through the operator's protected authority setup to enforce explicit bindings.
+
+The new activation controls use in-memory software signatures, including simulated
+security-key flags. They establish bounded cryptographic and policy observations,
+not a real human act, physical authenticator observation or operator deployment.

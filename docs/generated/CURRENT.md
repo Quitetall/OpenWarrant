@@ -35887,19 +35887,19 @@ test mode is labeled in every record it produces.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | docs/AUTHENTICATION.md: the human and session authentication contract | `docs/AUTHENTICATION.md` | verified |
+| D-001 | docs/AUTHENTICATION.md: the human and session authentication contract | `docs/AUTHENTICATION.md` | drift |
 | D-002 | authority_check reads the store; no legacy fallback | `crates/openwarrant-cli/src/authority_check.rs` | drift |
 | D-003 | presence flags from the sshsig blob | `crates/openwarrant-core/src/presence.rs` | verified |
 | D-004 | sign records presence; refuses by policy and on actor-key mismatch | `crates/openwarrant-cli/src/sign.rs` | drift |
-| D-005 | revision v2: actor kind and protected policy | `crates/openwarrant-core/src/authority_transition.rs` | verified |
+| D-005 | revision v2: actor kind and protected policy | `crates/openwarrant-core/src/authority_transition.rs` | drift |
 | D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | drift |
 | D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | drift |
 | D-008 | authority.md: the cutover | `docs/cli/authority.md` | drift |
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | drift |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | drift |
-| D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | verified |
-| D-013 | store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004) | `crates/openwarrant-cli/src/authority_cmd/store.rs` | verified |
+| D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | drift |
+| D-013 | store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004) | `crates/openwarrant-cli/src/authority_cmd/store.rs` | drift |
 | D-014 | check.rs emits authority.unprotected and policy.unprotected-divergence (AM-004) | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-015 | repo.rs applies the store's protected policy keys on open (AM-004) | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-016 | 0096's transition tests name the v2 fields (AM-004) | `crates/openwarrant-core/tests/authority_transition.rs` | verified |

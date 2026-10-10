@@ -1,0 +1,12 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-collector-ssh-verifier/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized] target(s) in 23.89s
+     Running tests/collector_signature.rs (/mnt/4tb/OpenWarrant/target/debug/deps/collector_signature-a3ddbe552e28c17d)
+
+running 4 tests
+test unavailable_scratch_and_invalid_deadlines_do_not_pass ... ok
+test real_openssh_verifies_exact_bytes_without_inferring_presence ... ok
+test enrollment_checks_use_real_crypto_and_keep_presence_requirements ... ok
+test authenticated_software_sk_flags_are_observed_only_after_crypto ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "BLUT and Katana process adapters are merged into OpenWarrant; Katana native receipt interfaces merged upstream at 5a735133 with all hosted checks passing. A candidate core collector enrollment codec checks exact current authority, human-admin signature policy, executable/provider identity and explicit Warrant scope. Eight synthetic-adapter controls and 705 core regressions pass. Real cryptographic transport, protected operator custody, activation, native collector wiring and independent/participant qualification remain open.",
+  "summary": "BLUT/Katana process adapters and the core enrollment codec are merged. Candidate additions provide current-policy authority admission, cryptographic collector verification, actual-account protected store loading, operator activation with retained selection history, and fresh checks per use. This branch adds approved-image SHA256 observation and sealed Linux execution; two unit controls and a two-account path-replacement control pass. Hosted integration, native adapter wiring, authenticated caller identity, dynamic dependencies, launch/revocation fencing, operator deployment and independent/participant qualification remain open. A retained-capability bypass of real-UID authority write checks was reproduced and repaired using effective-permission observations; the same namespace worker is now refused.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -19,12 +19,20 @@
     "docs/warrants/OW-WAR-0149/implementation/blut-native-roundtrip-20261009.md",
     "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/native-regression.log",
     "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/root-boundary-green.log",
-    "docs/warrants/OW-WAR-0149/implementation/collector-enrollment-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/collector-enrollment-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/collector-ssh-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/collector-loading-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/activation-admission-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/execution-readable-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/collector-activation-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/verifier-observations-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/protected-executable-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/effective-access-20261010/README.md"
   ],
   "next_steps": [
-    "Implement reference signature verification and protected collector enrollment/activation; pure SDK checks do not authenticate or isolate the host.",
+    "Finish protected enrollment drafting/signing and native collector workflow wiring; selected configuration does not authenticate the acting collector or fence a native launch.",
     "Wire trusted collector policy and native verifier into the actual workflow request/response path; preserve UNKNOWN for absent custody, spend or confinement observations.",
     "Complete actual provider integrations, independent verification and participant qualification without inventing acceptance."
   ],
-  "revision": "parent:1ce4d78f1960feaf78690f64ff3698d460e39d45"
+  "revision": "parent:09b7edc1"
 }

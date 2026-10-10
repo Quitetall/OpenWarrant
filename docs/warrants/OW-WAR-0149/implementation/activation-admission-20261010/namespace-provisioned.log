@@ -1,0 +1,21 @@
+
+running 1 test
+
+running 1 test
+
+running 1 test
+execution UID 1: authority write refused; real enrollment accepted; mismatched execution UID and signed revocation refused
+test namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.02s
+
+operator UID 0: software-signed authority transition applied; fixture removed; no human acceptance or host-account qualification claimed
+test namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.02s
+
+
+test protected_namespace_roundtrip ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.03s
+

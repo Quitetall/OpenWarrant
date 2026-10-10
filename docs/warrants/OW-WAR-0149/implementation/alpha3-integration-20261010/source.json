@@ -1,0 +1,12 @@
+{
+  "base_main": "f35c8e777aa8fd1105efa250e5f45d0037f6b800",
+  "parent_merge": "751a486c",
+  "toolchain": "1.97.1",
+  "sources": {
+    "crates/openwarrant-cli/tests/all.rs": "bef6764199aff0663143add29d513638c339d16fd6c8661ed5415a11085929ee",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "ad05bd1506e0be027b8d93823c52a2eb227b378347ff748110da1f0fca76b906"
+  },
+  "compiler_snapshot_sha256": "ece2030792b1ca51fe0eab5581f4ab80d076f14a49bf2bbc4b4601596875aad7",
+  "independent_verification": "not-established",
+  "release_qualification": "not-established"
+}

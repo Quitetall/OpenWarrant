@@ -1,0 +1,21 @@
+{
+  "based_on": "255a1fe4bd6db1166931c80b3b59a5455f9001ad",
+  "toolchain": "1.97.1",
+  "sources": {
+    "crates/openwarrant-cli/src/runtime_capture.rs": "2497d7b61b19f765f92bcbb906c3dd4eeb36c115971cb75051d0026c4ef6bf2d",
+    "crates/openwarrant-cli/src/runtime_capture/process.rs": "1e94ef1026644237348bf54d2bd41f67ea7ba46d687987084db38465cdf757ae",
+    "crates/openwarrant-cli/src/runtime_capture/collector_signature.rs": "d13b6778025dece774df7ca3edb648b209823a2724a9caf0c3cd67bd369b6355",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "1f10955a16451fc1fc475b9ddd6811a8e8b8ce3c45f71b1ff88b7713f7ad041d"
+  },
+  "controls": {
+    "pass": 4,
+    "fail": 0,
+    "ignored": 0
+  },
+  "process_regressions": {
+    "pass": 17,
+    "fail": 0,
+    "ignored_native_tests": 2
+  },
+  "qualification": "not-established"
+}

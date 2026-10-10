@@ -357,6 +357,43 @@ pub fn authorize_transition(
     }
     Ok(())
 }
+/// Admission for a new activation, separate from retained-history validation.
+/// A v2 administrator/recovery signer must be human in the CURRENT revision;
+/// proposed self-promotion grants nothing. Missing v2 kind is unknown. Hosts
+/// must authenticate signatures and enforce presence policy separately.
+/// Legacy v1 retains its existing role-only contract and makes no actor-kind
+/// or human-presence claim. Use v2 to enforce those explicit bindings.
+pub fn authorize_activation(
+    previous: &Revision,
+    proposal: &Proposal,
+    authenticated_signers: &BTreeSet<String>,
+) -> Result<(), Error> {
+    authorize_transition(previous, proposal, authenticated_signers)?;
+    if previous.version() == 2 {
+        // A known refusal must not be hidden behind another signer's unknown.
+        if authenticated_signers.iter().any(|id| {
+            matches!(
+                previous.principals[id].kind,
+                Some(ActorKind::Agent | ActorKind::PolicyService)
+            )
+        }) {
+            return Err(err(
+                "authority-signer-not-human",
+                "New authority activation requires human signers in current trusted v2 authority",
+            ));
+        }
+        if authenticated_signers
+            .iter()
+            .any(|id| previous.principals[id].kind.is_none())
+        {
+            return Err(err(
+                "authority-signer-kind-unknown",
+                "Current v2 authority does not establish every signer's actor kind",
+            ));
+        }
+    }
+    Ok(())
+}
 fn safe_name(s: &str, max: usize) -> bool {
     !s.is_empty()
         && s.len() <= max
@@ -672,5 +709,60 @@ mod tests {
         let mut b = a.clone();
         b.next.policy.as_mut().unwrap().allow_automated_resolution = true;
         assert_ne!(a.signing_bytes().unwrap(), b.signing_bytes().unwrap());
+    }
+
+    #[test]
+    fn new_v2_activation_requires_current_human_admin_without_rewriting_history() {
+        for kind in [ActorKind::Human, ActorKind::Agent, ActorKind::PolicyService] {
+            let mut previous = v2();
+            previous.principals.get_mut("alice").unwrap().kind = Some(kind);
+            let mut next = previous.clone();
+            next.sequence += 1;
+            // Self-promotion in the proposal does not change the current signer.
+            next.principals.get_mut("alice").unwrap().kind = Some(ActorKind::Human);
+            next.policy.as_mut().unwrap().allow_automated_resolution = true;
+            let proposal = Proposal {
+                schema: PROPOSAL_SCHEMA.into(),
+                operation: Operation::Update,
+                previous_digest: previous.digest().unwrap(),
+                next,
+            };
+            let signers = BTreeSet::from(["alice".into()]);
+            // Historical cryptographic/role validation remains unchanged.
+            authorize_transition(&previous, &proposal, &signers).unwrap();
+            let admission = authorize_activation(&previous, &proposal, &signers);
+            if kind == ActorKind::Human {
+                admission.unwrap();
+            } else {
+                assert_eq!(admission.unwrap_err().code, "authority-signer-not-human");
+            }
+        }
+    }
+
+    #[test]
+    fn unbound_v2_signer_is_unknown_and_legacy_v1_role_check_is_preserved() {
+        for previous in [v1(), {
+            let mut r = v2();
+            let principal = r.principals.get_mut("alice").unwrap();
+            principal.kind = None;
+            principal.actor = None;
+            r
+        }] {
+            let mut next = previous.clone();
+            next.sequence += 1;
+            let proposal = Proposal {
+                schema: PROPOSAL_SCHEMA.into(),
+                operation: Operation::Update,
+                previous_digest: previous.digest().unwrap(),
+                next,
+            };
+            let result =
+                authorize_activation(&previous, &proposal, &BTreeSet::from(["alice".into()]));
+            if previous.version() == 1 {
+                result.unwrap();
+            } else {
+                assert_eq!(result.unwrap_err().code, "authority-signer-kind-unknown");
+            }
+        }
     }
 }

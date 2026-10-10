@@ -1,0 +1,30 @@
+{
+  "counts": {
+    "pass": 2026,
+    "warn": 542,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "new_diagnostics": [
+    {
+      "rule": "deliverable.pin-stale",
+      "file": "docs/warrants/OW-WAR-0138/deliverables.toml",
+      "deliverable": "D-001",
+      "count": 1
+    },
+    {
+      "rule": "deliverable.pin-stale",
+      "file": "docs/warrants/OW-WAR-0138/deliverables.toml",
+      "deliverable": "D-005",
+      "count": 1
+    },
+    {
+      "rule": "deliverable.pin-stale",
+      "file": "docs/warrants/OW-WAR-0138/deliverables.toml",
+      "deliverable": "D-012",
+      "count": 1
+    }
+  ],
+  "interpretation": "Unsigned historical OW-WAR-0138 delivery manifest has stale source pins; no resolved pin or authority record was rewritten."
+}

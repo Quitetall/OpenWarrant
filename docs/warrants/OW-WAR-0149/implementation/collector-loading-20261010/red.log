@@ -1,0 +1,11 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-collector-store-loader/crates/openwarrant-core)
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-collector-store-loader/crates/openwarrant-cli)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow-collector-store-loader/crates/openwarrant-compiler)
+error[E0432]: unresolved import `openwarrant_cli::runtime_capture::collector_loading`
+ --> crates/openwarrant-cli/tests/collector_loading.rs:3:40
+  |
+3 | use openwarrant_cli::runtime_capture::{collector_loading::LoadedEnrollment, collector_signature::OpenSshSignatureCheck};
+  |                                        ^^^^^^^^^^^^^^^^^ could not find `collector_loading` in `runtime_capture`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `openwarrant-cli` (test "collector_loading") due to 1 previous error
