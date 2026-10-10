@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 set -eu
 cd /mnt/4tb/tmp/openwarrant-native-input-retention
 log=docs/warrants/OW-WAR-0149/implementation/native-inputs-20261010

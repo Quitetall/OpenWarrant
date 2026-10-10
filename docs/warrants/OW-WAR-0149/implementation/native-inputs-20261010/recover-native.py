@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Owned CPU-fixture observation. Never executes archived producer code or grants trust."""
 import base64, hashlib, json, os, pathlib, shutil, subprocess, sys
 cli, source, out, verifier = map(pathlib.Path, sys.argv[1:])

@@ -33,3 +33,13 @@ public fixture key as test material, checks byte-identical re-export and require
 changed-signature and changed-job rejection. It deletes only its owned source
 copy after successful export and preserves the exact archive. It completed the bounded observation above. Actual KF recovery, protected custody and independent qualification
 remain separate work.
+
+After synchronizing authored records and regenerating with the CLI, the sole
+failed projection test passed on rerun. The generated check reported 2,028
+passes, 625 warnings, zero errors and zero unknowns. Strict Clippy passed for
+all CLI features and targets. These observations settle the exercised candidate
+controls, not independent assurance or release qualification.
+
+The merged archive query PR194 is on main at
+`4926f662625ee47226c477f82db1da6611c02136`. This candidate remains stacked on
+PR197 and requires integration into main and its full hosted gate.
