@@ -1,5 +1,16 @@
 # Dispatch-bound runtime capture
 
+The candidate BLUT process verifier is documented in
+[BLUT process adapter](blut-process-20261009/README.md). It requires explicit
+host-trusted configuration. Synthetic public transport tests do not establish
+native seal validation or provider qualification; default CLI enrollment remains
+unimplemented.
+
+A [real local CPU/native receipt/SDK roundtrip](blut-native-roundtrip-20261009.md)
+has now been observed with public test keys. It matches runtime requirement 12,
+refuses altered signatures and wrong catalogs, and returns UNKNOWN when current
+job evidence disappears. It grants no assurance or production qualification.
+
 Candidate reference SDK and CLI implementation, 2026-10-09. Performer-reported work only; no native provider qualification, independent verdict, participant acceptance or human signature.
 
 ## Use

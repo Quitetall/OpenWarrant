@@ -113,6 +113,46 @@ fn a_root_with_no_repository_names_that_root_and_not_the_cwd() {
 }
 
 #[test]
+fn an_explicit_empty_child_cannot_select_its_parent_repository() {
+    let parent = scratch("parent");
+    let parent_s = parent.to_str().unwrap();
+    let initialized = war_from(
+        &std::env::temp_dir(),
+        &[
+            "init",
+            "--program",
+            "Parent Boundary",
+            "--namespace",
+            "PB",
+            "--root",
+            parent_s,
+        ],
+    );
+    assert!(
+        initialized.status.success(),
+        "{}",
+        String::from_utf8_lossy(&initialized.stderr)
+    );
+    let child = parent.join("empty-child");
+    std::fs::create_dir(&child).unwrap();
+    let output = war_from(&parent, &["--root", child.to_str().unwrap(), "check"]);
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        !output.status.success(),
+        "explicit child acted on parent: {text}"
+    );
+    assert!(
+        text.contains(child.to_str().unwrap()),
+        "missing child in refusal: {text}"
+    );
+    std::fs::remove_dir_all(parent).unwrap();
+}
+
+#[test]
 fn an_sdk_caller_still_gets_an_envelope_behind_the_root_flag() {
     // `main`'s pre-clap heuristic looks for the subcommand by stepping over
     // the global flags. `--root` takes a value, so a bare `--root <path>`
