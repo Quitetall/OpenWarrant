@@ -9,3 +9,5 @@ A Linux namespace fixture runs separate operator and executor UIDs over an emitt
 Failures remain in the evidence: the pre-implementation case rejected unsupported host schema; an initial test-control placement failed compilation; the first broader runtime run failed because an ordinary-process fixture depended on the original argument order. The order was restored without changing the fixture or weakening the control. Final results and exact hashes are in `observation.json` and retained compressed logs.
 
 This is implementation evidence from a scripted CPU fixture. It is not production key custody, hardware human presence, metered cost, confinement, an atomic revocation fence, independent qualification or Warrant completion. External BLUT PR103 and PR104 still require genuine contributor agreement. Study participants are not available. Historical observations, signatures and dispositions are unchanged.
+
+Record/projection integrity: 2,028 passes, 625 warnings, zero errors and zero unknowns. This check executes no repository gate. The candidate is submitted to the full main-branch CI gate separately.
