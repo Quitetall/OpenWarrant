@@ -204,6 +204,8 @@ value of the `--json` envelope, the same under either spelling.
 | `war admin schemas` (built with `--features schema`) | `war schemas` | `schemas` |
 | `war admin merge-ticket` | `war merge-ticket` | `merge-ticket` |
 | `war admin preset` (M14) | none: new, and only under the group | `preset` |
+| `war admin ledger` (M17: `record`, `prune`, `import`, `export`) | none: new, and only under the group | `ledger.record`, `ledger.prune`, `ledger.import`, `ledger.export` |
+| `war admin score` (M17) | none: new, and only under the group | `score`, `score.weights`, `score.statement`, `score.verify` |
 
 ### Top level, hidden, no group
 
@@ -254,6 +256,11 @@ value of the `--json` envelope, the same under either spelling.
 - **`dispatch` and `dispatch-bundle` stay under `admin`**, as planned: the
   agent's stage loop (`war next` hands an agent `war admin dispatch <alias>
   <stage>`) is plumbing a newcomer never types.
+- **`ledger` and `score` are under `admin`** (M17, docs/LEDGER.md,
+  docs/SCORE.md): both maintain what compile regenerates. The score itself
+  is also the last block of `war status`, and its CI floor is a flag of the
+  daily `war check` (`--floor <rev>`, envelope `check.floor`), so neither
+  needs a thirteenth daily verb.
 - **`merge-ticket` is listed under `admin`.** It was hidden at the top level
   because git, not a person, runs it; `war admin merge-ticket --install` is
   the spelling messages name. The git configuration it writes still calls

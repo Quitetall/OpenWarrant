@@ -234,13 +234,19 @@ fn skipped(name: &str) -> bool {
 }
 
 /// The directories, relative to the root, a walk never enters: the Warrant
-/// tree and the ticket tree.
+/// tree, the ticket tree, and the file ledger's atoms (M17), which are the
+/// ledger's records, not development documents.
 fn pruned(repo: &Repository) -> BTreeSet<String> {
     let mut out = BTreeSet::new();
     out.insert(repo.config.paths.warrants.trim_end_matches('/').to_owned());
     if let Ok(store) = crate::ticket::Store::open(repo, None) {
         out.insert(repo.relative(&store.dir));
     }
+    out.insert(
+        crate::ledger::Config::read(&repo.root)
+            .map(|c| c.dir)
+            .unwrap_or_else(|_| crate::ledger::DEFAULT_DIR.to_owned()),
+    );
     out
 }
 

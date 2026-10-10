@@ -8,6 +8,13 @@
 # the reviews and the base branch's [preset] and [roles] are read through
 # `gh api`; a call that fails is UNKNOWN and fails the check, never passes it.
 #
+# M17 (docs/SCORE.md): it also scores the checkout (1-1000, a level, next
+# steps) into the job summary and `score-dir` (badge.svg, badge.json,
+# report.md, report.html, statement.intoto.json), which a later step may
+# upload or publish. When the base branch's openwarrant.toml says
+# `[score] floor = true`, the check also refuses a PR that lowers the level;
+# the base is scored from this clone, so check out with `fetch-depth: 0`.
+#
 # Pin it by commit, as every action should be:
 #   - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
 #
@@ -47,10 +54,26 @@ inputs:
     description: The checkout the cited Warrants are read from.
     required: false
     default: "."
+  score:
+    description: >-
+      Also score the checkout into the job summary and score-dir ("true").
+      The CI floor does not depend on it: the base's [score] floor turns
+      that on.
+    required: false
+    default: "true"
 outputs:
   verdict:
     description: pass, not_required, refused or unknown.
     value: ${{ steps.check.outputs.verdict }}
+  score:
+    description: The score, 1 to 1000 (empty when not scored).
+    value: ${{ steps.score.outputs.score }}
+  level:
+    description: The level, 1 to 5 (empty when not scored).
+    value: ${{ steps.score.outputs.level }}
+  score-dir:
+    description: The badge, report and in-toto statement (empty when not scored).
+    value: ${{ steps.score.outputs.dir }}
 runs:
   using: composite
   steps:
@@ -74,6 +97,26 @@ runs:
         fi
         echo "$root/bin" >> "$GITHUB_PATH"
         "$root/bin/war" --version
+    - name: Score the checkout
+      id: score
+      if: ${{ inputs.score == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        OPENWARRANT_NO_UPDATE_CHECK: "1"
+      run: |
+        set -uo pipefail
+        dir="$RUNNER_TEMP/openwarrant/score"
+        if war admin score --out "$dir" > /dev/null; then
+          python3 -c 'import json,sys
+        s = json.load(open(sys.argv[1]))
+        print("score=%d" % s["score"])
+        print("level=%d" % s["level"]["number"])' "$dir/score.json" >> "$GITHUB_OUTPUT"
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+          cat "$dir/report.md" >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "the score could not be computed; the check below does not depend on it"
+        fi
     - name: Check the pull request
       id: check
       shell: bash

@@ -4,6 +4,11 @@
 # SAS §59.1 "disposable": caches and derived state that must never be a source.
 .openwarrant/cache/
 .openwarrant/state/
+# M17: the ledger's JSONL and the score's badge, report and trend, regenerated
+# by `war admin compile` (`.openwarrant/.gitignore` says the same for adopters).
+.openwarrant/ledger.jsonl
+.openwarrant/score/
+.openwarrant/.gitignore
 
 # Generated views are NOT listed here on purpose. This repository sets
 # `[generated] commit = true, verify_drift = true` (§59.2), so compiled parents

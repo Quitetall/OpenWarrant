@@ -313,9 +313,17 @@ jobs:
 The job reruns when someone reviews, because an approving review can be
 what makes the cited Warrant official. Its inputs are `pr` (default: the
 event's), `github-token` (default: `github.token`), `war-version`,
-`comment` and `working-directory`; its output `verdict` is `pass`,
+`comment`, `working-directory` and `score`; its output `verdict` is `pass`,
 `not_required`, `refused` or `unknown`. The job summary carries the gate's
 table either way.
+
+It also scores the checkout (docs/SCORE.md): the report goes to the job
+summary, and the outputs `score`, `level` and `score-dir` (the badge, report
+page and in-toto statement) let a later step upload or publish them;
+`score: "false"` skips it. With `[score] floor = true` in the base branch's
+openwarrant.toml, the check also refuses a PR that lowers the level. The
+base is scored from the clone, so give `actions/checkout` `fetch-depth: 0`;
+without the base commit the floor is UNKNOWN, which fails the check.
 
 Then make it required with a ruleset:
 
