@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Current-attempt assessment feeds resolution requirement 12 through a trusted native SDK seam. A bounded BLUT process adapter verified a real local CPU receipt against a recorded prototype Dispatch; signature and catalog mismatches refused, and a missing current job remained UNKNOWN. Authenticated operator custody, other providers and independent/participant qualification remain incomplete.",
+  "summary": "BLUT and Katana process adapters are merged into OpenWarrant; Katana native receipt interfaces merged upstream at 5a735133 with all hosted checks passing. A candidate core collector enrollment codec checks exact current authority, human-admin signature policy, executable/provider identity and explicit Warrant scope. Eight synthetic-adapter controls and 705 core regressions pass. Real cryptographic transport, protected operator custody, activation, native collector wiring and independent/participant qualification remain open.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -18,12 +18,13 @@
     "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/README.md",
     "docs/warrants/OW-WAR-0149/implementation/blut-native-roundtrip-20261009.md",
     "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/native-regression.log",
-    "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/root-boundary-green.log"
+    "docs/warrants/OW-WAR-0149/implementation/blut-process-20261009/root-boundary-green.log",
+    "docs/warrants/OW-WAR-0149/implementation/collector-enrollment-20261010/README.md"
   ],
   "next_steps": [
-    "Publish and agree provider-owned native receipt and verification surfaces.",
-    "Publish authenticated provider collectors and wire their established native verifier/policy into the workflow request and response path; current CLI deliberately has no native adapter.",
-    "Run actual provider integrations and independent/participant qualification; do not infer assurance from retained captures."
+    "Implement reference signature verification and protected collector enrollment/activation; pure SDK checks do not authenticate or isolate the host.",
+    "Wire trusted collector policy and native verifier into the actual workflow request/response path; preserve UNKNOWN for absent custody, spend or confinement observations.",
+    "Complete actual provider integrations, independent verification and participant qualification without inventing acceptance."
   ],
-  "revision": "ca729ebceae2ca94dc7d607ee634f2f524ff21a4"
+  "revision": "parent:1ce4d78f1960feaf78690f64ff3698d460e39d45"
 }

@@ -1,0 +1,8 @@
+{
+  "parent": "7c83899a",
+  "files": {
+    "crates/openwarrant-core/src/runtime_collector.rs": "sha256:14d3caa79d24b1f85f20f9504faa9dfb9fa027c2eea7598fe53ed0f04150296f",
+    "crates/openwarrant-core/tests/runtime_collector.rs": "sha256:ab8a4669806d8f1eb63a9f1df4c3537b5760f71bf02ff1ac79197a59ae2f4f46"
+  },
+  "scope": "synthetic signature adapter; no cryptographic or operator qualification"
+}

@@ -1,0 +1,24 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-runtime-collector-auth/crates/openwarrant-core)
+error[E0277]: the trait bound `Array<u8, UInt<UInt<UInt<UInt<..., ...>, ...>, ...>, ...>>: LowerHex` is not satisfied
+   --> crates/openwarrant-core/src/runtime_collector.rs:129:35
+    |
+129 |         Ok(format!("sha256:{:x}", hash.finalize()))
+    |                            ----   ^^^^^^^^^^^^^^^ the trait `LowerHex` is not implemented for `Array<u8, UInt<UInt<UInt<UInt<UInt<..., ...>, ...>, ...>, ...>, ...>>`
+    |                            |
+    |                            required by this formatting parameter
+    |
+    = help: the following other types implement trait `LowerHex`:
+              &T
+              &mut T
+              Braced
+              Hyphenated
+              Saturating<T>
+              Simple
+              Urn
+              Uuid
+            and 19 others
+    = note: the full name for the type has been written to '/mnt/4tb/OpenWarrant/target/debug/deps/openwarrant_core-6c1463771e7cc57a.long-type-5604355850090675943.txt'
+    = note: consider using `--verbose` to print the full type name to the console
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `openwarrant-core` (lib) due to 1 previous error
