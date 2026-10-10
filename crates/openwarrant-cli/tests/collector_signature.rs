@@ -401,18 +401,40 @@ fn namespace_fixture_entry() {
     fs::write(&genesis_file, genesis.encode().unwrap()).unwrap();
     let authority_command = |args: &[&str]| {
         let out = Command::new("/usr/bin/timeout")
-            .arg("10").arg(env!("CARGO_BIN_EXE_war"))
-            .args(args).env_clear().env("PATH", "/usr/bin:/bin")
-            .env("OPENWARRANT_NO_PROJECTS", "1").env("OPENWARRANT_NO_UPDATE_CHECK", "1")
-            .output().unwrap();
-        assert!(out.status.success(), "authority command failed: {} {}",
-            String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
+            .arg("10")
+            .arg(
+                std::env::var_os("OW_COLLECTOR_FIXTURE_WAR")
+                    .unwrap_or_else(|| env!("CARGO_BIN_EXE_war").into()),
+            )
+            .args(args)
+            .env_clear()
+            .env("PATH", "/usr/bin:/bin")
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "authority command failed: {} {}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
         out
     };
     for (name, uid) in [("store", "1"), ("mismatched-store", "2")] {
-        authority_command(&["authority", "bootstrap", "--store", root.join(name).to_str().unwrap(),
-            "--revision", genesis_file.to_str().unwrap(), "--expected-digest", &genesis.digest().unwrap(),
-            "--agent-uid", uid, "--execution-readable"]);
+        authority_command(&[
+            "authority",
+            "bootstrap",
+            "--store",
+            root.join(name).to_str().unwrap(),
+            "--revision",
+            genesis_file.to_str().unwrap(),
+            "--expected-digest",
+            &genesis.digest().unwrap(),
+            "--agent-uid",
+            uid,
+            "--execution-readable",
+        ]);
     }
     let enrollment = Enrollment {
         schema: SCHEMA.into(),
@@ -491,8 +513,16 @@ fn namespace_fixture_entry() {
         assert!(Instant::now() < deadline, "executor readiness unavailable");
         std::thread::sleep(Duration::from_millis(10));
     }
-    authority_command(&["authority", "activate", "--store", root.join("store").to_str().unwrap(),
-        "--proposal", proposal_file.to_str().unwrap(), "--signature", &format!("owner={}", signature_file.display())]);
+    authority_command(&[
+        "authority",
+        "activate",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--proposal",
+        proposal_file.to_str().unwrap(),
+        "--signature",
+        &format!("owner={}", signature_file.display()),
+    ]);
     fs::write(root.join("updated"), b"updated").unwrap();
     let deadline = Instant::now() + Duration::from_secs(10);
     let status = loop {

@@ -104,6 +104,13 @@ pub enum Command {
         expected_digest: String,
         #[arg(long)]
         agent_uid: Option<u32>,
+        /// Publish public authority metadata read-only for the separate execution account.
+        #[arg(
+            long,
+            requires = "agent_uid",
+            conflicts_with = "unprotected_test_store"
+        )]
+        execution_readable: bool,
         #[arg(long)]
         legacy_dir: Option<PathBuf>,
         #[arg(long)]
@@ -411,6 +418,7 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
             revision: input,
             expected_digest,
             agent_uid,
+            execution_readable,
             legacy_dir,
             unprotected_test_store,
         } => store::bootstrap(
@@ -420,6 +428,7 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
             agent_uid,
             legacy_dir.as_deref(),
             unprotected_test_store,
+            execution_readable,
         )?,
         Command::Activate {
             store: root,

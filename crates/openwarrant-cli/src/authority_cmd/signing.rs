@@ -298,6 +298,7 @@ mod tests {
                 None,
                 None,
                 true,
+                false,
             )
             .unwrap();
             let state = scratch.0.join("state.json");
@@ -319,6 +320,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .unwrap();
         let view = store::activate(&scratch.0, record, true).unwrap();
@@ -370,6 +372,7 @@ mod tests {
                     None,
                     None,
                     true,
+                    false,
                 )
                 .unwrap();
                 let state = scratch.0.join("state.json");

@@ -7,12 +7,19 @@ struct State {
     schema: String,
     agent_uid: Option<u32>,
     unprotected_test_store: bool,
+    /// Public authority metadata may be read by the execution account. Never
+    /// gives that account write access or changes who may activate authority.
+    #[serde(default, skip_serializing_if = "is_false")]
+    execution_readable: bool,
     genesis: Revision,
     legacy: BTreeMap<String, Vec<u8>>,
     transitions: Vec<Signed>,
     // Absent on older snapshots. Never invent observation times for old acts.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     activation_receipts: BTreeMap<u64, ActivationReceipt>,
+}
+fn is_false(value: &bool) -> bool {
+    !value
 }
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -74,12 +81,12 @@ impl State {
     }
     fn view(&self) -> Result<serde_json::Value> {
         Ok(
-            serde_json::json!({"current":self.current(),"head":self.current().digest().map_err(err)?,"transitions":self.transitions.len(),"legacy_files":self.legacy.keys().collect::<Vec<_>>(),"isolation_enforced":false,"storage_boundary":if self.unprotected_test_store{"unprotected-test"}else{"separate-account-required"},"configured_agent_uid":self.agent_uid,"human_review_established":false,"activation_receipts":self.activation_receipts,"missing_activation_receipts":self.transitions.len()-self.activation_receipts.len(),"activation_time_authenticated":false}),
+            serde_json::json!({"current":self.current(),"head":self.current().digest().map_err(err)?,"transitions":self.transitions.len(),"legacy_files":self.legacy.keys().collect::<Vec<_>>(),"isolation_enforced":false,"storage_boundary":if self.unprotected_test_store{"unprotected-test"}else{"separate-account-required"},"configured_agent_uid":self.agent_uid,"execution_readable":self.execution_readable,"human_review_established":false,"activation_receipts":self.activation_receipts,"missing_activation_receipts":self.transitions.len()-self.activation_receipts.len(),"activation_time_authenticated":false}),
         )
     }
 }
 #[cfg(unix)]
-fn guard(root: &Path, agent: Option<u32>, test: bool) -> Result<()> {
+fn guard(root: &Path, agent: Option<u32>, test: bool, execution_readable: bool) -> Result<()> {
     use std::os::unix::fs::MetadataExt;
     let uid = rustix::process::geteuid().as_raw();
     if !root.is_absolute()
@@ -106,13 +113,13 @@ fn guard(root: &Path, agent: Option<u32>, test: bool) -> Result<()> {
         }
     }
     let m = fs::symlink_metadata(root).map_err(err)?;
-    if !test && (m.uid() != uid || (m.mode() & 0o077) != 0) {
+    if !test && (m.uid() != uid || (!execution_readable && (m.mode() & 0o077) != 0)) {
         return Err(err("authority-store-private-owner-required"));
     }
     Ok(())
 }
 #[cfg(not(unix))]
-fn guard(_: &Path, _: Option<u32>, _: bool) -> Result<()> {
+fn guard(_: &Path, _: Option<u32>, _: bool, _: bool) -> Result<()> {
     Err(err("authority-store-platform-unsupported"))
 }
 #[cfg(unix)]
@@ -155,7 +162,7 @@ fn load(root: &Path, test: bool) -> Result<State> {
     if state.unprotected_test_store != test {
         return Err(err("authority-store-mode-mismatch"));
     }
-    guard(root, state.agent_uid, test)?;
+    guard(root, state.agent_uid, test, state.execution_readable)?;
     state.validate()?;
     Ok(state)
 }
@@ -173,6 +180,17 @@ fn persist(root: &Path, state: &State) -> Result<()> {
             .as_nanos()
     ));
     write_new(&temp, &bytes)?;
+    #[cfg(unix)]
+    if state.execution_readable {
+        use std::os::unix::fs::PermissionsExt;
+        // Only public authority metadata is shared. The lock and signing keys
+        // are not published. Readers still cannot write the directory or file.
+        fs::set_permissions(&temp, fs::Permissions::from_mode(0o644)).map_err(err)?;
+        fs::File::open(&temp)
+            .map_err(err)?
+            .sync_all()
+            .map_err(err)?;
+    }
     if let Err(e) = fs::rename(&temp, root.join("state.json")) {
         let _ = fs::remove_file(&temp);
         return Err(err(e));
@@ -188,8 +206,12 @@ pub(super) fn bootstrap(
     agent: Option<u32>,
     legacy: Option<&Path>,
     test: bool,
+    execution_readable: bool,
 ) -> Result<serde_json::Value> {
-    guard(root, agent, test)?;
+    if execution_readable && test {
+        return Err(err("authority-read-sharing-requires-protected-mode"));
+    }
+    guard(root, agent, test, execution_readable)?;
     let _lock = lock(root)?;
     if root.join("state.json").symlink_metadata().is_ok() {
         return Err(err("authority-already-bootstrapped"));
@@ -208,12 +230,19 @@ pub(super) fn bootstrap(
         schema: "oh.war/authority-store/1".into(),
         agent_uid: agent,
         unprotected_test_store: test,
+        execution_readable,
         genesis,
         legacy: retained,
         transitions: Vec::new(),
         activation_receipts: BTreeMap::new(),
     };
     persist(root, &state)?;
+    #[cfg(unix)]
+    if execution_readable {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(root, fs::Permissions::from_mode(0o755)).map_err(err)?;
+        fs::File::open(root).map_err(err)?.sync_all().map_err(err)?;
+    }
     state.view()
 }
 pub(super) fn activate(root: &Path, record: Signed, test: bool) -> Result<serde_json::Value> {
