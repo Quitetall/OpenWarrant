@@ -126,3 +126,12 @@ not Katana/BLUT qualification or actual sandbox enforcement.
 ### Reporting scope
 
 The draft `scope.toml` maps runtime capture, assessment and resolution consumer paths to the existing OBL-001 through OBL-004. It pins the existing repository Bonsai policy and public source revision for report generation. This is a reporting boundary, not authorization, a coverage verdict, native provider qualification or a participant acceptance. The first PR169 report refused because this sidecar was absent; the refusal is retained in external implementation evidence.
+
+
+## Source currency before import publication
+
+The [capture currency repair](capture-currency-20261010/README.md) reloads the
+source basis, exact recorded Dispatch/compile-event bytes and stage-attempt
+frontier after native verification. Observed changes return UNKNOWN without
+publishing a capture or changing prior evidence. The host still provides writer
+isolation or locking; this read comparison is not atomic launch fencing.

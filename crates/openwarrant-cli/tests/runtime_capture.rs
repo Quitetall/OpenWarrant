@@ -1121,6 +1121,50 @@ fn sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write() {
         resolution.runtime_receipts.standing,
         ReceiptStanding::Unknown
     );
+    fs::write(&intent, &original).unwrap();
+    // A native callback can outlive its original source snapshot. This fixture
+    // changes source during verification; it does not prove native execution.
+    struct SourceChangingVerifier<'a> {
+        inner: &'a SyntheticVerifier,
+        path: &'a Path,
+        bytes: &'a [u8],
+    }
+    impl ReceiptVerifier for SourceChangingVerifier<'_> {
+        fn interface(&self) -> &ProviderInterface {
+            self.inner.interface()
+        }
+        fn verify(&self, raw: &[u8]) -> Result<VerifiedReceipt, ProviderFailure> {
+            fs::write(self.path, self.bytes).unwrap();
+            self.inner.verify(raw)
+        }
+    }
+    let prior_path = f.root.join(response["reference"].as_str().unwrap());
+    let prior_capture = fs::read(&prior_path).unwrap();
+    let prior_count = fs::read_dir(f.storage()).unwrap().count();
+    let mut changed_request = request.clone();
+    changed_request.metadata.observation_id = "source-change-control".into();
+    let mutating = SourceChangingVerifier {
+        inner: &v,
+        path: &intent,
+        bytes: &changed,
+    };
+    let changed_result = capture::import(
+        &repo,
+        "IX-WAR-0003",
+        &changed_request,
+        Some(Verification {
+            verifier: &mutating,
+            registry_digest: None,
+            authorized_capabilities: Some(&[]),
+            confinement_required: true,
+            hard_spend_cap_required: false,
+        }),
+    )
+    .unwrap_err();
+    assert_eq!(changed_result.code, "runtime.capture-changed");
+    assert!(changed_result.unknown);
+    assert_eq!(fs::read(&prior_path).unwrap(), prior_capture);
+    assert_eq!(fs::read_dir(f.storage()).unwrap().count(), prior_count);
     fs::write(&intent, original).unwrap();
     let partial = Fixture::new();
     v.facts.binding = RuntimeBinding::from_dispatch(&partial.dispatch);

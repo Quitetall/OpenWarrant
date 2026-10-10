@@ -440,3 +440,20 @@ same control accepts the genuine store owner's read and an ordinary non-owner
 read without the capability. See the retained [reproduction and results](warrants/OW-WAR-0096/implementation/reader-identity-20261010/README.md).
 This does not authenticate the caller, qualify other privilege profiles, prove
 protected host deployment, or supply human acceptance.
+
+
+### Source changes during runtime capture verification
+
+Capture import reloads the current source basis, retained Dispatch bytes, matched
+compile-event bytes and stage-attempt frontier after native verification and
+before publication. An observed change returns `runtime.capture-changed` as
+UNKNOWN and publishes no capture. Existing retained objects stay unchanged.
+Unrelated journal appends still permit replay when the selected event and frontier
+remain unchanged; historical inspection remains separate from current eligibility.
+
+The public SDK control changes a valid intent source inside a synthetic native
+verifier. Before repair, import published a matching observation against the old
+basis. After repair it refuses publication and preserves the prior capture bytes
+and count. The fixture does not authenticate provider execution. This fresh
+comparison is not atomic fencing: a trusted host must serialize or isolate writers
+to prevent changes after the final read or changes hidden between reads.
