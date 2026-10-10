@@ -1,0 +1,57 @@
+
+running 1 test
+
+thread 'collector_signature::protected_namespace_roundtrip' (2628825) panicked at crates/openwarrant-cli/tests/collector_signature.rs:306:5:
+
+running 1 test
+
+running 1 test
+missing-account UID 2: verification UNKNOWN; no cryptographic verdict inferred
+test collector_signature::namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.01s
+
+
+test collector_signature::namespace_fixture_entry ... FAILED
+
+failures:
+
+failures:
+    collector_signature::namespace_fixture_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.11s
+
+
+
+thread 'collector_signature::namespace_fixture_entry' (2629222) panicked at crates/openwarrant-cli/tests/collector_signature.rs:941:5:
+
+running 1 test
+capable executor observation: accepted=false; fault=Some(Rejected("authority store is writable by the executor"))
+capable execution UID 1: actual write succeeded; authority loading refused effective write capability
+general authority reader after unsigned UID reassignment: accepted=true
+test collector_signature::namespace_fixture_entry ... FAILED
+
+failures:
+
+failures:
+    collector_signature::namespace_fixture_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.01s
+
+
+
+thread 'collector_signature::namespace_fixture_entry' (2629509) panicked at crates/openwarrant-cli/tests/collector_signature.rs:392:9:
+a writable non-owner reader must not accept authority by changing unsigned agent_uid
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test collector_signature::protected_namespace_roundtrip ... FAILED
+
+failures:
+
+failures:
+    collector_signature::protected_namespace_roundtrip
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.34s

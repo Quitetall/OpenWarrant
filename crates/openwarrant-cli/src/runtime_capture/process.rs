@@ -188,7 +188,15 @@ pub(crate) fn verify_response(
     schema: &str,
 ) -> Result<Value, ProviderFailure> {
     let (success, bytes) = run(command, timeout, limit)?;
-    let response: Value = crate::sdk::wire::decode_value(&bytes).map_err(rejected)?;
+    decode_response(success, &bytes, schema)
+}
+
+pub(super) fn decode_response(
+    success: bool,
+    bytes: &[u8],
+    schema: &str,
+) -> Result<Value, ProviderFailure> {
+    let response: Value = crate::sdk::wire::decode_value(bytes).map_err(rejected)?;
     if response["schema"] != schema {
         return Err(ProviderFailure::Unsupported(
             "unsupported native verifier response schema".into(),

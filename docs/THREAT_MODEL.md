@@ -420,3 +420,23 @@ remain UNKNOWN; this does not establish key custody or human presence.
 An execution account can have write privileges that ownership and mode bits do not show. A real-UID `access` check also misses retained effective Linux capabilities. Authority readers now use `accessat` with `EACCESS` for the actual effective process, over the store, state file and ancestors. Unexpected permission-observation errors remain unavailable; they do not mean read-only.
 
 The collector namespace control reproduces a worker with UID 1 and `CAP_DAC_OVERRIDE`: it writes an operator-owned read-only probe while real-UID `access` denies write permission. Before repair, the active enrollment loads; after repair, the loader refuses the writable authority boundary. The probe and accounts exist only in a disposable user/mount namespace. This does not establish host deployment, caller identity, hardware presence or independent qualification.
+
+
+### Claimed execution UID cannot exempt a writable reader
+
+The generic authority reader checks effective write access for every process that
+does not own the selected store, independently of the unsigned `agent_uid`
+setting. A writable boundary is refused; an unavailable permission observation
+remains unavailable. Existing ownership, mode, symlink, canonical-state and
+signature checks still apply. Operator-owner reads remain an explicit trust
+assumption: the host must select the trusted store independently of agent input
+and protect the operator account and credentials.
+
+The `collector_signature` namespace control bootstraps normal public metadata
+as UID 0, then gives UID 1 only `CAP_DAC_OVERRIDE`. That process changes the
+claimed execution UID to 2 without changing signed genesis. Before this repair,
+`Repository::open` accepted the writable store; after repair it refuses. The
+same control accepts the genuine store owner's read and an ordinary non-owner
+read without the capability. See the retained [reproduction and results](warrants/OW-WAR-0096/implementation/reader-identity-20261010/README.md).
+This does not authenticate the caller, qualify other privilege profiles, prove
+protected host deployment, or supply human acceptance.

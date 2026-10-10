@@ -27,6 +27,7 @@ pub struct KatanaProcessConfig {
 pub struct KatanaProcessVerifier {
     config: KatanaProcessConfig,
     binding: RuntimeBinding,
+    protection: Option<super::activated_verifier::ActivatedVerifier>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -70,6 +71,34 @@ fn digest(s: &str) -> bool {
     })
 }
 impl KatanaProcessVerifier {
+    /// Opt-in activated, sealed verifier. Host identities and native source
+    /// custody remain the caller's responsibility; this grants no assurance.
+    pub fn for_activated_collector(
+        repo: &Repository,
+        alias: &str,
+        dispatch_id: &str,
+        config: KatanaProcessConfig,
+        enrollment: super::collector_loading::LoadedEnrollment,
+        repository: &str,
+        collector: &str,
+    ) -> Result<Self, ProviderFailure> {
+        let mut result = Self::for_recorded_dispatch(repo, alias, dispatch_id, config)?;
+        let warrant = result
+            .binding
+            .warrant_ref
+            .strip_prefix("war://")
+            .ok_or_else(|| rejected("canonical recorded Warrant reference required"))?;
+        result.protection = Some(super::activated_verifier::ActivatedVerifier::acquire(
+            enrollment,
+            repository,
+            collector,
+            warrant,
+            &result.config.provider,
+            &result.config.executable,
+        )?);
+        Ok(result)
+    }
+
     /// Resolve exact binding from retained Dispatch and compile event. The
     /// caller still owns current-basis assessment and protected source custody.
     pub fn for_recorded_dispatch(
@@ -109,6 +138,7 @@ impl KatanaProcessVerifier {
         Ok(Self {
             config,
             binding: RuntimeBinding::from_dispatch(&recorded.dispatch),
+            protection: None,
         })
     }
     fn map(&self, raw: &[u8], value: Value) -> Result<VerifiedReceipt, ProviderFailure> {
@@ -190,6 +220,9 @@ impl ReceiptVerifier for KatanaProcessVerifier {
         if raw.is_empty() || raw.len() > 4 * 1024 * 1024 {
             return Err(rejected("native receipt byte budget"));
         }
+        if let Some(protection) = &self.protection {
+            protection.check()?;
+        }
         let scratch = super::process::Scratch::create(&self.config.scratch_root, "katana")?;
         let receipt = scratch.write("receipt.json", raw)?;
         let b = &self.binding;
@@ -208,12 +241,19 @@ impl ReceiptVerifier for KatanaProcessVerifier {
             .arg(binding)
             .arg("--trusted-head")
             .arg(&self.config.trusted_log_head);
-        let value = super::process::verify_response(
-            command,
-            self.config.timeout,
-            self.config.max_response_bytes,
-            RESPONSE_SCHEMA,
-        )?;
+        let value = if let Some(protection) = &self.protection {
+            let args = command.get_args().map(|a| a.to_owned()).collect::<Vec<_>>();
+            let (success, bytes) =
+                protection.run(&args, self.config.timeout, self.config.max_response_bytes)?;
+            super::process::decode_response(success, &bytes, RESPONSE_SCHEMA)?
+        } else {
+            super::process::verify_response(
+                command,
+                self.config.timeout,
+                self.config.max_response_bytes,
+                RESPONSE_SCHEMA,
+            )?
+        };
         self.map(raw, value)
     }
 }
