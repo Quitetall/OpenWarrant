@@ -78,6 +78,7 @@ pub struct History {
 #[serde(rename_all = "snake_case")]
 pub enum Source {
     /// Same type, a shared label.
+    #[serde(rename = "type+label")]
     TypeLabel,
     /// A shared label.
     Label,
@@ -206,7 +207,8 @@ impl History {
     pub fn estimate(&self, work_type: Option<&str>, labels: &[String]) -> Estimate {
         let shares = |s: &Sample| s.labels.iter().any(|l| labels.contains(l));
         let same = |s: &Sample| work_type.is_some() && s.work_type.as_deref() == work_type;
-        let groups: [(Source, Box<dyn Fn(&Sample) -> bool + '_>); 4] = [
+        type Admits<'a> = Box<dyn Fn(&Sample) -> bool + 'a>;
+        let groups: [(Source, Admits<'_>); 4] = [
             (
                 Source::TypeLabel,
                 Box::new(|s: &Sample| same(s) && shares(s)),

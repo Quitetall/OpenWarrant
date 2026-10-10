@@ -6,6 +6,11 @@
 # plugin is installed per user, and a `generated/` directory in a repository
 # that never adopted OpenWarrant is that repository's business (M9).
 #
+# Inside a worktree `war start` made (OW-WAR-0148 M15), whose session marker
+# (`.openwarrant/session.json`) carries the paths its Warrant declares, an
+# edit outside those paths is turned back too. A Warrant that declares no
+# paths restricts nothing, and outside such a worktree the rule is silent.
+#
 # The pin list is `war pins --resolved-only --json`, so the hook can never
 # disagree with `war check`: both read the same records. A pin a LATER
 # authorized Warrant's recorded set governs is `historical` (OW-ADR-0021) and
@@ -77,6 +82,48 @@ case "$rel" in
             deny "OpenWarrant: $rel is generated from the atoms, so an edit here would be overwritten. Edit the atoms and run \`war compile\`."
         fi ;;
 esac
+
+# Inside a `war start` worktree (OW-WAR-0148 M15): when the Warrant declares
+# the paths its work touches, an edit outside them is turned back. The
+# session marker is what `war start` wrote in this worktree with
+# `[go] allowed_acts = "projected"`; with no marker, or a marker with no
+# paths, nothing here applies. `**` matches across directories, `*` and `?`
+# within one.
+session="$root/.openwarrant/session.json"
+[[ -f "$session" ]] || session=.openwarrant/session.json
+if [[ -f "$session" ]]; then
+    outside=$(python3 - "$session" "$rel" <<'PYGLOB'
+import json, re, sys
+try:
+    s = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    sys.exit(0)
+paths = s.get("paths") or []
+rel = sys.argv[2]
+def rx(glob):
+    out, i = "", 0
+    while i < len(glob):
+        if glob.startswith("**", i):
+            out += ".*"
+            i += 2
+        elif glob[i] == "*":
+            out += "[^/]*"
+            i += 1
+        elif glob[i] == "?":
+            out += "[^/]"
+            i += 1
+        else:
+            out += re.escape(glob[i])
+            i += 1
+    return re.compile(out + r"\Z")
+if paths and not any(rx(p.lstrip("/")).match(rel) for p in paths):
+    print("%s|%s" % (s.get("node", "?"), ", ".join(paths)))
+PYGLOB
+)
+    if [[ -n "$outside" ]]; then
+        deny "OpenWarrant: this worktree was started for ${outside%%|*} (\`war start\`), and its Warrant declares the paths its work touches: ${outside#*|}. $rel is outside them, so the edit is turned back here; edit it from another checkout, or add the path to the Warrant's atoms/35-allowed.md."
+    fi
+fi
 if [[ -x ./target/debug/war ]]; then
     war_cmd=./target/debug/war
 elif command -v war >/dev/null 2>&1; then

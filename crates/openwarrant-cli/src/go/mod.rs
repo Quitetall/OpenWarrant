@@ -788,8 +788,8 @@ impl Run<'_> {
                 else {
                     break;
                 };
-                match self.launch(&id)? {
-                    Some(l) => {
+                match self.launch(&id) {
+                    Ok(Some(l)) => {
                         self.human.push_str(&format!(
                             "started {} (attempt {}, {})\n",
                             l.node, l.attempt, l.executor
@@ -799,9 +799,10 @@ impl Run<'_> {
                         started += 1;
                         peak = peak.max(live.len());
                     }
-                    None => {
+                    Ok(None) => {
                         self.passed_over.insert(id);
                     }
+                    Err(e) => self.node_error(&id, &e),
                 }
             }
             if live.is_empty() {
@@ -815,7 +816,12 @@ impl Run<'_> {
                     l.last_renew = Instant::now();
                 }
                 match self.poll(&mut l) {
-                    Some(ending) => self.conclude(l, ending)?,
+                    Some(ending) => {
+                        let id = l.node.clone();
+                        if let Err(e) = self.conclude(l, ending) {
+                            self.node_error(&id, &e);
+                        }
+                    }
                     None => still.push(l),
                 }
             }
@@ -887,6 +893,43 @@ impl Run<'_> {
                 self.graph.release(&id);
             }
         }
+    }
+
+    /// A node whose start or end could not be carried through (a journal
+    /// that cannot be read or written, a Dispatch that will not compile):
+    /// reported, its claim and worktree given back, and not run again by
+    /// this run. Never read as landed.
+    fn node_error(&mut self, id: &str, e: &RepoError) {
+        let stage = self.graph.node(id).is_some_and(|n| n.kind == Kind::Stage);
+        if stage {
+            if let Some((alias, st)) = id.split_once('/') {
+                let lock = self
+                    .store
+                    .claims_dir
+                    .join(crate::ticket::claim::lock_name(alias, Some(st)));
+                let _ = crate::ticket::claim::release(&lock, &self.actor);
+            }
+        } else {
+            let _ = crate::ticket::release(&self.store, id, None);
+        }
+        if self.policy.isolation == Isolation::Worktree {
+            let path = self
+                .repo
+                .root
+                .join(&self.policy.worktrees)
+                .join(git::slug(id));
+            let branch = git::node_branch(id);
+            git::remove_worktree(&self.repo.root, &path, Some(&branch));
+        }
+        let detail = e.to_string();
+        self.report.push(Diagnostic::error(
+            "go.node-error",
+            id.to_owned(),
+            format!("{id}: {detail}. Its claim and worktree were given back, and this run does not start it again"),
+        ));
+        self.graph.block(id, format!("not run: {detail}"));
+        self.passed_over.insert(id.to_owned());
+        self.skip(id, "error", detail);
     }
 
     fn renew(&self, l: &Live) {
@@ -963,6 +1006,28 @@ impl Run<'_> {
                 format!("not started: {message}"),
             ));
             self.skip(id, "held", format!("{rule}: {message}"));
+            return Ok(None);
+        }
+        // Claim first, then look: a run that landed this node marked it
+        // before giving its claim back, so a node claimed here and marked is
+        // one another run already finished, in another worktree whose tick
+        // this checkout does not show yet.
+        if let Some(common) = &self.common
+            && let Some(landed) = ledger::landed(common, id)
+        {
+            let _ = crate::ticket::release(&self.store, id, None);
+            self.skip(
+                id,
+                "landed-elsewhere",
+                format!(
+                    "{id} landed in run {} by {} at {}; merge {} to see its tick here",
+                    landed.run,
+                    landed.actor,
+                    &landed.commit[..landed.commit.len().min(12)],
+                    landed.integration
+                ),
+            );
+            self.graph.mark_done(id);
             return Ok(None);
         }
         let t = self.store.load(&dir).unwrap_or(t);
@@ -1110,7 +1175,10 @@ impl Run<'_> {
                     policy::Harness::Generic => packet_json.clone(),
                 };
                 match proc::spawn(&argv, &program, stdin.as_bytes(), &env) {
-                    Ok(r) => live.via = Via::Native(Some(r)),
+                    Ok(r) => {
+                        r.watchdog(Duration::from_secs(self.policy.node_timeout_secs));
+                        live.via = Via::Native(Some(r));
+                    }
                     Err(e) => {
                         self.conclude(
                             live,
@@ -1383,7 +1451,10 @@ impl Run<'_> {
         ];
         let argv = self.repo.config.perform.performer_argv.clone();
         let running = match proc::spawn(&argv, &program, body.as_bytes(), &env) {
-            Ok(r) => r,
+            Ok(r) => {
+                r.watchdog(Duration::from_secs(self.policy.node_timeout_secs));
+                r
+            }
             Err(e) => {
                 let _ = crate::ticket::claim::release(&lock, &self.actor);
                 if let Some(b) = &branch {
@@ -1447,6 +1518,10 @@ impl Run<'_> {
                     });
                 };
                 if let Some(status) = r.exited() {
+                    if r.expired() {
+                        let _ = slot.take().map(|r| r.finish(None));
+                        return Some(Ending::Timeout);
+                    }
                     return slot
                         .take()
                         .map(|r| Self::ended_native(r.finish(Some(status))));
@@ -1927,23 +2002,24 @@ impl Run<'_> {
                 }
             }
             old_tip = git::branch_tip(&root, &integration).unwrap_or_default();
-            if !old_tip.is_empty() && !git::is_ancestor(&l.worktree, &old_tip, "HEAD") {
-                if let Err(files) = git::merge(
+            if !old_tip.is_empty()
+                && !git::is_ancestor(&l.worktree, &old_tip, "HEAD")
+                && let Err(files) = git::merge(
                     &l.worktree,
                     &old_tip,
                     &format!("war go: {} onto {integration}", l.node),
-                ) {
-                    let detail = format!(
-                        "merging {integration} into its branch conflicted in {}",
-                        files.join(", ")
-                    );
-                    self.report.push(Diagnostic::warn(
-                        "go.conflict",
-                        l.node.clone(),
-                        detail.clone(),
-                    ));
-                    return self.send_back(l, "conflict", detail, seconds, tokens);
-                }
+                )
+            {
+                let detail = format!(
+                    "merging {integration} into its branch conflicted in {}",
+                    files.join(", ")
+                );
+                self.report.push(Diagnostic::warn(
+                    "go.conflict",
+                    l.node.clone(),
+                    detail.clone(),
+                ));
+                return self.send_back(l, "conflict", detail, seconds, tokens);
             }
             head = git::rev(&l.worktree, "HEAD").unwrap_or(head);
         }

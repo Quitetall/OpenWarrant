@@ -1,6 +1,6 @@
 # The command surface
 
-`war --help` lists eleven daily verbs and, below them, five groups. Every
+`war --help` lists twelve daily verbs and, below them, five groups. Every
 other command lives in one of the groups. Every spelling `war` has ever
 accepted still works, with the same behaviour and the same output; it is
 only absent from help (OW-WAR-0148 M12).
@@ -10,6 +10,7 @@ Commands:
   init    Set up this repository: openwarrant.toml, record directories, AGENTS.md
   create  Create a Warrant (a ticket) and print its id: a title is enough
   next    What is ready, and whose step it is
+  start   Start a Warrant's work in a worktree of its own, with its settings
   claim   Take an item or a whole Warrant, so no other agent works it
   done    Tick an item done in its Warrant's checklist and release the claim
   add     Add an item to a Warrant, or a test, KPI or milestone
@@ -44,8 +45,8 @@ claim stays. Plant 132 records the path as it is.
 
 ## The rules
 
-- **At most twelve daily verbs.** Eleven today; `war start` (M15) is the
-  twelfth. `help` is clap's own and is not counted. Plant 130 counts them,
+- **At most twelve daily verbs.** Twelve: `war start` (M15) is the
+  twelfth, and a thirteenth needs one of them to move into a group. `help` is clap's own and is not counted. Plant 130 counts them,
   and every group's members.
 - **Every earlier spelling is a hidden alias.** `war board` and `war view
   board` parse to the same clap variant and run the same code, so their
@@ -79,6 +80,7 @@ value of the `--json` envelope, the same under either spelling.
 | `war init` | (prints lines; no envelope, as before) |
 | `war create` | `create` |
 | `war next` | `next` |
+| `war start` (M15, new) | `start` |
 | `war claim` | `claim` |
 | `war done` | `done` |
 | `war add` | `add` |
@@ -100,7 +102,8 @@ value of the `--json` envelope, the same under either spelling.
 | `war plan model` | `war model` | `model` |
 | `war plan state` | `war state` | `state` |
 | `war plan roadmap` | `war roadmap` | `roadmap` |
-| `war plan frontier` | `war frontier` | `frontier` |
+| `war plan frontier` (`--all`: the whole work graph, M15) | `war frontier` | `frontier` |
+| `war plan estimate` (M15, new) | `war estimate` | `estimate` |
 | `war plan questions` | `war questions` | `questions` |
 | `war plan ask` | `war ask` | `ask` |
 | `war plan answer` | `war answer` | `answer` |
@@ -131,6 +134,7 @@ value of the `--json` envelope, the same under either spelling.
 | `war evidence prepare` | `war prepare` | `prepare` |
 | `war evidence run` | `war run` | `run` |
 | `war evidence perform` | `war perform` | `perform` |
+| `war evidence go` (M15, new) | `war go` | `go` |
 | `war evidence submit` | `war submit` | `submit` |
 | `war evidence kpi` | `war kpi` | `kpi` |
 | `war evidence mark` | `war mark` | `mark` |
@@ -243,6 +247,16 @@ value of the `--json` envelope, the same under either spelling.
   `war merge-ticket`, so clones configured earlier keep merging.
 - **`timeline` is new under `view`**: `war status --timeline` under the name
   a reader looks for.
+
+- **`start` is the twelfth daily verb; `go` is under `evidence`** (M15,
+  docs/GO.md). `war start <id>` is what a person or an agent types to pick
+  up one piece of work, so it sits beside `claim` and `done`. `war go` runs
+  the whole graph unattended: it is the stage runner `war evidence perform`
+  generalized, so it joins `perform` and `run`, and the daily list stays at
+  twelve. `war go` still parses, hidden, as every member does; messages name
+  `war evidence go`.
+- **`estimate` is under `plan`**, beside `frontier`: both read the graph and
+  write nothing.
 
 ## What still names an earlier spelling, on purpose
 

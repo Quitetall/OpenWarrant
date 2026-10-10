@@ -27,6 +27,10 @@ pub struct Running {
     pub started: Instant,
     output: Receiver<(String, Vec<u8>)>,
     capped: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// Set by the watchdog when it killed the group at the deadline.
+    expired: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// Set once the run is collected: the watchdog stands down.
+    settled: std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
 /// How a performer ended.
@@ -122,10 +126,49 @@ pub fn spawn(
         started: Instant::now(),
         output: rx,
         capped,
+        expired: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+        settled: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
     })
 }
 
 impl Running {
+    /// Kill the whole group at `deadline` from now, unless it is collected
+    /// first, whatever the caller is doing then: a deadline that waited for
+    /// the caller's next look would let a performer finish past it.
+    pub fn watchdog(&self, deadline: Duration) {
+        let (expired, settled, pid) = (
+            std::sync::Arc::clone(&self.expired),
+            std::sync::Arc::clone(&self.settled),
+            self.pid,
+        );
+        let until = self.started + deadline;
+        std::thread::spawn(move || {
+            while Instant::now() < until {
+                if settled.load(std::sync::atomic::Ordering::Acquire) {
+                    return;
+                }
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            if settled.load(std::sync::atomic::Ordering::Acquire) {
+                return;
+            }
+            expired.store(true, std::sync::atomic::Ordering::Release);
+            #[cfg(unix)]
+            if let Some(group) = i32::try_from(pid)
+                .ok()
+                .and_then(rustix::process::Pid::from_raw)
+            {
+                let _ = rustix::process::kill_process_group(group, rustix::process::Signal::KILL);
+            }
+        });
+    }
+
+    /// Whether the watchdog killed it at its deadline.
+    #[must_use]
+    pub fn expired(&self) -> bool {
+        self.expired.load(std::sync::atomic::Ordering::Acquire)
+    }
+
     /// `Some(status)` once it has exited, without waiting.
     pub fn exited(&mut self) -> Option<std::process::ExitStatus> {
         self.child.try_wait().ok().flatten()
@@ -144,6 +187,8 @@ impl Running {
 
     /// Collect what it wrote, once it has exited or been killed.
     pub fn finish(mut self, status: Option<std::process::ExitStatus>) -> Ended {
+        self.settled
+            .store(true, std::sync::atomic::Ordering::Release);
         // A performer that exited and left a child writing is still a writer:
         // the group is killed before its output is read.
         let gone = crate::perform::group_gone_within(self.pid, Duration::from_millis(200));

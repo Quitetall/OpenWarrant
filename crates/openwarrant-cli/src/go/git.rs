@@ -156,6 +156,10 @@ pub fn ensure_branch(dir: &Utf8Path, branch: &str) -> Result<String, String> {
     })?;
     let r = git(dir, &["branch", branch, &head]);
     if !r.ok {
+        // Another run may have made it a moment ago: that one stands.
+        if let Some(tip) = branch_tip(dir, branch) {
+            return Ok(tip);
+        }
         return Err(format!("could not create branch {branch}: {}", r.why()));
     }
     Ok(head)

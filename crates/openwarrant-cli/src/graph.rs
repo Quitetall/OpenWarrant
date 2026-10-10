@@ -138,6 +138,12 @@ pub struct Node {
     /// Who holds it, when someone does.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub holder: Option<String>,
+    /// What holds it besides its edges, which no landing in this graph
+    /// clears: a stage's earlier milestone whose obligations are not
+    /// established yet (the frontier's rule; an independent verification
+    /// clears it, not a submission).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub holds: Vec<String>,
 }
 
 /// `from` waits on `to`.
@@ -294,6 +300,8 @@ impl Graph {
                         }
                     })
                     .collect();
+                let mut open = open;
+                open.extend(n.holds.iter().cloned());
                 let derived = matches!(n.kind, Kind::Record)
                     || (n.kind == Kind::Warrant && !n.runnable && !mine.is_empty());
                 let next = if derived {
@@ -303,7 +311,7 @@ impl Graph {
                         .iter()
                         .filter(|e| matches!(e.via, "item" | "implemented_by"))
                         .collect();
-                    if !made_of.is_empty() && open.is_empty() {
+                    if !made_of.is_empty() && open.is_empty() && n.holds.is_empty() {
                         State::Done
                     } else {
                         State::Waiting
@@ -396,6 +404,7 @@ pub fn build_from(
             state: State::Waiting,
             waits_on: Vec::new(),
             holder: None,
+            holds: Vec::new(),
         };
         let whole_holder = held(&tid, None);
         if t.checklist.items.is_empty() {
@@ -454,6 +463,7 @@ pub fn build_from(
     for row in &frontier.rows {
         let id = format!("{}/{}", row.warrant, row.stage);
         let runnable = row.executor_kind == "agent";
+        let mut holds = Vec::new();
         let (state, waits_on, holder) = match row.state {
             crate::frontier::StageState::Done => (State::Done, Vec::new(), None),
             crate::frontier::StageState::Claimed => (
@@ -462,16 +472,24 @@ pub fn build_from(
                 Some("a dispatch with no submission yet".to_owned()),
             ),
             crate::frontier::StageState::Blocked => {
-                // A milestone wait is an edge (below); a blocking question is
-                // a person's, and holds the stage whatever the edges say.
+                // A blocking question is a person's, and holds the stage
+                // whatever the edges say. A milestone wait is an edge (below)
+                // and a hold: the earlier milestone completes when its
+                // obligations are established, which no submission does.
                 let questions: Vec<String> = row
                     .waiting_on
                     .iter()
                     .filter(|w| w.starts_with("Q-"))
                     .map(|q| format!("question {q} (a person answers it)"))
                     .collect();
+                holds = row
+                    .waiting_on
+                    .iter()
+                    .filter(|w| !w.starts_with("Q-"))
+                    .map(|m| format!("{}/{m} complete (its obligations established)", row.warrant))
+                    .collect();
                 if questions.is_empty() {
-                    (State::Waiting, row.waiting_on.clone(), None)
+                    (State::Waiting, holds.clone(), None)
                 } else {
                     (State::Blocked, questions, None)
                 }
@@ -502,6 +520,7 @@ pub fn build_from(
                 state,
                 waits_on,
                 holder,
+                holds,
             },
         );
     }
@@ -638,6 +657,7 @@ pub fn build_from(
                 state: State::Waiting,
                 waits_on: Vec::new(),
                 holder: None,
+                holds: Vec::new(),
             },
         );
     }
@@ -826,6 +846,7 @@ mod tests {
             state,
             waits_on: Vec::new(),
             holder: None,
+            holds: Vec::new(),
         }
     }
 
@@ -927,6 +948,23 @@ mod tests {
             State::Waiting,
             "made of nothing"
         );
+    }
+
+    /// A stage behind a milestone whose obligations are not established
+    /// stays waiting when the earlier stage lands: a submission is not a
+    /// verification.
+    #[test]
+    fn a_held_stage_waits_past_its_edges() {
+        let mut later = node("W/S2", Kind::Stage, true, State::Waiting);
+        later.holds = vec!["W/M1 complete (its obligations established)".to_owned()];
+        let mut g = graph(
+            vec![node("W/S1", Kind::Stage, true, State::Ready), later],
+            vec![edge("W/S2", "W/S1")],
+        );
+        g.mark_done("W/S1");
+        let s2 = g.node("W/S2").unwrap();
+        assert_eq!(s2.state, State::Waiting);
+        assert_eq!(s2.waits_on, ["W/M1 complete (its obligations established)"]);
     }
 
     /// An edge to a node nobody declared blocks, named as unknown.
