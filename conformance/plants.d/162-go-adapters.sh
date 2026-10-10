@@ -119,7 +119,10 @@ GX_TICKED=$(cat "$GX_ROOT"/docs/tickets/*/atoms/15-checklist.md | grep -c '^- \[
 GX_CREATE=$(grep -c '^issue create --title Honest work: h1 --body-file - --assignee @copilot$' "$GX_TMP/fake/gh.argv")
 GX_VIEW=$(grep -c '^issue view https://github.com/o/r/issues/[0-9]* --json comments --jq ' "$GX_TMP/fake/gh.argv")
 GX_BRIEF=$(grep -l '^## Answer' "$GX_TMP"/fake/*.brief 2>/dev/null | wc -l)
-if [[ "$GX_LANDED" == "$GX_G:claimed,$GX_H:claimed" && "$GX_TICKED" == "2" && "$GX_CREATE" == "1" \
+# `landed` is read sorted by node id, and ticket ids are random: the two
+# expected nodes are sorted the same way, never assumed to fall G before H.
+GX_WANT=$(printf '%s\n' "$GX_G:claimed" "$GX_H:claimed" | LC_ALL=C sort | paste -sd, -)
+if [[ -n "$GX_G" && -n "$GX_H" && "$GX_LANDED" == "$GX_WANT" &&"$GX_TICKED" == "2" && "$GX_CREATE" == "1" \
     && "$GX_VIEW" -ge 5 && "$GX_BRIEF" == "4" ]]; then
     gx_ok "an Agent HQ round trip lands" "issue created with the preset argv, pending once, answered; $GX_H ticked claimed"
 else
