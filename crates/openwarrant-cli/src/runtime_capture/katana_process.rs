@@ -28,6 +28,7 @@ pub struct KatanaProcessVerifier {
     config: KatanaProcessConfig,
     binding: RuntimeBinding,
     protection: Option<super::activated_verifier::ActivatedVerifier>,
+    input: Option<super::protected_input::ProtectedInput>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -71,6 +72,31 @@ fn digest(s: &str) -> bool {
     })
 }
 impl KatanaProcessVerifier {
+    /// Host-bound activated execution with a retained sealed log. The expected
+    /// head and policy must still be selected by the independently trusted host.
+    pub fn for_protected_host(
+        repo: &Repository,
+        alias: &str,
+        dispatch_id: &str,
+        mut config: KatanaProcessConfig,
+        host: super::collector_loading::HostEnrollment,
+        input: super::protected_input::ProtectedInput,
+    ) -> Result<Self, ProviderFailure> {
+        config.event_log = input.argument().to_owned();
+        let mut result = Self::for_recorded_dispatch(repo, alias, dispatch_id, config)?;
+        let warrant = result
+            .binding
+            .warrant_ref
+            .strip_prefix("war://")
+            .ok_or_else(|| rejected("canonical recorded Warrant reference required"))?;
+        result.protection = Some(host.acquire_verifier(
+            warrant,
+            &result.config.provider,
+            &result.config.executable,
+        )?);
+        result.input = Some(input);
+        Ok(result)
+    }
     /// Opt-in activated, sealed verifier. Host identities and native source
     /// custody remain the caller's responsibility; this grants no assurance.
     pub fn for_activated_collector(
@@ -139,6 +165,7 @@ impl KatanaProcessVerifier {
             config,
             binding: RuntimeBinding::from_dispatch(&recorded.dispatch),
             protection: None,
+            input: None,
         })
     }
     fn map(&self, raw: &[u8], value: Value) -> Result<VerifiedReceipt, ProviderFailure> {

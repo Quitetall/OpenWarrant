@@ -1730,6 +1730,44 @@ fn sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write() {
 }
 
 #[test]
+fn cli_native_assessment_refuses_executor_owned_authority_store() {
+    let f = Fixture::with_runtime_count(1);
+    let response = value(&f.import());
+    let selected = json!({"schema":"oh.war/runtime-selection-request/v1-draft.1", "selections":[{"stage_id":"STAGE-001", "capture_digest":response["result"]["digest"]}]});
+    fs::write(
+        f.root.join("selected.json"),
+        serde_json::to_vec(&selected).unwrap(),
+    )
+    .unwrap();
+    let store = f.root.join("forged-store");
+    fs::create_dir(&store).unwrap();
+    fs::write(store.join("state.json"), b"{}").unwrap();
+    let out = war(
+        &f.root,
+        &[
+            "runtime",
+            "assess",
+            "IX-WAR-0003",
+            "--selection",
+            "selected.json",
+            "--native-store",
+            store.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(!out.status.success());
+    let result = value(&out);
+    assert_eq!(result["diagnostics"][0]["rule"], "runtime.native-host");
+    assert_eq!(result["diagnostics"][0]["severity"], "error");
+    assert!(
+        result["diagnostics"][0]["message"]
+            .as_str()
+            .unwrap()
+            .contains("writable by the executor")
+    );
+}
+
+#[test]
 fn current_selection_is_read_only_and_missing_native_support_stays_unknown() {
     let f = Fixture::new();
     let response = value(&f.import());

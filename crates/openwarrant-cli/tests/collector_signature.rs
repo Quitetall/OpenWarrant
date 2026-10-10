@@ -275,7 +275,9 @@ fn protected_namespace_roundtrip() {
 root=$1
 /usr/bin/mount --make-rprivate /
 /usr/bin/mount -t tmpfs -o mode=0755 tmpfs "$root"
-/usr/bin/mkdir -p "$root/usr" "$root/proc" "$root/dev" "$root/scratch" "$root/tmp" "$root/etc"
+/usr/bin/mkdir -p "$root/usr" "$root/proc" "$root/dev" "$root/scratch" "$root/tmp" "$root/etc" "$root/inbox-fixture"
+/usr/bin/mount --bind "$5" "$root/inbox-fixture"
+/usr/bin/mount -o remount,bind,ro "$root/inbox-fixture"
 /usr/bin/mount --bind /usr "$root/usr"
 /usr/bin/mount -o remount,bind,ro "$root/usr"
 /usr/bin/mount --rbind /proc "$root/proc"
@@ -300,6 +302,7 @@ exec /usr/bin/chroot "$root" /test-runner --exact "$4" --ignored --nocapture
         .arg(std::env::current_exe().unwrap())
         .arg(war)
         .arg(namespace_entry_name())
+        .arg(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../conformance/fixtures/inbox/repository"))
         .output()
         .unwrap();
     fs::remove_dir(&mountpoint).unwrap();
@@ -660,7 +663,7 @@ fn namespace_fixture_entry() {
         let interface = ProviderInterface {
             kind: ProviderKind::Katana,
             identity: "software-fixture".into(),
-            version: "v1".into(),
+            version: "katana/openwarrant-verification/v1".into(),
         };
         let warrant = "01a0f502-4941-70a1-a446-e1eb77dff191";
         let load = || {
@@ -725,6 +728,185 @@ fn namespace_fixture_entry() {
             Err(ProviderFailure::Rejected(_))
         ));
         let host = LoadedEnrollment::load_host(&root.join("store"), &scratch, &verifier).unwrap();
+        fs::write(scratch.join("openwarrant.toml"), format!(
+            "schema = \"oh.war/repository-config/v1\"\n[project]\nname = \"fixture\"\nnamespace = \"FX\"\n[paths]\n[authority]\nstore = {:?}\n", root.join("reader-store")
+        )).unwrap();
+        let native_repo =
+            openwarrant_cli::repo::Repository::open(scratch.clone().try_into().unwrap()).unwrap();
+        openwarrant_cli::runtime_capture::native_host::NativeAssessment::load(
+            &native_repo,
+            "unused-empty-selection",
+            &[],
+            &root.join("store"),
+        )
+        .unwrap();
+        println!(
+            "native assessment: empty selection reads operator-protected configuration under actual execution UID; no native execution claimed"
+        );
+        fs::write(scratch.join("native-config-ready"), b"ready").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while !root.join("native-config-changed").exists() {
+            assert!(
+                Instant::now() < deadline,
+                "operator native configuration update unavailable"
+            );
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        let invalid_native = openwarrant_cli::runtime_capture::native_host::NativeAssessment::load(
+            &native_repo,
+            "unused-empty-selection",
+            &[],
+            &root.join("store"),
+        );
+        assert!(
+            matches!(invalid_native, Err(ref f) if f.code == "runtime.native-host" && !f.unknown && f.message.contains("duplicate"))
+        );
+        println!(
+            "native assessment: duplicate protected policy fields refused instead of selecting a last value"
+        );
+        fs::write(scratch.join("native-config-checked"), b"checked").unwrap();
+        fn copy_fixture(source: &std::path::Path, target: &std::path::Path) {
+            fs::create_dir_all(target).unwrap();
+            for entry in fs::read_dir(source).unwrap() {
+                let entry = entry.unwrap();
+                if entry.file_type().unwrap().is_dir() {
+                    copy_fixture(&entry.path(), &target.join(entry.file_name()));
+                } else {
+                    fs::copy(entry.path(), target.join(entry.file_name())).unwrap();
+                }
+            }
+        }
+        copy_fixture(std::path::Path::new("/inbox-fixture"), &scratch);
+        let manifest = scratch.join("docs/warrants/IX-WAR-0003/manifest.toml");
+        let text = fs::read_to_string(&manifest)
+            .unwrap()
+            .replace("01a0ac9b-3953-7511-86f6-7face232c663", warrant);
+        fs::write(manifest, text).unwrap();
+        let graph = scratch.join("docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml");
+        let text = fs::read_to_string(&graph).unwrap().replacen(
+            "executor_kind: \"agent\"",
+            "executor_kind: \"katana\"\n    executor_ref: \"software-fixture\"",
+            1,
+        );
+        fs::write(graph, text).unwrap();
+        let run = |args: &[&str]| {
+            Command::new("/usr/bin/timeout")
+                .arg("10")
+                .arg("/war")
+                .args(args)
+                .arg("--json")
+                .current_dir(&scratch)
+                .env_clear()
+                .env("PATH", "/usr/bin:/bin")
+                .env("OPENWARRANT_NO_PROJECTS", "1")
+                .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+                .output()
+                .unwrap()
+        };
+        let dispatch_path = scratch.join("dispatch.pending.json");
+        let out = run(&[
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--prototype",
+            "--emit",
+            dispatch_path.to_str().unwrap(),
+        ]);
+        assert!(
+            out.status.success(),
+            "{} {}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let dispatch: serde_json::Value =
+            serde_json::from_slice(&fs::read(&dispatch_path).unwrap()).unwrap();
+        assert_eq!(dispatch["warrant_ref"], format!("war://{warrant}"));
+        fs::write(
+            scratch.join("receipt.bin"),
+            b"synthetic receipt without a native seal",
+        )
+        .unwrap();
+        fs::write(scratch.join("capture.json"), serde_json::to_vec(&serde_json::json!({
+            "schema":"oh.war/runtime-capture-request/v1-draft.1", "dispatch_id":dispatch["dispatch_id"], "receipt":"receipt.bin",
+            "provider":{"kind":"katana", "identity":interface.identity, "version":interface.version},
+            "metadata":{"observation_id":"protected-cli-refusal-fixture", "observed_at":"2026-10-10T00:00:00Z", "original_receipt_ref":"provider://synthetic/refusal", "binary_identity":null, "source_identity":null, "transport":"fixture-file", "argv":[], "exit_code":0, "status":"synthetic"}
+        })).unwrap()).unwrap();
+        let imported = run(&[
+            "runtime",
+            "import",
+            "IX-WAR-0003",
+            "--request",
+            "capture.json",
+        ]);
+        assert!(
+            imported.status.success(),
+            "{}",
+            String::from_utf8_lossy(&imported.stdout)
+        );
+        let imported: serde_json::Value = serde_json::from_slice(&imported.stdout).unwrap();
+        fs::write(scratch.join("selected.json"), serde_json::to_vec(&serde_json::json!({"schema":"oh.war/runtime-selection-request/v1-draft.1", "selections":[{"stage_id":"STAGE-001", "capture_digest":imported["result"]["digest"]}]})).unwrap()).unwrap();
+        fs::write(
+            scratch.join("native-assessment-request.json"),
+            serde_json::to_vec(&dispatch).unwrap(),
+        )
+        .unwrap();
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while !root.join("native-adapter-configured").exists() {
+            assert!(
+                Instant::now() < deadline,
+                "populated native policy unavailable"
+            );
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        let assessed = run(&[
+            "runtime",
+            "assess",
+            "IX-WAR-0003",
+            "--selection",
+            "selected.json",
+            "--native-store",
+            root.join("store").to_str().unwrap(),
+        ]);
+        assert!(!assessed.status.success());
+        let assessed: serde_json::Value = serde_json::from_slice(&assessed.stdout).unwrap();
+        assert_eq!(
+            assessed["result"]["stages"][0]["receipt"]["code"], "runtime.provider-rejected",
+            "{assessed}"
+        );
+        assert_eq!(assessed["result"]["assurance_granted"], false);
+        println!(
+            "native CLI assessment: activated sealed fixture executable reached; invalid native response refused with no assurance"
+        );
+        let native_repo =
+            openwarrant_cli::repo::Repository::open(scratch.clone().try_into().unwrap()).unwrap();
+        let selected: openwarrant_cli::runtime_capture::SelectionRequest =
+            serde_json::from_slice(&fs::read(scratch.join("selected.json")).unwrap()).unwrap();
+        let held = openwarrant_cli::runtime_capture::native_host::NativeAssessment::load(
+            &native_repo,
+            "IX-WAR-0003",
+            &selected.selections,
+            &root.join("store"),
+        )
+        .unwrap();
+        let dispatch: openwarrant_core::execution::StageDispatch =
+            serde_json::from_value(dispatch).unwrap();
+        let held_verification = held.resolve(&dispatch, &interface).unwrap();
+        fs::write(scratch.join("native-policy-held"), b"held").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while !root.join("native-policy-updated").exists() {
+            assert!(
+                Instant::now() < deadline,
+                "operator native policy update unavailable"
+            );
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(
+            matches!(held_verification.verifier.verify(b"synthetic receipt without a native seal"), Err(ProviderFailure::Rejected(ref why)) if why == "runtime native configuration changed")
+        );
+        println!(
+            "native assessment: changed protected spend policy invalidated held verification before launch without changing collector activation"
+        );
+        fs::write(scratch.join("native-policy-checked"), b"checked").unwrap();
         assert_eq!(host.repository(), "fixture");
         assert_eq!(host.collector(), "collector");
         assert!(fs::write(root.join("store/runtime-host.json"), b"forged").is_err());
@@ -1043,7 +1225,7 @@ fn namespace_fixture_entry() {
         provider: Provider {
             kind: "katana".into(),
             identity: "software-fixture".into(),
-            version: "v1".into(),
+            version: "katana/openwarrant-verification/v1".into(),
         },
         verifier_digest: format!(
             "sha256:{}",
@@ -1090,6 +1272,11 @@ fn namespace_fixture_entry() {
         .unwrap();
     }
     let activated = fs::read(root.join("store/state.json")).unwrap();
+    fs::write(
+        root.join("store/runtime-native.json"),
+        b"{\"schema\":\"oh.war/runtime-native-config/v1-draft.1\",\"entries\":[]}",
+    )
+    .unwrap();
     let mut invalid = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
     invalid.enrollment.provider.identity = "substituted-provider".into();
     fs::write(
@@ -1254,6 +1441,92 @@ fn namespace_fixture_entry() {
         .spawn()
         .unwrap();
     let deadline = Instant::now() + Duration::from_secs(10);
+    while !scratch.join("native-config-ready").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before native policy readiness"
+        );
+        assert!(
+            Instant::now() < deadline,
+            "native policy readiness unavailable"
+        );
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let native_path = root.join("store/runtime-native.json");
+    let original_native = fs::read(&native_path).unwrap();
+    fs::write(
+        &native_path,
+        b"{\"schema\":\"oh.war/runtime-native-config/v1-draft.1\",\"entries\":[],\"entries\":[]}",
+    )
+    .unwrap();
+    fs::write(root.join("native-config-changed"), b"changed").unwrap();
+    while !scratch.join("native-config-checked").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before native policy refusal"
+        );
+        assert!(
+            Instant::now() < deadline,
+            "native policy refusal unavailable"
+        );
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    fs::write(&native_path, original_native).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !scratch.join("native-assessment-request.json").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before populated native policy request"
+        );
+        assert!(
+            Instant::now() < deadline,
+            "populated native policy request unavailable"
+        );
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let dispatch: serde_json::Value =
+        serde_json::from_slice(&fs::read(scratch.join("native-assessment-request.json")).unwrap())
+            .unwrap();
+    let log = root.join("protected-katana-log");
+    fs::write(&log, b"approved native input\n").unwrap();
+    fs::write(&native_path, serde_json::to_vec(&serde_json::json!({
+        "schema":"oh.war/runtime-native-config/v1-draft.1", "entries":[{
+            "dispatch_digest":dispatch["dispatch_digest"],
+            "provider":{"kind":"katana", "identity":"software-fixture", "version":"katana/openwarrant-verification/v1"},
+            "executable":program, "event_log":{"path":log, "sha256":"be87a744322f9c87607271fa3da73181dcb6992b39c5603a10799efd23b80f78", "max_bytes":128},
+            "trusted_log_head":format!("b3:{}", "1".repeat(64)), "authorized_capabilities":[],
+            "confinement_required":false, "hard_spend_cap_required":false, "timeout_ms":3000, "max_response_bytes":4096
+        }]
+    })).unwrap()).unwrap();
+    fs::write(root.join("native-adapter-configured"), b"configured").unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !scratch.join("native-policy-held").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before native policy retention"
+        );
+        assert!(
+            Instant::now() < deadline,
+            "native policy retention unavailable"
+        );
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let mut updated_policy: serde_json::Value =
+        serde_json::from_slice(&fs::read(&native_path).unwrap()).unwrap();
+    updated_policy["entries"][0]["hard_spend_cap_required"] = serde_json::json!(true);
+    fs::write(&native_path, serde_json::to_vec(&updated_policy).unwrap()).unwrap();
+    fs::write(root.join("native-policy-updated"), b"updated").unwrap();
+    while !scratch.join("native-policy-checked").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before native policy rejection"
+        );
+        assert!(
+            Instant::now() < deadline,
+            "native policy rejection unavailable"
+        );
+        std::thread::sleep(Duration::from_millis(10));
+    }
     while !scratch.join("host-ready").exists() {
         assert!(
             child.try_wait().unwrap().is_none(),
