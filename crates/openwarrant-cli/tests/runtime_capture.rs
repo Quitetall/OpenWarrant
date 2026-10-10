@@ -17,6 +17,177 @@ struct Fixture {
     root: PathBuf,
     dispatch: StageDispatch,
 }
+
+#[cfg(unix)]
+#[test]
+fn katana_process_preserves_unavailable_and_refuses_contradictory_responses() {
+    use capture::katana_process::{KatanaProcessConfig, KatanaProcessVerifier};
+    use std::{os::unix::fs::PermissionsExt, time::Duration};
+    let f = Fixture::with_runtime_count(1);
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let executable = f.root.join("synthetic-provider.sh");
+    for (body, exit, unavailable) in [
+        (
+            json!({"schema":"katana/openwarrant-verification/v1","status":"unavailable","assurance":"not-established","reason":"native log missing"}),
+            1,
+            true,
+        ),
+        (
+            json!({"schema":"katana/openwarrant-verification/v1","status":"unavailable","assurance":"not-established","reason":"native log missing"}),
+            0,
+            false,
+        ),
+        (
+            json!({"schema":"katana/openwarrant-verification/v1","status":"validated","assurance":"granted","native":{}}),
+            0,
+            false,
+        ),
+    ] {
+        // Synthetic protocol control, not a native verifier or authenticated provider.
+        fs::write(
+            &executable,
+            format!("#!/bin/sh\nprintf '%s\\n' '{}'\nexit {exit}\n", body),
+        )
+        .unwrap();
+        fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+        let config = KatanaProcessConfig {
+            provider: ProviderInterface {
+                kind: ProviderKind::Katana,
+                identity: "synthetic-protocol".into(),
+                version: "katana/openwarrant-verification/v1".into(),
+            },
+            executable: executable.clone(),
+            event_log: f.root.join("native.jsonl"),
+            trusted_log_head: format!("b3:{}", "1".repeat(64)),
+            scratch_root: f.root.clone(),
+            timeout: Duration::from_secs(1),
+            max_response_bytes: 4096,
+        };
+        let verifier = KatanaProcessVerifier::for_recorded_dispatch(
+            &repo,
+            "IX-WAR-0003",
+            &f.dispatch.dispatch_id,
+            config,
+        )
+        .unwrap();
+        let error = verifier.verify(b"synthetic receipt").unwrap_err();
+        if unavailable {
+            assert!(matches!(error, ProviderFailure::Unavailable(_)));
+        } else {
+            assert!(matches!(error, ProviderFailure::Rejected(_)));
+        }
+        assert!(!fs::read_dir(&f.root).unwrap().any(|e| {
+            e.unwrap()
+                .file_name()
+                .to_string_lossy()
+                .starts_with("ow-katana-verify-")
+        }));
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn katana_process_checks_native_mapping_without_inventing_cost_or_authority() {
+    use capture::katana_process::{KatanaProcessConfig, KatanaProcessVerifier};
+    use std::{os::unix::fs::PermissionsExt, time::Duration};
+    let f = Fixture::with_runtime_count(1);
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let executable = f.root.join("synthetic-mapping.sh");
+    let head = format!("b3:{}", "1".repeat(64));
+    let config = || KatanaProcessConfig {
+        provider: ProviderInterface {
+            kind: ProviderKind::Katana,
+            identity: "synthetic-mapping-only".into(),
+            version: "katana/openwarrant-verification/v1".into(),
+        },
+        executable: executable.clone(),
+        event_log: f.root.join("native.jsonl"),
+        trusted_log_head: head.clone(),
+        scratch_root: f.root.clone(),
+        timeout: Duration::from_secs(1),
+        max_response_bytes: 4096,
+    };
+    let mut invalid = config();
+    invalid.trusted_log_head = "not-a-native-head".into();
+    assert!(matches!(
+        KatanaProcessVerifier::for_recorded_dispatch(
+            &repo,
+            "IX-WAR-0003",
+            &f.dispatch.dispatch_id,
+            invalid
+        ),
+        Err(ProviderFailure::Rejected(_))
+    ));
+    let mut invalid = config();
+    invalid.provider.version = "future-interface".into();
+    assert!(matches!(
+        KatanaProcessVerifier::for_recorded_dispatch(
+            &repo,
+            "IX-WAR-0003",
+            &f.dispatch.dispatch_id,
+            invalid
+        ),
+        Err(ProviderFailure::Rejected(_))
+    ));
+    let verifier = KatanaProcessVerifier::for_recorded_dispatch(
+        &repo,
+        "IX-WAR-0003",
+        &f.dispatch.dispatch_id,
+        config(),
+    )
+    .unwrap();
+    let original = json!({
+        "schema":"katana/openwarrant-receipt/v1", "binding":{"warrant_ref":f.dispatch.warrant_ref,"contract_digest":f.dispatch.contract_digest,"dispatch_digest":f.dispatch.dispatch_digest,"stage_id":f.dispatch.stage_id,"attempt_id":f.dispatch.attempt_id},
+        "session_id":"synthetic-session", "outcome":"completed", "prompt_ir_digest":head, "provider_model_identity":["synthetic-model"], "event_log_head":head, "receipt_digest":head,
+        "realized_capabilities":[], "capability_observation":"dispatch-permission-upper-bound", "confinement":"none", "input_tokens":1,"output_tokens":1,"usage_estimated":true,"cost_usd":null,"artifact_event_refs":[],"taint_event_refs":[],"assurance_granted":false
+    });
+    let respond = |native: &Value| {
+        // Protocol stand-in only. This cannot establish native log validity.
+        let response = json!({"schema":"katana/openwarrant-verification/v1","status":"validated","assurance":"not-established","native":native});
+        fs::write(
+            &executable,
+            format!("#!/bin/sh\nprintf '%s\\n' '{}'\n", response),
+        )
+        .unwrap();
+        fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+    };
+    for (status, outcome) in [
+        ("completed", RuntimeOutcome::Completed),
+        ("failed", RuntimeOutcome::Failed),
+        ("halted", RuntimeOutcome::Halted),
+        ("cancelled", RuntimeOutcome::Cancelled),
+    ] {
+        let mut native = original.clone();
+        native["outcome"] = json!(status);
+        respond(&native);
+        let result = verifier
+            .verify(&serde_json::to_vec(&native).unwrap())
+            .unwrap();
+        assert_eq!(result.outcome, outcome);
+        assert_eq!(result.confinement, Observation::Unknown);
+        assert_eq!(result.metered_cost, Observation::Unknown);
+        assert_eq!(result.spend_cap, Observation::Unknown);
+    }
+    for (field, bad) in [
+        ("cost_usd", json!(0)),
+        ("assurance_granted", json!(true)),
+        ("event_log_head", json!(format!("b3:{}", "2".repeat(64)))),
+        ("prompt_ir_digest", Value::Null),
+    ] {
+        let mut native = original.clone();
+        native[field] = bad;
+        respond(&native);
+        assert!(matches!(
+            verifier.verify(&serde_json::to_vec(&native).unwrap()),
+            Err(ProviderFailure::Rejected(_))
+        ));
+    }
+    respond(&original);
+    assert!(matches!(
+        verifier.verify(b"different original receipt"),
+        Err(ProviderFailure::Rejected(_))
+    ));
+}
 impl Drop for Fixture {
     fn drop(&mut self) {
         fs::remove_dir_all(&self.root).unwrap();
@@ -1356,5 +1527,202 @@ fn actual_blut_cpu_receipt_roundtrips_through_capture_and_current_resolution() {
     );
     println!(
         "PASS actual CPU/native seal/capture/current resolution; tampered signature/output and wrong catalog refused; missing job UNKNOWN; no assurance"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+#[ignore = "requires separately built Katana local fixture producer and native verifier"]
+fn actual_katana_turn_roundtrips_through_capture_and_current_resolution() {
+    use capture::katana_process::{KatanaProcessConfig, KatanaProcessVerifier};
+    use std::time::Duration;
+    let producer =
+        PathBuf::from(std::env::var_os("OW_KATANA_FIXTURE_PRODUCER").expect("fixture producer"));
+    let executable =
+        PathBuf::from(std::env::var_os("OW_KATANA_NATIVE_VERIFIER").expect("native verifier"));
+    assert!(producer.is_absolute() && executable.is_absolute());
+    let f = Fixture::with_runtime_count(1);
+    let binding = f.root.join("checked-binding.json");
+    fs::write(&binding, serde_json::to_vec(&json!({
+        "warrant_ref":f.dispatch.warrant_ref,"contract_digest":f.dispatch.contract_digest,
+        "dispatch_digest":f.dispatch.dispatch_digest,"stage_id":f.dispatch.stage_id,"attempt_id":f.dispatch.attempt_id
+    })).unwrap()).unwrap();
+    let native = f.root.join("native-local-turn");
+    let produced = Command::new("/usr/bin/timeout")
+        .arg("30")
+        .arg(producer)
+        .arg(&binding)
+        .arg(&native)
+        .output()
+        .unwrap();
+    assert!(
+        produced.status.success(),
+        "{}",
+        String::from_utf8_lossy(&produced.stderr)
+    );
+    let metadata: Value =
+        serde_json::from_slice(&fs::read(native.join("fixture.json")).unwrap()).unwrap();
+    assert_eq!(metadata["scripted_provider"], true);
+    assert_eq!(metadata["cost_metered"], false);
+    // This head is fixture instrumentation, NOT protected production custody.
+    let head = metadata["expected_log_head"].as_str().unwrap();
+    let interface = ProviderInterface {
+        kind: ProviderKind::Katana,
+        identity: "actual-local-katana-test-build".into(),
+        version: "katana/openwarrant-verification/v1".into(),
+    };
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let config = |head: &str| KatanaProcessConfig {
+        provider: interface.clone(),
+        executable: executable.clone(),
+        event_log: native.join("session.jsonl"),
+        trusted_log_head: head.into(),
+        scratch_root: f.root.clone(),
+        timeout: Duration::from_secs(30),
+        max_response_bytes: 1024 * 1024,
+    };
+    let verifier = KatanaProcessVerifier::for_recorded_dispatch(
+        &repo,
+        "IX-WAR-0003",
+        &f.dispatch.dispatch_id,
+        config(head),
+    )
+    .unwrap();
+    let raw = fs::read(native.join("receipt.json")).unwrap();
+    let checked = verifier.verify(&raw).unwrap();
+    assert_eq!(checked.binding, RuntimeBinding::from_dispatch(&f.dispatch));
+    assert_eq!(checked.outcome, RuntimeOutcome::Completed);
+    assert_eq!(checked.confinement, Observation::Unknown);
+    assert_eq!(checked.metered_cost, Observation::Unknown);
+    assert_eq!(checked.spend_cap, Observation::Unknown);
+    let NativeReceipt::Katana(receipt) = checked.receipt else {
+        panic!("native Katana receipt required");
+    };
+    // The fixture's declared bounded action allows exactly this read. Do not
+    // derive authorization from the returned receipt's requested capabilities.
+    let allowed = vec![r#"{"glob":"input.txt","kind":"fs","mode":"read"}"#.to_owned()];
+    assert_eq!(receipt.realized_capabilities, allowed);
+    assert_eq!(receipt.receipt_digest, head);
+    assert_eq!(receipt.runtime_event_log_head, head);
+    let policy = || Verification {
+        verifier: &verifier,
+        registry_digest: None,
+        authorized_capabilities: Some(&allowed),
+        confinement_required: false,
+        hard_spend_cap_required: false,
+    };
+    let denied = assess_runtime_receipt(
+        &RuntimeExpectation {
+            dispatch: &f.dispatch,
+            provider: &interface,
+            registry_digest: None,
+            authorized_capabilities: Some(&[]),
+            confinement_required: false,
+            hard_spend_cap_required: false,
+            max_receipt_bytes: 4 * 1024 * 1024,
+        },
+        &raw,
+        Some(&verifier),
+    );
+    assert_eq!(denied.standing, ReceiptStanding::Refused);
+    for (sandbox, spend, code) in [
+        (true, false, "runtime.confinement-unestablished"),
+        (false, true, "runtime.accounting-unestablished"),
+    ] {
+        let required = assess_runtime_receipt(
+            &RuntimeExpectation {
+                dispatch: &f.dispatch,
+                provider: &interface,
+                registry_digest: None,
+                authorized_capabilities: Some(&allowed),
+                confinement_required: sandbox,
+                hard_spend_cap_required: spend,
+                max_receipt_bytes: 4 * 1024 * 1024,
+            },
+            &raw,
+            Some(&verifier),
+        );
+        assert_eq!(required.standing, ReceiptStanding::Unknown);
+        assert_eq!(required.code, code);
+    }
+    let mut changed: Value = serde_json::from_slice(&raw).unwrap();
+    changed["assurance_granted"] = json!(true);
+    assert!(matches!(
+        verifier.verify(&serde_json::to_vec(&changed).unwrap()),
+        Err(ProviderFailure::Rejected(_))
+    ));
+    let log = native.join("session.jsonl");
+    let original = fs::read(&log).unwrap();
+    let mut altered = original.clone();
+    altered[0] ^= 1;
+    fs::write(&log, &altered).unwrap();
+    assert!(matches!(
+        verifier.verify(&raw),
+        Err(ProviderFailure::Rejected(_))
+    ));
+    fs::write(&log, &original).unwrap();
+    let wrong = KatanaProcessVerifier::for_recorded_dispatch(
+        &repo,
+        "IX-WAR-0003",
+        &f.dispatch.dispatch_id,
+        config(&format!("b3:{}", "0".repeat(64))),
+    )
+    .unwrap();
+    assert!(matches!(
+        wrong.verify(&raw),
+        Err(ProviderFailure::Rejected(_))
+    ));
+    fs::write(f.root.join("receipt.bin"), &raw).unwrap();
+    let mut request = f.request();
+    request["provider"] =
+        json!({"kind":"katana","identity":interface.identity,"version":interface.version});
+    request["metadata"]["transport"] =
+        json!("actual scripted local Katana turn and native process verifier");
+    request["metadata"]["original_receipt_ref"] =
+        json!(native.join("receipt.json").to_str().unwrap());
+    let request: Request = serde_json::from_value(request).unwrap();
+    let response = capture::import(&repo, "IX-WAR-0003", &request, Some(policy())).unwrap();
+    assert_eq!(response["native_observation"]["standing"], "matches");
+    assert_eq!(response["assurance_granted"], false);
+    let selected = [capture::Selection {
+        stage_id: f.dispatch.stage_id.clone(),
+        capture_digest: response["digest"].as_str().unwrap().into(),
+    }];
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| Some(policy()))
+            .unwrap()
+            .standing,
+        ReceiptStanding::Matches
+    );
+    let one = repo
+        .load_warrant(&repo.warrant_dir("IX-WAR-0003").unwrap())
+        .unwrap();
+    let resolve_native = |_: &StageDispatch, _: &ProviderInterface| Some(policy());
+    let resolution = openwarrant_cli::resolve::assess_with_runtime(
+        &repo,
+        &one,
+        &[],
+        openwarrant_cli::resolve::runtime::Input {
+            selections: &selected,
+            native: &resolve_native,
+        },
+    )
+    .unwrap();
+    assert!(resolution.checks.runtime_receipts_match_the_basis);
+    assert!(!resolution.checks.exact_authorized_contract_revision);
+    assert!(!resolution.checks.independence_requirements_met);
+    fs::rename(&log, native.join("unavailable-log")).unwrap();
+    assert!(matches!(
+        verifier.verify(&raw),
+        Err(ProviderFailure::Unavailable(_))
+    ));
+    assert_eq!(
+        capture::assess_selected(&repo, "IX-WAR-0003", &selected, |_, _| Some(policy()))
+            .unwrap()
+            .standing,
+        ReceiptStanding::Unknown
+    );
+    println!(
+        "PASS actual local turn/native log/capture/current resolution; capability excess, changed log, wrong head and fake assurance refused; missing log UNKNOWN; no assurance"
     );
 }

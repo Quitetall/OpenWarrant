@@ -3,6 +3,8 @@
 //! Source reads are bounded and descriptor-relative; publication never replaces
 //! a retained object. Local checksums establish byte identity, not authenticity.
 pub mod blut_process;
+pub mod katana_process;
+mod process;
 mod recorded;
 mod selection;
 pub use selection::{
