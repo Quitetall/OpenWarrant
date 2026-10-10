@@ -85,6 +85,17 @@ the acting principal and enforce the result atomically with, or recheck it befor
 the protected action. Removing keys affects future transitions; prior signed
 history is verified against the key set that was current for that transition.
 
+## Explicit authority metadata sharing
+
+`authority bootstrap --execution-readable --agent-uid ...` shares public store
+metadata while preserving operator ownership and refusing group/other writes.
+The default remains private. Normal operator loading checks state-file ownership
+and permissions before parsing its sharing setting. Unit controls reject writable
+state, writable directories and sharing in test mode. This setting does not
+protect signing keys, authenticate the caller, activate a collector, or establish
+human review. Deployment must provide separate accounts, safe ancestry, trusted
+executables and protected key custody. See [authority setup](cli/authority.md).
+
 ## Candidate runtime collector enrollment (OW-WAR-0149)
 
 These callable components do not activate a collector or award assurance.

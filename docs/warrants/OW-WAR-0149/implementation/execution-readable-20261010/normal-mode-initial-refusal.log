@@ -1,0 +1,32 @@
+
+running 1 test
+
+thread 'collector_signature::protected_namespace_roundtrip' (2767281) panicked at crates/openwarrant-cli/tests/collector_signature.rs:274:5:
+
+running 1 test
+test collector_signature::namespace_fixture_entry ... FAILED
+
+failures:
+
+failures:
+    collector_signature::namespace_fixture_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.80s
+
+
+
+thread 'collector_signature::namespace_fixture_entry' (2767286) panicked at crates/openwarrant-cli/tests/collector_signature.rs:429:9:
+authority command failed:  error: authority-store-unsafe-owner-or-mode
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test collector_signature::protected_namespace_roundtrip ... FAILED
+
+failures:
+
+failures:
+    collector_signature::protected_namespace_roundtrip
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.81s
+

@@ -10,7 +10,7 @@ a repository adopts a store by the cutover below (OW-WAR-0138), and until then
 
 Use a dedicated operator/broker environment with a trusted installed `war` binary.
 The execution agent must not control that account, its environment, the authority
-store, the verifier, SSH signing socket or private keys. Store directory must be
+store, the verifier, SSH signing socket or private keys. By default, the store directory must be
 owned by the operator, mode0700, with ancestors not writable by the execution
 account or group/other. `/usr/bin/ssh-keygen` must be a trusted system executable.
 Do not expose unrestricted sudo or a service that accepts arbitrary store paths.
@@ -38,6 +38,26 @@ Create the protected directory first through normal administrator provisioning.
 bytes without interpreting them as new grants. Bootstrap refuses an existing store
 and does not contact a model, infer a root key, or sign a human acceptance record.
 Keep an independently protected backup; recovery keys must be configured in advance.
+
+### Public metadata for an execution account
+
+A collector must read current authority without being able to change it. When
+provisioning that separate account, the operator may add `--execution-readable`
+to `bootstrap --agent-uid ...`. This explicit option sets the store directory to
+0755 and its canonical public `state.json` to 0644. Each activation preserves that
+read access. The lock stays private. The option is refused in unprotected test
+mode; private 0700/0600 storage remains the default.
+
+The shared state contains public keys, grants, policy, signed history and any
+retained legacy bytes. Review those bytes for suitability before sharing them.
+Never put private keys or credentials in the store. Provision parent-directory
+traversal separately; the option does not change ancestors or prove the execution
+account can read the store. Normal operator reads reject a state file owned by
+another account or writable by group/other, as well as unsafe directory ancestry.
+The execution loader separately checks its actual account and read-only boundary.
+
+This is metadata access, not collector activation, an authenticated caller, human
+presence or a sandbox. Those controls still require the protected host/harness.
 
 Export current state for an agent, then draft a replacement principal's exact roles:
 

@@ -437,7 +437,8 @@ mod tests {
         use std::os::unix::fs::PermissionsExt;
         // A normal authority store must not have a world-writable /tmp ancestor.
         // This disposable test stays in the isolated checkout and is removed.
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join(format!(".authority-sharing-{}", std::process::id()));
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(format!(".authority-sharing-{}", std::process::id()));
         fs::create_dir(&root).unwrap();
         fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
         let genesis = Revision {

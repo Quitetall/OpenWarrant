@@ -249,6 +249,13 @@ fn namespace_entry_name() -> String {
 #[test]
 #[ignore = "requires provisioned unshare subordinate UID/GID mapping; run explicitly"]
 fn protected_namespace_roundtrip() {
+    // Host-root-owned ancestors are unmapped in this user namespace. A private
+    // mount namespace and disposable chroot give normal-mode guard checks real
+    // namespace-owned ancestors without weakening the production checks.
+    let mountpoint = std::env::temp_dir().join(format!("ow-collector-root-{}", std::process::id()));
+    fs::create_dir(&mountpoint).unwrap();
+    let war = std::env::var_os("OW_COLLECTOR_FIXTURE_WAR")
+        .unwrap_or_else(|| env!("CARGO_BIN_EXE_war").into());
     let output = std::process::Command::new("/usr/bin/timeout")
         .args([
             "45",
@@ -256,21 +263,46 @@ fn protected_namespace_roundtrip() {
             "--user",
             "--map-root-user",
             "--map-auto",
+            "--mount",
             "--setuid",
             "0",
             "--setgid",
             "0",
+            "/usr/bin/sh",
+            "-eu",
+            "-c",
+            r#"
+root=$1
+/usr/bin/mount --make-rprivate /
+/usr/bin/mount -t tmpfs -o mode=0755 tmpfs "$root"
+/usr/bin/mkdir -p "$root/usr" "$root/proc" "$root/dev" "$root/scratch" "$root/tmp" "$root/etc"
+/usr/bin/mount --bind /usr "$root/usr"
+/usr/bin/mount -o remount,bind,ro "$root/usr"
+/usr/bin/mount --rbind /proc "$root/proc"
+/usr/bin/mount --rbind /dev "$root/dev"
+/usr/bin/ln -s usr/bin "$root/bin"
+printf 'root:x:0:0:fixture:/root:/bin/sh\nworker:x:1:1:fixture:/scratch:/bin/sh\n' > "$root/etc/passwd"
+printf 'root:x:0:\nworker:x:1:\n' > "$root/etc/group"
+printf 'passwd: files\ngroup: files\n' > "$root/etc/nsswitch.conf"
+/usr/bin/ln -s usr/lib "$root/lib"
+/usr/bin/ln -s usr/lib64 "$root/lib64"
+/usr/bin/cp "$2" "$root/test-runner"
+/usr/bin/cp "$3" "$root/war"
+/usr/bin/chmod 0755 "$root/test-runner" "$root/war" "$root/scratch"
+export TMPDIR=/scratch OW_COLLECTOR_FIXTURE_WAR=/war
+export OW_COLLECTOR_NAMESPACE_FIXTURE=operator
+cd "$root"
+exec /usr/bin/chroot "$root" /test-runner --exact "$4" --ignored --nocapture
+"#,
+            "namespace-fixture",
         ])
+        .arg(&mountpoint)
         .arg(std::env::current_exe().unwrap())
-        .args([
-            "--exact",
-            namespace_entry_name().as_str(),
-            "--ignored",
-            "--nocapture",
-        ])
-        .env("OW_COLLECTOR_NAMESPACE_FIXTURE", "operator")
+        .arg(war)
+        .arg(namespace_entry_name())
         .output()
         .unwrap();
+    fs::remove_dir(&mountpoint).unwrap();
     assert!(
         output.status.success(),
         "{}\n{}",
