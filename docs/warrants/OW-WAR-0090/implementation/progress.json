@@ -9,7 +9,8 @@
     "docs/releases/rc3-review-inventory.json",
     "docs/warrants/OW-WAR-0085/implementation/native-20260918/comparison.json",
     "docs/warrants/OW-WAR-0089/implementation/native-20260918/comparison.json",
-    "docs/warrants/OW-WAR-0090/implementation/dependency-currency-20261010/README.md"
+    "docs/warrants/OW-WAR-0090/implementation/dependency-currency-20261010/README.md",
+    "docs/warrants/OW-WAR-0090/implementation/board-shared-corpus-20261010/README.md"
   ],
   "next_steps": [
     "Finish workflow lifecycle, independent verification and required real integrations.",

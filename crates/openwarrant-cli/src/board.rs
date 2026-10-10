@@ -25,14 +25,15 @@ pub struct Board {
 }
 
 pub fn build(repo: &Repository) -> Result<(Report, Board), RepoError> {
-    let (report, frontier) = frontier::run(repo, None)?;
-    let (approvals, questions) = console::review_rows(repo)?;
+    let corpus = crate::corpus::Corpus::new(repo);
+    let (report, frontier) = frontier::run_with(&corpus, None)?;
+    let (approvals, questions) = console::review_rows_with(&corpus)?;
     Ok((
         report,
         Board {
             schema: "oh.war/board-draft/v1",
             program: repo.config.project.name.clone(),
-            corpus: crate::status::build(repo)?,
+            corpus: crate::status::build_with(&corpus)?,
             frontier,
             approvals,
             questions,
