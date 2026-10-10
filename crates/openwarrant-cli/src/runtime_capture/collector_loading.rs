@@ -97,7 +97,9 @@ fn snapshot_for_execution(root: &Path) -> Result<crate::authority_cmd::store::Cu
             }
             if metadata.uid() == uid
                 || metadata.mode() & 0o022 != 0
-                || rustix::fs::access(path, rustix::fs::Access::WRITE_OK).is_ok()
+                || crate::authority_cmd::store::effective_write_access(path).map_err(|_| {
+                    Fault::Unavailable("effective authority write access unavailable")
+                })?
             {
                 return Err(Fault::Rejected(
                     "authority store is writable by the executor",

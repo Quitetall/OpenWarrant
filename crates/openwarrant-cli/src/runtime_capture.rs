@@ -7,6 +7,7 @@ pub mod collector_loading;
 pub mod collector_signature;
 pub mod katana_process;
 mod process;
+pub mod protected_executable;
 mod recorded;
 mod selection;
 pub use selection::{

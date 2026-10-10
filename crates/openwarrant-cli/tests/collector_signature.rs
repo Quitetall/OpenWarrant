@@ -337,6 +337,40 @@ fn namespace_fixture_entry() {
     };
     let role =
         std::env::var("OW_COLLECTOR_NAMESPACE_FIXTURE").expect("explicit fixture role required");
+    if role == "capable-executor" {
+        let root = std::path::PathBuf::from(std::env::var_os("OW_COLLECTOR_FIXTURE_ROOT").unwrap());
+        assert_eq!(rustix::process::getuid().as_raw(), 1);
+        assert_eq!(rustix::process::geteuid().as_raw(), 1);
+        let caps = fs::read_to_string("/proc/self/status").unwrap();
+        assert!(caps.lines().any(|s| s == "CapEff:\t0000000000000002"));
+        // The actual effective account can mutate an operator-owned readonly
+        // object even though access(2), using the real UID, denies WRITE_OK.
+        let probe = root.join("capability-probe");
+        assert!(rustix::fs::access(&probe, rustix::fs::Access::WRITE_OK).is_err());
+        fs::write(&probe, b"effective account wrote readonly operator bytes").unwrap();
+        let verifier =
+            OpenSshSignatureCheck::new(std::env::temp_dir(), Duration::from_secs(5)).unwrap();
+        let loaded =
+            LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier);
+        println!(
+            "capable executor observation: accepted={}; fault={:?}",
+            loaded.is_ok(),
+            loaded.as_ref().err()
+        );
+        assert!(
+            matches!(
+                loaded,
+                Err(Fault::Rejected(
+                    "authority store is writable by the executor"
+                ))
+            ),
+            "effective capability lets this executor write authority; loading must refuse"
+        );
+        println!(
+            "capable execution UID 1: actual write succeeded; authority loading refused effective write capability"
+        );
+        return;
+    }
     if role == "no-account" {
         assert_eq!(rustix::process::geteuid().as_raw(), 2);
         assert!(
@@ -359,6 +393,23 @@ fn namespace_fixture_entry() {
     if role == "executor" {
         let root = std::path::PathBuf::from(std::env::var_os("OW_COLLECTOR_FIXTURE_ROOT").unwrap());
         let scratch = root.join("worker-scratch");
+        use openwarrant_cli::runtime_capture::protected_executable::ProtectedExecutable;
+        use openwarrant_core::document::runtime::ProviderFailure;
+        let program = root.join("protected-verifier");
+        let approved_digest = fs::read_to_string(root.join("verifier.sha256")).unwrap();
+        let protected = ProtectedExecutable::acquire(&program, &approved_digest).unwrap();
+        assert!(matches!(
+            ProtectedExecutable::acquire(&root.join("writable-verifier"), &approved_digest),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        assert!(matches!(
+            ProtectedExecutable::acquire(&root.join("linked-verifier"), &approved_digest),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        assert!(matches!(
+            ProtectedExecutable::acquire(&root.join("script-verifier"), &approved_digest),
+            Err(ProviderFailure::Rejected(_))
+        ));
         assert_eq!(rustix::process::getuid().as_raw(), 1);
         assert_eq!(rustix::process::geteuid().as_raw(), 1);
         assert!(
@@ -433,6 +484,22 @@ fn namespace_fixture_entry() {
             assert!(Instant::now() < deadline, "operator selection unavailable");
             std::thread::sleep(Duration::from_millis(10));
         }
+        assert!(
+            !Command::new("/usr/bin/timeout")
+                .arg("3")
+                .arg(&program)
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(protected.run(&[], Duration::from_secs(3), 1024).unwrap().0);
+        assert!(matches!(
+            ProtectedExecutable::acquire(&program, &approved_digest),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        println!(
+            "execution UID 1: sealed approved image survived operator path replacement; fresh mismatched bytes, writable image, symlink and script refused"
+        );
         assert!(matches!(
             loaded.allows(usage),
             Err(Fault::Rejected("collector activation changed"))
@@ -469,6 +536,24 @@ fn namespace_fixture_entry() {
     let root = std::env::temp_dir().join(format!("ow-collector-ns-{}", std::process::id()));
     fs::create_dir(&root).unwrap();
     fs::set_permissions(&root, fs::Permissions::from_mode(0o755)).unwrap();
+    let program = root.join("protected-verifier");
+    fs::copy("/usr/bin/true", &program).unwrap();
+    fs::set_permissions(&program, fs::Permissions::from_mode(0o755)).unwrap();
+    let digest = openwarrant_compiler::sha256_hex(&fs::read(&program).unwrap());
+    fs::write(root.join("verifier.sha256"), digest).unwrap();
+    fs::copy(&program, root.join("writable-verifier")).unwrap();
+    fs::set_permissions(
+        root.join("writable-verifier"),
+        fs::Permissions::from_mode(0o777),
+    )
+    .unwrap();
+    std::os::unix::fs::symlink(&program, root.join("linked-verifier")).unwrap();
+    fs::write(root.join("script-verifier"), b"#!/bin/sh\nexit 0\n").unwrap();
+    fs::set_permissions(
+        root.join("script-verifier"),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
     let scratch = root.join("worker-scratch");
     fs::create_dir(&scratch).unwrap();
     rustix::fs::chown(
@@ -695,6 +780,45 @@ fn namespace_fixture_entry() {
     let signature_file = root.join("transition.sig");
     fs::write(&proposal_file, proposal.encode().unwrap()).unwrap();
     fs::write(&signature_file, signature).unwrap();
+    let probe = root.join("capability-probe");
+    fs::write(&probe, b"readonly operator bytes").unwrap();
+    fs::set_permissions(&probe, fs::Permissions::from_mode(0o444)).unwrap();
+    let capable = Command::new("/usr/bin/timeout")
+        .args([
+            "10",
+            "/usr/bin/setpriv",
+            "--reuid",
+            "1",
+            "--regid",
+            "1",
+            "--clear-groups",
+            "--inh-caps=-all,+dac_override",
+            "--ambient-caps=-all,+dac_override",
+            "--bounding-set=-all,+dac_override",
+            "--no-new-privs",
+        ])
+        .arg(std::env::current_exe().unwrap())
+        .env_clear()
+        .env("OW_COLLECTOR_NAMESPACE_FIXTURE", "capable-executor")
+        .env("OW_COLLECTOR_FIXTURE_ROOT", &root)
+        .env("TMPDIR", &scratch)
+        .args([
+            "--exact",
+            namespace_entry_name().as_str(),
+            "--ignored",
+            "--nocapture",
+        ])
+        .stdin(Stdio::null())
+        .output()
+        .unwrap();
+    assert!(
+        capable.status.success(),
+        "{}\n{}",
+        String::from_utf8_lossy(&capable.stdout),
+        String::from_utf8_lossy(&capable.stderr)
+    );
+    assert!(String::from_utf8_lossy(&capable.stdout).contains("capable execution UID 1:"));
+    println!("{}", String::from_utf8_lossy(&capable.stdout));
     let mut child = Command::new("/usr/bin/setpriv")
         .args([
             "--reuid",
@@ -731,6 +855,15 @@ fn namespace_fixture_entry() {
         std::thread::sleep(Duration::from_millis(10));
     }
     let mut replacement = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
+    // Replace the operator-owned path after the execution account sealed its
+    // approved image. The old image must still execute; a fresh load must fail.
+    fs::copy("/usr/bin/false", root.join("replacement-verifier")).unwrap();
+    fs::set_permissions(
+        root.join("replacement-verifier"),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
+    fs::rename(root.join("replacement-verifier"), &program).unwrap();
     replacement.enrollment.verifier_digest = format!("sha256:{}", "b".repeat(64));
     let (_, signature) = fixture(NAMESPACE, &replacement.enrollment.encode().unwrap(), 11);
     replacement.signatures = BTreeMap::from([("owner".into(), signature)]);
