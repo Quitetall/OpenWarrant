@@ -1,0 +1,14 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "check",
+  "counts": {
+    "pass": 2028,
+    "warn": 625,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

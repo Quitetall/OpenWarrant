@@ -457,3 +457,30 @@ basis. After repair it refuses publication and preserves the prior capture bytes
 and count. The fixture does not authenticate provider execution. This fresh
 comparison is not atomic fencing: a trusted host must serialize or isolate writers
 to prevent changes after the final read or changes hidden between reads.
+
+
+### Privileges that can change a protected file's permissions
+
+An EACCESS write check describes current permission; it does not prove that a
+process cannot change the mode first. The namespace control observes UID 1 with
+only CAP_FOWNER: direct write is denied, but chmod of an operator-owned readonly
+probe and the subsequent write succeed. Before repair, active enrollment loading
+still accepted that account.
+
+Normal Linux non-owner authority reads and collector execution reads now require
+empty current effective and permitted capability sets. The kernel capability
+observation uses `capget`, not a caller-supplied claim or parsed configuration.
+A privileged or unavailable observation cannot establish this filesystem
+protection profile; it stays unavailable/UNKNOWN, with no fallback. Genuine
+operator-owner inspection and explicit prototype paths keep their existing roles.
+This is a conservative supported-profile boundary, not a claim that every
+capability allows a write or that an empty set proves isolation.
+
+The explicit control also drops effective CAP_FOWNER while retaining it as
+permitted, observes both readers refusing, then re-enables it and performs the
+actual mutation. Existing zero-capability reader, owner, direct-write capability,
+activation, scope and revocation controls remain. Separate host deployment,
+trusted store selection, caller identity, sudo/setuid/exec paths, other OS privilege
+models, inherited privilege transitions, key custody and launch fencing remain
+outside this observation. Stronger containment of a privileged reader is not
+qualified by these metadata checks.

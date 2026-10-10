@@ -1,0 +1,8 @@
+    Checking rustix v1.1.5
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-reader-privileges/crates/openwarrant-cli)
+    Checking openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-reader-privileges/crates/openwarrant-core)
+    Checking crossterm v0.29.0
+    Checking ratatui-crossterm v0.1.2
+    Checking ratatui v0.30.2
+    Checking openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-reader-privileges/crates/openwarrant-compiler)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 30.31s

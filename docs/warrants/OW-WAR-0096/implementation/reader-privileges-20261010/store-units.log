@@ -1,0 +1,10 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-reader-privileges/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 30.24s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/openwarrant_cli-95caa4ce38db7205)
+
+running 3 tests
+test authority_cmd::store::tests::a_store_the_agent_owns_or_a_group_can_write_is_refused ... ok
+test authority_cmd::store::tests::missing_effective_access_observations_are_unknown ... ok
+test authority_cmd::store::tests::sharing_is_explicit_and_never_allows_other_account_writes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 442 filtered out; finished in 0.33s

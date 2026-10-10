@@ -403,6 +403,86 @@ fn namespace_fixture_entry() {
 
         return;
     }
+    if role == "permission-editor" || role == "latent-permission-editor" {
+        let root = std::path::PathBuf::from(std::env::var_os("OW_COLLECTOR_FIXTURE_ROOT").unwrap());
+        assert_eq!(rustix::process::getuid().as_raw(), 1);
+        assert_eq!(rustix::process::geteuid().as_raw(), 1);
+        let caps = fs::read_to_string("/proc/self/status").unwrap();
+        assert!(caps.lines().any(|s| s == "CapEff:\t0000000000000008"));
+        let probe = root.join("permission-probe");
+        use std::os::unix::fs::MetadataExt;
+        assert_eq!(fs::metadata(&probe).unwrap().uid(), 0);
+        assert!(
+            rustix::fs::accessat(
+                rustix::fs::CWD,
+                &probe,
+                rustix::fs::Access::WRITE_OK,
+                rustix::fs::AtFlags::EACCESS,
+            )
+            .is_err()
+        );
+        fs::set_permissions(&probe, fs::Permissions::from_mode(0o666)).unwrap();
+        fs::write(&probe, b"non-owner changed mode, then wrote operator bytes").unwrap();
+        println!(
+            "permission editor UID 1: EACCESS denied direct write; CAP_FOWNER changed operator file mode and actual write succeeded"
+        );
+        if role == "latent-permission-editor" {
+            let mut sets = rustix::thread::capabilities(None).unwrap();
+            sets.effective = rustix::thread::CapabilitySet::empty();
+            rustix::thread::set_capabilities(None, sets).unwrap();
+            let sets = rustix::thread::capabilities(None).unwrap();
+            assert!(sets.effective.is_empty());
+            assert_eq!(sets.permitted, rustix::thread::CapabilitySet::FOWNER);
+            println!(
+                "latent permission editor: effective capabilities empty; permitted CAP_FOWNER retained"
+            );
+        }
+        let verifier =
+            OpenSshSignatureCheck::new(std::env::temp_dir(), Duration::from_secs(5)).unwrap();
+        let loaded =
+            LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier);
+        println!(
+            "permission editor protected enrollment: accepted={}; fault={:?}",
+            loaded.is_ok(),
+            loaded.as_ref().err()
+        );
+        assert!(
+            matches!(
+                loaded,
+                Err(Fault::Unavailable(
+                    "execution privileges cannot establish protected authority"
+                ))
+            ),
+            "a permission-changing executor cannot establish a protected authority boundary"
+        );
+        let repo = open_reader_repository(
+            &std::env::temp_dir(),
+            &root.join("reader-store"),
+            &format!("{role}-reader-repository"),
+        );
+        assert!(matches!(repo.config.governance,
+            openwarrant_core::config::Governance::FailedClosed { why, .. }
+                if why.contains("authority-store-reader-privileges-unqualified")));
+        println!(
+            "permission editor: both collector and general authority reader refuse unsupported privilege profile"
+        );
+        if role == "latent-permission-editor" {
+            let mut sets = rustix::thread::capabilities(None).unwrap();
+            sets.effective = rustix::thread::CapabilitySet::FOWNER;
+            rustix::thread::set_capabilities(None, sets).unwrap();
+            fs::set_permissions(&probe, fs::Permissions::from_mode(0o444)).unwrap();
+            fs::set_permissions(&probe, fs::Permissions::from_mode(0o666)).unwrap();
+            fs::write(
+                &probe,
+                b"retained permitted capability re-enabled actual mutation",
+            )
+            .unwrap();
+            println!(
+                "latent permission editor: permitted capability re-enabled and actual mutation succeeded"
+            );
+        }
+        return;
+    }
     if role == "no-account" {
         assert_eq!(rustix::process::geteuid().as_raw(), 2);
         assert!(
@@ -931,6 +1011,46 @@ fn namespace_fixture_entry() {
     let probe = root.join("capability-probe");
     fs::write(&probe, b"readonly operator bytes").unwrap();
     fs::set_permissions(&probe, fs::Permissions::from_mode(0o444)).unwrap();
+    let permission_probe = root.join("permission-probe");
+    fs::write(&permission_probe, b"readonly operator bytes").unwrap();
+    for editor_role in ["permission-editor", "latent-permission-editor"] {
+        fs::set_permissions(&permission_probe, fs::Permissions::from_mode(0o444)).unwrap();
+        let editor = Command::new("/usr/bin/timeout")
+            .args([
+                "10",
+                "/usr/bin/setpriv",
+                "--reuid",
+                "1",
+                "--regid",
+                "1",
+                "--clear-groups",
+                "--inh-caps=-all,+fowner",
+                "--ambient-caps=-all,+fowner",
+                "--bounding-set=-all,+fowner",
+                "--no-new-privs",
+            ])
+            .arg(std::env::current_exe().unwrap())
+            .env_clear()
+            .env("OW_COLLECTOR_NAMESPACE_FIXTURE", editor_role)
+            .env("OW_COLLECTOR_FIXTURE_ROOT", &root)
+            .env("TMPDIR", &scratch)
+            .args([
+                "--exact",
+                namespace_entry_name().as_str(),
+                "--ignored",
+                "--nocapture",
+            ])
+            .stdin(Stdio::null())
+            .output()
+            .unwrap();
+        assert!(
+            editor.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&editor.stdout),
+            String::from_utf8_lossy(&editor.stderr)
+        );
+        println!("{}", String::from_utf8_lossy(&editor.stdout));
+    }
     let capable = Command::new("/usr/bin/timeout")
         .args([
             "10",

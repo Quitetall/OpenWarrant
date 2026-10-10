@@ -1,0 +1,8 @@
+test verification_subject_cli::wrong_packet_digest_refuses_all_verdicts_before_writing ... ok
+test verification_subject_cli::unsupported_stored_record_is_unknown_while_malformed_supported_record_is_an_error ... ok
+test mcp_stdio::every_tool_answers_with_a_report_envelope ... ok
+test mcp_stdio::resources_are_listed_and_readable ... ok
+test overview::overview_lists_each_unresolved_record_and_progress_is_an_alias ... ok
+test progress_viewer::offline_view_contains_live_data_and_refuses_source_overwrite ... ok
+
+test result: ok. 213 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 40.79s

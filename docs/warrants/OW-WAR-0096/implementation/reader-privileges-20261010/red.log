@@ -1,0 +1,64 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-reader-privileges/crates/openwarrant-cli)
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-reader-privileges/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-reader-privileges/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 12s
+     Running tests/all.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/all-cc62655d0acd30f1)
+
+running 1 test
+
+thread 'collector_signature::protected_namespace_roundtrip' (180213) panicked at crates/openwarrant-cli/tests/collector_signature.rs:306:5:
+
+running 1 test
+
+running 1 test
+missing-account UID 2: verification UNKNOWN; no cryptographic verdict inferred
+test collector_signature::namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.01s
+
+
+general authority reader: actual store owner accepted
+test collector_signature::namespace_fixture_entry ... FAILED
+
+failures:
+
+failures:
+    collector_signature::namespace_fixture_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.11s
+
+
+
+thread 'collector_signature::namespace_fixture_entry' (180256) panicked at crates/openwarrant-cli/tests/collector_signature.rs:975:5:
+
+running 1 test
+permission editor UID 1: EACCESS denied direct write; CAP_FOWNER changed operator file mode and actual write succeeded
+permission editor protected enrollment: accepted=true; fault=None
+test collector_signature::namespace_fixture_entry ... FAILED
+
+failures:
+
+failures:
+    collector_signature::namespace_fixture_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.01s
+
+
+
+thread 'collector_signature::namespace_fixture_entry' (180308) panicked at crates/openwarrant-cli/tests/collector_signature.rs:427:9:
+a permission-changing executor cannot establish a protected authority boundary
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test collector_signature::protected_namespace_roundtrip ... FAILED
+
+failures:
+
+failures:
+    collector_signature::protected_namespace_roundtrip
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.33s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

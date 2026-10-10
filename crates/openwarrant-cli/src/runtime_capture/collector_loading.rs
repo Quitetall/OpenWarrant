@@ -106,6 +106,9 @@ fn snapshot_for_execution(root: &Path) -> Result<crate::authority_cmd::store::Cu
                 ));
             }
         }
+        crate::authority_cmd::store::unprivileged_reader().map_err(|_| {
+            Fault::Unavailable("execution privileges cannot establish protected authority")
+        })?;
         let current = crate::authority_cmd::store::read_current(root, false)
             .map_err(|_| Fault::Unavailable("authenticated authority snapshot unavailable"))?;
         if current.test_mode || current.agent_uid != Some(uid) {

@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Candidate Katana/BLUT adapters now bind recorded Dispatch Warrant scope and provider identity to an operator-activated enrollment, acquire its exact SHA-256 executable as a sealed image, and check fresh activation/authority before and after execution. Local separate-UID controls exercise actual sealed execution, mismatched scope/provider, writable image, inactive enrollment and revocation refusals. Candidate 9d367c64 passed its full hosted gate; its outdated merge base prevented merge. The refreshed successor candidate requires its own full gate. Actual workflow wiring, authenticated caller identity, dynamic dependencies, atomic launch/revocation fencing, protected deployment, independent verification and participant qualification remain open. This candidate also rechecks source and attempt currency before capture publication; a callback-driven source change was reproduced, then refused without changing prior captures. The full local integration suite passed; this is not atomic fencing or qualification.",
+  "summary": "Candidate Katana/BLUT adapters now bind recorded Dispatch Warrant scope and provider identity to an operator-activated enrollment, acquire its exact SHA-256 executable as a sealed image, and check fresh activation/authority before and after execution. Local separate-UID controls exercise actual sealed execution, mismatched scope/provider, writable image, inactive enrollment and revocation refusals. Candidate 9d367c64 passed its full hosted gate; its outdated merge base prevented merge. Refreshed successor PR188 passed its full hosted gate and merged through protected main. The later source-currency and privileged-reader candidates require their own full gate. Actual workflow wiring, authenticated caller identity, dynamic dependencies, atomic launch/revocation fencing, protected deployment, independent verification and participant qualification remain open. This candidate also rechecks source and attempt currency before capture publication; a callback-driven source change was reproduced, then refused without changing prior captures. The full local integration suite passed; this is not atomic fencing or qualification. This candidate refuses privileged non-owner Linux reader profiles that metadata/EACCESS checks cannot establish as protected. CAP_FOWNER and latent permitted-capability mutation controls passed; actual deployment remains unqualified.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -29,7 +29,8 @@
     "docs/warrants/OW-WAR-0149/implementation/protected-executable-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/effective-access-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/activated-native-verifier-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/capture-currency-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/capture-currency-20261010/README.md",
+    "docs/warrants/OW-WAR-0096/implementation/reader-privileges-20261010/README.md"
   ],
   "next_steps": [
     "Finish protected enrollment drafting/signing and native collector workflow wiring; selected configuration does not authenticate the acting collector or fence a native launch.",
