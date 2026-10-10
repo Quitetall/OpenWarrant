@@ -15,10 +15,18 @@ pub(super) fn reconstruct(
     } else {
         format!("{prefix}{directory}/generated/WAR.json")
     };
-    let bytes = files
-        .get(&ir_path)
-        .ok_or_else(|| format!("missing historical IR: {ir_path}"))?;
-    let retained: WarIr = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
+    let (retained, ir_path, source_digest, source_kind) = match files.get(&ir_path) {
+        Some(bytes) => (
+            serde_json::from_slice::<WarIr>(bytes).map_err(|e| e.to_string())?,
+            ir_path,
+            openwarrant_compiler::sha256_hex(bytes),
+            "retained-ir",
+        ),
+        None => {
+            let (ir, path, digest) = retained_snapshot(files, prefix, directory, manifest_bytes)?;
+            (ir, path, digest, "retained-runtime-contract-snapshot")
+        }
+    };
     let manifest_source = format!("{directory}/manifest.toml");
     if retained.source_and_composition.manifest_source != manifest_source {
         return Err("retained IR names another manifest".into());
@@ -100,9 +108,66 @@ pub(super) fn reconstruct(
     }
     Ok(
         serde_json::json!({"revision":reconstructed.contract_revision,"digest":digest,
-        "ir_source":ir_path,"ir_source_digest":format!("sha256:{}", openwarrant_compiler::sha256_hex(bytes)),
+        "ir_source":ir_path,"ir_source_digest":format!("sha256:{source_digest}"),
+        "source_kind":source_kind,
         "reconstructed":true}),
     )
+}
+
+/// A later retained source snapshot can reproduce earlier identical sources.
+/// Its actual path is reported; it is never asserted to exist at the earlier commit.
+fn retained_snapshot(
+    files: &BTreeMap<String, Vec<u8>>,
+    prefix: &str,
+    directory: &str,
+    manifest_bytes: &[u8],
+) -> Result<(WarIr, String, String), String> {
+    let marker = format!("{directory}/runtime-contracts/");
+    let mut found: Option<(WarIr, String, String)> = None;
+    for (path, bytes) in files {
+        let Some((origin, file)) = path.split_once(&marker) else {
+            continue;
+        };
+        if !origin.is_empty() && !origin.starts_with("__ow_archive__/history/") {
+            continue;
+        }
+        let checked = crate::runtime_capture::contract_snapshot::decode(bytes, file, directory)
+            .map_err(|e| format!("{path}: {e}"))?;
+        if checked.basis.manifest_bytes != manifest_bytes {
+            continue;
+        }
+        let mut matches = true;
+        for atom in &checked.basis.atoms {
+            let source =
+                super::super::atom_record(directory, &atom.source).map_err(|e| e.to_string())?;
+            if files.get(&format!("{prefix}{source}")) != Some(&atom.bytes) {
+                matches = false;
+                break;
+            }
+        }
+        if let Some(scope) = &checked.basis.scope
+            && files.get(&format!("{prefix}{}", scope.source)) != Some(&scope.bytes)
+        {
+            matches = false;
+        }
+        if !matches {
+            continue;
+        }
+        if let Some((ir, _, _)) = &found {
+            if ir != &checked.ir {
+                return Err("multiple retained contract snapshots match historical sources".into());
+            }
+        } else {
+            found = Some((
+                checked.ir,
+                path.clone(),
+                openwarrant_compiler::sha256_hex(bytes),
+            ));
+        }
+    }
+    found.ok_or_else(|| {
+        "missing historical IR and no exact retained runtime contract snapshot".into()
+    })
 }
 
 fn sas_digest(value: &str) -> Result<&str, String> {

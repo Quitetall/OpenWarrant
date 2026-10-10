@@ -1,0 +1,9 @@
+# Exact runtime contract source retention
+
+Unverified OW-WAR-0111 implementation, with the experimental format decision in proposed OW-ADR-runtime-contract-80d7bda6. Capture now retains a separate canonical contract snapshot through the existing create-without-replacement store. Existing capture and native receipt schemas and digest domains are unchanged. A failed capture publication can leave a source snapshot; it does not prove execution.
+
+Offline archive queries can reconstruct a historical contract whose commit omitted generated IR, if the retained snapshot exactly matches the selected historical manifest, atoms and optional scope. The query reports the snapshot's actual path and byte digest. A snapshot from a later commit is never represented as having existed earlier. Missing sources, malformed records and conflicting matching metadata remain unresolved, with no qualification or authority activation.
+
+The public CLI regression failed before implementation and passed after it. Controls passed for rehashed changed atom bytes, unknown nested IR fields, unsupported schema, competing valid metadata, immutable replay and refusal to replace an existing snapshot without changing the capture. Seven contract-related public CLI tests passed. Initial control failures were fixture errors: a bare contract digest was treated as prefixed, then a planted new record was omitted from three retained coverage inventories. Raw failures are retained beside the corrected terminal results; production coverage checks were not relaxed.
+
+This does not establish original historical compiler custody, native provider authentication, atomic writer fencing, independent verification or human acceptance. Real native preservation/KF roundtrip, explicit format promotion and qualification remain open. Full CLI tests and strict Clippy are pending for this source candidate.
