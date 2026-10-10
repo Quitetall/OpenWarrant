@@ -23,3 +23,5 @@ Rust 1.97.1 public signature tests passed (four tests; the two namespace entries
 This is performer evidence. It does not establish a production human act, independent verification, phase acceptance or launch sandboxing. Native input custody, trusted policy selection, actual CLI/workflow wiring, provider confinement/spend observations and independent qualification remain. Callers using the older explicit-identity SDK constructors remain responsible for authenticating their supplied identities.
 
 Final collector-loading/signature regression: seven passed, two intentionally ignored; the protected namespace case was run separately and passed. CLI all-feature/all-target Clippy with warnings denied, format checking and diff whitespace checking passed. Full protected-main CI and independent qualification remain.
+
+Parent integration PR201 merged into main at `a713878e6acbdf94e7f9bb30d35b50be4740b0d0` after all 14 gate steps and 1,598 planted controls passed. Both native hosts passed 11 controls on the same source inventory. These parent observations do not establish independent qualification of the host identity change.
