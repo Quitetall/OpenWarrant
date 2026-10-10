@@ -1,0 +1,21 @@
+{
+  "query_exit_code": 0,
+  "all_records_external": true,
+  "records": 32,
+  "source_access_required": false,
+  "identical_queries": {
+    "current_contract": true,
+    "stage_inventory": true,
+    "provider_capture_inventory": true
+  },
+  "authority_activated": false,
+  "qualified": false,
+  "native_verification": [
+    "unknown",
+    "unknown"
+  ],
+  "historical_gaps_preserved": [
+    "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/manifest.toml: contract binding unavailable: missing historical IR: __ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/generated/WAR.json",
+    "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/manifest.toml: contract binding unavailable: missing historical IR: __ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/generated/WAR.json"
+  ]
+}

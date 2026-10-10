@@ -1,0 +1,222 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "archive",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/runtime-archive-basis/v1-draft.1",
+    "archive_digest": "sha256:a29cef394a2a6ae3bc1d848f90ea2290fba940383541815bde037dcf5ec51834",
+    "subject": "war://01a125c3-dea4-7384-a831-f374d8d685cf",
+    "warrant_id": "01a125c3-dea4-7384-a831-f374d8d685cf",
+    "current_contract": {
+      "revision": 1,
+      "digest": "cc95dbba54f2ca7be3d91f772a6a73981223b0acc5c80c0077588912e354470f"
+    },
+    "retained_contracts": [],
+    "stage_inventory": {
+      "declarations": [
+        {
+          "source": "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/atoms/45-milestones.yaml",
+          "source_digest": "sha256:e649c3ba65060f81a32d75cb073f1290827c4692c4fc75a5fc8beafdb3d5dae9",
+          "manifest_source": "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/manifest.toml",
+          "graph": {
+            "milestones": [
+              {
+                "id": "M1",
+                "title": "Native receipt retained without assurance claims",
+                "stage_refs": [
+                  "STAGE-001"
+                ],
+                "obligation_refs": [
+                  "OBL-001"
+                ]
+              }
+            ],
+            "stages": [
+              {
+                "id": "STAGE-001",
+                "title": "Execute one CPU reference-declaration fixture",
+                "executor_kind": "blut",
+                "responsibility_tier": "T2",
+                "executor_ref": "fixture-native-cpu"
+              }
+            ]
+          },
+          "contract_binding": null
+        },
+        {
+          "source": "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/atoms/45-milestones.yaml",
+          "source_digest": "sha256:e649c3ba65060f81a32d75cb073f1290827c4692c4fc75a5fc8beafdb3d5dae9",
+          "manifest_source": "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/manifest.toml",
+          "graph": {
+            "milestones": [
+              {
+                "id": "M1",
+                "title": "Native receipt retained without assurance claims",
+                "stage_refs": [
+                  "STAGE-001"
+                ],
+                "obligation_refs": [
+                  "OBL-001"
+                ]
+              }
+            ],
+            "stages": [
+              {
+                "id": "STAGE-001",
+                "title": "Execute one CPU reference-declaration fixture",
+                "executor_kind": "blut",
+                "responsibility_tier": "T2",
+                "executor_ref": "fixture-native-cpu"
+              }
+            ]
+          },
+          "contract_binding": null
+        },
+        {
+          "source": "docs/warrants/NP-WAR-0001/atoms/45-milestones.yaml",
+          "source_digest": "sha256:e649c3ba65060f81a32d75cb073f1290827c4692c4fc75a5fc8beafdb3d5dae9",
+          "manifest_source": "docs/warrants/NP-WAR-0001/manifest.toml",
+          "graph": {
+            "milestones": [
+              {
+                "id": "M1",
+                "title": "Native receipt retained without assurance claims",
+                "stage_refs": [
+                  "STAGE-001"
+                ],
+                "obligation_refs": [
+                  "OBL-001"
+                ]
+              }
+            ],
+            "stages": [
+              {
+                "id": "STAGE-001",
+                "title": "Execute one CPU reference-declaration fixture",
+                "executor_kind": "blut",
+                "responsibility_tier": "T2",
+                "executor_ref": "fixture-native-cpu"
+              }
+            ]
+          },
+          "contract_binding": {
+            "revision": 1,
+            "digest": "cc95dbba54f2ca7be3d91f772a6a73981223b0acc5c80c0077588912e354470f",
+            "ir_source": "__ow_archive__/WAR.json",
+            "ir_source_digest": "sha256:916fd36f360d3393e2df3aa50017d9f6e5997c9a7e78ba1ca2d480210d546369",
+            "reconstructed": true
+          }
+        }
+      ],
+      "unresolved": [
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/manifest.toml: contract binding unavailable: missing historical IR: __ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/generated/WAR.json",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/manifest.toml: contract binding unavailable: missing historical IR: __ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/generated/WAR.json"
+      ],
+      "history_retained": true,
+      "execution_coverage_established": false
+    },
+    "provider_capture_inventory": {
+      "records": [
+        {
+          "source": "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/runtime-receipts/capture-25ae8be9ded1face7a26a5315ac1f6ce38a685bff38adad3c6e4dd011e6812f5.json",
+          "capture_digest": "sha256:25ae8be9ded1face7a26a5315ac1f6ce38a685bff38adad3c6e4dd011e6812f5",
+          "binding": {
+            "attempt": "01a125c4-f5ab-761e-8f1d-78d639846944",
+            "contract_digest": "cc95dbba54f2ca7be3d91f772a6a73981223b0acc5c80c0077588912e354470f",
+            "dispatch_digest": "fa2ddb00ccb3cbe3f7e4a4e829437e1700c4e3b72dd376f1ae951d93a90b0d94",
+            "stage": "STAGE-001",
+            "warrant": "war://01a125c3-dea4-7384-a831-f374d8d685cf"
+          },
+          "provider_declaration": {
+            "identity": "actual-local-blut-test-build",
+            "kind": "blut",
+            "version": "blut/openwarrant-verification/v1"
+          },
+          "original_receipt_ref": "fixture://actual-native-preservation-20261010",
+          "receipt_bytes_digest": "sha256:e132c358b4b416191baa9ba39d27ce8d949caa0f21a9dbd8b47e31181ef12777",
+          "dispatch_source_reconnected": true,
+          "contract_stage_reconstructed": false,
+          "native_verification": "unknown",
+          "saved_native_observation_is_trusted": false,
+          "current_attempt_eligibility_established": false,
+          "assurance_granted": false
+        },
+        {
+          "source": "docs/warrants/NP-WAR-0001/runtime-receipts/capture-25ae8be9ded1face7a26a5315ac1f6ce38a685bff38adad3c6e4dd011e6812f5.json",
+          "capture_digest": "sha256:25ae8be9ded1face7a26a5315ac1f6ce38a685bff38adad3c6e4dd011e6812f5",
+          "binding": {
+            "attempt": "01a125c4-f5ab-761e-8f1d-78d639846944",
+            "contract_digest": "cc95dbba54f2ca7be3d91f772a6a73981223b0acc5c80c0077588912e354470f",
+            "dispatch_digest": "fa2ddb00ccb3cbe3f7e4a4e829437e1700c4e3b72dd376f1ae951d93a90b0d94",
+            "stage": "STAGE-001",
+            "warrant": "war://01a125c3-dea4-7384-a831-f374d8d685cf"
+          },
+          "provider_declaration": {
+            "identity": "actual-local-blut-test-build",
+            "kind": "blut",
+            "version": "blut/openwarrant-verification/v1"
+          },
+          "original_receipt_ref": "fixture://actual-native-preservation-20261010",
+          "receipt_bytes_digest": "sha256:e132c358b4b416191baa9ba39d27ce8d949caa0f21a9dbd8b47e31181ef12777",
+          "dispatch_source_reconnected": true,
+          "contract_stage_reconstructed": true,
+          "native_verification": "unknown",
+          "saved_native_observation_is_trusted": false,
+          "current_attempt_eligibility_established": false,
+          "assurance_granted": false
+        }
+      ],
+      "unresolved": [
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/runtime-receipts/capture-25ae8be9ded1face7a26a5315ac1f6ce38a685bff38adad3c6e4dd011e6812f5.json: exact captured contract/stage not reconstructed in this source snapshot"
+      ],
+      "execution_coverage_established": false,
+      "native_authentication_established": false
+    },
+    "contract_history_coverage": {
+      "state": "retained",
+      "paths": [
+        "__ow_archive__/history.json",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/commit.txt",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/atoms/10-intent.md",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/atoms/20-basis.md",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/atoms/40-work-order.md",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/atoms/45-milestones.yaml",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/atoms/60-assurance.md",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/dispatches/01a125c4-f5ab-761e-8f1d-78d758ef2c9e.json",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/journal.jsonl",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/manifest.toml",
+        "__ow_archive__/history/6f17aa975850b4d2d5057f1c2fc32a9a06bc8f9a/docs/warrants/NP-WAR-0001/runtime-receipts/capture-25ae8be9ded1face7a26a5315ac1f6ce38a685bff38adad3c6e4dd011e6812f5.json",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/commit.txt",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/atoms/10-intent.md",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/atoms/20-basis.md",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/atoms/40-work-order.md",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/atoms/45-milestones.yaml",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/atoms/60-assurance.md",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/journal.jsonl",
+        "__ow_archive__/history/fe736f8faee1c8e15094a7fd79237f708b48d09d/docs/warrants/NP-WAR-0001/manifest.toml",
+        "docs/warrants/NP-WAR-0001/atoms/10-intent.md",
+        "docs/warrants/NP-WAR-0001/atoms/20-basis.md",
+        "docs/warrants/NP-WAR-0001/atoms/40-work-order.md",
+        "docs/warrants/NP-WAR-0001/atoms/45-milestones.yaml",
+        "docs/warrants/NP-WAR-0001/atoms/60-assurance.md",
+        "docs/warrants/NP-WAR-0001/dispatches/01a125c4-f5ab-761e-8f1d-78d758ef2c9e.json",
+        "docs/warrants/NP-WAR-0001/journal.jsonl",
+        "docs/warrants/NP-WAR-0001/manifest.toml",
+        "docs/warrants/NP-WAR-0001/runtime-receipts/capture-25ae8be9ded1face7a26a5315ac1f6ce38a685bff38adad3c6e4dd011e6812f5.json"
+      ]
+    },
+    "authority_activated": false,
+    "qualified": false
+  }
+}

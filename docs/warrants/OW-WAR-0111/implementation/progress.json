@@ -16,13 +16,15 @@
     "docs/warrants/OW-WAR-0111/implementation/local-runtime-provider-roundtrip.json",
     "docs/warrants/OW-WAR-0111/implementation/local-runtime-full-gate.log.gz",
     "docs/warrants/OW-WAR-0111/implementation/capture-reconnection-20261009/README.md",
-    "docs/warrants/OW-WAR-0111/implementation/onboarding-schema-pack-20261010/README.md"
+    "docs/warrants/OW-WAR-0111/implementation/onboarding-schema-pack-20261010/README.md",
+    "docs/warrants/OW-WAR-0111/implementation/archive-query-evidence-20261010/README.md"
   ],
   "next_steps": [
     "Capture-query candidate merged via PR165 at ca3c5a3e; later full integration gate PR167 passed 14 steps and 1386 controls. Native sealed provider records and qualification remain.",
     "Implement provider-owned dispatch-bound terminal receipts and native verification. Status-only observations and local source reconnection do not establish execution eligibility or authenticity.",
     "Exercise external provider archive/contract reconciliation through KF with real sealed native records; preserve unknown or missing historical sources.",
     "Keep independent verification, participant acceptance and human acceptance separate.",
-    "Fresh setup now retains checked schema sources. Finish native runtime preservation resolver, exact historical IR retention and the real native KF roundtrip; keep authority and assurance separate."
+    "Fresh setup now retains checked schema sources. Finish native runtime preservation resolver, exact historical IR retention and the real native KF roundtrip; keep authority and assurance separate.",
+    "Read-only archive runtime queries now resolve checked external records. Whole native import still requires provider coverage, historical IR and the real native KF roundtrip; no archived observation grants authority."
   ]
 }

@@ -7,17 +7,19 @@ mod stages;
 use super::*;
 use std::collections::BTreeSet;
 
-pub(super) fn run(input: &Path, limits: Limits) -> Result<(String, serde_json::Value), Error> {
+pub(super) fn run(
+    input: &Path,
+    evidence: Option<&Path>,
+    limits: Limits,
+) -> Result<(String, serde_json::Value), Error> {
     let archive = Archive::decode(&read(input, limits.archive_bytes)?, limits)?;
-    let mut files = BTreeMap::new();
-    for record in &archive.records {
-        if let Some(encoded) = &record.base64 {
-            files.insert(
-                record.path.clone(),
-                openwarrant_core::attestation::base64_decode(encoded).map_err(Error)?,
-            );
-        }
-    }
+    let files = archive.resolve_records(limits, |digest, limit| {
+        let root = evidence.ok_or_else(|| Error("external evidence directory required".into()))?;
+        let hex = digest
+            .strip_prefix("sha256:")
+            .ok_or_else(|| Error("invalid evidence digest".into()))?;
+        read(&root.join(hex), limit)
+    })?;
     let subject = verify_archive_basis(&archive, &files)?;
     if subject != archive.subject {
         return Err(Error(

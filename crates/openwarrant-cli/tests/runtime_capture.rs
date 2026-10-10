@@ -621,6 +621,160 @@ fn unverified_capture_is_replayable_and_survives_loss_of_original_inputs() {
 }
 
 #[test]
+fn archive_runtime_basis_resolves_exact_external_bytes_without_source_or_trust() {
+    use openwarrant_compiler::preservation::{Archive, Limits};
+    let f = Fixture::with_runtime_count(1);
+    assert!(f.import().status.success());
+    let embedded = f.root.join("embedded.json");
+    let external = f.root.join("external.json");
+    let out = war(
+        &f.root,
+        &[
+            "archive",
+            "export",
+            "IX-WAR-0003",
+            embedded.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let baseline = war(
+        &f.root,
+        &[
+            "archive",
+            "runtime-basis",
+            embedded.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(baseline.status.success());
+    let expected = value(&baseline);
+    let mut archive = Archive::decode(
+        &fs::read(f.root.join("embedded.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    let evidence = f.root.join("evidence");
+    fs::create_dir(&evidence).unwrap();
+    for record in &mut archive.records {
+        let bytes =
+            openwarrant_core::attestation::base64_decode(record.base64.take().unwrap().as_str())
+                .unwrap();
+        fs::write(
+            evidence.join(record.digest.strip_prefix("sha256:").unwrap()),
+            bytes,
+        )
+        .unwrap();
+    }
+    fs::write(
+        f.root.join("external.json"),
+        archive.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    fs::remove_dir_all(f.root.join("docs")).unwrap();
+    fs::remove_file(f.root.join("openwarrant.toml")).unwrap();
+    fs::remove_file(f.root.join("receipt.bin")).unwrap();
+    fs::remove_file(f.root.join("embedded.json")).unwrap();
+    let query = || {
+        war(
+            &f.root,
+            &[
+                "archive",
+                "runtime-basis",
+                external.to_str().unwrap(),
+                "--evidence",
+                evidence.to_str().unwrap(),
+                "--json",
+            ],
+        )
+    };
+    let result = query();
+    assert!(
+        result.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let actual = value(&result);
+    for field in [
+        "current_contract",
+        "stage_inventory",
+        "provider_capture_inventory",
+    ] {
+        assert_eq!(actual["result"][field], expected["result"][field]);
+    }
+    assert_eq!(actual["result"]["authority_activated"], false);
+    assert_eq!(actual["result"]["qualified"], false);
+    assert_eq!(
+        actual["result"]["provider_capture_inventory"]["records"][0]["native_verification"],
+        "unknown"
+    );
+    let missing = war(
+        &f.root,
+        &[
+            "archive",
+            "runtime-basis",
+            external.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(!missing.status.success());
+    assert!(
+        String::from_utf8_lossy(&missing.stdout).contains("external evidence directory required")
+    );
+    // A file at the declared address is insufficient: its actual bytes must match.
+    let record = archive
+        .records
+        .iter()
+        .find(|r| r.path.contains("/runtime-receipts/"))
+        .unwrap();
+    let target = evidence.join(record.digest.strip_prefix("sha256:").unwrap());
+    let original = fs::read(&target).unwrap();
+    let mut altered = original.clone();
+    altered[0] ^= 1;
+    fs::write(&target, altered).unwrap();
+    let bad = query();
+    assert!(!bad.status.success());
+    assert!(String::from_utf8_lossy(&bad.stdout).contains("content digest mismatch"));
+    fs::remove_file(&target).unwrap();
+    let absent = query();
+    assert!(!absent.status.success());
+    fs::write(&target, &original).unwrap();
+    assert!(query().status.success());
+    #[cfg(unix)]
+    {
+        // Matching bytes through a symlink are not an allowed evidence source.
+        let linked = f.root.join("linked-evidence.bin");
+        fs::write(&linked, &original).unwrap();
+        fs::remove_file(&target).unwrap();
+        std::os::unix::fs::symlink(&linked, &target).unwrap();
+        assert!(!query().status.success());
+        fs::remove_file(&target).unwrap();
+        fs::write(&target, &original).unwrap();
+    }
+    let destination = f.root.join("inert-import");
+    let imported = war(
+        &f.root,
+        &[
+            "archive",
+            "import",
+            external.to_str().unwrap(),
+            destination.to_str().unwrap(),
+            "--evidence",
+            evidence.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(!imported.status.success());
+    assert!(String::from_utf8_lossy(&imported.stdout).contains("required coverage unavailable"));
+    assert!(!destination.exists());
+}
+
+#[test]
 fn archive_reconnects_capture_sources_offline_without_trusting_native_verdicts() {
     use openwarrant_compiler::preservation::{Archive, Limits};
     let f = Fixture::with_runtime_count(1);

@@ -233,7 +233,7 @@ impl Archive {
     pub fn reconnect<F>(
         &self,
         limits: Limits,
-        mut resolver: F,
+        resolver: F,
     ) -> Result<BTreeMap<String, Vec<u8>>, Error>
     where
         F: FnMut(&str, usize) -> Result<Vec<u8>, Error>,
@@ -246,6 +246,33 @@ impl Archive {
         {
             return fail("required coverage unavailable");
         }
+        self.resolve_validated_records(limits, resolver)
+    }
+
+    /// Resolve and digest-check every declared record for read-only queries.
+    /// Unavailable category coverage remains unavailable: this does not establish
+    /// complete preservation, provider authentication or authority. Callers must
+    /// bound resolver I/O; aggregate returned content is bounded here.
+    pub fn resolve_records<F>(
+        &self,
+        limits: Limits,
+        resolver: F,
+    ) -> Result<BTreeMap<String, Vec<u8>>, Error>
+    where
+        F: FnMut(&str, usize) -> Result<Vec<u8>, Error>,
+    {
+        self.validate(limits)?;
+        self.resolve_validated_records(limits, resolver)
+    }
+
+    fn resolve_validated_records<F>(
+        &self,
+        limits: Limits,
+        mut resolver: F,
+    ) -> Result<BTreeMap<String, Vec<u8>>, Error>
+    where
+        F: FnMut(&str, usize) -> Result<Vec<u8>, Error>,
+    {
         let mut result = BTreeMap::new();
         let mut remaining = limits.content_bytes;
         for record in &self.records {
