@@ -569,6 +569,57 @@ fn namespace_fixture_entry() {
                 Err(ProviderFailure::Rejected(_))
             ));
         }
+        use openwarrant_cli::runtime_capture::protected_job::{JobFile, ProtectedJob};
+        let expected_job = vec![JobFile {
+            path: "inputs/plan.json".into(),
+            sha256: "be87a744322f9c87607271fa3da73181dcb6992b39c5603a10799efd23b80f78".into(),
+            bytes: 22,
+            mode: 0o100644,
+        }];
+        let job = ProtectedJob::acquire(&root.join("protected-job"), &expected_job, 128).unwrap();
+        assert_eq!(job.files().len(), 1);
+        let captured = &job.files()[0];
+        assert_eq!(captured.source.path, "inputs/plan.json");
+        assert_eq!(captured.source.mode, 0o100644);
+        assert_eq!(
+            fs::read(captured.input.argument()).unwrap(),
+            b"approved native input\n"
+        );
+        for (path, expected, limit) in [
+            (root.join("extra-job"), expected_job.clone(), 128),
+            (root.join("linked-job"), expected_job.clone(), 128),
+            (root.join("writable-job"), expected_job.clone(), 128),
+            (root.join("protected-job"), vec![], 128),
+            (root.join("protected-job"), expected_job.clone(), 4),
+            (
+                root.join("protected-job"),
+                [expected_job.clone(), expected_job.clone()].concat(),
+                128,
+            ),
+        ] {
+            assert!(matches!(
+                ProtectedJob::acquire(&path, &expected, limit),
+                Err(ProviderFailure::Rejected(_))
+            ));
+        }
+        let mut missing_file = expected_job.clone();
+        missing_file[0].path = "inputs/missing.json".into();
+        assert!(matches!(
+            ProtectedJob::acquire(&root.join("protected-job"), &missing_file, 128),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        let mut wrong_mode = expected_job.clone();
+        wrong_mode[0].mode = 0o100600;
+        assert!(matches!(
+            ProtectedJob::acquire(&root.join("protected-job"), &wrong_mode, 128),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        let mut traversal = expected_job.clone();
+        traversal[0].path = "../protected-native-input".into();
+        assert!(matches!(
+            ProtectedJob::acquire(&root.join("protected-job"), &traversal, 128),
+            Err(ProviderFailure::Rejected(_))
+        ));
         let observed = Command::new("/usr/bin/cat")
             .arg(input.argument())
             .output()
@@ -1074,6 +1125,18 @@ fn namespace_fixture_entry() {
             collector: &updated.collector,
         };
         reloaded.allows(Use { ..usage }).unwrap();
+        assert_eq!(
+            fs::read(job.files()[0].input.argument()).unwrap(),
+            b"approved native input\n"
+        );
+        assert_eq!(
+            fs::read(root.join("protected-job/inputs/plan.json")).unwrap(),
+            b"operator changed job bytes"
+        );
+        assert!(fs::write(job.files()[0].input.argument(), b"tampered job").is_err());
+        println!(
+            "protected job: complete bounded tree sealed; extra, missing, writable, linked, duplicate, traversal and changed mode refused; retained bytes survived operator changes"
+        );
         fs::write(scratch.join("selection-checked"), b"checked").unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
         while !root.join("updated").exists() {
@@ -1130,6 +1193,18 @@ fn namespace_fixture_entry() {
         b"approved native input\n",
     )
     .unwrap();
+    for name in ["protected-job", "extra-job", "writable-job"] {
+        let dir = root.join(name);
+        fs::create_dir_all(dir.join("inputs")).unwrap();
+        fs::write(dir.join("inputs/plan.json"), b"approved native input\n").unwrap();
+    }
+    fs::write(root.join("extra-job/unexpected.txt"), b"extra").unwrap();
+    fs::set_permissions(
+        root.join("writable-job/inputs"),
+        fs::Permissions::from_mode(0o777),
+    )
+    .unwrap();
+    std::os::unix::fs::symlink(root.join("protected-job"), root.join("linked-job")).unwrap();
     let mut original_input = fs::OpenOptions::new()
         .write(true)
         .open(root.join("protected-native-input"))
@@ -1711,6 +1786,11 @@ fn namespace_fixture_entry() {
     .unwrap();
     fs::rename(root.join("replacement-verifier"), &program).unwrap();
     use std::io::Write;
+    fs::write(
+        root.join("protected-job/inputs/plan.json"),
+        b"operator changed job bytes",
+    )
+    .unwrap();
     original_input
         .write_all(b"operator changed original bytes\n")
         .unwrap();

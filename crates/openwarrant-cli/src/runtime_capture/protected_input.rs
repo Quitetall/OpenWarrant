@@ -13,6 +13,7 @@ pub struct ProtectedInput {
     argument: PathBuf,
     digest: String,
     bytes: usize,
+    source_mode: u32,
 }
 impl ProtectedInput {
     /// Capture an operator-owned regular file into a non-executable sealed
@@ -60,6 +61,11 @@ impl ProtectedInput {
     }
     pub fn bytes(&self) -> usize {
         self.bytes
+    }
+    /// Original opened regular-file mode, including its type bits. The sealed
+    /// image remains data-only; this preserves native job metadata, not execute permission.
+    pub fn source_mode(&self) -> u32 {
+        self.source_mode
     }
 }
 fn rejected(message: &str) -> ProviderFailure {
@@ -159,5 +165,6 @@ fn acquire_linux(
         argument,
         digest,
         bytes: bytes.len(),
+        source_mode: metadata.mode(),
     })
 }
