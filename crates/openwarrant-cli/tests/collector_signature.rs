@@ -397,19 +397,23 @@ fn namespace_fixture_entry() {
             ),
         ]),
     };
-    let mut state = serde_json::json!({"schema":"oh.war/authority-store/1","agent_uid":1,"unprotected_test_store":false,"genesis":genesis,"legacy":{},"transitions":[]});
-    fs::write(
-        root.join("store/state.json"),
-        serde_jcs::to_vec(&state).unwrap(),
-    )
-    .unwrap();
-    let mut mismatched = state.clone();
-    mismatched["agent_uid"] = 2.into();
-    fs::write(
-        root.join("mismatched-store/state.json"),
-        serde_jcs::to_vec(&mismatched).unwrap(),
-    )
-    .unwrap();
+    let genesis_file = root.join("genesis.json");
+    fs::write(&genesis_file, genesis.encode().unwrap()).unwrap();
+    let authority_command = |args: &[&str]| {
+        let out = Command::new("/usr/bin/timeout")
+            .arg("10").arg(env!("CARGO_BIN_EXE_war"))
+            .args(args).env_clear().env("PATH", "/usr/bin:/bin")
+            .env("OPENWARRANT_NO_PROJECTS", "1").env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .output().unwrap();
+        assert!(out.status.success(), "authority command failed: {} {}",
+            String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
+        out
+    };
+    for (name, uid) in [("store", "1"), ("mismatched-store", "2")] {
+        authority_command(&["authority", "bootstrap", "--store", root.join(name).to_str().unwrap(),
+            "--revision", genesis_file.to_str().unwrap(), "--expected-digest", &genesis.digest().unwrap(),
+            "--agent-uid", uid, "--execution-readable"]);
+    }
     let enrollment = Enrollment {
         schema: SCHEMA.into(),
         repository: "fixture".into(),
@@ -448,8 +452,10 @@ fn namespace_fixture_entry() {
         &proposal.signing_bytes().unwrap(),
         11,
     );
-    state["transitions"] =
-        serde_json::json!([{"proposal":proposal,"signatures":{"owner":signature}}]);
+    let proposal_file = root.join("transition.json");
+    let signature_file = root.join("transition.sig");
+    fs::write(&proposal_file, proposal.encode().unwrap()).unwrap();
+    fs::write(&signature_file, signature).unwrap();
     let mut child = Command::new("/usr/bin/setpriv")
         .args([
             "--reuid",
@@ -485,12 +491,8 @@ fn namespace_fixture_entry() {
         assert!(Instant::now() < deadline, "executor readiness unavailable");
         std::thread::sleep(Duration::from_millis(10));
     }
-    fs::write(
-        root.join("store/next.json"),
-        serde_jcs::to_vec(&state).unwrap(),
-    )
-    .unwrap();
-    fs::rename(root.join("store/next.json"), root.join("store/state.json")).unwrap();
+    authority_command(&["authority", "activate", "--store", root.join("store").to_str().unwrap(),
+        "--proposal", proposal_file.to_str().unwrap(), "--signature", &format!("owner={}", signature_file.display())]);
     fs::write(root.join("updated"), b"updated").unwrap();
     let deadline = Instant::now() + Duration::from_secs(10);
     let status = loop {
@@ -503,6 +505,6 @@ fn namespace_fixture_entry() {
     fs::remove_dir_all(root).unwrap();
     assert!(status.success());
     println!(
-        "operator UID 0: software-signed authority transition applied; fixture removed; no human acceptance or host-account qualification claimed"
+        "operator UID 0: real normal-mode CLI bootstrap and activation, software signature; fixture removed; no human acceptance or host-account qualification claimed"
     );
 }
