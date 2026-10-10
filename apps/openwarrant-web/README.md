@@ -89,8 +89,9 @@ activate policy, sign, merge or resolve work. Those workflow connections remain.
 ## Bounds and trust
 
 The service binds IPv4 loopback only, limits concurrent requests to eight and
-uses 15-second socket I/O timeouts. Durable storage operations can outlast a
-client observation; there is no end-to-end 15-second request deadline.
+closes each connection after 15 seconds and uses a three-second socket I/O
+timeout. Closing a connection does not cancel an in-flight durable storage
+operation. After a lost reply, read current state before retrying a write.
 Request bodies are limited to 64 KiB; individual
 text fields to 16 KB. SDK subprocesses have a 10-second timeout and bounded returned
 output. Storage permits 2048 revision records, 1 MiB per record and 64 MiB total.
