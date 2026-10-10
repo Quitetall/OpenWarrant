@@ -667,10 +667,42 @@ fn namespace_fixture_entry() {
             ),
             Err(ProviderFailure::Rejected(_))
         ));
-        let activated = acquire("fixture", "collector", warrant, &interface, &program).unwrap();
+        let host = LoadedEnrollment::load_host(&root.join("store"), &scratch, &verifier).unwrap();
+        assert_eq!(host.repository(), "fixture");
+        assert_eq!(host.collector(), "collector");
+        assert!(fs::write(root.join("store/runtime-host.json"), b"forged").is_err());
+        assert!(matches!(
+            LoadedEnrollment::load_host(&root.join("store"), &root, &verifier),
+            Err(Fault::Rejected("runtime host repository path mismatch"))
+        ));
+        assert!(matches!(
+            LoadedEnrollment::load_host(&root.join("unactivated-store"), &scratch, &verifier),
+            Err(Fault::Rejected("runtime host execution account mismatch"))
+        ));
+        let activated = host
+            .acquire_verifier(warrant, &interface, &program)
+            .unwrap();
+        println!(
+            "protected runtime host: actual UID and repository resolved; wrong path and UID refused"
+        );
         assert!(activated.run(&[], Duration::from_secs(3), 1024).unwrap().0);
         println!(
             "activated verifier: sealed execution passed; inactive enrollment, repository, collector, scope, provider and writable executable refused"
+        );
+        fs::write(scratch.join("host-ready"), b"ready").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while !root.join("host-changed").exists() {
+            assert!(
+                Instant::now() < deadline,
+                "operator host update unavailable"
+            );
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(
+            matches!(activated.run(&[], Duration::from_secs(3), 1024), Err(ProviderFailure::Rejected(ref why)) if why == "runtime host configuration changed")
+        );
+        println!(
+            "protected runtime host: changed UID mapping refused before launch without changing activation"
         );
         fs::write(scratch.join("ready"), b"ready").unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
@@ -949,6 +981,18 @@ fn namespace_fixture_entry() {
         openwarrant_core::config::Governance::Store { .. }
     ));
     println!("general authority reader: actual store owner accepted");
+    for (store, uid) in [("store", 1), ("unactivated-store", 2)] {
+        fs::write(
+            root.join(store).join("runtime-host.json"),
+            serde_json::to_vec(&serde_json::json!({
+                "schema": "oh.war/runtime-host-config/v1-draft.1",
+                "repository": "fixture", "repository_root": scratch,
+                "collector": "collector", "execution_uid": uid
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+    }
     let activated = fs::read(root.join("store/state.json")).unwrap();
     let mut invalid = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
     invalid.enrollment.provider.identity = "substituted-provider".into();
@@ -1113,6 +1157,21 @@ fn namespace_fixture_entry() {
         .stdin(Stdio::null())
         .spawn()
         .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !scratch.join("host-ready").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before host readiness"
+        );
+        assert!(Instant::now() < deadline, "host readiness unavailable");
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let host_path = root.join("store/runtime-host.json");
+    let mut host: serde_json::Value =
+        serde_json::from_slice(&fs::read(&host_path).unwrap()).unwrap();
+    host["execution_uid"] = serde_json::json!(2);
+    fs::write(&host_path, serde_json::to_vec(&host).unwrap()).unwrap();
+    fs::write(root.join("host-changed"), b"changed").unwrap();
     let deadline = Instant::now() + Duration::from_secs(10);
     while !scratch.join("ready").exists() {
         assert!(
