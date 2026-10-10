@@ -8,6 +8,29 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- The compliance score and the file ledger (OW-WAR-0148 M17; docs/SCORE.md,
+  docs/LEDGER.md). `war status` ends with a score from 1 to 1000, a
+  scorecard of seven dimensions (commits and merged PRs citing a Warrant,
+  the file ledger, typed documents, and the tick ladder's tested, verified
+  and approved shares), a level, and next steps; `--json` carries it as
+  `compliance` (`oh.war/score/v1`). The weights are published and versioned
+  (`oh.war/score-weights/v1`, `war admin score --weights`); a dimension
+  that cannot be measured reads UNKNOWN and earns 0. `war admin score
+  --in-toto` emits an unsigned in-toto Statement v1 (predicate
+  `https://openwarrant.dev/attestation/work-score/v1`, subject
+  `gitCommit`), and `--verify` checks one. `war check --floor <rev>`, and
+  `war check --pr` when the base says `[score] floor = true`, refuse a
+  change that lowers the level (`score.floor`). `war admin compile` writes
+  the badge, report page, statement and a per-compile trend under the
+  self-ignoring `.openwarrant/score/`, never under `generated/`. The file
+  ledger: per-file atoms under `docs/ledger/` (`war admin ledger record`,
+  three writer modes, folded past `[ledger] keep` or a token budget),
+  compiled into the gitignored `.openwarrant/ledger.jsonl` that `war view
+  prime` points to; `war check` refuses a committed JSONL
+  (`ledger.committed`) and a malformed atom (`ledger.atom`). `war admin
+  ledger import/export` read and write Agent Trace v0.1 records and git-ai
+  v3 notes (`refs/notes/ai`). The Action scores the checkout into the job
+  summary and its `score`, `level` and `score-dir` outputs. Plants 170-173.
 - A document's type chooses its capabilities (OW-ADR-0031, OW-WAR-0148 M2).
   `oh.war/profile/v1` gains `capabilities`, from the closed set `structure,
   links, claims, acceptance, evidence, verification, authorization,
