@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Source-derived provider query basis, not a trust or execution verdict.
-mod captures;
+pub(in crate::preservation) mod captures;
 mod stage_contract;
 mod stages;
 

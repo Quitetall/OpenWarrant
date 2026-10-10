@@ -1,0 +1,30 @@
+   Compiling blake3 v1.8.6
+   Compiling arrayvec v0.7.8
+   Compiling arrayref v0.3.9
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-native-input-retention/crates/openwarrant-cli)
+   Compiling constant_time_eq v0.4.2
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-native-input-retention/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-native-input-retention/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 35.88s
+     Running tests/all.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/all-177bbad1a2ff5eca)
+
+running 1 test
+
+thread 'runtime_capture::native_inputs_retain_every_declared_file_without_running_or_trusting_imports' (643743) panicked at crates/openwarrant-cli/tests/runtime_capture.rs:2393:5:
+ error: unrecognized subcommand 'retain-runtime'
+
+Usage: war archive [OPTIONS] <COMMAND>
+
+For more information, try '--help'.
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test runtime_capture::native_inputs_retain_every_declared_file_without_running_or_trusting_imports ... FAILED
+
+failures:
+
+failures:
+    runtime_capture::native_inputs_retain_every_declared_file_without_running_or_trusting_imports
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 227 filtered out; finished in 0.59s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

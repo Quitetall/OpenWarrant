@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Reconcile explicit ADR sources and declared runtime requirements.
+mod blut;
 mod service;
 use openwarrant_compiler::preservation::{Coverage, Error};
 use std::collections::{BTreeMap, BTreeSet};
@@ -82,6 +83,26 @@ pub(super) fn coverage(
                                 match service::collect(
                                     files,
                                     &format!("{prefix}{directory}"),
+                                    &stage,
+                                ) {
+                                    Ok(paths) => {
+                                        runtime_paths.extend(paths);
+                                        runtime_paths.extend([path.clone(), target.clone()]);
+                                    }
+                                    Err(error) => {
+                                        runtime_gaps
+                                            .insert(format!("{target}#{}: {error}", stage.id));
+                                    }
+                                }
+                            } else if stage.executor_kind
+                                == openwarrant_core::milestones::ExecutorKind::Blut
+                            {
+                                match blut::collect(
+                                    files,
+                                    prefix,
+                                    directory,
+                                    &manifest.local_alias,
+                                    &format!("war://{}", manifest.uuid),
                                     &stage,
                                 ) {
                                     Ok(paths) => {

@@ -56,3 +56,24 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "docs/warrants/OW-WAR-0111/implementation/progress.json"
 obligation_refs = ["OBL-004"]
+
+# Inert native verifier inputs and source-derived archive queries; unsigned scope.
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/preservation.rs"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/preservation/**"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/Cargo.toml"
+obligation_refs = ["OBL-001"]
+
+[[scope]]
+path_glob = "Cargo.lock"
+obligation_refs = ["OBL-001"]
+
+[[scope]]
+path_glob = "docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md"
+obligation_refs = ["OBL-001", "OBL-003"]

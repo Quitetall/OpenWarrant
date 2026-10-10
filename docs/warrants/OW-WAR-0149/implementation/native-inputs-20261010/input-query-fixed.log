@@ -1,0 +1,11 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-native-input-retention/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s
+     Running tests/all.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/all-177bbad1a2ff5eca)
+
+running 3 tests
+test runtime_capture::native_inputs_retain_every_declared_file_without_running_or_trusting_imports ... ok
+test runtime_capture::archive_queries_reconnect_native_inputs_after_original_job_removal ... ok
+test runtime_capture::native_input_mismatches_and_limits_refuse_before_manifest_publication ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 227 filtered out; finished in 13.39s
+

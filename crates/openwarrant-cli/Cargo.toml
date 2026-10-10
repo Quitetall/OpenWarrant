@@ -34,6 +34,8 @@ path = "tests/all.rs"
 [dependencies]
 chrono = { version = "=0.4.45", default-features = false, features = ["std"] }
 sha2 = { workspace = true }
+# Native BLUT reference byte identities; separate Apache-2.0-capable implementation.
+blake3 = "=1.8.6"
 serde_jcs = { workspace = true }
 rmcp = { workspace = true }
 tokio = { workspace = true }

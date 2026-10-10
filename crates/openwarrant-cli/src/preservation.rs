@@ -9,6 +9,7 @@ mod contracts;
 mod history;
 pub(crate) use history::git as local_git;
 mod identity;
+mod native_inputs;
 mod runtime_basis;
 
 use camino::Utf8PathBuf;
@@ -52,6 +53,17 @@ impl ResourceLimits {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Retain explicit native verifier inputs as inert data; never execute or trust them.
+    RetainRuntime {
+        alias: String,
+        #[arg(long)]
+        capture: String,
+        /// Repository-relative versioned input-path request.
+        #[arg(long)]
+        request: Utf8PathBuf,
+        #[command(flatten)]
+        limits: ResourceLimits,
+    },
     /// Inspect retained source reconstruction without claiming complete preservation.
     Inspect {
         input: Utf8PathBuf,
@@ -118,13 +130,24 @@ pub fn run(
     command: Command,
 ) -> Result<(String, serde_json::Value), Error> {
     let limits = match &command {
-        Command::Inspect { limits, .. }
+        Command::RetainRuntime { limits, .. }
+        | Command::Inspect { limits, .. }
         | Command::RuntimeBasis { limits, .. }
         | Command::Export { limits, .. }
         | Command::Import { limits, .. }
         | Command::Reexport { limits, .. } => limits.resolve(),
     };
     let (message, mut value) = match command {
+        Command::RetainRuntime {
+            alias,
+            capture,
+            request,
+            ..
+        } => {
+            let repo = crate::repo::Repository::discover(root).map_err(|e| Error(e.to_string()))?;
+            let result = native_inputs::retain(&repo, &alias, &capture, &request, limits)?;
+            Ok(("Retained declared native inputs. No executable run, native authentication or authority granted.".into(), result))
+        }
         Command::RuntimeBasis {
             input, evidence, ..
         } => runtime_basis::run(

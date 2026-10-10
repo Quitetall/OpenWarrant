@@ -2309,3 +2309,284 @@ fn actual_katana_turn_roundtrips_through_capture_and_current_resolution() {
         "PASS actual local turn/native log/capture/current resolution; capability excess, changed log, wrong head and fake assurance refused; missing log UNKNOWN; no assurance"
     );
 }
+
+#[cfg(unix)]
+fn synthetic_blut_input_fixture() -> (Fixture, String) {
+    use std::os::unix::fs::PermissionsExt;
+    let f = Fixture::with_executor(1, "blut");
+    let binding = json!({"warrant_ref":f.dispatch.warrant_ref,"contract_digest":f.dispatch.contract_digest,"dispatch_digest":f.dispatch.dispatch_digest,"stage_id":f.dispatch.stage_id,"attempt_id":f.dispatch.attempt_id});
+    let run_id = f.dispatch.attempt_id.clone();
+    let job = f.root.join("native/job");
+    fs::create_dir_all(job.join("_openwarrant_inputs")).unwrap();
+    let plan = b"{\"steps\":[]}";
+    let registry = b"{}";
+    let native_binding = serde_json::to_vec(&json!({"dispatch":binding,"run_id":run_id})).unwrap();
+    let mut files = Vec::new();
+    for (path, bytes) in [
+        (
+            "_openwarrant_inputs/binding.json",
+            native_binding.as_slice(),
+        ),
+        ("_openwarrant_inputs/plan.json", plan.as_slice()),
+        ("_openwarrant_inputs/registry.json", registry.as_slice()),
+        (
+            "status.jsonl",
+            b"synthetic failure; not native execution\n".as_slice(),
+        ),
+    ] {
+        fs::write(job.join(path), bytes).unwrap();
+        fs::set_permissions(job.join(path), fs::Permissions::from_mode(0o644)).unwrap();
+        files.push(json!({"path":path,"bytes":bytes.len(),"digest":format!("blake3:{}",blake3::hash(bytes).to_hex()),"mode":0o100644}));
+    }
+    let producer = b"synthetic producer data; never executed";
+    fs::write(f.root.join("native/producer.bin"), producer).unwrap();
+    fs::write(f.root.join("native/public-key.bin"), [0u8; 32]).unwrap();
+    fs::write(f.root.join("native/plan.json"), plan).unwrap();
+    fs::write(
+        f.root.join("native/binding.json"),
+        serde_json::to_vec(&binding).unwrap(),
+    )
+    .unwrap();
+    let payload = json!({"version":1,"binding":binding,"run_id":run_id,"plan_digest":format!("blake3:{}",blake3::hash(plan).to_hex()),"registry_digest":format!("blake3:{}",blake3::hash(registry).to_hex()),"binary_digest":format!("blake3:{}",blake3::hash(producer).to_hex()),"started_unix_ms":0,"ended_unix_ms":1,"outcome":"failed","warnings":0,"stages":0,"native_files":files});
+    fs::write(
+        f.root.join("receipt.bin"),
+        serde_json::to_vec(
+            &json!({"payload":serde_json::to_vec(&payload).unwrap(),"signature":vec![0u8;64]}),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    let mut request = f.request();
+    request["provider"] = json!({"kind":"blut","identity":"synthetic-input-transport","version":"blut/openwarrant-verification/v1"});
+    fs::write(
+        f.root.join("capture-request.json"),
+        serde_json::to_vec(&request).unwrap(),
+    )
+    .unwrap();
+    let imported = f.import();
+    assert!(
+        imported.status.success(),
+        "{}",
+        String::from_utf8_lossy(&imported.stdout)
+    );
+    let imported: Value = serde_json::from_slice(&imported.stdout).unwrap();
+    let digest = imported["result"]["digest"].as_str().unwrap().to_owned();
+    fs::write(f.root.join("native-inputs-request.json"),serde_json::to_vec(&json!({"schema":"oh.war/preservation-runtime-inputs-request/v1-draft.1","public_key":"native/public-key.bin","plan":"native/plan.json","binding":"native/binding.json","producer":"native/producer.bin","job":"native/job"})).unwrap()).unwrap();
+    (f, digest)
+}
+
+#[cfg(unix)]
+#[test]
+fn native_inputs_retain_every_declared_file_without_running_or_trusting_imports() {
+    let (f, digest) = synthetic_blut_input_fixture();
+    let args = [
+        "archive",
+        "retain-runtime",
+        "IX-WAR-0003",
+        "--capture",
+        &digest,
+        "--request",
+        "native-inputs-request.json",
+        "--json",
+    ];
+    let result = war(&f.root, &args);
+    assert!(
+        result.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let result: Value = serde_json::from_slice(&result.stdout).unwrap();
+    assert_eq!(result["result"]["retained"], true);
+    assert_eq!(result["result"]["native_authentication_established"], false);
+    assert_eq!(result["result"]["authority_activated"], false);
+    let manifest_path = result["result"]["manifest"].as_str().unwrap();
+    let manifest: Value =
+        serde_json::from_slice(&fs::read(f.root.join(manifest_path)).unwrap()).unwrap();
+    assert_eq!(manifest["capture_digest"], digest);
+    assert_eq!(manifest["inputs"].as_object().unwrap().len(), 8);
+    fs::remove_dir_all(f.root.join("native")).unwrap();
+    let directory = f.root.join("docs/warrants/IX-WAR-0003/native-inputs");
+    for input in manifest["inputs"].as_object().unwrap().values() {
+        let bytes = fs::read(directory.join(input["blob"].as_str().unwrap())).unwrap();
+        assert_eq!(
+            input["digest"],
+            format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes))
+        );
+    }
+    assert!(
+        fs::read(directory.join(manifest["inputs"]["producer"]["blob"].as_str().unwrap()))
+            .unwrap()
+            .starts_with(b"synthetic producer data")
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn archive_queries_reconnect_native_inputs_after_original_job_removal() {
+    let (f, digest) = synthetic_blut_input_fixture();
+    let retained = war(
+        &f.root,
+        &[
+            "archive",
+            "retain-runtime",
+            "IX-WAR-0003",
+            "--capture",
+            &digest,
+            "--request",
+            "native-inputs-request.json",
+        ],
+    );
+    assert!(
+        retained.status.success(),
+        "{}",
+        String::from_utf8_lossy(&retained.stderr)
+    );
+    fs::remove_dir_all(f.root.join("native")).unwrap();
+    for args in [
+        vec!["init", "-q"],
+        vec!["-c", "core.hooksPath=/dev/null", "add", "."],
+        vec![
+            "-c",
+            "core.hooksPath=/dev/null",
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "commit",
+            "-qm",
+            "retain synthetic archive inputs",
+        ],
+    ] {
+        let out = Command::new("git")
+            .current_dir(&f.root)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+    let transport = f.root.join("transport.json");
+    let transport = transport.to_str().unwrap();
+    let exported = war(
+        &f.root,
+        &[
+            "archive",
+            "export",
+            "IX-WAR-0003",
+            transport,
+            "--history",
+            "--json",
+        ],
+    );
+    assert!(
+        exported.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&exported.stdout),
+        String::from_utf8_lossy(&exported.stderr)
+    );
+    let query = war(&f.root, &["archive", "runtime-basis", transport, "--json"]);
+    assert!(
+        query.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&query.stdout),
+        String::from_utf8_lossy(&query.stderr)
+    );
+    let query: Value = serde_json::from_slice(&query.stdout).unwrap();
+    let records = query["result"]["provider_capture_inventory"]["records"]
+        .as_array()
+        .unwrap();
+    assert!(!records.is_empty());
+    for record in records {
+        assert_eq!(record["native_inputs_reconnected"], true);
+        assert!(!record["native_input_paths"].as_array().unwrap().is_empty());
+        assert_eq!(record["native_verification"], "unknown");
+        assert_eq!(record["assurance_granted"], false);
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn native_input_mismatches_and_limits_refuse_before_manifest_publication() {
+    use std::os::unix::fs::PermissionsExt;
+    for case in [
+        "changed-file",
+        "changed-mode",
+        "extra-file",
+        "linked-job",
+        "record-limit",
+        "content-limit",
+    ] {
+        let (f, digest) = synthetic_blut_input_fixture();
+        let mut options = Vec::new();
+        let expected = match case {
+            "changed-file" => {
+                fs::write(
+                    f.root.join("native/job/status.jsonl"),
+                    b"changed native observation",
+                )
+                .unwrap();
+                "native job bytes or mode differ"
+            }
+            "changed-mode" => {
+                fs::set_permissions(
+                    f.root.join("native/job/status.jsonl"),
+                    fs::Permissions::from_mode(0o600),
+                )
+                .unwrap();
+                "native job bytes or mode differ"
+            }
+            "extra-file" => {
+                fs::write(f.root.join("native/job/unlisted.txt"), b"not in receipt").unwrap();
+                "native job file table differs"
+            }
+            "linked-job" => {
+                fs::rename(f.root.join("native/job"), f.root.join("native/elsewhere")).unwrap();
+                std::os::unix::fs::symlink("elsewhere", f.root.join("native/job")).unwrap();
+                "native input native/job"
+            }
+            "record-limit" => {
+                options.extend(["--max-records", "8"]);
+                "native input record count exceeds limit"
+            }
+            "content-limit" => {
+                options.extend(["--max-content-bytes", "1"]);
+                "native input content exceeds limit"
+            }
+            _ => unreachable!(),
+        };
+        let mut args = vec![
+            "archive",
+            "retain-runtime",
+            "IX-WAR-0003",
+            "--capture",
+            &digest,
+            "--request",
+            "native-inputs-request.json",
+        ];
+        args.extend(options);
+        let result = war(&f.root, &args);
+        assert!(!result.status.success(), "{case}");
+        assert!(
+            String::from_utf8_lossy(&result.stderr).contains(expected),
+            "{case}: {}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        assert!(
+            !f.root
+                .join("docs/warrants/IX-WAR-0003/native-inputs")
+                .exists(),
+            "{case}: no publication"
+        );
+        assert_eq!(
+            fs::read_dir(f.storage()).unwrap().count(),
+            1,
+            "original capture preserved"
+        );
+    }
+}

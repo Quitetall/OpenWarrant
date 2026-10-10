@@ -1,0 +1,1 @@
+{"targeted_tests":"PASS: 3 tests, including six refusal cases","format":"PASS","licenses":"PASS","cli_all_features":"UNKNOWN: bounded command exited 124 while compiling; no test outcome","native_input_retention":"PASS: real CPU fixture, untrusted retained inputs","offline_native_recovery":"pending","kf_roundtrip":"pending","qualification":"not-established"}
