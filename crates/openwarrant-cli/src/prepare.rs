@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war prepare <alias>... | --all` — take Warrants to their sign-off
+//! `war evidence prepare <alias>... | --all` — take Warrants to their sign-off
 //! unattended (t-cee5).
 //!
 //! The owner signs once, at the end, in one sitting (docs/SIGNING.md, "One
@@ -11,12 +11,12 @@
 //!
 //! # The order, and why
 //!
-//! 1. **deliver** — `war deliver`: provenance on each declared deliverable.
+//! 1. **deliver** — `war admin deliver`: provenance on each declared deliverable.
 //!    `deliverables.toml` is source to the reuse rule (it is not an evidence,
 //!    verification, authority or ticket record), so it moves the tree every
 //!    tree-bound receipt names: it goes FIRST, for every Warrant, before any
 //!    evidence anywhere.
-//! 2. **run** — `war run <alias> <STAGE>` for each stage whose executor is a
+//! 2. **run** — `war evidence run <alias> <STAGE>` for each stage whose executor is a
 //!    gate (`executor_kind: service`, `executor_ref: gate://…`). An
 //!    obligation may need that stage's dispatch-bound receipt, which
 //!    `war evidence record` does not make (OW-WAR-0066). Its `dispatches/`
@@ -28,12 +28,12 @@
 //!    receipt minted over a dirty tree names no source (`worktree:dirty`,
 //!    reuse UNKNOWN), so the evidence must run over a committed one. Anything
 //!    else dirty refuses the whole run before step 1. `--no-commit` stops here
-//!    instead. With it, after `war compile`, go every record the tree rule
+//!    instead. With it, after `war admin compile`, go every record the tree rule
 //!    skips and every projection: a battery runs in a clone of HEAD, and HEAD's
 //!    projections must be the ones its records compile to (t-88d2).
 //! 4. **evidence** — `war evidence record <alias> --gate <key>` for each cited
 //!    gate that has no admissible run for the contract as it compiles now.
-//! 5. **verify** — `war verify <alias> --run`: the configured INDEPENDENT
+//! 5. **verify** — `war evidence verify <alias> --run`: the configured INDEPENDENT
 //!    verifier reads a bundle carrying the receipts from 2 and 4 and the
 //!    delivered bytes from 1. Skipped when every obligation already has an
 //!    admissible `established` verdict (`--reverify` asks again). A verdict
@@ -48,8 +48,8 @@
 //! # What runs at once
 //!
 //! A gate whose argv starts with `war` (`war check --generated`,
-//! `war document review`) reads the compiled projections, and every receipt
-//! changes them: it runs alone, with `war compile` immediately before it. Every
+//! `war evidence document review`) reads the compiled projections, and every receipt
+//! changes them: it runs alone, with `war admin compile` immediately before it. Every
 //! other gate — the battery runs in a disposable clone (t-d052) — may run
 //! beside others, `--jobs` at a time, one Warrant per job; so may the verifier.
 //!
@@ -91,10 +91,10 @@ pub enum Class {
     /// Runs outside the working tree's projections: may run beside others.
     Isolated,
     /// Runs `war`, which reads the projections receipts change: alone, after
-    /// `war compile`. Also every gate the registry does not know.
+    /// `war admin compile`. Also every gate the registry does not know.
     InTree,
     /// A document gate (`document.*`): after verification, alone, after
-    /// `war compile`.
+    /// `war admin compile`.
     Document,
 }
 
@@ -229,7 +229,7 @@ impl Work {
     }
 }
 
-/// `war prepare`.
+/// `war evidence prepare`.
 pub fn run(repo: &Repository, opts: &Options) -> Result<(Report, Prepared), RepoError> {
     let mut report = Report::default();
     let mut skipped: Vec<WarrantResult> = Vec::new();
@@ -383,7 +383,7 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<(Report, Prepared), Repo
         if !w.awaiting.is_empty() {
             let why = format!(
                 "{} wait(s) on the authorization: a Dispatch projects an authorized contract \
-                 (§47). After the sitting's authorize, `war prepare {}` again",
+                 (§47). After the sitting's authorize, `war evidence prepare {}` again",
                 w.awaiting.join(", "),
                 w.alias
             );
@@ -431,7 +431,7 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<(Report, Prepared), Repo
         // The projections as the records now stand, so `war check
         // --generated` reads no drift after a run.
         if let Err(why) = compile(repo) {
-            report.note(format!("the closing `war compile` failed: {why}"));
+            report.note(format!("the closing `war admin compile` failed: {why}"));
         }
     }
 
@@ -855,7 +855,7 @@ fn verdicts(repo: &Repository, dir: &Utf8Path) -> (Vec<String>, Vec<String>) {
 
 /// Run one phase: for each live Warrant, the tasks `tasks` names, in order,
 /// stopping that Warrant at the first that does not succeed. With `serial`,
-/// one task at a time across the corpus, each after `war compile`.
+/// one task at a time across the corpus, each after `war admin compile`.
 fn phase(
     repo: &Repository,
     work: &mut [Work],
@@ -881,7 +881,7 @@ fn phase(
             if serial && let Err(why) = compile(repo) {
                 push_result(
                     &results,
-                    (i, task, Outcome::Error, format!("war compile: {why}")),
+                    (i, task, Outcome::Error, format!("war admin compile: {why}")),
                 );
                 return;
             }
@@ -1083,7 +1083,7 @@ fn commit_records(
     // the projections compiled from them go in too. All are outside the tree
     // rule: carrying them moves no receipt.
     if let Err(why) = compile(repo) {
-        let why = format!("`war compile` before the commit failed: {why}");
+        let why = format!("`war admin compile` before the commit failed: {why}");
         for w in work.iter_mut().filter(|w| w.live()) {
             w.push("commit", &w.alias.clone(), Outcome::Error, why.clone());
             w.stop(State::Error, why.clone());
@@ -1117,7 +1117,7 @@ fn commit_records(
         .map(String::as_str)
         .collect();
     let message = format!(
-        "prepare: delivery provenance and service-stage runs\n\n{}\n\nWritten by `war prepare` \
+        "prepare: delivery provenance and service-stage runs\n\n{}\n\nWritten by `war evidence prepare` \
          before recording evidence, so each receipt names a committed tree. Nothing here is a \
          signature.\n",
         touched.join(", ")

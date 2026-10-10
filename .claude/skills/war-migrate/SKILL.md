@@ -51,7 +51,7 @@ exact provenance and gaps; no invented requirements or authority.
 ## 4. Convert through supported seams
 
 Use SDK/CLI authoring and compatibility operations that exist in the inspected
-version. Check command help: the current shell `war migrate` imports legacy ADRs
+version. Check command help: the current shell `war admin migrate` imports legacy ADRs
 and does not implement this whole workflow. Author new conforming documents in the
 working document tree, separately from archived originals. Preserve meaning and
 link source sections to their new locations. Archiving, wrapping old bytes or

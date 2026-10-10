@@ -1,0 +1,48 @@
+# A threat model (pack `quality` 1.0.0): what is worth protecting, what
+# threatens it, and what mitigates each threat. A mitigation is settled by
+# the obligation that evaluates it, never by this document.
+schema = "oh.war/profile/v1"
+name = "threat-model"
+form = "document"
+note = "What is worth protecting, what threatens it, and the mitigation for each threat with the check that settles it."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["asset", "threat", "mitigation"]
+
+[relations]
+allow = ["part_of", "constrains", "implements", "evaluates"]
+
+[[projections]]
+name = "threat-model"
+title = "{title}: threat model"
+
+[projections.select]
+types = ["asset", "threat", "mitigation", "obligation"]
+through = ["in:constrains", "in:implements", "in:evaluates"]
+
+[[projections.sections]]
+heading = "Assets"
+block = "list"
+types = ["asset"]
+empty = "No asset is recorded."
+
+[[projections.sections]]
+heading = "Threats"
+block = "tree"
+types = ["threat"]
+annotate = ["out:constrains"]
+children = [
+    { relation = "in:implements", label = "Mitigated by", empty = "No mitigation is recorded: this threat is open." },
+]
+empty = "No threat is recorded."
+
+[[projections.sections]]
+heading = "Mitigations"
+block = "tree"
+types = ["mitigation"]
+fields = ["verdict"]
+children = [
+    { relation = "in:evaluates", label = "Checked by", empty = "No obligation evaluates this mitigation yet: it is unchecked." },
+]
+empty = "No mitigation is recorded."

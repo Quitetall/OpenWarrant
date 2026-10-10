@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! `war commit` (OW-WAR-0069): the commit message, written from the records.
+//! `war admin commit` (OW-WAR-0069): the commit message, written from the records.
 //!
 //! A commit that lands a signed act is describable without prose: the records
 //! that appeared say which act, which Warrant, which actor, and over which
@@ -290,7 +290,7 @@ fn subject(
 /// The drafted message as `--json` carries it.
 pub const MESSAGE_SCHEMA: &str = "oh.war/commit-message/v1";
 
-/// `war commit`: print the drafted message, or commit with it. The message
+/// `war admin commit`: print the drafted message, or commit with it. The message
 /// rides in the envelope's `result` under `--json`, never on stdout beside it:
 /// a reader that asked for JSON gets JSON.
 pub fn run(
@@ -316,7 +316,8 @@ pub fn run(
             "drafted from the changed records; nothing staged, nothing committed",
         ));
         report.note(
-            "`war commit --write` stages everything and commits with this message.".to_owned(),
+            "`war admin commit --write` stages everything and commits with this message."
+                .to_owned(),
         );
         return Ok((report, result));
     }

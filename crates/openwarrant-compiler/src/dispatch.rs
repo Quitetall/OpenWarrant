@@ -56,7 +56,7 @@ pub enum DispatchError {
     StageNotInMilestone { stage: String, milestone: String },
     #[error(
         "stage {stage:?} declares no executor_ref, so nothing says what runs it. Refused rather \
-         than dispatched under the WAR id — the same rule `war blut` applies"
+         than dispatched under the WAR id — the same rule `war admin blut` applies"
     )]
     UnboundStage { stage: String },
     #[error(

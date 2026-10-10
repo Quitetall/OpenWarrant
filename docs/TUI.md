@@ -51,9 +51,11 @@ version and path — with a warning when `war` on PATH is a different version,
 naming the install command (a command you copy runs PATH's `war`, not this
 one). Then the Setup step if incomplete, then
 `war next`'s ready ticket items (shown, never run from here), then its
-actions with humans first — each signing row carrying the dry
-run's verdict, `[would record]` or `[would refuse: <rule>]`, and the refused
-ones after the recordable ones — then `war doctor`'s non-passes, then
+actions, an agent's workable ones first and the human acts after them (M9) —
+each signing row carrying the dry run's verdict, `[would record]` or
+`[would refuse: <rule>]`, and the refused ones after the recordable ones;
+with nothing ready, the plain line `war next` prints ("nothing tracked; work
+freely") — then `war doctor`'s non-passes, then
 `war check`'s errors — one row per rule with a count — each carrying its
 remedy (§76.2). `Enter` on a signing row signs; `x` runs an *auto* remedy
 (never a signing act); `v` shows the request behind a signing row.

@@ -18,6 +18,7 @@ pub mod batch;
 pub mod context;
 pub mod deliverable;
 pub mod document;
+pub mod instruction;
 pub mod preflight;
 pub mod presence;
 pub mod projection;
@@ -66,6 +67,7 @@ pub mod state;
 pub mod status;
 pub mod structured;
 pub mod ticket;
+pub mod ticks;
 pub mod timestamp;
 pub mod tokens;
 

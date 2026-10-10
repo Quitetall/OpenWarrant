@@ -1,43 +1,62 @@
 ---
 name: openwarrant
-description: "OpenWarrant shared workflow and compatibility entry. Use for explicit OpenWarrant work or when a war skill needs execution and assurance rules."
+description: "OpenWarrant shared workflow: tickets, Warrants and the war CLI. Use for explicit OpenWarrant work, or when a war skill needs the tracking or sign-off details. Ordinary coding needs none of it."
 ---
 
 # OpenWarrant
 
-Read the target repository's AGENTS.md. Keep its directory scope and harness rules.
-A Warrant describes one reviewable outcome. Completion and assurance are separate.
-Prompt-only work can finish unverified; explicit action gates bind their named acts.
-Human acceptance plus independent evidence is required for the common Verified mark.
+Ordinary coding needs no Warrant and no ticket: edit, build and test as in any
+repository. OpenWarrant is optional planning and tracking. Read the target
+repository's AGENTS.md for its own conventions.
+
+- A **Warrant** is a work plan; optional. The lightest one, a **ticket**, tracks
+  a piece of work as a checklist: `war view prime`, `war next`, `war claim <item>`,
+  do it, `war done <item> --note "..."`. No step needs a signature.
+  [Tickets](references/tickets.md) has the loop; `war view warrants` lists every
+  Warrant, whatever its encoding.
+- A Warrant whose type has a sign-off step adds a person's approval, and the
+  tool holds those rules.
+- Finished and verified are separate: report finished work as finished, and
+  as unverified until an independent check says more.
+- At the end of a session, tell the person what waits on them: `war next`
+  lists the approvals and signatures that are a person's, and
+  `war sign inbox` the same list by person. Agents go on working meanwhile.
+- The repository's `CLAUDE.md` and `AGENTS.md` sections are records too
+  (`md:CLAUDE.md#testing`): a plan can cite one, and
+  `war plan impact md:CLAUDE.md#testing` lists what cites it. The block between
+  `<!-- openwarrant:begin -->` and `<!-- openwarrant:end -->` is kept by
+  `war admin agents-md --block`; the rest of each file is yours to edit.
 
 ## Locate and select
 
-1. Confirm repository, current changes and available `war --version`/`--help`.
-   In this source repo, prefer the checkout's built `target/debug/war` over stale PATH.
-2. For intent routing, read [war](../war/SKILL.md). For records, read live CLI output;
-   command availability outranks a skill example. Do not infer readiness from an old
-   generated file or from `frontier` showing `open`.
-3. Apply only the requested scope. New-model behavior not implemented by the installed
-   CLI stays explicitly unsupported; never relabel a legacy signed act as prototype work.
+1. Confirm the repository, current changes and `war --version` / `--help`.
+   In this source repository, prefer the checkout's `target/debug/war` over an
+   older one on PATH.
+2. For intent routing, read [war](../war/SKILL.md). Live CLI output outranks a
+   skill example. `war view overview` and `war plan frontier` describe records; neither
+   is a gate on ordinary work.
+3. Apply the requested scope. Behaviour the installed CLI lacks is reported as
+   unsupported.
 
 ## Load by task
 
 | When | Read |
 | --- | --- |
+| Tracking work as tickets | [tickets](references/tickets.md) |
 | Remaining work, status, next steps | [progress](references/progress.md) |
 | Drafting or applying a proposal | [drafting](references/drafting.md) |
 | Authoring or checking RC.3 documents and supplied records | [SDK artifacts](references/sdk-artifacts.md) |
 | Migrating existing docs or upgrading their OpenWarrant edition | [war-migrate](../war-migrate/SKILL.md) |
-| Implementing or completing a bounded scope | [execution](references/execution.md) |
-| Human qualification or legacy signing requests | [verification](references/verification.md) |
-| Existing authorized/resolved legacy records or corrections | [legacy loop](references/loop.md) |
+| Implementing a planned Warrant's scope | [execution](references/execution.md) |
+| Sign-off, verification, or a `war sign` that failed | [verification](references/verification.md) |
+| Signed records and corrections | [sign-off loop](references/loop.md) |
 | MCP transport | [MCP](references/mcp.md) |
 
-Keep exact required context and source revisions; retrieve background only when needed.
-Never invent an actor, signature, independent disposition, test result or completion.
-Unknown observations stay UNKNOWN. Preserve signed history and regenerate projections
-through their tool. Independent work may continue when another scope is blocked.
+Report what you observed. Actors, signatures, verifier verdicts, test results
+and completion come from the records and tools that hold them; what could not
+be observed is UNKNOWN. Generated views are rebuilt with `war admin compile`. Other
+work goes ahead while one scope waits.
 
 Methods/provenance: [adaptation record](../openwarrant/ADAPTATIONS.md),
-[upstream license](../openwarrant/LICENSE.mattpocock). Skills choose process and artifacts;
-they do not acquire permissions or sandbox an agent.
+[upstream license](../openwarrant/LICENSE.mattpocock). Skills choose a process
+and its records; what an agent can run is the harness's setting, not a skill's.

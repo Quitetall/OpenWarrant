@@ -32,7 +32,7 @@ war init --program "Acme" --namespace ACME --baseline v2.3.0
 ```
 
 A `--baseline` that is not a commit in HEAD's history is refused, and
-nothing is written. At a terminal, `war init` with no `--namespace` asks
+nothing is written. At a terminal, `war init --guided` asks
 instead: after the program's name it shows the commit count and HEAD, and
 asks you to confirm or name another commit.
 
@@ -89,7 +89,8 @@ cp docs/authority/roles.toml.example docs/authority/roles.toml               # H
 cp docs/authority/allowed_signers.example docs/authority/allowed_signers     # HUMAN: your key
 ```
 
-Or let `war init` at a terminal write both from your answers, once.
+Or let `war init --guided` at a terminal write both from your answers, once;
+`war doctor --fix-signing` offers the same for a file that is still missing.
 
 ## 5. The SAS
 

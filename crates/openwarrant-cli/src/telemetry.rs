@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war telemetry` — §94's baseline, §95's untracked-work candidates, §100's metrics.
+//! `war admin telemetry` — §94's baseline, §95's untracked-work candidates, §100's metrics.
 //!
 //! # Why a measure may not be zero
 //!
@@ -283,7 +283,7 @@ fn take_with_candidates(
                      (oh.war/token-estimate/bytes-div-4/v1)",
                 ),
                 None => Measure::not_yet(
-                    "no dispatch.compiled event is journalled on the committed tree; `war \
+                    "no dispatch.compiled event is journalled on the committed tree; `war admin \
                      dispatch` records one per compile",
                 ),
             },
@@ -294,7 +294,7 @@ fn take_with_candidates(
                      (oh.war/token-estimate/bytes-div-4/v1)",
                 ),
                 None => Measure::not_yet(
-                    "no verification bundle is committed; `war verify --bundle` writes one",
+                    "no verification bundle is committed; `war evidence verify --bundle` writes one",
                 ),
             },
             "gate library reuse" => Measure::taken(

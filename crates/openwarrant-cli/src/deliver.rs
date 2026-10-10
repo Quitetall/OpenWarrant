@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war deliver <alias> [<D-id>...]` — declare a deliverable delivered (t-39dc).
+//! `war admin deliver <alias> [<D-id>...]` — declare a deliverable delivered (t-39dc).
 //!
 //! A Warrant's `deliverables.toml` names what the work produces (§37.1). It
 //! says the work was DELIVERED when each entry is content addressed and
@@ -12,7 +12,7 @@
 //!
 //! - a RESOLVED Warrant (`deliver.resolved`). Its §56.2 record binds
 //!   `sha256(deliverables.toml)`; moving a byte of that file changes what
-//!   was accepted, and `war correct` is the act for a delivered file that
+//!   was accepted, and `war sign correct` is the act for a delivered file that
 //!   moved (AGENTS.md rule 4, OW-WAR-0064);
 //! - a deliverable whose file is missing (`deliver.missing`): a digest of
 //!   nothing is not a delivery;
@@ -35,14 +35,14 @@
 //!
 //! The file is edited as text, key by key, never round-tripped through the
 //! parser: it is hand-written and hand-commented, and the comments are part
-//! of the record (the same reason `war pins --refresh` edits the digest in
+//! of the record (the same reason `war admin pins --refresh` edits the digest in
 //! place). The result is parsed back and compared with what was meant before
 //! it is written.
 //!
 //! Delivering does not stale an authorization: the set the authorizer signed
 //! is `(id, target_ref)` pairs (`ownership::set_digest`), and neither moves.
 //! It DOES move the tree every tree-bound receipt names — `deliverables.toml`
-//! is source to the reuse rule — which is why `war prepare` delivers first
+//! is source to the reuse rule — which is why `war evidence prepare` delivers first
 //! and records evidence after.
 
 use camino::Utf8Path;
@@ -74,7 +74,7 @@ pub enum Outcome {
     Current,
 }
 
-/// The per-deliverable outcomes of one run, for `war prepare`.
+/// The per-deliverable outcomes of one run, for `war evidence prepare`.
 #[derive(Debug, Default, Clone)]
 pub struct Delivered {
     pub outcomes: Vec<(String, Outcome)>,
@@ -82,7 +82,7 @@ pub struct Delivered {
     pub wrote: bool,
 }
 
-/// `war deliver`.
+/// `war admin deliver`.
 pub fn run(repo: &Repository, alias: &str, opts: &Options<'_>) -> Result<Report, RepoError> {
     run_with(repo, alias, opts).map(|(r, _)| r)
 }
@@ -106,7 +106,7 @@ pub fn run_with(
             file,
             format!(
                 "{alias} is resolved: its §56.2 record binds sha256(deliverables.toml), so no \
-                 byte of it moves. A delivered file that changed since is `war correct {alias} \
+                 byte of it moves. A delivered file that changed since is `war sign correct {alias} \
                  <D-id>`; new work on it is a new Warrant"
             ),
         ));
@@ -185,7 +185,7 @@ pub fn run_with(
                 "deliver.not-a-file",
                 file.clone(),
                 format!(
-                    "{alias}: {} → {:?} is not a file in this repository (kind {}); `war deliver` \
+                    "{alias}: {} → {:?} is not a file in this repository (kind {}); `war admin deliver` \
                      digests files, and a {} is delivered by whatever records it",
                     d.id, d.target_ref, d.kind, d.kind
                 ),
@@ -239,7 +239,7 @@ pub fn run_with(
                 format!(
                     "{alias}: {} → {} is governed by {}/{} (authorized {}), later than {alias} \
                      (authorized {at}); not recorded here — its bytes are that Warrant's to \
-                     record, and this pin is historical (OW-ADR-0021). `war pins` shows who \
+                     record, and this pin is historical (OW-ADR-0021). `war admin pins` shows who \
                      governs what",
                     d.id, d.target_ref, owner.alias, owner.deliverable_id, owner.authorized_at
                 ),
@@ -358,7 +358,7 @@ pub fn run_with(
 
 /// The repository-relative file a deliverable names, or `None` when it names
 /// something else: a URI, an absolute path, or a path climbing out.
-fn target_path(d: &Deliverable) -> Option<&str> {
+pub(crate) fn target_path(d: &Deliverable) -> Option<&str> {
     if d.kind == DeliverableKind::GitCommit {
         return None;
     }
@@ -514,7 +514,7 @@ pub fn apply(text: &str, edits: &[(String, ArtifactProvenance)]) -> Result<Strin
             key_of(&lines[i]).is_some_and(|k| k == "provenance" || k.starts_with("provenance."))
         }) {
             return Err(format!(
-                "{id} writes its provenance inline or as dotted keys; `war deliver` edits a \
+                "{id} writes its provenance inline or as dotted keys; `war admin deliver` edits a \
                  [deliverable.provenance] table only"
             ));
         }
@@ -524,7 +524,7 @@ pub fn apply(text: &str, edits: &[(String, ArtifactProvenance)]) -> Result<Strin
             t.starts_with("[deliverable.provenance.") || t == "[[deliverable.provenance]]"
         }) {
             return Err(format!(
-                "{id}'s provenance has a nested table; `war deliver` edits a flat one only"
+                "{id}'s provenance has a nested table; `war admin deliver` edits a flat one only"
             ));
         }
         let rendered = provenance_lines(provenance);

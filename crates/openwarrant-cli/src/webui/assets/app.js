@@ -69,13 +69,13 @@
       const list = d.tickets || [];
       main.append(el("h2", { text: "Tickets" }),
         el("p", { class: "muted", text: lan
-          ? "Read-only on this device. Claim and finish tickets at the host (`war claim`, `war done`), or on its own `war ui` page."
+          ? "Read-only on this device. Claim and finish tickets at the host (`war claim`, `war done`), or on its own `war view ui` page."
           : "The ticket loop: claim an item, do it, mark it done. Nothing here needs a signature." }));
       if (!list.length) { main.append(el("p", { class: "muted" }, "No tickets yet — ", code("war create \"what this work accomplishes\" --item \"...\""))); return; }
-      main.append(table(["ticket", "state", "done", "p", "title", "claimed by"], list.map((t) => {
+      main.append(table(["ticket", "state", "done", "ticks", "p", "title", "claimed by"], list.map((t) => {
         const r = t.ticket || {};
         return [code(r.id), el("span", { class: "badge " + (r.state === "done" ? "ok" : r.state === "in_progress" ? "warn" : ""), text: String(r.state || "").replace("_", " ") }),
-          `${r.done}/${r.total}`, "p" + r.priority, r.title || "", (r.claims || []).map((c) => c.actor).join(", ")];
+          `${r.done}/${r.total}`, tickSummary(r.ticks), "p" + r.priority, r.title || "", (r.claims || []).map((c) => c.actor).join(", ")];
       })));
       for (const t of list) {
         const r = t.ticket || {};
@@ -86,7 +86,7 @@
         if (!items.length) box.append(el("p", { class: "muted" }, "No items: the ticket is the work. ",
           lan || r.state === "done" ? null : ticketButton("claim", r.id, "Claim"), " ", lan || r.state === "done" ? null : ticketButton("done", r.id, "Done")));
         else box.append(table(["", "item", "", "command"], items.map((i) => [
-          i.done ? "☑" : "☐",
+          i.done ? el("span", {}, "☑ ", tickBadge(i)) : (i.minimum ? el("span", {}, "☐ ", el("span", { class: "badge", text: "needs " + i.minimum, title: "ticks at " + i.minimum + " or above" })) : "☐"),
           el("span", {}, i.text, i.id ? el("span", { class: "muted", text: " (" + i.id + ")" }) : null,
             i.done && i.done_by ? el("span", { class: "muted", text: " — done by " + i.done_by + (i.note ? ": " + i.note : "") }) : null),
           i.done || lan ? (i.ready ? el("span", { class: "badge", text: "ready" }) : "")
@@ -130,6 +130,14 @@
       if ((d.unassigned || []).length)
         main.append(el("h2", { text: "No phase" }),
           table(["Warrant", "title", "rung"], d.unassigned.map((m) => [code(m.alias), m.title || "", rungBadge(m.rung)])));
+      // A ticket's milestones tick their marker here, each with how its tick
+      // was earned: claimed < observed < independent < signed.
+      if ((d.milestones || []).length)
+        main.append(el("h2", { text: "Milestones" }),
+          el("p", { class: "muted", text: "claimed < observed < independent < signed; a claimed tick is the performer's word, nothing checked it." }),
+          table(["", "milestone", "ticket", "minimum", "tick"], d.milestones.map((m) => [
+            m.met ? "☑" : "☐", el("span", {}, code(m.target), " ", m.text), m.ticket_title || "", m.minimum,
+            m.level ? el("span", { class: tickClass(m.level, m.met), "data-tick": m.level, text: m.marker }) : el("span", { class: "muted", text: "open" })])));
     },
     async queue(main) {
       const d = await api("queue");
@@ -194,6 +202,25 @@
         r.act_id ? actButton(r.act_id, "Run") : el("span", { class: "muted", text: r.kind || "" }), r.purpose || ""])));
     },
   };
+
+  // How a tick was earned (OW-WAR-0148 M13). Each level has its own word; a
+  // claimed tick is drawn muted and never as a checked one, a tick below its
+  // minimum as a warning. The page's stylesheet is unchanged (its bytes are
+  // pinned by OW-WAR-0139's OBL-005), so the existing classes carry it.
+  const TICK_CLASS = { claimed: "badge muted", observed: "badge ok", independent: "badge ok", signed: "badge ok" };
+  function tickClass(level, meets) { return meets ? (TICK_CLASS[level] || "badge muted") : "badge warn"; }
+  function tickBadge(i) {
+    const t = i.tick;
+    if (!t) return null;
+    return el("span", { class: tickClass(t.level, t.meets_minimum), "data-tick": t.level,
+      text: i.tick_marker || "(" + t.level + ")", title: t.unbacked ? "its [" + t.written + "] marker is not believed: " + t.unbacked : t.level });
+  }
+  function tickSummary(c) {
+    if (!c) return "";
+    const parts = [["claimed", c.claimed], ["observed", c.observed], ["independent", c.independent], ["signed", c.signed]]
+      .filter(([, n]) => n > 0).map(([k, n]) => n + " " + k);
+    return parts.join(", ") + (c.below_minimum ? " (" + c.below_minimum + " below minimum)" : "");
+  }
 
   // Loopback only: claim or finish a ticket item. The server runs the same
   // ticket command the CLI would and answers with its words or its refusal.

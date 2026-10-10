@@ -129,6 +129,48 @@ pub const TABLE: &[&str] = &[
     "doctor.performer",
     "doctor.verifier",
     "journal.not-empty",
+    // M9: every `sign.*` rule has a remedy, so no signing refusal ends in a
+    // dead end. A test below reads the source for `"sign.…"` literals and
+    // holds this list to all of them.
+    "sign.who",
+    "sign.ssh-principal",
+    "sign.ssh-refused",
+    "sign.actor-key-mismatch",
+    "sign.not-verified",
+    "sign.presence-required",
+    "sign.dry-run-failed",
+    "sign.presence",
+    "sign.presence-unreadable",
+    "sign.verified",
+    "sign.signer",
+    "sign.unsigned",
+    "sign.no-tty",
+    "sign.no-target",
+    "sign.nothing-pending",
+    "sign.not-assigned",
+    "sign.declined",
+    "sign.no-response",
+    "sign.list",
+    "sign.show",
+    "sign.shown",
+    "sign.not-draftable",
+    "sign.needs-decision",
+    "sign.response-exists",
+    "sign.would-record",
+    "sign.would-refuse",
+    "sign.refused",
+    "sign.ingest-failed",
+    // OW-WAR-0148 M13: a ticket item's sign-off.
+    "sign.no-eligible-signer",
+    "sign.ssh-required",
+    "doctor.signing-keygen",
+    "doctor.signing-agent",
+    "doctor.signing-keys",
+    "doctor.signing-roles",
+    "doctor.signing-allowed",
+    "doctor.signing-key-loaded",
+    "doctor.fix-by-hand",
+    "doctor.fix-needs-tty",
 ];
 
 /// The remedy for one diagnostic, or `None` when nothing answers it. A
@@ -150,19 +192,19 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         | "generated.compile"
         | "relations.child-listed" => Remedy::new(
             Kind::Auto,
-            &["war", "compile"],
+            &["war", "admin", "compile"],
             "regenerate every projection from its source and commit the result",
         ),
         "deliverable.pin-stale" => Remedy::new(
             Kind::Auto,
-            &["war", "pins", "--refresh", "--alias", a],
+            &["war", "admin", "pins", "--refresh", "--alias", a],
             "re-record the bytes this unresolved Warrant's pins describe; nobody has signed \
              over them, so the pin is a note, not a promise",
         ),
         "deliverable.digest-drift" | "correction.new-digest-mismatch" | "pins.signed" => {
             Remedy::new(
                 Kind::Human,
-                &["war", "correct", a, dl],
+                &["war", "sign", "correct", a, dl],
                 format!(
                     "draft the correction that records why a resolved deliverable moved; a \
                      human then signs it with `war sign {sub} --ssh-sign`"
@@ -173,6 +215,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
             Kind::Informational,
             &[
                 "war",
+                "admin",
                 "pins",
                 "--history",
                 &path_of(&d.message).unwrap_or_default(),
@@ -189,30 +232,30 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         }
         "authorize.no-amendment" => Remedy::new(
             Kind::Informational,
-            &["war", "diff", a],
+            &["war", "admin", "diff", a],
             "see what moved the contract; §31 wants an amendment record under amendments/ \
-             (`war amend <alias>` mints its file) before revision N+1 is signed",
+             (`war sign amend <alias>` mints its file) before revision N+1 is signed",
         ),
         "roadmap.unaccepted" => Remedy::new(
             Kind::Human,
             &["war", "sign", "roadmap", "--ssh-sign"],
-            "one human act accepts the proposed roadmap revision; run `war roadmap propose` first \
+            "one human act accepts the proposed roadmap revision; run `war plan roadmap propose` first \
              if none is proposed, and `--dry-run` to see what the ingest would say",
         ),
         "roadmap.unassigned" => Remedy::new(
             Kind::Informational,
-            &["war", "roadmap"],
-            "see the phases; `war roadmap assign <alias> <phase>` writes the ref on an unsigned Warrant",
+            &["war", "plan", "roadmap"],
+            "see the phases; `war plan roadmap assign <alias> <phase>` writes the ref on an unsigned Warrant",
         ),
         "sas.pin-superseded" => Remedy::new(
             Kind::Human,
-            &["war", "sas", "repin", a],
+            &["war", "sign", "sas", "repin", a],
             "write the amendment that re-pins the Basis to the latest revision; a human then \
              re-authorizes with `war sign <alias> --ssh-sign` (revision N+1)",
         ),
         "sas.pin-unknown" | "sas.proposed-unaccepted" => Remedy::new(
             Kind::Informational,
-            &["war", "sas", "status"],
+            &["war", "sign", "sas", "status"],
             "see which SAS revisions are recorded, proposed and in force",
         ),
         "schemas.drift" | "schemas.missing" => Remedy::new(
@@ -226,6 +269,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
                 "--features",
                 "schema",
                 "--",
+                "admin",
                 "schemas",
             ],
             "regenerate the JSON Schema pack from the record types and commit it",
@@ -240,7 +284,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         ),
         "attest.failed" | "attest.subject-drift" | "attest.unchecked" => Remedy::new(
             Kind::Informational,
-            &["war", "attest", a, "--verify"],
+            &["war", "sign", "attest", a, "--verify"],
             "verify every signature and subject digest of this Warrant's attestations \
              against the tree today",
         ),
@@ -252,7 +296,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         | "resolution.deliverable-moved"
         | "resolution.stale-digest" => Remedy::new(
             Kind::Informational,
-            &["war", "resolve", a, "--dry-run"],
+            &["war", "sign", "resolve", a, "--dry-run"],
             "see every §56.1 requirement by name and which are unmet, without recording \
              anything",
         ),
@@ -261,13 +305,81 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         | "doctor.performer"
         | "doctor.verifier" => Remedy::new(
             Kind::Informational,
-            &["war", "doctor"],
+            &["war", "admin", "doctor"],
             "check each component of this installation and what it is missing",
         ),
         "journal.not-empty" => Remedy::new(
             Kind::Informational,
-            &["war", "journal", a],
+            &["war", "admin", "journal", a],
             "read the events already on the journal before asking for a backfill",
+        ),
+        // M9: a signing refusal blocks only the sign-off. Each names where to
+        // look next, and none of these remedies signs anything.
+        "sign.who"
+        | "sign.ssh-principal"
+        | "sign.ssh-refused"
+        | "sign.actor-key-mismatch"
+        | "sign.not-verified"
+        | "sign.presence-required"
+        | "sign.dry-run-failed"
+        | "sign.presence"
+        | "sign.presence-unreadable"
+        | "sign.verified"
+        | "sign.signer"
+        | "sign.unsigned"
+        | "sign.no-eligible-signer"
+        | "sign.ssh-required" => Remedy::new(
+            Kind::Informational,
+            &["war", "admin", "doctor"],
+            "probe the signing setup (ssh-keygen, the agent and its keys, roles.toml, \
+             allowed_signers) without signing anything; at a terminal `war admin doctor \
+             --fix-signing` offers repairs. This blocks only the sign-off, not your work",
+        ),
+        "sign.no-tty"
+        | "sign.no-target"
+        | "sign.nothing-pending"
+        | "sign.not-assigned"
+        | "sign.declined"
+        | "sign.no-response"
+        | "sign.list"
+        | "sign.show"
+        | "sign.shown"
+        | "sign.not-draftable"
+        | "sign.needs-decision"
+        | "sign.response-exists"
+        | "sign.would-record" => Remedy::new(
+            Kind::Informational,
+            &["war", "sign", "--list"],
+            "see what awaits a signature and who may sign each; a person signs at their own \
+             terminal, or with --ssh-sign through the ssh agent's dialog",
+        ),
+        "sign.would-refuse" | "sign.refused" => Remedy::new(
+            Kind::Informational,
+            &["war", "next"],
+            "see each waiting act's dry-run verdict and the rule that would refuse it; \
+             nothing is signed or written",
+        ),
+        "sign.ingest-failed" => Remedy::new(
+            Kind::Informational,
+            &["war", "check"],
+            "see what the records say now; the signature on disk is kept, never deleted",
+        ),
+        "doctor.signing-keygen"
+        | "doctor.signing-agent"
+        | "doctor.signing-keys"
+        | "doctor.signing-roles"
+        | "doctor.signing-allowed"
+        | "doctor.signing-key-loaded"
+        | "doctor.fix-by-hand" => Remedy::new(
+            Kind::Informational,
+            &["war", "admin", "doctor", "--fix-signing"],
+            "at a terminal, walk through the signing setup and repair what is missing; it \
+             signs nothing and writes only a file that does not exist yet",
+        ),
+        "doctor.fix-needs-tty" => Remedy::new(
+            Kind::Informational,
+            &["war", "admin", "doctor"],
+            "the same findings, without questions",
         ),
         _ => return from_message(&d.message),
     };
@@ -300,17 +412,19 @@ fn from_message(message: &str) -> Option<Remedy> {
 }
 
 /// `war sign …` and every act that ends in a signature is a human's; `war
-/// compile` and `war pins --refresh` are safe to run unasked; anything else
-/// is shown, not run.
+/// admin compile` and `war pins --refresh` are safe to run unasked;
+/// anything else is shown, not run. The verb is the leaf command, read
+/// through a group word (M12): `war resolve` is `resolve`, `war plan
+/// answer` is `answer`, and the earlier spellings classify as they did.
 fn classify(argv: &[&str]) -> Kind {
-    let verb = argv.get(1).copied().unwrap_or("");
+    let (verb, rest) = leaf(argv);
     let dry = argv.contains(&"--dry-run");
     if SIGNING_VERBS.contains(&verb) && !dry {
         return Kind::Human;
     }
     if verb == "sas"
-        && argv
-            .get(2)
+        && rest
+            .first()
             .is_some_and(|v| *v == "accept" || *v == "propose")
     {
         return Kind::Human;
@@ -320,6 +434,23 @@ fn classify(argv: &[&str]) -> Kind {
         "pins" if argv.contains(&"--refresh") => Kind::Auto,
         _ => Kind::Informational,
     }
+}
+
+/// The leaf command of a `war …` argv and what follows it: past a group word
+/// when the next word is one of that group's members (`war compile` →
+/// `compile`), the word itself otherwise (`war sign <alias>` → `sign`,
+/// `war compile` → `compile`).
+#[must_use]
+pub fn leaf<'a>(argv: &'a [&'a str]) -> (&'a str, &'a [&'a str]) {
+    let verb = argv.get(1).copied().unwrap_or("");
+    let rest = argv.get(2..).unwrap_or(&[]);
+    if crate::GROUPS.contains(&verb)
+        && let Some(member) = rest.first()
+        && crate::group_member(verb, member)
+    {
+        return (member, &rest[1..]);
+    }
+    (verb, rest)
 }
 
 /// `OW-WAR-0001: …` → `OW-WAR-0001`. The alias is the first token when it
@@ -367,7 +498,7 @@ mod tests {
             rule,
             "docs/warrants/OW-WAR-0001/deliverables.toml".to_owned(),
             "OW-WAR-0001: D-002 records sha256:aa for crates/x.rs but the file is now \
-             sha256:bb — `war correct OW-WAR-0001 D-002`",
+             sha256:bb — `war sign correct OW-WAR-0001 D-002`",
         )
     }
 
@@ -378,7 +509,8 @@ mod tests {
                 panic!("{rule} is in the table and answered nothing");
             };
             if r.kind == Kind::Auto {
-                let verb = r.argv.get(1).map(String::as_str).unwrap_or("");
+                let words: Vec<&str> = r.argv.iter().map(String::as_str).collect();
+                let verb = leaf(&words).0;
                 assert!(
                     !SIGNING_VERBS.contains(&verb) || r.argv[0] != "war",
                     "{rule}: an Auto remedy carries a signing verb: {}",
@@ -393,6 +525,63 @@ mod tests {
         }
     }
 
+    /// M9: every `sign.*` rule the source can emit has a table entry, and
+    /// each entry answers with a remedy that signs nothing. The rules are
+    /// read from the source, so a new `sign.*` rule without a remedy fails
+    /// here by name.
+    #[test]
+    fn every_sign_rule_has_a_remedy_that_signs_nothing() {
+        let sources = [
+            include_str!("sign.rs"),
+            include_str!("batch_cmd.rs"),
+            include_str!("next.rs"),
+            include_str!("authority_check.rs"),
+            include_str!("invalidation.rs"),
+            include_str!("standing_cmd.rs"),
+            include_str!("mcp/tools.rs"),
+            include_str!("ticket/acts.rs"),
+        ];
+        let mut rules = std::collections::BTreeSet::new();
+        for src in sources {
+            let mut rest = src;
+            while let Some(i) = rest.find("\"sign.") {
+                let after = &rest[i + 1..];
+                let end = after
+                    .find(|c: char| !(c.is_ascii_lowercase() || c == '.' || c == '-'))
+                    .unwrap_or(after.len());
+                if after[end..].starts_with('"') && end > "sign.".len() {
+                    rules.insert(after[..end].to_owned());
+                }
+                rest = &after[end..];
+            }
+        }
+        assert!(rules.len() >= 20, "found only {rules:?}");
+        let missing: Vec<&String> = rules
+            .iter()
+            .filter(|r| !TABLE.contains(&r.as_str()))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "sign.* rules without a remedy: {missing:?}"
+        );
+        for rule in &rules {
+            let d = Diagnostic::error(rule.as_str(), "war sign".to_owned(), "refused");
+            let r = remedy_for(&d).unwrap_or_else(|| panic!("{rule}: no remedy"));
+            assert_ne!(r.kind, Kind::Human, "{rule}: {}", r.command());
+            assert!(!r.argv.iter().any(|a| a == "--ssh-sign"), "{rule}");
+            assert!(
+                !(r.argv.get(1).map(String::as_str) == Some("sign")
+                    && !r.argv.iter().any(|a| a == "--list")),
+                "{rule}: a remedy that would sign: {}",
+                r.command()
+            );
+        }
+        // Refusal side: a made-up rule outside the table with no command in
+        // its message has no remedy; the table is not a catch-all.
+        let unknown = Diagnostic::error("sign.not-a-rule", "x".to_owned(), "refused");
+        assert!(remedy_for(&unknown).is_none());
+    }
+
     #[test]
     fn a_pass_has_no_remedy() {
         assert!(remedy_for(&Diagnostic::pass("generated.drift", "fine")).is_none());
@@ -402,7 +591,7 @@ mod tests {
     fn drift_is_a_human_correction_naming_alias_and_deliverable() {
         let r = remedy_for(&diag("deliverable.digest-drift")).unwrap();
         assert_eq!(r.kind, Kind::Human);
-        assert_eq!(r.argv, ["war", "correct", "OW-WAR-0001", "D-002"]);
+        assert_eq!(r.argv, ["war", "sign", "correct", "OW-WAR-0001", "D-002"]);
         assert!(r.purpose.contains("war sign OW-WAR-0001/D-002 --ssh-sign"));
     }
 
@@ -411,13 +600,20 @@ mod tests {
         let d = Diagnostic::warn(
             "some.rule",
             "x".to_owned(),
-            "fix it with `war pins --refresh --alias OW-WAR-0009`, or look at `war show OW-WAR-0009`",
+            "fix it with `war admin pins --refresh --alias OW-WAR-0009`, or look at `war show OW-WAR-0009`",
         );
         let r = remedy_for(&d).unwrap();
         assert_eq!(r.kind, Kind::Auto);
         assert_eq!(
             r.argv,
-            ["war", "pins", "--refresh", "--alias", "OW-WAR-0009"]
+            [
+                "war",
+                "admin",
+                "pins",
+                "--refresh",
+                "--alias",
+                "OW-WAR-0009"
+            ]
         );
 
         let human = Diagnostic::error(
@@ -429,11 +625,55 @@ mod tests {
         let dry = Diagnostic::error(
             "x.y",
             "f".to_owned(),
-            "see `war resolve OW-WAR-0009 --dry-run`",
+            "see `war sign resolve OW-WAR-0009 --dry-run`",
         );
         assert_eq!(remedy_for(&dry).unwrap().kind, Kind::Informational);
         let none = Diagnostic::error("x.y", "f".to_owned(), "no command here");
         assert!(remedy_for(&none).is_none());
+    }
+
+    /// M12: a group word is read through to the leaf command, so a new
+    /// spelling classifies as its earlier one did; a target after `war sign`
+    /// is not a member.
+    #[test]
+    fn the_verb_is_read_through_the_group() {
+        let kind = |line: &str| classify(&line.split_whitespace().collect::<Vec<_>>());
+        for (new, old, want) in [
+            ("war admin compile", "war compile", Kind::Auto),
+            (
+                "war admin pins --refresh --alias A",
+                "war pins --refresh --alias A",
+                Kind::Auto,
+            ),
+            ("war sign resolve A", "war resolve A", Kind::Human),
+            (
+                "war sign resolve A --dry-run",
+                "war resolve A --dry-run",
+                Kind::Informational,
+            ),
+            (
+                "war plan answer A Q-001 x",
+                "war answer A Q-001 x",
+                Kind::Human,
+            ),
+            (
+                "war sign sas accept 1.0.0",
+                "war sas accept 1.0.0",
+                Kind::Human,
+            ),
+            ("war sign sas status", "war sas status", Kind::Informational),
+            ("war admin doctor", "war doctor", Kind::Informational),
+        ] {
+            assert_eq!(kind(new), want, "{new}");
+            assert_eq!(kind(old), want, "{old}");
+        }
+        assert_eq!(
+            leaf(&["war", "sign", "OW-WAR-0001", "--ssh-sign"]).0,
+            "sign"
+        );
+        assert_eq!(leaf(&["war", "view", "board"]).0, "board");
+        // Refusal side: a word that is no member of the group stays the verb.
+        assert_eq!(leaf(&["war", "view", "compile"]).0, "view");
     }
 
     #[test]

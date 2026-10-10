@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war kf` — the §67 Knowledge Fabric seam.
+//! `war admin kf` — the §67 Knowledge Fabric seam.
 //!
 //! # HTTPS works, after a licence decision that was recorded rather than assumed
 //!
@@ -22,7 +22,7 @@
 //! # Nothing here writes without being asked twice
 //!
 //! §67 actions mutate an authoritative external record. [`Client::post_action`]
-//! is the only function that writes, it is reachable only from `war kf act`,
+//! is the only function that writes, it is reachable only from `war admin kf act`,
 //! and that subcommand requires `--confirm-write`. The seam being easy to reach
 //! by accident is how a diagnostic becomes a fabrication.
 

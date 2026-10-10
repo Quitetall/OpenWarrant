@@ -709,6 +709,8 @@ pub fn validate(
         relations: mine,
         faults: Vec::new(),
         files: all.files,
+        instructions: all.instructions.clone(),
+        instruction_faults: Vec::new(),
     };
     for r in crate::records::unknown_targets(&corpus, &probe) {
         if proposed_ids.contains(r.target.id.as_str()) {
@@ -949,7 +951,7 @@ pub fn human(a: &Applied) -> String {
     }
     let first = a.records.first().map_or("<ID>", |r| r.id.as_str());
     s.push_str(&format!(
-        "`war ready` lists the items; `war impact {first}` lists what a change to a record reaches"
+        "`war next` lists the items; `war plan impact {first}` lists what a change to a record reaches"
     ));
     s
 }

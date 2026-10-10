@@ -94,9 +94,16 @@ fn the_error_path_is_still_json_on_stdout_and_exits_one() {
 #[test]
 fn the_corpus_projection_is_the_result_payload_verbatim() {
     let (_, out, _) = war(&["--json", "status"]);
-    let v = envelope(&out);
+    let mut v = envelope(&out);
     assert_eq!(v["command"], "status");
     assert_eq!(v["result"]["schema"], "oh.war/corpus-status/v1");
+    // OW-WAR-0148 M17: the score rides beside the projection, computed on
+    // read, and never enters the committed file (it moves with every commit).
+    let score = v["result"]
+        .as_object_mut()
+        .and_then(|o| o.remove("compliance"))
+        .expect("war status --json carries the score");
+    assert_eq!(score["schema"], "oh.war/score/v1");
     let committed =
         std::fs::read_to_string(repo_root().join("docs/warrants/generated/CORPUS_STATUS.json"))
             .expect("committed projection");

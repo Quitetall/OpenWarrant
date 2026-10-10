@@ -1,0 +1,7 @@
+# Knowing what holds (OW-WAR-0148 M18): a pack of document types.
+# `war plan types add quality` copies these profiles into profiles/.
+schema = "oh.war/pack/v1"
+name = "quality"
+version = "1.0.0"
+note = "Knowing what holds: threat models, performance budgets and exploratory test charters."
+profiles = ["threat-model.toml", "performance-budget.toml", "test-charter.toml"]

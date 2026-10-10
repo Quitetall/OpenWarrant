@@ -1,0 +1,33 @@
+# A performance budget (pack `quality` 1.0.0): the limits a system must stay
+# within, and the check that measures each. Whether a limit holds is a
+# Warrant obligation's verdict, never this document's.
+schema = "oh.war/profile/v1"
+name = "performance-budget"
+form = "document"
+note = "The limits a system must stay within (latency, size, memory, cost), each with the check that measures it."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["budget", "limit"]
+
+[relations]
+allow = ["part_of", "constrains", "evaluates"]
+
+[[projections]]
+name = "performance-budget"
+title = "{title}: performance budget"
+
+[projections.select]
+types = ["budget", "limit", "obligation"]
+through = ["in:part_of", "in:evaluates"]
+
+[[projections.sections]]
+heading = "Limits"
+block = "tree"
+types = ["limit"]
+annotate = ["out:constrains"]
+fields = ["verdict"]
+children = [
+    { relation = "in:evaluates", label = "Measured by", empty = "No obligation measures this limit yet: it is unmeasured." },
+]
+empty = "No limit is recorded."

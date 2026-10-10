@@ -28,7 +28,7 @@ plant "a resolved pin moved" "deliverable.digest-drift" "$PIN_RESOLVED_ALIAS" 2 
 # and the remedy is one command rather than a human signature. Scoped to the
 # Warrant with `war check <alias>` so the assertion is about THIS rule's
 # severity and not about whatever else the corpus is carrying that day.
-plant_cmd "an unresolved pin moved" "deliverable.pin-stale" "war pins --refresh" 0 \
+plant_cmd "an unresolved pin moved" "deliverable.pin-stale" "war admin pins --refresh" 0 \
     "printf '\n<!-- planted -->\n' >> $PIN_DRAFT_FILE; \
      assert_present 'planted' $PIN_DRAFT_FILE" \
     check "$PIN_DRAFT_ALIAS"
@@ -40,7 +40,7 @@ plant_cmd "refreshing an unresolved pin" "pins.refreshed" "$PIN_DRAFT_ALIAS" 0 \
     pins --refresh --alias "$PIN_DRAFT_ALIAS"
 
 # It refuses the resolved one by name, so the escape cannot become the laundry.
-plant_cmd "refreshing a resolved pin" "pins.signed" "war correct" 2 \
+plant_cmd "refreshing a resolved pin" "pins.signed" "war sign correct" 2 \
     "printf '\n<!-- planted -->\n' >> $PIN_RESOLVED_FILE; \
      assert_present 'planted' $PIN_RESOLVED_FILE" \
     pins --refresh --alias "$PIN_RESOLVED_ALIAS"

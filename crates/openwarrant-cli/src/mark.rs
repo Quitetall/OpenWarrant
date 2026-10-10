@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war mark` — the assurance mark (OW-ADR-0025, OW-WAR-0135).
+//! `war evidence mark` — the assurance mark (OW-ADR-0025, OW-WAR-0135).
 //!
 //! CONTINGENT. This module is built against OW-ADR-0025's recommendation:
 //! Q-001 (a), a mark DERIVED from records already signed, with (c)'s file as
@@ -299,7 +299,7 @@ impl Mark {
     }
 }
 
-/// What `war mark` found, earned or not.
+/// What `war evidence mark` found, earned or not.
 #[derive(Debug, Clone, Serialize)]
 pub struct Evaluation {
     pub schema: &'static str,
@@ -756,7 +756,7 @@ pub fn record_path(dir: &Utf8Path, baseline: &str) -> Utf8PathBuf {
     dir.join(format!("mark-{baseline}.json"))
 }
 
-/// `war mark <alias> [--baseline <id>]`: evaluate, and emit or refuse.
+/// `war evidence mark <alias> [--baseline <id>]`: evaluate, and emit or refuse.
 pub fn evaluate(
     repo: &Repository,
     alias: &str,
@@ -1072,7 +1072,7 @@ pub fn evaluate(
     Ok((report, ev))
 }
 
-/// `war mark <alias> --record`: write the statement, only when earned.
+/// `war evidence mark <alias> --record`: write the statement, only when earned.
 pub fn record(
     repo: &Repository,
     alias: &str,
@@ -1100,14 +1100,14 @@ pub fn record(
     report.push(Diagnostic::pass(
         "mark.recorded",
         format!(
-            "{rel} written; a cache that `war mark {alias} --verify` recomputes, never trusted"
+            "{rel} written; a cache that `war evidence mark {alias} --verify` recomputes, never trusted"
         ),
     ));
     ev.recorded = Some(rel);
     Ok((report, ev))
 }
 
-/// `war mark <alias> --verify [--file <mark>]`: recompute every binding and
+/// `war evidence mark <alias> --verify [--file <mark>]`: recompute every binding and
 /// name each one that moved.
 pub fn verify(
     repo: &Repository,
@@ -1130,7 +1130,7 @@ pub fn verify(
             "mark.no-record",
             rel.clone(),
             format!(
-                "{alias}: no recorded mark at {rel}, so there is nothing to verify; `war mark \
+                "{alias}: no recorded mark at {rel}, so there is nothing to verify; `war evidence mark \
                  {alias}` computes one and `--record` writes it"
             ),
         ));

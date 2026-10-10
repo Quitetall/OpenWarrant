@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war correct` — the correction act (OW-WAR-0064): the fifth two-half seam.
+//! `war sign correct` — the correction act (OW-WAR-0064): the fifth two-half seam.
 //!
 //! An agent may EMIT a request naming a resolved Warrant's deliverable, the
 //! digest its record pins, the digest the file has now, and who may sign. Only a
@@ -135,7 +135,7 @@ fn standing(repo: &Repository, one: &Loaded, alias: &str, id: &str) -> Result<St
     })
 }
 
-/// `war correct <alias> <deliverable-id>`: the request. Writes nothing.
+/// `war sign correct <alias> <deliverable-id>`: the request. Writes nothing.
 pub fn request(repo: &Repository, alias: &str, id: &str) -> Result<CorrectionRequest, RepoError> {
     request_with(repo, alias, id, &crate::ownership::Ownership::index(repo)?)
 }
@@ -205,7 +205,7 @@ fn load_response(path: &Utf8Path) -> Result<CorrectionResponse, RepoError> {
     toml::from_str(&text).map_err(|e| RepoError::Message(format!("{path}: {e}")))
 }
 
-/// `war correct <alias> <deliverable-id> --response <file>`: ingest a human's
+/// `war sign correct <alias> <deliverable-id> --response <file>`: ingest a human's
 /// correction. Every refusal happens before anything is written.
 pub fn ingest(
     repo: &Repository,

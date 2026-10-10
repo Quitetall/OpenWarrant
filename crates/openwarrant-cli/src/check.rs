@@ -6,13 +6,14 @@
 //!
 //! That was once guaranteed by the binary having no HTTP client at all. Since
 //! OW-WAR-0044 it is guaranteed by this module not using the one it has: `ureq`
-//! is linked for the §67 Knowledge Fabric seam, and `war kf` is the only
+//! is linked for the §67 Knowledge Fabric seam, and `war admin kf` is the only
 //! command that dials. `war check` reaching the network would make its verdict
 //! depend on someone else's uptime, which is the opposite of a control.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use openwarrant_compiler::{ChildRef, lower};
+use openwarrant_core::projection::Store;
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
 
 use crate::compile::{adr_overview, projections};
@@ -144,7 +145,7 @@ pub fn run_with(
         report.push(Diagnostic::warn(
             "corpus.empty",
             repo.config.paths.warrants.clone(),
-            "no Warrants found; nothing to check",
+            "no Warrants found; nothing to check (ordinary work needs none)",
         ));
         return Ok(report);
     }
@@ -174,6 +175,8 @@ pub fn run_with(
         loaded.clone()
     };
     let parent_digests = contract_digests_with(shared_corpus, &corpus);
+    // M11: an alias names one Warrant (`warrant.alias-duplicate`).
+    crate::alias::check_duplicates(repo, &corpus, only, &mut report);
 
     // §43.1 — local gate candidates. Loaded once for the corpus so an obligation
     // citing a gate can be resolved rather than taken on trust.
@@ -287,15 +290,18 @@ pub fn run_with(
 
     // ADR corpus (§19). A malformed ADR is an error; the Overview is a
     // projection and drift-checks exactly like a Warrant parent (§19.7).
+    // OW-WAR-0148 M18: the `adr` type's rules, under its `structure`.
+    let adr_structure =
+        crate::types::has(repo, Store::Adr, openwarrant_core::Capability::Structure);
     let adrs = repo.load_adrs()?;
-    for (path, err) in &adrs.failures {
+    for (path, err) in adrs.failures.iter().filter(|_| adr_structure) {
         report.push(Diagnostic::error(
             "adr.malformed",
             path.clone(),
             err.to_string(),
         ));
     }
-    if adrs.failures.is_empty() && !adrs.records.is_empty() {
+    if adr_structure && adrs.failures.is_empty() && !adrs.records.is_empty() {
         report.push(Diagnostic::pass(
             "adr.parsed",
             format!("{} ADR(s) parsed", adrs.records.len()),
@@ -310,7 +316,12 @@ pub fn run_with(
     // compared them: the digest appeared in six places, all prose.
     // Reproducing the same lossy extraction is not a completeness check.
     // This also covers a source whose first revision is not recorded yet.
-    if let Ok((path, bytes)) = repo.sas_document() {
+    // OW-WAR-0148 M18: the `spec` type's rules: the document's structure
+    // here, its acceptance below.
+    let spec_caps = crate::types::caps(repo, Store::Sas);
+    if spec_caps.has(openwarrant_core::Capability::Structure)
+        && let Ok((path, bytes)) = repo.sas_document()
+    {
         let dropped = openwarrant_core::dropped_sections(&String::from_utf8_lossy(&bytes));
         if dropped.is_empty() {
             report.push(Diagnostic::pass(
@@ -323,18 +334,22 @@ pub fn run_with(
             }
         }
     }
-    match repo.load_sas_revisions() {
-        Err(err) => report.push(Diagnostic::error(
+    let sas_revisions = spec_caps
+        .has(openwarrant_core::Capability::Acceptance)
+        .then(|| repo.load_sas_revisions());
+    match sas_revisions {
+        None => {}
+        Some(Err(err)) => report.push(Diagnostic::error(
             "sas.revision-malformed",
             repo.config.paths.sas.clone(),
             err.to_string(),
         )),
-        Ok(revisions) => match crate::sas::pin_of(&revisions) {
+        Some(Ok(revisions)) => match crate::sas::pin_of(&revisions) {
             None => report.push(Diagnostic::warn(
                 "sas.unrecorded",
                 repo.config.paths.sas.clone(),
                 "no SAS revision is recorded; the document is pinned by prose only. \
-                 `war sas propose <version>` records one"
+                 `war sign sas propose <version>` records one"
                     .to_owned(),
             )),
             Some(pin) => match repo.sas_document() {
@@ -405,6 +420,9 @@ pub fn run_with(
         crate::records::check(shared_corpus, &mut report);
         // OW-WAR-0148 M6: declared documents. Silent where there are none.
         crate::render_cmd::check(shared_corpus, &mut report);
+        // OW-WAR-0148 M18: docs/types.toml and the document index. Silent
+        // for a program with neither a types file nor a bad [documents].
+        crate::types::check(shared_corpus, &mut report);
     }
 
     // Accepting a SAS revision is the act that makes a specification normative
@@ -412,7 +430,12 @@ pub fn run_with(
     // authorization: a human signature over the acceptance response's exact
     // bytes, naming the digest of the document accepted. Leaving this act out
     // would have left one path where a record is believed for its contents.
-    let sas_revisions = repo.load_sas_revisions().unwrap_or_default();
+    // OW-WAR-0148 M18: the `spec` type's `acceptance`.
+    let sas_revisions = if spec_caps.has(openwarrant_core::Capability::Acceptance) {
+        repo.load_sas_revisions().unwrap_or_default()
+    } else {
+        Vec::new()
+    };
     let sas_pin = crate::sas::pin_of(&sas_revisions).map(|p| p.version.clone());
     for rev in &sas_revisions {
         let Some(acceptance) = &rev.acceptance else {
@@ -563,7 +586,7 @@ pub fn run_with(
     // diagnostic: a report that answers "ok" while whole classes of check go
     // unasked reads as full coverage, but a scope note that blocked readiness
     // would make the verdict permanently negative and therefore meaningless.
-    report.note("gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run");
+    report.note("gate execution — `war evidence gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run");
     report.note("Preflight readiness (§32.7) — 'well-formed' is a claim about the record only");
     report.note("bound-atom resolution — `ref =` atoms cannot be fetched offline");
     // Kept, and now says WHY rather than only that. OW-WAR-0049's OBL-003 asks
@@ -580,7 +603,13 @@ pub fn run_with(
     if !check_generated {
         report.note("generated-view drift — pass --generated to compare committed projections");
     }
-    if only.is_none() {
+    if only.is_none()
+        && crate::types::has(
+            repo,
+            Store::Roadmap,
+            openwarrant_core::Capability::Structure,
+        )
+    {
         check_roadmap_status_claims(repo, &mut report);
     }
 
@@ -644,7 +673,7 @@ fn drift_check(
                     relative,
                     format!(
                         "{name} is missing and this repository commits generated views; \
-                         run `war compile`"
+                         run `war admin compile`"
                     ),
                 )),
                 Err(_) => {}
@@ -821,9 +850,9 @@ pub(crate) fn load_gate_registry(
 #[allow(clippy::too_many_arguments)]
 /// §37.2 — a declared deliverable's recorded digest must still match its bytes.
 ///
-/// # Why this belongs in `war check` and not only in `war resolve`
+/// # Why this belongs in `war check` and not only in `war sign resolve`
 ///
-/// `war resolve` already recomputes these digests, and it caught the drift both
+/// `war sign resolve` already recomputes these digests, and it caught the drift both
 /// times it happened. It caught it *late*: resolve is run deliberately, by
 /// someone asking about one Warrant, so a stale record sat in `main` until
 /// somebody thought to look. Twice in two days an unrelated pull request edited
@@ -847,16 +876,16 @@ pub(crate) fn load_gate_registry(
 /// Exactly one thing does: a resolution, whose §56.2 record carries
 /// `artifact_manifest_digest` = sha256 of `deliverables.toml`. Moving a pin
 /// under it would change what the resolution resolved, so that is an ERROR and
-/// `war correct` is the act for it (OW-WAR-0064).
+/// `war sign correct` is the act for it (OW-WAR-0064).
 ///
 /// An authorization does NOT. The contract digest covers intent, scope,
 /// obligations, milestones and stages — not which bytes a file happens to have
 /// while the work is being done. Treating it as binding sent a signed but
-/// unresolved Warrant to `war correct`, which refuses with
+/// unresolved Warrant to `war sign correct`, which refuses with
 /// `correction.not-resolved`: an error whose only remedy was itself refused.
 ///
 /// So a pin that no one has resolved against is out of date, not violated —
-/// `war pins --refresh` re-records it. That distinction is why `war check` can
+/// `war admin pins --refresh` re-records it. That distinction is why `war check` can
 /// run during ordinary work: a repository with nineteen unsigned Warrants
 /// pinning living source files reported ten ERRORs and NOT READY on every
 /// commit, forever, protecting nothing.
@@ -1074,7 +1103,7 @@ fn check_deliverable_digests(
                         format!(
                             "{alias}: {} pinned {} at {head}; {}/{} (authorized {}) now \
                              governs that path, so this pin is historical and the bytes \
-                             are that Warrant's to answer for (OW-ADR-0021) — `war pins \
+                             are that Warrant's to answer for (OW-ADR-0021) — `war admin pins \
                              --history {}`",
                             deliverable.id,
                             deliverable.target_ref,
@@ -1091,7 +1120,7 @@ fn check_deliverable_digests(
                         format!(
                             "{alias}: {} — the latest correction records {head} but the file is \
                              sha256:{actual}; it corrects nothing. A further change is a further \
-                             correction, `war correct {alias} {}`",
+                             correction, `war sign correct {alias} {}`",
                             deliverable.id, deliverable.id
                         ),
                     ));
@@ -1106,7 +1135,7 @@ fn check_deliverable_digests(
                              authorized Warrant declares {}, so the artifact moved outside any \
                              authorization — restore it; declare it as a deliverable of a \
                              Warrant and have that Warrant authorized (OW-ADR-0021); or record \
-                             why it moved: `war correct {alias} {}` (OW-WAR-0064)",
+                             why it moved: `war sign correct {alias} {}` (OW-WAR-0064)",
                             deliverable.id,
                             deliverable.target_ref,
                             deliverable.target_ref,
@@ -1123,7 +1152,7 @@ fn check_deliverable_digests(
                         format!(
                             "{alias}: {} records sha256:{recorded} for {} and the file is now \
                              sha256:{actual}. No resolution binds this manifest, so the pin is \
-                             out of date rather than violated — `war pins --refresh {alias}`",
+                             out of date rather than violated — `war admin pins --refresh --alias {alias}`",
                             deliverable.id, deliverable.target_ref
                         ),
                     ));
@@ -1203,8 +1232,16 @@ fn check_traceability(
     };
     let file = repo.relative(&one.dir.join("manifest.toml"));
     let mut bad = 0usize;
+    // OW-WAR-0148 M18: a roadmap ref is the `roadmap` type's to read: its
+    // grammar under `structure`, the phase it names under `links`.
+    let roadmap_caps = crate::types::caps(repo, Store::Roadmap);
+    let roadmap_refs: &[_] = if roadmap_caps.has(openwarrant_core::Capability::Structure) {
+        &basis.manifest.roadmap
+    } else {
+        &[]
+    };
 
-    for r in &basis.manifest.roadmap {
+    for r in roadmap_refs {
         match RoadmapRef::parse(&r.r#ref) {
             Err(err) => {
                 report.push(Diagnostic::error(
@@ -1232,6 +1269,7 @@ fn check_traceability(
             }
             // OW-ADR-0023: with a roadmap record, the phase must be one of its
             // phases; without one, §98's 0..=10.
+            Ok(_) if !roadmap_caps.has(openwarrant_core::Capability::Links) => {}
             Ok(parsed) => match roadmap {
                 Some(rm) => {
                     if !crate::roadmap_cmd::check_ref(rm, alias, &parsed, &file, report) {
@@ -1315,7 +1353,7 @@ fn check_traceability(
             format!(
                 "{alias}: {} requirement ref(s) and {} roadmap ref(s) parse",
                 basis.manifest.implements.len(),
-                basis.manifest.roadmap.len()
+                roadmap_refs.len()
             ),
         ));
     }
@@ -1409,13 +1447,16 @@ fn check_one(
         // authorization's.
         let all = repo.load_sas_revisions().unwrap_or_default();
         let amended = crate::repo::amendment_sas_revision(&one.dir);
-        if let Some((v, amendment_path)) = &amended {
+        // OW-WAR-0148 M18: a SAS pin resolves into the `spec` type's store,
+        // under its `links`.
+        let sas_links = crate::types::has(repo, Store::Sas, C::Links);
+        if let Some((v, amendment_path)) = amended.as_ref().filter(|_| sas_links) {
             let file = repo.relative(amendment_path);
             match all.iter().find(|r| &r.version == v) {
                 None => report.push(Diagnostic::error(
                     "sas.pin-unknown",
                     file,
-                    format!("{alias}: an amendment re-pins to SAS revision {v}, and no record of it exists under docs/sas/revisions/ — `war sas propose {v}` first"),
+                    format!("{alias}: an amendment re-pins to SAS revision {v}, and no record of it exists under docs/sas/revisions/ — `war sign sas propose {v}` first"),
                 )),
                 Some(rev) => {
                     // The re-pinned revision must still carry every row this
@@ -1536,6 +1577,7 @@ fn check_one(
             }
         }
         if caps.has(C::Authorization)
+            && sas_links
             && let Ok(Some(a)) = repo.load_authorization(&one.dir)
             && let Some(v) = &a.sas_revision
             && amended.is_none()
@@ -1725,7 +1767,7 @@ fn check_one(
         }
     }
 
-    if caps.has(C::Links) {
+    if caps.has(C::Links) && crate::types::has(repo, Store::Sas, C::Links) {
         check_section_refs(repo, one, &alias, sas_sections, report);
     }
 
@@ -2483,8 +2525,8 @@ fn check_parent_citations(
                 (
                     Severity::Error,
                     format!(
-                        "cite revision {belongs}, or revision {r} at its own digest — `war new \
-                         --parent {parent_alias}` writes the latest exactly"
+                        "cite revision {belongs}, or revision {r} at its own digest — `war plan new \
+                         \"<title>\" --parent {parent_alias}` writes the latest exactly"
                     ),
                 )
             };
@@ -2682,7 +2724,7 @@ fn check_drift(
                 relative,
                 format!(
                     "{alias}: {} is missing and this repository commits generated views; \
-                     run `war compile {alias}`",
+                     run `war admin compile {alias}`",
                     view.committed_filename()
                 ),
             )),

@@ -71,9 +71,64 @@ pub fn run(
 /// ticket, and nothing in that loop needs a signature. The `--program`
 /// scaffold does not print it — its three lines are pinned (99-init,
 /// 59-adoption), and asking for the scaffold is asking for the authority layer.
-pub const START_HINT: &str = "start: `war create \"what this work accomplishes\" --item \"...\"`, then \
-     `war ready`, `war claim <id>`, `war done <id>` — no signature needed. Agents run \
-     `war prime` first (AGENTS.md). Sign-off is opt-in: `war promote <ticket>`.";
+pub const START_HINT: &str = "start: ordinary coding needs no ticket and no Warrant. To track work, \
+     `war create \"what this work accomplishes\" --item \"...\"`, then `war next`, `war claim <id>`, \
+     `war done <id>`; no signature needed. Agents run `war view prime` first (AGENTS.md). Sign-off is \
+     opt-in: `war plan promote <ticket>`.";
+
+/// The namespace `war init` uses when none is given (M9): derived from a
+/// name, so a script or an agent's shell never has to invent one and a
+/// terminal is never asked. The words of `name` (split at anything that is
+/// not a letter or digit, and at a lower-to-upper camelCase step): one word
+/// is that word, uppercased, at most eight characters; several are their
+/// initials. Letters and digits only, so the result always parses as a
+/// namespace; nothing usable gives `WORK`. `letters_only` drops digits, for
+/// `--program`, whose namespace prefixes `<NS>-SAS-RQ-001`.
+#[must_use]
+pub fn derive_namespace(name: &str, letters_only: bool) -> String {
+    let keep = |c: char| c.is_ascii_alphabetic() || (!letters_only && c.is_ascii_digit());
+    let mut words: Vec<String> = Vec::new();
+    for token in name.split(|c: char| !c.is_ascii_alphanumeric()) {
+        let mut word = String::new();
+        let mut prev_lower = false;
+        for c in token.chars() {
+            if c.is_ascii_uppercase() && prev_lower && !word.is_empty() {
+                words.push(std::mem::take(&mut word));
+            }
+            prev_lower = c.is_ascii_lowercase() || c.is_ascii_digit();
+            if keep(c) {
+                word.push(c.to_ascii_uppercase());
+            }
+        }
+        if !word.is_empty() {
+            words.push(word);
+        }
+    }
+    let derived: String = match words.as_slice() {
+        [] => String::new(),
+        [one] => one.chars().take(8).collect(),
+        many => many.iter().filter_map(|w| w.chars().next()).collect(),
+    };
+    if derived.is_empty() {
+        "WORK".to_owned()
+    } else {
+        derived
+    }
+}
+
+/// The directory `war init` acts on: `--root`, else the current directory.
+pub fn init_root(root: Option<Utf8PathBuf>) -> Result<Utf8PathBuf, InitError> {
+    match root {
+        Some(path) => Ok(path),
+        None => {
+            let cwd = std::env::current_dir().map_err(|source| InitError::Io {
+                context: "could not read the current directory".to_owned(),
+                source,
+            })?;
+            Utf8PathBuf::from_path_buf(cwd).map_err(|_| InitError::NonUtf8Path)
+        }
+    }
+}
 
 /// Which commit `war init` records as the adoption baseline (OW-WAR-0124).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -138,7 +193,7 @@ pub fn history(root: &Utf8Path) -> History {
 }
 
 /// Resolve a named commit to its full id, refusing anything that is not a
-/// commit in HEAD's history: a baseline outside the history `war telemetry`
+/// commit in HEAD's history: a baseline outside the history `war admin telemetry`
 /// walks would silently hide or invent untracked work.
 pub fn resolve_baseline(root: &Utf8Path, named: &str) -> Result<String, InitError> {
     let refuse = |why: &str| InitError::Baseline {
@@ -181,7 +236,7 @@ pub fn resolve_baseline(root: &Utf8Path, named: &str) -> Result<String, InitErro
 }
 
 /// The conventional places an existing ADR corpus lives, holding at least
-/// one file `war migrate` would read (`NNNN-*.md`). Found, never imported.
+/// one file `war admin migrate` would read (`NNNN-*.md`). Found, never imported.
 #[must_use]
 pub fn adr_dirs(root: &Utf8Path) -> Vec<&'static str> {
     ["docs/adr", "doc/adr", "adr"]
@@ -208,11 +263,11 @@ pub fn adr_dirs(root: &Utf8Path) -> Vec<&'static str> {
 pub fn migrate_line(dir: &str, baseline: Option<&str>) -> String {
     match baseline {
         Some(id) => format!(
-            "existing ADRs in {dir}/: `war migrate --corpus {dir} --commit {id}` would import \
+            "existing ADRs in {dir}/: `war admin migrate --corpus {dir} --commit {id}` would import \
              them (§96); nothing was imported"
         ),
         None => format!(
-            "existing ADRs in {dir}/: once they are committed, `war migrate --corpus {dir} \
+            "existing ADRs in {dir}/: once they are committed, `war admin migrate --corpus {dir} \
              --commit <commit>` would import them (§96); nothing was imported"
         ),
     }
@@ -427,8 +482,13 @@ pub fn run_with(
     }
 
     // An adopter's agents read AGENTS.md before their first Warrant. Written
-    // once, never over an existing one: a repository may have tuned its copy.
-    write_agents_md(&root, config.project.namespace.as_str(), false)?;
+    // once, never over an existing one: a repository may have tuned its copy,
+    // and gets the managed block added to it instead (M16), as CLAUDE.md does.
+    let block_lines = instructions_on_init(&root, config.project.namespace.as_str())?;
+    // M11: journals union-merge and ticket files merge item by item
+    // (`.gitattributes`, and this clone's driver). Best effort and silent: a
+    // repository without git still initializes, and merges as text.
+    let _ = crate::ticket::merge::install(&root);
 
     // §76.3: silence on sound state is the ideal, but `init` is a mutation and
     // the operator needs to know what was created and where.
@@ -436,11 +496,14 @@ pub fn run_with(
     if start_hint {
         println!("{START_HINT}");
     }
+    for line in &block_lines {
+        println!("{line}");
+    }
     if let Some(id) = &recorded {
         let before = git_line(&root, &["rev-list", "--count", id]).unwrap_or_else(|| "?".into());
         println!(
             "adoption baseline {id} ({before} commit(s) of history): nothing up to it is \
-             claimed, owned or verified by any Warrant; `war telemetry` counts untracked work \
+             claimed, owned or verified by any Warrant; `war admin telemetry` counts untracked work \
              after it"
         );
     }
@@ -452,9 +515,80 @@ pub fn run_with(
     Ok(recorded)
 }
 
+/// `war init --vibe | --team | --regulated` (OW-WAR-0148 M14): after the
+/// plain init, `[preset]` and `[roles]` appended to `openwarrant.toml` with
+/// the preset's defaults; `--team` and `--regulated` also write the signing
+/// examples (`docs/authority/*.example`, never the real files, which are a
+/// human's). Returns the lines to print. Plain `war init` never calls this,
+/// so it writes no preset and behaves exactly as before.
+pub fn apply_preset(
+    root: Option<Utf8PathBuf>,
+    preset: crate::preset::Preset,
+) -> Result<Vec<String>, InitError> {
+    use crate::preset::Preset;
+    let root = init_root(root)?;
+    let config_path = root.join(CONFIG_FILE);
+    let io = |context: String| move |source: std::io::Error| InitError::Io { context, source };
+    let text =
+        fs::read_to_string(&config_path).map_err(io(format!("could not read {config_path}")))?;
+    let (updated, _) =
+        crate::preset::switch(&text, Some(preset), false).map_err(|why| InitError::Io {
+            context: format!("could not write the {preset} preset into {config_path}"),
+            source: std::io::Error::other(why),
+        })?;
+    fs::write(&config_path, updated).map_err(io(format!("could not write {config_path}")))?;
+    let d = preset.defaults();
+    let mut lines = vec![format!(
+        "preset {preset}: ticks at least {}, signing {}, the PR gate {}; [roles] admin {}, \
+         maintain {}, write {}, read and outsiders {} (docs/PRESETS.md; `war admin preset` shows \
+         or switches it)",
+        d.ticks.as_str(),
+        d.signing.as_str(),
+        if d.pr_requires_official { "on" } else { "off" },
+        d.roles[0].1,
+        d.roles[1].1,
+        d.roles[2].1,
+        d.roles[4].1,
+    )];
+    match preset {
+        Preset::Vibe => lines.push(
+            "vibe: `war done <id>` claims an unclaimed item itself, so the first done is `war \
+             create \"...\"` then `war done <id>`; nothing here asks for a signature"
+                .to_owned(),
+        ),
+        Preset::Team | Preset::Regulated => {
+            let auth = root.join("docs/authority");
+            fs::create_dir_all(&auth).map_err(io(format!("could not create {auth}")))?;
+            let mut wrote = Vec::new();
+            for (name, body) in [
+                ("roles.toml.example", ROLES_EXAMPLE),
+                ("allowed_signers.example", ALLOWED_SIGNERS_EXAMPLE),
+            ] {
+                let p = auth.join(name);
+                if !p.exists() {
+                    fs::write(&p, body).map_err(io(format!("could not write {p}")))?;
+                    wrote.push(format!("docs/authority/{name}"));
+                }
+            }
+            lines.push(format!(
+                "signing ({}): {}copy them to roles.toml and allowed_signers when a person \
+                 signs; `war admin doctor --fix-signing` walks it. Agents never wait on a \
+                 signature",
+                d.signing.as_str(),
+                if wrote.is_empty() {
+                    String::new()
+                } else {
+                    format!("wrote {}; ", wrote.join(" and "))
+                }
+            ));
+        }
+    }
+    Ok(lines)
+}
+
 /// `war init --program`: everything `run` writes, plus a SAS the tool can read,
 /// the authority examples, the repository's own gate, and a first Warrant
-/// whose atoms are real. `war check` on the result exits 0, and `war sas
+/// whose atoms are real. `war check` on the result exits 0, and `war sign sas
 /// propose 0.1.0` records the SAS — asserted by a test, because a scaffold
 /// the tool refuses would teach an adopter to distrust the tool on day one.
 pub fn run_program(
@@ -584,7 +718,7 @@ pub fn run_program_with(
         })
         .ok_or_else(|| {
             invalid(format!(
-                "{manifest_path}: no `uuid` in the manifest `war new` wrote"
+                "{manifest_path}: no `uuid` in the manifest `war plan new` wrote"
             ))
         })?;
     let frontmatter = |role: &str, ordinal: u32| {
@@ -618,7 +752,7 @@ pub fn run_program_with(
 
     println!("scaffolded {program}: {sas_path}, docs/authority/*.example, {gate_path}, {alias}");
     println!(
-        "next: edit the SAS, `war sas propose 0.1.0`, then a human signs it — `war next` says the rest"
+        "next: edit the SAS, `war sign sas propose 0.1.0`, then a human signs it — `war next` says the rest"
     );
     Ok(root)
 }
@@ -639,12 +773,68 @@ const ADOPT_ASSURANCE: &str = include_str!("../../templates/adopt/60-assurance.m
 ///
 /// This legacy template is also the repository's linked workflow reference.
 /// Root `AGENTS.md` adds project-specific routing and successor design guidance;
-/// installing an additive context pointer is a separate, planned operation.
+/// the additive pointer is the managed block (`war admin agents-md --block`, M16).
 pub const AGENTS_MD_TEMPLATE: &str = include_str!("../../templates/AGENTS.md.tmpl");
 
+/// The template filled in: the namespace, and the managed openwarrant block
+/// at its end (M16), whose last line inside the markers is the version stamp
+/// (`<!-- openwarrant agents-md: written by war X -->`) that `war admin doctor`
+/// and `war view prime` read to warn when an older `war` meets text a newer one
+/// wrote (`crate::skew`). The block is the one `war admin agents-md --block`
+/// writes, so a second `--block` changes nothing.
 #[must_use]
 pub fn render_agents_md(namespace: &str) -> String {
-    AGENTS_MD_TEMPLATE.replace("{{namespace}}", namespace)
+    AGENTS_MD_TEMPLATE
+        .replace("{{namespace}}", namespace)
+        .replace(
+            "{{openwarrant_block}}",
+            &openwarrant_core::instruction::block_text(env!("CARGO_PKG_VERSION")),
+        )
+}
+
+/// M16, at `war init`: the full AGENTS.md when there is none, and the
+/// managed block in each root AGENTS.md or CLAUDE.md that was already there,
+/// with nothing else in it changed. Returns the lines to print: one per file
+/// the block went into, and one per file left as it was because its block is
+/// malformed (init goes on; `war admin agents-md --block` names the fix).
+fn instructions_on_init(root: &Utf8Path, namespace: &str) -> Result<Vec<String>, InitError> {
+    let wrote = write_agents_md(root, namespace, false)?;
+    let existing: Vec<Utf8PathBuf> = crate::instructions::ROOT_FILES
+        .iter()
+        .filter(|f| !(wrote && **f == "AGENTS.md"))
+        .map(|f| root.join(f))
+        .filter(|p| p.is_file())
+        .collect();
+    // One file at a time: a malformed block in one leaves the other's
+    // block to be added.
+    let mut lines = Vec::new();
+    for path in existing {
+        match crate::instructions::write_blocks(root, std::slice::from_ref(&path)) {
+            Ok(written) => lines.extend(written.iter().filter_map(|w| match w.change {
+                "inserted" => Some(format!(
+                    "{}: added the openwarrant block at its end (ordinary coding needs no \
+                     Warrant; `war view prime` shows tracked work); nothing else in it changed",
+                    w.path
+                )),
+                "updated" => Some(format!(
+                    "{}: updated the openwarrant block to war {}",
+                    w.path,
+                    crate::instructions::version()
+                )),
+                _ => None,
+            })),
+            Err(crate::instructions::Refused::Blocks(report)) => lines.extend(
+                report
+                    .diagnostics
+                    .iter()
+                    .map(|d| format!("left as it is: {} ({})", d.message, d.rule)),
+            ),
+            Err(crate::instructions::Refused::Io(message)) => {
+                lines.push(format!("the openwarrant block was not added: {message}"));
+            }
+        }
+    }
+    Ok(lines)
 }
 
 /// Write `AGENTS.md` at the root. Refuses to overwrite unless `force`: an
@@ -716,6 +906,39 @@ mod tests {
         let _ = fs::remove_dir_all(&root);
     }
 
+    /// M9: a namespace derived from any directory name parses, so plain
+    /// `war init` never refuses for want of one.
+    #[test]
+    fn a_derived_namespace_always_parses() {
+        for (name, want) in [
+            ("OpenWarrant", "OW"),
+            ("my-game-engine", "MGE"),
+            ("engine", "ENGINE"),
+            ("openwarrant", "OPENWARR"),
+            ("2048 game", "2G"),
+            ("s.o2Xc", "SOX"),
+            ("---", "WORK"),
+            ("日本", "WORK"),
+            ("", "WORK"),
+        ] {
+            let got = derive_namespace(name, false);
+            assert_eq!(got, want, "{name:?}");
+            assert!(Namespace::parse(&got).is_ok(), "{name:?} -> {got:?}");
+        }
+        // `--program` wants letters only: digits drop out.
+        assert_eq!(derive_namespace("2048 game", true), "GAME");
+        assert_eq!(derive_namespace("v2", true), "V");
+        assert_eq!(derive_namespace("42", true), "WORK");
+        // A user's `--namespace` is still checked: the override is not
+        // laundered through the derivation.
+        let root = scratch("derived-override");
+        assert!(matches!(
+            run("lower", None, Some(root.clone())),
+            Err(InitError::Namespace(_))
+        ));
+        let _ = fs::remove_dir_all(&root);
+    }
+
     #[test]
     fn init_refuses_a_malformed_namespace() {
         let root = scratch("badns");
@@ -734,7 +957,7 @@ mod program_tests {
     use super::*;
 
     /// The scaffold passes the tool that will judge it: `war check` exits 0
-    /// (warnings only — no independence, no SAS revision yet), `war sas
+    /// (warnings only — no independence, no SAS revision yet), `war sign sas
     /// propose 0.1.0` records the SAS with its three §106 rows, and after
     /// that `sas.unrecorded` is gone.
     #[test]
@@ -809,7 +1032,7 @@ mod adoption_tests {
         assert!(some.contains("Nothing before it is claimed, owned or verified by any Warrant"));
     }
 
-    /// The ADR matcher is `war migrate`'s: `NNNN-*.md`, nothing else.
+    /// The ADR matcher is `war admin migrate`'s: `NNNN-*.md`, nothing else.
     #[test]
     fn only_an_nnnn_corpus_is_pointed_at() {
         let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())
@@ -823,7 +1046,7 @@ mod adoption_tests {
         assert_eq!(adr_dirs(&root), ["docs/adr"]);
         assert!(
             migrate_line("docs/adr", Some("abc"))
-                .contains("war migrate --corpus docs/adr --commit abc")
+                .contains("war admin migrate --corpus docs/adr --commit abc")
         );
         fs::remove_dir_all(root).unwrap();
     }
@@ -839,7 +1062,37 @@ mod agents_md_tests {
         assert!(out.contains("XX-WAR-NNNN"));
         assert!(!out.contains("{{"), "unrendered placeholder");
         assert!(out.contains("war sign"), "the loop names the human's act");
-        assert!(out.contains("Never verify your own work"));
+        // M9: the first thing an agent reads is that ordinary coding needs
+        // nothing from this kit; the safety facts follow, scoped.
+        let first = out
+            .lines()
+            .find(|l| !l.trim().is_empty() && !l.starts_with('#'))
+            .unwrap_or_default();
+        assert!(
+            first.starts_with("Ordinary coding needs no Warrant and no ticket."),
+            "{first}"
+        );
+        let scoped = out
+            .find("## When a Warrant's type requires sign-off")
+            .expect("the sign-off section");
+        let fact = out
+            .find("Your own work is checked by someone else")
+            .expect("the self-verification fact");
+        assert!(scoped < fact, "the facts live in the scoped section");
+        // M16: it ends with the managed block, whose stamp skew reads, so
+        // `war agents-md --block` on a fresh AGENTS.md changes nothing.
+        assert!(out.ends_with(&format!(
+            "<!-- openwarrant agents-md: written by war {} -->\n<!-- openwarrant:end -->\n",
+            env!("CARGO_PKG_VERSION")
+        )));
+        assert_eq!(
+            crate::skew::agents_md_stamp(&out).as_deref(),
+            Some(env!("CARGO_PKG_VERSION"))
+        );
+        let (again, change) =
+            openwarrant_core::instruction::upsert(&out, env!("CARGO_PKG_VERSION")).unwrap();
+        assert_eq!(change, openwarrant_core::instruction::Change::Unchanged);
+        assert_eq!(again, out);
     }
 
     /// Keep the shipped legacy workflow equal to the linked reference, while
@@ -855,6 +1108,37 @@ mod agents_md_tests {
             instructions.contains(reference),
             "root must route legacy work"
         );
+    }
+
+    #[test]
+    fn init_adds_the_block_to_existing_instruction_files() {
+        let root = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-init-block-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+        let agents = "# Ours\n\n## Build\nmake\n";
+        let claude = "Be brief.";
+        std::fs::write(root.join("AGENTS.md"), agents).unwrap();
+        std::fs::write(root.join("CLAUDE.md"), claude).unwrap();
+        let lines = instructions_on_init(&root, "ZZ").unwrap();
+        assert_eq!(lines.len(), 2, "{lines:?}");
+        let a = std::fs::read_to_string(root.join("AGENTS.md")).unwrap();
+        let c = std::fs::read_to_string(root.join("CLAUDE.md")).unwrap();
+        assert!(a.starts_with(agents) && a.contains("<!-- openwarrant:begin -->"));
+        assert!(c.starts_with(claude) && c.contains("war view prime"));
+        assert!(
+            !a.contains("ZZ-WAR-NNNN"),
+            "an existing AGENTS.md is not replaced"
+        );
+        // Again: nothing to say, nothing changed.
+        assert!(instructions_on_init(&root, "ZZ").unwrap().is_empty());
+        assert_eq!(std::fs::read_to_string(root.join("AGENTS.md")).unwrap(), a);
+        // A malformed block is left as it is, and init goes on.
+        std::fs::write(root.join("CLAUDE.md"), format!("{c}{c}")).unwrap();
+        let lines = instructions_on_init(&root, "ZZ").unwrap();
+        assert!(lines[0].contains("agents-md.block-duplicate"), "{lines:?}");
+        std::fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
@@ -889,7 +1173,7 @@ mod agents_md_tests {
 // `war init` as a conversation — the line front end (OW-WAR-0112 M4).
 // ---------------------------------------------------------------------------
 
-/// `war init` with no `--namespace`, at a terminal. Drives `guided::Machine`
+/// `war init --guided`, at a terminal. Drives `guided::Machine`
 /// with what the human types; applies each `Effect`; re-reads the tree.
 ///
 /// The invariants the machine cannot hold are held here: the terminal gate

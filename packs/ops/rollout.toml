@@ -1,0 +1,39 @@
+# A rollout (pack `ops` 1.0.0): the waves a change reaches users in, and the
+# criterion each wave must meet before the next starts. A criterion is
+# settled by the obligation that evaluates it, never by this document.
+schema = "oh.war/profile/v1"
+name = "rollout"
+form = "document"
+note = "The waves a change reaches its users in, and what must hold before each next wave starts."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["rollout", "wave", "criterion"]
+
+[relations]
+allow = ["part_of", "depends_on", "evaluates"]
+
+[[projections]]
+name = "rollout"
+title = "{title}: rollout"
+
+[projections.select]
+types = ["rollout", "wave", "criterion", "obligation"]
+through = ["in:part_of", "in:evaluates"]
+
+[[projections.sections]]
+heading = "Waves"
+block = "list"
+types = ["wave"]
+annotate = ["out:depends_on"]
+empty = "No wave is recorded."
+
+[[projections.sections]]
+heading = "Criteria"
+block = "tree"
+types = ["criterion"]
+fields = ["verdict"]
+children = [
+    { relation = "in:evaluates", label = "Checked by", empty = "No obligation evaluates this criterion yet: it is unchecked." },
+]
+empty = "No criterion is recorded."

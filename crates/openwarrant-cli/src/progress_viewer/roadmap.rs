@@ -70,7 +70,7 @@ pub(super) fn parse(bytes: &[u8], aliases: &BTreeSet<&str>) -> Result<Roadmap, S
 }
 /// The same tree, built from the roadmap record (OW-ADR-0023) instead of an
 /// authored `view.json`: the program as the root, one node per phase in
-/// dependency order, members read from `war roadmap`'s view — the record's
+/// dependency order, members read from `war plan roadmap`'s view — the record's
 /// relation, not a second list.
 pub(super) fn from_record(view: &crate::roadmap_cmd::View) -> Roadmap {
     let root = "program".to_owned();

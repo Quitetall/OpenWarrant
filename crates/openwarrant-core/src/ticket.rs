@@ -59,7 +59,7 @@ pub struct TicketManifest {
     pub created_at: String,
     pub created_by: String,
     /// The Warrant this ticket was promoted into, once someone asked for
-    /// sign-off (`war promote`).
+    /// sign-off (`war plan promote`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub promoted_to: Option<String>,
     /// OW-WAR-0148 M5: what kind of work this is (`bug`, `feature`, `chore`,
@@ -83,11 +83,53 @@ pub struct TicketManifest {
     /// or fragment).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub issue_url: Option<String>,
+    /// OW-WAR-0148 M10: where an imported Warrant came from, as
+    /// `<format>:<id>` (`beads:bd-a1b2`, `openspec:add-2fa`,
+    /// `speckit:001-photo-albums`). `war admin import` reads it to skip what it
+    /// already brought in, and `war admin export beads` to give the issue its
+    /// original id back. Absent from every Warrant made any other way, so a
+    /// manifest written before M10 reads, and writes back, byte for byte.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imported_from: Option<String>,
+    /// OW-WAR-0148 M15: when the work is due, `YYYY-MM-DD`. A scheduler
+    /// (`war evidence go`) runs work toward an earlier date first; a date
+    /// never reorders what waits on what. Absent from every Warrant that has
+    /// none, so a manifest written before M15 reads, and writes back, byte
+    /// for byte.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub due: Option<String>,
     pub atoms: Vec<TicketAtom>,
 }
 
 const fn default_priority() -> u8 {
     DEFAULT_PRIORITY
+}
+
+/// A `due` date as `(year, month, day)`, when it is one: exactly
+/// `YYYY-MM-DD`, a month 1..=12 and a day that month has (OW-WAR-0148 M15).
+#[must_use]
+pub fn due_date(s: &str) -> Option<(u32, u32, u32)> {
+    let b = s.as_bytes();
+    if b.len() != 10 || b[4] != b'-' || b[7] != b'-' {
+        return None;
+    }
+    let num = |r: std::ops::Range<usize>| -> Option<u32> {
+        let part = s.get(r)?;
+        part.bytes()
+            .all(|c| c.is_ascii_digit())
+            .then(|| part.parse().ok())
+            .flatten()
+    };
+    let (y, m, d) = (num(0..4)?, num(5..7)?, num(8..10)?);
+    let leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
+    let days = match m {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => return None,
+    };
+    (y >= 1 && (1..=days).contains(&d)).then_some((y, m, d))
 }
 
 /// One atom of a ticket, as a Warrant manifest declares one.
@@ -155,6 +197,20 @@ impl TicketManifest {
         if self.issue_url.is_some() && self.issue.is_none() {
             return Err("issue_url without issue: the link names no issue number".to_owned());
         }
+        if let Some(from) = &self.imported_from
+            && !is_import_source(from)
+        {
+            return Err(format!(
+                "imported_from {from:?} is not `<format>:<id>` on one line (beads:bd-a1b2)"
+            ));
+        }
+        if let Some(due) = &self.due
+            && due_date(due).is_none()
+        {
+            return Err(format!(
+                "due {due:?} is not a calendar date, YYYY-MM-DD (2026-11-01)"
+            ));
+        }
         let mut ordinals = BTreeSet::new();
         let mut roles = BTreeSet::new();
         for atom in &self.atoms {
@@ -203,6 +259,19 @@ pub fn is_field_word(s: &str) -> bool {
             .is_some_and(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
         && s.chars()
             .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_')
+}
+
+/// `<format>:<id>`: a lowercase format word, a colon, and an id with no
+/// whitespace or control character, at most 200 bytes in all.
+#[must_use]
+pub fn is_import_source(s: &str) -> bool {
+    s.len() <= 200
+        && s.split_once(':').is_some_and(|(format, id)| {
+            !format.is_empty()
+                && format.chars().all(|c| c.is_ascii_lowercase())
+                && !id.is_empty()
+                && !id.chars().any(|c| c.is_whitespace() || c.is_control())
+        })
 }
 
 // ---- the kernel's view (OW-WAR-0148 M5) ------------------------------------
@@ -1252,6 +1321,8 @@ mod tests {
             part_of: None,
             issue: None,
             issue_url: None,
+            imported_from: None,
+            due: None,
             atoms: Vec::new(),
         }
     }
@@ -1260,7 +1331,7 @@ mod tests {
     fn new_fields_are_absent_unless_set_and_validated_when_set() {
         let m = manifest();
         let text = toml::to_string(&m).expect("toml");
-        for key in ["type", "labels", "part_of", "issue"] {
+        for key in ["type", "labels", "part_of", "issue", "imported_from"] {
             assert!(!text.contains(&format!("{key} =")), "{key} in {text}");
         }
         let mut bad = m.clone();
@@ -1269,7 +1340,16 @@ mod tests {
         let mut bad = m.clone();
         bad.part_of = Some("t-3f2a".into());
         assert!(bad.validate(&[]).unwrap_err().contains("itself"));
+        for wrong in ["bd-a1b2", "Beads:bd-a1", "beads:", "beads:two words"] {
+            let mut bad = m.clone();
+            bad.imported_from = Some(wrong.into());
+            assert!(
+                bad.validate(&[]).unwrap_err().contains("imported_from"),
+                "{wrong}"
+            );
+        }
         let mut ok = m;
+        ok.imported_from = Some("beads:bd-a3f8.1".into());
         ok.kind = Some("bug".into());
         ok.labels = vec!["backend".into()];
         ok.issue = Some(12);
@@ -1297,6 +1377,8 @@ mod tests {
             part_of: None,
             issue: None,
             issue_url: None,
+            imported_from: None,
+            due: None,
             atoms: vec![
                 TicketAtom {
                     ordinal: 10,
@@ -1326,5 +1408,24 @@ mod tests {
         let mut bad = m;
         bad.priority = 9;
         assert!(bad.validate(&roles).is_err());
+    }
+
+    /// OW-WAR-0148 M15: a due date is a calendar date or nothing.
+    #[test]
+    fn a_due_date_is_a_calendar_date() {
+        assert_eq!(due_date("2026-11-01"), Some((2026, 11, 1)));
+        assert_eq!(due_date("2028-02-29"), Some((2028, 2, 29)));
+        for bad in [
+            "2026-02-29",
+            "2026-13-01",
+            "2026-04-31",
+            "2026-1-01",
+            "26-11-01",
+            "2026/11/01",
+            "",
+            "tomorrow",
+        ] {
+            assert!(due_date(bad).is_none(), "{bad:?}");
+        }
     }
 }

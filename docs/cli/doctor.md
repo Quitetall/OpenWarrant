@@ -15,6 +15,13 @@ backend availability remain UNKNOWN. No execution permission or assurance is iss
 Missing optional professional setup is a warning, not a new prototype start gate.
 Configured executable names do not prove availability, independence or isolation.
 
+It also reports the managed pointer block in the root `AGENTS.md` and `CLAUDE.md`
+(M16): `doctor.agents-block` when a file's block is the one this `war` writes,
+`doctor.agents-block-missing`, `doctor.agents-block-stale` (an older `war`'s, or
+edited between the markers) and `doctor.agents-block-malformed`, each a warning that
+`war agents-md --block` resolves. A block a newer `war` wrote is
+`install.version-skew`, not stale.
+
 `--generated` adds drift checks. Reports do not run acceptance gates or regenerate
 files. Doctor-level unavailable reads are UNKNOWN; malformed parsed records are ERROR.
 Inherited check diagnostics remain unchanged: some legacy file-read checks classify

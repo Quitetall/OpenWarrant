@@ -200,7 +200,7 @@ impl Projection {
 pub enum RenderError {
     #[error(
         "projection {projection} of {subject}: root {root} is not a record of the model; \
-         `war model --json` lists every record id"
+         `war plan model --json` lists every record id"
     )]
     UnknownRoot {
         projection: String,

@@ -57,7 +57,7 @@ use crate::repo::{RepoError, Repository};
 /// escape code on a pipe.
 pub const NO_TTY: &str = "tui.no-tty";
 
-/// The refusal for `war --json` and `war tui --json`: a terminal
+/// The refusal for `war --json` and `war view tui --json`: a terminal
 /// application is a rendering and has no envelope, so it names the commands
 /// that do. Exit 2, as an envelope, like every other refusal.
 pub const JSON: &str = "tui.json";
@@ -69,13 +69,13 @@ pub fn refuse_json() -> u8 {
         JSON,
         "-".to_owned(),
         "the app is a rendering and has no envelope; for a script use `war status --json`, \
-         `war console --json`, `war next --json` or `war check --json`",
+         `war view console --json`, `war next --json` or `war check --json`",
     ));
     println!("{}", crate::output::envelope("tui", &report, None));
     crate::output::exit_code(&report)
 }
 
-/// `war` / `war tui`. Returns the exit code.
+/// `war` / `war view tui`. Returns the exit code.
 pub fn run(root: Option<Utf8PathBuf>, panic_after_setup: bool) -> Result<u8, RepoError> {
     if !crate::sign::at_a_terminal() {
         let mut report = Report::default();
@@ -83,7 +83,7 @@ pub fn run(root: Option<Utf8PathBuf>, panic_after_setup: bool) -> Result<u8, Rep
             NO_TTY,
             "-".to_owned(),
             "the app needs a terminal on stdin and stdout; for a script use `war status \
-             --json`, `war console --json`, `war next --json` or `war check --json`",
+             --json`, `war view console --json`, `war next --json` or `war check --json`",
         ));
         crate::check::print(&report);
         return Ok(crate::EXIT_NOT_READY);
@@ -427,7 +427,7 @@ impl Model {
                 let cmd = stage_cmd
                     .get(&(r.warrant.clone(), r.stage.clone()))
                     .cloned()
-                    .unwrap_or_else(|| format!("war frontier {}", r.warrant));
+                    .unwrap_or_else(|| format!("war plan frontier {}", r.warrant));
                 frontier.push(Row {
                     text: format!(
                         "{:<8} {} {} — {} [{}]{}",
@@ -493,7 +493,7 @@ impl Model {
                             format!("  ({} unmet)", w.unmet.len())
                         }
                     ),
-                    command: format!("war resolve {} --dry-run", w.alias),
+                    command: format!("war sign resolve {} --dry-run", w.alias),
                     sign_target: None,
                     auto: None,
                     detail: Some(format!(
@@ -517,7 +517,7 @@ impl Model {
                                 .as_deref()
                                 .map_or(String::new(), |why| format!("  inadmissible: {why}")),
                         ),
-                        command: format!("war resolve {} --dry-run", w.alias),
+                        command: format!("war sign resolve {} --dry-run", w.alias),
                         sign_target: None,
                         auto: None,
                         detail: Some(format!(
@@ -580,7 +580,7 @@ impl Model {
                                     "{} {:<14} {:<28} {}",
                                     e.occurred_at, alias, e.event_type, e.actor_ref
                                 ),
-                                command: format!("war journal {alias}"),
+                                command: format!("war admin journal {alias}"),
                                 sign_target: None,
                                 auto: None,
                                 detail: Some(format!(
@@ -592,7 +592,7 @@ impl Model {
                     }
                     Err(e) => journal.push(Row {
                         text: format!("UNREADABLE {alias}: {e}"),
-                        command: format!("war journal {alias}"),
+                        command: format!("war admin journal {alias}"),
                         sign_target: None,
                         auto: None,
                         detail: None,
@@ -624,7 +624,7 @@ impl Model {
                                 format!("  · no Warrant yet: {}", p.open.join(", "))
                             }
                         ),
-                        command: "war roadmap edit".to_owned(),
+                        command: "war plan roadmap edit".to_owned(),
                         sign_target: None,
                         auto: None,
                         detail: Some(format!(
@@ -663,7 +663,7 @@ impl Model {
             }
             Err(e) => roadmap.push(Row {
                 text: format!("no roadmap record: {e}"),
-                command: "war roadmap".to_owned(),
+                command: "war plan roadmap".to_owned(),
                 sign_target: None,
                 auto: None,
                 detail: None,
@@ -679,7 +679,7 @@ impl Model {
                 |e| {
                     vec![Row {
                         text: format!("UNKNOWN: the tickets could not be read: {e}"),
-                        command: "war tickets".to_owned(),
+                        command: "war view tickets".to_owned(),
                         sign_target: None,
                         auto: None,
                         detail: None,
@@ -787,10 +787,10 @@ impl Model {
             }
             if let Some(why) = &n.nothing {
                 rows.push(Row {
-                    text: if n.ready.is_empty() {
-                        format!("nothing to do: {why}")
-                    } else {
-                        format!("no Warrant act waits: {why}")
+                    text: match &n.idle {
+                        // M9: the plain line `war next` prints first.
+                        Some(idle) => format!("{idle}: {why}"),
+                        None => format!("no Warrant act waits: {why}"),
                     },
                     command: "war next".to_owned(),
                     sign_target: None,
@@ -971,7 +971,7 @@ impl Model {
                 auto: None,
                 detail: Some(if r.missing {
                     format!(
-                        "{} holds no openwarrant.toml any more.\n\n`war projects --forget {}` removes it from the list.",
+                        "{} holds no openwarrant.toml any more.\n\n`war admin projects --forget {}` removes it from the list.",
                         r.root, r.root
                     )
                 } else {
@@ -1105,6 +1105,9 @@ fn remedy_row(diag: &Diagnostic, n: usize) -> Row {
                 r.kind == crate::remedy::Kind::Human
                     && r.argv.first().is_some_and(|a| a == "war")
                     && r.argv.get(1).is_some_and(|a| a == "sign")
+                    // M12: `war sign correct …` drafts a request; only
+                    // `war sign <target>` is a signature the button raises.
+                    && r.argv.get(2).is_some_and(|t| !crate::group_member("sign", t))
             })
             .and_then(|r| r.argv.get(2).cloned()),
         auto: remedy
@@ -1304,7 +1307,11 @@ fn handle_key(
             if let Some(repo) = m.repo.as_ref() {
                 let text = crate::commit::message(repo)
                     .unwrap_or_else(|e| format!("could not compose: {e}"));
-                m.popup = Some(("commit message (`war commit --write`)".to_owned(), text, 0));
+                m.popup = Some((
+                    "commit message (`war admin commit --write`)".to_owned(),
+                    text,
+                    0,
+                ));
             }
         }
         (KeyCode::Char(' '), _) if m.pane == Pane::Queue => {
@@ -1743,7 +1750,7 @@ fn centered(area: Rect, pct_w: u16, pct_h: u16) -> Rect {
 }
 
 /// The one table of keys, rendered by `?` and tested against `docs/TUI.md`.
-/// The trees the app polls: the records `war watch` fingerprints, and the
+/// The trees the app polls: the records `war view watch` fingerprints, and the
 /// ticket store and its claims (t-67ed), so a `war done` in another terminal
 /// shows up without a keypress.
 fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
@@ -1840,7 +1847,7 @@ v                       show the request behind a signing row (`war sign <target
 space  a  n             queue: check row / check all / check none
 s                       queue: sign the checked acts — one, or a batch in one dialog
 x                       run the row's auto remedy (never a signing act)
-c                       show the commit message `war commit --write` would use
+c                       show the commit message `war admin commit --write` would use
 d  [  ]                 help: documents on/off, previous/next document
 r                       re-read the tree now (it also refreshes on its own)
 ?                       this table
@@ -2081,6 +2088,9 @@ mod tests {
         );
         let r = remedy_row(&drift, 1);
         assert!(r.auto.is_none(), "{r:?}");
+        // M12: `war sign correct …` drafts the request; it is no target for
+        // the sign key, whose `war sign <target>` is the signature.
+        assert!(r.sign_target.is_none(), "{r:?}");
         let stale = Diagnostic::warn(
             "deliverable.pin-stale",
             "docs/warrants/OW-WAR-0003/deliverables.toml".to_owned(),
@@ -2089,7 +2099,17 @@ mod tests {
         let r = remedy_row(&stale, 2);
         assert_eq!(
             r.auto.as_deref(),
-            Some(&["war", "pins", "--refresh", "--alias", "OW-WAR-0003"].map(String::from)[..])
+            Some(
+                &[
+                    "war",
+                    "admin",
+                    "pins",
+                    "--refresh",
+                    "--alias",
+                    "OW-WAR-0003"
+                ]
+                .map(String::from)[..]
+            )
         );
         assert!(r.sign_target.is_none());
     }

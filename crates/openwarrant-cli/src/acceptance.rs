@@ -39,7 +39,7 @@
 //! (contract, verifications, journal, receipts: `resolution.stale`, the
 //! resolution's manifest digest and `war check` guard those), the corpus
 //! projections under `<warrants>/generated/` and `docs/generated/` (rewritten
-//! by `war compile`, drift-checked by `war check --generated`), and its signed
+//! by `war admin compile`, drift-checked by `war check --generated`), and its signed
 //! responses under
 //! `docs/authority/responses/<alias>.*`. Without that, committing the
 //! resolution would itself read as a move.
@@ -47,7 +47,7 @@
 //! # What clears a move (Q-001, answered (b))
 //!
 //! An independent verifier re-establishes every declared obligation on the new
-//! candidate, through the existing `war verify --response` seam. No new record
+//! candidate, through the existing `war evidence verify --response` seam. No new record
 //! kind: the tool reads the verification files at the candidate and counts one
 //! only when (1) it is admissible and permits `satisfied` (`established`, or
 //! accepted with residual risk, as §38.6 reads it for the resolution), and (2) the Warrant's
@@ -59,13 +59,13 @@
 //! acceptance carries forward only as far as a verifier followed it.
 //!
 //! A pinned deliverable whose bytes moved is Q-001 (a): the human re-accepts,
-//! which today is a signed correction (`war correct`). Re-verification never
+//! which today is a signed correction (`war sign correct`). Re-verification never
 //! clears it; the correction chain's head does.
 //!
-//! # Why this is in `war pins` and not `war check`
+//! # Why this is in `war admin pins` and not `war check`
 //!
 //! `war check` reads no git and stays offline and deterministic. This answer
-//! is about history, so it lives beside `war pins --history`, which already
+//! is about history, so it lives beside `war admin pins --history`, which already
 //! asks git whether a pin verifies at its locator.
 
 use std::collections::BTreeMap;
@@ -460,7 +460,7 @@ fn own_record(path: &str, rel_dir: &str, warrants: &str, alias: &str) -> bool {
         || path.starts_with(&format!("docs/authority/responses/{alias}."))
 }
 
-/// `war pins --candidate <rev> [--base <rev>]`.
+/// `war admin pins --candidate <rev> [--base <rev>]`.
 pub fn assess(
     repo: &Repository,
     candidate: &str,
@@ -702,14 +702,14 @@ pub fn assess(
             let next = if a.pinned.is_empty() {
                 format!(
                     "Q-001 (b): re-run the cited gates and have an independent verifier \
-                     re-establish every obligation on this candidate (`war verify {alias} \
-                     --performer <you>`, then `war verify {alias} --response <file>`); the \
+                     re-establish every obligation on this candidate (`war evidence verify {alias} \
+                     --performer <you>`, then `war evidence verify {alias} --response <file>`); the \
                      human's acceptance carries forward"
                 )
             } else {
                 format!(
                     "Q-001 (a): a pinned deliverable changed, so a human re-accepts it \
-                     (`war correct {alias} <D-id>` emits what they sign); re-verification \
+                     (`war sign correct {alias} <D-id>` emits what they sign); re-verification \
                      does not clear this"
                 )
             };

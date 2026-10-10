@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war document review [alias]` — the document work kind's gate (slice C4a).
+//! `war evidence document review [alias]` — the document work kind's gate (slice C4a).
 //!
 //! A research memo, a decision record or a written analysis is delivered as
 //! Markdown, and "done" for it means four things a gate can check:
@@ -155,7 +155,7 @@ pub fn review(repo: &Repository, only: Option<&str>) -> Result<Report, RepoError
                     rel.clone(),
                     format!(
                         "{alias}: {} has moved since its digest was recorded; re-record the \
-                         deliverable, or for a resolved Warrant `war correct {alias} {}`",
+                         deliverable, or for a resolved Warrant `war sign correct {alias} {}`",
                         d.id, d.id
                     ),
                 )),
@@ -244,7 +244,7 @@ pub fn review(repo: &Repository, only: Option<&str>) -> Result<Report, RepoError
                     repo.relative(&dir.join("verifications")),
                     format!(
                         "{alias}: {id} has no `established` verification from someone other than \
-                         the performer ({performer}); `war verify {alias} --bundle` and hand it off"
+                         the performer ({performer}); `war evidence verify {alias} --bundle` and hand it off"
                     ),
                 ));
             }

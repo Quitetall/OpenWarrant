@@ -78,7 +78,8 @@ fi
 # where both showed carol's claim a moment before (so the check is not
 # vacuous), and a second agent can then take nothing stale.
 tk_claims_on() { tk_field "$(tkj tickets)" '",".join(c["actor"]+"@"+c["ticket"]+"/"+str(c.get("item")) for r in v["result"]["tickets"] for c in r["claims"] if r["id"]=="'"$1"'")'; }
-TK_LOCK="$PLANT_ROOT/.openwarrant/state/claims/$TK2--$TK2_J.lock"
+# M11: claims live under git's common directory, shared by every worktree.
+TK_LOCK="$PLANT_ROOT/.git/openwarrant/claims/$TK2--$TK2_J.lock"
 tkw claim "$TK2/$TK2_J" --as carol >/dev/null 2>&1; TK_S=$?
 TK_HELD=0; [[ -f "$TK_LOCK" ]] && TK_HELD=1
 TK_CLB=$(tk_claims_on "$TK2")

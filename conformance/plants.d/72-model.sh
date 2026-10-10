@@ -5,7 +5,9 @@
 # question, the roadmap the scaffold writes, and a ticket with a blocker that
 # was promoted into a Warrant.
 #
-# Accepted: every record kind and every relation kind is named; two runs over
+# Accepted: every record kind (with M16, the `instruction` sections of the
+# AGENTS.md init writes; with M18, the scaffold SAS as `spec` and its
+# `section`s) and every relation kind is named; two runs over
 # the same tree are byte-identical with the same basis_digest; the output
 # validates against schemas/oh.war/model/v1.json.
 # Refused: a parent naming no Warrant of the corpus is a diagnostic and the
@@ -71,7 +73,14 @@ print("kinds", " ".join(sorted({r["kind"] for r in m["relations"]})))
 print("diagnostics", len(m["diagnostics"]))
 PY
 )
-MD_WANT_TYPES="deliverable item obligation phase question requirement stage ticket warrant"
+# `instruction`: the `##` sections of the AGENTS.md `war init` wrote (M16).
+# `spec` and `section` (M18): the SAS document the scaffold writes is the
+# built-in `spec` type's store; it is one `spec` record and its numbered
+# sections (§98, §106) are `section` records. No `roadmap` record: the
+# scaffold's phases are the SAS's §98, with no roadmap store. No `adr`: no
+# ADR atom. No `document`: both indexed documents (AGENTS.md, the SAS) are
+# typed, so none is an untyped `doc:` record.
+MD_WANT_TYPES="deliverable instruction item obligation phase question requirement section spec stage ticket warrant"
 MD_WANT_KINDS="depends_on implements parent part_of promoted_to roadmap supersedes"
 if [[ $MD_STATUS -eq 0 ]] && grep -qx "types $MD_WANT_TYPES" <<<"$MD_KINDS"; then
     md_ok "model names every record kind" "$MD_WANT_TYPES"

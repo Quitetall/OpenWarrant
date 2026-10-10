@@ -43,7 +43,7 @@ pub enum Step {
     Signer,
     /// The `-c` question: unverifiable, asked, recorded.
     KeyLoaded,
-    /// `war sas propose 0.1.0`.
+    /// `war sign sas propose 0.1.0`.
     Sas,
     /// A human signs the SAS.
     SignSas,
@@ -91,7 +91,7 @@ pub struct Facts {
     pub head: Option<String>,
     /// `[adoption] baseline`, when `openwarrant.toml` records one.
     pub baseline: Option<String>,
-    /// An existing ADR directory `war migrate` could import, if one is found.
+    /// An existing ADR directory `war admin migrate` could import, if one is found.
     pub adr_dir: Option<String>,
 }
 
@@ -243,12 +243,12 @@ pub enum Effect {
     /// Record `[adoption] baseline` in `openwarrant.toml` — once. The front
     /// end resolves the commit and refuses one outside the history.
     Adopt { baseline: String },
-    /// `war sas propose <version>`.
+    /// `war sign sas propose <version>`.
     ProposeSas { version: String },
     /// Print the command and, on consent, run `war sign <target> --ssh-sign`
     /// in a child that inherits the terminal.
     Sign { target: String },
-    /// `war check`, `war compile`, then `war authorize <alias>` printed.
+    /// `war check`, `war admin compile`, then `war sign authorize <alias>` printed.
     Prepare { alias: String },
     /// Something to tell the human.
     Say(String),
@@ -302,13 +302,13 @@ impl Machine {
                     "This repository has {} commit(s). Where does governed work begin? The \
                      adoption baseline is HEAD, {}, unless you name another commit in its \
                      history. Nothing up to it is claimed, owned or verified by any Warrant; \
-                     `war telemetry` counts untracked work after it.",
+                     `war admin telemetry` counts untracked work after it.",
                     self.facts.commits,
                     head.get(..12).unwrap_or(head)
                 );
                 if let Some(dir) = &self.facts.adr_dir {
                     q.push_str(&format!(
-                        " Existing ADRs in {dir}/ can be imported afterwards with `war migrate`; \
+                        " Existing ADRs in {dir}/ can be imported afterwards with `war admin migrate`; \
                          nothing is imported now."
                     ));
                 }
@@ -323,7 +323,7 @@ impl Machine {
                                 is recorded as your statement."
                 .to_owned(),
             Step::Sas => format!(
-                "Record the SAS as it stands as revision 0.1.0 (`war sas propose 0.1.0`)? \
+                "Record the SAS as it stands as revision 0.1.0 (`war sign sas propose 0.1.0`)? \
                  Namespace {}.",
                 self.facts.namespace.as_deref().unwrap_or("?")
             ),
@@ -343,7 +343,7 @@ impl Machine {
                 self.adopt_alias().unwrap_or("?")
             ),
             Step::Done => "Setup is complete. Work starts as a ticket: `war create \"...\"`, \
-                 then `war ready`, `war claim <id>`, `war done <id>` — no signature needed. \
+                 then `war next`, `war claim <id>`, `war done <id>` — no signature needed. \
                  `war next` lists ready items first, then any act awaiting a human."
                 .to_owned(),
         }

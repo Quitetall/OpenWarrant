@@ -360,7 +360,7 @@ UP_PATH="$UP_T/bin:$UP_SYS"
 UP_REMEDY_MANAGED=$(up_remedy)
 up_fresh_home; UP_PATH="$UP_T/u1:$UP_SYS"
 UP_REMEDY_UNMANAGED=$(up_remedy)
-if [[ "$UP_REMEDY_MANAGED" == "war update --to 99.0.0" && "$UP_REMEDY_UNMANAGED" == "$UP_INSTALL_LINE" ]]; then
+if [[ "$UP_REMEDY_MANAGED" == "war admin update --to 99.0.0" && "$UP_REMEDY_UNMANAGED" == "$UP_INSTALL_LINE" ]]; then
     up_ok "remedy(99.0.0): update when managed, install.sh when not" "'$UP_REMEDY_MANAGED' / install.sh line"
 else
     up_fail "remedy(99.0.0): update when managed, install.sh when not" "managed '$UP_REMEDY_MANAGED', unmanaged '$UP_REMEDY_UNMANAGED'"
@@ -377,7 +377,7 @@ up_log_clear
 up_pty "$UP_T/on.out" "$UP_T/on.err" -- --root "$PLANT_ROOT" status; rc_on=$?
 up_pty "$UP_T/off.out" "$UP_T/off.err" OPENWARRANT_NO_UPDATE_CHECK=1 -- --root "$PLANT_ROOT" status; rc_off=$?
 sleep 1
-if [[ "$(up_notices "$UP_T/on.err")" == 1 ]] && grep -q "^war: v$UP_NEWER is published (this is $UP_V)\. Update: war update --to $UP_NEWER$" "$UP_T/on.err" \
+if [[ "$(up_notices "$UP_T/on.err")" == 1 ]] && grep -q "^war: v$UP_NEWER is published (this is $UP_V)\. Update: war admin update --to $UP_NEWER$" "$UP_T/on.err" \
     && cmp -s "$UP_T/on.out" "$UP_T/off.out" && [[ -s "$UP_T/on.out" && "$rc_on" == "$rc_off" ]] && [[ "$(up_gets /)" == 0 ]]; then
     up_ok "a newer release: one stderr line" "names v$UP_NEWER and the remedy; stdout identical to the disabled run"
 else

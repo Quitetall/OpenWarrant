@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war sas repin` — the sixty-five warnings become one act (OW-WAR-0112 M5).
+//! `war sign sas repin` — the sixty-five warnings become one act (OW-WAR-0112 M5).
 //!
 //! A Warrant authorized against SAS 1.0.0 keeps that Basis after 1.1.0 is
 //! accepted (OW-ADR-0016): the contract is what was signed. `war check`
@@ -54,7 +54,7 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<Report, RepoError> {
         report.push(Diagnostic::error(
             "sas.unrecorded",
             repo.relative(&repo.root.join(&repo.config.paths.sas)),
-            "no SAS revision is recorded; `war sas propose <version>` first",
+            "no SAS revision is recorded; `war sign sas propose <version>` first",
         ));
         return Ok(report);
     };
@@ -65,7 +65,7 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<Report, RepoError> {
             report.push(Diagnostic::error(
                 "sas.repin-target",
                 "-".to_owned(),
-                "name a Warrant (`war sas repin <alias>`) or pass `--all`",
+                "name a Warrant (`war sign sas repin <alias>`) or pass `--all`",
             ));
             return Ok(report);
         }
@@ -239,7 +239,7 @@ fn render(p: &Plan, reason: Option<&str>, today: &str) -> String {
     let reason = reason.map_or_else(
         || {
             format!(
-                "Re-pin to SAS {} (from {}), written by `war sas repin` on {today}. The Basis \
+                "Re-pin to SAS {} (from {}), written by `war sign sas repin` on {today}. The Basis \
                  names the revision in force; the contract's own text is unchanged. The \
                  authorizer adopts this record by signing revision N+1.",
                 p.to, p.from

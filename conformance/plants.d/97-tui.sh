@@ -54,7 +54,7 @@ fi
 
 # `war --json` alone, and `war tui --json`: a rendering has no envelope, so
 # each is refused by name (`tui.json`) IN an envelope, exit 2, naming
-# `war console --json` and `war status --json`. The envelope's own exit_code
+# `war view console --json` and `war status --json`. The envelope's own exit_code
 # must be the process's.
 for TUI_ARGS in "--json" "tui --json"; do
     # shellcheck disable=SC2086 # the two words are two arguments
@@ -65,9 +65,9 @@ d = json.load(sys.stdin)
 assert d["schema"] == "oh.war/report/v1" and d["exit_code"] == 2, d
 [x] = [x for x in d["diagnostics"] if x["severity"] == "error"]
 assert x["rule"] == "tui.json", x
-assert "`war console --json`" in x["message"] and "`war status --json`" in x["message"], x
+assert "`war view console --json`" in x["message"] and "`war status --json`" in x["message"], x
 ' <<<"$TUI_JSON" 2>/dev/null; then
-        printf 'ok    %-34s exit 2, tui.json, names war console/status --json\n' "war $TUI_ARGS refuses by name"
+        printf 'ok    %-34s exit 2, tui.json, names war view console/status --json\n' "war $TUI_ARGS refuses by name"
         PASSED=$((PASSED + 1))
     else
         printf 'FAIL  %-34s exit %s: %s\n' "war $TUI_ARGS refuses by name" "$TUI_STATUS" "$(head -c 200 <<<"$TUI_JSON" | tr '\n' ' ')"

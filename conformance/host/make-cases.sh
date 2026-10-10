@@ -20,7 +20,11 @@ R="$PWD"
 WAR="$(cd "$(dirname "${1:-./target/debug/war}")" && pwd)/$(basename "${1:-./target/debug/war}")"
 CASES="$R/conformance/host/cases"
 D=$(mktemp -d)
-trap 'rm -rf "$D"' EXIT
+# The requests this writes are kept apart from the program: an export lists
+# the program's root (its documents are indexed, M18), so a file left there
+# would be a member of every later basis.
+S=$(mktemp -d)
+trap 'rm -rf "$D" "$S"' EXIT
 g() { git -C "$D" -c user.email=host@invalid -c user.name=host "$@"; }
 w() { "$WAR" --root "$D" "$@"; }
 
@@ -66,21 +70,21 @@ mkdir -p "$D/profiles" "$D/docs/records/password-reset"
 cp "$R/profiles/delivery.toml" "$R/profiles/decision.toml" "$R/profiles/ticket.toml" "$D/profiles/"
 cp "$R/docs/records/password-reset/10-records.md" "$D/docs/records/password-reset/"
 g add -A && g commit -qm records
-w host --export > "$D/req"
-case_out records-password-reset "$D/req"
+w host --export > "$S/req"
+case_out records-password-reset "$S/req"
 
 # 2. A ticket, whose first item implements REQ-pr1.
 w create "Add password reset" -i "Expire tokens after issue (implements REQ-pr1)" -i "Write the reset page" >/dev/null
 g add -A && g commit -qm ticket
-w host --export > "$D/req"
-case_out ticket "$D/req"
+w host --export > "$S/req"
+case_out ticket "$S/req"
 
 # 3. A second Warrant (unsigned, so a draft), every Warrant's views requested.
 w new "Send the reset email" >/dev/null
 w compile >/dev/null
 g add -A && g commit -qm warrant
-w host --export --projection 'warrant:*' > "$D/req"
-case_out warrant "$D/req"
+w host --export --projection 'warrant:*' > "$S/req"
+case_out warrant "$S/req"
 
 # 3b. The four document types (OW-WAR-0148 M6) and their declared
 #     projections over the password-reset records: a hosted rendering is the
@@ -89,12 +93,12 @@ cp "$R/profiles/prd.toml" "$R/profiles/architecture.toml" "$R/profiles/test-plan
 cp "$R/docs/records/password-reset/20-product.md" "$R/docs/records/password-reset/30-architecture.md" "$R/docs/records/password-reset/documents.toml" "$D/docs/records/password-reset/"
 w compile >/dev/null
 g add -A && g commit -qm documents
-w host --export --projection 'document:*' > "$D/req"
-case_out documents "$D/req"
+w host --export --projection 'document:*' > "$S/req"
+case_out documents "$S/req"
 
 # 4. Compiled, not established: the request holds a Node the basis does not
 #    compile to (REQ-pr1 at another revision).
-python3 - "$D/req" > "$D/req2" <<'PY'
+python3 - "$S/req" > "$S/req2" <<'PY'
 import json, sys
 r = json.load(open(sys.argv[1]))
 n = [x for x in r["nodes"] if x["id"] == "REQ-pr1"][0]
@@ -104,10 +108,10 @@ if not r["options"]:
     del r["options"]
 print(json.dumps(r, ensure_ascii=False, separators=(",", ":")))
 PY
-case_out nodes-differ "$D/req2"
+case_out nodes-differ "$S/req2"
 
 # 5. Compiled, not established: a member the readers need is withheld.
-python3 - "$D/req" > "$D/req2" <<'PY'
+python3 - "$S/req" > "$S/req2" <<'PY'
 import json, sys
 r = json.load(open(sys.argv[1]))
 m = [x for x in r["basis"]["members"] if x["path"] == "docs/records/password-reset/10-records.md"][0]
@@ -115,10 +119,10 @@ m.pop("utf8"); m["withheld"] = True
 r.pop("options", None)
 print(json.dumps(r, ensure_ascii=False, separators=(",", ":")))
 PY
-case_out member-withheld "$D/req2"
+case_out member-withheld "$S/req2"
 
 # 6. Not compiled: a basis that is no repository (no openwarrant.toml).
-python3 - > "$D/req2" <<'PY'
+python3 - > "$S/req2" <<'PY'
 import json, hashlib
 b = "# notes\n"
 d = "sha256:" + hashlib.sha256(b.encode()).hexdigest()
@@ -130,28 +134,31 @@ r = {"protocol": "oh.war/liminal-v1", "version": 1,
      "profiles": [], "nodes": [], "relations": []}
 print(json.dumps(r, separators=(",", ":")))
 PY
-case_out no-repository "$D/req2"
+case_out no-repository "$S/req2"
 
 # Refusals: each by name, before any work. Built from the ticket request.
-w host --export > "$D/base"
+w host --export > "$S/base"
 refusal() { # <name> <python expression over r, mutating it>
-    python3 - "$D/base" "$2" > "$D/req2" <<'PY'
+    python3 - "$S/base" "$2" > "$S/req2" <<'PY'
 import json, sys
 r = json.load(open(sys.argv[1]))
+# The first member that carries bytes: a withheld one (a listed path no
+# reader needs) has none to take away or change.
+b = next(x for x in r["basis"]["members"] if "utf8" in x)
 exec(sys.argv[2])
 print(json.dumps(r, ensure_ascii=False, separators=(",", ":")))
 PY
-    case_out "$1" "$D/req2"
+    case_out "$1" "$S/req2"
 }
-refusal refuse-path-not-bytes 'm = r["basis"]["members"][0]; m.pop("utf8", None); m.pop("hex", None); m["file"] = "/etc/passwd"'
-refusal refuse-member-without-bytes 'm = r["basis"]["members"][0]; m.pop("utf8", None); m.pop("hex", None)'
+refusal refuse-path-not-bytes 'm = b; m.pop("utf8", None); m.pop("hex", None); m["file"] = "/etc/passwd"'
+refusal refuse-member-without-bytes 'm = b; m.pop("utf8", None); m.pop("hex", None)'
 refusal refuse-basis-locator 'r["basis"]["root"] = "/srv/repository"'
 refusal refuse-version 'r["version"] = 2'
 refusal refuse-protocol 'r["protocol"] = "oh.war/liminal-v0"'
 refusal refuse-limit 'r["options"] = {"limits": {"members": 3}}'
-refusal refuse-member-digest 'm = r["basis"]["members"][0]; m["utf8"] = m["utf8"] + " "'
+refusal refuse-member-digest 'm = b; m["utf8"] = m["utf8"] + " "'
 refusal refuse-basis-digest 'r["basis"]["digest"] = "sha256:" + "0" * 64'
-refusal refuse-member-path 'r["basis"]["members"][0]["path"] = "../outside.md"'
+refusal refuse-member-path 'b["path"] = "../outside.md"'
 refusal refuse-unknown-field 'r["repository"] = "/srv/repository"'
-printf '{"protocol":"oh.war/liminal-v1","version":1,' > "$D/req2"
-case_out refuse-malformed "$D/req2"
+printf '{"protocol":"oh.war/liminal-v1","version":1,' > "$S/req2"
+case_out refuse-malformed "$S/req2"

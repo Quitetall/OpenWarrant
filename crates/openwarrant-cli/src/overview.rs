@@ -106,6 +106,6 @@ pub fn render(view: &Overview) -> String {
             ));
         }
     }
-    text.push_str("\nDetails: `war status <alias> --json`. Human acts: `war next --json`. Questions: `war questions --open --json`. Stages: `war frontier --json` (legacy stage readiness only).\n");
+    text.push_str("\nDetails: `war status <alias> --json`. Human acts: `war next --json`. Questions: `war plan questions --open --json`. Stages: `war plan frontier --json` (legacy stage readiness only).\n");
     text
 }

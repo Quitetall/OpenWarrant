@@ -84,6 +84,13 @@ fn entries() -> Vec<Entry> {
         // --json`), every line traced to a record and its revision. Additive:
         // the pack version does not move.
         entry::<openwarrant_compiler::project::Projection>("projection"),
+        // OW-WAR-0148 M17: the compliance score (`war admin score --json`,
+        // `war status --json`'s `compliance`), its in-toto statement, and a
+        // line of the file ledger's JSONL. Additive: the pack version does
+        // not move.
+        entry::<crate::score::Score>("score"),
+        entry::<crate::score::publish::Statement>("score-statement"),
+        entry::<crate::ledger::Line>("ledger-file"),
     ]
 }
 
@@ -196,7 +203,7 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
                 report.push(Diagnostic::error(
                     "schemas.drift",
                     repo.relative(path),
-                    "differs from what the types generate; run `war schemas` (cargo feature `schema`) and commit the result".to_owned(),
+                    "differs from what the types generate; run `war admin schemas` (cargo feature `schema`) and commit the result".to_owned(),
                 ));
             }
             Err(_) => {
@@ -204,7 +211,7 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
                 report.push(Diagnostic::error(
                     "schemas.missing",
                     repo.relative(path),
-                    "not in the tree; run `war schemas` and commit the result".to_owned(),
+                    "not in the tree; run `war admin schemas` and commit the result".to_owned(),
                 ));
             }
         }
