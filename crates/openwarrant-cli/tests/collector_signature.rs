@@ -337,6 +337,40 @@ fn namespace_fixture_entry() {
     };
     let role =
         std::env::var("OW_COLLECTOR_NAMESPACE_FIXTURE").expect("explicit fixture role required");
+    if role == "capable-executor" {
+        let root = std::path::PathBuf::from(std::env::var_os("OW_COLLECTOR_FIXTURE_ROOT").unwrap());
+        assert_eq!(rustix::process::getuid().as_raw(), 1);
+        assert_eq!(rustix::process::geteuid().as_raw(), 1);
+        let caps = fs::read_to_string("/proc/self/status").unwrap();
+        assert!(caps.lines().any(|s| s == "CapEff:\t0000000000000002"));
+        // The actual effective account can mutate an operator-owned readonly
+        // object even though access(2), using the real UID, denies WRITE_OK.
+        let probe = root.join("capability-probe");
+        assert!(rustix::fs::access(&probe, rustix::fs::Access::WRITE_OK).is_err());
+        fs::write(&probe, b"effective account wrote readonly operator bytes").unwrap();
+        let verifier =
+            OpenSshSignatureCheck::new(std::env::temp_dir(), Duration::from_secs(5)).unwrap();
+        let loaded =
+            LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier);
+        println!(
+            "capable executor observation: accepted={}; fault={:?}",
+            loaded.is_ok(),
+            loaded.as_ref().err()
+        );
+        assert!(
+            matches!(
+                loaded,
+                Err(Fault::Rejected(
+                    "authority store is writable by the executor"
+                ))
+            ),
+            "effective capability lets this executor write authority; loading must refuse"
+        );
+        println!(
+            "capable execution UID 1: actual write succeeded; authority loading refused effective write capability"
+        );
+        return;
+    }
     if role == "no-account" {
         assert_eq!(rustix::process::geteuid().as_raw(), 2);
         assert!(
@@ -746,6 +780,45 @@ fn namespace_fixture_entry() {
     let signature_file = root.join("transition.sig");
     fs::write(&proposal_file, proposal.encode().unwrap()).unwrap();
     fs::write(&signature_file, signature).unwrap();
+    let probe = root.join("capability-probe");
+    fs::write(&probe, b"readonly operator bytes").unwrap();
+    fs::set_permissions(&probe, fs::Permissions::from_mode(0o444)).unwrap();
+    let capable = Command::new("/usr/bin/timeout")
+        .args([
+            "10",
+            "/usr/bin/setpriv",
+            "--reuid",
+            "1",
+            "--regid",
+            "1",
+            "--clear-groups",
+            "--inh-caps=-all,+dac_override",
+            "--ambient-caps=-all,+dac_override",
+            "--bounding-set=-all,+dac_override",
+            "--no-new-privs",
+        ])
+        .arg(std::env::current_exe().unwrap())
+        .env_clear()
+        .env("OW_COLLECTOR_NAMESPACE_FIXTURE", "capable-executor")
+        .env("OW_COLLECTOR_FIXTURE_ROOT", &root)
+        .env("TMPDIR", &scratch)
+        .args([
+            "--exact",
+            namespace_entry_name().as_str(),
+            "--ignored",
+            "--nocapture",
+        ])
+        .stdin(Stdio::null())
+        .output()
+        .unwrap();
+    assert!(
+        capable.status.success(),
+        "{}\n{}",
+        String::from_utf8_lossy(&capable.stdout),
+        String::from_utf8_lossy(&capable.stderr)
+    );
+    assert!(String::from_utf8_lossy(&capable.stdout).contains("capable execution UID 1:"));
+    println!("{}", String::from_utf8_lossy(&capable.stdout));
     let mut child = Command::new("/usr/bin/setpriv")
         .args([
             "--reuid",

@@ -519,11 +519,28 @@ const fn reader_safe(owner: u32, mode: u32, agent: u32) -> bool {
 }
 
 #[cfg(unix)]
+pub(crate) fn effective_write_access(path: &Path) -> Result<bool> {
+    match rustix::fs::accessat(
+        rustix::fs::CWD,
+        path,
+        rustix::fs::Access::WRITE_OK,
+        rustix::fs::AtFlags::EACCESS,
+    ) {
+        Ok(()) => Ok(true),
+        Err(rustix::io::Errno::ACCESS | rustix::io::Errno::ROFS) => Ok(false),
+        Err(error) => Err(RepoError::ObservationUnavailable {
+            rule: "authority-store-effective-write-access-unavailable",
+            message: format!("effective authority write access unavailable: {error}"),
+        }),
+    }
+}
+
+#[cfg(unix)]
 fn reader_guard(root: &Path, state: &Path, agent: Option<u32>, test: bool) -> Result<()> {
     use std::os::unix::fs::MetadataExt;
     if test {
         for path in [root, state] {
-            if rustix::fs::access(path, rustix::fs::Access::WRITE_OK).is_ok() {
+            if effective_write_access(path)? {
                 return Err(err(
                     "authority-store-writable-by-reader: this process can write the test store",
                 ));
@@ -545,11 +562,9 @@ fn reader_guard(root: &Path, state: &Path, agent: Option<u32>, test: bool) -> Re
                  other can write, the store or an ancestor",
             ));
         }
-    }
-    if rustix::process::geteuid().as_raw() == agent
-        && rustix::fs::access(root, rustix::fs::Access::WRITE_OK).is_ok()
-    {
-        return Err(err("authority-store-writable-by-agent"));
+        if rustix::process::geteuid().as_raw() == agent && effective_write_access(path)? {
+            return Err(err("authority-store-writable-by-agent"));
+        }
     }
     Ok(())
 }
@@ -571,8 +586,8 @@ pub(super) fn history(root: &Path, emit: &Path, test: bool) -> Result<serde_json
 mod tests {
     use super::reader_safe;
 
-    /// The separate-account boundary cannot be built in a test (no second
-    /// account); the rule it applies to what it sees can.
+    /// Unit coverage for owner/mode rules; the collector namespace fixture
+    /// separately exercises actual account and capability boundaries.
     #[test]
     fn a_store_the_agent_owns_or_a_group_can_write_is_refused() {
         let (operator, agent) = (1001, 1000);
@@ -582,6 +597,21 @@ mod tests {
         assert!(!reader_safe(operator, 0o40770, agent), "group-writable");
         assert!(!reader_safe(operator, 0o40702, agent), "other-writable");
         assert!(!reader_safe(0, 0o41777, agent), "/tmp-like");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn missing_effective_access_observations_are_unknown() {
+        use super::*;
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(format!(".authority-access-unknown-{}", std::process::id()));
+        fs::create_dir(&root).unwrap();
+        assert!(effective_write_access(&root).unwrap());
+        assert!(matches!(
+            effective_write_access(&root.join("missing")),
+            Err(RepoError::ObservationUnavailable { .. })
+        ));
+        fs::remove_dir(root).unwrap();
     }
 
     #[cfg(unix)]

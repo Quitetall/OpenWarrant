@@ -1,0 +1,5 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/ow-authority-execution-readable/crates/openwarrant-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 41.66s

@@ -414,3 +414,9 @@ alone is not invalidity. Real tampered-payload refusals remain distinct. The
 explicit namespace control reproduces a missing account while using a valid
 software fixture signature. Unsupported or unfamiliar verifier failures also
 remain UNKNOWN; this does not establish key custody or human presence.
+
+### Effective permission checks for authority readers
+
+An execution account can have write privileges that ownership and mode bits do not show. A real-UID `access` check also misses retained effective Linux capabilities. Authority readers now use `accessat` with `EACCESS` for the actual effective process, over the store, state file and ancestors. Unexpected permission-observation errors remain unavailable; they do not mean read-only.
+
+The collector namespace control reproduces a worker with UID 1 and `CAP_DAC_OVERRIDE`: it writes an operator-owned read-only probe while real-UID `access` denies write permission. Before repair, the active enrollment loads; after repair, the loader refuses the writable authority boundary. The probe and accounts exist only in a disposable user/mount namespace. This does not establish host deployment, caller identity, hardware presence or independent qualification.
