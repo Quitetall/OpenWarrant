@@ -1,0 +1,34 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "warrant": "OW-WAR-0149",
+  "performed_by": "agent://codex",
+  "source_files": {
+    "crates/openwarrant-cli/src/runtime_capture/activated_verifier.rs": "sha256:67968e2086370ba005a21d36c8005819d0f42081d1c990cd311148c50ed6eae5",
+    "crates/openwarrant-cli/src/runtime_capture/collector_loading.rs": "sha256:b9b902ecca73ee04aff57733deaf65b3f993034d47f33cd3148e005c343cd925",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "sha256:431ab3d90a77a0a364af829360c89dfb0ef451e3429871939564198fb20f7ee5"
+  },
+  "scope": "Protected runtime host identities and native verifier acquisition through existing two-UID namespace fixture; no production operator enrollment or independent qualification.",
+  "normal_signature_tests": {
+    "passed": 4,
+    "ignored": 2
+  },
+  "explicit_protected_namespace": {
+    "passed": 1,
+    "observations": [
+      "Actual unprivileged UID 1 loaded operator-owned identity binding.",
+      "Actual write to runtime-host.json by execution UID 1 refused.",
+      "Wrong repository path and mismatched host execution UID refused.",
+      "Approved sealed image executed.",
+      "Operator changed host UID mapping without changing collector activation; next launch refused."
+    ]
+  },
+  "assurance_granted": false,
+  "authority_activated": false,
+  "native_cli_wiring_completed": false,
+  "final_normal_collector_tests": {
+    "passed": 7,
+    "ignored": 2
+  },
+  "clippy_all_features_all_targets": "PASS",
+  "fmt_check": "PASS"
+}

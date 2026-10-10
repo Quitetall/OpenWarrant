@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Candidate Katana/BLUT adapters now bind recorded Dispatch Warrant scope and provider identity to an operator-activated enrollment, acquire its exact SHA-256 executable as a sealed image, and check fresh activation/authority before and after execution. Local separate-UID controls exercise actual sealed execution, mismatched scope/provider, writable image, inactive enrollment and revocation refusals. Candidate 9d367c64 passed its full hosted gate; its outdated merge base prevented merge. Refreshed successor PR188 passed its full hosted gate and merged through protected main. The later source-currency and privileged-reader candidates require their own full gate. Actual workflow wiring, authenticated caller identity, dynamic dependencies, atomic launch/revocation fencing, protected deployment, independent verification and participant qualification remain open. This candidate also rechecks source and attempt currency before capture publication; a callback-driven source change was reproduced, then refused without changing prior captures. The full local integration suite passed; this is not atomic fencing or qualification. This candidate refuses privileged non-owner Linux reader profiles that metadata/EACCESS checks cannot establish as protected. CAP_FOWNER and latent permitted-capability mutation controls passed; actual deployment remains unqualified. Explicit native-input retention now reconnects BLUT draft plan, binding, registry, producer and complete job bytes. A real CPU fixture recovered offline after source removal, re-exported byte-identically and passed its known native verifier; changed signatures and job bytes were rejected. This is fixture preservation evidence only; KF recovery and protected qualification remain open.",
+  "summary": "Runtime receipt and activated native verifier SDK controls are implemented, unverified. Operator-owned host configuration now binds actual execution UID and repository path to collector identity and refuses changed mappings around native launch. Native preservation/KF observations are retained under OW111; actual CLI/workflow wiring, native input custody and independent qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -32,12 +32,13 @@
     "docs/warrants/OW-WAR-0149/implementation/capture-currency-20261010/README.md",
     "docs/warrants/OW-WAR-0096/implementation/reader-privileges-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/dispatch-retention-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/native-inputs-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/native-inputs-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/runtime-host-identity-20261010/README.md"
   ],
   "next_steps": [
-    "Finish protected enrollment drafting/signing and native collector workflow wiring; selected configuration does not authenticate the acting collector or fence a native launch.",
-    "Wire trusted collector policy and native verifier into the actual workflow request/response path; preserve UNKNOWN for absent custody, spend or confinement observations.",
-    "Complete actual provider integrations, independent verification and participant qualification without inventing acceptance.",
-    "Public Dispatch now retains its exact packet before the compile event; a fresh native CPU capture needs no file surgery. Finish native input preservation/KF reconnection and protected operator qualification."
-  ]
+    "Wire protected host identity resolution, independently protected native input/policy configuration and the native adapter into actual CLI/workflow assessment; never derive keys, trusted log heads or permissions from the receipt.",
+    "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
+    "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
+  ],
+  "revision": "6784d127aee9c8326d78c2b4c9d08f48f4a6966a"
 }
