@@ -49,6 +49,7 @@ No CORS access is granted. JSON writes require one Content-Length and exactly
 | GET `/api/warrants/{id}/revisions/{n}` | Exact retained revision |
 | GET `/api/board` | Read-only program, objectives, Warrants, stage frontier, open questions and numbered signing commands |
 | GET `/api/project` | Live legacy/work-report inventory and proposed reconciliation routes |
+| POST `/api/runtime-assessment` | Read-only reassessment of explicitly selected retained corpus captures; never qualification |
 
 The board uses `war board --json`; it never executes the displayed signing
 commands. Failed reads clear the board instead of keeping an apparently current
@@ -61,6 +62,29 @@ Project status uses `war progress --snapshot --json`, sharing the existing
 viewer's report and path validation. Malformed reports remain unknown.
 The full project read is not an atomic Git snapshot. It reports its input digest
 and source report hashes; unavailable reports remain visibly unknown.
+
+Runtime assessment accepts only `warrant` (a corpus alias) and `selections`, an
+array of objects containing `stage_id` and `capture_digest`. For example:
+
+```json
+{"warrant":"OW-WAR-0047","selections":[]}
+```
+
+An empty selection reports missing evidence; it does not select captures for you.
+The service passes a bounded selection request to `war runtime assess` through
+stdin. The CLI also accepts `--selection -` and resolution dry runs accept
+`--runtime-selection -`; selection files remain supported. Requests allow at
+most 256 selections and 16 KiB of serialized input. Returned subprocess output
+is limited to 1 MiB per stream, with a 10-second deadline.
+
+Without native policy, native eligibility remains unknown. An operator can set
+`--native-store /operator/store` when starting the service. Clients cannot choose
+or change that store. The CLI checks its protections and uses fresh native
+verification; saved verdicts do not grant authority. The response preserves the
+original SDK report and distinguishes `matches`, `unknown` and `refused`, always
+with `qualified: false`. Availability failures return 503. This route assesses
+existing corpus captures; it does not attach receipts to workbench draft attempts,
+activate policy, sign, merge or resolve work. Those workflow connections remain.
 
 ## Bounds and trust
 

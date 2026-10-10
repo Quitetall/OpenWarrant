@@ -56,6 +56,7 @@ pub enum Command {
     /// Reassess explicit captures. Opt into operator-protected native Katana or BLUT configuration; otherwise native eligibility stays unknown.
     Assess {
         alias: String,
+        /// Bounded repository-relative selection file, or - for stdin.
         #[arg(long)]
         selection: Utf8PathBuf,
         /// Protected authority store with runtime-host.json and runtime-native.json. Never read native policy from the receipt or workspace.
@@ -142,7 +143,20 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Value, Fault> {
 /// Read one bounded repository-relative selection request. Unknown schema
 /// versions cannot be silently interpreted as the current request.
 pub fn read_selection(repo: &Repository, path: &Utf8Path) -> Result<SelectionRequest, Fault> {
-    let value = decode(&read(repo, path, REQUEST_LIMIT)?)?;
+    parse_selection(&read(repo, path, REQUEST_LIMIT)?)
+}
+
+/// Parse a bounded portable selection. Does not open a repository, invoke a
+/// verifier, accept saved observations or grant authority.
+pub fn parse_selection(bytes: &[u8]) -> Result<SelectionRequest, Fault> {
+    if bytes.len() > REQUEST_LIMIT {
+        return Err(fault(
+            "runtime.selection-limit",
+            "selection exceeds 16 KiB",
+            false,
+        ));
+    }
+    let value = decode(bytes)?;
     if value["schema"] != selection::REQUEST_SCHEMA {
         return Err(fault(
             "runtime.selection-unsupported-schema",
@@ -152,6 +166,24 @@ pub fn read_selection(repo: &Repository, path: &Utf8Path) -> Result<SelectionReq
     }
     serde_json::from_value(value).map_err(|e| fault("runtime.selection-request", e, false))
 }
+/// CLI input transport only. The SDK's file reader retains its path semantics.
+pub(crate) fn read_selection_input(
+    repo: &Repository,
+    path: &Utf8Path,
+) -> Result<SelectionRequest, Fault> {
+    if path.as_str() != "-" {
+        return read_selection(repo, path);
+    }
+    use std::io::Read;
+    let mut bytes = Vec::new();
+    std::io::stdin()
+        .lock()
+        .take(REQUEST_LIMIT as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|e| fault("runtime.selection-input", e, true))?;
+    parse_selection(&bytes)
+}
+
 fn blob(reference: &str, bytes: &[u8]) -> Value {
     json!({"reference":reference,"digest":format!("sha256:{}",sha256_hex(bytes)),"base64":base64_encode(bytes)})
 }
@@ -443,7 +475,7 @@ pub fn run(repo: &Repository, command: Command) -> (Report, Value) {
             selection,
             native_store,
         } => (|| {
-            let selected = read_selection(repo, &selection)?;
+            let selected = read_selection_input(repo, &selection)?;
             let native = native_store
                 .as_ref()
                 .map(|store| {

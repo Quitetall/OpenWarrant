@@ -1169,7 +1169,7 @@ enum SignCommand {
         /// Report the thirteen §56.1 requirements and stop.
         #[arg(long)]
         dry_run: bool,
-        /// Bounded repository-relative retained capture selections. Read-only;
+        /// Bounded retained capture selection file, or - for stdin. Read-only;
         /// saved native verdicts are never reused.
         #[arg(long, requires = "dry_run")]
         runtime_selection: Option<camino::Utf8PathBuf>,
@@ -4369,7 +4369,7 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
             let repository = ctx.open_repo()?;
             if dry_run {
                 let report = match runtime_selection {
-                    Some(path) => match runtime_capture::read_selection(&repository, &path) {
+                    Some(path) => match runtime_capture::read_selection_input(&repository, &path) {
                         Ok(selected) => resolve::run_selected_with_native_store(
                             &repository,
                             &alias,

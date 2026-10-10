@@ -913,6 +913,26 @@ fn namespace_fixture_entry() {
                 .output()
                 .unwrap()
         };
+        let run_input = |args: &[&str], input: &[u8]| {
+            use std::io::Write;
+            let mut child = Command::new("/usr/bin/timeout")
+                .arg("10")
+                .arg("/war")
+                .args(args)
+                .arg("--json")
+                .current_dir(&scratch)
+                .env_clear()
+                .env("PATH", "/usr/bin:/bin")
+                .env("OPENWARRANT_NO_PROJECTS", "1")
+                .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn()
+                .unwrap();
+            child.stdin.take().unwrap().write_all(input).unwrap();
+            child.wait_with_output().unwrap()
+        };
         let dispatch_path = scratch.join("dispatch.pending.json");
         let out = run(&[
             "dispatch",
@@ -1012,6 +1032,21 @@ fn namespace_fixture_entry() {
             "{assessed}"
         );
         assert_eq!(assessed["result"]["assurance_granted"], false);
+        let stdin_assessed = run_input(
+            &[
+                "runtime",
+                "assess",
+                "IX-WAR-0003",
+                "--selection",
+                "-",
+                "--native-store",
+                root.join("store").to_str().unwrap(),
+            ],
+            &fs::read(scratch.join("selected.json")).unwrap(),
+        );
+        let stdin_assessed: serde_json::Value =
+            serde_json::from_slice(&stdin_assessed.stdout).unwrap();
+        assert_eq!(stdin_assessed["result"], assessed["result"]);
         // Native runtime eligibility can answer the resolution dry run, but
         // cannot satisfy other obligations or record a human resolution.
         let resolution = run(&[
@@ -1030,6 +1065,21 @@ fn namespace_fixture_entry() {
                     String::from_utf8_lossy(&resolution.stderr)
                 )
             });
+        let stdin_resolution = run_input(
+            &[
+                "resolve",
+                "IX-WAR-0003",
+                "--dry-run",
+                "--runtime-selection",
+                "-",
+                "--native-store",
+                root.join("store").to_str().unwrap(),
+            ],
+            &fs::read(scratch.join("selected.json")).unwrap(),
+        );
+        let stdin_resolution: serde_json::Value =
+            serde_json::from_slice(&stdin_resolution.stdout).unwrap();
+        assert_eq!(stdin_resolution, resolution);
         assert!(
             resolution["diagnostics"]
                 .as_array()
