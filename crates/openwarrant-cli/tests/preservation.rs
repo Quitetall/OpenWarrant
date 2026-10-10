@@ -480,13 +480,7 @@ fn schema_pack_bytes_and_producer_identity_are_retained_and_cross_checked() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let pack_bytes = std::fs::read(root.join("schemas/pack.json")).unwrap();
     let pack: serde_json::Value = serde_json::from_slice(&pack_bytes).unwrap();
-    std::fs::create_dir(f.0.join("schemas")).unwrap();
-    std::fs::write(f.0.join("schemas/pack.json"), &pack_bytes).unwrap();
-    for name in pack["files"].as_object().unwrap().keys() {
-        let path = format!("schemas/oh.war/{name}/v1.json");
-        std::fs::create_dir_all(f.0.join(&path).parent().unwrap()).unwrap();
-        std::fs::copy(root.join(&path), f.0.join(&path)).unwrap();
-    }
+    // Public setup must supply its exact schemas without manual file surgery.
     success(f.run(&["archive", "export", "ARCH-WAR-0001", "snapshot.json"]));
     let bytes = std::fs::read(f.0.join("snapshot.json")).unwrap();
     let mut archive = Archive::decode(&bytes, Limits::default()).unwrap();
@@ -1877,4 +1871,81 @@ fn service_failed_and_timed_out_attempts_keep_distinct_truthful_evidence() {
             matches!(archive.coverage.get("runtime receipt refs"), Some(Coverage::Unavailable { reason }) if reason.contains("missing attempt run"))
         );
     }
+}
+
+#[test]
+fn init_refuses_conflicting_schema_sources_before_writing_configuration() {
+    use std::os::unix::fs::symlink;
+    for kind in [
+        "pack",
+        "member",
+        "directory-file",
+        "directory-link",
+        "member-link",
+    ] {
+        let f = Fixture::new();
+        let (path, expected) = match kind {
+            "pack" => (f.0.join("schemas/pack.json"), b"owner pack".as_slice()),
+            "member" => (
+                f.0.join("schemas/oh.war/war/v1.json"),
+                b"owner member".as_slice(),
+            ),
+            "directory-file" => (f.0.join("schemas"), b"owner file".as_slice()),
+            "directory-link" | "member-link" => {
+                (f.0.join("owner-source"), b"owner source".as_slice())
+            }
+            _ => unreachable!(),
+        };
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, expected).unwrap();
+        if kind == "directory-link" {
+            symlink(&path, f.0.join("schemas")).unwrap();
+        } else if kind == "member-link" {
+            std::fs::create_dir_all(f.0.join("schemas/oh.war/war")).unwrap();
+            symlink(&path, f.0.join("schemas/oh.war/war/v1.json")).unwrap();
+        }
+        refusal(
+            f.run(&["init", "--namespace", "ARCH"]),
+            "schema pack setup refused",
+        );
+        assert_eq!(std::fs::read(&path).unwrap(), expected, "{kind}");
+        assert!(!f.0.join("openwarrant.toml").exists(), "{kind}");
+        assert!(!f.0.join(".git").exists(), "{kind}");
+        assert!(!f.0.join("schemas/oh.war/atom/v1.json").exists(), "{kind}");
+    }
+}
+
+#[test]
+fn init_preserves_matching_readonly_schema_sources_and_fills_missing_members() {
+    use std::os::unix::fs::PermissionsExt;
+    let f = Fixture::new();
+    let path = f.0.join("schemas/pack.json");
+    let bytes =
+        std::fs::read(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../schemas/pack.json"))
+            .unwrap();
+    std::fs::create_dir(f.0.join("schemas")).unwrap();
+    std::fs::write(&path, &bytes).unwrap();
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o400)).unwrap();
+    let before = std::fs::metadata(&path).unwrap();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Existing schema sources",
+    ]));
+    let after = std::fs::metadata(&path).unwrap();
+    assert_eq!(after.modified().unwrap(), before.modified().unwrap());
+    assert_eq!(after.permissions().mode(), before.permissions().mode());
+    assert_eq!(std::fs::read(&path).unwrap(), bytes);
+    success(f.run(&["archive", "export", "ARCH-WAR-0001", "snapshot.json"]));
+    let archive = Archive::decode(
+        &std::fs::read(f.0.join("snapshot.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(matches!(
+        &archive.coverage["schema and compiler identity"],
+        Coverage::Retained { .. }
+    ));
 }

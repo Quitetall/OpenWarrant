@@ -7,6 +7,7 @@ use std::fs;
 use camino::{Utf8Path, Utf8PathBuf};
 
 pub mod guided;
+mod schema_seed;
 use openwarrant_core::{Namespace, RepositoryConfig};
 
 /// The repository configuration file name (§60).
@@ -415,6 +416,7 @@ pub fn run_with(
     config.adoption = recorded
         .clone()
         .map(|baseline| openwarrant_core::config::AdoptionPolicy { baseline });
+    let schemas = schema_seed::Seed::prepare(&root)?;
     let adrs = adr_dirs(&root);
 
     // AM-001 (the owner's decision of 2026-09-24): a program is a git
@@ -463,6 +465,7 @@ pub fn run_with(
          allow_unmetered = true\n",
         1,
     );
+    schemas.install()?;
     fs::write(&config_path, rendered).map_err(|source| InitError::Io {
         context: format!("could not write {config_path}"),
         source,
