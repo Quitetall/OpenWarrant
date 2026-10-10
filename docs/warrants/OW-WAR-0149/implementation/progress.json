@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected Katana and BLUT SDK/CLI native assessment, sealed job capture and native resolution dry runs are implemented, unverified. Actual two-account fixture roundtrips and refusal controls passed. Authenticated workflow/human-resolution integration, production custody and independent/participant qualification remain.",
+  "summary": "Protected Katana/BLUT SDK and CLI assessment, bounded stdin selections, native resolution dry runs and authenticated read-only corpus HTTP assessment are implemented, unverified. Workbench attempt attachment, native human-resolution integration, production custody and independent/participant qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -40,12 +40,13 @@
     "docs/warrants/OW-WAR-0149/implementation/protected-job-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/blut-sealed-native-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/blut-protected-host-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/native-resolution-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/native-resolution-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/runtime-selection-http-20261010/README.md"
   ],
   "next_steps": [
-    "Connect protected native assessment to authenticated workflows and human-resolution handling. External BLUT PR103/104 require genuine contributor agreement. No CLA, participant acceptance or signature is fabricated.",
+    "Connect workbench draft/attempt execution to retained native captures and complete human-resolution handling. External BLUT PR103/104 need genuine contributor agreement; OW95 has no participants yet. No CLA, participant acceptance or signature is fabricated.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "950d31d8fba4d82c72bbc1c4822f9e092b39055d"
+  "revision": "e1b84dd74fe51a9210bae1680bbcb6fb2a74af77"
 }

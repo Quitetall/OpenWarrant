@@ -77,3 +77,20 @@ obligation_refs = ["OBL-001"]
 [[scope]]
 path_glob = "docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Read-only reference HTTP transport and native stdin fixtures; unsigned reporting scope.
+[[scope]]
+path_glob = "apps/openwarrant-web/server.py"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "apps/openwarrant-web/test_workflow.py"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "apps/openwarrant-web/README.md"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/tests/collector_signature.rs"
+obligation_refs = ["OBL-001", "OBL-003"]

@@ -1,0 +1,105 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "source_commit": "e1b84dd74fe51a9210bae1680bbcb6fb2a74af77",
+  "reported_by": "agent://codex",
+  "qualified": false,
+  "runtime_regressions": {
+    "passed": 28,
+    "failed": 0,
+    "ignored": 2
+  },
+  "actual_native_namespace": [
+    "Katana PASS",
+    "BLUT PASS"
+  ],
+  "collector_regressions": {
+    "passed": 4,
+    "ignored": 2
+  },
+  "http_workflow": {
+    "passed": 12,
+    "failed": 0,
+    "startup_observation_deadline_seconds": 30,
+    "sdk_request_deadline_seconds": 10
+  },
+  "earlier_http_attempts": "FAIL: startup observation expired and board SDK exceeded 10 seconds. Trace observed fsync at 12.158996 seconds. Parent startup also failed. Retained, not relabeled; final full suite passed. No production startup or availability qualification.",
+  "clippy": "PASS Rust 1.97.1 all features/all targets, warnings denied",
+  "records": [
+    {
+      "path": "runtime-selection-stdin-red.log.gz",
+      "uncompressed_sha256": "a9095dace8ecd8cdd7fe6931e70b7a44b57b012c6db2d7e2748afa19d743118f",
+      "bytes": 1751
+    },
+    {
+      "path": "runtime-selection-stdin-green-rerun.log.gz",
+      "uncompressed_sha256": "a1e944bb1d1a78dda89d599af2cdc426682f6592b4cc74ed181cdec49a5e87df",
+      "bytes": 502
+    },
+    {
+      "path": "runtime-selection-stdin-controls.log.gz",
+      "uncompressed_sha256": "f0243b2ab2024061d8163cc1c86232acbbe81995655d05e0be40f8989f4f0679",
+      "bytes": 524
+    },
+    {
+      "path": "runtime-selection-all.log.gz",
+      "uncompressed_sha256": "d4c3f2a06f7b247e4b77fd00f6463ed03c89eccaf9c50b113b1f84bd8834988e",
+      "bytes": 3553
+    },
+    {
+      "path": "runtime-selection-katana.log.gz",
+      "uncompressed_sha256": "e761707742e859c524fe86c42123fc060b6f7f55d21958e04e93504a0420e169",
+      "bytes": 4254
+    },
+    {
+      "path": "runtime-selection-blut.log.gz",
+      "uncompressed_sha256": "36ba632ecb6d12a492d6759d13ee3e0384442dc020dbca1f9c39b541354fcdaa",
+      "bytes": 4582
+    },
+    {
+      "path": "runtime-selection-collector.log.gz",
+      "uncompressed_sha256": "78624d2badde505bdbc39f73f08f1055d4265a76f0c545f42d9966de3cb4f311",
+      "bytes": 761
+    },
+    {
+      "path": "runtime-selection-clippy.log.gz",
+      "uncompressed_sha256": "03179fe1d64e761b7df2f524ca5cdcc8f274f3802edf6d12bbed916c842c1b55",
+      "bytes": 5457
+    },
+    {
+      "path": "runtime-http-workflow-final.log.gz",
+      "uncompressed_sha256": "5407962552a00bc1f47846159af51ab491ab95080b14cadff994af6ee5399959",
+      "bytes": 1531
+    },
+    {
+      "path": "runtime-http-workflow-rerun.log.gz",
+      "uncompressed_sha256": "9c61c7bbe53b404a66ec0064efdc28218774ba2bcc91d0794070de649ff7de27",
+      "bytes": 1491
+    },
+    {
+      "path": "runtime-http-assessment-final.log.gz",
+      "uncompressed_sha256": "315942296bdef6ee4cb66f56af5bddcc6148cd82ca521ed8ea420a95b509ee47",
+      "bytes": 905
+    },
+    {
+      "path": "runtime-http-parent-availability.log.gz",
+      "uncompressed_sha256": "3fa75b51e08248ac6b5081a66083fd4ea39727e9f444b492b69cce3a270e5fd5",
+      "bytes": 860
+    },
+    {
+      "path": "runtime-http-concurrent-startup.trace.gz",
+      "uncompressed_sha256": "4e49595cac640174182351dc039e31a35f257e41fda9f0c0c63daea9e14a351f",
+      "bytes": 740
+    },
+    {
+      "path": "runtime-http-workflow-readiness.log.gz",
+      "uncompressed_sha256": "b539bd0bcd75d15e81baea9c4cc3e5bf5507cae1a7e25246a298215710bcc204",
+      "bytes": 112
+    }
+  ],
+  "remaining": [
+    "Workbench draft/attempt receipt bridge",
+    "Human resolution request and ingestion native integration",
+    "Production custody, confinement, cost accounting and independent qualification",
+    "Three consenting OW95 participants unavailable"
+  ]
+}
