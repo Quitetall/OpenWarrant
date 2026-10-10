@@ -549,6 +549,27 @@ fn verify_candidates(
             // to complain: an authorization response sits beside a resolution's.
             continue;
         }
+        if act == Act::Resolve {
+            // A genuine signature authenticates the response bytes. It does
+            // not turn a digest mentioned in prose into the contract being
+            // resolved, nor a filename into the response's subject or actor.
+            let matches = toml::from_str::<crate::resolution_cmd::ResolutionResponse>(&text)
+                .is_ok_and(|response| {
+                    response.schema == crate::resolution_cmd::RESPONSE_SCHEMA
+                        && response.warrant == subject
+                        && response.resolved_by == actor
+                        && bound_digest.is_none_or(|want| response.contract_digest == want)
+                });
+            if !matches {
+                strongest = Some(Verdict::Invalid {
+                    why: format!(
+                        "{} is not a typed resolution response for the exact schema, subject, actor and contract digest this record binds",
+                        repo.relative(response)
+                    ),
+                });
+                continue;
+            }
+        }
         if let Some(want) = bound_digest {
             let bare = want.trim_start_matches("sha256:");
             if !text.contains(bare) {
@@ -1268,6 +1289,126 @@ pub(crate) fn protection_report(repo: &Repository) -> Vec<crate::diagnostic::Dia
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn signed_resolution_binds_fields_not_words_in_its_meaning() {
+        use ring::{
+            digest,
+            signature::{Ed25519KeyPair, KeyPair},
+        };
+        fn string(out: &mut Vec<u8>, bytes: &[u8]) {
+            out.extend_from_slice(&u32::try_from(bytes.len()).unwrap().to_be_bytes());
+            out.extend_from_slice(bytes);
+        }
+        // Software test key, held in memory. No human signature or acceptance.
+        let key = Ed25519KeyPair::from_seed_unchecked(&[73; 32]).unwrap();
+        let mut public = Vec::new();
+        string(&mut public, b"ssh-ed25519");
+        string(&mut public, key.public_key().as_ref());
+        let root = Utf8PathBuf::from_path_buf(std::env::temp_dir().join(format!(
+            "ow-resolution-fields-{}-{}", std::process::id(),
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
+        )))
+        .unwrap();
+        std::fs::create_dir(&root).unwrap();
+        struct Cleanup(Utf8PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        let _cleanup = Cleanup(root.clone());
+        let repo = Repository::discover(None).unwrap();
+        let allowed = root.join("allowed_signers");
+        let encode = openwarrant_core::attestation::base64_encode;
+        std::fs::write(
+            &allowed,
+            format!("fixture ssh-ed25519 {}\n", encode(&public)),
+        )
+        .unwrap();
+        let trust = Trust {
+            principal: "fixture".into(),
+            allowed,
+            label: "resolution-fields-fixture".into(),
+            via: String::new(),
+        };
+        let path = root.join("FX-WAR-0001.response.toml");
+        let sig = root.join("FX-WAR-0001.response.toml.sig");
+        let digest = format!("sha256:{}", "a".repeat(64));
+        let baseline = crate::resolution_cmd::ResolutionResponse {
+            schema: crate::resolution_cmd::RESPONSE_SCHEMA.into(),
+            warrant: "FX-WAR-0001".into(),
+            contract_digest: digest.clone(),
+            resolved_by: "fixture".into(),
+            acting_role: "resolver".into(),
+            common_outcome: openwarrant_core::resolution::CommonOutcome::Cancelled,
+            profile_outcome: "cancelled".into(),
+            meaning: format!("fixture mentions {digest}"),
+            effective_time: "2026-10-10T00:00:00Z".into(),
+        };
+        for (case, mut response) in [
+            ("exact", baseline.clone()),
+            ("digest", baseline.clone()),
+            ("subject", baseline.clone()),
+            ("actor", baseline.clone()),
+            ("schema", baseline.clone()),
+        ] {
+            match case {
+                "digest" => response.contract_digest = format!("sha256:{}", "b".repeat(64)),
+                "subject" => response.warrant = "FX-WAR-0002".into(),
+                "actor" => response.resolved_by = "somebody-else".into(),
+                "schema" => {
+                    response.schema = "future-resolution".into();
+                    response
+                        .meaning
+                        .push_str(crate::resolution_cmd::RESPONSE_SCHEMA);
+                }
+                _ => {}
+            }
+            let text = toml::to_string(&response).unwrap();
+            std::fs::write(&path, &text).unwrap();
+            let mut message = b"SSHSIG".to_vec();
+            string(&mut message, RESPONSE_NAMESPACE.as_bytes());
+            string(&mut message, b"");
+            string(&mut message, b"sha512");
+            string(
+                &mut message,
+                digest::digest(&digest::SHA512, text.as_bytes()).as_ref(),
+            );
+            let mut signature = Vec::new();
+            string(&mut signature, b"ssh-ed25519");
+            string(&mut signature, key.sign(&message).as_ref());
+            let mut blob = b"SSHSIG".to_vec();
+            blob.extend_from_slice(&1u32.to_be_bytes());
+            string(&mut blob, &public);
+            string(&mut blob, RESPONSE_NAMESPACE.as_bytes());
+            string(&mut blob, b"");
+            string(&mut blob, b"sha512");
+            string(&mut blob, &signature);
+            std::fs::write(
+                &sig,
+                format!(
+                    "-----BEGIN SSH SIGNATURE-----\n{}\n-----END SSH SIGNATURE-----\n",
+                    encode(&blob)
+                ),
+            )
+            .unwrap();
+            assert!(
+                ssh_verify(&repo, &trust, &path, &sig).is_ok(),
+                "{case}: fixture must be genuinely signed"
+            );
+            let verdict = verify_candidates(
+                &repo,
+                &trust,
+                Act::Resolve,
+                "FX-WAR-0001",
+                "fixture",
+                Some(&digest),
+                std::slice::from_ref(&path),
+            );
+            assert_eq!(verdict.is_signed(), case == "exact", "{case}: {verdict:?}");
+        }
+    }
 
     #[test]
     fn a_response_name_follows_its_act() {
