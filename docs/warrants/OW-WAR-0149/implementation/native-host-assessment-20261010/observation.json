@@ -1,0 +1,51 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "warrant": "OW-WAR-0149",
+  "performed_by": "agent://codex",
+  "revision": "f5eedd342d7100264360a5a57caf3acda6e7ec73",
+  "platform": "Linux",
+  "rust": "1.97.1",
+  "source_files": {
+    "crates/openwarrant-cli/src/runtime_capture.rs": "sha256:b0241c9eae443c41b53186a2f77badd115955e83117658fdce8cd4dfc1eed48a",
+    "crates/openwarrant-cli/src/runtime_capture/collector_loading.rs": "sha256:0c0e68cb8107785043cd6ae55f8798ca44e7274ca5bd25e85b8516ab05bf52b2",
+    "crates/openwarrant-cli/src/runtime_capture/katana_process.rs": "sha256:ec4443ac462d2b5d76d07c6d65f645bfa924d51a738a39722c4c1c1e4a986f84",
+    "crates/openwarrant-cli/src/runtime_capture/native_host.rs": "sha256:c352c4ee7a1f55a0044c920586aa8f51a01f26e8b6bddfbb36afbfd41422ba3d",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "sha256:732dc674bbc488a9bdf0756f2dad42eb6bf457e38c8406e8eebbf3749e2f41c5",
+    "crates/openwarrant-cli/tests/runtime_capture.rs": "sha256:486a77fa6ae437994ce7d4e4a0b6aa58bfee61260bbd616ffaad9ea23b3f6d73"
+  },
+  "runtime_regressions": {
+    "passed": 26,
+    "ignored": 2
+  },
+  "collector_regressions": {
+    "passed": 7,
+    "ignored": 2
+  },
+  "explicit_namespace_test": {
+    "passed": 1,
+    "controls": [
+      "Actual executor UID read operator-protected host/native configuration; duplicate native configuration keys refused.",
+      "CLI refused an executor-owned authority store.",
+      "Populated protected CLI configuration reached activated sealed fixture executable; invalid native response refused, no assurance.",
+      "Held native verification refused after protected spend-policy update without changing collector activation."
+    ]
+  },
+  "clippy_all_features_all_targets": "PASS",
+  "fmt_check": "PASS",
+  "assurance_granted": false,
+  "authority_activated": false,
+  "katana_cli_wiring_implemented": true,
+  "actual_katana_native_roundtrip_observed": false,
+  "blut_cli_wiring_completed": false,
+  "generated_document_check": {
+    "state": "PASS",
+    "counts": {
+      "pass": 2028,
+      "warn": 625,
+      "unknown": 0,
+      "error": 0,
+      "worst": "warn"
+    },
+    "evidence": "generated-check.json.gz"
+  }
+}

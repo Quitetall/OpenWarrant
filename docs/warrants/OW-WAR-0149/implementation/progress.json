@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Runtime receipt and activated native verifier SDK controls are implemented, unverified. Protected host configuration binds actual execution identity; sealed native-data snapshots preserve approved bytes and reject writes, executable mode changes and source violations. Actual adapter/CLI wiring, job-directory custody and independent qualification remain.",
+  "summary": "Runtime receipt SDK and protected native Katana CLI assessment are implemented, unverified. Operator-owned policy binds exact dispatch, provider, log bytes, head and capability limits. Populated two-account CLI fixture reached sealed verification and rejected invalid output; changed spend policy invalidated a held verifier. Actual Katana acceptance, protected BLUT job custody, workflow integration and independent qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -34,12 +34,13 @@
     "docs/warrants/OW-WAR-0149/implementation/dispatch-retention-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-inputs-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/runtime-host-identity-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/protected-native-inputs-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/protected-native-inputs-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-host-assessment-20261010/README.md"
   ],
   "next_steps": [
-    "Wire protected host identity resolution, independently protected native input/policy configuration and the native adapter into actual CLI/workflow assessment; never derive keys, trusted log heads or permissions from the receipt.",
+    "Complete a populated actual Katana provider roundtrip with protected host configuration; add protected BLUT job-directory custody and native CLI/workflow integration without deriving keys, heads or permissions from receipts.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "287b7431467719f5d7ddc70fd0949746d9de76c6"
+  "revision": "f5eedd342d7100264360a5a57caf3acda6e7ec73"
 }
