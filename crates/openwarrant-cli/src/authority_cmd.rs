@@ -403,7 +403,7 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
         } => {
             let current = revision(&current)?;
             let record = signed(proposal(&input)?, signature)?;
-            signing::verify(&current, &record)?;
+            signing::verify_activation(&current, &record)?;
             serde_json::json!({"eligible":true,"effective":false,"proposal_digest":record.proposal.digest().map_err(err)?,"trusted_state_source":"caller-supplied"})
         }
         Command::Bootstrap {

@@ -221,7 +221,7 @@ pub(super) fn activate(root: &Path, record: Signed, test: bool) -> Result<serde_
     let _ = load(root, test)?;
     let _lock = lock(root)?;
     let mut state = load(root, test)?;
-    signing::verify(state.current(), &record)?;
+    signing::verify_activation(state.current(), &record)?;
     if state.transitions.len() >= 4096 {
         return Err(err("authority-store-full"));
     }

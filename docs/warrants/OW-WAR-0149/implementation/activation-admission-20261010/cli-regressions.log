@@ -1,0 +1,30 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-authority-transition-admission/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized] target(s) in 0.47s
+     Running tests/authority_transition_cli.rs (/mnt/4tb/build/cargo/f4/239f058ca60b41/debug/deps/authority_transition_cli-225951ff2068ef89)
+
+running 1 test
+test unsigned_proposal_cannot_activate_and_signed_transition_survives_restart ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.27s
+
+     Running tests/collector_loading.rs (/mnt/4tb/build/cargo/f4/239f058ca60b41/debug/deps/collector_loading-8efc6932d47733e9)
+
+running 3 tests
+test symlinks_and_non_regular_enrollment_sources_are_refused ... ok
+test unavailable_sources_stay_unknown_and_bad_wire_is_rejected ... ok
+test an_executor_owned_store_cannot_become_trusted_by_claiming_another_uid ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/collector_signature.rs (/mnt/4tb/build/cargo/f4/239f058ca60b41/debug/deps/collector_signature-a3ddbe552e28c17d)
+
+running 6 tests
+test namespace_fixture_entry ... ignored, subprocess fixture entry; not an operator enrollment or human act
+test protected_namespace_roundtrip ... ignored, requires provisioned unshare subordinate UID/GID mapping; run explicitly
+test unavailable_scratch_and_invalid_deadlines_do_not_pass ... ok
+test real_openssh_verifies_exact_bytes_without_inferring_presence ... ok
+test enrollment_checks_use_real_crypto_and_keep_presence_requirements ... ok
+test authenticated_software_sk_flags_are_observed_only_after_crypto ... ok
+
+test result: ok. 4 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

@@ -1,0 +1,89 @@
+[
+  {
+    "kind": "agent",
+    "exit_code": 1,
+    "response": {
+      "schema": "oh.war/report/v1",
+      "command": "error",
+      "diagnostics": [
+        {
+          "severity": "error",
+          "rule": "cli.error",
+          "file": null,
+          "message": "authority-signer-not-human: New authority activation requires human signers in current trusted v2 authority"
+        }
+      ],
+      "notes": [],
+      "counts": {
+        "pass": 0,
+        "warn": 0,
+        "unknown": 0,
+        "error": 1,
+        "worst": "error"
+      },
+      "verdict": "not_ready",
+      "verdict_line": "NOT READY",
+      "exit_code": 2
+    },
+    "signature_written": false,
+    "current_changed": false
+  },
+  {
+    "kind": "policyservice",
+    "exit_code": 1,
+    "response": {
+      "schema": "oh.war/report/v1",
+      "command": "error",
+      "diagnostics": [
+        {
+          "severity": "error",
+          "rule": "cli.error",
+          "file": null,
+          "message": "authority-signer-not-human: New authority activation requires human signers in current trusted v2 authority"
+        }
+      ],
+      "notes": [],
+      "counts": {
+        "pass": 0,
+        "warn": 0,
+        "unknown": 0,
+        "error": 1,
+        "worst": "error"
+      },
+      "verdict": "not_ready",
+      "verdict_line": "NOT READY",
+      "exit_code": 2
+    },
+    "signature_written": false,
+    "current_changed": false
+  },
+  {
+    "kind": null,
+    "exit_code": 2,
+    "response": {
+      "schema": "oh.war/report/v1",
+      "command": "error",
+      "diagnostics": [
+        {
+          "severity": "unknown",
+          "rule": "authority-signer-kind-unknown",
+          "file": null,
+          "message": "Current v2 authority does not establish every signer's actor kind"
+        }
+      ],
+      "notes": [],
+      "counts": {
+        "pass": 0,
+        "warn": 0,
+        "unknown": 1,
+        "error": 0,
+        "worst": "unknown"
+      },
+      "verdict": "not_ready",
+      "verdict_line": "NOT READY",
+      "exit_code": 2
+    },
+    "signature_written": false,
+    "current_changed": false
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "based_on": "b41d889da15f2afb0da33cddad36179ca3a69366",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "sources": {
+    "crates/openwarrant-core/src/authority_transition.rs": "61e7d5a4c1062f9feb8bb855d3138bd11372cc3f835fd260d726a453bed129f3",
+    "crates/openwarrant-cli/src/authority_cmd.rs": "a88482d0c9615e7b85aa3266e58ffa38d734699b35324b877966ddc9d73edeab",
+    "crates/openwarrant-cli/src/authority_cmd/signing.rs": "74c35f6acb0ca96d486bb2d75d6c35ebcf72ceb24084863aa7a0b62b17222479",
+    "crates/openwarrant-cli/src/authority_cmd/store.rs": "a9eac3c21e6a80729af6aab1cfea6e7db6331e176a2d921aad2117336ea644cd",
+    "conformance/plants.d/58-authn.sh": "15a1a62d57136cd015bbd799b23be288f114e9a6d311cdb6c59b80a479ec079c"
+  },
+  "independent_verification": "not-established",
+  "human_acceptance": "not-established",
+  "operator_deployment": "not-established"
+}
