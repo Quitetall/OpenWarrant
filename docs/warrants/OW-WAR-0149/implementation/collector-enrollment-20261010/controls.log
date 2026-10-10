@@ -1,0 +1,15 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-runtime-collector-auth/crates/openwarrant-core)
+    Finished `test` profile [unoptimized] target(s) in 13.81s
+     Running tests/runtime_collector.rs (/mnt/4tb/OpenWarrant/target/debug/deps/runtime_collector-b269a08838665bcb)
+
+running 7 tests
+test canonical_wire_refuses_duplicates_unknown_fields_and_unbounded_inputs ... ok
+test current_human_admin_can_enroll_only_exact_declared_inputs ... ok
+test agent_self_grant_unsigned_and_changed_payload_refuse ... ok
+test missing_signature_observation_and_missing_required_presence_are_unknown ... ok
+test authority_changes_invalidate_enrollment_and_already_authenticated_grant ... ok
+test provider_identity_version_collector_and_repository_cannot_be_substituted ... ok
+test undeclared_signer_kind_is_unknown_but_a_known_agent_admin_refuses ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,10 @@
+{
+  "based_on": "1ce4d78f1960feaf78690f64ff3698d460e39d45",
+  "files": {
+    "crates/openwarrant-core/src/runtime_collector.rs": "sha256:35ef93aacfb749980d144c469d2bbe7d80cd7c9806decda07415b96878981438",
+    "crates/openwarrant-core/tests/runtime_collector.rs": "sha256:0dc5cd300e77c5e3c6afe54d768b1c5b741e0ae16af68c3cb04e28aaaed3b7ef",
+    "crates/openwarrant-core/src/lib.rs": "sha256:be3da81d60d1703fd01ca8d0750e4ed366781b01418062a382db4c75624128c2"
+  },
+  "signature_adapter": "synthetic; no cryptographic or human-presence observation",
+  "full_repository_gate": "pending"
+}
