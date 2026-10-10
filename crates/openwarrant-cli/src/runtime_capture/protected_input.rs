@@ -5,7 +5,9 @@
 use openwarrant_core::document::runtime::ProviderFailure;
 use std::path::{Path, PathBuf};
 
-const MAX_BYTES: usize = 128 * 1024 * 1024;
+// BLUT retained producer identity can be up to 1 GiB. Caller budgets remain
+// explicit, and native host v1 still caps aggregate capture at 128 MiB.
+const MAX_BYTES: usize = 1024 * 1024 * 1024;
 
 pub struct ProtectedInput {
     #[cfg(target_os = "linux")]

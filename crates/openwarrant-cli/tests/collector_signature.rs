@@ -256,8 +256,24 @@ fn protected_namespace_roundtrip() {
     fs::create_dir(&mountpoint).unwrap();
     let war = std::env::var_os("OW_COLLECTOR_FIXTURE_WAR")
         .unwrap_or_else(|| env!("CARGO_BIN_EXE_war").into());
-    let native_verifier = std::env::var_os("OW_KATANA_NATIVE_VERIFIER").unwrap_or_default();
-    let native_producer = std::env::var_os("OW_KATANA_FIXTURE_PRODUCER").unwrap_or_default();
+    let blut_selected = std::env::var_os("OW_BLUT_NATIVE_VERIFIER").is_some();
+    assert!(
+        !blut_selected || std::env::var_os("OW_KATANA_NATIVE_VERIFIER").is_none(),
+        "select one native backend per fixture"
+    );
+    let backend = if blut_selected { "blut" } else { "katana" };
+    let native_verifier = std::env::var_os(if blut_selected {
+        "OW_BLUT_NATIVE_VERIFIER"
+    } else {
+        "OW_KATANA_NATIVE_VERIFIER"
+    })
+    .unwrap_or_default();
+    let native_producer = std::env::var_os(if blut_selected {
+        "OW_BLUT_FIXTURE_PRODUCER"
+    } else {
+        "OW_KATANA_FIXTURE_PRODUCER"
+    })
+    .unwrap_or_default();
     let actual_selected = !native_verifier.is_empty();
     assert_eq!(
         native_verifier.is_empty(),
@@ -304,6 +320,7 @@ if [ -n "$6" ]; then
   /usr/bin/cp "$7" "$root/native-producer"
   /usr/bin/chmod 0555 "$root/native-verifier" "$root/native-producer"
 fi
+printf '%s' "$8" > "$root/native-kind"
 export TMPDIR=/scratch OW_COLLECTOR_FIXTURE_WAR=/war
 export OW_COLLECTOR_NAMESPACE_FIXTURE=operator
 cd "$root"
@@ -318,6 +335,7 @@ exec /usr/bin/chroot "$root" /test-runner --exact "$4" --ignored --nocapture
         .arg(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../conformance/fixtures/inbox/repository"))
         .arg(native_verifier)
         .arg(native_producer)
+        .arg(backend)
         .output()
         .unwrap();
     fs::remove_dir(&mountpoint).unwrap();
@@ -330,7 +348,11 @@ exec /usr/bin/chroot "$root" /test-runner --exact "$4" --ignored --nocapture
     let text = String::from_utf8_lossy(&output.stdout);
     if actual_selected {
         assert!(
-            text.contains("actual native Katana v2:"),
+            text.contains(if blut_selected {
+                "actual native BLUT v2:"
+            } else {
+                "actual native Katana v2:"
+            }),
             "selected native observation did not execute: {text}"
         );
     }
@@ -362,6 +384,13 @@ fn namespace_fixture_entry() {
     };
     let role =
         std::env::var("OW_COLLECTOR_NAMESPACE_FIXTURE").expect("explicit fixture role required");
+    let is_blut = fs::read_to_string("/native-kind").ok().as_deref() == Some("blut");
+    let native_kind = if is_blut { "blut" } else { "katana" };
+    let native_version = if is_blut {
+        "blut/openwarrant-verification/v2"
+    } else {
+        "katana/openwarrant-verification/v2"
+    };
     fn open_reader_repository(
         root: &std::path::Path,
         store: &std::path::Path,
@@ -734,9 +763,13 @@ fn namespace_fixture_entry() {
         use openwarrant_cli::runtime_capture::activated_verifier::ActivatedVerifier;
         use openwarrant_core::document::runtime::{ProviderInterface, ProviderKind};
         let interface = ProviderInterface {
-            kind: ProviderKind::Katana,
+            kind: if is_blut {
+                ProviderKind::Blut
+            } else {
+                ProviderKind::Katana
+            },
             identity: "software-fixture".into(),
-            version: "katana/openwarrant-verification/v2".into(),
+            version: native_version.into(),
         };
         let warrant = "01a0f502-4941-70a1-a446-e1eb77dff191";
         let load = || {
@@ -783,7 +816,11 @@ fn namespace_fixture_entry() {
             ));
         }
         let wrong_provider = ProviderInterface {
-            kind: ProviderKind::Blut,
+            kind: if is_blut {
+                ProviderKind::Katana
+            } else {
+                ProviderKind::Blut
+            },
             ..interface.clone()
         };
         assert!(matches!(
@@ -858,7 +895,7 @@ fn namespace_fixture_entry() {
         let graph = scratch.join("docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml");
         let text = fs::read_to_string(&graph).unwrap().replacen(
             "executor_kind: \"agent\"",
-            "executor_kind: \"katana\"\n    executor_ref: \"software-fixture\"",
+            &format!("executor_kind: \"{native_kind}\"\n    executor_ref: \"software-fixture\""),
             1,
         );
         fs::write(graph, text).unwrap();
@@ -924,7 +961,7 @@ fn namespace_fixture_entry() {
         }
         fs::write(scratch.join("capture.json"), serde_json::to_vec(&serde_json::json!({
             "schema":"oh.war/runtime-capture-request/v1-draft.1", "dispatch_id":dispatch["dispatch_id"], "receipt":"receipt.bin",
-            "provider":{"kind":"katana", "identity":interface.identity, "version":interface.version},
+            "provider":{"kind":native_kind, "identity":interface.identity, "version":interface.version},
             "metadata":{"observation_id":"protected-cli-refusal-fixture", "observed_at":"2026-10-10T00:00:00Z", "original_receipt_ref":"provider://synthetic/refusal", "binary_identity":null, "source_identity":null, "transport":"fixture-file", "argv":[], "exit_code":0, "status":"synthetic"}
         })).unwrap()).unwrap();
         let imported = run(&[
@@ -982,7 +1019,83 @@ fn namespace_fixture_entry() {
         }
         if actual_native {
             println!(
-                "actual native Katana v2: retained dispatch and protected original log reassessed through CLI; no assurance"
+                "actual native {} v2: retained dispatch and protected original inputs reassessed through CLI; no assurance",
+                if is_blut { "BLUT" } else { "Katana" }
+            );
+        }
+        if is_blut {
+            fs::write(scratch.join("native-positive-checked"), b"checked").unwrap();
+            for (id, message, unknown) in [
+                ("catalog", "runtime.registry-mismatch", false),
+                (
+                    "no-budget",
+                    "v2 requires explicit positive native input budget",
+                    false,
+                ),
+                ("small-budget", "aggregate native input budget", false),
+                (
+                    "legacy",
+                    "protected BLUT inputs require explicit v2 host policy",
+                    true,
+                ),
+                (
+                    "key",
+                    "native input digest differs from approved configuration",
+                    false,
+                ),
+                (
+                    "mode",
+                    "native job file size or mode differs from approved manifest",
+                    false,
+                ),
+                ("confinement", "runtime.confinement-unestablished", true),
+                ("spend", "runtime.accounting-unestablished", true),
+            ] {
+                let deadline = Instant::now() + Duration::from_secs(10);
+                while !root.join(format!("native-control-{id}")).exists() {
+                    assert!(
+                        Instant::now() < deadline,
+                        "operator native control unavailable: {id}"
+                    );
+                    std::thread::sleep(Duration::from_millis(10));
+                }
+                let out = run(&[
+                    "runtime",
+                    "assess",
+                    "IX-WAR-0003",
+                    "--selection",
+                    "selected.json",
+                    "--native-store",
+                    root.join("store").to_str().unwrap(),
+                ]);
+                assert!(!out.status.success(), "native control accepted: {id}");
+                let value: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+                assert!(
+                    String::from_utf8_lossy(&out.stdout).contains(message),
+                    "{id}: {value}"
+                );
+                assert_eq!(
+                    value["counts"]["unknown"].as_u64().unwrap_or(0) > 0,
+                    unknown,
+                    "{id}: {value}"
+                );
+                assert_ne!(value["result"]["assurance_granted"], true);
+                fs::write(
+                    scratch.join(format!("native-control-checked-{id}")),
+                    b"checked",
+                )
+                .unwrap();
+            }
+            let deadline = Instant::now() + Duration::from_secs(10);
+            while !root.join("native-controls-restored").exists() {
+                assert!(
+                    Instant::now() < deadline,
+                    "operator native control restore unavailable"
+                );
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            println!(
+                "protected BLUT controls: wrong catalog, absent/insufficient budget, v1 policy, wrong key and mode refused; required confinement and accounting stayed UNKNOWN"
             );
         }
         let native_repo =
@@ -1369,9 +1482,9 @@ fn namespace_fixture_entry() {
         repository: "fixture".into(),
         authority_digest: genesis.digest().unwrap(),
         provider: Provider {
-            kind: "katana".into(),
+            kind: native_kind.into(),
             identity: "software-fixture".into(),
-            version: "katana/openwarrant-verification/v2".into(),
+            version: native_version.into(),
         },
         verifier_digest: format!(
             "sha256:{}",
@@ -1666,20 +1779,25 @@ fn namespace_fixture_entry() {
         let meta: serde_json::Value =
             serde_json::from_slice(&fs::read(root.join("native-session/fixture.json")).unwrap())
                 .unwrap();
-        assert_eq!(meta["scripted_provider"], true);
-        assert_eq!(meta["cost_metered"], false);
+        if is_blut {
+            assert_eq!(meta["test_key_only"], true);
+        } else {
+            assert_eq!(meta["scripted_provider"], true);
+            assert_eq!(meta["cost_metered"], false);
+        }
         let receipt = fs::read(root.join("native-session/receipt.json")).unwrap();
-        let parsed: serde_json::Value = serde_json::from_slice(&receipt).unwrap();
-        assert_eq!(parsed["assurance_granted"], false);
-        assert!(parsed["cost_usd"].is_null());
-        // Operator's independently fixed fixture permission. Never copy a
-        // receipt's realized permissions into the authorization upper bound.
-        capabilities = vec![r#"{"glob":"input.txt","kind":"fs","mode":"read"}"#.into()];
+        if !is_blut {
+            let parsed: serde_json::Value = serde_json::from_slice(&receipt).unwrap();
+            assert_eq!(parsed["assurance_granted"], false);
+            assert!(parsed["cost_usd"].is_null());
+            // Fixed independent fixture policy, never copied from receipt.
+            capabilities = vec![r#"{"glob":"input.txt","kind":"fs","mode":"read"}"#.into()];
+            let bytes = fs::read(root.join("native-session/session.jsonl")).unwrap();
+            fs::write(&log, &bytes).unwrap();
+            log_digest = sha256_hex(&bytes);
+            log_head = meta["expected_log_head"].as_str().unwrap().to_owned();
+        }
         fs::write(root.join("native-receipt.json"), receipt).unwrap();
-        let bytes = fs::read(root.join("native-session/session.jsonl")).unwrap();
-        fs::write(&log, &bytes).unwrap();
-        log_digest = sha256_hex(&bytes);
-        log_head = meta["expected_log_head"].as_str().unwrap().to_owned();
         selected_executable = root.join("native-verifier");
         let mut selected =
             Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
@@ -1703,7 +1821,35 @@ fn namespace_fixture_entry() {
             root.join("native-enrollment.json").to_str().unwrap(),
         ]);
     }
-    fs::write(&native_path, serde_json::to_vec(&serde_json::json!({
+    let policy = if is_blut {
+        fn input(path: std::path::PathBuf, max_bytes: usize) -> serde_json::Value {
+            serde_json::json!({"sha256":openwarrant_compiler::sha256_hex(&fs::read(&path).unwrap()),"path":path,"max_bytes":max_bytes})
+        }
+        fn files(root: &std::path::Path, dir: &std::path::Path, out: &mut Vec<serde_json::Value>) {
+            use std::os::unix::fs::MetadataExt;
+            for entry in fs::read_dir(dir).unwrap() {
+                let p = entry.unwrap().path();
+                let m = fs::symlink_metadata(&p).unwrap();
+                if m.is_dir() {
+                    files(root, &p, out);
+                } else {
+                    out.push(serde_json::json!({"path":p.strip_prefix(root).unwrap().to_str().unwrap(),"sha256":openwarrant_compiler::sha256_hex(&fs::read(&p).unwrap()),"bytes":m.len(),"mode":m.mode()}));
+                }
+            }
+        }
+        let job = root.join("native-session/job");
+        let mut table = vec![];
+        files(&job, &job, &mut table);
+        let meta: serde_json::Value =
+            serde_json::from_slice(&fs::read(root.join("native-session/fixture.json")).unwrap())
+                .unwrap();
+        serde_json::json!({"schema":"oh.war/runtime-native-config/v2-draft.1","max_input_bytes":400*1024*1024,"entries":[{
+            "dispatch_digest":dispatch["dispatch_digest"],"provider":{"kind":"blut","identity":"software-fixture","version":native_version},"executable":selected_executable,
+            "blut_inputs":{"public_key":input(root.join("native-session/public-key.bin"),32),"plan":input(root.join("native-session/plan.json"),2*1024*1024),"producer":input(root.join("native-session/producer.original"),128*1024*1024),"job":{"path":job,"files":table,"max_bytes":256*1024*1024},"registry_digest":meta["expected_catalog_digest"]},
+            "authorized_capabilities":[],"confinement_required":false,"hard_spend_cap_required":false,"timeout_ms":3000,"max_response_bytes":16384
+        }]})
+    } else {
+        serde_json::json!({
         "schema":"oh.war/runtime-native-config/v1-draft.1", "entries":[{
             "dispatch_digest":dispatch["dispatch_digest"],
             "provider":{"kind":"katana", "identity":"software-fixture", "version":"katana/openwarrant-verification/v2"},
@@ -1711,8 +1857,86 @@ fn namespace_fixture_entry() {
             "trusted_log_head":log_head, "authorized_capabilities":capabilities,
             "confinement_required":false, "hard_spend_cap_required":false, "timeout_ms":3000, "max_response_bytes":4096
         }]
-    })).unwrap()).unwrap();
+        })
+    };
+    fs::write(&native_path, serde_json::to_vec(&policy).unwrap()).unwrap();
     fs::write(root.join("native-adapter-configured"), b"configured").unwrap();
+    if is_blut {
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while !scratch.join("native-positive-checked").exists() {
+            assert!(
+                child.try_wait().unwrap().is_none(),
+                "executor exited before positive native check"
+            );
+            assert!(
+                Instant::now() < deadline,
+                "positive native check unavailable"
+            );
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        for id in [
+            "catalog",
+            "no-budget",
+            "small-budget",
+            "legacy",
+            "key",
+            "mode",
+            "confinement",
+            "spend",
+        ] {
+            let mut altered = policy.clone();
+            match id {
+                "catalog" => {
+                    altered["entries"][0]["blut_inputs"]["registry_digest"] =
+                        serde_json::json!(format!("blake3:{}", "a".repeat(64)))
+                }
+                "no-budget" => {
+                    altered.as_object_mut().unwrap().remove("max_input_bytes");
+                }
+                "small-budget" => altered["max_input_bytes"] = serde_json::json!(4),
+                "legacy" => {
+                    altered["schema"] =
+                        serde_json::json!("oh.war/runtime-native-config/v1-draft.1");
+                    altered.as_object_mut().unwrap().remove("max_input_bytes");
+                }
+                "key" => {
+                    altered["entries"][0]["blut_inputs"]["public_key"]["sha256"] =
+                        serde_json::json!("a".repeat(64))
+                }
+                "mode" => {
+                    altered["entries"][0]["blut_inputs"]["job"]["files"][0]["mode"] =
+                        serde_json::json!(0o100600)
+                }
+                "confinement" => {
+                    altered["entries"][0]["confinement_required"] = serde_json::json!(true)
+                }
+                "spend" => {
+                    altered["entries"][0]["hard_spend_cap_required"] = serde_json::json!(true)
+                }
+                _ => unreachable!(),
+            }
+            fs::write(&native_path, serde_json::to_vec(&altered).unwrap()).unwrap();
+            fs::write(root.join(format!("native-control-{id}")), b"ready").unwrap();
+            let deadline = Instant::now() + Duration::from_secs(10);
+            while !scratch
+                .join(format!("native-control-checked-{id}"))
+                .exists()
+            {
+                assert!(
+                    child.try_wait().unwrap().is_none(),
+                    "executor exited before native control: {id}"
+                );
+                assert!(
+                    Instant::now() < deadline,
+                    "native control observation unavailable: {id}"
+                );
+                std::thread::sleep(Duration::from_millis(10));
+            }
+        }
+        fs::write(&native_path, serde_json::to_vec(&policy).unwrap()).unwrap();
+        fs::write(root.join("native-controls-restored"), b"restored").unwrap();
+    }
+
     let deadline = Instant::now() + Duration::from_secs(10);
     while !scratch.join("native-policy-held").exists() {
         assert!(

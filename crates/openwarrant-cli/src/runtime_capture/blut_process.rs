@@ -13,6 +13,17 @@ use std::{path::PathBuf, process::Command, time::Duration};
 use crate::repo::Repository;
 
 pub const RESPONSE_SCHEMA: &str = "blut/openwarrant-verification/v1";
+pub const SEALED_RESPONSE_SCHEMA: &str = "blut/openwarrant-verification/v2";
+
+/// Already-captured operator-owned data. Selection of expected digests, catalog
+/// and modes belongs to independently protected host policy, not a receipt.
+/// Keep every image alive through native verification; nothing is executed.
+pub struct BlutProtectedInputs {
+    pub public_key: super::protected_input::ProtectedInput,
+    pub plan: super::protected_input::ProtectedInput,
+    pub producer: super::protected_input::ProtectedInput,
+    pub job: super::protected_job::ProtectedJob,
+}
 
 /// Caller-trusted configuration, never read from a receipt or auto-discovered.
 /// The receipt verifier establishes no isolation of this configuration itself.
@@ -32,6 +43,7 @@ pub struct BlutProcessVerifier {
     config: BlutProcessConfig,
     binding: RuntimeBinding,
     protection: Option<super::activated_verifier::ActivatedVerifier>,
+    inputs: Option<BlutProtectedInputs>,
 }
 
 #[derive(Deserialize)]
@@ -195,6 +207,43 @@ fn rejected(e: impl ToString) -> ProviderFailure {
 }
 
 impl BlutProcessVerifier {
+    /// Host-bound verification over held data snapshots. This binds the active
+    /// executable and host; expected input/capability/catalog policy must still
+    /// be independently selected by the host loader. No authority is activated.
+    pub fn for_protected_host(
+        repo: &Repository,
+        alias: &str,
+        dispatch_id: &str,
+        config: BlutProcessConfig,
+        host: super::collector_loading::HostEnrollment,
+        inputs: BlutProtectedInputs,
+    ) -> Result<Self, ProviderFailure> {
+        if config.provider.version != SEALED_RESPONSE_SCHEMA {
+            return Err(ProviderFailure::Unsupported(
+                "protected BLUT inputs require explicit native v2 sealed transport".into(),
+            ));
+        }
+        if inputs.public_key.bytes() != 32
+            || inputs.plan.bytes() > 2 * 1024 * 1024
+            || inputs.producer.bytes() == 0
+            || inputs.producer.bytes() > 1024 * 1024 * 1024
+        {
+            return Err(rejected("sealed BLUT key, plan or producer byte budget"));
+        }
+        let mut result = Self::for_recorded_dispatch(repo, alias, dispatch_id, config)?;
+        let warrant = result
+            .binding
+            .warrant_ref
+            .strip_prefix("war://")
+            .ok_or_else(|| rejected("canonical recorded Warrant reference required"))?;
+        result.protection = Some(host.acquire_verifier(
+            warrant,
+            &result.config.provider,
+            &result.config.executable,
+        )?);
+        result.inputs = Some(inputs);
+        Ok(result)
+    }
     /// Opt-in activated, sealed verifier. Host identities and native source
     /// custody remain the caller's responsibility; this grants no assurance.
     pub fn for_activated_collector(
@@ -270,6 +319,7 @@ impl BlutProcessVerifier {
             config,
             binding: RuntimeBinding::from_dispatch(&recorded.dispatch),
             protection: None,
+            inputs: None,
         })
     }
 }
@@ -303,28 +353,50 @@ impl ReceiptVerifier for BlutProcessVerifier {
         command.env_clear();
         command
             .args(["openwarrant", "verify", "--receipt"])
-            .arg(receipt)
-            .arg("--public-key")
-            .arg(&self.config.public_key)
-            .arg("--binding")
-            .arg(binding)
-            .arg("--plan")
-            .arg(&self.config.plan)
-            .arg("--job")
-            .arg(&self.config.job)
-            .arg("--producer-executable")
-            .arg(&self.config.producer_executable);
+            .arg(receipt);
+        let response_schema = if let Some(inputs) = &self.inputs {
+            let files: Vec<_> = inputs.job.files().iter().map(|f| json!({"path":f.source.path,"mode":f.source.mode,"descriptor":f.input.argument()})).collect();
+            let manifest = serde_json::to_vec(&json!({"schema":"blut/openwarrant-sealed-inputs/v1","public_key":inputs.public_key.argument(),"plan":inputs.plan.argument(),"producer_executable":inputs.producer.argument(),"files":files})).map_err(unavailable)?;
+            if manifest.len() > 8 * 1024 * 1024 {
+                return Err(rejected("sealed BLUT manifest byte budget"));
+            }
+            let manifest = scratch.write("sealed-inputs.json", &manifest)?;
+            command
+                .arg("--binding")
+                .arg(binding)
+                .arg("--sealed-inputs")
+                .arg(manifest);
+            SEALED_RESPONSE_SCHEMA
+        } else {
+            if self.config.provider.version == SEALED_RESPONSE_SCHEMA {
+                return Err(ProviderFailure::Unsupported(
+                    "v2 BLUT verification requires held sealed inputs".into(),
+                ));
+            }
+            command
+                .arg("--public-key")
+                .arg(&self.config.public_key)
+                .arg("--binding")
+                .arg(binding)
+                .arg("--plan")
+                .arg(&self.config.plan)
+                .arg("--job")
+                .arg(&self.config.job)
+                .arg("--producer-executable")
+                .arg(&self.config.producer_executable);
+            RESPONSE_SCHEMA
+        };
         let native = if let Some(protection) = &self.protection {
             let args = command.get_args().map(|a| a.to_owned()).collect::<Vec<_>>();
             let (success, bytes) =
                 protection.run(&args, self.config.timeout, self.config.max_response_bytes)?;
-            super::process::decode_response(success, &bytes, RESPONSE_SCHEMA)?
+            super::process::decode_response(success, &bytes, response_schema)?
         } else {
             super::process::verify_response(
                 command,
                 self.config.timeout,
                 self.config.max_response_bytes,
-                RESPONSE_SCHEMA,
+                response_schema,
             )?
         };
         self.map(raw_receipt, native)
