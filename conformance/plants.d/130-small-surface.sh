@@ -63,13 +63,14 @@ fi
 
 # Each group's members, as docs/COMMANDS.md lists them. `schemas` is in a
 # build with the `schema` feature only. M14 added `sign approve`, `sign
-# release` and `admin preset`, under their groups only.
+# release` and `admin preset`, under their groups only; M17 `admin ledger`
+# and `admin score`, likewise.
 declare -A SS_MEMBERS=(
     [plan]="new promote render impact model state roadmap types type frontier estimate questions ask answer answers"
     [sign]="authorize resolve correct amend attest standing sas inbox authority approve release"
     [evidence]="record gate verify prepare run perform go submit kpi mark document eval runtime"
     [view]="ui tui board console watch overview warrants ready prime timeline"
-    [admin]="compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat release renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry bonsai blut projects update version merge-ticket preset"
+    [admin]="compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat release renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry bonsai blut projects update version merge-ticket preset ledger score"
 )
 SS_BAD=""
 for g in plan sign evidence view admin; do
