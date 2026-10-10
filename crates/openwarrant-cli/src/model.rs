@@ -19,11 +19,32 @@
 //! - **Revision:** the digest of the record's own bytes where it has them
 //!   (a Warrant's compiled contract, a question's file, an item's line);
 //!   otherwise the digest of the atom or file that holds it.
+//! - **Read in place** (OW-WAR-0148 M10): each OpenSpec change (`change`)
+//!   or Spec Kit feature (`feature`) a `[[adapters]]` entry names, its tasks
+//!   (`item`) and its requirements, outcomes and stories, each with the
+//!   revision of its own bytes, and the relations its folder states.
 //! - **Authored records** (OW-WAR-0148 M3): every record of a record atom
 //!   under `docs/records/`, with its type (a profile noun) and the revision
 //!   of its own byte span; and the relations documents author — record
 //!   atoms' relation lines, obligations' `evaluates`, ticket items'
 //!   `implements` — each with the revision it pins, if any.
+//! - **Store types** (OW-WAR-0148 M18): the roadmap record
+//!   (`<prefix>-ROADMAP`, type `roadmap`) its phases are `part_of`, with
+//!   each phase's `depends_on`; the specification (`<NS>-SAS`, type `spec`),
+//!   each numbered section and subsection (`<NS>-SAS-43`, `<NS>-SAS-43.5`,
+//!   type `section`, the revision of its own byte span) and each §106
+//!   requirement `part_of` it; each ADR (its alias, type `adr`) with its
+//!   front matter's `status`, its `supersedes`, and the Warrants it governs
+//!   as the inert `adr.governs`. Each only where the type that reads the
+//!   store selects `structure`, related only under `links`.
+//! - **Documents** (OW-WAR-0148 M18): each development document the index
+//!   reads that nothing else reads as records, `doc:<path>`, type
+//!   `document` with the state `untyped`, or, adopted in place, of its
+//!   document type with the state `adopted`.
+//! - **Instruction sections** (M16): each `##` section of the root
+//!   `CLAUDE.md` and `AGENTS.md` (and configured nested files), id
+//!   `md:<file>#<slug>`, type `instruction`, its revision that of its own
+//!   byte span. The managed `openwarrant` block is none of them.
 //! - **Relations:** `part_of`, `parent`, `supersedes`, `roadmap`,
 //!   `implements`, `depends_on`, `promoted_to`. A relation whose target is
 //!   not a record here is kept AND reported (`model.relation-target-unknown`):
@@ -47,9 +68,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use camino::Utf8Path;
 use serde::{Deserialize, Serialize};
 
+use openwarrant_core::Capability as C;
+use openwarrant_core::projection::Store;
+
 use crate::corpus::Corpus;
 use crate::diagnostic::{Diagnostic, Report};
-use crate::repo::RepoError;
+use crate::repo::{RepoError, Repository};
 
 pub const SCHEMA: &str = "oh.war/model/v1";
 
@@ -80,7 +104,9 @@ pub struct Record {
     /// Global: `OW-WAR-0001`, `OW-WAR-0001/OBL-002`, `t-3f2a/i-9c01`.
     pub id: String,
     /// `warrant`, `obligation`, `deliverable`, `stage`, `question`, `phase`,
-    /// `requirement`, `ticket` or `item`.
+    /// `requirement`, `ticket` or `item`; a store's records (OW-WAR-0148
+    /// M18): `roadmap`, `spec`, `section` or `adr`; an indexed document no
+    /// type reads, `document`, and one adopted, its document type's name.
     #[serde(rename = "type")]
     pub kind: String,
     /// Repository-relative path of the file that holds it.
@@ -123,13 +149,15 @@ pub struct Relation {
 pub struct State {
     pub record: String,
     /// What the builders derive: `phase`, `rung`, `currency`,
-    /// `disposition`, `achieved` or `checklist`. A kernel state (OW-ADR-0031)
-    /// is `computed`, `authenticated` or `declared`, and its `value` is the
-    /// state's name.
+    /// `disposition`, `achieved`, `checklist`, an ADR's `status` as its
+    /// front matter states it, or an indexed document's `document`
+    /// (`untyped`, or `adopted` in docs/types.toml). A kernel state (OW-ADR-0031) is `computed`,
+    /// `authenticated` or `declared`, and its `value` is the state's name.
     pub kind: String,
     pub value: String,
-    /// `recorded` (read from a record of an act), `computed`, or, for a
-    /// declared state, `authored` (an entry in a journal).
+    /// `recorded` (read from a record of an act), `computed`, or `authored`:
+    /// a declared state's entry in a journal, an ADR's status in its front
+    /// matter, a document's adoption.
     pub provenance: String,
     /// A fixed kernel state's dimension in SAS §24 / RQ-032's decomposition:
     /// `phase`, `outcome`, `currency` or `standing`.
@@ -458,7 +486,15 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
     // visible. It is no record of the SAS or of the roadmap record, and holds
     // no state: a relation to it stays `model.relation-target-unknown`.
     let mut undeclared: BTreeSet<&str> = BTreeSet::new();
-    match corpus.roadmap() {
+    // OW-WAR-0148 M18: the `roadmap` type's records, read from its store
+    // under `structure`, related under `links`.
+    let roadmap_caps = crate::types::caps(repo, Store::Roadmap);
+    let roadmap_record = if roadmap_caps.has(C::Structure) {
+        corpus.roadmap()
+    } else {
+        Ok(None)
+    };
+    match roadmap_record {
         Ok(Some(rm)) => {
             let atom = rm
                 .manifest
@@ -489,6 +525,22 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             }
             for pl in &rm.manifest.placements {
                 b.relate(&pl.warrant, "roadmap", &pl.phase);
+            }
+            let roadmap = roadmap_id(rm);
+            b.record(
+                roadmap.clone(),
+                "roadmap",
+                repo.relative(&rm.dir.join("roadmap.toml")),
+                format!("sha256:{}", rm.digest.trim_start_matches("sha256:")),
+                accepted_by.clone(),
+            );
+            if roadmap_caps.has(C::Links) {
+                for p in &rm.phases.phases {
+                    b.relate(&p.id, "part_of", &roadmap);
+                    for d in &p.depends_on {
+                        b.relate(&p.id, "depends_on", d);
+                    }
+                }
             }
             let ids: BTreeSet<&str> = rm.phases.phases.iter().map(|p| p.id.as_str()).collect();
             undeclared.extend(
@@ -536,17 +588,111 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         b.state(id, "achieved", value, false);
     }
 
-    // ---- SAS §106 requirements: the targets of `implements`.
-    if let Ok((path, bytes)) = repo.sas_document() {
+    // ---- The `spec` type (OW-WAR-0148 M18): the specification, its
+    // numbered sections and subsections (each with its own span's revision)
+    // and its §106 requirements, the targets of `implements`.
+    let spec_caps = crate::types::caps(repo, Store::Sas);
+    if spec_caps.has(C::Structure)
+        && let Ok((path, bytes)) = repo.sas_document()
+    {
         let (source, rev) = (repo.relative(&path), digest(&bytes));
-        for r in status.requirements.iter().filter(|r| r.title.is_some()) {
+        let text = String::from_utf8_lossy(&bytes);
+        let spec = spec_id(repo, &text);
+        let links = spec_caps.has(C::Links);
+        b.record(
+            spec.clone(),
+            "spec",
+            source.clone(),
+            rev.clone(),
+            spec_acceptor(corpus, &rev),
+        );
+        for section in openwarrant_core::sas_sections::split(&bytes)
+            .iter()
+            .filter(|s| s.kind == openwarrant_core::sas_sections::SectionKind::Numbered)
+        {
+            let id = format!("{spec}-{}", section.id);
             b.record(
-                r.requirement.canonical(),
-                "requirement",
+                id.clone(),
+                "section",
                 source.clone(),
-                rev.clone(),
+                format!("sha256:{}", section.sha256),
                 None,
             );
+            if links {
+                b.relate(&id, "part_of", &spec);
+            }
+            for sub in &section.subsections {
+                let sid = format!("{spec}-{}", sub.id);
+                b.record(
+                    sid.clone(),
+                    "section",
+                    source.clone(),
+                    format!("sha256:{}", sub.sha256),
+                    None,
+                );
+                if links {
+                    b.relate(&sid, "part_of", &id);
+                }
+            }
+        }
+        for r in status.requirements.iter().filter(|r| r.title.is_some()) {
+            let id = r.requirement.canonical();
+            b.record(id.clone(), "requirement", source.clone(), rev.clone(), None);
+            if links {
+                b.relate(&id, "part_of", &spec);
+            }
+        }
+    }
+
+    // ---- The `adr` type (OW-WAR-0148 M18): one record per ADR atom, with
+    // the status its own front matter states (authored, never signed), the
+    // decisions it supersedes, and the Warrants it governs, carried as the
+    // namespaced `adr.governs` (inert).
+    let adr_caps = crate::types::caps(repo, Store::Adr);
+    if adr_caps.has(C::Structure)
+        && let Ok(adrs) = corpus.adrs()
+    {
+        let adr_target =
+            |r: &str| -> String { adr_ref(&adrs.records, r).unwrap_or_else(|| r.to_owned()) };
+        let aliases: BTreeSet<&str> = uuid_alias.values().map(String::as_str).collect();
+        for a in &adrs.records {
+            b.record(
+                a.local_alias.clone(),
+                "adr",
+                a.source.clone(),
+                file_digest(&repo.root.join(&a.source))
+                    .unwrap_or_else(|| digest(a.body.as_bytes())),
+                None,
+            );
+            b.states.insert(State {
+                record: a.local_alias.clone(),
+                kind: "status".to_owned(),
+                value: a.status.as_str().to_owned(),
+                provenance: "authored".to_owned(),
+                facet: None,
+                refines: None,
+                lapsed: false,
+            });
+            if adr_caps.has(C::Links) {
+                for s in &a.supersedes {
+                    b.relate(&a.local_alias, "supersedes", &adr_target(s));
+                }
+                if let Some(by) = &a.superseded_by {
+                    b.relate(&adr_target(by), "supersedes", &a.local_alias);
+                }
+                for g in &a.governs {
+                    // `war://<uuid>`, or `war://<alias>` as some ADRs write it.
+                    let bare = g.strip_prefix("war://").unwrap_or(g);
+                    let to = uuid_alias.get(bare).cloned().unwrap_or_else(|| {
+                        if aliases.contains(bare) {
+                            bare.to_owned()
+                        } else {
+                            g.clone()
+                        }
+                    });
+                    b.relate(&a.local_alias, "adr.governs", &to);
+                }
+            }
         }
     }
 
@@ -607,6 +753,58 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         Err(e) => b.diagnose("model.tickets-unreadable", "tickets", e.to_string()),
     }
 
+    // ---- Read in place (OW-WAR-0148 M10): each OpenSpec change or Spec
+    // Kit feature an `[[adapters]]` entry names, its tasks as items and its
+    // requirements, outcomes and stories as records, with their relations;
+    // what its folder does not let be read is a diagnostic by rule.
+    let adapted = corpus.adapters();
+    for f in adapted.faults() {
+        b.diagnose(f.rule, &f.place(), f.message.clone());
+    }
+    for tree in &adapted.trees {
+        let kind = match tree.kind {
+            "openspec" => "change",
+            _ => "feature",
+        };
+        for w in &tree.warrants {
+            b.record(
+                w.id.clone(),
+                kind,
+                w.source.clone(),
+                w.revision.clone(),
+                None,
+            );
+            b.state(&w.id, "checklist", w.state().to_owned(), false);
+            for t in &w.tasks {
+                b.record(
+                    t.id.clone(),
+                    "item",
+                    w.tasks_file.clone().unwrap_or_default(),
+                    t.revision.clone(),
+                    Some(w.id.clone()),
+                );
+                b.state(
+                    &t.id,
+                    "checklist",
+                    if t.done { "done" } else { "open" }.to_owned(),
+                    false,
+                );
+            }
+        }
+        for r in &tree.records {
+            b.record(
+                r.id.clone(),
+                r.kind,
+                r.source.clone(),
+                r.revision.clone(),
+                None,
+            );
+        }
+        for (from, kind, to) in &tree.relations {
+            b.relate(from, kind, to);
+        }
+    }
+
     // ---- Record atoms and authored relations (OW-WAR-0148 M3): records
     // join the others, relations join the existing kinds, and each refusal
     // is a diagnostic under its own rule.
@@ -625,6 +823,57 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
     }
     for f in &authored.faults {
         b.diagnose(f.rule, &format!("{}:{}", f.file, f.line), f.message.clone());
+    }
+    // ---- Instruction sections (M16): each `##` section of CLAUDE.md and
+    // AGENTS.md, type `instruction`, with its own span's revision. Nobody
+    // governs them; a relation names one as `md:<file>#<slug>`.
+    for r in &authored.instructions {
+        b.record(
+            r.id.clone(),
+            &r.record_type,
+            r.source.clone(),
+            r.revision.clone(),
+            None,
+        );
+    }
+    for f in &authored.instruction_faults {
+        b.diagnose(f.rule, &format!("{}:{}", f.file, f.line), f.message.clone());
+    }
+
+    // ---- The development-document index (OW-WAR-0148 M18): every
+    // indexed document nothing reads as records is one, `doc:<path>` of
+    // type `document`, state `untyped`; an adopted one is of its type,
+    // state `adopted` (authored in docs/types.toml). The rest are already
+    // records in their own form.
+    let index = corpus.documents();
+    for d in &index.docs {
+        let (kind, value, provenance) = match &d.governor {
+            crate::doc_index::Governor::Untyped => {
+                (crate::doc_index::UNTYPED_TYPE, "untyped", "computed")
+            }
+            crate::doc_index::Governor::Adopted(t) => (t.as_str(), "adopted", "authored"),
+            _ => continue,
+        };
+        let id = d.id();
+        b.record(
+            id.clone(),
+            kind,
+            d.path.clone(),
+            file_digest(&repo.root.join(&d.path)).unwrap_or_else(|| digest(b"")),
+            None,
+        );
+        b.states.insert(State {
+            record: id,
+            kind: "document".to_owned(),
+            value: value.to_owned(),
+            provenance: provenance.to_owned(),
+            facet: None,
+            refines: None,
+            lapsed: false,
+        });
+    }
+    for f in &index.faults {
+        b.diagnose(f.rule, &f.file, f.message.clone());
     }
 
     // ---- Every relation names a record, or is reported.
@@ -701,4 +950,91 @@ pub fn summary(m: &Model) -> String {
         m.diagnostics.len(),
         m.basis_digest
     )
+}
+
+// ---- OW-WAR-0148 M18: the store types' record ids ---------------------------
+
+/// The roadmap record's id: `<prefix>-ROADMAP` (`OW-ROADMAP`), beside its
+/// phases' `<prefix>-PHASE-<n>`.
+#[must_use]
+pub fn roadmap_id(rm: &crate::roadmap_cmd::Loaded) -> String {
+    format!("{}-ROADMAP", rm.manifest.prefix)
+}
+
+/// The specification's id: `<NS>-SAS` (`WAR-SAS`), the namespace its §106
+/// requirements carry (`WAR-SAS-RQ-001`), else the program's. Its sections
+/// are `<NS>-SAS-<n>` and `<NS>-SAS-<n>.<m>`, as `sas://` cites them.
+#[must_use]
+pub fn spec_id(repo: &Repository, text: &str) -> String {
+    let ns = openwarrant_core::sas_sections::namespace(text)
+        .unwrap_or_else(|| repo.config.project.namespace.as_str().to_owned());
+    format!("{ns}-SAS")
+}
+
+/// Who accepted the revision whose digest is `revision` (`sha256:<hex>`), if
+/// one is accepted and the `spec` type selects `acceptance`.
+fn spec_acceptor(corpus: &Corpus, revision: &str) -> Option<String> {
+    if !crate::types::has(corpus.repo(), Store::Sas, C::Acceptance) {
+        return None;
+    }
+    let hex = revision.strip_prefix("sha256:").unwrap_or(revision);
+    corpus
+        .sas_revisions()
+        .ok()?
+        .iter()
+        .find(|r| r.sha256 == hex && r.state == openwarrant_core::sas::SasRevisionState::Accepted)
+        .and_then(|r| r.acceptance.as_ref().map(|a| a.accepted_by.clone()))
+}
+
+/// The specification's id while its bytes are an accepted revision's and
+/// the `spec` type selects `structure` and `acceptance`: the fixed state
+/// `accepted` (authenticated: it holds on the revision a human accepted).
+#[must_use]
+pub fn spec_accepted(corpus: &Corpus) -> Option<String> {
+    let repo = corpus.repo();
+    if !crate::types::has(repo, Store::Sas, C::Structure) {
+        return None;
+    }
+    let (_, bytes) = repo.sas_document().ok()?;
+    spec_acceptor(corpus, &digest(&bytes))?;
+    Some(spec_id(repo, &String::from_utf8_lossy(&bytes)))
+}
+
+/// Every ADR another supersedes, by `supersedes` or `superseded_by`, where
+/// the `adr` type selects `structure` and `links`: the fixed state
+/// `superseded`, computed from the relation (OW-ADR-0022), never from the
+/// status an ADR's front matter states.
+#[must_use]
+pub fn adrs_superseded(corpus: &Corpus) -> Vec<String> {
+    let repo = corpus.repo();
+    if !(crate::types::has(repo, Store::Adr, C::Structure)
+        && crate::types::has(repo, Store::Adr, C::Links))
+    {
+        return Vec::new();
+    }
+    let Ok(adrs) = corpus.adrs() else {
+        return Vec::new();
+    };
+    let of = |r: &str| adr_ref(&adrs.records, r);
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    for a in &adrs.records {
+        if a.superseded_by.as_deref().and_then(of).is_some() {
+            out.insert(a.local_alias.clone());
+        }
+        for s in &a.supersedes {
+            if let Some(old) = of(s) {
+                out.insert(old);
+            }
+        }
+    }
+    out.into_iter().collect()
+}
+
+/// The ADR an `adr://` reference names, by its UUID or its alias, as its
+/// alias: `None` when it names no ADR of the store.
+fn adr_ref(adrs: &[openwarrant_core::AdrRecord], r: &str) -> Option<String> {
+    let bare = r.strip_prefix("adr://").unwrap_or(r);
+    adrs.iter()
+        .find(|a| a.uuid == bare || a.local_alias == bare)
+        .map(|a| a.local_alias.clone())
 }

@@ -5,9 +5,9 @@
 //!
 //! One append-only file per Warrant, `docs/warrants/<alias>/journal.jsonl`,
 //! one §66.3 envelope per line. It is written by the commands that change a
-//! Warrant's records — `war new`, `war authorize --response`, `war verify
-//! --response`, `war evidence record`, `war resolve --response` — and by
-//! nothing else. There is no `war journal --append`: an event an agent can
+//! Warrant's records — `war plan new`, `war sign authorize --response`, `war evidence verify
+//! --response`, `war evidence record`, `war sign resolve --response` — and by
+//! nothing else. There is no `war admin journal --append`: an event an agent can
 //! type is an event an agent can invent.
 //!
 //! # What it is for
@@ -28,7 +28,7 @@
 //!
 //! # Backfill
 //!
-//! Fifty-six Warrants existed before the journal did. `war journal <alias>
+//! Fifty-six Warrants existed before the journal did. `war admin journal <alias>
 //! --backfill` writes the events their records already imply — `draft.created`
 //! at the UUIDv7's own timestamp, `authorization.recorded` at the
 //! authorization's effective time, and so on — each carrying
@@ -504,7 +504,7 @@ fn uuid_time(uuid: &WarUuid) -> Option<String> {
     Some(crate::gate_cmd::receipt::rfc3339_from_secs(secs))
 }
 
-/// `war journal <alias> --backfill`: the events the records already imply.
+/// `war admin journal <alias> --backfill`: the events the records already imply.
 pub fn backfill(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
@@ -591,7 +591,7 @@ pub fn backfill(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     Ok(report)
 }
 
-/// `war journal <alias>`: print the events.
+/// `war admin journal <alias>`: print the events.
 pub fn show(repo: &Repository, alias: &str) -> Result<String, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let journal = load(&dir)?;

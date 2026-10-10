@@ -1,0 +1,12 @@
+# The program's types (OW-WAR-0148 M18): the packs installed into profiles/
+# (`war plan types add`) and the documents adopted in place (`war plan type`).
+# An adoption names a document's type here and never changes the document.
+schema = "oh.war/types/v1"
+
+[[document]]
+path = "docs/roadmap/PHASE1_EXIT.md"
+type = "exit-report"
+
+[[document]]
+path = "docs/roadmap/RELEASE_1_0.md"
+type = "release"

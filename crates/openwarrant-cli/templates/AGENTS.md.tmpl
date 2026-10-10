@@ -1,269 +1,158 @@
-# Working in an OpenWarrant repository
+# Working in this repository
 
-Instructions for an AI agent operating in a repository that uses OpenWarrant.
-Read this before starting work: the ticket loop comes first, and the Warrant
-rules follow it, for when a ticket needs sign-off.
+Ordinary coding needs no Warrant and no ticket. Fix bugs, add features,
+refactor and run tests the way you would in any repository: nothing has to be
+created, claimed, approved or signed first.
 
-This file is the single source for these rules. Editor-specific skills should
-point here rather than restate them, so there is one place to correct.
+OpenWarrant is installed here as an optional kit for planning and tracking:
 
----
+- a **Warrant** is a work plan; optional. The lightest one, a **ticket**, is a
+  title and a checklist, so the next person or agent can see what is done and
+  what is left; `war view warrants` lists every Warrant, tickets included;
+- some Warrant types add a person's sign-off, and only those come with the
+  rules near the end of this file.
 
-## Start here: tickets
+Use them when they help, or when the person you work with asks for them.
 
-Most work in this repository is a **ticket**: a sentence, a checklist, and a
-record of who did what. Work it without stopping anyone:
+## Tracking work with tickets (optional)
 
 ```bash
-war prime                                  # FIRST, every session: open tickets, remaining items, claims, notes
-war ready                                  # what can start now
-war claim <item>                           # take one; refused by name if another agent holds it
+war view prime                             # what is open, who holds what, recent notes
+war next                                   # what can start now
+war claim <item>                           # take one; a second claim on it is refused by name
 # do the work
-war done <item> --note "what you did"      # ticks the box in the ticket, releases the claim
-war note <ticket> "a decision, a dead end, a link"   # context the next agent reads
+war done <item> --note "what you did"      # ticks the box and gives the claim back
+war note <ticket> "a decision, a dead end, a link"   # context for the next agent
 war create "What this work accomplishes" --item "..."   # new work; `war add <ticket> "..."` extends one
 ```
 
-**Never ask the human to sign, approve or confirm anything during this loop.**
-Nothing in it needs a signature; a ticket is finished when its boxes are
-ticked. Give yourself a distinct name with `--as <name>` (or
-`OPENWARRANT_ACTOR`) when several agents share the repository. Over MCP the
-same loop is `war_prime`, `war_ready`, `war_claim`, `war_done`, `war_create`,
-`war_add`, `war_note`. Sign-off is opt-in: a human who wants it runs
-`war promote <ticket>`, and the Warrant rules below apply from there.
-`docs/TICKETS.md` has the rest.
+No step in this loop needs a signature or anyone's approval: a ticket is done
+when its boxes are ticked. When several agents share the repository, give each
+one a name with `--as <name>` (or `OPENWARRANT_ACTOR`). Over MCP the same loop
+is `war_prime`, `war_ready`, `war_claim`, `war_done`, `war_create`, `war_add`
+and `war_note`. `war next` lists what is ready; with nothing tracked it says
+"nothing tracked; work freely".
 
-## When a ticket needs sign-off
+## Planning with a Warrant (optional)
 
-Everything in this section is **opt-in**. It applies when a human promotes a
-ticket into a Warrant (`war promote <ticket>`), when the user asks for a
-governed act, or when an explicit gate requires one. None of it is a step in
-the ticket loop above. Whenever the authority layer is used, these rules bind
-in full; ticket work never loosens them.
-
-### Choose the work path first
-
-For prompt-authorized implementation and record keeping, work may start and finish
-**unverified** without an SSH key, SAS acceptance or a Warrant signature. Read the
-specific Warrant and repository policy first: an explicit verified-start gate or
-access restriction still applies. Report the result and evidence without awarding
-Verified status or changing legacy authorization/resolution records.
-
-The signing loop below applies when the user requests a governed legacy act or
-when an explicit gate requires it. Pending signatures shown by `war next` are not
-universal prerequisites for ordinary coding. If a legacy execution command refuses,
-report that command's limit; continue other permitted work through the connected
-agent. Do not fabricate signatures, bypass a required gate or claim that a refusal
-was cleared. Secure human signing belongs to qualification and effective authority
-changes, not every use of OpenWarrant as a task and record system.
-
-### Permissions: you are a performer
-
-You are a **performer**. You may draft, execute, report, and review.
-
-You may **not** authorize, verify your own work, or resolve. That is not a
-policy preference — the tool enforces it, and working around it produces exactly
-the false completion the system exists to prevent.
-
-Five rules. Breaking any of them is worse than doing nothing.
-
-#### 1. Never verify your own work
-
-§51.2 forbids self-completion; RQ-053 forbids a performer's report from
-satisfying an independent gate. If you wrote it, you cannot clear it.
-
-`war verify` will refuse a verdict whose verifier equals the performer, and it
-will **not write the file**. Do not try to satisfy it by changing the `performer`
-field — that is falsifying a record, not passing a check.
-
-#### 2. Never write a disposition you did not receive
-
-An obligation's disposition comes back from an independent verifier through
-`war verify --response`. Hand-writing `disposition: established` into an
-assurance atom is the substitution §40.7 forbids: a judgment standing in for the
-observation it should rest on.
-
-#### 3. Unknown is not failure, and it is not pass
-
-Law 15. A check that could not run reports `UNKNOWN`. Degrading it to `ERROR`
-makes a sound Warrant look broken; degrading it to `PASS` makes an unasked
-question look answered. Both are lies with different shapes.
-
-If you cannot establish something, say so and stop. "Probably fine" is not a
-result.
-
-#### 4. Never edit a generated file
-
-Files under `generated/` are projections. Edit the **atoms** and recompile.
-`war check --generated` will catch a hand-edit, and the correct response is to
-revert your edit, not to regenerate over it.
-
-The same applies to a Warrant that has been authorized: an authorized contract
-revision is immutable (§28.7). Amend by creating a new revision.
-
-And to a **resolved** Warrant's delivered files: `deliverables.toml` pins their
-bytes, and `war check` refuses drift. You may **request** a correction
-(`war correct <alias> <D-id>` emits what a human would sign); you may not sign
-one, and you may never regenerate a resolved Warrant's `deliverables.toml` —
-that stales the resolution. OW-WAR-0064 / OW-ADR-0012.
-
-#### 5. Never change a document to make a tool happy
-
-If a checker and a document disagree, establish which is wrong **before**
-changing either. Editing a correct record so a linter goes green falsifies the
-record — and a green checker that is wrong is worse than a red one that is right.
-
-If the tool is wrong, fix the tool and say so.
-
----
-
-### The Warrant loop
+A Warrant writes a piece of work down before it starts: what it is for, what
+is in and out of its scope, and how anyone will know it is done.
 
 ```bash
-war next                                   # whose act is next, and the command — read this first
-war new "What this work accomplishes"      # creates docs/warrants/{{namespace}}-WAR-NNNN/
-# edit the atoms — this is where the real work is described
-war check <alias>                          # deterministic, no agent, no network
-war compile && war check --generated       # projections written; no drift
-war authorize <alias>                      # the REQUEST: what a human would sign
-#   ── stop. A human runs `war sign <alias>` (terminal) or `--ssh-sign` (dialog). ──
-war pins --resolved-only                   # before editing anything: what a resolution pins
-# deliver; declare it in deliverables.toml
-war deliver <alias>                        # record delivery: §37.2 provenance at the bytes on disk
-war evidence record <alias>                # run the cited gates; mint §44.6 receipts
-war verify <alias> --performer <you>       # the request for an INDEPENDENT verifier
-# hand the request to something that is not you — a separate context, never your own
-war verify <alias> --response <file>       # ingest the verdicts
-war resolve --dry-run <alias>              # what still blocks closure; §38.6 beside the thirteen
-war resolve <alias>                        # the REQUEST
-#   ── stop. A human runs `war sign <alias>`. ──
+war plan new "What this work accomplishes" # creates docs/warrants/{{namespace}}-WAR-NNNN/
+# fill in the atoms (below)
+war check <alias>                          # checks the plan; no agent, no network
+war admin compile && war check --generated # writes the generated views and checks them
 ```
 
-Once the work is done, `war prepare <alias>` (or `--all`) walks the agent's
-half of this in the order that keeps each step standing — deliver, run each
-gate-executed stage, record the cited gates, run the configured independent
-verifier, record the document gates — skips what is current, signs nothing,
-and prints the acts left for a human.
-
-Every command takes `--json` and answers with one `oh.war/report/v1` envelope.
-`war next --json` names every pending act with its actor; no action it hands an
-agent is a signature.
-
-Five acts are a human's and only a human's — authorize, resolve, accept a SAS
-revision, correct a resolved Warrant's delivered file, invalidate a Gate
-Definition version. You emit the request; the tool refuses your signature by
-kind (§27.2), whatever the response file says.
-
-#### Drafting — both paths reach the same gauntlet
-
-A vague sentence becomes a reviewable draft (§74) without you writing files
-under `docs/warrants/` by hand:
+Or draft one from a sentence:
 
 ```bash
-war plan "add a changelog"                       # the REQUEST: corpus, ADRs, questions (oh.war/draft-request/v1)
-# you are the drafter: answer it with an oh.war/draft-proposal/v2 file — operations carry
-# role, ordinal, path, body; relations; evidence claims; durable choices; blocker questions
-war plan --proposal draft.json --reviewed        # §74.4's gauntlet, nothing applied
-war plan --proposal draft.json --reviewed --apply   # creates the Warrant through `war new`; records plan/
-war plan "add a changelog" --draft --reviewed --apply   # or: the configured [plan] drafter_argv answers
+war plan "add a changelog"                            # what a drafter needs (oh.war/draft-request/v1)
+# answer it with an oh.war/draft-proposal/v2 file
+war plan --proposal draft.json --reviewed             # checks the proposal; writes nothing
+war plan --proposal draft.json --reviewed --apply     # creates the Warrant
+war plan "add a changelog" --draft --reviewed --apply # or the configured [plan] drafter answers
 ```
 
-`--apply` refuses a proposal nobody reviewed, a v1 proposal (no payloads), an
-unanswered blocker question, an invented `war://`, and a drafter that touched
-the working tree. Answer questions with `--answer Q-001="..."`.
+`--apply` refuses a proposal nobody reviewed, a v1 proposal, an unanswered
+blocking question, an invented `war://` link, and a drafter that changed the
+working tree. Answer questions with `--answer Q-001="..."`.
 
-#### Over MCP
-
-`war mcp` serves the same surface to any harness over stdio: every read, every
-request half, and the writes an agent may make (`war_new`, `war_deliver`, `war_evidence_record`,
-`war_compile`, `war_gate_run`, `war_journal_backfill`, a reviewed
-`war_plan_apply`). Each tool answers with the `oh.war/report/v1` envelope. It
-registers **no** signing, ingesting, `sas propose`, `kf`, `telemetry`,
-`migrate`, `export`, `bonsai`, `init`, `gate --record` or `plan --draft` tool —
-`war mcp --describe` prints the table and the refusal list. Resources:
-`warrant://<alias>[/status|/journal]`, `status://corpus`, `sas://current`,
-`pins://all`, `next://`.
-
-Claude Code: the repository is also a plugin (`.claude-plugin/`). It ships the
-`openwarrant` skill, this server (`.mcp.json`), a `PreToolUse` guard that
-denies an edit to a file `war pins --resolved-only` lists or to anything under
-`generated/`, and a `Stop` check that blocks ending the turn while `war check`
-reports errors. `claude plugin marketplace add <path-to-repo>` then
-`/plugin install openwarrant@openwarrant`.
-
-#### Writing the atoms
-
-A `delivery` Warrant has five authored atoms. What each is for:
+### Writing the atoms
 
 | atom | what belongs in it |
 |---|---|
-| `10-intent.md` | the problem, the desired outcome, and what is explicitly **out** of scope |
-| `20-basis.md` | governing sources, prerequisites, and unknowns — including blocking ones |
-| `40-work-order.md` | deliverables, frozen surfaces, autonomy limits, rollback |
-| `45-milestones.yaml` | acceptance checkpoints and dispatchable stages |
-| `60-assurance.md` | acceptance obligations, each with a **bounded scope** |
+| `10-intent.md` | the problem, the outcome wanted, and what this Warrant leaves out |
+| `20-basis.md` | sources, prerequisites, and open questions |
+| `40-work-order.md` | deliverables, files to leave as they are, how far to go alone, rollback |
+| `45-milestones.yaml` | checkpoints and the stages that reach them |
+| `60-assurance.md` | how done is checked: obligations, each with a bounded scope |
 
-Obligations are the unit of completion. Each needs an id, a statement, a scope,
-and the evidence that would settle it:
+An obligation names one checkable claim, its scope, and the evidence that
+settles it:
 
 ```markdown
-### OBL-001 — the parser refuses a duplicate ordinal
+### OBL-001: the parser refuses a duplicate ordinal
 
 - **scope:** manifests exercised by the fixtures in `conformance/`. No claim
-  about manifests using fields none of them use.
+  about fields none of them use.
 - **evidence:** a planted duplicate, and the specific error it produces.
 ```
 
-**State the bound.** §38.4: a claim is bounded by its evidence. "The parser
-works" is not an obligation; "the parser refuses a duplicate ordinal, over these
-fixtures" is.
+Pair each claim that something works with a check that it refuses what it
+should: code that always answers yes passes the first and fails the second.
 
-**Pair every claim with a refusal.** An obligation asserting something passes is
-satisfiable by code that always returns success. Add the obligation that the
-control has been observed to *reject*, or you have tested nothing.
+## When a Warrant's type requires sign-off
 
----
+This section applies only while you work on a Warrant whose type has a
+sign-off step (the `delivery` and `decision` types do; a ticket does not).
+Ordinary work, tickets and other Warrants are unaffected by it.
 
-## Things that look like progress and are not
+Sign-off is a person's act. The tool drafts each request, a person signs it
+with `war sign`, and you carry on with other work meanwhile: nothing waits on
+the signature. The tool holds five facts:
 
-- **Marking your own obligations established.** Zero verified obligations is a
-  true state. Fabricated dispositions are a false one, and much harder to undo.
-- **Making `war check` green by narrowing what it checks.** If a check is
-  inconvenient, it is usually load-bearing.
-- **Deleting a failing plant.** The plant exists because the control needs to be
-  seen refusing something.
-- **Writing an obligation you already know you can satisfy.** Assurance is not a
-  formality to be routed around.
+1. **Your own work is checked by someone else.** `war evidence verify` refuses a
+   verdict whose verifier is the performer, and writes nothing. Editing the
+   `performer` field does not get past it; it falsifies the record.
+2. **A disposition comes from the verifier.** An obligation's disposition
+   (`established` and the rest) is recorded by `war evidence verify --response <file>`
+   from an independent verifier's answer. A disposition typed into an atom by
+   hand is not evidence, and the close-out check does not count it.
+3. **Unknown is reported as UNKNOWN.** A check that could not run is neither
+   a pass nor a failure. The tool says UNKNOWN, and so does an honest report:
+   two of thirteen requirements met, said plainly, beats thirteen claimed.
+4. **Generated files are rebuilt, not edited.** Files under `generated/` are
+   views of the atoms: change the atoms and run `war admin compile`;
+   `war check --generated` reports a hand edit as drift. A signed plan
+   revision is fixed, so a change is a new revision. A file a closed Warrant
+   delivered is pinned by its digest: `war admin pins --resolved-only` lists them,
+   `war check` reports drift, and `war sign correct <alias> <D-id>` drafts the
+   correction a person signs.
+5. **A checker's input is fixed at its source.** When a check and a document
+   disagree, find out which one is wrong first. If the document is right, fix
+   the checker; changing a correct record so a check passes makes the record
+   wrong.
 
-## When you are stuck
+The loop for such a Warrant:
 
-Say what you established, what you did not, and stop. A Warrant that honestly
-reports two of thirteen requirements met is more useful than one that claims
-thirteen and is wrong about eleven.
+```bash
+war next                                       # what is ready, and whose step it is
+war sign authorize <alias>                     # drafts the approval request; a person runs `war sign <alias>`
+war admin deliver <alias>                      # records what was delivered, at the bytes on disk
+war evidence record <alias>                    # runs the cited checks and records receipts
+war evidence verify <alias> --performer <you>  # the request for an independent verifier, in a separate context
+war evidence verify <alias> --response <file>  # records the verifier's answer
+war sign resolve --dry-run <alias>             # what is still missing before close-out
+war sign resolve <alias>                       # drafts the close-out request; a person runs `war sign <alias>`
+```
 
----
+`war evidence prepare <alias>` (or `--all`) runs your half of this in order (deliver,
+stages, checks, the configured verifier), skips what is current, signs
+nothing, and lists what is left for a person. Every command takes `--json`
+and answers with one `oh.war/report/v1` envelope; `war next --json` names the
+actor of every step.
 
-## Reference
+The tool accepts only a person's signature for five acts: approving a plan,
+closing a Warrant, accepting a spec revision, correcting a delivered file,
+and withdrawing a check definition. A request you draft for one of them is a
+request, whatever a response file says.
 
-- `docs/sas/generated/NORMATIVE.md` — every SHALL, SHALL NOT, SHOULD and MAY
-  of the governing specification with its section, compiled and drift-checked.
-  Read this, not the whole document: it is about a third of the tokens, and
-  the sentence is what binds. Section references throughout the tool
-  (`§46.2`, `RQ-053`) resolve into it; `docs/sas/` holds the document itself.
-- `war <command> --help` — every command documents the section it implements.
-- `CONTRIBUTING.md` — the gate, the toolchain pin, and the rules for changing
-  this repository itself.
-- `docs/THREAT_MODEL.md` — what the signing path defends, what it leaves to
-  the operator, and which test or plant exercises each control.
-- `QUICKSTART.md` — an empty directory to a resolved Warrant, every step one
-  command, the two human steps marked; `docs/EXAMPLES/` walks real records.
+If `war sign` fails, run `war admin doctor`: it checks the signing setup without
+signing anything and says what to fix. A signing failure blocks only the
+sign-off, not your work.
 
-## Skills over the core (OW-WAR-0068)
+## Tools
 
-Adapted from mattpocock/skills (MIT), each ending in a record the tool reads:
-`/war-grill` (answers land in the draft request), `/war-spec` (conversation to
-a v2 proposal), `/war-tickets` and `war frontier` (stages with blocking edges;
-what can start now), `/war-review` (Standards beside the blind verifier's
-Obligations), `/war-map` (a decision Warrant whose fog is blocking unknowns).
-`CONTEXT.md` at the root is the glossary every Dispatch carries: use its
-words. A skill never signs, and never claims a step it did not run.
+- `war <command> --help`: what each command does.
+- `war admin doctor`: what is installed and configured, signing included.
+- `war admin mcp`: the same commands over MCP; `war admin mcp --describe` lists them.
+  Reads, ticket writes, drafts and requests are tools; signing is a person's
+  act at a terminal, so it is not one.
+- Claude Code plugin (`.claude-plugin/`): the skills, this MCP server, an edit
+  guard that turns back an edit to a generated file or to a file a closed
+  Warrant pins (only in a repository with `openwarrant.toml`), and an
+  end-of-turn check that reports `war check` errors without holding the turn.
+
+{{openwarrant_block}}

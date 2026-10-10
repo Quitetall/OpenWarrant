@@ -77,7 +77,7 @@ CO_TMP=$(mktemp -d)
 RESP=$(mktemp "$CO_TMP/correction.XXXXXX")
 
 # 1. Drift with no correction record is still the error it always was.
-plant "a resolved deliverable drifted with no correction" "deliverable.digest-drift" "war correct" 2 \
+plant "a resolved deliverable drifted with no correction" "deliverable.digest-drift" "war sign correct" 2 \
     "drift_target" \
     "$TARGET_ALIAS"
 

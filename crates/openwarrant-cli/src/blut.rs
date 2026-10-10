@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war blut lower` — lower a stage graph into a BLUT `PlanSpec` (SAS §49).
+//! `war admin blut lower` — lower a stage graph into a BLUT `PlanSpec` (SAS §49).
 //!
 //! # The schema is read from BLUT, not invented here
 //!
@@ -195,7 +195,7 @@ fn describe_count(n: Option<u64>) -> String {
 /// A neighbour that never returns is a fourth way for `--verify` to be
 /// untrustworthy, alongside missing, lying and mute — and it is the only one
 /// with no natural bound. Without this, a BLUT binary that blocks on a lock or
-/// waits for input hangs `war blut` until someone notices, and "the tool hung"
+/// waits for input hangs `war admin blut` until someone notices, and "the tool hung"
 /// is not a verdict.
 const VERIFY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 

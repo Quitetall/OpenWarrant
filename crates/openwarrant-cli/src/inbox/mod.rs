@@ -19,7 +19,7 @@ pub struct Item {
     pub state: openwarrant_core::Phase,
     pub awaited_act: HumanAct,
     pub waiting_since: Option<String>,
-    /// OW-WAR-0137 — on `war inbox --as <actor>`, whether this act is
+    /// OW-WAR-0137 — on `war sign inbox --as <actor>`, whether this act is
     /// assigned to that actor by name. Absent (false) on the shared inbox.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub assigned: bool,
@@ -31,6 +31,22 @@ pub struct Inbox {
     pub namespace: String,
     pub generated_at: String,
     pub items: Vec<Item>,
+    /// OW-WAR-0148 M14: approvals someone asked for (`war sign approve
+    /// <id>`), under a preset or a `[roles]` table. Absent when none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub approvals: Vec<Approval>,
+}
+
+/// One approval asked for and not yet given.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Approval {
+    pub warrant: String,
+    pub title: String,
+    pub kind: String,
+    pub requested_by: String,
+    pub requested_at: String,
+    pub command: String,
 }
 fn timestamp(s: &str) -> Option<DateTime<FixedOffset>> {
     DateTime::parse_from_rfc3339(s).ok()
@@ -76,7 +92,7 @@ pub fn run(repo: &Repository) -> Result<Inbox, RepoError> {
     run_as(repo, None)
 }
 
-/// OW-WAR-0137 — `war inbox --as <actor>`: the same inbox, keeping only the
+/// OW-WAR-0137 — `war sign inbox --as <actor>`: the same inbox, keeping only the
 /// signing acts `actor` may take now (per `sign::eligible`, which an
 /// assignment has already narrowed), acts assigned to them by name first.
 /// Questions stay: answering one is no role's act. `None` is [`run`].
@@ -234,11 +250,31 @@ pub fn run_as(repo: &Repository, actor: Option<&str>) -> Result<Inbox, RepoError
             }
         })
     });
+    let policy = crate::preset::Policy::read_or_default(&repo.root);
+    let approvals = if policy.configured() {
+        crate::official::requested(repo)
+            .into_iter()
+            .filter(|r| {
+                actor.is_none_or(|a| crate::official::may_approve(repo, &policy, r.kind, a))
+            })
+            .map(|r| Approval {
+                warrant: r.warrant,
+                title: r.title,
+                kind: r.kind.as_str().to_owned(),
+                requested_by: r.requested_by,
+                requested_at: r.requested_at,
+                command: r.command,
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
     Ok(Inbox {
         api_version: "oh.war/inbox/v1".into(),
         namespace: repo.config.project.namespace.as_str().to_owned(),
         generated_at,
         items,
+        approvals,
     })
 }
 fn cell(s: &str) -> String {
@@ -253,8 +289,29 @@ fn cell(s: &str) -> String {
         .collect()
 }
 pub fn render(inbox: &Inbox) -> String {
-    if inbox.items.is_empty() {
+    if inbox.items.is_empty() && inbox.approvals.is_empty() {
         return "Nothing waiting on a human.\n".into();
+    }
+    let approvals = || {
+        let mut text = String::new();
+        if !inbox.approvals.is_empty() {
+            text.push_str("APPROVE\tTITLE\tKIND\tASKED BY\tCOMMAND\n");
+            for a in &inbox.approvals {
+                let _ = writeln!(
+                    text,
+                    "{}\t{}\t{}\t{}\t{}",
+                    cell(&a.warrant),
+                    cell(&a.title),
+                    a.kind,
+                    cell(&a.requested_by),
+                    a.command
+                );
+            }
+        }
+        text
+    };
+    if inbox.items.is_empty() {
+        return approvals();
     }
     let mut text = "WARRANT\tTITLE\tSTATE\tAWAITED ACT\tAGE\n".to_owned();
     let now = timestamp(&inbox.generated_at);
@@ -283,6 +340,11 @@ pub fn render(inbox: &Inbox) -> String {
             act,
             age
         );
+    }
+    let more = approvals();
+    if !more.is_empty() {
+        text.push('\n');
+        text.push_str(&more);
     }
     text
 }

@@ -6,8 +6,81 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.3] — 2026-10-09
+
 ### Added
 
+- One compiled model (OW-WAR-0148 M1). `war plan model` emits
+  `oh.war/model/v1`, the records, relations, states and diagnostics every
+  client reads from one corpus built once per process.
+- Typed records and relations (M3): `## <ID> · <type>` record atoms, a
+  closed core set of relation kinds, and `war plan impact <record>`, which
+  names what a change affects.
+- Fixed kernel states, plus declared states that only refine one (M4):
+  `war plan state`.
+- Tickets on the record kernel (M5): types, labels, epics, filters and
+  search; `war create --issue` reads a GitHub issue, and opt-in
+  `[intake.writeback]` comments on and closes it when the work is done.
+- Projections declared as data (M6): PRD, architecture view, test plan and
+  agent packet render from one set of records (`war plan render`).
+- From a prompt to typed records (M7): `war plan --records`.
+- `war admin host` (M8) speaks `oh.war/liminal-v1`: pure, over in-memory
+  files, with conformance fixtures. The host is trusted for the observations
+  it supplies; a missing one fails closed.
+- Tickets are Warrants (M10): one id space, `war view warrants`, and
+  `war admin import|export` for Beads JSONL, OpenSpec and Spec Kit, plus
+  read-in-place `[[adapters]]` that write nothing into those folders.
+- Concurrency (M11): claims shared across a clone's worktrees, leases with
+  `war admin heartbeat`, `--if-rev` compare-and-set
+  (`warrant.stale-revision`), cross-machine claims through a git ref,
+  `warrant.alias-duplicate`, `war admin renumber`, and a ticket merge driver.
+- Optional parts and the tick ladder (M13): `war add <id> --test|--kpi|
+  --milestone`; every tick records how it was earned (claimed < observed <
+  independent < signed); `war done --check`; `war evidence kpi run`.
+- Presets, roles and official Warrants (M14): `war init --vibe|--team|
+  --regulated`; `[roles]` mirroring GitHub levels; `war sign approve` and
+  batched `war sign release`; `war check --pr`, shipped as the GitHub
+  Action `.github/actions/openwarrant-check`, requires an official Warrant
+  at the author's level. Under `--vibe`, `war done` claims for you.
+- The native graph executor (M15): `war start <id>` runs one node in its own
+  worktree with session-only harness settings; `war evidence go` runs the
+  frontier until nothing is ready, with a concurrency cap, budgets, retries,
+  and estimates learned from the journal. Executors are pluggable (a local
+  harness argv, GitHub Agent HQ, Gas Town via the Beads export); every
+  result comes back through `war submit`'s refusals.
+- CLAUDE.md and AGENTS.md (M16): `war admin agents-md --block` keeps a small
+  managed block; their `##` sections become `instruction` records that
+  Warrants can cite and `war plan impact` follows.
+- Every development document is a type (M18): `roadmap`, `spec` and `adr`
+  profiles read today's stores unchanged; ROADMAP.md is a projection;
+  `release`, `incident` and exit-report types in the core; `ops` and
+  `quality` packs (`war plan types add <pack>`). Development docs no type
+  claims appear as `document` records and count against the score's
+  document coverage; `war plan type <file> <type>` adopts one in place.
+
+- The compliance score and the file ledger (OW-WAR-0148 M17; docs/SCORE.md,
+  docs/LEDGER.md). `war status` ends with a score from 1 to 1000, a
+  scorecard of seven dimensions (commits and merged PRs citing a Warrant,
+  the file ledger, typed documents, and the tick ladder's tested, verified
+  and approved shares), a level, and next steps; `--json` carries it as
+  `compliance` (`oh.war/score/v1`). The weights are published and versioned
+  (`oh.war/score-weights/v1`, `war admin score --weights`); a dimension
+  that cannot be measured reads UNKNOWN and earns 0. `war admin score
+  --in-toto` emits an unsigned in-toto Statement v1 (predicate
+  `https://openwarrant.dev/attestation/work-score/v1`, subject
+  `gitCommit`), and `--verify` checks one. `war check --floor <rev>`, and
+  `war check --pr` when the base says `[score] floor = true`, refuse a
+  change that lowers the level (`score.floor`). `war admin compile` writes
+  the badge, report page, statement and a per-compile trend under the
+  self-ignoring `.openwarrant/score/`, never under `generated/`. The file
+  ledger: per-file atoms under `docs/ledger/` (`war admin ledger record`,
+  three writer modes, folded past `[ledger] keep` or a token budget),
+  compiled into the gitignored `.openwarrant/ledger.jsonl` that `war view
+  prime` points to; `war check` refuses a committed JSONL
+  (`ledger.committed`) and a malformed atom (`ledger.atom`). `war admin
+  ledger import/export` read and write Agent Trace v0.1 records and git-ai
+  v3 notes (`refs/notes/ai`). The Action scores the checkout into the job
+  summary and its `score`, `level` and `score-dir` outputs. Plants 170-173.
 - A document's type chooses its capabilities (OW-ADR-0031, OW-WAR-0148 M2).
   `oh.war/profile/v1` gains `capabilities`, from the closed set `structure,
   links, claims, acceptance, evidence, verification, authorization,
@@ -29,6 +102,28 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Changed
 
+- A small surface (M12): `war --help` lists 12 daily verbs (`init create
+  next start claim done add note edit show status check`) and five groups
+  (`plan`, `sign`, `evidence`, `view`, `admin`). Every earlier spelling
+  still works, hidden, with byte-identical output; messages and docs use the
+  new ones (docs/COMMANDS.md).
+
+- Ordinary work is ordinary (M9, t-51280). Everything an agent reads says
+  first that ordinary coding needs no Warrant and no ticket: the AGENTS.md
+  template, the skills, the MCP instructions, and `war next` / `war ready`
+  with nothing ready ("nothing tracked; work freely"). Rules for a Warrant
+  with a sign-off step live in a section scoped to it, as what the tool
+  refuses. `war next` lists an agent's acts before the acts a person signs.
+  `war init` asks nothing: without `--namespace` it derives one from the
+  directory name, writes no signing setup, and `--guided` is the opt-in
+  conversation. The plugin's edit guard acts only in an OpenWarrant
+  repository's own trees. Every `sign.*` refusal names what is missing,
+  carries a remedy and ends "This blocks only the sign-off, not your work";
+  `war doctor` probes the signing setup without signing, `war doctor
+  --fix-signing` repairs it at a terminal (writing only absent files), and
+  `war doctor`/`war prime` warn `install.version-skew` when AGENTS.md or the
+  plugin is newer than the binary. Guarded by plant 101-agent-text (a lint
+  over all shipped agent text) and the opt-in `war eval ordinary`.
 - Verification bundles are bounded (t-9f7e). `oh.war/verification-bundle/v2`
   carries its estimate over the whole JSON against `[verify]
   max_bundle_tokens` (default 48000). A Warrant over it gets one bundle per

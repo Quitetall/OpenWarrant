@@ -38,7 +38,7 @@ pub fn list(repo: &Repository) -> Result<ListResourcesResult, McpError> {
         resource(
             "pins://all",
             "pinned files",
-            "oh.war/pins/v1: files an agent may not edit, with the Warrant that pins each",
+            "oh.war/pins/v1: files closed Warrants pin by digest, with the Warrant that pins each",
             "application/json",
         ),
         resource(

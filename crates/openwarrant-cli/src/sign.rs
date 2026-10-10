@@ -1706,11 +1706,13 @@ pub(crate) fn choose_actor(eligible: &[String], opts: &Options) -> Result<String
         ));
     }
     match eligible {
-        [] => Err(
-            "nobody may sign this: docs/authority/roles.toml grants the role to no \
-                   eligible human, or every holder proposed it (§27.2)"
-                .to_owned(),
-        ),
+        // `signing_probe::finish` replaces this with what is missing (the
+        // file, or the role nobody holds) when it can tell which.
+        [] => Err(format!(
+            "{}: docs/authority/roles.toml gives the role to no eligible human, or every \
+             holder proposed this act and a proposer does not sign their own",
+            crate::signing_probe::NO_ELIGIBLE
+        )),
         [one] => Ok(one.clone()),
         many => Err(format!(
             "more than one eligible signer ({}); pass --as <actor>",
@@ -2125,8 +2127,9 @@ pub(crate) fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Resul
         if signed {
             return Err(format!(
                 "{final_path} already holds a SIGNED response for this exact digest. Ingest it \
-                 (`war authorize/resolve/sas accept … --response`) or remove it; it is not \
-                 overwritten"
+                 with the act's own command (`war sign authorize <alias> --response <file>`, `war sign \
+                 resolve <alias> --response <file>` or `war sign sas accept <version> --response \
+                 <file>`) or remove it; it is not overwritten"
             ));
         }
         let aside = final_path.with_file_name(format!(
@@ -2207,7 +2210,8 @@ pub(crate) fn pubkey_for_principal(
         .collect();
     match matches.as_slice() {
         [] => Err(format!(
-            "no key for principal {principal:?}; add one by hand"
+            "no key for principal {principal:?}: a person adds the line `{principal} \
+             namespaces=\"oh.war/response,oh.war/dsse\" <key from ssh-add -L>`"
         )),
         [one] => Ok(one.clone()),
         // `ssh-keygen -Y verify` would accept ANY of them. Two lines for one
@@ -2349,9 +2353,16 @@ pub(crate) fn ssh_sign_file(
 ) -> Result<Signed, SignRefusal> {
     let refused = |why: String| SignRefusal::new("sign.ssh-refused", why);
     let text = std::fs::read_to_string(allowed_signers).map_err(|e| {
-        refused(format!(
-            "{allowed_signers}: {e}. --ssh-sign needs that file, written by a human"
-        ))
+        refused(if e.kind() == std::io::ErrorKind::NotFound {
+            format!(
+                "{allowed_signers} does not exist; --ssh-sign verifies every signature against \
+                 it. It needs one line for {principal}: `{principal} \
+                 namespaces=\"oh.war/response,oh.war/dsse\" <key from ssh-add -L>`, written by a \
+                 person (`war admin doctor --fix-signing` at a terminal offers to write it)"
+            )
+        } else {
+            format!("{allowed_signers} could not be read: {e}")
+        })
     })?;
     let pubkey = pubkey_for_principal(&text, principal)
         .map_err(|why| refused(format!("{allowed_signers}: {why}")))?;
@@ -2368,12 +2379,23 @@ pub(crate) fn ssh_sign_file(
         .arg(file)
         .output();
     let _ = std::fs::remove_file(&pub_path);
-    let out = sign.map_err(|e| refused(format!("could not run ssh-keygen: {e}")))?;
+    let out = sign.map_err(|e| {
+        refused(if e.kind() == std::io::ErrorKind::NotFound {
+            "ssh-keygen is not installed or not on PATH; --ssh-sign needs OpenSSH 8.2 or later"
+                .to_owned()
+        } else {
+            format!("could not run ssh-keygen: {e}")
+        })
+    })?;
     if !out.status.success() {
-        return Err(refused(format!(
-            "ssh-keygen -Y sign refused ({}): {}",
-            out.status,
-            String::from_utf8_lossy(&out.stderr).trim()
+        // M9: say what is missing (no agent, no key, the wrong key), read
+        // from the agent's public keys; raw stderr only when nothing better
+        // is known.
+        return Err(refused(crate::signing_probe::sign_failure(
+            principal,
+            &pubkey,
+            &out.status.to_string(),
+            &String::from_utf8_lossy(&out.stderr),
         )));
     }
     let sig = sig_path(file);
@@ -2807,8 +2829,9 @@ pub(crate) fn principal_of(repo: &Repository, actor: &str) -> Result<String, Str
         .and_then(|a| a.ssh_principal.clone())
         .ok_or_else(|| {
             format!(
-                "{actor} has no `ssh_principal` in docs/authority/roles.toml; --ssh-sign needs \
-                 one, and only a human writes that file"
+                "{actor} has no `ssh_principal` in docs/authority/roles.toml, so --ssh-sign \
+                 cannot name their key; a person adds `ssh_principal = \"<name, no spaces>\"` \
+                 to {actor}'s [[assignment]] (plain `war sign` at a terminal works without it)"
             )
         })
 }
@@ -2871,6 +2894,14 @@ fn edit(path: &Utf8Path) -> Result<(), RepoError> {
 /// thing and reads nothing it does not need. `--show` is the one path that
 /// reads without a terminal, because it writes nothing and asks nothing.
 pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Report, RepoError> {
+    let mut report = run_acts(repo, target, opts)?;
+    // M9: each refusal names what is missing and ends by saying it blocks
+    // only the sign-off. Rules are untouched, so every reader of them is too.
+    crate::signing_probe::finish(repo, &mut report);
+    Ok(report)
+}
+
+fn run_acts(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Report, RepoError> {
     let mut report = Report::default();
     if opts.verify {
         return verify_existing(repo, target, opts);
@@ -2879,9 +2910,10 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         report.push(Diagnostic::error(
             "sign.no-tty",
             "war sign".to_owned(),
-            "a signature needs a hand: stdin and stdout must both be a terminal. This is \
-             refused from a pipe or an agent's shell by design (§27.2); run it yourself, \
-             or use `war sign --list` to see what is waiting"
+            "war sign needs a terminal: stdin and stdout must both be one, so it does not run \
+             from a pipe or an agent's shell. A person runs it at their own terminal, or signs \
+             with `--ssh-sign` through the ssh agent's dialog; `war sign --list` shows what is \
+             waiting"
                 .to_owned(),
         ));
         return Ok(report);

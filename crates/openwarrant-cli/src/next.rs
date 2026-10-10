@@ -12,7 +12,7 @@
 //! human must, and how.
 //!
 //! t-67ed: ready ticket items come first. They are read from the ticket
-//! store with the same computation `war ready` uses, carry `war claim`, and
+//! store with the same computation `war view ready` uses, carry `war claim`, and
 //! are never a signature; the Warrant acts follow them, still judged.
 
 use serde::Serialize;
@@ -21,6 +21,15 @@ use crate::repo::{RepoError, Repository};
 use crate::sign::{self, Pending};
 
 pub const SCHEMA: &str = "oh.war/next/v1";
+
+/// The first line `war next` prints when nothing is tracked (M9): ordinary
+/// work needs no ticket and no Warrant, so an empty list is permission to
+/// carry on, said as such.
+pub const IDLE_UNTRACKED: &str = "nothing tracked; work freely";
+/// The first line when tickets or Warrants exist and none is ready now.
+pub const IDLE_TRACKED: &str = "nothing tracked is ready; work freely";
+/// The one-line hint under either: tracking is a choice, never a step.
+pub const IDLE_HINT: &str = "to track work (optional): war create \"what this work does\"";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -67,7 +76,7 @@ pub struct Action {
     pub judged: Option<Judged>,
 }
 
-/// A ticket item that can start now (`war ready`'s row), offered before any
+/// A ticket item that can start now (`war view ready`'s row), offered before any
 /// Warrant act. Its command is always `war claim`: never a signature.
 #[derive(Debug, Clone, Serialize)]
 pub struct ReadyItem {
@@ -106,11 +115,27 @@ pub struct Next {
     /// Why `actions` is empty, when it is. Never silently empty.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nothing: Option<String>,
+    /// M9: when nothing at all is ready (no ticket item, no act), the line
+    /// that says so in plain words: [`IDLE_UNTRACKED`] when nothing is
+    /// tracked, [`IDLE_TRACKED`] when tracked work exists and none of it is
+    /// ready. Either way ordinary work goes on; neither is a stop.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub idle: Option<String>,
     /// What stands in the way that no action here can clear (OW-WAR-0132):
     /// today `question.no-responder`, a blocking question nobody in the
     /// authority register may answer. UNKNOWN, never silently "waiting".
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub findings: Vec<Finding>,
+    /// OW-WAR-0148 M14: under a preset that signs at release, the one
+    /// command that signs the queue above in one batch. Absent otherwise.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub release: Option<String>,
+    /// OW-WAR-0148 M15: work `war evidence go` set aside for a person (its
+    /// attempts ran out, or its performer asked for a decision), each with
+    /// the reason and the command that puts it back. Absent when there is
+    /// none, so the envelope is the bytes it always was.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub blocked: Vec<crate::go::BlockedNode>,
 }
 
 /// A finding carried into `war next`, in the envelope diagnostic's shape.
@@ -130,7 +155,7 @@ pub struct Finding {
 ///
 /// `profiles` answers what each Warrant's kind selects (OW-ADR-0031): no act
 /// is offered for a capability its kind lacks. A human act arrives here only
-/// when its request could be built, and `war authorize`/`war resolve` refuse
+/// when its request could be built, and `war sign authorize`/`war sign resolve` refuse
 /// a kind without the capability, so the gate for those is upstream.
 #[must_use]
 pub fn derive(
@@ -271,7 +296,10 @@ pub fn derive(
                     actor: Actor::Agent,
                     warrant: w.alias.clone(),
                     action: "deliver".to_owned(),
-                    command: format!("war evidence record {a} && war verify {a}", a = w.alias),
+                    command: format!(
+                        "war evidence record {a} && war evidence verify {a}",
+                        a = w.alias
+                    ),
                     why: if unmet.is_empty() {
                         "not every §56.1 requirement is met".to_owned()
                     } else {
@@ -285,7 +313,7 @@ pub fn derive(
                     actor: Actor::Agent,
                     warrant: w.alias.clone(),
                     action: "verify".to_owned(),
-                    command: format!("war verify {}", w.alias),
+                    command: format!("war evidence verify {}", w.alias),
                     why: "obligations remain unestablished; a blind verifier must dispose of them"
                         .to_owned(),
                     judged: None,
@@ -302,7 +330,7 @@ pub fn derive(
             actor: Actor::Agent,
             warrant: s.warrant.clone(),
             action: "execute".to_owned(),
-            command: format!("war dispatch {} {}", s.warrant, s.stage),
+            command: format!("war admin dispatch {} {}", s.warrant, s.stage),
             why: format!("{} / {}: {}", s.milestone, s.stage, s.why),
             judged: None,
         });
@@ -335,9 +363,7 @@ pub fn derive(
                     }
                     s
                 })
-                .unwrap_or_else(|| {
-                    "nothing awaits a signature and no stage is actionable".to_owned()
-                }),
+                .unwrap_or_else(|| "no signature is waiting and no stage is ready".to_owned()),
         )
     } else {
         None
@@ -347,12 +373,15 @@ pub fn derive(
         ready: Vec::new(),
         actions,
         nothing,
+        idle: None,
         findings: Vec::new(),
+        release: None,
+        blocked: Vec::new(),
     }
 }
 
 /// OW-WAR-0132: the frontier's question edge, applied to the table. A stage
-/// a blocking question holds is not offered to an agent (`war dispatch` would
+/// a blocking question holds is not offered to an agent (`war admin dispatch` would
 /// start work the question is meant to stop), and the frontier's
 /// `question.no-responder` is carried as a finding. Pure over the frontier,
 /// so the rule is testable without a repository.
@@ -388,7 +417,7 @@ pub fn apply_questions(
     }
     if next.actions.is_empty() && next.nothing.is_none() {
         next.nothing = Some(if held.is_empty() {
-            "nothing awaits a signature and no stage is actionable".to_owned()
+            "no signature is waiting and no stage is ready".to_owned()
         } else {
             format!(
                 "every actionable stage waits on a blocking question: {}",
@@ -413,7 +442,7 @@ pub fn run(repo: &Repository) -> Result<Next, RepoError> {
 }
 
 /// [`run`] over a corpus already loaded, so a caller that also needs the
-/// status, the sign queue or the frontier (`war compile`'s master document,
+/// status, the sign queue or the frontier (`war admin compile`'s master document,
 /// the web UI) builds each once.
 pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
     let repo = corpus.repo();
@@ -429,12 +458,59 @@ pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
         next.nothing = None;
     }
     judge(repo, pending, &mut next);
+    preset_acts(repo, &mut next);
     ready_tickets_with(corpus, &mut next);
+    // OW-WAR-0148 M15: what a run set aside is a person's to look at, and is
+    // not offered as ready meanwhile.
+    if let Ok((tickets, _)) = corpus.tickets() {
+        next.blocked = crate::go::blocked_nodes(tickets);
+        next.ready.retain(|r| {
+            let id = match &r.item {
+                Some(i) => format!("{}/{i}", r.ticket),
+                None => r.ticket.clone(),
+            };
+            !next.blocked.iter().any(|b| b.node == id)
+        });
+    }
+    if next.actions.is_empty() && next.ready.is_empty() {
+        // M9: an empty list is said as what it means for ordinary work. A
+        // ticket store that could not be read counts as tracked: "nothing
+        // tracked" is a claim, and the finding above already says UNKNOWN.
+        let open_ticket = corpus.tickets().map_or(true, |(tickets, _)| {
+            tickets.iter().any(|t| !t.checklist.is_done())
+        });
+        let open_warrant = status
+            .warrants
+            .iter()
+            .any(|w| w.rung != openwarrant_core::status::WarrantRung::Resolved);
+        next.idle = Some(
+            if open_ticket || open_warrant {
+                IDLE_TRACKED
+            } else {
+                IDLE_UNTRACKED
+            }
+            .to_owned(),
+        );
+    }
     Ok(next)
 }
 
+/// The lines `war next` (and the console) print when nothing is ready: the
+/// plain first line, the reason, and the one-line hint. `None` when there is
+/// something to list.
+#[must_use]
+pub fn idle_lines(n: &Next) -> Option<Vec<String>> {
+    let first = n.idle.as_deref()?;
+    let mut lines = vec![first.to_owned()];
+    if let Some(why) = &n.nothing {
+        lines.push(format!("  {why}"));
+    }
+    lines.push(format!("  {IDLE_HINT}"));
+    Some(lines)
+}
+
 /// t-67ed: the ticket store's ready set, ahead of every Warrant act. The
-/// same `ticket::ready_rows` `war ready` answers from, so the two never
+/// same `ticket::ready_rows` `war view ready` answers from, so the two never
 /// disagree. A store that cannot be read is an UNKNOWN finding, never an
 /// empty list presented as "nothing ready".
 pub fn ready_tickets(repo: &Repository, next: &mut Next) {
@@ -498,6 +574,62 @@ pub fn judge(repo: &Repository, pending: &[Pending], next: &mut Next) {
                 }),
         );
     }
+    order(next);
+}
+
+/// OW-WAR-0148 M14: the human acts a preset adds, only where one (or a
+/// `[roles]` table) is configured: each approval someone asked for (`war
+/// sign approve <id> --ssh-sign`, judged by its own dry run), and, when the
+/// preset signs at release and two or more acts wait, the one command that
+/// signs them in a batch. Without a preset the list is what it always was.
+pub fn preset_acts(repo: &Repository, next: &mut Next) {
+    let policy = crate::preset::Policy::read_or_default(&repo.root);
+    if !policy.configured() {
+        return;
+    }
+    let signing_acts = next
+        .actions
+        .iter()
+        .filter(|a| a.actor == Actor::Human && a.command.starts_with("war sign "))
+        .count();
+    if policy.signing == crate::preset::Signing::Release && signing_acts >= 2 {
+        next.release = Some(format!(
+            "{signing_acts} acts above can be signed in one sitting at release: `war sign \
+             release <tag>` lists them and drafts the one batch"
+        ));
+    }
+    let requested = crate::official::requested(repo);
+    if requested.is_empty() {
+        return;
+    }
+    let store = crate::ticket::Store::open(repo, None).ok();
+    for r in requested {
+        let judged = store.as_ref().map_or(
+            Judged::WouldRefuse {
+                rule: "sign.dry-run-failed".to_owned(),
+            },
+            |st| {
+                let args = crate::official::ApproveArgs {
+                    dry_run: true,
+                    ..crate::official::ApproveArgs::default()
+                };
+                verdict(crate::official::approve(repo, st, &r.warrant, &args).map(|o| o.report))
+            },
+        );
+        next.actions.push(Action {
+            actor: Actor::Human,
+            warrant: r.warrant.clone(),
+            action: "approve".to_owned(),
+            command: r.command.clone(),
+            why: format!(
+                "{} asked for an approval of this {} Warrant (\"{}\"); approved, it is official",
+                r.requested_by, r.kind, r.title
+            ),
+            judged: Some(judged),
+        });
+    }
+    next.nothing = None;
+    next.idle = None;
     order(next);
 }
 
@@ -589,13 +721,15 @@ fn verdict(report: Result<crate::diagnostic::Report, RepoError>) -> Judged {
     Judged::WouldRefuse { rule }
 }
 
-/// Humans first; among them, what would record before what would refuse.
-/// A stable sort, so the order within each group is `derive`'s.
+/// Workable items first (M9): an agent's acts, then the human acts, and
+/// among those what would record before what would refuse. A signature row
+/// at the top read as "wait for this", in a repository where nothing waits
+/// on one. A stable sort, so the order within each group is `derive`'s.
 fn order(next: &mut Next) {
     next.actions.sort_by_key(|a| match (a.actor, &a.judged) {
-        (Actor::Human, Some(Judged::WouldRecord) | None) => 0,
-        (Actor::Human, Some(Judged::WouldRefuse { .. })) => 1,
-        (Actor::Agent, _) => 2,
+        (Actor::Agent, _) => 0,
+        (Actor::Human, Some(Judged::WouldRecord) | None) => 1,
+        (Actor::Human, Some(Judged::WouldRefuse { .. })) => 2,
     });
 }
 
@@ -637,12 +771,23 @@ pub fn render(n: &Next) -> String {
             a.why
         ));
     }
-    if let Some(why) = &n.nothing {
-        if n.ready.is_empty() {
-            s.push_str(&format!("nothing to do: {why}\n"));
-        } else {
-            s.push_str(&format!("no Warrant act waits: {why}\n"));
+    if let Some(r) = &n.release {
+        s.push_str(&format!("{:>6} {r}\n", ""));
+    }
+    if let Some(lines) = idle_lines(n) {
+        for l in lines {
+            s.push_str(&l);
+            s.push('\n');
         }
+    } else if let Some(why) = &n.nothing {
+        s.push_str(&format!("no Warrant act waits: {why}\n"));
+    }
+    // OW-WAR-0148 M15: after the plain first line, what a run set aside.
+    for b in &n.blocked {
+        s.push_str(&format!(
+            "{:<6} {:<12} {:<10} {}\n{:>6} set aside by `war evidence go` after {} attempt(s): {}\n",
+            "HUMAN", b.node, "look", b.command, "", b.attempts, b.reason
+        ));
     }
     for f in &n.findings {
         s.push_str(&format!(
@@ -684,7 +829,7 @@ mod tests {
             actor: Actor::Agent,
             warrant: "X-WAR-0001".to_owned(),
             action: "execute".to_owned(),
-            command: format!("war dispatch X-WAR-0001 {stage}"),
+            command: format!("war admin dispatch X-WAR-0001 {stage}"),
             why: String::new(),
             judged: None,
         }
@@ -720,7 +865,10 @@ mod tests {
                 execute("STAGE-003"),
             ],
             nothing: None,
+            idle: None,
             findings: Vec::new(),
+            release: None,
+            blocked: Vec::new(),
         };
         apply_questions(&mut next, &frontier, &report);
         let offered: Vec<&str> = next.actions.iter().map(|a| a.command.as_str()).collect();
@@ -728,8 +876,8 @@ mod tests {
         assert_eq!(
             offered,
             [
-                "war dispatch X-WAR-0001 STAGE-002",
-                "war dispatch X-WAR-0001 STAGE-003"
+                "war admin dispatch X-WAR-0001 STAGE-002",
+                "war admin dispatch X-WAR-0001 STAGE-003"
             ]
         );
         assert_eq!(next.findings.len(), 1);
@@ -747,7 +895,10 @@ mod tests {
             ready: Vec::new(),
             actions: vec![execute("STAGE-001")],
             nothing: None,
+            idle: None,
             findings: Vec::new(),
+            release: None,
+            blocked: Vec::new(),
         };
         apply_questions(&mut next, &frontier, &crate::diagnostic::Report::default());
         assert!(next.actions.is_empty());
@@ -761,7 +912,7 @@ mod tests {
     }
 
     #[test]
-    fn an_agent_is_never_handed_a_signing_act_and_humans_come_first() {
+    fn an_agent_is_never_handed_a_signing_act_and_workable_acts_come_first() {
         // The real corpus is the fixture: every kind of pending act exists in
         // it or in its history, and the invariant must hold over all of it.
         let root = camino::Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -795,10 +946,12 @@ mod tests {
             assert!(r.command.starts_with("war claim "), "{r:?}");
             assert!(!r.command.contains("war sign"), "{r:?}");
         }
-        let first_agent = n.actions.iter().position(|a| a.actor == Actor::Agent);
-        let last_human = n.actions.iter().rposition(|a| a.actor == Actor::Human);
-        if let (Some(fa), Some(lh)) = (first_agent, last_human) {
-            assert!(lh < fa, "human acts are listed before agent acts");
+        // M9: an agent's workable acts come before every human act, so a
+        // signature row never heads the list of what to do.
+        let last_agent = n.actions.iter().rposition(|a| a.actor == Actor::Agent);
+        let first_human = n.actions.iter().position(|a| a.actor == Actor::Human);
+        if let (Some(la), Some(fh)) = (last_agent, first_human) {
+            assert!(la < fh, "agent acts are listed before human acts");
         }
         let first_refused = n
             .actions
@@ -863,7 +1016,10 @@ mod tests {
             ready: vec![ready_item()],
             actions: vec![human_act()],
             nothing: None,
+            idle: None,
             findings: Vec::new(),
+            release: None,
+            blocked: Vec::new(),
         };
         let out = render(&next);
         let claim = out
@@ -885,24 +1041,63 @@ mod tests {
     }
 
     #[test]
-    fn with_no_ready_item_nothing_is_said_plainly_and_ready_is_omitted() {
+    fn with_nothing_ready_it_says_work_freely_and_ready_is_omitted() {
         let next = Next {
             schema: SCHEMA,
             ready: Vec::new(),
             actions: Vec::new(),
-            nothing: Some("nothing awaits".to_owned()),
+            nothing: Some("no signature is waiting".to_owned()),
+            idle: Some(IDLE_UNTRACKED.to_owned()),
             findings: Vec::new(),
+            release: None,
+            blocked: Vec::new(),
         };
-        assert!(render(&next).starts_with("nothing to do: nothing awaits"));
+        let out = render(&next);
+        // M9: the first line is permission, the second the reason, the third
+        // the optional hint; nothing reads as "nothing to do".
+        let lines: Vec<&str> = out.lines().collect();
+        assert_eq!(lines[0], "nothing tracked; work freely", "{out}");
+        assert_eq!(lines[1], "  no signature is waiting");
+        assert!(lines[2].contains("war create"), "{out}");
+        assert!(!out.contains("nothing to do"), "{out}");
         let v = serde_json::to_value(&next).unwrap();
         assert!(v.get("ready").is_none());
-        // Refusal side: with a ready item, "nothing to do" is not said.
+        assert_eq!(v["idle"], IDLE_UNTRACKED);
+        // Tracked work that is not ready says so, and still frees the reader.
+        let tracked = Next {
+            idle: Some(IDLE_TRACKED.to_owned()),
+            ..next.clone()
+        };
+        assert!(render(&tracked).starts_with("nothing tracked is ready; work freely\n"));
+        // Refusal side: with a ready item there is no idle line at all.
         let next = Next {
             ready: vec![ready_item()],
+            idle: None,
             ..next
         };
         let out = render(&next);
-        assert!(!out.contains("nothing to do"), "{out}");
-        assert!(out.contains("no Warrant act waits: nothing awaits"));
+        assert!(!out.contains("work freely"), "{out}");
+        assert!(out.contains("no Warrant act waits: no signature is waiting"));
+    }
+
+    #[test]
+    fn an_agent_act_is_ordered_before_a_human_act() {
+        let mut next = Next {
+            schema: SCHEMA,
+            ready: Vec::new(),
+            actions: vec![human_act(), execute("STAGE-001")],
+            nothing: None,
+            idle: None,
+            findings: Vec::new(),
+            release: None,
+            blocked: Vec::new(),
+        };
+        order(&mut next);
+        assert_eq!(next.actions[0].actor, Actor::Agent);
+        assert_eq!(next.actions[1].actor, Actor::Human);
+        // And the reverse input gives the same order: the sort decides it.
+        next.actions.reverse();
+        order(&mut next);
+        assert_eq!(next.actions[0].actor, Actor::Agent);
     }
 }

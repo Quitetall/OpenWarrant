@@ -1,0 +1,49 @@
+# Architecture decision records (SAS §19) as a type (OW-WAR-0148 M18): one
+# store, read where it is, and no longer a special case of the kernel.
+#
+# Its records are the ADR store's: one ADR per atom under docs/adr/atoms/,
+# each with the status its own front matter states (proposed, accepted,
+# superseded, deprecated, rejected, withdrawn, falsified) and the decisions
+# it supersedes. Nothing here changes how an ADR is read. The rules that
+# apply, each through a capability this type selects:
+#
+# - structure: every atom parses (adr.malformed, adr.parsed).
+# - links: `supersedes` between decisions. An ADR another supersedes
+#   reaches the fixed state `superseded`. The Warrants an ADR governs are
+#   carried as `adr.governs`, a namespaced relation that drives nothing.
+#
+# An ADR's status is authored in its own file, never signed, so this type
+# cannot select `acceptance`: an ADR reads `status: accepted` in the model,
+# and never the authenticated state `accepted`. It declares no [[states]]
+# of its own, for the same reason as the roadmap's.
+# docs/TYPES.md, "Every development document is a type".
+schema = "oh.war/profile/v1"
+name = "adr"
+form = "document"
+encoding = "adr"
+note = "A decision with its context, the alternatives and its consequences, one per atom in docs/adr/atoms/, with the status its own front matter states."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["adr"]
+
+[relations]
+allow = ["supersedes"]
+
+# Rendered on request (`war plan render adr-index`), never written: the
+# compiled view of the decisions stays ADR_OVERVIEW.md under
+# docs/adr/generated/.
+[[projections]]
+name = "adr-index"
+title = "{title}: decisions"
+intro = "Every decision with the status its own front matter states, and what it supersedes."
+
+[projections.select]
+types = ["adr"]
+
+[[projections.sections]]
+heading = "Decisions"
+block = "table"
+types = ["adr"]
+columns = ["id", "summary=Decision", "field:status=Status", "out:supersedes=Supersedes"]
+empty = "No ADR is recorded."

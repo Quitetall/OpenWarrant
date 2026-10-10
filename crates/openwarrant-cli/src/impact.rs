@@ -9,9 +9,10 @@
 //!   relations, transitively, each with the edge it was reached by and its
 //!   depth. A namespaced relation (`x.mentions`) is carried and inert: it is
 //!   listed under `inert` and never walked.
-//! - **documents** — the Warrants, tickets and record atoms that hold the
-//!   subject or an affected record, and the Warrants and tickets whose text
-//!   names one of them by id (a Warrant's basis naming `REQ-pr1`).
+//! - **documents** — the Warrants, tickets, record atoms and instruction
+//!   files that hold the subject or an affected record, and the Warrants and
+//!   tickets whose text names one of them by id (a Warrant's basis naming
+//!   `REQ-pr1`, or citing `md:CLAUDE.md#testing`, M16).
 //! - **evaluations** — each obligation that `evaluates` the subject or an
 //!   affected record, with its verdict as recorded, the revision its
 //!   relation pins and the target's revision now. A verdict bound to another
@@ -169,6 +170,24 @@ fn tokens(text: &str) -> BTreeSet<&str> {
         .collect()
 }
 
+/// The ids of `named` that `text` names: a record id as a word, an
+/// instruction section (`md:CLAUDE.md#testing`, M16) as a citation.
+fn mentioned<'a>(text: &str, named: &BTreeSet<&'a str>) -> Vec<&'a str> {
+    let words = tokens(text);
+    let cited = openwarrant_core::instruction::citations(text);
+    named
+        .iter()
+        .copied()
+        .filter(|i| {
+            if i.starts_with(openwarrant_core::instruction::ID_PREFIX) {
+                cited.iter().any(|c| c == i)
+            } else {
+                words.contains(i)
+            }
+        })
+        .collect()
+}
+
 /// The impact of a change to `id`, or `None` when `id` is no record of the
 /// model (and the report says so by name).
 pub fn build(corpus: &Corpus, id: &str) -> Result<(Report, Option<Impact>), RepoError> {
@@ -179,7 +198,7 @@ pub fn build(corpus: &Corpus, id: &str) -> Result<(Report, Option<Impact>), Repo
             "impact.unknown-record",
             id.to_owned(),
             format!(
-                "{id} is not a record of this corpus ({} records); `war model --json` lists \
+                "{id} is not a record of this corpus ({} records); `war plan model --json` lists \
                  every record id",
                 model.records.len()
             ),
@@ -276,9 +295,16 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
         }
     };
     let authored = corpus.records();
+    let adapted = corpus.adapters();
     for id in &reached {
         if let Some(r) = authored.get(id) {
             because(&r.source, "records", format!("declares {id}"));
+        } else if let Some(r) = authored.instruction(id) {
+            // M16: the instruction file that holds the section.
+            because(&r.source, "instruction", format!("declares {id}"));
+        } else if let Some((kind, source)) = adapted.source_of(id) {
+            // M10: a folder read in place declares it.
+            because(&source, kind, format!("declares {id}"));
         } else if let Some((head, _)) = id.split_once('/')
             && let Some(holder) = records.get(head)
         {
@@ -288,7 +314,7 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
     let named: BTreeSet<&str> = reached
         .iter()
         .copied()
-        .filter(|i| !i.contains('/'))
+        .filter(|i| !i.contains('/') || i.starts_with(openwarrant_core::instruction::ID_PREFIX))
         .collect();
     if let Ok(entries) = corpus.entries() {
         for e in entries {
@@ -302,8 +328,7 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
             };
             for atom in &basis.atoms {
                 let text = String::from_utf8_lossy(&atom.bytes);
-                let words = tokens(&text);
-                for id in named.iter().filter(|i| words.contains(**i) && **i != alias) {
+                for id in mentioned(&text, &named).into_iter().filter(|i| *i != alias) {
                     because(&alias, "warrant", format!("names {id} in {}", atom.source));
                 }
             }
@@ -315,11 +340,7 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
                 (&t.intent, &t.intent_path),
                 (&t.checklist_text, &t.checklist_path),
             ] {
-                let words = tokens(text);
-                for id in named
-                    .iter()
-                    .filter(|i| words.contains(**i) && **i != t.id())
-                {
+                for id in mentioned(text, &named).into_iter().filter(|i| *i != t.id()) {
                     because(
                         t.id(),
                         "ticket",

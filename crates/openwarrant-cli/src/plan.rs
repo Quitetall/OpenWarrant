@@ -597,7 +597,7 @@ pub fn apply_with(
     report.push(Diagnostic::pass(
         "plan.applied",
         format!(
-            "{alias}: {applied} operation(s) applied, {} ADR(s) proposed; request, proposal and pipeline recorded under plan/; run `war compile` to project it",
+            "{alias}: {applied} operation(s) applied, {} ADR(s) proposed; request, proposal and pipeline recorded under plan/; run `war admin compile` to project it",
             adrs.len()
         ),
     ));
@@ -871,7 +871,7 @@ pub struct Asked {
 /// blocker nobody has answered yet, the question goes to
 /// `docs/intake/<key>/` — beside the request and, for a ticket, its intake
 /// record — and no alias is allocated: a Warrant with nothing in it is the
-/// invented Warrant this path exists to prevent. `war questions`, `war
+/// invented Warrant this path exists to prevent. `war plan questions`, `war
 /// answer` and `war next` read it from there.
 ///
 /// `None` when this is not that case, and the caller reports the error as
@@ -957,7 +957,7 @@ pub fn record_questions(
         ids.push(q.id.clone());
     }
     report.note(format!(
-        "A human answers: `war answer {} <id> \"<answer>\" --as <actor>`. Then the input is \
+        "A human answers: `war plan answer {} <id> \"<answer>\" --as <actor>`. Then the input is \
          drafted again with its answers: `{redraft}`",
         i.key
     ));

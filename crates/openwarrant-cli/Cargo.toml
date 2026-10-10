@@ -1,7 +1,10 @@
 [package]
 name = "openwarrant-cli"
+# One integration-test binary: tests/all.rs includes every tests/*.rs as a
+# module, so the CLI is linked once per `cargo test`, not once per file.
+autotests = false
 description = "The `war` command line interface for Work Authorization Records."
-version = "1.0.0-alpha.2"
+version = "1.0.0-alpha.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -23,6 +26,10 @@ doctest = false
 [[bin]]
 name = "war"
 path = "src/main.rs"
+
+[[test]]
+name = "all"
+path = "tests/all.rs"
 
 [dependencies]
 chrono = { version = "=0.4.45", default-features = false, features = ["std"] }

@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
-//! What a person or an arriving agent reads: `war prime`, `war show`,
-//! `war tickets`. Plain Markdown, in the words of the work — no rule names,
+//! What a person or an arriving agent reads: `war view prime`, `war show`,
+//! `war view tickets`. Plain Markdown, in the words of the work — no rule names,
 //! no section numbers.
 
 use std::collections::BTreeMap;
 
 use serde::Serialize;
 
+use openwarrant_core::ticks::Level;
+
+use openwarrant_core::ticks::Checks;
+
+use super::ladder::{TickCounts, TickView};
 use super::{
     Outcome, Store, Target, Ticket, TicketState, claim, claim_on, now_secs, open_blockers, resolve,
     rfc3339, state_of,
@@ -99,6 +104,7 @@ fn annotation(
     item: &openwarrant_core::ticket::Item,
     claims: &Claims,
     now: u64,
+    checks: &Checks,
 ) -> String {
     let mut notes = Vec::new();
     let held = item
@@ -109,7 +115,9 @@ fn annotation(
     if let Some((_, c)) = held {
         notes.push(match c {
             Some(c) => {
-                let stale = if c.age(now) > store.ttl_secs {
+                let stale = if c.lease_expired(now) {
+                    ", lease ran out"
+                } else if c.age(now) > store.ttl_secs {
                     ", stale"
                 } else {
                     ""
@@ -126,11 +134,57 @@ fn annotation(
     if item.id.is_none() {
         notes.push("no id yet".to_owned());
     }
+    // OW-WAR-0148 M13: what the item must show when it ticks, when that is
+    // more than a claim.
+    if let Some(n) = minimum_note(store, t, item, checks) {
+        notes.push(n);
+    }
     if notes.is_empty() {
         String::new()
     } else {
         format!(" — {}", notes.join("; "))
     }
+}
+
+/// `ticks at observed or above: `war done t-x/i-y --check`` for an open item
+/// whose minimum is above claimed; `None` for every other.
+fn minimum_note(
+    store: &Store,
+    t: &Ticket,
+    item: &openwarrant_core::ticket::Item,
+    checks: &Checks,
+) -> Option<String> {
+    let id = item.id.as_deref()?;
+    let (min, _) = super::ladder::minimum(store, t, checks, Some(id));
+    let milestone = checks.milestone(id).is_some();
+    if min == Level::Claimed && !milestone {
+        return None;
+    }
+    let target = format!("{}/{id}", t.id());
+    Some(format!(
+        "{}ticks at {} or above: {}",
+        if milestone { "milestone; " } else { "" },
+        min.as_str(),
+        super::ladder::command_for(min, &target)
+    ))
+}
+
+/// What a view puts beside a done item: its level, who verified or signed
+/// it, and the minimum when it is short of it. `(claimed)` never reads as
+/// checked.
+pub(crate) fn tick_marker(v: &TickView) -> String {
+    let mut inner = v.level.as_str().to_owned();
+    if let Some(by) = &v.by {
+        inner.push_str(&match v.level {
+            Level::Independent => format!(": verified by {by}"),
+            Level::Signed => format!(": signed off by {by}"),
+            _ => String::new(),
+        });
+    }
+    if !v.meets_minimum {
+        inner.push_str(&format!("; needs {}", v.minimum.as_str()));
+    }
+    format!("({inner})")
 }
 
 fn open_item_line(
@@ -140,6 +194,7 @@ fn open_item_line(
     item: &openwarrant_core::ticket::Item,
     claims: &Claims,
     now: u64,
+    checks: &Checks,
 ) -> String {
     format!(
         "- [ ] {}{}{}\n",
@@ -148,7 +203,7 @@ fn open_item_line(
             .as_ref()
             .map(|i| format!(" ({i})"))
             .unwrap_or_default(),
-        annotation(store, tickets, t, item, claims, now)
+        annotation(store, tickets, t, item, claims, now, checks)
     )
 }
 
@@ -187,6 +242,10 @@ struct Row {
     /// For an epic: its tickets (those `part_of` it), done and in all.
     #[serde(skip_serializing_if = "Option::is_none")]
     tickets: Option<Progress>,
+    /// OW-WAR-0148 M13: how many of its ticks stand at each level of the
+    /// ladder. Absent while nothing is ticked.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    ticks: Option<TickCounts>,
 }
 
 /// `done` of `total`.
@@ -234,6 +293,10 @@ fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
         issue: t.manifest.issue,
         issue_url: t.manifest.issue_url.clone(),
         tickets: None,
+        ticks: {
+            let counts = super::ladder::ticks_of(&super::ladder::Reader::new(store), t).counts;
+            (counts.total() > 0).then_some(counts)
+        },
     }
 }
 
@@ -244,7 +307,7 @@ fn row_in(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims) -> Row {
     r
 }
 
-/// The bracketed tail of a `war tickets` line for M5's fields, empty for a
+/// The bracketed tail of a `war view tickets` line for M5's fields, empty for a
 /// ticket that has none: `  [bug; backend, auth]  [in t-1a2b]  [epic: 1/3]
 /// [#12]`.
 fn fields_tail(r: &Row, with_parent: bool) -> String {
@@ -273,7 +336,7 @@ fn fields_tail(r: &Row, with_parent: bool) -> String {
 
 // ---- filters and search (OW-WAR-0148 M5) -----------------------------------
 
-/// `war tickets --type/--label/--state/--text/--search/--epic`. Every filter
+/// `war view tickets --type/--label/--state/--text/--search/--epic`. Every filter
 /// given must hold; none given lists every ticket, as before.
 #[derive(Debug, Clone, Default)]
 pub struct Filter {
@@ -364,23 +427,68 @@ fn sorted<'a>(tickets: &'a [Ticket], claims: &Claims) -> Vec<&'a Ticket> {
     out
 }
 
-/// `war tickets` (`war ls`): every ticket, its state and progress.
+/// Every Warrant beside the light ones, for the one list (OW-WAR-0148
+/// M10): the directory and read-in-place rows, the warnings from reading
+/// them, and the words `--type` accepts for them. Empty: the light
+/// Warrants alone, as before M10 (the board reads that).
+#[derive(Debug, Clone, Default)]
+pub struct Others {
+    pub rows: Vec<crate::warrants::Row>,
+    pub faults: Vec<crate::diagnostic::Diagnostic>,
+    /// Profile names and read-in-place kinds a row may carry.
+    pub types: Vec<String>,
+}
+
+impl Others {
+    /// Every Warrant of `repo` that is not in the light encoding.
+    pub fn of(repo: &crate::repo::Repository) -> Result<Self, RepoError> {
+        let (rows, faults) = crate::warrants::other_rows(repo)?;
+        Ok(Self {
+            rows,
+            faults,
+            types: crate::warrants::type_words(repo),
+        })
+    }
+}
+
+/// The light Warrants alone, every one, its state and progress.
 pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
     tickets_filtered(store, &Filter::default())
 }
 
-/// `war tickets` with filters: exactly the tickets every given filter
-/// admits, in the same order and form. A filter naming a type the profile
-/// does not declare, a label outside a closed set, a state that is neither
-/// fixed nor declared, or an unknown epic is refused by name.
+/// The light Warrants alone, filtered.
 pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoError> {
+    list(store, &Others::default(), filter)
+}
+
+/// `war view warrants` (`war view tickets`, `war view ls`): every Warrant, whatever its
+/// encoding, with its type, state and progress. The light ones first, in
+/// the order work takes them (`result.tickets`, as before M10); then the
+/// directory ones and the ones read in place (`result.warrants`).
+///
+/// Filters: exactly the Warrants every given filter admits, in the same
+/// order and form. `--type` takes a light Warrant's type (`bug`) or any
+/// Warrant's profile (`delivery`, `ticket`, `openspec`); `--state` the
+/// fixed three, a declared state, or a phase a journal records (`draft`,
+/// `authorized`, `resolved`). Labels and epics are the light encoding's.
+/// A filter that can match nothing by construction is refused by name.
+pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, RepoError> {
     let (tickets, faults) = store.load_all()?;
     let claims = store.claims()?;
     // Refusals first: a filter that can match nothing by construction is a
     // typo, never an empty answer.
     if let Some(k) = &filter.kind
+        && k != openwarrant_core::ticket::TICKET_PROFILE
+        && !others.types.iter().any(|t| t == k)
         && let Some(why) = store.definition.fields.refuse_type(k)
     {
+        let mut why = why;
+        if !others.types.is_empty() {
+            why.push_str(&format!(
+                "; nor is it a Warrant type here: {}",
+                others.types.join(", ")
+            ));
+        }
         return Ok(super::Outcome::refused(
             "ticket.filter-type-unknown",
             "profiles/ticket.toml",
@@ -396,12 +504,22 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
             ));
         }
     }
+    // A state a light Warrant can be in (fixed or declared), or a phase a
+    // directory Warrant's journal records.
+    enum Wanted {
+        Fixed(TicketState),
+        Declared(String),
+        Phase(String),
+    }
     let wanted_state = match &filter.state {
         None => None,
         Some(s) => match fixed_state(s) {
-            Some(f) => Some(Ok(f)),
+            Some(f) => Some(Wanted::Fixed(f)),
             None if store.definition.states.iter().any(|d| d.name == s.trim()) => {
-                Some(Err(s.trim().to_owned()))
+                Some(Wanted::Declared(s.trim().to_owned()))
+            }
+            None if crate::warrants::PHASES.contains(&s.trim()) => {
+                Some(Wanted::Phase(s.trim().to_owned()))
             }
             None => {
                 let mut known = vec![
@@ -414,8 +532,10 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
                     "ticket.filter-state-unknown",
                     "profiles/ticket.toml",
                     format!(
-                        "state {s:?} is neither a fixed state nor one the ticket profile declares: {}",
-                        known.join(", ")
+                        "state {s:?} is neither a fixed state nor one the ticket profile declares: {}; \
+                         nor a phase a Warrant's journal records: {}",
+                        known.join(", "),
+                        crate::warrants::PHASES.join(", ")
                     ),
                 ));
             }
@@ -429,7 +549,7 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
                 return Ok(super::Outcome::refused(
                     "ticket.unknown",
                     String::new(),
-                    format!("`--epic {q}` names an item; an epic is a ticket"),
+                    format!("`--epic {q}` names an item; an epic is a Warrant"),
                 ));
             }
             Err(d) => return Ok(super::Outcome::from_diagnostic(d)),
@@ -437,8 +557,26 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
     };
     let text = filter.text.as_ref().map(|t| t.trim().to_lowercase());
     let search = filter.search.as_deref().map(words).unwrap_or_default();
+    let matches_text = |hay: &str| -> bool {
+        if let Some(phrase) = &text
+            && !hay.contains(phrase.as_str())
+        {
+            return false;
+        }
+        if !search.is_empty() {
+            let have = words(hay);
+            if !search
+                .iter()
+                .all(|q| have.iter().any(|w| w.starts_with(q.as_str())))
+            {
+                return false;
+            }
+        }
+        true
+    };
     let admits = |t: &Ticket, r: &Row| -> bool {
         if let Some(k) = &filter.kind
+            && k != openwarrant_core::ticket::TICKET_PROFILE
             && r.kind.as_ref() != Some(k)
         {
             return false;
@@ -448,11 +586,12 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
         }
         let state_holds = match &wanted_state {
             None => true,
-            Some(Ok(f)) => r.state == *f,
-            Some(Err(declared)) => r
+            Some(Wanted::Fixed(f)) => r.state == *f,
+            Some(Wanted::Declared(declared)) => r
                 .declared_states
                 .iter()
                 .any(|d| !d.lapsed && &d.state == declared),
+            Some(Wanted::Phase(_)) => false,
         };
         if !state_holds {
             return false;
@@ -463,30 +602,51 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
             return false;
         }
         if text.is_some() || !search.is_empty() {
-            let hay = haystack(t);
-            if let Some(phrase) = &text
-                && !hay.contains(phrase.as_str())
-            {
-                return false;
-            }
-            if !search.is_empty() {
-                let have = words(&hay);
-                if !search
-                    .iter()
-                    .all(|q| have.iter().any(|w| w.starts_with(q.as_str())))
-                {
-                    return false;
-                }
-            }
+            return matches_text(&haystack(t));
+        }
+        true
+    };
+    // A Warrant in another encoding: its type, its state (or phase), and
+    // its title. Labels and epics are the light encoding's alone.
+    let admits_other = |o: &crate::warrants::Row| -> bool {
+        if let Some(k) = &filter.kind
+            && &o.profile != k
+        {
+            return false;
+        }
+        if !filter.labels.is_empty() || epic.is_some() {
+            return false;
+        }
+        let state_holds = match &wanted_state {
+            None => true,
+            Some(Wanted::Fixed(f)) => o.fixed_state() == Some(fixed_word(*f)),
+            Some(Wanted::Declared(_)) => false,
+            Some(Wanted::Phase(p)) => &o.state == p,
+        };
+        if !state_holds {
+            return false;
+        }
+        if text.is_some() || !search.is_empty() {
+            return matches_text(&format!("{}\n{}", o.id, o.title).to_lowercase());
         }
         true
     };
     let mut human = String::new();
-    if tickets.is_empty() {
-        human.push_str("no tickets yet: `war create \"what this work accomplishes\"`");
+    if tickets.is_empty() && others.rows.is_empty() {
+        human.push_str("no Warrants yet: `war create \"what this work accomplishes\"`");
     }
     let order = sorted(&tickets, &claims);
-    let width = order.iter().map(|t| t.id().len()).max().unwrap_or(6);
+    let listed: Vec<&crate::warrants::Row> = others
+        .rows
+        .iter()
+        .filter(|o| filter.is_empty() || admits_other(o))
+        .collect();
+    let width = order
+        .iter()
+        .map(|t| t.id().len())
+        .chain(listed.iter().map(|o| o.id.len()))
+        .max()
+        .unwrap_or(6);
     let mut rows = Vec::new();
     for t in order {
         let r = row_in(store, &tickets, t, &claims);
@@ -537,12 +697,43 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
             human.push_str(&tail);
             human.push('\n');
         }
+        // OW-WAR-0148 M13: how its ticks were earned, at the line's end; a
+        // ticket with nothing ticked reads as it did.
+        if let Some(c) = &r.ticks {
+            human.pop();
+            human.push_str(&format!("  [ticks: {}]", c.describe()));
+            human.push('\n');
+        }
         rows.push(r);
     }
-    if !filter.is_empty() && rows.is_empty() && !tickets.is_empty() {
-        human.push_str("no ticket matches");
+    // M10: the Warrants in the other encodings, after the light ones, each
+    // with its type; a directory Warrant's state is its journal's phase.
+    for o in &listed {
+        let progress = match (o.done, o.total) {
+            (Some(d), Some(n)) => format!("{d}/{n}"),
+            _ => "-".to_owned(),
+        };
+        let kind = if o.encoding == "directory" {
+            o.profile.clone()
+        } else {
+            format!("{}, read in place", o.profile)
+        };
+        human.push_str(&format!(
+            "{:<width$}  {:<11}  {:>5}  --  {}  [{kind}]\n",
+            o.id,
+            o.state.replace('_', " "),
+            progress,
+            o.title,
+        ));
+    }
+    let any = !tickets.is_empty() || !others.rows.is_empty();
+    if !filter.is_empty() && rows.is_empty() && listed.is_empty() && any {
+        human.push_str("no Warrant matches");
     }
     let mut result = serde_json::json!({"schema": "oh.war/ticket-list/v1", "tickets": rows});
+    if !others.rows.is_empty() {
+        result["warrants"] = serde_json::to_value(&listed).unwrap_or_default();
+    }
     if !filter.is_empty() {
         result["filter"] = serde_json::json!({
             "type": filter.kind,
@@ -561,7 +752,19 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
             format!("skipped: {}", f.message),
         ));
     }
+    for f in &others.faults {
+        out.report.push(f.clone());
+    }
     Ok(out)
+}
+
+/// A fixed state as `Row::fixed_state` names it.
+const fn fixed_word(s: TicketState) -> &'static str {
+    match s {
+        TicketState::Open => "open",
+        TicketState::InProgress => "in_progress",
+        TicketState::Done => "done",
+    }
 }
 
 /// `war show <ticket>`: the ticket as a person reads it, with who holds what.
@@ -575,6 +778,9 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let claims = store.claims()?;
     let now = now_secs();
     let r = row_in(store, &tickets, t, &claims);
+    // OW-WAR-0148 M13: every tick's level, and the Warrant's parts.
+    let reader = super::ladder::Reader::new(store);
+    let report = super::ladder::ticks_of(&reader, t);
     let mut md = format!("# {} — {}\n\n", t.id(), t.manifest.title);
     let declared = r.declared_states.clone();
     let ann = |record: Option<String>| {
@@ -609,6 +815,10 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         );
         facts.push(format!("part of {p}{title}"));
     }
+    // OW-WAR-0148 M15: a due date, when there is one.
+    if let Some(d) = &t.manifest.due {
+        facts.push(format!("due {d}"));
+    }
     if let Some(n) = t.manifest.issue {
         facts.push(match &t.manifest.issue_url {
             Some(u) => format!("GitHub issue [#{n}]({u})"),
@@ -627,20 +837,27 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     }
     md.push_str("\n## Checklist\n\n");
     if t.checklist.items.is_empty() && r.tickets.is_some() {
-        md.push_str("(no items of its own: the work is its tickets, below)\n");
+        md.push_str("(no items of its own: the work is its Warrants, below)\n");
     } else if t.checklist.items.is_empty() {
-        md.push_str("(no items: the ticket is the work — `war add` breaks it down)\n");
+        md.push_str("(no items: the Warrant is the work — `war add` breaks it down)\n");
     }
     for item in &t.checklist.items {
         if item.done {
+            let view = report.items.get(&super::ladder::item_key(item));
+            let on = item
+                .done_on
+                .as_deref()
+                .map(|d| openwarrant_core::ticks::split_level(d).0);
             md.push_str(&format!(
-                "- [x] {}{}{}{}\n",
+                "- [x] {}{}{}{}{}{}\n",
+                view.map(|v| format!("{} ", tick_marker(v)))
+                    .unwrap_or_default(),
                 item.text,
                 item.id
                     .as_ref()
                     .map(|i| format!(" ({i})"))
                     .unwrap_or_default(),
-                match (&item.done_by, &item.done_on) {
+                match (&item.done_by, on) {
                     (Some(by), Some(on)) => format!(" — done by {by}, {on}"),
                     (Some(by), None) => format!(" — done by {by}"),
                     _ => String::new(),
@@ -649,21 +866,45 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
                     .as_ref()
                     .map(|n| format!(": {n}"))
                     .unwrap_or_default(),
+                view.and_then(|v| v.unbacked.as_ref().map(|why| (v.written, why)))
+                    .map(|(w, why)| format!(
+                        " — its [{}] marker is not believed: {why}",
+                        w.map_or("?", Level::as_str)
+                    ))
+                    .unwrap_or_default(),
                 ann(item.id.as_ref().map(|i| format!("{}/{i}", t.id())))
             ));
         } else {
-            let line = open_item_line(store, &tickets, t, item, &claims, now);
+            let line = open_item_line(store, &tickets, t, item, &claims, now, &report.checks);
             md.push_str(line.trim_end_matches('\n'));
             md.push_str(&ann(item.id.as_ref().map(|i| format!("{}/{i}", t.id()))));
             md.push('\n');
         }
+    }
+    let standings = if report.checks.kpis.is_empty() {
+        Vec::new()
+    } else {
+        super::ladder::standings(&report.checks, &super::ladder::backing(t).kpi_runs)
+    };
+    if !report.checks.is_empty() {
+        md.push_str(&checks_section(t, &report, &standings));
+    }
+    if let Some(c) = &r.ticks {
+        md.push_str(&format!(
+            "\nTicks: {}. claimed < observed < independent < signed; a claimed tick is the \
+             performer's word, nothing checked it.\n",
+            c.describe()
+        ));
     }
     // OW-WAR-0148 M5: an epic lists its tickets, each with its state and
     // progress, and the epic's progress over them.
     let kids = super::children_of(&tickets, t.id());
     let mut children = Vec::new();
     if let Some(p) = r.tickets {
-        md.push_str(&format!("\n## Tickets ({}/{} done)\n\n", p.done, p.total));
+        md.push_str(&format!(
+            "\n## Warrants in it ({}/{} done)\n\n",
+            p.done, p.total
+        ));
         for k in sorted_refs(kids, &claims) {
             let kr = row_in(store, &tickets, k, &claims);
             md.push_str(&format!(
@@ -690,11 +931,63 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             md.push_str(&format!("- {n}\n"));
         }
     }
+    // M11: each revision `--if-rev` takes, the ticket's and every item's.
+    let items: Vec<serde_json::Value> = t
+        .checklist
+        .items
+        .iter()
+        .map(|item| {
+            let mut v = serde_json::to_value(item).unwrap_or_default();
+            if let Some(o) = v.as_object_mut() {
+                o.insert(
+                    "revision".to_owned(),
+                    serde_json::json!(super::item_revision(&t.checklist_text, item)),
+                );
+                // OW-WAR-0148 M13: the date without its level marker, and
+                // the tick (or, open, the minimum it must reach).
+                if let Some(on) = &item.done_on {
+                    o.insert(
+                        "done_on".to_owned(),
+                        serde_json::json!(openwarrant_core::ticks::split_level(on).0),
+                    );
+                }
+                if let Some(view) = report.items.get(&super::ladder::item_key(item)) {
+                    o.insert("tick".to_owned(), serde_json::json!(view));
+                    o.insert(
+                        "tick_marker".to_owned(),
+                        serde_json::json!(tick_marker(view)),
+                    );
+                } else if let Some(id) = item.id.as_deref() {
+                    let (min, _) = super::ladder::minimum(store, t, &report.checks, Some(id));
+                    if min > Level::Claimed || report.checks.milestone(id).is_some() {
+                        o.insert("minimum".to_owned(), serde_json::json!(min));
+                    }
+                }
+                if let Some(id) = item.id.as_deref()
+                    && report.checks.milestone(id).is_some()
+                {
+                    o.insert("milestone".to_owned(), serde_json::json!(true));
+                }
+            }
+            v
+        })
+        .collect();
     let mut result = serde_json::json!({
         "schema": "oh.war/ticket-show/v1",
         "ticket": r,
+        "checks": if report.checks.is_empty() {
+            serde_json::Value::Null
+        } else {
+            serde_json::json!({
+                "tests": report.checks.tests,
+                "kpis": standings,
+                "milestones": report.checks.milestones,
+                "faults": report.checks.faults,
+            })
+        },
+        "revision": t.revision,
         "description": body,
-        "items": t.checklist.items,
+        "items": items,
         "notes": all,
         "markdown": md,
     });
@@ -704,7 +997,59 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     Ok(Outcome::ok(md.trim_end().to_owned(), result))
 }
 
-/// `tickets` in `war tickets`' order.
+/// `## Checks` in `war show`: each test, each KPI with its latest, best and
+/// target, each milestone with its minimum and where its tick stands.
+fn checks_section(
+    t: &Ticket,
+    report: &super::ladder::TickReport,
+    standings: &[super::ladder::KpiStanding],
+) -> String {
+    let mut md = String::from("\n## Checks\n\n");
+    for test in &report.checks.tests {
+        md.push_str(&format!(
+            "- test {}: `{}`{}\n",
+            test.name,
+            test.cmd,
+            test.item
+                .as_ref()
+                .map(|i| format!(" (for {i})"))
+                .unwrap_or_default()
+        ));
+    }
+    for s in standings {
+        md.push_str(&format!(
+            "- KPI {} (`{}`)\n",
+            super::ladder::describe_standing(s),
+            s.cmd
+        ));
+    }
+    for m in &report.checks.milestones {
+        let item = t.item(&m.item);
+        let text = item.map_or("(no such item)", |i| i.text.as_str());
+        let at = match (item, report.items.get(&m.item)) {
+            (Some(_), Some(v)) => format!("ticked {}", tick_marker(v)),
+            (Some(_), None) => "open".to_owned(),
+            (None, _) => "not in the checklist".to_owned(),
+        };
+        md.push_str(&format!(
+            "- milestone {} {text}: min {}; {at}\n",
+            m.item,
+            m.min.map_or("claimed", Level::as_str)
+        ));
+    }
+    for f in &report.checks.faults {
+        md.push_str(&format!(
+            "- line {} of {}: {} ({})\n",
+            f.line,
+            openwarrant_core::ticks::CHECKS_FILE,
+            f.message,
+            f.rule
+        ));
+    }
+    md
+}
+
+/// `tickets` in `war view tickets`' order.
 fn sorted_refs<'a>(mut tickets: Vec<&'a Ticket>, claims: &Claims) -> Vec<&'a Ticket> {
     let rank = |s: TicketState| match s {
         TicketState::InProgress => 0,
@@ -728,7 +1073,7 @@ fn sorted_refs<'a>(mut tickets: Vec<&'a Ticket>, claims: &Claims) -> Vec<&'a Tic
     tickets
 }
 
-/// `war prime [<ticket>]`: what an arriving agent (or person) reads first.
+/// `war view prime [<ticket>]`: what an arriving agent (or person) reads first.
 /// Open tickets with only their remaining items, who holds which claim, recent
 /// notes, and done tickets compacted: a done ticket older than
 /// `[tickets] compact_after_days` is one line.
@@ -757,7 +1102,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
         .filter(|t| state_of(t, &claims) == TicketState::InProgress)
         .count();
 
-    let mut md = format!("# Tickets — {}\n\n", store.project);
+    let mut md = format!("# Warrants — {}\n\n", store.project);
     md.push_str(&format!(
         "_Read this first. From `{}/` at {}: {} open ({in_progress} in progress), {} done._\n\n",
         store.rel(&store.dir),
@@ -766,10 +1111,23 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
         recent.len() + old.len()
     ));
     md.push_str(
-        "How to work: `war ready` lists what can start now; `war claim <id>` takes one; do it; \
+        "How to work: `war next` lists what can start now; `war claim <id>` takes one; do it; \
          `war done <id> --note \"what you did\"` ticks it. Leave anything the next person needs \
-         with `war note <ticket> \"...\"`. No step needs a signature or anyone's approval.\n",
+         with `war note <warrant> \"...\"`. No step needs a signature or anyone's approval.\n",
     );
+    // OW-WAR-0148 M17: the file ledger, when this repository keeps one.
+    let ledger_dir = crate::ledger::Config::read(&store.root)
+        .map(|c| c.dir)
+        .unwrap_or_else(|_| crate::ledger::DEFAULT_DIR.to_owned());
+    if crate::vfs::is_dir(store.root.join(&ledger_dir))
+        || crate::vfs::is_file(store.root.join(crate::ledger::JSONL))
+    {
+        md.push_str(&format!(
+            "Why each file changed: read `{}` in one go (one JSON line per file; \
+             `war admin compile` regenerates it from `{ledger_dir}/`).\n",
+            crate::ledger::JSONL
+        ));
+    }
 
     let mut held: Vec<String> = Vec::new();
     for (name, c) in &claims {
@@ -784,10 +1142,12 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
                 Some(i) => t
                     .item(i)
                     .map_or_else(|| t.manifest.title.clone(), |x| x.text.clone()),
-                None => format!("{} (whole ticket)", t.manifest.title),
+                None => format!("{} (whole Warrant)", t.manifest.title),
             })
             .unwrap_or_default();
-        let stale = if c.age(now) > store.ttl_secs {
+        let stale = if c.lease_expired(now) {
+            " — its lease ran out: `war claim` takes it"
+        } else if c.age(now) > store.ttl_secs {
             " — stale: `war claim --steal` may take it"
         } else {
             ""
@@ -807,7 +1167,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
 
     md.push_str("\n## Open\n");
     if open.is_empty() {
-        md.push_str("\nNothing open. `war create \"...\"` starts a ticket.\n");
+        md.push_str("\nNothing open. `war create \"...\"` starts a Warrant.\n");
     }
     for t in &open {
         let (d, n) = t.checklist.progress();
@@ -824,15 +1184,16 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
             md.push_str(first.trim());
             md.push('\n');
         }
+        let checks = super::ladder::checks_of(t);
         let remaining: Vec<String> = t
             .checklist
             .items
             .iter()
             .filter(|i| !i.done)
-            .map(|i| open_item_line(store, &all, t, i, &claims, now))
+            .map(|i| open_item_line(store, &all, t, i, &claims, now, &checks))
             .collect();
         if remaining.is_empty() {
-            md.push_str("\nNo items yet: the ticket is the work.\n");
+            md.push_str("\nNo items yet: the Warrant is the work.\n");
         } else {
             md.push_str("\nRemaining:\n\n");
             md.push_str(&remaining.concat());
@@ -891,9 +1252,10 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
     ))
 }
 
-/// `war prime <ticket>`: one ticket in full, remaining items only.
+/// `war view prime <ticket>`: one ticket in full, remaining items only.
 fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u64) -> Outcome {
     let (d, n) = t.checklist.progress();
+    let checks = super::ladder::checks_of(t);
     let mut md = format!("# {} — {}\n\n", t.id(), t.manifest.title);
     md.push_str(&format!(
         "{} · {d}/{n} done · priority {} · `{}/`\n",
@@ -912,11 +1274,11 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
         .items
         .iter()
         .filter(|i| !i.done)
-        .map(|i| open_item_line(store, all, t, i, claims, now))
+        .map(|i| open_item_line(store, all, t, i, claims, now, &checks))
         .collect();
     md.push_str("\n## Remaining\n\n");
     if remaining.is_empty() && n == 0 {
-        md.push_str("No items: the ticket is the work (`war claim` it whole, `war done` it).\n");
+        md.push_str("No items: the Warrant is the work (`war claim` it whole, `war done` it).\n");
     } else if remaining.is_empty() {
         md.push_str("Nothing: every item is done.\n");
     } else {

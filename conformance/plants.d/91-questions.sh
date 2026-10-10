@@ -84,7 +84,7 @@ q_cleanup
 
 # Positive: the committed questions are listed open, blocking first, each with
 # the command that answers it.
-plant_cmd "open questions list blocking first" "BLOCKING" "war answer" 0 \
+plant_cmd "open questions list blocking first" "BLOCKING" "war plan answer" 0 \
     "true" questions --open
 # And the watcher raises them beside the pending signatures.
 plant_cmd "watch raises a question" "question" "$Q_ALIAS" 0 \

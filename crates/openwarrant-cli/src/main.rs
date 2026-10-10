@@ -22,8 +22,6 @@ fn main() -> std::process::ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use clap::CommandFactory;
-
     /// §76.4 says EVERY command should support `--json`. This is the ratchet:
     /// the subcommands that still print only for humans are listed here, by
     /// name, and a new subcommand cannot ship without either supporting the
@@ -147,7 +145,7 @@ mod tests {
         // overflow here measured the test harness, not the command.
         let cmd = std::thread::Builder::new()
             .stack_size(8 << 20)
-            .spawn(openwarrant_cli::Cli::command)
+            .spawn(openwarrant_cli::command)
             .expect("spawn")
             .join()
             .expect("the command tree builds");

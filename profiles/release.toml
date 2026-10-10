@@ -1,0 +1,58 @@
+# A release (OW-WAR-0148 M18, decision 26), as data: a core document type.
+# It composes records and declares how to project them, and nothing of it
+# is claimed, authorized, verified or resolved (`form = "document"`): a
+# criterion's verdict is read from the Warrant obligation that evaluates
+# it, never written here. An existing release document is adopted in place
+# with `war plan type <file> release`; its bytes are never rewritten.
+# docs/TYPES.md, "Every development document is a type".
+schema = "oh.war/profile/v1"
+name = "release"
+form = "document"
+note = "What a release ships and what had to hold before it shipped: the release, its notes, its changelog, and its exit criteria, each with the checks that settle it."
+capabilities = ["structure", "links"]
+
+[records]
+types = ["release", "note", "change", "exit_criterion"]
+
+[relations]
+allow = ["part_of", "implements", "evaluates", "depends_on"]
+
+[[projections]]
+name = "release-notes"
+title = "{title}: release notes"
+intro = "What this release ships and what had to hold before it shipped. Every statement below is a record; an exit criterion no obligation evaluates is unchecked, and says so."
+
+[projections.select]
+types = ["release", "note", "change", "exit_criterion", "obligation"]
+through = ["in:part_of", "in:evaluates"]
+
+[[projections.sections]]
+heading = "The release"
+block = "list"
+style = "blocks"
+types = ["release"]
+annotate = ["out:depends_on"]
+empty = "No release record is recorded."
+
+[[projections.sections]]
+heading = "Notes"
+block = "list"
+types = ["note"]
+empty = "No release note is recorded."
+
+[[projections.sections]]
+heading = "Changelog"
+block = "list"
+types = ["change"]
+annotate = ["out:implements"]
+empty = "No change is recorded."
+
+[[projections.sections]]
+heading = "Exit criteria"
+block = "tree"
+types = ["exit_criterion"]
+fields = ["scope", "evidence", "verdict"]
+children = [
+    { relation = "in:evaluates", label = "Checked by", empty = "No obligation evaluates this criterion yet: it is unchecked." },
+]
+empty = "No exit criterion is recorded."

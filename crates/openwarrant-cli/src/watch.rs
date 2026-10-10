@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war watch` — tell the human when an act is waiting for them.
+//! `war view watch` — tell the human when an act is waiting for them.
 //!
 //! The pending set is `sign::pending` (§27.2's human acts: authorize,
 //! resolve, accept, correct). This command polls the record trees every

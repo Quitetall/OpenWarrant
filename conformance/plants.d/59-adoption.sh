@@ -227,7 +227,7 @@ ad_history "$AD_D"
 ad_commit "$AD_D" "record a decision" docs/adr/0001-x.md
 AD_DHEAD=$(git -C "$AD_D" rev-parse HEAD)
 AD_OUT=$(cd "$AD_D" && "$AD_WAR" init --program Acme --namespace ACME 2>&1)
-if [[ $? -eq 0 ]] && [[ $(grep -Fc "war migrate --corpus docs/adr --commit $AD_DHEAD" <<<"$AD_OUT") -eq 1 ]] \
+if [[ $? -eq 0 ]] && [[ $(grep -Fc "war admin migrate --corpus docs/adr --commit $AD_DHEAD" <<<"$AD_OUT") -eq 1 ]] \
     && [[ ! -e "$AD_D/artifacts" ]]; then
     ad_ok "existing ADRs get the migrate line" "one line, nothing imported"
 else
@@ -238,8 +238,8 @@ AD_E="$AD_TMP/readme-only"
 ad_history "$AD_E"
 ad_commit "$AD_E" "adr readme" docs/adr/README.md
 AD_OUT_E=$(cd "$AD_E" && "$AD_WAR" init --program Acme --namespace ACME 2>&1)
-if [[ -f "$AD_E/openwarrant.toml" ]] && ! grep -q 'war migrate' <<<"$AD_OUT_E" \
-    && ! grep -q 'war migrate' <<<"$AD_OUT_ACME"; then
+if [[ -f "$AD_E/openwarrant.toml" ]] && ! grep -q 'war admin migrate' <<<"$AD_OUT_E" \
+    && ! grep -q 'war admin migrate' <<<"$AD_OUT_ACME"; then
     ad_ok "no ADR corpus, no migrate line" "README.md alone, or no directory"
 else
     ad_fail "no ADR corpus, no migrate line" "$(tr '\n' '|' <<<"$AD_OUT_E")"

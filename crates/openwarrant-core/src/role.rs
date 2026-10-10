@@ -582,17 +582,17 @@ impl fmt::Display for Profile {
 /// The schema a profile definition file declares.
 pub const PROFILE_SCHEMA: &str = "oh.war/profile/v1";
 
-/// A namespaced role a profile requires, with what `war new` writes for it.
+/// A namespaced role a profile requires, with what `war plan new` writes for it.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RequiredExtensionRole {
     /// The namespaced role, e.g. `contractor.terms`.
     pub role: String,
-    /// The ordinal `war new` gives its atom.
+    /// The ordinal `war plan new` gives its atom.
     pub ordinal: u32,
     /// The atom's file name under `atoms/`.
     pub file: String,
-    /// The atom body `war new` writes below the frontmatter.
+    /// The atom body `war plan new` writes below the frontmatter.
     pub stub: String,
 }
 
@@ -648,7 +648,7 @@ pub struct ProfileDefinition {
     /// an act reads.
     pub vocabulary: crate::relation::Vocabulary,
     /// OW-WAR-0148 M4: `[[states]]`, the declared refinements of fixed
-    /// kernel states this profile's records may enter (`war state`). Empty
+    /// kernel states this profile's records may enter (`war plan state`). Empty
     /// when the file declares none, and always for a built-in core profile.
     /// Program data, not kind data: a declared state satisfies no check and
     /// no gate.
@@ -658,6 +658,13 @@ pub struct ProfileDefinition {
     /// the file declares none. Program data: it selects no capability and
     /// loosens nothing an act reads.
     pub fields: FieldsDecl,
+    /// OW-WAR-0148 M13: `[ticks]`, the least a tick of this type must show
+    /// on the ladder (claimed < observed < independent < signed), for every
+    /// item, for every milestone, and for the milestones of a record of a
+    /// given `type`. Empty when the file declares none: every minimum is
+    /// `claimed`. Program data: it raises what `war done` asks for and
+    /// loosens nothing an act reads.
+    pub ticks: crate::ticks::TicksDecl,
 }
 
 /// `[fields]` of a working-form profile (OW-WAR-0148 M5).
@@ -788,6 +795,21 @@ struct ProfileFile {
     /// `labels_closed = bool`. A working form only.
     #[serde(default)]
     fields: Option<FieldsTable>,
+    /// OW-WAR-0148 M13: `[ticks] item = "...", milestone = "..."` and
+    /// `[ticks.types] <type> = "<level>"`.
+    #[serde(default)]
+    ticks: Option<TicksTable>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TicksTable {
+    #[serde(default)]
+    item: Option<String>,
+    #[serde(default)]
+    milestone: Option<String>,
+    #[serde(default)]
+    types: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -935,6 +957,13 @@ pub enum ProfileError {
         name: String,
         detail: String,
     },
+    /// OW-WAR-0148 M13: `[ticks]` refused.
+    #[error("{file}: profile {name}: [ticks]: {detail}")]
+    BadTicks {
+        file: String,
+        name: String,
+        detail: String,
+    },
     /// OW-WAR-0148 M6: a document type (`form = "document"`) refused, under
     /// the rule [`crate::projection`] names.
     #[error("{file}: document type {name}: {detail} (OW-ADR-0031)")]
@@ -957,6 +986,7 @@ impl ProfileError {
             Self::BadCapabilities { .. } => "profile.capabilities",
             Self::BadVocabulary { .. } => "profile.records",
             Self::BadFields { .. } => "profile.fields",
+            Self::BadTicks { .. } => "profile.ticks",
             Self::BadState { rule, .. } => rule,
             Self::BadDocument { rule, .. } => rule,
             _ => "profile.invalid",
@@ -1007,6 +1037,7 @@ impl ProfileRegistry {
                         vocabulary: crate::relation::Vocabulary::default(),
                         states: Vec::new(),
                         fields: FieldsDecl::default(),
+                        ticks: crate::ticks::TicksDecl::default(),
                     },
                 )
             })
@@ -1048,6 +1079,60 @@ impl ProfileRegistry {
             }
         }
         Ok(registry)
+    }
+
+    /// [`Self::with_definitions`] over a program's own files, then each
+    /// built-in type (OW-WAR-0148 M18) the program does not declare itself:
+    /// one whose name no file of the program uses and, for a store's type,
+    /// whose store no type of the program already reads. A program's own
+    /// `profiles/roadmap.toml` replaces the built-in one; it is never merged
+    /// with it. A built-in file is refused like any other.
+    pub fn with_builtins<'a, 'b>(
+        sources: impl IntoIterator<Item = (&'a str, &'a [u8])>,
+        builtins: impl IntoIterator<Item = (&'b str, &'b [u8])>,
+    ) -> Result<Self, ProfileError> {
+        let mut registry = Self::with_definitions(sources)?;
+        for (file, bytes) in builtins {
+            let name = file_stem(file);
+            if registry.definitions.contains_key(name) || registry.documents.contains_key(name) {
+                continue;
+            }
+            // A store the program's own type already reads: the program's
+            // type stands, and the built-in one is not read.
+            let store = std::str::from_utf8(bytes)
+                .ok()
+                .and_then(|t| toml::from_str::<toml::Value>(t).ok())
+                .and_then(|v| {
+                    v.get("encoding")
+                        .and_then(toml::Value::as_str)
+                        .and_then(crate::projection::Store::parse)
+                });
+            if store.is_some_and(|s| registry.store_type(s).is_some()) {
+                continue;
+            }
+            let Some(document) = parse_document_file(file, bytes, &registry)? else {
+                continue;
+            };
+            registry.documents.insert(document.name.clone(), document);
+        }
+        Ok(registry)
+    }
+
+    /// The type that reads `store` (OW-WAR-0148 M18), if the program has one.
+    #[must_use]
+    pub fn store_type(
+        &self,
+        store: crate::projection::Store,
+    ) -> Option<&crate::projection::DocumentProfile> {
+        self.documents.values().find(|d| d.encoding == Some(store))
+    }
+
+    /// The capabilities of the type that reads `store`: what its rules are
+    /// gated on. Empty when no type reads it, so none of its rules fire.
+    #[must_use]
+    pub fn store_capabilities(&self, store: crate::projection::Store) -> Capabilities {
+        self.store_type(store)
+            .map_or(Capabilities::default(), |d| d.capabilities)
     }
 
     /// Resolve a profile name, or refuse it as unknown (§16.3).
@@ -1208,6 +1293,19 @@ fn parse_document_file(
             name: document.name,
         });
     }
+    if let Some(store) = document.encoding
+        && let Some(other) = registry.store_type(store)
+    {
+        return Err(ProfileError::BadDocument {
+            file: file.to_owned(),
+            name: document.name.clone(),
+            rule: "profile.invalid",
+            detail: format!(
+                "encoding `{store}` is already read by document type {}; one store has one type",
+                other.name
+            ),
+        });
+    }
     for p in &document.projections {
         if let Some((other, _)) = registry.projection(&p.name) {
             return Err(ProfileError::BadDocument {
@@ -1223,6 +1321,12 @@ fn parse_document_file(
         }
     }
     Ok(Some(document))
+}
+
+/// A profile file's stem: `profiles/roadmap.toml` is `roadmap`.
+fn file_stem(file: &str) -> &str {
+    let stem = file.strip_suffix(".toml").unwrap_or(file);
+    stem.rsplit('/').next().unwrap_or(stem)
 }
 
 fn is_profile_name(name: &str) -> bool {
@@ -1330,6 +1434,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         }
         let states = parse_states(&owned, &raw.name, fixed.capabilities, &raw)?;
         parse_fields(&owned, &raw.name, false, &raw)?;
+        let ticks = parse_ticks(&owned, &raw.name, &FieldsDecl::default(), &raw)?;
         return Ok(ProfileDefinition {
             name: raw.name,
             core,
@@ -1344,6 +1449,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             kind: fixed,
             vocabulary,
             fields: FieldsDecl::default(),
+            ticks,
         });
     }
 
@@ -1447,6 +1553,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
     }
     let states = parse_states(&owned, &raw.name, kind.capabilities, &raw)?;
     let fields = parse_fields(&owned, &raw.name, working_core_roles.is_some(), &raw)?;
+    let ticks = parse_ticks(&owned, &raw.name, &fields, &raw)?;
     Ok(ProfileDefinition {
         name: raw.name,
         core,
@@ -1461,6 +1568,62 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         kind,
         vocabulary,
         fields,
+        ticks,
+    })
+}
+
+// ---- OW-WAR-0148 M13: the minimum a tick must show ----------------------------
+
+fn parse_ticks(
+    file: &str,
+    name: &str,
+    fields: &FieldsDecl,
+    raw: &ProfileFile,
+) -> Result<crate::ticks::TicksDecl, ProfileError> {
+    use crate::ticks::Level;
+    let Some(table) = &raw.ticks else {
+        return Ok(crate::ticks::TicksDecl::default());
+    };
+    let bad = |detail: String| ProfileError::BadTicks {
+        file: file.to_owned(),
+        name: name.to_owned(),
+        detail,
+    };
+    let level = |what: &str, v: &str| -> Result<Level, ProfileError> {
+        Level::parse(v).ok_or_else(|| {
+            bad(format!(
+                "{what} {v:?} is not a level: claimed, observed, independent or signed"
+            ))
+        })
+    };
+    let item = table
+        .item
+        .as_deref()
+        .map(|v| level("item", v))
+        .transpose()?;
+    let milestone = table
+        .milestone
+        .as_deref()
+        .map(|v| level("milestone", v))
+        .transpose()?;
+    let mut types = BTreeMap::new();
+    for (kind, v) in &table.types {
+        if !fields.types.iter().any(|t| t == kind) {
+            return Err(bad(format!(
+                "types.{kind}: the profile declares no such type ([fields] types: {})",
+                if fields.types.is_empty() {
+                    "none".to_owned()
+                } else {
+                    fields.types.join(", ")
+                }
+            )));
+        }
+        types.insert(kind.clone(), level(&format!("types.{kind}"), v)?);
+    }
+    Ok(crate::ticks::TicksDecl {
+        item,
+        milestone,
+        types,
     })
 }
 
@@ -2237,6 +2400,55 @@ stub = "# Checklist"
     }
 
     #[test]
+    fn a_profile_declares_the_least_a_tick_must_show() {
+        use crate::ticks::Level;
+        let with = |ticks: &str| {
+            format!("{WORKING}\n[fields]\ntypes = [\"bug\", \"chore\"]\n\n[ticks]\n{ticks}\n")
+        };
+        let registry = ProfileRegistry::with_definitions([(
+            "profiles/task.toml",
+            with("milestone = \"observed\"\n\n[ticks.types]\nbug = \"independent\"").as_bytes(),
+        )])
+        .expect("parses");
+        let def = registry
+            .definition(&registry.resolve("task").expect("task"))
+            .expect("def");
+        assert_eq!(def.ticks.item, None);
+        assert_eq!(def.ticks.milestone, Some(Level::Observed));
+        assert_eq!(def.ticks.types.get("bug"), Some(&Level::Independent));
+        assert_eq!(
+            def.ticks.minimum(Some("bug"), Some(None)).0,
+            Level::Independent
+        );
+        // Absent: every minimum is claimed.
+        let plain = ProfileRegistry::with_definitions([("profiles/task.toml", WORKING.as_bytes())])
+            .expect("parses");
+        let def = plain
+            .definition(&plain.resolve("task").expect("task"))
+            .expect("def");
+        assert_eq!(def.ticks.minimum(None, Some(None)).0, Level::Claimed);
+        for bad in [
+            "item = \"verified\"",
+            "milestone = \"done\"",
+            "[ticks.types]\nepic = \"observed\"",
+            "colour = \"red\"",
+        ] {
+            let e =
+                ProfileRegistry::with_definitions([("profiles/task.toml", with(bad).as_bytes())])
+                    .expect_err(bad);
+            assert_eq!(
+                e.rule(),
+                if bad.starts_with("colour") {
+                    "profile.invalid"
+                } else {
+                    "profile.ticks"
+                },
+                "{bad}: {e}"
+            );
+        }
+    }
+
+    #[test]
     fn a_working_form_declares_its_fields_and_nothing_else_may() {
         let with = |fields: &str| format!("{WORKING}\n[fields]\n{fields}\n");
         let registry = ProfileRegistry::with_definitions([(
@@ -2329,5 +2541,53 @@ stub = "# Checklist"
             ProfileRegistry::with_definitions([("profiles/delivery.toml", core.as_slice())]),
             Err(ProfileError::CoreRedefined { .. })
         ));
+    }
+    /// OW-WAR-0148 M18: a built-in type is admitted where the program
+    /// declares none of its name or store; the program's own replaces it,
+    /// and two types reading one store are refused.
+    #[test]
+    fn built_in_types_yield_to_the_programs_own() {
+        use crate::projection::Store;
+        let builtin = b"schema = \"oh.war/profile/v1\"\nname = \"roadmap\"\nform = \"document\"\n\
+            encoding = \"roadmap\"\n";
+        let r = ProfileRegistry::with_builtins(
+            std::iter::empty(),
+            [("(built in)/roadmap.toml", builtin.as_slice())],
+        )
+        .unwrap();
+        assert_eq!(
+            r.store_capabilities(Store::Roadmap),
+            Store::Roadmap.capabilities()
+        );
+        assert_eq!(r.store_capabilities(Store::Sas), Capabilities::default());
+        // The program narrows it: its own file wins, whole.
+        let narrowed = b"schema = \"oh.war/profile/v1\"\nname = \"roadmap\"\nform = \"document\"\n\
+            encoding = \"roadmap\"\ncapabilities = [\"structure\"]\n";
+        let r = ProfileRegistry::with_builtins(
+            [("profiles/roadmap.toml", narrowed.as_slice())],
+            [("(built in)/roadmap.toml", builtin.as_slice())],
+        )
+        .unwrap();
+        assert!(
+            !r.store_capabilities(Store::Roadmap)
+                .has(Capability::Acceptance)
+        );
+        // A type of another name reading the same store also replaces it.
+        let mine = b"schema = \"oh.war/profile/v1\"\nname = \"plan\"\nform = \"document\"\n\
+            encoding = \"roadmap\"\ncapabilities = [\"structure\", \"links\"]\n";
+        let r = ProfileRegistry::with_builtins(
+            [("profiles/plan.toml", mine.as_slice())],
+            [("(built in)/roadmap.toml", builtin.as_slice())],
+        )
+        .unwrap();
+        assert_eq!(r.store_type(Store::Roadmap).unwrap().name, "plan");
+        assert!(r.document("roadmap").is_none());
+        // Two of the program's own reading one store: refused.
+        let e = ProfileRegistry::with_definitions([
+            ("profiles/plan.toml", mine.as_slice()),
+            ("profiles/roadmap.toml", narrowed.as_slice()),
+        ])
+        .unwrap_err();
+        assert!(e.to_string().contains("one store has one type"), "{e}");
     }
 }

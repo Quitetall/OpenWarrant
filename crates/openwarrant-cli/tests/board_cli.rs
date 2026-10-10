@@ -59,8 +59,13 @@ fn board_is_complete_read_only_and_refuses_corrupt_questions() {
     assert_eq!(board["result"]["approvals"], console["result"]["acts"]);
     assert_eq!(board["result"]["questions"], console["result"]["questions"]);
     assert_eq!(board["result"]["frontier"], frontier["result"]);
-    let status: serde_json::Value =
+    let mut status: serde_json::Value =
         serde_json::from_slice(&run(&["status", "--json"]).stdout).unwrap();
+    // OW-WAR-0148 M17: `compliance` is computed on read beside the
+    // projection; the board carries the projection.
+    status["result"]
+        .as_object_mut()
+        .map(|o| o.remove("compliance"));
     assert_eq!(board["result"]["corpus"], status["result"]);
     assert!(
         !board["result"]["corpus"]["warrants"]

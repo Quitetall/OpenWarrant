@@ -35,7 +35,7 @@ that writes this file does it only from a human's answers typed at a terminal,
 once, and never edits it afterwards (OW-ADR-0021, Consequences):
 
 ```bash
-war init                              # at a terminal: asks your name, your key, and writes both files once
+war init --guided                     # at a terminal: asks your name, your key, and writes both files once
 # or by hand:
 cp docs/authority/roles.toml.example docs/authority/roles.toml
 $EDITOR docs/authority/roles.toml     # put your name in, keep `claude` as performer only
@@ -333,6 +333,7 @@ with the work, so each of those used to stale every receipt of a gate with no
 | `war done`, `war add`, a claim naming a new line | `<tickets>/<t-id>/atoms/15-checklist.md` (the ticket profile's checklist file) |
 | `war note`, `war create` | `<tickets>/<t-id>/atoms/10-intent.md` |
 | `war create`, `war promote` | `<tickets>/<t-id>/manifest.toml` |
+| `war add --test/--kpi/--milestone` (OW-WAR-0148 M13) | `<tickets>/<t-id>/atoms/30-checks.md`, the optional parts |
 
 `<tickets>` is `[tickets] dir` and `<t-id>` a ticket id (`t-` and 3 to 16 of
 `[0-9a-z]`). Nothing under the Warrants root is skipped, whatever
@@ -359,9 +360,10 @@ ticket's structure (`ticket.checklist-malformed`, `ticket.item-duplicate`,
 `ticket.blocker-unknown`, `ticket.blocker-cycle`). So a `war check` receipt,
 like a battery receipt, **says nothing about ticket files written after it**
 — the same stated limit as for authority records above. `war check` run now
-still reads every ticket, and the Claude Code plugin's Stop check blocks on
-its errors. A gate whose verdict is about tickets declares them in `inputs` and
-is held to them; declared `inputs` are not narrowed.
+still reads every ticket, and the Claude Code plugin's end-of-turn check
+reports its errors without blocking the turn. A gate whose verdict is about
+tickets declares them in `inputs` and is held to them; declared `inputs` are
+not narrowed.
 
 **What stays bound.** Anything else in a ticket's directory (an attachment,
 another atom a person adds), `docs/TICKETS.md`, the ticket profile

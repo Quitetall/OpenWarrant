@@ -1,0 +1,74 @@
+# The roadmap (OW-ADR-0023) as a type (OW-WAR-0148 M18): one store, read
+# where it is, and no longer a special case of the kernel.
+#
+# Its records are the roadmap store's: docs/roadmap/roadmap.toml, its atoms
+# and revisions/<n>.toml. Nothing here changes how that store is read or
+# signed. A revision's digest is the store's own, and `war sign roadmap`
+# accepts it as before. What this file says is what the type is made of and
+# which rules apply to it, each through a capability it selects:
+#
+# - structure: the record parses and its phases are acyclic
+#   (roadmap.malformed, roadmap.cycle, roadmap.valid, roadmap.status-claim).
+# - links: a Warrant names a phase that exists and a placement holds
+#   (roadmap.unknown-phase, roadmap.placement-*, roadmap.assigned,
+#   roadmap.unassigned). A phase reaches the fixed state `achieved` once
+#   its exit Warrant's resolution is recorded.
+# - acceptance: a revision is in force once a human accepts it
+#   (roadmap.accepted, roadmap.unaccepted, and its signature). The roadmap
+#   and its phases reach the fixed state `accepted`.
+#
+# It declares no [[states]] of its own: a declared state is entered in a
+# Warrant's or a ticket's journal, and nothing journals a phase.
+# docs/TYPES.md, "Every development document is a type".
+schema = "oh.war/profile/v1"
+name = "roadmap"
+form = "document"
+encoding = "roadmap"
+note = "The order the program is built in: phases, each with its exit and the phases it needs, held in docs/roadmap/ and accepted by a human one revision at a time."
+capabilities = ["structure", "links", "acceptance"]
+
+[records]
+types = ["roadmap", "phase"]
+
+[relations]
+allow = ["part_of", "depends_on"]
+
+# ROADMAP.md: the roadmap as one document, compiled by `war admin compile`
+# to docs/roadmap/generated/ROADMAP.md and drift-checked by
+# `war check --generated` (projection.drift). The numbers are the ones
+# `war plan roadmap` shows: members and achievement are read from the
+# Warrants, never written here.
+[[projections]]
+name = "roadmap"
+file = "ROADMAP.md"
+title = "{title}: roadmap"
+intro = "The order the program is built in, compiled from the roadmap record (docs/roadmap/roadmap.toml and its atoms) and the Warrants that name each phase. To change it, edit the atoms and propose a revision with `war plan roadmap propose`; a human accepts it. A phase is achieved when its exit Warrant's resolution is recorded."
+
+[projections.select]
+types = ["roadmap", "phase"]
+through = ["in:part_of:phase"]
+
+[[projections.sections]]
+heading = "Standing"
+block = "list"
+style = "blocks"
+types = ["roadmap"]
+fields = ["standing"]
+empty = "No roadmap record is recorded."
+
+[[projections.sections]]
+heading = "Phases"
+intro = "Each phase in the order the record lists it, with its tier, the phases its exit needs first, and whether it is achieved."
+block = "table"
+types = ["phase"]
+columns = ["id", "field:title=Phase", "field:tier=Tier", "out:depends_on=After", "field:achieved=Achieved"]
+empty = "The roadmap declares no phase."
+
+[[projections.sections]]
+heading = "Exits"
+intro = "What each phase delivers, the exit that says it is done, its exit Warrant, and the Warrants that name it."
+block = "list"
+style = "blocks"
+types = ["phase"]
+fields = ["title", "exit", "exit_warrant", "warrants", "achieved", "no_warrant_yet"]
+empty = "The roadmap declares no phase."

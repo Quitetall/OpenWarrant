@@ -3,7 +3,7 @@
 //!
 //! # The gap this closes
 //!
-//! `war gate --run --record` writes a run and its §44.6 receipt under the
+//! `war evidence gate --run --record` writes a run and its §44.6 receipt under the
 //! receipts path, which is gitignored on purpose: a receipt carries wall-clock
 //! times, and committing one as a side effect of running would dirty the tree
 //! on every `cargo xtask gate`. That left requirement 5 — "every required gate
@@ -446,7 +446,7 @@ fn attached_payload(key: &str, verdict: &str, receipt_digest: &str) -> String {
 /// for a gate no obligation asks about is not evidence of anything.
 ///
 /// `evidence_ref` is the Bonsai binding (t-dec1): the Bonsai evidence gate
-/// verifies a supplied `war bonsai check` document, and its receipt binds
+/// verifies a supplied `war admin bonsai check` document, and its receipt binds
 /// that document by bytes, `file:<path>#sha256:<digest>`, beside the
 /// contract and deliverable subjects. The Bonsai gate is not run without
 /// one (`evidence.bonsai-evidence-ref-required`, naming the remedy); a
@@ -583,7 +583,7 @@ pub fn record(
                     format!(
                         "{alias}: {key} verifies a supplied Bonsai evidence document, and its \
                          receipt binds that document by bytes; nothing was run. Remedy: write a \
-                         passing document with `war bonsai check --warrant {alias} --base <sha> \
+                         passing document with `war admin bonsai check --warrant {alias} --base <sha> \
                          --head <sha> --bonsai <binary>` to the file the gate definition passes \
                          to --evidence, commit it (an untracked file marks the run \
                          worktree:dirty), then `war evidence record {alias} --gate {key} \

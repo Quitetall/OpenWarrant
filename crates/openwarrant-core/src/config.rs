@@ -367,6 +367,28 @@ impl SignPolicy {
     }
 }
 
+/// `[instructions]` — which instruction files are read as records (M16).
+///
+/// The root `CLAUDE.md` and `AGENTS.md` are always read; `nested` adds the
+/// files its globs match (root-relative; `*` and `?` within a segment, `**`
+/// for any number of segments), such as `["**/CLAUDE.md"]` in a monorepo.
+/// A `**` walk skips hidden directories, symbolic links, `target/` and
+/// `node_modules/`. Empty by default, so a program pays for no walk it did
+/// not ask for. Never written when empty.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct InstructionsPolicy {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub nested: Vec<String>,
+}
+
+impl InstructionsPolicy {
+    /// Nothing configured: the table is omitted from a written config.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.nested.is_empty()
+    }
+}
+
 /// `[perform]` — the agent that performs an agent stage (OW-WAR-0069).
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -660,6 +682,10 @@ pub struct RepositoryConfig {
     pub perform: PerformPolicy,
     #[serde(default, skip_serializing_if = "SignPolicy::is_empty")]
     pub sign: SignPolicy,
+    /// `[instructions]` — nested instruction files read as records (M16).
+    /// Absent in every existing file, and never written empty.
+    #[serde(default, skip_serializing_if = "InstructionsPolicy::is_empty")]
+    pub instructions: InstructionsPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
     /// repository.
     ///
@@ -711,6 +737,7 @@ impl RepositoryConfig {
             run: RunPolicy::default(),
             perform: PerformPolicy::default(),
             sign: SignPolicy::default(),
+            instructions: InstructionsPolicy::default(),
             independence: None,
             adoption: None,
             authority: None,

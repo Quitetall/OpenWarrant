@@ -4,7 +4,7 @@
 //! `war` from anywhere opens the hub, and the hub needs to know which
 //! repositories this user works in. Nobody registers them: any `war` command
 //! that opened a repository touches the list, best-effort — a failure to
-//! write it never changes a command's result. `war projects` lists, adds and
+//! write it never changes a command's result. `war admin projects` lists, adds and
 //! forgets entries.
 //!
 //! The list stores where a project is and when it was last seen, never what
@@ -96,7 +96,7 @@ pub fn touch(root: &Utf8Path) {
     let _ = save(&p);
 }
 
-/// One row of `war projects`.
+/// One row of `war admin projects`.
 #[derive(Debug, Clone, Serialize)]
 pub struct Row {
     pub root: String,
@@ -119,7 +119,7 @@ pub struct Row {
     /// there is one (OW-WAR-0114), the §98 Objectives otherwise.
     pub phases: Option<usize>,
     pub phases_achieved: Option<usize>,
-    /// The project's `war watch` fingerprint when these facts were read: a
+    /// The project's `war view watch` fingerprint when these facts were read: a
     /// reader re-reads a row only when it moves.
     #[serde(skip)]
     pub fingerprint: Option<u64>,
@@ -128,7 +128,7 @@ pub struct Row {
     pub unreadable: Option<String>,
 }
 
-/// Every project with its facts read: `war projects`.
+/// Every project with its facts read: `war admin projects`.
 #[must_use]
 pub fn rows() -> Vec<Row> {
     let mut rows = listed();
@@ -178,7 +178,7 @@ pub fn listed() -> Vec<Row> {
         .collect()
 }
 
-/// The fingerprint `war watch` keeps for a project, or `None` when it no
+/// The fingerprint `war view watch` keeps for a project, or `None` when it no
 /// longer opens.
 #[must_use]
 pub fn fingerprint(root: &str) -> Option<u64> {
@@ -255,7 +255,7 @@ pub fn read_facts(row: &mut Row) {
     }
 }
 
-/// `war projects [--add <path> | --forget <path>]`.
+/// `war admin projects [--add <path> | --forget <path>]`.
 pub fn run(add: Option<&Utf8Path>, forget: Option<&Utf8Path>) -> (Report, Vec<Row>) {
     let mut report = Report::default();
     if let Some(a) = add {
@@ -293,7 +293,7 @@ pub fn run(add: Option<&Utf8Path>, forget: Option<&Utf8Path>) -> (Report, Vec<Ro
             report.push(Diagnostic::error(
                 "projects.unknown",
                 key.clone(),
-                format!("{key} is not on the list; `war projects` shows it"),
+                format!("{key} is not on the list; `war admin projects` shows it"),
             ));
         }
     }
@@ -304,7 +304,7 @@ pub fn run(add: Option<&Utf8Path>, forget: Option<&Utf8Path>) -> (Report, Vec<Ro
                 "projects.missing",
                 r.root.clone(),
                 format!(
-                    "{} holds no openwarrant.toml any more; `war projects --forget {}` removes it",
+                    "{} holds no openwarrant.toml any more; `war admin projects --forget {}` removes it",
                     r.root, r.root
                 ),
             ));
@@ -335,7 +335,7 @@ pub fn render(rows: &[Row]) -> String {
     s
 }
 
-/// One line of a project's state, for `war projects` and the hub's row.
+/// One line of a project's state, for `war admin projects` and the hub's row.
 #[must_use]
 pub fn summary(r: &Row) -> String {
     let n = |v: Option<usize>| v.map_or_else(|| "?".to_owned(), |n| n.to_string());

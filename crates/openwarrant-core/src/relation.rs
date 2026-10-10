@@ -15,7 +15,7 @@
 //! - **Namespaced** — `<namespace>.<name>` (`x.mentions`,
 //!   `contractor.bills`). Carried and displayed, never declared and never
 //!   computed from: a namespaced kind drives no state, no readiness and no
-//!   check, and `war impact` does not walk it. A profile cannot give one
+//!   check, and `war plan impact` does not walk it. A profile cannot give one
 //!   kernel meaning.
 //!
 //! A word that is neither is refused: a relation line is a claim, and a kind
@@ -213,9 +213,13 @@ fn is_ticket_id(s: &str, prefix: char) -> bool {
 
 /// Whether `target` can name a record of the compiled model: a record id
 /// (`REQ-pr1`), a Warrant's own record (`OW-WAR-0148/OBL-001`), a ticket
-/// (`t-3f2a`) or a ticket's item (`t-3f2a/i-9c01`).
+/// (`t-3f2a`), a ticket's item (`t-3f2a/i-9c01`), or a section of an
+/// instruction file (`md:CLAUDE.md#testing`, [`crate::instruction`]).
 #[must_use]
 pub fn is_target(target: &str) -> bool {
+    if target.starts_with(crate::instruction::ID_PREFIX) {
+        return crate::instruction::is_section_id(target);
+    }
     match target.split_once('/') {
         None => is_record_id(target) || is_ticket_id(target, 't'),
         Some((a, b)) => {
@@ -433,10 +437,24 @@ mod tests {
         for bad in ["req-1", "REQ", "REQ-", "REQ--1", "REQ-p_1", "-REQ-1", ""] {
             assert!(!is_record_id(bad), "{bad}");
         }
-        for ok in ["REQ-pr1", "OW-WAR-0148/OBL-001", "t-3f2a", "t-3f2a/i-9c01"] {
+        for ok in [
+            "REQ-pr1",
+            "OW-WAR-0148/OBL-001",
+            "t-3f2a",
+            "t-3f2a/i-9c01",
+            "md:CLAUDE.md#testing",
+            "md:crates/x/CLAUDE.md#build",
+        ] {
             assert!(is_target(ok), "{ok}");
         }
-        for bad in ["t-xyz", "REQ-1/", "t-3f2a/OBL-1", "everything"] {
+        for bad in [
+            "t-xyz",
+            "REQ-1/",
+            "t-3f2a/OBL-1",
+            "everything",
+            "md:CLAUDE.md",
+            "md:../CLAUDE.md#x",
+        ] {
             assert!(!is_target(bad), "{bad}");
         }
         let pin = format!("REQ-pr1@sha256:{}", "a".repeat(64));
@@ -446,6 +464,9 @@ mod tests {
         );
         assert!(parse_target("REQ-pr1@sha256:abc").is_none());
         assert!(parse_target("REQ-pr1@md5:abc").is_none());
+        let md = parse_target(&format!("md:CLAUDE.md#testing@sha256:{}", "c".repeat(64))).unwrap();
+        assert_eq!(md.id, "md:CLAUDE.md#testing");
+        assert!(md.pin.is_some());
     }
 
     #[test]

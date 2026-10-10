@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-//! `war frontier` (OW-WAR-0068): the stages that can start now.
+//! `war plan frontier` (OW-WAR-0068): the stages that can start now.
 //!
 //! After mattpocock/skills `to-tickets` and `wayfinder` (MIT): a ticket is
 //! unblocked when every ticket blocking it is closed, and the frontier is the
@@ -9,7 +9,7 @@
 //! obligation an admissible verification established, "claimed" is a
 //! `dispatch.compiled` journal event naming the stage, and "done" is a
 //! `submission.recorded` event naming it. Nothing here is a status claim: it
-//! is derived from the same records `war resolve --dry-run` reads.
+//! is derived from the same records `war sign resolve --dry-run` reads.
 //!
 //! Three choices, stated: `done` wins over `blocked` (a recorded submission
 //! is history, whatever the graph says now); a milestone with no obligations
@@ -294,7 +294,7 @@ fn frontier_of<'a>(
                         "question.no-responder",
                         "docs/authority/roles.toml".to_owned(),
                         format!(
-                            "{alias}/{sid} waits on {} and {why}, so nobody can answer:                              `war answer` refuses an agent by kind (§27.2). The stage stays                              blocked; it is not waiting normally and it is not answered. A human                              added to docs/authority/roles.toml can answer",
+                            "{alias}/{sid} waits on {} and {why}, so nobody can answer:                              `war plan answer` refuses an agent by kind (§27.2). The stage stays                              blocked; it is not waiting normally and it is not answered. A human                              added to docs/authority/roles.toml can answer",
                             questions.join(", ")
                         ),
                     ));
@@ -360,7 +360,7 @@ fn open_blocking(
     by_stage
 }
 
-/// Whether the register names an actor `war answer` would accept: any
+/// Whether the register names an actor `war plan answer` would accept: any
 /// assignment whose kind is not `agent` (A-002). `Err` when the register
 /// cannot be read at all.
 fn someone_can_answer(repo: &Repository) -> Result<bool, String> {

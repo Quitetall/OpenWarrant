@@ -4,8 +4,12 @@ A document's **type** (its profile, `profiles/<name>.toml`) says what it is
 made of and what applies to it (OW-ADR-0031). This page covers the two
 things a type composes, **records** and the **relations** between them, and
 the **states** a record can be in.
-`war impact` (below) is what they are for: one change, and everything it
-reaches.
+`war plan impact` (below) is what they are for: one change, and everything it
+reaches. "One Warrant, three encodings" covers the Warrant itself: one
+noun, one id space, one list, and work brought in from Beads, OpenSpec and
+Spec Kit. The last section, "Every development document is a type", covers
+the roadmap, the specification and ADRs as types, the core types and packs,
+and the documents no type governs yet.
 
 ## Records
 
@@ -67,6 +71,48 @@ relation line is ordinary text; an unclosed fence is refused.
 
 The worked example is `docs/records/password-reset/10-records.md`.
 
+### Instruction sections: CLAUDE.md and AGENTS.md
+
+The repository's own agent instructions are records too, read where they are
+and never edited by the reader (M16). Each `##` section of the root
+`CLAUDE.md` and `AGENTS.md` is a record of type **`instruction`**:
+
+| | |
+|---|---|
+| **id** | `md:<file>#<slug>`: `md:CLAUDE.md#testing`, `md:AGENTS.md#tools` |
+| **slug** | the heading as GitHub anchors it: lowercased; letters, digits, `-` and `_` kept; spaces become `-`; other characters dropped (`## Style & Lint` is `style--lint`). A repeated heading gets `-1`, `-2`, … in order; an empty one is `section` |
+| **span** | from the heading line's first byte to the next `#` or `##` heading, the managed block's begin marker, or the end of the file; `###` headings, blank lines and line endings are inside it, nothing normalized |
+| **revision** | `sha256:` of exactly that span, so an edit to one section moves that section's revision and no other |
+| **governed by** | no profile: nobody governs a repository's instructions but the repository |
+
+- Text before the first `##` heading, under a `#` heading, or between the
+  managed block and the next heading belongs to no section.
+- Inside a fenced code block a heading is text, as in a record atom; an
+  unclosed fence runs to the end of the file and is not refused here.
+- The **managed block** (`<!-- openwarrant:begin -->` …
+  `<!-- openwarrant:end -->`, written by `war admin agents-md --block`) is no
+  section and inside none, so restamping it moves no revision. A malformed
+  block (two of them, or one that never closes) is a warning,
+  `instruction.block-malformed`; the sections outside it are still read.
+- **Nested files.** `[instructions] nested` in `openwarrant.toml` adds the
+  files its globs match, such as `["**/CLAUDE.md"]` in a monorepo
+  (`md:packages/api/CLAUDE.md#build`). A `**` walk skips hidden directories,
+  symbolic links, `target/` and `node_modules/`. It is empty by default, so
+  only the two root files are read unless you ask.
+
+Cite a section like any record, from a relation line, an obligation's
+`evaluates`, or a ticket item's `implements`:
+
+```markdown
+## CON-ci1 · constraint
+constrains md:CLAUDE.md#testing
+```
+
+A Warrant's atoms or a ticket's text that name `md:CLAUDE.md#testing` are
+found by `war plan impact` as documents citing it. The CLAUDE.md file itself is
+never written to with the active Warrant's context: what changes lives in
+`war view prime`, and the file stays stable.
+
 ## Relations
 
 A relation is `{from, kind, to}`, and `to` may pin a revision of its target
@@ -81,7 +127,7 @@ A relation is `{from, kind, to}`, and `to` may pin a revision of its target
   `causes`, `qualifies`, `selected_over`.
 - **Namespaced**, `<namespace>.<name>` (`x.mentions`, `contractor.bills`):
   carried, shown in the model, and **inert**. A namespaced relation drives no
-  state, no readiness and no check, needs no declaration, and `war impact`
+  state, no readiness and no check, needs no declaration, and `war plan impact`
   lists it without walking it. A profile cannot give one kernel meaning.
 - Any other word is refused (`record.relation-kind-unknown`).
 
@@ -95,12 +141,13 @@ A relation is `{from, kind, to}`, and `to` may pin a revision of its target
 
 A relation line's targets begin with an uppercase letter or `t-`: a record
 id, a Warrant's own record (`OW-WAR-0148/OBL-001`), a ticket or an item
-(`t-3f2a/i-9c01`). A line without that shape is prose ("Tokens are
-single-use." and "constrains everything" are prose); a line with the shape
-whose target does not parse is refused.
+(`t-3f2a/i-9c01`); or with `md:` and hold a `#`: an instruction section
+(`md:CLAUDE.md#testing`). A line without that shape is prose ("Tokens are
+single-use.", "constrains everything" and "see md:CLAUDE.md for the rules"
+are prose); a line with the shape whose target does not parse is refused.
 
 **Pin what you judged.** An obligation's `evaluates` should pin the revision
-it was written against: `war impact REQ-pr1` and `war model --json` show the
+it was written against: `war plan impact REQ-pr1` and `war plan model --json` show the
 revision now. The pin is in the assurance atom, so the Warrant's contract
 digest covers it and a signature over the contract covers which bytes were
 judged. When the record changes, the verdict stays recorded, bound to the
@@ -156,7 +203,8 @@ Silent for a program with no record atom and no authored relation. Otherwise
 | `record.relation-undeclared` | a core kind the governing profile does not allow |
 | `record.relation-malformed` | an `evaluates` bullet naming no record id |
 | `record.relation-required` | a record missing a relation its profile requires |
-| `record.relation-target-unknown` | (a warning) a core relation whose target is no record of the corpus; kept, never dropped |
+| `record.relation-target-unknown` | (a warning) a core relation whose target is no record of the corpus; kept, never dropped. A citation of an instruction section that does not exist (`md:CLAUDE.md#no-such`) is one |
+| `instruction.block-malformed` | (a warning, said even with no record atom) an instruction file's managed block is doubled or never closes; its other sections are still records |
 
 ## States
 
@@ -213,7 +261,7 @@ refines = "verified"
   vocabulary.
 
 ```text
-war state <record> <name> [--note TEXT] [--as ACTOR] [--json]
+war plan state <record> <name> [--note TEXT] [--as ACTOR] [--json]
 ```
 
 enters one, as a `state.entered` event in the journal of the Warrant or
@@ -239,29 +287,30 @@ see, never a way to read more than its parent.
 
 ### Where they show
 
-- `war model --json`: each fixed state that holds, `kind: computed` or
+- `war plan model --json`: each fixed state that holds, `kind: computed` or
   `authenticated` with its `facet`, and each declared state entered,
   `kind: declared` with `refines` and `lapsed`, beside the builders' own
   states (`phase`, `rung`, `currency`, `disposition`, `achieved`,
   `checklist`). An item's `in_progress` reads the claim locks, the one input
   outside the tree.
 - `war show <ticket>`: ` [in_review]` (or ` [in_review, lapsed]`) after the
-  ticket's state or an item's line; `war tickets`: the ones that hold.
+  ticket's state or an item's line; `war view tickets`: the ones that hold.
 - `war show <alias>` (`full_warrant` and `status` views): a "Declared
   states" section, only where the Warrant's journal holds one.
 
 ## The model
 
-`war model --json` (`oh.war/model/v1`) carries record atoms' records beside
+`war plan model --json` (`oh.war/model/v1`) carries record atoms' records beside
 the corpus's own (Warrants, obligations, items, phases…), and their
 relations beside the existing kinds, each with `to_revision` when it pins
-one. Every refusal above is also a model diagnostic under its rule, and an
+one. Each instruction section is there too, type `instruction`, its source
+the file that holds it. Every refusal above is also a model diagnostic under its rule, and an
 unknown target is `model.relation-target-unknown`.
 
-## `war impact <record>`
+## `war plan impact <record>`
 
 ```text
-war impact REQ-pr1 [--json]
+war plan impact REQ-pr1 [--json]
 ```
 
 Walks **incoming** relations from the record, transitively (what points at
@@ -271,7 +320,9 @@ it is what its change reaches; what it points at is not), and lists
 - **affected** records, each with the edge that reached it and its depth;
 - **documents** that hold an affected record or name one by id — the
   Warrant whose basis names `REQ-pr1`, the ticket whose item implements it,
-  the record atom that declares it;
+  the record atom that declares it; for an instruction section, the file
+  that holds it (kind `instruction`) and every Warrant or ticket whose text
+  cites `md:CLAUDE.md#testing`;
 - **evaluations**: each obligation that `evaluates` an affected record, with
   its verdict now, its verdict as recorded, and whether it reads `current`,
   `stale` or `unbound`;
@@ -380,12 +431,12 @@ selected records' incoming relations are shown). Every rendering ends with a
 provenance table of each selected record and its revision, so the bytes move
 when a selected record changes and never when another does. A record named
 only at the far end of an outgoing relation — the architecture view's
-"Constrains REQ-pr1" — is **mentioned**, not selected. `war impact` lists
+"Constrains REQ-pr1" — is **mentioned**, not selected. `war plan impact` lists
 exactly the declared projections that select its record.
 
 ### Trace
 
-`war render … --json` returns `oh.war/projection/v1`: the content, its
+`war plan render … --json` returns `oh.war/projection/v1`: the content, its
 digest and size, the budget, `selects` (each record's id, type, revision,
 source and the bytes rendered from it), `mentions`, and `trace` — every
 output line in runs, each with its origin: `record` (id and revision),
@@ -393,7 +444,7 @@ output line in runs, each with its origin: `record` (id and revision),
 document type and its profile file's digest: headings, intros, table
 headers).
 
-### Documents, `war render` and `war compile`
+### Documents, `war plan render` and `war admin compile`
 
 An area declares its documents in `docs/records/<area>/documents.toml`
 (`oh.war/documents/v1`): each a `type`, optionally a `name` (default: the
@@ -401,10 +452,10 @@ type), `title` (default: the file's), `roots` (default: every record of the
 area) and `max_bytes`. Its id is `<area>/<name>`.
 
 ```text
-war render <projection> [--of <document | area | record>] [--max-bytes N] [--json]
+war plan render <projection> [--of <document | area | record>] [--max-bytes N] [--json]
 ```
 
-prints the rendering and writes nothing. `war compile` writes each
+prints the rendering and writes nothing. `war admin compile` writes each
 declared document's projections to `docs/records/<area>/generated/`; `war
 check --generated` renders them again and compares.
 
@@ -416,7 +467,7 @@ check --generated` renders them again and compares.
 | `projection.missing` | a declared projection not yet compiled |
 | `projection.compile` | a declared projection that cannot be rendered (over budget, an unknown root) |
 | `projection.over-budget` | a rendering over its budget: refused by name with the records that cost the most; nothing is truncated |
-| `projection.unknown`, `projection.of-missing`, `projection.of-unknown`, `projection.root-unknown` | `war render` was asked for something that is not there |
+| `projection.unknown`, `projection.of-missing`, `projection.of-unknown`, `projection.root-unknown` | `war plan render` was asked for something that is not there |
 
 ## From a sentence to records
 
@@ -479,9 +530,572 @@ writes nothing: not the atom, not the ticket, not a scratch file.
 record atom, `docs/records/<area>/<NN>-<slug>.md` (the next free `NN`,
 never overwriting), whose frontmatter names the profile and whose prelude
 names the sentence; then a ticket through `war create` whose items read
-`… (implements REQ-pre1)`, so `war model` carries each item's `implements`
-and `war impact REQ-pre1` reaches the item. The ticket's body names the
+`… (implements REQ-pre1)`, so `war plan model` carries each item's `implements`
+and `war plan impact REQ-pre1` reaches the item. The ticket's body names the
 records, their file and the proposal's digest. Applying the same proposal
 again is refused, `record.duplicate-id` once per record, naming where each
 already is. No drafter configured is `plan.no-drafter` (`ticket.no-drafter`
 from `war create`), and nothing is invented.
+
+## One Warrant, three encodings
+
+A Warrant is one unit of work. Its minimum is a title; everything else is
+optional, chosen by its type (OW-WAR-0148 M10). A "ticket" is a Warrant in
+its light encoding; the word stays as that encoding's other name. A Warrant
+is written down in one of three ways, and each reads forever, byte for
+byte: nothing is migrated, and no signed digest moves.
+
+| encoding | where | its type | written by |
+|---|---|---|---|
+| light | `docs/tickets/<t-id>/`: a manifest, an intent and a checklist | the working form (`profiles/ticket.toml`); its own `type` (bug, feature, ...) beside | `war create`, `war admin import` |
+| directory | `docs/warrants/<alias>/`: a manifest and the atoms its profile requires | its profile: `delivery`, `decision`, ... | `war plan new`, `war plan --apply`, `war plan promote` |
+| read in place | an OpenSpec change or a Spec Kit feature an `[[adapters]]` entry names | `openspec`, `speckit` | the tool that owns the folder; `war` never writes it |
+
+There is no third file format. The light encoding is already the small
+one, and an imported Warrant is a light one with one more manifest key,
+`imported_from = "<format>:<id>"` (absent from every other, so a manifest
+written before it reads and writes back unchanged).
+
+### One id space
+
+| id | names | for example |
+|---|---|---|
+| `t-<hex>`, `t-<hex>/i-<hex>`, `i-<hex>` | a light Warrant, one of its items | `t-3f2a`, `t-3f2a/i-9c01` |
+| `<NS>-WAR-<NNNN>` | a directory Warrant | `OW-WAR-0148` |
+| `openspec:<change>`, `openspec:<change>/<task>`, `openspec:<capability>#<requirement>` | a change read in place, its task, a requirement | `openspec:add-2fa/1.1` |
+| `speckit:<feature>`, `speckit:<feature>/<T-id>`, `speckit:<feature>/<FR-, SC- or US-id>` | a feature read in place, its task, its record | `speckit:001-photo-albums/T004` |
+
+The shape routes the id, so nothing is read to decide where it goes.
+`war show <id>` and `war status <id>` take any of them: a light Warrant
+renders as its document, a directory one as its §17.5 projection, one read
+in place from its folder. `war plan impact` takes any record id of the model.
+
+### The list
+
+`war view warrants` (also `war view tickets`, `war view ls`) lists every Warrant: the
+light ones first, in the order work takes them (`result.tickets`, as
+before), then the directory ones and the ones read in place
+(`result.warrants`, each with `profile`, `encoding`, `state` and
+`provenance`). A directory Warrant's state is the phase its journal
+records (`provenance: recorded`): the list reads only its manifest and
+journal, so it answers in milliseconds on a corpus of any size, and
+`war status <alias>` is the computed answer. One read in place is `open`,
+`in_progress` or `done` from its tasks (`computed`).
+
+Filters read every encoding. `--type` takes a light Warrant's type (`bug`)
+or a profile (`delivery`, `ticket`, `openspec`); `--state` the fixed three,
+a declared state, or a recorded phase (`draft`, `authorized`, `resolved`),
+a phase reading as one of the three (draft is open, authorized to verifying
+is in progress, resolved is done); `--text` and `--search` read a Warrant's
+title where they cannot read more. Labels and epics are the light
+encoding's. A type that is neither, or a state that is none, is refused
+(`ticket.filter-type-unknown`, `ticket.filter-state-unknown`).
+
+`war view ready` lists the items that can be claimed now, which are the light
+Warrants'; `war next` adds the directory Warrants' acts and ready stages.
+A Warrant read in place is never claimed here: its tasks are ticked in its
+own files, by its own tool.
+
+### Bringing work in
+
+```bash
+war admin import beads issues.jsonl      # Beads' issue JSONL, as `bd export` writes it
+war admin import openspec .              # each change of openspec/changes/ (archive/ is not read)
+war admin import speckit .               # each feature of specs/
+war admin export beads > issues.jsonl    # every light Warrant, as Beads issue JSONL
+```
+
+Each imported change, feature or issue becomes a light Warrant whose
+tasks are its items, worked with `war next`, `claim` and `done` like any
+other.
+
+- **Deterministic.** An imported Warrant's id is `t-` and 8 hex of the
+  sha256 of where it came from; its item ids come from that and each
+  task's own key (`1.1`, `T001`); its UUID is a v7 from its source and its
+  creation time. The same input gives the same files in every program.
+  The journal line that records the import carries the time it ran, and a
+  source that names no creation time takes the import's own.
+- **Idempotent.** A Warrant whose `imported_from` is already here is named
+  and left alone, so running an import again writes nothing.
+- **All or nothing.** Every refusal is found before the first file is
+  written; a refusal writes nothing.
+
+| Beads (`internal/types/types.go`, `cmd/bd/export.go`) | the Warrant |
+|---|---|
+| `id` | `imported_from = "beads:<id>"`; `war admin export beads` gives it back |
+| `title` | its title, and the text of its one item |
+| `description`; `design`, `acceptance_criteria`, `notes` | its description; the other three as `## Design`, `## Acceptance criteria`, `## Notes from Beads` |
+| `status` | `closed`: the item ticked, with `closed_at` and `close_reason` on its line; any other built-in status reads open, and the import says which |
+| `priority`, `issue_type`, `labels` | priority (the same 0 to 4), type, labels, where the ticket profile admits them |
+| `parent-child` | `part_of` the parent |
+| `blocks` | the item waits on that Warrant (`after t-...`) |
+| `comments` | dated notes |
+
+An open epic with no blocking dependency gets no item and is worked
+through the Warrants part of it. Derived fields (the counts,
+`updated_at`, `parent`) are dropped, since an export computes them again;
+who holds an issue now (`assignee`, `owner`, leases) is dropped with a
+warning, since a claim says that here, locally. On export, a Warrant whose
+items are not just its title is an issue with one child issue per item
+(`<id>.<n>`, `parent-child`).
+
+| OpenSpec (`openspec/changes/<change>/`) | the Warrant |
+|---|---|
+| `proposal.md` | the title (its `# ` heading, or the change's name) and the description (its first section, `## Why`) |
+| `.openspec.yaml` `created:` | `created_at` |
+| `tasks.md` | the items, ticked as ticked, each keeping its number |
+| `specs/<capability>/spec.md` deltas | named in the description: what it adds, modifies, removes or renames |
+
+| Spec Kit (`specs/<feature>/`) | the Warrant |
+|---|---|
+| `spec.md` | the title (`# Feature Specification: ...`), the description (`**Input**`), `created_at` (`**Created**`) |
+| `tasks.md` | the items (`- [ ] T001 [P] [US1] ...`); `depends on T003` becomes `after` |
+| `FR-` and `SC-` lines | records `SK<NNN>-FR-<n>` (requirement) and `SK<NNN>-SC-<n>` (outcome) in `docs/records/<feature>/10-speckit.md`, where the program's record format admits them; otherwise they stay in the description and the import says why (`speckit.records-not-admitted`) |
+
+"Admits them" means the atom passes every rule `war check` applies to a
+record atom: the `delivery` profile declares `requirement` and `outcome`,
+and nothing it requires (a requirement's `implements` an outcome, say) is
+missing. `.specify/` (templates, scripts, the constitution) holds no work
+and is not read.
+
+Refused by rule, each writing nothing:
+
+| rule | what |
+|---|---|
+| `beads.malformed` | a line that is not an issue object, an issue with no id, title or `created_at` |
+| `beads.not-an-issue` | a `_type` other than `issue` (a memory line) |
+| `beads.status-unmapped` | a custom status |
+| `beads.type-unmapped`, `beads.label-unmapped` | an issue type or label the ticket profile does not admit |
+| `beads.dependency-unmapped` | a dependency other than `blocks` or `parent-child`, or a second parent |
+| `beads.field-unmapped` | any other field that carries a value |
+| `openspec.missing`, `speckit.missing` | a folder that is neither |
+| `openspec.tasks-malformed`, `speckit.tasks-malformed` | a task line that is not one (`- [y]`, `- []`, no text), a number or id used twice, a Spec Kit task with no `T` id |
+| `openspec.delta-malformed` | a requirement outside the four delta sections, a FROM with no TO |
+| `openspec.requirement-duplicate`, `speckit.record-duplicate` | a requirement or record declared twice |
+| `import.target-unknown`, `import.part-of-cycle`, `import.blocker-cycle` | a reference to nothing in the input or the program, or one that comes back to itself |
+| `import.format-unknown` | a format other than `beads`, `openspec`, `speckit` |
+| `export.beads-flags` | `war admin export beads` with a §68 flag |
+
+### Read in place
+
+A repository that keeps working in OpenSpec or Spec Kit names the folder
+instead of importing it:
+
+```toml
+# openwarrant.toml
+[[adapters]]
+kind = "openspec"
+path = "openspec"
+
+[[adapters]]
+kind = "speckit"
+path = "specs"
+```
+
+`war view warrants`, `war show`, `war status`, `war plan model`, `war plan impact` and
+`war check` then read those folders on every call, with the readers the
+import uses, and never write them. Each change or feature is a Warrant
+(`change`, `feature` in the model), each task an `item` `part_of` it, each
+requirement (OpenSpec's `### Requirement:`, Spec Kit's `FR-`), success
+criterion (`outcome`) and user story (`story`) a record with the revision
+of its own bytes. Relations: a change `implements` the requirements its
+deltas add or modify (`openspec.removes` and `openspec.renames` are
+namespaced: carried, inert); a Spec Kit task `implements` the story its
+`[US1]` names and any `FR-` it names, and `depends_on` the tasks it says
+it depends on. So `war plan impact openspec:auth-session#session-expiry` names
+the change that modifies the requirement and that change's tasks.
+
+`war status` prints a "Read in place" section (and `read_in_place` under
+`--json`) only when an adapter is configured; the committed
+`CORPUS_STATUS` projections never include it, since the folders are
+another tool's and change without a compile.
+
+Reported by rule: an entry that does not parse (`adapter.config`), a kind
+this build does not read (`adapter.kind-unknown`), a path that is not there
+(`adapter.path-missing`), an id no adapter reads (`adapter.unknown`), and
+the readers' own rules above. `war check` makes each an error; the list,
+the model and the status carry each as a warning beside what could be
+read.
+
+## Optional parts and the tick ladder
+
+A Warrant's minimum is a title. Everything below is optional, and attaches
+to any Warrant, a title-only one included (OW-WAR-0148 M13).
+
+### Parts: tests, KPIs, milestones
+
+```bash
+war add t-3f2a --test "cargo test -p parser"            # the Warrant's own test
+war add t-3f2a/i-9c01 --test "./smoke.sh" --name smoke  # one item's test
+war add t-3f2a --kpi p95_ms --cmd "./bench.sh p95" --direction min --target 120
+war add t-3f2a --milestone "Beta ships" --min observed  # an item with a minimum
+war add t-3f2a/i-9c01 --min independent                 # make an item a milestone
+```
+
+- A **test** is a shell command (`sh -c`, from the repository root); its
+  exit code decides pass or fail. Unnamed, it is `test-1`, `test-2`, ...
+- A **KPI** is a command that prints one number, a direction (`max`: higher
+  is better; `min`: lower is better), an optional `--target`, and a mode:
+  `best` (the default: pass or fail against the target, and the best value
+  kept), `threshold` (pass or fail only; needs a target), `optimise` (a
+  signal only: it never decides a tick, and its best is kept). A KPI
+  without a target decides nothing either.
+- A **milestone** is an item that ticks a marker on the progress tracker,
+  with an optional minimum level.
+
+On a ticket (`t-x`) a test or KPI is the Warrant's and applies to every
+item; on an item (`t-x/i-y`), or given with the text of a new item in the
+same `war add`, it is that item's. Each part added is one line in the
+ticket's optional checks atom and one `ticket.part_added` in its journal.
+`war add` without a part is the item it always was.
+
+### The checks atom
+
+A ticket-encoded Warrant keeps its parts in `atoms/30-checks.md`, written
+on the first part and found by that path (the manifest does not list it).
+A ticket without it has no parts and reads, byte for byte, as before.
+
+```markdown
+# Checks
+
+## Tests
+
+- unit: `cargo test -p parser`
+- smoke: `./smoke.sh` (for i-9c01)
+
+## KPIs
+
+- p95_ms: `./bench.sh p95` · min · target 120 · best
+- coverage: `./cov.sh` · max · optimise
+
+## Milestones
+
+- i-77be · min observed
+```
+
+- A part is a list item in its section: `- <name>: <code span>`, then, for a
+  KPI, ` · max|min`, optionally ` · target <N>`, and ` · best|threshold|optimise`;
+  `(for i-x)` at the end scopes it to an item. The code span carries the
+  command exactly (a command holding backticks takes a longer fence).
+- A milestone is `- <item id>`, optionally ` · min <level>`.
+- Prose, other headings and fenced blocks are a person's and are kept.
+- Each line `war add` writes is appended to its section; nothing else
+  moves. Edit the file by hand and the tool follows it.
+- `war check` reports, by line, a malformed part (`checks.malformed`), a
+  name used twice (`checks.duplicate`), and a part or milestone naming an
+  item the checklist does not have (`checks.item-unknown`).
+
+### The ladder: how a tick was earned
+
+| level | earned by | written on the line |
+|---|---|---|
+| `claimed` | `war done`: the performer says so | `— done by claude, 2026-10-07` (as always) |
+| `observed` | `war done --check`: the tests and KPIs that apply ran and passed; the receipt is journalled | `— done by claude, 2026-10-07 [observed]` |
+| `independent` | `war evidence verify <t-x/i-y> --response <file>`: a verdict by someone other than the performer, with evidence | `... [independent]` |
+| `signed` | `war sign <t-x/i-y> --ssh-sign`: a human's signature over the item's text, verified | `... [signed]` |
+
+`claimed < observed < independent < signed`. A claimed tick writes no
+marker, so every checklist written before the ladder reads as claimed
+ticks, and a parser that predates it reads a marker as part of the date.
+
+**A marker is believed only as far as a record backs it.** `observed` needs
+a passing check of the item in the ticket's journal (`ticket.item_done` or
+`ticket.tick_raised` at that level, carrying each run's verdict, duration,
+output digest and the commit); `independent` a `ticket.tick_verified` whose
+verifier is not the tick's performer; `signed` a `ticket.tick_signed` whose
+response verifies as a human's signature over the item's current text. A
+marker nothing backs reads as the highest level that is backed (`claimed`
+at the floor) and says why. So **a claimed tick never reads as checked,
+verified or signed**, however its line was edited.
+
+`war done <item> --check`:
+
+- runs every test and every KPI that applies (the Warrant's, then the
+  item's) through the gate runner, with its deadline; output lands under
+  `.openwarrant/state/checks/<ticket>/`;
+- ticks at `observed` only when every test passes and every KPI with a
+  target meets it; a KPI that decides nothing is run and recorded;
+- refuses, by name, when one fails (`ticket.check-failed`), and reads
+  **UNKNOWN** (`ticket.check-unknown`) when one could not be established: a
+  command that could not run, timed out, or (a KPI) printed no number.
+  UNKNOWN is never a pass and never a fail. Nothing is ticked either way,
+  the claim stays the agent's, and the round is journalled
+  (`ticket.check_run`);
+- refuses an item with nothing that could fail (`ticket.check-nothing`):
+  observed needs an observation;
+- on a done item, raises its tick to `observed` the same way, keeping who
+  ticked it, when, and its note;
+- composes with M11: `--if-rev` is compared in the same write, the agent's
+  leases are renewed after each run, and its claim is checked again before
+  the tick.
+
+### Minimums
+
+A type sets the least a tick must show, as data in its profile:
+
+```toml
+# profiles/ticket.toml
+[ticks]
+item = "claimed"          # every item (default: claimed)
+milestone = "observed"    # every milestone
+
+[ticks.types]             # a ticket's `type` (from [fields] types): its milestones
+bug = "observed"
+```
+
+An item's minimum is the highest that applies: the profile's `item`; for a
+milestone, also the profile's `milestone`, its ticket type's, and its own
+`--min`. A tick below it is refused, `ticket.tick-below-minimum`, naming
+the minimum, what set it, and the command that reaches it: `war done <item>
+--check` for observed, the verification seam for independent, `war sign
+<item> --ssh-sign` for signed. A level outside the ladder, or a type the
+profile does not declare, is refused when the profile is read,
+`profile.ticks`. No shipped profile declares `[ticks]`.
+
+### KPIs over time
+
+`war evidence kpi run <t-x|t-x/i-y>` runs each KPI that applies, parses the one
+number it prints (the whole output, or its last non-empty line), journals
+every run as `ticket.kpi_run` (value, verdict, direction, target, mode,
+commit), and says each one's latest, best and target. It ticks nothing. A
+run short of its target is a warning, `kpi.target-missed`; a run that
+printed no number, or exited non-zero, is UNKNOWN, `kpi.unknown`, and is
+recorded with no value. `war show` gives the same standing for every KPI.
+
+### Independent and signed
+
+`war evidence verify <t-x/i-y>` writes the request an independent verifier answers:
+the item, its performer (who ticked it, or who holds its claim), the checks
+that apply and the KPI runs on record. The answer is an
+`oh.war/tick-verification-response/v1` (TOML or JSON) whose
+`[verification]` is the same record a Warrant's verdicts are, admitted by
+the same rule: no verifier (`tick.no-verifier`), no evidence
+(`tick.no-evidence`), or a verifier who is the performer
+(`tick.self-verification`) is refused, and so is a response naming another
+performer than the record does (`tick.performer-mismatch`). An
+`established` verdict ticks the item at `independent` (or raises its tick);
+any other is journalled and raises nothing.
+
+`war sign <t-x/i-y> --ssh-sign [--as <human>]` writes
+`docs/authority/responses/<t-x>--<i-y>.signoff.response.toml` (the ticket,
+the item, the sha256 of a statement of its text), signs it with the
+human's key through the ssh agent, and records it only when the signature
+verifies as that human's (`authority_check`, act `sign-off`). The tool
+holds no key. Without `--ssh-sign` nothing is signed (`sign.ssh-required`);
+`--dry-run` shows what would be signed and touches no key.
+
+### Where every tick's level shows
+
+| view | what it shows |
+|---|---|
+| `war show <ticket>` | each done item opens with its level, `(claimed)`, `(observed)`, `(independent: verified by X)`, `(signed: signed off by Y)`, and `; needs <level>` when below its minimum; an open milestone says what it ticks at; a **Checks** section lists tests, KPIs (latest, best, target) and milestones; `--json` items carry `tick` (`level`, `minimum`, `meets_minimum`, `written` and `unbacked` when a marker is not believed) |
+| `war view tickets` | `[ticks: 2 claimed, 1 observed]` at the end of a line with ticks; `ticks` in the JSON row |
+| `war status` | a **Ticks** block after the corpus projection (never inside it, so working a ticket moves no generated file); `war status <ticket>` is the ticket's show |
+| `war plan roadmap` | a **Milestones** section (in a program with a roadmap record): each milestone with the level its tick shows and whether it meets its minimum |
+| `war view board` | the same ticks and milestones |
+| `war view ui` | a badge per done item, a distinct word per level (claimed is drawn muted, never as a checked one; a tick below its minimum as a warning), and the milestones on the progress page |
+
+### The create hint
+
+`war create` prints one line suggesting `war add <id> --test "<command>"`:
+a Warrant's smallest form is a title, and a test is what lets a tick be
+observed. It never refuses anything. `[warrants] hints = false` in
+`openwarrant.toml` turns it off.
+
+### Harness bridges
+
+- **The `TaskCompleted` hook** (`.claude/hooks/task-completed.sh`, in the
+  plugin's `hooks.json`): when Claude Code marks one of its tasks completed
+  and the task's subject or description names an item, it runs `war admin bridge
+  claude-tasks --event - --apply`. It exits 0 on every path and writes
+  nothing on stdout, so it never holds a task; a task naming nothing does
+  nothing. Long-running checks run inside the hook's own timeout.
+- **`war admin bridge claude-tasks`** reads a Claude Code task list: `--dir`,
+  `--file`, or `~/.claude/tasks/$CLAUDE_CODE_TASK_LIST_ID/` (Claude Code
+  keeps one directory per list there; its hook input names `task_id`,
+  `task_subject` and `task_description`, code.claude.com/docs/en/hooks,
+  "TaskCompleted"). Each completed task that names exactly one item
+  proposes `war done <item> --check`, or `war done <item>` when the item
+  has nothing to check. It prints what it would do and writes only with
+  `--apply`, claiming an item nobody holds first. A tick it cannot make is
+  a warning, `bridge.not-ticked`; the bridge never fails because a check
+  did. The file layout inside a task-list directory is not documented by
+  Claude Code, so it reads the documented field names (`id`/`task_id`,
+  `subject`/`task_subject`, `description`/`task_description`,
+  `status`/`task_status`) and names any other file UNKNOWN
+  (`bridge.task-unreadable`) rather than guess.
+
+## Every development document is a type
+
+OpenWarrant's document types cover all development work (OW-WAR-0148 M18,
+decisions 25 to 27). Nothing the kernel reads is a special case of it any
+more: the roadmap, the specification and ADRs are ordinary types, about ten
+core types ship in the box, more ship as packs in the same format, and a
+document no type governs still counts, as untyped.
+
+### The stores are types
+
+Three stores predate typed records. Each is now read as one type's
+**encoding**, unchanged:
+
+| type | `encoding` | the store | its records in `war plan model` |
+|---|---|---|---|
+| `roadmap` | `roadmap` | `docs/roadmap/`: `roadmap.toml`, its atoms, `revisions/<n>.toml` | `OW-ROADMAP` (type `roadmap`); each phase (`OW-PHASE-3`, type `phase`) `part_of` it, with its `depends_on` |
+| `spec` | `sas` | `docs/sas/`: the one document and `revisions/<version>.toml` | `WAR-SAS` (type `spec`); each numbered section and subsection (`WAR-SAS-43`, `WAR-SAS-43.5`, type `section`, the revision of its own byte span), each `part_of` its parent; each §106 requirement `part_of` the spec |
+| `adr` | `adr` | `docs/adr/atoms/` | each ADR by its alias (`OW-ADR-0031`, type `adr`), its front matter's `status` (provenance `authored`), its `supersedes`, and the Warrants it governs as the namespaced `adr.governs` (inert) |
+
+```toml
+# profiles/roadmap.toml
+schema = "oh.war/profile/v1"
+name = "roadmap"
+form = "document"
+encoding = "roadmap"
+capabilities = ["structure", "links", "acceptance"]
+
+[records]
+types = ["roadmap", "phase"]
+
+[relations]
+allow = ["part_of", "depends_on"]
+```
+
+- **Read unchanged.** The readers are the ones that always read these
+  stores. A revision's digest is the store's own, so every signed SAS and
+  roadmap revision keeps its digest, and the SAS text is never edited by
+  reading it. `war plan roadmap` and `war sign sas` (and their earlier
+  spellings `war roadmap`, `war sas`) answer as before.
+- **Rules are the type's.** The `roadmap.*`, `sas.*` and `adr.*` rules of
+  `war check` run because the type selects the capability each needs:
+  `structure` reads the store (`roadmap.malformed`, `roadmap.cycle`,
+  `sas-normative.section-labels`, `adr.malformed`, `adr.parsed`); `links`
+  resolves what points into it (`roadmap.unknown-phase`,
+  `roadmap.placement-*`, `roadmap.unassigned`, `sas.pin-*`, `sas.repin-*`,
+  `sas.section-ref`, `sas.section-current`); `acceptance` holds it to a
+  revision a human signed (`roadmap.accepted`, `roadmap.unaccepted`,
+  `sas.unrecorded`, `sas.pinned`, `sas.digest-drift`,
+  `sas.proposed-unaccepted`, and each acceptance's signature). A rule whose
+  capability the type does not select does not run.
+- **What a store admits.** A store's type selects from `structure`,
+  `links` and, where the store records a human act, `acceptance` (a roadmap
+  or SAS revision is accepted by a signature). An ADR's status is authored in
+  its own front matter, never signed, so `adr` cannot select `acceptance`:
+  an ADR reads `status: accepted` in the model, and never the authenticated
+  state `accepted`. Anything more is refused, `profile.capabilities`. An
+  encoding the kernel has no reader for is refused, `profile.invalid`, and so
+  is a second type reading a store one type already reads.
+- **States.** The fixed states the capabilities produce: a phase
+  `achieved` (links) and `accepted` (acceptance); the roadmap and the
+  specification `accepted` while their bytes are an accepted revision's; an
+  ADR another supersedes `superseded` (links), from the relation, never from
+  its front matter. None declares `[[states]]`: a declared state is entered
+  in a Warrant's or a ticket's journal, and nothing journals a phase, a
+  section or an ADR.
+- **Built in.** This build ships the three definitions (and the core types
+  below). A program's own `profiles/roadmap.toml` replaces the built-in one,
+  whole; a program may narrow a store type's capabilities, and the rules that
+  needed them stop running. This repository's `profiles/` restates all
+  three, selecting every capability its store admits.
+- **Projections.** A store type's projection renders the store as one
+  document. One that names a `file` is compiled to the store's
+  `generated/`; one that does not is rendered on request. The roadmap
+  declares **ROADMAP.md** (`docs/roadmap/generated/ROADMAP.md`): the
+  record's standing, each phase with its tier, what it needs first and
+  whether it is achieved, then each exit with its exit Warrant and member
+  Warrants, the numbers `war plan roadmap` shows. `war admin compile` writes
+  it and `war check --generated` drift-checks it like any projection
+  (`projection.drift`). `spec` declares `spec-requirements` and `adr`
+  declares `adr-index`, rendered with `war plan render <name>`; the kernel's
+  own extracts (NORMATIVE.md, SECTIONS.md, ADR_OVERVIEW.md) stay as they are,
+  and so does the roadmap section of CURRENT.md.
+
+### Core types and packs
+
+About ten core types ship in the box: the Warrant (`delivery`, `decision`),
+the ticket, `roadmap`, `spec`, `adr`, `prd`, `architecture`, `test-plan`,
+`release` and `incident`, with the small `exit-report` beside them.
+
+| type | its records | its projection |
+|---|---|---|
+| `release` | `release`, `note`, `change`, `exit_criterion` | `release-notes`: the release, its notes, its changelog, and each exit criterion with the obligations that `evaluates` it (unchecked when none does) |
+| `incident` | `incident`, `event`, `cause` | `incident-report`: the summary, the timeline in authored order, the causes, and the actions: each a Warrant item that `implements` the incident or a cause, its state the item's |
+| `exit-report` | `exit_report`, `measurement` | `exit-report`: what was measured to say a phase's exit holds; the phase is achieved only by its exit Warrant's resolution |
+
+The rest ship as **packs**: a directory with a `pack.toml`
+(`oh.war/pack/v1`: its name, version and profile files) and the files, in
+the profile format anyone can write.
+
+```sh
+war plan types                  # every type: its form, store, capabilities, and where it comes from
+war plan types add ops          # packs/ops/ of this repository, else the ops pack this build ships
+war plan types add ./my-pack    # or a directory of your own
+war plan types add ops --dry-run
+```
+
+| pack | types |
+|---|---|
+| `ops` 1.0.0 | `runbook`, `slo`, `rollout`, `incident-review` |
+| `quality` 1.0.0 | `threat-model`, `performance-budget`, `test-charter` |
+
+Both live in `packs/` of this repository and are built into `war`, so they
+install in any repository.
+
+`war plan types add` admits every file of the pack beside the program's
+own types, with the registry that reads `profiles/`, before it writes
+anything. Then it copies the files into `profiles/` and records the pack in
+`docs/types.toml`. Installing the same pack again writes nothing. Refused,
+writing nothing at all:
+
+| rule | what |
+|---|---|
+| `types.pack-unknown` | no `pack.toml` where the pack was named |
+| `types.pack-malformed` | the manifest does not parse, names no file, or names a file that is not a readable `<name>.toml` beside it |
+| `types.collision` | a type of the pack has a name a type of the program already has: its own file, a built-in type, a Warrant profile |
+| `profile.capability-unknown` | a profile of the pack selects a capability outside the closed set |
+| any `profile.*` rule | a profile the registry refuses for another reason (a projection name already used, a relation it does not allow) |
+
+### Untyped documents count
+
+`war` indexes the program's development documents: every file
+`[documents] index` matches.
+
+```toml
+# openwarrant.toml
+[documents]
+index = ["docs/**/*.md", "*.md"]   # the default
+```
+
+A walk never enters a `generated/` directory, the Warrant tree, the ticket
+tree, a hidden directory, `target/` or `node_modules/`. An indexed document
+is **typed** when something reads it as records: a store's type (the
+specification, an ADR atom, the roadmap's atoms and the plans its record
+retires), a record area under `docs/records/`, the instruction reader
+(`CLAUDE.md`, `AGENTS.md`), or an adoption. Every other one is **untyped**:
+`war plan model` carries it as a record `doc:<path>` of type `document` with
+the state `untyped`.
+
+`war status --json` reports the share typed under `document_coverage`:
+`{"typed": …, "untyped": …, "total": …}`, a ladder, never a percentage. An
+untyped document lowers it; adopting one raises it.
+
+```text
+war plan type <file> <type> [--json]
+```
+
+adopts a document in place: it records `path → type` in `docs/types.toml`
+(`oh.war/types/v1`) and never writes the document. The model then carries it
+as a record `doc:<path>` of its type with the state `adopted`. Refused,
+writing nothing:
+
+| rule | what |
+|---|---|
+| `types.file-unknown` | no such file under the repository |
+| `types.file-excluded` | a projection, or a file of a Warrant or a ticket |
+| `types.file-governed` | a file a store, a record area or the instruction reader already reads |
+| `types.type-unknown` | no document type of this program by that name |
+| `types.type-not-adoptable` | a store's type (`roadmap`, `spec`, `adr`): a store is not added to by naming a file |
+
+This repository adopts `docs/roadmap/RELEASE_1_0.md` as a `release` and
+`docs/roadmap/PHASE1_EXIT.md` as an `exit-report`. `war check` holds
+`docs/types.toml` to the files and types it names (`types.malformed`,
+`types.document-missing`, `types.type-unknown`, `types.pack-missing`) and
+is silent for a program without one.
