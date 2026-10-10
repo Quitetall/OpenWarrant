@@ -104,14 +104,15 @@ impl SignatureCheck for OpenSshSignatureCheck {
             .arg(&allowed)
             .args(["-I", "collector", "-n", NAMESPACE, "-s"])
             .arg(&sig);
-        let (valid, _) =
-            super::process::run_with_stdin(command, self.timeout, 16_384, Stdio::from(file))
+        let observed =
+            super::process::observe_with_stdin(command, self.timeout, 16_384, Stdio::from(file))
                 .map_err(|e| match e {
                     ProviderFailure::Rejected(_) => {
                         Fault::Rejected("signature verifier output budget")
                     }
                     _ => Fault::Unavailable("signature verifier unavailable or deadline exceeded"),
                 })?;
+        let valid = cryptographic_verdict(&observed)?;
         // Only cryptographically accepted flags become observations. Ordinary
         // key confirmation dialogs leave no authenticated presence bit.
         let user_present = if valid {
@@ -125,5 +126,56 @@ impl SignatureCheck for OpenSshSignatureCheck {
             valid,
             user_present,
         })
+    }
+}
+
+// LC_ALL=C is fixed above. Only an explicit cryptographic refusal establishes
+// invalidity; missing accounts, unsupported tools, loader failures or unfamiliar
+// failures are unavailable observations, never invented invalid signatures.
+fn cryptographic_verdict(observed: &super::process::Completed) -> Result<bool, Fault> {
+    if observed.success {
+        return Ok(true);
+    }
+    let error = String::from_utf8_lossy(&observed.stderr);
+    if error
+        .lines()
+        .any(|line| line == "Signature verification failed: incorrect signature")
+    {
+        return Ok(false);
+    }
+    Err(Fault::Unavailable(
+        "signature verifier produced no recognized cryptographic verdict",
+    ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn unsuccessful_processes_need_a_cryptographic_verdict() {
+        for error in [
+            "No user exists for uid 2",
+            "error while loading shared libraries",
+            "usage: ssh-keygen",
+            "Signature verification failed: error in libcrypto",
+            "",
+        ] {
+            assert!(matches!(
+                cryptographic_verdict(&super::super::process::Completed {
+                    success: false,
+                    stdout: Vec::new(),
+                    stderr: error.as_bytes().to_vec(),
+                }),
+                Err(Fault::Unavailable(_))
+            ));
+        }
+        assert!(
+            !cryptographic_verdict(&super::super::process::Completed {
+                success: false,
+                stdout: b"Could not verify signature.\n".to_vec(),
+                stderr: b"Signature verification failed: incorrect signature\n".to_vec(),
+            })
+            .unwrap()
+        );
     }
 }

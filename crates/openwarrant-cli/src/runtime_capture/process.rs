@@ -97,11 +97,29 @@ fn run(
 
 /// Input comes from a bounded local file, avoiding a blocking pipe write.
 pub(super) fn run_with_stdin(
-    mut command: Command,
+    command: Command,
     timeout: Duration,
     limit: usize,
     input: Stdio,
 ) -> Result<(bool, Vec<u8>), ProviderFailure> {
+    let observed = observe_with_stdin(command, timeout, limit, input)?;
+    Ok((observed.success, observed.stdout))
+}
+
+pub(super) struct Completed {
+    pub success: bool,
+    pub stdout: Vec<u8>,
+    pub stderr: Vec<u8>,
+}
+
+/// Preserve both bounded streams so protocol adapters can distinguish a verdict
+/// from a verifier unable to produce one. Transport itself assigns no verdict.
+pub(super) fn observe_with_stdin(
+    mut command: Command,
+    timeout: Duration,
+    limit: usize,
+    input: Stdio,
+) -> Result<Completed, ProviderFailure> {
     #[cfg(unix)]
     {
         use std::os::unix::process::CommandExt;
@@ -141,7 +159,11 @@ pub(super) fn run_with_stdin(
         }
         match child.try_wait() {
             Ok(Some(status)) if stdout.is_some() && stderr.is_some() => {
-                return Ok((status.success(), stdout.expect("checked output")));
+                return Ok(Completed {
+                    success: status.success(),
+                    stdout: stdout.expect("checked output"),
+                    stderr: stderr.expect("checked error output"),
+                });
             }
             Ok(_) => {}
             Err(e) => {

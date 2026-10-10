@@ -1,0 +1,9 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/ow-authority-execution-readable/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.28s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/f6/1d3fcc57b1e478/debug/deps/openwarrant_cli-cee4b238ae979623)
+
+running 1 test
+test runtime_capture::collector_signature::tests::unsuccessful_processes_need_a_cryptographic_verdict ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 441 filtered out; finished in 0.00s
+

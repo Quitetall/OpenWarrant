@@ -337,6 +337,25 @@ fn namespace_fixture_entry() {
     };
     let role =
         std::env::var("OW_COLLECTOR_NAMESPACE_FIXTURE").expect("explicit fixture role required");
+    if role == "no-account" {
+        assert_eq!(rustix::process::geteuid().as_raw(), 2);
+        assert!(
+            !fs::read_to_string("/etc/passwd")
+                .unwrap()
+                .lines()
+                .any(|line| line.split(':').nth(2) == Some("2"))
+        );
+        let verifier =
+            OpenSshSignatureCheck::new(std::env::temp_dir(), Duration::from_secs(5)).unwrap();
+        let (key, signature) = fixture(NAMESPACE, b"exact fixture payload", 11);
+        let result = verifier.verify(&key, NAMESPACE, b"exact fixture payload", &signature);
+        assert!(
+            matches!(result, Err(Fault::Unavailable(_))),
+            "a verifier without its required account must be UNKNOWN, not invalid crypto: {result:?}"
+        );
+        println!("missing-account UID 2: verification UNKNOWN; no cryptographic verdict inferred");
+        return;
+    }
     if role == "executor" {
         let root = std::path::PathBuf::from(std::env::var_os("OW_COLLECTOR_FIXTURE_ROOT").unwrap());
         let scratch = root.join("worker-scratch");
@@ -459,6 +478,52 @@ fn namespace_fixture_entry() {
     )
     .unwrap();
     fs::set_permissions(&scratch, fs::Permissions::from_mode(0o700)).unwrap();
+    let no_account = root.join("no-account-scratch");
+    fs::create_dir(&no_account).unwrap();
+    rustix::fs::chown(
+        &no_account,
+        Some(rustix::process::Uid::from_raw(2)),
+        Some(rustix::process::Gid::from_raw(2)),
+    )
+    .unwrap();
+    fs::set_permissions(&no_account, fs::Permissions::from_mode(0o700)).unwrap();
+    let out = Command::new("/usr/bin/timeout")
+        .args([
+            "10",
+            "/usr/bin/setpriv",
+            "--reuid",
+            "2",
+            "--regid",
+            "2",
+            "--clear-groups",
+            "--inh-caps=-all",
+            "--ambient-caps=-all",
+            "--bounding-set=-all",
+            "--no-new-privs",
+        ])
+        .arg(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            &namespace_entry_name(),
+            "--ignored",
+            "--nocapture",
+        ])
+        .env_clear()
+        .env("OW_COLLECTOR_NAMESPACE_FIXTURE", "no-account")
+        .env("TMPDIR", &no_account)
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&out.stdout)
+            .contains("missing-account UID 2: verification UNKNOWN")
+    );
+    println!("{}", String::from_utf8_lossy(&out.stdout));
     for name in ["store", "mismatched-store", "unactivated-store"] {
         let path = root.join(name);
         fs::create_dir(&path).unwrap();

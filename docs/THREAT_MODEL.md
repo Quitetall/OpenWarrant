@@ -405,3 +405,12 @@ controls in `dispatch_bundle_cli.rs`, and local Git-holder tests in `dispatch.rs
 This check does not establish harness isolation, provider enforcement, independent
 verification, or the authority of a prototype result. Later workspace changes must
 still be checked by the workflow that executes or accepts the packet.
+
+### Unavailable signature verifier
+
+The OpenSSH enrollment adapter preserves both bounded output streams. A process
+that cannot establish a cryptographic verdict returns UNKNOWN; unsuccessful exit
+alone is not invalidity. Real tampered-payload refusals remain distinct. The
+explicit namespace control reproduces a missing account while using a valid
+software fixture signature. Unsupported or unfamiliar verifier failures also
+remain UNKNOWN; this does not establish key custody or human presence.

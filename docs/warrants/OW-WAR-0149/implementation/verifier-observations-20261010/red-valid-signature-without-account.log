@@ -1,0 +1,46 @@
+
+running 1 test
+
+thread 'collector_signature::protected_namespace_roundtrip' (3822698) panicked at crates/openwarrant-cli/tests/collector_signature.rs:306:5:
+
+running 1 test
+test collector_signature::namespace_fixture_entry ... FAILED
+
+failures:
+
+failures:
+    collector_signature::namespace_fixture_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.01s
+
+
+
+thread 'collector_signature::namespace_fixture_entry' (3822717) panicked at crates/openwarrant-cli/tests/collector_signature.rs:485:5:
+
+running 1 test
+test collector_signature::namespace_fixture_entry ... FAILED
+
+failures:
+
+failures:
+    collector_signature::namespace_fixture_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.01s
+
+ 
+thread 'collector_signature::namespace_fixture_entry' (3822720) panicked at crates/openwarrant-cli/tests/collector_signature.rs:347:9:
+a verifier without its required account must be UNKNOWN, not invalid crypto: Ok(SignatureEvidence { valid: false, user_present: None })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test collector_signature::protected_namespace_roundtrip ... FAILED
+
+failures:
+
+failures:
+    collector_signature::protected_namespace_roundtrip
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.11s
+
