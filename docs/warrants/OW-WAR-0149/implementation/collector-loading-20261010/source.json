@@ -1,0 +1,16 @@
+{
+  "based_on": "99dcace064943e52e2953527f29d4d18d8732dd9",
+  "toolchain": "1.97.1",
+  "sources": {
+    "crates/openwarrant-cli/src/runtime_capture/collector_loading.rs": "b28d579580ca59ce1ab5496458a01c837fa8684914536f789026486ed8e52435",
+    "crates/openwarrant-cli/src/authority_cmd/store.rs": "dc2ad6dc5ffd87e34e09ca020e0448901fc7c5e4702b810c21b5ca61d0b4761c",
+    "crates/openwarrant-cli/src/runtime_capture.rs": "1b3fadef90be59024507936d612af06459d258650d40968f9912a4d599315a81",
+    "crates/openwarrant-cli/tests/collector_loading.rs": "035d8097e2ffd63b9b999d86967860fab82067579888137fb8991ac4dd65119c",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "4f78b499736f0ba866a2f39a07e581b4e85e8810500aa85e6f8b9572a959b1cb",
+    "crates/openwarrant-cli/tests/authority_transition_cli.rs": "d8bc2e9edaaf6bc69922b64444fb86a0d8685e84797492522d895d349f1fefb5"
+  },
+  "default_controls_passed": 8,
+  "namespace_roundtrip": "PASS; explicitly run; Linux subordinate UID/GID fixture",
+  "human_acceptance": "not-established",
+  "host_operator_qualification": "not-established"
+}

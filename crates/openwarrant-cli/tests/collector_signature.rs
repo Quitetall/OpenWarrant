@@ -236,3 +236,273 @@ fn enrollment_checks_use_real_crypto_and_keep_presence_requirements() {
     assert_eq!(fs::read_dir(&root).unwrap().count(), 0);
     fs::remove_dir(&root).unwrap();
 }
+
+#[cfg(target_os = "linux")]
+#[test]
+#[ignore = "requires provisioned unshare subordinate UID/GID mapping; run explicitly"]
+fn protected_namespace_roundtrip() {
+    let output = std::process::Command::new("/usr/bin/timeout")
+        .args([
+            "45",
+            "/usr/bin/unshare",
+            "--user",
+            "--map-root-user",
+            "--map-auto",
+            "--setuid",
+            "0",
+            "--setgid",
+            "0",
+        ])
+        .arg(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            "namespace_fixture_entry",
+            "--ignored",
+            "--nocapture",
+        ])
+        .env("OW_COLLECTOR_NAMESPACE_FIXTURE", "operator")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    println!("{}", String::from_utf8_lossy(&output.stdout));
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+#[ignore = "subprocess fixture entry; not an operator enrollment or human act"]
+fn namespace_fixture_entry() {
+    use openwarrant_cli::runtime_capture::collector_loading::LoadedEnrollment;
+    use openwarrant_core::{
+        authority_transition::{
+            Operation, PROPOSAL_SCHEMA, Policy, Principal, Proposal, REVISION_SCHEMA_V2, Revision,
+        },
+        contract::ActorKind,
+        runtime_collector::{Enrollment, Provider, SCHEMA, Signed, Use},
+    };
+    use std::{
+        collections::{BTreeMap, BTreeSet},
+        os::unix::fs::PermissionsExt,
+        process::{Command, Stdio},
+        time::Instant,
+    };
+    let role =
+        std::env::var("OW_COLLECTOR_NAMESPACE_FIXTURE").expect("explicit fixture role required");
+    if role == "executor" {
+        let root = std::path::PathBuf::from(std::env::var_os("OW_COLLECTOR_FIXTURE_ROOT").unwrap());
+        let scratch = root.join("worker-scratch");
+        assert_eq!(rustix::process::getuid().as_raw(), 1);
+        assert_eq!(rustix::process::geteuid().as_raw(), 1);
+        assert!(
+            fs::read_to_string("/proc/self/status")
+                .unwrap()
+                .lines()
+                .any(|s| s == "CapEff:\t0000000000000000")
+        );
+        assert!(
+            fs::write(root.join("store/state.json"), b"forged").is_err(),
+            "execution account wrote authority"
+        );
+        let verifier = OpenSshSignatureCheck::new(scratch.clone(), Duration::from_secs(5)).unwrap();
+        let loaded = LoadedEnrollment::load(
+            &root.join("store"),
+            "fixture",
+            &root.join("enrollment.json"),
+            &verifier,
+        )
+        .unwrap();
+        let enrollment = loaded.enrollment();
+        let usage = Use {
+            repository: "fixture",
+            warrant: enrollment.warrants.iter().next().unwrap(),
+            provider: &enrollment.provider,
+            verifier_digest: &enrollment.verifier_digest,
+            collector: &enrollment.collector,
+        };
+        loaded.allows(Use { ..usage }).unwrap();
+        assert!(matches!(
+            LoadedEnrollment::load(
+                &root.join("mismatched-store"),
+                "fixture",
+                &root.join("enrollment.json"),
+                &verifier
+            ),
+            Err(Fault::Rejected(
+                "authority store execution account mismatch"
+            ))
+        ));
+        fs::write(scratch.join("ready"), b"ready").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while !root.join("updated").exists() {
+            assert!(Instant::now() < deadline, "operator update unavailable");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(
+            matches!(loaded.allows(usage), Err(Fault::Rejected(_))),
+            "revoked authority remained usable"
+        );
+        println!(
+            "execution UID 1: authority write refused; real enrollment accepted; mismatched execution UID and signed revocation refused"
+        );
+        return;
+    }
+    assert_eq!(role, "operator");
+    assert_eq!(rustix::process::geteuid().as_raw(), 0);
+    let root = std::env::temp_dir().join(format!("ow-collector-ns-{}", std::process::id()));
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o755)).unwrap();
+    let scratch = root.join("worker-scratch");
+    fs::create_dir(&scratch).unwrap();
+    rustix::fs::chown(
+        &scratch,
+        Some(rustix::process::Uid::from_raw(1)),
+        Some(rustix::process::Gid::from_raw(1)),
+    )
+    .unwrap();
+    fs::set_permissions(&scratch, fs::Permissions::from_mode(0o700)).unwrap();
+    for name in ["store", "mismatched-store"] {
+        let path = root.join(name);
+        fs::create_dir(&path).unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let (owner_key, _) = fixture(NAMESPACE, b"", 11);
+    let (collector_key, _) = fixture(NAMESPACE, b"", 12);
+    let genesis = Revision {
+        schema: REVISION_SCHEMA_V2.into(),
+        repository: "fixture".into(),
+        sequence: 0,
+        policy: Some(Policy::default()),
+        principals: BTreeMap::from([
+            (
+                "owner".into(),
+                Principal {
+                    public_key: owner_key,
+                    roles: BTreeSet::from(["authority-admin".into()]),
+                    actor: Some("software fixture owner".into()),
+                    kind: Some(ActorKind::Human),
+                },
+            ),
+            (
+                "collector".into(),
+                Principal {
+                    public_key: collector_key,
+                    roles: BTreeSet::from(["runtime-collector".into()]),
+                    actor: Some("software fixture collector".into()),
+                    kind: Some(ActorKind::Agent),
+                },
+            ),
+        ]),
+    };
+    let mut state = serde_json::json!({"schema":"oh.war/authority-store/1","agent_uid":1,"unprotected_test_store":false,"genesis":genesis,"legacy":{},"transitions":[]});
+    fs::write(
+        root.join("store/state.json"),
+        serde_jcs::to_vec(&state).unwrap(),
+    )
+    .unwrap();
+    let mut mismatched = state.clone();
+    mismatched["agent_uid"] = 2.into();
+    fs::write(
+        root.join("mismatched-store/state.json"),
+        serde_jcs::to_vec(&mismatched).unwrap(),
+    )
+    .unwrap();
+    let enrollment = Enrollment {
+        schema: SCHEMA.into(),
+        repository: "fixture".into(),
+        authority_digest: genesis.digest().unwrap(),
+        provider: Provider {
+            kind: "katana".into(),
+            identity: "software-fixture".into(),
+            version: "v1".into(),
+        },
+        verifier_digest: format!("sha256:{}", "a".repeat(64)),
+        collector: "collector".into(),
+        warrants: BTreeSet::from(["01a0f502-4941-70a1-a446-e1eb77dff191".into()]),
+    };
+    let (_, signature) = fixture(NAMESPACE, &enrollment.encode().unwrap(), 11);
+    fs::write(
+        root.join("enrollment.json"),
+        Signed {
+            enrollment,
+            signatures: BTreeMap::from([("owner".into(), signature)]),
+        }
+        .encode()
+        .unwrap(),
+    )
+    .unwrap();
+    let mut next = genesis.clone();
+    next.sequence = 1;
+    next.principals.get_mut("collector").unwrap().roles.clear();
+    let proposal = Proposal {
+        schema: PROPOSAL_SCHEMA.into(),
+        operation: Operation::Update,
+        previous_digest: genesis.digest().unwrap(),
+        next,
+    };
+    let (_, signature) = fixture(
+        "openwarrant-authority-v1",
+        &proposal.signing_bytes().unwrap(),
+        11,
+    );
+    state["transitions"] =
+        serde_json::json!([{"proposal":proposal,"signatures":{"owner":signature}}]);
+    let mut child = Command::new("/usr/bin/setpriv")
+        .args([
+            "--reuid",
+            "1",
+            "--regid",
+            "1",
+            "--keep-groups",
+            "--inh-caps=-all",
+            "--ambient-caps=-all",
+            "--bounding-set=-all",
+            "--no-new-privs",
+        ])
+        .arg(std::env::current_exe().unwrap())
+        .env_clear()
+        .env("OW_COLLECTOR_NAMESPACE_FIXTURE", "executor")
+        .env("OW_COLLECTOR_FIXTURE_ROOT", &root)
+        .env("TMPDIR", &scratch)
+        .args([
+            "--exact",
+            "namespace_fixture_entry",
+            "--ignored",
+            "--nocapture",
+        ])
+        .stdin(Stdio::null())
+        .spawn()
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !scratch.join("ready").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before readiness"
+        );
+        assert!(Instant::now() < deadline, "executor readiness unavailable");
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    fs::write(
+        root.join("store/next.json"),
+        serde_jcs::to_vec(&state).unwrap(),
+    )
+    .unwrap();
+    fs::rename(root.join("store/next.json"), root.join("store/state.json")).unwrap();
+    fs::write(root.join("updated"), b"updated").unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    let status = loop {
+        if let Some(status) = child.try_wait().unwrap() {
+            break status;
+        }
+        assert!(Instant::now() < deadline, "executor completion unavailable");
+        std::thread::sleep(Duration::from_millis(10));
+    };
+    fs::remove_dir_all(root).unwrap();
+    assert!(status.success());
+    println!(
+        "operator UID 0: software-signed authority transition applied; fixture removed; no human acceptance or host-account qualification claimed"
+    );
+}

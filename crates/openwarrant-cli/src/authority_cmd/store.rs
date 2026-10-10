@@ -253,6 +253,8 @@ pub(crate) struct Current {
     pub revision: Revision,
     pub head: String,
     pub test_mode: bool,
+    /// Store configuration, not a proof of the caller's operating-system UID.
+    pub agent_uid: Option<u32>,
 }
 
 /// Read a store without writing to it, from any account, for `war check` and
@@ -306,6 +308,7 @@ pub(crate) fn read_current(root: &Path, test: bool) -> Result<Current> {
         head: revision.digest().map_err(err)?,
         revision,
         test_mode: test,
+        agent_uid: state.agent_uid,
     })
 }
 

@@ -1,0 +1,38 @@
+    Blocking waiting for file lock on package cache
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-collector-store-loader/crates/openwarrant-cli)
+error[E0425]: cannot find function `setresgid` in module `rustix::process`
+   --> crates/openwarrant-cli/tests/collector_signature.rs:298:26
+    |
+298 |         rustix::process::setresgid(
+    |                          ^^^^^^^^^
+    |
+   ::: /home/brianklam/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.5/src/process/id.rs:93:1
+    |
+ 93 | pub fn getegid() -> Gid {
+    | ----------------------- similarly named function `getegid` defined here
+    |
+help: a function with a similar name exists
+    |
+298 -         rustix::process::setresgid(
+298 +         rustix::process::getegid(
+    |
+
+error[E0425]: cannot find function `setresuid` in module `rustix::process`
+   --> crates/openwarrant-cli/tests/collector_signature.rs:304:26
+    |
+304 |         rustix::process::setresuid(
+    |                          ^^^^^^^^^
+    |
+   ::: /home/brianklam/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.5/src/process/id.rs:53:1
+    |
+ 53 | pub fn geteuid() -> Uid {
+    | ----------------------- similarly named function `geteuid` defined here
+    |
+help: a function with a similar name exists
+    |
+304 -         rustix::process::setresuid(
+304 +         rustix::process::geteuid(
+    |
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `openwarrant-cli` (test "collector_signature") due to 2 previous errors

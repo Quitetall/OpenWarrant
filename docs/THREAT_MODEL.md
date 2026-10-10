@@ -85,6 +85,23 @@ the acting principal and enforce the result atomically with, or recheck it befor
 the protected action. Removing keys affects future transitions; prior signed
 history is verified against the key set that was current for that transition.
 
+## Candidate runtime collector enrollment (OW-WAR-0149)
+
+These callable components do not activate a collector or award assurance.
+The trusted host selects the authority-store path independently of agent input
+and protects the approved executable through launch. Prompt-only capture does
+not require collector enrollment.
+
+| Threat | Control | Evidence and residual |
+|---|---|---|
+| Agent substitutes enrollment bytes, signing key or purpose | Exact canonical enrollment and current authority; fixed OpenSSH namespace and current principal key; bounded process transport | `collector_signature` exercises real cryptographic refusals and SDK enrollment checks. Software keys and security-key-shaped fixtures do not establish human custody or physical presence. |
+| Agent makes its own store appear protected by claiming a different execution UID | Execution loader checks real filesystem ownership and writability against its actual effective UID before reading the store, then requires the configured execution UID to match | `collector_loading` refuses an executor-owned store carrying another claimed UID. The generic operator reader remains usable by operators; this additional check belongs to collector execution. Separate host-account/operator qualification remains open. |
+| Source is a symlink, FIFO, directory or oversized stream | No-follow, nonblocking descriptor open; regular-file and bounded-read checks | `collector_loading` exercises symlink, directory, FIFO and byte-budget refusals. Missing observations remain UNKNOWN. Trusted operator changes and denial of service remain outside this control. |
+| Authority changes after enrollment authentication | Reload after signature verification and at every eligibility check; exact authority digest and scope must still match | SDK controls establish stale-authority refusal. Read-only checks do not fence an actual launch; native workflow wiring and launch custody remain open. A trusted store operator can still roll back a snapshot. |
+
+The optional namespace fixture uses synthetic records, in-memory software keys
+and disposable UID mappings. It is not a human act or a qualified deployment.
+
 ## Reference workflow dispute decisions (OW-WAR-0107)
 
 The reference web application's dispute credentials select a configured human

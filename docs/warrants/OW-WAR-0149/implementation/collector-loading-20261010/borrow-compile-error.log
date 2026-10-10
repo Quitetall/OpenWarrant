@@ -1,0 +1,21 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-collector-store-loader/crates/openwarrant-cli)
+error[E0308]: mismatched types
+   --> crates/openwarrant-cli/src/runtime_capture/collector_loading.rs:151:45
+    |
+151 |         self.authenticated.allows(&current, input)
+    |                            ------           ^^^^^ expected `&Use<'_>`, found `Use<'_>`
+    |                            |
+    |                            arguments to this method are incorrect
+    |
+note: method defined here
+   --> crates/openwarrant-core/src/runtime_collector.rs:243:12
+    |
+243 |     pub fn allows(&self, authority: &Revision, observed: &Use<'_>) -> Result<(), Fault> {
+    |            ^^^^^^
+help: consider borrowing here
+    |
+151 |         self.authenticated.allows(&current, &input)
+    |                                             +
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `openwarrant-cli` (lib) due to 1 previous error
