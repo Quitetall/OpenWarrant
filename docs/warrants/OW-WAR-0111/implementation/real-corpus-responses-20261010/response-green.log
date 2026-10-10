@@ -1,0 +1,32 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-archive-verification-responses/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 07s
+     Running tests/all.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/all-177bbad1a2ff5eca)
+
+running 24 tests
+test preservation::actual_warrant_sources_reconstruct_after_source_repository_disappears ... ok
+test preservation::archived_verifier_responses_are_envelopes_not_individual_verdicts ... ok
+test preservation::bounded_git_history_keeps_all_observed_state_bytes_and_commit_identity ... ok
+test preservation::declared_artifact_bytes_survive_source_loss_and_inventory_tampering_refuses ... ok
+test preservation::explicit_additional_history_root_preserves_unmerged_records ... ok
+test preservation::explicit_archive_limits_preserve_large_records_without_implicit_budget_growth ... ok
+test preservation::explicit_archive_limits_refuse_before_creating_destinations ... ok
+test preservation::explicit_content_budget_covers_all_external_evidence ... ok
+test preservation::explicit_external_atoms_survive_source_removal_without_repository_escape ... ok
+test preservation::external_evidence_is_observed_and_then_source_can_disappear ... ok
+test preservation::generated_local_archive_roundtrips_and_runtime_absence_cannot_be_forged ... ok
+test preservation::historical_artifact_versions_are_selected_by_digest_not_current_path ... ok
+test preservation::historical_shared_atoms_use_each_manifest_commit_not_current_bytes ... ok
+test preservation::init_preserves_matching_readonly_schema_sources_and_fills_missing_members ... ok
+test preservation::init_refuses_conflicting_schema_sources_before_writing_configuration ... ok
+test preservation::legacy_reconnect_flag_cannot_claim_an_observed_import ... ok
+test preservation::machine_output_keeps_report_envelope_and_explicit_authority_bound ... ok
+test preservation::runtime_query_basis_comes_from_reconstructed_sources_not_caller_identity ... ok
+test preservation::schema_pack_bytes_and_producer_identity_are_retained_and_cross_checked ... ok
+test preservation::service_failed_and_timed_out_attempts_keep_distinct_truthful_evidence ... ok
+test preservation::service_run_receipt_points_to_retained_stream_bytes ... ok
+test preservation::source_detached_history_roundtrip_preserves_exact_bytes_without_authority ... ok
+test preservation::symlink_sources_destinations_and_imported_records_refuse ... ok
+test preservation::warrant_subject_cannot_downgrade_to_unchecked_transport ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 207 filtered out; finished in 207.94s
+

@@ -70,6 +70,26 @@ pub(super) fn inventory(
                 "{path}: exact captured contract/stage not reconstructed in this source snapshot"
             ));
         }
+        let native_inputs = if record["declared_capture"]["provider"]["kind"] == "blut" {
+            super::super::native_inputs::reconnect(
+                files,
+                directory,
+                &record,
+                &format!("sha256:{digest}"),
+            )
+            .map_err(|e| e.to_string())
+        } else {
+            Err("native input resolver unavailable for provider".into())
+        };
+        let (native_inputs_reconnected, native_input_paths) = match native_inputs {
+            Ok(paths) => (true, paths.into_iter().collect::<Vec<_>>()),
+            Err(reason) => {
+                if record["declared_capture"]["provider"]["kind"] == "blut" {
+                    gaps.insert(format!("{path}: {reason}"));
+                }
+                (false, Vec::new())
+            }
+        };
         records.push(json!({
             "source":path,"capture_digest":format!("sha256:{digest}"),
             "binding":record["observation"]["binding"],
@@ -78,6 +98,7 @@ pub(super) fn inventory(
             "receipt_bytes_digest":record["receipt"]["digest"],
             "dispatch_source_reconnected":connected,
             "contract_stage_reconstructed":contract_connected,
+            "native_inputs_reconnected":native_inputs_reconnected,"native_input_paths":native_input_paths,
             "native_verification":"unknown","saved_native_observation_is_trusted":false,
             "current_attempt_eligibility_established":false,"assurance_granted":false
         }));
@@ -206,4 +227,17 @@ fn reconnect(
         return Err("captured observation/compile event does not bind the exact dispatch".into());
     }
     Ok(dispatch)
+}
+
+/// Reuse the same exact Dispatch and journal checks for retained context coverage.
+pub(in crate::preservation) fn reconnect_for_coverage(
+    files: &BTreeMap<String, Vec<u8>>,
+    prefix: &str,
+    directory: &str,
+    warrant: &str,
+    record: &Value,
+) -> Result<StageDispatch, String> {
+    reconnect(files, prefix, directory, warrant, record).map_err(|e| match e {
+        ConnectionFault::Unknown(reason) | ConnectionFault::Refused(reason) => reason,
+    })
 }

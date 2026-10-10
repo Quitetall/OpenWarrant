@@ -1,0 +1,3 @@
+error: no test target named `preservation` in `openwarrant-cli` package
+help: available test targets:
+    all

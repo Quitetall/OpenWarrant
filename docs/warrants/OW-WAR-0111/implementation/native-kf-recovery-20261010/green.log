@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /mnt/4tb/tmp/openwarrant-kf-native-roundtrip
+
+ ✓ tests/database/warrant-preservation.test.ts (3 tests | 2 skipped) 115912ms
+   ✓ preserves native-runtime Warrant archive after source shutdown  115911ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 2 skipped (3)
+   Start at  12:29:52
+   Duration  117.65s (transform 1.21s, setup 0ms, import 1.66s, tests 115.91s, environment 0ms)
+

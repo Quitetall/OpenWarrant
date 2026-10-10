@@ -377,6 +377,26 @@ pub fn run(
             ),
         ));
     }
+    // A compile event must refer to a retained packet, including when callers
+    // also request an external copy. Retention is not execution or authority.
+    let json = dispatch_json(&dispatch).map_err(|e| RepoError::Message(e.to_string()))?;
+    let relative = dir
+        .strip_prefix(&repo.root)
+        .map_err(|e| RepoError::Message(format!("dispatch.retention-path: {e}")))?
+        .join("dispatches");
+    let retain = || {
+        crate::bundle::store::Directory::open(&repo.root, &relative)?.retain(
+            &format!("{}.json", dispatch.dispatch_id),
+            format!("{json}\n").as_bytes(),
+        )
+    };
+    retain().map_err(|error| match error {
+        RepoError::ObservationUnavailable { message, .. } => RepoError::ObservationUnavailable {
+            rule: "dispatch.retention-unavailable",
+            message,
+        },
+        other => RepoError::Message(format!("dispatch.retention: {other}")),
+    })?;
     // The compile is an event of the Warrant's history (§24): what was
     // dispatched, at what size, under what budget.
     crate::journal_cmd::record(
@@ -403,7 +423,6 @@ pub fn run(
             tokens.estimated_tokens, tokens.budget_tokens, tokens.method
         ),
     ));
-    let json = dispatch_json(&dispatch).map_err(|e| RepoError::Message(e.to_string()))?;
     match emit_to {
         Some(path) => {
             fs::write(path, format!("{json}\n")).map_err(|source| RepoError::Io {

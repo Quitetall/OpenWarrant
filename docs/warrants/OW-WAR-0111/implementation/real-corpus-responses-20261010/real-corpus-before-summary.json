@@ -1,0 +1,29 @@
+{
+  "subject_alias": "OW-WAR-0011",
+  "source_revision": "f600c8f1",
+  "complete": false,
+  "archive_digest": "sha256:40a833d65dc97f459515be212252bfce12a5ffd60fc0471a66027c8dcf89ac97",
+  "unavailable_categories": [
+    "actions and relevant audit receipts",
+    "assurance case"
+  ],
+  "coverage_states": {
+    "ADR refs and accepted bodies where policy permits": "absent",
+    "Compilation Basis": "retained",
+    "actions and relevant audit receipts": "unavailable",
+    "artifacts": "retained",
+    "assurance case": "unavailable",
+    "canonical IR": "retained",
+    "complete identity": "retained",
+    "contract revisions": "retained",
+    "evidence manifest": "retained",
+    "exact atom revisions and digests": "retained",
+    "resolution and standing": "absent",
+    "runtime receipt refs": "absent",
+    "schema and compiler identity": "retained",
+    "source manifest": "retained"
+  },
+  "assurance": false,
+  "missing_record_digest": "sha256:d6a9d2cd4d280bb185ee14d2d2fa07f485dd746b1f412f0f94050a2c54b8086c",
+  "response_parser_failure": "response envelopes are interpreted as individual stored verifications"
+}

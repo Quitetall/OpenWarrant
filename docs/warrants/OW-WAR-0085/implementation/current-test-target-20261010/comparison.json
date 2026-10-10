@@ -1,0 +1,58 @@
+{
+  "run": 38070467635,
+  "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38070467635",
+  "source_revision": "a9488ab0555ebc9eec04bde37d53ce16d985ad22",
+  "source_inventory_matches": true,
+  "source_digest_matches": true,
+  "hosts": [
+    {
+      "host": "Linux",
+      "architecture": "x86_64",
+      "current_host_passed": false,
+      "checks": {
+        "build": "PASS",
+        "fixtures": "PASS",
+        "core": "PASS",
+        "cli": "FAIL",
+        "skills": "PASS",
+        "context": "PASS",
+        "stage": "PASS",
+        "structure": "PASS",
+        "inventory": "PASS",
+        "source_stability": "PASS",
+        "binary_stability": "PASS"
+      },
+      "receipt_sha256": "sha256:b9eb636c0316e39f847bcaff5792c98a9d2e4f1307863228cad05258e49dd776"
+    },
+    {
+      "host": "Darwin",
+      "architecture": "arm64",
+      "current_host_passed": false,
+      "checks": {
+        "build": "PASS",
+        "fixtures": "PASS",
+        "core": "PASS",
+        "cli": "FAIL",
+        "skills": "PASS",
+        "context": "PASS",
+        "stage": "PASS",
+        "structure": "PASS",
+        "inventory": "PASS",
+        "source_stability": "PASS",
+        "binary_stability": "PASS"
+      },
+      "receipt_sha256": "sha256:139cdc01e79b88b7a3c9d9b15f020b74d6a3a3a7d1be4e62c86d312fd4689eee"
+    }
+  ],
+  "fix_revision": "f5eba6f8690b4cb6b41161fb1b0616d7294a594e",
+  "local_sdk_cli_tests": {
+    "passed": 11,
+    "failed": 0
+  },
+  "local_inventory_tests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "corrected_native_result": "pending",
+  "independent_qualification": false
+}

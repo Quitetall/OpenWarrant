@@ -9,19 +9,84 @@ mod contracts;
 mod history;
 pub(crate) use history::git as local_git;
 mod identity;
+mod native_inputs;
+mod recovery;
 mod runtime_basis;
 
 use camino::Utf8PathBuf;
-use clap::Subcommand;
+use clap::{Args, Subcommand};
 use openwarrant_compiler::preservation::{Archive, Error, Limits};
+
+/// Caller-selected finite budgets; defaults belong to the SDK, not a second CLI table.
+#[derive(Debug, Args)]
+pub struct ResourceLimits {
+    /// Maximum canonical archive bytes (default: 33554432).
+    #[arg(long, value_parser = positive_limit)]
+    max_archive_bytes: Option<usize>,
+    /// Maximum retained record count (default: 4096).
+    #[arg(long, value_parser = positive_limit)]
+    max_records: Option<usize>,
+    /// Maximum aggregate decoded/resolved content bytes (default: 16777216).
+    #[arg(long, value_parser = positive_limit)]
+    max_content_bytes: Option<usize>,
+}
+
+fn positive_limit(value: &str) -> Result<usize, String> {
+    let limit: usize = value
+        .parse()
+        .map_err(|_| "limit must be a positive integer".to_owned())?;
+    if limit == 0 || limit.checked_add(1).is_none() {
+        return Err("limit must be positive with room for the reader overflow probe".into());
+    }
+    Ok(limit)
+}
+
+impl ResourceLimits {
+    fn resolve(&self) -> Limits {
+        let defaults = Limits::default();
+        Limits {
+            archive_bytes: self.max_archive_bytes.unwrap_or(defaults.archive_bytes),
+            records: self.max_records.unwrap_or(defaults.records),
+            content_bytes: self.max_content_bytes.unwrap_or(defaults.content_bytes),
+        }
+    }
+}
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Retain an original Git verdict blob referenced by this Warrant's journal.
+    /// This restores historical bytes only; no current verdict or authority changes.
+    RecoverVerification {
+        alias: String,
+        #[arg(long)]
+        git_blob: String,
+        #[arg(long)]
+        record_digest: String,
+        #[command(flatten)]
+        limits: ResourceLimits,
+    },
+    /// Retain explicit native verifier inputs as inert data; never execute or trust them.
+    RetainRuntime {
+        alias: String,
+        #[arg(long)]
+        capture: String,
+        /// Repository-relative versioned input-path request.
+        #[arg(long)]
+        request: Utf8PathBuf,
+        #[command(flatten)]
+        limits: ResourceLimits,
+    },
     /// Inspect retained source reconstruction without claiming complete preservation.
-    Inspect { input: Utf8PathBuf },
+    Inspect {
+        input: Utf8PathBuf,
+        #[command(flatten)]
+        limits: ResourceLimits,
+    },
     /// Reconstruct exact contract identities for an external runtime evidence reader.
     RuntimeBasis {
         input: Utf8PathBuf,
+        #[command(flatten)]
+        limits: ResourceLimits,
         /// Optional content-addressed evidence directory (files named by SHA-256 hex).
         #[arg(long)]
         evidence: Option<Utf8PathBuf>,
@@ -30,6 +95,8 @@ pub enum Command {
     Export {
         alias: String,
         output: Utf8PathBuf,
+        #[command(flatten)]
+        limits: ResourceLimits,
         /// Include bounded history reachable from pinned local HEAD; refuse unavailable history.
         #[arg(long)]
         history: bool,
@@ -41,6 +108,8 @@ pub enum Command {
     Import {
         input: Utf8PathBuf,
         destination: Utf8PathBuf,
+        #[command(flatten)]
+        limits: ResourceLimits,
         /// Optional content-addressed evidence directory (files named by SHA-256 hex).
         #[arg(long)]
         evidence: Option<Utf8PathBuf>,
@@ -49,6 +118,8 @@ pub enum Command {
     Reexport {
         directory: Utf8PathBuf,
         output: Utf8PathBuf,
+        #[command(flatten)]
+        limits: ResourceLimits,
     },
 }
 
@@ -70,14 +141,43 @@ pub fn run(
     root: Option<camino::Utf8PathBuf>,
     command: Command,
 ) -> Result<(String, serde_json::Value), Error> {
-    let limits = Limits::default();
-    match command {
-        Command::RuntimeBasis { input, evidence } => runtime_basis::run(
+    let limits = match &command {
+        Command::RecoverVerification { limits, .. }
+        | Command::RetainRuntime { limits, .. }
+        | Command::Inspect { limits, .. }
+        | Command::RuntimeBasis { limits, .. }
+        | Command::Export { limits, .. }
+        | Command::Import { limits, .. }
+        | Command::Reexport { limits, .. } => limits.resolve(),
+    };
+    let (message, mut value) = match command {
+        Command::RecoverVerification {
+            alias,
+            git_blob,
+            record_digest,
+            ..
+        } => {
+            let repo = crate::repo::Repository::discover(root).map_err(|e| Error(e.to_string()))?;
+            recovery::verification(&repo, &alias, &git_blob, &record_digest, limits)
+        }
+        Command::RetainRuntime {
+            alias,
+            capture,
+            request,
+            ..
+        } => {
+            let repo = crate::repo::Repository::discover(root).map_err(|e| Error(e.to_string()))?;
+            let result = native_inputs::retain(&repo, &alias, &capture, &request, limits)?;
+            Ok(("Retained declared native inputs. No executable run, native authentication or authority granted.".into(), result))
+        }
+        Command::RuntimeBasis {
+            input, evidence, ..
+        } => runtime_basis::run(
             input.as_std_path(),
             evidence.as_ref().map(|path| path.as_std_path()),
             limits,
         ),
-        Command::Inspect { input } => {
+        Command::Inspect { input, .. } => {
             let bytes = read(input.as_std_path(), limits.archive_bytes)?;
             let archive = Archive::decode(&bytes, limits)?;
             let mut files = BTreeMap::new();
@@ -107,6 +207,7 @@ pub fn run(
             output,
             history,
             history_ref,
+            ..
         } => {
             let repo = crate::repo::Repository::discover(root).map_err(|e| Error(e.to_string()))?;
             let archive = assemble(&repo, &alias, limits, history, &history_ref)?;
@@ -125,6 +226,7 @@ pub fn run(
             input,
             destination,
             evidence,
+            ..
         } => {
             let bytes = read(input.as_std_path(), limits.archive_bytes)?;
             let archive = Archive::decode(&bytes, limits)?;
@@ -153,13 +255,21 @@ pub fn run(
                 serde_json::json!({"schema": "oh.war/preservation-result/v1-draft.1", "operation": "import", "archive_digest": digest, "destination": destination.as_str(), "authority_activated": false}),
             ))
         }
-        Command::Reexport { directory, output } => {
+        Command::Reexport {
+            directory, output, ..
+        } => {
             let bytes = reexport(directory.as_std_path(), limits)?;
             write_new(output.as_std_path(), &bytes)?;
             Ok(("Re-exported checked record bytes. No human assurance or KF interoperability claimed.".into(),
                 serde_json::json!({"schema": "oh.war/preservation-result/v1-draft.1", "operation": "reexport", "output": output.as_str(), "authority_activated": false})))
         }
-    }
+    }?;
+    value["resource_limits"] = serde_json::json!({
+        "archive_bytes": limits.archive_bytes,
+        "records": limits.records,
+        "content_bytes": limits.content_bytes,
+    });
+    Ok((message, value))
 }
 
 /// Report declared coverage without upgrading it to independently verified completeness.

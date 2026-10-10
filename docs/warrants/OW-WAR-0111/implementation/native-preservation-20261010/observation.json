@@ -1,0 +1,25 @@
+{
+  "schema": "oh.war/native-preservation-observation/v1-draft.1",
+  "source_candidate": "7c92af39e761a3da6c1ffaea20f014073b8e9e36",
+  "source_removed_from_original_location": true,
+  "source_preserved": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-preservation-20261010/source",
+  "archive_sha256": "5c82a5fdc80829e3d845c003b41df84b45a2ba34f2ad9a8230cb94112c0fb4f2",
+  "archive_digest": "sha256:6b26cc1bf9f6570feb12d4abe045e3f3ba94ff8ae46646631851f14038388ca2",
+  "receipt_sha256": "e132c358b4b416191baa9ba39d27ce8d949caa0f21a9dbd8b47e31181ef12777",
+  "receipt_bytes_identical": true,
+  "current_capture_source_reconnected": true,
+  "historical_capture_contract_stage_reconstructed": false,
+  "native_verifier_status": "validated",
+  "native_key_profile": "public disposable fixture key; not operator authentication",
+  "native_execution": "actual CPU connector_object reference declaration; no object fetch or model call",
+  "archive_import": "refused: required coverage unavailable",
+  "missing_categories": [
+    "runtime receipt refs",
+    "schema and compiler identity"
+  ],
+  "whole_project_roundtrip_established": false,
+  "kf_native_roundtrip_established": false,
+  "authority_activated": false,
+  "assurance_granted": false,
+  "raw_evidence": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-preservation-20261010"
+}

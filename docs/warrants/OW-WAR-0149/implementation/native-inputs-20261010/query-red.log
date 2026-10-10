@@ -1,0 +1,21 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/openwarrant-native-input-retention/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.94s
+     Running tests/all.rs (/mnt/4tb/build/cargo/1b/51b162b9907432/debug/deps/all-177bbad1a2ff5eca)
+
+running 1 test
+
+thread 'runtime_capture::archive_queries_reconnect_native_inputs_after_original_job_removal' (858997) panicked at crates/openwarrant-cli/tests/runtime_capture.rs:2507:9:
+assertion `left == right` failed
+  left: Null
+ right: true
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test runtime_capture::archive_queries_reconnect_native_inputs_after_original_job_removal ... FAILED
+
+failures:
+
+failures:
+    runtime_capture::archive_queries_reconnect_native_inputs_after_original_job_removal
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 228 filtered out; finished in 2.51s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

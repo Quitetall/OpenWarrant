@@ -1,0 +1,8 @@
+{
+  "restored_container": "ed484d389a12",
+  "restored_volume": "ow111-5593becb-5b11-49f6-8423-dcf3bfd0a03a",
+  "source_orphans_matched_by_exact_owned_backup_digest": [
+    "ow111-9365afd1-f2c2-4cba-b76c-ff8afa9c2921"
+  ],
+  "backup_data_sha256": "7432a7cca1aed66cc6b2b92f7ae4974921c6fa30c39c4499630b41100e91cac4"
+}

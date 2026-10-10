@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "error",
+  "diagnostics": [
+    {
+      "severity": "error",
+      "rule": "cli.error",
+      "file": null,
+      "message": "preservation: required coverage unavailable"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

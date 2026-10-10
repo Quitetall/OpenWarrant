@@ -1,0 +1,31 @@
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /mnt/4tb/tmp/openwarrant-native-input-retention/deny.toml:71:9
+   │
+71 │ name = "webpki-root-certs"
+   │         ━━━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /mnt/4tb/tmp/openwarrant-native-input-retention/deny.toml:75:9
+   │
+75 │ name = "openwarrant-compiler"
+   │         ━━━━━━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /mnt/4tb/tmp/openwarrant-native-input-retention/deny.toml:79:9
+   │
+79 │ name = "openwarrant-agent"
+   │         ━━━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /mnt/4tb/tmp/openwarrant-native-input-retention/deny.toml:83:9
+   │
+83 │ name = "openwarrant-cli"
+   │         ━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /mnt/4tb/tmp/openwarrant-native-input-retention/deny.toml:87:9
+   │
+87 │ name = "xtask"
+   │         ━━━━━ unmatched license exception
+
+licenses ok

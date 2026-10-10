@@ -1,0 +1,25 @@
+
+ RUN  v4.1.11 /mnt/4tb/tmp/openwarrant-kf-native-roundtrip
+
+
+<--- Last few GCs --->
+
+[1657279:0xc193000]    92578 ms: Mark-Compact (reduce) 4094.7 (4097.8) -> 4094.7 (4096.8) MB, pooled: 0 MB, 2377.73 / 0.00 ms  (+ 5.3 ms in 20 steps since start of marking, biggest step 3.0 ms, walltime since start of marking 2387 ms) (average mu = 0.359,[1657279:0xc193000]    95188 ms: Mark-Compact (reduce) 4095.9 (4097.1) -> 4095.9 (4098.1) MB, pooled: 0 MB, 2417.71 / 0.00 ms  (+ 4.3 ms in 14 steps since start of marking, biggest step 2.6 ms, walltime since start of marking 2425 ms) (average mu = 0.242,
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0x74eae8 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+ 2: 0xc43660  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+ 3: 0xc4374f  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+ 4: 0xee6fa5  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+ 5: 0xef890c  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+ 6: 0xecddc3  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+ 7: 0xea2f14  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+ 8: 0xe8de08  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+ 9: 0xe9f1d6  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+10: 0x10cbbcd  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+11: 0x10f7c73  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+12: 0x1189e19  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+13: 0x118a338  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+14: 0x13a4377  [/mnt/4tb/tmp/openwarrant-kf-native-roundtrip/toolchain/node-v24.18.1-linux-x64/bin/node]
+15: 0x7f39f7e769b6 

@@ -1,0 +1,14 @@
+{
+  "source_removed": true,
+  "archive_bytes": 88687665,
+  "archive_sha256": "cf44c3f23a7a63ed52758d867b7aac009aa19fa1ee3242c455b02405e7b0e7e4",
+  "byte_identical_reexport": true,
+  "all_required_categories_retained_or_absent": true,
+  "native_fixture_verified": true,
+  "changed_signature_rejected": true,
+  "changed_job_rejected": true,
+  "import_modes_inert": true,
+  "assurance_granted": false,
+  "independent_qualification": false,
+  "kf_roundtrip": "pending"
+}

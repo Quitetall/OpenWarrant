@@ -1,0 +1,25 @@
+{
+  "targeted_tests": "PASS: 3 tests including six refusal cases",
+  "format": "PASS",
+  "licenses": "PASS",
+  "cli_all_features": {
+    "library_passed": 452,
+    "binary_passed": 3,
+    "integration_passed": 225,
+    "integration_failed": 1,
+    "ignored": 4,
+    "failure": "json_envelope::the_corpus_projection_is_the_result_payload_verbatim; validation files created after projection compilation changed source inventory"
+  },
+  "initial_full_attempt": "UNKNOWN: compilation timeout 124",
+  "native_offline_recovery": "PASS: original owned source removed, byte-identical reexport, native fixture validated, changed signature/job rejected",
+  "kf_roundtrip": "pending",
+  "qualification": "not-established",
+  "projection_rerun": "PASS: regenerated through CLI; no assertion changed",
+  "generated_check": {
+    "pass": 2028,
+    "warn": 625,
+    "error": 0,
+    "unknown": 0
+  },
+  "clippy": "PASS: all features and targets, -D warnings"
+}

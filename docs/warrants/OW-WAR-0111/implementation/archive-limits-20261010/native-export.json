@@ -1,0 +1,292 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "archive",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/preservation-result/v1-draft.1",
+    "operation": "export",
+    "archive_digest": "sha256:42a3595079286a64a4ec65c1feb7a5b145c72eb76cb5ef238b4a162474c3c954",
+    "output": "/mnt/4tb/tmp/openwarrant-archive-resource-limits/docs/warrants/OW-WAR-0111/implementation/archive-limits-20261010/native-export.archive.json",
+    "complete": false,
+    "completeness_scope": "selected-local-current-and-history",
+    "coverage": {
+      "ADR refs and accepted bodies where policy permits": {
+        "state": "absent",
+        "reason": "No explicit ADR atom references in selected current and historical manifests"
+      },
+      "Compilation Basis": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/basis.json"
+        ]
+      },
+      "actions and relevant audit receipts": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/history.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/commit.txt",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/journal.jsonl",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/manifest.toml",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/runtime-contracts/contract-c44d6bc892212703d073c81d652b88503cd63387a604bd8a0dac11ef1b4bef91.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/runtime-receipts/capture-909981ecddfd330df885eb2ae6fc85e9ba2555a42413d1a188644e65e471f69c.json",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/commit.txt",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/journal.jsonl",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/manifest.toml",
+          "docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "docs/warrants/ND-WAR-0001/journal.jsonl",
+          "docs/warrants/ND-WAR-0001/manifest.toml",
+          "docs/warrants/ND-WAR-0001/runtime-contracts/contract-c44d6bc892212703d073c81d652b88503cd63387a604bd8a0dac11ef1b4bef91.json",
+          "docs/warrants/ND-WAR-0001/runtime-receipts/capture-909981ecddfd330df885eb2ae6fc85e9ba2555a42413d1a188644e65e471f69c.json"
+        ]
+      },
+      "artifacts": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/artifacts.json",
+          "__ow_archive__/history.json"
+        ]
+      },
+      "assurance case": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/history.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/journal.jsonl",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/manifest.toml",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/runtime-contracts/contract-c44d6bc892212703d073c81d652b88503cd63387a604bd8a0dac11ef1b4bef91.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/runtime-receipts/capture-909981ecddfd330df885eb2ae6fc85e9ba2555a42413d1a188644e65e471f69c.json",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/journal.jsonl",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/manifest.toml",
+          "docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "docs/warrants/ND-WAR-0001/journal.jsonl",
+          "docs/warrants/ND-WAR-0001/manifest.toml",
+          "docs/warrants/ND-WAR-0001/runtime-contracts/contract-c44d6bc892212703d073c81d652b88503cd63387a604bd8a0dac11ef1b4bef91.json",
+          "docs/warrants/ND-WAR-0001/runtime-receipts/capture-909981ecddfd330df885eb2ae6fc85e9ba2555a42413d1a188644e65e471f69c.json"
+        ]
+      },
+      "canonical IR": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/WAR.json"
+        ]
+      },
+      "complete identity": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/WAR.json"
+        ]
+      },
+      "contract revisions": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/history.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/commit.txt",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/journal.jsonl",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/manifest.toml",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/runtime-contracts/contract-c44d6bc892212703d073c81d652b88503cd63387a604bd8a0dac11ef1b4bef91.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/runtime-receipts/capture-909981ecddfd330df885eb2ae6fc85e9ba2555a42413d1a188644e65e471f69c.json",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/commit.txt",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/journal.jsonl",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/manifest.toml",
+          "docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "docs/warrants/ND-WAR-0001/journal.jsonl",
+          "docs/warrants/ND-WAR-0001/manifest.toml",
+          "docs/warrants/ND-WAR-0001/runtime-contracts/contract-c44d6bc892212703d073c81d652b88503cd63387a604bd8a0dac11ef1b4bef91.json",
+          "docs/warrants/ND-WAR-0001/runtime-receipts/capture-909981ecddfd330df885eb2ae6fc85e9ba2555a42413d1a188644e65e471f69c.json"
+        ]
+      },
+      "evidence manifest": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/WAR.json",
+          "__ow_archive__/artifacts.json",
+          "__ow_archive__/basis.json",
+          "__ow_archive__/history.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/commit.txt",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/journal.jsonl",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/manifest.toml",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/runtime-contracts/contract-c44d6bc892212703d073c81d652b88503cd63387a604bd8a0dac11ef1b4bef91.json",
+          "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/runtime-receipts/capture-909981ecddfd330df885eb2ae6fc85e9ba2555a42413d1a188644e65e471f69c.json",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/commit.txt",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/journal.jsonl",
+          "__ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/manifest.toml",
+          "__ow_archive__/producer.json",
+          "docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "docs/warrants/ND-WAR-0001/atoms/60-assurance.md",
+          "docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json",
+          "docs/warrants/ND-WAR-0001/journal.jsonl",
+          "docs/warrants/ND-WAR-0001/manifest.toml",
+          "docs/warrants/ND-WAR-0001/runtime-contracts/contract-c44d6bc892212703d073c81d652b88503cd63387a604bd8a0dac11ef1b4bef91.json",
+          "docs/warrants/ND-WAR-0001/runtime-receipts/capture-909981ecddfd330df885eb2ae6fc85e9ba2555a42413d1a188644e65e471f69c.json",
+          "schemas/oh.war/atom/v1.json",
+          "schemas/oh.war/authorization/v1.json",
+          "schemas/oh.war/bonsai-evidence/v1.json",
+          "schemas/oh.war/correction/v1.json",
+          "schemas/oh.war/deliverables/v1.json",
+          "schemas/oh.war/impact/v1.json",
+          "schemas/oh.war/journal-event/v1.json",
+          "schemas/oh.war/judgments/v1.json",
+          "schemas/oh.war/ledger-file/v1.json",
+          "schemas/oh.war/liminal-request/v1.json",
+          "schemas/oh.war/liminal-response/v1.json",
+          "schemas/oh.war/manifest/v1.json",
+          "schemas/oh.war/milestones/v1.json",
+          "schemas/oh.war/model/v1.json",
+          "schemas/oh.war/projection/v1.json",
+          "schemas/oh.war/report/v1.json",
+          "schemas/oh.war/resolution/v1.json",
+          "schemas/oh.war/roadmap/v1.json",
+          "schemas/oh.war/score-statement/v1.json",
+          "schemas/oh.war/score/v1.json",
+          "schemas/oh.war/stage-dispatch/v1.json",
+          "schemas/oh.war/stage-submission/v1.json",
+          "schemas/oh.war/standing-authorization/v1.json",
+          "schemas/oh.war/verification/v1.json",
+          "schemas/oh.war/war/v1.json",
+          "schemas/pack.json"
+        ]
+      },
+      "exact atom revisions and digests": {
+        "state": "retained",
+        "paths": [
+          "docs/warrants/ND-WAR-0001/atoms/10-intent.md",
+          "docs/warrants/ND-WAR-0001/atoms/20-basis.md",
+          "docs/warrants/ND-WAR-0001/atoms/40-work-order.md",
+          "docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml",
+          "docs/warrants/ND-WAR-0001/atoms/60-assurance.md"
+        ]
+      },
+      "resolution and standing": {
+        "state": "absent",
+        "reason": "No resolution record exists in the selected local current and historical source inventory"
+      },
+      "runtime receipt refs": {
+        "state": "unavailable",
+        "reason": "__ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml#STAGE-001: blut runtime receipt resolver required; __ow_archive__/history/0d9fef7908c03d6a2ccb156c52a65a411c96ffd4/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json: runtime record has no supported retained stage; __ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml#STAGE-001: blut runtime receipt resolver required; __ow_archive__/history/fbea1daa1a6c915f9bee6ee41d91a4faae699c2c/docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json: runtime record has no supported retained stage; docs/warrants/ND-WAR-0001/atoms/45-milestones.yaml#STAGE-001: blut runtime receipt resolver required; docs/warrants/ND-WAR-0001/dispatches/01a1262f-f902-7037-a673-80f35025057b.json: runtime record has no supported retained stage"
+      },
+      "schema and compiler identity": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/producer.json",
+          "schemas/oh.war/atom/v1.json",
+          "schemas/oh.war/authorization/v1.json",
+          "schemas/oh.war/bonsai-evidence/v1.json",
+          "schemas/oh.war/correction/v1.json",
+          "schemas/oh.war/deliverables/v1.json",
+          "schemas/oh.war/impact/v1.json",
+          "schemas/oh.war/journal-event/v1.json",
+          "schemas/oh.war/judgments/v1.json",
+          "schemas/oh.war/ledger-file/v1.json",
+          "schemas/oh.war/liminal-request/v1.json",
+          "schemas/oh.war/liminal-response/v1.json",
+          "schemas/oh.war/manifest/v1.json",
+          "schemas/oh.war/milestones/v1.json",
+          "schemas/oh.war/model/v1.json",
+          "schemas/oh.war/projection/v1.json",
+          "schemas/oh.war/report/v1.json",
+          "schemas/oh.war/resolution/v1.json",
+          "schemas/oh.war/roadmap/v1.json",
+          "schemas/oh.war/score-statement/v1.json",
+          "schemas/oh.war/score/v1.json",
+          "schemas/oh.war/stage-dispatch/v1.json",
+          "schemas/oh.war/stage-submission/v1.json",
+          "schemas/oh.war/standing-authorization/v1.json",
+          "schemas/oh.war/verification/v1.json",
+          "schemas/oh.war/war/v1.json",
+          "schemas/pack.json"
+        ]
+      },
+      "source manifest": {
+        "state": "retained",
+        "paths": [
+          "docs/warrants/ND-WAR-0001/manifest.toml"
+        ]
+      }
+    },
+    "unavailable_categories": [
+      "runtime receipt refs"
+    ],
+    "authority_activated": false,
+    "resource_limits": {
+      "archive_bytes": 1048576,
+      "records": 4096,
+      "content_bytes": 1048576
+    }
+  }
+}
