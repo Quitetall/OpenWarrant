@@ -51,3 +51,6 @@ tests, with 4 ignored. One integration test failed: the committed corpus
 projection was stale after the authored OW111 progress update. Its exact failure
 is retained in `full-cli-tests.log.gz`; regenerate with `war admin compile` and
 rerun the check, rather than change the assertion or the authored record.
+
+The failed corpus projection check passed after tool regeneration. No test or
+authored progress record was weakened; its rerun is appended to `green.log.gz`.
