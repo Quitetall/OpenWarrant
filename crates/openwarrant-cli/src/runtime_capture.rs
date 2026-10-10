@@ -53,7 +53,7 @@ pub enum Command {
     },
     /// Inspect a retained content-addressed capture, including original bytes. Does not trust historical verdicts or establish execution.
     Show { alias: String, digest: String },
-    /// Reassess explicit captures. Opt into operator-protected native Katana configuration; otherwise native eligibility stays unknown.
+    /// Reassess explicit captures. Opt into operator-protected native Katana or BLUT configuration; otherwise native eligibility stays unknown.
     Assess {
         alias: String,
         #[arg(long)]

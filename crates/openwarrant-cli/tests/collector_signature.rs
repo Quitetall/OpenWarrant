@@ -1012,6 +1012,57 @@ fn namespace_fixture_entry() {
             "{assessed}"
         );
         assert_eq!(assessed["result"]["assurance_granted"], false);
+        // Native runtime eligibility can answer the resolution dry run, but
+        // cannot satisfy other obligations or record a human resolution.
+        let resolution = run(&[
+            "resolve",
+            "IX-WAR-0003",
+            "--dry-run",
+            "--runtime-selection",
+            "selected.json",
+            "--native-store",
+            root.join("store").to_str().unwrap(),
+        ]);
+        let resolution: serde_json::Value = serde_json::from_slice(&resolution.stdout)
+            .unwrap_or_else(|e| {
+                panic!(
+                    "native resolution output: {e}: {}",
+                    String::from_utf8_lossy(&resolution.stderr)
+                )
+            });
+        assert!(
+            resolution["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"]
+                    == if actual_native {
+                        "runtime.matches"
+                    } else {
+                        "runtime.provider-rejected"
+                    }),
+            "{resolution}"
+        );
+        assert_eq!(
+            resolution["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "resolution.requirement-met"
+                    && d["message"]
+                        .as_str()
+                        .is_some_and(|m| m.ends_with("runtime receipts match the basis"))),
+            actual_native,
+            "runtime completion is established only by fresh native verification: {resolution}"
+        );
+        assert!(
+            resolution["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "resolution.requirement-unmet" && d["severity"] == "unknown"),
+            "native receipt must not satisfy independent completion gates: {resolution}"
+        );
         if !actual_native {
             println!(
                 "native CLI assessment: activated sealed fixture executable reached; invalid native response refused with no assurance"

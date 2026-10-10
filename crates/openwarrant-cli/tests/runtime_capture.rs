@@ -1742,29 +1742,36 @@ fn cli_native_assessment_refuses_executor_owned_authority_store() {
     let store = f.root.join("forged-store");
     fs::create_dir(&store).unwrap();
     fs::write(store.join("state.json"), b"{}").unwrap();
-    let out = war(
-        &f.root,
-        &[
+    for args in [
+        vec![
             "runtime",
             "assess",
             "IX-WAR-0003",
             "--selection",
             "selected.json",
-            "--native-store",
-            store.to_str().unwrap(),
-            "--json",
         ],
-    );
-    assert!(!out.status.success());
-    let result = value(&out);
-    assert_eq!(result["diagnostics"][0]["rule"], "runtime.native-host");
-    assert_eq!(result["diagnostics"][0]["severity"], "error");
-    assert!(
-        result["diagnostics"][0]["message"]
-            .as_str()
-            .unwrap()
-            .contains("writable by the executor")
-    );
+        vec![
+            "resolve",
+            "IX-WAR-0003",
+            "--dry-run",
+            "--runtime-selection",
+            "selected.json",
+        ],
+    ] {
+        let mut args = args;
+        args.extend(["--native-store", store.to_str().unwrap(), "--json"]);
+        let out = war(&f.root, &args);
+        assert!(!out.status.success());
+        let result = value(&out);
+        assert_eq!(result["diagnostics"][0]["rule"], "runtime.native-host");
+        assert_eq!(result["diagnostics"][0]["severity"], "error");
+        assert!(
+            result["diagnostics"][0]["message"]
+                .as_str()
+                .unwrap()
+                .contains("writable by the executor")
+        );
+    }
 }
 
 #[test]
