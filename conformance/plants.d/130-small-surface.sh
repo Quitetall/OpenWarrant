@@ -5,8 +5,8 @@
 #
 # Each claim is paired with an observed refusal:
 # - The Commands section is exactly the daily verbs (clap's own `help` set
-#   aside), at most twelve. The same reader over the help with planted verbs
-#   accepts a twelfth (`war start`, M15's) and refuses a thirteenth.
+#   aside), at most twelve: `war start` (M15) is the twelfth. The same reader
+#   over the help with a planted verb refuses a thirteenth.
 # - "More:" names plan, sign, evidence, view and admin, each with a purpose.
 #   The same reader over the help with one group's line removed refuses it.
 # - Each group's help lists exactly its members. A member asked of the wrong
@@ -38,7 +38,7 @@ ss_reads_ok() {
     [[ $n -ge 1 && $n -le 12 && "$groups" == "plan sign evidence view admin" && $purposes -eq 5 ]]
 }
 
-SS_DAILY_WANT="init create next claim done add note edit show status check"
+SS_DAILY_WANT="init create next start claim done add note edit show status check"
 SS_HELP=$(sw --help 2>&1); SS_RC=$?
 SS_DAILY=$(ss_section "$SS_HELP" "Commands:")
 SS_LINES=$(wc -l <<<"$SS_HELP")
@@ -48,14 +48,15 @@ else
     ss_fail "help lists the daily verbs" "exit $SS_RC, Commands: '$SS_DAILY', More: '$(ss_section "$SS_HELP" "More:")'"
 fi
 
-# The reader's bound, seen both ways on planted help: a twelfth verb is
-# admitted, a thirteenth refused; a More: block missing a group is refused.
-SS_P12=$(sed 's/^  check /  start   Start a Warrant (planted twelfth)\n  check /' <<<"$SS_HELP")
-SS_P13=$(sed 's/^  check /  start   Start a Warrant (planted twelfth)\n  frob    A planted thirteenth verb\n  check /' <<<"$SS_HELP")
+# The reader's bound, seen both ways: the real help, twelve verbs with
+# `start`, is admitted; a planted thirteenth is refused; a More: block missing
+# a group is refused.
+SS_P13=$(sed 's/^  check /  frob    A planted thirteenth verb\n  check /' <<<"$SS_HELP")
 SS_PMORE=$(awk '!/^  view /' <<<"$SS_HELP")
-if ss_reads_ok "$SS_P12" && [[ $(wc -w <<<"$(ss_section "$SS_P13" "Commands:")") -eq 13 ]] \
+if ss_reads_ok "$SS_HELP" && [[ $(wc -w <<<"$SS_DAILY") -eq 12 ]] \
+    && [[ $(wc -w <<<"$(ss_section "$SS_P13" "Commands:")") -eq 13 ]] \
     && ! ss_reads_ok "$SS_P13" && ! ss_reads_ok "$SS_PMORE"; then
-    ss_ok "a planted 13th verb is refused" "12 admitted, 13 refused; More: without view refused"
+    ss_ok "a planted 13th verb is refused" "12 admitted (start is the twelfth), 13 refused; More: without view refused"
 else
     ss_fail "a planted 13th verb is refused" "the reader did not tell 12, 13 and a missing group apart"
 fi
@@ -64,9 +65,9 @@ fi
 # build with the `schema` feature only. M14 added `sign approve`, `sign
 # release` and `admin preset`, under their groups only.
 declare -A SS_MEMBERS=(
-    [plan]="new promote render impact model state roadmap types type frontier questions ask answer answers"
+    [plan]="new promote render impact model state roadmap types type frontier estimate questions ask answer answers"
     [sign]="authorize resolve correct amend attest standing sas inbox authority approve release"
-    [evidence]="record gate verify prepare run perform submit kpi mark document eval"
+    [evidence]="record gate verify prepare run perform go submit kpi mark document eval runtime"
     [view]="ui tui board console watch overview warrants ready prime timeline"
     [admin]="compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat release renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry bonsai blut projects update version merge-ticket preset"
 )

@@ -401,6 +401,157 @@ pub fn run(
     Ok(report)
 }
 
+/// The refusals `war evidence submit` applies to an answer before anything is
+/// written, in its order: not JSON (`submission.malformed`), a request for its
+/// own completion (`submission.self-completion`, §51.2, read from the raw text
+/// before it is shaped into a record), not a Stage Submission, a dispatch no
+/// `bindings` entry names (`submission.unknown-dispatch`), a binding without
+/// its contract, stage or attempt (`submission.dispatch-unbound`, UNKNOWN),
+/// and a contract digest, stage or attempt that is not the binding's
+/// (`submission.dispatch-mismatch`). `label` names what is answered (a
+/// Warrant's alias, or a node of `war evidence go`), `file` where the answer
+/// is and `journal` the journal the bindings come from. `bindings` is read
+/// only once the answer has the shape of a submission, as it always was.
+///
+/// OW-WAR-0148 M15: shared with `war evidence go`, so an answer from any
+/// executor, native or external, passes exactly these refusals.
+pub(crate) fn admit_answer(
+    alias: &str,
+    file: &str,
+    journal: &str,
+    text: &str,
+    bindings: impl FnOnce() -> Result<Vec<serde_json::Value>, RepoError>,
+) -> Result<Result<StageSubmission, Diagnostic>, RepoError> {
+    let value: serde_json::Value = match serde_json::from_str(text) {
+        Ok(v) => v,
+        Err(e) => {
+            return Ok(Err(Diagnostic::error(
+                "submission.malformed",
+                file.to_owned(),
+                format!("not JSON: {e}"),
+            )));
+        }
+    };
+    // §51.2 first, on the raw text: a submission that requests its own
+    // completion is refused before it is even shaped into a record.
+    if let Some(action) = value.get("requested_next_action").and_then(|a| a.as_str())
+        && let Err(e) = StageSubmission::validate_requested_action("submission", action)
+    {
+        return Ok(Err(Diagnostic::error(
+            "submission.self-completion",
+            file.to_owned(),
+            format!(
+                "{alias}: {e}; a performer's submission may ask to continue, be verified, block, amend or cancel — never to be resolved. Nothing was written"
+            ),
+        )));
+    }
+    let submission: StageSubmission = match serde_json::from_value(value) {
+        Ok(s) => s,
+        Err(e) => {
+            return Ok(Err(Diagnostic::error(
+                "submission.malformed",
+                file.to_owned(),
+                format!("not a Stage Submission: {e}"),
+            )));
+        }
+    };
+    if let Err(e) = submission.validate() {
+        return Ok(Err(Diagnostic::error(
+            "submission.malformed",
+            file.to_owned(),
+            e.to_string(),
+        )));
+    }
+    let known = bindings()?;
+    let Some(binding) = known.iter().find(|b| {
+        b.get("dispatch_id").and_then(|id| id.as_str()) == Some(submission.dispatch_id.as_str())
+    }) else {
+        return Ok(Err(Diagnostic::error(
+            "submission.unknown-dispatch",
+            file.to_owned(),
+            format!(
+                "{alias}: no `dispatch.compiled` journal event names dispatch {:?}; a submission \
+                 answers a Dispatch this Warrant compiled, or it answers nothing. Nothing was written",
+                submission.dispatch_id
+            ),
+        )));
+    };
+    let Some(expected) = binding
+        .get("contract_digest")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        return Ok(Err(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            journal.to_owned(),
+            format!(
+                "{alias}: dispatch {} has no recorded contract binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written",
+                submission.dispatch_id
+            ),
+        )));
+    };
+    if submission.contract_digest != expected {
+        return Ok(Err(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_owned(),
+            format!(
+                "{alias}: contract_digest {:?} does not match the compiled dispatch's {:?}. Nothing was written",
+                submission.contract_digest, expected
+            ),
+        )));
+    }
+    let Some(expected_stage) = binding
+        .get("stage")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        return Ok(Err(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            journal.to_owned(),
+            format!(
+                "{alias}: dispatch {} has no recorded stage binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written",
+                submission.dispatch_id
+            ),
+        )));
+    };
+    if submission.stage_id != expected_stage {
+        return Ok(Err(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_owned(),
+            format!(
+                "{alias}: stage_id {:?} does not match the compiled dispatch's stage {:?}. Nothing was written",
+                submission.stage_id,
+                binding.get("stage")
+            ),
+        )));
+    }
+    let Some(expected_attempt) = binding
+        .get("attempt_id")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        return Ok(Err(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            journal.to_owned(),
+            format!(
+                "{alias}: dispatch {} has no recorded attempt binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written",
+                submission.dispatch_id
+            ),
+        )));
+    };
+    if submission.attempt_id != expected_attempt {
+        return Ok(Err(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_owned(),
+            format!(
+                "{alias}: attempt_id {:?} does not match the compiled dispatch's {:?}. Nothing was written",
+                submission.attempt_id, expected_attempt
+            ),
+        )));
+    }
+    Ok(Ok(submission))
+}
+
 /// `war evidence submit <alias> <file>`: ingest an external Stage Submission.
 pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report, RepoError> {
     let mut report = Report::default();
@@ -415,123 +566,16 @@ pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report,
         context: format!("could not read {file}"),
         source,
     })?;
-    let value: serde_json::Value = match serde_json::from_str(&text) {
-        Ok(v) => v,
-        Err(e) => {
-            report.push(Diagnostic::error(
-                "submission.malformed",
-                file.to_string(),
-                format!("not JSON: {e}"),
-            ));
-            return Ok(report);
-        }
-    };
-    // §51.2 first, on the raw text: a submission that requests its own
-    // completion is refused before it is even shaped into a record.
-    if let Some(action) = value.get("requested_next_action").and_then(|a| a.as_str())
-        && let Err(e) = StageSubmission::validate_requested_action("submission", action)
-    {
-        report.push(Diagnostic::error(
-            "submission.self-completion",
-            file.to_string(),
-            format!("{alias}: {e}; a performer's submission may ask to continue, be verified, block, amend or cancel — never to be resolved. Nothing was written"),
-        ));
-        return Ok(report);
-    }
-    let submission: StageSubmission = match serde_json::from_value(value) {
+    let journal = repo.relative(&dir.join(crate::journal_cmd::FILE));
+    let submission = match admit_answer(alias, file.as_str(), &journal, &text, || {
+        compiled_dispatch_bindings(&dir)
+    })? {
         Ok(s) => s,
-        Err(e) => {
-            report.push(Diagnostic::error(
-                "submission.malformed",
-                file.to_string(),
-                format!("not a Stage Submission: {e}"),
-            ));
+        Err(d) => {
+            report.push(d);
             return Ok(report);
         }
     };
-    if let Err(e) = submission.validate() {
-        report.push(Diagnostic::error(
-            "submission.malformed",
-            file.to_string(),
-            e.to_string(),
-        ));
-        return Ok(report);
-    }
-    let known = compiled_dispatch_bindings(&dir)?;
-    let Some(binding) = known.iter().find(|b| {
-        b.get("dispatch_id").and_then(|id| id.as_str()) == Some(submission.dispatch_id.as_str())
-    }) else {
-        report.push(Diagnostic::error(
-            "submission.unknown-dispatch",
-            file.to_string(),
-            format!(
-                "{alias}: no `dispatch.compiled` journal event names dispatch {:?}; a submission \
-                 answers a Dispatch this Warrant compiled, or it answers nothing. Nothing was written",
-                submission.dispatch_id
-            ),
-        ));
-        return Ok(report);
-    };
-    let Some(expected) = binding
-        .get("contract_digest")
-        .and_then(|v| v.as_str())
-        .filter(|s| !s.is_empty())
-    else {
-        report.push(Diagnostic::unknown(
-            "submission.dispatch-unbound",
-            repo.relative(&dir.join(crate::journal_cmd::FILE)),
-            format!("{alias}: dispatch {} has no recorded contract binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
-        ));
-        return Ok(report);
-    };
-    if submission.contract_digest != expected {
-        report.push(Diagnostic::error(
-            "submission.dispatch-mismatch",
-            file.to_string(),
-            format!("{alias}: contract_digest {:?} does not match the compiled dispatch's {:?}. Nothing was written", submission.contract_digest, expected),
-        ));
-        return Ok(report);
-    }
-    let Some(expected_stage) = binding
-        .get("stage")
-        .and_then(|v| v.as_str())
-        .filter(|s| !s.is_empty())
-    else {
-        report.push(Diagnostic::unknown(
-            "submission.dispatch-unbound",
-            repo.relative(&dir.join(crate::journal_cmd::FILE)),
-            format!("{alias}: dispatch {} has no recorded stage binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
-        ));
-        return Ok(report);
-    };
-    if submission.stage_id != expected_stage {
-        report.push(Diagnostic::error(
-            "submission.dispatch-mismatch",
-            file.to_string(),
-            format!("{alias}: stage_id {:?} does not match the compiled dispatch's stage {:?}. Nothing was written", submission.stage_id, binding.get("stage")),
-        ));
-        return Ok(report);
-    }
-    let Some(expected_attempt) = binding
-        .get("attempt_id")
-        .and_then(|v| v.as_str())
-        .filter(|s| !s.is_empty())
-    else {
-        report.push(Diagnostic::unknown(
-            "submission.dispatch-unbound",
-            repo.relative(&dir.join(crate::journal_cmd::FILE)),
-            format!("{alias}: dispatch {} has no recorded attempt binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
-        ));
-        return Ok(report);
-    };
-    if submission.attempt_id != expected_attempt {
-        report.push(Diagnostic::error(
-            "submission.dispatch-mismatch",
-            file.to_string(),
-            format!("{alias}: attempt_id {:?} does not match the compiled dispatch's {:?}. Nothing was written", submission.attempt_id, expected_attempt),
-        ));
-        return Ok(report);
-    }
     let actor = format!("agent://{}", repo.performer());
     // OW-WAR-0130 (§67.4), before the first write: the same submission,
     // already recorded by the same actor with the same bytes on disk, replays

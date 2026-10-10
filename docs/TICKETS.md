@@ -41,6 +41,10 @@ More, when you need them:
 | `war show <ticket>` | the ticket as a person reads it, with who holds what |
 | `war view warrants` (or `war view tickets`, `war view ls`) | every Warrant: the tickets first (open, in progress or done, and how far along), then the directory Warrants and those read in place, each with its type; filters below |
 | `war edit <ticket> --type bug -l ui -p 1` | change a ticket's type, labels, epic or priority |
+| `war edit <ticket> --due 2026-11-01` | a due date: a scheduler runs work toward it first, never before what it waits on (`--due none` clears it) |
+| `war start <item>` | claim it and open it in a worktree of its own, with the Warrant's declared tools, paths and commands as the session's settings (docs/GO.md) |
+| `war evidence go` | run every ready item, critical path first, each in its own worktree, landing on `war-go/integration` (docs/GO.md) |
+| `war plan estimate` | how long each open item should take, learned from claim-to-done times in the journals, and the critical path |
 | `war admin release <item>` | give a claim back without finishing |
 | `war admin heartbeat [<item>]` | renew the lease on your claims (any `war` command does too) |
 | `war claim <item> --steal` | take a claim older than the TTL whose lease is still live |

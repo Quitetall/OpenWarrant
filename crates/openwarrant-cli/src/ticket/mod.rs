@@ -345,6 +345,11 @@ pub struct Store {
     /// OW-WAR-0148 M14: `[preset] ticks`, the least every tick shows
     /// (`claimed` without a preset).
     pub tick_floor: Level,
+    /// OW-WAR-0148 M15: where `war done --check` runs the tests and KPIs,
+    /// when that is not the root: `war evidence go` runs them in the
+    /// worktree that holds the node's work, while the tick is written here.
+    /// `None` everywhere else.
+    pub check_root: Option<Utf8PathBuf>,
 }
 
 /// Now, in Unix seconds.
@@ -414,6 +419,7 @@ impl Store {
             } else {
                 Level::Claimed
             },
+            check_root: None,
         })
     }
 
@@ -1300,6 +1306,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
             .map(|i| i.url.clone())
             .filter(|u| !u.is_empty()),
         imported_from: None,
+        due: None,
         atoms: vec![
             TicketAtom {
                 ordinal: 10,
@@ -2787,6 +2794,52 @@ pub fn done_with(
     if_rev: Option<&str>,
     check: bool,
 ) -> Result<Outcome, RepoError> {
+    finish(
+        store,
+        query,
+        note,
+        if_rev,
+        if check { How::Check } else { How::Claimed },
+    )
+}
+
+/// OW-WAR-0148 M15: tick `query` with checks that already ran and passed
+/// (`war evidence go` runs them in the node's worktree before its work lands,
+/// and ticks only after it has), at `observed`; with `None`, as `claimed`.
+/// Every other refusal of `war done` applies, in its order.
+pub fn done_ran(
+    store: &Store,
+    query: &str,
+    note: Option<&str>,
+    round: Option<ladder::CheckRound>,
+) -> Result<Outcome, RepoError> {
+    finish(
+        store,
+        query,
+        note,
+        None,
+        round.map_or(How::Claimed, How::Ran),
+    )
+}
+
+/// How a tick is earned.
+enum How {
+    /// No check: `claimed`.
+    Claimed,
+    /// Run the checks now: `observed` when they pass.
+    Check,
+    /// The checks already ran and passed: `observed`.
+    Ran(ladder::CheckRound),
+}
+
+fn finish(
+    store: &Store,
+    query: &str,
+    note: Option<&str>,
+    if_rev: Option<&str>,
+    how: How,
+) -> Result<Outcome, RepoError> {
+    let check = !matches!(how, How::Claimed);
     let (tickets, _) = store.load_all()?;
     let target = match resolve(&tickets, query) {
         Ok(t) => t,
@@ -2841,7 +2894,7 @@ pub fn done_with(
     }
     if let Some(id) = &item_id {
         let it = t.item(id).expect("resolved");
-        if it.done && check {
+        if it.done && matches!(how, How::Check) {
             return ladder::raise_observed(store, t, id, &what, if_rev);
         }
         if it.done {
@@ -2900,13 +2953,13 @@ pub fn done_with(
         }
         auto_claimed = Some(claimed.result.get("claim").cloned().unwrap_or_default());
     }
-    let round = if check {
-        match ladder::check_for_tick(store, t, item_id.as_deref(), &checks, &what)? {
+    let round = match how {
+        How::Claimed => None,
+        How::Ran(round) => Some(round),
+        How::Check => match ladder::check_for_tick(store, t, item_id.as_deref(), &checks, &what)? {
             Ok(round) => Some(round),
             Err(refusal) => return Ok(*refusal),
-        }
-    } else {
-        None
+        },
     };
     // The checks may have run for a while: the claim must still be this
     // agent's (its lease was renewed after each run) before anything is
@@ -3341,6 +3394,8 @@ pub struct EditArgs {
     /// `Some(None)`: no longer part of anything.
     pub part_of: Option<Option<String>>,
     pub priority: Option<u8>,
+    /// OW-WAR-0148 M15: `Some(None)` clears the due date.
+    pub due: Option<Option<String>>,
     /// M11: the ticket revision the caller read (`--if-rev`); a stale one
     /// is refused, `warrant.stale-revision`.
     pub if_rev: Option<String>,
@@ -3418,6 +3473,24 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
             changes.insert("priority".into(), serde_json::json!(p));
         }
     }
+    if let Some(due) = &args.due {
+        if let Some(d) = due
+            && ticket::due_date(d).is_none()
+        {
+            return Ok(Outcome::refused(
+                "ticket.due-invalid",
+                store.rel(&t.dir.join("manifest.toml")),
+                format!(
+                    "due {d:?} is not a calendar date; give it as YYYY-MM-DD (2026-11-01), or \
+                     `none` to clear it. Nothing was written"
+                ),
+            ));
+        }
+        if m.due != *due {
+            m.due.clone_from(due);
+            changes.insert("due".into(), serde_json::json!(due));
+        }
+    }
     if let Err(why) = m.validate(&store.definition.working_roles()) {
         return Ok(Outcome::refused(
             "ticket.manifest",
@@ -3471,6 +3544,13 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
         );
         if edited.priority != t.manifest.priority {
             next = ticket::set_manifest_key(&next, "priority", Some(&edited.priority.to_string()));
+        }
+        if edited.due != t.manifest.due {
+            next = ticket::set_manifest_key(
+                &next,
+                "due",
+                edited.due.as_deref().map(quoted).as_deref(),
+            );
         }
         // What was written must read back as the manifest asked for.
         match toml::from_str::<TicketManifest>(&next) {

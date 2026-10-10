@@ -815,6 +815,10 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         );
         facts.push(format!("part of {p}{title}"));
     }
+    // OW-WAR-0148 M15: a due date, when there is one.
+    if let Some(d) = &t.manifest.due {
+        facts.push(format!("due {d}"));
+    }
     if let Some(n) = t.manifest.issue {
         facts.push(match &t.manifest.issue_url {
             Some(u) => format!("GitHub issue [#{n}]({u})"),
