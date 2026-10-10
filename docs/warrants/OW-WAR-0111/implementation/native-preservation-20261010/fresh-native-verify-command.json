@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/blut-native-roundtrip-20261009/verifier.original",
+    "openwarrant",
+    "verify",
+    "--receipt",
+    "/mnt/4tb/tmp/openwarrant-native-preservation-observations/fresh-native/receipt.json",
+    "--public-key",
+    "/mnt/4tb/tmp/openwarrant-native-preservation-observations/fresh-native/public-key.bin",
+    "--binding",
+    "/mnt/4tb/tmp/openwarrant-native-preservation-observations/fresh-binding.json",
+    "--plan",
+    "/mnt/4tb/tmp/openwarrant-native-preservation-observations/fresh-native/plan.json",
+    "--job",
+    "/mnt/4tb/tmp/openwarrant-native-preservation-observations/fresh-native/job",
+    "--producer-executable",
+    "/mnt/4tb/tmp/openwarrant-native-preservation-observations/fresh-native/producer.original"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.038176139001734555
+}
