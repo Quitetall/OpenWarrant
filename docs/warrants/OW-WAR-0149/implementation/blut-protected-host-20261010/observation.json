@@ -1,0 +1,81 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "reported_by": "agent://codex",
+  "source_revision": "50c3deab7b53551e1683984f31989219d5b91a64",
+  "blut_revision": "4600e86fd7083ab0d91b44036b108f3f716f4517",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/runtime_capture/blut_process.rs": "186e9debdf426f61d10adb29a6ac8715bf3b122f48e7793d67c6ef0ec7993831",
+    "crates/openwarrant-cli/src/runtime_capture/native_host.rs": "b2580af2d5fde9eee5c8e7074817de9214c91929e9c820652e2fe2705cfff5f2",
+    "crates/openwarrant-cli/src/runtime_capture/protected_input.rs": "de8f333c1607b61aa1d8d6109fb8a0083c11506e96b1c6f03954e5d16561be73",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "500c6d7d9a073def1526541c2bd5283ec7aeb109612dc03ddd398b0a975fda5c"
+  },
+  "logs": {
+    "blut-host-red.log": {
+      "sha256": "ee6195020b6b3fd3a824f9181a21854b9ce9826b6a2cbf67d960e141cd69e7f6",
+      "bytes": 4878
+    },
+    "blut-host-green.log": {
+      "sha256": "bfb17c9864f3facc0243b3c698fd08ba1a320bb5609b7cc4006f0e61d9ffca82",
+      "bytes": 4538
+    },
+    "blut-host-controls.log": {
+      "sha256": "1edb590e9b131942dc6b0d8b31f52b4b67785ccc6345ce2f3ae89c3eba69358d",
+      "bytes": 1069
+    },
+    "blut-host-controls-rerun.log": {
+      "sha256": "a51817364ec2dc8fcdafd0d4421321a7ad08680423b7a933325fa2003215bbe1",
+      "bytes": 4696
+    },
+    "blut-host-runtime-final.log": {
+      "sha256": "aad9f53734f8483ce1736b441a8b51d53002dab9f7d8940f9143547fa618d8d0",
+      "bytes": 3894
+    },
+    "blut-host-runtime-rerun.log": {
+      "sha256": "c5d2f1a10e6633dd1351f0394ab2ca176d275c8578979be2ac6df97db70f6ae1",
+      "bytes": 3332
+    },
+    "blut-host-collector-final.log": {
+      "sha256": "c0ad7ea9defcd5601ca5c87bdbe2688c3cf40e62fcd3805002c6d0be47a53445",
+      "bytes": 933
+    },
+    "blut-host-default-final.log": {
+      "sha256": "061d557659a07fcc76fcce91c43ac696988d75c3ffd5c55a2c60546ff153ce7d",
+      "bytes": 4434
+    },
+    "blut-host-katana-final.log": {
+      "sha256": "37ac0b5af13cab4740bc8d810e7be19adf7fdedbf58df88e167d3df7cca8c885",
+      "bytes": 4426
+    },
+    "blut-host-clippy-rerun.log": {
+      "sha256": "92044dd134421c2f653fd5f69a9eb538b574df1e960168b596881d6c98c4b67c",
+      "bytes": 186
+    },
+    "blut-host-native-final-rerun.log": {
+      "sha256": "892cd8a1a3655f879408ab041f2105d3e2278dccd98643cdb3d24ff09640bda5",
+      "bytes": 4696
+    },
+    "blut-host-generated-check.json": {
+      "sha256": "d246e75f0b9f4e49d97da528b3387240a8891eebda2349def004d1cddd15115b",
+      "bytes": 865779
+    }
+  },
+  "native_binaries": {
+    "openwarrant_verifier": "3e58b799e584a0db296ee83998de434f569b0a2aef597570b487ccd91e92b47e",
+    "openwarrant_fixture_producer": "b76310d2e86b244d6202bc8070731f31f08b438208e1e55581097145a3624822"
+  },
+  "actual_protected_blut_cli_fixture_roundtrip": "PASS",
+  "paired_refusal_controls": "PASS",
+  "runtime_tests_passed": 26,
+  "runtime_tests_ignored": 2,
+  "collector_tests_passed": 4,
+  "collector_tests_ignored": 2,
+  "default_namespace": "PASS",
+  "katana_native_namespace": "PASS",
+  "clippy_all_features_all_targets": "PASS",
+  "assurance_granted": false,
+  "production_human_presence_established": false,
+  "cost_metered": false,
+  "confinement_established": false,
+  "independent_qualification": "UNKNOWN",
+  "real_user_sessions": "UNKNOWN"
+}
