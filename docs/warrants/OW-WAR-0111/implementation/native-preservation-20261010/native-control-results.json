@@ -1,0 +1,23 @@
+[
+  {
+    "case": "detached-native-valid",
+    "exit_code": 0,
+    "elapsed_seconds": 0.05175189103465527,
+    "status": "validated",
+    "assurance": "not-established"
+  },
+  {
+    "case": "detached-native-altered-signature",
+    "exit_code": 1,
+    "elapsed_seconds": 0.010097348014824092,
+    "status": "rejected",
+    "assurance": "not-established"
+  },
+  {
+    "case": "detached-native-altered-output",
+    "exit_code": 1,
+    "status": "rejected",
+    "assurance": "not-established",
+    "original_output_restored": true
+  }
+]

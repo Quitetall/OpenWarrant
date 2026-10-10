@@ -3,8 +3,7 @@
   "warrant": "OW-WAR-0111",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "ae1c2f3fd980336531de65965d62a80ac4b388c0",
-  "summary": "Retained external provider status captures now reconnect exact Dispatch, journal and reconstructed contract/stage in source-detached archive queries. A real BLUT status observation survives full source-worktree removal, with native trust UNKNOWN. SAS-prefixed digest reconstruction repaired; native sealed receipts, historical reconciliation and formal qualification remain open.",
+  "summary": "Actual native BLUT CPU fixture receipt is retained byte-for-byte and current source-bound capture reconnects after source detachment. Native verifier validates test-key seal and refuses altered seal/output. Whole import correctly refuses missing BLUT runtime resolver and schema pack; historical IR and real KF native roundtrip remain incomplete. No authority or assurance granted.",
   "notes": "docs/warrants/OW-WAR-0111/implementation/runtime-basis.md",
   "evidence": [
     "docs/warrants/OW-WAR-0111/implementation/kf-source-complete-roundtrip.md",
@@ -16,11 +15,12 @@
     "docs/warrants/OW-WAR-0111/implementation/local-runtime-source-detached-observation.json.gz",
     "docs/warrants/OW-WAR-0111/implementation/local-runtime-provider-roundtrip.json",
     "docs/warrants/OW-WAR-0111/implementation/local-runtime-full-gate.log.gz",
-    "docs/warrants/OW-WAR-0111/implementation/capture-reconnection-20261009/README.md"
+    "docs/warrants/OW-WAR-0111/implementation/capture-reconnection-20261009/README.md",
+    "docs/warrants/OW-WAR-0111/implementation/native-preservation-20261010/README.md"
   ],
   "next_steps": [
     "Capture-query candidate merged via PR165 at ca3c5a3e; later full integration gate PR167 passed 14 steps and 1386 controls. Native sealed provider records and qualification remain.",
-    "Implement provider-owned dispatch-bound terminal receipts and native verification. Status-only observations and local source reconnection do not establish execution eligibility or authenticity.",
+    "Complete BLUT preservation resolver and onboarding schema identity; retain historical IR and prove real native KF roundtrip. Separate fixture-key validation from operator trust.",
     "Exercise external provider archive/contract reconciliation through KF with real sealed native records; preserve unknown or missing historical sources.",
     "Keep independent verification, participant acceptance and human acceptance separate."
   ]
