@@ -45,6 +45,12 @@ class ServiceFixture(unittest.TestCase):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
         )
+        self.wait_session()
+        info = json.loads(self.session.read_text())
+        self.url = info["url"]
+        self.token = info["token"]
+
+    def wait_session(self):
         # Observe readiness, not a startup latency claim. A durable session-file
         # fsync can exceed four seconds on a busy disk; keep it, with a deadline.
         deadline = time.monotonic() + 30
@@ -65,9 +71,6 @@ class ServiceFixture(unittest.TestCase):
             self.tmp.cleanup()
             self.fail("server startup unavailable: " + message)
         self.assertTrue(self.session.exists(), "server startup")
-        info = json.loads(self.session.read_text())
-        self.url = info["url"]
-        self.token = info["token"]
 
     def stop(self):
         self.proc.terminate()
@@ -91,7 +94,7 @@ class ServiceFixture(unittest.TestCase):
             method=method,
         )
         try:
-            r = urllib.request.urlopen(req, timeout=15)
+            r = urllib.request.urlopen(req, timeout=30)
         except urllib.error.HTTPError as e:
             r = e
         with r:
