@@ -478,6 +478,80 @@ fn namespace_fixture_entry() {
                 "authority store execution account mismatch"
             ))
         ));
+        use openwarrant_cli::runtime_capture::activated_verifier::ActivatedVerifier;
+        use openwarrant_core::document::runtime::{ProviderInterface, ProviderKind};
+        let interface = ProviderInterface {
+            kind: ProviderKind::Katana,
+            identity: "software-fixture".into(),
+            version: "v1".into(),
+        };
+        let warrant = "01a0f502-4941-70a1-a446-e1eb77dff191";
+        let load = || {
+            LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier)
+                .unwrap()
+        };
+        let acquire = |repository: &str,
+                       collector: &str,
+                       warrant: &str,
+                       provider: &ProviderInterface,
+                       path: &std::path::Path| {
+            ActivatedVerifier::acquire(load(), repository, collector, warrant, provider, path)
+        };
+        let inactive = LoadedEnrollment::load(
+            &root.join("store"),
+            "fixture",
+            &root.join("enrollment.json"),
+            &verifier,
+        )
+        .unwrap();
+        assert!(matches!(
+            ActivatedVerifier::acquire(
+                inactive,
+                "fixture",
+                "collector",
+                warrant,
+                &interface,
+                &program
+            ),
+            Err(ProviderFailure::Unavailable(_))
+        ));
+        for (repository, collector, scope) in [
+            ("other", "collector", warrant),
+            ("fixture", "other", warrant),
+            (
+                "fixture",
+                "collector",
+                "01a0f502-4941-70a1-a446-e1eb77dff192",
+            ),
+        ] {
+            assert!(matches!(
+                acquire(repository, collector, scope, &interface, &program),
+                Err(ProviderFailure::Rejected(_))
+            ));
+        }
+        let wrong_provider = ProviderInterface {
+            kind: ProviderKind::Blut,
+            ..interface.clone()
+        };
+        assert!(matches!(
+            acquire("fixture", "collector", warrant, &wrong_provider, &program),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        assert!(matches!(
+            acquire(
+                "fixture",
+                "collector",
+                warrant,
+                &interface,
+                &root.join("writable-verifier")
+            ),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        let activated = acquire("fixture", "collector", warrant, &interface, &program).unwrap();
+        assert!(activated.run(&[], Duration::from_secs(3), 1024).unwrap().0);
+        println!(
+            "activated verifier: sealed execution passed; inactive enrollment, repository, collector, scope, provider and writable executable refused"
+        );
         fs::write(scratch.join("ready"), b"ready").unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
         while !root.join("selection-changed").exists() {
@@ -504,6 +578,18 @@ fn namespace_fixture_entry() {
             loaded.allows(usage),
             Err(Fault::Rejected("collector activation changed"))
         ));
+        assert!(matches!(
+            activated.run(&[], Duration::from_secs(3), 1024),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        let replacement_verifier =
+            acquire("fixture", "collector", warrant, &interface, &program).unwrap();
+        assert!(
+            !replacement_verifier
+                .run(&[], Duration::from_secs(3), 1024)
+                .unwrap()
+                .0
+        );
         let reloaded =
             LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier)
                 .unwrap();
@@ -525,6 +611,13 @@ fn namespace_fixture_entry() {
         assert!(
             matches!(reloaded.allows(usage), Err(Fault::Rejected(_))),
             "revoked authority remained usable"
+        );
+        assert!(matches!(
+            replacement_verifier.run(&[], Duration::from_secs(3), 1024),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        println!(
+            "activated verifier: changed selection and signed revocation refused before execution"
         );
         println!(
             "execution UID 1: authority write refused; activated enrollment accepted; inactive enrollment unavailable; changed selection, mismatched UID and signed revocation refused"
@@ -698,7 +791,10 @@ fn namespace_fixture_entry() {
             identity: "software-fixture".into(),
             version: "v1".into(),
         },
-        verifier_digest: format!("sha256:{}", "a".repeat(64)),
+        verifier_digest: format!(
+            "sha256:{}",
+            fs::read_to_string(root.join("verifier.sha256")).unwrap()
+        ),
         collector: "collector".into(),
         warrants: BTreeSet::from(["01a0f502-4941-70a1-a446-e1eb77dff191".into()]),
     };
@@ -864,7 +960,10 @@ fn namespace_fixture_entry() {
     )
     .unwrap();
     fs::rename(root.join("replacement-verifier"), &program).unwrap();
-    replacement.enrollment.verifier_digest = format!("sha256:{}", "b".repeat(64));
+    replacement.enrollment.verifier_digest = format!(
+        "sha256:{}",
+        openwarrant_compiler::sha256_hex(&fs::read(&program).unwrap())
+    );
     let (_, signature) = fixture(NAMESPACE, &replacement.enrollment.encode().unwrap(), 11);
     replacement.signatures = BTreeMap::from([("owner".into(), signature)]);
     fs::write(root.join("replacement.json"), replacement.encode().unwrap()).unwrap();
