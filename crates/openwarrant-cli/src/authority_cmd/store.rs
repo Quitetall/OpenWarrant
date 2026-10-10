@@ -11,12 +11,45 @@ struct State {
     /// gives that account write access or changes who may activate authority.
     #[serde(default, skip_serializing_if = "is_false")]
     execution_readable: bool,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    collector_enrollments: BTreeMap<String, CollectorActivation>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    active_collectors: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    collector_activation_events: Vec<CollectorActivationEvent>,
     genesis: Revision,
     legacy: BTreeMap<String, Vec<u8>>,
     transitions: Vec<Signed>,
     // Absent on older snapshots. Never invent observation times for old acts.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     activation_receipts: BTreeMap<u64, ActivationReceipt>,
+}
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CollectorActivation {
+    signed: openwarrant_core::runtime_collector::Signed,
+    operator_uid: Option<u32>,
+    observed_at_unix_seconds: u64,
+}
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CollectorActivationEvent {
+    collector: String,
+    digest: String,
+    authority_head: String,
+    operator_uid: Option<u32>,
+    observed_at_unix_seconds: u64,
+}
+#[derive(Clone)]
+pub(crate) struct ActiveCollector {
+    pub digest: String,
+    pub signed: openwarrant_core::runtime_collector::Signed,
+}
+fn collector_digest(signed: &openwarrant_core::runtime_collector::Signed) -> Result<String> {
+    Ok(format!(
+        "sha256:{}",
+        openwarrant_compiler::sha256_hex(&signed.encode().map_err(err)?)
+    ))
 }
 fn is_false(value: &bool) -> bool {
     !value
@@ -50,6 +83,45 @@ impl State {
         if self.schema != "oh.war/authority-store/1" || self.transitions.len() > 4096 {
             return Err(err("authority-store-format"));
         }
+        if self.collector_enrollments.len() > 256
+            || self.active_collectors.len() > 64
+            || self.collector_activation_events.len() > 1024
+        {
+            return Err(err("collector-activation-history-limit"));
+        }
+        for (digest, record) in &self.collector_enrollments {
+            if collector_digest(&record.signed)? != *digest {
+                return Err(err("collector-activation-content-digest"));
+            }
+        }
+        for (collector, digest) in &self.active_collectors {
+            if self
+                .collector_enrollments
+                .get(digest)
+                .is_none_or(|record| record.signed.enrollment.collector != *collector)
+            {
+                return Err(err("collector-activation-selection"));
+            }
+        }
+        let mut selected = BTreeMap::new();
+        for event in &self.collector_activation_events {
+            if self
+                .collector_enrollments
+                .get(&event.digest)
+                .is_none_or(|record| {
+                    record.signed.enrollment.collector != event.collector
+                        || record.signed.enrollment.authority_digest != event.authority_head
+                })
+            {
+                return Err(err("collector-activation-event-binding"));
+            }
+            selected.insert(&event.collector, &event.digest);
+        }
+        for (collector, digest) in selected {
+            if self.active_collectors.get(collector) != Some(digest) {
+                return Err(err("collector-activation-event-selection"));
+            }
+        }
         self.genesis.validate().map_err(err)?;
         if self.genesis.sequence != 0 {
             return Err(err("authority-bootstrap-sequence"));
@@ -81,7 +153,7 @@ impl State {
     }
     fn view(&self) -> Result<serde_json::Value> {
         Ok(
-            serde_json::json!({"current":self.current(),"head":self.current().digest().map_err(err)?,"transitions":self.transitions.len(),"legacy_files":self.legacy.keys().collect::<Vec<_>>(),"isolation_enforced":false,"storage_boundary":if self.unprotected_test_store{"unprotected-test"}else{"separate-account-required"},"configured_agent_uid":self.agent_uid,"execution_readable":self.execution_readable,"human_review_established":false,"activation_receipts":self.activation_receipts,"missing_activation_receipts":self.transitions.len()-self.activation_receipts.len(),"activation_time_authenticated":false}),
+            serde_json::json!({"current":self.current(),"head":self.current().digest().map_err(err)?,"transitions":self.transitions.len(),"legacy_files":self.legacy.keys().collect::<Vec<_>>(),"isolation_enforced":false,"storage_boundary":if self.unprotected_test_store{"unprotected-test"}else{"separate-account-required"},"configured_agent_uid":self.agent_uid,"execution_readable":self.execution_readable,"configured_collectors":self.active_collectors,"collector_activation_history":self.collector_enrollments.len(),"collector_activation_events":self.collector_activation_events.len(),"human_review_established":false,"activation_receipts":self.activation_receipts,"missing_activation_receipts":self.transitions.len()-self.activation_receipts.len(),"activation_time_authenticated":false}),
         )
     }
 }
@@ -243,6 +315,9 @@ pub(super) fn bootstrap(
         agent_uid: agent,
         unprotected_test_store: test,
         execution_readable,
+        collector_enrollments: BTreeMap::new(),
+        active_collectors: BTreeMap::new(),
+        collector_activation_events: Vec::new(),
         genesis,
         legacy: retained,
         transitions: Vec::new(),
@@ -284,6 +359,70 @@ pub(super) fn activate(root: &Path, record: Signed, test: bool) -> Result<serde_
     persist(root, &state)?;
     state.view()
 }
+/// Activation is an operator-owned configuration action, never a human review record.
+pub(super) fn activate_collector(
+    root: &Path,
+    signed: openwarrant_core::runtime_collector::Signed,
+) -> Result<serde_json::Value> {
+    let _ = load(root, false)?;
+    let _lock = lock(root)?;
+    let mut state = load(root, false)?;
+    let verifier = crate::runtime_capture::collector_signature::OpenSshSignatureCheck::new(
+        root.to_owned(),
+        std::time::Duration::from_secs(5),
+    )
+    .map_err(err)?;
+    signed
+        .authenticate(state.current(), &state.current().repository, &verifier)
+        .map_err(|e| match e {
+            openwarrant_core::runtime_collector::Fault::Unavailable(_) => {
+                RepoError::ObservationUnavailable {
+                    rule: "runtime.collector-activation-unavailable",
+                    message: e.to_string(),
+                }
+            }
+            _ => err(e),
+        })?;
+    let digest = collector_digest(&signed)?;
+    let collector = signed.enrollment.collector.clone();
+    let replay = state.active_collectors.get(&collector) == Some(&digest);
+    if !replay {
+        state
+            .collector_enrollments
+            .entry(digest.clone())
+            .or_insert(CollectorActivation {
+                signed,
+                operator_uid: operator_uid(),
+                observed_at_unix_seconds: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map_err(err)?
+                    .as_secs(),
+            });
+        state
+            .active_collectors
+            .insert(collector.clone(), digest.clone());
+        state
+            .collector_activation_events
+            .push(CollectorActivationEvent {
+                collector: collector.clone(),
+                digest: digest.clone(),
+                authority_head: state.current().digest().map_err(err)?,
+                operator_uid: operator_uid(),
+                observed_at_unix_seconds: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map_err(err)?
+                    .as_secs(),
+            });
+        state.validate()?;
+        persist(root, &state)?;
+    }
+    Ok(
+        serde_json::json!({"collector":collector,"activation_digest":digest,"replay":replay,
+        "configured":true,"human_review_established":false,"caller_authenticated":false,
+        "launch_fenced":false,"activation_time_authenticated":false}),
+    )
+}
+
 pub(super) fn status(root: &Path, test: bool) -> Result<serde_json::Value> {
     load(root, test)?.view()
 }
@@ -296,6 +435,7 @@ pub(crate) struct Current {
     pub test_mode: bool,
     /// Store configuration, not a proof of the caller's operating-system UID.
     pub agent_uid: Option<u32>,
+    pub active_collectors: BTreeMap<String, ActiveCollector>,
 }
 
 /// Read a store without writing to it, from any account, for `war check` and
@@ -350,6 +490,20 @@ pub(crate) fn read_current(root: &Path, test: bool) -> Result<Current> {
         revision,
         test_mode: test,
         agent_uid: state.agent_uid,
+        active_collectors: state
+            .active_collectors
+            .iter()
+            .map(|(name, digest)| {
+                let signed = state.collector_enrollments[digest].signed.clone();
+                (
+                    name.clone(),
+                    ActiveCollector {
+                        digest: digest.clone(),
+                        signed,
+                    },
+                )
+            })
+            .collect(),
     })
 }
 

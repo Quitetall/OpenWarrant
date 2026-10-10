@@ -127,6 +127,14 @@ pub enum Command {
         #[arg(long)]
         unprotected_test_store: bool,
     },
+    /// Install exact signed collector configuration in the protected operator store.
+    /// No signing, human acceptance, caller authentication or native launch is inferred.
+    ActivateCollector {
+        #[arg(long)]
+        store: PathBuf,
+        #[arg(long)]
+        enrollment: PathBuf,
+    },
     /// Read and validate retained authority history. Optional export is the current revision.
     Status {
         #[arg(long)]
@@ -440,6 +448,11 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
             signed(proposal(&input)?, signature)?,
             unprotected_test_store,
         )?,
+        Command::ActivateCollector { store, enrollment } => {
+            let record = openwarrant_core::runtime_collector::Signed::decode(&read(&enrollment)?)
+                .map_err(err)?;
+            store::activate_collector(&store, record)?
+        }
         Command::Status {
             store: root,
             emit,

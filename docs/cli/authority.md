@@ -92,6 +92,45 @@ For separate signing and activation, use `approve --current current.json ...
 checks against caller-supplied state without installing anything. No unattended
 signing fallback is added. A stale proposal must be redrafted and approved again.
 
+## Collector configuration activation (candidate, OW-WAR-0149)
+
+The SDK's `runtime_collector::Signed` envelope carries canonical enrollment bytes
+and administrator signatures in namespace `openwarrant-runtime-collector-v1`.
+It binds the repository, exact authority head, provider/interface, verifier byte
+digest, collector principal and explicit Warrant UUIDs. Signing happens in the
+protected operator environment; this command does not sign or infer human review:
+
+```sh
+war authority activate-collector --store /var/lib/openwarrant/example \
+  --enrollment reviewed-signed-enrollment.json --json
+```
+
+Activation loads the normal protected store, takes its operator lock, rechecks
+current authority and verifies every enrollment signature and current presence
+policy. It atomically installs the exact selection, retains old signed
+configurations and appends a selection event with the observed operator UID and
+time. Those observations are not authenticated human or trusted-clock evidence.
+An exact replay checks eligibility again but changes no stored state. Failed
+checks leave the prior state intact. If publication is interrupted or fails,
+inspect current state before retrying; a failed directory sync can leave durability
+uncertain after replacement. Previously retained records are not discarded.
+Retention is bounded by the
+store's byte budget, 256 configurations and 1024 selection events; it refuses
+rather than dropping retained history when full.
+
+`LoadedEnrollment::load_active` reads only the operator-selected configuration
+from protected state. It checks the actual execution UID, authenticates signatures
+and rechecks authority and selection after verification. Each `allows` call
+rechecks current authority and the exact selected configuration. A valid signed
+file alone does not satisfy active loading. `load` remains explicitly an
+**authentication-only** API for supplied bytes.
+
+The trusted host must still authenticate the collector caller, observe and protect
+the verifier executable, select the store independently of agent input and fence
+the native launch. These callable APIs do not configure a service, award assurance
+or establish sandboxing, metered spend or protected host deployment. Any authority
+head change makes older enrollments ineligible until newly bound and approved.
+
 ## Current-state use and recovery
 
 `allows --store ... --principal reviewer --role warrant-review --expected-head

@@ -96,6 +96,19 @@ protect signing keys, authenticate the caller, activate a collector, or establis
 human review. Deployment must provide separate accounts, safe ancestry, trusted
 executables and protected key custody. See [authority setup](cli/authority.md).
 
+## Operator-selected collector configuration
+
+Normal-mode `authority activate-collector` verifies signed enrollment against
+current authority under the operator lock and retains selections in protected
+state. Active loading checks actual execution UID, exact selected bytes and fresh
+authority. Per-use checks reject a replaced selection or authority revision.
+An authenticated file is not automatically an active configuration. The explicit
+namespace fixture exercises real CLI activation, invalid-signature refusal,
+unchanged replay, inactive configuration, retained replacement and revocation.
+Software signatures and namespace identities remain fixtures. Caller identity,
+trusted executable custody, atomic launch fencing, real host deployment and
+independent qualification still require separate controls.
+
 ## Candidate runtime collector enrollment (OW-WAR-0149)
 
 These callable components do not activate a collector or award assurance.

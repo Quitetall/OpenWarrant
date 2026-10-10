@@ -352,14 +352,42 @@ fn namespace_fixture_entry() {
             fs::write(root.join("store/state.json"), b"forged").is_err(),
             "execution account wrote authority"
         );
+        let before = fs::read(root.join("store/state.json")).unwrap();
+        let refused = Command::new("/usr/bin/timeout")
+            .args(["10", "/war", "authority", "activate-collector", "--store"])
+            .arg(root.join("store"))
+            .arg("--enrollment")
+            .arg(root.join("enrollment.json"))
+            .arg("--json")
+            .env_clear()
+            .env("PATH", "/usr/bin:/bin")
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .output()
+            .unwrap();
+        assert_eq!(
+            refused.status.code(),
+            Some(1),
+            "execution account activated collector"
+        );
+        assert!(
+            String::from_utf8_lossy(&refused.stdout)
+                .contains("authority-store-state-unsafe-owner-or-mode")
+        );
+        assert_eq!(fs::read(root.join("store/state.json")).unwrap(), before);
         let verifier = OpenSshSignatureCheck::new(scratch.clone(), Duration::from_secs(5)).unwrap();
-        let loaded = LoadedEnrollment::load(
-            &root.join("store"),
-            "fixture",
-            &root.join("enrollment.json"),
-            &verifier,
-        )
-        .unwrap();
+        assert!(matches!(
+            LoadedEnrollment::load_active(
+                &root.join("unactivated-store"),
+                "fixture",
+                "collector",
+                &verifier,
+            ),
+            Err(Fault::Unavailable("collector activation unavailable"))
+        ));
+        let loaded =
+            LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier)
+                .unwrap();
         let enrollment = loaded.enrollment();
         let usage = Use {
             repository: "fixture",
@@ -382,16 +410,38 @@ fn namespace_fixture_entry() {
         ));
         fs::write(scratch.join("ready"), b"ready").unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
+        while !root.join("selection-changed").exists() {
+            assert!(Instant::now() < deadline, "operator selection unavailable");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(matches!(
+            loaded.allows(usage),
+            Err(Fault::Rejected("collector activation changed"))
+        ));
+        let reloaded =
+            LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier)
+                .unwrap();
+        let updated = reloaded.enrollment();
+        let usage = Use {
+            repository: "fixture",
+            warrant: updated.warrants.iter().next().unwrap(),
+            provider: &updated.provider,
+            verifier_digest: &updated.verifier_digest,
+            collector: &updated.collector,
+        };
+        reloaded.allows(Use { ..usage }).unwrap();
+        fs::write(scratch.join("selection-checked"), b"checked").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(10);
         while !root.join("updated").exists() {
             assert!(Instant::now() < deadline, "operator update unavailable");
             std::thread::sleep(Duration::from_millis(10));
         }
         assert!(
-            matches!(loaded.allows(usage), Err(Fault::Rejected(_))),
+            matches!(reloaded.allows(usage), Err(Fault::Rejected(_))),
             "revoked authority remained usable"
         );
         println!(
-            "execution UID 1: authority write refused; real enrollment accepted; mismatched execution UID and signed revocation refused"
+            "execution UID 1: authority write refused; activated enrollment accepted; inactive enrollment unavailable; changed selection, mismatched UID and signed revocation refused"
         );
         return;
     }
@@ -409,7 +459,7 @@ fn namespace_fixture_entry() {
     )
     .unwrap();
     fs::set_permissions(&scratch, fs::Permissions::from_mode(0o700)).unwrap();
-    for name in ["store", "mismatched-store"] {
+    for name in ["store", "mismatched-store", "unactivated-store"] {
         let path = root.join(name);
         fs::create_dir(&path).unwrap();
         fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
@@ -444,20 +494,24 @@ fn namespace_fixture_entry() {
     };
     let genesis_file = root.join("genesis.json");
     fs::write(&genesis_file, genesis.encode().unwrap()).unwrap();
-    let authority_command = |args: &[&str]| {
-        let out = Command::new("/usr/bin/timeout")
+    let authority_output = |args: &[&str]| {
+        Command::new("/usr/bin/timeout")
             .arg("10")
             .arg(
                 std::env::var_os("OW_COLLECTOR_FIXTURE_WAR")
                     .unwrap_or_else(|| env!("CARGO_BIN_EXE_war").into()),
             )
             .args(args)
+            .arg("--json")
             .env_clear()
             .env("PATH", "/usr/bin:/bin")
             .env("OPENWARRANT_NO_PROJECTS", "1")
             .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
             .output()
-            .unwrap();
+            .unwrap()
+    };
+    let authority_command = |args: &[&str]| {
+        let out = authority_output(args);
         assert!(
             out.status.success(),
             "authority command failed: {} {}",
@@ -466,7 +520,11 @@ fn namespace_fixture_entry() {
         );
         out
     };
-    for (name, uid) in [("store", "1"), ("mismatched-store", "2")] {
+    for (name, uid) in [
+        ("store", "1"),
+        ("mismatched-store", "2"),
+        ("unactivated-store", "1"),
+    ] {
         authority_command(&[
             "authority",
             "bootstrap",
@@ -505,6 +563,55 @@ fn namespace_fixture_entry() {
         .unwrap(),
     )
     .unwrap();
+    authority_command(&[
+        "authority",
+        "activate-collector",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--enrollment",
+        root.join("enrollment.json").to_str().unwrap(),
+    ]);
+    let activated = fs::read(root.join("store/state.json")).unwrap();
+    let mut invalid = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
+    invalid.enrollment.provider.identity = "substituted-provider".into();
+    fs::write(
+        root.join("invalid-enrollment.json"),
+        invalid.encode().unwrap(),
+    )
+    .unwrap();
+    let refused = authority_output(&[
+        "authority",
+        "activate-collector",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--enrollment",
+        root.join("invalid-enrollment.json").to_str().unwrap(),
+    ]);
+    assert!(
+        !refused.status.success(),
+        "invalid enrollment signature activated"
+    );
+    assert_eq!(
+        fs::read(root.join("store/state.json")).unwrap(),
+        activated,
+        "refused activation changed retained state"
+    );
+
+    let replay = authority_command(&[
+        "authority",
+        "activate-collector",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--enrollment",
+        root.join("enrollment.json").to_str().unwrap(),
+    ]);
+    let replay: serde_json::Value = serde_json::from_slice(&replay.stdout).unwrap();
+    assert_eq!(replay["result"]["replay"], true);
+    assert_eq!(
+        fs::read(root.join("store/state.json")).unwrap(),
+        activated,
+        "exact activation replay must not change retained state"
+    );
     let mut next = genesis.clone();
     next.sequence = 1;
     next.principals.get_mut("collector").unwrap().roles.clear();
@@ -556,6 +663,45 @@ fn namespace_fixture_entry() {
             "executor exited before readiness"
         );
         assert!(Instant::now() < deadline, "executor readiness unavailable");
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let mut replacement = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
+    replacement.enrollment.verifier_digest = format!("sha256:{}", "b".repeat(64));
+    let (_, signature) = fixture(NAMESPACE, &replacement.enrollment.encode().unwrap(), 11);
+    replacement.signatures = BTreeMap::from([("owner".into(), signature)]);
+    fs::write(root.join("replacement.json"), replacement.encode().unwrap()).unwrap();
+    authority_command(&[
+        "authority",
+        "activate-collector",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--enrollment",
+        root.join("replacement.json").to_str().unwrap(),
+    ]);
+    let retained: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join("store/state.json")).unwrap()).unwrap();
+    assert_eq!(
+        retained["collector_enrollments"].as_object().unwrap().len(),
+        2
+    );
+    assert_eq!(
+        retained["collector_activation_events"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    fs::write(root.join("selection-changed"), b"changed").unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !scratch.join("selection-checked").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before checking selection"
+        );
+        assert!(
+            Instant::now() < deadline,
+            "executor selection observation unavailable"
+        );
         std::thread::sleep(Duration::from_millis(10));
     }
     authority_command(&[
