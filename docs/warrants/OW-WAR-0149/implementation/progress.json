@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Runtime receipt SDK and protected native Katana CLI assessment are implemented, unverified. Operator-owned policy binds exact dispatch, provider, log bytes, head and capability limits. Populated two-account CLI fixture reached sealed verification and rejected invalid output; changed spend policy invalidated a held verifier. Actual Katana acceptance, protected BLUT job custody, workflow integration and independent qualification remain.",
+  "summary": "Runtime receipt SDK and protected native Katana v2 CLI assessment are implemented, unverified. A real scripted native receipt passed the two-account CLI test with sealed input and exact dispatch policy; changed spend policy invalidated held verification. Protected BLUT job custody, workflow integration, production host qualification and independent qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -35,12 +35,13 @@
     "docs/warrants/OW-WAR-0149/implementation/native-inputs-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/runtime-host-identity-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/protected-native-inputs-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/native-host-assessment-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/native-host-assessment-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/katana-sealed-v2-20261010/README.md"
   ],
   "next_steps": [
-    "Add and qualify explicit sealed-descriptor transport with Katana before claiming actual native acceptance: current native O_NOFOLLOW file transport rejects procfs descriptors. Then add protected BLUT job custody and native CLI/workflow integration; preserve the shared contract and participant requirements.",
+    "Add protected BLUT job custody and explicit native transport, then workflow integration. Katana v2 sealed transport is implemented and its actual scripted native CLI roundtrip passed; preserve shared contract and participant requirements.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "f5eedd342d7100264360a5a57caf3acda6e7ec73"
+  "revision": "bedb28b01d2a591e9bc1d16f6429a95561a15b68"
 }

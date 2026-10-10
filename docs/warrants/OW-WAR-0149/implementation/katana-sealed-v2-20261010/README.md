@@ -1,0 +1,13 @@
+# Katana sealed-log integration
+
+The protected native assessment now selects `katana/openwarrant-verification/v2` and supplies `--sealed-log`. A v1 provider is explicitly unsupported for this protected transport. Caller-configured ordinary v1 transport remains available. Native receipt schema and hash domains are unchanged.
+
+Katana PR13 is merged. Its new Linux reader accepts only a canonical immediate-parent descriptor with all required kernel seals, regular bounded bytes and no execute bits. Ordinary v1 no-follow file checks remain unchanged. The external native tests observed accepted frozen bytes after original-file replacement, refused mutable descriptors and mismatched bytes, and retained v1 descriptor refusal. All five external CI jobs passed. Katana stays an external process; its code is not linked into OpenWarrant.
+
+The actual two-UID test ran a local scripted Katana Kernel fixture, retained an OpenWarrant dispatch, activated a fixture-signed native verifier, and assessed the receipt through `war runtime assess --native-store`. The result matched the exact binding and independently configured fixture capability bound; assurance remained false. A changed protected spend policy invalidated a held verification before launch. Existing host, executable, input, authority-write and revocation refusal observations also passed. Software fixture signatures are not human acceptance, production custody, spend accounting or confinement.
+
+The first combined run failed because its retained-enrollment count still described the original two-enrollment test. The native branch adds a third enrollment and two activation events. The corrected assertion counts three retained enrollments and four activation events; the full rerun passed. Both logs are retained. Runtime regressions passed 26 cases (two opt-in cases ignored), collector regressions passed four (two namespace entries ignored), and both explicit namespace variants passed. All-feature/all-target Clippy with warnings denied, fmt and whitespace checks passed on Rust 1.97.1.
+
+This records test observations, not an independently verified Warrant or complete runtime qualification. The initial standalone process experiment did not retain the original log before replacing it; it is not claimed as an archived byte-closure package. The retained namespace log and exact binary/source hashes identify the successful integration test. Protected BLUT directory custody, workflow integration, real host/operator qualification, cost/confinement observations and independent release gates remain.
+
+Generated-document check completed with 2,028 passes, 625 warnings, zero errors and zero unknowns. This is record/projection integrity only.
