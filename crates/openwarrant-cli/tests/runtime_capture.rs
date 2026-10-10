@@ -406,6 +406,37 @@ fn runtime_resolution_request_preserves_unknown_and_cannot_ingest_a_response() {
     );
     let legacy = value(&war(&f.root, &["resolve", "IX-WAR-0003", "--json"]));
     assert_eq!(legacy["result"]["schema"], "oh.war/resolution-request/v1");
+    fs::write(
+        f.root.join("future-selection.json"),
+        br#"{"schema":"oh.war/runtime-selection-request/future","selections":[]}"#,
+    )
+    .unwrap();
+    let future = value(&war(
+        &f.root,
+        &[
+            "resolve",
+            "IX-WAR-0003",
+            "--runtime-selection",
+            "future-selection.json",
+            "--response",
+            "no-human-response.toml",
+            "--json",
+        ],
+    ));
+    assert!(
+        future["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "runtime.selection-unsupported-schema"
+                && d["severity"] == "unknown"),
+        "{future}"
+    );
+    assert!(
+        !f.root
+            .join("docs/warrants/IX-WAR-0003/resolution.toml")
+            .exists()
+    );
     let fresh = war(
         &f.root,
         &[
