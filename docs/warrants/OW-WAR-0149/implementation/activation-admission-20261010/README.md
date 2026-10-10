@@ -39,4 +39,6 @@ it using an ordinary key. That setup no longer satisfies the current policy. The
 presence case now uses its own disposable store, with an added refusal control
 for that attempted downgrade. Other revocation cases keep their independent
 store; no accepted authority record is reset or rewritten. Syntax checks pass;
-the focused plant run is pending at this candidate commit.
+the focused authentication plant passes 28 checks, with zero failures (`authentication-plant.log`). Its candidate subject and tested executable digest are retained in `source.json`.
+
+Record/generated integrity reports 2026 PASS, 542 WARN, zero ERROR and zero UNKNOWN. Three new warnings identify unsigned historical OW-WAR-0138 delivery pins; the historical manifest was preserved rather than refreshed to hide drift. This is record integrity, not formal qualification.

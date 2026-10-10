@@ -10,5 +10,7 @@
   },
   "independent_verification": "not-established",
   "human_acceptance": "not-established",
-  "operator_deployment": "not-established"
+  "operator_deployment": "not-established",
+  "focused_plant_subject": "e7c9dc88b372a18a06f35063e72bc27378a8c37c",
+  "tested_war_sha256": "70aa38f83cd20c0376843bd66648580300d1b805050d3302c6dea2e87b3ae835"
 }
