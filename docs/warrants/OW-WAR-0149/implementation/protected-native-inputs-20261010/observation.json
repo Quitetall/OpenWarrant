@@ -28,7 +28,15 @@
   "authority_activated": false,
   "native_cli_wiring_completed": false,
   "generated_document_check": {
-    "state": "UNKNOWN",
-    "reason": "bounded local check exited 124 without verdict after 240 seconds under observed host I/O pressure; compilation completed"
+    "state": "PASS",
+    "counts": {
+      "pass": 2028,
+      "warn": 625,
+      "unknown": 0,
+      "error": 0,
+      "worst": "warn"
+    },
+    "evidence": "protected-input-generated-check.json.gz",
+    "prior_attempt": "240-second timeout without verdict retained as UNKNOWN; subsequent bounded check completed"
   }
 }
