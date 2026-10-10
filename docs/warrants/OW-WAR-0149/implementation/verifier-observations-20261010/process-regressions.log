@@ -1,0 +1,27 @@
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.63s
+     Running tests/all.rs (/mnt/4tb/build/cargo/f6/1d3fcc57b1e478/debug/deps/all-cc62655d0acd30f1)
+
+running 19 tests
+test runtime_capture::actual_blut_cpu_receipt_roundtrips_through_capture_and_current_resolution ... ignored, requires separately built BLUT fixture producer and native verifier
+test runtime_capture::actual_katana_turn_roundtrips_through_capture_and_current_resolution ... ignored, requires separately built Katana local fixture producer and native verifier
+test runtime_capture::blut_process_unavailable_evidence_stays_unknown_for_a_recorded_dispatch ... ok
+test runtime_capture::unsupported_capture_version_remains_unknown_without_publication ... ok
+test runtime_capture::blut_verifier_does_not_inherit_the_callers_environment ... ok
+test runtime_capture::resolution_names_missing_current_runtime_receipts_as_unknown ... ok
+test runtime_capture::unverified_capture_is_replayable_and_survives_loss_of_original_inputs ... ok
+test runtime_capture::katana_process_preserves_unavailable_and_refuses_contradictory_responses ... ok
+test runtime_capture::later_recorded_attempt_prevents_fallback_to_historical_capture ... ok
+test runtime_capture::unknown_versions_and_stale_sources_do_not_invoke_provider_policy ... ok
+test runtime_capture::missing_compile_event_wrong_provider_and_duplicate_json_members_do_not_write ... ok
+test runtime_capture::blut_process_maps_native_facts_without_awarding_assurance_or_relabeling_hashes ... ok
+test runtime_capture::current_selection_is_read_only_and_missing_native_support_stays_unknown ... ok
+test runtime_capture::traversal_symlink_and_oversized_inputs_leave_retained_bytes_intact ... ok
+test runtime_capture::wrong_recorded_binding_stale_current_basis_and_corrupt_capture_do_not_publish ... ok
+test runtime_capture::katana_process_checks_native_mapping_without_inventing_cost_or_authority ... ok
+test runtime_capture::sdk_uses_native_verifier_and_refuses_wrong_receipt_before_any_write ... ok
+test runtime_capture::archive_reconnects_capture_sources_offline_without_trusting_native_verdicts ... ok
+test runtime_capture::blut_process_refuses_bad_responses_and_bounds_nonresponsive_providers ... ok
+
+test result: ok. 17 passed; 0 failed; 2 ignored; 0 measured; 198 filtered out; finished in 1.17s
+

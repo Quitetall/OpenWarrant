@@ -43,8 +43,31 @@ bytes, and keep the approved inputs protected through launch and capture. The
 SDK does none of that filesystem/process work. A successful SDK result does not
 establish human review, private-key custody, rollback protection or isolation.
 
-Remaining work: reference OpenSSH verification, protected-store loading,
-enrollment/activation transport, collector launch fencing, real provider capture
+The reference CLI adapter uses `/usr/bin/ssh-keygen` with a fixed namespace,
+cleared environment, bounded input/output and a deadline. It verifies against
+the exact current public key supplied by the SDK. It reads authenticator flags
+only after cryptographic verification succeeds. An ordinary SSH key supplies
+no presence evidence. Verification scratch contains public keys, signatures
+and payloads only; it is private and removed after the call.
+
+This adapter is a callable transport component. It does not activate a collector
+or make an unsigned repository configuration trusted. A trusted host must own
+the scratch root; same-account filesystem writers are not isolated by it.
+
+The read-only execution loader checks ownership, modes and actual writability
+against its effective UID before reading authority. It requires the store
+execution UID to match, refuses test stores, rechecks authority after verification
+and reloads it at every use. Signed source reads are bounded, nonblocking and
+reject symlinks or non-regular files. The trusted host must select the authority
+path independently of agent input and authenticate the acting collector.
+
+A disposable Linux namespace fixture observed a valid enrollment load under UID
+1, denied an authority write, refused a mismatched configured UID and refused use
+after a software-signed authority transition revoked the collector. This is a
+fixture observation, not human approval or host-account/operator qualification.
+The loader neither activates configuration nor atomically launches an executable.
+
+Remaining work: enrollment/activation transport, collector launch fencing, real provider capture
 and independently observed operator deployment. The CLI currently has no trusted
 native collector configured by this module.
 

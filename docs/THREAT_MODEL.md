@@ -69,7 +69,7 @@ it; with a store it is necessary and grants nothing on its own.
 
 | Threat | Control | Evidence and residual |
 |---|---|---|
-| An agent edits roles or substitutes its own key | Proposals are inert; activation checks signatures against the previous trusted revision and administration/recovery role | SDK and CLI controls refuse unsigned, self-granted and wrong-key updates. Human custody of administrative/recovery keys is still an operator responsibility; `human_review_established` is always false here. |
+| An agent edits roles or substitutes its own key | Proposals are inert; new v2 activation requires current human administration/recovery signers and current user-presence policy after cryptographic verification | SDK and CLI controls refuse unsigned, self-granted and wrong-key updates. Prospective v2 admission refuses known agent/policy-service signers, reports unbound actor kind or missing presence evidence UNKNOWN, and refuses observed absence. Retained history keeps its original signature/role validation; v1 remains legacy role-only, without actor-kind or presence claims. Software fixtures do not establish physical presence or human review. Human custody of administrative/recovery keys is still an operator responsibility; `human_review_established` is always false here. |
 | A signature approves different work or repository | Dedicated signing namespace and domain-separated canonical proposal bytes include repository, parent digest, operation and full next revision | Tampered-proposal CLI refusal and SDK wrong-repository/parent controls. Unknown formats and noncanonical encodings refuse. |
 | An attacker substitutes the signature verifier through PATH | Verification invokes `/usr/bin/ssh-keygen` with a cleared environment | CLI poisoned-PATH control refuses a fake signature despite a replacement executable returning success. System executable, dynamic loader, CLI and host OS must be protected from the execution account. |
 | Old signed state is replayed or two writers race | Current accepted state is outside the execution account; activation locks, reloads and checks parent, then atomically replaces one snapshot containing history and head | Replay and concurrent activation controls. A file-store operator able to replace trusted state can roll it back; signature chains alone do not prevent this. |
@@ -84,6 +84,47 @@ its caller or perform a privileged action. A trusted workflow must authenticate
 the acting principal and enforce the result atomically with, or recheck it before,
 the protected action. Removing keys affects future transitions; prior signed
 history is verified against the key set that was current for that transition.
+
+## Explicit authority metadata sharing
+
+`authority bootstrap --execution-readable --agent-uid ...` shares public store
+metadata while preserving operator ownership and refusing group/other writes.
+The default remains private. Normal operator loading checks state-file ownership
+and permissions before parsing its sharing setting. Unit controls reject writable
+state, writable directories and sharing in test mode. This setting does not
+protect signing keys, authenticate the caller, activate a collector, or establish
+human review. Deployment must provide separate accounts, safe ancestry, trusted
+executables and protected key custody. See [authority setup](cli/authority.md).
+
+## Operator-selected collector configuration
+
+Normal-mode `authority activate-collector` verifies signed enrollment against
+current authority under the operator lock and retains selections in protected
+state. Active loading checks actual execution UID, exact selected bytes and fresh
+authority. Per-use checks reject a replaced selection or authority revision.
+An authenticated file is not automatically an active configuration. The explicit
+namespace fixture exercises real CLI activation, invalid-signature refusal,
+unchanged replay, inactive configuration, retained replacement and revocation.
+Software signatures and namespace identities remain fixtures. Caller identity,
+trusted executable custody, atomic launch fencing, real host deployment and
+independent qualification still require separate controls.
+
+## Candidate runtime collector enrollment (OW-WAR-0149)
+
+These callable components do not activate a collector or award assurance.
+The trusted host selects the authority-store path independently of agent input
+and protects the approved executable through launch. Prompt-only capture does
+not require collector enrollment.
+
+| Threat | Control | Evidence and residual |
+|---|---|---|
+| Agent substitutes enrollment bytes, signing key or purpose | Exact canonical enrollment and current authority; fixed OpenSSH namespace and current principal key; bounded process transport | `collector_signature` exercises real cryptographic refusals and SDK enrollment checks. Software keys and security-key-shaped fixtures do not establish human custody or physical presence. |
+| Agent makes its own store appear protected by claiming a different execution UID | Execution loader checks real filesystem ownership and writability against its actual effective UID before reading the store, then requires the configured execution UID to match | `collector_loading` refuses an executor-owned store carrying another claimed UID. The generic operator reader remains usable by operators; this additional check belongs to collector execution. Separate host-account/operator qualification remains open. |
+| Source is a symlink, FIFO, directory or oversized stream | No-follow, nonblocking descriptor open; regular-file and bounded-read checks | `collector_loading` exercises symlink, directory, FIFO and byte-budget refusals. Missing observations remain UNKNOWN. Trusted operator changes and denial of service remain outside this control. |
+| Authority changes after enrollment authentication | Reload after signature verification and at every eligibility check; exact authority digest and scope must still match | SDK controls establish stale-authority refusal. Read-only checks do not fence an actual launch; native workflow wiring and launch custody remain open. A trusted store operator can still roll back a snapshot. |
+
+The optional namespace fixture uses synthetic records, in-memory software keys
+and disposable UID mappings. It is not a human act or a qualified deployment.
 
 ## Reference workflow dispute decisions (OW-WAR-0107)
 
@@ -364,3 +405,18 @@ controls in `dispatch_bundle_cli.rs`, and local Git-holder tests in `dispatch.rs
 This check does not establish harness isolation, provider enforcement, independent
 verification, or the authority of a prototype result. Later workspace changes must
 still be checked by the workflow that executes or accepts the packet.
+
+### Unavailable signature verifier
+
+The OpenSSH enrollment adapter preserves both bounded output streams. A process
+that cannot establish a cryptographic verdict returns UNKNOWN; unsuccessful exit
+alone is not invalidity. Real tampered-payload refusals remain distinct. The
+explicit namespace control reproduces a missing account while using a valid
+software fixture signature. Unsupported or unfamiliar verifier failures also
+remain UNKNOWN; this does not establish key custody or human presence.
+
+### Effective permission checks for authority readers
+
+An execution account can have write privileges that ownership and mode bits do not show. A real-UID `access` check also misses retained effective Linux capabilities. Authority readers now use `accessat` with `EACCESS` for the actual effective process, over the store, state file and ancestors. Unexpected permission-observation errors remain unavailable; they do not mean read-only.
+
+The collector namespace control reproduces a worker with UID 1 and `CAP_DAC_OVERRIDE`: it writes an operator-owned read-only probe while real-UID `access` denies write permission. Before repair, the active enrollment loads; after repair, the loader refuses the writable authority boundary. The probe and accounts exist only in a disposable user/mount namespace. This does not establish host deployment, caller identity, hardware presence or independent qualification.

@@ -1,0 +1,9 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling ring v0.17.14
+   Compiling rustls v0.23.45
+   Compiling rustls-webpki v0.103.15
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-collector-ssh-verifier/crates/openwarrant-core)
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-collector-ssh-verifier/crates/openwarrant-cli)
+   Compiling ureq v3.4.2
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow-collector-ssh-verifier/crates/openwarrant-compiler)

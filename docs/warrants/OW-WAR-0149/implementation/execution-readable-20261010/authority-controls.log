@@ -1,0 +1,13 @@
+    Blocking waiting for file lock on build directory
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/ow-authority-execution-readable/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 34s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/f6/1d3fcc57b1e478/debug/deps/openwarrant_cli-cee4b238ae979623)
+
+running 4 tests
+test authority_cmd::store::tests::a_store_the_agent_owns_or_a_group_can_write_is_refused ... ok
+test authority_cmd::store::tests::sharing_is_explicit_and_never_allows_other_account_writes ... ok
+test authority_cmd::signing::tests::current_presence_policy_controls_activation_after_cryptography_without_inferring_a_human_review ... ok
+test authority_cmd::signing::tests::signed_nonhuman_and_unbound_administrators_cannot_activate_but_history_remains_readable ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 437 filtered out; finished in 1.09s
+

@@ -1,0 +1,11 @@
+{
+  "counts": {
+    "pass": 2028,
+    "warn": 625,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "exit_code": 0,
+  "claim": "Authored/projection integrity only; not gate execution or qualification"
+}

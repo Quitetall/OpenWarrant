@@ -104,6 +104,13 @@ pub enum Command {
         expected_digest: String,
         #[arg(long)]
         agent_uid: Option<u32>,
+        /// Publish public authority metadata read-only for the separate execution account.
+        #[arg(
+            long,
+            requires = "agent_uid",
+            conflicts_with = "unprotected_test_store"
+        )]
+        execution_readable: bool,
         #[arg(long)]
         legacy_dir: Option<PathBuf>,
         #[arg(long)]
@@ -119,6 +126,14 @@ pub enum Command {
         signature: Vec<String>,
         #[arg(long)]
         unprotected_test_store: bool,
+    },
+    /// Install exact signed collector configuration in the protected operator store.
+    /// No signing, human acceptance, caller authentication or native launch is inferred.
+    ActivateCollector {
+        #[arg(long)]
+        store: PathBuf,
+        #[arg(long)]
+        enrollment: PathBuf,
     },
     /// Read and validate retained authority history. Optional export is the current revision.
     Status {
@@ -403,7 +418,7 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
         } => {
             let current = revision(&current)?;
             let record = signed(proposal(&input)?, signature)?;
-            signing::verify(&current, &record)?;
+            signing::verify_activation(&current, &record)?;
             serde_json::json!({"eligible":true,"effective":false,"proposal_digest":record.proposal.digest().map_err(err)?,"trusted_state_source":"caller-supplied"})
         }
         Command::Bootstrap {
@@ -411,6 +426,7 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
             revision: input,
             expected_digest,
             agent_uid,
+            execution_readable,
             legacy_dir,
             unprotected_test_store,
         } => store::bootstrap(
@@ -420,6 +436,7 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
             agent_uid,
             legacy_dir.as_deref(),
             unprotected_test_store,
+            execution_readable,
         )?,
         Command::Activate {
             store: root,
@@ -431,6 +448,11 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
             signed(proposal(&input)?, signature)?,
             unprotected_test_store,
         )?,
+        Command::ActivateCollector { store, enrollment } => {
+            let record = openwarrant_core::runtime_collector::Signed::decode(&read(&enrollment)?)
+                .map_err(err)?;
+            store::activate_collector(&store, record)?
+        }
         Command::Status {
             store: root,
             emit,

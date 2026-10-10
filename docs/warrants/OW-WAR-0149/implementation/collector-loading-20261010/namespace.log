@@ -1,0 +1,24 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-collector-store-loader/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized] target(s) in 28.34s
+     Running tests/collector_signature.rs (/mnt/4tb/OpenWarrant/target/debug/deps/collector_signature-a3ddbe552e28c17d)
+
+running 1 test
+
+running 1 test
+
+running 1 test
+execution UID 1: authority write refused; real enrollment accepted; mismatched execution UID and signed revocation refused
+test namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.26s
+
+operator UID 0: software-signed authority transition applied; fixture removed; no human acceptance or host-account qualification claimed
+test namespace_fixture_entry ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.89s
+
+
+test protected_namespace_roundtrip ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.90s
+

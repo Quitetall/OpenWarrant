@@ -1,0 +1,17 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-authority-transition-admission/crates/openwarrant-core)
+    Finished `test` profile [unoptimized] target(s) in 7.95s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/f4/239f058ca60b41/debug/deps/openwarrant_core-4862e6177f55aa95)
+
+running 9 tests
+test authority_transition::tests::a_v1_revision_carrying_v2_fields_is_refused ... ok
+test authority_transition::tests::a_v2_revision_needs_a_policy_and_whole_actor_bindings ... ok
+test authority_transition::tests::a_security_key_is_accepted_in_v2_only ... ok
+test authority_transition::tests::a_v1_revision_keeps_its_bytes_and_digest ... ok
+test authority_transition::tests::unbound_v2_signer_is_unknown_and_legacy_v1_role_check_is_preserved ... ok
+test authority_transition::tests::a_policy_change_moves_the_signing_bytes ... ok
+test authority_transition::tests::a_v2_revision_round_trips_under_its_own_domain ... ok
+test authority_transition::tests::v1_to_v2_is_a_transition_and_v2_to_v1_is_refused ... ok
+test authority_transition::tests::new_v2_activation_requires_current_human_admin_without_rewriting_history ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 588 filtered out; finished in 0.00s
+

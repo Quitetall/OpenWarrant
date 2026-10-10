@@ -1,0 +1,11 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/ow-authority-transition-admission/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized] target(s) in 15.12s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/f4/239f058ca60b41/debug/deps/openwarrant_cli-592d2e37bebd8668)
+
+running 3 tests
+test authority_cmd::store::tests::a_store_the_agent_owns_or_a_group_can_write_is_refused ... ok
+test authority_cmd::signing::tests::current_presence_policy_controls_activation_after_cryptography_without_inferring_a_human_review ... ok
+test authority_cmd::signing::tests::signed_nonhuman_and_unbound_administrators_cannot_activate_but_history_remains_readable ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 437 filtered out; finished in 3.56s
+

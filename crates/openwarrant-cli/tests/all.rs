@@ -91,3 +91,8 @@ fn every_test_file_is_a_module_of_this_binary() {
     }
     assert!(missing.is_empty(), "add to tests/all.rs: {missing:?}");
 }
+
+#[path = "collector_loading.rs"]
+mod collector_loading;
+#[path = "collector_signature.rs"]
+mod collector_signature;

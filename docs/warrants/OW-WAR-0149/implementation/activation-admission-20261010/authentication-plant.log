@@ -1,0 +1,33 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== human authentication: presence and key binding (OW-WAR-0138) ==
+ok    an ordinary key signs, unverified  sign.presence unverified; attestation predicate says so
+ok    a touched security key, verified   flags 0x01 read from the signature; predicate verified
+ok    an ordinary key, refused by policy sign.presence-required; no record, no response
+ok    a security key with no touch, refused flags 0x00 → sign.presence-required; nothing recorded
+ok    a flipped flag byte fails verification sign.ssh-refused before any presence is read
+ok    another actor's key, refused       sign.actor-key-mismatch names the key's principal; nothing recorded
+ok    the bound human signs under policy recorded; authority.signed; --verify reads presence verified
+ok    a flag flipped on disk is invalid  authority.signature-invalid; --verify reads no presence
+ok    a batch by an ordinary key, refused sign.presence-required; no batch, no record
+ok    a batch by a touched key, recorded batch.recorded, presence verified
+ok    no store: works, warns unprotected one authority.unprotected; the register's forged human verifies (row 6 today)
+ok    a v1 store loads and grants nobody status reads v1; authority.store-v1; a sign refused, nothing recorded
+ok    an unsigned policy change, refused no signature: authority-signer; a signature over other policy: invalid; head unmoved
+ok    the store's human signs            recorded; authority.signed through the store, labeled a test store
+ok    the register's human, refused      authority.legacy-fallback on authorize, on resolve, and at signing
+ok    another key under the store, refused sign.actor-key-mismatch; the store binds that key to nobody
+ok    protected attestation key lookup   retained DSSE verifies under current store key
+ok    allow_automated_resolution edited  policy.unprotected-divergence names both values; the store's false governs
+ok    [independence] set true, not counted a divergence; war check reports the store's undeclared
+ok    the store requires presence        an ordinary key refused though openwarrant.toml says false
+ok    ordinary signature cannot relax required presence UNKNOWN, unchanged authority head
+ok    a grant removed, the next act refused authority.not-granted at the new head; nothing recorded
+ok    revocation reaches the read path   the earlier act reads authority.not-granted at the new head
+ok    a store the reader can write       authority.verify-unavailable on read and sign; nothing recorded
+ok    an unreadable store                authority.verify-unavailable on read and sign; nothing recorded
+ok    a test store claimed as protected  authority.verify-unavailable on read and sign; nothing recorded
+ok    the store unset, the register back authority.unprotected; the legacy path as before
+28 passed, 0 failed

@@ -1,0 +1,11 @@
+{
+  "base": "408c390c8f403457c299de6257dfbfcc554082e1",
+  "sources": {
+    "crates/openwarrant-cli/src/authority_cmd.rs": "sha256:6430975164ac163e7a4afba5d546ff8f9d63547e0b7922479af36a1d7511d2a4",
+    "crates/openwarrant-cli/src/authority_cmd/store.rs": "sha256:b662d120a30651180aef2c9e299718f6a4264207df261051ee654c7b0c6c603e",
+    "crates/openwarrant-cli/src/runtime_capture/collector_loading.rs": "sha256:dd33d2bb7cdf2360202251add8f9d70d04e2fcf9fd55811cea816498b851e016",
+    "crates/openwarrant-cli/tests/collector_signature.rs": "sha256:f139395f6515f84ee7a20784957bc6978ffaa49c00598833b8268b3619e7d371"
+  },
+  "binary": "sha256:617fca022ad35e9f283273efc04815a4d98450ee7b1fe6bae2459ab89f29804f",
+  "claim": "Performer regression evidence; not independent or human qualification"
+}
