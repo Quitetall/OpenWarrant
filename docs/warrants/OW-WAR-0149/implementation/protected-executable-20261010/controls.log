@@ -1,0 +1,11 @@
+    Blocking waiting for file lock on build directory
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/ow-authority-execution-readable/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 43.55s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/f6/1d3fcc57b1e478/debug/deps/openwarrant_cli-cee4b238ae979623)
+
+running 2 tests
+test runtime_capture::protected_executable::tests::mismatch_and_unbounded_execution_are_refused ... ok
+test runtime_capture::protected_executable::tests::approved_image_executes_from_a_sealed_descriptor ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 442 filtered out; finished in 0.01s
+

@@ -359,6 +359,23 @@ fn namespace_fixture_entry() {
     if role == "executor" {
         let root = std::path::PathBuf::from(std::env::var_os("OW_COLLECTOR_FIXTURE_ROOT").unwrap());
         let scratch = root.join("worker-scratch");
+        use openwarrant_cli::runtime_capture::protected_executable::ProtectedExecutable;
+        use openwarrant_core::document::runtime::ProviderFailure;
+        let program = root.join("protected-verifier");
+        let approved_digest = fs::read_to_string(root.join("verifier.sha256")).unwrap();
+        let protected = ProtectedExecutable::acquire(&program, &approved_digest).unwrap();
+        assert!(matches!(
+            ProtectedExecutable::acquire(&root.join("writable-verifier"), &approved_digest),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        assert!(matches!(
+            ProtectedExecutable::acquire(&root.join("linked-verifier"), &approved_digest),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        assert!(matches!(
+            ProtectedExecutable::acquire(&root.join("script-verifier"), &approved_digest),
+            Err(ProviderFailure::Rejected(_))
+        ));
         assert_eq!(rustix::process::getuid().as_raw(), 1);
         assert_eq!(rustix::process::geteuid().as_raw(), 1);
         assert!(
@@ -433,6 +450,22 @@ fn namespace_fixture_entry() {
             assert!(Instant::now() < deadline, "operator selection unavailable");
             std::thread::sleep(Duration::from_millis(10));
         }
+        assert!(
+            !Command::new("/usr/bin/timeout")
+                .arg("3")
+                .arg(&program)
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(protected.run(&[], Duration::from_secs(3), 1024).unwrap().0);
+        assert!(matches!(
+            ProtectedExecutable::acquire(&program, &approved_digest),
+            Err(ProviderFailure::Rejected(_))
+        ));
+        println!(
+            "execution UID 1: sealed approved image survived operator path replacement; fresh mismatched bytes, writable image, symlink and script refused"
+        );
         assert!(matches!(
             loaded.allows(usage),
             Err(Fault::Rejected("collector activation changed"))
@@ -469,6 +502,24 @@ fn namespace_fixture_entry() {
     let root = std::env::temp_dir().join(format!("ow-collector-ns-{}", std::process::id()));
     fs::create_dir(&root).unwrap();
     fs::set_permissions(&root, fs::Permissions::from_mode(0o755)).unwrap();
+    let program = root.join("protected-verifier");
+    fs::copy("/usr/bin/true", &program).unwrap();
+    fs::set_permissions(&program, fs::Permissions::from_mode(0o755)).unwrap();
+    let digest = openwarrant_compiler::sha256_hex(&fs::read(&program).unwrap());
+    fs::write(root.join("verifier.sha256"), digest).unwrap();
+    fs::copy(&program, root.join("writable-verifier")).unwrap();
+    fs::set_permissions(
+        root.join("writable-verifier"),
+        fs::Permissions::from_mode(0o777),
+    )
+    .unwrap();
+    std::os::unix::fs::symlink(&program, root.join("linked-verifier")).unwrap();
+    fs::write(root.join("script-verifier"), b"#!/bin/sh\nexit 0\n").unwrap();
+    fs::set_permissions(
+        root.join("script-verifier"),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
     let scratch = root.join("worker-scratch");
     fs::create_dir(&scratch).unwrap();
     rustix::fs::chown(
@@ -731,6 +782,15 @@ fn namespace_fixture_entry() {
         std::thread::sleep(Duration::from_millis(10));
     }
     let mut replacement = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
+    // Replace the operator-owned path after the execution account sealed its
+    // approved image. The old image must still execute; a fresh load must fail.
+    fs::copy("/usr/bin/false", root.join("replacement-verifier")).unwrap();
+    fs::set_permissions(
+        root.join("replacement-verifier"),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
+    fs::rename(root.join("replacement-verifier"), &program).unwrap();
     replacement.enrollment.verifier_digest = format!("sha256:{}", "b".repeat(64));
     let (_, signature) = fixture(NAMESPACE, &replacement.enrollment.encode().unwrap(), 11);
     replacement.signatures = BTreeMap::from([("owner".into(), signature)]);
