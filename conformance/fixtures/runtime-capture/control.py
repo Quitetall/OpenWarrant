@@ -26,8 +26,10 @@ def run(*args, ok=True):
 pending = root / "dispatch.pending.json"
 run("dispatch", "IX-WAR-0003", "STAGE-001", "--prototype", "--emit", str(pending))
 dispatch = json.loads(pending.read_bytes())
-(directory / "dispatches").mkdir()
-pending.rename(directory / "dispatches" / (dispatch["dispatch_id"] + ".json"))
+# Dispatch publication now retains exact bytes before the journal entry.
+retained_dispatch = directory / "dispatches" / (dispatch["dispatch_id"] + ".json")
+assert retained_dispatch.read_bytes() == pending.read_bytes()
+pending.unlink()
 (root / "receipt.bin").write_bytes(b"synthetic receipt fixture\x00\xff")
 request = {
     "schema": "oh.war/runtime-capture-request/v1-draft.1", "dispatch_id": dispatch["dispatch_id"],
