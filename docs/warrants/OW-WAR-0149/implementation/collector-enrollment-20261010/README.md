@@ -22,3 +22,6 @@ The full repository gate and reference transport remain separate requirements.
 
 See [contract and boundaries](../../../../design/runtime-collector-enrollment.md).
 No signature, disposition, human acceptance or Warrant resolution was issued.
+
+Full record diagnostics are retained byte-for-byte in `record-check.json.gz`;
+`record-check-summary.json` gives readable counts and the original byte digest.
