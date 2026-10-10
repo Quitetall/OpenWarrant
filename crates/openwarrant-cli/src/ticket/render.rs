@@ -1115,6 +1115,19 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
          `war done <id> --note \"what you did\"` ticks it. Leave anything the next person needs \
          with `war note <warrant> \"...\"`. No step needs a signature or anyone's approval.\n",
     );
+    // OW-WAR-0148 M17: the file ledger, when this repository keeps one.
+    let ledger_dir = crate::ledger::Config::read(&store.root)
+        .map(|c| c.dir)
+        .unwrap_or_else(|_| crate::ledger::DEFAULT_DIR.to_owned());
+    if crate::vfs::is_dir(store.root.join(&ledger_dir))
+        || crate::vfs::is_file(store.root.join(crate::ledger::JSONL))
+    {
+        md.push_str(&format!(
+            "Why each file changed: read `{}` in one go (one JSON line per file; \
+             `war admin compile` regenerates it from `{ledger_dir}/`).\n",
+            crate::ledger::JSONL
+        ));
+    }
 
     let mut held: Vec<String> = Vec::new();
     for (name, c) in &claims {

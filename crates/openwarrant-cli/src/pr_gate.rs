@@ -257,6 +257,15 @@ pub struct Answer {
     pub verdict: &'static str,
     /// Every `gh` call made, in order.
     pub calls: Vec<String>,
+    /// M17: the CI floor's answer, when the base asks for it
+    /// (`[score] floor = true`).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub floor: Option<crate::score::floor::Answer>,
+    /// The base commit, and whether its openwarrant.toml turns the floor on.
+    #[serde(skip)]
+    pub base_sha: String,
+    #[serde(skip)]
+    pub base_floor: bool,
 }
 
 /// Run the gate. The report carries the verdict (an error refuses, an
@@ -280,6 +289,9 @@ pub fn run(repository: &Repository, args: &Args) -> (Report, Answer) {
         reviews: Vec::new(),
         verdict: "unknown",
         calls: Vec::new(),
+        floor: None,
+        base_sha: String::new(),
+        base_floor: false,
     };
     let unknown = |report: &mut Report, rule: &str, f: &Failed, what: &str| {
         report.push(Diagnostic::unknown(
@@ -377,6 +389,9 @@ pub fn run(repository: &Repository, args: &Args) -> (Report, Answer) {
         match gh.file_at(&repo_name, crate::init::CONFIG_FILE, &base) {
             Ok(Some(text)) => match Policy::from_text(&text) {
                 Ok(p) => {
+                    answer.base_floor =
+                        crate::score::Config::from_text(&text).is_ok_and(|c| c.floor);
+                    answer.base_sha.clone_from(&base);
                     answer.policy_from = format!("openwarrant.toml at {}", short(&base));
                     Some(p)
                 }
@@ -761,6 +776,26 @@ pub fn run(repository: &Repository, args: &Args) -> (Report, Answer) {
     (report, answer)
 }
 
+/// The CI floor (OW-WAR-0148 M17): when the base's openwarrant.toml says
+/// `[score] floor = true`, the PR passes only if it keeps the base's level.
+/// A floor that refuses refuses the PR; one that is UNKNOWN keeps a pass
+/// from being a pass.
+pub fn apply_floor(repository: &Repository, report: &mut Report, answer: &mut Answer) {
+    if !answer.base_floor || answer.base_sha.is_empty() {
+        return;
+    }
+    let (r, floor) = crate::score::floor::check(repository, &answer.base_sha);
+    report.diagnostics.extend(r.diagnostics);
+    match floor.verdict {
+        "refused" => answer.verdict = "refused",
+        "unknown" if matches!(answer.verdict, "pass" | "not_required") => {
+            answer.verdict = "unknown";
+        }
+        _ => {}
+    }
+    answer.floor = Some(floor);
+}
+
 /// What the judge needs beside the Warrant.
 struct JudgeInput<'a> {
     author_role: Option<Role>,
@@ -979,6 +1014,18 @@ pub fn summary(report: &Report, answer: &Answer) -> String {
             ));
         }
         s.push('\n');
+    }
+    if let Some(f) = &answer.floor {
+        s.push_str(&format!(
+            "Score floor: level {} at the base, {} ({} / 1000) here: {}\n\n",
+            f.base_score.as_ref().map_or_else(
+                || "UNKNOWN".to_owned(),
+                |b| format!("{} ({} / 1000)", b.level.number, b.score)
+            ),
+            f.head_score.level.number,
+            f.head_score.score,
+            f.verdict
+        ));
     }
     for d in report
         .diagnostics

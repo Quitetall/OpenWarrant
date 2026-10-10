@@ -821,8 +821,9 @@ pub fn run(
         if human {
             println!("no Warrants found in {}", repo.config.paths.warrants);
         }
+        let written = if only.is_none() { m17(repo, human)? } else { 0 };
         return Ok(CompileSummary {
-            written: 0,
+            written,
             skipped: Vec::new(),
         });
     }
@@ -973,6 +974,10 @@ pub fn run(
         }
     }
 
+    if only.is_none() {
+        written += m17(repo, human)?;
+    }
+
     if human {
         println!(
             "\n{} file(s) written, {} Warrant(s) skipped",
@@ -981,4 +986,24 @@ pub fn run(
         );
     }
     Ok(CompileSummary { written, skipped })
+}
+
+/// OW-WAR-0148 M17: the gitignored outputs a full compile regenerates — the
+/// ledger's JSONL, and the score's badge, report, statement and trend under
+/// `.openwarrant/score/`. Never under `generated/`: the score moves with
+/// every commit, so a committed copy would always be stale.
+fn m17(repo: &Repository, human: bool) -> Result<usize, RepoError> {
+    let mut written = 0;
+    if let Some(p) = crate::ledger::compile(repo)? {
+        written += 1;
+        if human {
+            println!("compiled {}", repo.relative(&p));
+        }
+    }
+    let score = crate::score::publish::compile(repo)?;
+    if human && !score.is_empty() {
+        println!("compiled {}", crate::score::publish::DIR);
+    }
+    written += score.len();
+    Ok(written)
 }

@@ -84,6 +84,13 @@ fn entries() -> Vec<Entry> {
         // --json`), every line traced to a record and its revision. Additive:
         // the pack version does not move.
         entry::<openwarrant_compiler::project::Projection>("projection"),
+        // OW-WAR-0148 M17: the compliance score (`war admin score --json`,
+        // `war status --json`'s `compliance`), its in-toto statement, and a
+        // line of the file ledger's JSONL. Additive: the pack version does
+        // not move.
+        entry::<crate::score::Score>("score"),
+        entry::<crate::score::publish::Statement>("score-statement"),
+        entry::<crate::ledger::Line>("ledger-file"),
     ]
 }
 

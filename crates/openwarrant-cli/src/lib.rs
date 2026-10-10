@@ -58,6 +58,7 @@ pub mod interop;
 pub mod invalidation;
 pub mod journal_cmd;
 pub mod kf;
+pub mod ledger;
 pub mod mark;
 pub mod mcp;
 pub mod migrate;
@@ -100,6 +101,7 @@ pub mod sas_repin;
 pub mod schema_typescript;
 #[cfg(feature = "schema")]
 pub mod schemas;
+pub mod score;
 pub mod sdk;
 pub mod show;
 pub mod sign;
@@ -590,6 +592,8 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "schemas",
             "merge-ticket",
             "preset",
+            "ledger",
+            "score",
         ],
     ),
 ];
@@ -953,6 +957,11 @@ enum DailyCommand {
         /// With --pr: post the summary as a comment on the PR through `gh`.
         #[arg(long, requires = "pr")]
         comment: bool,
+        /// The CI floor (docs/SCORE.md): refuse when the working tree's
+        /// score level is below <REV>'s. With --pr, the base's
+        /// `[score] floor = true` turns it on instead.
+        #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr"])]
+        floor: Option<String>,
     },
 }
 
@@ -2168,6 +2177,92 @@ enum AdminGroup {
         #[arg(long, requires = "name")]
         reset_roles: bool,
     },
+    /// The file ledger: why each file changed (docs/LEDGER.md).
+    ///
+    /// Small atoms under docs/ledger/ record each change's date, commit,
+    /// Warrant and why; `war admin compile` gathers them into the gitignored
+    /// .openwarrant/ledger.jsonl an agent reads in one go.
+    Ledger {
+        #[command(subcommand)]
+        command: LedgerCommand,
+    },
+    /// The compliance score, its weights, and its in-toto statement
+    /// (docs/SCORE.md).
+    ///
+    /// Alone, the score, scorecard, level and next steps (`war status`
+    /// shows the same). `--in-toto` prints the in-toto statement;
+    /// `--verify <FILE>` checks one against its documented shape;
+    /// `--weights` prints the published weights; `--at <REV>` scores a
+    /// commit in a throwaway worktree.
+    Score {
+        /// Print the in-toto statement (an unsigned Statement v1).
+        #[arg(long, conflicts_with_all = ["verify", "weights"])]
+        in_toto: bool,
+        /// Check an in-toto statement against the documented shape, and
+        /// every number in it against its counts.
+        #[arg(long, value_name = "FILE", conflicts_with_all = ["weights", "at"])]
+        verify: Option<Utf8PathBuf>,
+        /// Print the published weights (oh.war/score-weights/v1).
+        #[arg(long, conflicts_with = "at")]
+        weights: bool,
+        /// Score this commit instead of the working tree.
+        #[arg(long, value_name = "REV")]
+        at: Option<String>,
+        /// Also write the badge (badge.svg, badge.json), the report page
+        /// (report.md, report.html), score.json and the in-toto statement
+        /// into this directory.
+        #[arg(long, value_name = "DIR", conflicts_with_all = ["verify", "weights"])]
+        out: Option<Utf8PathBuf>,
+    },
+}
+
+/// `war admin ledger …`.
+#[derive(Subcommand)]
+enum LedgerCommand {
+    /// Write an entry for each file a commit changed.
+    ///
+    /// The why comes from `[ledger] mode`: `commit` (default) reads a
+    /// `Ledger:` trailer (`Ledger: <path>: <why>` for one file) or the body,
+    /// falling back to `deterministic`, the cited Warrant's title or the
+    /// subject; `agent` takes `--why`. Older entries fold past `[ledger]
+    /// keep` (3) or `token_budget`.
+    Record {
+        /// A commit, or a range `<a>..<b>`. Default: HEAD; with --why, the
+        /// uncommitted changes when there are any.
+        rev: Option<String>,
+        /// commit, deterministic or agent (default: `[ledger] mode`).
+        #[arg(long)]
+        mode: Option<String>,
+        /// The why, in a line: agent mode.
+        #[arg(long)]
+        why: Option<String>,
+        /// The Warrant the change is for (default: the commit's `Warrant:`).
+        #[arg(long, value_name = "ID")]
+        warrant: Option<String>,
+    },
+    /// Fold every atom to `[ledger] keep` entries (or its token budget).
+    Prune,
+    /// Read Agent Trace records or git-ai notes into the ledger.
+    Import {
+        /// A file of Agent Trace v0.1 records (one, an array, or JSON lines).
+        #[arg(long, value_name = "FILE", required_unless_present = "git_ai")]
+        agent_trace: Option<Utf8PathBuf>,
+        /// Every git-ai note under refs/notes/ai (Git AI Standard v3).
+        #[arg(long)]
+        git_ai: bool,
+    },
+    /// Write the ledger as Agent Trace records or git-ai notes.
+    Export {
+        /// Agent Trace v0.1 records, one JSON line per commit.
+        #[arg(long, required_unless_present = "git_ai")]
+        agent_trace: bool,
+        /// With --agent-trace: write here instead of stdout.
+        #[arg(long, value_name = "FILE", requires = "agent_trace")]
+        out: Option<Utf8PathBuf>,
+        /// A note per commit under refs/notes/ai, keeping what git-ai wrote.
+        #[arg(long)]
+        git_ai: bool,
+    },
 }
 
 /// `war plan`: a drafting request alone, or one of the group's members.
@@ -2670,6 +2765,19 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         Command::Admin {
             command: AdminGroup::Preset { name, reset_roles },
         } => run_preset(&ctx, name.as_deref(), reset_roles),
+        Command::Admin {
+            command: AdminGroup::Ledger { command },
+        } => run_ledger(&ctx, command),
+        Command::Admin {
+            command:
+                AdminGroup::Score {
+                    in_toto,
+                    verify,
+                    weights,
+                    at,
+                    out,
+                },
+        } => run_score(&ctx, in_toto, verify, weights, at, out),
         Command::ReleaseCheck => {
             notice::refresh();
             Ok(EXIT_OK)
@@ -2783,12 +2891,25 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             check,
             actor,
         } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
-            Ok(ticket_answer(
-                mode,
-                "done",
-                &ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?,
-            ))
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let mut outcome =
+                ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?;
+            // OW-WAR-0148 M17: in the ledger's agent mode, done asks for the
+            // why. In every other mode nothing here changes.
+            if !outcome.is_refused()
+                && ledger::Config::read(&repository.root)
+                    .is_ok_and(|c| c.mode == ledger::Mode::Agent)
+            {
+                let id = target.split('/').next().unwrap_or(&target);
+                let ask = format!(
+                    "Ledger: say in a line why the files changed: `war admin ledger record --why \"...\" --warrant {id}`"
+                );
+                outcome.human = format!("{}\n{ask}", outcome.human);
+                if let Some(o) = outcome.result.as_object_mut() {
+                    o.insert("ledger_prompt".to_owned(), serde_json::json!(ask));
+                }
+            }
+            Ok(ticket_answer(mode, "done", &outcome))
         }
         DailyCommand::Add {
             ticket: target,
@@ -3041,6 +3162,11 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                             value["official"] =
                                 serde_json::json!(official::corpus(&repository, &policy));
                         }
+                        // OW-WAR-0148 M17: the score, computed on read and
+                        // never in the committed projection (it moves with
+                        // every commit).
+                        value["compliance"] =
+                            output::value(&score::compute(&score::measure(&repository)));
                         output::emit(mode, "status", &text, value);
                     }
                     output::Mode::Human => {
@@ -3071,6 +3197,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                                 "\n{}",
                                 official::corpus_block(&standings, &policy).trim_end()
                             );
+                        }
+                        // OW-WAR-0148 M17: the score, scorecard, level and
+                        // next steps, after the projection and never in it.
+                        let scored = score::compute(&score::measure(&repository));
+                        println!("\n{}", scored.render().trim_end());
+                        if let Some(t) = score::trend_summary(&repository.root) {
+                            println!("\n{t}");
                         }
                     }
                 },
@@ -3195,7 +3328,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 summary,
                 comment,
             };
-            let (mut report, answer) = pr_gate::run(&repository, &args);
+            let (mut report, mut answer) = pr_gate::run(&repository, &args);
+            // OW-WAR-0148 M17: the CI floor, when the base turns it on.
+            pr_gate::apply_floor(&repository, &mut report, &mut answer);
             pr_gate::publish(&repository, &args, &mut report, &answer);
             match mode {
                 output::Mode::Human => {
@@ -3221,6 +3356,32 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 output::Mode::Json => println!(
                     "{}",
                     output::envelope("check.pr", &report, Some(output::value(&answer)))
+                ),
+            }
+            Ok(output::exit_code(&report))
+        }
+        DailyCommand::Check {
+            floor: Some(base), ..
+        } => {
+            let repository = ctx.open_repo()?;
+            let (report, answer) = score::floor::check(&repository, &base);
+            match mode {
+                output::Mode::Human => {
+                    for d in &report.diagnostics {
+                        println!("{d}");
+                    }
+                    println!(
+                        "score floor against {base}: {}",
+                        match answer.verdict {
+                            "pass" => "the level holds",
+                            "refused" => "refused: the level drops",
+                            _ => "UNKNOWN, never a pass",
+                        }
+                    );
+                }
+                output::Mode::Json => println!(
+                    "{}",
+                    output::envelope("check.floor", &report, Some(output::value(&answer)))
                 ),
             }
             Ok(output::exit_code(&report))
@@ -3271,6 +3432,16 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 if let Err(e) = preset::Policy::read(&repository.root) {
                     report.push(diagnostic::Diagnostic::error(
                         preset::CONFIG_RULE,
+                        init::CONFIG_FILE.to_owned(),
+                        e,
+                    ));
+                }
+                // OW-WAR-0148 M17: the ledger's atoms and table, the JSONL
+                // never committed, and the [score] table.
+                ledger::check(&repository, &mut report);
+                if let Err(e) = score::Config::read(&repository.root) {
+                    report.push(diagnostic::Diagnostic::error(
+                        "score.config",
                         init::CONFIG_FILE.to_owned(),
                         e,
                     ));
@@ -5046,6 +5217,158 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             Ok(EXIT_OK)
         }
     }
+}
+
+/// `war admin ledger …` (OW-WAR-0148 M17).
+fn run_ledger(ctx: &Ctx, command: LedgerCommand) -> Result<u8, Box<dyn std::error::Error>> {
+    let mode = ctx.mode;
+    let repository = ctx.open_repo()?;
+    let (name, answer) = match command {
+        LedgerCommand::Record {
+            rev,
+            mode: writer,
+            why,
+            warrant,
+        } => (
+            "ledger.record",
+            ledger::cmd::record(
+                &repository,
+                &ledger::cmd::RecordArgs {
+                    rev,
+                    mode: writer,
+                    why,
+                    warrant,
+                },
+            ),
+        ),
+        LedgerCommand::Prune => ("ledger.prune", ledger::cmd::prune(&repository)),
+        LedgerCommand::Import {
+            agent_trace,
+            git_ai,
+        } => (
+            "ledger.import",
+            ledger::cmd::import(&repository, agent_trace.as_ref(), git_ai),
+        ),
+        LedgerCommand::Export {
+            agent_trace,
+            out,
+            git_ai,
+        } => (
+            "ledger.export",
+            ledger::cmd::export(&repository, agent_trace, out.as_ref(), git_ai),
+        ),
+    };
+    match mode {
+        output::Mode::Human => {
+            for d in &answer.report.diagnostics {
+                eprintln!("{d}");
+            }
+            if !answer.human.is_empty() && answer.report.count(diagnostic::Severity::Error) == 0 {
+                println!("{}", answer.human);
+            }
+        }
+        output::Mode::Json => println!(
+            "{}",
+            output::envelope(name, &answer.report, Some(answer.result.clone()))
+        ),
+    }
+    Ok(output::exit_code(&answer.report))
+}
+
+/// `war admin score` (OW-WAR-0148 M17).
+fn run_score(
+    ctx: &Ctx,
+    in_toto: bool,
+    verify: Option<Utf8PathBuf>,
+    weights: bool,
+    at: Option<String>,
+    out: Option<Utf8PathBuf>,
+) -> Result<u8, Box<dyn std::error::Error>> {
+    let mode = ctx.mode;
+    if weights {
+        let doc = score::weights_document();
+        output::emit(
+            mode,
+            "score.weights",
+            &serde_json::to_string_pretty(&doc).unwrap_or_default(),
+            doc,
+        );
+        return Ok(EXIT_OK);
+    }
+    if let Some(path) = verify {
+        let mut report = diagnostic::Report::default();
+        let parsed = std::fs::read_to_string(&path)
+            .map_err(|e| format!("could not read {path}: {e}"))
+            .and_then(|t| {
+                serde_json::from_str::<serde_json::Value>(&t)
+                    .map_err(|e| format!("{path} is not JSON: {e}"))
+            });
+        let problems = match parsed {
+            Ok(v) => score::publish::verify(&v),
+            Err(e) => vec![e],
+        };
+        if problems.is_empty() {
+            report.push(diagnostic::Diagnostic::pass(
+                "score.statement",
+                format!(
+                    "{path} is an in-toto Statement v1 with predicate {} whose every number \
+                     follows from its counts",
+                    score::PREDICATE_TYPE
+                ),
+            ));
+        }
+        for p in &problems {
+            report.push(diagnostic::Diagnostic::error(
+                "score.statement",
+                path.to_string(),
+                p.clone(),
+            ));
+        }
+        return Ok(output::finish(
+            mode,
+            "score.verify",
+            &report,
+            Some(serde_json::json!({"file": path.as_str(), "problems": problems})),
+        ));
+    }
+    let repository = ctx.open_repo()?;
+    let scored = match &at {
+        Some(rev) => match score::floor::score_at(&repository, rev) {
+            Ok(s) => s,
+            Err(why) => {
+                output::unavailable(mode, "score.at", &why);
+                return Ok(EXIT_NOT_READY);
+            }
+        },
+        None => score::compute(&score::measure(&repository)),
+    };
+    if let Some(dir) = &out {
+        score::publish::write_set(&repository, &scored, dir)?;
+    }
+    if in_toto {
+        let Some(st) = score::publish::statement(&repository, &scored) else {
+            output::unavailable(
+                mode,
+                "score.statement",
+                "no commit to name as the statement's subject: the history could not be read",
+            );
+            return Ok(EXIT_NOT_READY);
+        };
+        output::emit(
+            mode,
+            "score.statement",
+            &serde_json::to_string_pretty(&st).unwrap_or_default(),
+            st,
+        );
+        return Ok(EXIT_OK);
+    }
+    output::emit(
+        mode,
+        "score",
+        scored.render().trim_end(),
+        output::value(&scored),
+    );
+    Ok(EXIT_OK)
 }
 
 /// `war admin preset [<name>] [--reset-roles]` (OW-WAR-0148 M14).
