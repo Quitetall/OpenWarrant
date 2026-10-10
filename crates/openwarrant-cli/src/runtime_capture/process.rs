@@ -88,9 +88,19 @@ fn stop(child: &mut Child) {
     }
 }
 fn run(
+    command: Command,
+    timeout: Duration,
+    limit: usize,
+) -> Result<(bool, Vec<u8>), ProviderFailure> {
+    run_with_stdin(command, timeout, limit, Stdio::null())
+}
+
+/// Input comes from a bounded local file, avoiding a blocking pipe write.
+pub(super) fn run_with_stdin(
     mut command: Command,
     timeout: Duration,
     limit: usize,
+    input: Stdio,
 ) -> Result<(bool, Vec<u8>), ProviderFailure> {
     #[cfg(unix)]
     {
@@ -98,7 +108,7 @@ fn run(
         command.process_group(0);
     }
     let mut child = command
-        .stdin(Stdio::null())
+        .stdin(input)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()

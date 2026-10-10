@@ -1,0 +1,9 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-collector-ssh-verifier/crates/openwarrant-cli)
+error[E0432]: unresolved import `openwarrant_cli::runtime_capture::collector_signature`
+ --> crates/openwarrant-cli/tests/collector_signature.rs:3:39
+  |
+3 | use openwarrant_cli::runtime_capture::collector_signature::OpenSshSignatureCheck;
+  |                                       ^^^^^^^^^^^^^^^^^^^ could not find `collector_signature` in `runtime_capture`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `openwarrant-cli` (test "collector_signature") due to 1 previous error
