@@ -249,6 +249,13 @@ fn namespace_entry_name() -> String {
 #[test]
 #[ignore = "requires provisioned unshare subordinate UID/GID mapping; run explicitly"]
 fn protected_namespace_roundtrip() {
+    // Host-root-owned ancestors are unmapped in this user namespace. A private
+    // mount namespace and disposable chroot give normal-mode guard checks real
+    // namespace-owned ancestors without weakening the production checks.
+    let mountpoint = std::env::temp_dir().join(format!("ow-collector-root-{}", std::process::id()));
+    fs::create_dir(&mountpoint).unwrap();
+    let war = std::env::var_os("OW_COLLECTOR_FIXTURE_WAR")
+        .unwrap_or_else(|| env!("CARGO_BIN_EXE_war").into());
     let output = std::process::Command::new("/usr/bin/timeout")
         .args([
             "45",
@@ -256,21 +263,46 @@ fn protected_namespace_roundtrip() {
             "--user",
             "--map-root-user",
             "--map-auto",
+            "--mount",
             "--setuid",
             "0",
             "--setgid",
             "0",
+            "/usr/bin/sh",
+            "-eu",
+            "-c",
+            r#"
+root=$1
+/usr/bin/mount --make-rprivate /
+/usr/bin/mount -t tmpfs -o mode=0755 tmpfs "$root"
+/usr/bin/mkdir -p "$root/usr" "$root/proc" "$root/dev" "$root/scratch" "$root/tmp" "$root/etc"
+/usr/bin/mount --bind /usr "$root/usr"
+/usr/bin/mount -o remount,bind,ro "$root/usr"
+/usr/bin/mount --rbind /proc "$root/proc"
+/usr/bin/mount --rbind /dev "$root/dev"
+/usr/bin/ln -s usr/bin "$root/bin"
+printf 'root:x:0:0:fixture:/root:/bin/sh\nworker:x:1:1:fixture:/scratch:/bin/sh\n' > "$root/etc/passwd"
+printf 'root:x:0:\nworker:x:1:\n' > "$root/etc/group"
+printf 'passwd: files\ngroup: files\n' > "$root/etc/nsswitch.conf"
+/usr/bin/ln -s usr/lib "$root/lib"
+/usr/bin/ln -s usr/lib64 "$root/lib64"
+/usr/bin/cp "$2" "$root/test-runner"
+/usr/bin/cp "$3" "$root/war"
+/usr/bin/chmod 0755 "$root/test-runner" "$root/war" "$root/scratch"
+export TMPDIR=/scratch OW_COLLECTOR_FIXTURE_WAR=/war
+export OW_COLLECTOR_NAMESPACE_FIXTURE=operator
+cd "$root"
+exec /usr/bin/chroot "$root" /test-runner --exact "$4" --ignored --nocapture
+"#,
+            "namespace-fixture",
         ])
+        .arg(&mountpoint)
         .arg(std::env::current_exe().unwrap())
-        .args([
-            "--exact",
-            namespace_entry_name().as_str(),
-            "--ignored",
-            "--nocapture",
-        ])
-        .env("OW_COLLECTOR_NAMESPACE_FIXTURE", "operator")
+        .arg(war)
+        .arg(namespace_entry_name())
         .output()
         .unwrap();
+    fs::remove_dir(&mountpoint).unwrap();
     assert!(
         output.status.success(),
         "{}\n{}",
@@ -320,14 +352,42 @@ fn namespace_fixture_entry() {
             fs::write(root.join("store/state.json"), b"forged").is_err(),
             "execution account wrote authority"
         );
+        let before = fs::read(root.join("store/state.json")).unwrap();
+        let refused = Command::new("/usr/bin/timeout")
+            .args(["10", "/war", "authority", "activate-collector", "--store"])
+            .arg(root.join("store"))
+            .arg("--enrollment")
+            .arg(root.join("enrollment.json"))
+            .arg("--json")
+            .env_clear()
+            .env("PATH", "/usr/bin:/bin")
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .output()
+            .unwrap();
+        assert_eq!(
+            refused.status.code(),
+            Some(1),
+            "execution account activated collector"
+        );
+        assert!(
+            String::from_utf8_lossy(&refused.stdout)
+                .contains("authority-store-state-unsafe-owner-or-mode")
+        );
+        assert_eq!(fs::read(root.join("store/state.json")).unwrap(), before);
         let verifier = OpenSshSignatureCheck::new(scratch.clone(), Duration::from_secs(5)).unwrap();
-        let loaded = LoadedEnrollment::load(
-            &root.join("store"),
-            "fixture",
-            &root.join("enrollment.json"),
-            &verifier,
-        )
-        .unwrap();
+        assert!(matches!(
+            LoadedEnrollment::load_active(
+                &root.join("unactivated-store"),
+                "fixture",
+                "collector",
+                &verifier,
+            ),
+            Err(Fault::Unavailable("collector activation unavailable"))
+        ));
+        let loaded =
+            LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier)
+                .unwrap();
         let enrollment = loaded.enrollment();
         let usage = Use {
             repository: "fixture",
@@ -350,16 +410,38 @@ fn namespace_fixture_entry() {
         ));
         fs::write(scratch.join("ready"), b"ready").unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
+        while !root.join("selection-changed").exists() {
+            assert!(Instant::now() < deadline, "operator selection unavailable");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(matches!(
+            loaded.allows(usage),
+            Err(Fault::Rejected("collector activation changed"))
+        ));
+        let reloaded =
+            LoadedEnrollment::load_active(&root.join("store"), "fixture", "collector", &verifier)
+                .unwrap();
+        let updated = reloaded.enrollment();
+        let usage = Use {
+            repository: "fixture",
+            warrant: updated.warrants.iter().next().unwrap(),
+            provider: &updated.provider,
+            verifier_digest: &updated.verifier_digest,
+            collector: &updated.collector,
+        };
+        reloaded.allows(Use { ..usage }).unwrap();
+        fs::write(scratch.join("selection-checked"), b"checked").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(10);
         while !root.join("updated").exists() {
             assert!(Instant::now() < deadline, "operator update unavailable");
             std::thread::sleep(Duration::from_millis(10));
         }
         assert!(
-            matches!(loaded.allows(usage), Err(Fault::Rejected(_))),
+            matches!(reloaded.allows(usage), Err(Fault::Rejected(_))),
             "revoked authority remained usable"
         );
         println!(
-            "execution UID 1: authority write refused; real enrollment accepted; mismatched execution UID and signed revocation refused"
+            "execution UID 1: authority write refused; activated enrollment accepted; inactive enrollment unavailable; changed selection, mismatched UID and signed revocation refused"
         );
         return;
     }
@@ -377,7 +459,7 @@ fn namespace_fixture_entry() {
     )
     .unwrap();
     fs::set_permissions(&scratch, fs::Permissions::from_mode(0o700)).unwrap();
-    for name in ["store", "mismatched-store"] {
+    for name in ["store", "mismatched-store", "unactivated-store"] {
         let path = root.join(name);
         fs::create_dir(&path).unwrap();
         fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
@@ -410,19 +492,53 @@ fn namespace_fixture_entry() {
             ),
         ]),
     };
-    let mut state = serde_json::json!({"schema":"oh.war/authority-store/1","agent_uid":1,"unprotected_test_store":false,"genesis":genesis,"legacy":{},"transitions":[]});
-    fs::write(
-        root.join("store/state.json"),
-        serde_jcs::to_vec(&state).unwrap(),
-    )
-    .unwrap();
-    let mut mismatched = state.clone();
-    mismatched["agent_uid"] = 2.into();
-    fs::write(
-        root.join("mismatched-store/state.json"),
-        serde_jcs::to_vec(&mismatched).unwrap(),
-    )
-    .unwrap();
+    let genesis_file = root.join("genesis.json");
+    fs::write(&genesis_file, genesis.encode().unwrap()).unwrap();
+    let authority_output = |args: &[&str]| {
+        Command::new("/usr/bin/timeout")
+            .arg("10")
+            .arg(
+                std::env::var_os("OW_COLLECTOR_FIXTURE_WAR")
+                    .unwrap_or_else(|| env!("CARGO_BIN_EXE_war").into()),
+            )
+            .args(args)
+            .arg("--json")
+            .env_clear()
+            .env("PATH", "/usr/bin:/bin")
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .output()
+            .unwrap()
+    };
+    let authority_command = |args: &[&str]| {
+        let out = authority_output(args);
+        assert!(
+            out.status.success(),
+            "authority command failed: {} {}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
+        out
+    };
+    for (name, uid) in [
+        ("store", "1"),
+        ("mismatched-store", "2"),
+        ("unactivated-store", "1"),
+    ] {
+        authority_command(&[
+            "authority",
+            "bootstrap",
+            "--store",
+            root.join(name).to_str().unwrap(),
+            "--revision",
+            genesis_file.to_str().unwrap(),
+            "--expected-digest",
+            &genesis.digest().unwrap(),
+            "--agent-uid",
+            uid,
+            "--execution-readable",
+        ]);
+    }
     let enrollment = Enrollment {
         schema: SCHEMA.into(),
         repository: "fixture".into(),
@@ -447,6 +563,55 @@ fn namespace_fixture_entry() {
         .unwrap(),
     )
     .unwrap();
+    authority_command(&[
+        "authority",
+        "activate-collector",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--enrollment",
+        root.join("enrollment.json").to_str().unwrap(),
+    ]);
+    let activated = fs::read(root.join("store/state.json")).unwrap();
+    let mut invalid = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
+    invalid.enrollment.provider.identity = "substituted-provider".into();
+    fs::write(
+        root.join("invalid-enrollment.json"),
+        invalid.encode().unwrap(),
+    )
+    .unwrap();
+    let refused = authority_output(&[
+        "authority",
+        "activate-collector",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--enrollment",
+        root.join("invalid-enrollment.json").to_str().unwrap(),
+    ]);
+    assert!(
+        !refused.status.success(),
+        "invalid enrollment signature activated"
+    );
+    assert_eq!(
+        fs::read(root.join("store/state.json")).unwrap(),
+        activated,
+        "refused activation changed retained state"
+    );
+
+    let replay = authority_command(&[
+        "authority",
+        "activate-collector",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--enrollment",
+        root.join("enrollment.json").to_str().unwrap(),
+    ]);
+    let replay: serde_json::Value = serde_json::from_slice(&replay.stdout).unwrap();
+    assert_eq!(replay["result"]["replay"], true);
+    assert_eq!(
+        fs::read(root.join("store/state.json")).unwrap(),
+        activated,
+        "exact activation replay must not change retained state"
+    );
     let mut next = genesis.clone();
     next.sequence = 1;
     next.principals.get_mut("collector").unwrap().roles.clear();
@@ -461,8 +626,10 @@ fn namespace_fixture_entry() {
         &proposal.signing_bytes().unwrap(),
         11,
     );
-    state["transitions"] =
-        serde_json::json!([{"proposal":proposal,"signatures":{"owner":signature}}]);
+    let proposal_file = root.join("transition.json");
+    let signature_file = root.join("transition.sig");
+    fs::write(&proposal_file, proposal.encode().unwrap()).unwrap();
+    fs::write(&signature_file, signature).unwrap();
     let mut child = Command::new("/usr/bin/setpriv")
         .args([
             "--reuid",
@@ -498,12 +665,55 @@ fn namespace_fixture_entry() {
         assert!(Instant::now() < deadline, "executor readiness unavailable");
         std::thread::sleep(Duration::from_millis(10));
     }
-    fs::write(
-        root.join("store/next.json"),
-        serde_jcs::to_vec(&state).unwrap(),
-    )
-    .unwrap();
-    fs::rename(root.join("store/next.json"), root.join("store/state.json")).unwrap();
+    let mut replacement = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
+    replacement.enrollment.verifier_digest = format!("sha256:{}", "b".repeat(64));
+    let (_, signature) = fixture(NAMESPACE, &replacement.enrollment.encode().unwrap(), 11);
+    replacement.signatures = BTreeMap::from([("owner".into(), signature)]);
+    fs::write(root.join("replacement.json"), replacement.encode().unwrap()).unwrap();
+    authority_command(&[
+        "authority",
+        "activate-collector",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--enrollment",
+        root.join("replacement.json").to_str().unwrap(),
+    ]);
+    let retained: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join("store/state.json")).unwrap()).unwrap();
+    assert_eq!(
+        retained["collector_enrollments"].as_object().unwrap().len(),
+        2
+    );
+    assert_eq!(
+        retained["collector_activation_events"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    fs::write(root.join("selection-changed"), b"changed").unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while !scratch.join("selection-checked").exists() {
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "executor exited before checking selection"
+        );
+        assert!(
+            Instant::now() < deadline,
+            "executor selection observation unavailable"
+        );
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    authority_command(&[
+        "authority",
+        "activate",
+        "--store",
+        root.join("store").to_str().unwrap(),
+        "--proposal",
+        proposal_file.to_str().unwrap(),
+        "--signature",
+        &format!("owner={}", signature_file.display()),
+    ]);
     fs::write(root.join("updated"), b"updated").unwrap();
     let deadline = Instant::now() + Duration::from_secs(10);
     let status = loop {
@@ -516,6 +726,6 @@ fn namespace_fixture_entry() {
     fs::remove_dir_all(root).unwrap();
     assert!(status.success());
     println!(
-        "operator UID 0: software-signed authority transition applied; fixture removed; no human acceptance or host-account qualification claimed"
+        "operator UID 0: real normal-mode CLI bootstrap and activation, software signature; fixture removed; no human acceptance or host-account qualification claimed"
     );
 }

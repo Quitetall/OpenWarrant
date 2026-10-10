@@ -10,7 +10,7 @@ a repository adopts a store by the cutover below (OW-WAR-0138), and until then
 
 Use a dedicated operator/broker environment with a trusted installed `war` binary.
 The execution agent must not control that account, its environment, the authority
-store, the verifier, SSH signing socket or private keys. Store directory must be
+store, the verifier, SSH signing socket or private keys. By default, the store directory must be
 owned by the operator, mode0700, with ancestors not writable by the execution
 account or group/other. `/usr/bin/ssh-keygen` must be a trusted system executable.
 Do not expose unrestricted sudo or a service that accepts arbitrary store paths.
@@ -38,6 +38,26 @@ Create the protected directory first through normal administrator provisioning.
 bytes without interpreting them as new grants. Bootstrap refuses an existing store
 and does not contact a model, infer a root key, or sign a human acceptance record.
 Keep an independently protected backup; recovery keys must be configured in advance.
+
+### Public metadata for an execution account
+
+A collector must read current authority without being able to change it. When
+provisioning that separate account, the operator may add `--execution-readable`
+to `bootstrap --agent-uid ...`. This explicit option sets the store directory to
+0755 and its canonical public `state.json` to 0644. Each activation preserves that
+read access. The lock stays private. The option is refused in unprotected test
+mode; private 0700/0600 storage remains the default.
+
+The shared state contains public keys, grants, policy, signed history and any
+retained legacy bytes. Review those bytes for suitability before sharing them.
+Never put private keys or credentials in the store. Provision parent-directory
+traversal separately; the option does not change ancestors or prove the execution
+account can read the store. Normal operator reads reject a state file owned by
+another account or writable by group/other, as well as unsafe directory ancestry.
+The execution loader separately checks its actual account and read-only boundary.
+
+This is metadata access, not collector activation, an authenticated caller, human
+presence or a sandbox. Those controls still require the protected host/harness.
 
 Export current state for an agent, then draft a replacement principal's exact roles:
 
@@ -71,6 +91,45 @@ For separate signing and activation, use `approve --current current.json ...
 --signature owner=approval.sig`. `check --current ... --proposal ... --signature ...`
 checks against caller-supplied state without installing anything. No unattended
 signing fallback is added. A stale proposal must be redrafted and approved again.
+
+## Collector configuration activation (candidate, OW-WAR-0149)
+
+The SDK's `runtime_collector::Signed` envelope carries canonical enrollment bytes
+and administrator signatures in namespace `openwarrant-runtime-collector-v1`.
+It binds the repository, exact authority head, provider/interface, verifier byte
+digest, collector principal and explicit Warrant UUIDs. Signing happens in the
+protected operator environment; this command does not sign or infer human review:
+
+```sh
+war authority activate-collector --store /var/lib/openwarrant/example \
+  --enrollment reviewed-signed-enrollment.json --json
+```
+
+Activation loads the normal protected store, takes its operator lock, rechecks
+current authority and verifies every enrollment signature and current presence
+policy. It atomically installs the exact selection, retains old signed
+configurations and appends a selection event with the observed operator UID and
+time. Those observations are not authenticated human or trusted-clock evidence.
+An exact replay checks eligibility again but changes no stored state. Failed
+checks leave the prior state intact. If publication is interrupted or fails,
+inspect current state before retrying; a failed directory sync can leave durability
+uncertain after replacement. Previously retained records are not discarded.
+Retention is bounded by the
+store's byte budget, 256 configurations and 1024 selection events; it refuses
+rather than dropping retained history when full.
+
+`LoadedEnrollment::load_active` reads only the operator-selected configuration
+from protected state. It checks the actual execution UID, authenticates signatures
+and rechecks authority and selection after verification. Each `allows` call
+rechecks current authority and the exact selected configuration. A valid signed
+file alone does not satisfy active loading. `load` remains explicitly an
+**authentication-only** API for supplied bytes.
+
+The trusted host must still authenticate the collector caller, observe and protect
+the verifier executable, select the store independently of agent input and fence
+the native launch. These callable APIs do not configure a service, award assurance
+or establish sandboxing, metered spend or protected host deployment. Any authority
+head change makes older enrollments ineligible until newly bound and approved.
 
 ## Current-state use and recovery
 

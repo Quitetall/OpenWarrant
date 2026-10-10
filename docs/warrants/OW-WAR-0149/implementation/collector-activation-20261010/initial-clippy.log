@@ -1,0 +1,42 @@
+   Compiling openwarrant-cli v1.0.0-alpha.3 (/mnt/4tb/tmp/ow-authority-execution-readable/crates/openwarrant-cli)
+error: empty line after doc comment
+   --> crates/openwarrant-cli/src/runtime_capture/collector_loading.rs:156:5
+    |
+156 | /     /// Authenticate supplied bytes without asserting operator activation.
+157 | |
+    | |_^
+158 |       pub fn load(
+    |       ----------- the comment documents this function
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#empty_line_after_doc_comments
+    = note: `-D clippy::empty-line-after-doc-comments` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::empty_line_after_doc_comments)]`
+    = help: if the empty line is unintentional, remove it
+
+error: this `if` statement can be collapsed
+   --> crates/openwarrant-cli/src/runtime_capture/collector_loading.rs:193:9
+    |
+193 | /         if let Some(digest) = &self.active_digest {
+194 | |             if snapshot
+195 | |                 .active_collectors
+196 | |                 .get(&self.enrollment().collector)
+...   |
+201 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+193 ~         if let Some(digest) = &self.active_digest
+194 ~             && snapshot
+195 |                 .active_collectors
+...
+199 |                 return Err(Fault::Rejected("collector activation changed"));
+200 ~             }
+    |
+
+error: could not compile `openwarrant-cli` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `openwarrant-cli` (lib test) due to 2 previous errors

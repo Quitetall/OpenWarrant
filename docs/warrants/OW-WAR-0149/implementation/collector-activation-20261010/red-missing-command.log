@@ -1,0 +1,38 @@
+
+running 1 test
+
+thread 'collector_signature::protected_namespace_roundtrip' (3065574) panicked at crates/openwarrant-cli/tests/collector_signature.rs:306:5:
+
+running 1 test
+test collector_signature::namespace_fixture_entry ... FAILED
+
+failures:
+
+failures:
+    collector_signature::namespace_fixture_entry
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.02s
+
+
+
+thread 'collector_signature::namespace_fixture_entry' (3065592) panicked at crates/openwarrant-cli/tests/collector_signature.rs:461:9:
+authority command failed:  error: unrecognized subcommand 'activate-collector'
+
+  tip: a similar subcommand exists: 'activate'
+
+Usage: war authority [OPTIONS] <COMMAND>
+
+For more information, try '--help'.
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test collector_signature::protected_namespace_roundtrip ... FAILED
+
+failures:
+
+failures:
+    collector_signature::protected_namespace_roundtrip
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 216 filtered out; finished in 0.11s
+

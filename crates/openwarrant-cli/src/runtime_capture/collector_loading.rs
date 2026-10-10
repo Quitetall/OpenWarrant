@@ -16,6 +16,7 @@ use std::{
 pub struct LoadedEnrollment {
     authority_store: PathBuf,
     authenticated: AuthenticatedEnrollment,
+    active_digest: Option<String>,
 }
 fn absolute(path: &Path) -> Result<(), Fault> {
     if !path.is_absolute() || path.components().any(|p| matches!(p, Component::ParentDir)) {
@@ -70,7 +71,7 @@ fn enrollment_bytes(path: &Path) -> Result<Vec<u8>, Fault> {
         Ok(bytes)
     }
 }
-fn current_for_execution(root: &Path) -> Result<Revision, Fault> {
+fn snapshot_for_execution(root: &Path) -> Result<crate::authority_cmd::store::Current, Fault> {
     absolute(root)?;
     #[cfg(not(unix))]
     {
@@ -110,10 +111,49 @@ fn current_for_execution(root: &Path) -> Result<Revision, Fault> {
                 "authority store execution account mismatch",
             ));
         }
-        Ok(current.revision)
+        Ok(current)
     }
 }
+fn current_for_execution(root: &Path) -> Result<Revision, Fault> {
+    Ok(snapshot_for_execution(root)?.revision)
+}
 impl LoadedEnrollment {
+    /// Load the operator-selected configuration. The trusted host still supplies
+    /// the store and authenticated collector identity; this method does not
+    /// turn an arbitrary caller-provided principal name into authentication.
+    pub fn load_active(
+        authority_store: &Path,
+        repository: &str,
+        collector: &str,
+        verifier: &OpenSshSignatureCheck,
+    ) -> Result<Self, Fault> {
+        let snapshot = snapshot_for_execution(authority_store)?;
+        let active = snapshot
+            .active_collectors
+            .get(collector)
+            .ok_or(Fault::Unavailable("collector activation unavailable"))?;
+        let authenticated = active
+            .signed
+            .authenticate(&snapshot.revision, repository, verifier)?;
+        let latest = snapshot_for_execution(authority_store)?;
+        if latest.head != snapshot.head
+            || latest
+                .active_collectors
+                .get(collector)
+                .is_none_or(|record| record.digest != active.digest)
+        {
+            return Err(Fault::Rejected(
+                "collector activation changed during verification",
+            ));
+        }
+        Ok(Self {
+            authority_store: authority_store.to_owned(),
+            authenticated,
+            active_digest: Some(active.digest.clone()),
+        })
+    }
+
+    /// Authenticate supplied bytes without asserting operator activation.
     pub fn load(
         authority_store: &Path,
         repository: &str,
@@ -139,6 +179,7 @@ impl LoadedEnrollment {
         Ok(Self {
             authority_store: authority_store.to_owned(),
             authenticated,
+            active_digest: None,
         })
     }
     pub fn enrollment(&self) -> &Enrollment {
@@ -147,7 +188,15 @@ impl LoadedEnrollment {
     /// Fresh authority is required at every use. The host still fences launch
     /// and protects the approved executable; this is not an atomic launch API.
     pub fn allows(&self, input: Use<'_>) -> Result<(), Fault> {
-        let current = current_for_execution(&self.authority_store)?;
-        self.authenticated.allows(&current, &input)
+        let snapshot = snapshot_for_execution(&self.authority_store)?;
+        if let Some(digest) = &self.active_digest
+            && snapshot
+                .active_collectors
+                .get(&self.enrollment().collector)
+                .is_none_or(|active| active.digest != *digest)
+        {
+            return Err(Fault::Rejected("collector activation changed"));
+        }
+        self.authenticated.allows(&snapshot.revision, &input)
     }
 }
