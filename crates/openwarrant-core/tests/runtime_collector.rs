@@ -231,3 +231,16 @@ fn canonical_wire_refuses_duplicates_unknown_fields_and_unbounded_inputs() {
     assert!(Signed::decode(unknown.as_bytes()).is_err());
     assert!(Signed::decode(&vec![b' '; 65537]).is_err());
 }
+#[test]
+fn known_role_denial_does_not_become_unknown_when_actor_kind_is_missing() {
+    let (mut authority, mut signed) = fixture();
+    let collector = authority.principals.get_mut("collector").unwrap();
+    collector.kind = None;
+    collector.actor = None;
+    signed.enrollment.authority_digest = authority.digest().unwrap();
+    signed.signatures = BTreeMap::from([("collector".into(), "synthetic-signature".into())]);
+    assert!(matches!(
+        signed.authenticate(&authority, "example", &checker(&signed)),
+        Err(Fault::Rejected(_))
+    ));
+}

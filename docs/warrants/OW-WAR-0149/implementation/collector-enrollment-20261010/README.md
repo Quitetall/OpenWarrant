@@ -25,3 +25,13 @@ No signature, disposition, human acceptance or Warrant resolution was issued.
 
 Full record diagnostics are retained byte-for-byte in `record-check.json.gz`;
 `record-check-summary.json` gives readable counts and the original byte digest.
+
+## Known role denial with missing actor metadata
+
+A new control first failed: a signer with no administrative role was labeled
+UNKNOWN when its actor kind was absent. A known missing role already establishes
+refusal; role denial now precedes the unknown-kind diagnostic. The updated core
+run passes 705 tests, including all eight collector controls, with zero failures
+or ignored tests. Scoped all-target/all-feature Clippy and formatting pass.
+`role-diagnostic/` retains the failing control and updated exact-source evidence;
+the original seven-control observations above remain unchanged.

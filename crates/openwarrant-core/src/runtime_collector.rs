@@ -201,12 +201,13 @@ impl Signed {
                 .principals
                 .get(id)
                 .ok_or(Fault::Rejected("unknown signer"))?;
+            if !principal.roles.contains("authority-admin") {
+                return Err(Fault::Rejected("signer has no current administrative role"));
+            }
             if principal.kind.is_none() {
                 return Err(Fault::Unavailable("signer actor kind not established"));
             }
-            if principal.kind != Some(ActorKind::Human)
-                || !principal.roles.contains("authority-admin")
-            {
+            if principal.kind != Some(ActorKind::Human) {
                 return Err(Fault::Rejected(
                     "signer is not a current human administrator",
                 ));

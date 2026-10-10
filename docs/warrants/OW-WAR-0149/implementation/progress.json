@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "BLUT and Katana process adapters are merged into OpenWarrant; Katana native receipt interfaces merged upstream at 5a735133 with all hosted checks passing. A candidate core collector enrollment codec checks exact current authority, human-admin signature policy, executable/provider identity and explicit Warrant scope. Seven synthetic-adapter controls and 704 core regressions pass. Real cryptographic transport, protected operator custody, activation, native collector wiring and independent/participant qualification remain open.",
+  "summary": "BLUT and Katana process adapters are merged into OpenWarrant; Katana native receipt interfaces merged upstream at 5a735133 with all hosted checks passing. A candidate core collector enrollment codec checks exact current authority, human-admin signature policy, executable/provider identity and explicit Warrant scope. Eight synthetic-adapter controls and 705 core regressions pass. Real cryptographic transport, protected operator custody, activation, native collector wiring and independent/participant qualification remain open.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",

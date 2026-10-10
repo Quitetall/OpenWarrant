@@ -64,7 +64,7 @@ explicit Warrant UUIDs. Provider support remains a separate runtime check.
 The first test run failed because the module was absent. The first implementation
 compile found an unsupported hexadecimal formatting trait, then used explicit
 lowercase digest bytes. Current controls use a **synthetic** signature adapter;
-they do not establish OpenSSH cryptography or actual human presence. Seven scoped controls pass; the core all-target/all-feature run passes 704
+they do not establish OpenSSH cryptography or actual human presence. Eight scoped controls pass; the core all-target/all-feature run passes 705
 tests, and scoped Clippy with warnings denied passes. The earlier default-profile
 compile timed out before a test verdict. Lean reruns preserved assertions and
 test scope. Full repository and transport qualification remain open. See
