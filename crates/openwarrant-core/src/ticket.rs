@@ -457,10 +457,16 @@ pub fn is_ticket_id(s: &str) -> bool {
     is_hash_id(s, "t-")
 }
 
-/// `i-` and 3 to 16 of `[0-9a-z]`.
+/// `i-` and 3 to 16 lowercase hex digits (FORMAT-1.0 §5): the tool mints
+/// hex, and an item is never named by hand.
 #[must_use]
 pub fn is_item_id(s: &str) -> bool {
-    is_hash_id(s, "i-")
+    s.strip_prefix("i-").is_some_and(|rest| {
+        (3..=16).contains(&rest.len())
+            && rest
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    })
 }
 
 fn sha_hex(seed: &str) -> String {
@@ -694,7 +700,7 @@ fn split_id_group(text: &str) -> Result<Option<(&str, String, Vec<Blocker>)>, St
     }
     if !is_item_id(first) {
         return Err(format!(
-            "item id {first:?}; an id is i- and 3 to 16 of [0-9a-z]"
+            "item id {first:?}; an id is i- and 3 to 16 lowercase hex digits"
         ));
     }
     let mut after = Vec::new();
@@ -1265,6 +1271,12 @@ mod tests {
         ] {
             assert!(!is_ticket_id(bad) && !is_item_id(bad), "{bad}");
         }
+        // An item id is hex only; a ticket id may be any [0-9a-z].
+        assert!(is_item_id("i-9c01") && is_item_id("i-0123456789abcdef"));
+        for bad in ["i-zzzz", "i-7", "i-9C01", "i-0123456789abcdef0"] {
+            assert!(!is_item_id(bad), "{bad}");
+        }
+        assert!(is_ticket_id("t-zzzz"));
     }
 
     #[test]

@@ -1,4 +1,0 @@
-id = "044-item-id-short"
-kind = "accept"
-section = "5"
-says = """An **item id** is `i-` and lowercase hex."""

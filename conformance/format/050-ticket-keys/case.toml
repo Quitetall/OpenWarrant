@@ -1,0 +1,4 @@
+id = "050-ticket-keys"
+kind = "accept"
+section = "3.3"
+says = """The ticket profile declares `promoted_to`, `issue`, `issue_url` and `due`; `part_of` is a relation."""

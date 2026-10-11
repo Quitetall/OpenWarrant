@@ -50,6 +50,10 @@ pub const CORE_KEYS: [&str; 7] = [
     "format", "profile", "alias", "uuid", "summary", "paths", "requires",
 ];
 
+/// §3.3: the frontmatter keys that are relations of the document's own
+/// record, not fields: each value (a scalar or a list) is a target.
+pub const RELATION_KEYS: [&str; 4] = ["implements", "depends_on", "supersedes", "part_of"];
+
 /// The extensions this reader understands, for `requires` (§7.3). None:
 /// `war` implements no extension's semantics, so a document that lists one
 /// as critical reads `UNKNOWN`.
@@ -67,6 +71,10 @@ pub fn profile_keys(profile: &str) -> &'static [&'static str] {
             "created_at",
             "created_by",
             "imported_from",
+            "promoted_to",
+            "issue",
+            "issue_url",
+            "due",
         ],
         _ => &[],
     }
@@ -215,6 +223,9 @@ pub struct Document {
     pub fields: BTreeMap<String, FieldValue>,
     /// Dotted frontmatter keys (§7.2).
     pub ext: BTreeMap<String, FieldValue>,
+    /// The document record's own relations: its `implements`, `depends_on`,
+    /// `supersedes` and `part_of` frontmatter keys (§3.3).
+    pub relations: Vec<Relation>,
     pub requires: Vec<String>,
     /// The first `# ` heading of the preamble.
     pub title: Option<String>,
@@ -567,12 +578,13 @@ fn heading(rest: &str) -> Heading {
             Some((ty, title)) => (ty, Some(title)),
             None => (tail, None),
         };
-        if !is_record_id(id) || !is_word(ty) {
+        if !is_record_id(id) || !(is_word(ty) || is_dotted(ty)) {
             return Err((
                 "format.heading",
                 format!(
                     "`## {rest}` has ` · ` and is not a record heading `## <id> · <type> — \
-                     <title>`: the id like `REQ-pr1`, the type a lowercase word"
+                     <title>`: the id like `REQ-pr1`, the type a lowercase word or a dotted \
+                     extension type"
                 ),
             ));
         }
@@ -647,12 +659,15 @@ pub fn parse(bytes: &[u8]) -> Document {
         .collect();
 
     // §3.2: the frontmatter fences.
+    // §6: a document that does not open with `---` declares no format.
     if lines.first().map(|l| bare(l.2)) != Some("---") {
         doc.push(
             Outcome::Refusal,
-            "format.frontmatter",
+            "format.unrecognised",
             1,
-            "a missing fence: the first line is `---`".to_owned(),
+            "no frontmatter, so no `format:`; a Format 1.0 document opens with `---` and \
+             declares `format: openwarrant/1.0`"
+                .to_owned(),
         );
         return doc;
     }
@@ -775,6 +790,26 @@ pub fn parse(bytes: &[u8]) -> Document {
     for (key, value, line) in &entries {
         if is_dotted(key) {
             doc.ext.insert(key.clone(), value.clone());
+        } else if RELATION_KEYS.contains(&key.as_str()) {
+            let targets: Vec<&str> = match value {
+                FieldValue::One(v) => v.split(", ").collect(),
+                FieldValue::Many(v) => v.iter().map(String::as_str).collect(),
+            };
+            for t in targets {
+                match parse_target(t.trim()) {
+                    Some(target) => doc.relations.push(Relation {
+                        kind: key.clone(),
+                        target,
+                        line: *line,
+                    }),
+                    None => doc.push(
+                        Outcome::Refusal,
+                        "format.relation-target",
+                        *line,
+                        format!("`{key}: {t}`: {t:?} is not an id (section 5)"),
+                    ),
+                }
+            }
         } else if allowed.contains(key.as_str()) {
             if key != "format" {
                 doc.fields.insert(key.clone(), value.clone());
@@ -986,12 +1021,18 @@ pub fn parse(bytes: &[u8]) -> Document {
             span_lines.iter().skip(body_from).copied().collect();
         items(&body_lines, &mut unit, &mut faults, &mut warnings);
         if record_type == "obligation" {
+            // An empty value is a missing one (§3.7).
             for f in ["scope", "evidence"] {
-                if !unit.fields.contains_key(f) {
+                if unit
+                    .fields
+                    .get(f)
+                    .and_then(FieldValue::as_str)
+                    .is_none_or(|v| v.trim().is_empty())
+                {
                     faults.push((
                         "format.field-missing",
                         *n,
-                        format!("obligation {id} has no `{f}:`"),
+                        format!("obligation {id} has no `{f}:`, or an empty one"),
                     ));
                 }
             }
@@ -1419,8 +1460,38 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
 
     #[test]
     fn refusals_carry_their_rule_and_line() {
-        let cases: [(&str, &str, usize); 13] = [
-            ("profile: delivery\n", "format.frontmatter", 1),
+        let cases: &[(&str, &str, usize)] = &[
+            // No opening fence: no `format:` is declared (§6).
+            ("profile: delivery\n", "format.unrecognised", 1),
+            // An unclosed one is a frontmatter fault.
+            (
+                "---\nformat: openwarrant/1.0\nprofile: p\n",
+                "format.frontmatter",
+                1,
+            ),
+            // A frontmatter relation key's target must parse (§3.3).
+            (
+                "---\nformat: openwarrant/1.0\nprofile: p\nimplements: the rule above\n---\n",
+                "format.relation-target",
+                4,
+            ),
+            // An empty required field is a missing one (§3.7).
+            (
+                "---\nformat: openwarrant/1.0\nprofile: p\n---\n## OBL-1 · obligation — t\nscope:\nevidence: e\n",
+                "format.field-missing",
+                5,
+            ),
+            // An id group whose id is not 3 to 16 hex digits (§5).
+            (
+                "---\nformat: openwarrant/1.0\nprofile: p\n---\n## R-1 · note — t\n\n- [ ] x (i-7)\n",
+                "format.item",
+                7,
+            ),
+            (
+                "---\nformat: openwarrant/1.0\nprofile: p\n---\n## R-1 · note — t\n\n- [ ] x (i-zzzz)\n",
+                "format.item",
+                7,
+            ),
             (
                 "---\nformat: openwarrant/1.0\nx:\n  y: 1\n---\n",
                 "format.frontmatter",
@@ -1483,7 +1554,7 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
                 5,
             ),
         ];
-        for (text, rule, line) in cases {
+        for &(text, rule, line) in cases {
             let d = parse(text.as_bytes());
             assert!(
                 d.findings
@@ -1496,6 +1567,44 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
         assert!(
             parse(b"---\nformat: openwarrant/1.0\nprofile: p\n---\n\xff\n").findings[0].rule
                 == "format.encoding"
+        );
+    }
+
+    #[test]
+    fn frontmatter_relations_and_dotted_types_are_read() {
+        let d = parse(
+            "---\nformat: openwarrant/1.0\nprofile: p\nimplements: REQ-1, REQ-2\ndepends_on:\n  - t-0e4f\n---\n\
+# T\n\n## X-1 · com.example.risk — spam\nscore: high\nconstrains REQ-1\n"
+                .as_bytes(),
+        );
+        assert!(!d.refused(), "{:?}", rules(&d));
+        let rels: Vec<(&str, &str)> = d
+            .relations
+            .iter()
+            .map(|r| (r.kind.as_str(), r.target.id.as_str()))
+            .collect();
+        assert_eq!(
+            rels,
+            [
+                ("implements", "REQ-1"),
+                ("implements", "REQ-2"),
+                ("depends_on", "t-0e4f")
+            ]
+        );
+        // Relation keys are not fields.
+        assert!(!d.fields.contains_key("implements") && !d.fields.contains_key("depends_on"));
+        let u = &d.units[0];
+        assert_eq!(u.record_type, "com.example.risk");
+        assert_eq!(
+            u.fields.get("score").and_then(FieldValue::as_str),
+            Some("high")
+        );
+        // The control: an undotted, capitalised type is no record heading.
+        let bad = parse(b"---\nformat: openwarrant/1.0\nprofile: p\n---\n## X-1 \xc2\xb7 Risk \xe2\x80\x94 spam\n");
+        assert!(
+            bad.findings.iter().any(|f| f.rule == "format.heading"),
+            "{:?}",
+            rules(&bad)
         );
     }
 

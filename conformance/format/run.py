@@ -129,14 +129,16 @@ class War:
         except (json.JSONDecodeError, KeyError, TypeError):
             raise RuntimeError(f"war model: exit {p.returncode}: {p.stderr.strip()[-400:]}")
         recs = [r for r in model["records"] if r.get("source") in files]
-        doc_of = {r["id"]: r.get("document") for r in recs}
+        # A record's container: its work document, or else its file's own
+        # `doc:<path>` record (section 4).
+        doc_of = {r["id"]: r.get("document") or f"doc:{r['source']}" for r in recs}
         rels = []
         for r in model["relations"]:
             if r["from"] not in doc_of:
                 continue
             # Containment is carried by the record's `document`; a reader that
             # also emits it as `part_of <document>` says nothing more.
-            if r["kind"] == "part_of" and r["to"] == doc_of[r["from"]]:
+            if r["kind"] == "part_of" and r["to"] == doc_of[r["from"]] != r["from"]:
                 continue
             rels.append({k: r[k] for k in ("from", "kind", "to", "to_revision") if k in r})
         findings = {f"{d['rule']} {d['record']}" for d in model["diagnostics"]

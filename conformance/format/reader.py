@@ -34,11 +34,14 @@ CORE_KINDS = {
     "supports", "refutes", "trades_off_against", "causes", "qualifies", "selected_over",
 }
 CORE_KEYS = {"format", "profile", "alias", "uuid", "summary", "paths", "requires"}
+# Section 3.3: frontmatter keys that are relations of the document's own record.
+RELATION_KEYS = {"implements", "depends_on", "supersedes", "part_of"}
 # Section 3.3: the keys the built-in profiles declare.
 PROFILE_KEYS = {
     "delivery": {"assurance_level"},
     "decision": set(),
-    "ticket": {"type", "priority", "labels", "created_at", "created_by", "imported_from"},
+    "ticket": {"type", "priority", "labels", "created_at", "created_by", "imported_from",
+               "promoted_to", "issue", "issue_url", "due"},
 }
 # Section 4.1: the sections each built-in profile requires.
 REQUIRED_SECTIONS = {
@@ -68,7 +71,7 @@ LABEL = r"[a-z0-9][a-z0-9_-]*"
 DOTTED = rf"{LABEL}(?:\.{LABEL})+"
 NAME = rf"(?:{DOTTED}|{WORD})"
 RECORD_ID = r"[A-Z][A-Z0-9]*(?:-[A-Za-z0-9]+)+"
-ITEM_ID = r"i-[0-9a-f]+"
+ITEM_ID = r"i-[0-9a-f]{3,16}"
 ALIAS = rf"(?:{RECORD_ID}|t-[0-9a-f]+)"
 UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 REF = (
@@ -77,7 +80,8 @@ REF = (
 TARGET_RE = re.compile(rf"({REF})(?:@(sha256:[0-9a-f]{{64}}))?")
 FIELD_RE = re.compile(rf"({NAME}):(?: (.*))?")
 RELATION_RE = re.compile(rf"({NAME}) (\S.*)")
-HEAD_RE = re.compile(rf"({RECORD_ID}) · ({WORD}) — (.*)")
+# Section 3.4: the type is a word, or a dotted extension type (7.2).
+HEAD_RE = re.compile(rf"({RECORD_ID}) · ({WORD}|{DOTTED}) — (.*)")
 FENCE_OPEN = re.compile(r"(`{3,}|~{3,})(.*)")
 BOX_RE = re.compile(r"\s*[-*] \[([^\]]*)\]")
 ITEM_RE = re.compile(
@@ -270,9 +274,20 @@ def parse(doc: Doc, data: bytes, work):
             return
     allowed = CORE_KEYS | PROFILE_KEYS.get(profile, set())
     fields, ext = {}, {}
+    doc_rels = []
     for k, v, n in pairs:
         if "." in k:
             ext[k] = v
+            continue
+        if k in RELATION_KEYS:
+            for t in (v if isinstance(v, list) else v.split(", ")):
+                tm = TARGET_RE.fullmatch(t.strip())
+                if not tm:
+                    raise Refused("format.relation-target", n)
+                rel = {"kind": k, "to": tm.group(1), "_line": n}
+                if tm.group(2):
+                    rel["to_revision"] = tm.group(2)
+                doc_rels.append(rel)
             continue
         if k not in allowed and profile in PROFILE_KEYS:
             if newer_minor:
@@ -339,21 +354,26 @@ def parse(doc: Doc, data: bytes, work):
         return scope + local
 
     records, rels = [], []
-    if is_work:
-        # READING: the document record's body is the preamble without its
-        # `# ` title line (the title is not repeated).
-        pre = []
-        dropped = False
-        for n, ln, fenced in preamble:
-            if not dropped and not fenced and ln.startswith("# "):
-                dropped = True
-                continue
-            pre.append(ln)
-        records.append({
-            "id": alias, "type": "ticket" if profile == "ticket" else "warrant",
-            "title": title or "", "fields": fields, "ext": ext,
-            "body": "\n".join(pre), "line": 1,
-        })
+    # The document's own record (4.1): a work document's is its alias; any
+    # other document's is `doc:<path>` of type `document` (5). Its body is
+    # the preamble without its `# ` title line.
+    pre = []
+    dropped = False
+    for n, ln, fenced in preamble:
+        if not dropped and not fenced and ln.startswith("# "):
+            dropped = True
+            continue
+        pre.append(ln)
+    own = alias if is_work else "doc:" + doc.source
+    records.append({
+        "id": own,
+        "type": ("ticket" if profile == "ticket" else "warrant") if is_work else "document",
+        "title": title or "", "fields": fields, "ext": ext,
+        "body": "\n".join(pre), "line": 1,
+    })
+    for r in doc_rels:
+        r["from"] = own
+        rels.append(r)
 
     seen_ids: dict[str, int] = {}
     section_names = []
@@ -371,7 +391,7 @@ def parse(doc: Doc, data: bytes, work):
         if " · " in head:
             m = HEAD_RE.fullmatch(head)
             if not m:
-                m2 = re.fullmatch(rf"({RECORD_ID}) · ({WORD})(?: —.*)?", head)
+                m2 = re.fullmatch(rf"({RECORD_ID}) · ({WORD}|{DOTTED})(?: —.*)?", head)
                 if m2 and len(m2.group(1)) <= 64:
                     raise Refused("format.title-missing", n)
                 raise Refused("format.heading", n)
@@ -503,7 +523,8 @@ def record_unit(doc, rid, rtype, title, lines, head_line):
     body = [ln for _, ln, _ in lines[i:]]
     if rtype == "obligation":
         for req in ("scope", "evidence"):
-            if req not in fields:
+            # An empty value is a missing one.
+            if fields.get(req, "").strip() == "":
                 raise Refused("format.field-missing", head_line)
         if "refusal" not in fields:
             doc.find("format.refusal-missing", head_line)
@@ -519,6 +540,9 @@ def item(doc, n, ln, gid, item_ids, new_items, records, rels):
     if b.group(1) not in (" ", "x", "X"):
         raise Refused("format.item", n)
     m = ITEM_RE.fullmatch(ln)
+    if not m and re.search(r"\(i-[^)]*\)(?: — done by .*)?$", ln):
+        # An id group whose id is not `i-` and 3 to 16 lowercase hex digits.
+        raise Refused("format.item", n)
     if not m:
         # READING: a box line whose text does not end in an id group (and an
         # optional `done` suffix) has no id group.
@@ -640,6 +664,9 @@ def read_repository(root: str) -> dict:
     for r in relations:
         t = r["to"]
         if t in known or (t.startswith("war://") and t[6:] in uuids):
+            continue
+        # An extension kind is inert; its target may be outside the repository.
+        if "." in r["kind"]:
             continue
         findings.append(f"format.target-unknown {srcs[r['from']]}:{r['_line']}")
     out_records = [

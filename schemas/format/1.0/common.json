@@ -31,9 +31,13 @@
       "pattern": "^S-[a-z0-9]+(-[a-z0-9]+)*$"
     },
     "itemId": {
-      "description": "Section 5 and Appendix A `item-id`: `i-` and lowercase hex.",
+      "description": "Section 5 and Appendix A `item-id`: `i-` and 3 to 16 lowercase hex digits.",
       "type": "string",
-      "pattern": "^i-[0-9a-f]+$"
+      "pattern": "^i-[0-9a-f]{3,16}$"
+    },
+    "recordType": {
+      "description": "Sections 3.4 and 7.2, Appendix A `record-head`: a record's type, a lowercase word or a dotted extension type (carried with its type; core rules do not apply to it).",
+      "$ref": "#/$defs/name"
     },
     "alias": {
       "description": "Appendix A `alias`: a record-id shaped alias (`OW-WAR-0146`) or `t-` and hex (`t-0d61d`).",

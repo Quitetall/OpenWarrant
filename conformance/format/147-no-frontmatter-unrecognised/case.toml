@@ -1,0 +1,5 @@
+id = "147-no-frontmatter-unrecognised"
+kind = "refuse"
+section = "6"
+rule = "format.unrecognised"
+says = """A document whose first line is not `---` declares no format: `format.unrecognised`, never `format.frontmatter`."""

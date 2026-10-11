@@ -65,7 +65,7 @@ fi
 # Done needs your own claim, and spends it.
 TK_ERR=$(tkw done "$TK2/$TK2_I" --as bob 2>&1 >/dev/null); TK_S=$?
 TK_ERR2=$(tkw done "$TK2/$TK2_J" --as bob 2>&1 >/dev/null); TK_S2=$?
-TK_ERR3=$(tkw done i-zzzz --as bob 2>&1 >/dev/null); TK_S3=$?
+TK_ERR3=$(tkw done i-ffff --as bob 2>&1 >/dev/null); TK_S3=$?
 if [[ $TK_S -eq 2 && $TK_S2 -eq 2 && $TK_S3 -eq 2 ]] && grep -q 'claimed-by-other.*alice' <<<"$TK_ERR" \
     && grep -q 'ticket.not-claimed' <<<"$TK_ERR2" && grep -q 'ticket.unknown' <<<"$TK_ERR3" \
     && ! grep -q '\[x\]' "$PLANT_ROOT/docs/tickets/$TK2/atoms/15-checklist.md"; then
@@ -309,7 +309,7 @@ else
 fi
 TK_CL="$PLANT_ROOT/docs/tickets/$TK2/atoms/15-checklist.md"
 cp "$TK_CL" "$TK_CL.good"
-printf -- '- [y] odd box\n- [ ] duplicate (%s)\n- [ ] waits on nothing (i-0bad, after i-nope)\n- [ ] across (i-0bae, after t-nope)\n' "$TK2_I" >> "$TK_CL"
+printf -- '- [y] odd box\n- [ ] duplicate (%s)\n- [ ] waits on nothing (i-0bad, after i-dead)\n- [ ] across (i-0bae, after t-nope)\n' "$TK2_I" >> "$TK_CL"
 TK_CHK=$(tkw check "$TK2" 2>&1); TK_S=$?
 TK_ALL=$(tkw check 2>&1); TK_S2=$?
 command mv "$TK_CL.good" "$TK_CL"

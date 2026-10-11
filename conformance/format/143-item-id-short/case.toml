@@ -1,0 +1,5 @@
+id = "143-item-id-short"
+kind = "refuse"
+section = "5"
+rule = "format.item"
+says = """An **item id** is `i-` and 3 to 16 lowercase hex digits."""

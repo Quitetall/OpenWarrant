@@ -67,6 +67,11 @@ pub struct Unit {
     pub work: bool,
     /// The global id of the work document holding it, if any.
     pub document: Option<String>,
+    /// The global id of the section it sits in, if any (an item's
+    /// `S-checklist`).
+    pub section: Option<String>,
+    /// `[start, end]` byte offsets of its span in `source`.
+    pub span: [usize; 2],
     /// Repository-relative path, `/`-separated.
     pub source: String,
     /// 1-based line of its heading (or first line).
@@ -225,14 +230,10 @@ pub struct Packet {
 
 // ---- Shapes ----------------------------------------------------------------
 
-/// An item id: `i-` and lowercase hex.
+/// An item id: `i-` and 3 to 16 lowercase hex digits (section 5).
 #[must_use]
 pub fn is_item_id(s: &str) -> bool {
-    s.strip_prefix("i-").is_some_and(|h| {
-        !h.is_empty()
-            && h.bytes()
-                .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
-    })
+    openwarrant_core::ticket::is_item_id(s)
 }
 
 /// The section id slug (section 3.4): ASCII letters lowercased, digits
@@ -726,6 +727,12 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
     let mut all_bytes = base;
     for r in &reached {
         let u = &graph.units[&r.id];
+        // An item whose section is already given in full is there, in its
+        // line: it is `[F]` and costs nothing more (section 10.3).
+        if inside_full(graph, u, &full) {
+            full.insert(r.id.clone());
+            continue;
+        }
         let Some(b) = block(u) else { continue };
         all_bytes += b.len();
         if !stopped && base + body.len() + b.len() <= opts.budget {
@@ -807,13 +814,29 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
     })
 }
 
+/// Whether `u` is an item whose section is already given in full and whose
+/// span lies inside that section's, so its text is already in the packet.
+fn inside_full(graph: &Graph, u: &Unit, full: &BTreeSet<String>) -> bool {
+    u.kind == "item"
+        && u.text.is_some()
+        && u.section.as_ref().is_some_and(|s| {
+            full.contains(s)
+                && graph.units.get(s).is_some_and(|sec| {
+                    sec.source == u.source && sec.span[0] <= u.span[0] && u.span[1] <= sec.span[1]
+                })
+        })
+}
+
 // ---- Index -----------------------------------------------------------------
 
-/// The index (section 10.2), `docs/generated/llms.txt`.
+/// The index (section 10.2), `docs/generated/llms.txt`: each work document
+/// by its own record, every other document by each of its records.
 #[must_use]
 pub fn index(graph: &Graph) -> String {
+    // A work document is one line: its own record. Every unit inside it is
+    // one `war context <alias>` away, so listing them would only repeat it.
     let mut by_source: BTreeMap<&str, Vec<&Unit>> = BTreeMap::new();
-    for u in graph.units.values() {
+    for u in graph.units.values().filter(|u| u.document.is_none()) {
         by_source.entry(u.source.as_str()).or_default().push(u);
     }
     let mut out = format!(

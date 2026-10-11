@@ -198,7 +198,17 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
             continue;
         }
         seen.insert(alias.clone(), source.clone());
-        let doc = format::parse(&bytes);
+        let mut doc = format::parse(&bytes);
+        // §3.3: a document at a work-document path is a work document, so
+        // it declares `alias:`.
+        if !doc.refused() && !doc.unknown() && doc.alias.is_none() {
+            doc.findings.push(format::Finding {
+                outcome: Outcome::Refusal,
+                rule: "format.field-missing",
+                line: 1,
+                message: format!("a work document declares `alias:` (here, {alias})"),
+            });
+        }
         if crate::vfs::is_dir(&path) {
             manifest_restates(repo, &path, &doc, out);
         }
@@ -304,6 +314,15 @@ pub fn check(corpus: &Corpus, report: &mut Report) {
     // A relation to nothing is kept and reported (§3.6).
     if let Ok(model) = crate::model::build(corpus) {
         let ids: BTreeSet<&str> = model.records.iter().map(|r| r.id.as_str()).collect();
+        // `war://<uuid>` is kept as authored and names the work document
+        // with that uuid (§5).
+        let uris: BTreeSet<String> = model
+            .records
+            .iter()
+            .filter(|r| matches!(r.kind.as_str(), "warrant" | "ticket"))
+            .filter_map(|r| r.fields.get("uuid").and_then(|v| v.as_str()))
+            .map(|u| format!("war://{u}"))
+            .collect();
         for d in docs.docs.iter().filter(|d| d.admitted()) {
             let mine: BTreeSet<&str> = model
                 .records
@@ -316,7 +335,12 @@ pub fn check(corpus: &Corpus, report: &mut Report) {
                 .iter()
                 .filter(|r| mine.contains(r.from.as_str()))
             {
-                if !ids.contains(rel.to.as_str()) && !rel.kind.contains('.') {
+                // An extension kind is inert: its target may lie outside the
+                // repository, so it is never reported (§3.6).
+                if !ids.contains(rel.to.as_str())
+                    && !uris.contains(&rel.to)
+                    && !rel.kind.contains('.')
+                {
                     report.push(Diagnostic::warn(
                         "format.target-unknown",
                         place_of(&d.source, rel_line(d, &rel.from, &rel.kind)),
@@ -352,10 +376,19 @@ fn rel_line(d: &Loaded, from: &str, kind: &str) -> usize {
             .find(|r| r.kind == kind)
             .map_or(u.line, |r| r.line);
     }
-    d.doc
+    if let Some(it) = d
+        .doc
         .units
         .iter()
         .flat_map(|u| &u.items)
         .find(|it| it.id.as_deref() == Some(local))
-        .map_or(1, |it| it.line)
+    {
+        return it.line;
+    }
+    // The document's own record: its frontmatter relation key's line.
+    d.doc
+        .relations
+        .iter()
+        .find(|r| r.kind == kind)
+        .map_or(1, |r| r.line)
 }
