@@ -1,0 +1,25 @@
+{
+  "run_id": 38140403895,
+  "job_id": 114472932308,
+  "source_head": "2692fbda1d376b6aa5a8eaffd2fe95f89869a04d",
+  "status": "PASS",
+  "merge_commit": "0d02f12cc7089c3d67b0fd902a1dfa7d30266cfe",
+  "merged_prs": [
+    223,
+    222,
+    216
+  ],
+  "log_sha256": "7ac2d84f910f4c4f4ccb697126b0be77cf74536eb052848325ac346201bedcb2",
+  "qualification_established": false,
+  "summary_lines": [
+    "gate\tcargo xtask gate\t2026-10-11T13:23:13.5829091Z 1610 passed, 0 failed",
+    "gate\tcargo xtask gate\t2026-10-11T13:23:13.6600727Z gate: PASS \u2014 14 step(s) green"
+  ],
+  "gate_steps_green": 14,
+  "counted_plants_passed": 1610,
+  "counted_plants_failed": 0,
+  "limitations": [
+    "Full transcript preserves a native pins refresh observation labeled UNKNOWN and not counted because OW-ADR-0026 is unaccepted",
+    "Passing the repository gate does not establish independent Warrant assurance or Stable qualification"
+  ]
+}

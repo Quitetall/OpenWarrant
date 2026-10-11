@@ -1,0 +1,18 @@
+{
+  "provider_git_head": "735947a6b016f95457067b3aeb992cb3adc98b62",
+  "consumer_git_head": "2692fbda1d376b6aa5a8eaffd2fe95f89869a04d",
+  "sdk_pin": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
+  "passed": true,
+  "changed_inputs": [],
+  "repeat_identical": true,
+  "provider_cases": {
+    "source": true,
+    "conditions": true,
+    "selection": true,
+    "projections": true,
+    "package": true,
+    "budgets": true
+  },
+  "receipt_sha256": "d7a0d8f14b6b02f26e419e7225c254a2dddcf5fca7806a341807a04b7d7feb29",
+  "qualification_established": false
+}

@@ -1,0 +1,50 @@
+{
+  "scope": "real locked local metadata and release notice collector, not full native archive installation",
+  "host": "x86_64-unknown-linux-gnu",
+  "packages": [
+    {
+      "name": "rmcp",
+      "version": "3.5.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "license": "Apache-2.0",
+      "notices": [
+        "licenses/rmcp-3.5.1/LICENSE"
+      ],
+      "upstream_notice": {
+        "file": "rust-sdk-LICENSE",
+        "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+        "source_commit": "79437f291b2c44053d00dcd5db969fd0cca7c887",
+        "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/79437f291b2c44053d00dcd5db969fd0cca7c887/LICENSE"
+      }
+    },
+    {
+      "name": "rmcp-macros",
+      "version": "3.5.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "license": "Apache-2.0",
+      "notices": [
+        "licenses/rmcp-macros-3.5.1/LICENSE"
+      ],
+      "upstream_notice": {
+        "file": "rust-sdk-LICENSE",
+        "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+        "source_commit": "79437f291b2c44053d00dcd5db969fd0cca7c887",
+        "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/79437f291b2c44053d00dcd5db969fd0cca7c887/LICENSE"
+      }
+    }
+  ],
+  "notice_sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+  "source_commit": "79437f291b2c44053d00dcd5db969fd0cca7c887",
+  "refusals": [
+    {
+      "changed_field": "source_commit",
+      "error": "Upstream license provenance mismatch"
+    },
+    {
+      "changed_field": "sha256",
+      "error": "Upstream license provenance mismatch"
+    }
+  ],
+  "override_bytes_restored": true,
+  "qualification_established": false
+}

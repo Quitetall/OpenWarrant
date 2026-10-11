@@ -1,0 +1,10 @@
+{
+  "run_id": 38140403856,
+  "job_id": 114472932083,
+  "source_head": "2692fbda1d376b6aa5a8eaffd2fe95f89869a04d",
+  "log_sha256": "ab63a0eb30b458a460148f61377b5a73ddc44b3af52ae093d0cb278aa8f93e22",
+  "test_summaries": [
+    "workflow\tRun python3 -m unittest discover -s apps/openwarrant-web -v\t2026-10-11T12:48:17.1163764Z Ran 232 tests in 134.705s"
+  ],
+  "qualification_established": false
+}
