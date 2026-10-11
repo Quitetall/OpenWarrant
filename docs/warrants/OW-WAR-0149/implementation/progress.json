@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected native policy and signed CLI ingestion are on main. The context bridge has passed hosted web checks. Workbench capture APIs and automatic draft worker-return transport pass bounded synthetic tests, preserving exact Dispatch/attempt links and refusing cross-attempt receipts without granting assurance. Changed-workspace binding and real provider/human qualification remain.",
+  "summary": "The context bridge is on main. Capture transport passed hosted checks and awaits the required merge gate. Exact committed execution-worktree context and bounded refusal controls pass CLI, staged web and conformance tests; the full local web suite timed out. Runtime-linked resume/repair coverage and real provider/human qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -54,12 +54,13 @@
     "docs/warrants/OW-WAR-0149/implementation/native-command-inventory-20261011/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-schema-pack-20261011/README.md",
     "docs/warrants/OW-WAR-0149/implementation/workbench-dispatch-20261011/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/workbench-captures-20261011/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/workbench-captures-20261011/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/workbench-workspace-20261011/README.md"
   ],
   "next_steps": [
-    "Bind changed resume/repair workspaces to fresh context and captures. Complete real provider, human/production signing and independent qualification; OW95 participants and BLUT contributor agreement remain unavailable.",
+    "Complete fresh runtime-linked resume/repair scenario coverage, real provider/human observations and independent qualification. OW95 participants and BLUT contributor agreement remain unavailable.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "b167f6c3d68b5da7d947d2613559b4bbaa3138d3"
+  "revision": "f0e7cd8d0affbf283d6b32dc67ed5fa3812925e3"
 }

@@ -1,0 +1,52 @@
+[
+  {
+    "path": "workspace-cli-red.log.gz",
+    "uncompressed_sha256": "64f6c479f9e9d39c44804b63b0601e9f8a28a602036c330f23cbf187f60563dc",
+    "uncompressed_bytes": 1564
+  },
+  {
+    "path": "workspace-cli-green.log.gz",
+    "uncompressed_sha256": "832757d22bd07af11e43c99ac4e75837bbb8ce694a1e6ca5e39f6617675c3f4b",
+    "uncompressed_bytes": 523
+  },
+  {
+    "path": "workspace-web-red-checkpoint.log.gz",
+    "uncompressed_sha256": "07b666965d646acf8bfa6e980d72f9a91fea8a3e13eeb988684b59f53cc1470f",
+    "uncompressed_bytes": 3459
+  },
+  {
+    "path": "workspace-web-green.log.gz",
+    "uncompressed_sha256": "59205b8abcb154969445ef0d5d1d15fbf3caaccce728f8e305474c2a44123ae4",
+    "uncompressed_bytes": 268
+  },
+  {
+    "path": "workspace-conformance-protocol-red.log.gz",
+    "uncompressed_sha256": "81fb1b1a3b605f1c612490822d8f57356420a89addfee52053c8cfd3bbe62641",
+    "uncompressed_bytes": 1397
+  },
+  {
+    "path": "workspace-conformance-green.log.gz",
+    "uncompressed_sha256": "5d42683ce89dbfdb695a5c7a68407692f461df51d8644d28aa4ce3b9605b249a",
+    "uncompressed_bytes": 86
+  },
+  {
+    "path": "workspace-all-dispatch-tests.log.gz",
+    "uncompressed_sha256": "0b016670637d1739d387a4c0d25fbd0f19e63e63494f8557c4e41a0f80b4a820",
+    "uncompressed_bytes": 1927
+  },
+  {
+    "path": "workspace-final-clippy.log.gz",
+    "uncompressed_sha256": "79e8cc924c6a247ddffda3fc7a420195c98ad5fc23ec1dc793cece57633e5463",
+    "uncompressed_bytes": 207
+  },
+  {
+    "path": "workspace-full-web.log.gz",
+    "uncompressed_sha256": "7cbfd5a5095610ea5b246ab38f65aa3aa6e49d3e68605c2a3001305da970dd83",
+    "uncompressed_bytes": 16235
+  },
+  {
+    "path": "workspace-governing-question-rerun.log.gz",
+    "uncompressed_sha256": "e117c69dd9e835c52a1f9de783a478b36492f57295fc8e5d9d51bcc87c978495",
+    "uncompressed_bytes": 255
+  }
+]
