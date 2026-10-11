@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0026",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "7a09f75ab53c6def64aef5f188ab079efc66c08b",
+  "summary": "Merged Katana native receipt interface observed on exact upstream revision: eight provider controls and one OpenWarrant capture/current-resolution integration passed. Scripted native Kernel execution only; real coding-agent execution and independent qualification remain.",
+  "notes": "docs/warrants/OW-WAR-0026/implementation/merged-native-20261011/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0026/implementation/merged-native-20261011/observation.json",
+    "docs/warrants/OW-WAR-0026/implementation/merged-native-20261011/native-receipt.log.gz",
+    "docs/warrants/OW-WAR-0026/implementation/merged-native-20261011/openwarrant-native.log.gz"
+  ],
+  "next_steps": [
+    "Qualify real coding-agent execution with current authorized capabilities, taint propagation, provider custody and reliable cost/confinement observations.",
+    "Obtain independent review against the complete approved scope; retain actual authority and historical evidence.",
+    "Install or explicitly configure a trusted native runtime for ordinary workflow use; the isolated test executable does not change host configuration."
+  ]
+}

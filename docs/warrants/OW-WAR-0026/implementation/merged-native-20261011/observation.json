@@ -1,0 +1,53 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "warrant": "OW-WAR-0026",
+  "reported_by": "agent://codex",
+  "openwarrant_head": "7a09f75ab53c6def64aef5f188ab079efc66c08b",
+  "katana_head": "9f2f531e1af29cf07e510c11dd9c6dd9de02d6ef",
+  "katana_source_clean": true,
+  "katana_source_sha256": {
+    "crates/katana/src/openwarrant_receipt.rs": "e9b33f2c3df8c0482315015bb5e4d5f69b0faf38990bc2bac8c0c01019e59253",
+    "crates/katana/examples/openwarrant_fixture_producer.rs": "e0962979f41444933016636b26eeb18aff037edae3e7fecf5ef038efe0474554",
+    "crates/katana/examples/openwarrant_verifier.rs": "f08f31049a1d2a9547662302464797c135c58a63e21228eedfb7100c057d07e9",
+    "crates/katana/tests/openwarrant_receipt.rs": "7c358855eb2383a98ffe519747e57370509725a7a283006b29f2be24166c4f8c",
+    "Cargo.lock": "8dba9800562fa1dfc829d24db5e42ff79b079af6d031c0fdf2abc6c57cddb923"
+  },
+  "katana_rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "binary_sha256": {
+    "katana": "86f6d86cd8390b1a7a1e96b9a45c118d29562bc8dae0ccc7e13ce070468ae74d",
+    "examples/openwarrant_fixture_producer": "0c5952d559f12993c669c26c6a2e18de28f5302f1ec8a7880928f80b7dc018cc",
+    "examples/openwarrant_verifier": "df2ca2532470754ecfd7827b74871202403f1712d2b32aa063bff64ed60148bc"
+  },
+  "native_receipt_tests": {
+    "passed": 8,
+    "failed": 0,
+    "ignored": 1,
+    "seconds": 0.88,
+    "ignored_entry": "sealed_log_transport_child is child-process test instrumentation; parent control invokes it"
+  },
+  "scripted_provider": true,
+  "model_calls": 0,
+  "human_acceptance": false,
+  "independent_verification": false,
+  "real_coding_agent_execution": false,
+  "production_confinement": "unknown",
+  "metered_cost": "unknown",
+  "initial_path_probe": "katana missing",
+  "isolated_preflight_exit_code": 0,
+  "lamu_http_available": false,
+  "native_integration": {
+    "test": "runtime_capture::actual_katana_turn_roundtrips_through_capture_and_current_resolution",
+    "passed": 1,
+    "failed": 0,
+    "filtered": 242,
+    "seconds": 0.47,
+    "rustc": "1.97.1",
+    "assurance_granted": false
+  },
+  "openwarrant_source_sha256": {
+    "crates/openwarrant-cli/src/runtime_capture/katana_process.rs": "074683738abf30adbebf14ed492371690711bb9156484b367e9c7bac43c873ce",
+    "crates/openwarrant-cli/src/runtime_capture/selection.rs": "e64b980ec46c0ae1626718d9a3058de10616e927a9b76cc61e804130e6253f83",
+    "crates/openwarrant-cli/tests/runtime_capture.rs": "3ccc99781e4dcd5c362d803bf9f2d2485aace1996355a222b7b1cb97299b5754",
+    "crates/openwarrant-cli/tests/all.rs": "54431b26ae4fa45bbcf8d38e4f539b99a45224b300782ed02505f9046d07d547"
+  }
+}
