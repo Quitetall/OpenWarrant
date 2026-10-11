@@ -389,12 +389,67 @@ mod tests {
     #[test]
     fn a_minimal_ir_round_trips_through_its_own_canonical_form() {
         let minimal = ir();
-        let json = to_canonical_string(&minimal).expect("canonicalizes");
-        let back: WarIr = serde_json::from_str(&json)
-            .unwrap_or_else(|e| panic!("our own canonical output must deserialize: {e}\n{json}"));
-        assert_eq!(back, minimal);
-        // And re-exporting must reproduce the same bytes (§68.3).
-        assert_eq!(to_canonical_string(&back).expect("canonicalizes"), json);
+        // Keep the omission regression above and exercise the same public codec
+        // with every currently optional section populated (OW-WAR-0030).
+        let mut populated = ir();
+        populated.format_basis.sas_revision = Some("fixture-sas-1".into());
+        populated.format_basis.sas_digest = Some(format!("sha256:{}", "3".repeat(64)));
+        populated.identity.enterprise_id = Some("OH-WAR-000001".into());
+        populated.source_and_composition.atoms.push(SourceAtom {
+            ordinal: 10,
+            role: "intent".into(),
+            jurisdiction: "authored".into(),
+            source: "atoms/10-intent.md".into(),
+            atom_source_digest: format!("sha256:{}", "4".repeat(64)),
+            required: true,
+        });
+        populated.source_and_composition.scope = Some(SourceScope {
+            source: "scope.toml".into(),
+            scope_source_digest: format!("sha256:{}", "5".repeat(64)),
+        });
+        populated.relations.implements.push(ImplementsEdge {
+            r#ref: "sas://WAR-SAS-RQ-083".into(),
+            contribution: Some("complete".into()),
+        });
+        populated
+            .relations
+            .roadmap
+            .push("roadmap://fixture/portable".into());
+        populated.relations.parents.push(ParentEdge {
+            r#ref: "war://01a018db-19fc-7f34-92db-54b2dca5446d".into(),
+            contract_revision: 2,
+            contract_digest: Some(format!("sha256:{}", "6".repeat(64))),
+        });
+        populated.execution = Some(serde_json::json!({
+            "attempt": 1, "notes": "line one\r\nline two — café"
+        }));
+        populated.assurance_case = Some(serde_json::json!({
+            "obligations": [{"id": "OBL-001", "disposition": "unknown"}]
+        }));
+        populated.resolution = Some(serde_json::json!({
+            "fixture_history": ["superseded", "disputed", "annulled"]
+        }));
+        populated.extensions = Some(serde_json::json!({
+            "x.fixture": {"nested": [true, null, {"text": "保留"}]}
+        }));
+
+        for (case, expected) in [("minimal", minimal), ("populated", populated)] {
+            let json = to_canonical_string(&expected).expect("canonicalizes");
+            let back: WarIr = serde_json::from_str(&json).unwrap_or_else(|e| {
+                panic!("{case}: our own canonical output must deserialize: {e}\n{json}")
+            });
+            assert_eq!(back, expected, "{case}: no populated field may disappear");
+            assert_eq!(to_canonical_string(&back).expect("canonicalizes"), json);
+
+            // Required identity remains required in both shapes. Optional
+            // absence is valid; loss of the required identity is not.
+            let mut missing_identity: serde_json::Value =
+                serde_json::from_str(&json).expect("canonical JSON");
+            missing_identity.as_object_mut().unwrap().remove("identity");
+            let error = serde_json::from_value::<WarIr>(missing_identity)
+                .expect_err("a canonical IR without its identity must be refused");
+            assert!(error.to_string().contains("identity"), "{case}: {error}");
+        }
     }
 
     /// §91.1 test 5: unknown namespaced extensions survive a round trip.
