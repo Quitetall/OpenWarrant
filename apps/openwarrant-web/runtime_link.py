@@ -44,7 +44,7 @@ def validate(link, stages):
         raise ValueError("Invalid exact workbench runtime link")
 
 
-def prepare(sdk, directory, link, stage, attempt, read_file, decode, deadline):
+def prepare(sdk, directory, link, stage, attempt, read_file, decode, deadline, source_workspace=None):
     # The caller supplies only configured values and a service-minted attempt.
     # No browser-selected path, policy, identity or executable enters this call.
     directory.mkdir(mode=0o700)
@@ -76,6 +76,8 @@ def prepare(sdk, directory, link, stage, attempt, read_file, decode, deadline):
     arguments = [link["warrant"], link["stages"][stage],
                  "--expected-warrant", link["warrant_uuid"], "--expected-contract", link["contract_digest"],
                  "--emit", str(packet), "--emit-context", str(manifest)]
+    if source_workspace is not None:
+        arguments.extend(["--source-workspace", str(source_workspace)])
     if link["prototype"]:
         arguments.append("--prototype")
     call("dispatch", arguments)
@@ -85,8 +87,11 @@ def prepare(sdk, directory, link, stage, attempt, read_file, decode, deadline):
             or dispatch.get("contract_digest") != link["contract_digest"]
             or dispatch.get("stage_id") != link["stages"][stage]):
         raise RuntimeLinkError("unknown", "Prepared Dispatch differs from configured subject")
-    created = call("dispatch-bundle", ["create", link["warrant"], "--dispatch", str(packet),
-                                     "--context", str(manifest), "--emit", str(bundle)])
+    bundle_arguments = ["create", link["warrant"], "--dispatch", str(packet),
+                        "--context", str(manifest), "--emit", str(bundle)]
+    if source_workspace is not None:
+        bundle_arguments.extend(["--source-workspace", str(source_workspace)])
+    created = call("dispatch-bundle", bundle_arguments)
     result = created.get("result")
     if (not isinstance(result, dict) or result.get("execution_authorized") is not False
             or not isinstance(result.get("bundle_digest"), str)

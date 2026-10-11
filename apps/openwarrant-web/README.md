@@ -145,8 +145,20 @@ it sends and refuses a change after SDK validation. Raw bundles are limited to
 64 MiB; encoded transport to 1 MiB. Run records retain the binding without copying
 the large encoded payload.
 
-This first bridge requires repository HEAD and execution worktree HEAD to match.
-It does not yet compile a fresh binding for changed resume/repair workspaces.
+Each attempt prepares fresh context from its clean, committed execution worktree.
+The SDK's `--source-workspace PATH` option on `war dispatch` and
+`war dispatch-bundle create` selects that checkpoint. It must belong to the same
+local Git repository and contain the exact current Warrant compilation basis.
+Changed contracts and dirty checkpoints refuse; unavailable observations stay
+unknown. The paired subject pins still apply. Authority checks, retained
+Dispatches, compilation events and runtime captures remain in the original
+project. No source workspace can replace that project's authority configuration.
+
+Worktree code and context can advance between stages without moving repository
+HEAD. The portable bundle retains the selected checkpoint's exact bytes and
+source revisions. Packaging refuses a later checkpoint substituted into an old
+context manifest. Resume and repair use the same attempt preparation path;
+retained work and context never become an assurance mark by themselves.
 Experimental receipt attachment and automatic result transport are described below. Known SDK refusal
 stops before worker launch; an unavailable or contradictory observation stays
 unknown. Portable context does not grant capability permissions, prove sandbox

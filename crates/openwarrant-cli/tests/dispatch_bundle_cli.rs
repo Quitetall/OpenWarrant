@@ -1018,3 +1018,133 @@ fn caller_pinned_dispatch_subject_refuses_different_warrant_and_contract_without
     assert_eq!(selected["contract_digest"], baseline["contract_digest"]);
     assert!(context.exists());
 }
+
+#[test]
+fn execution_checkpoint_context_packages_changed_worktree_bytes_offline() {
+    let root = fixture("worktree-checkpoint");
+    let repo = root.join("repo");
+    let graph = repo.join("docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml");
+    fs::write(
+        &graph,
+        fs::read_to_string(&graph).unwrap().replace(
+            "executor_ref: \"agent://fixture\"",
+            "executor_ref: \"agent://fixture\"\n    context_artifacts: [\"notes.md\"]",
+        ),
+    )
+    .unwrap();
+    let old = "---\nclassification: internal\n---\nCheckpoint one.\n";
+    let expected = "---\nclassification: internal\n---\nCheckpoint two.\n";
+    fs::write(repo.join("notes.md"), old).unwrap();
+    let git = |dir: &Path, args: &[&str]| {
+        let out = Command::new("git")
+            .current_dir(dir)
+            .args([
+                "-c",
+                "core.hooksPath=/dev/null",
+                "-c",
+                "user.name=Fixture",
+                "-c",
+                "user.email=fixture@example.invalid",
+            ])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).unwrap().trim().to_owned()
+    };
+    git(&repo, &["init", "-q"]);
+    git(&repo, &["add", "."]);
+    git(&repo, &["commit", "-qm", "initial"]);
+    let workspace = root.join("workspace");
+    git(
+        &repo,
+        &[
+            "worktree",
+            "add",
+            "--detach",
+            workspace.to_str().unwrap(),
+            "HEAD",
+        ],
+    );
+    fs::write(workspace.join("notes.md"), expected).unwrap();
+    git(&workspace, &["add", "notes.md"]);
+    git(&workspace, &["commit", "-qm", "checkpoint"]);
+    let checkpoint = git(&workspace, &["rev-parse", "HEAD"]);
+    assert_ne!(checkpoint, git(&repo, &["rev-parse", "HEAD"]));
+    let d = root.join("dispatch.json");
+    let c = root.join("context.json");
+    let out = war(
+        &repo,
+        &[
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--prototype",
+            "--source-workspace",
+            workspace.to_str().unwrap(),
+            "--emit",
+            d.to_str().unwrap(),
+            "--emit-context",
+            c.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let context: serde_json::Value = serde_json::from_slice(&fs::read(&c).unwrap()).unwrap();
+    let selected = context["included"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|i| i["id"] == "notes.md")
+        .unwrap();
+    assert_eq!(selected["holder"]["commit_sha"], checkpoint);
+    let b = root.join("bundle.json");
+    let out = create(
+        &root,
+        &d,
+        &c,
+        &b,
+        &["--source-workspace", workspace.to_str().unwrap()],
+    );
+    assert!(
+        out.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let digest = report["result"]["bundle_digest"].as_str().unwrap();
+    git(&repo, &["worktree", "remove", workspace.to_str().unwrap()]);
+    fs::remove_dir_all(&repo).unwrap();
+    let out = war(
+        &root,
+        &[
+            "dispatch-bundle",
+            "check",
+            b.to_str().unwrap(),
+            "--expected-digest",
+            digest,
+            "--read",
+            "notes.md",
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(report["result"]["content"], expected);
+    assert_eq!(report["result"]["execution_authorized"], false);
+    fs::remove_dir_all(root).unwrap();
+}
