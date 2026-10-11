@@ -43,3 +43,12 @@ Full-suite/hosted checks remain separate gates. Actual provider seals, productio
 custody/spend/confinement, changed-workspace context, independent qualification
 and real study participants remain open. OW149 is in progress; OW95 has no
 participants. Synthetic receipts remain labeled and unqualified.
+
+The complete managed web run at `ed959842` finished 227 tests in 468.168
+seconds with one failure and one error (exit status 1). All four new capture
+tests passed. The failures were a board response of HTTP 503 (SDK unavailable
+or timed out) and a connection lost while creating the initial draft for the
+concurrent-edit test. The full suite did not pass. A focused rerun finished two
+tests with one server-startup-unavailable failure; assertions and timeouts were
+unchanged. Hosted checks remain required; unavailable local observations are
+not promoted to a full pass.
