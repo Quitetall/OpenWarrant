@@ -89,7 +89,7 @@ pub const SETTLE: Duration = Duration::from_secs(2);
 
 /// The cache's own format. Any change to what an entry holds or how it is
 /// laid out changes this; a shard of another format is refused.
-const FORMAT: u32 = 1;
+const FORMAT: u32 = 2;
 const MAGIC: &[u8; 8] = b"OWTCACHE";
 /// Shards per store: a changed ticket rewrites one shard, not the cache.
 const SHARDS: usize = 64;
@@ -841,6 +841,7 @@ impl Writer {
             issue_url,
             imported_from,
             due,
+            summary,
             atoms,
         } = m;
         for s in [schema, id, uuid, title, profile] {
@@ -866,6 +867,7 @@ impl Writer {
         self.opt(issue_url.as_deref());
         self.opt(imported_from.as_deref());
         self.opt(due.as_deref());
+        self.opt(summary.as_deref());
         self.u32(u32::try_from(atoms.len()).unwrap_or(u32::MAX));
         for a in atoms {
             let TicketAtom {
@@ -962,6 +964,7 @@ impl<'a> Reader<'a> {
         let issue_url = self.opt()?;
         let imported_from = self.opt()?;
         let due = self.opt()?;
+        let summary = self.opt()?;
         let n = self.u32()?;
         let mut atoms = Vec::new();
         for _ in 0..n {
@@ -988,6 +991,7 @@ impl<'a> Reader<'a> {
             issue_url,
             imported_from,
             due,
+            summary,
             atoms,
         })
     }
@@ -1015,6 +1019,7 @@ mod tests {
             issue_url: Some("https://example.invalid/42".into()),
             imported_from: Some("beads:bd-1".into()),
             due: Some("2026-12-01".into()),
+            summary: Some("one line".into()),
             atoms: vec![TicketAtom {
                 ordinal: 10,
                 role: "intent".into(),

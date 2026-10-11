@@ -135,7 +135,7 @@ and anything else is read from the files. `OPENWARRANT_NO_CACHE=1` turns it
 off, `OPENWARRANT_CACHE_TRACE=1` says what each run took from it, and `war
 admin doctor` says where it is. A file changed less than two seconds ago is
 never cached, so a corpus just copied (`--corpus`, `cp -a`) is read from its
-files until it settles; the plant is `conformance/plants.d/177-ticket-cache.sh`. The signed path at scale is
+files until it settles; the plant is `conformance/plants.d/180-ticket-cache.sh`. The signed path at scale is
 the separate 1,000-Warrant budget in `docs/RETENTION.md`.
 
 ## Commit messages

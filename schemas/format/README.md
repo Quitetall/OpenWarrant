@@ -52,7 +52,7 @@ python3 conformance/schemas/format_schemas.py              # jsonschema 4.26.0
 python3 conformance/schemas/format_schemas.py --legacy-report
 ```
 
-It runs in the gate as the plant `conformance/plants.d/177-format-schemas.sh`.
+It runs in the gate as the plant `conformance/plants.d/182-format-schemas.sh`.
 It fails by name when a frozen record of `docs/COMPATIBILITY.md` (or of
 `FROZEN` in `crates/openwarrant-cli/src/compat.rs`) has no registered schema,
 when a schema file's `$id` is not in the registry, or when a registry entry's
