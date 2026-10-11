@@ -3,6 +3,7 @@
 //! Source reads are bounded and descriptor-relative; publication never replaces
 //! a retained object. Local checksums establish byte identity, not authenticity.
 pub mod activated_verifier;
+mod binding;
 pub mod blut_process;
 pub mod collector_loading;
 pub mod collector_signature;
@@ -14,6 +15,7 @@ pub mod protected_executable;
 pub mod protected_input;
 pub mod protected_job;
 mod recorded;
+pub use binding::binding;
 mod selection;
 pub(crate) use selection::render as render_assessment;
 pub use selection::{
@@ -47,6 +49,8 @@ const INLINE_LIMIT: usize = 6 * 1024 * 1024;
 
 #[derive(clap::Subcommand)]
 pub enum Command {
+    /// Export the current recorded binding in its provider format. Read-only; does not establish permission or execution eligibility.
+    Binding { alias: String, dispatch_id: String },
     /// Capture exact bytes against a retained dispatch and its compile event; native eligibility remains unknown without a provider adapter.
     Import {
         alias: String,
@@ -547,6 +551,7 @@ pub fn inspect_retained(bytes: &[u8], alias: &str, digest: &str) -> Result<Value
 
 pub fn run(repo: &Repository, command: Command) -> (Report, Value) {
     let result = match command {
+        Command::Binding { alias, dispatch_id } => binding(repo, &alias, &dispatch_id),
         Command::Import { alias, request } => (|| {
             let bytes = read(repo, &request, REQUEST_LIMIT)?;
             let value = decode(&bytes)?;
@@ -617,7 +622,7 @@ pub fn run(repo: &Repository, command: Command) -> (Report, Value) {
                 ),
                 _ => Diagnostic::pass(
                     "runtime.capture",
-                    "source-bound capture operation completed; native standing is separate",
+                    "source-bound runtime operation completed; native standing is separate",
                 ),
             };
             report.push(diagnostic);

@@ -63,3 +63,7 @@ exists in this checkout; it does not grant assurance or establish a verdict.
 ## Public Katana bound one-shot CLI
 
 [CLI observations and retained red/green controls](katana-cli-20261011/README.md): six CLI and eight native receipt tests pass; draft Katana PR 14. Participant acceptance and real-agent qualification remain open.
+
+## Source-checked native binding export
+
+[SDK/CLI binding observations](runtime-binding-20261011/README.md): 34 runtime tests, seven compiler controls and an actual scripted Katana native roundtrip passed. Native field mismatch and corrected source evidence are retained. This is not participant acceptance or real-provider qualification.
