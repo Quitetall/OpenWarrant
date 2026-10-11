@@ -1,0 +1,27 @@
+{
+  "performer": "agent://codex",
+  "implementation_source": "2de4bf6d902cbed7289d6398810a9a0d5f0722ad",
+  "frozen_external_source": "0e0e04a7a6cff7901c073c27cc233d9af9f11664",
+  "artifact_sha256": "e94b25967116020997bc84cab792dbb7979d5c3ceef0942c9b8fc8c9617ce593",
+  "artifact_matches_existing_golden_bytes": true,
+  "adr_count": 173,
+  "body_differences": 0,
+  "full_source_differences": 0,
+  "historical_claims": 82,
+  "legacy_gate_occurrences": 101,
+  "promoted_resolutions": 0,
+  "unmapped_heading_names": 227,
+  "promotion_refusal_exit": 1,
+  "promotion_artifact_written": false,
+  "isolated_controls": {
+    "pass": 3,
+    "fail": 0
+  },
+  "existing_parent_controls_hosted_source": "47cc456348ae0ebe4291177647b6f563fb191c21",
+  "existing_parent_controls_pass": 6,
+  "replay_binary_version": "war 1.0.0-alpha.3 (unreleased, commit 77c07a58a68b, dirty, debug)",
+  "replay_binary_sha256": "4851a22629dcd8435e42627951f09dba2135cb5242bcfb6a0aa6ebf5e9b07c21",
+  "current_crates_tree_equals": "8f777d38d84e7ef96dab6b2c54352453f02559ff",
+  "independent_verification": false,
+  "unmapped_human_dispositions_recorded": false
+}

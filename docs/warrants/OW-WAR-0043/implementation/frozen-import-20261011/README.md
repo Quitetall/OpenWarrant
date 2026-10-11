@@ -1,0 +1,11 @@
+# OW43 frozen LamQuant migration
+
+The actual historical corpus was exported from LamQuant Git source `0e0e04a7a6cff7901c073c27cc233d9af9f11664` before importing. Today's LamQuant working tree was neither migrated nor edited. The archived source retains `docs/decisions/` and its original structure in project evidence storage.
+
+The actual CLI import and verify returned zero. The result is byte-identical to `artifacts/lamquant-adr-import.json`: 173 ADRs, 82 historical claims, 101 declared-unqualified gate occurrences, zero promoted resolutions and zero preservation failures. Each original file was compared against its Git blob, and every imported body and SHA-256 against that source: zero differences across all 173, not a sample. The retained artifact remains unchanged.
+
+The actual `--attempt-promotion` returned one, named `0057-training-campaign-plan.md` and explained the historical-claim refusal. No requested output artifact was written. The core refusal variant is `LegacyCompletionPromoted`; the CLI exposes it through its existing `cli.error` envelope and explanatory message.
+
+The six existing parent/child entries passed in hosted source `47cc456348ae0ebe4291177647b6f563fb191c21`. A seventh, separately named original-rationale attack was added at source `2de4bf6d902cbed7289d6398810a9a0d5f0722ad`. It places an explicit child alias/outcome into the parent's original-intent explanation, observes `relations.parent-source`, and proves the original parent bytes are restored. The isolated clean clone passed its corpus control, this attack and restoration control: three PASS, zero FAIL. This is a bounded explicit-reference attack; it does not claim general semantic detection of arbitrary prose. The actual binary identity is retained; current crates equal focused-test source `8f777d38d84e7ef96dab6b2c54352453f02559ff`.
+
+The artifact contains 227 distinct unmapped heading names. No human disposition for them is fabricated. Gate-command occurrences differ from some old basis prose; the exact reproduced artifact and parser output are reported rather than rewriting the historical explanation. Pending: authorized dispositions for unmapped elements, independent assessment and formal phase-exit/resolution acts. Performer observations do not clear those acts.
