@@ -1850,7 +1850,40 @@ impl ReadyRow {
 /// The ready set: open, unclaimed (or stale), unblocked items, and tickets
 /// with no items that nobody holds. Most urgent, then oldest, first.
 pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, RepoError> {
-    let claims = store.claims()?;
+    ready_rows_with(store, tickets, store.claims()?)
+}
+
+/// Every claim now held, by lock file name ([`Store::claims`]).
+pub type Claims = BTreeMap<String, Option<claim::Claim>>;
+
+/// `f`, with [`Store::claims`] read meanwhile: on the disk on a thread of
+/// its own, elsewhere after `f`. The two are separate reads, and a caller
+/// takes `f`'s error before the claims', as when they were read in turn.
+pub fn with_claims<T>(store: &Store, f: impl FnOnce() -> T) -> (T, Result<Claims, RepoError>) {
+    if !crate::vfs::is_disk() {
+        let t = f();
+        return (t, store.claims());
+    }
+    std::thread::scope(|scope| {
+        let reading = std::thread::Builder::new()
+            .spawn_scoped(scope, || store.claims())
+            .ok();
+        let t = f();
+        let claims = match reading.map(|h| h.join()) {
+            Some(Ok(claims)) => claims,
+            Some(Err(panic)) => std::panic::resume_unwind(panic),
+            None => store.claims(),
+        };
+        (t, claims)
+    })
+}
+
+/// [`ready_rows`] over claims already read.
+pub fn ready_rows_with(
+    store: &Store,
+    tickets: &[Ticket],
+    claims: Claims,
+) -> Result<Vec<ReadyRow>, RepoError> {
     let now = now_secs();
     // A claim leaves its item in the ready set when its lease ran out (a
     // plain claim takes it) or it is past the TTL (`--steal` takes it).
@@ -1974,8 +2007,10 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
 pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Outcome, RepoError> {
     let human_too = !matches!(mode, Some(crate::output::Mode::Json));
     let json_too = !matches!(mode, Some(crate::output::Mode::Human));
-    let (tickets, faults) = store.load_all()?;
-    let rows = ready_rows(store, &tickets)?;
+    // The claims are read while the tickets are (`with_claims`).
+    let (loaded, claims) = with_claims(store, || store.load_all());
+    let (tickets, faults) = loaded?;
+    let rows = ready_rows_with(store, &tickets, claims?)?;
     let mut human = String::new();
     if human_too && rows.is_empty() {
         // M9: the same plain first line `war next` prints; ordinary work
