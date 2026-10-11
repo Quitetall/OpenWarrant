@@ -1212,6 +1212,9 @@ fn named(text: &str) -> (String, Vec<String>) {
 #[derive(Debug, Clone, Default)]
 pub struct CreateArgs {
     pub title: String,
+    /// Format 1.0 section 10.1: one line, at most 200 bytes, saying what the
+    /// work is for. Written to the manifest's `summary` when given.
+    pub summary: Option<String>,
     pub items: Vec<String>,
     pub body: Option<String>,
     pub priority: Option<u8>,
@@ -1343,6 +1346,24 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
             "a Warrant needs a title: `war create \"what this work accomplishes\"`",
         ));
     }
+    let summary = args
+        .summary
+        .as_deref()
+        .map(ticket::one_line)
+        .filter(|s| !s.is_empty());
+    if let Some(s) = &summary
+        && s.len() > crate::context::format1::SUMMARY_MAX
+    {
+        return Ok(Outcome::refused(
+            "ticket.summary",
+            String::new(),
+            format!(
+                "a summary is one line of at most {} bytes; this one is {}. Say what the work is for, and put the rest in --body",
+                crate::context::format1::SUMMARY_MAX,
+                s.len()
+            ),
+        ));
+    }
     let priority = args.priority.unwrap_or(DEFAULT_PRIORITY);
     if priority > 4 {
         return Ok(Outcome::refused(
@@ -1423,6 +1444,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         id: id.clone(),
         uuid: uuid.clone(),
         title: title.clone(),
+        summary,
         profile: TICKET_PROFILE.to_owned(),
         priority,
         created_at: rfc3339(now),

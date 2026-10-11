@@ -953,6 +953,9 @@ pub fn run(
             projections.extend(sas_normative(repo)?);
             projections.extend(sas_sections(repo)?);
         }
+        // Format 1.0 section 10.2: the index an agent reads before it asks
+        // `war context <id>` for any line of it.
+        projections.push(crate::context::index_file(&shared)?);
         // Last: the master document reads what the others read, and the
         // queue it carries is judged by the dry run (OW-ADR-0022).
         projections.extend(master_documents_with(&shared)?);
