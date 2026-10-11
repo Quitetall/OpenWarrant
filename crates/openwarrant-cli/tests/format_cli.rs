@@ -509,3 +509,124 @@ uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4f\nsummary: s\n---\n# Reset email\n\n##
     );
     std::fs::remove_dir_all(&root).ok();
 }
+
+/// `war://<uuid>` stays as authored, in the relation and in the record's
+/// `content_digest`, and is not reported unknown while a work document has
+/// that uuid. Refused: a uuid no document has is reported.
+#[test]
+fn a_war_uri_target_is_kept_as_authored() {
+    let root = scratch("waruri");
+    let uuid = "01a0d342-ee5e-7b71-9623-f2d8cd5acd4e";
+    write_single(&root, &single_file(uuid, "", "one run"));
+    let dir = root.join("docs/tickets");
+    std::fs::create_dir_all(&dir).unwrap();
+    let ticket = |target: &str| {
+        format!(
+            "---\nformat: openwarrant/1.0\nprofile: ticket\nalias: t-0d61d\n\
+uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4f\nsummary: s\nimplements: {target}\n---\n# Reset email\n\n\
+## Checklist\n- [ ] Email template (i-4d11)\n"
+        )
+    };
+    std::fs::write(dir.join("t-0d61d.md"), ticket(&format!("war://{uuid}"))).unwrap();
+    let m = model(&root);
+    assert!(
+        m["relations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["from"] == "t-0d61d"
+                && r["kind"] == "implements"
+                && r["to"] == format!("war://{uuid}")),
+        "{}",
+        m["relations"]
+    );
+    let (_, diags) = check(&root);
+    assert!(
+        !diags.iter().any(|d| d.1 == "format.target-unknown"),
+        "{diags:?}"
+    );
+    // Renaming the target's alias does not move the ticket's digest.
+    let before = record(&m, "t-0d61d").unwrap()["content_digest"].clone();
+    let renamed = single_file(uuid, "", "one run").replace("FT-WAR-0002", "FT-WAR-0009");
+    std::fs::remove_file(root.join("docs/warrants/FT-WAR-0002.md")).unwrap();
+    std::fs::write(root.join("docs/warrants/FT-WAR-0009.md"), renamed).unwrap();
+    let m2 = model(&root);
+    assert_eq!(record(&m2, "t-0d61d").unwrap()["content_digest"], before);
+
+    // The control: a uuid no document has is reported.
+    std::fs::write(
+        dir.join("t-0d61d.md"),
+        ticket("war://01a0d342-ee5e-7b71-9623-000000000000"),
+    )
+    .unwrap();
+    let (_, diags) = check(&root);
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.1 == "format.target-unknown" && d.2 == "docs/tickets/t-0d61d.md:7"),
+        "{diags:?}"
+    );
+    std::fs::remove_dir_all(&root).ok();
+}
+
+/// A record document has its own record, `doc:<path>`, of type `document`,
+/// carrying its frontmatter; its records are `part_of` it, outside their
+/// `content_digest`. Refused: a document at a work path with no `alias` is
+/// `format.field-missing`, and one with no frontmatter `format.unrecognised`.
+#[test]
+fn a_record_document_has_its_own_record() {
+    let root = scratch("docrec");
+    let dir = root.join("docs/records/product");
+    std::fs::create_dir_all(&dir).unwrap();
+    let text = "---\nformat: openwarrant/1.0\nprofile: prd\nsummary: What reset must do.\n\
+x.owner: identity\n---\n# Password reset\n\nWhat a user can do.\n\n\
+## REQ-pr1 · requirement — reset by email\n\nThe link expires.\n";
+    std::fs::write(dir.join("reset.md"), text).unwrap();
+    let m = model(&root);
+    let id = "doc:docs/records/product/reset.md";
+    let d = record(&m, id).unwrap_or_else(|| panic!("{}", m["records"]));
+    assert_eq!(d["type"], "document");
+    assert_eq!(d["title"], "Password reset");
+    assert_eq!(d["fields"]["profile"], "prd");
+    assert_eq!(d["ext"]["x.owner"], "identity");
+    assert!(d["fields"].get("format").is_none());
+    assert!(
+        m["relations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["from"] == "REQ-pr1" && r["kind"] == "part_of" && r["to"] == id)
+    );
+    // Containment is outside the digest: moving the record to another
+    // document of the same profile leaves its digest.
+    let req = record(&m, "REQ-pr1").unwrap()["content_digest"].clone();
+    std::fs::rename(dir.join("reset.md"), dir.join("other.md")).unwrap();
+    let m2 = model(&root);
+    assert_eq!(record(&m2, "REQ-pr1").unwrap()["content_digest"], req);
+
+    let wdir = root.join("docs/warrants");
+    let w = single_file("01a0d342-ee5e-7b71-9623-f2d8cd5acd4e", "", "one run");
+    std::fs::write(
+        wdir.join("FT-WAR-0002.md"),
+        w.replace("alias: FT-WAR-0002\n", ""),
+    )
+    .unwrap();
+    let (code, diags) = check(&root);
+    assert_eq!(code, 2, "{diags:?}");
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.1 == "format.field-missing" && d.2 == "docs/warrants/FT-WAR-0002.md:1"),
+        "{diags:?}"
+    );
+    let body = &w[w.find("# ").unwrap()..];
+    std::fs::write(wdir.join("FT-WAR-0002.md"), body).unwrap();
+    let (_, diags) = check(&root);
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.1 == "format.unrecognised" && d.2 == "docs/warrants/FT-WAR-0002.md:1"),
+        "{diags:?}"
+    );
+    std::fs::remove_dir_all(&root).ok();
+}

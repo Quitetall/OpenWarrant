@@ -1,0 +1,10 @@
+{
+  "why": "section 5: an item id is `i-` and 3 to 16 lowercase hex digits",
+  "expect": "@id pattern",
+  "instance": {
+    "id": "i-7",
+    "done": false,
+    "text": "Rate limit",
+    "after": []
+  }
+}

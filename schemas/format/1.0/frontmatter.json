@@ -32,6 +32,10 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
     },
+    "implements": { "$ref": "#/$defs/relationTargets" },
+    "depends_on": { "$ref": "#/$defs/relationTargets" },
+    "supersedes": { "$ref": "#/$defs/relationTargets" },
+    "part_of": { "$ref": "#/$defs/relationTargets" },
     "requires": {
       "description": "Section 7.3: extension names a reader must understand. Each is a dotted (extension) name.",
       "type": "array",
@@ -67,7 +71,7 @@
       }
     },
     {
-      "description": "Section 3.3: the built-in `ticket` profile declares `type`, `priority`, `labels`, `created_at`, `created_by` and `imported_from`.",
+      "description": "Section 3.3: the built-in `ticket` profile declares `type`, `priority`, `labels`, `created_at`, `created_by`, `imported_from`, `promoted_to`, `issue`, `issue_url` and `due`.",
       "if": { "required": ["profile"], "properties": { "profile": { "const": "ticket" } } },
       "then": {
         "properties": {
@@ -97,7 +101,18 @@
             "$comment": "crates/openwarrant-core/src/ticket.rs `imported_from` (`beads:bd-a1b2`, `openspec:add-2fa`).",
             "type": "string",
             "pattern": "^[a-z][a-z0-9_-]*:\\S+$"
-          }
+          },
+          "promoted_to": {
+            "description": "The alias of the Warrant the ticket was promoted to.",
+            "$ref": "common.json#/$defs/alias"
+          },
+          "issue": {
+            "description": "The number of the tracker issue the ticket mirrors.",
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "issue_url": { "type": "string", "pattern": "^https?://\\S+$" },
+          "due": { "$ref": "common.json#/$defs/date" }
         }
       }
     },
@@ -109,7 +124,14 @@
   ],
   "$defs": {
     "coreKey": {
-      "enum": ["format", "profile", "alias", "uuid", "summary", "paths", "requires"]
+      "enum": ["format", "profile", "alias", "uuid", "summary", "paths", "requires", "implements", "depends_on", "supersedes", "part_of"]
+    },
+    "relationTargets": {
+      "description": "Section 3.3: a relation of the document's own record (`implements`, `depends_on`, `supersedes`, `part_of`), not a field: one target, `, `-separated targets, or a list. A target that does not parse is refused (`format.relation-target`).",
+      "anyOf": [
+        { "type": "string", "pattern": "^\\S+(, \\S+)*$" },
+        { "type": "array", "items": { "type": "string", "pattern": "^\\S+$" } }
+      ]
     },
     "knownKeysUnder10": {
       "$comment": "A profile other than the three built-in ones declares its own undotted keys. Profile files (oh.war/profile/v1) have no member that declares frontmatter keys yet, so nothing narrower is said for them here.",
@@ -141,7 +163,7 @@
               "anyOf": [
                 { "$ref": "common.json#/$defs/dotted" },
                 { "$ref": "#/$defs/coreKey" },
-                { "enum": ["type", "priority", "labels", "created_at", "created_by", "imported_from"] }
+                { "enum": ["type", "priority", "labels", "created_at", "created_by", "imported_from", "promoted_to", "issue", "issue_url", "due"] }
               ]
             }
           }

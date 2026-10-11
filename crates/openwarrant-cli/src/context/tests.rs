@@ -508,7 +508,10 @@ fn tokens_are_four_bytes() {
 fn the_index_groups_by_source_with_the_documents_summary() {
     let idx = index(&sample());
     assert!(idx.starts_with("# demo\n\n> OpenWarrant index (openwarrant/1.0). Generated; do not edit. Read any line's record with `war context <id>`.\n\n## docs/records/a/10.md\n> -\n- REQ-a · requirement · - · title of REQ-a · docs/records/a/10.md:3\n"));
-    assert!(idx.contains("\n## docs/warrants/W-1.md\n> What W is for\n- W-1 · warrant · draft · title of W-1 · docs/warrants/W-1.md:1\n- W-1/S-intent"));
+    // A work document is its own record only; its units are not repeated.
+    assert!(idx.contains("\n## docs/warrants/W-1.md\n> What W is for\n- W-1 · warrant · draft · title of W-1 · docs/warrants/W-1.md:1\n"));
+    assert!(!idx.contains("W-1/S-intent"), "{idx}");
+    assert!(!idx.contains("t-ab/i-9c01"), "{idx}");
     // The ticket has no summary: its title stands in.
     assert!(idx.contains("\n## docs/tickets/t-ab.md\n> title of t-ab\n"));
     assert_eq!(idx, index(&sample()));
@@ -537,4 +540,75 @@ fn shapes() {
     let t = cut_title(&long);
     assert!(t.ends_with('…') && t.len() <= 120 + '…'.len_utf8());
     assert_eq!(cut_title("short"), "short");
+}
+
+/// A ticket whose checklist section holds its item: the section's span
+/// contains the item's line.
+fn checklist() -> Graph {
+    let mut g = Graph::default();
+    let src = "docs/tickets/t-cd.md";
+    let text = "---\nalias: t-cd\n---\n# T\n\n## Checklist\n- [ ] one thing to do (i-aa01)\n- [ ] another (i-aa02)\n";
+    let at = |s: &str| text.find(s).unwrap();
+    let mut t = unit("t-cd", "ticket", src, 1, &text[..at("## Checklist")]);
+    t.work = true;
+    t.document = None;
+    t.span = [0, at("## Checklist")];
+    g.add(t);
+    let mut sec = unit(
+        "t-cd/S-checklist",
+        "section",
+        src,
+        6,
+        &text[at("## Checklist")..],
+    );
+    sec.span = [at("## Checklist"), text.len()];
+    g.add(sec);
+    for (id, line, l) in [
+        ("i-aa01", 7, "- [ ] one thing to do (i-aa01)\n"),
+        ("i-aa02", 8, "- [ ] another (i-aa02)\n"),
+    ] {
+        let mut i = unit(&format!("t-cd/{id}"), "item", src, line, l);
+        i.section = Some("t-cd/S-checklist".to_owned());
+        i.span = [at(l), at(l) + l.len()];
+        g.add(i);
+    }
+    g
+}
+
+#[test]
+fn an_item_inside_a_section_given_in_full_is_f_and_its_line_is_not_repeated() {
+    let g = checklist();
+    let p = compile(&g, "t-cd", &Options::default()).unwrap();
+    // Each item line appears once: inside the section's text.
+    assert_eq!(p.markdown.matches("(i-aa01)").count(), 1, "{}", p.markdown);
+    assert!(p.markdown.contains("[F] t-cd/i-aa01 · item"));
+    assert!(!p.markdown.contains("> t-cd/i-aa01 · item"));
+    let item = p.records.iter().find(|r| r.id == "t-cd/i-aa01").unwrap();
+    assert_eq!(item.tier, "full");
+    assert_eq!(
+        item.text.as_deref(),
+        Some("- [ ] one thing to do (i-aa01)\n")
+    );
+    // The control: a budget that fits the ticket's record but not the
+    // section leaves the section `[S]`; its items are then not covered and
+    // are not marked `[F]`.
+    let tight = Options {
+        budget: p.markdown.find("> t-cd/S-checklist").unwrap(),
+        ..Options::default()
+    };
+    let q = compile(&g, "t-cd", &tight).unwrap();
+    assert!(
+        q.markdown.contains("[S] t-cd/S-checklist"),
+        "{}",
+        q.markdown
+    );
+    assert!(!q.markdown.contains("[F] t-cd/i-aa02"), "{}", q.markdown);
+    // An item target is printed as its own entry; its section is not pulled in.
+    let r = compile(&g, "t-cd/i-aa01", &Options::default()).unwrap();
+    assert!(
+        r.markdown.contains("> t-cd/i-aa01 · item"),
+        "{}",
+        r.markdown
+    );
+    assert!(!r.records.iter().any(|x| x.id == "t-cd/S-checklist"));
 }

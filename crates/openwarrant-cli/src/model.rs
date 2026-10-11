@@ -1169,7 +1169,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         }
     }
     for d in docs.docs.iter().filter(|d| d.admitted()) {
-        lower_document(&mut b, d, &uuid_alias);
+        lower_document(&mut b, d);
     }
 
     // ---- Every relation names a record, or is reported.
@@ -1188,7 +1188,17 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             format!("{id} is declared more than once (again in {source})"),
         );
     }
-    let ids: BTreeSet<String> = b.records.iter().map(|r| r.id.clone()).collect();
+    let mut ids: BTreeSet<String> = b.records.iter().map(|r| r.id.clone()).collect();
+    // A `war://<uuid>` target stays as authored (FORMAT-1.0 §5); it names
+    // the work document with that uuid.
+    let uris: Vec<String> = b
+        .records
+        .iter()
+        .filter(|r| matches!(r.kind.as_str(), "warrant" | "ticket"))
+        .filter_map(|r| r.fields.get("uuid").and_then(FieldValue::as_str))
+        .map(|u| format!("war://{u}"))
+        .collect();
+    ids.extend(uris);
     let unknown: Vec<Relation> = b
         .relations
         .iter()
@@ -1663,11 +1673,7 @@ fn lower_span(r: &mut Record, rec: &crate::records::Record) {
 /// the frontmatter and preamble), each unit and item, ids local to a work
 /// document made global as `<alias>/<id>`, each relation's target resolved
 /// the same way, and each item's `checklist` state.
-fn lower_document(
-    b: &mut Builder,
-    d: &crate::format_doc::Loaded,
-    uuid_alias: &BTreeMap<String, String>,
-) {
+fn lower_document(b: &mut Builder, d: &crate::format_doc::Loaded) {
     use openwarrant_core::format::sha256;
     let doc = &d.doc;
     let work = doc.alias.clone();
@@ -1691,21 +1697,29 @@ fn lower_document(
     let resolve = |t: &str| -> String {
         if work.is_some() && (local.contains(t) || openwarrant_core::ticket::is_item_id(t)) {
             global(t)
-        } else if let Some(u) = t.strip_prefix("war://") {
-            uuid_alias.get(u).cloned().unwrap_or_else(|| t.to_owned())
         } else {
             t.to_owned()
         }
     };
     let span = |s: usize, e: usize| sha256(d.bytes.get(s..e).unwrap_or_default());
-    if let Some(alias) = &work {
-        b.record(
-            alias.clone(),
-            doc.record_type(),
-            d.source.clone(),
-            span(0, doc.head_end),
-            None,
-        );
+    // The document's own record: a work document's is its alias; any other
+    // document's is `doc:<path>` of type `document` (§4, §5), and its
+    // records are `part_of` it.
+    let container = work
+        .clone()
+        .unwrap_or_else(|| format!("{}{}", crate::doc_index::ID_PREFIX, d.source));
+    b.record(
+        container.clone(),
+        if work.is_some() {
+            doc.record_type()
+        } else {
+            crate::doc_index::UNTYPED_TYPE
+        },
+        d.source.clone(),
+        span(0, doc.head_end),
+        None,
+    );
+    {
         let r = b.last();
         r.title.clone_from(&doc.title);
         r.line = 1;
@@ -1713,6 +1727,15 @@ fn lower_document(
         r.fields.clone_from(&doc.fields);
         r.ext.clone_from(&doc.ext);
         r.body.clone_from(&doc.body);
+    }
+    // Its frontmatter relations (§3.3).
+    for rel in &doc.relations {
+        b.relate_pinned(
+            &container,
+            &rel.kind,
+            &resolve(&rel.target.id),
+            rel.target.pin.clone(),
+        );
     }
     let mut all_done = true;
     let mut any_item = false;
@@ -1739,9 +1762,7 @@ fn lower_document(
         r.fields.clone_from(&u.fields);
         r.ext.clone_from(&u.ext);
         r.body.clone_from(&u.body);
-        if let Some(a) = &work {
-            b.relate(&id, "part_of", a);
-        }
+        b.relate(&id, "part_of", &container);
         for rel in &u.relations {
             b.relate_pinned(
                 &id,
@@ -1773,9 +1794,7 @@ fn lower_document(
             r.section.clone_from(&item_section);
             r.line = it.line;
             r.span = [it.start, it.end];
-            if let Some(a) = &work {
-                b.relate(&item_id, "part_of", a);
-            }
+            b.relate(&item_id, "part_of", &container);
             for after in &it.after {
                 b.relate(&item_id, "depends_on", &resolve(after));
             }
@@ -1809,6 +1828,15 @@ fn lower_document(
 /// `part_of <document>` the reader adds for every record of a work
 /// document, which no encoding authors.
 fn finish_content(b: &mut Builder, repo: &Repository) {
+    // The containment the reader adds, never authored: a work document's
+    // records are `part_of` it, any other document's `part_of` its
+    // `doc:<path>` record.
+    let contains = |r: &Record, to: &str| {
+        Some(to) == r.document.as_deref()
+            || to
+                .strip_prefix(crate::doc_index::ID_PREFIX)
+                .is_some_and(|p| p == r.source && r.id != to)
+    };
     use openwarrant_core::format::{ContentRelation, content_digest};
     let mut sizes: BTreeMap<String, usize> = BTreeMap::new();
     for r in &mut b.records {
@@ -1836,7 +1864,7 @@ fn finish_content(b: &mut Builder, repo: &Repository) {
                 .get(r.id.as_str())
                 .into_iter()
                 .flatten()
-                .filter(|rel| !(rel.kind == "part_of" && Some(&rel.to) == r.document.as_ref()))
+                .filter(|rel| !(rel.kind == "part_of" && contains(r, &rel.to)))
                 .map(|rel| ContentRelation {
                     kind: rel.kind.clone(),
                     to: rel.to.clone(),

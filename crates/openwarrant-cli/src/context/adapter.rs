@@ -144,6 +144,8 @@ pub fn graph(corpus: &Corpus, model: &Model) -> Graph {
             summary: work.then(|| one(r, "summary")).flatten(),
             work,
             document: r.document.clone(),
+            section: r.section.clone(),
+            span: r.span,
             source: r.source.clone(),
             line: r.line.max(1),
             revision: r.revision.clone(),
@@ -171,13 +173,20 @@ pub fn graph(corpus: &Corpus, model: &Model) -> Graph {
         }
         g.add(u);
     }
+    // A `war://<uuid>` target stays as authored in the model; the walk
+    // follows it to the work document with that uuid.
+    let by_uuid: BTreeMap<String, String> = g
+        .units
+        .values()
+        .filter_map(|u| Some((format!("war://{}", u.uuid.as_ref()?), u.id.clone())))
+        .collect();
     g.edges = model
         .relations
         .iter()
         .map(|r| Edge {
             from: r.from.clone(),
             kind: r.kind.clone(),
-            to: r.to.clone(),
+            to: by_uuid.get(&r.to).cloned().unwrap_or_else(|| r.to.clone()),
         })
         .collect();
     g.edges.sort();

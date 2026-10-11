@@ -8,8 +8,8 @@
   "properties": {
     "id": { "$ref": "common.json#/$defs/recordId" },
     "type": {
-      "description": "A lowercase word (Appendix A `record-head`). The core types are `section`, `obligation`, `item`, `milestone`, `stage`, `warrant` and `ticket`; other types come from the document's profile.",
-      "$ref": "common.json#/$defs/word"
+      "description": "A lowercase word or a dotted extension type (Appendix A `record-head`, section 7.2). The core types are `section`, `obligation`, `item`, `milestone`, `stage`, `warrant` and `ticket`; other undotted types come from the document's profile.",
+      "$ref": "common.json#/$defs/recordType"
     },
     "title": {
       "description": "Section 3.4: REQUIRED, one line, at most 120 bytes (`format.title-missing`).",
