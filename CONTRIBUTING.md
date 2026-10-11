@@ -90,6 +90,16 @@ collided; both are now safe to create on any branch:
   `conformance/plants.d/99-plant-order.sh` and `31-amendment-ids.sh` are the
   plants for both rules.
 
+## Changing the standard
+
+The standard is [docs/format/FORMAT-1.0.md](docs/format/FORMAT-1.0.md); how it
+changes is [docs/format/GOVERNANCE.md](docs/format/GOVERNANCE.md). A change to
+what a conforming reader must do is a spec change first: amend the text, the
+schemas under `schemas/format/` and a case under `conformance/format/` together,
+then the code. A case's expected output comes from the spec, never from what
+`war` happens to print. The spec text is CC-BY-4.0; the schemas and corpus are
+Apache-2.0.
+
 ## Making a change
 
 1. **Open a Warrant.** `war plan new "<title>"` — this project is built through its

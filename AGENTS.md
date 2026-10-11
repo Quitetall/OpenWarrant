@@ -31,6 +31,13 @@ signature a step of the ticket loop.
   expanded, the SAS in force, accepted decisions, who governs each path, who may
   sign and the queue already judged by the dry run. A replaced Warrant is one
   line of lineage there; its text is in `docs/generated/HISTORY.md`.
+- **One task's records:** `war context <alias|item|record id|path>` prints them
+  whole, inside a byte budget, in a fixed order; records that do not fit are
+  listed by summary (`[S]`) to load the same way. Prefer it to reading atoms by
+  hand. [`docs/generated/llms.txt`](docs/generated/llms.txt) lists every id it takes.
+- **The document standard:** [Format 1.0](docs/format/FORMAT-1.0.md) (proposed,
+  OW-ADR-0032): one-file Warrants, records, extension keys and what a reader
+  refuses. Where it and the RC.3 draft differ on format, it is the proposal.
 - **Product or SDK design:** read the [current SAS draft](docs/sas/drafts/1.0.0-rc.3/README.md),
   then the linked companion for the feature. RC.3 is an unaccepted candidate;
   the draft does not establish implemented behavior or rewrite signed history.
