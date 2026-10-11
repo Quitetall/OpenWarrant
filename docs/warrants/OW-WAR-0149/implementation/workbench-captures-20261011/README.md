@@ -52,3 +52,10 @@ concurrent-edit test. The full suite did not pass. A focused rerun finished two
 tests with one server-startup-unavailable failure; assertions and timeouts were
 unchanged. Hosted checks remain required; unavailable local observations are
 not promoted to a full pass.
+
+After merging the updated Dispatch prerequisite and main at `4fa747b3`, the
+four targeted tests finished in 81.163 seconds: three passed and one timed out
+during initial draft creation, before capture attachment. This combined-source
+run is incomplete. Strict Clippy and 13 Dispatch CLI integration tests passed
+on the merged prerequisite. Generated record checking timed out locally;
+compilation completed with zero errors. Hosted gates remain required.

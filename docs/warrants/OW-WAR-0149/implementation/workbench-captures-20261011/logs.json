@@ -63,5 +63,10 @@
     "file": "receipt-full-failed-seams-rerun.log.gz",
     "original_sha256": "d5ea97710890a74421428621de2fcba2be6d4b6bf09c7cefbe0fc80e91c1bc1d",
     "original_bytes": 1302
+  },
+  {
+    "file": "receipt-merged-targeted.log.gz",
+    "original_sha256": "e5cb53a94f2d2c15e813dab5cb14b969c8d628fc14f852ec43aeb572eba6c33d",
+    "original_bytes": 3613
   }
 ]
