@@ -117,3 +117,16 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Experimental native acceptance and record readers; no human acceptance or stable adoption.
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/resolution_cmd/**"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/repo.rs"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md"
+obligation_refs = ["OBL-001", "OBL-003"]

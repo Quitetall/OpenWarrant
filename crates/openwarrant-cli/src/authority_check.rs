@@ -329,6 +329,29 @@ fn verify_responses(
     exclude: Option<&Utf8Path>,
     expected: Option<&crate::authorize::AuthorizationRecord>,
 ) -> Verdict {
+    if act == Act::Resolve
+        && let Ok(dir) = repo.warrant_dir(subject)
+    {
+        match repo.load_resolution(&dir) {
+            Ok(Some(record)) if record.schema == crate::resolution_cmd::native::RECORD_SCHEMA => {
+                if record.warrant != subject
+                    || record.resolution.resolved_by_ref != format!("person://{actor}")
+                    || bound_digest.is_some_and(|want| record.resolution.contract_digest != want)
+                {
+                    return Verdict::Invalid {
+                        why: "native resolution subject, actor or digest mismatch".into(),
+                    };
+                }
+                return crate::resolution_cmd::native::signature_for_record(repo, &record);
+            }
+            Err(error) => {
+                return Verdict::Unavailable {
+                    why: format!("recorded resolution unavailable: {error}"),
+                };
+            }
+            _ => {}
+        }
+    }
     // Every response whose name starts with this subject: the current one and
     // any retired sibling. `war sign` retires a superseded response by renaming
     // it to carry its digest (§34.4 — supersede, never erase), so the signature
@@ -1416,6 +1439,8 @@ mod tests {
             schema: crate::resolution_cmd::RECORD_SCHEMA.into(),
             warrant: baseline.warrant.clone(),
             locator: None,
+            native_response: None,
+            native_signature: None,
             resolution: openwarrant_core::resolution::Resolution {
                 id: "fixture-resolution".into(),
                 common_outcome: baseline.common_outcome,

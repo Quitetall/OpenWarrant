@@ -46,6 +46,8 @@ use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 use crate::resolve::{assess, declared_obligations};
 
+pub mod native;
+
 pub const REQUEST_SCHEMA: &str = "oh.war/resolution-request/v1";
 pub const RESPONSE_SCHEMA: &str = "oh.war/resolution-response/v1";
 pub const RECORD_SCHEMA: &str = "oh.war/resolution/v1";
@@ -143,6 +145,13 @@ pub struct ResolutionRecord {
     pub resolution: Resolution,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub locator: Option<Locator>,
+    /// V2: exact original native response bytes. No extension is valid in v1.
+    #[cfg_attr(feature = "schema", schemars(skip))]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub native_response: Option<String>,
+    #[cfg_attr(feature = "schema", schemars(skip))]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub native_signature: Option<String>,
 }
 
 /// The v1 fields a resolution response can bind to an existing record. Later
@@ -154,6 +163,8 @@ pub(crate) fn response_matches_record(
     record: &ResolutionRecord,
 ) -> bool {
     record.schema == RECORD_SCHEMA
+        && record.native_response.is_none()
+        && record.native_signature.is_none()
         && response.schema == RESPONSE_SCHEMA
         && response.warrant == record.warrant
         && response.contract_digest == record.resolution.contract_digest
@@ -227,6 +238,7 @@ fn permitted_outcomes(would_satisfy: Option<bool>) -> Vec<String> {
     v
 }
 
+#[derive(Clone)]
 struct Bound {
     contract_digest: String,
     contract_revision: u32,
@@ -798,6 +810,8 @@ pub fn ingest_with(
         warrant: alias.to_owned(),
         resolution,
         locator: locate(&repo.root, &declared),
+        native_response: None,
+        native_signature: None,
     };
     if mode == crate::sign::IngestMode::DryRun {
         report.push(Diagnostic::pass(
@@ -884,6 +898,9 @@ pub fn check(
                 ));
             }
         }
+        Err(RepoError::ObservationUnavailable { rule, message }) => report.push(
+            Diagnostic::unknown(rule, repo.relative(&path), format!("{alias}: {message}")),
+        ),
         Err(e) => report.push(Diagnostic::error(
             "resolution.malformed",
             repo.relative(&path),

@@ -497,9 +497,40 @@ impl Repository {
             context: format!("could not read {path}"),
             source,
         })?;
-        toml::from_str(&text)
-            .map(Some)
-            .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))
+        let value: toml::Value = toml::from_str(&text)
+            .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))?;
+        let schema = value.get("schema").and_then(toml::Value::as_str);
+        if let Some(schema) = schema
+            && schema != crate::resolution_cmd::RECORD_SCHEMA
+            && schema != crate::resolution_cmd::native::RECORD_SCHEMA
+        {
+            return Err(RepoError::ObservationUnavailable {
+                rule: "resolution.schema-unavailable",
+                message: format!("{path}: unsupported resolution schema {schema:?}"),
+            });
+        }
+        let record: crate::resolution_cmd::ResolutionRecord = toml::from_str(&text)
+            .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))?;
+        match record.schema.as_str() {
+            crate::resolution_cmd::RECORD_SCHEMA
+                if record.native_response.is_none() && record.native_signature.is_none() => {}
+            crate::resolution_cmd::native::RECORD_SCHEMA
+                if record.native_response.as_ref().is_some_and(|raw| {
+                    crate::resolution_cmd::native::matches_record(raw.as_bytes(), &record)
+                }) && record.native_signature.is_some() => {}
+            crate::resolution_cmd::RECORD_SCHEMA | crate::resolution_cmd::native::RECORD_SCHEMA => {
+                return Err(RepoError::Message(format!(
+                    "{path}: resolution schema/extension or signed-decision mismatch"
+                )));
+            }
+            _ => {
+                return Err(RepoError::ObservationUnavailable {
+                    rule: "resolution.schema-unavailable",
+                    message: format!("{path}: unsupported resolution schema {:?}", record.schema),
+                });
+            }
+        }
+        Ok(Some(record))
     }
 
     pub fn load_judgments(
