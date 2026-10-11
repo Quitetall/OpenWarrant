@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-c55c2` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-c55c2"
+uuid = "01a12cf2-8e34-7796-a792-66a238d1c48e"
+title = "Keep committed corpus status equal to the public JSON payload"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-11T21:50:56Z"
+created_by = "agent://codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

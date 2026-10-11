@@ -1,0 +1,26 @@
+{
+  "schema": "openwarrant.performer-gate-observation/v1",
+  "source_revision": "970dc7ee6be5679db640d8ffcb01ccc5954a6aab",
+  "run": 38174561914,
+  "conclusion": "failure",
+  "failed_test": "json_envelope::the_corpus_projection_is_the_result_payload_verbatim",
+  "local_differences": 99,
+  "only_source_path_count_changed": true,
+  "committed_path_count": 2379,
+  "observed_path_count": 2385,
+  "qualified": false,
+  "independent_verdict": false,
+  "local_ow129_test": "UNKNOWN: build timed out, exit 124; test did not execute",
+  "source_path_counts": [
+    {
+      "committed": 2379,
+      "observed": 2385,
+      "explanations": 97
+    },
+    {
+      "committed": 2543,
+      "observed": 2549,
+      "explanations": 2
+    }
+  ]
+}

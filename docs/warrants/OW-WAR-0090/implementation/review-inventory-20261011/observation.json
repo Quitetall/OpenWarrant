@@ -1,0 +1,98 @@
+{
+  "counts": {
+    "evidence_files": 340,
+    "missing_evidence": 0,
+    "source_files": 10891,
+    "warrants_without_work_reports": 57,
+    "work_reports": 88
+  },
+  "earlier_release_suite": {
+    "before_final_optional_field_change": true,
+    "failed": 0,
+    "passed": 22
+  },
+  "files": [
+    {
+      "original_bytes": 985,
+      "original_sha256": "07b21a854ebf91c5a6d03f980c310f623bb8f067ecdb5e175de01879434abaef",
+      "path": "red.log.gz"
+    },
+    {
+      "original_bytes": 98,
+      "original_sha256": "39101a66a0ea2055642c08d80f80507715f0cf44ab638baa34df3a4826d08ea6",
+      "path": "green.log.gz"
+    },
+    {
+      "original_bytes": 3434,
+      "original_sha256": "8b099db813f205a0250d1c4e7c42c766fda1d0005ec4fed407f218f3010a5d1e",
+      "path": "refusal-red.log.gz"
+    },
+    {
+      "original_bytes": 1453,
+      "original_sha256": "f5288d1522414d52c075244f4c52d17272ca62c6d8e251c4ec461fbdfbe0b143",
+      "path": "refusal-red-corrected.log.gz"
+    },
+    {
+      "original_bytes": 100,
+      "original_sha256": "1811fa8f1ef9d4efa6a1fee0935e94edc37ec6a194113c57b1c28fac96c65f77",
+      "path": "refusal-green.log.gz"
+    },
+    {
+      "original_bytes": 846,
+      "original_sha256": "119af870aab68460de122ce4f283a4d98ec6923bb05fc7caf2a3b6d53aefb42e",
+      "path": "coverage-red.log.gz"
+    },
+    {
+      "original_bytes": 103,
+      "original_sha256": "57b41533bd049b22a076969fd86ca21ee66c1a0ed78e1020d5068b109a7b100d",
+      "path": "final-tests.log.gz"
+    },
+    {
+      "original_bytes": 158,
+      "original_sha256": "c30f4cc5a5d9996d67dada05f186a241608c5b8426111e3db61cd2866aecee83",
+      "path": "plant.log.gz"
+    },
+    {
+      "original_bytes": 233,
+      "original_sha256": "a9e27063bbdb07efd22df237104a9820871b04df0933580eda048f2e42285a48",
+      "path": "release-suite.log.gz"
+    },
+    {
+      "original_bytes": 1418,
+      "original_sha256": "af267b26fac322c348c6daa87a513d48b8c34c814f871af36cd15aca3beae5c4",
+      "path": "optional-red.log.gz"
+    },
+    {
+      "original_bytes": 103,
+      "original_sha256": "99b5f60a3ea5d36191588f6b49a3bfb010b346b2e480be02ed47fdb86b4378f5",
+      "path": "final-five.log.gz"
+    },
+    {
+      "original_bytes": 455,
+      "original_sha256": "56345f0d85f001b2a330b3c7fcc0f4915e68e7fecd18a1eb3f3d41973502173c",
+      "path": "compile-final.json.gz"
+    },
+    {
+      "original_bytes": 869248,
+      "original_sha256": "666ffbc8fcb4f856f060a92b866fb1ce4afa56c2776f75bfd98b58176e281f81",
+      "path": "check-final.json.gz"
+    },
+    {
+      "original_bytes": 2197883,
+      "original_sha256": "3572f19319f11cec098ab59eabd2b373c8d762ce67a18c9256993a51f8e5c605",
+      "path": "review-subject-5af8d251.json.gz"
+    }
+  ],
+  "final_command_tests": {
+    "failed": 0,
+    "passed": 5
+  },
+  "generator_sha256": "ef32cd6faf4b52ff8bdc213397c91669a5fc5e6b227b772459bde42a5e7adeb3",
+  "independent_verification": false,
+  "model_calls": 0,
+  "publication_permitted": false,
+  "qualification_established": false,
+  "retained_originals": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-kf-recovery-20261010/integration-20261011/release-review-inventory-20261011",
+  "schema": "openwarrant.performer-observation/v1",
+  "source_git_head": "5af8d25107c3c5e0b2efe3b27c2b6c36ae9dc82d"
+}
