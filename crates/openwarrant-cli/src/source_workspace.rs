@@ -39,7 +39,21 @@ impl SourceWorkspace {
             })?;
         let root = Utf8PathBuf::from_path_buf(canonical)
             .map_err(|_| RepoError::Message("workspace.non-utf8-path".into()))?;
-        let source = Repository::open(root)?;
+        let source = Repository::open(root).map_err(|error| {
+            // Inability to read source configuration/profiles is an unavailable
+            // observation. Invalid UTF-8, malformed TOML and invalid fields are
+            // known input defects and retain their existing refusal.
+            if matches!(&error, RepoError::Io { source, .. }
+                if source.kind() != std::io::ErrorKind::InvalidData)
+            {
+                RepoError::ObservationUnavailable {
+                    rule: "workspace.unavailable",
+                    message: error.to_string(),
+                }
+            } else {
+                error
+            }
+        })?;
         let common = |r: &Repository| -> Result<std::path::PathBuf, RepoError> {
             let p = git(
                 r,

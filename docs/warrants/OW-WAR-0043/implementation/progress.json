@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0043",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "2de4bf6d902cbed7289d6398810a9a0d5f0722ad",
+  "summary": "Reproduced the exact frozen LamQuant import: all 173 source files and bodies preserved, golden bytes equal, no promoted resolutions, actual promotion refused. Added and observed a separate parent-rationale attack. Human dispositions for 227 unmapped heading names and independent qualification remain pending.",
+  "notes": "docs/warrants/OW-WAR-0043/implementation/frozen-import-20261011/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0043/implementation/frozen-import-20261011/observation.json",
+    "docs/warrants/OW-WAR-0043/implementation/frozen-import-20261011/source-manifest.json",
+    "docs/warrants/OW-WAR-0043/implementation/frozen-import-20261011/promotion-result.json"
+  ],
+  "next_steps": [
+    "Authorized human supplies dispositions for retained unmapped headings without changing original sources.",
+    "Independent reviewer evaluates all four obligations and exact governed delivery records before phase exit or resolution."
+  ]
+}

@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-63626` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-63626"
+uuid = "01a12bff-e1c5-77f2-906f-dd17ee0d27f3"
+title = "Expose native OpenWarrant-bound Katana CLI execution through the shared provider contract"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-11T17:25:52Z"
+created_by = "claude"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

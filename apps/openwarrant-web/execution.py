@@ -847,10 +847,12 @@ class Executor:
                 else "Harness reported incomplete work",
             )
         except runtime_link.RuntimeLinkError as e:
-            # These errors arise before the harness call. Normal CLI refusal
-            # launched no worker; unavailable observations remain UNKNOWN.
+            # Completed context preparation launched no implementation worker.
+            # Keep unavailable context blocked, without inventing an unknown
+            # writer that would prevent a retry after remediation. Preparation
+            # timeouts still take the conservative TimeoutError path below.
             r.update(work_state="failed" if e.state == "refused" else "blocked",
-                     execution_state="stopped" if e.state == "refused" else "unknown", cause=str(e))
+                     execution_state="stopped", cause=str(e))
         except TimeoutError as e:
             r.update(work_state="blocked", execution_state="unknown", cause=str(e))
         except Exception as e:  # noqa: BLE001 -- worker boundary must record unexpected failures

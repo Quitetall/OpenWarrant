@@ -5108,7 +5108,7 @@ review that lists questions without answers is a plan, not a review.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Canonical WAR IR (§63) | `crates/openwarrant-compiler/src/ir.rs` | verified |
+| D-001 | Canonical WAR IR (§63) | `crates/openwarrant-compiler/src/ir.rs` | drift |
 | D-002 | RFC 8785 canonicalization | `crates/openwarrant-compiler/src/canonical.rs` | drift |
 | D-003 | Domain-separated digest preimages (§65) | `crates/openwarrant-compiler/src/digest.rs` | verified |
 | D-004 | Manifest and atoms lowered to IR | `crates/openwarrant-compiler/src/lower.rs` | drift |
@@ -26452,7 +26452,7 @@ the app shows a `human` remedy and stops.
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
 | D-015 | The threat-model row | `docs/THREAT_MODEL.md` | drift |
 | D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | drift |
-| D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | verified |
+| D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | drift |
 | D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | drift |
 | D-019 | The report schema | `schemas/oh.war/report/v1.json` | verified |
 | D-020 | The schema pack | `schemas/pack.json` | drift |

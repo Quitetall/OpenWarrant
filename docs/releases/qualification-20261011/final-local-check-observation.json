@@ -1,0 +1,7 @@
+{
+  "result": "UNKNOWN",
+  "command": "war check --generated --json",
+  "process_timeout_seconds": 300,
+  "observation": "Final check produced no retained result before subprocess timeout. The observed process has stopped. Earlier pre-compression record check passed; final compilation and compressed evidence integrity checks passed. Hosted checks remain required for the committed subject.",
+  "observed_at": "2026-10-11T14:05:50.126055+00:00"
+}

@@ -1,0 +1,1046 @@
+{
+  "commit": "0e0e04a7a6cff7901c073c27cc233d9af9f11664",
+  "count": 173,
+  "body_differences": 0,
+  "full_source_differences": 0,
+  "adrs": [
+    {
+      "path": "docs/decisions/0001-v1-over-v2-encoder.md",
+      "original_sha256": "6b34f69fd79563c964f80e0b3927e1aa3f4594899d6160525037fe9ce477d5cf",
+      "body_sha256": "59b5309269b48a0394519f4bee15e6cd882ee6499b3e5c7b11ac3e7575fdfa03",
+      "body_bytes": 3729
+    },
+    {
+      "path": "docs/decisions/0002-joint-training-over-sequential.md",
+      "original_sha256": "ff5c46f455e08dd91655998ae7df35c1aee8c73aadfe3469c6b8b9b3a8106680",
+      "body_sha256": "f3cb1aff933a1d5f753d8b2b0b7883d864b067043f0adb849edb2e400e7cfbf0",
+      "body_bytes": 4274
+    },
+    {
+      "path": "docs/decisions/0003-detail-conditioning-killed.md",
+      "original_sha256": "6b23075e2c0dde0168e8ccb40d6a6ad1166168febbffd966f249458ed0da7705",
+      "body_sha256": "ac02ead3eb01b237627d33caa3220b2b6a7fb5b42e711b3c6715b3dae8bbee92",
+      "body_bytes": 5630
+    },
+    {
+      "path": "docs/decisions/0004-fullband-loss-via-istft.md",
+      "original_sha256": "5e2b2465e5ff60d6dd6369d14c4a22ef84472b15ea8959425ed7e649bddcaa02",
+      "body_sha256": "c141e5799244f23c2818873d4167f5913366c34fbda73aeec3187118d59b180b",
+      "body_bytes": 5887
+    },
+    {
+      "path": "docs/decisions/0005-asymmetric-loss-ab-inconclusive.md",
+      "original_sha256": "92a824364665ec249409f1884cff3446a15b8dca17b7bb72dddd9c8ec94cff1b",
+      "body_sha256": "f1604a100740062ebca005da23c9c9f1818ec06cfd291628c21b543f14da4084",
+      "body_bytes": 4383
+    },
+    {
+      "path": "docs/decisions/0006-packet-format-v77.md",
+      "original_sha256": "59afdf438910b0f3653169fca5bce25a22382e3b12550a4549d50adc811907cc",
+      "body_sha256": "1c3b339ca1d0b50c5877a5ca239bfc692005419450e03f073ac55fad954437f7",
+      "body_bytes": 2768
+    },
+    {
+      "path": "docs/decisions/0007-v763-engineering-audit.md",
+      "original_sha256": "aea6afefe0754f5367d06e515fce5be3261d22310d10ed392365b656787c8cae",
+      "body_sha256": "6e0b87b07553aa1433fdef072712188d6ee9c0175982b7ffb48b6716de6d2758",
+      "body_bytes": 22971
+    },
+    {
+      "path": "docs/decisions/0008-lml-transform-graph.md",
+      "original_sha256": "8f6cb06ade132891c48fae5fcf282a7bfa2e68787a4cd0026aa53e6dc207c709",
+      "body_sha256": "94d99fb989e3dd09d43109d19766791982ea01ffa471558271b1c464a443039d",
+      "body_bytes": 4617
+    },
+    {
+      "path": "docs/decisions/0009-latent-scaling.md",
+      "original_sha256": "3e1e742ffbda791fadd52b7f6c712530c44187e7a190952203115243675aead4",
+      "body_sha256": "73caa45970a839a92882fb2cc77ff9e0505da3f4bfae240206e3b6ad6eba6d25",
+      "body_bytes": 5493
+    },
+    {
+      "path": "docs/decisions/0010-lml-format-spec.md",
+      "original_sha256": "5ed6414bc3e3e009f1b60b6d268690deee1f247949691007b9947d16c55633a9",
+      "body_sha256": "ffd899c1d239751db1f2a726d8d74e0c8812830c29482ae7a4de6a9e7e2278ee",
+      "body_bytes": 6197
+    },
+    {
+      "path": "docs/decisions/0011-lml-entropy-coder-final.md",
+      "original_sha256": "5d7b5075dfc1601081964f9cb58c64f2d5b40f570be75d9320a05f5aa4dde96e",
+      "body_sha256": "61234c0b3c930129b4bb5243e14cc0ce1594f9edc5883d09c33f175d55de7734",
+      "body_bytes": 7908
+    },
+    {
+      "path": "docs/decisions/0012-lml-production-config.md",
+      "original_sha256": "ec33012cd718ea9e673b6488d377f885724aae7536c62b27a56093c44e16e093",
+      "body_sha256": "019ac1ca48c62422d4977fd488d7e10aa2491a656257751056bf176ab99e2912",
+      "body_bytes": 5905
+    },
+    {
+      "path": "docs/decisions/0013-cli-output-spec.md",
+      "original_sha256": "ce828184d9571c018c5cd67062cd7eca3a0de0f79272fdcdcdabfa287be750a9",
+      "body_sha256": "d607904a8e664a3cf7af76c10b3e4f2fe75274a4bf61a7d5aeb42f787d1f9ee6",
+      "body_bytes": 1497
+    },
+    {
+      "path": "docs/decisions/0014-config-and-resumability-spec.md",
+      "original_sha256": "dd83ec9a1a165d01e86d425d4ed5cdfe05af2dd1a3c1467347e8465a8480590b",
+      "body_sha256": "b0a51e8bd91caeaca9e8fa17b7ef1ffa33bda5b872f5fd28f0b022d91dfb9f5d",
+      "body_bytes": 2975
+    },
+    {
+      "path": "docs/decisions/0015-eagle-platform-spec.md",
+      "original_sha256": "a950d9312ffa75d89b9db470700961ef0cd9e64737dd8a714692cc5fe9e9a466",
+      "body_sha256": "d5091cf0676cfc8e8767a9c5b6e93e1c805823b127cff883cc6dc892eb8b07f1",
+      "body_bytes": 1209
+    },
+    {
+      "path": "docs/decisions/0017-blut-canonical-trainer-lma-direct.md",
+      "original_sha256": "6ac1fa945b8e215a969c9cdcc22ffdb660d54640a52bec518d3d67d928208460",
+      "body_sha256": "4dd0b29e3f0290fa0a22c409f8d93273d97971066857206aaa6d464443877a23",
+      "body_bytes": 8333
+    },
+    {
+      "path": "docs/decisions/0018-codec-weights-boundary.md",
+      "original_sha256": "ebd3981d049fd41a0339cc48139d700f480cf9bbab81483562fa0c997ab251ce",
+      "body_sha256": "fb52af67f7484b62dfaeb87455d22771f45a3762e839d69a7377e271b77238c5",
+      "body_bytes": 6690
+    },
+    {
+      "path": "docs/decisions/0019-firmware-multi-target-probe-rs.md",
+      "original_sha256": "8c6edad64fcc393ec160557f3456141653c69815a38798b2b078832a10569b52",
+      "body_sha256": "c789125a5dc4d683849b279e8c30bb61b9efa0e2bc11621bde4d67d0fa3bb8bd",
+      "body_bytes": 8006
+    },
+    {
+      "path": "docs/decisions/0020-viz-pipe-shape.md",
+      "original_sha256": "1c1e64e30ab28eeb30deaf52958edec8be7fb1aeccd8dd76dc3f59f4ff5eef1d",
+      "body_sha256": "803f7e1e214c5240dcd00e5c0d35ce5b6cafcffa2466f01b521626b4e04f702e",
+      "body_bytes": 4519
+    },
+    {
+      "path": "docs/decisions/0021-entropy-edf-hardening-design-review.md",
+      "original_sha256": "19e214453cf5523c55cb37b6618ee3896beed2595909fcdc63f7bb41ea8255a2",
+      "body_sha256": "615619f7c06fe07fbe42bc1fe9dc977929a2460927d130aca33465aa450e942b",
+      "body_bytes": 10513
+    },
+    {
+      "path": "docs/decisions/0022-concurrency-hardening.md",
+      "original_sha256": "bf9b9f6c7d234fbb49877c001fe359e31ed66990d5cfeb33c6847a1492db3122",
+      "body_sha256": "d7ae3c8ea05880dd8a1c3fc56fb3a94d0cbaaaf1db034000f3f57c6904de52a9",
+      "body_bytes": 6896
+    },
+    {
+      "path": "docs/decisions/0023-ingest-and-codec-adaptivity.md",
+      "original_sha256": "a4a5bca792e25c1b8afdb4ee74a1578c377b41c663d6abc0f93f601ab19d017e",
+      "body_sha256": "94413295e5614e8e36e4144681f550c0b7309b6563a1f69f3c40ccbba97d2c15",
+      "body_bytes": 9981
+    },
+    {
+      "path": "docs/decisions/0024-lsl-integration.md",
+      "original_sha256": "2e725a90f46ee01c6720030ec3bb6f64c36b42401bd89521ab72a67e957adf7b",
+      "body_sha256": "5b254492d358b538b612e7c5cbb467bc472c974ced64fa49b1bf6c48ce0fe6d0",
+      "body_bytes": 9020
+    },
+    {
+      "path": "docs/decisions/0025-neural-blut-lossless-boundary.md",
+      "original_sha256": "6d38732043d9cc5ab28774133635a743e106fa27b31d381661827f526729d3ea",
+      "body_sha256": "3ab51381a24f4384450ec3fe7dc8c1c842a864e9eab59d4eeba8d143d32ac369",
+      "body_bytes": 8967
+    },
+    {
+      "path": "docs/decisions/0026-lamquant-umbrella-architecture.md",
+      "original_sha256": "b4aa7e034a2f0b0da733b100cc1513d5b854bc01895a36c5686cad95aae3cd7a",
+      "body_sha256": "adf73ea8c7321471c9c84fd0acff0c3eb23146a32cc56a9357fda83a22118b85",
+      "body_bytes": 10309
+    },
+    {
+      "path": "docs/decisions/0027-snn-4state-controller-upgrades.md",
+      "original_sha256": "3307a387eb4feecd1074fa04677f43e28210399adf5057f2d42dce5b1622a45f",
+      "body_sha256": "5632484125d4cefd93343d05555691ebb15c9dcb4cd086f3d860b898ebaa3c94",
+      "body_bytes": 9042
+    },
+    {
+      "path": "docs/decisions/0028-ml-library-vs-handrolled.md",
+      "original_sha256": "f8e17e86764fa83fb5c83c45aaa875a3c9579b2950ae5608f8da2c215e106bfe",
+      "body_sha256": "51ce3862ad5a73bb8f4a3af635c5007c41dedd7099ba866cc32971730f3d0a78",
+      "body_bytes": 9759
+    },
+    {
+      "path": "docs/decisions/0029-snn-objective-rate-distortion.md",
+      "original_sha256": "080632449a073ee4a83b34a4ebba0ef04340c175bdf6d7f4d8d6c291d2addee4",
+      "body_sha256": "cede76d197b4e69b467c2422ecc229521dcc2ad903204fcd801b8bc42f8133f3",
+      "body_bytes": 21591
+    },
+    {
+      "path": "docs/decisions/0030-nanogpt-technique-transfer-audit.md",
+      "original_sha256": "3369e664414e72fbf1b5fd17a2d8ab8848550f07996ef74ad3ceb5c0696514b8",
+      "body_sha256": "ae09376dad4e0ae5a8910edb1c093f33ab44fc58dd09b03a9260257e06c9f166",
+      "body_bytes": 9086
+    },
+    {
+      "path": "docs/decisions/0031-l3-frontend-input-limitation.md",
+      "original_sha256": "fd7c9dd8f1bf4aa400dbeb36791e98faaaad5d942306b059873a274920a09110",
+      "body_sha256": "5dada7ae3f28340c9af86f2f0e861a5907920318903b859d24a0930bd1796df5",
+      "body_bytes": 11858
+    },
+    {
+      "path": "docs/decisions/0032-hybrid-lossy-baseline-lossless-critical.md",
+      "original_sha256": "f4dd93bd5da85569c42beddfd45b743073ba5f0db6bfee956f4f701448ceb9db",
+      "body_sha256": "4e8fd56effb0eccc85019d473973d5d6d1e5901158bc7e7eae871a4e143215be",
+      "body_bytes": 6204
+    },
+    {
+      "path": "docs/decisions/0033-teacher-distill-joint-pipeline.md",
+      "original_sha256": "dc9363cba8cd8d8aeabd58d7e881829f9f570a01f9b443bd9156c9db7a764442",
+      "body_sha256": "7dad8d51fc66ba60e3bd8b26b90c05247ee891f5d171337f129d223639c0b798",
+      "body_bytes": 8038
+    },
+    {
+      "path": "docs/decisions/0034-blut-scope-charter.md",
+      "original_sha256": "7f4b5d0c8f3935be309b363041f5e0bab09398864517caee5e7dbd4bf2d403c2",
+      "body_sha256": "15c82c1d4aa6dafbb4ff2f4a800d6eca35e9f841b36892e9dd7f220cd07699e1",
+      "body_bytes": 11875
+    },
+    {
+      "path": "docs/decisions/0035-two-tier-deploy-train-large-distill-small.md",
+      "original_sha256": "1cdda6f79e93cd68c2552f8f2cd6ed7cd1c8b54c33a4e545c97707f408c5b64d",
+      "body_sha256": "a9b731721247b77c2b2a15d4a3c451654849511ddce0af3913ff1a4aa8b27d9f",
+      "body_bytes": 7932
+    },
+    {
+      "path": "docs/decisions/0036-cascade-training-foundation-oracle-int8-ternary.md",
+      "original_sha256": "37ef0978f7b4d8ace7f8a59a731ad6431125aa287db1e23483e77f2b165b307b",
+      "body_sha256": "b148dd4697162d6515bbecdbe761a52a54f5b9ac55549d3398532108ed676dbb",
+      "body_bytes": 5771
+    },
+    {
+      "path": "docs/decisions/0037-blut-cookbook-architecture.md",
+      "original_sha256": "f418c02db9bf1629dfe0a9ab78586aa85d612cb719626f239d7895d37d2cbb54",
+      "body_sha256": "9fcb031a0328101d07ddcf67c62d6208b336368b634e2a6ab575fb7bf0e26955",
+      "body_bytes": 8788
+    },
+    {
+      "path": "docs/decisions/0038-metric-discipline.md",
+      "original_sha256": "f2b9ee3042a8a79d813eb19e47cbf9e551fa3d8ff1f96955f1ab2a6a5ad6cb18",
+      "body_sha256": "ef3322ec15fcbfcdea97ba368e1089363cd0e91bf078bad0873d11ebc09169ee",
+      "body_bytes": 4383
+    },
+    {
+      "path": "docs/decisions/0039-ca-codec-experiment-verdict.md",
+      "original_sha256": "249b958aaa232f2c61208b3f6d7dd39135f0abc4220f6be604310c9505b31e5d",
+      "body_sha256": "5ffa59f27ad15e29098bbe4def950b0cdceeacd285b1cd4a83a0d3313a469a1f",
+      "body_bytes": 7786
+    },
+    {
+      "path": "docs/decisions/0040-torch-compile-health-check-fix.md",
+      "original_sha256": "0813059663991dea0f18426605e97dc39983daed943ab28bf916c57904357d63",
+      "body_sha256": "51cc5640c869c5e40d723ec29eadb66ede87ae03cd3857038a31971f30e5d68a",
+      "body_bytes": 1943
+    },
+    {
+      "path": "docs/decisions/0041-lma-v2-streaming-format.md",
+      "original_sha256": "3447f57ce7d466150df666144cf344db0752d1d502afa099fbee743d879616a4",
+      "body_sha256": "fa31f37ba73dba5025cf9996a3e56be1f98c580c9afc85a2e3b56419fc8d855e",
+      "body_bytes": 1392
+    },
+    {
+      "path": "docs/decisions/0042-qat-two-part-explosion-fix.md",
+      "original_sha256": "9f9ca54393da081fc569a4988d35eed5ec56e88cf0f724e284298d3805a60528",
+      "body_sha256": "99c84d7762f09a17f220a6f94d0cca6605cb567c937c6e3fa42ac216ffe810a2",
+      "body_bytes": 1873
+    },
+    {
+      "path": "docs/decisions/0043-lqs-floor-correction.md",
+      "original_sha256": "3a6ac7eb8781b2decb1e10b224019b694e1b9f20e45584d02463365b4ec97fe7",
+      "body_sha256": "b0e543c153fa94c2c9dbf058b2086e9b2d62202c8dbcdeb981c7b956f8e54324",
+      "body_bytes": 1996
+    },
+    {
+      "path": "docs/decisions/0044-blut-api-standardization.md",
+      "original_sha256": "aad1f5831525c1f590b0729907a683e0d2f7973b3db8a9ed91a811e8d0245118",
+      "body_sha256": "643104ff0d06000a352df23bf751ec1fc0940345eeef48f84b0d0fd5fc598bfd",
+      "body_bytes": 21752
+    },
+    {
+      "path": "docs/decisions/0045-latent-presets-lqsc-teacher-first.md",
+      "original_sha256": "509421f9ceb581be650d991c8c67f8edc78cc86c74bab6275dd816fdad14a595",
+      "body_sha256": "5e6c8b79ece3772ed04cbe16c7400476691ef497b84a347f04af32271a8b448c",
+      "body_bytes": 3994
+    },
+    {
+      "path": "docs/decisions/0046-blut-resource-broker.md",
+      "original_sha256": "06ec8a3edb1bfb90a828ba22f81184c3b606c3dbbc00a6256b4dabedd1c46498",
+      "body_sha256": "0598f992abeaf8cd9917f7112b7a8e0dfabaa0a9fa4918269383b0652ac4c407",
+      "body_bytes": 4645
+    },
+    {
+      "path": "docs/decisions/0047-broker-measured-envelope-and-codec-dataloader.md",
+      "original_sha256": "22d4811e9c7b539b5336639f513b88e20a7bc043450c3a7fc8dcec0882fb8f84",
+      "body_sha256": "df21ac71301d80984530c3bdc3a5008619e599c7fb64b64c77340dca251fe042",
+      "body_bytes": 5129
+    },
+    {
+      "path": "docs/decisions/0048-blut-resource-broker-blueprint.md",
+      "original_sha256": "262e807e80070852bc9b1cc2198436d1fd3546395852e94b423fbadd2aea334a",
+      "body_sha256": "a909c5aae9ef09bd51b6236ec97419279e0e069165822070bdfbf903a400c417",
+      "body_bytes": 34529
+    },
+    {
+      "path": "docs/decisions/0049-full-residual-input-default.md",
+      "original_sha256": "910604fa91ac4510b86ddbec6d21ccc2693bc383b09e9615b5e98aa3120b9beb",
+      "body_sha256": "7a7effe7499cab1cde83b4bf41a49fae844d0ab10a618ed5bd55aec69034ee8d",
+      "body_bytes": 4340
+    },
+    {
+      "path": "docs/decisions/0050-optimizer-registry-and-config-datatype.md",
+      "original_sha256": "da98ab106291a92af2b32693abbb5d382f026d5333cb5f9c42b4877ff4fd9984",
+      "body_sha256": "f5f31151b4a460ac1433a1751cd46239950eef1622227e55d454b43fced7b866",
+      "body_bytes": 11222
+    },
+    {
+      "path": "docs/decisions/0051-hbwc-competitive-posture-and-nwb.md",
+      "original_sha256": "f3a3ddd2335359daa4342d3135f68772a138d5170b357668d89dfffa91ee3b67",
+      "body_sha256": "d7294c19c11553bce90567ad0d8246164418f6b4019f0a4073af5b5f6766cc9a",
+      "body_bytes": 12488
+    },
+    {
+      "path": "docs/decisions/0052-three-tier-lossless-codec-architecture.md",
+      "original_sha256": "86ed1ac4c9fa12aa06be8297ab2afcc28b65dda79c64ba74fa3856989c78a443",
+      "body_sha256": "2250d70e96debf3f973170895b5a13da4ca1b07830ad9215a1ddf9c92979877b",
+      "body_bytes": 10570
+    },
+    {
+      "path": "docs/decisions/0053-tui-hub-and-spoke-architecture.md",
+      "original_sha256": "7eba3e0d983d593bd04797c023ee3116a525b4faa3b35ac9ce540e9c5e1feec9",
+      "body_sha256": "c72a4e5dbd6eee13921f52f2774e1f103e93420c1216dd2d5dd4306895ad6b7d",
+      "body_bytes": 15441
+    },
+    {
+      "path": "docs/decisions/0054-warplan-beat-hbwc.md",
+      "original_sha256": "d906ac553fe448cbc6e41a68ceae5fbb8ae939bd1f7b098ec2dad820067fde44",
+      "body_sha256": "dda857cf77c23bf1fb5940bc7a70e6593f981faa6535aad5e22be2007ad9eea9",
+      "body_bytes": 19979
+    },
+    {
+      "path": "docs/decisions/0055-ingredient-taxonomy-and-registry.md",
+      "original_sha256": "ee1ca4802ae3d9efaa4e32b7def0ed5f185a7dd63533b9c5cee9e14514e28b2b",
+      "body_sha256": "e1b2f7139c6c4a360d6da25340e6a7980f599af16c417ff6aa5bd0d1869c5147",
+      "body_bytes": 11449
+    },
+    {
+      "path": "docs/decisions/0056-eagle-as-blut-cookbook.md",
+      "original_sha256": "8b46203e3fbefad2b14f1b2a73e6ed4a70db73e00d2479ed163a6b05fe9ae57a",
+      "body_sha256": "fda5d8aeb373aae47e33dff07448412759e80ef0c7c81c74db64bee446c39448",
+      "body_bytes": 13356
+    },
+    {
+      "path": "docs/decisions/0057-training-campaign-plan.md",
+      "original_sha256": "209e616ebaeb50a87058342ef1f0eb68137dc9e1f5e1d393788a44ae6bf9e400",
+      "body_sha256": "adb0a46865b834940ebd1adbd07a11dc194ef053d78523363c09c2f167178f59",
+      "body_bytes": 14350
+    },
+    {
+      "path": "docs/decisions/0058-lamquant-lml-tier-crate-naming.md",
+      "original_sha256": "f2c77597e5cb5a9f404be1be530a7b52536078cca91916aae9b19199098b1dff",
+      "body_sha256": "8bb01b015b86254dea5a883422babe25cbe7eb797abed3c45b0a59e391df0a86",
+      "body_bytes": 11980
+    },
+    {
+      "path": "docs/decisions/0059-crate-naming-convention.md",
+      "original_sha256": "68c82dfbf7a38429668641e7934aaf3f5bc2a8b35e243d6b842cb8585170b097",
+      "body_sha256": "c7c53b0ae73de32ee650f362dad0aec67429eb4020634bc3b1ea5237cdc368f2",
+      "body_bytes": 7757
+    },
+    {
+      "path": "docs/decisions/0060-research-subtree-and-master-master.md",
+      "original_sha256": "6f97b045e85d937a52ae7ae73d2cd76a4f64f7daa6c1895b9158abf0eb3a1cdf",
+      "body_sha256": "b15546c77c17375aad43101b35bcb464c37786fa2ec96b1795194b8c20b08318",
+      "body_bytes": 6517
+    },
+    {
+      "path": "docs/decisions/0061-blut-p2p-compute.md",
+      "original_sha256": "ae86d318692c21af10f577d13f6d0ddf767148121f7010d4395b0a8f3daee4cf",
+      "body_sha256": "5614d3550078da46feb9d3227d806c1e03f34093dd56414e66b77aaae41ed93e",
+      "body_bytes": 10404
+    },
+    {
+      "path": "docs/decisions/0062-hbwc-licensed-vendor-posture.md",
+      "original_sha256": "8cfbdd521ad181b004b108fb15601fcc51056aff249166d5f7ce94c742103626",
+      "body_sha256": "856df704a99461cd9814eaa5ecd1c5dd1252143bcbe36642503cc6d0cf5f20da",
+      "body_bytes": 7359
+    },
+    {
+      "path": "docs/decisions/0063-physics-honest-highfreq-strategy.md",
+      "original_sha256": "2b0d9fbdff88eaafdf099475fc0183d52b05a4d0c21c42e3e010d35da97d50d9",
+      "body_sha256": "48cc945b1a5868cfa1d006b9fa20fdbe51db98f936c59de625f55b037e1fe50e",
+      "body_bytes": 7635
+    },
+    {
+      "path": "docs/decisions/0064-beat-hbwc-lossless-warplan-and-spatial-frontier.md",
+      "original_sha256": "4287c76c1f1eaf6e72cd22be29e6a8e522dac003f42d912fd210259884b6409d",
+      "body_sha256": "81261f429fa955e4fe4ae75e58b8538ee2ffc48f5f2124cd5d58ef17e43ee46a",
+      "body_bytes": 14439
+    },
+    {
+      "path": "docs/decisions/0065-blut-fsdp.md",
+      "original_sha256": "8083eaed7bab075f347c9afa7f56d1473bcd62192152ee5c45bb42ccd9653b1f",
+      "body_sha256": "3f72e660a104808ac1fa175f5cffb8657598fca8770ecd4cc3d015aee84ac7a5",
+      "body_bytes": 6042
+    },
+    {
+      "path": "docs/decisions/0066-rate-distortion-perception-loss.md",
+      "original_sha256": "6762c3b448774dc15afdd3a319cfc418e41d01867cfe1294851f622dfa5458fd",
+      "body_sha256": "acca01abfbcc385dd7567e90ebfc0ecdc08b62956c8465139ab94a1854893df6",
+      "body_bytes": 7476
+    },
+    {
+      "path": "docs/decisions/0067-remaining-work-toward-vision.md",
+      "original_sha256": "ddfe43e4ca10804a91b180b86dcda19ab391ce2066056397a0be73d2f90e012f",
+      "body_sha256": "832413bddd5a9f5e6ef9547e7d6159b20c46e252cdc9b51770a1f875d3ad2091",
+      "body_bytes": 17885
+    },
+    {
+      "path": "docs/decisions/0068-best-neural-eeg-codec-warplan.md",
+      "original_sha256": "2d8f085eccaf8ab41fe1aa98a160df103d188e0a8c8cde613635123b68d31ec3",
+      "body_sha256": "599b55635150de274886bda87a416074465ceda97eefb340ebff62f7648471c1",
+      "body_bytes": 10864
+    },
+    {
+      "path": "docs/decisions/0069-biosignal-ir-dsl.md",
+      "original_sha256": "67e37c87a3887d0f4b0bb5a211dffdc491a4d2396b49bc1bf4e2ced4bbb7e078",
+      "body_sha256": "747acfec9d579c4777dfda60328b78eb35dda5831ef7b982dea82ea92ab0b26b",
+      "body_bytes": 24069
+    },
+    {
+      "path": "docs/decisions/0070-lmq-experiment-ledger.md",
+      "original_sha256": "e345dfd1e93e1a58464d7a5d6883102b69c9edbed9e8fae0b327c4abf912d4a8",
+      "body_sha256": "aab8b33eec94433ed6aa0dfd9708a4ec2f027c95af0c5de8871077179ba441f8",
+      "body_bytes": 1919
+    },
+    {
+      "path": "docs/decisions/0071-bcs-biosignal-compression-standard.md",
+      "original_sha256": "153b074bd3207ad2f8d89e65381f9d3a0b810cd7b0f3c6724366def9305ade7a",
+      "body_sha256": "3aa15c065f2c4357fedecd61a3e653f1840e169df838dfa4f686e8c46f908b34",
+      "body_bytes": 13572
+    },
+    {
+      "path": "docs/decisions/0072-blut-error-domains-and-fuzzing.md",
+      "original_sha256": "99524d95688b9a1319d955428df1573249982a9e4b8df68c934c7535fe04d748",
+      "body_sha256": "6d1c15fdf6c0f0ba6cc8e17570e66863b3471ff5f2e4a7fc5ba3f3592eae5dfa",
+      "body_bytes": 9980
+    },
+    {
+      "path": "docs/decisions/0073-adversarial-behavioral-contract-audit.md",
+      "original_sha256": "2b7b79f974f0847fbbada720fdd822d73c9bb7cda7be430c6a94de7dfbda3a67",
+      "body_sha256": "97f9cce4fab68973ee6d7eb7d50b468b2dda40b55dad759c4a1fd0edf6670ca8",
+      "body_bytes": 48072
+    },
+    {
+      "path": "docs/decisions/0074-abir-production-migration.md",
+      "original_sha256": "2524460868a63ad04b8120901bcdc94fe82fed7b12db7c798400e9ba194c972f",
+      "body_sha256": "1f4798f7084acb4b61e324a4e6e1ffbf4e03dcbe701f6939f4917c0f41eb496a",
+      "body_bytes": 16310
+    },
+    {
+      "path": "docs/decisions/0075-training-datapath-optimization.md",
+      "original_sha256": "6ec51398c5b6bc33689ce2f9b9505b0a4c584aa3039ad9a339bf18a1af5726fe",
+      "body_sha256": "2f1cda839bd0c1e8615a2069ef45cb7f3e292c1a2e14583220071619fccf6e09",
+      "body_bytes": 6054
+    },
+    {
+      "path": "docs/decisions/0076-learned-entropy-model.md",
+      "original_sha256": "0799c30e0fc114b7a128519b43e36ec5d9057773917ef5a4a0d605c0eb80ffaa",
+      "body_sha256": "4952a0c45a7a5bd6658acec43f863d1c03443f92dddc97d6246698d297cbefe5",
+      "body_bytes": 8658
+    },
+    {
+      "path": "docs/decisions/0077-lossless-paper-venue-tbme.md",
+      "original_sha256": "7e26a9768128f919c7a875e2c73d377e05b9b39d337de44afbd733bde078ddf8",
+      "body_sha256": "de1e376be523882a45b52aa65e95c439124f8607f2d4ff7ac2bcd6ff41947281",
+      "body_bytes": 4217
+    },
+    {
+      "path": "docs/decisions/0078-blut-starlark-typed-dynamic-dag.md",
+      "original_sha256": "5b4426c6c67e464caf67da133724032d2548ce285fb2309b89c98a42ce56bb07",
+      "body_sha256": "522f855db105ff7f876c9f845d664b542f04463c7adf802e033493ed73a685c0",
+      "body_bytes": 14137
+    },
+    {
+      "path": "docs/decisions/0079-blut-symmetric-mesh.md",
+      "original_sha256": "f15f5922db3fe325f0029e5c6da5eeb5525d8baecd7f0bc343e66d941024242f",
+      "body_sha256": "04d2379762cab91e4d33a011342c8a6b9454d009071c1bcb29208da47aebea97",
+      "body_bytes": 7829
+    },
+    {
+      "path": "docs/decisions/0080-blut-async-dp-training.md",
+      "original_sha256": "a253c2763950f3a48546a6de01a778f174b653ae69a494ee2209b785990f6bfc",
+      "body_sha256": "80de9e1efe562d71c190dad9e9908164adabcc17b64ad6f12325dce0ce13914f",
+      "body_bytes": 7233
+    },
+    {
+      "path": "docs/decisions/0081-vertically-integrated-memory-estimation.md",
+      "original_sha256": "57af18c2bf16da2f2c155ab5300317cf98128a29b04f217e2fcb46de107a7093",
+      "body_sha256": "60cd2e60af305919c218715cc60b6ccfb9ada593869ac755572a9354c53ec2d5",
+      "body_bytes": 9424
+    },
+    {
+      "path": "docs/decisions/0082-blut-cloud-queue.md",
+      "original_sha256": "a3272bb339d54d791a2d30ce79b0a35d00e7c8c19eb901eef2b09e43d651427b",
+      "body_sha256": "3e6b35bda91fc69bfda3b10695edc1779c83156293f98921ef5d09be0305b6f6",
+      "body_bytes": 9389
+    },
+    {
+      "path": "docs/decisions/0083-blut-interface-stack.md",
+      "original_sha256": "4423be2e993bcc2436414dc29df042808bfc63649aa32ffc8fd5535701afbd34",
+      "body_sha256": "087b43298c63b73c3e532c5fe1a0aa1ecd241643de4628712313902ffdc7e41b",
+      "body_bytes": 15194
+    },
+    {
+      "path": "docs/decisions/0084-cross-channel-joint-coding-frontier.md",
+      "original_sha256": "3668f042c4c10f5eafb8fe65674485cfbe5b84ba30642b6c48125b9af04c2ab5",
+      "body_sha256": "b14e2b462d96c7e03c6d1757f2728db35a83e0ac1d4fa2b4b6abdb2bd99c0b68",
+      "body_bytes": 13080
+    },
+    {
+      "path": "docs/decisions/0085-blut-deployment-registry.md",
+      "original_sha256": "41da77e39bf7445033c77da6974591b1ebfec7a385fbdc24a8c18d5038e496c3",
+      "body_sha256": "ad0778472644c82b416f623811020012372c4d9ac5b0ef6fc26e214239ea8664",
+      "body_bytes": 11151
+    },
+    {
+      "path": "docs/decisions/0086-blut-secrets-management.md",
+      "original_sha256": "d0ffc420da81defd79be1c451cad274863d6855985e5490f79580680a73bd5e9",
+      "body_sha256": "74d5e9f16bd9b4c2362681a295ab251c7959c9cf455c53484296877763bf90c8",
+      "body_bytes": 11427
+    },
+    {
+      "path": "docs/decisions/0087-blut-gpu-aware-scheduling.md",
+      "original_sha256": "536101958801e602fa05f59a1ddf1f908d3de1a33caead0db7592deaaf4d8156",
+      "body_sha256": "ae557927bef7faf40231a8789f41182dc2a86951250c0be338856cd2150fb268",
+      "body_bytes": 12128
+    },
+    {
+      "path": "docs/decisions/0088-blut-durable-execution-planspec-1-1.md",
+      "original_sha256": "ee35af1bed2d2231f9c4a0f3e820163838c5b619306faef70e06baad9628fbfe",
+      "body_sha256": "42dd6f59a7e6c7cc596d2fabd3a6b6d2bf625b41f3247f3f0c0cd9e7368be9f6",
+      "body_bytes": 12682
+    },
+    {
+      "path": "docs/decisions/0090-blut-experiment-model-dataset-registry.md",
+      "original_sha256": "103f5730e03b14c2a43380e50699220af242659dd6e1867a039d67b474f43b5d",
+      "body_sha256": "35fc70691e0ed712e9307b652f18ade3b3c06432c2a4e6ae263ac79fe1cce023",
+      "body_bytes": 18102
+    },
+    {
+      "path": "docs/decisions/0091-blut-check-stages-standard-cookbook.md",
+      "original_sha256": "e17e30f3715ce97b6bb026a7b14ee53e644104ad6449eb1b3021c7816b1daea9",
+      "body_sha256": "008c1ad44fac81849cf388bb2d127c5f730722ccd7aef4b2e5fc66c443114429",
+      "body_bytes": 13180
+    },
+    {
+      "path": "docs/decisions/0092-explicit-module-ownership-and-contracts.md",
+      "original_sha256": "8cc1237e93b7415606631264b24b054a3161b4b2046fe62eafb38628d8650a43",
+      "body_sha256": "f533de9e7f9e3b5b9dc8ec5b28fdbbd356ed46772f7b337729b4078ea92f492b",
+      "body_bytes": 63284
+    },
+    {
+      "path": "docs/decisions/0093-blut-web-control-plane.md",
+      "original_sha256": "ab7699d54fb14cc633ba4bf45b1592269a375ad6e078f6b978c09fa8694596e3",
+      "body_sha256": "d08302a0e89aeb1100edb15ca80e1f81067ac6977201e095a599901d1ee5d934",
+      "body_bytes": 11213
+    },
+    {
+      "path": "docs/decisions/0094-blut-eventing-triggers-sla.md",
+      "original_sha256": "1e489349eeee68265dc9258a599d4f910e3d204dd243dc3605b18e1d2485e850",
+      "body_sha256": "59382913098ede4708498cc2469116ccdeed2dc3e441a07f6680c280abe6952b",
+      "body_bytes": 14350
+    },
+    {
+      "path": "docs/decisions/0095-blut-rbac-auth.md",
+      "original_sha256": "beb765749313ae641e1cfec0f65bdbdede537968d39b9294ced5cbf7128fc2fc",
+      "body_sha256": "ba7c93dd0971bc6ab1fe13598ecbd058e1fbf891890fc2766e4dd5fb5530d6dc",
+      "body_bytes": 11770
+    },
+    {
+      "path": "docs/decisions/0096-blut-multi-tenancy.md",
+      "original_sha256": "8414477f5f1c0586be66aac25818a1881199d624102cbda2a2824d6a87ad3f2b",
+      "body_sha256": "e6507203a91ace8c709ac4e2bd89c2b44f192f55eb6cb5a16bf90ecb07462c4d",
+      "body_bytes": 20909
+    },
+    {
+      "path": "docs/decisions/0097-blut-metrics-tracing-export.md",
+      "original_sha256": "d8cf8c0045b41d611971dc8a947c328920963cf03e392d53e09a07aa8d467783",
+      "body_sha256": "7c4e7e1d69e8d9f5e91e586f6910587a056c32dc121f4b425a3f2794a23e1ce5",
+      "body_bytes": 10809
+    },
+    {
+      "path": "docs/decisions/0098-blut-cost-accounting-dashboards.md",
+      "original_sha256": "2fe38b971ce49d7ee351283e57e8130817f92d5d5a1893df05f6266020175190",
+      "body_sha256": "0296388f19e254ad85deb2be4f473e4f2deec7bddc36e563b0c37111141f1207",
+      "body_bytes": 10238
+    },
+    {
+      "path": "docs/decisions/0099-blut-lineage-graph-model-cards.md",
+      "original_sha256": "a3532a5716856e9a8c4f0d39553dbf0a2c560593016a4c899e15c51cd5189794",
+      "body_sha256": "77518d0a6008c23c1f533438e4b51882381e36e6a6f4970682ff72397efba6aa",
+      "body_bytes": 12816
+    },
+    {
+      "path": "docs/decisions/0100-blut-data-catalog.md",
+      "original_sha256": "081d14b256dae98cae01ccb8b22e6401ff421d4804fdf242e3c16e56fc457e29",
+      "body_sha256": "f4c058248536b2f2ee8391c4e66a9813b3d5d59abd3fc3584feeb5772fe3c993",
+      "body_bytes": 10334
+    },
+    {
+      "path": "docs/decisions/0101-blut-backfills-partitions.md",
+      "original_sha256": "ec46e0e2b823f758f4d1777d47235d469c2e883a8729935705e72b6ec4b3ae58",
+      "body_sha256": "b679d655f98c79fb2d1b1f23fad0b76d3aae548245e67589a8f49a9e78f9a9bd",
+      "body_bytes": 13912
+    },
+    {
+      "path": "docs/decisions/0102-blut-dag-optimization-advanced.md",
+      "original_sha256": "eecabca3d787964625d9b5a68835d38d9b9021f0990a867ea3a85137ee03a86f",
+      "body_sha256": "0b3da0d2fdb7eef636005b9c6f8f2d805f02fac2eb2cd1224419e338829c770a",
+      "body_bytes": 31753
+    },
+    {
+      "path": "docs/decisions/0103-blut-async-compute-completion.md",
+      "original_sha256": "9e649abc0e8e0b69974bc168943b116a2d8039bfa6497cc4a85d086c9a703807",
+      "body_sha256": "916a90deb7674360f1de75f33259456316f07ee2db7f85c1c3e6009ab5c49aca",
+      "body_bytes": 28170
+    },
+    {
+      "path": "docs/decisions/0104-blut-multigpu-fsdp-completion.md",
+      "original_sha256": "be0a180d168d61357ba4ff8812526254855bf3fef00b55af4becf433096c42fa",
+      "body_sha256": "d119ae662fb58ff8cef00db9a5a82ce7c7a9fa2ea6f0653fe664884ed49faf5c",
+      "body_bytes": 7984
+    },
+    {
+      "path": "docs/decisions/0105-blut-multinode-nccl.md",
+      "original_sha256": "a341f70d2e8f5ca44d82e654edf9d166beb9adfa9b51cbfea1045eae3c27121e",
+      "body_sha256": "0c6cf9bbf3960ca497bd0c28d299fff12c9572280c16b80cd1701b606efb0875",
+      "body_bytes": 8960
+    },
+    {
+      "path": "docs/decisions/0106-blut-ha-control-plane-raft.md",
+      "original_sha256": "c459196d643c86689edc3fac4f4052f955295dd4d8b720ef52cc3eeb744b6905",
+      "body_sha256": "eb9dccfa8d03e00335a7dcc27a7addf702097f54e0036b4445c05d24255a3678",
+      "body_bytes": 8554
+    },
+    {
+      "path": "docs/decisions/0107-blut-geo-global-cache-compliance.md",
+      "original_sha256": "da060f58348b96dd89afae3792894d88dbf1bd3ac86758a08c568c115d6ef6ba",
+      "body_sha256": "012155d0e41f80bca3355d78a4d894c8c204a1c9b92e4a3ed57c3addff933324",
+      "body_bytes": 9879
+    },
+    {
+      "path": "docs/decisions/0108-blut-multiprovider-cloud-routing.md",
+      "original_sha256": "9ea0b0f751d7789f94e6caa82e9226d6eb697e95ecf126b9df0f620896a805c2",
+      "body_sha256": "27b3165fc1b01a804c845fb0fb024c0830a18268df121c3e32ab7eeb9ac20320",
+      "body_bytes": 9548
+    },
+    {
+      "path": "docs/decisions/0109-blut-hpo-advanced.md",
+      "original_sha256": "869ea6ca9bebb2ae12419d5cf144576eaf87ea37880e1cb2c7077b5d8b65a1f2",
+      "body_sha256": "81f51be6486c7d39745c04d85876a81548dbed36f1fff91b394be9b7b81b5a03",
+      "body_bytes": 32021
+    },
+    {
+      "path": "docs/decisions/0110-blut-auto-tuning.md",
+      "original_sha256": "d34a2ce9606e3d009cc6273bf1a8a0beff4d3b85ede3c712699c0d0f1e5a8342",
+      "body_sha256": "e1e85add24a08b5174b0075718356cdd3df3a8b0ad813d17e17ef057980df10f",
+      "body_bytes": 12437
+    },
+    {
+      "path": "docs/decisions/0111-blut-python-sdk.md",
+      "original_sha256": "c0e5b0f7a5883369dfd0150d67411b7b8ba5cf497089502aa481dfc06418776f",
+      "body_sha256": "cee59c0d1a6cc008368a3692e383554dbc24b02b1f24ba7ecb115ddb3fffa3d8",
+      "body_bytes": 16703
+    },
+    {
+      "path": "docs/decisions/0112-blut-ecosystem-integrations.md",
+      "original_sha256": "a60a8ffccf174d98a6b46b7eff6f4a7d9fa9fd5513682648c31dc05ed351d359",
+      "body_sha256": "dd785d0a9ab2c2e7060336aa718eb89880e5281fe5b7d667e207b3f8cd643b6f",
+      "body_bytes": 13567
+    },
+    {
+      "path": "docs/decisions/0113-peer-competitor-perblock-rd-codec.md",
+      "original_sha256": "028279124003a92a833d8f89c10820b89c2f7499a1b15c3e8cfc505a3be7e5c4",
+      "body_sha256": "51c084c64800b61eeb9414886e006568a0a70cefacee6e3ca8f920131570bb24",
+      "body_bytes": 13337
+    },
+    {
+      "path": "docs/decisions/0114-neural-evidence-graph.md",
+      "original_sha256": "eb68730d74d94dced54a80ad407973fd7bd0b56922ab2ead6d2ad8e3ea0d00c1",
+      "body_sha256": "ec3afb16f79ef03d551a326a94ffbc5698e2b4c0791e0d9f59d47bcc2dd4d712",
+      "body_bytes": 18747
+    },
+    {
+      "path": "docs/decisions/0115-risk-limiting-progressive-lmq.md",
+      "original_sha256": "d4ca8a05d0dd5dce1661d5941e0290ab2bf5239a214abae021933d49ba2a18a6",
+      "body_sha256": "ac8f94977365da4e0b52b76fa3341e27cc8ff92e93ece018b0772f12bc1a4424",
+      "body_bytes": 13487
+    },
+    {
+      "path": "docs/decisions/0116-lamquant-optimum-v2-learned-lossless-peer.md",
+      "original_sha256": "fe8e3b687b21299b5a5425c41234f5e3338a2a4d514051681dde2195e90c5fb1",
+      "body_sha256": "737235faec46cc152117eeb471f456acde36cc0064e2041d59e7e9db62550f1b",
+      "body_bytes": 327613
+    },
+    {
+      "path": "docs/decisions/0117-use-production-roadmap-as-meta-progress-rollup.md",
+      "original_sha256": "bb8a5a7e7f0751928c2f6e207113af37796e8d9e4c7ac7eea03a2caa6ed8a5c3",
+      "body_sha256": "1a983b649e345972e2733ea25929f38de8251d917bbc1a673e29acb7a424d5ce",
+      "body_bytes": 6843
+    },
+    {
+      "path": "docs/decisions/0118-oh-tech-1-0-release-constitution.md",
+      "original_sha256": "8e77842cfbada7eaaca9d0bf23e2c545d0620ba004a528f706a73193d793944c",
+      "body_sha256": "1af0e2c195ddb7d36ac357c9d158c10b6a679ca31296061c404389b7843125f2",
+      "body_bytes": 20794
+    },
+    {
+      "path": "docs/decisions/0119-distributed-source-coding-afe-boards.md",
+      "original_sha256": "e67d56112ea67e05265019011fb85e584ffa09955cb8bec149592d5fb53a7595",
+      "body_sha256": "39005c49576b881ab75ef8239a53c9aef1b5f9754e088cf774d14fcb14fb05ed",
+      "body_bytes": 10089
+    },
+    {
+      "path": "docs/decisions/0120-reference-gauge-equivariant-representation.md",
+      "original_sha256": "8c5005009bae8e58510a82f00f1edb9191b46fe6be178026b103539983a2e756",
+      "body_sha256": "985fb504fecd4327cae7cdb8abf4ea81d92216b0414e4ccc1da49ec762010c6a",
+      "body_bytes": 14977
+    },
+    {
+      "path": "docs/decisions/0121-microstate-first-hierarchical-codec.md",
+      "original_sha256": "6e7d64e95471fa22636275ddce441783b97372535f3c586c825b39249601583c",
+      "body_sha256": "de709f367db608b79c6c00eb3bc09c07ce18f2c2330510cac32cb1de8707972f",
+      "body_bytes": 8310
+    },
+    {
+      "path": "docs/decisions/0122-active-acquisition-event-driven-sampling.md",
+      "original_sha256": "de2201cd7f822af7ef0ab15130c72f9a18501b43107a20686590da48061b924d",
+      "body_sha256": "d77d5011d435a3d908835709a7d6d105526c3f95f4c0496ec28f5c408e1b9edb",
+      "body_bytes": 1918
+    },
+    {
+      "path": "docs/decisions/0123-multiple-description-coding.md",
+      "original_sha256": "9aa4513341f630566268ca2cffbbdb629e595bebeba1ebc87b087f8f730f74ad",
+      "body_sha256": "32532d1187e1343d9ef47c1961a32a6b8485f8832884d87ff1f4f7bc46b2ac02",
+      "body_bytes": 1529
+    },
+    {
+      "path": "docs/decisions/0124-stateful-session-adaptation.md",
+      "original_sha256": "f6632ff234c5e406d710fc7eef718b9bbe5bc99490e76da3cab708494286cd52",
+      "body_sha256": "b56bbe6e1d253ebe75b5f47c6c1513ce75d3d13d8cbccb2df69a87509402e858",
+      "body_bytes": 1599
+    },
+    {
+      "path": "docs/decisions/0125-causal-latent-factorization.md",
+      "original_sha256": "4e218e5c6f158365fd7636667f88a9b28dfec98ffbff00d644f4db861c0f503f",
+      "body_sha256": "b8285584bca0b9656a85efea8541b753aa719860ec935168697da91722a7dd4f",
+      "body_bytes": 1941
+    },
+    {
+      "path": "docs/decisions/0126-identity-privacy-selective-compression.md",
+      "original_sha256": "67d7c6e6ef59d694db34d38dd64b0668876752271bb172151fbaa961602e8da6",
+      "body_sha256": "5dc4a713f2bc2497198ab7a5d5f6d8c18ed8e0b1c8f3640485e63a61d5507dd3",
+      "body_bytes": 1883
+    },
+    {
+      "path": "docs/decisions/0127-neural-query-compiler.md",
+      "original_sha256": "4b34e41da7a08a2a5b63c189c19d6ef059df9df7f5cc6734b09743492d2d2dcc",
+      "body_sha256": "ab7142d3204376ea330310ff9cf4c9ab61f959407356860c74d7393115388daa",
+      "body_bytes": 2821
+    },
+    {
+      "path": "docs/decisions/0128-personal-digital-twin.md",
+      "original_sha256": "5a2ade7586864e459c89eb0c62a6e64e8e50f5fbadcfc675b90147c31450101e",
+      "body_sha256": "a8c9c724bcec83d332b9bf93404fd4635dde47c3e1006e9d1160d9294c9e4c74",
+      "body_bytes": 7527
+    },
+    {
+      "path": "docs/decisions/0129-autonomous-experiment-engine.md",
+      "original_sha256": "93f98e471335fb338178e9228af38e798c4d185cd544e9ee9117d9adb93ebd93",
+      "body_sha256": "93ac72eb6d35be9e256405586bde8b796d90bb4d3d4b162a4342d68352758c97",
+      "body_bytes": 2604
+    },
+    {
+      "path": "docs/decisions/0130-open-neural-knowledge-network.md",
+      "original_sha256": "7bc3d4edb829028f0e242f807a912db7280a96d5c6c98fd37a1939d0f6d70c1b",
+      "body_sha256": "ff9b2f31cb6814eb1270943171d5f61e1e19e0154120f421293f27454d67177f",
+      "body_bytes": 2553
+    },
+    {
+      "path": "docs/decisions/0131-neurodynamic-fidelity-metrics.md",
+      "original_sha256": "7ac3240f0586e2605b070b23f62439e95d6f66925c645ed583b67ea5966a043a",
+      "body_sha256": "ffbd2f6dcccfffc8610f729ebef24c771e0dfefa061c32badef26f45af9b6787",
+      "body_bytes": 1810
+    },
+    {
+      "path": "docs/decisions/0132-closed-loop-action-plane-firewalled.md",
+      "original_sha256": "fda49af6f3cee754ec31e24ae4c2771334f7f40fe553d7966eecb8b3595f6031",
+      "body_sha256": "b4e6795f20b76ef7fdd7a8a56f1451babdcf4c83c5feb789181e73610920ca2b",
+      "body_bytes": 2865
+    },
+    {
+      "path": "docs/decisions/0133-blut-typed-declaration-admission.md",
+      "original_sha256": "1e69a6c7f32fad67ddb3113127a5ebfefb4261ac698be99ab68e1a0e48d30a1d",
+      "body_sha256": "1ce40e2faa42d0eb311d63d624d09281e02f8dac6f1c032872bf397881e45110",
+      "body_bytes": 23070
+    },
+    {
+      "path": "docs/decisions/0134-bonsai-unified-atom-parent-engine.md",
+      "original_sha256": "527cb82859159ba8d0718e46247bc7239ca3a3fee6427a0020c576da4eeb9d1c",
+      "body_sha256": "d766a6290c4636f4cbbe9047acc375da2d032accd53112bee0a4369e91373a40",
+      "body_bytes": 24621
+    },
+    {
+      "path": "docs/decisions/0135-lamquant-runtime.md",
+      "original_sha256": "0849d595ceae78934f49e799a9f6ff8484823a45c394a00c6bceb1184b970987",
+      "body_sha256": "0cbad0428c334dad7b5a8b709ad9c3bb4aeaff41d652c442923eafb95774ccf0",
+      "body_bytes": 18292
+    },
+    {
+      "path": "docs/decisions/0136-lamquant-runtime-roadmap.md",
+      "original_sha256": "0a6ee1dfccc78179a629f7f76197e086763a65775e587231e4062271c7fc7240",
+      "body_sha256": "4bb44f379086f5849354d31fd3b5613fa329a0bda154c970d48758a69451e090",
+      "body_bytes": 15443
+    },
+    {
+      "path": "docs/decisions/0137-blut-engine-m3-m6-milestone-constitution.md",
+      "original_sha256": "301c02d3f03262c34296c4ceddca9292f060e08a766d9f39f14ea8fcfbec9d5f",
+      "body_sha256": "b0c78ed9479a5134f762beabe127ca81ff11cf20a5477fa1379f187363dca664",
+      "body_bytes": 20414
+    },
+    {
+      "path": "docs/decisions/0138-lock-lml-logical-shape-with-bonsai.md",
+      "original_sha256": "6817c2299ddd2697fe2c35faf74f0c759b759394e07f5dfad204303690fd595a",
+      "body_sha256": "3c4622dc1632403fc41ec7d0949adddf9c90bd69e92c5fdeb34048eb3dfce56d",
+      "body_bytes": 3385
+    },
+    {
+      "path": "docs/decisions/0139-unify-lamquant-around-abir-nodes.md",
+      "original_sha256": "9c502ede6e2c82523957315d5ba1de962afb065d4500900d96fedd8541284cb0",
+      "body_sha256": "d0eb72bb9ee237fc277e5806b3762aa2bb5c4dcb7261fe6c9ed2c9bf80e32c40",
+      "body_bytes": 48378
+    },
+    {
+      "path": "docs/decisions/0140-make-abir-the-universal-biosignal-seam.md",
+      "original_sha256": "b1d04cb5161ea475ba17be752893a16baec9ac197f9ef9c1c4d8901c6527287e",
+      "body_sha256": "ac6092bccb78be5edfac8910ead1d454eda462581b80a609633dd5ad5c01dba5",
+      "body_bytes": 11762
+    },
+    {
+      "path": "docs/decisions/0141-replace-bcs1-with-bcs2-wire-and-store.md",
+      "original_sha256": "68f334a579b7b3f72be5435de7d36af6165f1b60672145646856f45d48b48307",
+      "body_sha256": "5d57e3d215079617fdd1ae19a5ba12e2b404bceaa46fc6fb55ef0ba454e4b1fa",
+      "body_bytes": 10976
+    },
+    {
+      "path": "docs/decisions/0142-compile-capability-driven-node-graphs.md",
+      "original_sha256": "04eb52b5f0b4dd2d03ac5ee53d328848330ecc1005324183cb12a9bc2e04bcb3",
+      "body_sha256": "865a2cda21792035c11cc68bbf29845aef5bef5c590ecdb6ea990fefe797f22e",
+      "body_bytes": 12053
+    },
+    {
+      "path": "docs/decisions/0143-make-standards-first-class-and-isolate-legacy.md",
+      "original_sha256": "2d3896c0a693d6f52c23ca62de3983d4681b2125d880080d4cb9336a669665d3",
+      "body_sha256": "056003a00b835e36a1ca8d1707bd57d40a25ed8911d1779958caf188e3e9461c",
+      "body_bytes": 15720
+    },
+    {
+      "path": "docs/decisions/0144-make-trainingwindowstore-bcs2-backed.md",
+      "original_sha256": "d7fb724ba3b30951fc2906b1c651fdcee26624b99ffdf43f13accd9d68bb88bf",
+      "body_sha256": "2814e24b4fa8a1ab6ca6f60584cb7be64b438b8aad9b24396e79982957cad9f5",
+      "body_bytes": 10565
+    },
+    {
+      "path": "docs/decisions/0145-freeze-optimum-v2-status-before-productionization.md",
+      "original_sha256": "00bd5f809882161cdaebabb21c1dc1b6ddfd7683826eff217880d8d355bc1ed3",
+      "body_sha256": "1b72b10be1af71319ac32179acce708634225a0603edc71006a438e08d09ebe5",
+      "body_bytes": 35399
+    },
+    {
+      "path": "docs/decisions/0146-separate-internal-generations-from-external-semver.md",
+      "original_sha256": "7da1b45062e341ab2aae6e841cde227c569e322f9082748d684d3dd2f01ff246",
+      "body_sha256": "33afec869ccb9dce8eac280fdd43c14503cc83c1d9de287ffd979cb6b130f30a",
+      "body_bytes": 7757
+    },
+    {
+      "path": "docs/decisions/0150-cross-repo-revision-coherence.md",
+      "original_sha256": "6459c257f55a92ddcad82a327fdc99686fd273ae6b38f09c1f07b2fe158d9d89",
+      "body_sha256": "30c56d2a63f160baeebd87890c26b32321477e85f569f8972af48a8d8393f5bd",
+      "body_bytes": 11490
+    },
+    {
+      "path": "docs/decisions/0151-node-and-kernel-constitution.md",
+      "original_sha256": "4317a819daa6250b8f30f42befec58c818c868b252381d9df4e86bf05ecc406c",
+      "body_sha256": "0f46aacec735312000a1e87558ef6963214fd798a4ac9f47b8faf070f0be9a3c",
+      "body_bytes": 11087
+    },
+    {
+      "path": "docs/decisions/0152-run-a-fail-closed-bug-campaign-across-the-whole-tree.md",
+      "original_sha256": "9ca3416264154ab6bdab29863045f8e94c99d3ae49409033077dda8ebfe3b323",
+      "body_sha256": "39374c45b01398dc2b8cb0a9f8c0cf577e5982518879a0e9fb0ef37725e8cf99",
+      "body_bytes": 30885
+    },
+    {
+      "path": "docs/decisions/0154-blut-owns-the-run-ledger.md",
+      "original_sha256": "3a6f5592f1869e6cfdc47a1157f41c1f30c1e54b191e7d3aadbecf7c9a2838ba",
+      "body_sha256": "d2c58ab7156688c599b44397c8fa1142d65bd1d2182ef2eef12529562b154475",
+      "body_bytes": 12645
+    },
+    {
+      "path": "docs/decisions/0155-developer-ergonomics-and-footguns.md",
+      "original_sha256": "441168cbf17b06abe8548734368bff90da6ecc9668093a763e03e7cafceaa24f",
+      "body_sha256": "cd8eecd9b00ea57b14fc91f644cb7b358480fb3199668cb0b3c590477e277f25",
+      "body_bytes": 11095
+    },
+    {
+      "path": "docs/decisions/0156-blut-experiment-execution-ux.md",
+      "original_sha256": "946a1e381cbbcd728dfa166d369e5609c8a866eafceb1a51dfd5dee8a40ffb78",
+      "body_sha256": "c0a1a53c5d71530ebab10d3d6bf3cffac03b5b6e2988be0fe671778693e9740e",
+      "body_bytes": 13173
+    },
+    {
+      "path": "docs/decisions/0157-blut-canonical-control-service.md",
+      "original_sha256": "51d4befb24a3aa2c8878dccc6b9703af48e687d4fdf938a06dc3d40618f3e252",
+      "body_sha256": "9c8f0df63c119c4bd101f5d49576eee4b7f140fcc3afb5e1ba62a6c1426a9c34",
+      "body_bytes": 27488
+    },
+    {
+      "path": "docs/decisions/0158-abir-training-data-plane-profiles.md",
+      "original_sha256": "c4bbd2180eb3e3a7a05ed3bfa9a3f6e2bd963f57df08a6775e7c3d76a9f28f75",
+      "body_sha256": "e3575fe83863fa4906de7a8aef3eb05ea79370579b21774d83a2cf116bcec4c1",
+      "body_bytes": 16417
+    },
+    {
+      "path": "docs/decisions/0159-abir2-source-agnostic-training.md",
+      "original_sha256": "d8f70a8a1d648247eb4c86bc6c18754c59c00a611cc838e02546d1f6e5b99d9b",
+      "body_sha256": "c1dbb293019b02759132d572f8d519724e0e5014b4e131484b74f15d091d26f2",
+      "body_bytes": 18442
+    },
+    {
+      "path": "docs/decisions/0160-blut-1-0-integration-constitution.md",
+      "original_sha256": "0b9b354c7e47653d60a26398e0d73bade75d4f8fa9bfe00a30c185b026c1e67b",
+      "body_sha256": "ca4812b44f1d2b64815de01f8f7f1c7751868cf69474e808298999d762829dd9",
+      "body_bytes": 12423
+    },
+    {
+      "path": "docs/decisions/0161-blut-managed-hermetic-actions.md",
+      "original_sha256": "f8c72ffc58f5147fc83848a087fceef7f7fa2ed7925ac0b1edab7715d55427b2",
+      "body_sha256": "c70d16b17d72ad2320b89d47b79094f94ff57c1d3240de1c27c83b61f2f89a06",
+      "body_bytes": 4626
+    },
+    {
+      "path": "docs/decisions/0162-blut-signed-platform-toolchain-routing.md",
+      "original_sha256": "22aab582e055ef36ba2b4532868c4d5adcbf148a8ff350b8a2d4383d256f9d79",
+      "body_sha256": "3e95d4c7d0255bdc3c2f167c17deb25efeb6ad1ed6d5cdfb385de0ba199edceb",
+      "body_bytes": 4057
+    },
+    {
+      "path": "docs/decisions/0163-blut-content-locked-starlark-modules.md",
+      "original_sha256": "938ef01973feb7c6293e009ccd5d0aea5c57c5eebcb41d1e6776a3f5ddb453ff",
+      "body_sha256": "7cd1a5cc12a2fae9336ad243962dd34ac109ef6f9f7ca4cd323b952c6e7d230f",
+      "body_bytes": 3436
+    },
+    {
+      "path": "docs/decisions/0164-blut-outbound-reapi-adapter.md",
+      "original_sha256": "43a0602ffbca48390f838dd1ca3fb8b7cfc16c07c809d6abe08d5ef5d58ba394",
+      "body_sha256": "83f946352d3c47f946756fd9eafc1e02b1f19abecc819d95fd1cdcc1cdb6c611",
+      "body_bytes": 3670
+    },
+    {
+      "path": "docs/decisions/0165-invertible-latent-rotation-for-the-rust-mcu-path.md",
+      "original_sha256": "e2e69f72e244df64cf43f3e0eb4fd3fe255cc0ed4ea3a3eac5656fc3a03bf1cc",
+      "body_sha256": "b431aa4a1328dc2e15d61ee8db1c9c7d1dde20c6a770d8d7f47107ec47ddce81",
+      "body_bytes": 17352
+    },
+    {
+      "path": "docs/decisions/0166-amend-package-16-provisional-non-clinical-neural-codec.md",
+      "original_sha256": "4a2d628304c54d2fb54c6d1bca1342b8596660f71880ccc2eceda403bf96c839",
+      "body_sha256": "559d3e34e0607e6b90f6eb3c7c72209b4480844cd4e49260db53b39a7475bb71",
+      "body_bytes": 16816
+    },
+    {
+      "path": "docs/decisions/0167-consolidation-constitution-one-of-each.md",
+      "original_sha256": "906725416908526855baafdb02a5a9fe5fd066665f2a567177975ab1d4eddf33",
+      "body_sha256": "e67cb7ea016fac299891e3472c15486036556504481ee2aef23bcc7ca6a8e4a0",
+      "body_bytes": 22546
+    },
+    {
+      "path": "docs/decisions/0168-one-data-layout-one-archive-wire.md",
+      "original_sha256": "098ff3a08cff87f5387bb54f8d8ab8aecd9535acbac5d39cf8ec881ec1b16c8f",
+      "body_sha256": "1c405d6c6de4431315cf488bf14c9fb40648918b30f82796c77ce3e946bc36bc",
+      "body_bytes": 22457
+    },
+    {
+      "path": "docs/decisions/0176-make-adr-overview-the-structural-parent.md",
+      "original_sha256": "62c253bc4d7bd7c628762cb85c71bec3c382ec51a32a805e228a9f39a3e72ceb",
+      "body_sha256": "a561e2e98c51edafb6f520c33e83be88f6619eee3d6c5279a527d14fb030afcc",
+      "body_bytes": 5390
+    },
+    {
+      "path": "docs/decisions/0177-build-trusted-capability-compiled-firmware-platform.md",
+      "original_sha256": "e73e8dec67435e31367765587b4ebcb8a6c6bf43c1109ffb74896cb032355cf1",
+      "body_sha256": "2dd3bf65edd97268d9c26bc948a8d89cba15315919e27c8add55311d2eb941f3",
+      "body_bytes": 24555
+    },
+    {
+      "path": "docs/decisions/0178-remove-the-cross-repo-pin-cascade.md",
+      "original_sha256": "0467d48fa5f36679062bbf029b9b36b57d9364c76c2a9aeb040eb84af2b4f7de",
+      "body_sha256": "1a62375115fdf13fc7204a467ad9e5061d7908da2902282dd8243495242ed939",
+      "body_bytes": 13399
+    },
+    {
+      "path": "docs/decisions/0179-execution-before-elaboration.md",
+      "original_sha256": "cafad8646f5cfb7beb14dffbdbc079d6744dad9457cfa92541cf1ad9aef21d32",
+      "body_sha256": "5b144a404208a83277fe671808f3c17671b9351e23838867bf0dca53dfd77f02",
+      "body_bytes": 20002
+    },
+    {
+      "path": "docs/decisions/0180-cost-of-a-change.md",
+      "original_sha256": "b530dda0d5d1d9790155b635224d489e569fe8f24eb9ba057ad60521bdde55dd",
+      "body_sha256": "b6951abadfc76cf9ecc3f47688cc56e343f25df19c6c1f055ec9dd2cdb946d81",
+      "body_bytes": 16748
+    },
+    {
+      "path": "docs/decisions/0181-federate-the-adr-system.md",
+      "original_sha256": "d1fb8e7da883ada9352e7eabb4ee64a6b3bbe526531f1309b442cbc0e1761f2f",
+      "body_sha256": "7022db3f17ecb79417bedb12381e57e76e0f01218819ef37bb5f54f3a7d39358",
+      "body_bytes": 21776
+    },
+    {
+      "path": "docs/decisions/0182-repository-standard.md",
+      "original_sha256": "c566698d7c878a55618ceee6ab7a8e3fc99b096d89c4d278093d634f45a960d7",
+      "body_sha256": "ec1c8d7900cf0282ef647451413580aee8446df0f07934bab4249b40edd5fe86",
+      "body_bytes": 17026
+    },
+    {
+      "path": "docs/decisions/0183-one-tree-many-boundaries.md",
+      "original_sha256": "78246715a20a56ade87bc53300922b112092ff0756dde5f69b5c1e7965b06764",
+      "body_sha256": "a4d858ee6d4805def86b1ebdd8da73f3f1dbec7f3254fc5428dc62af3920802b",
+      "body_bytes": 17525
+    },
+    {
+      "path": "docs/decisions/0184-adopt-openwarrant.md",
+      "original_sha256": "b3a4208e97762532edd383d830d21bddbc877c7d5801e10d71751184989ab786",
+      "body_sha256": "36926272620cf7b25ce83b0ab49f0da205ff000e37944667f12cfb1b715d9a25",
+      "body_bytes": 13223
+    },
+    {
+      "path": "docs/decisions/0185-declare-and-enforce-module-boundaries.md",
+      "original_sha256": "b35201126dfacb2d986690a1e7e054991579d7e07e15811a9ff5203805126196",
+      "body_sha256": "19a22f2575eac86de25adbf8be056eeb674221a50a0929508717772aa3206bb5",
+      "body_bytes": 10654
+    },
+    {
+      "path": "docs/decisions/0186-retire-the-adr-system.md",
+      "original_sha256": "158d40bd72c8b07cded18ad3d0a3aa44a28e36d63ff0e1a8c186ea665774bc6e",
+      "body_sha256": "4b20e250fd959f0d1194203a1c941eb2786aa1074ca22f2f055515f917f27d35",
+      "body_bytes": 21042
+    }
+  ]
+}

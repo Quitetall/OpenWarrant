@@ -1,0 +1,43 @@
+{
+  "performer": "agent://codex",
+  "build_head": "3c450a68a29aaace21e661395ca428c8ae1ea029",
+  "test_source_changed_from_head": true,
+  "source_manifest": [
+    {
+      "path": "crates/openwarrant-compiler/src/ir.rs",
+      "sha256": "040d793c9f903111698840fa1b49e5b8c5b118006df380cabea51736cfa11c50"
+    },
+    {
+      "path": "crates/openwarrant-compiler/src/preservation.rs",
+      "sha256": "3953cf3ef79101d9e091d2f285b99d170c12e64619d1c46839aa22d2c7b9eab1"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/export.rs",
+      "sha256": "87f89cb3b3c43c3e88cdd76cbf4fa7140325dea3a5b093c1d44e6a03d210b51e"
+    },
+    {
+      "path": "crates/openwarrant-cli/tests/preservation.rs",
+      "sha256": "11154119e056d5d99cb0b629f58f48ab9d66e2ba8f5271f857fd106041737958"
+    },
+    {
+      "path": "crates/openwarrant-cli/tests/all.rs",
+      "sha256": "54431b26ae4fa45bbcf8d38e4f539b99a45224b300782ed02505f9046d07d547"
+    }
+  ],
+  "toolchain": "rustc 1.97.1",
+  "compiler_library_tests": {
+    "pass": 80,
+    "fail": 0
+  },
+  "archive_integration_tests": {
+    "pass": 25,
+    "fail": 0,
+    "seconds": 77.03
+  },
+  "fmt": "pass",
+  "compiler_all_targets_clippy": "pass",
+  "initial_test_selection_error": "no test target named preservation; corrected to --test all preservation::",
+  "legacy_export_complete": false,
+  "independent_verification": false,
+  "historical_and_kf_qualification_established": false
+}

@@ -1,0 +1,62 @@
+{
+  "run_id": 38140557252,
+  "rows": [
+    {
+      "file": "phase1-Linux/phase1-Linux.json.gz",
+      "sha256": "08d1e78fb0d1aacd7ce442eef3d7ffde096b3e87d721b976991aae1af1432845",
+      "host": "Linux",
+      "source_digest": "b143a87fd8e7a649c1335b616736868284d0e9bedc91c4df2e9b1d769439f44c",
+      "head": "2692fbda1d376b6aa5a8eaffd2fe95f89869a04d",
+      "current_host_passed": true,
+      "source_unchanged": true,
+      "checks": {
+        "build": "PASS",
+        "fixtures": "PASS",
+        "core": "PASS",
+        "cli": "PASS",
+        "skills": "PASS",
+        "context": "PASS",
+        "stage": "PASS",
+        "structure": "PASS",
+        "inventory": "PASS",
+        "source_stability": "PASS",
+        "binary_stability": "PASS"
+      },
+      "phase_exit_established": false,
+      "qualification_established": false,
+      "uncompressed_sha256": "0451e760a414c19a57b9c460efadc423ec2b65df55d32fcf0de3ba96bb69c186",
+      "compression": "gzip"
+    },
+    {
+      "file": "phase1-macOS/phase1-macOS.json.gz",
+      "sha256": "8a822e852226ebe2e973fc5be97358c1ad1949f7927da6c407cf3142184db785",
+      "host": "Darwin",
+      "source_digest": "b143a87fd8e7a649c1335b616736868284d0e9bedc91c4df2e9b1d769439f44c",
+      "head": "2692fbda1d376b6aa5a8eaffd2fe95f89869a04d",
+      "current_host_passed": true,
+      "source_unchanged": true,
+      "checks": {
+        "build": "PASS",
+        "fixtures": "PASS",
+        "core": "PASS",
+        "cli": "PASS",
+        "skills": "PASS",
+        "context": "PASS",
+        "stage": "PASS",
+        "structure": "PASS",
+        "inventory": "PASS",
+        "source_stability": "PASS",
+        "binary_stability": "PASS"
+      },
+      "phase_exit_established": false,
+      "qualification_established": false,
+      "uncompressed_sha256": "5d0b00a86c81f4874a7742d7c2499a33e4fbba8b7a234f667153b9006deb5def",
+      "compression": "gzip"
+    }
+  ],
+  "same_source_inventory": true,
+  "limitations": [
+    "Repository gate and independent phase review remain required",
+    "No model quality or human effort measurement"
+  ]
+}

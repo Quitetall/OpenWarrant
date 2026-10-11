@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-e6340` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-e6340"
+uuid = "01a12b4b-f6b5-7042-be8b-6032587ed54e"
+title = "Correct stale Preflight coverage messages without claiming execution readiness"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-11T14:09:21Z"
+created_by = "claude"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

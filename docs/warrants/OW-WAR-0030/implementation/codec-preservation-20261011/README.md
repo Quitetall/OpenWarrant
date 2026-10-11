@@ -1,0 +1,9 @@
+# OW30 codec and archive observations
+
+The existing minimal canonical IR round-trip test now also exercises a populated fixture. The minimal case remains unchanged as an omission regression. The populated case supplies SAS pins, enterprise identity, source atoms/scope, every relation collection and optional edge field, execution, assurance, resolution and unknown namespaced extensions. Equality checks retain all supplied data and exact canonical re-export bytes; missing required identity is refused in both shapes. Synthetic history labels test codec retention only, not actual authority or historical state.
+
+Actual validation on Rust 1.97.1: 80 compiler library tests PASS; 25 CLI archive preservation tests PASS (77.03 seconds); workspace formatting and compiler all-targets Clippy with warnings denied PASS. The integration tests observe source-detached byte retention, Git history, tampering, source removal, symlink/path refusal, bounded large records, runtime evidence and schema reconstruction. They remain bounded fixtures; they do not establish interoperability with a peer compiler or actual institutional authority.
+
+The first Cargo selection failed with `no test target named preservation`. This checkout consolidates integration modules into `--test all`; the corrected `preservation::` run passed. Both outputs are retained. The observation records the exact modified source hash: tests ran with the codec test change present on top of the named Git head, rather than pretending the dirty test source was already committed.
+
+OW30 remains incomplete. The legacy `war export` is a metadata envelope and has no content-bearing archive/importer. It deliberately refuses `--reconnect` as proof. The newer archive transport is experimental. Full required-content preservation and the governing protocol/adoption decision still need completion; these tests do not replace them. No export envelope, digest domain, signature or independent verdict changed.

@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-7e429` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-7e429"
+uuid = "01a12b60-fb1e-74e9-97bf-d7477e0c8639"
+title = "Reproduce OW65 tokenizer approximation measurements and correct unsupported claims"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-11T14:32:18Z"
+created_by = "claude"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

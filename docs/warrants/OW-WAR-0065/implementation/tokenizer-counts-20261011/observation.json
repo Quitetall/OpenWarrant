@@ -1,0 +1,65 @@
+{
+  "reported_by": "agent://codex",
+  "source_subjects": {
+    "historical": "46d5d26635f53bc39a617f0664aa4608a490b97d",
+    "current": "a6b2d90ca939d6f80a648b9d9a8db93893bbe816"
+  },
+  "locale": "C",
+  "wc_identity": "wc (GNU coreutils) 9.12",
+  "python_identity": "Python 3.14.7",
+  "archives": {
+    "historical-sources.tar.gz": {
+      "sha256": "4b8d7db6d17de23677cdc1c74f8170ad2eb77722a7631211ae71c961573c4bed",
+      "bytes": 76568
+    },
+    "current-sources.tar.gz": {
+      "sha256": "eca923d47198ba9ab7902525d1de74ed631b2dc38386f95b7fbc62f139d9fb71",
+      "bytes": 94669
+    }
+  },
+  "previous_memo_sha256": "50694a3cbc6ff6198a808ecf8fdfad36c6543d3e7d49790a5075f9fbf5f7f07b",
+  "frozen_method_source_sha256": "5e27cd4e5b1c8dcfc045d1ecc41abe92d1e8c783d254532047e7b4206516a2ca",
+  "tokenizer_called": false,
+  "independent_review_established": false,
+  "assurance_granted": false,
+  "work_state": "implementation_complete_independent_review_pending",
+  "controls": [
+    {
+      "case": "historical exact byte replay",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "case": "historical four per-row and offline archive counts",
+      "result": "PASS"
+    },
+    {
+      "case": "current exact byte replay",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "case": "current four per-row and offline archive counts",
+      "result": "PASS"
+    },
+    {
+      "case": "missing revision",
+      "exit_code": 2,
+      "result": "observed refusal",
+      "stderr": "measurement unavailable: Command '['git', 'rev-parse', '--verify', '--end-of-options', '0000000000000000000000000000000000000000^{commit}']' returned non-zero exit status 128.\n"
+    },
+    {
+      "case": "missing required source",
+      "exit_code": 2,
+      "result": "observed refusal",
+      "stderr": "measurement unavailable: Command '['git', 'cat-file', 'blob', '246e941652447c8e458ad8d1b27f9c2cd73787e1:docs/sas/generated/NORMATIVE.md']' returned non-zero exit status 128.\n"
+    },
+    {
+      "case": "undeclared path",
+      "exit_code": 2,
+      "result": "observed refusal",
+      "stderr": "usage: reproduce.py [-h] --commit COMMIT\n                    [--path {docs/sas/WAR_Software_Architecture_Specification.md,docs/sas/generated/NORMATIVE.md,crates/openwarrant-cli/src/check.rs,docs/warrants/OW-WAR-0064/atoms/10-intent.md}]\nreproduce.py: error: argument --path: invalid choice: 'AGENTS.md' (choose from 'docs/sas/WAR_Software_Architecture_Specification.md', 'docs/sas/generated/NORMATIVE.md', 'crates/openwarrant-cli/src/check.rs', 'docs/warrants/OW-WAR-0064/atoms/10-intent.md')\n"
+    }
+  ],
+  "reproduction_script_sha256": "6846158988dd5c2be28c27d035eb55ee51d5aafc1f69b722cb69ded9fed8f86b"
+}

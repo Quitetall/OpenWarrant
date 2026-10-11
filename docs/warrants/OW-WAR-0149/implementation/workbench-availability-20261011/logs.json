@@ -1,0 +1,27 @@
+[
+  {
+    "file": "availability-unreadable-red.json.gz",
+    "uncompressed_sha256": "5a627a86ed43d2c31aa4923c3be868cb2f8bc2f4fd49de41e077724612ed47b1",
+    "bytes": 520
+  },
+  {
+    "file": "build.log.gz",
+    "uncompressed_sha256": "967d8479c26d04363e017bc11a0056b74c0f2c2ad2f16a5b53e8a7f14aa13a13",
+    "bytes": 480
+  },
+  {
+    "file": "controls.log.gz",
+    "uncompressed_sha256": "24948c3179dd3868d160bcd25caeb9bffe3819ecd235dc34fd51b60a2d0d4d58",
+    "bytes": 2196
+  },
+  {
+    "file": "clippy.log.gz",
+    "uncompressed_sha256": "e2c2c5d8e0919701820842f7dc3f957acf4a1290852d72782ea7b9c39138c30b",
+    "bytes": 5566
+  },
+  {
+    "file": "hosted.log.gz",
+    "uncompressed_sha256": "deed7da2745be5b1dce0228e6a7dd8b6abc24800cb3e296e91062b90958ca47f",
+    "bytes": 133196
+  }
+]

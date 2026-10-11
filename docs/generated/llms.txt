@@ -580,6 +580,10 @@
 > -
 - doc:docs/releases/candidate-rehearsal.md · document · - · Candidate packaging and installation rehearsal · docs/releases/candidate-rehearsal.md:1
 
+## docs/releases/dependency-qualification-20261011/README.md
+> -
+- doc:docs/releases/dependency-qualification-20261011/README.md · document · - · Dependency measurement, 2026-10-11 · docs/releases/dependency-qualification-20261011/README.md:1
+
 ## docs/releases/legacy-gap-review.md
 > -
 - doc:docs/releases/legacy-gap-review.md · document · - · Legacy gaps: review queue, not reconciliation acceptance · docs/releases/legacy-gap-review.md:1
@@ -587,6 +591,14 @@
 ## docs/releases/publication-runbook.md
 > -
 - doc:docs/releases/publication-runbook.md · document · - · Stable publication runbook — not ready to execute · docs/releases/publication-runbook.md:1
+
+## docs/releases/qualification-20261011/README.md
+> -
+- doc:docs/releases/qualification-20261011/README.md · document · - · Current completion and qualification audit · docs/releases/qualification-20261011/README.md:1
+
+## docs/releases/qualification-20261011/lamu-current-2692/README.md
+> -
+- doc:docs/releases/qualification-20261011/lamu-current-2692/README.md · document · - · Current LAMU SDK exchange · docs/releases/qualification-20261011/lamu-current-2692/README.md:1
 
 ## docs/releases/remaining-build-scope.md
 > -
@@ -610,7 +622,7 @@
 
 ## docs/research/tokenizer-approximation.md
 > -
-- doc:docs/research/tokenizer-approximation.md · document · - · Which tokenizer approximation OpenWarrant uses for §33.7 budgets · docs/research/tokenizer-approximation.md:1
+- doc:docs/research/tokenizer-approximation.md · document · - · Token estimates for Dispatch budgets · docs/research/tokenizer-approximation.md:1
 
 ## docs/reviews/phase-1.md
 > -
@@ -1360,6 +1372,10 @@
 > -
 - doc:docs/sas/drafts/README.md · document · - · OpenWarrant SAS editions · docs/sas/drafts/README.md:1
 
+## docs/tickets/t-041d4/manifest.toml
+> Retain native package friction observations without timing human work
+- t-041d4 · ticket · done · Retain native package friction observations without timing human work · docs/tickets/t-041d4/manifest.toml:1
+
 ## docs/tickets/t-0d61d/manifest.toml
 > M14: presets, roles and officialness
 - t-0d61d · ticket · done · M14: presets, roles and officialness · docs/tickets/t-0d61d/manifest.toml:1
@@ -1388,9 +1404,17 @@
 > Telemetry success paths honor the shared JSON report envelope
 - t-17ccb · ticket · done · Telemetry success paths honor the shared JSON report envelope · docs/tickets/t-17ccb/manifest.toml:1
 
+## docs/tickets/t-17d63/manifest.toml
+> Recheck merged Katana native interface without claiming coding-agent qualification
+- t-17d63 · ticket · done · Recheck merged Katana native interface without claiming coding-agent qualification · docs/tickets/t-17d63/manifest.toml:1
+
 ## docs/tickets/t-1de2/manifest.toml
 > OW-WAR-0116/0115 verdicts: GET /api/act, progress evidence, act command line, Help binary row
 - t-1de2 · ticket · done · OW-WAR-0116/0115 verdicts: GET /api/act, progress evidence, act command line, Help binary row · docs/tickets/t-1de2/manifest.toml:1
+
+## docs/tickets/t-1e4e4/manifest.toml
+> Record current dependency graph and license qualification
+- t-1e4e4 · ticket · done · Record current dependency graph and license qualification · docs/tickets/t-1e4e4/manifest.toml:1
 
 ## docs/tickets/t-22fd/manifest.toml
 > Signing must not make evidence stale
@@ -1452,6 +1476,10 @@
 > Reconnect retained provider captures in source-detached runtime archive queries
 - t-418bc · ticket · done · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/manifest.toml:1
 
+## docs/tickets/t-460f5/manifest.toml
+> Restore exact upstream notice provenance for rmcp 3.5.1 release packages
+- t-460f5 · ticket · done · Restore exact upstream notice provenance for rmcp 3.5.1 release packages · docs/tickets/t-460f5/manifest.toml:1
+
 ## docs/tickets/t-470e/manifest.toml
 > 59-webui-lan reads the act log before the remedy is written, under load
 - t-470e · ticket · done · 59-webui-lan reads the act log before the remedy is written, under load · docs/tickets/t-470e/manifest.toml:1
@@ -1492,6 +1520,10 @@
 > Connect current runtime receipt assessment to resolution
 - t-54257 · ticket · done · Connect current runtime receipt assessment to resolution · docs/tickets/t-54257/manifest.toml:1
 
+## docs/tickets/t-5504f/manifest.toml
+> Retain current phase evidence and audit remaining Warrant completion scope
+- t-5504f · ticket · done · Retain current phase evidence and audit remaining Warrant completion scope · docs/tickets/t-5504f/manifest.toml:1
+
 ## docs/tickets/t-5872/manifest.toml
 > Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations
 - t-5872 · ticket · done · Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations · docs/tickets/t-5872/manifest.toml:1
@@ -1516,9 +1548,17 @@
 > war ui answers 431 instead of 413 for an oversized body, under load
 - t-5f49 · ticket · done · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/manifest.toml:1
 
+## docs/tickets/t-63626/manifest.toml
+> Expose native OpenWarrant-bound Katana CLI execution through the shared provider contract
+- t-63626 · ticket · done · Expose native OpenWarrant-bound Katana CLI execution through the shared provider contract · docs/tickets/t-63626/manifest.toml:1
+
 ## docs/tickets/t-64f2e/manifest.toml
 > Restore the five missing SPDX headers found by the repository gate
 - t-64f2e · ticket · done · Restore the five missing SPDX headers found by the repository gate · docs/tickets/t-64f2e/manifest.toml:1
+
+## docs/tickets/t-667d4/manifest.toml
+> Record current OW117 blind-verifier controls and context budget observations
+- t-667d4 · ticket · done · Record current OW117 blind-verifier controls and context budget observations · docs/tickets/t-667d4/manifest.toml:1
 
 ## docs/tickets/t-66d2f/manifest.toml
 > Keep the full integration gate usable within its declared CI budget
@@ -1532,6 +1572,10 @@
 > Make the ticket loop the documented default everywhere
 - t-67ed · ticket · done · Make the ticket loop the documented default everywhere · docs/tickets/t-67ed/manifest.toml:1
 
+## docs/tickets/t-72af0/manifest.toml
+> Recover after context preparation is unavailable before worker launch
+- t-72af0 · ticket · done · Recover after context preparation is unavailable before worker launch · docs/tickets/t-72af0/manifest.toml:1
+
 ## docs/tickets/t-7a7e6/manifest.toml
 > M6: projection targets: one set of records, many documents
 - t-7a7e6 · ticket · done · M6: projection targets: one set of records, many documents · docs/tickets/t-7a7e6/manifest.toml:1
@@ -1539,6 +1583,14 @@
 ## docs/tickets/t-7aca/manifest.toml
 > A whole-Warrant verification bundle cut a long gate stream to its tail, so the Warrant's own plant section (printed early) never reached the blind verifier
 - t-7aca · ticket · done · A whole-Warrant verification bundle cut a long gate stream to its tail, so the Warrant's own plant section (printed early) never reached the blind verifier · docs/tickets/t-7aca/manifest.toml:1
+
+## docs/tickets/t-7b733/manifest.toml
+> Reproduce frozen LamQuant migration and observe parent rationale refusal separately
+- t-7b733 · ticket · done · Reproduce frozen LamQuant migration and observe parent rationale refusal separately · docs/tickets/t-7b733/manifest.toml:1
+
+## docs/tickets/t-7e429/manifest.toml
+> Reproduce OW65 tokenizer approximation measurements and correct unsupported claims
+- t-7e429 · ticket · done · Reproduce OW65 tokenizer approximation measurements and correct unsupported claims · docs/tickets/t-7e429/manifest.toml:1
 
 ## docs/tickets/t-833e/manifest.toml
 > OW-WAR-0112: evidence for OBL-001/002/003/006 the blind verifier did not see
@@ -1556,6 +1608,10 @@
 > OW-WAR-0147: evidence for OBL-003/005/006/008 the blind verifier did not establish
 - t-87fb · ticket · done · OW-WAR-0147: evidence for OBL-003/005/006/008 the blind verifier did not establish · docs/tickets/t-87fb/manifest.toml:1
 
+## docs/tickets/t-8821d/manifest.toml
+> Repair invalid progress viewer reports without changing work or assurance claims
+- t-8821d · ticket · done · Repair invalid progress viewer reports without changing work or assurance claims · docs/tickets/t-8821d/manifest.toml:1
+
 ## docs/tickets/t-88d2/manifest.toml
 > war prepare's commit carried only tree-bound paths, so HEAD's projections drifted from HEAD's records and every battery (a clone of HEAD) failed its clean-corpus check
 - t-88d2 · ticket · done · war prepare's commit carried only tree-bound paths, so HEAD's projections drifted from HEAD's records and every battery (a clone of HEAD) failed its clean-corpus check · docs/tickets/t-88d2/manifest.toml:1
@@ -1571,6 +1627,10 @@
 ## docs/tickets/t-8c7f1/manifest.toml
 > M15: native graph executor, pluggable executors
 - t-8c7f1 · ticket · done · M15: native graph executor, pluggable executors · docs/tickets/t-8c7f1/manifest.toml:1
+
+## docs/tickets/t-8e677/manifest.toml
+> Exercise populated canonical IR and retain bounded archive preservation observations
+- t-8e677 · ticket · done · Exercise populated canonical IR and retain bounded archive preservation observations · docs/tickets/t-8e677/manifest.toml:1
 
 ## docs/tickets/t-95254/manifest.toml
 > Bind authorized Dispatch to exact signed current contract and immutable context holders
@@ -1662,7 +1722,7 @@
 
 ## docs/tickets/t-d1037/manifest.toml
 > Compile runtime context from an execution worktree checkpoint and retain it in the original project
-- t-d1037 · ticket · open · Compile runtime context from an execution worktree checkpoint and retain it in the original project · docs/tickets/t-d1037/manifest.toml:1
+- t-d1037 · ticket · done · Compile runtime context from an execution worktree checkpoint and retain it in the original project · docs/tickets/t-d1037/manifest.toml:1
 
 ## docs/tickets/t-d65d4/manifest.toml
 > M3: records and typed relations, and war impact
@@ -1683,6 +1743,14 @@
 ## docs/tickets/t-e14c0/manifest.toml
 > Capture real monotonic study timing without inventing participant observations
 - t-e14c0 · ticket · done · Capture real monotonic study timing without inventing participant observations · docs/tickets/t-e14c0/manifest.toml:1
+
+## docs/tickets/t-e6340/manifest.toml
+> Correct stale Preflight coverage messages without claiming execution readiness
+- t-e6340 · ticket · done · Correct stale Preflight coverage messages without claiming execution readiness · docs/tickets/t-e6340/manifest.toml:1
+
+## docs/tickets/t-e9ef7/manifest.toml
+> Retain OW119 identity controls and successful native release rehearsal
+- t-e9ef7 · ticket · done · Retain OW119 identity controls and successful native release rehearsal · docs/tickets/t-e9ef7/manifest.toml:1
 
 ## docs/tickets/t-ea8f8/manifest.toml
 > Prepare OW-WAR-0148 deliverable path amendment without changing signed scope

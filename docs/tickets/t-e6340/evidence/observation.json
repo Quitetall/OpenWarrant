@@ -1,0 +1,59 @@
+{
+  "reported_by": "agent://codex",
+  "work_state": "completed_unverified",
+  "diagnostic_tests_passed": 10,
+  "preflight_cli_tests_passed": 9,
+  "first_preflight_command": "FAIL: no test target named preflight_cli; this checkout uses tests/all.rs",
+  "corrected_command": "cargo test -p openwarrant-cli --test all preflight_cli::",
+  "fmt": "PASS",
+  "source_pin_observations": [
+    {
+      "path": "crates/openwarrant-cli/src/diagnostic.rs",
+      "warrant": "OW-WAR-0005",
+      "deliverable_id": "D-002",
+      "state": "resolved",
+      "content_addressed": true,
+      "content_digest": "sha256:a5b6b65308e19021833bbf2942f8f0b5cf36cd07b0721891788714234b28ae5a",
+      "corrections": 0,
+      "historical": true,
+      "governed_by": "OW-WAR-0112/D-017"
+    }
+  ],
+  "logs": {
+    "diagnostic-tests.log": {
+      "sha256": "57fc22610537aeb577fee793e6fa8fc61d735d96dcf61b9ee769f9bb6c171a4c",
+      "bytes": 1174
+    },
+    "preflight-tests.log": {
+      "sha256": "680fa05c86ea0ebce41779d73e962f1639c3a4ecb98b32df1f49524b59691b22",
+      "bytes": 111
+    },
+    "preflight-tests-final.log": {
+      "sha256": "ce3e4d48df215ac24c7e53b0e36c7ec477f2a855e8d7acc62eeecb552e6643f8",
+      "bytes": 1184
+    },
+    "clippy.log": {
+      "sha256": "e05adf215ac9c17481c9105b19901fa90ca8629a4f8e530628b1b7a9d5056b28",
+      "bytes": 5491
+    }
+  },
+  "independent_verification_established": false,
+  "full_preflight_established": false,
+  "record_check": {
+    "result": "PASS",
+    "counts": {
+      "pass": 2028,
+      "warn": 628,
+      "unknown": 0,
+      "error": 0,
+      "worst": "warn"
+    },
+    "uncompressed_sha256": "de901a02be312167e112b4576e1afca440dc3d3313f1ed6cc97b07f7a6845688",
+    "scope": "authored record and generated projection integrity; no independent qualification"
+  },
+  "clippy": "PASS: openwarrant-cli all-targets, warnings denied",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/diagnostic.rs": "ee994a38c11a458db5a68f134cc29c8f58429e23534ad05e8a01f39fa681f2b8",
+    "docs/cli/preflight.md": "53895f57fea73cc3ba513870724d5cbd9fcbd66d24a5cdb900f55c3563aa9bd3"
+  }
+}

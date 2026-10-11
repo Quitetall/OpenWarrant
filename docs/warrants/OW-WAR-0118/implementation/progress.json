@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0118",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "e7b853275580f3696f830d75685826efaa9ad73c",
+  "summary": "Eleven hosted friction controls passed. Actual downloaded Linux package completed three scripted measurement runs; human time remains unmeasured and no friction target is claimed. Historical exact-binary reproduction and independent review remain unestablished.",
+  "notes": "docs/warrants/OW-WAR-0118/implementation/native-friction-20261011/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0118/implementation/native-friction-20261011/observation.json",
+    "docs/warrants/OW-WAR-0118/implementation/native-friction-20261011/measurement.json"
+  ],
+  "next_steps": [
+    "Assess historical baseline provenance and exact-binary rerun requirements before closing OBL-004.",
+    "Independent reviewer assesses the bounded controls; human qualification remains separate from command timing."
+  ]
+}

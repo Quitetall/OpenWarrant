@@ -1,0 +1,48 @@
+{
+  "schema": "openwarrant-qualification-preparation-observation/1",
+  "command": [
+    "war",
+    "evidence",
+    "prepare",
+    "--all",
+    "--dry-run",
+    "--json"
+  ],
+  "exit_code": 0,
+  "selected": 116,
+  "states": {
+    "planned": 116
+  },
+  "verification_step_outcomes": {
+    "planned": 116
+  },
+  "human_acts": [
+    "OW-WAR-0112  rev 4  authorize  war is the app: ownership, a guided start, and remedies  [AM-003-232f]",
+    "OW-WAR-0114  rev 4  authorize  The roadmap becomes a record: one per program, beside the SAS  [AM-004-d7d9]",
+    "OW-WAR-0116  rev 4  authorize  war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap  [AM-003-5fd3]",
+    "OW-WAR-0122  rev 4  authorize  The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept  [AM-003-af9f]",
+    "OW-WAR-0123  rev 4  authorize  A child cites the exact revision of its parent, and a moved parent is a finding  [AM-003-e752]",
+    "OW-WAR-0124  rev 4  authorize  Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants  [AM-003-da78]",
+    "OW-WAR-0125  rev 5  authorize  The SAS as atoms: sections as governed records with their own currency  [AM-004-22e6]",
+    "OW-WAR-0126  rev 2  authorize  Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local  [AM-001-35da]",
+    "OW-WAR-0128  rev 2  authorize  The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back  [AM-001-aef0]",
+    "OW-WAR-0133  rev 6  authorize  Evidence reuse after a source change, and the compiler's source, conflict and omission rules  [AM-005-58e8]",
+    "OW-WAR-0134  rev 4  authorize  Acceptance stays valid only for the candidate accepted: a change before merge is a finding  [AM-003-7737]",
+    "OW-WAR-0135  rev 4  authorize  The assurance mark: a baseline, its issuance, and what it binds  [AM-003-80b7]",
+    "OW-WAR-0136  rev 4  authorize  Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates  [AM-003]",
+    "OW-WAR-0138  rev 5  authorize  Human and session authentication, and policy state protected from the performer  [AM-005-4ba4]",
+    "OW-WAR-0139  rev 4  authorize  The web UI beyond this machine: LAN and other devices, authenticated  [AM-003]",
+    "OW-WAR-0140  rev 4  authorize  The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core  [AM-003]",
+    "OW-WAR-0142  rev 3  authorize  Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance  [AM-003-ea19]",
+    "OW-WAR-0145  rev 2  authorize  The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing  [AM-001-57c5]",
+    "OW-WAR-0146  rev 2  authorize  A verification bundle carries what each gate printed, so a blind verifier can see the evidence  [AM-001-4610]",
+    "OW-WAR-0147  rev 1  authorize  Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in",
+    "OW-WAR-0149  rev 1  authorize  Shared Katana and BLUT runtime receipt binding contract"
+  ],
+  "source_subject": "2692fbda1d376b6aa5a8eaffd2fe95f89869a04d",
+  "working_tree_scope": "Audit checkout with unsigned observations and ticket present",
+  "raw_sha256": "068871f36e1745459bbafcac772f4eb63817f1df1d62c73f5634593781dcf223",
+  "gates_executed": false,
+  "model_calls": false,
+  "qualification_established": false
+}

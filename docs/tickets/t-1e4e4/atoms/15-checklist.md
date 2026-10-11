@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Measure main and PR216 pinned graphs, preserve results, and check no new license family is introduced (i-8654) — done by codex, 2026-10-11: Claimed measurement complete: exact baseline/candidate normal graph 161/160 unique packages; cargo-deny 14/13 license expressions, none added and BSD-2-Clause removed; both have zero unlicensed entries and both license checks exit 0. Rust 1.97.1, cargo-deny 0.20.2, exact commits, four graph/config hashes and raw compressed logs retained in docs/releases/dependency-qualification-20261011. Full candidate gate, independent assurance and release qualification remain separate.
