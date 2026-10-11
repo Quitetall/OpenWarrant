@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Context and capture integration are on main. Exact execution-worktree context and bounded refusal controls have local coverage. Katana public bound one-shot CLI transport is proposed in draft PR 14; six CLI and eight native receipt tests pass. Real provider/human qualification, participant acceptance and remaining lifecycle coverage are still open.",
+  "summary": "Context/capture bridge is on main. Source-checked native binding export passes 34 runtime controls, seven compiler controls and an actual scripted Katana roundtrip; source evidence and native field correction are retained. Public Katana CLI is proposed in PR 14. Real provider/human qualification, participant acceptance and remaining lifecycle coverage stay open.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/evidence-index-20261011.md",
@@ -44,5 +44,5 @@
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "f0e7cd8d0affbf283d6b32dc67ed5fa3812925e3"
+  "revision": "473741cfe8ba0da834f4f458006e9b31c117d091"
 }
