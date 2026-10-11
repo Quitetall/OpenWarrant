@@ -143,3 +143,24 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "conformance/plants.d/130-small-surface.sh"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Native experimental format publication; active pack and signed basis unchanged.
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/schemas.rs"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/schema_typescript.rs"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "schemas/native-draft/**"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "conformance/native_schema_pack.py"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "conformance/plants.d/176-native-schema-pack.sh"
+obligation_refs = ["OBL-001", "OBL-003"]
