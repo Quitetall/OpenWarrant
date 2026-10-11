@@ -110,3 +110,10 @@ The final local record check after lossless evidence compression was unavailable
 within its 300-second limit. See [the UNKNOWN observation](final-local-check-observation.json).
 The earlier local record check passed (2,028 PASS, 627 WARN, zero ERROR or UNKNOWN),
 and final compilation succeeded. Fresh hosted checks must assess the committed subject.
+
+The rehearsal over `77c07a58` failed its gate at the committed-corpus parity
+check before either native build. A final local UNKNOWN observation file had
+been added after compilation, so stale gate-run reasons named one fewer changed
+source path than the live result (99 reason fields). Recompile from the complete
+source set; retain the unchanged parity test and all stale-evidence classifications.
+The native packaging fix is still not qualified by this failed rehearsal.
