@@ -1,0 +1,77 @@
+{
+  "schema": "oh.war/implementation-observations/v1",
+  "implementation_revision": "afff5d693324a4da9679f31882f5361a9aa1adc6",
+  "classification": "unverified command inventory and refusal controls; no human or independent acceptance",
+  "logs": [
+    {
+      "path": "native-main-checkpoint-ci-failure.log.gz",
+      "result": "FAIL",
+      "sha256": "3a6ad392b68b36cc4cfaa389be386878c50759f9d673bf9ba64d7abf38b4fb2c",
+      "compressed_sha256": "a8cd7738de06b4577d697e39afb5c60d69bc5355fc92db5f0c2358c6549a4584"
+    },
+    {
+      "path": "native-command-inventory-workspace-tests.log.gz",
+      "result": "FAIL",
+      "sha256": "7d0caac1607bd8d3fd2713a5e626991e9896a6891576e6cf37613c4383ed082f",
+      "compressed_sha256": "f7c8d11fe6d5d38b4b34f5f8432ea3f44cd70830d2feecf28fa3e3b6c8543b6c"
+    },
+    {
+      "path": "native-command-inventory-fmt.log.gz",
+      "result": "FAIL",
+      "sha256": "2fc60147f44c1582b4b1a4bf091035200fce951055470315c7459147abcdef18",
+      "compressed_sha256": "ddf895ea7a0d411ed5e944696470b56bbdb51ddade54885d64a2492449692eea"
+    },
+    {
+      "path": "native-command-inventory-fmt-final.log.gz",
+      "result": "PASS",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "native-command-inventory-plant.log.gz",
+      "result": "PASS",
+      "sha256": "7c8369f0e7e52e6a0e592723c17cb9391754a6d67d730b013e6991b8d255df86",
+      "compressed_sha256": "621e146c10a5933245f7dd17379bdc73908cd539a0336c1241b770dd79e53983"
+    },
+    {
+      "path": "native-command-inventory-clippy.log.gz",
+      "result": "PASS",
+      "sha256": "d251bdbbf4796df414c883c3fcb09fafc75f41733887a8e1d61c4b81627becab",
+      "compressed_sha256": "81eceedda66d31c0733105896304be7cfac650f11ed7d25153e7706a802d2293"
+    },
+    {
+      "path": "native-command-inventory-compile.json.gz",
+      "result": "UNKNOWN",
+      "exit_code": 124,
+      "command_timeout_seconds": 60,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "note": "Partial projection writes; complete regeneration still required"
+    },
+    {
+      "path": "native-command-inventory-compile-final.json.gz",
+      "result": "PASS",
+      "sha256": "ff49aaea377addecb91c91c5281efc66c346ccbd1653ec95ed3df253c490ce14",
+      "compressed_sha256": "fc65c023a46a0fb1b2eb8f5b75bd89151d2004806d9e55b92cab395f57f89bb3"
+    },
+    {
+      "path": "native-command-inventory-check-final.json.gz",
+      "result": "PASS",
+      "sha256": "91ea69f65a8e0f8f2affb273e70cc18c7c9f80b8646e9ea2e41c2ca65568952b",
+      "compressed_sha256": "23c796ee69e479207e3987fa043029bfb8daf229603e699ae9c0962ebdb1c641"
+    },
+    {
+      "path": "native-command-inventory-integration-final.log.gz",
+      "result": "PASS",
+      "sha256": "b14a2f8062aa7db0d0597f752d4fdada97116439ce8e5fbd6fb2ef25fb160d81",
+      "compressed_sha256": "02fb9cb84d89d86ab3e0cb14a32ba5677c3be134036a7fe49c1a86af5aadcba2"
+    }
+  ],
+  "ci_failure_subject": "91c5975cac42de27f2daa4e14914cb48ed0071c4",
+  "ci_run": 38109369663,
+  "remaining": [
+    "Full CI gate must pass before merge",
+    "Native schemas, Dispatch mapping, actual human/production and participant qualification remain"
+  ],
+  "committed_integration_subject": "1125dc9d"
+}

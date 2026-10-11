@@ -1,0 +1,85 @@
+{
+  "schema": "oh.war/implementation-observations/v1",
+  "implementation_revision": "415aac2a47d128d61cf1e59b22b7748d0dad9c76",
+  "classification": "unverified software fixtures; no actual human or independent project acceptance",
+  "logs": [
+    {
+      "path": "native-signing-blut-final.log.gz",
+      "sha256": "3de44bf84c51617216511b3df0d0784b8014a5ddb4ac9b166cf42bfa257a3a9f",
+      "compressed_sha256": "dc816fec0ebda8ec247b5b1620cf403da3a3421a8e9c8a4325f46031fa7d29de",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-build-final.log.gz",
+      "sha256": "79d0af4701f291bfae4c45cf370644b03b72865dae99cb623fd002710cacbaa9",
+      "compressed_sha256": "a51d984191bba5cc94b25534a6950cdab76ecdcd1acaea1c0d32aa329447a805",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-build-parser-control.log.gz",
+      "sha256": "c781d5348972f447927f25e940434fd2ac82f4fac02613969511372d7ea00676",
+      "compressed_sha256": "465da1c43abd71b40900804b2a5254cd138f465f76b7cd9ce05582a70e847df3",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-build-retention.log.gz",
+      "sha256": "27f039a5f2ae20f47d4d5f29bf651522a64ca16c12b363ac156168bd5f4b3c3a",
+      "compressed_sha256": "fac5e9dd3a9a16a936553ffb71d29206e5d41451bce6861eb2b398452716007a",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-build-reviewed.log.gz",
+      "sha256": "fc0f711b18dcc616b36a604f3b9a2face42b37fe0ea1eed50294709817db9ea5",
+      "compressed_sha256": "dc8a410798fb2a5e84c66a7afc5e25ca3cc2ac186cd839a02e12b09e505a225c",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-build.log.gz",
+      "sha256": "d7be5759fd507c009ab31e682288a33456e4364c7aa34f23389d814e516906df",
+      "compressed_sha256": "e7a4b0b4c062c7a2ca53ca24e59f5953143a88986b934b7f3e68ad602a007c7f",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-clippy.log.gz",
+      "sha256": "374d35d98de4b71dced00a2533ddb04516b43580df646310c051eda85bf6d972",
+      "compressed_sha256": "36dafa13ab9ef5f25b61bca364d7174ea2c5ef50fafaf26fc752039f43b87525",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-fmt-final.log.gz",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-katana-final.log.gz",
+      "sha256": "8cae73784c15905b5c1e1407ec7dc5009ea75f84b990f494f556f4e6bc098cac",
+      "compressed_sha256": "cbebd1c39bcf66c8f23c595029cee6ffca740dde08f3cb8da27741a6fb34de38",
+      "result": "FAIL"
+    },
+    {
+      "path": "native-signing-katana-first.log.gz",
+      "sha256": "a50e8a275de7b71f7533845bef36e769fa45f58cfe3a433d4594c3ce5c18f5a4",
+      "compressed_sha256": "9ebdf7a932db37153700831db79dbebed72483e229e3bab687bd936fb5c357fa",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-katana-parser-fixed.log.gz",
+      "sha256": "96a11962788d22981623ef5bc18e8fd8934988c3bb040991dad3568cda908074",
+      "compressed_sha256": "efd055db00f3b42f55ece803d067277c1ffaeabac734704afb8b27ef603402b2",
+      "result": "PASS"
+    },
+    {
+      "path": "native-signing-normal-final.log.gz",
+      "sha256": "aafde2614508ba041708623c7ed06e3e2df7e892ef8c3cad0fe7a08c08c7eea2",
+      "compressed_sha256": "7ba10d998de7cae974bca77b836504e87b68f50072afd9452545a306e5965d7b",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "No real human review, hardware presence or production key/account qualification",
+    "No atomic fence over all sources or transaction spanning record and journal",
+    "Native public schema pack and retained workbench identity integration remain",
+    "OW95 participants and BLUT contributor agreement unavailable"
+  ]
+}
