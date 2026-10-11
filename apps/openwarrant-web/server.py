@@ -181,9 +181,9 @@ class SDK:
         return {"schema": "oh.war/reference-runtime-assessment/v1-draft.1",
                 "warrant": alias, "state": state, "qualified": False, "report": report}
 
-    def _runtime_call(self, args, request):
+    def _runtime_call(self, args, request, deadline=None):
         try:
-            code, out, _ = bounded_command(args, self.repo, request, time.monotonic() + 10, {})
+            code, out, _ = bounded_command(args, self.repo, request, min(time.monotonic() + 10, deadline) if deadline is not None else time.monotonic() + 10, {})
         except (OSError, TimeoutError, subprocess.SubprocessError) as error:
             raise Refusal(503, "Runtime operation unavailable; outcome is unknown") from error
         try:
@@ -205,7 +205,7 @@ class SDK:
             raise Refusal(503, "Contradictory runtime response; outcome is unknown")
         return report
 
-    def capture_runtime(self, fields):
+    def capture_runtime(self, fields, deadline=None):
         if (not isinstance(fields, dict) or set(fields) != {"warrant", "capture"}
                 or not isinstance(fields["capture"], dict)):
             raise Refusal(400, "Only warrant and inline capture are accepted")
@@ -216,7 +216,7 @@ class SDK:
         if len(request) > 6 * 1024 * 1024:
             raise Refusal(413, "Inline capture exceeds 6 MiB")
         report = self._runtime_call([str(self.war), "runtime", "import-inline", alias,
-                                    "--request", "-", "--json", "--root", str(self.repo)], request)
+                                    "--request", "-", "--json", "--root", str(self.repo)], request, deadline)
         state = "refused" if report["counts"]["error"] else "unknown" if report["counts"]["unknown"] else "retained"
         if state == "retained":
             result = report.get("result")
@@ -671,6 +671,9 @@ class Handler(BaseHTTPRequestHandler):
             if self.command == "GET" and self.path.startswith("/api/runs"):
                 if self.server.executor is None:
                     raise Refusal(409, "Execution harness not configured")
+                captures = re.fullmatch(r"/api/runs/([0-9a-f-]{36})/captures", self.path)
+                if captures:
+                    return self.reply(200, self.server.executor.runtime_captures(captures[1]))
                 report = re.fullmatch(r"/api/runs/([0-9a-f-]{36})/report", self.path)
                 if report:
                     if self.server.verification is not None:
@@ -692,13 +695,14 @@ class Handler(BaseHTTPRequestHandler):
             if self.command == "GET" and history:
                 return self.reply(200, store.get(history[1], int(history[2])))
             hotline_resume = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/resume", self.path)
+            run_captures = re.fullmatch(r"/api/runs/([0-9a-f-]{36})/captures", self.path)
             hotline_reconfirm = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/reconfirm", self.path)
             hotline_answer = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/answer", self.path)
             verifier_start = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/start", self.path)
             verifier_rebuttal = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/rebuttal", self.path)
             verifier_reverify = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/reverify", self.path)
             if (
-                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal or verifier_dispute or verifier_reverify)
+                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal or verifier_dispute or verifier_reverify or run_captures)
             ) or (
                 self.command == "POST" and self.path in ("/api/warrants", "/api/runtime-captures", "/api/runtime-assessment", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops", "/api/queue", "/api/queue/cancel")
             ) or (self.command == "PUT" and match):
@@ -712,12 +716,16 @@ class Handler(BaseHTTPRequestHandler):
                 if len(lengths) != 1 or not re.fullmatch(r"[0-9]{1,8}", lengths[0]):
                     raise Refusal(400, "One Content-Length required")
                 size = int(lengths[0])
-                if size > (6 * 1024 * 1024 + 1024 if self.path == "/api/runtime-captures" else BODY_LIMIT):
+                if size > (6 * 1024 * 1024 + 1024 if self.path == "/api/runtime-captures" or run_captures else BODY_LIMIT):
                     raise Refusal(413, "Request body limit exceeded")
                 body = self.rfile.read(size)
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if run_captures:
+                    if self.server.executor is None:
+                        raise Refusal(409, "Execution is not configured")
+                    return self.reply(200, self.server.executor.runtime_captures(run_captures[1], fields))
                 if self.path == "/api/runtime-captures":
                     return self.reply(200, store.sdk.capture_runtime(fields))
                 if self.path == "/api/runtime-assessment":

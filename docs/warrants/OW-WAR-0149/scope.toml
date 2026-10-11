@@ -176,3 +176,29 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "crates/openwarrant-cli/tests/dispatch_bundle_cli.rs"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Checkpoint context and coherent invocation reports; unsigned reporting scope.
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/source_workspace.rs"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/dispatch_bundle_cmd.rs"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/output.rs"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "conformance/source_workspace.py"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "conformance/plants.d/177-source-workspace.sh"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "apps/openwarrant-web/test_runtime_recovery.py"
+obligation_refs = ["OBL-001", "OBL-003"]

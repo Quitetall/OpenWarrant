@@ -107,6 +107,7 @@ pub mod show;
 pub mod sign;
 pub mod signing_probe;
 pub mod skew;
+mod source_workspace;
 pub mod standing_cmd;
 #[path = "state_cmd.rs"]
 pub mod states;
@@ -1765,6 +1766,9 @@ enum AdminCommand {
         /// Refuse if the current contract digest differs. Requires the expected UUID.
         #[arg(long, requires = "expected_warrant")]
         expected_contract: Option<String>,
+        /// Read context from a clean worktree checkpoint; retain history in this project.
+        #[arg(long, value_name = "PATH")]
+        source_workspace: Option<Utf8PathBuf>,
     },
     /// Capture or check portable context for an existing Dispatch; never execute it.
     DispatchBundle {
@@ -2557,13 +2561,15 @@ pub fn entrypoint() -> ExitCode {
                 return ExitCode::from(EXIT_NOT_READY);
             }
             let message = report.to_string();
-            output::error(mode, &message);
             // OW-WAR-0130: a `war` the repository does not admit is a refusal
             // to proceed, not a malfunction: not ready, exit 2.
-            if message.contains(repo::compat::TOO_OLD) {
-                return ExitCode::from(EXIT_NOT_READY);
-            }
-            ExitCode::from(EXIT_DIAGNOSTIC)
+            let status = if message.contains(repo::compat::TOO_OLD) {
+                EXIT_NOT_READY
+            } else {
+                EXIT_DIAGNOSTIC
+            };
+            output::error_with_status(mode, &message, status);
+            ExitCode::from(status)
         }
     };
     // OW-WAR-0143: after everything the command printed, at most one stderr
@@ -6275,12 +6281,13 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             prototype,
             expected_warrant,
             expected_contract,
+            source_workspace,
         } => {
             let repository = ctx.open_repo()?;
             let kind = attempt_kind
                 .parse::<openwarrant_core::execution::AttemptKind>()
                 .map_err(|e| repo::RepoError::Message(e.to_string()))?;
-            let report = dispatch::run_for_subject(
+            let report = dispatch::run_for_workspace(
                 &repository,
                 &alias,
                 &stage,
@@ -6297,6 +6304,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                         contract_digest,
                     },
                 ),
+                source_workspace.as_deref(),
             )?;
             // The packet is the only thing on stdout when it goes there. An
             // actor piping `war dispatch` into a parser must get canonical JSON

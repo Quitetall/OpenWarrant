@@ -1,0 +1,72 @@
+[
+  {
+    "file": "receipt-attachment-red.log.gz",
+    "original_sha256": "5a4f4a979962fa732e079cf7f9ac6ce5659b2b3a32cc30ec87052ba88769711d",
+    "original_bytes": 1136
+  },
+  {
+    "file": "receipt-attachment-green.log.gz",
+    "original_sha256": "5a804405e271ed614b5712e01eb6a63fd732f964aa1c70798691f516c531608f",
+    "original_bytes": 2946
+  },
+  {
+    "file": "receipt-attachment-diagnostic.log.gz",
+    "original_sha256": "eba04e2ee94b5a94263b79d776fec73fa13b03b968916328ef7bb5f6281e8b56",
+    "original_bytes": 321
+  },
+  {
+    "file": "receipt-attachment-refusals.log.gz",
+    "original_sha256": "823080197ed06760541ad97f272e0582854c85928cedb5d6f25c0b8084296c6c",
+    "original_bytes": 294
+  },
+  {
+    "file": "receipt-worker-red.log.gz",
+    "original_sha256": "71165923d3a750b22cd01a985869a6afac3f44f058ec617935997b5a0225801c",
+    "original_bytes": 2871
+  },
+  {
+    "file": "receipt-worker-red-rerun.log.gz",
+    "original_sha256": "1beb587df369b562632324b528ea9f2de0857fae45513f1705dedb2fcec8a196",
+    "original_bytes": 2871
+  },
+  {
+    "file": "receipt-worker-green.log.gz",
+    "original_sha256": "b6e1ba304530d95ee7bbe30548c6c11781fa14f624c33a79c4183cc5a8c0baf5",
+    "original_bytes": 2946
+  },
+  {
+    "file": "receipt-targeted-final.log.gz",
+    "original_sha256": "774892b743747c06dd101cbafbade60fa32e61a7e01212b19dffc1916c65f2d2",
+    "original_bytes": 712
+  },
+  {
+    "file": "receipt-worker-refusal.log.gz",
+    "original_sha256": "28fc893c5c38bde3792013a03ea55cac9a18a2f885d95401c7b3f1bfa88867c6",
+    "original_bytes": 801
+  },
+  {
+    "file": "receipt-worker-refusal-final.log.gz",
+    "original_sha256": "d436f7fa760d4bac2db5dd89b9acc840fdc16328fdc07fd1704fce1d30b4821f",
+    "original_bytes": 299
+  },
+  {
+    "file": "receipt-full-web.log.gz",
+    "original_sha256": "45925c376495fa90642f6f0a104180ec3d3111c76a367ccf4d44b41693ca849f",
+    "original_bytes": 37837
+  },
+  {
+    "file": "receipt-full-web-result.log.gz",
+    "original_sha256": "f7aa1193758257b9d86c7189c8961ac6d007efe4c7d29cd4f252d08da5f791a3",
+    "original_bytes": 34
+  },
+  {
+    "file": "receipt-full-failed-seams-rerun.log.gz",
+    "original_sha256": "d5ea97710890a74421428621de2fcba2be6d4b6bf09c7cefbe0fc80e91c1bc1d",
+    "original_bytes": 1302
+  },
+  {
+    "file": "receipt-merged-targeted.log.gz",
+    "original_sha256": "e5cb53a94f2d2c15e813dab5cb14b969c8d628fc14f852ec43aeb572eba6c33d",
+    "original_bytes": 3613
+  }
+]

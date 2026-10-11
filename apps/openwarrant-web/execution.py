@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Owner-configured harness dispatch. This controller is not an agent sandbox."""
 
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -37,6 +38,7 @@ class Executor:
         self.decode = decode
         self.read_file, self.publish = read_file, publish
         self.lock = threading.RLock()
+        self.capture_lock = threading.RLock()
         self.live = set()
         self.adviser = None
         self.root = store.path / ".execution"
@@ -237,6 +239,93 @@ class Executor:
             records = self.records()
             require(id in records, "Unknown attempt", 404)
             return self.view(records[id])
+
+    def runtime_captures(self, id, fields=None):
+        """Retain links to core captures; no attempt outcome or assurance changes."""
+        with self.lock:
+            records = self.records()
+            require(id in records, "Unknown attempt", 404)
+            record = records[id]
+            require(record["sequence"] == 2, "Retained terminal attempt required")
+        return self._capture_runtime(record, fields)
+
+    @contextmanager
+    def _capture_guard(self, deadline):
+        require(self.capture_lock.acquire(timeout=max(0, deadline - time.monotonic())),
+                "Runtime capture serialization unavailable; outcome is unknown", 503)
+        try:
+            yield
+        finally:
+            self.capture_lock.release()
+
+    def _capture_runtime(self, record, fields=None, deadline=None):
+        # Capture writes serialize separately; an SDK wait does not hold the
+        # execution controller lock or block unrelated authoring/attempt reads.
+        deadline = min(deadline, time.monotonic() + 10) if deadline is not None else time.monotonic() + 10
+        with self._capture_guard(deadline):
+            id = record["attempt_id"]
+            binding = record.get("runtime_dispatch")
+            repair_bindings = record.get("runtime_dispatches")
+            bindings = (list(repair_bindings.values()) if isinstance(repair_bindings, dict)
+                        else [binding] if isinstance(binding, dict) else [])
+            require(bindings and all(isinstance(b, dict) for b in bindings), "Actual runtime Dispatch required")
+            root = self.root / "captures"
+            directory = root / id
+            require(not root.is_symlink() and not directory.is_symlink(),
+                    "Runtime capture directory cannot be a symlink")
+
+            def read_attachments():
+                paths = list(directory.glob("*.json")) if directory.exists() else []
+                require(len(paths) <= 256, "Attempt capture limit exceeded")
+                rows = []
+                for path in sorted(paths):
+                    item = self.decode(self.read_file(path, 16 * 1024))
+                    require(isinstance(item, dict)
+                            and set(item) == {"schema", "attempt_id", "warrant_id", "source_sha256",
+                                              "runtime_dispatch", "capture_digest", "qualified"}
+                            and item["schema"] == "oh.war/workbench-runtime-attachment/v1-draft.1"
+                            and item["attempt_id"] == id and item["warrant_id"] == record["warrant_id"]
+                            and item["source_sha256"] == record["source_sha256"]
+                            and item["runtime_dispatch"] in bindings and item["qualified"] is False
+                            and isinstance(item["capture_digest"], str)
+                            and re.fullmatch(r"sha256:[0-9a-f]{64}", item["capture_digest"])
+                            and path.name == item["capture_digest"][7:] + ".json",
+                            "Runtime capture attachment integrity mismatch")
+                    rows.append(item)
+                return rows
+
+            rows = read_attachments()
+            if fields is None:
+                return {"captures": rows, "qualified": False}
+            require(isinstance(fields, dict) and set(fields) == {"capture"}
+                    and isinstance(fields["capture"], dict), "Only inline capture accepted", 400)
+            request = fields["capture"].get("request")
+            matches = [b for b in bindings if isinstance(request, dict)
+                       and request.get("dispatch_id") == b["dispatch_id"]]
+            require(len(matches) == 1,
+                    "Capture must name this attempt's retained Dispatch")
+            binding = matches[0]
+            response = self.store.sdk.capture_runtime({"warrant": binding["warrant"], "capture": fields["capture"]}, deadline=deadline)
+            if not response["retained"]:
+                return {"capture": response, "attachment": None, "qualified": False}
+            digest = response["report"]["result"]["digest"]
+            existing = next((row for row in rows if row["capture_digest"] == digest), None)
+            if existing is not None:
+                return {"capture": response, "attachment": existing, "qualified": False}
+            require(len(rows) < 256 and len(list(root.glob("*/*.json"))) < 1024,
+                    "Capture retained by SDK; local attachment limit exceeded")
+            root.mkdir(mode=0o700, exist_ok=True)
+            directory.mkdir(mode=0o700, exist_ok=True)
+            item = {"schema": "oh.war/workbench-runtime-attachment/v1-draft.1", "attempt_id": id,
+                    "warrant_id": record["warrant_id"], "source_sha256": record["source_sha256"],
+                    "runtime_dispatch": binding, "capture_digest": digest, "qualified": False}
+            raw = json.dumps(item, ensure_ascii=False, sort_keys=True).encode()
+            require(len(raw) <= 16 * 1024, "Capture retained by SDK; local attachment too large")
+            try:
+                self.publish(directory / (digest[7:] + ".json"), raw)
+            except Exception as error:
+                raise ExecutionError(503, "SDK retained capture; local attachment publication is unknown") from error
+            return {"capture": response, "attachment": item, "qualified": False}
 
     def report(self, id, word, detail):
         with self.lock:
@@ -611,16 +700,30 @@ class Executor:
             if "verification_repair" in r:
                 request.update(schema="oh.war/execution-request/v4", verification_repair=r["verification_repair"])
             if "runtime_link" in policy:
-                # Do not send root context for a different worktree revision.
-                require(self.git("rev-parse", "HEAD") == self.git("rev-parse", "HEAD", cwd=worktree),
-                        "Core context and execution worktree revisions differ")
-                binding, context = runtime_link.prepare(
-                    self.store.sdk, self.root / ("context-" + r["attempt_id"]),
-                    policy["runtime_link"], r["stage"], r,
-                    self.read_file, self.decode, deadline,
-                )
-                r["runtime_dispatch"] = binding
-                request.update(schema="oh.war/execution-request/v5-draft.1", runtime_context=context)
+                # The SDK reads this clean checkpoint and retains Dispatch history
+                # in the original project. It rejects a different source contract.
+                def check_checkpoint():
+                    if (self.git("rev-parse", "HEAD", cwd=worktree) != r["input_revision"]
+                            or self.git("status", "--porcelain", "--untracked-files=all", cwd=worktree)):
+                        raise runtime_link.RuntimeLinkError("refused", "Execution context checkpoint changed before worker launch")
+
+                check_checkpoint()
+                directory = self.root / ("context-" + r["attempt_id"])
+                if "verification_repair" in r:
+                    bindings, contexts = runtime_link.prepare_repair(
+                        self.store.sdk, directory, policy["runtime_link"], r,
+                        self.read_file, self.decode, deadline, source_workspace=worktree,
+                    )
+                    r["runtime_dispatches"] = bindings
+                    request.update(schema="oh.war/execution-request/v6-draft.1", runtime_contexts=contexts)
+                else:
+                    binding, context = runtime_link.prepare(
+                        self.store.sdk, directory, policy["runtime_link"], r["stage"], r,
+                        self.read_file, self.decode, deadline, source_workspace=worktree,
+                    )
+                    r["runtime_dispatch"] = binding
+                    request.update(schema="oh.war/execution-request/v5-draft.1", runtime_context=context)
+                check_checkpoint()
             code, out, _err = bounded_command(
                 self.config["argv"], worktree, json.dumps(request).encode(), deadline, r
             )
@@ -652,11 +755,11 @@ class Executor:
                     "work_state",
                     "notes",
                     "next_steps",
-                },
+                } | ({"runtime_capture"} if result.get("schema") == "oh.war/execution-result/v2-draft.1" else set()),
                 "Invalid harness result",
             )
             require(
-                result["schema"] == "oh.war/execution-result/v1"
+                result["schema"] in ("oh.war/execution-result/v1", "oh.war/execution-result/v2-draft.1")
                 and result["attempt_id"] == r["attempt_id"]
                 and result["source_sha256"] == r["source_sha256"],
                 "Harness result subject mismatch",
@@ -677,6 +780,19 @@ class Executor:
                 notes=result["notes"],
                 next_steps=result["next_steps"],
             )
+            if "runtime_capture" in result:
+                # Optional evidence is independent of implementation completion.
+                # Its refusal/UNKNOWN never becomes a successful assurance gate.
+                try:
+                    captured = self._capture_runtime(r, {"capture": result["runtime_capture"]}, deadline)
+                    response = captured["capture"]
+                    r["runtime_capture"] = {"state": response["state"],
+                        "capture_digest": captured["attachment"]["capture_digest"] if captured["attachment"] else None,
+                        "qualified": False}
+                except Exception as error:
+                    state = "refused" if isinstance(error, ExecutionError) and error.status in (400, 409) else "unknown"
+                    r["runtime_capture"] = {"state": state, "capture_digest": None,
+                                            "cause": str(error)[:512], "qualified": False}
             if r["work_state"] == "completed":
                 require(
                     not self.git(
