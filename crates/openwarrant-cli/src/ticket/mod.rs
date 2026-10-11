@@ -489,7 +489,10 @@ impl Store {
         Ok(self
             .entries()?
             .into_iter()
-            .filter(|path| crate::vfs::is_file(path.join("manifest.toml")))
+            .filter(|path| {
+                crate::vfs::is_file(path.join("manifest.toml"))
+                    && !crate::format_doc::is_document_dir(path)
+            })
             .collect())
     }
 

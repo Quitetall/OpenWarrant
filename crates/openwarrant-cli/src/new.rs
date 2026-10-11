@@ -303,12 +303,142 @@ fn next_ordinal(repo: &Repository) -> Result<u32, RepoError> {
             highest = highest.max(n);
         }
     }
+    // FORMAT-1.0 §4.1: a single-file Warrant, `<alias>.md` or
+    // `<alias>/warrant.md`, holds its alias as surely as a manifest does.
+    for path in crate::vfs::read_dir_utf8(&repo.warrants_dir()).unwrap_or_default() {
+        let Some(name) = path.file_name() else {
+            continue;
+        };
+        let alias = match name.strip_suffix(".md") {
+            Some(stem) => Some(stem),
+            None => crate::format_doc::is_document_dir(&path).then_some(name),
+        };
+        if let Some(n) = alias.and_then(crate::alias::ordinal) {
+            highest = highest.max(n);
+        }
+    }
     for names in crate::alias::on_branches(repo).values() {
-        for n in names.iter().filter_map(|n| crate::alias::ordinal(n)) {
+        for n in names
+            .iter()
+            .filter_map(|n| crate::alias::ordinal(n.strip_suffix(".md").unwrap_or(n)))
+        {
             highest = highest.max(n);
         }
     }
     Ok(highest + 1)
+}
+
+/// `war new <title> --format 1.0` (FORMAT-1.0 §4.1): a single-file Warrant,
+/// `<warrants>/<alias>.md`, of the `delivery` or `decision` profile. The
+/// frontmatter carries `format`, `profile`, `alias`, `uuid` and `summary`
+/// (the title); each section the profile requires is a heading followed by
+/// the question it answers; a delivery Warrant has one obligation record
+/// whose fields say what to write. Nothing else is written: no manifest, no
+/// journal (§4.2, §4.3).
+pub fn run_format(
+    repo: &Repository,
+    title: &str,
+    profile: &Profile,
+) -> Result<Utf8PathBuf, RepoError> {
+    let title = title.trim();
+    if title.is_empty() || title.contains('\n') {
+        return Err(RepoError::Message(
+            "new.title: a Warrant needs a one-line title".to_owned(),
+        ));
+    }
+    let delivery = match profile.core() {
+        CoreProfile::Delivery => true,
+        CoreProfile::Decision => false,
+    };
+    if !matches!(profile.to_string().as_str(), "delivery" | "decision") {
+        return Err(RepoError::Message(format!(
+            "new.format-profile: a Format 1.0 Warrant is `delivery` or `decision`; `{profile}` \
+             has no built-in Format 1.0 profile"
+        )));
+    }
+    let warrants = repo.warrants_dir();
+    fs::create_dir_all(&warrants).map_err(|source| RepoError::Io {
+        context: format!("could not create {warrants}"),
+        source,
+    })?;
+    let namespace = repo.config.project.namespace.as_str();
+    let mut next = next_ordinal(repo)?;
+    for _ in 0..MAX_ALLOCATION_ATTEMPTS {
+        let alias = format!("{namespace}-WAR-{next:04}");
+        let path = warrants.join(format!("{alias}.md"));
+        if crate::vfs::exists(warrants.join(&alias)) {
+            next += 1;
+            continue;
+        }
+        match OpenOptions::new().write(true).create_new(true).open(&path) {
+            Ok(mut file) => {
+                let text = format_template(&alias, &WarUuid::mint().to_string(), title, delivery);
+                file.write_all(text.as_bytes())
+                    .map_err(|source| RepoError::Io {
+                        context: format!("could not write {path}"),
+                        source,
+                    })?;
+                return Ok(path);
+            }
+            Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => {
+                next += 1;
+            }
+            Err(source) => {
+                return Err(RepoError::Io {
+                    context: format!("could not create {path}"),
+                    source,
+                });
+            }
+        }
+    }
+    Err(RepoError::Message(format!(
+        "could not allocate an alias after {MAX_ALLOCATION_ATTEMPTS} attempts; {warrants} may be \
+         unwritable"
+    )))
+}
+
+/// A double-quoted frontmatter scalar (FORMAT-1.0 §3.2): `\"` and `\\` are
+/// its only escapes.
+fn quoted(s: &str) -> String {
+    format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
+/// The bytes `war new --format 1.0` writes.
+#[must_use]
+pub fn format_template(alias: &str, uuid: &str, title: &str, delivery: bool) -> String {
+    let mut summary = title.to_owned();
+    while summary.len() > 200 {
+        summary.pop();
+    }
+    let mut out = format!(
+        "---\nformat: {}\nprofile: {}\nalias: {alias}\nuuid: {uuid}\nsummary: {}\n",
+        openwarrant_core::format::VERSION,
+        if delivery { "delivery" } else { "decision" },
+        quoted(&summary),
+    );
+    if delivery {
+        out.push_str("assurance_level: basic\n");
+    }
+    out.push_str(&format!(
+        "---\n# {title}\n\n\
+         ## Intent\n\
+         The problem, the outcome wanted, and what is out of scope.\n\n\
+         ## Basis\n\
+         The sources this rests on, its prerequisites, and what is still unknown.\n"
+    ));
+    if delivery {
+        out.push_str(
+            "\n## Work order\n\
+             The deliverables, the surfaces that must not change, how far the performer may go \
+             alone, and how it is rolled back.\n\n\
+             ## Assurance\n\n\
+             ## OBL-001 \u{b7} obligation \u{2014} what is checked\n\
+             scope: what the claim covers and, as far as known, what it does not.\n\
+             evidence: the observation that would settle it.\n\
+             refusal: an input the control is observed to reject.\n",
+        );
+    }
+    out
 }
 
 fn manifest_template(

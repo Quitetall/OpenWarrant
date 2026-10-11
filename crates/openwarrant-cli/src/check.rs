@@ -418,6 +418,9 @@ pub fn run_with(
     // Silent where there are none, so such a program checks as it did.
     if only.is_none() {
         crate::records::check(shared_corpus, &mut report);
+        // FORMAT-1.0 (OW-ADR-0032): Format 1.0 documents. Silent where
+        // there are none.
+        crate::format_doc::check(shared_corpus, &mut report);
         // OW-WAR-0148 M6: declared documents. Silent where there are none.
         crate::render_cmd::check(shared_corpus, &mut report);
         // OW-WAR-0148 M18: docs/types.toml and the document index. Silent

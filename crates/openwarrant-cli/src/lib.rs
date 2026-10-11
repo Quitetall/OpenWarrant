@@ -44,6 +44,7 @@ pub mod eval;
 pub mod eval_ordinary;
 pub mod evidence;
 pub mod export;
+pub mod format_doc;
 pub mod frontier;
 pub mod gate_cmd;
 pub mod go;
@@ -987,6 +988,11 @@ enum PlanCommand {
         /// authorized revision is refused and nothing is created.
         #[arg(long, value_name = "ALIAS")]
         parent: Option<String>,
+        /// Write a Format 1.0 single-file Warrant, `<alias>.md`, instead of a
+        /// manifest and atoms (docs/format/FORMAT-1.0.md §4.1). The only
+        /// value is `1.0`. Without it nothing changes.
+        #[arg(long = "format", value_name = "VERSION", conflicts_with = "parent")]
+        format_version: Option<String>,
     },
     /// Draft a directory Warrant (delivery) from a light one, for when
     /// someone wants sign-off. Opt-in: the authority layer starts here, not
@@ -3762,6 +3768,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             preset,
             profile,
             parent,
+            format_version,
         } => {
             // OW-WAR-0140: a profile is a name the repository's registry
             // resolves — the two core ones and every `profiles/<name>.toml`.
@@ -3769,6 +3776,37 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let profile: Option<Profile> = profile
                 .map(|p| repository.profiles.resolve(&p))
                 .transpose()?;
+            // FORMAT-1.0 §4.1: `--format 1.0` writes one file instead.
+            if let Some(version) = format_version {
+                if version != "1.0" {
+                    let mut report = diagnostic::Report::default();
+                    report.push(diagnostic::Diagnostic::error(
+                        "new.format-unknown",
+                        version.clone(),
+                        format!("--format {version}: a new Warrant is written in Format 1.0 or not at all"),
+                    ));
+                    output::finish(mode, "new", &report, None);
+                    return Ok(EXIT_DIAGNOSTIC);
+                }
+                let profile = match (&profile, preset.as_deref()) {
+                    (Some(p), _) => p.clone(),
+                    (None, Some(p)) => new::preset_profile(p).unwrap_or(Profile::Delivery),
+                    (None, None) => Profile::Delivery,
+                };
+                let path = new::run_format(&repository, &title, &profile)?;
+                let rel = repository.relative(&path);
+                let alias = path.file_stem().unwrap_or_default().to_owned();
+                output::emit(
+                    mode,
+                    "new",
+                    &format!(
+                        "created {rel} ({}, profile {profile})\nanswer each section, then run `war check`",
+                        openwarrant_core::format::VERSION
+                    ),
+                    serde_json::json!({"alias": alias, "path": rel, "profile": profile.to_string(), "format": openwarrant_core::format::VERSION}),
+                );
+                return Ok(EXIT_OK);
+            }
             // Without --preset the profile's preset is written, and the
             // presets are named: the `TODO` skeleton is retired. The refusal
             // OW-WAR-0113 D-031 asks for here is withheld — see its report:

@@ -608,7 +608,11 @@ impl Repository {
             let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
                 continue;
             };
-            if fs::is_file(path.join("manifest.toml")) {
+            // A directory holding a Format 1.0 `warrant.md` is that
+            // document's, and its manifest (if any) only tool settings
+            // (FORMAT-1.0 §4.2): never a legacy Warrant.
+            if fs::is_file(path.join("manifest.toml")) && !crate::format_doc::is_document_dir(&path)
+            {
                 out.push(path);
             }
         }

@@ -24,6 +24,8 @@ mod doctor_cli;
 mod document_draft;
 #[path = "eval_subject_cli.rs"]
 mod eval_subject_cli;
+#[path = "format_cli.rs"]
+mod format_cli;
 #[path = "frontier_integrity_cli.rs"]
 mod frontier_integrity_cli;
 #[path = "inbox_classify.rs"]

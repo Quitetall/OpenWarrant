@@ -175,6 +175,7 @@ pub struct Corpus {
     records: OnceLock<crate::records::Records>,
     adapters: OnceLock<crate::interop::adapters::Adapted>,
     documents: OnceLock<crate::doc_index::Index>,
+    format_docs: OnceLock<crate::format_doc::FormatDocs>,
 }
 
 impl std::fmt::Debug for Corpus {
@@ -212,6 +213,7 @@ impl Corpus {
             records: OnceLock::new(),
             adapters: OnceLock::new(),
             documents: OnceLock::new(),
+            format_docs: OnceLock::new(),
         }
     }
 
@@ -353,6 +355,13 @@ impl Corpus {
     /// Infallible: what could not be read is a fault inside, by rule.
     pub fn documents(&self) -> &crate::doc_index::Index {
         self.documents.get_or_init(|| crate::doc_index::load(self))
+    }
+
+    /// Every Format 1.0 document (FORMAT-1.0 §4), once. Infallible: what
+    /// could not be read is a finding inside, by rule.
+    pub fn format_docs(&self) -> &crate::format_doc::FormatDocs {
+        self.format_docs
+            .get_or_init(|| crate::format_doc::load(&self.repo))
     }
 
     /// The recorded SAS revisions, once.
