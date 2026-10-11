@@ -2111,6 +2111,20 @@ enum ViewGroup {
 enum SignGroup {
     #[command(flatten)]
     Member(SignCommand),
+    /// Review an exact native acceptance response; explicitly request SSH signing.
+    /// No TTY approval or agent-signing fallback. Without --ssh-sign, no write.
+    NativeResolve {
+        alias: String,
+        /// Bounded repository-relative native response prepared for this result.
+        #[arg(long)]
+        response: Utf8PathBuf,
+        /// Normal protected native host configuration; no test-store fallback.
+        #[arg(long)]
+        native_store: std::path::PathBuf,
+        /// Ask the configured human SSH key, then freshly check and record.
+        #[arg(long)]
+        ssh_sign: bool,
+    },
     /// Approve a Warrant as an official plan (docs/PRESETS.md).
     ///
     /// Without `--ssh-sign`, the request: what an approval binds, who may
@@ -4114,11 +4128,92 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
 
 fn run_sign(ctx: &Ctx, args: SignArgs) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
+    if matches!(&args.command, Some(SignGroup::NativeResolve { .. }))
+        && (args.target.is_some()
+            || args.list
+            || args.all
+            || args.actor.is_some()
+            || args.meaning.is_some()
+            || args.grounds.is_some()
+            || args.outcome.is_some()
+            || args.adr.is_some()
+            || args.independence != "separate_role"
+            || args.edit
+            || args.show
+            || args.dry_run
+            || args.ssh_sign
+            || args.verify
+            || args.kind.is_some()
+            || args.batch.is_some()
+            || args.recover.is_some()
+            || args.revoke)
+    {
+        let mut report = diagnostic::Report::default();
+        report.push(diagnostic::Diagnostic::error("native-sign.options", "sign", "native-resolve uses its own explicit options; parent signing options cannot change or silently bypass the reviewed decision"));
+        return Ok(output::finish(mode, "sign.native_resolve", &report, None));
+    }
     match args {
         SignArgs {
             command: Some(SignGroup::Member(command)),
             ..
         } => run_sign_member(ctx, command),
+        SignArgs {
+            command:
+                Some(SignGroup::NativeResolve {
+                    alias,
+                    response,
+                    native_store,
+                    ssh_sign,
+                }),
+            ..
+        } => {
+            let repository = ctx.open_repo()?;
+            match resolution_cmd::native::signing::run_reviewed(
+                &repository,
+                &alias,
+                &response,
+                &native_store,
+                ssh_sign,
+                |decision, bytes| {
+                    eprintln!(
+                        "# Review native acceptance for {} ({})\n# Actor: {:?}\n# Outcome: {:?} / {:?}\n# Meaning: {:?}\n# Code revision: {}\n# Exact proposal: {} (sha256:{})\n# Current preflight passed. Requesting the configured SSH key; recording still requires fresh checks.",
+                        decision.warrant,
+                        decision.warrant_uuid,
+                        decision.resolved_by,
+                        decision.common_outcome,
+                        decision.profile_outcome,
+                        decision.meaning,
+                        decision.locator.commit_sha,
+                        response,
+                        openwarrant_compiler::sha256_hex(bytes)
+                    );
+                },
+            ) {
+                Ok((report, result)) => Ok(output::finish(
+                    mode,
+                    "sign.native_resolve",
+                    &report,
+                    Some(output::value(&result)),
+                )),
+                Err(fault) => {
+                    let mut report = diagnostic::Report::default();
+                    report.push(if fault.unknown {
+                        diagnostic::Diagnostic::unknown(
+                            fault.code,
+                            response.to_string(),
+                            fault.message,
+                        )
+                    } else {
+                        diagnostic::Diagnostic::error(
+                            fault.code,
+                            response.to_string(),
+                            fault.message,
+                        )
+                    });
+                    Ok(output::finish(mode, "sign.native_resolve", &report, None))
+                }
+            }
+        }
         // OW-WAR-0148 M14: a person's approval of a Warrant.
         SignArgs {
             command:

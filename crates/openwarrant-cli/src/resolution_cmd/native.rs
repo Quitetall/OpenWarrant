@@ -7,6 +7,8 @@ use crate::runtime_capture::{Fault, Selection, native_host::NativeAssessment};
 use openwarrant_core::runtime_collector::Fault as CryptoFault;
 use std::time::Duration;
 
+pub mod signing;
+
 pub const RESPONSE_SCHEMA: &str = "oh.war/native-resolution-response/v2-draft.1";
 pub const RECORD_SCHEMA: &str = "oh.war/resolution/v2-draft.1";
 

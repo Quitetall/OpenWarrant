@@ -17,8 +17,9 @@ use std::{
 const ALIAS: &str = "IX-WAR-0003";
 const ACTOR: &str = "software fixture owner";
 
-fn command(root: &Path, argv: &[&str]) -> Output {
-    Command::new("/usr/bin/timeout")
+fn configured(root: &Path, argv: &[&str]) -> Command {
+    let mut command = Command::new("/usr/bin/timeout");
+    command
         .arg("15")
         .args(argv)
         .current_dir(root)
@@ -26,9 +27,11 @@ fn command(root: &Path, argv: &[&str]) -> Output {
         .env("PATH", "/usr/bin:/bin")
         .env("TMPDIR", root)
         .env("OPENWARRANT_NO_PROJECTS", "1")
-        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
-        .output()
-        .unwrap()
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1");
+    command
+}
+fn command(root: &Path, argv: &[&str]) -> Output {
+    configured(root, argv).output().unwrap()
 }
 fn success(root: &Path, argv: &[&str]) -> Output {
     let out = command(root, argv);
@@ -204,6 +207,7 @@ source_holder = "git"
         "schema = \"oh.war/rationale/v1\"\n",
     )
     .unwrap();
+    fs::write(root.join(".gitignore"), ".openwarrant/state/\n").unwrap();
     success(root, &["/usr/bin/git", "init", "-q"]);
     let repo = open(root);
     let request = authorize::request(&repo, ALIAS).unwrap();
@@ -379,7 +383,7 @@ pub fn roundtrip(root: &Path, store: &Path, selected: &[Selection]) {
     };
     run_cli(true);
     assert!(!record_path.exists(), "CLI dry run wrote an acceptance");
-    run_cli(false);
+    signing_roundtrip(root, store, response_path, &text, &record_path);
     let record = repo.load_resolution(&directory).unwrap().unwrap();
     assert!(
         matches!(native::signature_for_record(&repo, &record), openwarrant_cli::authority_check::Verdict::Signed { principal, .. } if principal == "owner")
@@ -391,4 +395,284 @@ pub fn roundtrip(root: &Path, store: &Path, selected: &[Selection]) {
     println!(
         "native acceptance: all thirteen plus actual native receipt; signed snapshot substitutions, missing selection, changed artifact and replay refused; exact dry-run then record accepted; principal owner differs from actor label; synthetic only"
     );
+}
+
+#[cfg(unix)]
+fn signing_roundtrip(
+    root: &Path,
+    store: &Path,
+    response_path: &camino::Utf8Path,
+    original: &str,
+    record_path: &camino::Utf8Path,
+) {
+    let args = [
+        "/war",
+        "sign",
+        "native-resolve",
+        ALIAS,
+        "--response",
+        response_path.as_str(),
+        "--native-store",
+        store.to_str().unwrap(),
+        "--json",
+    ];
+    let output = success(root, &args);
+    let preview: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(preview["command"], "sign.native_resolve");
+    assert_eq!(
+        preview["result"]["schema"],
+        "oh.war/native-signing-result/v1-draft.1"
+    );
+    assert_eq!(preview["result"]["recorded"], false);
+    assert!(preview["result"]["signed_proposal_path"].is_null());
+    assert!(!record_path.exists());
+    assert!(!root.join(".openwarrant/state/native-signatures").exists());
+    let guarded = [
+        "/war",
+        "sign",
+        "--show",
+        "native-resolve",
+        ALIAS,
+        "--response",
+        response_path.as_str(),
+        "--native-store",
+        store.to_str().unwrap(),
+        "--ssh-sign",
+        "--json",
+    ];
+    let refused = command(root, &guarded);
+    assert!(!refused.status.success());
+    if refused.stdout.is_empty() {
+        // Clap rejects the mixed parent/subcommand options before dispatch.
+        assert_eq!(refused.status.code(), Some(2));
+        let syntax = String::from_utf8_lossy(&refused.stderr);
+        assert!(
+            syntax.contains("cannot be used with") && syntax.contains("--show"),
+            "{syntax}"
+        );
+    } else {
+        let refused: serde_json::Value = serde_json::from_slice(&refused.stdout).unwrap();
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "native-sign.options")
+        );
+    }
+    assert!(!root.join(".openwarrant/state/native-signatures").exists());
+    let review_fault =
+        native::signing::run_reviewed(&open(root), ALIAS, response_path, store, true, |_, _| {
+            fs::write(
+                root.join(response_path),
+                format!("{original}\n# changed during review\n"),
+            )
+            .unwrap()
+        })
+        .err()
+        .unwrap();
+    assert_eq!(review_fault.code, "native-sign.proposal-changed");
+    assert!(!root.join(".openwarrant/state/native-signatures").exists());
+    assert!(!record_path.exists());
+    fs::write(root.join(response_path), original).unwrap();
+    let mut sign_args = args.to_vec();
+    sign_args.push("--ssh-sign");
+    // Public seed fixture only: the key stays in memory, and real ssh-keygen
+    // uses the SSH agent protocol. This does not establish human presence.
+    let changed = root.join(response_path);
+    {
+        let agent = FixtureAgent::start(
+            root,
+            Some((
+                changed.clone(),
+                format!("{original}\n# changed during signing\n").into_bytes(),
+            )),
+        );
+        let output = configured(root, &sign_args)
+            .env("SSH_AUTH_SOCK", &agent.socket)
+            .output()
+            .unwrap();
+        assert!(!output.status.success());
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert!(
+            report["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "native-sign.proposal-changed"),
+            "{report}"
+        );
+        assert!(!record_path.exists());
+    }
+    fs::write(changed, original).unwrap();
+    let retained = root.join(".openwarrant/state/native-signatures");
+    let packets: Vec<_> = fs::read_dir(&retained)
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .collect();
+    assert_eq!(packets.len(), 1);
+    let signed: serde_json::Value =
+        serde_json::from_slice(&fs::read(&packets[0]).unwrap()).unwrap();
+    assert_eq!(signed["response"], original);
+    native::verify_signature(
+        &open(root),
+        original.as_bytes(),
+        signed["signature"].as_str().unwrap(),
+    )
+    .unwrap();
+    let artifact = root.join("ADOPTED.md");
+    let before = fs::read(&artifact).unwrap();
+    {
+        let agent = FixtureAgent::start(
+            root,
+            Some((artifact.clone(), b"changed during signing\n".to_vec())),
+        );
+        let output = configured(root, &sign_args)
+            .env("SSH_AUTH_SOCK", &agent.socket)
+            .output()
+            .unwrap();
+        assert!(!output.status.success(), "changed artifact was accepted");
+        assert!(!record_path.exists());
+    }
+    fs::write(artifact, before).unwrap();
+    {
+        let agent = FixtureAgent::start(root, None);
+        let output = configured(root, &sign_args)
+            .env("SSH_AUTH_SOCK", &agent.socket)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{} {}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let result: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(result["result"]["recorded"], true);
+        assert!(String::from_utf8_lossy(&output.stderr).contains("Review native acceptance"));
+        assert!(
+            root.join(result["result"]["signed_proposal_path"].as_str().unwrap())
+                .is_file()
+        );
+    }
+    let replay = command(root, &sign_args);
+    assert!(!replay.status.success());
+    let replay: serde_json::Value = serde_json::from_slice(&replay.stdout).unwrap();
+    assert!(
+        replay["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "native-resolution.exists")
+    );
+    println!(
+        "native SSH signing: actual ssh-keygen with in-memory public-seed agent; unsigned preview writes nothing; changed proposal and artifact refuse recording while signed bytes are retained; exact result records; no actual human presence"
+    );
+}
+
+#[cfg(unix)]
+struct FixtureAgent {
+    socket: std::path::PathBuf,
+    stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    task: Option<std::thread::JoinHandle<()>>,
+}
+#[cfg(unix)]
+impl FixtureAgent {
+    fn start(root: &Path, mut change: Option<(std::path::PathBuf, Vec<u8>)>) -> Self {
+        use ring::signature::{Ed25519KeyPair, KeyPair};
+        use std::{
+            io::{Read, Write},
+            os::unix::net::UnixListener,
+            sync::{
+                Arc,
+                atomic::{AtomicBool, Ordering},
+            },
+            time::Duration,
+        };
+        let socket = root.join(".git/fixture-agent.sock");
+        let listener = UnixListener::bind(&socket).unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let stop = Arc::new(AtomicBool::new(false));
+        let stopping = stop.clone();
+        let task = std::thread::spawn(move || {
+            let key = Ed25519KeyPair::from_seed_unchecked(&[11; 32]).unwrap();
+            let mut public = Vec::new();
+            super::string(&mut public, b"ssh-ed25519");
+            super::string(&mut public, key.public_key().as_ref());
+            while !stopping.load(Ordering::Relaxed) {
+                let (mut stream, _) = match listener.accept() {
+                    Ok(s) => s,
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        std::thread::sleep(Duration::from_millis(5));
+                        continue;
+                    }
+                    Err(e) => panic!("{e}"),
+                };
+                stream
+                    .set_read_timeout(Some(Duration::from_secs(2)))
+                    .unwrap();
+                stream
+                    .set_write_timeout(Some(Duration::from_secs(2)))
+                    .unwrap();
+                loop {
+                    let mut len = [0; 4];
+                    if stream.read_exact(&mut len).is_err() {
+                        break;
+                    }
+                    let len = u32::from_be_bytes(len) as usize;
+                    assert!(len > 0 && len <= 16384);
+                    let mut request = vec![0; len];
+                    stream.read_exact(&mut request).unwrap();
+                    let mut response = Vec::new();
+                    match request[0] {
+                        11 => {
+                            response.push(12);
+                            response.extend_from_slice(&1u32.to_be_bytes());
+                            super::string(&mut response, &public);
+                            super::string(&mut response, b"public software fixture");
+                        }
+                        13 => {
+                            fn field(bytes: &mut &[u8]) -> Vec<u8> {
+                                let len =
+                                    u32::from_be_bytes(bytes[..4].try_into().unwrap()) as usize;
+                                let v = bytes[4..4 + len].to_vec();
+                                *bytes = &bytes[4 + len..];
+                                v
+                            }
+                            let mut fields = &request[1..];
+                            assert_eq!(field(&mut fields), public);
+                            let message = field(&mut fields);
+                            assert_eq!(fields, 0u32.to_be_bytes());
+                            if let Some((path, body)) = change.take() {
+                                fs::write(path, body).unwrap();
+                            }
+                            let mut signature = Vec::new();
+                            super::string(&mut signature, b"ssh-ed25519");
+                            super::string(&mut signature, key.sign(&message).as_ref());
+                            response.push(14);
+                            super::string(&mut response, &signature);
+                        }
+                        _ => response.push(5),
+                    }
+                    stream
+                        .write_all(&(response.len() as u32).to_be_bytes())
+                        .unwrap();
+                    stream.write_all(&response).unwrap();
+                }
+            }
+        });
+        Self {
+            socket,
+            stop,
+            task: Some(task),
+        }
+    }
+}
+#[cfg(unix)]
+impl Drop for FixtureAgent {
+    fn drop(&mut self) {
+        self.stop.store(true, std::sync::atomic::Ordering::Relaxed);
+        self.task.take().unwrap().join().unwrap();
+        fs::remove_file(&self.socket).unwrap();
+    }
 }

@@ -47,8 +47,8 @@ reliance still depends on applicable standing and assurance checks.
 
 The existing v1 JSON Schema and TypeScript pack stays unchanged. Native response
 and record formats are experimental and outside that pack; strict native parsing
-defines this draft's boundary. Publishing a versioned native schema pack and
-tested command-line signing remain separate completion work.
+defines this draft's boundary. Publishing a versioned native schema pack remains separate completion work.
+The tested SSH command below remains experimental, not production qualification.
 
 Recheck snapshots, selections and policy around acceptance; use the existing
 compare-and-write record prestate. These checks are not an atomic fence over
@@ -72,6 +72,35 @@ input checks without recording. Legacy signed response dry runs also use the
 existing no-write ingestion mode. The legacy runtime review packet remains an
 unsigned v1 request, not a native acceptance response.
 
-The human signing command still needs integration; this transport grants no
-agent signing permission. Software protocol fixtures exercise CLI ingestion
-under distinct operator and executor UIDs and remain unverified test evidence.
+Software protocol fixtures exercise CLI ingestion under distinct operator and
+executor UIDs and remain unverified test evidence; no agent signing permission
+is granted.
+
+## Experimental human SSH command
+
+`war sign native-resolve <alias> --response <relative-proposal>
+--native-store <protected-store> --ssh-sign` uses one explicit SSH invocation.
+Without `--ssh-sign`, it checks and renders the exact proposal without writing
+or asking a key. Parent signing options cannot silently replace this decision.
+The signing result uses `oh.war/native-signing-result/v1-draft.1`.
+
+Review rendering receives the same in-memory bytes that will be signed. Recheck
+the source and required context after review, before asking the key. Refuse an
+existing resolution before the key request. Sign a private temporary copy with
+the normal protected human principal, then verify the signature over the original
+bytes through the native cryptographic reader and rerun current checks. Plain
+SSH confirmation is not authenticated hardware presence; enforce configured and
+protected presence requirements independently.
+
+A complete, immutable `oh.war/native-signed-proposal/v1-draft.1` JSON packet
+retains original response text and signature under
+`.openwarrant/state/native-signatures/<packet-sha256>.json`. Descriptor-relative
+publication refuses traversal and replacement. Retain this observation if the
+proposal, authority or evidence changed during the key request; it grants no
+acceptance by itself. A failure after recording has begun requires inspecting
+current records before retry, because record publication and journal append do
+not form one transaction. Private signing snapshots are cleaned up.
+
+Tests use real OpenSSH with an in-memory public-seed fixture agent. They establish
+software protocol behavior, not actual human review, hardware touch, production
+key custody, account separation outside the fixture, or release qualification.
