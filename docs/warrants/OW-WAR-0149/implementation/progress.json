@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected native policy checks are merged into main. Draft native acceptance binding and signed-record readers now compile and pass narrow parser, transport and legacy tests; full fresh acceptance integration and command-line human signing remain.",
+  "summary": "Protected native policy checks are on main. Full Katana and BLUT software-fixture acceptance and exact signed CLI ingestion pass, including no-write dry run and stale-input refusals. Secure human signing, native schemas and qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -48,12 +48,13 @@
     "docs/warrants/OW-WAR-0149/implementation/typed-resolution-binding-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/resolution-outcome-binding-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-policy-binding-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/native-acceptance-binding-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/native-acceptance-binding-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-cli-acceptance-20261010/README.md"
   ],
   "next_steps": [
-    "Test the full native preparation/ingestion round trip and stale-input refusals, then wire human SSH signing and CLI ingestion. Publish native draft schemas separately from v1; map workbench identities to actual retained Dispatches. OW95 participants and BLUT contributor agreement remain unavailable.",
+    "Integrate secure human SSH signing; publish native draft schemas separately from v1 and map workbench identities to actual retained Dispatches. OW95 participants and BLUT contributor agreement remain unavailable.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "193c82b29764e7d6c7b790399b085471a78a20f3"
+  "revision": "be05f8eae1b4a5f1c3f84fc66a77210092b9a58c"
 }

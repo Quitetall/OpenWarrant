@@ -1,0 +1,103 @@
+{
+  "schema": "oh.war/implementation-observations/v1",
+  "implementation_revision": "be05f8eae1b4a5f1c3f84fc66a77210092b9a58c",
+  "classification": "unverified software protocol fixtures; no human or independent acceptance",
+  "logs": [
+    {
+      "path": "native-cli-integration-blut.log.gz",
+      "sha256": "1f3ecf4d54079339ca992414d07b68692cddbe5da067877cc77705b47fa319e1",
+      "compressed_sha256": "c71e5686ffa36865af3fecfab8ea6ec8d59a23f27ce8bac5ca0ce568433bfa0a",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-integration-clippy.log.gz",
+      "sha256": "534cc2fcd9059cccbc701e4d6955697a3f4e56566dcbca91181f8f5322f1413e",
+      "compressed_sha256": "d5296982c5ec56ac6358fc510ba11fdf36c96dd3e2b42eada8ba2f9dae75f3c1",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-integration-fmt-final.log.gz",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-integration-katana-fixed.log.gz",
+      "sha256": "990f32005b1a3f0a811ad7059acc2d4d099bd88080ca5a1c750b332de6d12c9c",
+      "compressed_sha256": "098c18bcfc35f948843a156fc20717f17e73361516eed4d03a9b84bb4492186f",
+      "result": "FAIL"
+    },
+    {
+      "path": "native-cli-integration-katana-temp-fixed.log.gz",
+      "sha256": "dda6ad026199b8c6951268f96bc290f4cba8a3e714dafb10e1b727db2e9d4f62",
+      "compressed_sha256": "c36a1905f786235d06034ec525e824a90a9cda6d77be3829e7527fce76fee19f",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-integration-katana.log.gz",
+      "sha256": "c464516cd1ff9345c82ea1ec8e8cab8f9f718e99efd3c018afb6e39e11c5e6d7",
+      "compressed_sha256": "54dc6aab5ae2f545e49056381d4a7a99db66d3be63c9f67e6284483fab7603f9",
+      "result": "FAIL"
+    },
+    {
+      "path": "native-cli-integration-normal.log.gz",
+      "sha256": "5ccf9a305b5e862bf67bd5e3c004be756dd03950c064b7447890276b259f318d",
+      "compressed_sha256": "5f8dc1eb9b44b5d08dc430167e6e481d9e6ba699bec5dda29f0bc4cc582e042c",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-roundtrip-blut.log.gz",
+      "sha256": "4708a962a29852efea6e02ff30522655095d6431affb1c9e2deec1a9372b06fd",
+      "compressed_sha256": "c3cf4768f594ae61044d4c505486df7fd5472cbdfede10e04904d72b82615d18",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-roundtrip-build-fixed.log.gz",
+      "sha256": "bf617a5cc7ae9f1a8f848deea6d5b5b6ab0ce1a4518e7e10b47bad84ba3b6d49",
+      "compressed_sha256": "58c37ccc10bab3dba140e92d5fb5992eb0ddede82be5c995006abc8b982c1927",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-roundtrip-build-integration.log.gz",
+      "sha256": "85256f5c6b0250a0d5b83f53cff7285cf4610f59952f953b811637072912f357",
+      "compressed_sha256": "ec8ca5dd04daa12c5e908a0da9f13df6ea893850886430d394aba5f863c58449",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-roundtrip-build-parser-fixed.log.gz",
+      "sha256": "d8fbaa1227e7a72d2dc713a39b08e270277bdccf29a90969b78d737943f8de98",
+      "compressed_sha256": "1b4014a0d6c66bbe383d6a1d1bd823284f06ec56cb80923d51ec420fffbe0704",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-roundtrip-build-temp-fixed.log.gz",
+      "sha256": "016f48088b9bb753ac5ccdb5c9c070c182971620cc54cec6e464f3b2be4a5b5a",
+      "compressed_sha256": "d1b0493099cdc7eb8f7285fe8bac57b84b3414bebfde42857f23a6c8526fb38b",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-roundtrip-build.log.gz",
+      "sha256": "370076cc31555149726851aba7b0a253d2615c5c8f2c36940e77c5a4cac8f709",
+      "compressed_sha256": "71c32312c303adb19f85272c8b272bc40f11958dc844ec25f7642cae4e56356e",
+      "result": "FAIL"
+    },
+    {
+      "path": "native-cli-roundtrip-fmt.log.gz",
+      "sha256": "cb1bf3330eec47233ebbb97f8da18ce38f7df056e9d9be7d8ef28329f011ccc2",
+      "compressed_sha256": "0f683a1803cdec5e528096b742791613cad6d6213d4bb9a898d3dac32aad4c77",
+      "result": "PASS"
+    },
+    {
+      "path": "native-cli-roundtrip-katana.log.gz",
+      "sha256": "2d95e538054d972ac4f1fd7baa2d8ca2e3cf4542beec69a8be15e054594a54cb",
+      "compressed_sha256": "8bc8f8acfebf6a0cfcbed483a7d9b25930be9b2f4d0792750231b683418d4bc6",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "No production operator, hardware presence, real participant or release qualification",
+    "Historical signature checks are not fresh execution assurance",
+    "Source rechecks and record CAS do not atomically fence all inputs",
+    "Secure human signing command remains separate work"
+  ]
+}

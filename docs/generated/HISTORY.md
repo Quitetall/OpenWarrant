@@ -3754,6 +3754,21 @@ or stronger hardware claim inferred from software fixtures. Prototype completion
 is unchanged. Tests may use explicitly synthetic actors and public fixture keys,
 but cannot qualify this repository or stand in for real participant sessions.
 
+## Experimental CLI ingestion
+
+`war resolve <alias> --runtime-selection <relative-file-or-stdin>
+--native-store <protected-store> --response <relative-response>` reads bounded
+original response bytes and the adjacent `.sig`. Its explicit selection must
+match the signed decision exactly. Missing protected host policy does not fall
+back to legacy records. `--dry-run` performs the same signature and current
+input checks without recording. Legacy signed response dry runs also use the
+existing no-write ingestion mode. The legacy runtime review packet remains an
+unsigned v1 request, not a native acceptance response.
+
+The human signing command still needs integration; this transport grants no
+agent signing permission. Software protocol fixtures exercise CLI ingestion
+under distinct operator and executor UIDs and remain unverified test evidence.
+
 ### OW-ADR-native-inputs-98b57f41 — Retain native verifier inputs as inert archive data (`proposed`)
 
 [source](../../docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md)
