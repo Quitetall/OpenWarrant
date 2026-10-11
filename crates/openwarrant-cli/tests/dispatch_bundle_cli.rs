@@ -905,3 +905,116 @@ fn current_signed_contract_without_immutable_holder_is_unknown_without_writes() 
     assert_eq!(fs::read(&journal).ok(), before);
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn caller_pinned_dispatch_subject_refuses_different_warrant_and_contract_without_writes() {
+    struct Cleanup(PathBuf);
+    impl Drop for Cleanup {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+    let root = fixture("pinned-subject");
+    let _cleanup = Cleanup(root.clone());
+    let repo = root.join("repo");
+    let packet = root.join("baseline.json");
+    let out = war(
+        &repo,
+        &[
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--prototype",
+            "--emit",
+            packet.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let baseline: serde_json::Value = serde_json::from_slice(&fs::read(&packet).unwrap()).unwrap();
+    let uuid = baseline["warrant_ref"]
+        .as_str()
+        .unwrap()
+        .strip_prefix("war://")
+        .unwrap();
+    let digest = baseline["contract_digest"].as_str().unwrap();
+    let warrant = repo.join("docs/warrants/IX-WAR-0003");
+    let journal = warrant.join("journal.jsonl");
+    let prior_journal = fs::read(&journal).unwrap();
+    let prior_packets = fs::read_dir(warrant.join("dispatches")).unwrap().count();
+    let output = root.join("selected.json");
+    let context = root.join("selected-context.json");
+    for (expected_uuid, expected_digest) in [
+        ("01a12897-783e-71c5-a729-22bc7d21adfa", digest),
+        (
+            uuid,
+            "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        ),
+    ] {
+        let out = war(
+            &repo,
+            &[
+                "dispatch",
+                "IX-WAR-0003",
+                "STAGE-001",
+                "--prototype",
+                "--expected-warrant",
+                expected_uuid,
+                "--expected-contract",
+                expected_digest,
+                "--emit",
+                output.to_str().unwrap(),
+                "--emit-context",
+                context.to_str().unwrap(),
+                "--json",
+            ],
+        );
+        assert!(!out.status.success());
+        let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+        assert!(
+            report["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "dispatch.subject-mismatch"),
+            "{report}"
+        );
+        assert!(!output.exists() && !context.exists());
+        assert_eq!(fs::read(&journal).unwrap(), prior_journal);
+        assert_eq!(
+            fs::read_dir(warrant.join("dispatches")).unwrap().count(),
+            prior_packets
+        );
+    }
+    let out = war(
+        &repo,
+        &[
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--prototype",
+            "--expected-warrant",
+            uuid,
+            "--expected-contract",
+            digest,
+            "--emit",
+            output.to_str().unwrap(),
+            "--emit-context",
+            context.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let selected: serde_json::Value = serde_json::from_slice(&fs::read(&output).unwrap()).unwrap();
+    assert_eq!(selected["warrant_ref"], baseline["warrant_ref"]);
+    assert_eq!(selected["contract_digest"], baseline["contract_digest"]);
+    assert!(context.exists());
+}

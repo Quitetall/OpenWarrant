@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected native policy and exact signed CLI ingestion are on main. The separate experimental native schema pack passes example, refusal, determinism and drift checks while preserving active v1 bytes. Workbench identity integration and real human/production qualification remain.",
+  "summary": "Protected native policy and exact signed CLI ingestion are on main. The separate experimental native schema pack preserves active v1 bytes. An opt-in workbench bridge now delivers an actual retained Dispatch and exact portable context, with subject-change and post-check byte-mutation refusals. Provider receipt attachment, changed-workspace binding and real human/production qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -52,12 +52,13 @@
     "docs/warrants/OW-WAR-0149/implementation/native-cli-acceptance-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-human-signing-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-command-inventory-20261011/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/native-schema-pack-20261011/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/native-schema-pack-20261011/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/workbench-dispatch-20261011/README.md"
   ],
   "next_steps": [
-    "Map workbench identities to actual retained Dispatches. Complete real human/production signing qualification; OW95 participants and BLUT contributor agreement remain unavailable.",
+    "Attach actual provider captures to workbench attempts; bind changed resume/repair workspaces. Complete real human/production signing qualification; OW95 participants and BLUT contributor agreement remain unavailable.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"
+  "revision": "4459e9cd3bb6869484f34e702142a72125cc5030"
 }

@@ -106,6 +106,51 @@ the new attempt. A lost response leaves retention unknown, not proven absent.
 The original SDK report is returned with `qualified: false`; the route cannot
 select native policy, activate authority or sign a result.
 
+## Experimental execution context link
+
+An operator can opt into `oh.war/execution-config/v3-draft.1`. Each Warrant
+policy then requires a stage plan and an exact `runtime_link`:
+
+```json
+{
+  "schema": "oh.war/workbench-runtime-link/v1-draft.1",
+  "warrant": "IX-WAR-0003",
+  "warrant_uuid": "01a0ac9b-3953-7511-86f6-7face232c663",
+  "contract_digest": "<the actual 64 lowercase hex characters>",
+  "prototype": true,
+  "stages": {"build": "STAGE-001"}
+}
+```
+
+The example is incomplete until the operator supplies the actual digest. The
+mapping must cover all workbench stages, with a distinct corpus stage for each.
+The browser cannot supply or change this link. Existing v1/v2 execution configs
+and request formats are unchanged.
+
+Before launching a worker, the adapter calls the existing SDK CLI to compile and
+retain the actual Dispatch, create a portable bundle and validate it. The new
+paired `war dispatch --expected-warrant UUID --expected-contract DIGEST` flags
+refuse changed identity or contract before writing a Dispatch or compile event.
+Matching these fields grants no authority. Contract digests use the existing raw
+hex format; bundle digests use the existing `sha256:` prefix.
+
+The worker receives `oh.war/execution-request/v5-draft.1`, including
+`runtime_context`: exact original bundle bytes transported as `gzip+base64`,
+the bundle digest, retained Dispatch and core attempt identities, and the
+workbench identity and source digest. It can validate the bundle offline with
+`war dispatch-bundle check --expected-digest`. The adapter hashes the exact bytes
+it sends and refuses a change after SDK validation. Raw bundles are limited to
+64 MiB; encoded transport to 1 MiB. Run records retain the binding without copying
+the large encoded payload.
+
+This first bridge requires repository HEAD and execution worktree HEAD to match.
+It does not yet compile a fresh binding for changed resume/repair workspaces or
+attach provider receipts automatically to workbench attempts. Known SDK refusal
+stops before worker launch; an unavailable or contradictory observation stays
+unknown. Portable context does not grant capability permissions, prove sandbox
+or spend enforcement, or qualify a result. The current tests use a synthetic
+worker and real SDK CLI; they are not production execution qualification.
+
 ## Bounds and trust
 
 The service binds IPv4 loopback only, limits concurrent requests to eight and

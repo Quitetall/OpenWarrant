@@ -1091,6 +1091,131 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(self.call("/api/runs")[1]["runs"], [])
 
 
+    def linked_runtime(self):
+        import shutil
+        from test_workflow import REPO
+        record = self.eligible()
+        self.stop()
+        shutil.copytree(REPO / "conformance/fixtures/inbox/repository", self.repo,
+                        dirs_exist_ok=True)
+        graph = self.repo / "docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml"
+        graph.write_text(graph.read_text().replace('executor_kind: "agent"',
+            'executor_kind: "katana"\n    executor_ref: "synthetic"', 1))
+        self.git("add", ".")
+        self.git("commit", "-qm", "synthetic runtime corpus")
+        self.base = self.git("rev-parse", "HEAD").strip()
+        packet = self.root / "reference-dispatch.json"
+        subprocess.run([WAR, "--root", str(self.repo), "dispatch", "IX-WAR-0003",
+                        "STAGE-001", "--prototype", "--emit", str(packet), "--json"],
+                       capture_output=True, timeout=30, check=True)
+        reference = json.loads(packet.read_bytes())
+        self.config["schema"] = "oh.war/execution-config/v3-draft.1"
+        self.config["timeout_seconds"] = 30
+        policy = self.config["warrants"][record["id"]]
+        policy["base_commit"] = self.base
+        policy["stage_plan"] = {"schema": "oh.war/execution-stage-plan/v1", "stages": {
+            "build": {"title": "Transport fixture", "outcome": "Receive exact context", "dependencies": [],
+                      "checks": policy["checks"]}}}
+        policy["runtime_link"] = {"schema": "oh.war/workbench-runtime-link/v1-draft.1",
+            "warrant": "IX-WAR-0003", "warrant_uuid": "01a0ac9b-3953-7511-86f6-7face232c663",
+            "contract_digest": reference["contract_digest"], "prototype": True,
+            "stages": {"build": "STAGE-001"}}
+        self.harness.write_text("""import base64,gzip,json,sys,subprocess,pathlib,tempfile
+r=json.load(sys.stdin)
+assert r['schema']=='oh.war/execution-request/v5-draft.1'
+c=r['runtime_context']; assert c['bundle_encoding']=='gzip+base64'
+raw=gzip.decompress(base64.b64decode(c['bundle_base64'],validate=True))
+bundle=json.loads(raw)
+assert bundle['dispatch']['warrant_ref']=='war://01a0ac9b-3953-7511-86f6-7face232c663'
+assert bundle['dispatch']['stage_id']=='STAGE-001'
+assert c['workbench_warrant']==r['warrant_id'] and c['workbench_source_sha256']==r['source_sha256']
+p=pathlib.Path(r['worktree'])
+with tempfile.TemporaryDirectory(dir=p) as name:
+ f=pathlib.Path(name)/'context.json'; f.write_bytes(raw)
+ out=subprocess.run([sys.argv[1],'dispatch-bundle','check',str(f),'--expected-digest',c['bundle_digest'],'--json'],capture_output=True,check=True)
+ checked=json.loads(out.stdout)['result']; assert checked['execution_authorized'] is False
+ assert checked['dispatch_digest']==c['dispatch_digest']==bundle['dispatch']['dispatch_digest']
+(p/'result.txt').write_text('implemented\\n')
+subprocess.run(['git','add','result.txt'],cwd=p,check=True,stdout=sys.stderr)
+subprocess.run(['git','commit','-qm','synthetic context delivery'],cwd=p,check=True,stdout=sys.stderr)
+print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_id'],
+'source_sha256':r['source_sha256'],'work_state':'completed','notes':'Synthetic transport only; no native qualification.','next_steps':[]}))
+""")
+        self.config["argv"] = [sys.executable, str(self.harness), WAR]
+        self.start()
+        return {"warrant_id": record["id"], "source_sha256": record["source_sha256"], "stage": "build"}
+
+    def test_runtime_link_delivers_actual_dispatch_and_offline_context_to_worker(self):
+        fields = self.linked_runtime()
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            status, run = self.call("/api/runs/" + run["attempt_id"])
+            self.assertEqual(status, 200, run)
+            if run["execution_state"] != "running":
+                break
+            time.sleep(0.05)
+        self.assertEqual(run["work_state"], "completed", run)
+        self.assertFalse(run["qualified"])
+        binding = run["runtime_dispatch"]
+        self.assertEqual(binding["warrant_ref"], "war://01a0ac9b-3953-7511-86f6-7face232c663")
+        self.assertEqual(binding["stage_id"], "STAGE-001")
+        self.assertNotIn("bundle_base64", binding)
+        status, assessment = self.call("/api/runtime-assessment", "POST", {
+            "warrant": "IX-WAR-0003", "selections": []})
+        self.assertEqual(status, 200, assessment)
+        self.assertFalse(assessment["qualified"])
+        self.assertEqual(assessment["state"], "unknown")
+
+    def test_runtime_link_refuses_changed_core_contract_before_worker_launch(self):
+        fields = self.linked_runtime()
+        self.stop()
+        marker = self.root / "worker-launched"
+        self.harness.write_text("from pathlib import Path\nPath(" + repr(str(marker)) + ").write_text('launched')\n")
+        intent = self.repo / "docs/warrants/IX-WAR-0003/atoms/10-intent.md"
+        intent.write_text(intent.read_text() + "\nChanged outcome after link configuration.\n")
+        self.start()
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            run = self.call("/api/runs/" + run["attempt_id"])[1]
+            if run["execution_state"] != "running":
+                break
+            time.sleep(0.05)
+        self.assertEqual(run["execution_state"], "stopped", run["cause"])
+        self.assertIn("dispatch.subject-mismatch", run["cause"])
+        self.assertFalse(marker.exists(), "worker must not launch for changed core contract")
+
+    def test_runtime_link_refuses_bundle_changed_after_sdk_check_before_worker_launch(self):
+        fields = self.linked_runtime()
+        self.stop()
+        marker = self.root / "worker-launched"
+        self.harness.write_text("from pathlib import Path\nPath(" + repr(str(marker)) + ").write_text('launched')\n")
+        wrapper = self.root / "context-race.py"
+        wrapper.write_text("#!" + sys.executable + "\n" +
+            "import pathlib,subprocess,sys\n" +
+            "r=subprocess.run([" + repr(WAR) + ",*sys.argv[1:]],capture_output=True,timeout=30)\n" +
+            "if r.returncode==0 and 'dispatch-bundle' in sys.argv and 'check' in sys.argv:\n" +
+            " p=pathlib.Path(sys.argv[sys.argv.index('check')+1]); p.write_bytes(p.read_bytes()+b'\\n')\n" +
+            "sys.stdout.buffer.write(r.stdout);sys.stderr.buffer.write(r.stderr);sys.exit(r.returncode)\n")
+        wrapper.chmod(0o700)
+        self.report_args = ["--war", str(wrapper)]
+        self.start()
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            run = self.call("/api/runs/" + run["attempt_id"])[1]
+            if run["execution_state"] != "running":
+                break
+            time.sleep(0.05)
+        self.assertEqual(run["execution_state"], "stopped", run)
+        self.assertIn("bundle bytes changed", run["cause"])
+        self.assertFalse(marker.exists(), "worker must not launch with altered context")
+
+
 if __name__ == "__main__":
     import unittest
 
