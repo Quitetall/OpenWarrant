@@ -1,0 +1,5 @@
+id = "302-context-over-budget"
+kind = "refuse"
+section = "10.3"
+rule = "context.over-budget"
+says = """If the header and index alone, or with the full text of every root, exceed the budget, the compiler MUST refuse (`context.over-budget`)"""

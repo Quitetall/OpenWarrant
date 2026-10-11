@@ -1,0 +1,5 @@
+id = "123-relation-kind"
+kind = "refuse"
+section = "3.6"
+rule = "format.relation-kind"
+says = """Any other kind is refused (`format.relation-kind`)."""

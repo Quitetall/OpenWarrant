@@ -462,3 +462,50 @@ fn new_writes_a_single_file_warrant() {
     assert!(!root.join("docs/warrants/FT-WAR-0003.md").exists());
     std::fs::remove_dir_all(&root).ok();
 }
+
+/// An item's relation to nothing is reported at the item's own line, and a
+/// relation line whose target is prose is `format.relation-target`, never
+/// read as body text (conformance/format/ cases 046 and 124).
+#[test]
+fn item_target_unknown_is_at_the_item_line() {
+    let root = scratch("itemline");
+    let dir = root.join("docs/tickets");
+    std::fs::create_dir_all(&dir).unwrap();
+    let ticket = "---\nformat: openwarrant/1.0\nprofile: ticket\nalias: t-0d61d\n\
+uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4f\nsummary: s\n---\n# Reset email\n\n## Checklist\n\
+- [ ] Email template (i-4d11)\n- [ ] Docs (i-77be, after i-dead)\n";
+    std::fs::write(dir.join("t-0d61d.md"), ticket).unwrap();
+    let (_, diags) = check(&root);
+    let unknown: Vec<_> = diags
+        .iter()
+        .filter(|d| d.1 == "format.target-unknown")
+        .map(|d| d.2.clone())
+        .collect();
+    assert_eq!(
+        unknown,
+        vec!["docs/tickets/t-0d61d.md:12".to_owned()],
+        "{diags:?}"
+    );
+    // A bare item id is the document's own, made global though nothing has it.
+    let m = model(&root);
+    assert!(
+        m["relations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["from"] == "t-0d61d/i-77be"
+                && r["kind"] == "depends_on"
+                && r["to"] == "t-0d61d/i-dead"),
+        "{}",
+        m["relations"]
+    );
+
+    // The same item after an item that exists: nothing unknown.
+    std::fs::write(dir.join("t-0d61d.md"), ticket.replace("i-dead", "i-4d11")).unwrap();
+    let (_, diags) = check(&root);
+    assert!(
+        !diags.iter().any(|d| d.1 == "format.target-unknown"),
+        "{diags:?}"
+    );
+    std::fs::remove_dir_all(&root).ok();
+}

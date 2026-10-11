@@ -1,0 +1,4 @@
+id = "032-items-in-record-body"
+kind = "accept"
+section = "3.8"
+says = """An item is a list line in a unit's body, outside a fence and a continuation"""

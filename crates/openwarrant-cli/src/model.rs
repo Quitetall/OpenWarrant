@@ -1484,8 +1484,10 @@ fn lower_document(
             None => id.to_owned(),
         }
     };
+    // A bare item id is always this document's (§5: `item-ref = item-id |
+    // alias "/" item-id`), so it is made global even when no item has it.
     let resolve = |t: &str| -> String {
-        if work.is_some() && local.contains(t) {
+        if work.is_some() && (local.contains(t) || openwarrant_core::ticket::is_item_id(t)) {
             global(t)
         } else if let Some(u) = t.strip_prefix("war://") {
             uuid_alias.get(u).cloned().unwrap_or_else(|| t.to_owned())

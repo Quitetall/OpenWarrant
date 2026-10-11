@@ -1,0 +1,4 @@
+id = "022-fence-hides-units"
+kind = "accept"
+section = "3.9"
+says = """Inside a fence there are no units, fields, relations or items."""

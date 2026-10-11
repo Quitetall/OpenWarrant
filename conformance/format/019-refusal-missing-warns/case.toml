@@ -1,0 +1,4 @@
+id = "019-refusal-missing-warns"
+kind = "accept"
+section = "3.7"
+says = """Without `refusal`, a checker SHOULD warn (`format.refusal-missing`)"""

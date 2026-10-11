@@ -1,0 +1,5 @@
+id = "111-key-unknown-frontmatter"
+kind = "refuse"
+section = "3.3"
+rule = "format.key-unknown"
+says = """Any other undotted key is refused (`format.key-unknown`)"""

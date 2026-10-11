@@ -1,0 +1,4 @@
+id = "008-dotted-frontmatter-key"
+kind = "accept"
+section = "7.2"
+says = """A reader MUST ignore an extension key ... and MUST carry it in the model (`ext`)."""

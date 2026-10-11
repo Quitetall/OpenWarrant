@@ -1,0 +1,4 @@
+id = "045-after-other-ticket"
+kind = "accept"
+section = "3.8"
+says = """`after` names an item, a ticket, or another ticket's item."""

@@ -341,13 +341,21 @@ pub fn check(corpus: &Corpus, report: &mut Report) {
     }
 }
 
-/// The line a record's relation of `kind` was authored on, else its heading.
+/// The line a record's relation of `kind` was authored on, else its heading;
+/// an item's relations are on its own line.
 fn rel_line(d: &Loaded, from: &str, kind: &str) -> usize {
     let local = from.rsplit('/').next().unwrap_or(from);
-    d.doc.units.iter().find(|u| u.id == local).map_or(1, |u| {
-        u.relations
+    if let Some(u) = d.doc.units.iter().find(|u| u.id == local) {
+        return u
+            .relations
             .iter()
             .find(|r| r.kind == kind)
-            .map_or(u.line, |r| r.line)
-    })
+            .map_or(u.line, |r| r.line);
+    }
+    d.doc
+        .units
+        .iter()
+        .flat_map(|u| &u.items)
+        .find(|it| it.id.as_deref() == Some(local))
+        .map_or(1, |it| it.line)
 }

@@ -1,0 +1,5 @@
+id = "112-key-unknown-obligation-field"
+kind = "refuse"
+section = "3.5"
+rule = "format.key-unknown"
+says = """`<name>` an undotted word the type or profile defines, or a dotted name"""

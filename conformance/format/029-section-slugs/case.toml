@@ -1,0 +1,4 @@
+id = "029-section-slugs"
+kind = "accept"
+section = "3.4"
+says = """Its id is `S-` and the slug of the name ... (`## Work order` is `S-work-order`)."""

@@ -1,0 +1,4 @@
+id = "025-quoted-scalars"
+kind = "accept"
+section = "3.2"
+says = """scalars plain, `"double-quoted"` (escapes `\\"` `\\\\` only) or `'single-quoted'` (`''` for a quote)"""

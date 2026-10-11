@@ -1,0 +1,4 @@
+id = "039-record-without-attributes"
+kind = "accept"
+section = "3.5"
+says = """a record with no fields or relations starts with a blank line"""

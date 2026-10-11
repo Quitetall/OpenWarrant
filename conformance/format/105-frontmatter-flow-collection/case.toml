@@ -1,0 +1,5 @@
+id = "105-frontmatter-flow-collection"
+kind = "refuse"
+section = "3.2"
+rule = "format.frontmatter"
+says = """flow collections"""

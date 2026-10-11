@@ -1,0 +1,5 @@
+id = "138-unrecognised-no-format"
+kind = "refuse"
+section = "6"
+rule = "format.unrecognised"
+says = """no `format`: reads it as a legacy encoding (section 12) or refuses it (`format.unrecognised`)"""

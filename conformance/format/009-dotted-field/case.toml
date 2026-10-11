@@ -1,0 +1,4 @@
+id = "009-dotted-field"
+kind = "accept"
+section = "3.5"
+says = """a field ... `<name>` an undotted word the type or profile defines, or a dotted name (section 7)"""

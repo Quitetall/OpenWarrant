@@ -1,0 +1,5 @@
+id = "134-section-missing-ticket"
+kind = "refuse"
+section = "4.1"
+rule = "format.section-missing"
+says = """`ticket` requires Checklist"""

@@ -1,0 +1,4 @@
+id = "003-warrant-directory-with-manifest"
+kind = "accept"
+section = "4.2"
+says = """A `manifest.toml` MAY sit beside `warrant.md` for tool settings."""

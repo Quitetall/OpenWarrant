@@ -1,0 +1,4 @@
+id = "030-continuation-after-empty-first-line"
+kind = "accept"
+section = "3.5"
+says = """if the first line is empty, the value starts at the first continuation"""

@@ -1,0 +1,5 @@
+id = "137-manifest-lists-atoms"
+kind = "refuse"
+section = "4.2"
+rule = "format.manifest-restates"
+says = """It MUST NOT list atoms"""

@@ -1,0 +1,5 @@
+id = "126-item-box"
+kind = "refuse"
+section = "3.8"
+rule = "format.item"
+says = """`[]`, `[y]` and other boxes are refused (`format.item`)."""

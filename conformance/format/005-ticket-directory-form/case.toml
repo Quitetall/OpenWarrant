@@ -1,0 +1,4 @@
+id = "005-ticket-directory-form"
+kind = "accept"
+section = "4.1"
+says = """a ticket ... or `docs/tickets/<alias>/ticket.md`"""

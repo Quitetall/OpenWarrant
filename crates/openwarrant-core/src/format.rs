@@ -906,6 +906,7 @@ pub fn parse(bytes: &[u8]) -> Document {
 
     // Each unit.
     let mut ids: BTreeMap<String, usize> = BTreeMap::new();
+    let mut authored: Vec<(String, String)> = Vec::new();
     let mut item_ids: BTreeMap<String, usize> = BTreeMap::new();
     let mut section: Option<String> = None;
     for (i, (n, start, head)) in heads.iter().enumerate() {
@@ -1002,6 +1003,9 @@ pub fn parse(bytes: &[u8]) -> Document {
         for (rule, line, msg) in warnings {
             doc.push(Outcome::Warning, rule, line, msg);
         }
+        // What was authored, refused or not: a section the document has is
+        // never also reported missing (§4.1).
+        authored.push((unit.id.clone(), unit.record_type.clone()));
         if faults.is_empty() {
             doc.units.push(unit);
         } else {
@@ -1014,7 +1018,7 @@ pub fn parse(bytes: &[u8]) -> Document {
     // §4.1: what the profile requires of a work document.
     if doc.is_work() {
         for s in required_sections(&doc.profile) {
-            if !doc.units.iter().any(|u| u.id == *s) {
+            if !authored.iter().any(|(id, _)| id == *s) {
                 doc.push(
                     Outcome::Refusal,
                     "format.section-missing",
@@ -1027,7 +1031,7 @@ pub fn parse(bytes: &[u8]) -> Document {
                 );
             }
         }
-        if doc.profile == "delivery" && !doc.units.iter().any(|u| u.record_type == "obligation") {
+        if doc.profile == "delivery" && !authored.iter().any(|(_, t)| t == "obligation") {
             doc.push(
                 Outcome::Refusal,
                 "format.section-missing",
@@ -1142,13 +1146,17 @@ fn attributes(
             i += 1;
             continue;
         }
-        // A relation line: `<kind> <target>[, <target>]…`.
+        // A relation line: `<kind> <target>[, <target>]…`. A line whose first
+        // word is a core or dotted kind is one whatever follows, so a target
+        // that does not parse is `format.relation-target`, not prose (§3.6).
         if let Some((kind, rest)) = line.split_once(' ')
             && is_name(kind)
-            && rest
-                .trim_end_matches([' ', '\t'])
-                .split(", ")
-                .all(|t| !t.is_empty() && !t.contains(char::is_whitespace))
+            && (is_dotted(kind)
+                || CoreKind::parse(kind).is_some()
+                || rest
+                    .trim_end_matches([' ', '\t'])
+                    .split(", ")
+                    .all(|t| !t.is_empty() && !t.contains(char::is_whitespace)))
         {
             if !(is_dotted(kind) || CoreKind::parse(kind).is_some()) {
                 faults.push((
@@ -1392,7 +1400,7 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
 
     #[test]
     fn refusals_carry_their_rule_and_line() {
-        let cases: [(&str, &str, usize); 12] = [
+        let cases: [(&str, &str, usize); 13] = [
             ("profile: delivery\n", "format.frontmatter", 1),
             (
                 "---\nformat: openwarrant/1.0\nx:\n  y: 1\n---\n",
@@ -1435,6 +1443,12 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
                 6,
             ),
             (
+                // A core kind opens a relation line whatever follows it.
+                "---\nformat: openwarrant/1.0\nprofile: p\n---\n## R-1 · note — t\nconstrains the rule above\n",
+                "format.relation-target",
+                6,
+            ),
+            (
                 "---\nformat: openwarrant/1.0\nprofile: p\n---\n## OBL-1 · obligation — t\nscope: s\nevidence: e\nstatus: done\n",
                 "format.authored-state",
                 8,
@@ -1463,6 +1477,30 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
         assert!(
             parse(b"---\nformat: openwarrant/1.0\nprofile: p\n---\n\xff\n").findings[0].rule
                 == "format.encoding"
+        );
+    }
+
+    #[test]
+    fn a_refused_unit_is_not_also_missing() {
+        // The obligation is refused for its unknown field; the document still
+        // has an obligation and an Assurance section, so neither is "missing".
+        let d = parse(
+            "---\nformat: openwarrant/1.0\nprofile: delivery\nalias: OW-WAR-0001\n\
+uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4e\nsummary: s\n---\n# T\n\n## Intent\n\n## Basis\n\n\
+## Work order\n\n## Assurance\n## OBL-1 · obligation — t\nscope: s\nevidence: e\nrefusal: r\nowner: me\n"
+                .as_bytes(),
+        );
+        assert_eq!(rules(&d), vec![("format.key-unknown", 21)]);
+        // With the section and the obligation absent, both are missing.
+        let none = parse(
+            "---\nformat: openwarrant/1.0\nprofile: delivery\nalias: OW-WAR-0001\n\
+uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4e\nsummary: s\n---\n# T\n\n## Intent\n\n## Basis\n\n\
+## Work order\n"
+                .as_bytes(),
+        );
+        assert_eq!(
+            rules(&none),
+            vec![("format.section-missing", 1), ("format.section-missing", 1)]
         );
     }
 

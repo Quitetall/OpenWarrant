@@ -1,0 +1,4 @@
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"

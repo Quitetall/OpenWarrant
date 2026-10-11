@@ -1,0 +1,4 @@
+id = "016-war-uri-target"
+kind = "accept"
+section = "5"
+says = """A reference that must survive renaming SHOULD use `war://<uuid>`."""

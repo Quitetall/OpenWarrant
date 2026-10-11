@@ -1,0 +1,4 @@
+id = "027-frontmatter-comments-and-blanks"
+kind = "accept"
+section = "3.2"
+says = """`#` comment lines and blank lines."""

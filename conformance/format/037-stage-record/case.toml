@@ -1,0 +1,4 @@
+id = "037-stage-record"
+kind = "accept"
+section = "4.1"
+says = """A **stage** is a record of type `stage`, `part_of` its milestone, with fields `executor`, `tier`, `budget_tokens` and `context`"""

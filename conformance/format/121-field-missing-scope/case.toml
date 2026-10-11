@@ -1,0 +1,5 @@
+id = "121-field-missing-scope"
+kind = "refuse"
+section = "3.7"
+rule = "format.field-missing"
+says = """A missing required field is refused (`format.field-missing`)."""
