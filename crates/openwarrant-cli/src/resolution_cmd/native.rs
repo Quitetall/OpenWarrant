@@ -480,6 +480,33 @@ fn recheck(repo: &Repository, response: &Response, native: &NativeAssessment) ->
     Ok(())
 }
 
+/// Bounded CLI transport. The explicit selection must match the signed decision;
+/// signature verification uses the original bytes, never a reserialized document.
+pub fn ingest_selected_from_path(
+    repo: &Repository,
+    alias: &str,
+    path: &Utf8Path,
+    selections: &[Selection],
+    native: &NativeAssessment,
+    mode: crate::sign::IngestMode,
+) -> Result<Report, Fault> {
+    let bytes = crate::runtime_capture::read(repo, path, 65_536)?;
+    let response = parse(&bytes)?;
+    if !matches!((serde_json::to_value(&response.selections), serde_json::to_value(selections)), (Ok(a), Ok(b)) if a == b)
+    {
+        return Err(fault(
+            "native-resolution.selection-mismatch",
+            "explicit capture selection differs from signed decision",
+            false,
+        ));
+    }
+    let signature_path = camino::Utf8PathBuf::from(format!("{path}.sig"));
+    let signature = crate::runtime_capture::read(repo, &signature_path, 16_384)?;
+    let signature = std::str::from_utf8(&signature)
+        .map_err(|e| fault("native-resolution.signature-syntax", e, false))?;
+    ingest(repo, alias, &bytes, signature, native, mode)
+}
+
 /// Exact signed ingestion. No existing-record or signature-supplement exception.
 pub fn ingest(
     repo: &Repository,

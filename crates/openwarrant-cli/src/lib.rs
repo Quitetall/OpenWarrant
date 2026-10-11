@@ -1166,12 +1166,12 @@ enum SignCommand {
     Resolve {
         /// The Warrant's local alias.
         alias: String,
-        /// Report the thirteen §56.1 requirements and stop.
+        /// Evaluate requirements or a signed response without recording.
         #[arg(long)]
         dry_run: bool,
         /// Bounded retained capture selection file, or - for stdin. Read-only
-        /// dry run or runtime review packet; native response ingestion is not
-        /// yet supported. Saved native verdicts are never reused.
+        /// dry run, runtime review packet or exact signed native ingestion.
+        /// Saved native verdicts are never reused.
         #[arg(long)]
         runtime_selection: Option<camino::Utf8PathBuf>,
         /// Operator-protected native host policy. Requires explicit retained
@@ -1181,7 +1181,7 @@ enum SignCommand {
         /// A resolver's signed response to ingest (§56.2). Without it and
         /// without --dry-run, the resolution REQUEST is emitted: what a
         /// signature would bind, which outcomes §38.6 permits, and who may sign.
-        #[arg(long, conflicts_with = "dry_run")]
+        #[arg(long)]
         response: Option<camino::Utf8PathBuf>,
     },
 
@@ -4368,7 +4368,7 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
             response,
         } => {
             let repository = ctx.open_repo()?;
-            if dry_run {
+            if dry_run && response.is_none() {
                 let report = match runtime_selection {
                     Some(path) => match runtime_capture::read_selection_input(&repository, &path) {
                         Ok(selected) => resolve::run_selected_with_native_store(
@@ -4422,13 +4422,6 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
                         Ok(selected) => selected,
                         Err(fault) => return Ok(refusal(fault)),
                     };
-                if response.is_some() {
-                    return Ok(refusal(runtime_capture::Fault {
-                        code: "resolution.native-response-unavailable",
-                        message: "native selection binding in human signing and response ingestion remains unavailable; no response read or resolution written".into(),
-                        unknown: true,
-                    }));
-                }
                 let native = match native_store
                     .as_ref()
                     .map(|store| {
@@ -4444,6 +4437,36 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
                     Ok(native) => native,
                     Err(fault) => return Ok(refusal(fault)),
                 };
+                if let Some(path) = response {
+                    let Some(native) = native.as_ref() else {
+                        return Ok(refusal(runtime_capture::Fault {
+                            code: "native-resolution.host-required",
+                            message: "native response ingestion requires a protected native store; no legacy fallback".into(),
+                            unknown: true,
+                        }));
+                    };
+                    let report = match resolution_cmd::native::ingest_selected_from_path(
+                        &repository,
+                        &alias,
+                        &path,
+                        &selected.selections,
+                        native,
+                        if dry_run {
+                            sign::IngestMode::DryRun
+                        } else {
+                            sign::IngestMode::Record
+                        },
+                    ) {
+                        Ok(report) => report,
+                        Err(fault) => return Ok(refusal(fault)),
+                    };
+                    return Ok(output::finish(
+                        mode,
+                        "resolve.native_response",
+                        &report,
+                        None,
+                    ));
+                }
                 let provider = |dispatch: &openwarrant_core::execution::StageDispatch,
                     interface: &openwarrant_core::document::runtime::ProviderInterface| {
                     native.as_ref().and_then(|n| n.resolve(dispatch, interface))
@@ -4465,7 +4488,16 @@ fn run_sign_member(ctx: &Ctx, command: SignCommand) -> Result<u8, Box<dyn std::e
             }
             match response {
                 Some(path) => {
-                    let report = resolution_cmd::ingest(&repository, &alias, &path)?;
+                    let report = resolution_cmd::ingest_with(
+                        &repository,
+                        &alias,
+                        &path,
+                        if dry_run {
+                            sign::IngestMode::DryRun
+                        } else {
+                            sign::IngestMode::Record
+                        },
+                    )?;
                     Ok(output::finish(mode, "resolve", &report, None))
                 }
                 None => {

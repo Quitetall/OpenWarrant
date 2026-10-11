@@ -130,3 +130,7 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/tests/support/native_acceptance.rs"
+obligation_refs = ["OBL-001", "OBL-003"]

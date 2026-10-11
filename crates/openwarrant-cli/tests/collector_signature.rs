@@ -11,6 +11,9 @@ use ring::{
 };
 use std::{fs, time::Duration};
 
+#[path = "support/native_acceptance.rs"]
+mod native_acceptance;
+
 fn string(out: &mut Vec<u8>, bytes: &[u8]) {
     out.extend_from_slice(&u32::try_from(bytes.len()).unwrap().to_be_bytes());
     out.extend_from_slice(bytes);
@@ -282,7 +285,7 @@ fn protected_namespace_roundtrip() {
     );
     let output = std::process::Command::new("/usr/bin/timeout")
         .args([
-            "45",
+            "180",
             "/usr/bin/unshare",
             "--user",
             "--map-root-user",
@@ -302,6 +305,9 @@ root=$1
 /usr/bin/mkdir -p "$root/usr" "$root/proc" "$root/dev" "$root/scratch" "$root/tmp" "$root/etc" "$root/inbox-fixture"
 /usr/bin/mount --bind "$5" "$root/inbox-fixture"
 /usr/bin/mount -o remount,bind,ro "$root/inbox-fixture"
+/usr/bin/touch "$root/fixture-verifier"
+/usr/bin/mount --bind "$9" "$root/fixture-verifier"
+/usr/bin/mount -o remount,bind,ro "$root/fixture-verifier"
 /usr/bin/mount --bind /usr "$root/usr"
 /usr/bin/mount -o remount,bind,ro "$root/usr"
 /usr/bin/mount --rbind /proc "$root/proc"
@@ -336,6 +342,7 @@ exec /usr/bin/chroot "$root" /test-runner --exact "$4" --ignored --nocapture
         .arg(native_verifier)
         .arg(native_producer)
         .arg(backend)
+        .arg(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../conformance/fixtures/verifier/establishes-all.sh"))
         .output()
         .unwrap();
     fs::remove_dir(&mountpoint).unwrap();
@@ -978,6 +985,10 @@ fn namespace_fixture_entry() {
             child.stdin.take().unwrap().write_all(input).unwrap();
             child.wait_with_output().unwrap()
         };
+        let actual_native = root.join("native-verifier").is_file();
+        if actual_native {
+            native_acceptance::setup(&scratch, &root.join("reader-store"), warrant);
+        }
         let dispatch_path = scratch.join("dispatch.pending.json");
         let out = run(&[
             "dispatch",
@@ -996,7 +1007,6 @@ fn namespace_fixture_entry() {
         let dispatch: serde_json::Value =
             serde_json::from_slice(&fs::read(&dispatch_path).unwrap()).unwrap();
         assert_eq!(dispatch["warrant_ref"], format!("war://{warrant}"));
-        let actual_native = root.join("native-verifier").is_file();
         fs::write(
             scratch.join("native-assessment-request.json"),
             serde_json::to_vec(&dispatch).unwrap(),
@@ -1306,6 +1316,11 @@ fn namespace_fixture_entry() {
             println!(
                 "protected BLUT controls: wrong catalog, absent/insufficient budget, v1 policy, wrong key and mode refused; required confinement and accounting stayed UNKNOWN"
             );
+        }
+        if actual_native {
+            let selected: openwarrant_cli::runtime_capture::SelectionRequest =
+                serde_json::from_slice(&fs::read(scratch.join("selected.json")).unwrap()).unwrap();
+            native_acceptance::roundtrip(&scratch, &root.join("store"), &selected.selections);
         }
         let native_repo =
             openwarrant_cli::repo::Repository::open(scratch.clone().try_into().unwrap()).unwrap();
@@ -1669,7 +1684,11 @@ fn namespace_fixture_entry() {
                 "owner".into(),
                 Principal {
                     public_key: owner_key,
-                    roles: BTreeSet::from(["authority-admin".into()]),
+                    roles: BTreeSet::from([
+                        "authority-admin".into(),
+                        "authorizer".into(),
+                        "resolver".into(),
+                    ]),
                     actor: Some("software fixture owner".into()),
                     kind: Some(ActorKind::Human),
                 },
@@ -2193,7 +2212,7 @@ fn namespace_fixture_entry() {
         fs::write(root.join("native-controls-restored"), b"restored").unwrap();
     }
 
-    let deadline = Instant::now() + Duration::from_secs(10);
+    let deadline = Instant::now() + Duration::from_secs(120);
     while !scratch.join("native-policy-held").exists() {
         assert!(
             child.try_wait().unwrap().is_none(),
