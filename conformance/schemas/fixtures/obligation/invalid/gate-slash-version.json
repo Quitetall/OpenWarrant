@@ -1,0 +1,17 @@
+{
+  "why": "DV-11: `gate://<id>@<version>`, not `gate://id/version`",
+  "expect": "@fields/gate pattern",
+  "instance": {
+    "id": "OBL-001",
+    "type": "obligation",
+    "title": "a bundled gate run carries its output",
+    "fields": {
+      "scope": "s",
+      "evidence": "e",
+      "refusal": "r",
+      "gate": "gate://ops.conformance.plants/1.1.0"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

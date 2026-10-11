@@ -1,0 +1,5 @@
+id = "106-frontmatter-anchor"
+kind = "refuse"
+section = "3.2"
+rule = "format.frontmatter"
+says = """anchors"""

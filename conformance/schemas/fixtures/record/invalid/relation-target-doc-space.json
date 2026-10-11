@@ -1,0 +1,17 @@
+{
+  "why": "Appendix A `path` has no whitespace",
+  "expect": "@relations/0/to pattern",
+  "instance": {
+    "id": "REQ-pr1",
+    "type": "requirement",
+    "title": "a reset link expires",
+    "fields": {},
+    "relations": [
+      {
+        "kind": "supports",
+        "to": "doc:has space.md"
+      }
+    ],
+    "body": ""
+  }
+}

@@ -1,0 +1,5 @@
+id = "118-attribute-line"
+kind = "refuse"
+section = "3.5"
+rule = "format.attribute"
+says = """Any other line is refused (`format.attribute`)."""

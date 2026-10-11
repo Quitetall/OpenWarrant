@@ -1,0 +1,12 @@
+{
+  "why": "section 3.4: a title is at most 120 bytes",
+  "expect": "@title maxLength",
+  "instance": {
+    "id": "REQ-pr1",
+    "type": "requirement",
+    "title": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "fields": {},
+    "relations": [],
+    "body": ""
+  }
+}

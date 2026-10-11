@@ -1,0 +1,4 @@
+id = "052-doc-target"
+kind = "accept"
+section = "A"
+says = """ref = … | "doc:" path ; a `doc:` target names a record document's own record (4.4)."""

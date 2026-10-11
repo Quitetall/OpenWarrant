@@ -27,6 +27,7 @@ pub mod check;
 pub mod commit;
 pub mod compile;
 pub mod console;
+pub mod context;
 pub mod context_select;
 pub mod contract_history;
 pub mod corpus;
@@ -44,6 +45,7 @@ pub mod eval;
 pub mod eval_ordinary;
 pub mod evidence;
 pub mod export;
+pub mod format_doc;
 pub mod frontier;
 pub mod gate_cmd;
 pub mod go;
@@ -108,6 +110,7 @@ pub mod sign;
 pub mod signing_probe;
 pub mod skew;
 mod source_workspace;
+pub mod ssh_verdicts;
 pub mod standing_cmd;
 #[path = "state_cmd.rs"]
 pub mod states;
@@ -556,7 +559,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
         "view",
         &[
             "ui", "tui", "board", "console", "watch", "overview", "progress", "warrants",
-            "tickets", "ls", "ready", "prime", "timeline",
+            "tickets", "ls", "ready", "prime", "context", "timeline",
         ],
     ),
     (
@@ -675,6 +678,10 @@ enum DailyCommand {
         /// issue's title unless given.
         #[arg(required_unless_present_any = ["issue", "issue_file"])]
         title: Option<String>,
+        /// One line (at most 200 bytes) saying what the work is for: what an
+        /// agent reads in `war context` and docs/generated/llms.txt first.
+        #[arg(long, value_name = "LINE")]
+        summary: Option<String>,
         /// A checklist item; repeat for more. Items can be added later with `war add`.
         #[arg(long = "item", short = 'i', value_name = "TEXT")]
         items: Vec<String>,
@@ -987,6 +994,11 @@ enum PlanCommand {
         /// authorized revision is refused and nothing is created.
         #[arg(long, value_name = "ALIAS")]
         parent: Option<String>,
+        /// Write a Format 1.0 single-file Warrant, `<alias>.md`, instead of a
+        /// manifest and atoms (docs/format/FORMAT-1.0.md §4.1). The only
+        /// value is `1.0`. Without it nothing changes.
+        #[arg(long = "format", value_name = "VERSION", conflicts_with = "parent")]
+        format_version: Option<String>,
     },
     /// Draft a directory Warrant (delivery) from a light one, for when
     /// someone wants sign-off. Opt-in: the authority layer starts here, not
@@ -1629,6 +1641,31 @@ enum ViewCommand {
         ticket: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+    },
+    /// The records a task needs, cited by id, inside a byte budget.
+    ///
+    /// `war context <target>` (also `war view context`): a Warrant or ticket,
+    /// an item (`t-x/i-y`), any record id from docs/generated/llms.txt, or a
+    /// file path. Prints the target's records and those its relations reach,
+    /// whole, each headed by id, type, path:line and revision; whatever does
+    /// not fit is listed by its summary and marked [S], to load the same
+    /// way. The same arguments over the same files print the same bytes
+    /// (Format 1.0, section 10.3).
+    Context {
+        /// Alias, `war://<uuid>`, item, record id, or repository path.
+        target: String,
+        /// The budget in bytes of the Markdown output (default 16000).
+        #[arg(long, value_name = "BYTES", conflicts_with = "tokens")]
+        budget: Option<usize>,
+        /// The budget in tokens, counted as 4 bytes each.
+        #[arg(long, value_name = "N")]
+        tokens: Option<usize>,
+        /// How many relation steps to follow from the target (default 3).
+        #[arg(long, value_name = "D", default_value_t = context::DEFAULT_DEPTH)]
+        depth: usize,
+        /// Refuse instead of listing any record by its summary only.
+        #[arg(long)]
+        strict: bool,
     },
 }
 
@@ -2625,6 +2662,27 @@ fn official_section(
     ))
 }
 
+/// A ticket act that may move the agent index (create, add, done, note,
+/// edit) refreshes its tickets' lines after an accepted outcome (t-ca38),
+/// and with `record_atoms` the lines of the record atoms `create --records`
+/// writes. Claims never reach it: the index reads no claim lock. A refresh that fails is said,
+/// never swallowed, and never turns the accepted act into a refusal.
+fn refresh_index_after(
+    repository: &repo::Repository,
+    outcome: &ticket::Outcome,
+    record_atoms: bool,
+) {
+    if outcome.is_refused() {
+        return;
+    }
+    if let Err(e) = context::refresh_index(repository, record_atoms) {
+        eprintln!(
+            "warning (context-index.refresh): {e}; `war admin compile` rewrites {}",
+            context::INDEX_PATH
+        );
+    }
+}
+
 /// Print a ticket command's answer and return its exit code: the rendering
 /// (or the refusal, on stderr) for a person, the envelope under `--json`.
 fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -> u8 {
@@ -2827,6 +2885,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
     match command {
         DailyCommand::Create {
             title,
+            summary,
             items,
             body,
             priority,
@@ -2880,6 +2939,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     body.as_deref(),
                     priority,
                 )?;
+                refresh_index_after(&repository, &outcome, true);
                 return Ok(ticket_answer(mode, "create", &outcome));
             }
             let mut items = items;
@@ -2895,6 +2955,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             }
             let args = ticket::CreateArgs {
                 title,
+                summary,
                 items,
                 body,
                 priority,
@@ -2903,17 +2964,16 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 part_of,
                 issue,
             };
-            Ok(ticket_answer(
-                mode,
-                "create",
-                &ticket::create(&store, &args)?,
-            ))
+            let outcome = ticket::create(&store, &args)?;
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "create", &outcome))
         }
         DailyCommand::Claim {
             target,
             steal,
             actor,
         } => {
+            ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             Ok(ticket_answer(
                 mode,
@@ -2946,6 +3006,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     o.insert("ledger_prompt".to_owned(), serde_json::json!(ask));
                 }
             }
+            refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "done", &outcome))
         }
         DailyCommand::Add {
@@ -2964,7 +3025,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             actor,
         } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
             let parts = ticket::parts::PartsArgs {
                 tests,
                 name,
@@ -2997,6 +3058,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     if_rev.as_deref(),
                 )?
             };
+            refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "add", &outcome))
         }
         DailyCommand::Note {
@@ -3005,12 +3067,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             actor,
         } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
-            Ok(ticket_answer(
-                mode,
-                "note",
-                &ticket::note(&store, &target, &text, if_rev.as_deref())?,
-            ))
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let outcome = ticket::note(&store, &target, &text, if_rev.as_deref())?;
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "note", &outcome))
         }
         DailyCommand::Edit {
             ticket: target,
@@ -3023,7 +3083,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             actor,
         } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
             let none = |v: Option<String>| v.map(|v| Some(v).filter(|v| v != "none" && v != "-"));
             let args = ticket::EditArgs {
                 kind: none(kind),
@@ -3034,11 +3094,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 due: none(due),
                 if_rev,
             };
-            Ok(ticket_answer(
-                mode,
-                "edit",
-                &ticket::edit(&store, &target, &args)?,
-            ))
+            let outcome = ticket::edit(&store, &target, &args)?;
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "edit", &outcome))
         }
         // M10: one id space. A light Warrant's id shows it whole, wherever
         // the command is `show` or `status`; an alias falls through to the
@@ -3128,6 +3186,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
+            ticket::cache::permit();
+            // Advice, not a judgement: a signature already verified over
+            // exactly these bytes is not asked again (ssh_verdicts).
+            ssh_verdicts::permit();
             if timeline || pending {
                 let (what, value) = if timeline {
                     let t = timeline::build_timeline(&repository)?;
@@ -3350,6 +3412,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
+            // A view of the ticket loop: the ticket cache may answer it,
+            // set-aside nodes included.
+            ticket::cache::permit_with_journals();
+            // Advice, not a judgement: a signature already verified over
+            // exactly these bytes is not asked again (ssh_verdicts).
+            ssh_verdicts::permit();
             let next = next::run(&repository)?;
             // Only the form this mode prints is built: `emit` prints the
             // text in human mode and the value under `--json`, never both.
@@ -3757,6 +3825,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             preset,
             profile,
             parent,
+            format_version,
         } => {
             // OW-WAR-0140: a profile is a name the repository's registry
             // resolves — the two core ones and every `profiles/<name>.toml`.
@@ -3764,6 +3833,37 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let profile: Option<Profile> = profile
                 .map(|p| repository.profiles.resolve(&p))
                 .transpose()?;
+            // FORMAT-1.0 §4.1: `--format 1.0` writes one file instead.
+            if let Some(version) = format_version {
+                if version != "1.0" {
+                    let mut report = diagnostic::Report::default();
+                    report.push(diagnostic::Diagnostic::error(
+                        "new.format-unknown",
+                        version.clone(),
+                        format!("--format {version}: a new Warrant is written in Format 1.0 or not at all"),
+                    ));
+                    output::finish(mode, "new", &report, None);
+                    return Ok(EXIT_DIAGNOSTIC);
+                }
+                let profile = match (&profile, preset.as_deref()) {
+                    (Some(p), _) => p.clone(),
+                    (None, Some(p)) => new::preset_profile(p).unwrap_or(Profile::Delivery),
+                    (None, None) => Profile::Delivery,
+                };
+                let path = new::run_format(&repository, &title, &profile)?;
+                let rel = repository.relative(&path);
+                let alias = path.file_stem().unwrap_or_default().to_owned();
+                output::emit(
+                    mode,
+                    "new",
+                    &format!(
+                        "created {rel} ({}, profile {profile})\nanswer each section, then run `war check`",
+                        openwarrant_core::format::VERSION
+                    ),
+                    serde_json::json!({"alias": alias, "path": rel, "profile": profile.to_string(), "format": openwarrant_core::format::VERSION}),
+                );
+                return Ok(EXIT_OK);
+            }
             // Without --preset the profile's preset is written, and the
             // presets are named: the `TODO` skeleton is retired. The refusal
             // OW-WAR-0113 D-031 asks for here is withheld — see its report:
@@ -5250,6 +5350,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
     let mode = ctx.mode;
     match command {
         ViewCommand::Ready { actor } => {
+            ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::ready_for(&store, Some(mode))?;
             Ok(ticket_answer(mode, "ready", &outcome))
@@ -5269,6 +5370,23 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 .extend(skew::findings(&repository.root));
             Ok(ticket_answer(mode, "prime", &outcome))
         }
+        ViewCommand::Context {
+            target,
+            budget,
+            tokens,
+            depth,
+            strict,
+        } => {
+            let repository = ctx.open_repo()?;
+            let corpus = corpus::Corpus::new(&repository);
+            let opts = context::Options {
+                budget: context::Options::budget_of(budget, tokens),
+                depth,
+                strict,
+            };
+            let target = context::relative_target(&repository, &target);
+            Ok(context::answer(mode, &corpus, &target, &opts)?)
+        }
         ViewCommand::Tickets {
             kind,
             labels,
@@ -5277,6 +5395,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             search,
             epic,
         } => {
+            ticket::cache::permit();
             let (repository, store) = ctx.tickets(None)?;
             let filter = ticket::Filter {
                 kind,
@@ -5346,6 +5465,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             // and corpus may ask about the same receipt hundreds of times.
             // Keep one tree observation per basis, never refresh the index.
             gate_cmd::source::remember_tree_reads();
+            ssh_verdicts::permit();
             let repository = ctx.open_repo()?;
             let (report, view) = board::build(&repository)?;
             if !matches!(mode, output::Mode::Json) {
@@ -5413,6 +5533,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 // One-shot read-only snapshot. Never enable this memo for the
                 // long-running server below: each refresh must observe edits.
                 gate_cmd::source::remember_tree_reads();
+                ssh_verdicts::permit();
                 let view = progress_viewer::json_snapshot(&repository)?;
                 output::emit(
                     mode,
@@ -5439,6 +5560,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             // Plain overview is also one-shot and read-only. Export and serve
             // returned above without freezing their tree observations.
             gate_cmd::source::remember_tree_reads();
+            ssh_verdicts::permit();
             let view = overview::build(status::build(&repository)?, all);
             output::emit(
                 mode,

@@ -1,0 +1,5 @@
+id = "204-newer-minor-unparseable-unit"
+kind = "unknown"
+section = "6"
+rule = "format.newer-minor"
+says = """a unit it cannot parse is `UNKNOWN` (`format.newer-minor`), not refused"""

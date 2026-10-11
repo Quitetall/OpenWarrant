@@ -35,6 +35,8 @@ fn scratch(tag: &str) -> PathBuf {
 /// Run `war` from a directory that is deliberately not the repository.
 fn war_from(cwd: &Path, args: &[&str]) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .current_dir(cwd)
         .args(args)
         .output()

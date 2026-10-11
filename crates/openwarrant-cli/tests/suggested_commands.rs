@@ -182,8 +182,12 @@ fn canonical(cmd: &clap::Command, argv: &[String]) -> Result<(), String> {
         let Some(sub) = at.find_subcommand(w) else {
             return Ok(());
         };
+        // `war context` is the spelling Format 1.0 section 10.3 names and
+        // every line of docs/generated/llms.txt cites; help lists it under
+        // `view` (docs/COMMANDS.md), and the named spelling is suggested.
         let shown = if top {
-            openwarrant_cli::DAILY.contains(&sub.get_name())
+            sub.get_name() == "context"
+                || openwarrant_cli::DAILY.contains(&sub.get_name())
                 || openwarrant_cli::GROUPS.contains(&sub.get_name())
                 || sub.get_name() == "help"
         } else {

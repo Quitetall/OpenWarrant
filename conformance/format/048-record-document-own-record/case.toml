@@ -1,0 +1,4 @@
+id = "048-record-document-own-record"
+kind = "accept"
+section = "4"
+says = """A document that is not a work document has a record `doc:<path>`, type `document`: its frontmatter, except `format`, as fields, dotted keys as `ext`, the preamble without its title as body."""

@@ -30,6 +30,7 @@
 //! repository.
 
 pub mod acts;
+pub mod cache;
 pub mod claim;
 pub mod ladder;
 pub mod merge;
@@ -249,6 +250,11 @@ pub struct Ticket {
     /// M11: the ticket's revision as `war plan model` reports it (M3): the sha256
     /// of its manifest's bytes. What `--if-rev` compares on a ticket.
     pub revision: String,
+    /// The nodes a run set aside ([`crate::go::blocked_nodes`]), when the
+    /// ticket cache already read them from this ticket's journal while
+    /// loading it; `None` (always, without the cache): read them from the
+    /// journal when asked.
+    pub(crate) blocked: Option<Vec<crate::go::BlockedNode>>,
 }
 
 /// `sha256:<hex>` of `bytes`, as `war plan model` writes a revision.
@@ -483,13 +489,16 @@ impl Store {
         Ok(self
             .entries()?
             .into_iter()
-            .filter(|path| crate::vfs::is_file(path.join("manifest.toml")))
+            .filter(|path| {
+                crate::vfs::is_file(path.join("manifest.toml"))
+                    && !crate::format_doc::is_document_dir(path)
+            })
             .collect())
     }
 
     /// Every entry of the ticket directory, sorted, before
     /// [`Self::ticket_dirs`] keeps those holding a `manifest.toml`.
-    fn entries(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
+    pub(crate) fn entries(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
         let entries = match crate::vfs::read_dir(&self.dir) {
             Ok(e) => e,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
@@ -517,9 +526,21 @@ impl Store {
 
     /// Read one ticket. `Err` names what is wrong with it.
     pub fn load(&self, dir: &Utf8Path) -> Result<Ticket, Diagnostic> {
+        self.load_observed(dir, &mut |_| {})
+    }
+
+    /// [`Self::load`], calling `before_read` with each file's path just
+    /// before it is read: the manifest, then the intent atom, then the
+    /// checklist atom (the ticket cache stats each there).
+    pub(crate) fn load_observed(
+        &self,
+        dir: &Utf8Path,
+        before_read: &mut dyn FnMut(&Utf8Path),
+    ) -> Result<Ticket, Diagnostic> {
         let manifest_path = dir.join("manifest.toml");
         let rel = self.rel(&manifest_path);
         let bad = |message: String| Diagnostic::error("ticket.manifest", rel.clone(), message);
+        before_read(&manifest_path);
         let text = crate::vfs::read_to_string(&manifest_path)
             .map_err(|e| bad(format!("could not read it: {e}")))?;
         let manifest: TicketManifest =
@@ -540,8 +561,9 @@ impl Store {
                 ),
             ));
         }
-        let atom = |role: &str| -> Result<(Utf8PathBuf, String), Diagnostic> {
+        let mut atom = |role: &str| -> Result<(Utf8PathBuf, String), Diagnostic> {
             let path = dir.join(manifest.atom_path(role).unwrap_or_default());
+            before_read(&path);
             crate::vfs::read_to_string(&path)
                 .map(|t| (path.clone(), t))
                 .map_err(|e| {
@@ -564,20 +586,39 @@ impl Store {
             checklist_text,
             checklist,
             revision,
+            blocked: None,
         })
     }
 
     /// Every readable ticket, and a diagnostic per unreadable one.
     pub fn load_all(&self) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
+        self.load_every(true)
+    }
+
+    /// [`Self::load_all`], always from the files, never the ticket cache:
+    /// for what judges an approval (`official`), which a cache must never
+    /// answer.
+    pub fn load_all_uncached(&self) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
+        self.load_every(false)
+    }
+
+    fn load_every(&self, cached: bool) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
         let mut tickets = Vec::new();
         let mut faults = Vec::new();
-        let entries = self.entries()?;
         // Each ticket is a few small files read on their own, so the disk
         // reads fan out across threads; the order is the sorted directory
-        // order either way (`vfs::map_ordered`).
-        let loaded = crate::vfs::map_ordered(&entries, 256, |dir| {
-            crate::vfs::is_file(dir.join("manifest.toml")).then(|| self.load(dir))
-        });
+        // order either way (`vfs::map_ordered`). Where this run may use the
+        // ticket cache, it answers what is unchanged since it was read
+        // (`cache`): the same tickets, faster.
+        let loaded = match cache::Cache::open(self).filter(|_| cached) {
+            Some(cache) => cache.load(self)?,
+            None => {
+                let entries = self.entries()?;
+                crate::vfs::map_ordered(&entries, 256, |dir| {
+                    crate::vfs::is_file(dir.join("manifest.toml")).then(|| self.load(dir))
+                })
+            }
+        };
         for one in loaded.into_iter().flatten() {
             match one {
                 Ok(t) => tickets.push(t),
@@ -1171,6 +1212,9 @@ fn named(text: &str) -> (String, Vec<String>) {
 #[derive(Debug, Clone, Default)]
 pub struct CreateArgs {
     pub title: String,
+    /// Format 1.0 section 10.1: one line, at most 200 bytes, saying what the
+    /// work is for. Written to the manifest's `summary` when given.
+    pub summary: Option<String>,
     pub items: Vec<String>,
     pub body: Option<String>,
     pub priority: Option<u8>,
@@ -1302,6 +1346,24 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
             "a Warrant needs a title: `war create \"what this work accomplishes\"`",
         ));
     }
+    let summary = args
+        .summary
+        .as_deref()
+        .map(ticket::one_line)
+        .filter(|s| !s.is_empty());
+    if let Some(s) = &summary
+        && s.len() > openwarrant_core::format::SUMMARY_MAX
+    {
+        return Ok(Outcome::refused(
+            "ticket.summary",
+            String::new(),
+            format!(
+                "a summary is one line of at most {} bytes; this one is {}. Say what the work is for, and put the rest in --body",
+                openwarrant_core::format::SUMMARY_MAX,
+                s.len()
+            ),
+        ));
+    }
     let priority = args.priority.unwrap_or(DEFAULT_PRIORITY);
     if priority > 4 {
         return Ok(Outcome::refused(
@@ -1382,6 +1444,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         id: id.clone(),
         uuid: uuid.clone(),
         title: title.clone(),
+        summary,
         profile: TICKET_PROFILE.to_owned(),
         priority,
         created_at: rfc3339(now),
@@ -1812,7 +1875,40 @@ impl ReadyRow {
 /// The ready set: open, unclaimed (or stale), unblocked items, and tickets
 /// with no items that nobody holds. Most urgent, then oldest, first.
 pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, RepoError> {
-    let claims = store.claims()?;
+    ready_rows_with(store, tickets, store.claims()?)
+}
+
+/// Every claim now held, by lock file name ([`Store::claims`]).
+pub type Claims = BTreeMap<String, Option<claim::Claim>>;
+
+/// `f`, with [`Store::claims`] read meanwhile: on the disk on a thread of
+/// its own, elsewhere after `f`. The two are separate reads, and a caller
+/// takes `f`'s error before the claims', as when they were read in turn.
+pub fn with_claims<T>(store: &Store, f: impl FnOnce() -> T) -> (T, Result<Claims, RepoError>) {
+    if !crate::vfs::is_disk() {
+        let t = f();
+        return (t, store.claims());
+    }
+    std::thread::scope(|scope| {
+        let reading = std::thread::Builder::new()
+            .spawn_scoped(scope, || store.claims())
+            .ok();
+        let t = f();
+        let claims = match reading.map(|h| h.join()) {
+            Some(Ok(claims)) => claims,
+            Some(Err(panic)) => std::panic::resume_unwind(panic),
+            None => store.claims(),
+        };
+        (t, claims)
+    })
+}
+
+/// [`ready_rows`] over claims already read.
+pub fn ready_rows_with(
+    store: &Store,
+    tickets: &[Ticket],
+    claims: Claims,
+) -> Result<Vec<ReadyRow>, RepoError> {
     let now = now_secs();
     // A claim leaves its item in the ready set when its lease ran out (a
     // plain claim takes it) or it is past the TTL (`--steal` takes it).
@@ -1936,8 +2032,10 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
 pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Outcome, RepoError> {
     let human_too = !matches!(mode, Some(crate::output::Mode::Json));
     let json_too = !matches!(mode, Some(crate::output::Mode::Human));
-    let (tickets, faults) = store.load_all()?;
-    let rows = ready_rows(store, &tickets)?;
+    // The claims are read while the tickets are (`with_claims`).
+    let (loaded, claims) = with_claims(store, || store.load_all());
+    let (tickets, faults) = loaded?;
+    let rows = ready_rows_with(store, &tickets, claims?)?;
     let mut human = String::new();
     if human_too && rows.is_empty() {
         // M9: the same plain first line `war next` prints; ordinary work

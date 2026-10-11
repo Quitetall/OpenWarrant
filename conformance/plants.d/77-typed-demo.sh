@@ -19,8 +19,9 @@
 # Accepted: every output above exists and names the records; after REQ-pr1
 # changes, `war impact REQ-pr1` names every affected output — both ticket
 # items, the Warrant, OBL-001 (stale, bound to the old revision), DM-PHASE-2,
-# and exactly the declared projections that select REQ-pr1 — and `war
-# compile` then moves exactly those projections' bytes and nothing else.
+# exactly the declared projections that select REQ-pr1, and the agent index
+# that lists it (Format 1.0 section 10.2) — and `war compile` then moves
+# exactly those projections' bytes and nothing else.
 # Refused, each by name: `--implements` naming no record (nothing created),
 # and `war impact` on an id that is no record. The architecture view, which
 # names REQ-pr1 only by id, is neither named nor moved.
@@ -177,7 +178,8 @@ for want in \
     "^eval DM-WAR-0002/OBL-001 stale $DM_REV0\$" \
     "^phase DM-PHASE-2 DM-WAR-0002\$" \
     "^declared agent-packet\.md prd\.md test-plan\.md\$" \
-    "^proj warrant docs/warrants/DM-WAR-0002/generated/WAR\.md\$"; do
+    "^proj warrant docs/warrants/DM-WAR-0002/generated/WAR\.md\$" \
+    "^proj index docs/generated/llms\.txt\$"; do
     dm_line "$want" "$DM_IMP" || DM_MISS="$DM_MISS [$want]"
 done
 if [[ -z "$DM_MISS" ]] && ! dm_line '/generated/architecture\.md' "$DM_IMP"; then
@@ -191,13 +193,13 @@ fi
 #    views and the ticket keep their bytes. Refused: impact on no record.
 dm_war compile >/dev/null 2>&1; DM_SC=$?
 DM_MOVED=$(dm_git status --porcelain | awk '{print $2}' | sort | tr '\n' ' ')
-DM_WANT="$DM_AREA/10-records.md $DM_GEN/agent-packet.md $DM_GEN/prd.md $DM_GEN/test-plan.md "
+DM_WANT="docs/generated/llms.txt $DM_AREA/10-records.md $DM_GEN/agent-packet.md $DM_GEN/prd.md $DM_GEN/test-plan.md "
 DM_CG2=$(dm_war check --generated 2>&1); DM_SG2=$?
 DM_U=$(dm_war impact REQ-nope 2>&1); DM_SU=$?
 if [[ $DM_SC -eq 0 && "$DM_MOVED" == "$DM_WANT" && $DM_SG2 -eq 0 && $DM_SU -ne 0 ]] \
     && dm_has "A reset token expires 10 minutes after issue." "$(cat "$DM_ROOT/$DM_GEN/prd.md")" \
     && dm_line 'impact\.unknown-record +REQ-nope is not a record of this corpus' "$DM_U"; then
-    dm_ok "a change moves exactly its outputs" "compile moved prd, test-plan, agent-packet (and the record); architecture, WAR.md, the ticket unchanged; impact REQ-nope refused"
+    dm_ok "a change moves exactly its outputs" "compile moved prd, test-plan, agent-packet, the index (and the record); architecture, WAR.md, the ticket unchanged; impact REQ-nope refused"
 else
     dm_fail "a change moves exactly its outputs" "compile $DM_SC; moved '$DM_MOVED' want '$DM_WANT'; check $DM_SG2 $(grep -m1 '^ERROR' <<<"$DM_CG2"); unknown $DM_SU"
 fi

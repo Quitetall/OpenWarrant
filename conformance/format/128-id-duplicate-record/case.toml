@@ -1,0 +1,5 @@
+id = "128-id-duplicate-record"
+kind = "refuse"
+section = "5"
+rule = "format.id-duplicate"
+says = """Every id is unique in its scope (`format.id-duplicate`)."""

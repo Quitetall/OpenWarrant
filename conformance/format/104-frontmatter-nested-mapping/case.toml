@@ -1,0 +1,5 @@
+id = "104-frontmatter-nested-mapping"
+kind = "refuse"
+section = "3.2"
+rule = "format.frontmatter"
+says = """nested mappings"""

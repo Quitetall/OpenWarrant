@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/manifest.json",
+  "title": "OpenWarrant Format 1.0: optional manifest",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 4.2. Where this schema and the prose disagree, the prose wins and this schema is the defect. A `manifest.toml` MAY sit beside `warrant.md` for tool settings, read as TOML into this JSON object. It MUST NOT list atoms and MUST NOT carry a key the frontmatter defines (`format.manifest-restates`): neither a core key of section 3.3 nor a key a built-in profile declares. The prose names no tool setting, so every other key is admitted. A legacy directory Warrant's manifest (`oh.war/manifest/v1`, with `atoms`) is a different record and is refused here.",
+  "type": "object",
+  "not": {
+    "anyOf": [
+      { "required": ["atoms"] },
+      { "required": ["format"] },
+      { "required": ["profile"] },
+      { "required": ["alias"] },
+      { "required": ["uuid"] },
+      { "required": ["summary"] },
+      { "required": ["paths"] },
+      { "required": ["requires"] },
+      { "required": ["assurance_level"] },
+      { "required": ["type"] },
+      { "required": ["priority"] },
+      { "required": ["labels"] },
+      { "required": ["created_at"] },
+      { "required": ["created_by"] },
+      { "required": ["imported_from"] }
+    ]
+  }
+}

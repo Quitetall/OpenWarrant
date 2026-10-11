@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/context.json",
+  "title": "oh.war/context/v1 (Format 1.0 section 10.3)",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 10.3. Where this schema and the prose disagree, the prose wins and this schema is the defect. What `war context <target> --json` emits: the same selection as the Markdown rendering, with `bytes` the size of that rendering. A record given in full (`tier: full`) carries `text`, the exact span; a record given by its summary (`tier: summary`) does not. A root (distance 0) has no `via`; every other record names the first `(step, from)` that reached it. Not expressed here, and checked by a conformance case instead: the order (distance, type rank, source, line), that `bytes` does not exceed `budget`, that the `[F]` records precede the `[S]` ones, and `selection_digest`'s value. A refusal (`context.target-unknown`, `context.over-budget`) emits no packet.",
+  "x-oh-war-schema": "oh.war/context/v1",
+  "type": "object",
+  "required": ["schema", "target", "budget", "bytes", "depth", "walk", "selection_digest", "records", "diagnostics"],
+  "properties": {
+    "schema": { "const": "oh.war/context/v1" },
+    "target": { "description": "The target as given.", "type": "string", "minLength": 1 },
+    "budget": { "description": "Bytes; `--tokens n` is `4n`; default 16000.", "type": "integer", "minimum": 0 },
+    "bytes": { "description": "UTF-8 bytes of the Markdown rendering.", "type": "integer", "minimum": 0 },
+    "depth": { "description": "Default 3.", "type": "integer", "minimum": 0 },
+    "walk": { "description": "The name of the walk used; a profile MAY declare another.", "type": "string", "minLength": 1 },
+    "selection_digest": {
+      "description": "The `basis_digest` rule (section 8) over the selected records.",
+      "$ref": "common.json#/$defs/sha256"
+    },
+    "records": { "type": "array", "items": { "$ref": "#/$defs/record" } },
+    "diagnostics": {
+      "description": "The prose does not give a diagnostic's shape here; it is taken to be the model's (section 8).",
+      "type": "array",
+      "items": { "$ref": "model.json#/$defs/diagnostic" }
+    }
+  },
+  "$defs": {
+    "step": {
+      "description": "Section 10.3 step 2, in step order; then `item-intent`, step 1's placing of an item root's document `S-intent` (or, without one, the document record) at distance 1, whose `from` is the item.",
+      "enum": [
+        "out:implements",
+        "out:depends_on",
+        "in:constrains",
+        "out:selected_over",
+        "in:evaluates",
+        "out:part_of",
+        "in:part_of",
+        "in:implements",
+        "item-intent"
+      ]
+    },
+    "record": {
+      "type": "object",
+      "required": ["id", "type", "title", "state", "source", "line", "revision", "distance", "tier"],
+      "properties": {
+        "id": { "$ref": "common.json#/$defs/modelId" },
+        "type": { "$ref": "common.json#/$defs/name" },
+        "title": {
+          "description": "The title, or for a record without one its first non-blank body line cut at 120 bytes and ended with `…` (section 10.2).",
+          "type": "string"
+        },
+        "state": {
+          "description": "The primary state: the value of the record's state of kind `phase`, else `checklist`, else `disposition`, else `-`.",
+          "type": "string",
+          "minLength": 1
+        },
+        "source": { "type": "string", "minLength": 1 },
+        "line": { "type": "integer", "minimum": 1 },
+        "revision": { "$ref": "common.json#/$defs/sha256" },
+        "distance": { "type": "integer", "minimum": 0 },
+        "via": {
+          "type": "object",
+          "required": ["step", "from"],
+          "properties": {
+            "step": { "$ref": "#/$defs/step" },
+            "from": { "$ref": "common.json#/$defs/modelId" }
+          },
+          "additionalProperties": false
+        },
+        "tier": { "enum": ["full", "summary"] },
+        "text": { "description": "The exact span, for `full`.", "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "tier": { "const": "full" } } },
+          "then": { "required": ["text"] },
+          "else": { "properties": { "text": false } }
+        },
+        {
+          "if": { "properties": { "distance": { "const": 0 } } },
+          "then": { "properties": { "via": false } },
+          "else": { "required": ["via"] }
+        }
+      ]
+    }
+  }
+}

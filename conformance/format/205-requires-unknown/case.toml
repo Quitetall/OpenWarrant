@@ -1,0 +1,5 @@
+id = "205-requires-unknown"
+kind = "unknown"
+section = "7.3"
+rule = "format.requires-unknown"
+says = """a reader that does not understand a listed name MUST report every check over that document `UNKNOWN` (`format.requires-unknown`)"""

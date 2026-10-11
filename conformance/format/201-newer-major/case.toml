@@ -1,0 +1,5 @@
+id = "201-newer-major"
+kind = "unknown"
+section = "6"
+rule = "format.newer-major"
+says = """a newer major: reads nothing; every check `UNKNOWN` (`format.newer-major`)"""

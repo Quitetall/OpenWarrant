@@ -1,0 +1,4 @@
+id = "021-legacy-obligation-warns"
+kind = "accept"
+section = "3.7"
+says = """A `### OBL-` heading inside a Format 1.0 document is prose; a checker SHOULD warn"""

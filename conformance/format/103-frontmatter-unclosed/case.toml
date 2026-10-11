@@ -1,0 +1,5 @@
+id = "103-frontmatter-unclosed"
+kind = "refuse"
+section = "3.2"
+rule = "format.frontmatter"
+says = """A reader MUST refuse (`format.frontmatter`) ... a missing fence"""

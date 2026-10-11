@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** (`1.0.0-draft.1`). Directed by the owner 2026-10-11; not yet accepted. |
+| Status | **Draft** (`1.0.0-draft.2`). Directed by the owner 2026-10-11; not yet accepted. |
 | Decision record | OW-ADR-0032 |
 | Licence | Text: CC-BY-4.0 (`docs/format/LICENSE`). Grammar, schemas and examples: Apache-2.0 |
 | Governance | `docs/format/GOVERNANCE.md` |
@@ -55,9 +55,13 @@ need implement neither.
   a record refers to its id, never to its file.
 - **Type**: a lowercase word naming what a record is. The core defines
   `section`, `obligation`, `item`, `milestone`, `stage`, `warrant` and
-  `ticket`; other types come from the document's profile.
+  `ticket`; other types come from the document's profile. A dotted type
+  (`com.example.risk`) is an extension type (7.2).
 - **Profile**: data (`oh.war/profile/v1`, TOML) naming the record types,
-  relations, sections and frontmatter keys a document may or must have.
+  relations, sections and frontmatter keys a document may or must have. In
+  1.0 the keys and sections of the built-in profiles are the ones this
+  document names (3.3, 4.1); declaring them in profile data is reserved for
+  a later minor.
 - **Relation**: `{from, kind, to}`, optionally pinning a revision of `to`.
 - **State**: a value computed from records, journals and, under the
   authority profile, recorded acts. A state is never authored.
@@ -102,12 +106,16 @@ scalar or a dotted key (`holder.kind: git`).
 | `summary` | work documents | one line, at most 200 bytes, saying what the work is for. RECOMMENDED elsewhere |
 | `paths` | OPTIONAL | a list of repository globs the work touches (10.3) |
 | `requires` | OPTIONAL | extension names a reader must understand (7.3) |
+| `implements`, `depends_on`, `supersedes`, `part_of` | OPTIONAL | a target or a list of targets (3.6): relations of the document's own record, never fields |
 
 A profile MAY declare further undotted keys (the built-in `delivery`
 profile declares `assurance_level`; `ticket` declares `type`, `priority`,
-`labels`, `created_at`, `created_by`, `imported_from`). Any other undotted
-key is refused (`format.key-unknown`, but see 7.2). The document's title is
-its first `# ` heading; it is never repeated as a key.
+`labels`, `created_at`, `created_by`, `imported_from`, `promoted_to`,
+`issue`, `issue_url` and `due`). Any other undotted key is refused
+(`format.key-unknown`, but see 7.2). A missing REQUIRED key, or one with an
+empty value, is refused (`format.field-missing`) at line 1. A `summary`
+over 200 bytes is a warning (`context.summary-shape`). The document's title
+is its first `# ` heading; it is never repeated as a key.
 
 ### 3.4 Units
 
@@ -118,7 +126,8 @@ the frontmatter and before the first unit is the **preamble**.
 
 - A heading `## <id> · <type> — <title>` opens a **record**. The separators
   are U+00B7 MIDDLE DOT and U+2014 EM DASH, each between single spaces. The
-  title is REQUIRED, one line, at most 120 bytes (`format.title-missing`).
+  title is REQUIRED, one line, at most 120 bytes; an empty title or a
+  longer one is refused (`format.title-missing`).
   A `## ` line containing ` · ` that does not match MUST be refused
   (`format.heading`); it is never prose.
 - Any other `## <name>` heading opens a **section**. Its id is `S-` and the
@@ -126,6 +135,8 @@ the frontmatter and before the first unit is the **preamble**.
   of characters replaced by one `-`, leading and trailing `-` removed
   (`## Work order` is `S-work-order`). An empty slug is refused
   (`format.heading`). Its title is the name; it has no attribute block.
+  Its body is the text after the heading line; one blank line directly
+  after the heading is not part of it.
 
 `###` and deeper headings are ordinary text inside a unit.
 
@@ -140,11 +151,14 @@ line or the end of the span, are the **attribute block**. Each line is:
 - a **continuation**, a line beginning with two spaces, which belongs to
   the field above it.
 
-Any other line is refused (`format.attribute`). A field name appears once
+A line whose first word is a core kind (3.6) or a dotted name followed by
+a space is a relation line. Any other line is refused
+(`format.attribute`). A field name appears once
 per record (`format.field-duplicate`). A field's value is the text after
 `: `, then each continuation with its first two spaces removed, joined by
 LF; if the first line is empty, the value starts at the first
-continuation. A reader MUST NOT read a key, a relation or an item inside a
+continuation. A REQUIRED field whose value is empty is missing. A reader
+MUST NOT read a key, a relation or an item inside a
 continuation. Everything after the blank line is the **body**; a record
 with no fields or relations starts with a blank line.
 
@@ -159,7 +173,8 @@ and inert. Any other kind is refused (`format.relation-kind`).
 A target is an id (section 5), optionally pinned `@sha256:<64 hex>`. A
 relation line whose target does not parse is refused
 (`format.relation-target`). A target that names no record is a warning
-(`format.target-unknown`) and the relation is kept. A profile names the
+(`format.target-unknown`) and the relation is kept; an extension kind's
+target is not checked, since it may lie outside the repository. A profile names the
 core kinds its records may use and the relations they must have.
 
 ### 3.7 Obligations
@@ -176,6 +191,8 @@ evidence:
   - with `max_excerpt_bytes` below the file size, `truncated` is true.
 refusal: with the stdout file removed, `text` is absent, never "".
 ```
+
+`<64 hex>` stands for a digest.
 
 | field | | value |
 |---|---|---|
@@ -212,8 +229,16 @@ item, optionally ` — done by <actor>, <YYYY-MM-DD>` and `: <note>`.
 `after` names an item, a ticket, or another ticket's item. `implements
 <id>` in the text is a relation. `[]`, `[y]` and other boxes are refused
 (`format.item`). A box line with no id group is reported
-(`format.item-id-missing`); a writer assigns an id. Item ids are unique in
-their document (`format.id-duplicate`).
+(`format.item-id-missing`); a writer assigns an id. A group that is not at
+the end of the line is no id group; a group whose id is malformed
+(`(i-7)`) is refused (`format.item`). Items are read only in work
+documents; elsewhere a box line is text. Item ids are unique in their document
+(`format.id-duplicate`).
+
+In the model an item is a record of type `item`: its title is its text
+without the id group and the `done` suffix, `fields` is `{}`, `body` is
+`""`, each `after` is a `depends_on` relation, and open or done is its
+`checklist` state, never a field.
 
 ### 3.9 Fences
 
@@ -257,8 +282,11 @@ The blind verifier decides from the bundle alone…
 
 The document's own record has the alias as id, type `ticket` under the
 `ticket` profile and `warrant` otherwise, the `# ` heading as title, the
-frontmatter as fields and the preamble as body. Its sections and records
-are scoped to it (section 5).
+frontmatter as fields (except `format` and the relation keys of 3.3, and
+dotted keys, which go to `ext`) and the preamble without its `# ` line as
+body. Its sections, records and items are scoped to it (section 5), and
+each is `part_of` it. That containment relation is in the model but not in
+any `content_digest` (section 9).
 
 The profile names the required sections (`format.section-missing`). Built
 in: `delivery` requires Intent, Basis, Work order and Assurance and at
@@ -279,8 +307,8 @@ obligation is `part_of` the milestone it gates.
 
 Composition is inferred from the file: the units, in order. A
 `manifest.toml` MAY sit beside `warrant.md` for tool settings. It MUST NOT
-list atoms and MUST NOT carry a key the frontmatter defines
-(`format.manifest-restates`): nothing is said twice.
+list atoms and MUST NOT carry a core key (3.3) or a key the profile
+declares (`format.manifest-restates`): nothing is said twice.
 
 ### 4.3 Evidence lives outside
 
@@ -290,12 +318,22 @@ not authored, and are never needed to read the document's meaning. A
 reader MUST produce the model of a work document from the document alone;
 what those files add is state.
 
+### 4.4 Record documents
+
+A document that is not a work document is any `docs/records/<area>/*.md`
+whose frontmatter declares `format:`. It has no alias and no required
+sections. Its own record is `doc:<path>`, type `document`, with the
+frontmatter (except `format`) as fields, dotted keys in `ext`, the `# `
+heading as title and the preamble without it as body. Its records are
+global and each is `part_of` it, outside `content_digest`.
+
 ## 5. Identity
 
 - A **record id** is an uppercase letter, then uppercase letters or digits,
   then one or more groups of `-` followed by letters or digits; at most 64
   bytes: `REQ-pr1`, `OBL-001`, `S-intent`.
-- An **item id** is `i-` and lowercase hex.
+- An **item id** is `i-` and 3 to 16 lowercase hex digits. A bare item id
+  names an item of the same document.
 - In a work document, ids are local and the global id is `<alias>/<id>`
   (`OW-WAR-0146/OBL-001`, `t-0d61d/i-de0e`). Records of other documents
   are global. Every id is unique in its scope (`format.id-duplicate`).
@@ -303,7 +341,11 @@ what those files add is state.
   `md:<file>#<slug>` (a `##` section of `CLAUDE.md` or `AGENTS.md`);
   `doc:<path>` (a document no type reads). The shape routes the id.
 - A work document's `uuid` is a UUIDv7 and never changes. A reference that
-  must survive renaming SHOULD use `war://<uuid>`.
+  must survive renaming SHOULD use `war://<uuid>`. A relation's `to` is the
+  target as authored, a local id made global; a `war://` target is never
+  rewritten to an alias, in the model or in a digest.
+- Legacy stores (section 12) keep their ids unrenamed, including shapes
+  this section does not produce (`OW-WAR-0146/M1`, `WAR-SAS-101.1`).
 - A unit's **revision** is `sha256:` of the exact bytes of its span; an
   item's, of its line with its terminator. Editing one unit moves its
   revision and no other.
@@ -325,7 +367,7 @@ document declaring `1.N` uses only what versions up to `1.N` define.
 |---|---|
 | a newer major | reads nothing; every check `UNKNOWN` (`format.newer-major`) |
 | a newer minor | reads under section 7; a unit it cannot parse is `UNKNOWN` (`format.newer-minor`), not refused |
-| no `format` | reads it as a legacy encoding (section 12) or refuses it (`format.unrecognised`) |
+| no `format` | reads it as a legacy encoding (section 12) or refuses it (`format.unrecognised`). A document whose first line is not `---` declares no format |
 
 JSON schemas follow the same rule: `oh.war/<name>/v<major>`, additive
 within a major.
@@ -387,7 +429,7 @@ diagnostic = { rule, record, message }
 | `title` | the heading's title; absent only for legacy records with none |
 | `document` | the global id of the work document that holds the record; absent otherwise |
 | `section` | the id of the last section opened before the record in its document; absent if none |
-| `source`, `line`, `span` | repository-relative path with `/`; 1-based line of the heading; `[start, end]` byte offsets |
+| `source`, `line`, `span` | repository-relative path with `/`; 1-based line of the heading; `[start, end]` byte offsets. A legacy record with no span of its own has the whole file's |
 | `revision`, `content_digest` | section 9 |
 | `fields` | object: name → string, or array of strings for a frontmatter list. `{}` when none |
 | `body` | the body text, exactly; `""` when none |
@@ -398,10 +440,9 @@ diagnostic = { rule, record, message }
 to_revision)`; `states` by `(record, kind, value)`; `diagnostics` by
 `(rule, record, message)`; all comparisons by UTF-8 bytes. Absent optional
 members are omitted, never `null`. The model is serialized as RFC 8785
-JSON. A consumer MUST ignore members it does not know. The implementation
-today emits `schema, basis_digest, records{id, type, source, revision,
-governed_by}, relations, states, diagnostics`; every other member above is
-an additive change it owes.
+JSON. A consumer MUST ignore members it does not know. Relation kinds
+outside 3.6 (`roadmap`, `parent`, `promoted_to`) occur only in records
+lowered from legacy stores.
 
 ## 9. Digests
 
@@ -413,7 +454,8 @@ an additive change it owes.
 - **content_digest** — over meaning. Domain `oh.war/record-content/v1`;
   payload `{id, type, title, fields, relations, body}` where `id` is the
   global id, `title` is `""` when absent, `relations` is the sorted array
-  of the record's outgoing `{kind, to, to_revision?}`, and `body` has CRLF
+  of the record's outgoing `{kind, to, to_revision?}` without the
+  containment `part_of` of 4.1 and 4.4, and `body` has CRLF
   replaced by LF, trailing spaces and tabs removed from each line, and
   trailing empty lines removed. The same record has the same
   `content_digest` in every encoding (section 12).
@@ -447,30 +489,37 @@ A tool that serves agents MUST be able to generate an index,
 - <id> · <type> · <state> · <title> · <source>:<line>
 ```
 
-Sources sorted by path, records by line. `<state>` is the record's
-**primary state**: the value of its state of kind `phase`, else
-`checklist`, else `disposition`, else `-`. A record with no title shows its
-first non-blank body line, cut at 120 bytes on a character boundary and
-ended with `…`.
+Sources sorted by path, records by line. A work document is listed by its
+own record alone; its units are one `war context <alias>` away. Every
+record of any other document is listed. The `> ` line is the work
+document's summary, or `-`. `<state>` is the record's **primary state**:
+the value of its state of kind `phase`, else `checklist`, else
+`disposition`, else `-`. A record with no title shows its first non-blank
+body line that is not one of its relation lines, cut at 120 bytes on a
+character boundary; `…` is added only when it was cut. With neither, the
+title is `-`.
 
 ### 10.3 The context compiler
 
 `war context <target> [--budget <bytes> | --tokens <n>] [--depth <d>] [--json]`
 
 emits the context an agent needs for a target, as a pure function of the
-documents. Identical arguments and identical tracked bytes MUST produce
+documents. Identical arguments and identical input files MUST produce
 identical output bytes. It MUST NOT read clocks, the environment, claim
-locks or anything outside the tracked tree, and MUST NOT depend on
-directory order. `--tokens n` means `--budget 4n`. Defaults: budget 16000
+locks, anything outside the working tree or any path the repository's
+version control ignores, and MUST NOT depend on directory order. `--tokens n` means `--budget 4n`. Defaults: budget 16000
 bytes, depth 3.
 
-**1. Roots.** By the target's shape: an item id, the item, and its
-document's `S-intent` at distance 1; a record or section id, that record;
+**1. Roots.** By the target's shape: an item id, the item, and at
+distance 1 its document's `S-intent` (without one, the document's record),
+reached by the step `item-intent` from the item; a record or section id,
+that record;
 an alias or `war://<uuid>`, the work document's record; `md:…`, that
 section; a path of a document, its work document record, or else all its
 records; any other path, every work document whose `paths` glob matches
 it. None is refused (`context.target-unknown`). For a work document root,
-every unit and item of the document is also at distance 0.
+every unit and item of the document is also at distance 0; the roots that
+step 5 measures are the records this step names, not those units.
 
 **2. Walk.** Breadth-first from the distance-0 set, up to the depth, over
 these steps, in this order:
@@ -489,8 +538,9 @@ these steps, in this order:
 `out` follows a relation from the record; `in`, to it. Only core kinds are
 walked. A record's **distance** is the level that first reached it, and
 its **via** the first `(step, from)` that did, by step order and then by
-`from` id. Unknown targets are skipped with a diagnostic. A profile MAY
-declare another walk; the packet names the walk it used.
+`from` id. Unknown targets are skipped with a diagnostic. This walk is
+named `core`. A profile MAY declare another walk; the packet names the
+walk it used.
 
 **3. Order.** By distance, then type rank — `warrant`/`ticket`, `section`,
 `item`, `requirement`, `outcome`, `constraint`, `decision`, `interface`,
@@ -515,7 +565,10 @@ any other — then source path, then line.
 
 `selection_digest` is the `basis_digest` rule (section 8) over the
 selected records. In the index, `[F]` marks a record whose full text
-follows and `[S]` one given only by its summary.
+follows and `[S]` one given only by its summary. `<state>` is the primary
+state of 10.2, or `-`. An item whose section is given in full is marked
+`[F]` and has no entry of its own under Records: its line is already
+there. An item that is the target has its own entry.
 
 **5. Budget.** Bytes are UTF-8 bytes of the Markdown rendering. If the
 header and index alone, or with the full text of every root, exceed the
@@ -529,7 +582,10 @@ record is never cut. An `[S]` line is the agent's cue to run `war context
 budget, bytes, depth, walk, selection_digest, records[{id, type, title,
 state, source, line, revision, distance, via?{step, from}, tier, text?}],
 diagnostics[]}`, `tier` being `full` or `summary` and `text` the exact
-span for `full`. `bytes` is the size of the Markdown rendering.
+span for `full` (an item's line). `title` is always present, `-` when the
+record has none; `diagnostics` have the model's shape. `bytes` is the size
+of the Markdown rendering. A tool MAY wrap the packet in its own report
+envelope; the packet is unchanged inside it.
 
 ## 11. Conformance
 
@@ -551,9 +607,11 @@ conformance/format/<NNN>-<slug>/
 
 Exactly one of `model.json`, `refusal`, `unknown` and `context.md` is
 present. A conforming tool passes a case when its output equals the
-expected bytes (for `model.json`, after RFC 8785 canonicalization; its
-`diagnostics` compared as a set of `(rule, record)`). Every refusal rule of
-11.2 has at least one case, and every claim has a case that is refused.
+expected bytes. `model.json` holds the compared subset of the model that
+`conformance/format/README.md` defines, after RFC 8785 canonicalization,
+its `diagnostics` compared as a set of `(rule, record)`. A context refusal
+is one line, `<rule id>`. Every refusal rule of 11.2 has at least one
+case, and every claim has a case that is refused.
 
 ### 11.2 Rule ids
 
@@ -567,7 +625,13 @@ Refusals: `format.encoding`, `format.frontmatter`, `format.key-unknown`,
 Unknown: `format.newer-major`, `format.newer-minor`,
 `format.requires-unknown`. Warnings: `format.target-unknown`,
 `format.refusal-missing`, `format.item-id-missing`,
-`format.legacy-obligation`.
+`format.legacy-obligation`, `context.summary-shape`,
+`context.span-unknown`.
+
+A finding about a whole document (a missing fence, key or section, a
+restated manifest key) is reported at line 1; `format.document-duplicate`
+at `<alias>.md:1`. A reader reports each fault once: a unit it refused is
+not also reported missing.
 
 ## 12. Legacy encodings (non-normative)
 
@@ -579,10 +643,16 @@ legacy unit keeps the revision of its legacy bytes and has the
 | encoding | lowers to |
 |---|---|
 | `oh.war/records/v1` record atom | records without titles; spans run to the next record heading, as before; relation lines anywhere in a record |
-| directory Warrant: `manifest.toml`, `atoms/*.md`, `45-milestones.yaml` | `uuid`, `local_alias` (→ `alias`), `title`, `profile`, `assurance_level` → document fields; intent, basis and work order atoms → `S-intent`, `S-basis`, `S-work-order`; milestones and stages → records; each `### OBL-NNN — statement` block → an obligation, its `- **key:**` bullets → fields; `[[implements]]` → `implements`; `[[roadmap]]` → `part_of`; `enterprise_id` → `kf.enterprise_id`, omitted when empty |
-| ticket, `oh.war/ticket/v1` | a work document, profile `ticket`; manifest keys → document fields; `15-checklist.md` → `S-checklist`, lines unchanged |
+| directory Warrant: `manifest.toml`, `atoms/*.md`, `45-milestones.yaml`, `deliverables.toml` | `uuid`, `local_alias` (→ `alias`), `title`, `profile` and, when present, `assurance_level` → document fields; intent, basis and work order atoms → `S-intent`, `S-basis`, `S-work-order`, any other atom role → `S-<role>` (`S-<role>-2` on a repeat); milestones (ids kept, `<alias>/M1`) and stages → records; each `### OBL-NNN — statement` block → an obligation, its `- **key:**` bullets → fields; each deliverable → a `deliverable` record with its `[[…]]` span, a title and a `target_ref` field, and the deliverables' `target_ref`s are the document's `paths`; `[[implements]]` → `implements`; `[[supersedes]]` → `supersedes`; `[[parents]]` → `parent`; `[[roadmap]]` → `roadmap`; `enterprise_id` → `kf.enterprise_id`, omitted when empty |
+| ticket, `oh.war/ticket/v1` | a work document, profile `ticket`; manifest keys → document fields; `promoted_to` → a relation; `15-checklist.md` → `S-checklist`, lines unchanged |
+| SAS document and revisions, `docs/sas/` | a `spec` record; sections and requirement rows → records with their ids (`WAR-SAS-101.1`) |
 | ADR atom | one record, id the alias, type `adr`; `adr_uuid` → `uuid`; `status` → field; `governs`, `supersedes` → relations |
 | roadmap, `docs/roadmap/` | a `roadmap` record; each phase a `phase` record `part_of` it, with `depends_on` |
+
+Legacy kinds and ids are carried unrenamed, so existing output and
+signatures stand. A legacy work document has no `summary`; its document
+record has the `content_digest` of a Format 1.0 equivalent with the same
+keys, and every other unit has its equivalent's.
 
 ## 13. Changes from current practice
 
@@ -633,7 +703,7 @@ unit          = record | section ;
 section       = "## " section-name EOL { line EOL } ;
 section-name  = text - ( text " · " text ) ;
 record        = record-head EOL attributes [ blank EOL body ] ;
-record-head   = "## " record-id " · " word " — " title ;
+record-head   = "## " record-id " · " ( word | dotted ) " — " title ;
 record-id     = upper { upper | digit } ( "-" alnum { alnum } )+ ; (* ≤ 64 bytes *)
 title         = text ;                                              (* ≤ 120 bytes *)
 attributes    = { ( field | relation-line | continuation ) EOL } ;
@@ -643,18 +713,29 @@ relation-line = kind SP target { "," SP target } ;
 kind          = word | dotted ;
 target        = ref [ "@sha256:" hex64 ] ;
 ref           = record-id | alias "/" ( record-id | item-id ) | alias
-              | "war://" uuid | "md:" path "#" slug ;
+              | item-id | "war://" uuid | "md:" path "#" slug | "doc:" path ;
 alias         = record-id | "t-" hex { hex } ;
 body          = { line EOL } ;
 
 item          = { SP } ( "-" | "*" ) SP box SP text SP "(" item-id
                 { "," SP "after" SP item-ref } ")" [ done ] ;
 box           = "[ ]" | "[x]" | "[X]" ;
-item-id       = "i-" hex { hex } ;
+item-id       = "i-" 3*16 hex ;                 (* lowercase *)
 item-ref      = item-id | alias [ "/" item-id ] ;
 done          = " — done by " actor ", " date [ ": " text ] ;
 gate-uri      = "gate://" gate-id "@" semver ;
+gate-id       = label { "." label } ;
+semver        = digit+ "." digit+ "." digit+ [ "-" text ] ;  (* SemVer 2.0.0 *)
+actor         = text - ( text ", " text ) ;
+date          = digit digit digit digit "-" digit digit "-" digit digit ;
+path          = (* a repository-relative path, "/"-separated, no ".." *) ;
+slug          = lower-or-digit { lower-or-digit | "-" } ;
+uuid          = (* RFC 9562 text form, lowercase *) ;
+hex64         = 64 hex ;  hex = digit | "a" … "f" ;
 ```
+
+The 120- and 200-byte limits and the 64-byte id limit count UTF-8 bytes; a
+JSON schema can only approximate them in characters.
 
 ## Appendix B. Divergences DV-1 to DV-14
 

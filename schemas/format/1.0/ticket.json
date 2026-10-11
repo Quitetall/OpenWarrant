@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/ticket.json",
+  "title": "OpenWarrant Format 1.0: ticket-profile document frontmatter",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md sections 2, 3.3 and 4.1. Where this schema and the prose disagree, the prose wins and this schema is the defect. A ticket is a work document with the `ticket` profile (`docs/tickets/<alias>.md` or `docs/tickets/<alias>/ticket.md`): its frontmatter is a document frontmatter (frontmatter.json) whose `profile` is `ticket`, with an `alias`, a `uuid` and a `summary`. The ticket profile's required `Checklist` section and its items (item.json) are in the document body, which this schema does not see.",
+  "allOf": [{ "$ref": "frontmatter.json" }],
+  "required": ["format", "profile", "alias", "uuid", "summary"],
+  "properties": {
+    "profile": { "const": "ticket" }
+  }
+}

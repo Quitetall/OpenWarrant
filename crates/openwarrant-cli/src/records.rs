@@ -71,6 +71,13 @@ pub struct Record {
     pub line: usize,
     /// `sha256:<hex>` of its byte span.
     pub revision: String,
+    /// `[start, end)` of that span (FORMAT-1.0 §8).
+    pub span: [usize; 2],
+    /// Its title where its heading has one (an instruction section's
+    /// heading); a records/v1 record has none.
+    pub title: Option<String>,
+    /// Its text after the heading line, exactly (FORMAT-1.0 §8).
+    pub body: String,
 }
 
 /// One authored relation, of any origin.
@@ -132,6 +139,15 @@ impl Records {
     pub fn is_empty(&self) -> bool {
         self.files == 0 && self.relations.is_empty() && self.faults.is_empty()
     }
+}
+
+/// A span's text after its heading line, exactly (FORMAT-1.0 §8 `body`).
+#[must_use]
+pub fn span_body(text: &str, start: usize, end: usize) -> String {
+    let span = text.get(start..end).unwrap_or_default();
+    span.split_once('\n')
+        .map_or("", |(_, rest)| rest)
+        .to_owned()
 }
 
 /// The record atoms of `repo`, sorted: `docs/records/<area>/*.md`.
@@ -210,7 +226,7 @@ pub fn load_with(corpus: &Corpus, proposed: &[(String, String)]) -> Records {
     let empty = Vocabulary::default();
 
     // ---- Record atoms.
-    let mut atoms: Vec<(String, RecordAtom)> = Vec::new();
+    let mut atoms: Vec<(String, RecordAtom, String)> = Vec::new();
     let on_disk = files(repo).into_iter().map(|path| {
         let rel = repo.relative(&path);
         (rel, crate::vfs::read(&path).map(String::from_utf8))
@@ -219,6 +235,11 @@ pub fn load_with(corpus: &Corpus, proposed: &[(String, String)]) -> Records {
         .iter()
         .map(|(rel, text)| (rel.clone(), Ok(Ok(text.clone()))));
     for (rel, read) in on_disk.chain(virtual_atoms) {
+        // A Format 1.0 document declares `format:`; `crate::format_doc`
+        // reads it, and it is no record atom (FORMAT-1.0 §6).
+        if matches!(&read, Ok(Ok(t)) if openwarrant_core::format::declares_format(t)) {
+            continue;
+        }
         out.files += 1;
         let text = match read {
             Ok(Ok(t)) => t,
@@ -242,7 +263,7 @@ pub fn load_with(corpus: &Corpus, proposed: &[(String, String)]) -> Records {
             }
         };
         match record::parse(&text) {
-            Ok(atom) => atoms.push((rel, atom)),
+            Ok(atom) => atoms.push((rel, atom, text)),
             Err(e) => out.faults.push(Fault {
                 rule: "record.malformed",
                 file: rel,
@@ -251,7 +272,7 @@ pub fn load_with(corpus: &Corpus, proposed: &[(String, String)]) -> Records {
             }),
         }
     }
-    for (rel, atom) in &atoms {
+    for (rel, atom, text) in &atoms {
         let Some(vocabulary) = repo.profiles.vocabulary(&atom.profile) else {
             out.faults.push(Fault {
                 rule: "record.profile-unknown",
@@ -322,6 +343,9 @@ pub fn load_with(corpus: &Corpus, proposed: &[(String, String)]) -> Records {
                 source: rel.clone(),
                 line: r.line,
                 revision: r.revision.clone(),
+                span: [r.start, r.end],
+                title: None,
+                body: span_body(text, r.start, r.end),
             });
             for rel_line in &r.relations {
                 match kind_fault(

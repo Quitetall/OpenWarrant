@@ -1,0 +1,4 @@
+id = "018-target-unknown-kept"
+kind = "accept"
+section = "3.6"
+says = """A target that names no record is a warning (`format.target-unknown`) and the relation is kept."""

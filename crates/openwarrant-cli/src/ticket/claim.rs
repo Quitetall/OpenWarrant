@@ -389,6 +389,7 @@ pub fn all(
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(out),
         Err(e) => return Err(e),
     };
+    let mut names = Vec::new();
     for entry in entries {
         let entry = entry?;
         let Ok(name) = entry.file_name().into_string() else {
@@ -397,8 +398,14 @@ pub fn all(
         if !name.ends_with(".lock") || name.starts_with('.') {
             continue;
         }
-        let path = dir.join(&name);
-        if let Some(claim) = read(&path, lease)? {
+        names.push(name);
+    }
+    // Each lock is a small file read on its own: on the disk they are read
+    // across threads, and the first error in listing order is the answer,
+    // as when they were read in turn (`vfs::map_ordered`).
+    let read = crate::vfs::map_ordered(&names, 32, |name| read(&dir.join(name), lease));
+    for (name, claim) in names.into_iter().zip(read) {
+        if let Some(claim) = claim? {
             out.insert(name, claim);
         }
     }

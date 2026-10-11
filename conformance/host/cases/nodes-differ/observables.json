@@ -2,10 +2,10 @@
   "exit": 2,
   "outcome": "not_established",
   "refusal": null,
-  "basis_digest": "sha256:ccd870a1383d4c1aa6b2a5c401fc6f6d2ba9a915effc542357a54e63ee31547a",
-  "model_digest": "sha256:324f376d1f14b14f446ff26ea52553cfcfdb504c040c20ccd2fe9476367f60bd",
-  "records": 34,
-  "relations": 24,
+  "basis_digest": "sha256:1a0e291ea1c573a99c38ed2987dfbe062aac3a51d337a7e1fe57240e21b344f0",
+  "model_digest": "sha256:d19e4ab1d079f59853320e3da825f8049f07f2497f79efd08b169f48ad235664",
+  "records": 46,
+  "relations": 41,
   "states": 18,
   "host_rules": [
     "host.node-differs"

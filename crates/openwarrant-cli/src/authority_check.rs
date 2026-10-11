@@ -867,33 +867,35 @@ fn ssh_verify(
     // --generated` at 1,000 Warrants (t-f815).
     let by_path = crate::gate_cmd::source::tree_reads_remembered()
         .then(|| format!("{allowed}\0{principal}\0{response}\0{sig}\0{}", trust.label));
-    if let Some(k) = &by_path
-        && let Some(known) = BY_PATH
-            .get_or_init(Default::default)
-            .lock()
-            .ok()
-            .and_then(|c| c.get(k).cloned())
-    {
-        return known.map_err(SshFailure::Rejected);
+    let Some(k) = by_path else {
+        return ssh_verify_keyed(repo, trust, response, sig, allowed, principal);
+    };
+    // One slot per question, held while it is asked: threads judging
+    // Warrants in parallel that reach the same signature wait for the first
+    // answer instead of each spawning `ssh-keygen`. Checking and filling
+    // under separate locks let two askers both miss (the race
+    // `gate_cmd::source::tree_read_in` had for its tree reads).
+    BY_PATH.get_or_init(Default::default).ask(
+        k,
+        || ssh_verify_keyed(repo, trust, response, sig, allowed, principal),
+        remembered,
+        |known| known.map_err(SshFailure::Rejected),
+    )
+}
+
+/// What a memo keeps of a verdict: a pass or a refusal, never `Unavailable`
+/// (a missing tool is asked again).
+fn remembered(verdict: &Result<(), SshFailure>) -> Option<Result<(), String>> {
+    match verdict {
+        Ok(()) => Some(Ok(())),
+        Err(SshFailure::Rejected(why)) => Some(Err(why.clone())),
+        Err(SshFailure::Unavailable(_)) => None,
     }
-    let verdict = ssh_verify_keyed(repo, trust, response, sig, allowed, principal);
-    if let Some(k) = by_path {
-        let cached = match &verdict {
-            Ok(()) => Some(Ok(())),
-            Err(SshFailure::Rejected(why)) => Some(Err(why.clone())),
-            Err(SshFailure::Unavailable(_)) => None,
-        };
-        if let (Some(v), Ok(mut c)) = (cached, BY_PATH.get_or_init(Default::default).lock()) {
-            c.insert(k, v);
-        }
-    }
-    verdict
 }
 
 /// Verdicts by path, for a read-only command only (see [`ssh_verify`]).
-static BY_PATH: std::sync::OnceLock<
-    std::sync::Mutex<std::collections::HashMap<String, Result<(), String>>>,
-> = std::sync::OnceLock::new();
+static BY_PATH: std::sync::OnceLock<crate::ssh_verdicts::Slots<Result<(), String>>> =
+    std::sync::OnceLock::new();
 
 /// [`ssh_verify`] keyed by the digest of every byte the verdict depends on.
 fn ssh_verify_keyed(
@@ -909,62 +911,89 @@ fn ssh_verify_keyed(
             SshFailure::Unavailable(format!("could not open {}: {e}", repo.relative(p)))
         })
     };
+    let (allowed_bytes, message, signature) = (read(allowed)?, read(response)?, read(sig)?);
     let key = {
         let mut material = Vec::new();
         for part in [
-            read(allowed)?,
-            principal.as_bytes().to_vec(),
-            RESPONSE_NAMESPACE.as_bytes().to_vec(),
-            read(response)?,
-            read(sig)?,
-            trust.label.as_bytes().to_vec(),
+            allowed_bytes.as_slice(),
+            principal.as_bytes(),
+            RESPONSE_NAMESPACE.as_bytes(),
+            message.as_slice(),
+            signature.as_slice(),
+            trust.label.as_bytes(),
         ] {
             material.extend_from_slice(&(part.len() as u64).to_le_bytes());
-            material.extend_from_slice(&part);
+            material.extend_from_slice(part);
         }
         openwarrant_compiler::sha256_hex(&material)
     };
-    let cache = VERDICTS.get_or_init(Default::default);
-    if let Some(known) = cache.lock().ok().and_then(|c| c.get(&key).cloned()) {
-        return known.map_err(SshFailure::Rejected);
-    }
-    // OW-WAR-0148 M8: a hosted run (`war host`) spawns nothing. It answers
-    // from the observation its request supplied for exactly these bytes, or
-    // fails closed as a missing `ssh-keygen` does. A recording run (`war
-    // host --export`) remembers what `ssh-keygen` answered.
-    let verdict = match crate::vfs::hosted_ssh(&key) {
-        Some(Some(observed)) => observed.map_err(SshFailure::Rejected),
-        Some(None) => Err(SshFailure::Unavailable(
-            "a hosted run runs no ssh-keygen, and its request supplied no observation of this \
-             signature, so it is unchecked. An unchecked signature is not a pass"
-                .to_owned(),
-        )),
-        None => {
-            let verdict = ssh_verify_uncached(repo, principal, response, sig, allowed);
-            match &verdict {
-                Ok(()) => crate::vfs::record_ssh(&key, &Ok(())),
-                Err(SshFailure::Rejected(why)) => crate::vfs::record_ssh(&key, &Err(why.clone())),
-                Err(SshFailure::Unavailable(_)) => {}
+    let question = crate::ssh_verdicts::Question {
+        allowed_signers: &allowed_bytes,
+        principal,
+        namespace: RESPONSE_NAMESPACE,
+        message: &message,
+        signature: &signature,
+    };
+    VERDICTS.get_or_init(Default::default).ask(
+        key.clone(),
+        || {
+            // OW-WAR-0148 M8: a hosted run (`war host`) spawns nothing. It
+            // answers from the observation its request supplied for exactly
+            // these bytes, or fails closed as a missing `ssh-keygen` does. A
+            // recording run (`war host --export`) remembers what `ssh-keygen`
+            // answered.
+            match crate::vfs::hosted_ssh(&key) {
+                Some(Some(observed)) => observed.map_err(SshFailure::Rejected),
+                Some(None) => Err(SshFailure::Unavailable(
+                    "a hosted run runs no ssh-keygen, and its request supplied no observation \
+                     of this signature, so it is unchecked. An unchecked signature is not a pass"
+                        .to_owned(),
+                )),
+                None => {
+                    if persisted_good(repo, &question) {
+                        return Ok(());
+                    }
+                    let verdict = ssh_verify_uncached(repo, principal, response, sig, allowed);
+                    match &verdict {
+                        Ok(()) => crate::vfs::record_ssh(&key, &Ok(())),
+                        Err(SshFailure::Rejected(why)) => {
+                            crate::vfs::record_ssh(&key, &Err(why.clone()));
+                        }
+                        Err(SshFailure::Unavailable(_)) => {}
+                    }
+                    verdict
+                }
             }
-            verdict
-        }
-    };
-    let cached = match &verdict {
-        Ok(()) => Some(Ok(())),
-        Err(SshFailure::Rejected(why)) => Some(Err(why.clone())),
-        Err(SshFailure::Unavailable(_)) => None,
-    };
-    if let (Some(v), Ok(mut c)) = (cached, cache.lock()) {
-        c.insert(key, v);
+        },
+        remembered,
+        |known| known.map_err(SshFailure::Rejected),
+    )
+}
+
+/// For the read-only advice verbs only ([`crate::ssh_verdicts::permit`]): a
+/// pass an earlier run recorded for exactly these bytes, or `ssh-keygen`
+/// asked over exactly these bytes and a pass recorded. `false` sends the
+/// caller down the ordinary path, which asks again and says why: nothing but
+/// a pass is ever answered or stored here.
+fn persisted_good(repo: &Repository, q: &crate::ssh_verdicts::Question<'_>) -> bool {
+    use crate::ssh_verdicts as cache;
+    if !cache::permitted() {
+        return false;
     }
-    verdict
+    let (Some(tool), Some(dir)) = (cache::ssh_keygen(), cache::dir_for(&repo.root)) else {
+        return false;
+    };
+    let Some(key) = q.key(tool) else {
+        return false;
+    };
+    cache::known_good(&dir, &key)
+        || cache::verify_exact(&dir, &key, &tool.0, q) == cache::Exact::Good
 }
 
 /// Verdicts of [`ssh_verify`] this process has already asked for, keyed by
 /// the digest of every byte the verdict depends on.
-static VERDICTS: std::sync::OnceLock<
-    std::sync::Mutex<std::collections::HashMap<String, Result<(), String>>>,
-> = std::sync::OnceLock::new();
+static VERDICTS: std::sync::OnceLock<crate::ssh_verdicts::Slots<Result<(), String>>> =
+    std::sync::OnceLock::new();
 
 fn ssh_verify_uncached(
     repo: &Repository,

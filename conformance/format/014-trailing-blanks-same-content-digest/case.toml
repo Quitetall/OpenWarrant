@@ -1,0 +1,4 @@
+id = "014-trailing-blanks-same-content-digest"
+kind = "accept"
+section = "9"
+says = """trailing spaces and tabs removed from each line, and trailing empty lines removed"""

@@ -1,0 +1,4 @@
+id = "002-warrant-directory-form"
+kind = "accept"
+section = "4.1"
+says = """A Warrant is one file: ... or `docs/warrants/<alias>/warrant.md`."""

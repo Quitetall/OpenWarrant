@@ -1,0 +1,4 @@
+id = "031-requires-empty"
+kind = "accept"
+section = "7.3"
+says = """the document MUST list it in `requires`; an empty list requires nothing"""

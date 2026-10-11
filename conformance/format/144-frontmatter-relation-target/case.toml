@@ -1,0 +1,5 @@
+id = "144-frontmatter-relation-target"
+kind = "refuse"
+section = "3.3"
+rule = "format.relation-target"
+says = """A frontmatter relation key whose target does not parse is refused."""

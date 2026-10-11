@@ -1,0 +1,4 @@
+id = "023-tilde-fence-longer-close"
+kind = "accept"
+section = "3.9"
+says = """the same character, at least as many, followed only by spaces or tabs, closes it"""

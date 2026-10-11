@@ -1,0 +1,4 @@
+id = "026-frontmatter-list"
+kind = "accept"
+section = "3.2"
+says = """`key:` followed by lines `  - scalar`, a flat list"""

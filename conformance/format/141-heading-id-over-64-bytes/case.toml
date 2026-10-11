@@ -1,0 +1,5 @@
+id = "141-heading-id-over-64-bytes"
+kind = "refuse"
+section = "5"
+rule = "format.heading"
+says = """a record id ... at most 64 bytes"""

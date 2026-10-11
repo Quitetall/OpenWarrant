@@ -418,6 +418,9 @@ pub fn run_with(
     // Silent where there are none, so such a program checks as it did.
     if only.is_none() {
         crate::records::check(shared_corpus, &mut report);
+        // FORMAT-1.0 (OW-ADR-0032): Format 1.0 documents. Silent where
+        // there are none.
+        crate::format_doc::check(shared_corpus, &mut report);
         // OW-WAR-0148 M6: declared documents. Silent where there are none.
         crate::render_cmd::check(shared_corpus, &mut report);
         // OW-WAR-0148 M18: docs/types.toml and the document index. Silent
@@ -536,6 +539,13 @@ pub fn run_with(
                 Err(e) => drift_check(repo, Err(e), "sas-sections", &mut report),
             }
         }
+        // Format 1.0 section 10.2: the agent index, `docs/generated/llms.txt`.
+        drift_check(
+            repo,
+            crate::context::index_file(shared_corpus),
+            "context-index",
+            &mut report,
+        );
         // OW-ADR-0022: the master document, and the history when this
         // repository keeps one. `generated.drift`, the rule every projection
         // of a Warrant reports under: CURRENT.md is written by `compile` and by

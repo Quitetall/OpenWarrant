@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/type-pack.json",
+  "title": "oh.war/pack/v1 (a type pack's pack.toml)",
+  "description": "Hand-written and normative for a type pack's `pack.toml` (packs/README.md): a versioned set of document types beyond the core ones, each in the `oh.war/profile/v1` format (profile.json). FORMAT-1.0.md does not mention packs; where it and this schema disagree, the prose wins and this schema is the defect. Not expressed here: that each named file exists beside `pack.toml` and is admitted as a profile.",
+  "$comment": "crates/openwarrant-cli/src/types.rs:211 `PackFile` (deny_unknown_fields); PACK_SCHEMA at types.rs:204.",
+  "x-oh-war-schema": "oh.war/pack/v1",
+  "type": "object",
+  "required": ["schema", "name", "version", "profiles"],
+  "properties": {
+    "schema": { "const": "oh.war/pack/v1" },
+    "name": { "$ref": "common.json#/$defs/word" },
+    "version": {
+      "description": "The pack's version (both shipped packs use a semantic version; the reader admits any non-empty string).",
+      "type": "string",
+      "minLength": 1
+    },
+    "note": { "description": "Prose for a reader; carries no meaning.", "type": "string" },
+    "profiles": {
+      "description": "The pack's profile files, by file name beside pack.toml.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*\\.toml$" }
+    }
+  },
+  "additionalProperties": false
+}

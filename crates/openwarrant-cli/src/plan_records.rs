@@ -879,6 +879,7 @@ pub fn apply(
     ));
     let args = crate::ticket::CreateArgs {
         title: plan.ticket_title.clone(),
+        summary: None,
         items: plan.items.iter().map(item_line).collect(),
         body: Some(body),
         priority: plan.priority,

@@ -3,7 +3,8 @@
 //!
 //! `warrant://<alias>` (the compiled WAR.md view), `warrant://<alias>/status`,
 //! `warrant://<alias>/journal`, `status://corpus` (CORPUS_STATUS.json),
-//! `sas://current`, `pins://all`, `next://`.
+//! `sas://current`, `pins://all`, `next://`, and `context://index` (the
+//! agent index) and `context://<target>` (`war context <target>`).
 
 use rmcp::model::{
     ErrorData as McpError, ListResourcesResult, ReadResourceResult, Resource, ResourceContents,
@@ -46,6 +47,12 @@ pub fn list(repo: &Repository) -> Result<ListResourcesResult, McpError> {
             "next action",
             "oh.war/next/v1: whose act comes next (agent or human) and the command for it",
             "application/json",
+        ),
+        resource(
+            "context://index",
+            "agent index",
+            "docs/generated/llms.txt: every record by id with its one-line summary; read any with context://<id>",
+            "text/markdown",
         ),
     ];
     for dir in repo.warrant_dirs().map_err(internal)? {
@@ -95,6 +102,20 @@ pub fn read(repo: &Repository, uri: &str) -> Result<ReadResourceResult, McpError
             },
         ]))
     };
+    // `context://<target>`: `war context <target>` with its defaults, as
+    // Markdown (Format 1.0 section 10.3).
+    if uri == "context://index" {
+        let graph = crate::context::graph_of(&corpus()).map_err(internal)?;
+        return text(crate::context::index(&graph), "text/markdown");
+    }
+    if let Some(target) = uri.strip_prefix("context://") {
+        let graph = crate::context::graph_of(&corpus()).map_err(internal)?;
+        let target = crate::context::relative_target(repo, target);
+        return match crate::context::compile(&graph, &target, &crate::context::Options::default()) {
+            Ok(p) => text(p.markdown, "text/markdown"),
+            Err(r) => Err(McpError::resource_not_found(r.to_string(), None)),
+        };
+    }
     if let Some(rest) = uri.strip_prefix("warrant://") {
         let (alias, view) = match rest.split_once('/') {
             Some((a, "status")) => (a, "status"),

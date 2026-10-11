@@ -1,0 +1,4 @@
+id = "051-dotted-record-type"
+kind = "accept"
+section = "3.4"
+says = """A record type is a lowercase word or a dotted extension type; a dotted type is carried with its type, and core rules do not apply to it."""

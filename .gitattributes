@@ -8,6 +8,8 @@ docs/warrants/OW-WAR-0075/evidence/sdk-parser/** -text
 docs/design/amendment-review/*.log -text
 docs/design/amendment-review/*-signing-preview.txt -text
 conformance/sdk/author/** -text
+# Format 1.0 corpus: inputs are bytes (CRLF and BOM cases among them).
+conformance/format/** -text
 docs/warrants/OW-WAR-0076/evidence/sdk-author/** -text
 
 # war (M11): journals are append-only lines, so a merge keeps both sides'.

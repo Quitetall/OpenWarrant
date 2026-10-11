@@ -90,6 +90,16 @@ collided; both are now safe to create on any branch:
   `conformance/plants.d/99-plant-order.sh` and `31-amendment-ids.sh` are the
   plants for both rules.
 
+## Changing the standard
+
+The standard is [docs/format/FORMAT-1.0.md](docs/format/FORMAT-1.0.md); how it
+changes is [docs/format/GOVERNANCE.md](docs/format/GOVERNANCE.md). A change to
+what a conforming reader must do is a spec change first: amend the text, the
+schemas under `schemas/format/` and a case under `conformance/format/` together,
+then the code. A case's expected output comes from the spec, never from what
+`war` happens to print. The spec text is CC-BY-4.0; the schemas and corpus are
+Apache-2.0.
+
 ## Making a change
 
 1. **Open a Warrant.** `war plan new "<title>"` — this project is built through its
@@ -125,7 +135,17 @@ step of `cargo xtask gate`: run it before a release, and with any change to
 what those three commands read. The battery exercises the same tooling at a
 small size, refusals included, in `conformance/plants.d/174-scale-budget.sh`.
 Time on a quiet machine: the numbers are wall clock, and a loaded one (or an
-output file on a busy disk) measures the machine. The signed path at scale is
+output file on a busy disk) measures the machine.
+
+The three verbs (and `war view tickets`, `war status`) answer unchanged
+tickets from a local cache under git's common directory
+(`<common>/openwarrant/cache/`, `crates/openwarrant-cli/src/ticket/cache.rs`):
+an entry is used only when every file it came from stats exactly as it did,
+and anything else is read from the files. `OPENWARRANT_NO_CACHE=1` turns it
+off, `OPENWARRANT_CACHE_TRACE=1` says what each run took from it, and `war
+admin doctor` says where it is. A file changed less than two seconds ago is
+never cached, so a corpus just copied (`--corpus`, `cp -a`) is read from its
+files until it settles; the plant is `conformance/plants.d/180-ticket-cache.sh`. The signed path at scale is
 the separate 1,000-Warrant budget in `docs/RETENTION.md`.
 
 ## Commit messages

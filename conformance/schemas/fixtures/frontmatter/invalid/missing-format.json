@@ -1,0 +1,11 @@
+{
+  "why": "section 3.3: `format` is REQUIRED",
+  "expect": "'format' is a required property",
+  "instance": {
+    "profile": "delivery",
+    "alias": "OW-WAR-0146",
+    "uuid": "01a0d342-ee5e-7b71-9623-f2d8cd5acd4e",
+    "summary": "A verification bundle carries what each gate printed.",
+    "assurance_level": "basic"
+  }
+}

@@ -1,0 +1,4 @@
+id = "047-frontmatter-relations"
+kind = "accept"
+section = "3.3"
+says = """The frontmatter keys `implements`, `depends_on`, `supersedes` and `part_of` are relations of the document record, not fields."""

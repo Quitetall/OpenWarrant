@@ -1,0 +1,5 @@
+id = "101-invalid-utf8"
+kind = "refuse"
+section = "3.1"
+rule = "format.encoding"
+says = """A reader MUST refuse invalid UTF-8"""

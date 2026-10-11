@@ -1,0 +1,5 @@
+id = "135-document-duplicate"
+kind = "refuse"
+section = "4.1"
+rule = "format.document-duplicate"
+says = """Both forms of one alias is refused (`format.document-duplicate`)."""

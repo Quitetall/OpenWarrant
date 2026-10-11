@@ -179,6 +179,9 @@ pub fn read(repo: &Repository) -> (Vec<Record>, Vec<Fault>, usize) {
                 source: rel.clone(),
                 line: s.line,
                 revision: s.revision,
+                span: [s.start, s.end],
+                title: Some(s.heading.clone()),
+                body: crate::records::span_body(&text, s.start, s.end),
             });
         }
     }

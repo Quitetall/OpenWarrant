@@ -1,0 +1,2377 @@
+# OpenWarrant
+
+> OpenWarrant index (openwarrant/1.0). Generated; do not edit. Read any line's record with `war context <id>`.
+
+## AGENTS.md
+> -
+- md:AGENTS.md#tickets-the-default-work-loop · instruction · - · Tickets: the default work loop · AGENTS.md:11
+- md:AGENTS.md#read-the-context-needed-for-this-task · instruction · - · Read the context needed for this task · AGENTS.md:27
+- md:AGENTS.md#fit-the-hosts-context-documents · instruction · - · Fit the host's context documents · AGENTS.md:63
+- md:AGENTS.md#apply-the-right-work-and-assurance-model · instruction · - · Apply the right work and assurance model · AGENTS.md:84
+- md:AGENTS.md#preserve-truthful-records · instruction · - · Preserve truthful records · AGENTS.md:97
+- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:109
+
+## CHANGELOG.md
+> -
+- doc:CHANGELOG.md · document · - · Changelog · CHANGELOG.md:1
+
+## CODE_OF_CONDUCT.md
+> -
+- doc:CODE_OF_CONDUCT.md · document · - · Code of Conduct · CODE_OF_CONDUCT.md:1
+
+## CONTEXT.md
+> -
+- doc:CONTEXT.md · document · - · OpenWarrant context · CONTEXT.md:1
+
+## CONTRIBUTING.md
+> -
+- doc:CONTRIBUTING.md · document · - · Contributing to OpenWarrant · CONTRIBUTING.md:1
+
+## QUICKSTART.md
+> -
+- doc:QUICKSTART.md · document · - · Quickstart — choose your workflow · QUICKSTART.md:1
+
+## README.md
+> -
+- doc:README.md · document · - · OpenWarrant · README.md:1
+
+## RELICENSING.md
+> -
+- doc:RELICENSING.md · document · - · Relicensing: AGPL-3.0-or-later → Apache-2.0 · RELICENSING.md:1
+
+## SECURITY.md
+> -
+- doc:SECURITY.md · document · - · Security policy · SECURITY.md:1
+
+## docs/ADOPTING.md
+> -
+- doc:docs/ADOPTING.md · document · - · Adopting OpenWarrant in a repository with history · docs/ADOPTING.md:1
+
+## docs/ASSURANCE_MARK.md
+> -
+- doc:docs/ASSURANCE_MARK.md · document · - · The assurance mark · docs/ASSURANCE_MARK.md:1
+
+## docs/AUTHENTICATION.md
+> -
+- doc:docs/AUTHENTICATION.md · document · - · Human and session authentication · docs/AUTHENTICATION.md:1
+
+## docs/COMMANDS.md
+> -
+- doc:docs/COMMANDS.md · document · - · The command surface · docs/COMMANDS.md:1
+
+## docs/COMPATIBILITY.md
+> -
+- doc:docs/COMPATIBILITY.md · document · - · Compatibility from 1.0 · docs/COMPATIBILITY.md:1
+
+## docs/DEFINITIONS.md
+> -
+- doc:docs/DEFINITIONS.md · document · - · Definitions — what each object is · docs/DEFINITIONS.md:1
+
+## docs/DOCUMENTS.md
+> -
+- doc:docs/DOCUMENTS.md · document · - · Documents from records · docs/DOCUMENTS.md:1
+
+## docs/EVAL.md
+> -
+- doc:docs/EVAL.md · document · - · `war eval` — the agent loop, measured · docs/EVAL.md:1
+
+## docs/EXAMPLES/01-code.md
+> -
+- doc:docs/EXAMPLES/01-code.md · document · - · Example 1 — a code Warrant, walked from its records · docs/EXAMPLES/01-code.md:1
+
+## docs/EXAMPLES/02-document.md
+> -
+- doc:docs/EXAMPLES/02-document.md · document · - · Example 2 — a document Warrant: a research memo with a gate · docs/EXAMPLES/02-document.md:1
+
+## docs/EXAMPLES/03-run.md
+> -
+- doc:docs/EXAMPLES/03-run.md · document · - · Example 3 — a run Warrant: the conformance battery as a service stage · docs/EXAMPLES/03-run.md:1
+
+## docs/EXAMPLES/04-contractor.md
+> -
+- doc:docs/EXAMPLES/04-contractor.md · document · - · Example 4 — a contractor Work Order: terms beside the technical core · docs/EXAMPLES/04-contractor.md:1
+
+## docs/EXAMPLES/README.md
+> -
+- doc:docs/EXAMPLES/README.md · document · - · Examples · docs/EXAMPLES/README.md:1
+
+## docs/FRICTION.md
+> -
+- doc:docs/FRICTION.md · document · - · Friction: what is measured, and what is not · docs/FRICTION.md:1
+
+## docs/GO.md
+> -
+- doc:docs/GO.md · document · - · Running the work graph: `war evidence go` and `war start` · docs/GO.md:1
+
+## docs/GRAMMAR.md
+> -
+- doc:docs/GRAMMAR.md · document · - · The document grammar · docs/GRAMMAR.md:1
+
+## docs/HOTLINE.md
+> -
+- doc:docs/HOTLINE.md · document · - · The hotline: how a question blocks, who can answer, and the limits on a performance · docs/HOTLINE.md:1
+
+## docs/INSTALL.md
+> -
+- doc:docs/INSTALL.md · document · - · Installing and updating `war` · docs/INSTALL.md:1
+
+## docs/INVALIDATION.md
+> -
+- doc:docs/INVALIDATION.md · document · - · Custody, invalidation and dispute · docs/INVALIDATION.md:1
+
+## docs/LEDGER.md
+> -
+- doc:docs/LEDGER.md · document · - · The file ledger · docs/LEDGER.md:1
+
+## docs/LIMINAL_HOST.md
+> -
+- doc:docs/LIMINAL_HOST.md · document · - · Hosting the WAR domain in Liminal: `oh.war/liminal-v1` · docs/LIMINAL_HOST.md:1
+
+## docs/PERFORM.md
+> -
+- doc:docs/PERFORM.md · document · - · `war perform`: what it guarantees, on which OS, and what it does not · docs/PERFORM.md:1
+
+## docs/PRESETS.md
+> -
+- doc:docs/PRESETS.md · document · - · Presets, roles and official Warrants · docs/PRESETS.md:1
+
+## docs/PROFILES.md
+> -
+- doc:docs/PROFILES.md · document · - · Profiles · docs/PROFILES.md:1
+
+## docs/PROJECTION_CONTRACT.md
+> -
+- doc:docs/PROJECTION_CONTRACT.md · document · - · The projection contract · docs/PROJECTION_CONTRACT.md:1
+
+## docs/PUBLISHING.md
+> -
+- doc:docs/PUBLISHING.md · document · - · Publishing to crates.io · docs/PUBLISHING.md:1
+
+## docs/RESOLVING.md
+> -
+- doc:docs/RESOLVING.md · document · - · Resolving a Warrant · docs/RESOLVING.md:1
+
+## docs/RETENTION.md
+> -
+- doc:docs/RETENTION.md · document · - · Retention, archiving and the 1,000-Warrant budget · docs/RETENTION.md:1
+
+## docs/SCORE.md
+> -
+- doc:docs/SCORE.md · document · - · The compliance score · docs/SCORE.md:1
+
+## docs/SIGNING.md
+> -
+- doc:docs/SIGNING.md · document · - · Signing · docs/SIGNING.md:1
+
+## docs/SKILLS.md
+> -
+- doc:docs/SKILLS.md · document · - · War skills · docs/SKILLS.md:1
+
+## docs/STORAGE.md
+> -
+- doc:docs/STORAGE.md · document · - · Storage: how records are written, what a crash leaves, and what is kept · docs/STORAGE.md:1
+
+## docs/TEAMS.md
+> -
+- doc:docs/TEAMS.md · document · - · Teams: review assignment and a queue per person · docs/TEAMS.md:1
+
+## docs/THREAT_MODEL.md
+> -
+- doc:docs/THREAT_MODEL.md · document · - · Threat model · docs/THREAT_MODEL.md:1
+
+## docs/TICKETS.md
+> -
+- doc:docs/TICKETS.md · document · - · Tickets · docs/TICKETS.md:1
+
+## docs/TUI.md
+> -
+- doc:docs/TUI.md · document · - · `war` — the app · docs/TUI.md:1
+
+## docs/TYPES.md
+> -
+- doc:docs/TYPES.md · document · - · Types: records and relations · docs/TYPES.md:1
+
+## docs/VERIFICATION.md
+> -
+- doc:docs/VERIFICATION.md · document · - · Verification · docs/VERIFICATION.md:1
+
+## docs/WEBUI.md
+> -
+- doc:docs/WEBUI.md · document · - · `war ui` — the web UI · docs/WEBUI.md:1
+
+## docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md
+> -
+- OW-ADR-0001 · adr · - · ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation · docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md:1
+
+## docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md
+> -
+- OW-ADR-0002 · adr · - · ADR OW-0002: Parse atom frontmatter with a restricted reader, not a YAML library · docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md:1
+
+## docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md
+> -
+- OW-ADR-0003 · adr · - · ADR OW-0003: Extend the restricted reader for structured atoms rather than adopt a YAML library · docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md:1
+
+## docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md
+> -
+- OW-ADR-0004 · adr · - · ADR OW-0004: Represent partial authorization and partial contract coverage explicitly · docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md:1
+
+## docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md
+> -
+- OW-ADR-0005 · adr · - · ADR OW-0005: A local gate is a candidate, and a gate is not a string · docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md:1
+
+## docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md
+> -
+- OW-ADR-0006 · adr · - · ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown · docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md:1
+
+## docs/adr/atoms/OW-ADR-0007-91-2-residue-narrowing.md
+> -
+- OW-ADR-0007 · adr · - · ADR OW-0007: §91.2 tests 11, 13, 14 and 15 are narrowed, each for a different reason · docs/adr/atoms/OW-ADR-0007-91-2-residue-narrowing.md:1
+
+## docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md
+> -
+- OW-ADR-0008 · adr · - · ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text · docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md:1
+
+## docs/adr/atoms/OW-ADR-0009-openwarrant-bonsai-authority-seam.md
+> -
+- OW-ADR-0009 · adr · - · ADR OW-0009: OpenWarrant owns work authority; Bonsai owns repository checks · docs/adr/atoms/OW-ADR-0009-openwarrant-bonsai-authority-seam.md:1
+
+## docs/adr/atoms/OW-ADR-0010-machine-scope-and-evidence-binding.md
+> -
+- OW-ADR-0010 · adr · - · ADR OW-0010: Bind machine scope and Bonsai evidence to exact bytes · docs/adr/atoms/OW-ADR-0010-machine-scope-and-evidence-binding.md:1
+
+## docs/adr/atoms/OW-ADR-0011-enforcement-rollout-and-github-policy.md
+> -
+- OW-ADR-0011 · adr · - · ADR OW-0011: Report first; block scope and architecture after qualification · docs/adr/atoms/OW-ADR-0011-enforcement-rollout-and-github-policy.md:1
+
+## docs/adr/atoms/OW-ADR-0012-correction-act.md
+> -
+- OW-ADR-0012 · adr · - · ADR OW-0012: A delivered artifact of a resolved Warrant moves only through a correction · docs/adr/atoms/OW-ADR-0012-correction-act.md:1
+
+## docs/adr/atoms/OW-ADR-0013-draft-proposal-v2.md
+> -
+- OW-ADR-0013 · adr · - · ADR OW-0013: Draft Proposal v2 — operations carry their payloads · docs/adr/atoms/OW-ADR-0013-draft-proposal-v2.md:1
+
+## docs/adr/atoms/OW-ADR-0014-async-runtime-for-mcp-transport.md
+> -
+- OW-ADR-0014 · adr · - · ADR OW-0014: an async runtime is admitted for the MCP transport, and nowhere else · docs/adr/atoms/OW-ADR-0014-async-runtime-for-mcp-transport.md:1
+
+## docs/adr/atoms/OW-ADR-0015-attestation-envelope.md
+> -
+- OW-ADR-0015 · adr · - · ADR OW-0015: every ssh-signed act is attested as an in-toto Statement in a DSSE envelope · docs/adr/atoms/OW-ADR-0015-attestation-envelope.md:1
+
+## docs/adr/atoms/OW-ADR-0016-sas-1-0-0.md
+> -
+- OW-ADR-0016 · adr · - · ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release · docs/adr/atoms/OW-ADR-0016-sas-1-0-0.md:1
+
+## docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md
+> -
+- OW-ADR-0017 · adr · - · ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 · docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md:1
+
+## docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md
+> -
+- OW-ADR-0018 · adr · - · ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox · docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md:1
+
+## docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md
+> -
+- OW-ADR-0019 · adr · - · ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority · docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md:1
+
+## docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md
+> -
+- OW-ADR-0020 · adr · - · ADR OW-0020: ratatui and crossterm for the terminal dashboard · docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md:1
+
+## docs/adr/atoms/OW-ADR-0021-pin-ownership.md
+> -
+- OW-ADR-0021 · adr · - · ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it · docs/adr/atoms/OW-ADR-0021-pin-ownership.md:1
+
+## docs/adr/atoms/OW-ADR-0022-current-by-relation.md
+> -
+- OW-ADR-0022 · adr · - · ADR OW-0022: Two projections, current by relation; atoms are the only authored thing · docs/adr/atoms/OW-ADR-0022-current-by-relation.md:1
+
+## docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md
+> -
+- OW-ADR-0023 · adr · - · ADR OW-0023: The roadmap is a record — one per program, beside the SAS · docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md:1
+
+## docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md
+> -
+- OW-ADR-0024 · adr · - · ADR OW-0024: Knowledge Fabric owns a registered Warrant's lifecycle; what stays local, and what each human act becomes · docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md:1
+
+## docs/adr/atoms/OW-ADR-0025-assurance-mark.md
+> -
+- OW-ADR-0025 · adr · - · ADR OW-0025: The assurance mark — baseline v1, how a mark comes to exist, and what it binds · docs/adr/atoms/OW-ADR-0025-assurance-mark.md:1
+
+## docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md
+> -
+- OW-ADR-0026 · adr · - · ADR OW-0026: A deliverable a native system holds is a reference, never a repository file · docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md:1
+
+## docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md
+> -
+- OW-ADR-0027 · adr · - · ADR OW-0027: The Knowledge Fabric compiler interface — who compiles, and the process contract between them · docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md:1
+
+## docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md
+> -
+- OW-ADR-0028 · adr · - · ADR OW-0028: SAS sections are atoms — identity now, authored source later · docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md:1
+
+## docs/adr/atoms/OW-ADR-0029-standing-authorization.md
+> -
+- OW-ADR-0029 · adr · - · ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work · docs/adr/atoms/OW-ADR-0029-standing-authorization.md:1
+
+## docs/adr/atoms/OW-ADR-0030-reviewed-subject-binding.md
+> -
+- OW-ADR-0030 · adr · - · ADR OW-0030: Bind a verdict to the subject that was reviewed · docs/adr/atoms/OW-ADR-0030-reviewed-subject-binding.md:1
+
+## docs/adr/atoms/OW-ADR-0031-typed-records.md
+> -
+- OW-ADR-0031 · adr · - · ADR OW-0031: Documents are typed records; a document's type selects its capabilities · docs/adr/atoms/OW-ADR-0031-typed-records.md:1
+
+## docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md
+> -
+- OW-ADR-0032 · adr · - · ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale · docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md:1
+
+## docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md
+> -
+- OW-ADR-native-acceptance-7d21adfa · adr · - · Version native acceptance separately from legacy resolution · docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md:1
+
+## docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md
+> -
+- OW-ADR-native-inputs-98b57f41 · adr · - · Retain native verifier inputs as inert archive data · docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md:1
+
+## docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md
+> -
+- OW-ADR-native-policy-e8b574f1 · adr · - · Bind native acceptance to protected policy observations · docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md:1
+
+## docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md
+> -
+- OW-ADR-runtime-contract-80d7bda6 · adr · - · Retain exact runtime contract source snapshots · docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md:1
+
+## docs/agents/domain.md
+> -
+- doc:docs/agents/domain.md · document · - · Domain docs · docs/agents/domain.md:1
+
+## docs/agents/issue-tracker.md
+> -
+- doc:docs/agents/issue-tracker.md · document · - · Issue tracker: GitHub · docs/agents/issue-tracker.md:1
+
+## docs/agents/legacy-warrant-workflow.md
+> -
+- doc:docs/agents/legacy-warrant-workflow.md · document · - · Working in this repository · docs/agents/legacy-warrant-workflow.md:1
+
+## docs/agents/triage-labels.md
+> -
+- doc:docs/agents/triage-labels.md · document · - · Triage labels · docs/agents/triage-labels.md:1
+
+## docs/authority/batches/interrupted/README.md
+> -
+- doc:docs/authority/batches/interrupted/README.md · document · - · Interrupted batches · docs/authority/batches/interrupted/README.md:1
+
+## docs/cli/authority.md
+> -
+- doc:docs/cli/authority.md · document · - · Signed authority changes · docs/cli/authority.md:1
+
+## docs/cli/dispatch-bundle.md
+> -
+- doc:docs/cli/dispatch-bundle.md · document · - · Portable legacy Dispatch context · docs/cli/dispatch-bundle.md:1
+
+## docs/cli/doctor.md
+> -
+- doc:docs/cli/doctor.md · document · - · Repository doctor · docs/cli/doctor.md:1
+
+## docs/cli/inbox.md
+> -
+- doc:docs/cli/inbox.md · document · - · `war inbox` · docs/cli/inbox.md:1
+
+## docs/cli/preflight.md
+> -
+- doc:docs/cli/preflight.md · document · - · `war preflight` · docs/cli/preflight.md:1
+
+## docs/cli/telemetry.md
+> -
+- doc:docs/cli/telemetry.md · document · - · Telemetry source and retained baselines · docs/cli/telemetry.md:1
+
+## docs/design/agent-context-review.md
+> -
+- doc:docs/design/agent-context-review.md · document · - · Agent-readable artifacts and compiler projections · docs/design/agent-context-review.md:1
+
+## docs/design/agent-stop-points.md
+> -
+- doc:docs/design/agent-stop-points.md · document · - · Stops, failures and changes · docs/design/agent-stop-points.md:1
+
+## docs/design/amendment-review/README.md
+> -
+- doc:docs/design/amendment-review/README.md · document · - · Amendment review and publication evidence · docs/design/amendment-review/README.md:1
+
+## docs/design/amendment-review/integration-results.md
+> -
+- doc:docs/design/amendment-review/integration-results.md · document · - · Integrated candidate validation · docs/design/amendment-review/integration-results.md:1
+
+## docs/design/ci-gate-runtime-budget-20261001.md
+> -
+- doc:docs/design/ci-gate-runtime-budget-20261001.md · document · - · Full CI gate runtime budget · docs/design/ci-gate-runtime-budget-20261001.md:1
+
+## docs/design/completion-audit-20260915/README.md
+> -
+- doc:docs/design/completion-audit-20260915/README.md · document · - · Completion audit, 2026-09-15 · docs/design/completion-audit-20260915/README.md:1
+
+## docs/design/completion-audit-20260915/review.md
+> -
+- doc:docs/design/completion-audit-20260915/review.md · document · - · Independent review · docs/design/completion-audit-20260915/review.md:1
+
+## docs/design/context-projection-and-shared-warrant-model.md
+> -
+- doc:docs/design/context-projection-and-shared-warrant-model.md · document · - · Context views and shared cross-project Warrants · docs/design/context-projection-and-shared-warrant-model.md:1
+
+## docs/design/friction-feedback-review.md
+> -
+- doc:docs/design/friction-feedback-review.md · document · - · Friction feedback: retained changes and current gaps · docs/design/friction-feedback-review.md:1
+
+## docs/design/friction-findings.md
+> -
+- doc:docs/design/friction-findings.md · document · - · Architecture friction: what landed, and what a signature is holding · docs/design/friction-findings.md:1
+
+## docs/design/full-provenance-migration.md
+> -
+- doc:docs/design/full-provenance-migration.md · document · - · Full-provenance migration · docs/design/full-provenance-migration.md:1
+
+## docs/design/openwarrant-friction.md
+> -
+- doc:docs/design/openwarrant-friction.md · document · - · OpenWarrant: less friction, safer AI implementation · docs/design/openwarrant-friction.md:1
+
+## docs/design/openwarrant-product-spec.md
+> -
+- doc:docs/design/openwarrant-product-spec.md · document · - · OpenWarrant: document standard and low-friction toolchain · docs/design/openwarrant-product-spec.md:1
+
+## docs/design/ow148-path-amendment/README.md
+> -
+- doc:docs/design/ow148-path-amendment/README.md · document · - · OW-WAR-0148: proposed path amendment · docs/design/ow148-path-amendment/README.md:1
+
+## docs/design/progress-viewer-followups.md
+> -
+- doc:docs/design/progress-viewer-followups.md · document · - · Progress viewer follow-ups · docs/design/progress-viewer-followups.md:1
+
+## docs/design/rc2-adoption-plan.md
+> -
+- doc:docs/design/rc2-adoption-plan.md · document · - · RC.2 adoption and consolidation plan · docs/design/rc2-adoption-plan.md:1
+
+## docs/design/rc2-implementation-roadmap.md
+> -
+- doc:docs/design/rc2-implementation-roadmap.md · document · - · OpenWarrant RC.2 to Stable 1.0 implementation Warrants · docs/design/rc2-implementation-roadmap.md:1
+
+## docs/design/rc2-roadmap-validation.md
+> -
+- doc:docs/design/rc2-roadmap-validation.md · document · - · RC.2 implementation roadmap: planning validation · docs/design/rc2-roadmap-validation.md:1
+
+## docs/design/readme-refresh-review.md
+> -
+- doc:docs/design/readme-refresh-review.md · document · - · SAS consolidation and README correction review · docs/design/readme-refresh-review.md:1
+
+## docs/design/remaining-warrant-audit-20261001.md
+> -
+- doc:docs/design/remaining-warrant-audit-20261001.md · document · - · Remaining Warrant preparation audit · docs/design/remaining-warrant-audit-20261001.md:1
+
+## docs/design/remaining-work.md
+> -
+- doc:docs/design/remaining-work.md · document · - · Remaining work · docs/design/remaining-work.md:1
+
+## docs/design/reviewed-subject-binding-wip.md
+> -
+- doc:docs/design/reviewed-subject-binding-wip.md · document · - · Reviewed subject binding: saved implementation slices · docs/design/reviewed-subject-binding-wip.md:1
+
+## docs/design/runtime-collector-enrollment.md
+> -
+- doc:docs/design/runtime-collector-enrollment.md · document · - · Runtime collector enrollment — candidate contract · docs/design/runtime-collector-enrollment.md:1
+
+## docs/design/sdk-standard-amendment.md
+> -
+- doc:docs/design/sdk-standard-amendment.md · document · - · SDK and standard amendment: review entry · docs/design/sdk-standard-amendment.md:1
+
+## docs/design/visual-roadmap.md
+> -
+- doc:docs/design/visual-roadmap.md · document · - · Configurable visual roadmap · docs/design/visual-roadmap.md:1
+
+## docs/design/vocabulary-consolidation.md
+> -
+- doc:docs/design/vocabulary-consolidation.md · document · - · One vocabulary for RC.2 · docs/design/vocabulary-consolidation.md:1
+
+## docs/design/war-skills-audit.md
+> -
+- doc:docs/design/war-skills-audit.md · document · - · War skill and planning audit · docs/design/war-skills-audit.md:1
+
+## docs/format/FORMAT-1.0.md
+> -
+- doc:docs/format/FORMAT-1.0.md · document · - · OpenWarrant Format 1.0 · docs/format/FORMAT-1.0.md:1
+
+## docs/format/GOVERNANCE.md
+> -
+- doc:docs/format/GOVERNANCE.md · document · - · Governance of the OpenWarrant Format · docs/format/GOVERNANCE.md:1
+
+## docs/format/README.md
+> -
+- doc:docs/format/README.md · document · - · OpenWarrant Format · docs/format/README.md:1
+
+## docs/integrations/budgets.md
+> -
+- doc:docs/integrations/budgets.md · document · - · Shared context budget and cache contract · docs/integrations/budgets.md:1
+
+## docs/integrations/conditions.md
+> -
+- doc:docs/integrations/conditions.md · document · - · Shared condition evaluation contract · docs/integrations/conditions.md:1
+
+## docs/integrations/kf-compiler.md
+> -
+- doc:docs/integrations/kf-compiler.md · document · - · The Knowledge Fabric compiler interface · docs/integrations/kf-compiler.md:1
+
+## docs/integrations/lamu-source-provider.md
+> -
+- doc:docs/integrations/lamu-source-provider.md · document · - · OpenWarrant and LAMU source-provider contract · docs/integrations/lamu-source-provider.md:1
+
+## docs/integrations/package.md
+> -
+- doc:docs/integrations/package.md · document · - · Shared portable package contract · docs/integrations/package.md:1
+
+## docs/integrations/projections.md
+> -
+- doc:docs/integrations/projections.md · document · - · Shared projection contract · docs/integrations/projections.md:1
+
+## docs/integrations/sdk.md
+> -
+- doc:docs/integrations/sdk.md · document · - · Explicit SDK compiler adapter · docs/integrations/sdk.md:1
+
+## docs/integrations/selection.md
+> -
+- doc:docs/integrations/selection.md · document · - · Shared selection contract · docs/integrations/selection.md:1
+
+## docs/integrations/typescript.md
+> -
+- doc:docs/integrations/typescript.md · document · - · Generated TypeScript record declarations · docs/integrations/typescript.md:1
+
+## docs/records/password-reset/10-records.md
+> -
+- OUT-pr1 · outcome · - · A user who forgot their password regains access without support. · docs/records/password-reset/10-records.md:14
+- REQ-pr1 · requirement · - · A reset token expires 15 minutes after issue. · docs/records/password-reset/10-records.md:18
+- CON-pr1 · constraint · - · Tokens are single-use and stored hashed. · docs/records/password-reset/10-records.md:23
+- DEC-pr1 · decision · - · Signed, stateless tokens with a server-side revocation list: expiry is · docs/records/password-reset/10-records.md:28
+- OPT-pr1 · option · - · Random opaque tokens stored server-side, looked up on every use. · docs/records/password-reset/10-records.md:36
+- OPT-pr2 · option · - · Signed tokens with no server-side state at all; a used token cannot be · docs/records/password-reset/10-records.md:40
+
+## docs/records/password-reset/20-product.md
+> -
+- NG-pr1 · non_goal · - · Recovering an account without access to its registered email address. · docs/records/password-reset/20-product.md:11
+- NG-pr2 · non_goal · - · Changing a password while signed in. That flow exists and does not change. · docs/records/password-reset/20-product.md:16
+- Q-pr1 · question · - · Should a completed reset sign the account out of its other sessions? · docs/records/password-reset/20-product.md:20
+
+## docs/records/password-reset/30-architecture.md
+> -
+- IF-pr1 · interface · - · `POST /password-reset` with an email address. Always answers 202, whether · docs/records/password-reset/30-architecture.md:11
+- IF-pr2 · interface · - · `POST /password-reset/confirm` with the token and a new password. Answers · docs/records/password-reset/30-architecture.md:17
+- CSQ-pr1 · consequence · - · Every confirm reads the revocation list, so the list is on the reset path · docs/records/password-reset/30-architecture.md:25
+
+## docs/releases/alpha1.md
+> -
+- doc:docs/releases/alpha1.md · document · - · OpenWarrant 1.0.0-alpha.1 — usable prototype preview · docs/releases/alpha1.md:1
+
+## docs/releases/alpha2.md
+> -
+- doc:docs/releases/alpha2.md · document · - · OpenWarrant 1.0.0-alpha.2 — authority is enforced on the read path · docs/releases/alpha2.md:1
+
+## docs/releases/alpha3.md
+> -
+- doc:docs/releases/alpha3.md · document · - · OpenWarrant 1.0.0-alpha.3 — tickets are Warrants, and ordinary work is ordinary · docs/releases/alpha3.md:1
+
+## docs/releases/candidate-rehearsal.md
+> -
+- doc:docs/releases/candidate-rehearsal.md · document · - · Candidate packaging and installation rehearsal · docs/releases/candidate-rehearsal.md:1
+
+## docs/releases/dependency-qualification-20261011/README.md
+> -
+- doc:docs/releases/dependency-qualification-20261011/README.md · document · - · Dependency measurement, 2026-10-11 · docs/releases/dependency-qualification-20261011/README.md:1
+
+## docs/releases/legacy-gap-review.md
+> -
+- doc:docs/releases/legacy-gap-review.md · document · - · Legacy gaps: review queue, not reconciliation acceptance · docs/releases/legacy-gap-review.md:1
+
+## docs/releases/publication-runbook.md
+> -
+- doc:docs/releases/publication-runbook.md · document · - · Stable publication runbook — not ready to execute · docs/releases/publication-runbook.md:1
+
+## docs/releases/qualification-20261011/README.md
+> -
+- doc:docs/releases/qualification-20261011/README.md · document · - · Current completion and qualification audit · docs/releases/qualification-20261011/README.md:1
+
+## docs/releases/qualification-20261011/lamu-current-2692/README.md
+> -
+- doc:docs/releases/qualification-20261011/lamu-current-2692/README.md · document · - · Current LAMU SDK exchange · docs/releases/qualification-20261011/lamu-current-2692/README.md:1
+
+## docs/releases/qualification-20261011/packaging-corrected-47cc/README.md
+> -
+- doc:docs/releases/qualification-20261011/packaging-corrected-47cc/README.md · document · - · Corrected native packaging rehearsal · docs/releases/qualification-20261011/packaging-corrected-47cc/README.md:1
+
+## docs/releases/remaining-build-scope.md
+> -
+- doc:docs/releases/remaining-build-scope.md · document · - · Work remaining before Stable 1.0 · docs/releases/remaining-build-scope.md:1
+
+## docs/releases/warrant-reconciliation.md
+> -
+- doc:docs/releases/warrant-reconciliation.md · document · - · Warrant reconciliation before Stable release · docs/releases/warrant-reconciliation.md:1
+
+## docs/research/context-management-2026-09.md
+> -
+- doc:docs/research/context-management-2026-09.md · document · - · Context management: September 2026 comparison · docs/research/context-management-2026-09.md:1
+
+## docs/research/implementation-adapters.md
+> -
+- doc:docs/research/implementation-adapters.md · document · - · OpenWarrant adapters: LAMU, Katana, BLUT, and Liminal · docs/research/implementation-adapters.md:1
+
+## docs/research/normative-projection-regression.md
+> -
+- doc:docs/research/normative-projection-regression.md · document · - · Normative projection regression · docs/research/normative-projection-regression.md:1
+
+## docs/research/tokenizer-approximation.md
+> -
+- doc:docs/research/tokenizer-approximation.md · document · - · Token estimates for Dispatch budgets · docs/research/tokenizer-approximation.md:1
+
+## docs/reviews/phase-1.md
+> -
+- doc:docs/reviews/phase-1.md · document · - · Phase 1 acceptance · docs/reviews/phase-1.md:1
+
+## docs/roadmap/PHASE1_EXIT.md
+> -
+- doc:docs/roadmap/PHASE1_EXIT.md · exit-report · - · Phase 1 exit — measured · docs/roadmap/PHASE1_EXIT.md:1
+
+## docs/roadmap/RELEASE_1_0.md
+> -
+- doc:docs/roadmap/RELEASE_1_0.md · release · - · Release 1.0 — SAS §99 against the record · docs/roadmap/RELEASE_1_0.md:1
+
+## docs/roadmap/atoms/20-phases.yaml
+> -
+- OW-PHASE-0 · phase · - · Telemetry shim · docs/roadmap/atoms/20-phases.yaml:20
+- OW-PHASE-1 · phase · - · File-native WAR compiler · docs/roadmap/atoms/20-phases.yaml:28
+- OW-PHASE-2 · phase · - · Agent planner · docs/roadmap/atoms/20-phases.yaml:36
+- OW-PHASE-3 · phase · - · ADR federation · docs/roadmap/atoms/20-phases.yaml:44
+- OW-PHASE-4 · phase · - · Knowledge Fabric registration · docs/roadmap/atoms/20-phases.yaml:52
+- OW-PHASE-5 · phase · - · Dispatch and Katana execution · docs/roadmap/atoms/20-phases.yaml:60
+- OW-PHASE-6 · phase · - · Gate Registry and assurance case · docs/roadmap/atoms/20-phases.yaml:68
+- OW-PHASE-7 · phase · - · BLUT adapter · docs/roadmap/atoms/20-phases.yaml:76
+- OW-PHASE-8 · phase · - · Liminal production compiler · docs/roadmap/atoms/20-phases.yaml:84
+- OW-PHASE-9 · phase · - · High-assurance controls · docs/roadmap/atoms/20-phases.yaml:92
+- OW-PHASE-10 · phase · - · Contractor Work Order profile · docs/roadmap/atoms/20-phases.yaml:100
+
+## docs/roadmap/roadmap.toml
+> -
+- OW-ROADMAP · roadmap · - · - · docs/roadmap/roadmap.toml:1
+
+## docs/sas/WAR_Software_Architecture_Specification.md
+> -
+- WAR-SAS · spec · - · WAR Software Architecture Specification · docs/sas/WAR_Software_Architecture_Specification.md:1
+- WAR-SAS-1 · section · - · Purpose · docs/sas/WAR_Software_Architecture_Specification.md:38
+- WAR-SAS-2 · section · - · Scope · docs/sas/WAR_Software_Architecture_Specification.md:55
+- WAR-SAS-2.1 · section · - · Initial scope · docs/sas/WAR_Software_Architecture_Specification.md:57
+- WAR-SAS-2.2 · section · - · Eventual scope · docs/sas/WAR_Software_Architecture_Specification.md:70
+- WAR-SAS-2.3 · section · - · Out of scope · docs/sas/WAR_Software_Architecture_Specification.md:87
+- WAR-SAS-3 · section · - · Normative language · docs/sas/WAR_Software_Architecture_Specification.md:103
+- WAR-SAS-4 · section · - · Naming · docs/sas/WAR_Software_Architecture_Specification.md:113
+- WAR-SAS-4.1 · section · - · Formal and human names · docs/sas/WAR_Software_Architecture_Specification.md:115
+- WAR-SAS-4.2 · section · - · System names · docs/sas/WAR_Software_Architecture_Specification.md:135
+- WAR-SAS-4.3 · section · - · ADR is preserved · docs/sas/WAR_Software_Architecture_Specification.md:147
+- WAR-SAS-4.4 · section · - · Work Order is preserved · docs/sas/WAR_Software_Architecture_Specification.md:155
+- WAR-SAS-5 · section · - · Architectural thesis · docs/sas/WAR_Software_Architecture_Specification.md:163
+- WAR-SAS-6 · section · - · System hierarchy · docs/sas/WAR_Software_Architecture_Specification.md:202
+- WAR-SAS-6.1 · section · - · Product or system vision · docs/sas/WAR_Software_Architecture_Specification.md:229
+- WAR-SAS-6.2 · section · - · Software Architecture Specification · docs/sas/WAR_Software_Architecture_Specification.md:233
+- WAR-SAS-6.3 · section · - · Production Roadmap · docs/sas/WAR_Software_Architecture_Specification.md:248
+- WAR-SAS-6.4 · section · - · WAR · docs/sas/WAR_Software_Architecture_Specification.md:254
+- WAR-SAS-6.5 · section · - · Milestone · docs/sas/WAR_Software_Architecture_Specification.md:266
+- WAR-SAS-6.6 · section · - · Stage · docs/sas/WAR_Software_Architecture_Specification.md:272
+- WAR-SAS-6.7 · section · - · Dispatch · docs/sas/WAR_Software_Architecture_Specification.md:287
+- WAR-SAS-6.8 · section · - · Artifact and evidence · docs/sas/WAR_Software_Architecture_Specification.md:291
+- WAR-SAS-6.9 · section · - · Resolution · docs/sas/WAR_Software_Architecture_Specification.md:297
+- WAR-SAS-6.10 · section · - · The levels, and the one rule about SAS and Warrant · docs/sas/WAR_Software_Architecture_Specification.md:301
+- WAR-SAS-7 · section · - · Design laws · docs/sas/WAR_Software_Architecture_Specification.md:366
+- WAR-SAS-8 · section · - · Goals · docs/sas/WAR_Software_Architecture_Specification.md:484
+- WAR-SAS-9 · section · - · Non-goals · docs/sas/WAR_Software_Architecture_Specification.md:506
+- WAR-SAS-10 · section · - · Implementation basis · docs/sas/WAR_Software_Architecture_Specification.md:521
+- WAR-SAS-11 · section · - · Component ownership · docs/sas/WAR_Software_Architecture_Specification.md:539
+- WAR-SAS-11.1 · section · - · Knowledge Fabric is the federation plane · docs/sas/WAR_Software_Architecture_Specification.md:553
+- WAR-SAS-11.2 · section · - · OpenWarrant is the protocol and compiler surface · docs/sas/WAR_Software_Architecture_Specification.md:559
+- WAR-SAS-11.3 · section · - · Liminal is the substrate; the WAR domain is OpenWarrant's, hosted by Liminal · docs/sas/WAR_Software_Architecture_Specification.md:565
+- WAR-SAS-11.4 · section · - · Katana is the agent runtime · docs/sas/WAR_Software_Architecture_Specification.md:578
+- WAR-SAS-11.5 · section · - · BLUT is the typed computational runtime · docs/sas/WAR_Software_Architecture_Specification.md:582
+- WAR-SAS-12 · section · - · Identity and federation · docs/sas/WAR_Software_Architecture_Specification.md:586
+- WAR-SAS-12.1 · section · - · Identity layers · docs/sas/WAR_Software_Architecture_Specification.md:588
+- WAR-SAS-12.2 · section · - · UUID is immediate · docs/sas/WAR_Software_Architecture_Specification.md:607
+- WAR-SAS-12.3 · section · - · Local alias · docs/sas/WAR_Software_Architecture_Specification.md:611
+- WAR-SAS-12.4 · section · - · Enterprise identifier · docs/sas/WAR_Software_Architecture_Specification.md:624
+- WAR-SAS-12.5 · section · - · Federation record · docs/sas/WAR_Software_Architecture_Specification.md:632
+- WAR-SAS-12.6 · section · - · Offline creation · docs/sas/WAR_Software_Architecture_Specification.md:648
+- WAR-SAS-12.7 · section · - · Stable references · docs/sas/WAR_Software_Architecture_Specification.md:654
+- WAR-SAS-13 · section · - · Source Holders and Jurisdiction · docs/sas/WAR_Software_Architecture_Specification.md:658
+- WAR-SAS-13.1 · section · - · Authored atom · docs/sas/WAR_Software_Architecture_Specification.md:674
+- WAR-SAS-13.2 · section · - · Bound atom · docs/sas/WAR_Software_Architecture_Specification.md:688
+- WAR-SAS-13.3 · section · - · Generated atom · docs/sas/WAR_Software_Architecture_Specification.md:707
+- WAR-SAS-13.4 · section · - · Jurisdiction law · docs/sas/WAR_Software_Architecture_Specification.md:725
+- WAR-SAS-14 · section · - · Workspace Basis · docs/sas/WAR_Software_Architecture_Specification.md:733
+- WAR-SAS-15 · section · - · One logical document · docs/sas/WAR_Software_Architecture_Specification.md:755
+- WAR-SAS-15.1 · section · - · Canonical meaning · docs/sas/WAR_Software_Architecture_Specification.md:757
+- WAR-SAS-15.2 · section · - · Human parent · docs/sas/WAR_Software_Architecture_Specification.md:761
+- WAR-SAS-15.3 · section · - · Machine parent · docs/sas/WAR_Software_Architecture_Specification.md:765
+- WAR-SAS-15.4 · section · - · Source atoms · docs/sas/WAR_Software_Architecture_Specification.md:769
+- WAR-SAS-15.5 · section · - · Concatenation versus composition · docs/sas/WAR_Software_Architecture_Specification.md:773
+- WAR-SAS-16 · section · - · WAR composition grammar · docs/sas/WAR_Software_Architecture_Specification.md:799
+- WAR-SAS-16.1 · section · - · Core role order · docs/sas/WAR_Software_Architecture_Specification.md:803
+- WAR-SAS-16.2 · section · - · Multiple atoms per role · docs/sas/WAR_Software_Architecture_Specification.md:821
+- WAR-SAS-16.3 · section · - · Required roles by profile · docs/sas/WAR_Software_Architecture_Specification.md:838
+- WAR-SAS-16.4 · section · - · Extension roles · docs/sas/WAR_Software_Architecture_Specification.md:867
+- WAR-SAS-17 · section · - · Parent document rules · docs/sas/WAR_Software_Architecture_Specification.md:881
+- WAR-SAS-17.1 · section · - · Generated header · docs/sas/WAR_Software_Architecture_Specification.md:883
+- WAR-SAS-17.2 · section · - · Parent authority · docs/sas/WAR_Software_Architecture_Specification.md:897
+- WAR-SAS-17.3 · section · - · Generated drift · docs/sas/WAR_Software_Architecture_Specification.md:903
+- WAR-SAS-17.4 · section · - · Parent editing · docs/sas/WAR_Software_Architecture_Specification.md:907
+- WAR-SAS-17.5 · section · - · Read projections · docs/sas/WAR_Software_Architecture_Specification.md:918
+- WAR-SAS-18 · section · - · WAR internal sections · docs/sas/WAR_Software_Architecture_Specification.md:934
+- WAR-SAS-18.1 · section · - · Control · docs/sas/WAR_Software_Architecture_Specification.md:938
+- WAR-SAS-18.2 · section · - · Intent · docs/sas/WAR_Software_Architecture_Specification.md:951
+- WAR-SAS-18.3 · section · - · Basis · docs/sas/WAR_Software_Architecture_Specification.md:961
+- WAR-SAS-18.4 · section · - · Decisions · docs/sas/WAR_Software_Architecture_Specification.md:972
+- WAR-SAS-18.5 · section · - · Work Order · docs/sas/WAR_Software_Architecture_Specification.md:982
+- WAR-SAS-18.6 · section · - · Milestones · docs/sas/WAR_Software_Architecture_Specification.md:994
+- WAR-SAS-18.7 · section · - · Execution · docs/sas/WAR_Software_Architecture_Specification.md:1002
+- WAR-SAS-18.8 · section · - · Assurance · docs/sas/WAR_Software_Architecture_Specification.md:1014
+- WAR-SAS-18.9 · section · - · Resolution · docs/sas/WAR_Software_Architecture_Specification.md:1026
+- WAR-SAS-18.10 · section · - · Ongoing validation · docs/sas/WAR_Software_Architecture_Specification.md:1036
+- WAR-SAS-19 · section · - · ADR architecture · docs/sas/WAR_Software_Architecture_Specification.md:1042
+- WAR-SAS-19.1 · section · - · Every normative decision is first class · docs/sas/WAR_Software_Architecture_Specification.md:1044
+- WAR-SAS-19.2 · section · - · What is not a new ADR · docs/sas/WAR_Software_Architecture_Specification.md:1064
+- WAR-SAS-19.3 · section · - · ADR Source Holder · docs/sas/WAR_Software_Architecture_Specification.md:1081
+- WAR-SAS-19.4 · section · - · ADR relation to WAR · docs/sas/WAR_Software_Architecture_Specification.md:1085
+- WAR-SAS-19.5 · section · - · ADR creation during execution · docs/sas/WAR_Software_Architecture_Specification.md:1099
+- WAR-SAS-19.6 · section · - · ADR overview · docs/sas/WAR_Software_Architecture_Specification.md:1110
+- WAR-SAS-19.7 · section · - · No manual ADR index · docs/sas/WAR_Software_Architecture_Specification.md:1128
+- WAR-SAS-20 · section · - · Parent and child WARs · docs/sas/WAR_Software_Architecture_Specification.md:1132
+- WAR-SAS-20.1 · section · - · Parent semantics · docs/sas/WAR_Software_Architecture_Specification.md:1134
+- WAR-SAS-20.2 · section · - · Child semantics · docs/sas/WAR_Software_Architecture_Specification.md:1146
+- WAR-SAS-20.3 · section · - · No retroactive parent rationale · docs/sas/WAR_Software_Architecture_Specification.md:1163
+- WAR-SAS-20.4 · section · - · Parent generated child view · docs/sas/WAR_Software_Architecture_Specification.md:1172
+- WAR-SAS-20.5 · section · - · Parent resolution · docs/sas/WAR_Software_Architecture_Specification.md:1176
+- WAR-SAS-20.6 · section · - · Split rule · docs/sas/WAR_Software_Architecture_Specification.md:1185
+- WAR-SAS-21 · section · - · Supersession and deprecation · docs/sas/WAR_Software_Architecture_Specification.md:1198
+- WAR-SAS-21.1 · section · - · Supersession relation · docs/sas/WAR_Software_Architecture_Specification.md:1200
+- WAR-SAS-21.2 · section · - · Old WAR state · docs/sas/WAR_Software_Architecture_Specification.md:1210
+- WAR-SAS-21.3 · section · - · Deprecated without replacement · docs/sas/WAR_Software_Architecture_Specification.md:1222
+- WAR-SAS-21.4 · section · - · No deletion · docs/sas/WAR_Software_Architecture_Specification.md:1230
+- WAR-SAS-21.5 · section · - · Adoption of unresolved work · docs/sas/WAR_Software_Architecture_Specification.md:1234
+- WAR-SAS-22 · section · - · Work Order architecture · docs/sas/WAR_Software_Architecture_Specification.md:1238
+- WAR-SAS-22.1 · section · - · Technical Work Order · docs/sas/WAR_Software_Architecture_Specification.md:1240
+- WAR-SAS-22.2 · section · - · Tracking is generated · docs/sas/WAR_Software_Architecture_Specification.md:1259
+- WAR-SAS-22.3 · section · - · Contractor future compatibility · docs/sas/WAR_Software_Architecture_Specification.md:1272
+- WAR-SAS-22.4 · section · - · Work Order projection is not a second source · docs/sas/WAR_Software_Architecture_Specification.md:1290
+- WAR-SAS-23 · section · - · Milestones and stages · docs/sas/WAR_Software_Architecture_Specification.md:1294
+- WAR-SAS-23.1 · section · - · Milestone definition · docs/sas/WAR_Software_Architecture_Specification.md:1296
+- WAR-SAS-23.2 · section · - · Milestone state · docs/sas/WAR_Software_Architecture_Specification.md:1312
+- WAR-SAS-23.3 · section · - · Stage definition · docs/sas/WAR_Software_Architecture_Specification.md:1327
+- WAR-SAS-23.4 · section · - · Executor kinds · docs/sas/WAR_Software_Architecture_Specification.md:1346
+- WAR-SAS-23.5 · section · - · Named ports · docs/sas/WAR_Software_Architecture_Specification.md:1359
+- WAR-SAS-23.6 · section · - · Stage versus milestone · docs/sas/WAR_Software_Architecture_Specification.md:1365
+- WAR-SAS-24 · section · - · State model · docs/sas/WAR_Software_Architecture_Specification.md:1376
+- WAR-SAS-24.1 · section · - · Phase · docs/sas/WAR_Software_Architecture_Specification.md:1380
+- WAR-SAS-24.2 · section · - · Execution condition · docs/sas/WAR_Software_Architecture_Specification.md:1392
+- WAR-SAS-24.3 · section · - · Common outcome · docs/sas/WAR_Software_Architecture_Specification.md:1400
+- WAR-SAS-24.4 · section · - · Currency · docs/sas/WAR_Software_Architecture_Specification.md:1413
+- WAR-SAS-24.5 · section · - · Resolution standing · docs/sas/WAR_Software_Architecture_Specification.md:1421
+- WAR-SAS-24.6 · section · - · Truthful combinations · docs/sas/WAR_Software_Architecture_Specification.md:1429
+- WAR-SAS-24.7 · section · - · Core transitions · docs/sas/WAR_Software_Architecture_Specification.md:1463
+- WAR-SAS-24.8 · section · - · Material amendment transition · docs/sas/WAR_Software_Architecture_Specification.md:1483
+- WAR-SAS-24.9 · section · - · Post-resolution events · docs/sas/WAR_Software_Architecture_Specification.md:1494
+- WAR-SAS-25 · section · - · Assurance levels · docs/sas/WAR_Software_Architecture_Specification.md:1506
+- WAR-SAS-25.1 · section · - · Basic · docs/sas/WAR_Software_Architecture_Specification.md:1516
+- WAR-SAS-25.2 · section · - · Controlled · docs/sas/WAR_Software_Architecture_Specification.md:1538
+- WAR-SAS-25.3 · section · - · High assurance · docs/sas/WAR_Software_Architecture_Specification.md:1552
+- WAR-SAS-25.4 · section · - · Risk-derived floor · docs/sas/WAR_Software_Architecture_Specification.md:1569
+- WAR-SAS-26 · section · - · Executor responsibility tiers · docs/sas/WAR_Software_Architecture_Specification.md:1586
+- WAR-SAS-26.1 · section · - · T1 — constitutional or mission-critical · docs/sas/WAR_Software_Architecture_Specification.md:1597
+- WAR-SAS-26.2 · section · - · T2 — implementation judgment · docs/sas/WAR_Software_Architecture_Specification.md:1612
+- WAR-SAS-26.3 · section · - · T3 — minor implementation detail · docs/sas/WAR_Software_Architecture_Specification.md:1616
+- WAR-SAS-26.4 · section · - · T4 — mechanical · docs/sas/WAR_Software_Architecture_Specification.md:1620
+- WAR-SAS-26.5 · section · - · Orthogonality · docs/sas/WAR_Software_Architecture_Specification.md:1624
+- WAR-SAS-26.6 · section · - · Automatic promotion · docs/sas/WAR_Software_Architecture_Specification.md:1630
+- WAR-SAS-27 · section · - · Actor authority · docs/sas/WAR_Software_Architecture_Specification.md:1643
+- WAR-SAS-27.1 · section · - · Permitted agent roles · docs/sas/WAR_Software_Architecture_Specification.md:1645
+- WAR-SAS-27.2 · section · - · Prohibited self-authority · docs/sas/WAR_Software_Architecture_Specification.md:1661
+- WAR-SAS-27.3 · section · - · Basic policy-service resolution · docs/sas/WAR_Software_Architecture_Specification.md:1675
+- WAR-SAS-27.4 · section · - · Human role multiplicity · docs/sas/WAR_Software_Architecture_Specification.md:1685
+- WAR-SAS-28 · section · - · Contract revisions · docs/sas/WAR_Software_Architecture_Specification.md:1691
+- WAR-SAS-28.1 · section · - · Stable Warrant identity · docs/sas/WAR_Software_Architecture_Specification.md:1693
+- WAR-SAS-28.2 · section · - · Draft revision · docs/sas/WAR_Software_Architecture_Specification.md:1697
+- WAR-SAS-28.3 · section · - · Proposal snapshot · docs/sas/WAR_Software_Architecture_Specification.md:1701
+- WAR-SAS-28.4 · section · - · Authorization · docs/sas/WAR_Software_Architecture_Specification.md:1705
+- WAR-SAS-28.5 · section · - · Contract digest · docs/sas/WAR_Software_Architecture_Specification.md:1718
+- WAR-SAS-28.6 · section · - · Revision ancestry · docs/sas/WAR_Software_Architecture_Specification.md:1742
+- WAR-SAS-28.7 · section · - · No in-place amendment · docs/sas/WAR_Software_Architecture_Specification.md:1746
+- WAR-SAS-28.8 · section · - · Standing authorization · docs/sas/WAR_Software_Architecture_Specification.md:1750
+- WAR-SAS-29 · section · - · Contract content · docs/sas/WAR_Software_Architecture_Specification.md:1760
+- WAR-SAS-29.1 · section · - · Objective · docs/sas/WAR_Software_Architecture_Specification.md:1764
+- WAR-SAS-29.2 · section · - · Scope · docs/sas/WAR_Software_Architecture_Specification.md:1775
+- WAR-SAS-29.3 · section · - · Basis · docs/sas/WAR_Software_Architecture_Specification.md:1786
+- WAR-SAS-29.4 · section · - · Deliverables · docs/sas/WAR_Software_Architecture_Specification.md:1797
+- WAR-SAS-29.5 · section · - · Milestones and stages · docs/sas/WAR_Software_Architecture_Specification.md:1801
+- WAR-SAS-29.6 · section · - · Autonomy · docs/sas/WAR_Software_Architecture_Specification.md:1805
+- WAR-SAS-29.7 · section · - · Verification · docs/sas/WAR_Software_Architecture_Specification.md:1809
+- WAR-SAS-29.8 · section · - · Rollback or compensation · docs/sas/WAR_Software_Architecture_Specification.md:1813
+- WAR-SAS-29.9 · section · - · Amendment policy · docs/sas/WAR_Software_Architecture_Specification.md:1817
+- WAR-SAS-30 · section · - · Autonomy envelope · docs/sas/WAR_Software_Architecture_Specification.md:1821
+- WAR-SAS-30.1 · section · - · Local choices · docs/sas/WAR_Software_Architecture_Specification.md:1823
+- WAR-SAS-30.2 · section · - · Auto-authorized contract revision · docs/sas/WAR_Software_Architecture_Specification.md:1836
+- WAR-SAS-30.3 · section · - · Manual revision · docs/sas/WAR_Software_Architecture_Specification.md:1849
+- WAR-SAS-30.4 · section · - · Ambiguity behavior · docs/sas/WAR_Software_Architecture_Specification.md:1865
+- WAR-SAS-31 · section · - · Amendment record · docs/sas/WAR_Software_Architecture_Specification.md:1875
+- WAR-SAS-32 · section · - · Prerequisites and readiness · docs/sas/WAR_Software_Architecture_Specification.md:1894
+- WAR-SAS-32.1 · section · - · Contract · docs/sas/WAR_Software_Architecture_Specification.md:1900
+- WAR-SAS-32.2 · section · - · Context · docs/sas/WAR_Software_Architecture_Specification.md:1909
+- WAR-SAS-32.3 · section · - · Graph · docs/sas/WAR_Software_Architecture_Specification.md:1918
+- WAR-SAS-32.4 · section · - · Runtime · docs/sas/WAR_Software_Architecture_Specification.md:1926
+- WAR-SAS-32.5 · section · - · Gates · docs/sas/WAR_Software_Architecture_Specification.md:1939
+- WAR-SAS-32.6 · section · - · Authority · docs/sas/WAR_Software_Architecture_Specification.md:1951
+- WAR-SAS-32.7 · section · - · Preflight meaning · docs/sas/WAR_Software_Architecture_Specification.md:1959
+- WAR-SAS-33 · section · - · Context model · docs/sas/WAR_Software_Architecture_Specification.md:1968
+- WAR-SAS-33.1 · section · - · Context item · docs/sas/WAR_Software_Architecture_Specification.md:1970
+- WAR-SAS-33.2 · section · - · Context roles · docs/sas/WAR_Software_Architecture_Specification.md:1994
+- WAR-SAS-33.3 · section · - · Trust classes · docs/sas/WAR_Software_Architecture_Specification.md:2008
+- WAR-SAS-33.4 · section · - · Precedence · docs/sas/WAR_Software_Architecture_Specification.md:2021
+- WAR-SAS-33.5 · section · - · Context completeness · docs/sas/WAR_Software_Architecture_Specification.md:2041
+- WAR-SAS-33.6 · section · - · Context manifest · docs/sas/WAR_Software_Architecture_Specification.md:2047
+- WAR-SAS-33.7 · section · - · Context projection · docs/sas/WAR_Software_Architecture_Specification.md:2066
+- WAR-SAS-33.8 · section · - · Summary provenance · docs/sas/WAR_Software_Architecture_Specification.md:2081
+- WAR-SAS-34 · section · - · SAS traceability · docs/sas/WAR_Software_Architecture_Specification.md:2085
+- WAR-SAS-34.1 · section · - · Requirement references · docs/sas/WAR_Software_Architecture_Specification.md:2087
+- WAR-SAS-34.2 · section · - · WAR implementation relation · docs/sas/WAR_Software_Architecture_Specification.md:2097
+- WAR-SAS-34.3 · section · - · Requirement status · docs/sas/WAR_Software_Architecture_Specification.md:2117
+- WAR-SAS-34.4 · section · - · Architecture-change discovery · docs/sas/WAR_Software_Architecture_Specification.md:2121
+- WAR-SAS-35 · section · - · Rationale model · docs/sas/WAR_Software_Architecture_Specification.md:2130
+- WAR-SAS-35.1 · section · - · Node classes · docs/sas/WAR_Software_Architecture_Specification.md:2134
+- WAR-SAS-35.2 · section · - · Facts · docs/sas/WAR_Software_Architecture_Specification.md:2147
+- WAR-SAS-35.3 · section · - · Priority · docs/sas/WAR_Software_Architecture_Specification.md:2151
+- WAR-SAS-35.4 · section · - · Forecast · docs/sas/WAR_Software_Architecture_Specification.md:2164
+- WAR-SAS-35.5 · section · - · Alternative · docs/sas/WAR_Software_Architecture_Specification.md:2174
+- WAR-SAS-35.6 · section · - · Decision · docs/sas/WAR_Software_Architecture_Specification.md:2185
+- WAR-SAS-35.7 · section · - · Rationale edges · docs/sas/WAR_Software_Architecture_Specification.md:2189
+- WAR-SAS-36 · section · - · Assumptions and unknowns · docs/sas/WAR_Software_Architecture_Specification.md:2202
+- WAR-SAS-36.1 · section · - · Evidenced premise · docs/sas/WAR_Software_Architecture_Specification.md:2206
+- WAR-SAS-36.2 · section · - · Accepted residual risk · docs/sas/WAR_Software_Architecture_Specification.md:2214
+- WAR-SAS-36.3 · section · - · Blocking unknown · docs/sas/WAR_Software_Architecture_Specification.md:2222
+- WAR-SAS-36.4 · section · - · Circular validation is prohibited · docs/sas/WAR_Software_Architecture_Specification.md:2229
+- WAR-SAS-36.5 · section · - · Claim narrowing · docs/sas/WAR_Software_Architecture_Specification.md:2235
+- WAR-SAS-37 · section · - · Deliverables and artifacts · docs/sas/WAR_Software_Architecture_Specification.md:2249
+- WAR-SAS-37.1 · section · - · Deliverable definition · docs/sas/WAR_Software_Architecture_Specification.md:2251
+- WAR-SAS-37.2 · section · - · Artifact provenance · docs/sas/WAR_Software_Architecture_Specification.md:2265
+- WAR-SAS-37.3 · section · - · Derived report · docs/sas/WAR_Software_Architecture_Specification.md:2281
+- WAR-SAS-37.4 · section · - · Performer submission · docs/sas/WAR_Software_Architecture_Specification.md:2287
+- WAR-SAS-37.5 · section · - · Ownership of a delivered path · docs/sas/WAR_Software_Architecture_Specification.md:2291
+- WAR-SAS-38 · section · - · Acceptance argument · docs/sas/WAR_Software_Architecture_Specification.md:2301
+- WAR-SAS-38.1 · section · - · Obligations, not one prose claim · docs/sas/WAR_Software_Architecture_Specification.md:2303
+- WAR-SAS-38.2 · section · - · Obligation schema · docs/sas/WAR_Software_Architecture_Specification.md:2317
+- WAR-SAS-38.3 · section · - · Scope kinds · docs/sas/WAR_Software_Architecture_Specification.md:2334
+- WAR-SAS-38.4 · section · - · Universal claims · docs/sas/WAR_Software_Architecture_Specification.md:2348
+- WAR-SAS-38.5 · section · - · Dispositions · docs/sas/WAR_Software_Architecture_Specification.md:2352
+- WAR-SAS-38.6 · section · - · Resolution aggregation · docs/sas/WAR_Software_Architecture_Specification.md:2366
+- WAR-SAS-39 · section · - · Contract-adequacy review · docs/sas/WAR_Software_Architecture_Specification.md:2373
+- WAR-SAS-39.1 · section · - · Adversarial question · docs/sas/WAR_Software_Architecture_Specification.md:2377
+- WAR-SAS-39.2 · section · - · Outcomes · docs/sas/WAR_Software_Architecture_Specification.md:2383
+- WAR-SAS-39.3 · section · - · Executed attacks · docs/sas/WAR_Software_Architecture_Specification.md:2396
+- WAR-SAS-39.4 · section · - · Required level · docs/sas/WAR_Software_Architecture_Specification.md:2402
+- WAR-SAS-39.5 · section · - · Honest limitation · docs/sas/WAR_Software_Architecture_Specification.md:2410
+- WAR-SAS-40 · section · - · Epistemic classes · docs/sas/WAR_Software_Architecture_Specification.md:2414
+- WAR-SAS-40.1 · section · - · Claim · docs/sas/WAR_Software_Architecture_Specification.md:2418
+- WAR-SAS-40.2 · section · - · Evidence item · docs/sas/WAR_Software_Architecture_Specification.md:2422
+- WAR-SAS-40.3 · section · - · Observation · docs/sas/WAR_Software_Architecture_Specification.md:2426
+- WAR-SAS-40.4 · section · - · Inference · docs/sas/WAR_Software_Architecture_Specification.md:2434
+- WAR-SAS-40.5 · section · - · Judgment · docs/sas/WAR_Software_Architecture_Specification.md:2448
+- WAR-SAS-40.6 · section · - · Resolution · docs/sas/WAR_Software_Architecture_Specification.md:2459
+- WAR-SAS-40.7 · section · - · Prohibited substitutions · docs/sas/WAR_Software_Architecture_Specification.md:2463
+- WAR-SAS-41 · section · - · Evidence model · docs/sas/WAR_Software_Architecture_Specification.md:2476
+- WAR-SAS-41.1 · section · - · Origins · docs/sas/WAR_Software_Architecture_Specification.md:2478
+- WAR-SAS-41.2 · section · - · Admissibility · docs/sas/WAR_Software_Architecture_Specification.md:2493
+- WAR-SAS-41.3 · section · - · Evidence record · docs/sas/WAR_Software_Architecture_Specification.md:2505
+- WAR-SAS-41.4 · section · - · Time authority · docs/sas/WAR_Software_Architecture_Specification.md:2527
+- WAR-SAS-41.5 · section · - · Chain of custody · docs/sas/WAR_Software_Architecture_Specification.md:2535
+- WAR-SAS-42 · section · - · Judgment model · docs/sas/WAR_Software_Architecture_Specification.md:2549
+- WAR-SAS-43 · section · - · Gate Registry · docs/sas/WAR_Software_Architecture_Specification.md:2572
+- WAR-SAS-43.1 · section · - · Ownership · docs/sas/WAR_Software_Architecture_Specification.md:2574
+- WAR-SAS-43.2 · section · - · Gate Definition · docs/sas/WAR_Software_Architecture_Specification.md:2587
+- WAR-SAS-43.3 · section · - · Lifecycle · docs/sas/WAR_Software_Architecture_Specification.md:2602
+- WAR-SAS-43.4 · section · - · Qualification · docs/sas/WAR_Software_Architecture_Specification.md:2614
+- WAR-SAS-43.5 · section · - · Gate Binding · docs/sas/WAR_Software_Architecture_Specification.md:2629
+- WAR-SAS-43.6 · section · - · Reusable gates · docs/sas/WAR_Software_Architecture_Specification.md:2652
+- WAR-SAS-43.7 · section · - · Subject-owned tests · docs/sas/WAR_Software_Architecture_Specification.md:2658
+- WAR-SAS-44 · section · - · Gate Run semantics · docs/sas/WAR_Software_Architecture_Specification.md:2662
+- WAR-SAS-44.1 · section · - · Askability · docs/sas/WAR_Software_Architecture_Specification.md:2666
+- WAR-SAS-44.2 · section · - · Execution status · docs/sas/WAR_Software_Architecture_Specification.md:2673
+- WAR-SAS-44.3 · section · - · Verdict · docs/sas/WAR_Software_Architecture_Specification.md:2684
+- WAR-SAS-44.4 · section · - · Examples · docs/sas/WAR_Software_Architecture_Specification.md:2692
+- WAR-SAS-44.5 · section · - · Required passing result · docs/sas/WAR_Software_Architecture_Specification.md:2720
+- WAR-SAS-44.6 · section · - · Gate receipt · docs/sas/WAR_Software_Architecture_Specification.md:2730
+- WAR-SAS-44.7 · section · - · Shell strings · docs/sas/WAR_Software_Architecture_Specification.md:2750
+- WAR-SAS-44.8 · section · - · Mutating gates · docs/sas/WAR_Software_Architecture_Specification.md:2756
+- WAR-SAS-45 · section · - · Gate invalidation · docs/sas/WAR_Software_Architecture_Specification.md:2760
+- WAR-SAS-46 · section · - · Verifier independence · docs/sas/WAR_Software_Architecture_Specification.md:2773
+- WAR-SAS-46.1 · section · - · Independence dimensions · docs/sas/WAR_Software_Architecture_Specification.md:2775
+- WAR-SAS-46.2 · section · - · Blind verifier input · docs/sas/WAR_Software_Architecture_Specification.md:2789
+- WAR-SAS-46.3 · section · - · Minimums · docs/sas/WAR_Software_Architecture_Specification.md:2801
+- WAR-SAS-47 · section · - · Dispatch model · docs/sas/WAR_Software_Architecture_Specification.md:2814
+- WAR-SAS-47.1 · section · - · Dispatch schema · docs/sas/WAR_Software_Architecture_Specification.md:2818
+- WAR-SAS-47.2 · section · - · Dispatch compilation · docs/sas/WAR_Software_Architecture_Specification.md:2871
+- WAR-SAS-47.3 · section · - · Actor-specific projection · docs/sas/WAR_Software_Architecture_Specification.md:2885
+- WAR-SAS-48 · section · - · Katana integration · docs/sas/WAR_Software_Architecture_Specification.md:2889
+- WAR-SAS-48.1 · section · - · Runtime seam · docs/sas/WAR_Software_Architecture_Specification.md:2891
+- WAR-SAS-48.2 · section · - · PromptIR ownership · docs/sas/WAR_Software_Architecture_Specification.md:2895
+- WAR-SAS-48.3 · section · - · Capabilities · docs/sas/WAR_Software_Architecture_Specification.md:2901
+- WAR-SAS-48.4 · section · - · Runtime receipt · docs/sas/WAR_Software_Architecture_Specification.md:2907
+- WAR-SAS-48.5 · section · - · Taint · docs/sas/WAR_Software_Architecture_Specification.md:2923
+- WAR-SAS-49 · section · - · BLUT integration · docs/sas/WAR_Software_Architecture_Specification.md:2927
+- WAR-SAS-49.1 · section · - · Lowering · docs/sas/WAR_Software_Architecture_Specification.md:2929
+- WAR-SAS-49.2 · section · - · Adapter duties · docs/sas/WAR_Software_Architecture_Specification.md:2933
+- WAR-SAS-49.3 · section · - · Authority · docs/sas/WAR_Software_Architecture_Specification.md:2946
+- WAR-SAS-50 · section · - · Human, service, and laboratory execution · docs/sas/WAR_Software_Architecture_Specification.md:2950
+- WAR-SAS-50.1 · section · - · Human execution · docs/sas/WAR_Software_Architecture_Specification.md:2954
+- WAR-SAS-50.2 · section · - · Service execution · docs/sas/WAR_Software_Architecture_Specification.md:2958
+- WAR-SAS-50.3 · section · - · Laboratory execution · docs/sas/WAR_Software_Architecture_Specification.md:2962
+- WAR-SAS-51 · section · - · Stage Submission · docs/sas/WAR_Software_Architecture_Specification.md:2979
+- WAR-SAS-51.1 · section · - · Schema · docs/sas/WAR_Software_Architecture_Specification.md:2981
+- WAR-SAS-51.2 · section · - · No self-completion · docs/sas/WAR_Software_Architecture_Specification.md:3012
+- WAR-SAS-51.3 · section · - · Performer claim status · docs/sas/WAR_Software_Architecture_Specification.md:3026
+- WAR-SAS-52 · section · - · Attempt semantics · docs/sas/WAR_Software_Architecture_Specification.md:3030
+- WAR-SAS-52.1 · section · - · Initial · docs/sas/WAR_Software_Architecture_Specification.md:3032
+- WAR-SAS-52.2 · section · - · Replay · docs/sas/WAR_Software_Architecture_Specification.md:3036
+- WAR-SAS-52.3 · section · - · Repair · docs/sas/WAR_Software_Architecture_Specification.md:3052
+- WAR-SAS-52.4 · section · - · Restart · docs/sas/WAR_Software_Architecture_Specification.md:3066
+- WAR-SAS-52.5 · section · - · Attempt lineage · docs/sas/WAR_Software_Architecture_Specification.md:3072
+- WAR-SAS-53 · section · - · Blockers, deviations, decisions, and gaps · docs/sas/WAR_Software_Architecture_Specification.md:3078
+- WAR-SAS-53.1 · section · - · Blocker · docs/sas/WAR_Software_Architecture_Specification.md:3080
+- WAR-SAS-53.2 · section · - · Deviation · docs/sas/WAR_Software_Architecture_Specification.md:3091
+- WAR-SAS-53.3 · section · - · Decision proposal · docs/sas/WAR_Software_Architecture_Specification.md:3105
+- WAR-SAS-53.4 · section · - · Discovered gap · docs/sas/WAR_Software_Architecture_Specification.md:3111
+- WAR-SAS-53.5 · section · - · Different remedies · docs/sas/WAR_Software_Architecture_Specification.md:3117
+- WAR-SAS-54 · section · - · Reproducibility · docs/sas/WAR_Software_Architecture_Specification.md:3126
+- WAR-SAS-54.1 · section · - · Performer levels · docs/sas/WAR_Software_Architecture_Specification.md:3128
+- WAR-SAS-54.2 · section · - · Default software pattern · docs/sas/WAR_Software_Architecture_Specification.md:3138
+- WAR-SAS-54.3 · section · - · Final build · docs/sas/WAR_Software_Architecture_Specification.md:3147
+- WAR-SAS-54.4 · section · - · Experiment profile · docs/sas/WAR_Software_Architecture_Specification.md:3151
+- WAR-SAS-55 · section · - · Security · docs/sas/WAR_Software_Architecture_Specification.md:3155
+- WAR-SAS-55.1 · section · - · Capability classes · docs/sas/WAR_Software_Architecture_Specification.md:3157
+- WAR-SAS-55.2 · section · - · Default denial · docs/sas/WAR_Software_Architecture_Specification.md:3176
+- WAR-SAS-55.3 · section · - · Version-anchored writes · docs/sas/WAR_Software_Architecture_Specification.md:3182
+- WAR-SAS-55.4 · section · - · Secrets · docs/sas/WAR_Software_Architecture_Specification.md:3186
+- WAR-SAS-55.5 · section · - · Network · docs/sas/WAR_Software_Architecture_Specification.md:3190
+- WAR-SAS-55.6 · section · - · Classification · docs/sas/WAR_Software_Architecture_Specification.md:3201
+- WAR-SAS-55.7 · section · - · Side-effect budget · docs/sas/WAR_Software_Architecture_Specification.md:3205
+- WAR-SAS-56 · section · - · Resolution · docs/sas/WAR_Software_Architecture_Specification.md:3220
+- WAR-SAS-56.1 · section · - · Requirements · docs/sas/WAR_Software_Architecture_Specification.md:3222
+- WAR-SAS-56.2 · section · - · Record · docs/sas/WAR_Software_Architecture_Specification.md:3240
+- WAR-SAS-56.3 · section · - · Falsification · docs/sas/WAR_Software_Architecture_Specification.md:3267
+- WAR-SAS-56.4 · section · - · Dispute · docs/sas/WAR_Software_Architecture_Specification.md:3273
+- WAR-SAS-56.5 · section · - · Annulment · docs/sas/WAR_Software_Architecture_Specification.md:3284
+- WAR-SAS-56.6 · section · - · Supersession · docs/sas/WAR_Software_Architecture_Specification.md:3288
+- WAR-SAS-57 · section · - · Ongoing validation · docs/sas/WAR_Software_Architecture_Specification.md:3292
+- WAR-SAS-58 · section · - · Representations · docs/sas/WAR_Software_Architecture_Specification.md:3319
+- WAR-SAS-59 · section · - · Repository layout · docs/sas/WAR_Software_Architecture_Specification.md:3334
+- WAR-SAS-59.1 · section · - · Tracked versus disposable · docs/sas/WAR_Software_Architecture_Specification.md:3372
+- WAR-SAS-59.2 · section · - · Generated view policy · docs/sas/WAR_Software_Architecture_Specification.md:3392
+- WAR-SAS-60 · section · - · Repository configuration · docs/sas/WAR_Software_Architecture_Specification.md:3404
+- WAR-SAS-61 · section · - · Manifest · docs/sas/WAR_Software_Architecture_Specification.md:3434
+- WAR-SAS-61.1 · section · - · Manifest purpose · docs/sas/WAR_Software_Architecture_Specification.md:3495
+- WAR-SAS-61.2 · section · - · Determinism · docs/sas/WAR_Software_Architecture_Specification.md:3499
+- WAR-SAS-61.3 · section · - · No implicit latest · docs/sas/WAR_Software_Architecture_Specification.md:3503
+- WAR-SAS-62 · section · - · Atom source format · docs/sas/WAR_Software_Architecture_Specification.md:3507
+- WAR-SAS-62.1 · section · - · Structured atoms · docs/sas/WAR_Software_Architecture_Specification.md:3538
+- WAR-SAS-62.2 · section · - · Exact source preservation · docs/sas/WAR_Software_Architecture_Specification.md:3542
+- WAR-SAS-62.3 · section · - · Frontmatter validation · docs/sas/WAR_Software_Architecture_Specification.md:3546
+- WAR-SAS-62.4 · section · - · Source maps · docs/sas/WAR_Software_Architecture_Specification.md:3550
+- WAR-SAS-63 · section · - · Canonical WAR IR · docs/sas/WAR_Software_Architecture_Specification.md:3554
+- WAR-SAS-63.1 · section · - · `format_basis` · docs/sas/WAR_Software_Architecture_Specification.md:3580
+- WAR-SAS-63.2 · section · - · `identity` · docs/sas/WAR_Software_Architecture_Specification.md:3584
+- WAR-SAS-63.3 · section · - · `source_and_composition` · docs/sas/WAR_Software_Architecture_Specification.md:3588
+- WAR-SAS-63.4 · section · - · `relations` · docs/sas/WAR_Software_Architecture_Specification.md:3592
+- WAR-SAS-63.5 · section · - · `state_projection` · docs/sas/WAR_Software_Architecture_Specification.md:3596
+- WAR-SAS-63.6 · section · - · `governance` · docs/sas/WAR_Software_Architecture_Specification.md:3600
+- WAR-SAS-63.7 · section · - · `contract` · docs/sas/WAR_Software_Architecture_Specification.md:3604
+- WAR-SAS-63.8 · section · - · `execution` · docs/sas/WAR_Software_Architecture_Specification.md:3608
+- WAR-SAS-63.9 · section · - · `assurance_case` · docs/sas/WAR_Software_Architecture_Specification.md:3612
+- WAR-SAS-63.10 · section · - · `resolution` · docs/sas/WAR_Software_Architecture_Specification.md:3616
+- WAR-SAS-63.11 · section · - · `integrity` · docs/sas/WAR_Software_Architecture_Specification.md:3620
+- WAR-SAS-64 · section · - · Format basis · docs/sas/WAR_Software_Architecture_Specification.md:3624
+- WAR-SAS-65 · section · - · Digest domains · docs/sas/WAR_Software_Architecture_Specification.md:3649
+- WAR-SAS-65.1 · section · - · Algorithm · docs/sas/WAR_Software_Architecture_Specification.md:3671
+- WAR-SAS-65.2 · section · - · Canonicalization · docs/sas/WAR_Software_Architecture_Specification.md:3677
+- WAR-SAS-66 · section · - · Local draft journal · docs/sas/WAR_Software_Architecture_Specification.md:3692
+- WAR-SAS-66.1 · section · - · Purpose · docs/sas/WAR_Software_Architecture_Specification.md:3694
+- WAR-SAS-66.2 · section · - · Authority · docs/sas/WAR_Software_Architecture_Specification.md:3704
+- WAR-SAS-66.3 · section · - · Event envelope · docs/sas/WAR_Software_Architecture_Specification.md:3710
+- WAR-SAS-66.4 · section · - · Material events · docs/sas/WAR_Software_Architecture_Specification.md:3727
+- WAR-SAS-67 · section · - · Knowledge Fabric controlled actions · docs/sas/WAR_Software_Architecture_Specification.md:3746
+- WAR-SAS-67.1 · section · - · Action envelope · docs/sas/WAR_Software_Architecture_Specification.md:3802
+- WAR-SAS-67.2 · section · - · Server time · docs/sas/WAR_Software_Architecture_Specification.md:3821
+- WAR-SAS-67.3 · section · - · Optimistic concurrency · docs/sas/WAR_Software_Architecture_Specification.md:3825
+- WAR-SAS-67.4 · section · - · Idempotency · docs/sas/WAR_Software_Architecture_Specification.md:3829
+- WAR-SAS-68 · section · - · Portable preservation document · docs/sas/WAR_Software_Architecture_Specification.md:3833
+- WAR-SAS-68.1 · section · - · One-file canonical export · docs/sas/WAR_Software_Architecture_Specification.md:3835
+- WAR-SAS-68.2 · section · - · Export contents · docs/sas/WAR_Software_Architecture_Specification.md:3841
+- WAR-SAS-68.3 · section · - · Round trip · docs/sas/WAR_Software_Architecture_Specification.md:3859
+- WAR-SAS-69 · section · - · Protocol versioning · docs/sas/WAR_Software_Architecture_Specification.md:3863
+- WAR-SAS-69.1 · section · - · Semantic versioning · docs/sas/WAR_Software_Architecture_Specification.md:3865
+- WAR-SAS-69.2 · section · - · Additive evolution · docs/sas/WAR_Software_Architecture_Specification.md:3869
+- WAR-SAS-69.3 · section · - · Breaking change · docs/sas/WAR_Software_Architecture_Specification.md:3873
+- WAR-SAS-69.4 · section · - · Unknown extensions · docs/sas/WAR_Software_Architecture_Specification.md:3877
+- WAR-SAS-70 · section · - · CLI thesis · docs/sas/WAR_Software_Architecture_Specification.md:3886
+- WAR-SAS-71 · section · - · Initial commands · docs/sas/WAR_Software_Architecture_Specification.md:3910
+- WAR-SAS-71.1 · section · - · `war init` · docs/sas/WAR_Software_Architecture_Specification.md:3912
+- WAR-SAS-71.2 · section · - · `war new` · docs/sas/WAR_Software_Architecture_Specification.md:3920
+- WAR-SAS-71.3 · section · - · `war plan` · docs/sas/WAR_Software_Architecture_Specification.md:3928
+- WAR-SAS-71.4 · section · - · `war interview` · docs/sas/WAR_Software_Architecture_Specification.md:3951
+- WAR-SAS-71.5 · section · - · `war edit` · docs/sas/WAR_Software_Architecture_Specification.md:3971
+- WAR-SAS-71.6 · section · - · `war adr` · docs/sas/WAR_Software_Architecture_Specification.md:3987
+- WAR-SAS-71.7 · section · - · `war check` · docs/sas/WAR_Software_Architecture_Specification.md:3998
+- WAR-SAS-71.8 · section · - · `war compile` · docs/sas/WAR_Software_Architecture_Specification.md:4021
+- WAR-SAS-71.9 · section · - · `war show` · docs/sas/WAR_Software_Architecture_Specification.md:4038
+- WAR-SAS-71.10 · section · - · `war diff` · docs/sas/WAR_Software_Architecture_Specification.md:4048
+- WAR-SAS-71.11 · section · - · `war child` · docs/sas/WAR_Software_Architecture_Specification.md:4056
+- WAR-SAS-71.12 · section · - · `war supersede` · docs/sas/WAR_Software_Architecture_Specification.md:4064
+- WAR-SAS-72 · section · - · Federated commands · docs/sas/WAR_Software_Architecture_Specification.md:4075
+- WAR-SAS-72.1 · section · - · `war register` · docs/sas/WAR_Software_Architecture_Specification.md:4077
+- WAR-SAS-72.2 · section · - · `war sync` · docs/sas/WAR_Software_Architecture_Specification.md:4085
+- WAR-SAS-72.3 · section · - · `war propose` · docs/sas/WAR_Software_Architecture_Specification.md:4093
+- WAR-SAS-72.4 · section · - · `war authorize` · docs/sas/WAR_Software_Architecture_Specification.md:4101
+- WAR-SAS-72.5 · section · - · `war status` · docs/sas/WAR_Software_Architecture_Specification.md:4111
+- WAR-SAS-72.6 · section · - · `war milestone` · docs/sas/WAR_Software_Architecture_Specification.md:4119
+- WAR-SAS-73 · section · - · Execution commands · docs/sas/WAR_Software_Architecture_Specification.md:4129
+- WAR-SAS-73.1 · section · - · `war preflight` · docs/sas/WAR_Software_Architecture_Specification.md:4131
+- WAR-SAS-73.2 · section · - · `war dispatch` · docs/sas/WAR_Software_Architecture_Specification.md:4138
+- WAR-SAS-73.3 · section · - · `war submit` · docs/sas/WAR_Software_Architecture_Specification.md:4145
+- WAR-SAS-73.4 · section · - · `war verify` · docs/sas/WAR_Software_Architecture_Specification.md:4153
+- WAR-SAS-73.5 · section · - · `war resolve` · docs/sas/WAR_Software_Architecture_Specification.md:4161
+- WAR-SAS-73.6 · section · - · `war dispute` · docs/sas/WAR_Software_Architecture_Specification.md:4171
+- WAR-SAS-73.7 · section · - · `war export` · docs/sas/WAR_Software_Architecture_Specification.md:4177
+- WAR-SAS-74 · section · - · Agent-assisted planning · docs/sas/WAR_Software_Architecture_Specification.md:4184
+- WAR-SAS-74.1 · section · - · Agent inputs · docs/sas/WAR_Software_Architecture_Specification.md:4186
+- WAR-SAS-74.2 · section · - · Agent output · docs/sas/WAR_Software_Architecture_Specification.md:4202
+- WAR-SAS-74.3 · section · - · Atom operations · docs/sas/WAR_Software_Architecture_Specification.md:4219
+- WAR-SAS-74.4 · section · - · Validation before application · docs/sas/WAR_Software_Architecture_Specification.md:4231
+- WAR-SAS-74.5 · section · - · No direct model mutation · docs/sas/WAR_Software_Architecture_Specification.md:4244
+- WAR-SAS-74.6 · section · - · Interview generation · docs/sas/WAR_Software_Architecture_Specification.md:4250
+- WAR-SAS-74.7 · section · - · Decision detection · docs/sas/WAR_Software_Architecture_Specification.md:4254
+- WAR-SAS-74.8 · section · - · Evidence honesty · docs/sas/WAR_Software_Architecture_Specification.md:4258
+- WAR-SAS-75 · section · - · Agent adapter protocol · docs/sas/WAR_Software_Architecture_Specification.md:4270
+- WAR-SAS-75.1 · section · - · Preferred adapter · docs/sas/WAR_Software_Architecture_Specification.md:4272
+- WAR-SAS-75.2 · section · - · Generic process seam · docs/sas/WAR_Software_Architecture_Specification.md:4276
+- WAR-SAS-75.3 · section · - · Trait shape · docs/sas/WAR_Software_Architecture_Specification.md:4290
+- WAR-SAS-75.4 · section · - · Adapter isolation · docs/sas/WAR_Software_Architecture_Specification.md:4302
+- WAR-SAS-76 · section · - · CLI ergonomics · docs/sas/WAR_Software_Architecture_Specification.md:4306
+- WAR-SAS-76.1 · section · - · Fast path · docs/sas/WAR_Software_Architecture_Specification.md:4308
+- WAR-SAS-76.2 · section · - · Explicit diagnostics · docs/sas/WAR_Software_Architecture_Specification.md:4319
+- WAR-SAS-76.3 · section · - · Silence on sound state · docs/sas/WAR_Software_Architecture_Specification.md:4329
+- WAR-SAS-76.4 · section · - · Machine output · docs/sas/WAR_Software_Architecture_Specification.md:4333
+- WAR-SAS-76.5 · section · - · Noninteractive mode · docs/sas/WAR_Software_Architecture_Specification.md:4343
+- WAR-SAS-77 · section · - · Language decision · docs/sas/WAR_Software_Architecture_Specification.md:4352
+- WAR-SAS-77.1 · section · - · Why Rust · docs/sas/WAR_Software_Architecture_Specification.md:4358
+- WAR-SAS-77.2 · section · - · Why not TypeScript core · docs/sas/WAR_Software_Architecture_Specification.md:4372
+- WAR-SAS-77.3 · section · - · TypeScript role · docs/sas/WAR_Software_Architecture_Specification.md:4378
+- WAR-SAS-78 · section · - · Repository structure · docs/sas/WAR_Software_Architecture_Specification.md:4392
+- WAR-SAS-79 · section · - · Crate responsibilities · docs/sas/WAR_Software_Architecture_Specification.md:4431
+- WAR-SAS-79.1 · section · - · `openwarrant-core` · docs/sas/WAR_Software_Architecture_Specification.md:4433
+- WAR-SAS-79.2 · section · - · `openwarrant-compiler` · docs/sas/WAR_Software_Architecture_Specification.md:4451
+- WAR-SAS-79.3 · section · - · `openwarrant-agent` · docs/sas/WAR_Software_Architecture_Specification.md:4463
+- WAR-SAS-79.4 · section · - · `openwarrant-cli` · docs/sas/WAR_Software_Architecture_Specification.md:4473
+- WAR-SAS-79.5 · section · - · Later protocol crates · docs/sas/WAR_Software_Architecture_Specification.md:4483
+- WAR-SAS-80 · section · - · Recommended Rust stack · docs/sas/WAR_Software_Architecture_Specification.md:4487
+- WAR-SAS-81 · section · - · Canonical compiler interface · docs/sas/WAR_Software_Architecture_Specification.md:4509
+- WAR-SAS-81.1 · section · - · Request · docs/sas/WAR_Software_Architecture_Specification.md:4522
+- WAR-SAS-81.2 · section · - · Result · docs/sas/WAR_Software_Architecture_Specification.md:4536
+- WAR-SAS-82 · section · - · Source adapters · docs/sas/WAR_Software_Architecture_Specification.md:4550
+- WAR-SAS-82.1 · section · - · Markdown v1 adapter · docs/sas/WAR_Software_Architecture_Specification.md:4552
+- WAR-SAS-82.2 · section · - · Liminal host protocol · docs/sas/WAR_Software_Architecture_Specification.md:4556
+- WAR-SAS-82.3 · section · - · Host parity · docs/sas/WAR_Software_Architecture_Specification.md:4560
+- WAR-SAS-82.4 · section · - · Cutover · docs/sas/WAR_Software_Architecture_Specification.md:4564
+- WAR-SAS-83 · section · - · Knowledge Fabric integration · docs/sas/WAR_Software_Architecture_Specification.md:4573
+- WAR-SAS-83.1 · section · - · Process boundary · docs/sas/WAR_Software_Architecture_Specification.md:4575
+- WAR-SAS-83.2 · section · - · Runtime pin · docs/sas/WAR_Software_Architecture_Specification.md:4579
+- WAR-SAS-83.3 · section · - · Sandbox · docs/sas/WAR_Software_Architecture_Specification.md:4590
+- WAR-SAS-83.4 · section · - · Generated TypeScript types · docs/sas/WAR_Software_Architecture_Specification.md:4600
+- WAR-SAS-83.5 · section · - · Database ownership · docs/sas/WAR_Software_Architecture_Specification.md:4604
+- WAR-SAS-84 · section · - · Database projection · docs/sas/WAR_Software_Architecture_Specification.md:4608
+- WAR-SAS-85 · section · - · Runtime receipt protocols · docs/sas/WAR_Software_Architecture_Specification.md:4650
+- WAR-SAS-86 · section · - · Transactional behavior · docs/sas/WAR_Software_Architecture_Specification.md:4663
+- WAR-SAS-87 · section · - · Security boundary · docs/sas/WAR_Software_Architecture_Specification.md:4685
+- WAR-SAS-87.1 · section · - · Untrusted sources · docs/sas/WAR_Software_Architecture_Specification.md:4687
+- WAR-SAS-87.2 · section · - · Parser behavior · docs/sas/WAR_Software_Architecture_Specification.md:4691
+- WAR-SAS-87.3 · section · - · Agent proposal boundary · docs/sas/WAR_Software_Architecture_Specification.md:4703
+- WAR-SAS-87.4 · section · - · Generated parent injection · docs/sas/WAR_Software_Architecture_Specification.md:4707
+- WAR-SAS-87.5 · section · - · External references · docs/sas/WAR_Software_Architecture_Specification.md:4711
+- WAR-SAS-88 · section · - · Performance · docs/sas/WAR_Software_Architecture_Specification.md:4715
+- WAR-SAS-89 · section · - · Observability · docs/sas/WAR_Software_Architecture_Specification.md:4731
+- WAR-SAS-90 · section · - · Conformance philosophy · docs/sas/WAR_Software_Architecture_Specification.md:4757
+- WAR-SAS-91 · section · - · Core conformance suite · docs/sas/WAR_Software_Architecture_Specification.md:4767
+- WAR-SAS-91.1 · section · - · Canonicalization · docs/sas/WAR_Software_Architecture_Specification.md:4769
+- WAR-SAS-91.2 · section · - · Atom and composition · docs/sas/WAR_Software_Architecture_Specification.md:4778
+- WAR-SAS-91.3 · section · - · Federation and identity · docs/sas/WAR_Software_Architecture_Specification.md:4791
+- WAR-SAS-91.4 · section · - · ADR · docs/sas/WAR_Software_Architecture_Specification.md:4800
+- WAR-SAS-91.5 · section · - · Parent and child · docs/sas/WAR_Software_Architecture_Specification.md:4809
+- WAR-SAS-91.6 · section · - · Lifecycle · docs/sas/WAR_Software_Architecture_Specification.md:4819
+- WAR-SAS-91.7 · section · - · Graph and execution · docs/sas/WAR_Software_Architecture_Specification.md:4829
+- WAR-SAS-91.8 · section · - · Agent planning · docs/sas/WAR_Software_Architecture_Specification.md:4841
+- WAR-SAS-91.9 · section · - · Attempts · docs/sas/WAR_Software_Architecture_Specification.md:4851
+- WAR-SAS-91.10 · section · - · Gates and adequacy · docs/sas/WAR_Software_Architecture_Specification.md:4859
+- WAR-SAS-91.11 · section · - · Evidence · docs/sas/WAR_Software_Architecture_Specification.md:4874
+- WAR-SAS-91.12 · section · - · Resolution · docs/sas/WAR_Software_Architecture_Specification.md:4883
+- WAR-SAS-91.13 · section · - · Preservation · docs/sas/WAR_Software_Architecture_Specification.md:4895
+- WAR-SAS-92 · section · - · Aggregate gate · docs/sas/WAR_Software_Architecture_Specification.md:4903
+- WAR-SAS-93 · section · - · Dogfooding requirement · docs/sas/WAR_Software_Architecture_Specification.md:4920
+- WAR-SAS-94 · section · - · Telemetry and unit economics · docs/sas/WAR_Software_Architecture_Specification.md:4936
+- WAR-SAS-95 · section · - · Untracked-work detection · docs/sas/WAR_Software_Architecture_Specification.md:4974
+- WAR-SAS-96 · section · - · Existing ADR migration · docs/sas/WAR_Software_Architecture_Specification.md:4989
+- WAR-SAS-96.1 · section · - · Preserve bytes · docs/sas/WAR_Software_Architecture_Specification.md:4991
+- WAR-SAS-96.2 · section · - · Map semantics · docs/sas/WAR_Software_Architecture_Specification.md:4995
+- WAR-SAS-96.3 · section · - · No fabricated proof · docs/sas/WAR_Software_Architecture_Specification.md:5012
+- WAR-SAS-96.4 · section · - · Preserve unknown classes · docs/sas/WAR_Software_Architecture_Specification.md:5024
+- WAR-SAS-97 · section · - · Existing atom/parent migration · docs/sas/WAR_Software_Architecture_Specification.md:5043
+- WAR-SAS-97.1 · section · - · Adopt, do not replace · docs/sas/WAR_Software_Architecture_Specification.md:5045
+- WAR-SAS-97.2 · section · - · Add typed manifests · docs/sas/WAR_Software_Architecture_Specification.md:5049
+- WAR-SAS-97.3 · section · - · Mark generated parents · docs/sas/WAR_Software_Architecture_Specification.md:5053
+- WAR-SAS-97.4 · section · - · Source maps · docs/sas/WAR_Software_Architecture_Specification.md:5057
+- WAR-SAS-97.5 · section · - · Cutover · docs/sas/WAR_Software_Architecture_Specification.md:5061
+- WAR-SAS-98 · section · - · Implementation phases · docs/sas/WAR_Software_Architecture_Specification.md:5065
+- WAR-SAS-99 · section · - · System acceptance criteria · docs/sas/WAR_Software_Architecture_Specification.md:5079
+- WAR-SAS-100 · section · - · Success metrics · docs/sas/WAR_Software_Architecture_Specification.md:5109
+- WAR-SAS-101 · section · - · Governance of this SAS · docs/sas/WAR_Software_Architecture_Specification.md:5138
+- WAR-SAS-101.1 · section · - · Controlled document · docs/sas/WAR_Software_Architecture_Specification.md:5140
+- WAR-SAS-101.2 · section · - · Revisions · docs/sas/WAR_Software_Architecture_Specification.md:5144
+- WAR-SAS-101.3 · section · - · Architecture-changing revision · docs/sas/WAR_Software_Architecture_Specification.md:5148
+- WAR-SAS-101.4 · section · - · Nonsemantic correction · docs/sas/WAR_Software_Architecture_Specification.md:5152
+- WAR-SAS-101.5 · section · - · Enterprise identity · docs/sas/WAR_Software_Architecture_Specification.md:5156
+- WAR-SAS-101.6 · section · - · Normative source · docs/sas/WAR_Software_Architecture_Specification.md:5160
+- WAR-SAS-102 · section · - · Resolved architecture decisions · docs/sas/WAR_Software_Architecture_Specification.md:5164
+- WAR-SAS-103 · section · - · Default full Warrant rendering · docs/sas/WAR_Software_Architecture_Specification.md:5195
+- WAR-SAS-104 · section · - · Minimal draft example · docs/sas/WAR_Software_Architecture_Specification.md:5268
+- WAR-SAS-104.1 · section · - · Manifest · docs/sas/WAR_Software_Architecture_Specification.md:5270
+- WAR-SAS-104.2 · section · - · Intent atom · docs/sas/WAR_Software_Architecture_Specification.md:5315
+- WAR-SAS-104.3 · section · - · Milestones · docs/sas/WAR_Software_Architecture_Specification.md:5343
+- WAR-SAS-105 · section · - · Reference URI forms · docs/sas/WAR_Software_Architecture_Specification.md:5371
+- WAR-SAS-106 · section · - · Architecture requirements index · docs/sas/WAR_Software_Architecture_Specification.md:5397
+- WAR-SAS-RQ-001 · requirement · - · Every WAR has immutable UUIDv7 identity · docs/sas/WAR_Software_Architecture_Specification.md:5405
+- WAR-SAS-RQ-002 · requirement · - · Local aliases do not substitute for global identity · docs/sas/WAR_Software_Architecture_Specification.md:5406
+- WAR-SAS-RQ-003 · requirement · - · KF allocates official enterprise identity · docs/sas/WAR_Software_Architecture_Specification.md:5407
+- WAR-SAS-RQ-004 · requirement · - · Registration does not silently transfer Source Holder · docs/sas/WAR_Software_Architecture_Specification.md:5408
+- WAR-SAS-RQ-005 · requirement · - · Cross-repository relations resolve through KF federation · docs/sas/WAR_Software_Architecture_Specification.md:5409
+- WAR-SAS-RQ-010 · requirement · - · Authored atoms are directly editable sources · docs/sas/WAR_Software_Architecture_Specification.md:5415
+- WAR-SAS-RQ-011 · requirement · - · Bound atoms are edited only through their owning authority · docs/sas/WAR_Software_Architecture_Specification.md:5416
+- WAR-SAS-RQ-012 · requirement · - · Generated atoms and parents are not directly editable · docs/sas/WAR_Software_Architecture_Specification.md:5417
+- WAR-SAS-RQ-013 · requirement · - · Composition is typed, ordered, and deterministic · docs/sas/WAR_Software_Architecture_Specification.md:5418
+- WAR-SAS-RQ-014 · requirement · - · Full WAR Markdown and canonical JSON compile from one Basis · docs/sas/WAR_Software_Architecture_Specification.md:5419
+- WAR-SAS-RQ-015 · requirement · - · Required atom omission fails closed · docs/sas/WAR_Software_Architecture_Specification.md:5420
+- WAR-SAS-RQ-020 · requirement · - · Every normative decision is a first-class ADR · docs/sas/WAR_Software_Architecture_Specification.md:5426
+- WAR-SAS-RQ-021 · requirement · - · ADR Overview is generated · docs/sas/WAR_Software_Architecture_Specification.md:5427
+- WAR-SAS-RQ-022 · requirement · - · WARs trace to SAS requirements and Roadmap · docs/sas/WAR_Software_Architecture_Specification.md:5428
+- WAR-SAS-RQ-023 · requirement · - · Child WARs cite exact parent revision · docs/sas/WAR_Software_Architecture_Specification.md:5429
+- WAR-SAS-RQ-024 · requirement · - · Childs do not rewrite parent rationale · docs/sas/WAR_Software_Architecture_Specification.md:5430
+- WAR-SAS-RQ-025 · requirement · - · Supersession preserves old WAR and marks it non-current · docs/sas/WAR_Software_Architecture_Specification.md:5431
+- WAR-SAS-RQ-030 · requirement · - · Authorized Contract Revisions are immutable · docs/sas/WAR_Software_Architecture_Specification.md:5437
+- WAR-SAS-RQ-031 · requirement · - · Progress cannot amend contract · docs/sas/WAR_Software_Architecture_Specification.md:5438
+- WAR-SAS-RQ-032 · requirement · - · State is decomposed into phase, condition, outcome, currency, standing · docs/sas/WAR_Software_Architecture_Specification.md:5439
+- WAR-SAS-RQ-033 · requirement · - · Material amendment creates new revision · docs/sas/WAR_Software_Architecture_Specification.md:5440
+- WAR-SAS-RQ-034 · requirement · - · Prior attempts retain original contract basis · docs/sas/WAR_Software_Architecture_Specification.md:5441
+- WAR-SAS-RQ-035 · requirement · - · Readiness requires Preflight · docs/sas/WAR_Software_Architecture_Specification.md:5442
+- WAR-SAS-RQ-036 · requirement · - · A delivered artifact changes only under a later authorized WAR that declares it, or through a recorded correction · docs/sas/WAR_Software_Architecture_Specification.md:5443
+- WAR-SAS-RQ-037 · requirement · - · Ownership of a delivered path is recorded at authorization and belongs to the latest such authorization · docs/sas/WAR_Software_Architecture_Specification.md:5444
+- WAR-SAS-RQ-038 · requirement · - · A standing authorization covers only contracts inside its signed class, and never an authority path · docs/sas/WAR_Software_Architecture_Specification.md:5445
+- WAR-SAS-RQ-040 · requirement · - · Milestones and stages are distinct · docs/sas/WAR_Software_Architecture_Specification.md:5451
+- WAR-SAS-RQ-041 · requirement · - · Stages use named typed ports · docs/sas/WAR_Software_Architecture_Specification.md:5452
+- WAR-SAS-RQ-042 · requirement · - · Stateless actors receive one Stage Dispatch · docs/sas/WAR_Software_Architecture_Specification.md:5453
+- WAR-SAS-RQ-043 · requirement · - · Dispatch contains exact basis, capabilities, resources, outputs, stop conditions · docs/sas/WAR_Software_Architecture_Specification.md:5454
+- WAR-SAS-RQ-044 · requirement · - · Agent authority is explicit and bounded · docs/sas/WAR_Software_Architecture_Specification.md:5455
+- WAR-SAS-RQ-045 · requirement · - · Replay, repair, and restart are distinct · docs/sas/WAR_Software_Architecture_Specification.md:5456
+- WAR-SAS-RQ-046 · requirement · - · A Dispatch declares its token estimate and budget; exceeding the budget is a refusal · docs/sas/WAR_Software_Architecture_Specification.md:5457
+- WAR-SAS-RQ-050 · requirement · - · Completion summary decomposes into obligations · docs/sas/WAR_Software_Architecture_Specification.md:5463
+- WAR-SAS-RQ-051 · requirement · - · Claims declare bounded scope · docs/sas/WAR_Software_Architecture_Specification.md:5464
+- WAR-SAS-RQ-052 · requirement · - · Evidence, observation, inference, judgment, resolution remain distinct · docs/sas/WAR_Software_Architecture_Specification.md:5465
+- WAR-SAS-RQ-053 · requirement · - · Performer reports cannot satisfy independent gates · docs/sas/WAR_Software_Architecture_Specification.md:5466
+- WAR-SAS-RQ-054 · requirement · - · Required unknown gate results block resolution · docs/sas/WAR_Software_Architecture_Specification.md:5467
+- WAR-SAS-RQ-055 · requirement · - · Controlled work requires adequacy review · docs/sas/WAR_Software_Architecture_Specification.md:5468
+- WAR-SAS-RQ-056 · requirement · - · Gate Definitions are separately governed and versioned · docs/sas/WAR_Software_Architecture_Specification.md:5469
+- WAR-SAS-RQ-057 · requirement · - · Gate invalidation propagates to dependent resolutions · docs/sas/WAR_Software_Architecture_Specification.md:5470
+- WAR-SAS-RQ-058 · requirement · - · Residual risk requires sufficient judgment authority · docs/sas/WAR_Software_Architecture_Specification.md:5471
+- WAR-SAS-RQ-059 · requirement · - · Resolution binds exact contract and assurance snapshot · docs/sas/WAR_Software_Architecture_Specification.md:5472
+- WAR-SAS-RQ-060 · requirement · - · KF owns authority and lifecycle · docs/sas/WAR_Software_Architecture_Specification.md:5478
+- WAR-SAS-RQ-061 · requirement · - · Liminal owns the generic document substrate and Basis; OpenWarrant owns the WAR domain schema, which Liminal hosts · docs/sas/WAR_Software_Architecture_Specification.md:5479
+- WAR-SAS-RQ-062 · requirement · - · Katana owns agent runtime and PromptIR · docs/sas/WAR_Software_Architecture_Specification.md:5480
+- WAR-SAS-RQ-063 · requirement · - · BLUT owns typed computational execution · docs/sas/WAR_Software_Architecture_Specification.md:5481
+- WAR-SAS-RQ-064 · requirement · - · OpenWarrant does not duplicate those kernels, and they do not re-implement the WAR domain · docs/sas/WAR_Software_Architecture_Specification.md:5482
+- WAR-SAS-RQ-065 · requirement · - · Native systems retain artifact authority · docs/sas/WAR_Software_Architecture_Specification.md:5483
+- WAR-SAS-RQ-070 · requirement · - · CLI works file-native and offline for drafts · docs/sas/WAR_Software_Architecture_Specification.md:5489
+- WAR-SAS-RQ-071 · requirement · - · `war plan` returns a structured proposal · docs/sas/WAR_Software_Architecture_Specification.md:5490
+- WAR-SAS-RQ-072 · requirement · - · Agent proposals are validated before writes · docs/sas/WAR_Software_Architecture_Specification.md:5491
+- WAR-SAS-RQ-073 · requirement · - · Planner creates ADR drafts for normative decisions · docs/sas/WAR_Software_Architecture_Specification.md:5492
+- WAR-SAS-RQ-074 · requirement · - · `war check` is deterministic and agent-free · docs/sas/WAR_Software_Architecture_Specification.md:5493
+- WAR-SAS-RQ-075 · requirement · - · Generated views are drift-checked · docs/sas/WAR_Software_Architecture_Specification.md:5494
+- WAR-SAS-RQ-076 · requirement · - · KF commands use typed actions, not direct status edits · docs/sas/WAR_Software_Architecture_Specification.md:5495
+- WAR-SAS-RQ-077 · requirement · - · Work of three kinds — code, document, run — has a registered gate and a walked example · docs/sas/WAR_Software_Architecture_Specification.md:5496
+- WAR-SAS-RQ-080 · requirement · - · Canonical portable WAR is RFC 8785 JSON · docs/sas/WAR_Software_Architecture_Specification.md:5502
+- WAR-SAS-RQ-081 · requirement · - · Cross-system WAR digests use explicit algorithms and domains · docs/sas/WAR_Software_Architecture_Specification.md:5503
+- WAR-SAS-RQ-082 · requirement · - · Export includes contract, sources, receipts, assurance, resolution · docs/sas/WAR_Software_Architecture_Specification.md:5504
+- WAR-SAS-RQ-083 · requirement · - · Export-import-export preserves semantic identity · docs/sas/WAR_Software_Architecture_Specification.md:5505
+- WAR-SAS-RQ-084 · requirement · - · Historical superseded, disputed, and annulled records remain available · docs/sas/WAR_Software_Architecture_Specification.md:5506
+- WAR-SAS-RQ-085 · requirement · - · Every ssh-signed act leaves an attestation a foreign verifier can check · docs/sas/WAR_Software_Architecture_Specification.md:5507
+- WAR-SAS-107 · section · - · Final doctrine · docs/sas/WAR_Software_Architecture_Specification.md:5509
+
+## docs/sas/drafts/1.0.0-rc.2/README.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/README.md · document · - · OpenWarrant SAS 1.0.0-rc.2 · docs/sas/drafts/1.0.0-rc.2/README.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/WAR_Software_Architecture_Specification.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/WAR_Software_Architecture_Specification.md · document · - · OpenWarrant Software Architecture Specification · docs/sas/drafts/1.0.0-rc.2/WAR_Software_Architecture_Specification.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/context-packets.adr.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/context-packets.adr.md · document · - · Architecture proposal: standalone RC.2 documents, context, and assurance · docs/sas/drafts/1.0.0-rc.2/context-packets.adr.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/decision-map.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/decision-map.md · document · - · RC.2 decision and migration map · docs/sas/drafts/1.0.0-rc.2/decision-map.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/examples/README.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/examples/README.md · document · - · Read the proposed format through examples · docs/sas/drafts/1.0.0-rc.2/examples/README.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/examples/expected/signup-packet/ENTRY.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/examples/expected/signup-packet/ENTRY.md · document · - · Remove the company-name field from signup · docs/sas/drafts/1.0.0-rc.2/examples/expected/signup-packet/ENTRY.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/examples/sources/architecture.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/examples/sources/architecture.md · document · - · Keep verification before account activation · docs/sas/drafts/1.0.0-rc.2/examples/sources/architecture.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/examples/sources/minimal.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/examples/sources/minimal.md · document · - · Make signup easier · docs/sas/drafts/1.0.0-rc.2/examples/sources/minimal.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/examples/sources/signup.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/examples/sources/signup.md · document · - · Remove the company-name field from signup · docs/sas/drafts/1.0.0-rc.2/examples/sources/signup.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/format-contract.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/format-contract.md · document · - · RC.2 document and packet format contract · docs/sas/drafts/1.0.0-rc.2/format-contract.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/phase-1-build-scope.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/phase-1-build-scope.md · document · - · RC.2 testable build scope · docs/sas/drafts/1.0.0-rc.2/phase-1-build-scope.md:1
+
+## docs/sas/drafts/1.0.0-rc.2/validation.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.2/validation.md · document · - · RC.2 draft validation · docs/sas/drafts/1.0.0-rc.2/validation.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/README.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/README.md · document · - · OpenWarrant SAS 1.0.0-rc.3 · docs/sas/drafts/1.0.0-rc.3/README.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/WAR_Software_Architecture_Specification.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/WAR_Software_Architecture_Specification.md · document · - · OpenWarrant Software Architecture Specification · docs/sas/drafts/1.0.0-rc.3/WAR_Software_Architecture_Specification.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/authority-transition-plan.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/authority-transition-plan.md · document · - · Authority transitions: implementation scope · docs/sas/drafts/1.0.0-rc.3/authority-transition-plan.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/authority-transition.adr.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/authority-transition.adr.md · document · - · Candidate ADR: signed authority transitions · docs/sas/drafts/1.0.0-rc.3/authority-transition.adr.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/context-packets.adr.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/context-packets.adr.md · document · - · Historical context-packet decision pointer · docs/sas/drafts/1.0.0-rc.3/context-packets.adr.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/context-views-and-shared-work.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/context-views-and-shared-work.md · document · - · Context views and shared work · docs/sas/drafts/1.0.0-rc.3/context-views-and-shared-work.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/decision-map.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/decision-map.md · document · - · RC.3 decision and supersession map · docs/sas/drafts/1.0.0-rc.3/decision-map.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples-footer/README.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples-footer/README.md · document · - · RC.3 footer examples · docs/sas/drafts/1.0.0-rc.3/examples-footer/README.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples-footer/architecture.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples-footer/architecture.md · document · - · Keep verification before account activation · docs/sas/drafts/1.0.0-rc.3/examples-footer/architecture.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples-footer/minimal.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples-footer/minimal.md · document · - · Make signup easier · docs/sas/drafts/1.0.0-rc.3/examples-footer/minimal.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples-footer/signup.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples-footer/signup.md · document · - · Remove the company-name field from signup · docs/sas/drafts/1.0.0-rc.3/examples-footer/signup.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples/README.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples/README.md · document · - · Read the proposed format through examples · docs/sas/drafts/1.0.0-rc.3/examples/README.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples/expected/signup-packet/ENTRY.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples/expected/signup-packet/ENTRY.md · document · - · Remove the company-name field from signup · docs/sas/drafts/1.0.0-rc.3/examples/expected/signup-packet/ENTRY.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples/sources/architecture.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples/sources/architecture.md · document · - · Keep verification before account activation · docs/sas/drafts/1.0.0-rc.3/examples/sources/architecture.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples/sources/minimal.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples/sources/minimal.md · document · - · Make signup easier · docs/sas/drafts/1.0.0-rc.3/examples/sources/minimal.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/examples/sources/signup.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/examples/sources/signup.md · document · - · Remove the company-name field from signup · docs/sas/drafts/1.0.0-rc.3/examples/sources/signup.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/format-contract.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/format-contract.md · document · - · SDK document format and external compiler profile · docs/sas/drafts/1.0.0-rc.3/format-contract.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/human-first-format.adr.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/human-first-format.adr.md · document · - · Human-first document source format · docs/sas/drafts/1.0.0-rc.3/human-first-format.adr.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/migration-map.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/migration-map.md · document · - · RC.2 to SDK roadmap migration · docs/sas/drafts/1.0.0-rc.3/migration-map.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/phase-1-build-scope.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/phase-1-build-scope.md · document · - · Phase 1: testable SDK and standard scope · docs/sas/drafts/1.0.0-rc.3/phase-1-build-scope.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/phase-plan.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/phase-plan.md · document · - · Four-phase delivery plan · docs/sas/drafts/1.0.0-rc.3/phase-plan.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/prototype-and-release-cases.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/prototype-and-release-cases.md · document · - · Prompt-only work and later qualification · docs/sas/drafts/1.0.0-rc.3/prototype-and-release-cases.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/sdk-contract.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/sdk-contract.md · document · - · OpenWarrant SDK contract · docs/sas/drafts/1.0.0-rc.3/sdk-contract.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/sdk-ownership.adr.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/sdk-ownership.adr.md · document · - · SDK ownership, compiler delegation and optional assurance · docs/sas/drafts/1.0.0-rc.3/sdk-ownership.adr.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/skill-adaptation.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/skill-adaptation.md · document · - · War skills: adapted methods, standard artifacts · docs/sas/drafts/1.0.0-rc.3/skill-adaptation.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/validation.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/validation.md · document · - · RC.3 amendment validation · docs/sas/drafts/1.0.0-rc.3/validation.md:1
+
+## docs/sas/drafts/1.0.0-rc.3/work-stop-contract.md
+> -
+- doc:docs/sas/drafts/1.0.0-rc.3/work-stop-contract.md · document · - · Work stops, agent stops and changes · docs/sas/drafts/1.0.0-rc.3/work-stop-contract.md:1
+
+## docs/sas/drafts/README.md
+> -
+- doc:docs/sas/drafts/README.md · document · - · OpenWarrant SAS editions · docs/sas/drafts/README.md:1
+
+## docs/tickets/t-041d4/manifest.toml
+> Retain native package friction observations without timing human work
+- t-041d4 · ticket · done · Retain native package friction observations without timing human work · docs/tickets/t-041d4/manifest.toml:1
+
+## docs/tickets/t-0d61d/manifest.toml
+> M14: presets, roles and officialness
+- t-0d61d · ticket · done · M14: presets, roles and officialness · docs/tickets/t-0d61d/manifest.toml:1
+
+## docs/tickets/t-0e4f/manifest.toml
+> Plant 64 writes a fixed /tmp path, so parallel batteries collide
+- t-0e4f · ticket · done · Plant 64 writes a fixed /tmp path, so parallel batteries collide · docs/tickets/t-0e4f/manifest.toml:1
+
+## docs/tickets/t-0f24/manifest.toml
+> A refused 'war standing propose' may have written into docs/ (seen once)
+- t-0f24 · ticket · done · A refused 'war standing propose' may have written into docs/ (seen once) · docs/tickets/t-0f24/manifest.toml:1
+
+## docs/tickets/t-13506/manifest.toml
+> Use the configured authority source consistently for role consumers
+- t-13506 · ticket · done · Use the configured authority source consistently for role consumers · docs/tickets/t-13506/manifest.toml:1
+
+## docs/tickets/t-15f42/manifest.toml
+> GRAMMAR.md: every standard cell quotes the SAS or says unspecified (OW-WAR-0122 OBL-004)
+- t-15f42 · ticket · done · GRAMMAR.md: every standard cell quotes the SAS or says unspecified (OW-WAR-0122 OBL-004) · docs/tickets/t-15f42/manifest.toml:1
+
+## docs/tickets/t-1746f/manifest.toml
+> Detect normative rules lost under unsupported numbered SAS headings
+- t-1746f · ticket · done · Detect normative rules lost under unsupported numbered SAS headings · docs/tickets/t-1746f/manifest.toml:1
+
+## docs/tickets/t-17ccb/manifest.toml
+> Telemetry success paths honor the shared JSON report envelope
+- t-17ccb · ticket · done · Telemetry success paths honor the shared JSON report envelope · docs/tickets/t-17ccb/manifest.toml:1
+
+## docs/tickets/t-17d63/manifest.toml
+> Recheck merged Katana native interface without claiming coding-agent qualification
+- t-17d63 · ticket · done · Recheck merged Katana native interface without claiming coding-agent qualification · docs/tickets/t-17d63/manifest.toml:1
+
+## docs/tickets/t-1de2/manifest.toml
+> OW-WAR-0116/0115 verdicts: GET /api/act, progress evidence, act command line, Help binary row
+- t-1de2 · ticket · done · OW-WAR-0116/0115 verdicts: GET /api/act, progress evidence, act command line, Help binary row · docs/tickets/t-1de2/manifest.toml:1
+
+## docs/tickets/t-1e4e4/manifest.toml
+> Record current dependency graph and license qualification
+- t-1e4e4 · ticket · done · Record current dependency graph and license qualification · docs/tickets/t-1e4e4/manifest.toml:1
+
+## docs/tickets/t-22fd/manifest.toml
+> Signing must not make evidence stale
+- t-22fd · ticket · done · Signing must not make evidence stale · docs/tickets/t-22fd/manifest.toml:1
+
+## docs/tickets/t-26ca/manifest.toml
+> war ui drops an oversized request under load instead of answering 431
+- t-26ca · ticket · done · war ui drops an oversized request under load instead of answering 431 · docs/tickets/t-26ca/manifest.toml:1
+
+## docs/tickets/t-280c/manifest.toml
+> war next is slow (~7.5 s)
+- t-280c · ticket · done · war next is slow (~7.5 s) · docs/tickets/t-280c/manifest.toml:1
+
+## docs/tickets/t-2c94/manifest.toml
+> 69-current: 'OW-WAR-0073's signature stands' passes if the dry run fails
+- t-2c94 · ticket · done · 69-current: 'OW-WAR-0073's signature stands' passes if the dry run fails · docs/tickets/t-2c94/manifest.toml:1
+
+## docs/tickets/t-2d02e/manifest.toml
+> Make contractor frozen-module copy work across filesystems
+- t-2d02e · ticket · done · Make contractor frozen-module copy work across filesystems · docs/tickets/t-2d02e/manifest.toml:1
+
+## docs/tickets/t-30da3/manifest.toml
+> Write the KF decision documents: OW-ADR-0024 (OW-WAR-0126), kf-compiler.md and OW-ADR-0027 (OW-WAR-0128)
+- t-30da3 · ticket · done · Write the KF decision documents: OW-ADR-0024 (OW-WAR-0126), kf-compiler.md and OW-ADR-0027 (OW-WAR-0128) · docs/tickets/t-30da3/manifest.toml:1
+
+## docs/tickets/t-3293/manifest.toml
+> Partial verdicts: 0141 OBL-004, 0133 OBL-005, 0136 OBL-006, 0130 OBL-002, 0134 OBL-005
+- t-3293 · ticket · done · Partial verdicts: 0141 OBL-004, 0133 OBL-005, 0136 OBL-006, 0130 OBL-002, 0134 OBL-005 · docs/tickets/t-3293/manifest.toml:1
+
+## docs/tickets/t-34509/manifest.toml
+> Report unsupported stored verification formats as UNKNOWN without granting assurance
+- t-34509 · ticket · done · Report unsupported stored verification formats as UNKNOWN without granting assurance · docs/tickets/t-34509/manifest.toml:1
+
+## docs/tickets/t-354e/manifest.toml
+> The battery inherits the caller's CLAUDE_* environment
+- t-354e · ticket · done · The battery inherits the caller's CLAUDE_* environment · docs/tickets/t-354e/manifest.toml:1
+
+## docs/tickets/t-35670/manifest.toml
+> M13: optional parts and the tick ladder
+- t-35670 · ticket · done · M13: optional parts and the tick ladder · docs/tickets/t-35670/manifest.toml:1
+
+## docs/tickets/t-35e20/manifest.toml
+> M11: concurrency at Beads' level or better
+- t-35e20 · ticket · done · M11: concurrency at Beads' level or better · docs/tickets/t-35e20/manifest.toml:1
+
+## docs/tickets/t-3834a/manifest.toml
+> Preserve legacy telemetry baseline bytes and distinguish actual observation source
+- t-3834a · ticket · done · Preserve legacy telemetry baseline bytes and distinguish actual observation source · docs/tickets/t-3834a/manifest.toml:1
+
+## docs/tickets/t-38f04/manifest.toml
+> M18: every development document is a type
+- t-38f04 · ticket · done · M18: every development document is a type · docs/tickets/t-38f04/manifest.toml:1
+
+## docs/tickets/t-39dc/manifest.toml
+> war deliver: declare a deliverable delivered, by command
+- t-39dc · ticket · done · war deliver: declare a deliverable delivered, by command · docs/tickets/t-39dc/manifest.toml:1
+
+## docs/tickets/t-418bc/manifest.toml
+> Reconnect retained provider captures in source-detached runtime archive queries
+- t-418bc · ticket · done · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/manifest.toml:1
+
+## docs/tickets/t-460f5/manifest.toml
+> Restore exact upstream notice provenance for rmcp 3.5.1 release packages
+- t-460f5 · ticket · done · Restore exact upstream notice provenance for rmcp 3.5.1 release packages · docs/tickets/t-460f5/manifest.toml:1
+
+## docs/tickets/t-470e/manifest.toml
+> 59-webui-lan reads the act log before the remedy is written, under load
+- t-470e · ticket · done · 59-webui-lan reads the act log before the remedy is written, under load · docs/tickets/t-470e/manifest.toml:1
+
+## docs/tickets/t-473a3/manifest.toml
+> M10: one store, one noun, bring your work with you
+- t-473a3 · ticket · done · M10: one store, one noun, bring your work with you · docs/tickets/t-473a3/manifest.toml:1
+
+## docs/tickets/t-4948f/manifest.toml
+> Correct stale additive agent-guidance installation instructions (OW68/S08)
+- t-4948f · ticket · done · Correct stale additive agent-guidance installation instructions (OW68/S08) · docs/tickets/t-4948f/manifest.toml:1
+
+## docs/tickets/t-4c3f/manifest.toml
+> 59-webui-lan: the bound-only check reads every listener on the machine, so a parallel battery holding the same port on 127.0.0.1 fails it
+- t-4c3f · ticket · done · 59-webui-lan: the bound-only check reads every listener on the machine, so a parallel battery holding the same port on 127.0.0.1 fails it · docs/tickets/t-4c3f/manifest.toml:1
+
+## docs/tickets/t-4db64/manifest.toml
+> OW-WAR-0148 M1: one compiled corpus model
+- t-4db64 · ticket · done · OW-WAR-0148 M1: one compiled corpus model · docs/tickets/t-4db64/manifest.toml:1
+
+## docs/tickets/t-4f521/manifest.toml
+> 0116 OBL-003's unobserved lines; document.review scoped to its Warrant
+- t-4f521 · ticket · done · 0116 OBL-003's unobserved lines; document.review scoped to its Warrant · docs/tickets/t-4f521/manifest.toml:1
+
+## docs/tickets/t-51280/manifest.toml
+> M9: ordinary work is ordinary
+- t-51280 · ticket · done · M9: ordinary work is ordinary · docs/tickets/t-51280/manifest.toml:1
+
+## docs/tickets/t-512eb/manifest.toml
+> Deliver OW-WAR-0148 implementations at the signed file paths
+- t-512eb · ticket · done · Deliver OW-WAR-0148 implementations at the signed file paths · docs/tickets/t-512eb/manifest.toml:1
+
+## docs/tickets/t-5134/manifest.toml
+> Plant checks that pass without checking anything
+- t-5134 · ticket · done · Plant checks that pass without checking anything · docs/tickets/t-5134/manifest.toml:1
+
+## docs/tickets/t-515e/manifest.toml
+> Plants pipe grep into grep -q under pipefail (SIGPIPE race)
+- t-515e · ticket · done · Plants pipe grep into grep -q under pipefail (SIGPIPE race) · docs/tickets/t-515e/manifest.toml:1
+
+## docs/tickets/t-54257/manifest.toml
+> Connect current runtime receipt assessment to resolution
+- t-54257 · ticket · done · Connect current runtime receipt assessment to resolution · docs/tickets/t-54257/manifest.toml:1
+
+## docs/tickets/t-5504f/manifest.toml
+> Retain current phase evidence and audit remaining Warrant completion scope
+- t-5504f · ticket · done · Retain current phase evidence and audit remaining Warrant completion scope · docs/tickets/t-5504f/manifest.toml:1
+
+## docs/tickets/t-5872/manifest.toml
+> Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations
+- t-5872 · ticket · done · Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations · docs/tickets/t-5872/manifest.toml:1
+
+## docs/tickets/t-59006/manifest.toml
+> M7: from a prompt to typed records
+- t-59006 · ticket · done · M7: from a prompt to typed records · docs/tickets/t-59006/manifest.toml:1
+
+## docs/tickets/t-5a29/manifest.toml
+> docs/AUTHENTICATION.md is out of date after the LAN web UI
+- t-5a29 · ticket · done · docs/AUTHENTICATION.md is out of date after the LAN web UI · docs/tickets/t-5a29/manifest.toml:1
+
+## docs/tickets/t-5b1f7/manifest.toml
+> Complete OW-WAR-0101 local drafting observation
+- t-5b1f7 · ticket · done · Complete OW-WAR-0101 local drafting observation · docs/tickets/t-5b1f7/manifest.toml:1
+
+## docs/tickets/t-5d82/manifest.toml
+> Ticket bookkeeping must not make evidence stale
+- t-5d82 · ticket · done · Ticket bookkeeping must not make evidence stale · docs/tickets/t-5d82/manifest.toml:1
+
+## docs/tickets/t-5f49/manifest.toml
+> war ui answers 431 instead of 413 for an oversized body, under load
+- t-5f49 · ticket · done · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/manifest.toml:1
+
+## docs/tickets/t-62f58/manifest.toml
+> Reject ambiguous blind-verifier answers (OW117)
+- t-62f58 · ticket · done · Reject ambiguous blind-verifier answers (OW117) · docs/tickets/t-62f58/manifest.toml:1
+
+## docs/tickets/t-63626/manifest.toml
+> Expose native OpenWarrant-bound Katana CLI execution through the shared provider contract
+- t-63626 · ticket · done · Expose native OpenWarrant-bound Katana CLI execution through the shared provider contract · docs/tickets/t-63626/manifest.toml:1
+
+## docs/tickets/t-64f2e/manifest.toml
+> Restore the five missing SPDX headers found by the repository gate
+- t-64f2e · ticket · done · Restore the five missing SPDX headers found by the repository gate · docs/tickets/t-64f2e/manifest.toml:1
+
+## docs/tickets/t-667d4/manifest.toml
+> Record current OW117 blind-verifier controls and context budget observations
+- t-667d4 · ticket · done · Record current OW117 blind-verifier controls and context budget observations · docs/tickets/t-667d4/manifest.toml:1
+
+## docs/tickets/t-66d2f/manifest.toml
+> Keep the full integration gate usable within its declared CI budget
+- t-66d2f · ticket · done · Keep the full integration gate usable within its declared CI budget · docs/tickets/t-66d2f/manifest.toml:1
+
+## docs/tickets/t-67b5f/manifest.toml
+> M8: war host, the standalone half of Liminal hosting
+- t-67b5f · ticket · done · M8: war host, the standalone half of Liminal hosting · docs/tickets/t-67b5f/manifest.toml:1
+
+## docs/tickets/t-67ed/manifest.toml
+> Make the ticket loop the documented default everywhere
+- t-67ed · ticket · done · Make the ticket loop the documented default everywhere · docs/tickets/t-67ed/manifest.toml:1
+
+## docs/tickets/t-72af0/manifest.toml
+> Recover after context preparation is unavailable before worker launch
+- t-72af0 · ticket · done · Recover after context preparation is unavailable before worker launch · docs/tickets/t-72af0/manifest.toml:1
+
+## docs/tickets/t-7a7e6/manifest.toml
+> M6: projection targets: one set of records, many documents
+- t-7a7e6 · ticket · done · M6: projection targets: one set of records, many documents · docs/tickets/t-7a7e6/manifest.toml:1
+
+## docs/tickets/t-7aca/manifest.toml
+> A whole-Warrant verification bundle cut a long gate stream to its tail, so the Warrant's own plant section (printed early) never reached the blind verifier
+- t-7aca · ticket · done · A whole-Warrant verification bundle cut a long gate stream to its tail, so the Warrant's own plant section (printed early) never reached the blind verifier · docs/tickets/t-7aca/manifest.toml:1
+
+## docs/tickets/t-7b733/manifest.toml
+> Reproduce frozen LamQuant migration and observe parent rationale refusal separately
+- t-7b733 · ticket · done · Reproduce frozen LamQuant migration and observe parent rationale refusal separately · docs/tickets/t-7b733/manifest.toml:1
+
+## docs/tickets/t-7e429/manifest.toml
+> Reproduce OW65 tokenizer approximation measurements and correct unsupported claims
+- t-7e429 · ticket · done · Reproduce OW65 tokenizer approximation measurements and correct unsupported claims · docs/tickets/t-7e429/manifest.toml:1
+
+## docs/tickets/t-833e/manifest.toml
+> OW-WAR-0112: evidence for OBL-001/002/003/006 the blind verifier did not see
+- t-833e · ticket · done · OW-WAR-0112: evidence for OBL-001/002/003/006 the blind verifier did not see · docs/tickets/t-833e/manifest.toml:1
+
+## docs/tickets/t-83d6c/manifest.toml
+> Make runner controls use their allocated scratch variables
+- t-83d6c · ticket · done · Make runner controls use their allocated scratch variables · docs/tickets/t-83d6c/manifest.toml:1
+
+## docs/tickets/t-84d84/manifest.toml
+> Keep the full read-only board below the web request deadline
+- t-84d84 · ticket · done · Keep the full read-only board below the web request deadline · docs/tickets/t-84d84/manifest.toml:1
+
+## docs/tickets/t-87fb/manifest.toml
+> OW-WAR-0147: evidence for OBL-003/005/006/008 the blind verifier did not establish
+- t-87fb · ticket · done · OW-WAR-0147: evidence for OBL-003/005/006/008 the blind verifier did not establish · docs/tickets/t-87fb/manifest.toml:1
+
+## docs/tickets/t-8821d/manifest.toml
+> Repair invalid progress viewer reports without changing work or assurance claims
+- t-8821d · ticket · done · Repair invalid progress viewer reports without changing work or assurance claims · docs/tickets/t-8821d/manifest.toml:1
+
+## docs/tickets/t-88d2/manifest.toml
+> war prepare's commit carried only tree-bound paths, so HEAD's projections drifted from HEAD's records and every battery (a clone of HEAD) failed its clean-corpus check
+- t-88d2 · ticket · done · war prepare's commit carried only tree-bound paths, so HEAD's projections drifted from HEAD's records and every battery (a clone of HEAD) failed its clean-corpus check · docs/tickets/t-88d2/manifest.toml:1
+
+## docs/tickets/t-8a2c/manifest.toml
+> Found by the verifier-fix agents: a whole-ticket claim hints a refused done; context_artifacts reads outside the repository; a one-line file (SECTIONS.json) travels in a bundle with no text
+- t-8a2c · ticket · done · Found by the verifier-fix agents: a whole-ticket claim hints a refused done; context_artifacts reads outside the repository; a one-line file (SECTIONS.json) travels in a bundle with no text · docs/tickets/t-8a2c/manifest.toml:1
+
+## docs/tickets/t-8a876/manifest.toml
+> Bind stage submissions to the exact compiled dispatch
+- t-8a876 · ticket · done · Bind stage submissions to the exact compiled dispatch · docs/tickets/t-8a876/manifest.toml:1
+
+## docs/tickets/t-8c7f1/manifest.toml
+> M15: native graph executor, pluggable executors
+- t-8c7f1 · ticket · done · M15: native graph executor, pluggable executors · docs/tickets/t-8c7f1/manifest.toml:1
+
+## docs/tickets/t-8e677/manifest.toml
+> Exercise populated canonical IR and retain bounded archive preservation observations
+- t-8e677 · ticket · done · Exercise populated canonical IR and retain bounded archive preservation observations · docs/tickets/t-8e677/manifest.toml:1
+
+## docs/tickets/t-95254/manifest.toml
+> Bind authorized Dispatch to exact signed current contract and immutable context holders
+- t-95254 · ticket · done · Bind authorized Dispatch to exact signed current contract and immutable context holders · docs/tickets/t-95254/manifest.toml:1
+
+## docs/tickets/t-9a4a9/manifest.toml
+> OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh)
+- t-9a4a9 · ticket · done · OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh) · docs/tickets/t-9a4a9/manifest.toml:1
+
+## docs/tickets/t-9d3e/manifest.toml
+> war ready and war claim can disagree on whether an item is blocked
+- t-9d3e · ticket · done · war ready and war claim can disagree on whether an item is blocked · docs/tickets/t-9d3e/manifest.toml:1
+
+## docs/tickets/t-9f7e/manifest.toml
+> Verification bundles too large for the blind verifier
+- t-9f7e · ticket · done · Verification bundles too large for the blind verifier · docs/tickets/t-9f7e/manifest.toml:1
+
+## docs/tickets/t-9f99/manifest.toml
+> Apply nine drafted amendments to atoms as new contract revisions
+- t-9f99 · ticket · done · Apply nine drafted amendments to atoms as new contract revisions · docs/tickets/t-9f99/manifest.toml:1
+
+## docs/tickets/t-a01e1/manifest.toml
+> Deliver fresh committed context to resumed work and every verification repair stage
+- t-a01e1 · ticket · done · Deliver fresh committed context to resumed work and every verification repair stage · docs/tickets/t-a01e1/manifest.toml:1
+
+## docs/tickets/t-a5c53/manifest.toml
+> Preserve source classification in legacy Dispatch selection and portable disclosure checks
+- t-a5c53 · ticket · done · Preserve source classification in legacy Dispatch selection and portable disclosure checks · docs/tickets/t-a5c53/manifest.toml:1
+
+## docs/tickets/t-a92bb/manifest.toml
+> M12: a small surface
+- t-a92bb · ticket · done · M12: a small surface · docs/tickets/t-a92bb/manifest.toml:1
+
+## docs/tickets/t-ad636/manifest.toml
+> M4: fixed states plus declared refinements
+- t-ad636 · ticket · done · M4: fixed states plus declared refinements · docs/tickets/t-ad636/manifest.toml:1
+
+## docs/tickets/t-ade4/manifest.toml
+> war eval's result is not deterministic: a bundle's token count varies by one
+- t-ade4 · ticket · done · war eval's result is not deterministic: a bundle's token count varies by one · docs/tickets/t-ade4/manifest.toml:1
+
+## docs/tickets/t-ae2be/manifest.toml
+> M5: tickets on the kernel, ticket features, GitHub in and out, the demonstration
+- t-ae2be · ticket · done · M5: tickets on the kernel, ticket features, GitHub in and out, the demonstration · docs/tickets/t-ae2be/manifest.toml:1
+
+## docs/tickets/t-b0708/manifest.toml
+> M2: a document's type chooses its capabilities, and new manifests pin their profile
+- t-b0708 · ticket · done · M2: a document's type chooses its capabilities, and new manifests pin their profile · docs/tickets/t-b0708/manifest.toml:1
+
+## docs/tickets/t-b105d/manifest.toml
+> Freeze exact release review subjects without granting qualification
+- t-b105d · ticket · done · Freeze exact release review subjects without granting qualification · docs/tickets/t-b105d/manifest.toml:1
+
+## docs/tickets/t-b95cc/manifest.toml
+> M17: compliance score and file ledger
+- t-b95cc · ticket · done · M17: compliance score and file ledger · docs/tickets/t-b95cc/manifest.toml:1
+
+## docs/tickets/t-b9610/manifest.toml
+> Reject stale independent verification after its reviewed subject changes
+- t-b9610 · ticket · open · Reject stale independent verification after its reviewed subject changes · docs/tickets/t-b9610/manifest.toml:1
+
+## docs/tickets/t-c1325/manifest.toml
+> Keep typed-document compile output inside the JSON envelope
+- t-c1325 · ticket · done · Keep typed-document compile output inside the JSON envelope · docs/tickets/t-c1325/manifest.toml:1
+
+## docs/tickets/t-c360a/manifest.toml
+> bonsai qualification-plants unit test fails under concurrent load: scope_findings[0] was not outside-warrant.txt
+- t-c360a · ticket · done · bonsai qualification-plants unit test fails under concurrent load: scope_findings[0] was not outside-warrant.txt · docs/tickets/t-c360a/manifest.toml:1
+
+## docs/tickets/t-c6cf2/manifest.toml
+> Export a current recorded Dispatch binding for native provider execution
+- t-c6cf2 · ticket · done · Export a current recorded Dispatch binding for native provider execution · docs/tickets/t-c6cf2/manifest.toml:1
+
+## docs/tickets/t-ca38/manifest.toml
+> Ticket operations leave the corpus projections stale
+- t-ca38 · ticket · done · Ticket operations leave the corpus projections stale · docs/tickets/t-ca38/manifest.toml:1
+
+## docs/tickets/t-cba8f/manifest.toml
+> Bind provider runtime receipts to actual dispatch and compilation basis
+- t-cba8f · ticket · open · Bind provider runtime receipts to actual dispatch and compilation basis · docs/tickets/t-cba8f/manifest.toml:1
+
+## docs/tickets/t-cc3c9/manifest.toml
+> M16: CLAUDE.md and AGENTS.md
+- t-cc3c9 · ticket · done · M16: CLAUDE.md and AGENTS.md · docs/tickets/t-cc3c9/manifest.toml:1
+
+## docs/tickets/t-ccf4e/manifest.toml
+> Compute supported OW-WAR-0041 derived metrics without inventing missing measurements
+- t-ccf4e · ticket · done · Compute supported OW-WAR-0041 derived metrics without inventing missing measurements · docs/tickets/t-ccf4e/manifest.toml:1
+
+## docs/tickets/t-cee5/manifest.toml
+> war prepare: take a Warrant to its sign-off unattended
+- t-cee5 · ticket · open · war prepare: take a Warrant to its sign-off unattended · docs/tickets/t-cee5/manifest.toml:1
+
+## docs/tickets/t-d052/manifest.toml
+> Battery plants that fail only under parallel load
+- t-d052 · ticket · done · Battery plants that fail only under parallel load · docs/tickets/t-d052/manifest.toml:1
+
+## docs/tickets/t-d1037/manifest.toml
+> Compile runtime context from an execution worktree checkpoint and retain it in the original project
+- t-d1037 · ticket · done · Compile runtime context from an execution worktree checkpoint and retain it in the original project · docs/tickets/t-d1037/manifest.toml:1
+
+## docs/tickets/t-d65d4/manifest.toml
+> M3: records and typed relations, and war impact
+- t-d65d4 · ticket · done · M3: records and typed relations, and war impact · docs/tickets/t-d65d4/manifest.toml:1
+
+## docs/tickets/t-dc28/manifest.toml
+> Collision-free ids for amendments and plants
+- t-dc28 · ticket · done · Collision-free ids for amendments and plants · docs/tickets/t-dc28/manifest.toml:1
+
+## docs/tickets/t-dec1/manifest.toml
+> war evidence record cannot run software.repo.bonsai-evidence@1.0.0
+- t-dec1 · ticket · done · war evidence record cannot run software.repo.bonsai-evidence@1.0.0 · docs/tickets/t-dec1/manifest.toml:1
+
+## docs/tickets/t-dee8e/manifest.toml
+> OW-WAR-0114 D-022: generate schemas/oh.war/roadmap/v1.json into the pack
+- t-dee8e · ticket · done · OW-WAR-0114 D-022: generate schemas/oh.war/roadmap/v1.json into the pack · docs/tickets/t-dee8e/manifest.toml:1
+
+## docs/tickets/t-e14c0/manifest.toml
+> Capture real monotonic study timing without inventing participant observations
+- t-e14c0 · ticket · done · Capture real monotonic study timing without inventing participant observations · docs/tickets/t-e14c0/manifest.toml:1
+
+## docs/tickets/t-e6340/manifest.toml
+> Correct stale Preflight coverage messages without claiming execution readiness
+- t-e6340 · ticket · done · Correct stale Preflight coverage messages without claiming execution readiness · docs/tickets/t-e6340/manifest.toml:1
+
+## docs/tickets/t-e9b0a/manifest.toml
+> Retain successful corrected native packaging and phase observations (OW85/89/90)
+- t-e9b0a · ticket · done · Retain successful corrected native packaging and phase observations (OW85/89/90) · docs/tickets/t-e9b0a/manifest.toml:1
+
+## docs/tickets/t-e9ef7/manifest.toml
+> Retain OW119 identity controls and successful native release rehearsal
+- t-e9ef7 · ticket · done · Retain OW119 identity controls and successful native release rehearsal · docs/tickets/t-e9ef7/manifest.toml:1
+
+## docs/tickets/t-ea8f8/manifest.toml
+> Prepare OW-WAR-0148 deliverable path amendment without changing signed scope
+- t-ea8f8 · ticket · done · Prepare OW-WAR-0148 deliverable path amendment without changing signed scope · docs/tickets/t-ea8f8/manifest.toml:1
+
+## docs/tickets/t-eca6/manifest.toml
+> war next costs two git walks per receipt, and the evidence wave made it 4x slower
+- t-eca6 · ticket · done · war next costs two git walks per receipt, and the evidence wave made it 4x slower · docs/tickets/t-eca6/manifest.toml:1
+
+## docs/tickets/t-f815/manifest.toml
+> OW-WAR-0120's budget at 1,000 Warrants: check --generated, compile, next and console over their limits
+- t-f815 · ticket · done · OW-WAR-0120's budget at 1,000 Warrants: check --generated, compile, next and console over their limits · docs/tickets/t-f815/manifest.toml:1
+
+## docs/tickets/t-fa114/manifest.toml
+> Check current authorization in read-only Preflight
+- t-fa114 · ticket · done · Check current authorization in read-only Preflight · docs/tickets/t-fa114/manifest.toml:1
+
+## docs/tickets/t-fed6/manifest.toml
+> Verification records must not make evidence stale
+- t-fed6 · ticket · done · Verification records must not make evidence stale · docs/tickets/t-fed6/manifest.toml:1
+
+## docs/warrants/OW-WAR-0001/manifest.toml
+> Establish the OpenWarrant repository and Rust workspace
+- OW-WAR-0001 · warrant · authorized · Establish the OpenWarrant repository and Rust workspace · docs/warrants/OW-WAR-0001/manifest.toml:1
+
+## docs/warrants/OW-WAR-0002/manifest.toml
+> Implement the file-native manifest and atom parser
+- OW-WAR-0002 · warrant · resolved · Implement the file-native manifest and atom parser · docs/warrants/OW-WAR-0002/manifest.toml:1
+
+## docs/warrants/OW-WAR-0003/manifest.toml
+> Implement the canonical WAR IR and RFC 8785 digesting
+- OW-WAR-0003 · warrant · authorized · Implement the canonical WAR IR and RFC 8785 digesting · docs/warrants/OW-WAR-0003/manifest.toml:1
+
+## docs/warrants/OW-WAR-0004/manifest.toml
+> Implement the generated parent document and drift checking
+- OW-WAR-0004 · warrant · authorized · Implement the generated parent document and drift checking · docs/warrants/OW-WAR-0004/manifest.toml:1
+
+## docs/warrants/OW-WAR-0005/manifest.toml
+> Implement deterministic war check and close the Phase 1 bootstrap
+- OW-WAR-0005 · warrant · resolved · Implement deterministic war check and close the Phase 1 bootstrap · docs/warrants/OW-WAR-0005/manifest.toml:1
+
+## docs/warrants/OW-WAR-0006/manifest.toml
+> Complete ADR federation: relations, supersession, and currency
+- OW-WAR-0006 · warrant · authorized · Complete ADR federation: relations, supersession, and currency · docs/warrants/OW-WAR-0006/manifest.toml:1
+
+## docs/warrants/OW-WAR-0007/manifest.toml
+> Parse and validate milestones, stages, and named typed ports
+- OW-WAR-0007 · warrant · authorized · Parse and validate milestones, stages, and named typed ports · docs/warrants/OW-WAR-0007/manifest.toml:1
+
+## docs/warrants/OW-WAR-0008/manifest.toml
+> Implement the state model: phase, condition, outcome, currency, standing
+- OW-WAR-0008 · warrant · resolved · Implement the state model: phase, condition, outcome, currency, standing · docs/warrants/OW-WAR-0008/manifest.toml:1
+
+## docs/warrants/OW-WAR-0009/manifest.toml
+> Implement contract revisions and their immutability
+- OW-WAR-0009 · warrant · resolved · Implement contract revisions and their immutability · docs/warrants/OW-WAR-0009/manifest.toml:1
+
+## docs/warrants/OW-WAR-0010/manifest.toml
+> Implement the autonomy envelope and amendment records
+- OW-WAR-0010 · warrant · resolved · Implement the autonomy envelope and amendment records · docs/warrants/OW-WAR-0010/manifest.toml:1
+
+## docs/warrants/OW-WAR-0011/manifest.toml
+> Implement prerequisites and Preflight
+- OW-WAR-0011 · warrant · authorized · Implement prerequisites and Preflight · docs/warrants/OW-WAR-0011/manifest.toml:1
+
+## docs/warrants/OW-WAR-0012/manifest.toml
+> Implement the context model, context manifest, and trust classes
+- OW-WAR-0012 · warrant · resolved · Implement the context model, context manifest, and trust classes · docs/warrants/OW-WAR-0012/manifest.toml:1
+
+## docs/warrants/OW-WAR-0013/manifest.toml
+> Validate SAS and Roadmap traceability
+- OW-WAR-0013 · warrant · authorized · Validate SAS and Roadmap traceability · docs/warrants/OW-WAR-0013/manifest.toml:1
+
+## docs/warrants/OW-WAR-0014/manifest.toml
+> Implement the rationale model, assumptions, and unknowns
+- OW-WAR-0014 · warrant · resolved · Implement the rationale model, assumptions, and unknowns · docs/warrants/OW-WAR-0014/manifest.toml:1
+
+## docs/warrants/OW-WAR-0015/manifest.toml
+> Implement deliverables, artifacts, and artifact provenance
+- OW-WAR-0015 · warrant · resolved · Implement deliverables, artifacts, and artifact provenance · docs/warrants/OW-WAR-0015/manifest.toml:1
+
+## docs/warrants/OW-WAR-0016/manifest.toml
+> Implement acceptance obligations and bounded claims
+- OW-WAR-0016 · warrant · resolved · Implement acceptance obligations and bounded claims · docs/warrants/OW-WAR-0016/manifest.toml:1
+
+## docs/warrants/OW-WAR-0017/manifest.toml
+> Implement the epistemic classes: evidence, observation, inference, judgment, resolution
+- OW-WAR-0017 · warrant · resolved · Implement the epistemic classes: evidence, observation, inference, judgment, resolution · docs/warrants/OW-WAR-0017/manifest.toml:1
+
+## docs/warrants/OW-WAR-0018/manifest.toml
+> Implement contract-adequacy review, structurally checked
+- OW-WAR-0018 · warrant · resolved · Implement contract-adequacy review, structurally checked · docs/warrants/OW-WAR-0018/manifest.toml:1
+
+## docs/warrants/OW-WAR-0019/manifest.toml
+> Implement the Gate Registry: definitions, qualification, and bindings
+- OW-WAR-0019 · warrant · resolved · Implement the Gate Registry: definitions, qualification, and bindings · docs/warrants/OW-WAR-0019/manifest.toml:1
+
+## docs/warrants/OW-WAR-0020/manifest.toml
+> Implement Gate Run semantics, askability, and invalidation
+- OW-WAR-0020 · warrant · resolved · Implement Gate Run semantics, askability, and invalidation · docs/warrants/OW-WAR-0020/manifest.toml:1
+
+## docs/warrants/OW-WAR-0021/manifest.toml
+> Implement verifier independence
+- OW-WAR-0021 · warrant · resolved · Implement verifier independence · docs/warrants/OW-WAR-0021/manifest.toml:1
+
+## docs/warrants/OW-WAR-0022/manifest.toml
+> Implement resolution, dispute, and annulment
+- OW-WAR-0022 · warrant · resolved · Implement resolution, dispute, and annulment · docs/warrants/OW-WAR-0022/manifest.toml:1
+
+## docs/warrants/OW-WAR-0023/manifest.toml
+> Implement Stage Dispatch compilation and actor-specific projection
+- OW-WAR-0023 · warrant · authorized · Implement Stage Dispatch compilation and actor-specific projection · docs/warrants/OW-WAR-0023/manifest.toml:1
+
+## docs/warrants/OW-WAR-0024/manifest.toml
+> Implement Stage Submission and attempt semantics
+- OW-WAR-0024 · warrant · resolved · Implement Stage Submission and attempt semantics · docs/warrants/OW-WAR-0024/manifest.toml:1
+
+## docs/warrants/OW-WAR-0025/manifest.toml
+> Implement blockers, deviations, decision proposals, and discovered gaps
+- OW-WAR-0025 · warrant · resolved · Implement blockers, deviations, decision proposals, and discovered gaps · docs/warrants/OW-WAR-0025/manifest.toml:1
+
+## docs/warrants/OW-WAR-0026/manifest.toml
+> Implement the Katana runtime seam, capabilities, and receipts
+- OW-WAR-0026 · warrant · authorized · Implement the Katana runtime seam, capabilities, and receipts · docs/warrants/OW-WAR-0026/manifest.toml:1
+
+## docs/warrants/OW-WAR-0027/manifest.toml
+> Implement the BLUT adapter: PlanSpec lowering and lineage receipt
+- OW-WAR-0027 · warrant · authorized · Implement the BLUT adapter: PlanSpec lowering and lineage receipt · docs/warrants/OW-WAR-0027/manifest.toml:1
+
+## docs/warrants/OW-WAR-0028/manifest.toml
+> Implement Knowledge Fabric typed actions and the controlled-action envelope
+- OW-WAR-0028 · warrant · authorized · Implement Knowledge Fabric typed actions and the controlled-action envelope · docs/warrants/OW-WAR-0028/manifest.toml:1
+
+## docs/warrants/OW-WAR-0029/manifest.toml
+> Implement KF registration, global identity allocation, and federation
+- OW-WAR-0029 · warrant · authorized · Implement KF registration, global identity allocation, and federation · docs/warrants/OW-WAR-0029/manifest.toml:1
+
+## docs/warrants/OW-WAR-0030/manifest.toml
+> Implement portable preservation: one-file export and round trip
+- OW-WAR-0030 · warrant · authorized · Implement portable preservation: one-file export and round trip · docs/warrants/OW-WAR-0030/manifest.toml:1
+
+## docs/warrants/OW-WAR-0031/manifest.toml
+> Implement the local draft journal
+- OW-WAR-0031 · warrant · resolved · Implement the local draft journal · docs/warrants/OW-WAR-0031/manifest.toml:1
+
+## docs/warrants/OW-WAR-0032/manifest.toml
+> Generate the schema pack and implement protocol versioning
+- OW-WAR-0032 · warrant · authorized · Generate the schema pack and implement protocol versioning · docs/warrants/OW-WAR-0032/manifest.toml:1
+
+## docs/warrants/OW-WAR-0033/manifest.toml
+> Implement the remaining read projections
+- OW-WAR-0033 · warrant · resolved · Implement the remaining read projections · docs/warrants/OW-WAR-0033/manifest.toml:1
+
+## docs/warrants/OW-WAR-0034/manifest.toml
+> Implement the agent protocol and Draft Proposal validation
+- OW-WAR-0034 · warrant · resolved · Implement the agent protocol and Draft Proposal validation · docs/warrants/OW-WAR-0034/manifest.toml:1
+
+## docs/warrants/OW-WAR-0035/manifest.toml
+> Implement `war plan` and the interview loop
+- OW-WAR-0035 · warrant · authorized · Implement `war plan` and the interview loop · docs/warrants/OW-WAR-0035/manifest.toml:1
+
+## docs/warrants/OW-WAR-0036/manifest.toml
+> Implement normative-decision detection and proposed-ADR generation
+- OW-WAR-0036 · warrant · authorized · Implement normative-decision detection and proposed-ADR generation · docs/warrants/OW-WAR-0036/manifest.toml:1
+
+## docs/warrants/OW-WAR-0037/manifest.toml
+> Implement `war diff`: semantic difference between revisions
+- OW-WAR-0037 · warrant · authorized · Implement `war diff`: semantic difference between revisions · docs/warrants/OW-WAR-0037/manifest.toml:1
+
+## docs/warrants/OW-WAR-0038/manifest.toml
+> Implement the existing-ADR importer, preserving unknown classes
+- OW-WAR-0038 · warrant · resolved · Implement the existing-ADR importer, preserving unknown classes · docs/warrants/OW-WAR-0038/manifest.toml:1
+
+## docs/warrants/OW-WAR-0039/manifest.toml
+> Implement telemetry, unit economics, and untracked-work detection
+- OW-WAR-0039 · warrant · authorized · Implement telemetry, unit economics, and untracked-work detection · docs/warrants/OW-WAR-0039/manifest.toml:1
+
+## docs/warrants/OW-WAR-0040/manifest.toml
+> Implement the Liminal adapter and measured parity harness
+- OW-WAR-0040 · warrant · authorized · Implement the Liminal adapter and measured parity harness · docs/warrants/OW-WAR-0040/manifest.toml:1
+
+## docs/warrants/OW-WAR-0041/manifest.toml
+> Discharge the Phase 0 exit: real telemetry distributions, with a baseline
+- OW-WAR-0041 · warrant · authorized · Discharge the Phase 0 exit: real telemetry distributions, with a baseline · docs/warrants/OW-WAR-0041/manifest.toml:1
+
+## docs/warrants/OW-WAR-0042/manifest.toml
+> Discharge the Phase 2 exit: a vague request becomes a reviewable draft
+- OW-WAR-0042 · warrant · authorized · Discharge the Phase 2 exit: a vague request becomes a reviewable draft · docs/warrants/OW-WAR-0042/manifest.toml:1
+
+## docs/warrants/OW-WAR-0043/manifest.toml
+> Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing
+- OW-WAR-0043 · warrant · authorized · Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing · docs/warrants/OW-WAR-0043/manifest.toml:1
+
+## docs/warrants/OW-WAR-0044/manifest.toml
+> Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder
+- OW-WAR-0044 · warrant · authorized · Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder · docs/warrants/OW-WAR-0044/manifest.toml:1
+
+## docs/warrants/OW-WAR-0045/manifest.toml
+> Discharge the Phase 5 exit: a stateless actor executes one Dispatch
+- OW-WAR-0045 · warrant · authorized · Discharge the Phase 5 exit: a stateless actor executes one Dispatch · docs/warrants/OW-WAR-0045/manifest.toml:1
+
+## docs/warrants/OW-WAR-0046/manifest.toml
+> Discharge the Phase 6 exit: a delivery closes only through bounded proof
+- OW-WAR-0046 · warrant · resolved · Discharge the Phase 6 exit: a delivery closes only through bounded proof · docs/warrants/OW-WAR-0046/manifest.toml:1
+
+## docs/warrants/OW-WAR-0047/manifest.toml
+> Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT
+- OW-WAR-0047 · warrant · authorized · Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT · docs/warrants/OW-WAR-0047/manifest.toml:1
+
+## docs/warrants/OW-WAR-0048/manifest.toml
+> Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run
+- OW-WAR-0048 · warrant · authorized · Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run · docs/warrants/OW-WAR-0048/manifest.toml:1
+
+## docs/warrants/OW-WAR-0049/manifest.toml
+> Close the alpha residue: the gaps alpha carried forward and one false claim
+- OW-WAR-0049 · warrant · authorized · Close the alpha residue: the gaps alpha carried forward and one false claim · docs/warrants/OW-WAR-0049/manifest.toml:1
+
+## docs/warrants/OW-WAR-0050/manifest.toml
+> Governed Bonsai evidence for pull-request workflow
+- OW-WAR-0050 · warrant · authorized · Governed Bonsai evidence for pull-request workflow · docs/warrants/OW-WAR-0050/manifest.toml:1
+
+## docs/warrants/OW-WAR-0055/manifest.toml
+> Compute the goal hierarchy: war status and the corpus projection
+- OW-WAR-0055 · warrant · resolved · Compute the goal hierarchy: war status and the corpus projection · docs/warrants/OW-WAR-0055/manifest.toml:1
+
+## docs/warrants/OW-WAR-0056/manifest.toml
+> Compile a real Stage Dispatch (§47)
+- OW-WAR-0056 · warrant · resolved · Compile a real Stage Dispatch (§47) · docs/warrants/OW-WAR-0056/manifest.toml:1
+
+## docs/warrants/OW-WAR-0057/manifest.toml
+> The viewer: a static page over the corpus projection
+- OW-WAR-0057 · warrant · resolved · The viewer: a static page over the corpus projection · docs/warrants/OW-WAR-0057/manifest.toml:1
+
+## docs/warrants/OW-WAR-0058/manifest.toml
+> Put the SAS under §101 governance: controlled revisions and the Release axis
+- OW-WAR-0058 · warrant · resolved · Put the SAS under §101 governance: controlled revisions and the Release axis · docs/warrants/OW-WAR-0058/manifest.toml:1
+
+## docs/warrants/OW-WAR-0059/manifest.toml
+> Commit gate receipts as evidence and record the first resolutions
+- OW-WAR-0059 · warrant · authorized · Commit gate receipts as evidence and record the first resolutions · docs/warrants/OW-WAR-0059/manifest.toml:1
+
+## docs/warrants/OW-WAR-0060/manifest.toml
+> Publish the corpus viewer: GitHub Pages from the committed projection
+- OW-WAR-0060 · warrant · resolved · Publish the corpus viewer: GitHub Pages from the committed projection · docs/warrants/OW-WAR-0060/manifest.toml:1
+
+## docs/warrants/OW-WAR-0061/manifest.toml
+> Discharge the Phase 1 exit: OpenWarrant development uses WARs
+- OW-WAR-0061 · warrant · resolved · Discharge the Phase 1 exit: OpenWarrant development uses WARs · docs/warrants/OW-WAR-0061/manifest.toml:1
+
+## docs/warrants/OW-WAR-0062/manifest.toml
+> Lock down the levels: what a SAS, a Warrant, and every other object are
+- OW-WAR-0062 · warrant · resolved · Lock down the levels: what a SAS, a Warrant, and every other object are · docs/warrants/OW-WAR-0062/manifest.toml:1
+
+## docs/warrants/OW-WAR-0063/manifest.toml
+> Complete the conformance battery: the plants and tests the verifier named as missing
+- OW-WAR-0063 · warrant · authorized · Complete the conformance battery: the plants and tests the verifier named as missing · docs/warrants/OW-WAR-0063/manifest.toml:1
+
+## docs/warrants/OW-WAR-0064/manifest.toml
+> Repair a delivered artifact: the correction act for a resolved Warrant
+- OW-WAR-0064 · warrant · authorized · Repair a delivered artifact: the correction act for a resolved Warrant · docs/warrants/OW-WAR-0064/manifest.toml:1
+
+## docs/warrants/OW-WAR-0065/manifest.toml
+> Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets
+- OW-WAR-0065 · warrant · authorized · Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets · docs/warrants/OW-WAR-0065/manifest.toml:1
+
+## docs/warrants/OW-WAR-0066/manifest.toml
+> Run: the conformance battery as a service stage
+- OW-WAR-0066 · warrant · authorized · Run: the conformance battery as a service stage · docs/warrants/OW-WAR-0066/manifest.toml:1
+
+## docs/warrants/OW-WAR-0067/manifest.toml
+> Release 1.0: the seven acts that close the plan, deferred to the owner's signature
+- OW-WAR-0067 · warrant · authorized · Release 1.0: the seven acts that close the plan, deferred to the owner's signature · docs/warrants/OW-WAR-0067/manifest.toml:1
+
+## docs/warrants/OW-WAR-0068/manifest.toml
+> Skills: a strict superset of the Pocock set over the deterministic core
+- OW-WAR-0068 · warrant · authorized · Skills: a strict superset of the Pocock set over the deterministic core · docs/warrants/OW-WAR-0068/manifest.toml:1
+
+## docs/warrants/OW-WAR-0069/manifest.toml
+> The board, the hotline, and the harness: one system from master record to running agents
+- OW-WAR-0069 · warrant · authorized · The board, the hotline, and the harness: one system from master record to running agents · docs/warrants/OW-WAR-0069/manifest.toml:1
+
+## docs/warrants/OW-WAR-0070/manifest.toml
+> Add `war inbox` to list Warrants awaiting a human act
+- OW-WAR-0070 · warrant · authorized · Add `war inbox` to list Warrants awaiting a human act · docs/warrants/OW-WAR-0070/manifest.toml:1
+
+## docs/warrants/OW-WAR-0071/manifest.toml
+> SAS 1.1.0: the batch act, and the dashboard as a rendering of the record
+- OW-WAR-0071 · warrant · authorized · SAS 1.1.0: the batch act, and the dashboard as a rendering of the record · docs/warrants/OW-WAR-0071/manifest.toml:1
+
+## docs/warrants/OW-WAR-0072/manifest.toml
+> The batch act: one human signature over many pending acts
+- OW-WAR-0072 · warrant · authorized · The batch act: one human signature over many pending acts · docs/warrants/OW-WAR-0072/manifest.toml:1
+
+## docs/warrants/OW-WAR-0073/manifest.toml
+> war tui: the dashboard in the terminal
+- OW-WAR-0073 · warrant · authorized · war tui: the dashboard in the terminal · docs/warrants/OW-WAR-0073/manifest.toml:1
+
+## docs/warrants/OW-WAR-0074/manifest.toml
+> Adopt the exact RC.2 build basis without rewriting history
+- OW-WAR-0074 · warrant · authorized · Adopt the exact RC.2 build basis without rewriting history · docs/warrants/OW-WAR-0074/manifest.toml:1
+
+## docs/warrants/OW-WAR-0075/manifest.toml
+> Parse and validate human-first OpenWarrant documents
+- OW-WAR-0075 · warrant · authorized · Parse and validate human-first OpenWarrant documents · docs/warrants/OW-WAR-0075/manifest.toml:1
+
+## docs/warrants/OW-WAR-0076/manifest.toml
+> Author and edit human-first OpenWarrant documents
+- OW-WAR-0076 · warrant · authorized · Author and edit human-first OpenWarrant documents · docs/warrants/OW-WAR-0076/manifest.toml:1
+
+## docs/warrants/OW-WAR-0077/manifest.toml
+> Define SDK source types and prove provider resolution integration
+- OW-WAR-0077 · warrant · authorized · Define SDK source types and prove provider resolution integration · docs/warrants/OW-WAR-0077/manifest.toml:1
+
+## docs/warrants/OW-WAR-0078/manifest.toml
+> Validate condition syntax and prove provider evaluation integration
+- OW-WAR-0078 · warrant · authorized · Validate condition syntax and prove provider evaluation integration · docs/warrants/OW-WAR-0078/manifest.toml:1
+
+## docs/warrants/OW-WAR-0079/manifest.toml
+> Prove provider context selection and dependency closure
+- OW-WAR-0079 · warrant · authorized · Prove provider context selection and dependency closure · docs/warrants/OW-WAR-0079/manifest.toml:1
+
+## docs/warrants/OW-WAR-0080/manifest.toml
+> Prove provider master context and task projections
+- OW-WAR-0080 · warrant · authorized · Prove provider master context and task projections · docs/warrants/OW-WAR-0080/manifest.toml:1
+
+## docs/warrants/OW-WAR-0081/manifest.toml
+> Inspect packet integrity and prove offline provider packages
+- OW-WAR-0081 · warrant · authorized · Inspect packet integrity and prove offline provider packages · docs/warrants/OW-WAR-0081/manifest.toml:1
+
+## docs/warrants/OW-WAR-0082/manifest.toml
+> Prove provider context budgets and cache invalidation
+- OW-WAR-0082 · warrant · authorized · Prove provider context budgets and cache invalidation · docs/warrants/OW-WAR-0082/manifest.toml:1
+
+## docs/warrants/OW-WAR-0083/manifest.toml
+> Evaluate supplied work and assurance records
+- OW-WAR-0083 · warrant · authorized · Evaluate supplied work and assurance records · docs/warrants/OW-WAR-0083/manifest.toml:1
+
+## docs/warrants/OW-WAR-0084/manifest.toml
+> Preserve legacy history and explicit successor lineage
+- OW-WAR-0084 · warrant · authorized · Preserve legacy history and explicit successor lineage · docs/warrants/OW-WAR-0084/manifest.toml:1
+
+## docs/warrants/OW-WAR-0085/manifest.toml
+> Prove Phase 1 SDK, CLI and adapted skill scope
+- OW-WAR-0085 · warrant · authorized · Prove Phase 1 SDK, CLI and adapted skill scope · docs/warrants/OW-WAR-0085/manifest.toml:1
+
+## docs/warrants/OW-WAR-0086/manifest.toml
+> Integrate SDK with LAMU and a second minimal consumer
+- OW-WAR-0086 · warrant · authorized · Integrate SDK with LAMU and a second minimal consumer · docs/warrants/OW-WAR-0086/manifest.toml:1
+
+## docs/warrants/OW-WAR-0087/manifest.toml
+> Expose document and record primitives through CLI
+- OW-WAR-0087 · warrant · authorized · Expose document and record primitives through CLI · docs/warrants/OW-WAR-0087/manifest.toml:1
+
+## docs/warrants/OW-WAR-0088/manifest.toml
+> Make SDK document authoring interactive and recoverable
+- OW-WAR-0088 · warrant · authorized · Make SDK document authoring interactive and recoverable · docs/warrants/OW-WAR-0088/manifest.toml:1
+
+## docs/warrants/OW-WAR-0089/manifest.toml
+> Prepare standard and SDK release artifacts
+- OW-WAR-0089 · warrant · authorized · Prepare standard and SDK release artifacts · docs/warrants/OW-WAR-0089/manifest.toml:1
+
+## docs/warrants/OW-WAR-0090/manifest.toml
+> Qualify four-phase release and freeze Stable source set
+- OW-WAR-0090 · warrant · authorized · Qualify four-phase release and freeze Stable source set · docs/warrants/OW-WAR-0090/manifest.toml:1
+
+## docs/warrants/OW-WAR-0091/manifest.toml
+> Publish and verify OpenWarrant Stable 1.0
+- OW-WAR-0091 · warrant · authorized · Publish and verify OpenWarrant Stable 1.0 · docs/warrants/OW-WAR-0091/manifest.toml:1
+
+## docs/warrants/OW-WAR-0092/manifest.toml
+> View project progress as offline HTML and a locally refreshed dashboard
+- OW-WAR-0092 · warrant · authorized · View project progress as offline HTML and a locally refreshed dashboard · docs/warrants/OW-WAR-0092/manifest.toml:1
+
+## docs/warrants/OW-WAR-0093/manifest.toml
+> Reference workflow package: local API and draft webapp
+- OW-WAR-0093 · warrant · authorized · Reference workflow package: local API and draft webapp · docs/warrants/OW-WAR-0093/manifest.toml:1
+
+## docs/warrants/OW-WAR-0094/manifest.toml
+> Connected-agent execution workflow and model-neutral drafting roadmap
+- OW-WAR-0094 · warrant · authorized · Connected-agent execution workflow and model-neutral drafting roadmap · docs/warrants/OW-WAR-0094/manifest.toml:1
+
+## docs/warrants/OW-WAR-0095/manifest.toml
+> Three-developer reference workflow qualification study
+- OW-WAR-0095 · warrant · authorized · Three-developer reference workflow qualification study · docs/warrants/OW-WAR-0095/manifest.toml:1
+
+## docs/warrants/OW-WAR-0096/manifest.toml
+> Authenticate authority changes through signed transitions and protected activation
+- OW-WAR-0096 · warrant · authorized · Authenticate authority changes through signed transitions and protected activation · docs/warrants/OW-WAR-0096/manifest.toml:1
+
+## docs/warrants/OW-WAR-0097/manifest.toml
+> Read-only repository doctor and actionable readiness diagnostics
+- OW-WAR-0097 · warrant · authorized · Read-only repository doctor and actionable readiness diagnostics · docs/warrants/OW-WAR-0097/manifest.toml:1
+
+## docs/warrants/OW-WAR-0098/manifest.toml
+> Share reference workflow start checks with read-only admission preview
+- OW-WAR-0098 · warrant · authorized · Share reference workflow start checks with read-only admission preview · docs/warrants/OW-WAR-0098/manifest.toml:1
+
+## docs/warrants/OW-WAR-0099/manifest.toml
+> Preserve frontier integrity when stage history is damaged
+- OW-WAR-0099 · warrant · authorized · Preserve frontier integrity when stage history is damaged · docs/warrants/OW-WAR-0099/manifest.toml:1
+
+## docs/warrants/OW-WAR-0100/manifest.toml
+> Report unsupported telemetry as unknown without changing historical baselines
+- OW-WAR-0100 · warrant · authorized · Report unsupported telemetry as unknown without changing historical baselines · docs/warrants/OW-WAR-0100/manifest.toml:1
+
+## docs/warrants/OW-WAR-0101/manifest.toml
+> Constrain local drafting responses before semantic validation
+- OW-WAR-0101 · warrant · authorized · Constrain local drafting responses before semantic validation · docs/warrants/OW-WAR-0101/manifest.toml:1
+
+## docs/warrants/OW-WAR-0102/manifest.toml
+> Generate deterministic execution work-stop reports
+- OW-WAR-0102 · warrant · authorized · Generate deterministic execution work-stop reports · docs/warrants/OW-WAR-0102/manifest.toml:1
+
+## docs/warrants/OW-WAR-0103/manifest.toml
+> Preserve question-store errors across hotline readers
+- OW-WAR-0103 · warrant · authorized · Preserve question-store errors across hotline readers · docs/warrants/OW-WAR-0103/manifest.toml:1
+
+## docs/warrants/OW-WAR-0104/manifest.toml
+> Complete read-only master board and batch question workflow
+- OW-WAR-0104 · warrant · authorized · Complete read-only master board and batch question workflow · docs/warrants/OW-WAR-0104/manifest.toml:1
+
+## docs/warrants/OW-WAR-0105/manifest.toml
+> Draft human-first Warrants through configured agent harnesses
+- OW-WAR-0105 · warrant · authorized · Draft human-first Warrants through configured agent harnesses · docs/warrants/OW-WAR-0105/manifest.toml:1
+
+## docs/warrants/OW-WAR-0106/manifest.toml
+> Route workflow questions and resume bounded work after answers
+- OW-WAR-0106 · warrant · authorized · Route workflow questions and resume bounded work after answers · docs/warrants/OW-WAR-0106/manifest.toml:1
+
+## docs/warrants/OW-WAR-0107/manifest.toml
+> Independently verify workflow results and repair within limits
+- OW-WAR-0107 · warrant · authorized · Independently verify workflow results and repair within limits · docs/warrants/OW-WAR-0107/manifest.toml:1
+
+## docs/warrants/OW-WAR-0108/manifest.toml
+> Integrate shared BLUT materialization repair and retained OW47 runtime evidence
+- OW-WAR-0108 · warrant · authorized · Integrate shared BLUT materialization repair and retained OW47 runtime evidence · docs/warrants/OW-WAR-0108/manifest.toml:1
+
+## docs/warrants/OW-WAR-0109/manifest.toml
+> Durable agent availability queue and automatic bounded dispatch
+- OW-WAR-0109 · warrant · authorized · Durable agent availability queue and automatic bounded dispatch · docs/warrants/OW-WAR-0109/manifest.toml:1
+
+## docs/warrants/OW-WAR-0110/manifest.toml
+> Generate OpenWarrant TypeScript record types and integrate KF consumption
+- OW-WAR-0110 · warrant · authorized · Generate OpenWarrant TypeScript record types and integrate KF consumption · docs/warrants/OW-WAR-0110/manifest.toml:1
+
+## docs/warrants/OW-WAR-0111/manifest.toml
+> Implement content-bearing preservation archives and honest import round trips
+- OW-WAR-0111 · warrant · authorized · Implement content-bearing preservation archives and honest import round trips · docs/warrants/OW-WAR-0111/manifest.toml:1
+
+## docs/warrants/OW-WAR-0112/manifest.toml
+> war is the app: ownership, a guided start, and remedies
+- OW-WAR-0112 · warrant · authorized · war is the app: ownership, a guided start, and remedies · docs/warrants/OW-WAR-0112/manifest.toml:1
+
+## docs/warrants/OW-WAR-0113/manifest.toml
+> Two projections from atoms by relation: the current master document, and the history
+- OW-WAR-0113 · warrant · authorized · Two projections from atoms by relation: the current master document, and the history · docs/warrants/OW-WAR-0113/manifest.toml:1
+
+## docs/warrants/OW-WAR-0114/manifest.toml
+> The roadmap becomes a record: one per program, beside the SAS
+- OW-WAR-0114 · warrant · authorized · The roadmap becomes a record: one per program, beside the SAS · docs/warrants/OW-WAR-0114/manifest.toml:1
+
+## docs/warrants/OW-WAR-0115/manifest.toml
+> The hub: war opens from anywhere, with every project and its progress
+- OW-WAR-0115 · warrant · authorized · The hub: war opens from anywhere, with every project and its progress · docs/warrants/OW-WAR-0115/manifest.toml:1
+
+## docs/warrants/OW-WAR-0116/manifest.toml
+> war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap
+- OW-WAR-0116 · warrant · authorized · war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap · docs/warrants/OW-WAR-0116/manifest.toml:1
+
+## docs/warrants/OW-WAR-0117/manifest.toml
+> An independent verifier: a blind, tool-less process that war verify --run hands each bundle to
+- OW-WAR-0117 · warrant · authorized · An independent verifier: a blind, tool-less process that war verify --run hands each bundle to · docs/warrants/OW-WAR-0117/manifest.toml:1
+
+## docs/warrants/OW-WAR-0118/manifest.toml
+> Measure the friction targets: setup in ten minutes, a routine act in sixty seconds
+- OW-WAR-0118 · warrant · authorized · Measure the friction targets: setup in ten minutes, a routine act in sixty seconds · docs/warrants/OW-WAR-0118/manifest.toml:1
+
+## docs/warrants/OW-WAR-0119/manifest.toml
+> Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it
+- OW-WAR-0119 · warrant · authorized · Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it · docs/warrants/OW-WAR-0119/manifest.toml:1
+
+## docs/warrants/OW-WAR-0120/manifest.toml
+> Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants
+- OW-WAR-0120 · warrant · authorized · Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants · docs/warrants/OW-WAR-0120/manifest.toml:1
+
+## docs/warrants/OW-WAR-0121/manifest.toml
+> Storage: atomic writes, crash recovery, and migration of retained artifacts
+- OW-WAR-0121 · warrant · authorized · Storage: atomic writes, crash recovery, and migration of retained artifacts · docs/warrants/OW-WAR-0121/manifest.toml:1
+
+## docs/warrants/OW-WAR-0122/manifest.toml
+> The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept
+- OW-WAR-0122 · warrant · authorized · The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept · docs/warrants/OW-WAR-0122/manifest.toml:1
+
+## docs/warrants/OW-WAR-0123/manifest.toml
+> A child cites the exact revision of its parent, and a moved parent is a finding
+- OW-WAR-0123 · warrant · authorized · A child cites the exact revision of its parent, and a moved parent is a finding · docs/warrants/OW-WAR-0123/manifest.toml:1
+
+## docs/warrants/OW-WAR-0124/manifest.toml
+> Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants
+- OW-WAR-0124 · warrant · authorized · Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants · docs/warrants/OW-WAR-0124/manifest.toml:1
+
+## docs/warrants/OW-WAR-0125/manifest.toml
+> The SAS as atoms: sections as governed records with their own currency
+- OW-WAR-0125 · warrant · authorized · The SAS as atoms: sections as governed records with their own currency · docs/warrants/OW-WAR-0125/manifest.toml:1
+
+## docs/warrants/OW-WAR-0126/manifest.toml
+> Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local
+- OW-WAR-0126 · warrant · authorized · Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local · docs/warrants/OW-WAR-0126/manifest.toml:1
+
+## docs/warrants/OW-WAR-0127/manifest.toml
+> Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds
+- OW-WAR-0127 · warrant · authorized · Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds · docs/warrants/OW-WAR-0127/manifest.toml:1
+
+## docs/warrants/OW-WAR-0128/manifest.toml
+> The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back
+- OW-WAR-0128 · warrant · authorized · The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back · docs/warrants/OW-WAR-0128/manifest.toml:1
+
+## docs/warrants/OW-WAR-0129/manifest.toml
+> A Dispatch over its budget is refused, by name, before any agent starts
+- OW-WAR-0129 · warrant · authorized · A Dispatch over its budget is refused, by name, before any agent starts · docs/warrants/OW-WAR-0129/manifest.toml:1
+
+## docs/warrants/OW-WAR-0130/manifest.toml
+> Idempotent acts, all-or-nothing batches, and version negotiation between war and its records
+- OW-WAR-0130 · warrant · authorized · Idempotent acts, all-or-nothing batches, and version negotiation between war and its records · docs/warrants/OW-WAR-0130/manifest.toml:1
+
+## docs/warrants/OW-WAR-0131/manifest.toml
+> Agent and harness adapters per OS: writer handoff and cancellation
+- OW-WAR-0131 · warrant · authorized · Agent and harness adapters per OS: writer handoff and cancellation · docs/warrants/OW-WAR-0131/manifest.toml:1
+
+## docs/warrants/OW-WAR-0132/manifest.toml
+> Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers
+- OW-WAR-0132 · warrant · authorized · Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers · docs/warrants/OW-WAR-0132/manifest.toml:1
+
+## docs/warrants/OW-WAR-0133/manifest.toml
+> Evidence reuse after a source change, and the compiler's source, conflict and omission rules
+- OW-WAR-0133 · warrant · authorized · Evidence reuse after a source change, and the compiler's source, conflict and omission rules · docs/warrants/OW-WAR-0133/manifest.toml:1
+
+## docs/warrants/OW-WAR-0134/manifest.toml
+> Acceptance stays valid only for the candidate accepted: a change before merge is a finding
+- OW-WAR-0134 · warrant · authorized · Acceptance stays valid only for the candidate accepted: a change before merge is a finding · docs/warrants/OW-WAR-0134/manifest.toml:1
+
+## docs/warrants/OW-WAR-0135/manifest.toml
+> The assurance mark: a baseline, its issuance, and what it binds
+- OW-WAR-0135 · warrant · authorized · The assurance mark: a baseline, its issuance, and what it binds · docs/warrants/OW-WAR-0135/manifest.toml:1
+
+## docs/warrants/OW-WAR-0136/manifest.toml
+> Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates
+- OW-WAR-0136 · warrant · authorized · Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates · docs/warrants/OW-WAR-0136/manifest.toml:1
+
+## docs/warrants/OW-WAR-0137/manifest.toml
+> Teams: review assignment and a queue shared by more than one person
+- OW-WAR-0137 · warrant · authorized · Teams: review assignment and a queue shared by more than one person · docs/warrants/OW-WAR-0137/manifest.toml:1
+
+## docs/warrants/OW-WAR-0138/manifest.toml
+> Human and session authentication, and policy state protected from the performer
+- OW-WAR-0138 · warrant · authorized · Human and session authentication, and policy state protected from the performer · docs/warrants/OW-WAR-0138/manifest.toml:1
+
+## docs/warrants/OW-WAR-0139/manifest.toml
+> The web UI beyond this machine: LAN and other devices, authenticated
+- OW-WAR-0139 · warrant · authorized · The web UI beyond this machine: LAN and other devices, authenticated · docs/warrants/OW-WAR-0139/manifest.toml:1
+
+## docs/warrants/OW-WAR-0140/manifest.toml
+> The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core
+- OW-WAR-0140 · warrant · authorized · The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core · docs/warrants/OW-WAR-0140/manifest.toml:1
+
+## docs/warrants/OW-WAR-0141/manifest.toml
+> Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony
+- OW-WAR-0141 · warrant · authorized · Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony · docs/warrants/OW-WAR-0141/manifest.toml:1
+
+## docs/warrants/OW-WAR-0142/manifest.toml
+> Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance
+- OW-WAR-0142 · warrant · authorized · Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance · docs/warrants/OW-WAR-0142/manifest.toml:1
+
+## docs/warrants/OW-WAR-0143/manifest.toml
+> war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version
+- OW-WAR-0143 · warrant · authorized · war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version · docs/warrants/OW-WAR-0143/manifest.toml:1
+
+## docs/warrants/OW-WAR-0144/manifest.toml
+> Amending an authorization keeps the superseded one beside it, as a retired response is kept
+- OW-WAR-0144 · warrant · authorized · Amending an authorization keeps the superseded one beside it, as a retired response is kept · docs/warrants/OW-WAR-0144/manifest.toml:1
+
+## docs/warrants/OW-WAR-0145/manifest.toml
+> The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing
+- OW-WAR-0145 · warrant · authorized · The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing · docs/warrants/OW-WAR-0145/manifest.toml:1
+
+## docs/warrants/OW-WAR-0146/manifest.toml
+> A verification bundle carries what each gate printed, so a blind verifier can see the evidence
+- OW-WAR-0146 · warrant · authorized · A verification bundle carries what each gate printed, so a blind verifier can see the evidence · docs/warrants/OW-WAR-0146/manifest.toml:1
+
+## docs/warrants/OW-WAR-0147/manifest.toml
+> Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in
+- OW-WAR-0147 · warrant · draft · Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in · docs/warrants/OW-WAR-0147/manifest.toml:1
+
+## docs/warrants/OW-WAR-0148/manifest.toml
+> Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel
+- OW-WAR-0148 · warrant · authorized · Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel · docs/warrants/OW-WAR-0148/manifest.toml:1
+
+## docs/warrants/OW-WAR-0149/manifest.toml
+> Shared Katana and BLUT runtime receipt binding contract
+- OW-WAR-0149 · warrant · draft · Shared Katana and BLUT runtime receipt binding contract · docs/warrants/OW-WAR-0149/manifest.toml:1

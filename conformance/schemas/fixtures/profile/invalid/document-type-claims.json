@@ -1,0 +1,13 @@
+{
+  "why": "projection.rs: a document type selects only structure and links (plus acceptance for a roadmap or SAS store)",
+  "expect": "'claims' is not one of",
+  "instance": {
+    "schema": "oh.war/profile/v1",
+    "name": "memo",
+    "form": "document",
+    "capabilities": [
+      "structure",
+      "claims"
+    ]
+  }
+}

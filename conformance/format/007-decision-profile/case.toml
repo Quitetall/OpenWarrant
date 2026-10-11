@@ -1,0 +1,4 @@
+id = "007-decision-profile"
+kind = "accept"
+section = "4.1"
+says = """`decision` requires Intent and Basis"""

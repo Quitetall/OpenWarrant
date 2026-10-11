@@ -11,12 +11,23 @@ OpenWarrant documents. The `war` tool is one implementation of it.
 
 ## Status
 
-**Draft, `1.0.0-draft.1`.** The owner set the direction on 2026-10-11, and
+**Draft, `1.0.0-draft.2`.** The owner set the direction on 2026-10-11, and
 it is recorded as [OW-ADR-0032](../adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md).
-That ADR is `proposed` until the owner accepts it. Until then nothing here
-is in force, and `war` does not read the new single-file form yet.
-Implementation work (JSON schemas, model content, the single-file reader,
-`war context`, `conformance/format/`) is built from this text.
+That ADR is `proposed` until the owner accepts it; until then nothing here
+is in force.
+
+`war` implements this draft: it reads single-file and directory Warrants
+and tickets, emits the content-carrying model and `war context`, and
+writes `docs/generated/llms.txt`. The JSON schemas are in
+[`schemas/format/1.0/`](../../schemas/format/), and the corpus in
+[`conformance/format/`](../../conformance/format/) passes under `war` (in the
+gate, plant 183) and under an independent Python reader,
+`conformance/format/reader.py`.
+
+Draft 2 settles what building those found unclear: item and record-document
+records, frontmatter relations, containment outside `content_digest`, the
+legacy lowering table, one finding per fault, an index that lists work
+documents by their own record, and items not repeated in a context packet.
 
 ## What is normative, and what is history
 

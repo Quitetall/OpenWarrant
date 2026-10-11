@@ -1,0 +1,5 @@
+id = "110-frontmatter-duplicate-key"
+kind = "refuse"
+section = "3.2"
+rule = "format.frontmatter"
+says = """duplicate keys"""

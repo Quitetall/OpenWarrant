@@ -39,6 +39,8 @@ fn board_is_complete_read_only_and_refuses_corrupt_questions() {
     );
     let run = |args: &[&str]| {
         Command::new(env!("CARGO_BIN_EXE_war"))
+            // This checkout's .git is not a test's to write caches into.
+            .env("OPENWARRANT_NO_CACHE", "1")
             .args(args)
             .current_dir(&root)
             .output()
