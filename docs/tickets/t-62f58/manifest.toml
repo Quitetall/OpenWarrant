@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-62f58` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-62f58"
+uuid = "01a12c59-a124-73fd-ab63-d661aad4d38c"
+title = "Reject ambiguous blind-verifier answers (OW117)"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-11T19:03:53Z"
+created_by = "codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

@@ -62,9 +62,12 @@ it does not replace host instructions or require their conversion into Warrants.
 
 Put shared OpenWarrant guidance in one source. Where another harness needs an
 entry, add a short pointer stating when to read that source. Preserve existing
-instructions, user edits and symlink targets; do not run an overwrite command to
-install guidance. Current `war admin agents-md --force` replaces the whole file and is
-not an integration operation. Additive installer support remains planned.
+instructions, user edits and symlink targets. When installing guidance, use
+`war admin agents-md --block` and read the
+[managed-block contract](docs/INSTALL.md#the-pointer-block-in-claudemd-and-agentsmd): bytes outside the markers stay intact;
+malformed blocks and links outside the repository are refused before writes.
+`war admin agents-md --force` replaces the whole file; use the additive block for
+integration with existing instructions.
 
 When preparing context, retain source identity, revision, scope and rule meaning.
 Keep required rules and dependencies exact; summarize only background. A filename,

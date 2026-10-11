@@ -100,8 +100,24 @@ model, performer_model = sys.argv[2], sys.argv[3]
 text = open(sys.argv[4]).read().strip()
 text = re.sub(r"^```[a-z]*\n|\n```$", "", text)
 try:
-    verdicts = {v["obligation"]: v for v in json.loads(text)["verdicts"]
-                if isinstance(v, dict) and "obligation" in v}
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate JSON field")
+            result[key] = value
+        return result
+    rows = json.loads(text, object_pairs_hook=unique)["verdicts"]
+    if not isinstance(rows, list):
+        raise ValueError("verdicts must be a list")
+    verdicts = {}
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("obligation"), str):
+            raise ValueError("invalid verdict row")
+        key = row["obligation"]
+        if key in verdicts:
+            raise ValueError("ambiguous obligation verdict")
+        verdicts[key] = row
 except Exception:
     # Unknown is not pass (Law 15): an answer that does not parse settles
     # nothing, so every obligation reads not_established.
