@@ -657,6 +657,178 @@ fn shown<T: Serialize>(v: &T) -> String {
     serde_json::to_string(v).unwrap_or_else(|_| "<unprintable>".to_owned())
 }
 
+/// `[independence]` as `openwarrant.toml` declares it: §46.1's nine
+/// dimensions, and whether the repository declares itself a single actor
+/// (issue #132 item 3).
+///
+/// `single_actor = true` says one person, working alone or through agents,
+/// holds every role, so no verification here is independent of the work.
+/// It is the same statement as nine `false` dimensions, said once. It claims
+/// nothing: it raises no dimension, satisfies no §46.3 minimum, and nothing
+/// reads it as verification. All it changes is how `war check` reports the
+/// gap (one note instead of a warning per assurance level), and `war status`
+/// names it. With `single_actor = true` a dimension that is not written reads
+/// `false`; one written `true` contradicts the declaration, and `war check`
+/// refuses it by name (`independence.single-actor-contradicted`). Without
+/// it, all nine must be written, as before.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(try_from = "IndependenceTable", into = "IndependenceTable")]
+pub struct IndependenceDeclaration {
+    pub dimensions: crate::independence::Independence,
+    pub single_actor: bool,
+}
+
+impl From<crate::independence::Independence> for IndependenceDeclaration {
+    fn from(dimensions: crate::independence::Independence) -> Self {
+        Self {
+            dimensions,
+            single_actor: false,
+        }
+    }
+}
+
+impl IndependenceDeclaration {
+    /// The dimensions declared `true` alongside `single_actor = true`: a
+    /// declaration that says one actor and also claims a separation. Empty
+    /// when `single_actor` is not declared.
+    #[must_use]
+    pub fn contradictions(&self) -> Vec<&'static str> {
+        if !self.single_actor {
+            return Vec::new();
+        }
+        let i = self.dimensions;
+        [
+            (i.performer_transcript_blind, "performer_transcript_blind"),
+            (i.performer_rationale_blind, "performer_rationale_blind"),
+            (i.separate_writable_workspace, "separate_writable_workspace"),
+            (
+                i.cannot_modify_subject_artifacts,
+                "cannot_modify_subject_artifacts",
+            ),
+            (
+                i.cannot_modify_gate_definition,
+                "cannot_modify_gate_definition",
+            ),
+            (i.cannot_modify_gate_fixtures, "cannot_modify_gate_fixtures"),
+            (
+                i.separate_context_compilation,
+                "separate_context_compilation",
+            ),
+            (i.distinct_model_required, "distinct_model_required"),
+            (i.distinct_human_required, "distinct_human_required"),
+        ]
+        .into_iter()
+        .filter_map(|(on, name)| on.then_some(name))
+        .collect()
+    }
+
+    /// `single_actor = true` and no dimension contradicts it.
+    #[must_use]
+    pub fn is_single_actor(&self) -> bool {
+        self.single_actor && self.contradictions().is_empty()
+    }
+}
+
+/// The `[independence]` table as written. Every dimension is optional here
+/// only so that `single_actor = true` may stand alone; without it a missing
+/// dimension is refused, never defaulted (§46.1's defaults are mostly
+/// `true`, and a default would be a claim nobody wrote).
+#[derive(Serialize, Deserialize)]
+struct IndependenceTable {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    performer_transcript_blind: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    performer_rationale_blind: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    separate_writable_workspace: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    cannot_modify_subject_artifacts: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    cannot_modify_gate_definition: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    cannot_modify_gate_fixtures: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    separate_context_compilation: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    distinct_model_required: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    distinct_human_required: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    single_actor: bool,
+}
+
+impl TryFrom<IndependenceTable> for IndependenceDeclaration {
+    type Error = String;
+
+    fn try_from(t: IndependenceTable) -> Result<Self, String> {
+        let mut missing = Vec::new();
+        let mut get = |v: Option<bool>, name: &'static str| {
+            v.unwrap_or_else(|| {
+                missing.push(name);
+                false
+            })
+        };
+        let dimensions = crate::independence::Independence {
+            performer_transcript_blind: get(
+                t.performer_transcript_blind,
+                "performer_transcript_blind",
+            ),
+            performer_rationale_blind: get(t.performer_rationale_blind, "performer_rationale_blind"),
+            separate_writable_workspace: get(
+                t.separate_writable_workspace,
+                "separate_writable_workspace",
+            ),
+            cannot_modify_subject_artifacts: get(
+                t.cannot_modify_subject_artifacts,
+                "cannot_modify_subject_artifacts",
+            ),
+            cannot_modify_gate_definition: get(
+                t.cannot_modify_gate_definition,
+                "cannot_modify_gate_definition",
+            ),
+            cannot_modify_gate_fixtures: get(
+                t.cannot_modify_gate_fixtures,
+                "cannot_modify_gate_fixtures",
+            ),
+            separate_context_compilation: get(
+                t.separate_context_compilation,
+                "separate_context_compilation",
+            ),
+            distinct_model_required: get(t.distinct_model_required, "distinct_model_required"),
+            distinct_human_required: get(t.distinct_human_required, "distinct_human_required"),
+        };
+        if !missing.is_empty() && !t.single_actor {
+            return Err(format!(
+                "[independence] is missing {}: declare all nine §46.1 dimensions, or \
+                 `single_actor = true` alone (every dimension false)",
+                missing.join(", ")
+            ));
+        }
+        Ok(Self {
+            dimensions,
+            single_actor: t.single_actor,
+        })
+    }
+}
+
+impl From<IndependenceDeclaration> for IndependenceTable {
+    fn from(d: IndependenceDeclaration) -> Self {
+        let i = d.dimensions;
+        Self {
+            performer_transcript_blind: Some(i.performer_transcript_blind),
+            performer_rationale_blind: Some(i.performer_rationale_blind),
+            separate_writable_workspace: Some(i.separate_writable_workspace),
+            cannot_modify_subject_artifacts: Some(i.cannot_modify_subject_artifacts),
+            cannot_modify_gate_definition: Some(i.cannot_modify_gate_definition),
+            cannot_modify_gate_fixtures: Some(i.cannot_modify_gate_fixtures),
+            separate_context_compilation: Some(i.separate_context_compilation),
+            distinct_model_required: Some(i.distinct_model_required),
+            distinct_human_required: Some(i.distinct_human_required),
+            single_actor: d.single_actor,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryConfig {
     pub schema: String,
@@ -694,8 +866,11 @@ pub struct RepositoryConfig {
     /// declared independence would inherit a claim that its verification is
     /// blind and separately workspaced. Absent means UNDECLARED, and `war check`
     /// reports it as such rather than assuming the flattering answer.
+    ///
+    /// `single_actor = true` in the same table is [`IndependenceDeclaration`]:
+    /// the one-actor state declared once, claiming nothing.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub independence: Option<crate::independence::Independence>,
+    pub independence: Option<IndependenceDeclaration>,
     /// `[adoption]` — absent for a repository initialized with no history,
     /// and never written when absent, so every existing `openwarrant.toml`
     /// loads and writes unchanged.
@@ -780,13 +955,20 @@ impl RepositoryConfig {
         );
         differ(
             "[independence]",
-            shown(&self.independence),
+            shown(&self.independence.map(|d| d.dimensions)),
             shown(&policy.independence),
         );
         self.policy.allow_automated_resolution = policy.allow_automated_resolution;
         self.policy.require_user_presence = policy.require_user_presence;
         self.verify.verifier_argv.clone_from(&policy.verifier_argv);
-        self.independence = policy.independence;
+        // The store governs the dimensions. `single_actor` is the file's: it
+        // claims nothing, and a store dimension set `true` beside it is the
+        // contradiction `war check` refuses.
+        let single_actor = self.independence.is_some_and(|d| d.single_actor);
+        self.independence = policy.independence.map(|dimensions| IndependenceDeclaration {
+            dimensions,
+            single_actor,
+        });
         self.governance = Governance::Store {
             store: store.to_owned(),
             head: head.to_owned(),
@@ -1079,7 +1261,7 @@ mod tests {
         use crate::authority::{ActorRole, PolicyResolutionContext, RoleAssignment};
         let mut c = valid();
         c.policy.allow_automated_resolution = true;
-        c.independence = Some(crate::independence::Independence::default());
+        c.independence = Some(crate::independence::Independence::default().into());
         c.verify.verifier_argv = vec!["mine.sh".to_owned()];
         let store = crate::authority_transition::Policy {
             allow_automated_resolution: false,
@@ -1149,7 +1331,7 @@ mod tests {
         let mut c = valid();
         c.policy.allow_automated_resolution = true;
         c.verify.verifier_argv = vec!["v".to_owned()];
-        c.independence = Some(crate::independence::Independence::default());
+        c.independence = Some(crate::independence::Independence::default().into());
         c.govern_fail_closed("/s", "authority.verify-unavailable", "gone".to_owned());
         assert!(!c.policy.allow_automated_resolution);
         assert!(c.policy.require_user_presence);
@@ -1329,5 +1511,103 @@ mod tests {
             !no.is_empty(),
             "an explicit false is written back, not dropped"
         );
+    }
+
+    fn with_independence(table: &str) -> Result<RepositoryConfig, toml::de::Error> {
+        let mut text = toml::to_string_pretty(&valid()).expect("serializes");
+        text.push_str("\n[independence]\n");
+        text.push_str(table);
+        toml::from_str(&text)
+    }
+
+    const NINE_FALSE: &str = "performer_transcript_blind = false
+performer_rationale_blind = false
+separate_writable_workspace = false
+cannot_modify_subject_artifacts = false
+cannot_modify_gate_definition = false
+cannot_modify_gate_fixtures = false
+separate_context_compilation = false
+distinct_model_required = false
+distinct_human_required = false
+";
+
+    /// Issue #132 item 3: `single_actor = true` alone is nine `false`
+    /// dimensions, declared; it raises nothing and meets no minimum.
+    #[test]
+    fn single_actor_alone_is_every_dimension_false_and_meets_nothing() {
+        let c = with_independence("single_actor = true\n").expect("parses");
+        let d = c.independence.expect("declared");
+        assert!(d.single_actor && d.is_single_actor());
+        assert_eq!(d.dimensions, crate::independence::Independence::none());
+        assert!(d.contradictions().is_empty());
+        for level in ["basic", "controlled", "high"] {
+            assert!(d.dimensions.meets(level).is_err(), "{level} must stay unmet");
+        }
+        let full =
+            with_independence(&format!("{NINE_FALSE}single_actor = true\n")).expect("parses");
+        assert_eq!(full.independence, Some(d));
+    }
+
+    /// Without `single_actor`, a missing dimension is refused, never
+    /// defaulted to §46.1's mostly-true defaults; and nine dimensions with no
+    /// declaration read exactly as before.
+    #[test]
+    fn without_single_actor_every_dimension_must_be_written() {
+        let err = with_independence("performer_transcript_blind = false\n")
+            .expect_err("eight dimensions missing");
+        assert!(
+            err.to_string().contains("performer_rationale_blind"),
+            "names what is missing: {err}"
+        );
+        let c = with_independence(NINE_FALSE).expect("parses");
+        let d = c.independence.expect("declared");
+        assert!(!d.single_actor && !d.is_single_actor());
+        assert_eq!(d.dimensions, crate::independence::Independence::none());
+    }
+
+    /// `single_actor = true` beside a dimension written `true` is a
+    /// contradiction, named by dimension; it is never `is_single_actor`.
+    #[test]
+    fn a_true_dimension_contradicts_single_actor() {
+        let c = with_independence(
+            "single_actor = true\nperformer_transcript_blind = true\ndistinct_human_required = true\n",
+        )
+        .expect("parses; `war check` refuses it");
+        let d = c.independence.expect("declared");
+        assert!(!d.is_single_actor());
+        assert_eq!(
+            d.contradictions(),
+            ["performer_transcript_blind", "distinct_human_required"]
+        );
+    }
+
+    /// The declaration round-trips: written back with all nine dimensions
+    /// and `single_actor`, and an undeclared one writes no `single_actor`.
+    #[test]
+    fn single_actor_round_trips_and_is_not_written_when_absent() {
+        let c = with_independence("single_actor = true\n").expect("parses");
+        let text = toml::to_string_pretty(&c).expect("serializes");
+        assert!(text.contains("single_actor = true"), "{text}");
+        assert!(text.contains("distinct_human_required = false"), "{text}");
+        let back: RepositoryConfig = toml::from_str(&text).expect("parses");
+        assert_eq!(back.independence, c.independence);
+        let plain = with_independence(NINE_FALSE).expect("parses");
+        let text = toml::to_string_pretty(&plain).expect("serializes");
+        assert!(!text.contains("single_actor"), "{text}");
+    }
+
+    /// Under a store, the store's dimensions govern and `single_actor` stays
+    /// the file's, so a store dimension set `true` is still a contradiction.
+    #[test]
+    fn a_store_governs_the_dimensions_and_keeps_the_declaration() {
+        let mut c = with_independence("single_actor = true\n").expect("parses");
+        let store = crate::authority_transition::Policy {
+            independence: Some(crate::independence::Independence::default()),
+            ..crate::authority_transition::Policy::default()
+        };
+        c.govern_from_store("/s", "sha256:h", true, &store);
+        let d = c.independence.expect("the store declares");
+        assert!(d.single_actor && !d.is_single_actor());
+        assert!(!d.contradictions().is_empty());
     }
 }

@@ -88,6 +88,41 @@ verdict is still judged on its **own** flags (`verify.rs`,
   model's judgment over the bundle, bounded by what the bundle carries.
   The obligations' own plants remain the check on the work.
 
+## A declared single actor
+
+A repository where one person holds every role, working alone or through
+agents, has no independent verifier, and says so by setting every
+dimension `false`. `war check` then warns `independence.insufficient` on
+every run, which is true and says nothing new after the first time. Declare
+it once instead:
+
+```toml
+[independence]
+single_actor = true   # one actor holds every role; nothing here is independent
+```
+
+`single_actor = true` is the same statement as nine `false` dimensions (a
+dimension not written reads `false`). It claims nothing:
+
+- `war check` replaces the per-level WARN with one NOT CHECKED note naming
+  the declaration and how many Warrants' §46.3 minimum is unmet. It never
+  adds a PASS.
+- `war status` names it, `independence: single actor (declared)`, and
+  `--json` carries `"independence": {"declared": "single_actor",
+  "independent": false}`.
+- The compliance score (docs/SCORE.md) never reads `[independence]`:
+  `verified` counts ticks an actor other than the performer verified, so the
+  declaration earns no point and the score is the same bytes with or without
+  it. Resolution judges each verdict on its own flags, as before.
+- Beside a dimension written `true` it is a contradiction, and `war check`
+  refuses it by name: ERROR `independence.single-actor-contradicted`, naming
+  the dimension, with the `independence.insufficient` WARN left on.
+
+No preset writes it. `war init --vibe` describes how much rigour a
+repository asks for, and its `[roles]` table grants different kinds to
+admins, writers and outsiders, so it is made for repositories with more than
+one person. Who does the work is a fact only the owner can declare.
+
 ## Reading its verdicts
 
 Each verdict lands in `docs/warrants/<alias>/verifications/<OBL>.toml`

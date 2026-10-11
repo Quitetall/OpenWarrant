@@ -574,6 +574,65 @@ pub fn pending_for(repo: &Repository, opts: &Options) -> Result<Vec<Pending>, Re
     pending(repo)
 }
 
+/// Who signs `p`, and whether they can sign it by the chosen method — both
+/// answered before any screen is drawn (issue #132 item 1). Under
+/// `--ssh-sign` the signer's binding (`roles.toml`'s `ssh_principal`, or the
+/// store's) is resolved here, so an actor with no principal is refused
+/// `sign.ssh-principal` before the act is shown, not after the human has
+/// read it. Nothing is signed or written.
+pub(crate) fn preflight(
+    repo: &Repository,
+    p: &Pending,
+    opts: &Options,
+) -> Result<String, (&'static str, String)> {
+    let actor = who_with_authority(repo, p, opts)?;
+    if opts.ssh_sign {
+        crate::authority_check::signer_for(repo, &actor, &[act_of(p)])?;
+    }
+    Ok(actor)
+}
+
+/// A refusal every act of the batch would repeat word for word: the
+/// register grants nobody (absent, unreadable, or no human signer), the
+/// signer has no ssh principal, or the trust source cannot be read. Not an
+/// act-specific refusal (a proposer, an assignment, a choice of signer).
+fn structural_refusal(repo: &Repository, rule: &str, why: &str) -> bool {
+    match rule {
+        "sign.ssh-principal" => true,
+        "sign.who" if why.starts_with(crate::signing_probe::NO_ELIGIBLE) => {
+            crate::signing_probe::register_grants_nobody(repo)
+        }
+        _ => rule.starts_with("authority.") && why.ends_with("nothing was signed"),
+    }
+}
+
+/// Report one act's preflight refusal. Under `--all`, a structural refusal
+/// stops the sweep: it is reported once, with the count of acts not
+/// attempted, instead of once per act. Returns whether the sweep stops.
+fn refuse_in_sweep(
+    repo: &Repository,
+    opts: &Options,
+    report: &mut Report,
+    p: &Pending,
+    (rule, why): (&'static str, String),
+    remaining: usize,
+) -> bool {
+    let stop = opts.all && remaining > 0 && structural_refusal(repo, rule, &why);
+    report.push(Diagnostic::error(rule, line(p), why));
+    if stop {
+        report.push(Diagnostic::warn(
+            "sign.sweep-stopped",
+            "war sign --all".to_owned(),
+            format!(
+                "stopped after the first structural refusal ({rule}): {remaining} more act(s) \
+                 not attempted, and each would be refused the same way. Nothing was signed; \
+                 fix the refusal above and run `war sign --all` again"
+            ),
+        ));
+    }
+    stop
+}
+
 /// Preserve the trusted-source reason when a requested actor is excluded.
 /// An assignment refusal is never replaced by a broader store role grant.
 pub(crate) fn who_with_authority(
@@ -1899,11 +1958,14 @@ fn dry_run(
     // ingest error used to return past the cleanup below and leave a
     // `.draft.toml` in the temp directory (three were found, 2026-09-25).
     let _cleanup = RemoveOnDrop(tmp.clone());
-    for p in chosen {
-        let actor = match who_with_authority(repo, p, opts) {
+    for (n, p) in chosen.iter().enumerate() {
+        let actor = match preflight(repo, p, opts) {
             Ok(a) => a,
             Err((rule, why)) => {
-                report.push(Diagnostic::error(rule, line(p), why));
+                if refuse_in_sweep(repo, opts, &mut report, p, (rule, why), chosen.len() - n - 1)
+                {
+                    break;
+                }
                 continue;
             }
         };
@@ -3038,11 +3100,14 @@ fn run_acts(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<R
         return dry_run(repo, &chosen, opts, report);
     }
 
-    for p in chosen {
-        let actor = match who_with_authority(repo, p, opts) {
+    let total = chosen.len();
+    for (n, p) in chosen.into_iter().enumerate() {
+        let actor = match preflight(repo, p, opts) {
             Ok(a) => a,
             Err((rule, why)) => {
-                report.push(Diagnostic::error(rule, line(p), why));
+                if refuse_in_sweep(repo, opts, &mut report, p, (rule, why), total - n - 1) {
+                    break;
+                }
                 continue;
             }
         };
