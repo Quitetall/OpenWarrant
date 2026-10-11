@@ -1,0 +1,32 @@
+[
+  {
+    "path": "recovery-repair-red.log.gz",
+    "uncompressed_sha256": "7cd182ff29ca97709d7d89c40b04315649ddc10f1d370a267d3f763eae6921a9",
+    "uncompressed_bytes": 3821
+  },
+  {
+    "path": "recovery-context-green.log.gz",
+    "uncompressed_sha256": "5c8f27850cb18c2df2233e8fc89ee466ae8cc9a9a13eeb2055a90d5f37ffba37",
+    "uncompressed_bytes": 251
+  },
+  {
+    "path": "recovery-context-rerun.log.gz",
+    "uncompressed_sha256": "2cfe21403acebfb588d33988ecd8bc06c32948a7ee85118b78840085b1e073f1",
+    "uncompressed_bytes": 1370
+  },
+  {
+    "path": "recovery-context-final.log.gz",
+    "uncompressed_sha256": "9db999ad5e0faf9f2e0e2eb69e0c406c05bc2bbb16e87ce6659830cb3b22273d",
+    "uncompressed_bytes": 4305
+  },
+  {
+    "path": "recovery-resume-focused.log.gz",
+    "uncompressed_sha256": "3d19fc8c25d72b9068caec734958bfb8b76d51940befb0d89a12a6b1c0c6a503",
+    "uncompressed_bytes": 2830
+  },
+  {
+    "path": "recovery-resume-diagnostic.log.gz",
+    "uncompressed_sha256": "29413883b16c1439bbba1f3e13b65868926a24501fb8e37d9fe7e53dfa26b9dd",
+    "uncompressed_bytes": 3879
+  }
+]
