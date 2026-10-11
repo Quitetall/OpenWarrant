@@ -144,12 +144,50 @@ it sends and refuses a change after SDK validation. Raw bundles are limited to
 the large encoded payload.
 
 This first bridge requires repository HEAD and execution worktree HEAD to match.
-It does not yet compile a fresh binding for changed resume/repair workspaces or
-attach provider receipts automatically to workbench attempts. Known SDK refusal
+It does not yet compile a fresh binding for changed resume/repair workspaces.
+Experimental receipt attachment and automatic result transport are described below. Known SDK refusal
 stops before worker launch; an unavailable or contradictory observation stays
 unknown. Portable context does not grant capability permissions, prove sandbox
 or spend enforcement, or qualify a result. The current tests use a synthetic
 worker and real SDK CLI; they are not production execution qualification.
+
+## Workbench receipt attachments (experimental)
+
+`POST /api/runs/{attempt}/captures` accepts only `{"capture": <inline capture>}`.
+The service selects the corpus Warrant from that attempt's retained Dispatch link;
+the submitted `request.dispatch_id` must match it. A different actual Dispatch,
+caller-selected Warrant, native store or qualification field is refused. Only
+attempts with retained terminal records can use the HTTP attachment route.
+
+`GET /api/runs/{attempt}/captures` lists immutable attachment pointers. Each binds
+workbench Warrant/source/attempt, the actual runtime Dispatch and the SDK's capture
+digest. Original receipts remain in the core capture store. Exact retry preserves
+the attachment, including after service restart. A lost reply does not establish
+absence: read the attachment list, then retry the same capture if needed.
+
+A harness can instead return `oh.war/execution-result/v2-draft.1`: the exact v1
+result fields plus `runtime_capture`, containing the same inline envelope. The
+controller imports and attaches it automatically after the harness stops and
+before evaluating implementation completion. The run retains a small
+`runtime_capture` summary with `state`, `capture_digest`, and `qualified: false`.
+Invalid or unavailable optional evidence is recorded as refused or unknown;
+it cannot supply an assurance gate. Existing v1 results remain unchanged.
+Required implementation checks still run; this does not waive any configured
+verification, start or merge requirement.
+
+Imports use the existing SDK byte/digest validation. A retained attachment is not
+proof of native execution or authenticity. Use fresh runtime assessment under
+operator-selected native policy for that separate question. Unsigned synthetic
+receipts stay unqualified. Attachment publication failure reports that the SDK
+retained the capture while the local link is unknown; retry does not overwrite
+history or mint a signature.
+
+HTTP uploads retain the existing 6 MiB inline-envelope bound. Harness stdout
+retains its existing 1 MiB process-output bound. Attachments are limited to 16 KiB,
+256 per attempt and 1024 overall. Capture writes serialize separately from the
+execution controller, using a shared bounded SDK deadline; automatic imports
+also respect the remaining execution deadline. This is not a filesystem latency
+or process-isolation guarantee.
 
 ## Bounds and trust
 

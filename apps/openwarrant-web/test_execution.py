@@ -1168,6 +1168,189 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
         self.assertFalse(assessment["qualified"])
         self.assertEqual(assessment["state"], "unknown")
 
+    def test_runtime_capture_attaches_to_exact_retained_workbench_attempt_and_replays_after_restart(self):
+        import base64
+        import hashlib
+        fields = self.linked_runtime()
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            run = self.call("/api/runs/" + run["attempt_id"])[1]
+            if run["execution_state"] != "running":
+                break
+            time.sleep(0.05)
+        self.assertEqual(run["work_state"], "completed", run["cause"])
+        binding = run["runtime_dispatch"]
+        raw = b"synthetic unsigned workbench receipt"
+        capture = {"schema": "oh.war/runtime-capture-inline/v1-draft.1",
+                   "receipt_base64": base64.b64encode(raw).decode(),
+                   "request": {"schema": "oh.war/runtime-capture-request/v1-draft.1",
+                               "dispatch_id": binding["dispatch_id"],
+                               "receipt": "receipt://sha256:" + hashlib.sha256(raw).hexdigest(),
+                               "provider": {"kind": "katana", "identity": "synthetic", "version": "fixture/v1"},
+                               "metadata": {"observation_id": "workbench-capture-fixture",
+                                            "observed_at": "2026-10-11T00:00:00Z",
+                                            "original_receipt_ref": "provider://synthetic/receipt",
+                                            "binary_identity": None, "source_identity": None,
+                                            "transport": "http-fixture", "argv": [], "exit_code": 0,
+                                            "status": "synthetic"}}}
+        route = "/api/runs/" + run["attempt_id"] + "/captures"
+        status, response = self.call(route, "POST", {"capture": capture})
+        self.assertEqual(status, 200, response)
+        attachment = response["attachment"]
+        self.assertEqual(attachment["runtime_dispatch"], binding)
+        self.assertEqual(attachment["attempt_id"], run["attempt_id"])
+        self.assertEqual(attachment["source_sha256"], fields["source_sha256"])
+        self.assertEqual(attachment["capture_digest"], response["capture"]["report"]["result"]["digest"])
+        self.assertFalse(attachment["qualified"])
+        self.assertEqual(response["capture"]["report"]["result"]["native_observation"]["standing"], "unknown")
+        self.stop(); self.start()
+        status, listed = self.call(route)
+        self.assertEqual(status, 200, listed)
+        self.assertEqual(listed["captures"], [attachment])
+        status, replay = self.call(route, "POST", {"capture": capture})
+        self.assertEqual(status, 200, replay)
+        self.assertEqual(replay["attachment"], attachment)
+        self.assertEqual(self.call(route)[1]["captures"], [attachment])
+
+    def test_runtime_capture_refuses_other_actual_dispatch_and_client_authority_fields(self):
+        import base64
+        import hashlib
+        fields = self.linked_runtime()
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            run = self.call("/api/runs/" + run["attempt_id"])[1]
+            if run["execution_state"] != "running":
+                break
+            time.sleep(0.05)
+        self.assertEqual(run["work_state"], "completed", run["cause"])
+        packet = self.root / "other-dispatch.json"
+        subprocess.run([WAR, "--root", str(self.repo), "dispatch", "IX-WAR-0003", "STAGE-001",
+                        "--prototype", "--emit", str(packet), "--json"], capture_output=True, timeout=30, check=True)
+        other = json.loads(packet.read_bytes())
+        self.assertNotEqual(other["dispatch_id"], run["runtime_dispatch"]["dispatch_id"])
+        raw = b"synthetic other actual dispatch receipt"
+        capture = {"schema": "oh.war/runtime-capture-inline/v1-draft.1",
+                   "receipt_base64": base64.b64encode(raw).decode(),
+                   "request": {"schema": "oh.war/runtime-capture-request/v1-draft.1",
+                               "dispatch_id": other["dispatch_id"],
+                               "receipt": "receipt://sha256:" + hashlib.sha256(raw).hexdigest(),
+                               "provider": {"kind": "katana", "identity": "synthetic", "version": "fixture/v1"},
+                               "metadata": {"observation_id": "other-workbench-capture",
+                                            "observed_at": "2026-10-11T00:00:00Z",
+                                            "original_receipt_ref": "provider://synthetic/receipt",
+                                            "binary_identity": None, "source_identity": None,
+                                            "transport": "http-fixture", "argv": [], "exit_code": 0,
+                                            "status": "synthetic"}}}
+        route = "/api/runs/" + run["attempt_id"] + "/captures"
+        status, refused = self.call(route, "POST", {"capture": capture})
+        self.assertEqual(status, 409, refused)
+        self.assertIn("this attempt's retained Dispatch", refused["error"])
+        self.assertEqual(self.call(route)[1]["captures"], [])
+        # Control: this is a usable capture for the other actual Dispatch.
+        status, accepted = self.call("/api/runtime-captures", "POST", {
+            "warrant": "IX-WAR-0003", "capture": capture})
+        self.assertEqual(status, 200, accepted)
+        self.assertTrue(accepted["retained"])
+        for field, value in [("qualified", True), ("warrant", "IX-WAR-0003"), ("native_store", "/client-policy")]:
+            status, refused = self.call(route, "POST", {"capture": capture, field: value})
+            self.assertEqual(status, 400, refused)
+        self.assertEqual(self.call(route)[1]["captures"], [])
+
+    def test_worker_returned_receipt_is_attached_automatically_without_qualification(self):
+        fields = self.linked_runtime()
+        self.stop()
+        code = self.harness.read_text()
+        marker = "print(json.dumps({'schema':'oh.war/execution-result/v1'"
+        receipt = """import hashlib
+raw=b'synthetic worker-returned receipt'
+capture={'schema':'oh.war/runtime-capture-inline/v1-draft.1',
+ 'receipt_base64':base64.b64encode(raw).decode(),
+ 'request':{'schema':'oh.war/runtime-capture-request/v1-draft.1','dispatch_id':c['dispatch_id'],
+ 'receipt':'receipt://sha256:'+hashlib.sha256(raw).hexdigest(),
+ 'provider':{'kind':'katana','identity':'synthetic','version':'fixture/v1'},
+ 'metadata':{'observation_id':'worker-returned-fixture','observed_at':'2026-10-11T00:00:00Z',
+ 'original_receipt_ref':'provider://synthetic/receipt','binary_identity':None,'source_identity':None,
+ 'transport':'stdout-fixture','argv':[],'exit_code':0,'status':'synthetic'}}}
+"""
+        self.assertIn(marker, code)
+        code = code.replace(marker, receipt + "print(json.dumps({'schema':'oh.war/execution-result/v2-draft.1'")
+        code = code.replace("'next_steps':[]}))", "'next_steps':[],'runtime_capture':capture}))")
+        self.harness.write_text(code)
+        self.start()
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            run = self.call("/api/runs/" + run["attempt_id"])[1]
+            if run["execution_state"] != "running":
+                break
+            time.sleep(0.05)
+        self.assertEqual(run["work_state"], "completed", run["cause"])
+        self.assertFalse(run["qualified"])
+        self.assertEqual(run["runtime_capture"]["state"], "retained")
+        route = "/api/runs/" + run["attempt_id"] + "/captures"
+        status, rows = self.call(route)
+        self.assertEqual(status, 200, rows)
+        self.assertEqual(len(rows["captures"]), 1)
+        attached = rows["captures"][0]
+        self.assertEqual(attached["runtime_dispatch"], run["runtime_dispatch"])
+        self.assertEqual(attached["capture_digest"], run["runtime_capture"]["capture_digest"])
+        self.assertFalse(attached["qualified"])
+        status, assessed = self.call("/api/runtime-assessment", "POST", {
+            "warrant": "IX-WAR-0003", "selections": [{"stage_id": "STAGE-001", "capture_digest": attached["capture_digest"]}]})
+        self.assertEqual(status, 200, assessed)
+        self.assertEqual(assessed["state"], "unknown")
+        self.assertFalse(assessed["qualified"])
+
+    def test_wrong_worker_returned_receipt_stays_refused_while_work_completes_unverified(self):
+        fields = self.linked_runtime()
+        self.stop()
+        code = self.harness.read_text()
+        marker = "print(json.dumps({'schema':'oh.war/execution-result/v1'"
+        receipt = """import hashlib
+raw=b'synthetic worker-returned receipt'
+capture={'schema':'oh.war/runtime-capture-inline/v1-draft.1',
+ 'receipt_base64':base64.b64encode(raw).decode(),
+ 'request':{'schema':'oh.war/runtime-capture-request/v1-draft.1','dispatch_id':c['dispatch_id'],
+ 'receipt':'receipt://sha256:'+hashlib.sha256(raw).hexdigest(),
+ 'provider':{'kind':'katana','identity':'synthetic','version':'fixture/v1'},
+ 'metadata':{'observation_id':'worker-returned-fixture','observed_at':'2026-10-11T00:00:00Z',
+ 'original_receipt_ref':'provider://synthetic/receipt','binary_identity':None,'source_identity':None,
+ 'transport':'stdout-fixture','argv':[],'exit_code':0,'status':'synthetic'}}}
+"""
+        self.assertIn(marker, code)
+        code = code.replace(marker, receipt + "print(json.dumps({'schema':'oh.war/execution-result/v2-draft.1'")
+        code = code.replace("'next_steps':[]}))", "'next_steps':[],'runtime_capture':capture}))")
+        original = json.loads((self.root / "reference-dispatch.json").read_bytes())
+        code = code.replace("'dispatch_id':c['dispatch_id']", "'dispatch_id':" + repr(original["dispatch_id"]))
+        self.harness.write_text(code)
+        self.start()
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            run = self.call("/api/runs/" + run["attempt_id"])[1]
+            if run["execution_state"] != "running":
+                break
+            time.sleep(0.05)
+        self.assertEqual(run["work_state"], "completed", run["cause"])
+        self.assertFalse(run["qualified"])
+        self.assertEqual(run["runtime_capture"]["state"], "refused")
+        self.assertIsNone(run["runtime_capture"]["capture_digest"])
+        self.assertIn("this attempt's retained Dispatch", run["runtime_capture"]["cause"])
+        self.assertFalse(run["runtime_capture"]["qualified"])
+        route = "/api/runs/" + run["attempt_id"] + "/captures"
+        self.assertEqual(self.call(route)[1]["captures"], [])
+        status, assessed = self.call("/api/runtime-assessment", "POST", {
+            "warrant": "IX-WAR-0003", "selections": []})
+        self.assertEqual(status, 200, assessed)
+        self.assertEqual(assessed["state"], "unknown")
+        self.assertFalse(assessed["qualified"])
+
     def test_runtime_link_refuses_changed_core_contract_before_worker_launch(self):
         fields = self.linked_runtime()
         self.stop()
