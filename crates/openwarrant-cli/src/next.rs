@@ -91,15 +91,17 @@ pub struct ReadyItem {
 }
 
 impl ReadyItem {
-    fn of(r: &crate::ticket::ReadyRow) -> Self {
+    /// The row as `war next` lists it, its text taken rather than copied.
+    fn of(r: crate::ticket::ReadyRow) -> Self {
+        let command = format!("war claim {}", r.target());
         Self {
             actor: Actor::Agent,
-            ticket: r.ticket.clone(),
-            item: r.item.clone(),
-            title: r.title.clone(),
-            text: r.text.clone(),
+            ticket: r.ticket,
+            item: r.item,
+            title: r.title,
+            text: r.text,
             priority: r.priority,
-            command: format!("war claim {}", r.target()),
+            command,
         }
     }
 }
@@ -483,7 +485,7 @@ fn ticket_side(corpus: &crate::corpus::Corpus) -> TicketSide {
                 let (tickets, _faults) = corpus.tickets()?;
                 crate::ticket::ready_rows(&store, tickets)
             })
-            .map(|rows| crate::vfs::map_ordered(&rows, 1024, ReadyItem::of))
+            .map(|rows| rows.into_iter().map(ReadyItem::of).collect())
     };
     let blocked = || {
         corpus
@@ -597,7 +599,7 @@ pub fn ready_tickets(repo: &Repository, next: &mut Next) {
         crate::ticket::ready_rows(&store, &tickets)
     });
     ready_rows_into(
-        rows.map(|rows| rows.iter().map(ReadyItem::of).collect()),
+        rows.map(|rows| rows.into_iter().map(ReadyItem::of).collect()),
         next,
     );
 }

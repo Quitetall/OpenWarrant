@@ -222,7 +222,7 @@ pub fn subject(repo: &Repository, id: &str) -> Result<Subject, Diagnostic> {
             let store = Store::open(repo, None).map_err(|e| {
                 Diagnostic::error("tickets.config", crate::init::CONFIG_FILE, e.to_string())
             })?;
-            let (tickets, _) = store.load_all().map_err(|e| {
+            let (tickets, _) = store.load_all_uncached().map_err(|e| {
                 Diagnostic::error("tickets.config", crate::init::CONFIG_FILE, e.to_string())
             })?;
             match ticket::resolve(&tickets, id)? {
@@ -503,7 +503,7 @@ impl Standing {
 pub fn corpus(repo: &Repository, policy: &Policy) -> Vec<Standing> {
     let mut out = Vec::new();
     if let Ok(store) = Store::open(repo, None)
-        && let Ok((tickets, _)) = store.load_all()
+        && let Ok((tickets, _)) = store.load_all_uncached()
     {
         for t in &tickets {
             out.push(local(repo, policy, light(t)));
@@ -642,7 +642,7 @@ pub fn approve(
     }
     let policy = Policy::read(&repo.root)
         .map_err(|e| RepoError::Message(format!("{}: {e}", crate::preset::CONFIG_RULE)))?;
-    let (tickets, _) = store.load_all()?;
+    let (tickets, _) = store.load_all_uncached()?;
     let t = match ticket::resolve(&tickets, query) {
         Ok(Target::Ticket(n)) => &tickets[n],
         Ok(Target::Item(n, _)) => {
@@ -902,7 +902,7 @@ pub fn requested(repo: &Repository) -> Vec<Requested> {
     let Ok(store) = Store::open(repo, None) else {
         return Vec::new();
     };
-    let Ok((tickets, _)) = store.load_all() else {
+    let Ok((tickets, _)) = store.load_all_uncached() else {
         return Vec::new();
     };
     let mut out = Vec::new();

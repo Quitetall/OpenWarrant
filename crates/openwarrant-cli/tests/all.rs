@@ -70,6 +70,8 @@ mod suggested_commands;
 mod telemetry_integrity_cli;
 #[path = "tick_ladder_cli.rs"]
 mod tick_ladder_cli;
+#[path = "ticket_cache_cli.rs"]
+mod ticket_cache_cli;
 #[path = "tickets_cli.rs"]
 mod tickets_cli;
 #[path = "verification_subject_cli.rs"]

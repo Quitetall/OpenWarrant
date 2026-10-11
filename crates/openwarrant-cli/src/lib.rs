@@ -2902,6 +2902,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             steal,
             actor,
         } => {
+            ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             Ok(ticket_answer(
                 mode,
@@ -3116,6 +3117,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
+            ticket::cache::permit();
             if timeline || pending {
                 let (what, value) = if timeline {
                     let t = timeline::build_timeline(&repository)?;
@@ -3338,6 +3340,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
+            // A view of the ticket loop: the ticket cache may answer it,
+            // set-aside nodes included.
+            ticket::cache::permit_with_journals();
             let next = next::run(&repository)?;
             // Only the form this mode prints is built: `emit` prints the
             // text in human mode and the value under `--json`, never both.
@@ -5238,6 +5243,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
     let mode = ctx.mode;
     match command {
         ViewCommand::Ready { actor } => {
+            ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::ready_for(&store, Some(mode))?;
             Ok(ticket_answer(mode, "ready", &outcome))
@@ -5265,6 +5271,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             search,
             epic,
         } => {
+            ticket::cache::permit();
             let (repository, store) = ctx.tickets(None)?;
             let filter = ticket::Filter {
                 kind,
