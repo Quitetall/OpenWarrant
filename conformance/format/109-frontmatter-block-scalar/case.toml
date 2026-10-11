@@ -1,0 +1,5 @@
+id = "109-frontmatter-block-scalar"
+kind = "refuse"
+section = "3.2"
+rule = "format.frontmatter"
+says = """block or folded scalars"""

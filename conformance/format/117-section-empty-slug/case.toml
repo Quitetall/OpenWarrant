@@ -1,0 +1,5 @@
+id = "117-section-empty-slug"
+kind = "refuse"
+section = "3.4"
+rule = "format.heading"
+says = """An empty slug is refused (`format.heading`)."""

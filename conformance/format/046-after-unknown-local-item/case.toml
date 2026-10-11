@@ -1,0 +1,4 @@
+id = "046-after-unknown-local-item"
+kind = "accept"
+section = "5"
+says = """An item id ... In a work document, ids are local and the global id is `<alias>/<id>`; a target that names no record is a warning"""

@@ -1,0 +1,4 @@
+id = "033-item-forms"
+kind = "accept"
+section = "3.8"
+says = """Optional indentation, `-` or `*`, a box `[ ]` (open) or `[x]`/`[X]` (done)"""

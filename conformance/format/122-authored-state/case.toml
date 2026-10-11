@@ -1,0 +1,5 @@
+id = "122-authored-state"
+kind = "refuse"
+section = "3.7"
+rule = "format.authored-state"
+says = """`disposition`, `verdict`, `state` and `status` MUST NOT be authored on an obligation (`format.authored-state`)."""

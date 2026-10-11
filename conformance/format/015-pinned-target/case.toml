@@ -1,0 +1,4 @@
+id = "015-pinned-target"
+kind = "accept"
+section = "3.6"
+says = """A target is an id (section 5), optionally pinned `@sha256:<64 hex>`."""

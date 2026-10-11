@@ -1,0 +1,5 @@
+id = "133-section-missing-no-obligation"
+kind = "refuse"
+section = "4.1"
+rule = "format.section-missing"
+says = """`delivery` requires ... at least one obligation"""

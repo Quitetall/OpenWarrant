@@ -1,0 +1,5 @@
+id = "114-heading-bad-type"
+kind = "refuse"
+section = "3.4"
+rule = "format.heading"
+says = """a `## ` line containing ` · ` that does not match"""

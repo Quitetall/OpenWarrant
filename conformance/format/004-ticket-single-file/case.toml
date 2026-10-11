@@ -1,0 +1,4 @@
+id = "004-ticket-single-file"
+kind = "accept"
+section = "4.1"
+says = """a ticket `docs/tickets/<alias>.md` ... type `ticket` under the `ticket` profile"""

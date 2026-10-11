@@ -1,0 +1,4 @@
+id = "011-extension-type-carried"
+kind = "accept"
+section = "7.2"
+says = """A reader MUST ignore an extension ... type ... it does not understand, and MUST carry it in the model"""

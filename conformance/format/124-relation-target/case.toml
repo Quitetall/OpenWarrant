@@ -1,0 +1,5 @@
+id = "124-relation-target"
+kind = "refuse"
+section = "3.6"
+rule = "format.relation-target"
+says = """A relation line whose target does not parse is refused (`format.relation-target`)."""

@@ -1,0 +1,4 @@
+id = "028-byte-order-mark"
+kind = "accept"
+section = "3.1"
+says = """A leading byte-order mark is tolerated and belongs to no unit."""

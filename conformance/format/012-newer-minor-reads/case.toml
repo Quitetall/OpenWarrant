@@ -1,0 +1,4 @@
+id = "012-newer-minor-reads"
+kind = "accept"
+section = "6"
+says = """a newer minor: reads under section 7"""

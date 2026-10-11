@@ -1,0 +1,14 @@
+# Cases `war` is known to fail, each a recorded divergence between war and
+# docs/format/FORMAT-1.0.md as this corpus reads it. `run.py --known` fails
+# when a listed case starts passing, so this list shrinks as each is settled.
+# A case leaves this list when war changes or when the specification is
+# amended and the case with it; never by editing an expected file to match war.
+
+# war resolves `war://<uuid>` to the alias in the model's relations and in the
+# record's content_digest; section 5 makes `war://<uuid>` the reference that
+# survives renaming, so a digest over the alias moves when the target is renamed.
+016-war-uri-target
+
+# war requires 3 to 16 characters after `i-` (the ticket store's bound); the
+# grammar (Appendix A) allows one or more lowercase hex digits.
+044-item-id-short

@@ -1,0 +1,5 @@
+id = "202-newer-major-unreadable-body"
+kind = "unknown"
+section = "6"
+rule = "format.newer-major"
+says = """a newer major: reads nothing"""

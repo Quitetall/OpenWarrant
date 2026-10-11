@@ -1,0 +1,4 @@
+id = "017-alias-item-target"
+kind = "accept"
+section = "5"
+says = """In a work document, ids are local and the global id is `<alias>/<id>`"""

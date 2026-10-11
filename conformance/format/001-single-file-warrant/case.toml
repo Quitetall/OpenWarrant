@@ -1,0 +1,4 @@
+id = "001-single-file-warrant"
+kind = "accept"
+section = "4.1"
+says = """A Warrant is one file: `docs/warrants/<alias>.md`."""

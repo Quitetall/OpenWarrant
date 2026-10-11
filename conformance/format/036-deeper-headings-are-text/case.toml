@@ -1,0 +1,4 @@
+id = "036-deeper-headings-are-text"
+kind = "accept"
+section = "3.4"
+says = """`###` and deeper headings are ordinary text inside a unit."""

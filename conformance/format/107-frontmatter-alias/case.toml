@@ -1,0 +1,5 @@
+id = "107-frontmatter-alias"
+kind = "refuse"
+section = "3.2"
+rule = "format.frontmatter"
+says = """aliases"""

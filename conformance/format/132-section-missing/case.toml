@@ -1,0 +1,5 @@
+id = "132-section-missing"
+kind = "refuse"
+section = "4.1"
+rule = "format.section-missing"
+says = """The profile names the required sections (`format.section-missing`)."""
