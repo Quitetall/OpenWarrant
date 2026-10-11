@@ -91,6 +91,12 @@
       "raw_sha256": "3efe3149e945ca8052bafa6644a105951449abfbeb8d949ae3b77528ec141e01",
       "status": "OBSERVED",
       "source_revision": "ab82d0fc"
+    },
+    {
+      "file": "integration-final.log.gz",
+      "raw_sha256": "ad94556d54220b2acf5ac985f419557090d9731f6677f09dada377ec33faf5ee",
+      "status": "PASS",
+      "source_revision": "56052a5c1ff105842b4446fd7c40f7d1ad428ab7"
     }
   ],
   "implementation_revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"

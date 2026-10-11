@@ -44,3 +44,7 @@ the counted changed source paths moved from 1635 to 1637 when the authored
 documentation was committed. Source history is part of those explanations.
 Retain this failure and regenerate only after all authored inputs are committed;
 then commit projections and rerun the comparison. No gate was weakened.
+
+After regeneration, the committed CLI integration suite at `56052a5c` passed:
+234 tests passed, none failed, and four were explicitly ignored. Complete CI
+and independent release qualification remain separate gates.
