@@ -1,0 +1,41 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "source_commit": "4127d0d78ff9870eceb8cd0a2e1b9ed1f09c5a02",
+  "reported_by": "agent://codex",
+  "qualified": false,
+  "records": [
+    {
+      "path": "pr207-workflow-failure.log.gz",
+      "uncompressed_sha256": "4077d2d769c45719c321d6ce6a1418a2631b3eac9aa9e12c3f888a5bd8113f01"
+    },
+    {
+      "path": "pr207-workflow-discovery-fixed.log.gz",
+      "uncompressed_sha256": "0c37a672ca6d539d11d8b55396d84d8987a4385122ad983dcf5c78dbe2ae7329"
+    },
+    {
+      "path": "pr207-workflow-readiness-fixed.log.gz",
+      "uncompressed_sha256": "1a8e27ac71f82cb6fc22504e27112624d04b706f5a34a029483650005cbe363c"
+    },
+    {
+      "path": "pr207-concurrent-isolated.log.gz",
+      "uncompressed_sha256": "98d5e9b9951fcbe3c0e6acf530997a1c02e92dab1d1d567ebde28c47ba7f4fea"
+    },
+    {
+      "path": "runtime-inline-verifier-latency.trace.gz",
+      "uncompressed_sha256": "1bd23d188905e14d5703cad1580e52890f382b2310ceb3be3cea1e6000f5f2bf"
+    },
+    {
+      "path": "runtime-inline-verifier-latency.log.gz",
+      "uncompressed_sha256": "6e9234bd2a9f378189ef2872e0c6b227605eede4f90f322f31c53ee1273c1a72"
+    }
+  ],
+  "local_full_discovery": "FAIL: retained availability errors; not qualification",
+  "hosted_workflow_observation": {
+    "source": "f2f1a069",
+    "run": 38091232017,
+    "job": 114327913540,
+    "result": "PASS"
+  },
+  "startup_observation_seconds": 30,
+  "client_observation_seconds": 30
+}

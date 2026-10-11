@@ -46,7 +46,7 @@ class VerifierServiceTests(SnapshotFixture, unittest.TestCase):
         if data is not None: headers["Content-Type"] = "application/json"
         req = urllib.request.Request(f"http://127.0.0.1:{self.server.server_port}" + path,
             data=json.dumps(data).encode() if data is not None else None, headers=headers)
-        try: response = urllib.request.urlopen(req, timeout=5)
+        try: response = urllib.request.urlopen(req, timeout=30)
         except urllib.error.HTTPError as error: response = error
         with response: return response.status, json.loads(response.read())
 

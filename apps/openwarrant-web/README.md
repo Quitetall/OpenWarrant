@@ -50,6 +50,7 @@ No CORS access is granted. JSON writes require one Content-Length and exactly
 | GET `/api/board` | Read-only program, objectives, Warrants, stage frontier, open questions and numbered signing commands |
 | GET `/api/project` | Live legacy/work-report inventory and proposed reconciliation routes |
 | POST `/api/runtime-assessment` | Read-only reassessment of explicitly selected retained corpus captures; never qualification |
+| POST `/api/runtime-captures` | Retain supplied receipt bytes against an actual recorded Dispatch; never assurance |
 
 The board uses `war board --json`; it never executes the displayed signing
 commands. Failed reads clear the board instead of keeping an apparently current
@@ -86,10 +87,32 @@ with `qualified: false`. Availability failures return 503. This route assesses
 existing corpus captures; it does not attach receipts to workbench draft attempts,
 activate policy, sign, merge or resolve work. Those workflow connections remain.
 
+Capture ingestion accepts only `warrant` and `capture`. `capture` is the
+`oh.war/runtime-capture-inline/v1-draft.1` envelope: `schema`, `request` (the
+existing capture-request metadata) and `receipt_base64`. Its request's `receipt`
+must be `receipt://sha256:<lowercase hex>` naming the exact supplied bytes.
+The SDK checks the recorded Dispatch, compilation event and source basis before
+retention. Metadata remains a declaration; importing bytes does not prove native
+execution. Explicit assessment performs fresh verification under current policy.
+
+The CLI exposes `war runtime import-inline <alias> --request -`; files are also
+supported. SDK callers can use `import_inline` or `import_receipt`. Receipt bytes
+are limited to 4 MiB, capture metadata to 16 KiB and the inline envelope to 6 MiB.
+Only this HTTP route permits a body of 6 MiB plus 1 KiB of outer framing. Original
+file imports retain their path protections. No temporary receipt file is needed.
+Exact replay is content-addressed under the same source basis and collector.
+Captures remain in history when a new attempt supersedes them; they cannot clear
+the new attempt. A lost response leaves retention unknown, not proven absent.
+The original SDK report is returned with `qualified: false`; the route cannot
+select native policy, activate authority or sign a result.
+
 ## Bounds and trust
 
 The service binds IPv4 loopback only, limits concurrent requests to eight and
-closes requests after 15 seconds. Request bodies are limited to 64 KiB; individual
+closes each connection after 15 seconds and uses a three-second socket I/O
+timeout. Closing a connection does not cancel an in-flight durable storage
+operation. After a lost reply, read current state before retrying a write.
+Request bodies are limited to 64 KiB except the bounded capture route; individual
 text fields to 16 KB. SDK subprocesses have a 10-second timeout and bounded returned
 output. Storage permits 2048 revision records, 1 MiB per record and 64 MiB total.
 One process owns a state directory, enforced with an advisory process lock. Writes
