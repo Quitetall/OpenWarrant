@@ -1995,8 +1995,14 @@ fn dry_run(
         let actor = match preflight(repo, p, opts) {
             Ok(a) => a,
             Err((rule, why)) => {
-                if refuse_in_sweep(repo, opts, &mut report, p, (rule, why), chosen.len() - n - 1)
-                {
+                if refuse_in_sweep(
+                    repo,
+                    opts,
+                    &mut report,
+                    p,
+                    (rule, why),
+                    chosen.len() - n - 1,
+                ) {
                     break;
                 }
                 continue;

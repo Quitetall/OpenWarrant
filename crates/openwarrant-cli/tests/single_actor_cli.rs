@@ -83,7 +83,13 @@ fn independence_findings(v: &serde_json::Value) -> (Vec<String>, Vec<String>) {
         .unwrap()
         .iter()
         .filter(|d| d["rule"].as_str().unwrap().starts_with("independence."))
-        .map(|d| format!("{}:{}", d["severity"].as_str().unwrap(), d["rule"].as_str().unwrap()))
+        .map(|d| {
+            format!(
+                "{}:{}",
+                d["severity"].as_str().unwrap(),
+                d["rule"].as_str().unwrap()
+            )
+        })
         .collect();
     d.sort();
     let n = v["notes"]
@@ -232,7 +238,11 @@ fn ssh_sign_refuses_a_missing_principal_before_the_screen_and_once() {
     .unwrap();
     let (code, v) = war(&root, &["sign", "--all", "--ssh-sign"]);
     assert_ne!(code, 0);
-    assert_eq!(rules(&v), ["sign.ssh-principal", "sign.sweep-stopped"], "{v}");
+    assert_eq!(
+        rules(&v),
+        ["sign.ssh-principal", "sign.sweep-stopped"],
+        "{v}"
+    );
     let responses = root.join("docs/authority/responses");
     let written = fs::read_dir(&responses).map_or(0, |d| d.count());
     assert_eq!(written, 0, "no draft or response is left behind");

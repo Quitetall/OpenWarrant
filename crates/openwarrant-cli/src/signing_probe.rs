@@ -608,9 +608,7 @@ fn no_signer(repo: &Repository, message: &str) -> String {
         Roles::Absent => {
             let example = repo.root.join(ROLES_EXAMPLE);
             let copy = if example.is_file() {
-                format!(
-                    "copies {example} to it, puts their own name and ssh principal in it"
-                )
+                format!("copies {example} to it, puts their own name and ssh principal in it")
             } else {
                 "writes it by hand, naming themselves with the authorizer and resolver roles \
                  (the format is OpenWarrant's docs/authority/roles.toml.example)"
@@ -1292,9 +1290,9 @@ mod tests {
         finish(&repo, &mut r);
         let resolved = repo.root.join(ROLES);
         assert!(
-            r.diagnostics[0]
-                .message
-                .starts_with(&format!("{resolved} does not exist (absent, not ineligible)")),
+            r.diagnostics[0].message.starts_with(&format!(
+                "{resolved} does not exist (absent, not ineligible)"
+            )),
             "{}",
             r.diagnostics[0].message
         );

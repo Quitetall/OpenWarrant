@@ -773,7 +773,10 @@ impl TryFrom<IndependenceTable> for IndependenceDeclaration {
                 t.performer_transcript_blind,
                 "performer_transcript_blind",
             ),
-            performer_rationale_blind: get(t.performer_rationale_blind, "performer_rationale_blind"),
+            performer_rationale_blind: get(
+                t.performer_rationale_blind,
+                "performer_rationale_blind",
+            ),
             separate_writable_workspace: get(
                 t.separate_writable_workspace,
                 "separate_writable_workspace",
@@ -965,10 +968,12 @@ impl RepositoryConfig {
         // claims nothing, and a store dimension set `true` beside it is the
         // contradiction `war check` refuses.
         let single_actor = self.independence.is_some_and(|d| d.single_actor);
-        self.independence = policy.independence.map(|dimensions| IndependenceDeclaration {
-            dimensions,
-            single_actor,
-        });
+        self.independence = policy
+            .independence
+            .map(|dimensions| IndependenceDeclaration {
+                dimensions,
+                single_actor,
+            });
         self.governance = Governance::Store {
             store: store.to_owned(),
             head: head.to_owned(),
@@ -1541,7 +1546,10 @@ distinct_human_required = false
         assert_eq!(d.dimensions, crate::independence::Independence::none());
         assert!(d.contradictions().is_empty());
         for level in ["basic", "controlled", "high"] {
-            assert!(d.dimensions.meets(level).is_err(), "{level} must stay unmet");
+            assert!(
+                d.dimensions.meets(level).is_err(),
+                "{level} must stay unmet"
+            );
         }
         let full =
             with_independence(&format!("{NINE_FALSE}single_actor = true\n")).expect("parses");
