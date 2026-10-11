@@ -61,11 +61,31 @@ impl SignatureCheck for OpenSshSignatureCheck {
         payload: &[u8],
         signature: &str,
     ) -> Result<SignatureEvidence, Fault> {
-        if namespace != NAMESPACE
-            || payload.len() > 65_536
-            || signature.len() > 16_384
-            || public_key.len() > 16_384
-        {
+        if namespace != NAMESPACE {
+            return Err(Fault::Rejected("collector signature namespace"));
+        }
+        self.verify_exact(public_key, namespace, payload, signature)
+    }
+}
+impl OpenSshSignatureCheck {
+    /// Verify exact native acceptance bytes, using a key obtained independently
+    /// from a protected human grant. This method does not itself grant a role.
+    pub(crate) fn verify_response(
+        &self,
+        public_key: &str,
+        payload: &[u8],
+        signature: &str,
+    ) -> Result<SignatureEvidence, Fault> {
+        self.verify_exact(public_key, crate::sign::SSH_NAMESPACE, payload, signature)
+    }
+    fn verify_exact(
+        &self,
+        public_key: &str,
+        namespace: &str,
+        payload: &[u8],
+        signature: &str,
+    ) -> Result<SignatureEvidence, Fault> {
+        if payload.len() > 65_536 || signature.len() > 16_384 || public_key.len() > 16_384 {
             return Err(Fault::Rejected("signature input bounds or namespace"));
         }
         let fields: Vec<_> = public_key.split(' ').collect();
@@ -89,7 +109,7 @@ impl SignatureCheck for OpenSshSignatureCheck {
         let input = scratch.0.join("payload");
         fs::write(
             &allowed,
-            format!("collector namespaces=\"{NAMESPACE}\" {public_key}\n"),
+            format!("collector namespaces=\"{namespace}\" {public_key}\n"),
         )
         .and_then(|_| fs::write(&sig, signature))
         .and_then(|_| fs::write(&input, payload))
@@ -102,7 +122,7 @@ impl SignatureCheck for OpenSshSignatureCheck {
             .env("LC_ALL", "C")
             .args(["-Y", "verify", "-f"])
             .arg(&allowed)
-            .args(["-I", "collector", "-n", NAMESPACE, "-s"])
+            .args(["-I", "collector", "-n", namespace, "-s"])
             .arg(&sig);
         let observed =
             super::process::observe_with_stdin(command, self.timeout, 16_384, Stdio::from(file))
@@ -151,6 +171,81 @@ fn cryptographic_verdict(observed: &super::process::Completed) -> Result<bool, F
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn response_transport_verifies_exact_bytes_and_keeps_collector_namespace_separate() {
+        use openwarrant_core::attestation::base64_encode;
+        use ring::{
+            digest,
+            signature::{Ed25519KeyPair, KeyPair},
+        };
+        fn string(out: &mut Vec<u8>, value: &[u8]) {
+            out.extend_from_slice(&u32::try_from(value.len()).unwrap().to_be_bytes());
+            out.extend_from_slice(value);
+        }
+        // Software fixture key in memory; no human acceptance or presence.
+        let key = Ed25519KeyPair::from_seed_unchecked(&[29; 32]).unwrap();
+        let mut public = Vec::new();
+        string(&mut public, b"ssh-ed25519");
+        string(&mut public, key.public_key().as_ref());
+        let payload = b"exact synthetic native acceptance";
+        let mut preimage = b"SSHSIG".to_vec();
+        string(&mut preimage, crate::sign::SSH_NAMESPACE.as_bytes());
+        string(&mut preimage, b"");
+        string(&mut preimage, b"sha512");
+        string(
+            &mut preimage,
+            digest::digest(&digest::SHA512, payload).as_ref(),
+        );
+        let mut signature = Vec::new();
+        string(&mut signature, b"ssh-ed25519");
+        string(&mut signature, key.sign(&preimage).as_ref());
+        let mut blob = b"SSHSIG".to_vec();
+        blob.extend_from_slice(&1u32.to_be_bytes());
+        string(&mut blob, &public);
+        string(&mut blob, crate::sign::SSH_NAMESPACE.as_bytes());
+        string(&mut blob, b"");
+        string(&mut blob, b"sha512");
+        string(&mut blob, &signature);
+        let signature = format!(
+            "-----BEGIN SSH SIGNATURE-----\n{}\n-----END SSH SIGNATURE-----\n",
+            base64_encode(&blob)
+        );
+        let public = format!("ssh-ed25519 {}", base64_encode(&public));
+        let root = std::env::temp_dir().join(format!(
+            "ow-native-response-{}-{}",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir(&root).unwrap();
+        struct Cleanup(PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = fs::remove_dir_all(&self.0);
+            }
+        }
+        let _cleanup = Cleanup(root.clone());
+        let check = OpenSshSignatureCheck::new(root, Duration::from_secs(10)).unwrap();
+        let observed = check.verify_response(&public, payload, &signature).unwrap();
+        assert!(observed.valid);
+        assert_eq!(observed.user_present, None);
+        assert!(
+            !check
+                .verify_response(&public, b"changed", &signature)
+                .unwrap()
+                .valid
+        );
+        assert!(matches!(
+            check.verify(&public, NAMESPACE, payload, &signature),
+            Err(Fault::Rejected(_))
+        ));
+        assert!(matches!(
+            check.verify(&public, crate::sign::SSH_NAMESPACE, payload, &signature),
+            Err(Fault::Rejected(_))
+        ));
+    }
     #[test]
     fn unsuccessful_processes_need_a_cryptographic_verdict() {
         for error in [

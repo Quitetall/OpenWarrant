@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected native assessment and source-bound review packets now expose fresh exact policy bindings and refuse changed authority, enrollment or host/native configuration. Native signed acceptance, ingestion, workbench mapping and qualification remain.",
+  "summary": "Protected native policy is on main. Exact signed CLI ingestion and human SSH transport pass Katana/BLUT software fixtures. Corrected command inventory and protected-host refusal controls pass unit/integration tests and the help plant; native formats, workbench identity integration and qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -47,12 +47,16 @@
     "docs/warrants/OW-WAR-0149/implementation/native-review-request-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/typed-resolution-binding-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/resolution-outcome-binding-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/native-policy-binding-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/native-policy-binding-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-acceptance-binding-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-cli-acceptance-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-human-signing-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-command-inventory-20261011/README.md"
   ],
   "next_steps": [
-    "Implement versioned native evidence, snapshot and protected policy bindings in human signing, response ingestion and record readers, with fresh reassessment. Native policy binding is implemented and fixture-tested; workbench identities still need actual retained Dispatch mapping. OW95 participants and BLUT contributor agreement remain unavailable.",
+    "Publish native draft schemas separately from v1 and map workbench identities to actual retained Dispatches. Complete real human/production signing qualification; OW95 participants and BLUT contributor agreement remain unavailable.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "50d297f7c351a2ff2860621df0b4f211ffed8ab0"
+  "revision": "afff5d693324a4da9679f31882f5361a9aa1adc6"
 }

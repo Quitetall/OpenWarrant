@@ -133,6 +133,7 @@ value of the `--json` envelope, the same under either spelling.
 | `war sign sas` | `war sas` | `sas`, `sas.accept.request` |
 | `war sign inbox` | `war inbox` | `inbox` |
 | `war sign authority` | `war authority` | `authority` |
+| `war sign native-resolve` (experimental) | none: only under the group | `sign.native_resolve` |
 | `war sign approve` (M14) | none: new, and only under the group | `sign.approve` |
 | `war sign release` (M14) | none: `war release` is `war admin release` | `sign.release` |
 

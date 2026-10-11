@@ -322,7 +322,7 @@ impl Fixture {
 }
 
 #[test]
-fn runtime_resolution_request_preserves_unknown_and_cannot_ingest_a_response() {
+fn runtime_resolution_request_preserves_unknown_and_requires_a_native_host_for_response() {
     let f = Fixture::with_runtime_count(1);
     let imported = value(&f.import());
     let digest = imported["result"]["digest"].as_str().unwrap();
@@ -395,8 +395,7 @@ fn runtime_resolution_request_preserves_unknown_and_cannot_ingest_a_response() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|d| d["rule"] == "resolution.native-response-unavailable"
-                && d["severity"] == "unknown"),
+            .any(|d| d["rule"] == "native-resolution.host-required" && d["severity"] == "unknown"),
         "{refused}"
     );
     assert!(
