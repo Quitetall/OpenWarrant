@@ -1,0 +1,95 @@
+{
+  "schema": "oh.war/implementation-observations/v1-draft.1",
+  "warrant": "OW-WAR-0149",
+  "implementation_revision": "193c82b29764e7d6c7b790399b085471a78a20f3",
+  "independent_verification": false,
+  "human_acceptance": false,
+  "observations": [
+    {
+      "log": "native-acceptance-first-check.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "8203fcc1855b2ef8c1108a72eb910045c02984ad22aa1172ed838962d404d33f"
+    },
+    {
+      "log": "native-acceptance-shape-tests.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "76693738e01333a5f06ef7871a4374040faba53af3a8040a47b902736e513491"
+    },
+    {
+      "log": "native-acceptance-reader-tests.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "0c66f2a8c940246cf61977703598fe7698f363c33795832f2a1d1f745123c2d8"
+    },
+    {
+      "log": "native-acceptance-crypto-tests.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "aee06c982aec226abb36c49492e8c3883669cecc086d955af3ac517103837370"
+    },
+    {
+      "log": "native-acceptance-authority-regressions.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "c97dd65acef63debdcacb9d0b85df5d02420350b744b7795d0128885a42d51c4"
+    },
+    {
+      "log": "native-acceptance-fmt.log.gz",
+      "status": "FAIL",
+      "exit_code": 1,
+      "uncompressed_sha256": "8321ddf8333f1f01581f88a6944dda4b698be452932e530a8aabdcf285c2184a"
+    },
+    {
+      "log": "native-acceptance-fmt-final.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "log": "native-acceptance-clippy.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "8db62cab3de239cdd2179cdec7fa12457cd8333c1b9d4892a187809f60d57da4"
+    },
+    {
+      "log": "native-acceptance-clippy-final.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "4bea17e7af61aebebe8d6b52d1190f85441415ebab6dc72b2a8717a9eba4ec90"
+    },
+    {
+      "log": "native-acceptance-build.log.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "ed01f2aa03717a40514481646adba287e808cca2293d9bf8b6e097612e19579e"
+    },
+    {
+      "log": "native-acceptance-schema-check.json.gz",
+      "status": "PASS",
+      "exit_code": 0,
+      "uncompressed_sha256": "8893c2e6f5b12217c740ecf5d957411b539d3378020986c0ed7811720d5ff45f"
+    }
+  ],
+  "test_scope": "Three draft parser/record controls, two actual OpenSSH transport controls, three legacy authority regressions. Not full native acceptance integration. Tests compiled the source before final formatting and schema-only annotations; final all-feature Clippy compiled the final source.",
+  "binary_provenance": "Schema-enabled war built from clean source commit 193c82b29764, subsequently merged with main without a tree change.",
+  "remaining": [
+    "Full fresh native preparation and ingestion round trip with actual protected authority and all thirteen requirements",
+    "Human SSH signing and CLI integration",
+    "Versioned native schema pack publication",
+    "Workbench retained Dispatch identity mapping",
+    "Independent and production qualification",
+    "OW95 participant sessions: no participants available"
+  ],
+  "publication": {
+    "policy_pr": 211,
+    "policy_head": "0db0b46a54fbdc655d5f85a78ea22191d8d51354",
+    "gate_run": 38101575684,
+    "gate_job": 114358401561,
+    "gate_status": "PASS",
+    "main_merge": "6a9a159053cebc60facb077825b0cacacb035de2",
+    "merge_into_work_branch": "2cb17824424e04a4c5e69d30d5f0c6c0f2875aac",
+    "tree_before_and_after": "a93624712cc56218ce54a645d859725945d1eb3a"
+  }
+}
