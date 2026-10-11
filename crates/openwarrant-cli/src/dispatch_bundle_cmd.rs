@@ -32,6 +32,9 @@ pub enum Command {
         /// Explicit capability policy already bound by the input Dispatch.
         #[arg(long)]
         policy: Option<Utf8PathBuf>,
+        /// Capture source bytes from the same clean worktree used for the Dispatch.
+        #[arg(long, value_name = "PATH")]
+        source_workspace: Option<Utf8PathBuf>,
     },
     /// Check a portable bundle offline against its independently supplied digest.
     Check {
@@ -146,6 +149,7 @@ pub fn run(
             emit,
             attachment,
             policy,
+            source_workspace,
         } => {
             let repo = Repository::discover(root)?;
             // RQ-046: a Dispatch from elsewhere is judged before anything is
@@ -169,6 +173,13 @@ pub fn run(
             let (Some(basis), Some(validated)) = (&loaded.basis, &loaded.validated) else {
                 return Err(err("bundle-incomplete-basis"));
             };
+            let workspace = source_workspace
+                .as_deref()
+                .map(|path| {
+                    crate::source_workspace::SourceWorkspace::open(&repo, path, &alias, basis)
+                })
+                .transpose()?;
+            let source_repo = workspace.as_ref().map_or(&repo, |w| &w.repository);
             let ir = lower(basis, validated).map_err(err)?;
             let context: ContextManifest = serde_json::from_slice(&read(&context)?).map_err(err)?;
             let mut sources = BTreeMap::new();
@@ -187,7 +198,16 @@ pub fn run(
                 {
                     return Err(err(format!("bundle-unresolved-context: {}", item.id)));
                 }
-                let raw = capture(&repo, &item.holder.path)?;
+                if workspace
+                    .as_ref()
+                    .is_some_and(|w| item.holder.commit_sha != w.revision)
+                {
+                    return Err(err(format!(
+                        "bundle-workspace-checkpoint-mismatch: {}",
+                        item.id
+                    )));
+                }
+                let raw = capture(source_repo, &item.holder.path)?;
                 let section = basis
                     .atoms
                     .iter()
@@ -246,6 +266,9 @@ pub fn run(
             };
             let bytes = bundle.encode().map_err(err)?;
             let digest = bundle::content_digest(&bytes);
+            if let Some(workspace) = &workspace {
+                workspace.recheck()?;
+            }
             // Refuse overwrites. All validation precedes the only write.
             let mut out = std::fs::OpenOptions::new()
                 .write(true)

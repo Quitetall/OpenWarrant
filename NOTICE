@@ -8,3 +8,10 @@ the License at http://www.apache.org/licenses/LICENSE-2.0.
 Versions distributed before the relicense (OW-ADR-0017, 2026-09-12) remain
 available under the GNU Affero General Public License v3.0 or later; the
 relicense does not withdraw them.
+
+The text of the OpenWarrant Format specification under docs/format/
+(FORMAT-*.md, README.md, GOVERNANCE.md) is licensed separately under the
+Creative Commons Attribution 4.0 International License (CC BY 4.0); see
+docs/format/LICENSE and https://creativecommons.org/licenses/by/4.0/legalcode.
+The grammar, JSON schemas, conformance corpus and all code remain under the
+Apache License, Version 2.0.

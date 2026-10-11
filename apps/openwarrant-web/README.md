@@ -51,6 +51,8 @@ No CORS access is granted. JSON writes require one Content-Length and exactly
 | GET `/api/project` | Live legacy/work-report inventory and proposed reconciliation routes |
 | POST `/api/runtime-assessment` | Read-only reassessment of explicitly selected retained corpus captures; never qualification |
 | POST `/api/runtime-captures` | Retain supplied receipt bytes against an actual recorded Dispatch; never assurance |
+| GET `/api/runs/{attempt}/captures` | Read immutable capture attachments for a retained attempt |
+| POST `/api/runs/{attempt}/captures` | Attach an inline capture to that attempt’s exact recorded Dispatch |
 
 The board uses `war board --json`; it never executes the displayed signing
 commands. Failed reads clear the board instead of keeping an apparently current
@@ -98,7 +100,7 @@ execution. Explicit assessment performs fresh verification under current policy.
 The CLI exposes `war runtime import-inline <alias> --request -`; files are also
 supported. SDK callers can use `import_inline` or `import_receipt`. Receipt bytes
 are limited to 4 MiB, capture metadata to 16 KiB and the inline envelope to 6 MiB.
-Only this HTTP route permits a body of 6 MiB plus 1 KiB of outer framing. Original
+Both HTTP capture upload routes permit a body of 6 MiB plus 1 KiB of outer framing. Original
 file imports retain their path protections. No temporary receipt file is needed.
 Exact replay is content-addressed under the same source basis and collector.
 Captures remain in history when a new attempt supersedes them; they cannot clear
@@ -106,13 +108,125 @@ the new attempt. A lost response leaves retention unknown, not proven absent.
 The original SDK report is returned with `qualified: false`; the route cannot
 select native policy, activate authority or sign a result.
 
+## Experimental execution context link
+
+An operator can opt into `oh.war/execution-config/v3-draft.1`. Each Warrant
+policy then requires a stage plan and an exact `runtime_link`:
+
+```json
+{
+  "schema": "oh.war/workbench-runtime-link/v1-draft.1",
+  "warrant": "IX-WAR-0003",
+  "warrant_uuid": "01a0ac9b-3953-7511-86f6-7face232c663",
+  "contract_digest": "<the actual 64 lowercase hex characters>",
+  "prototype": true,
+  "stages": {"build": "STAGE-001"}
+}
+```
+
+The example is incomplete until the operator supplies the actual digest. The
+mapping must cover all workbench stages, with a distinct corpus stage for each.
+The browser cannot supply or change this link. Existing v1/v2 execution configs
+and request formats are unchanged.
+
+Before launching a worker, the adapter calls the existing SDK CLI to compile and
+retain the actual Dispatch, create a portable bundle and validate it. The new
+paired `war dispatch --expected-warrant UUID --expected-contract DIGEST` flags
+refuse changed identity or contract before writing a Dispatch or compile event.
+Matching these fields grants no authority. Contract digests use the existing raw
+hex format; bundle digests use the existing `sha256:` prefix.
+
+The worker receives `oh.war/execution-request/v5-draft.1`, including
+`runtime_context`: exact original bundle bytes transported as `gzip+base64`,
+the bundle digest, retained Dispatch and core attempt identities, and the
+workbench identity and source digest. It can validate the bundle offline with
+`war dispatch-bundle check --expected-digest`. The adapter hashes the exact bytes
+it sends and refuses a change after SDK validation. Raw bundles are limited to
+64 MiB; encoded transport to 1 MiB. Run records retain the binding without copying
+the large encoded payload.
+
+Each attempt prepares fresh context from its clean, committed execution worktree.
+The SDK's `--source-workspace PATH` option on `war dispatch` and
+`war dispatch-bundle create` selects that checkpoint. It must belong to the same
+local Git repository and contain the exact current Warrant compilation basis.
+Changed contracts and dirty checkpoints refuse; unavailable observations stay
+unknown. The paired subject pins still apply. Authority checks, retained
+Dispatches, compilation events and runtime captures remain in the original
+project. No source workspace can replace that project's authority configuration.
+
+Worktree code and context can advance between stages without moving repository
+HEAD. The portable bundle retains the selected checkpoint's exact bytes and
+source revisions. Packaging refuses a later checkpoint substituted into an old
+context manifest. A resumed stage receives fresh context from its committed
+question checkpoint. Retained work and context never become an assurance mark.
+
+A whole-Warrant verification repair has no single stage. For a runtime-linked
+repair, the worker receives `oh.war/execution-request/v6-draft.1`, with
+`runtime_contexts`: a map from every configured workbench stage to its own exact
+portable context package. Each package retains the existing v1 context schema
+and its actual core Dispatch/attempt identities. The service prepares stages in
+sorted order from the candidate checkpoint, checks the checkpoint before and
+after preparation, and applies one deadline and one 1 MiB combined transport
+limit. A failure stops before launching the repair worker. Partial preparation
+history remains truthful; it does not report a successful worker launch.
+
+Repair run records retain `runtime_dispatches` with the same stage keys, without
+the encoded payloads. Receipt attachment can select only an actual Dispatch in
+that repair's map. A prior implementation's receipt cannot qualify or attach to
+the new repair. All stage checks still run after repair, and a new independent
+verification result is required. Existing nonrepair v5 and unlinked request
+formats are unchanged. These draft transports do not prove production isolation.
+Experimental receipt attachment and automatic result transport are described below. Known SDK refusal
+stops before worker launch; an unavailable or contradictory observation stays
+unknown. Portable context does not grant capability permissions, prove sandbox
+or spend enforcement, or qualify a result. The current tests use a synthetic
+worker and real SDK CLI; they are not production execution qualification.
+
+## Workbench receipt attachments (experimental)
+
+`POST /api/runs/{attempt}/captures` accepts only `{"capture": <inline capture>}`.
+The service selects the corpus Warrant from that attempt's retained Dispatch link;
+the submitted `request.dispatch_id` must match it. A different actual Dispatch,
+caller-selected Warrant, native store or qualification field is refused. Only
+attempts with retained terminal records can use the HTTP attachment route.
+
+`GET /api/runs/{attempt}/captures` lists immutable attachment pointers. Each binds
+workbench Warrant/source/attempt, the actual runtime Dispatch and the SDK's capture
+digest. Original receipts remain in the core capture store. Exact retry preserves
+the attachment, including after service restart. A lost reply does not establish
+absence: read the attachment list, then retry the same capture if needed.
+
+A harness can instead return `oh.war/execution-result/v2-draft.1`: the exact v1
+result fields plus `runtime_capture`, containing the same inline envelope. The
+controller imports and attaches it automatically after the harness stops and
+before evaluating implementation completion. The run retains a small
+`runtime_capture` summary with `state`, `capture_digest`, and `qualified: false`.
+Invalid or unavailable optional evidence is recorded as refused or unknown;
+it cannot supply an assurance gate. Existing v1 results remain unchanged.
+Required implementation checks still run; this does not waive any configured
+verification, start or merge requirement.
+
+Imports use the existing SDK byte/digest validation. A retained attachment is not
+proof of native execution or authenticity. Use fresh runtime assessment under
+operator-selected native policy for that separate question. Unsigned synthetic
+receipts stay unqualified. Attachment publication failure reports that the SDK
+retained the capture while the local link is unknown; retry does not overwrite
+history or mint a signature.
+
+HTTP uploads retain the existing 6 MiB inline-envelope bound. Harness stdout
+retains its existing 1 MiB process-output bound. Attachments are limited to 16 KiB,
+256 per attempt and 1024 overall. Capture writes serialize separately from the
+execution controller, using a shared bounded SDK deadline; automatic imports
+also respect the remaining execution deadline. This is not a filesystem latency
+or process-isolation guarantee.
+
 ## Bounds and trust
 
 The service binds IPv4 loopback only, limits concurrent requests to eight and
 closes each connection after 15 seconds and uses a three-second socket I/O
 timeout. Closing a connection does not cancel an in-flight durable storage
 operation. After a lost reply, read current state before retrying a write.
-Request bodies are limited to 64 KiB except the bounded capture route; individual
+Request bodies are limited to 64 KiB except the two bounded capture upload routes; individual
 text fields to 16 KB. SDK subprocesses have a 10-second timeout and bounded returned
 output. Storage permits 2048 revision records, 1 MiB per record and 64 MiB total.
 One process owns a state directory, enforced with an advisory process lock. Writes

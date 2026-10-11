@@ -1,0 +1,102 @@
+[
+  {
+    "file": "workbench-dispatch-subject-red.log.gz",
+    "original_sha256": "a2be25aed4f8e0fc26af8ae2143aca2fc952fcb7a739eb879a61cc3e4693a6e8",
+    "original_bytes": 1507
+  },
+  {
+    "file": "workbench-dispatch-subject-green.log.gz",
+    "original_sha256": "335944086cf94f5c7bbcdf449036acf9ac8c012d07357048b3e58e955b4598d7",
+    "original_bytes": 1995
+  },
+  {
+    "file": "workbench-dispatch-subject-green-final.log.gz",
+    "original_sha256": "df1a87758334271488ce98fc2e6ad41dcd8b41d3e3f4465e79e89465ebbf9923",
+    "original_bytes": 538
+  },
+  {
+    "file": "workbench-runtime-context-red.log.gz",
+    "original_sha256": "fc9e54fb1b5b5658b749b1b5d3ee94c6dafe5842062b04cc501e84886e8ef84b",
+    "original_bytes": 2642
+  },
+  {
+    "file": "workbench-runtime-context-green.log.gz",
+    "original_sha256": "f17d4c6ff2f9eebf094d18e3bcfb8cb056c1ea6d44de80b9a214f0f04bce931d",
+    "original_bytes": 2642
+  },
+  {
+    "file": "workbench-runtime-context-green-rerun.log.gz",
+    "original_sha256": "a5e955ccb4da0b9d82a00a123b682226908e33f19af88033f32df60f0187ce3b",
+    "original_bytes": 2844
+  },
+  {
+    "file": "workbench-runtime-context-green-corrected.log.gz",
+    "original_sha256": "f98c655d65cfce9bd2fb1415a675794053fceba063ffed4cd05d3b293a2b8134",
+    "original_bytes": 2851
+  },
+  {
+    "file": "workbench-runtime-context-diagnostic.log.gz",
+    "original_sha256": "84d98ff953c6c97df99364cffbdc98100764c474c89c157717ca14713a5806f8",
+    "original_bytes": 282
+  },
+  {
+    "file": "workbench-runtime-context-race-red.log.gz",
+    "original_sha256": "de456b4cb56ca2267f95c39627d229b768f84a31d548f3a4c7f977aae6cd6397",
+    "original_bytes": 3972
+  },
+  {
+    "file": "workbench-runtime-context-green-final.log.gz",
+    "original_sha256": "4dcefd7ce31cab5e1a2a893a908f04f888e1e11f9f6ce0a42f9c9a975a0e64f1",
+    "original_bytes": 478
+  },
+  {
+    "file": "workbench-contract-refusal.log.gz",
+    "original_sha256": "c8656572715a85d0f99be3cbdac3790a05168bb4496ac6afdee868eb201db99c",
+    "original_bytes": 274
+  },
+  {
+    "file": "workbench-clippy.log.gz",
+    "original_sha256": "16c2a697fcbb0d9575ca2f3082966d729b2d8c338bd65ed9fdea3c554c5cc4f5",
+    "original_bytes": 5729
+  },
+  {
+    "file": "workbench-dispatch-integration.log.gz",
+    "original_sha256": "ac0ca68ced2402eb2d2d7bedfa54a086b9a545e0395d4645a11723530dc7ab7d",
+    "original_bytes": 1690
+  },
+  {
+    "file": "workbench-roadmap.log.gz",
+    "original_sha256": "e5627c984a1129f858f64ad22cdfb4b0bc271e41bcb3863672d4de4e95052baf",
+    "original_bytes": 441
+  },
+  {
+    "file": "workbench-dispatch-integration-final.log.gz",
+    "original_sha256": "63c277458d0dedd381dd3c66570c3cfbe1eddbc4f8cfa6ce8f072ae833725ede",
+    "original_bytes": 1824
+  },
+  {
+    "file": "workbench-full-python.log.gz",
+    "original_sha256": "a2fd196fbd57d4f8b11f0f845d0a55ab7c08bd4c6c58a5a3d7b75d33b72680c6",
+    "original_bytes": 11196
+  },
+  {
+    "file": "workbench-failed-seams-rerun.log.gz",
+    "original_sha256": "e6ad7bd6314e6e87b8e831710a8145fe2c7b30f930bec9f9c7e72bbf75188621",
+    "original_bytes": 1160
+  },
+  {
+    "file": "workbench-full-python-rerun.log.gz",
+    "original_sha256": "30fd432a0e9e610d6ff340f10ada4aa3cd7519932fd45f66a88a8c88fb55eefd",
+    "original_bytes": 13320
+  },
+  {
+    "file": "workbench-journal-wait-observation.log.gz",
+    "original_sha256": "1a6e5cddb9f9672fdf2766b2ff36c221b8455a84fc26580c9fcdcff2821ebfd5",
+    "original_bytes": 148
+  },
+  {
+    "file": "workbench-schemas-check.json.gz",
+    "original_sha256": "2297c30f41c495ca530347ffbe2b39151ae7980575159fb61fe4a8cf87945757",
+    "original_bytes": 951
+  }
+]
