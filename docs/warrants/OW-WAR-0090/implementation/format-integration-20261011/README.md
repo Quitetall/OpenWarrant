@@ -36,3 +36,9 @@ records are not superseded by this integration. This does not accept the new
 standard, run a model, provide real-user sessions or grant release permission.
 The required full gate for the final combined candidate and all remaining
 provider/operator/independent/human qualification requirements remain open.
+
+After main merged PR235 at `a8304460`, the integration branch was refreshed
+through `7782810f`. Explicit terminal-status capture reports compile and record
+checks both exit zero, with 2,029 PASS, 630 WARN and zero ERROR/UNKNOWN. The
+preceding final-check attempt retained no JSON and remains UNKNOWN; its empty
+file is preserved. These observations do not establish the required hosted gate.

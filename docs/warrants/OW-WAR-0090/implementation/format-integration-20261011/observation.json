@@ -70,6 +70,36 @@
       "original_bytes": 50,
       "original_sha256": "b0159c6d2979ebbc7b3a3c1db9f6ffedec36d24e75705600e704dbc3960b7113",
       "path": "format-war-committed-retry-status.json.gz"
+    },
+    {
+      "original_bytes": 455,
+      "original_sha256": "b87519869aee656fc237d8a4b4f783c02f4ad39912a3ed8e5ca2c480e41f469d",
+      "path": "format-refresh-compile.json.gz"
+    },
+    {
+      "original_bytes": 50,
+      "original_sha256": "b0159c6d2979ebbc7b3a3c1db9f6ffedec36d24e75705600e704dbc3960b7113",
+      "path": "format-refresh-compile-status.json.gz"
+    },
+    {
+      "original_bytes": 869400,
+      "original_sha256": "ce52a8746c4eae7ba54f93cfb8ea30cd6d40aad97f433c178dd86baf8415fc7b",
+      "path": "format-refresh-check.json.gz"
+    },
+    {
+      "original_bytes": 50,
+      "original_sha256": "b0159c6d2979ebbc7b3a3c1db9f6ffedec36d24e75705600e704dbc3960b7113",
+      "path": "format-refresh-check-status.json.gz"
+    },
+    {
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": "format-final-compile.json.gz"
+    },
+    {
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": "format-final-check.json.gz"
     }
   ],
   "fixture_bytes_preserved": true,
@@ -87,6 +117,20 @@
   ],
   "model_calls": 0,
   "originals": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-kf-recovery-20261010/integration-20261011/release-review-inventory-20261011",
+  "post_main_refresh": {
+    "base_main": "a83044607464dd8c6ec67f0a762d5268bbc39756",
+    "check_exit": 0,
+    "compile_exit": 0,
+    "counts": {
+      "error": 0,
+      "pass": 2029,
+      "unknown": 0,
+      "warn": 630,
+      "worst": "warn"
+    },
+    "source_head": "7782810fa044b5d209cd5f98eeb7550b49c72654"
+  },
+  "prior_final_check_observation": "UNKNOWN: no retained JSON; earlier committed-source check and captured post-main-refresh check are separate successful observations",
   "production_diff_whitespace_exit": 0,
   "python_format_corpus": {
     "fail": 0,
