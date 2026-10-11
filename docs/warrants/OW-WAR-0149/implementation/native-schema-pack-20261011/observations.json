@@ -1,0 +1,85 @@
+{
+  "schema": "oh.war/implementation-observations/v1",
+  "claim": "unverified software observations; no independent verdict or human acceptance",
+  "observations": [
+    {
+      "file": "red.log.gz",
+      "raw_sha256": "da14e983c963bb8ac433e2762470b6f094bc356f70d6cf8659613c3fbfc86381",
+      "status": "FAIL",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "green.log.gz",
+      "raw_sha256": "6bf8a0c5df08018a46abf5f81d707a31db5bb7b1affb2e040dfb52c14650a168",
+      "status": "FAIL",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "green-final.log.gz",
+      "raw_sha256": "690efc3ed2449545961499158d28e1cb1bd0ac302c0d9d6bdbbabe77736c1fe3",
+      "status": "PASS",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "drift-final.log.gz",
+      "raw_sha256": "76c95c834c252a8145e6780d14f237ba55eee79a0248c2292d3571db681b56e7",
+      "status": "PASS",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "build.log.gz",
+      "raw_sha256": "60b9352c9861aeed2a294b100d1ed41d420e3cbd47a715b89a570188ed1a4360",
+      "status": "PASS",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "typescript.log.gz",
+      "raw_sha256": "96a40cf558cd4a5a1044af7342f301cba8d83cdd0d2eff961c7b17726c83945e",
+      "status": "FAIL",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "library.log.gz",
+      "raw_sha256": "bd38cad2e235221cc9868466bb56c02e7945f2afc01952ad9c0780d5e7c66ac0",
+      "status": "PASS",
+      "source_revision": "fb715d1dfd175a3b6e8dc00a7c304af266c805b9"
+    },
+    {
+      "file": "build-final.log.gz",
+      "raw_sha256": "68f59a8d106d4c58315a05939c591ffa3c86a82d477b9915233c6e3483ff5438",
+      "status": "PASS",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "public-final.log.gz",
+      "raw_sha256": "76c95c834c252a8145e6780d14f237ba55eee79a0248c2292d3571db681b56e7",
+      "status": "PASS",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "clippy.log.gz",
+      "raw_sha256": "097718c4b3d3836af983972ec9bc7a5a5e66edce11b63b1b5ed78852676ab7c5",
+      "status": "FAIL",
+      "source_state": "development observation; retained raw log is authoritative"
+    },
+    {
+      "file": "clippy-final.log.gz",
+      "raw_sha256": "1381ded9b975fe2ca889b460139ceb12aec0515f251187b940ea26b913d58ae0",
+      "status": "PASS",
+      "source_revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"
+    },
+    {
+      "file": "typescript-final.log.gz",
+      "raw_sha256": "6ba4623ac9d1fbc19416c10784b8bca2d760efe9001be48389ff65440a679394",
+      "status": "PASS",
+      "source_revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"
+    },
+    {
+      "file": "generated-check.json.gz",
+      "raw_sha256": "85f1f713f3ce4b4e6ed1065035c917120a6a01fe4e1259fe15f4f98c1edb1aab",
+      "status": "PASS",
+      "source_revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"
+    }
+  ],
+  "implementation_revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"
+}

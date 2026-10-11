@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected native policy is on main. Exact signed CLI ingestion and human SSH transport pass Katana/BLUT software fixtures. Corrected command inventory and protected-host refusal controls pass unit/integration tests and the help plant; native formats, workbench identity integration and qualification remain.",
+  "summary": "Protected native policy and exact signed CLI ingestion are on main. The separate experimental native schema pack passes example, refusal, determinism and drift checks while preserving active v1 bytes. Workbench identity integration and real human/production qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -51,12 +51,13 @@
     "docs/warrants/OW-WAR-0149/implementation/native-acceptance-binding-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-cli-acceptance-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-human-signing-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/native-command-inventory-20261011/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/native-command-inventory-20261011/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-schema-pack-20261011/README.md"
   ],
   "next_steps": [
-    "Publish native draft schemas separately from v1 and map workbench identities to actual retained Dispatches. Complete real human/production signing qualification; OW95 participants and BLUT contributor agreement remain unavailable.",
+    "Map workbench identities to actual retained Dispatches. Complete real human/production signing qualification; OW95 participants and BLUT contributor agreement remain unavailable.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "afff5d693324a4da9679f31882f5361a9aa1adc6"
+  "revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"
 }
