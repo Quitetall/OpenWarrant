@@ -1,10 +1,10 @@
 name: Reference web checks
 on:
   pull_request:
-    paths: ['apps/openwarrant-web/**', 'crates/openwarrant-cli/src/progress_viewer/**', '.github/workflows/reference-web-checks.yml']
+    paths: ['crates/openwarrant-cli/src/source_workspace.rs', 'conformance/source_workspace.py', 'apps/openwarrant-web/**', 'crates/openwarrant-cli/src/progress_viewer/**', '.github/workflows/reference-web-checks.yml']
   push:
     branches: [main]
-    paths: ['apps/openwarrant-web/**', 'crates/openwarrant-cli/src/progress_viewer/**', '.github/workflows/reference-web-checks.yml']
+    paths: ['crates/openwarrant-cli/src/source_workspace.rs', 'conformance/source_workspace.py', 'apps/openwarrant-web/**', 'crates/openwarrant-cli/src/progress_viewer/**', '.github/workflows/reference-web-checks.yml']
 permissions:
   contents: read
 jobs:
@@ -14,6 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - run: cargo build -p openwarrant-cli --bin war
+      - name: Source workspace availability and refusal controls
+        env:
+          OPENWARRANT_NO_PROJECTS: '1'
+        run: python3 conformance/source_workspace.py "$PWD" "$PWD/target/debug/war"
       - run: python3 -m unittest discover -s apps/openwarrant-web -v
       - name: Roadmap calculation and filter tests
         run: |

@@ -202,3 +202,9 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "apps/openwarrant-web/test_runtime_recovery.py"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Public context transport controls in hosted CI; unsigned reporting scope.
+
+[[scope]]
+path_glob = ".github/workflows/reference-web-checks.yml"
+obligation_refs = ["OBL-001", "OBL-003"]
