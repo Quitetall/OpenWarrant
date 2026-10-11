@@ -20,5 +20,6 @@
   "next_steps": [
     "Provision protected operator/key environment and independently bootstrap real authority.",
     "Observe human approval/cancellation and deployed account isolation before claiming enforcement."
-  ]
+  ],
+  "revision": "770e40b2eb82e65a0fafb7a521ddd4797b97b00e"
 }

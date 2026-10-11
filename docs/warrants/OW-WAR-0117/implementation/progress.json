@@ -1,7 +1,7 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0117",
-  "work_state": "in_progress",
+  "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "4dcf9db7c503b2ecea4fc3de05e8cc05679fe20b",
   "summary": "Observed all 12 named fake-backend controls and the positive corpus check (13 PASS, zero FAIL) against retained current wrapper sources. This supplies performer evidence for the four bounded obligations; independent review and human resolution remain pending. No real model call, harness confinement or assurance is claimed.",

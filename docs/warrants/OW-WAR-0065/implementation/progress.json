@@ -1,7 +1,7 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0065",
-  "work_state": "in_progress",
+  "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "a6b2d90ca939d6f80a648b9d9a8db93893bbe816",
   "summary": "Corrected the research memo with exact historical and current source counts, eight per-row replay commands, offline source archives and observed input refusals. Frozen token METHOD is unchanged. Independent review required by OBL-001 and OBL-002 remains pending; no assurance is granted.",

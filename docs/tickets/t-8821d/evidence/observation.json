@@ -1,0 +1,23 @@
+{
+  "reported_by": "agent://codex",
+  "source_revision": "05d11221286c0ac2a89764c67241fbf2ab68e4bd",
+  "command": [
+    "war",
+    "view",
+    "overview",
+    "--snapshot",
+    "--json"
+  ],
+  "before_invalid_reports": 5,
+  "after_invalid_reports": 0,
+  "valid_reports": 83,
+  "valid_report_states": {
+    "completed": 68,
+    "in-progress": 11,
+    "blocked": 4
+  },
+  "preserved_originals": 5,
+  "preserved_summaries_actors_states_and_next_steps": true,
+  "assurance_granted": false,
+  "qualification": false
+}
