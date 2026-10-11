@@ -13,6 +13,8 @@ fn repo_root() -> PathBuf {
 
 fn war(args: &[&str]) -> (i32, String, String) {
     let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .args(args)
         .current_dir(repo_root())
         .output()
@@ -156,6 +158,8 @@ fn compile_emits_one_envelope_and_reports_skipped_warrants() {
     copy(&repo_root().join("docs/records/password-reset"), &documents);
     std::fs::remove_dir_all(documents.join("generated")).unwrap();
     let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .args(["compile", "--json"])
         .current_dir(&root)
         .output()
@@ -175,6 +179,8 @@ fn compile_emits_one_envelope_and_reports_skipped_warrants() {
         assert!(documents.join(format!("generated/{name}.md")).is_file());
     }
     let human = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .arg("compile")
         .current_dir(&root)
         .output()
@@ -195,6 +201,8 @@ fn compile_emits_one_envelope_and_reports_skipped_warrants() {
     )
     .unwrap();
     let rejected = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .args(["compile", "IX-WAR-0001", "--json"])
         .current_dir(&root)
         .output()

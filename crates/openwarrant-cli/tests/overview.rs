@@ -5,6 +5,8 @@ use std::process::Command;
 
 fn war(args: &[&str]) -> serde_json::Value {
     let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .args(args)
         .current_dir(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."))
         .output()
@@ -60,6 +62,8 @@ fn overview_lists_each_unresolved_record_and_progress_is_an_alias() {
 #[test]
 fn overview_outside_repository_refuses_instead_of_claiming_no_work() {
     let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .args(["overview", "--json"])
         .current_dir(std::env::temp_dir())
         .output()

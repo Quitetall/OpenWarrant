@@ -5,6 +5,8 @@ fn unknown_runtime_blocks_without_omitting_any_dimension() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../conformance/fixtures/inbox/repository");
     let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .args(["preflight", "IX-WAR-0001", "--json"])
         .current_dir(root)
         .output()
@@ -73,6 +75,8 @@ fn fixture(name: &str) -> PathBuf {
 }
 fn run(root: &std::path::Path, alias: &str) -> serde_json::Value {
     let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .args(["preflight", alias, "--json"])
         .current_dir(root)
         .output()
@@ -249,6 +253,8 @@ fn read_only_and_human_output_names_all_dimensions() {
     let root = fixture("readonly");
     let before = files(&root);
     let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        // This checkout's .git is not a test's to write caches into.
+        .env("OPENWARRANT_NO_CACHE", "1")
         .args(["preflight", "IX-WAR-0003"])
         .current_dir(&root)
         .output()
