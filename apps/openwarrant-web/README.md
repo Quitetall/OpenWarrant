@@ -157,8 +157,25 @@ project. No source workspace can replace that project's authority configuration.
 Worktree code and context can advance between stages without moving repository
 HEAD. The portable bundle retains the selected checkpoint's exact bytes and
 source revisions. Packaging refuses a later checkpoint substituted into an old
-context manifest. Resume and repair use the same attempt preparation path;
-retained work and context never become an assurance mark by themselves.
+context manifest. A resumed stage receives fresh context from its committed
+question checkpoint. Retained work and context never become an assurance mark.
+
+A whole-Warrant verification repair has no single stage. For a runtime-linked
+repair, the worker receives `oh.war/execution-request/v6-draft.1`, with
+`runtime_contexts`: a map from every configured workbench stage to its own exact
+portable context package. Each package retains the existing v1 context schema
+and its actual core Dispatch/attempt identities. The service prepares stages in
+sorted order from the candidate checkpoint, checks the checkpoint before and
+after preparation, and applies one deadline and one 1 MiB combined transport
+limit. A failure stops before launching the repair worker. Partial preparation
+history remains truthful; it does not report a successful worker launch.
+
+Repair run records retain `runtime_dispatches` with the same stage keys, without
+the encoded payloads. Receipt attachment can select only an actual Dispatch in
+that repair's map. A prior implementation's receipt cannot qualify or attach to
+the new repair. All stage checks still run after repair, and a new independent
+verification result is required. Existing nonrepair v5 and unlinked request
+formats are unchanged. These draft transports do not prove production isolation.
 Experimental receipt attachment and automatic result transport are described below. Known SDK refusal
 stops before worker launch; an unavailable or contradictory observation stays
 unknown. Portable context does not grant capability permissions, prove sandbox

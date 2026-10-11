@@ -117,3 +117,28 @@ def prepare(sdk, directory, link, stage, attempt, read_file, decode, deadline, s
                "core_attempt_id": dispatch["attempt_id"], "bundle_digest": result["bundle_digest"],
                "qualified": False}
     return binding, {**binding, "bundle_encoding": "gzip+base64", "bundle_base64": encoded}
+
+
+def prepare_repair(sdk, directory, link, attempt, read_file, decode, deadline, source_workspace):
+    """A whole-Warrant repair requires the context of every configured stage.
+
+    Each package retains its original schema and actual SDK Dispatch. The repair
+    transport is a named map; it does not invent a single-stage repair Dispatch.
+    Preparation shares one deadline and one aggregate transport budget.
+    """
+    directory.mkdir(mode=0o700)
+    bindings, contexts = {}, {}
+    size = 2  # JSON object braces.
+    for ordinal, stage in enumerate(sorted(link["stages"])):
+        binding, context = prepare(
+            sdk, directory / str(ordinal), link, stage, attempt,
+            read_file, decode, deadline, source_workspace=source_workspace,
+        )
+        # Match the actual worker request's json.dumps encoding, including
+        # escaped non-ASCII names and its comma/colon whitespace.
+        size += (2 if contexts else 0) + len(json.dumps(stage).encode()) + 2
+        size += len(json.dumps(context).encode())
+        if size > MAX_TRANSPORT:
+            raise RuntimeLinkError("refused", "Combined repair context exceeds the 1 MiB workflow transport limit")
+        bindings[stage], contexts[stage] = binding, context
+    return bindings, contexts

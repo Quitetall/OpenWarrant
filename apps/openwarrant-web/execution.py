@@ -265,7 +265,10 @@ class Executor:
         with self._capture_guard(deadline):
             id = record["attempt_id"]
             binding = record.get("runtime_dispatch")
-            require(isinstance(binding, dict), "Actual runtime Dispatch required")
+            repair_bindings = record.get("runtime_dispatches")
+            bindings = (list(repair_bindings.values()) if isinstance(repair_bindings, dict)
+                        else [binding] if isinstance(binding, dict) else [])
+            require(bindings and all(isinstance(b, dict) for b in bindings), "Actual runtime Dispatch required")
             root = self.root / "captures"
             directory = root / id
             require(not root.is_symlink() and not directory.is_symlink(),
@@ -283,7 +286,7 @@ class Executor:
                             and item["schema"] == "oh.war/workbench-runtime-attachment/v1-draft.1"
                             and item["attempt_id"] == id and item["warrant_id"] == record["warrant_id"]
                             and item["source_sha256"] == record["source_sha256"]
-                            and item["runtime_dispatch"] == binding and item["qualified"] is False
+                            and item["runtime_dispatch"] in bindings and item["qualified"] is False
                             and isinstance(item["capture_digest"], str)
                             and re.fullmatch(r"sha256:[0-9a-f]{64}", item["capture_digest"])
                             and path.name == item["capture_digest"][7:] + ".json",
@@ -297,8 +300,11 @@ class Executor:
             require(isinstance(fields, dict) and set(fields) == {"capture"}
                     and isinstance(fields["capture"], dict), "Only inline capture accepted", 400)
             request = fields["capture"].get("request")
-            require(isinstance(request, dict) and request.get("dispatch_id") == binding["dispatch_id"],
+            matches = [b for b in bindings if isinstance(request, dict)
+                       and request.get("dispatch_id") == b["dispatch_id"]]
+            require(len(matches) == 1,
                     "Capture must name this attempt's retained Dispatch")
+            binding = matches[0]
             response = self.store.sdk.capture_runtime({"warrant": binding["warrant"], "capture": fields["capture"]}, deadline=deadline)
             if not response["retained"]:
                 return {"capture": response, "attachment": None, "qualified": False}
@@ -696,13 +702,28 @@ class Executor:
             if "runtime_link" in policy:
                 # The SDK reads this clean checkpoint and retains Dispatch history
                 # in the original project. It rejects a different source contract.
-                binding, context = runtime_link.prepare(
-                    self.store.sdk, self.root / ("context-" + r["attempt_id"]),
-                    policy["runtime_link"], r["stage"], r,
-                    self.read_file, self.decode, deadline, source_workspace=worktree,
-                )
-                r["runtime_dispatch"] = binding
-                request.update(schema="oh.war/execution-request/v5-draft.1", runtime_context=context)
+                def check_checkpoint():
+                    if (self.git("rev-parse", "HEAD", cwd=worktree) != r["input_revision"]
+                            or self.git("status", "--porcelain", "--untracked-files=all", cwd=worktree)):
+                        raise runtime_link.RuntimeLinkError("refused", "Execution context checkpoint changed before worker launch")
+
+                check_checkpoint()
+                directory = self.root / ("context-" + r["attempt_id"])
+                if "verification_repair" in r:
+                    bindings, contexts = runtime_link.prepare_repair(
+                        self.store.sdk, directory, policy["runtime_link"], r,
+                        self.read_file, self.decode, deadline, source_workspace=worktree,
+                    )
+                    r["runtime_dispatches"] = bindings
+                    request.update(schema="oh.war/execution-request/v6-draft.1", runtime_contexts=contexts)
+                else:
+                    binding, context = runtime_link.prepare(
+                        self.store.sdk, directory, policy["runtime_link"], r["stage"], r,
+                        self.read_file, self.decode, deadline, source_workspace=worktree,
+                    )
+                    r["runtime_dispatch"] = binding
+                    request.update(schema="oh.war/execution-request/v5-draft.1", runtime_context=context)
+                check_checkpoint()
             code, out, _err = bounded_command(
                 self.config["argv"], worktree, json.dumps(request).encode(), deadline, r
             )
