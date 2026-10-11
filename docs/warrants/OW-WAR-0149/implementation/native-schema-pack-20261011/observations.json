@@ -79,6 +79,18 @@
       "raw_sha256": "85f1f713f3ce4b4e6ed1065035c917120a6a01fe4e1259fe15f4f98c1edb1aab",
       "status": "PASS",
       "source_revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"
+    },
+    {
+      "file": "integration.log.gz",
+      "raw_sha256": "ee1b96cbd18559336dd18c8eb7c00465d6248fb8276bc004073e6e8bc355726e",
+      "status": "FAIL",
+      "source_revision": "ab82d0fc"
+    },
+    {
+      "file": "status-current.json.gz",
+      "raw_sha256": "3efe3149e945ca8052bafa6644a105951449abfbeb8d949ae3b77528ec141e01",
+      "status": "OBSERVED",
+      "source_revision": "ab82d0fc"
     }
   ],
   "implementation_revision": "59ab1a5bb5aa456021f67c12308182a0cc316317"

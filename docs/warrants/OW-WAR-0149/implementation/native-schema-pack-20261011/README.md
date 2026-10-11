@@ -36,3 +36,11 @@ OW149 remains in progress. Workbench identities still need mapping to actual
 retained Dispatches. Production signing, real operator observations, independent
 qualification and participant sessions remain separate requirements. OW95 has
 no participants; none are simulated here.
+
+The first committed integration run passed 233 tests, failed the committed
+tracker comparison, and ignored four tests. Comparing the actual status result
+with the generated tracker found 99 differing historical gate explanations:
+the counted changed source paths moved from 1635 to 1637 when the authored
+documentation was committed. Source history is part of those explanations.
+Retain this failure and regenerate only after all authored inputs are committed;
+then commit projections and rerun the comparison. No gate was weakened.
