@@ -107,6 +107,7 @@ pub mod show;
 pub mod sign;
 pub mod signing_probe;
 pub mod skew;
+pub mod ssh_verdicts;
 pub mod standing_cmd;
 #[path = "state_cmd.rs"]
 pub mod states;
@@ -3122,6 +3123,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
+            // Advice, not a judgement: a signature already verified over
+            // exactly these bytes is not asked again (ssh_verdicts).
+            ssh_verdicts::permit();
             if timeline || pending {
                 let (what, value) = if timeline {
                     let t = timeline::build_timeline(&repository)?;
@@ -3344,6 +3348,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
+            // Advice, not a judgement: a signature already verified over
+            // exactly these bytes is not asked again (ssh_verdicts).
+            ssh_verdicts::permit();
             let next = next::run(&repository)?;
             // Only the form this mode prints is built: `emit` prints the
             // text in human mode and the value under `--json`, never both.
@@ -5340,6 +5347,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             // and corpus may ask about the same receipt hundreds of times.
             // Keep one tree observation per basis, never refresh the index.
             gate_cmd::source::remember_tree_reads();
+            ssh_verdicts::permit();
             let repository = ctx.open_repo()?;
             let (report, view) = board::build(&repository)?;
             if !matches!(mode, output::Mode::Json) {
@@ -5407,6 +5415,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 // One-shot read-only snapshot. Never enable this memo for the
                 // long-running server below: each refresh must observe edits.
                 gate_cmd::source::remember_tree_reads();
+                ssh_verdicts::permit();
                 let view = progress_viewer::json_snapshot(&repository)?;
                 output::emit(
                     mode,
@@ -5433,6 +5442,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             // Plain overview is also one-shot and read-only. Export and serve
             // returned above without freezing their tree observations.
             gate_cmd::source::remember_tree_reads();
+            ssh_verdicts::permit();
             let view = overview::build(status::build(&repository)?, all);
             output::emit(
                 mode,
