@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/records/sas-revision.v1.json",
+  "title": "oh.war/sas-revision/v1",
+  "description": "Hand-written and normative for the frozen record `oh.war/sas-revision/v1` (docs/COMPATIBILITY.md): one revision of the SAS, `docs/sas/revisions/<version>.toml`, read as TOML into this JSON object. It pins a version of the specification to the sha256 of its bytes, carries section 106 as it stood, and moves from `proposed` to `accepted` once, by a human. Where this schema and the prose that governs the record (docs/COMPATIBILITY.md, SAS section 101) disagree, the prose wins and this schema is the defect. Not expressed here: that `sha256` is the digest of `source`'s bytes, that `predecessor` names an existing revision, that a revision drops no requirement id of its predecessor (section 34.1), and that an accepted revision never changes.",
+  "$comment": "Written from crates/openwarrant-core/src/sas.rs: SAS_REVISION_SCHEMA at sas.rs:34, `SasRevision` at sas.rs:106, `SasAcceptance` at sas.rs:93, `SasRevision::validate` at sas.rs:151 and `check_acceptance` at sas.rs:175. `actor_kind` is crates/openwarrant-core/src/contract.rs:81 `ActorKind` under `#[serde(rename_all = \"lowercase\")]`, so the third variant is spelled `policyservice` on the wire even though its Display is `policy_service`. The struct has no deny_unknown_fields, so the reader ignores a member it does not know; this schema refuses one, because a frozen record gains a member only when its schema does (docs/COMPATIBILITY.md, Additive only). sas.rs is pinned by resolved OW-WAR-0062, which is why `war schemas` does not generate this schema.",
+  "x-oh-war-schema": "oh.war/sas-revision/v1",
+  "type": "object",
+  "required": ["schema", "version", "source", "sha256", "state"],
+  "properties": {
+    "schema": { "const": "oh.war/sas-revision/v1" },
+    "version": {
+      "description": "The SAS version this revision pins (`1.3.0`, `0.1.0-draft.3`).",
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "source": {
+      "description": "Repository-relative path of the document.",
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "description": "sha256 of the document's exact bytes: 64 hex digits, no prefix.",
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "state": { "enum": ["proposed", "accepted"] },
+    "predecessor": {
+      "description": "The version this revision follows.",
+      "type": "string"
+    },
+    "requirements": {
+      "description": "Section 106 as it stood in this revision: requirement id to requirement text.",
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Z][A-Z0-9]*-SAS-RQ-[0-9]{3,}$" },
+      "additionalProperties": { "type": "string" }
+    },
+    "architecture_changing": {
+      "description": "Section 101.3: decided at proposal from the section 106 diff against the predecessor. `false` when absent.",
+      "type": "boolean"
+    },
+    "acceptance": { "$ref": "#/$defs/acceptance" }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "description": "sas.rs:158: an accepted revision carries its acceptance.",
+      "if": { "properties": { "state": { "const": "accepted" } } },
+      "then": { "required": ["acceptance"] }
+    },
+    {
+      "description": "sas.rs:192: an architecture-changing revision is accepted with an ADR reference (section 101.3).",
+      "if": {
+        "required": ["architecture_changing", "acceptance"],
+        "properties": { "architecture_changing": { "const": true } }
+      },
+      "then": {
+        "properties": { "acceptance": { "required": ["adr_ref"], "properties": { "adr_ref": { "pattern": "\\S" } } } }
+      }
+    }
+  ],
+  "$defs": {
+    "acceptance": {
+      "description": "A human accepting the revision (sections 101.2, 101.3).",
+      "type": "object",
+      "required": ["accepted_by", "actor_kind", "acting_role", "meaning", "effective_time"],
+      "properties": {
+        "accepted_by": { "type": "string" },
+        "actor_kind": {
+          "description": "sas.rs:181: an agent never accepts a SAS revision (section 27.2).",
+          "enum": ["human", "policyservice"]
+        },
+        "acting_role": { "type": "string", "pattern": "\\S" },
+        "meaning": { "type": "string", "pattern": "\\S" },
+        "effective_time": {
+          "description": "When the acceptance took effect. Every recorded revision writes an RFC 3339 UTC time; the reader admits any string.",
+          "type": "string"
+        },
+        "adr_ref": {
+          "description": "Required when the revision is architecture-changing.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

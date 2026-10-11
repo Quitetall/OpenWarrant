@@ -1,0 +1,16 @@
+{
+  "why": "an obligation record has type `obligation`",
+  "expect": "@type const",
+  "instance": {
+    "id": "OBL-001",
+    "type": "requirement",
+    "title": "a bundled gate run carries its output",
+    "fields": {
+      "scope": "s",
+      "evidence": "e",
+      "refusal": "r"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

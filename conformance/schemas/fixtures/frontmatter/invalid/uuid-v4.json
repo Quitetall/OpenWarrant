@@ -1,0 +1,12 @@
+{
+  "why": "section 5: a work document's uuid is a UUIDv7",
+  "expect": "@uuid pattern",
+  "instance": {
+    "format": "openwarrant/1.0",
+    "profile": "delivery",
+    "alias": "OW-WAR-0146",
+    "uuid": "0d5cbb6e-6c1b-4f4e-9a8e-2b8f1c7e9d10",
+    "summary": "A verification bundle carries what each gate printed.",
+    "assurance_level": "basic"
+  }
+}

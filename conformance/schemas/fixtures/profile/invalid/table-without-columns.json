@@ -1,0 +1,26 @@
+{
+  "why": "projection.rs: a table names its columns",
+  "expect": "'columns' is a required property",
+  "instance": {
+    "schema": "oh.war/profile/v1",
+    "name": "memo",
+    "form": "document",
+    "projections": [
+      {
+        "name": "memo",
+        "title": "{title}",
+        "select": {
+          "types": [
+            "memo"
+          ]
+        },
+        "sections": [
+          {
+            "heading": "All",
+            "block": "table"
+          }
+        ]
+      }
+    ]
+  }
+}

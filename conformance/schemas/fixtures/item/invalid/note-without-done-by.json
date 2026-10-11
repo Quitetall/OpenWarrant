@@ -1,0 +1,11 @@
+{
+  "why": "Appendix A `done`: a note follows `done by <actor>, <date>`",
+  "expect": "'done_by' is a dependency of 'note'",
+  "instance": {
+    "id": "i-4d11",
+    "done": true,
+    "text": "Email template",
+    "after": [],
+    "note": "shipped"
+  }
+}

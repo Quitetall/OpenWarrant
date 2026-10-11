@@ -1,0 +1,17 @@
+{
+  "why": "section 3.6: an undotted kind outside the core set is refused",
+  "expect": "@relations/0/kind anyOf",
+  "instance": {
+    "id": "REQ-pr1",
+    "type": "requirement",
+    "title": "a reset link expires",
+    "fields": {},
+    "relations": [
+      {
+        "kind": "mentions",
+        "to": "OUT-1"
+      }
+    ],
+    "body": ""
+  }
+}

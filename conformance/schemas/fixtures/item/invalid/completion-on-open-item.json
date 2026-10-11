@@ -1,0 +1,12 @@
+{
+  "why": "Appendix A `done`: only a done item carries `done by`",
+  "expect": "False schema does not allow 'claude'",
+  "instance": {
+    "id": "i-4d11",
+    "done": false,
+    "text": "Email template",
+    "after": [],
+    "done_by": "claude",
+    "done_on": "2026-09-25"
+  }
+}

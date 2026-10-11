@@ -1,0 +1,1 @@
+- [X] Reset endpoint (i-9c01, after i-4d11) — done by claude, 2026-09-25: POST /reset

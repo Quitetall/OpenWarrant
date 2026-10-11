@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/profile.json",
+  "title": "oh.war/profile/v1",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md sections 2 and 7.4 (a profile is data, `oh.war/profile/v1`, TOML) and for the profile files the reference reader admits (`profiles/*.toml`, the profiles of a type pack). Where this schema and the prose of FORMAT-1.0.md disagree, the prose wins and this schema is the defect. The prose names what a profile declares (record types, relations, sections, frontmatter keys) but gives no member names, so the members here are the reader's ($comment). Three forms: a contract form (the default, a Warrant profile: a core profile restating itself, or an extension of one), a working form (`form = \"working\"`, the ticket), and a document type (`form = \"document\"`). Not expressed here: that `name` equals the file stem; that a core file restates its core's roles and kind data exactly; that a namespaced role's ordinal is unused; that a projection names only types and kinds its profile declares; that projection names and encodings are unique across a program.",
+  "$comment": "Contract and working form: crates/openwarrant-core/src/role.rs:742 `ProfileFile` (deny_unknown_fields) and role.rs:1338 `parse_definition`. Document form: crates/openwarrant-core/src/projection.rs:417 `DocumentFile` and its tables (deny_unknown_fields), projection.rs:560 `parse_document`. Closed sets: role.rs:115 `AtomRole::ALL`, role.rs:315 `Capability::ALL`, kernel_state.rs:83 `FixedState::ALL`, ticks.rs:98 tick levels, relation.rs `CoreKind`.",
+  "x-oh-war-schema": "oh.war/profile/v1",
+  "type": "object",
+  "required": ["schema", "name"],
+  "properties": {
+    "schema": { "const": "oh.war/profile/v1" },
+    "name": {
+      "description": "The profile's name, which is its file stem: a lowercase word.",
+      "$ref": "common.json#/$defs/word"
+    },
+    "note": { "description": "Prose for a reader; carries no meaning.", "type": "string" },
+    "form": { "enum": ["contract", "working", "document"] },
+    "capabilities": {
+      "description": "OW-ADR-0031: the capabilities this kind selects, from the closed set.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/capability" }
+    },
+    "records": { "$ref": "#/$defs/records" },
+    "relations": { "$ref": "#/$defs/relations" }
+  },
+  "if": {
+    "required": ["form"],
+    "properties": { "form": { "const": "document" } }
+  },
+  "then": { "$ref": "#/$defs/documentForm" },
+  "else": { "$ref": "#/$defs/warrantForm" },
+  "$defs": {
+    "capability": {
+      "enum": [
+        "structure",
+        "links",
+        "claims",
+        "acceptance",
+        "evidence",
+        "verification",
+        "authorization",
+        "resolution",
+        "stages"
+      ]
+    },
+    "atomRole": {
+      "description": "A core role (SAS section 16.1).",
+      "enum": [
+        "control",
+        "intent",
+        "basis",
+        "adr",
+        "work_order",
+        "milestones",
+        "execution",
+        "assurance",
+        "resolution",
+        "validation",
+        "relations_and_integrity"
+      ]
+    },
+    "records": {
+      "description": "`[records]`: the record types (the profile's nouns) its records may have.",
+      "type": "object",
+      "properties": {
+        "types": { "type": "array", "items": { "$ref": "common.json#/$defs/word" } }
+      },
+      "additionalProperties": false
+    },
+    "relations": {
+      "description": "`[relations]`: the core kinds its records may use (`allow`) and must have (`require`, `[from_type, kind, to_type]`).",
+      "type": "object",
+      "properties": {
+        "allow": { "type": "array", "items": { "$ref": "common.json#/$defs/coreRelationKind" } },
+        "require": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              { "$ref": "common.json#/$defs/word" },
+              { "$ref": "common.json#/$defs/coreRelationKind" },
+              { "$ref": "common.json#/$defs/word" }
+            ],
+            "minItems": 3,
+            "maxItems": 3
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "warrantForm": {
+      "description": "A contract-form or working-form profile (role.rs `ProfileFile`).",
+      "properties": {
+        "schema": true,
+        "name": true,
+        "note": true,
+        "capabilities": true,
+        "records": true,
+        "relations": true,
+        "form": { "enum": ["contract", "working"] },
+        "core": { "type": "boolean" },
+        "extends": { "enum": ["delivery", "decision"] },
+        "approved": { "type": "boolean" },
+        "required_roles": { "type": "array", "items": { "$ref": "#/$defs/atomRole" } },
+        "requires": {
+          "description": "`[[requires]]`: the namespaced roles this profile requires, each in its own namespace `<name>.*`.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["role", "ordinal", "file", "stub"],
+            "properties": {
+              "role": { "$ref": "common.json#/$defs/dotted" },
+              "ordinal": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+              "file": { "type": "string", "minLength": 1 },
+              "stub": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "acceptance_role": { "$ref": "common.json#/$defs/dotted" },
+        "reference_roles": { "type": "array", "items": { "$ref": "common.json#/$defs/dotted" } },
+        "core_roles": {
+          "description": "For `form = \"working\"` only: the core roles a working record carries before promotion.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/atomRole" }
+        },
+        "satisfied_outcome": { "type": "string", "minLength": 1 },
+        "falsifiable_claims": { "type": "boolean" },
+        "standing_coverage": { "type": "boolean" },
+        "states": {
+          "description": "`[[states]]`: declared refinements of fixed kernel states.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "refines"],
+            "properties": {
+              "name": { "$ref": "common.json#/$defs/word" },
+              "refines": {
+                "enum": [
+                  "draft",
+                  "open",
+                  "in_progress",
+                  "done",
+                  "accepted",
+                  "superseded",
+                  "authorized",
+                  "verified",
+                  "resolved",
+                  "achieved"
+                ]
+              },
+              "note": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "fields": {
+          "description": "`[fields]`: the values a working-form record's optional fields may hold.",
+          "type": "object",
+          "properties": {
+            "types": { "type": "array", "items": { "$ref": "common.json#/$defs/word" } },
+            "labels": { "type": "array", "items": { "type": "string" } },
+            "labels_closed": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "ticks": {
+          "description": "`[ticks]`: the least a tick must show, on the ladder claimed < observed < independent < signed.",
+          "type": "object",
+          "properties": {
+            "item": { "$ref": "#/$defs/tickLevel" },
+            "milestone": { "$ref": "#/$defs/tickLevel" },
+            "types": { "type": "object", "additionalProperties": { "$ref": "#/$defs/tickLevel" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "if": {
+        "required": ["name"],
+        "properties": { "name": { "enum": ["delivery", "decision"] } }
+      },
+      "then": {
+        "description": "A core profile restates itself: `core = true`, its required roles, and nothing that extends.",
+        "required": ["core", "required_roles"],
+        "properties": {
+          "core": { "const": true },
+          "approved": { "const": true },
+          "extends": false,
+          "requires": false,
+          "acceptance_role": false,
+          "reference_roles": false,
+          "form": false,
+          "core_roles": false
+        }
+      },
+      "else": {
+        "description": "An extension names the core profile it extends and says whether it is approved.",
+        "required": ["extends", "approved"],
+        "properties": {
+          "core": false,
+          "required_roles": false
+        },
+        "allOf": [
+          {
+            "if": { "required": ["form"], "properties": { "form": { "const": "working" } } },
+            "then": { "required": ["core_roles"] },
+            "else": { "properties": { "core_roles": false } }
+          }
+        ]
+      }
+    },
+    "tickLevel": { "enum": ["claimed", "observed", "independent", "signed"] },
+    "documentForm": {
+      "description": "A document type (projection.rs `DocumentFile`): records it composes and the projections of them. Its capabilities are `structure` and `links`, plus `acceptance` for the `roadmap` and `sas` stores.",
+      "required": ["schema", "name", "form"],
+      "properties": {
+        "schema": true,
+        "name": true,
+        "note": true,
+        "form": true,
+        "records": true,
+        "relations": true,
+        "capabilities": true,
+        "encoding": {
+          "description": "The store this type reads in place.",
+          "enum": ["roadmap", "sas", "adr"]
+        },
+        "projections": { "type": "array", "items": { "$ref": "#/$defs/projection" } }
+      },
+      "additionalProperties": false,
+      "if": {
+        "required": ["encoding"],
+        "properties": { "encoding": { "enum": ["roadmap", "sas"] } }
+      },
+      "then": {
+        "properties": { "capabilities": { "items": { "enum": ["structure", "links", "acceptance"] } } }
+      },
+      "else": {
+        "properties": { "capabilities": { "items": { "enum": ["structure", "links"] } } }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "required": ["name", "title", "select"],
+      "properties": {
+        "name": { "$ref": "common.json#/$defs/word" },
+        "title": { "description": "`{title}` is the document's title.", "type": "string" },
+        "intro": { "type": "string" },
+        "renderer": { "enum": ["markdown", "json"] },
+        "select": {
+          "type": "object",
+          "required": ["types"],
+          "properties": {
+            "types": { "type": "array", "minItems": 1, "items": { "$ref": "common.json#/$defs/word" } },
+            "through": { "type": "array", "items": { "$ref": "#/$defs/walkStep" } },
+            "depth": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+          },
+          "additionalProperties": false
+        },
+        "sections": { "type": "array", "items": { "$ref": "#/$defs/projectionSection" } },
+        "sources": { "type": "string" },
+        "max_bytes": { "type": "integer", "minimum": 0 },
+        "file": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "walkStep": {
+      "description": "`in:<kind>`, `out:<kind>`, a bare kind (both ways), or `in:<kind>:<type>` / `out:<kind>:<type>` (only to records of that type).",
+      "type": "string",
+      "pattern": "^((in|out):)?(part_of|depends_on|implements|constrains|evaluates|supersedes|supports|refutes|trades_off_against|causes|qualifies|selected_over)(:[a-z][a-z0-9_-]*)?$"
+    },
+    "projectionSection": {
+      "type": "object",
+      "required": ["heading", "block"],
+      "properties": {
+        "heading": { "type": "string" },
+        "block": { "enum": ["heading", "list", "table", "tree", "quote"] },
+        "intro": { "type": "string" },
+        "types": { "type": "array", "items": { "$ref": "common.json#/$defs/word" } },
+        "of": { "enum": ["all", "roots", "rest"] },
+        "empty": { "type": "string" },
+        "style": { "enum": ["bullets", "blocks"] },
+        "show": { "enum": ["summary", "body"] },
+        "annotate": { "type": "array", "items": { "$ref": "#/$defs/walkStep" } },
+        "provenance": { "type": "boolean" },
+        "fields": { "type": "array", "items": { "$ref": "common.json#/$defs/word" } },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "`<column>` or `<column>=<label>`.",
+            "pattern": "^(id|type|summary|revision|source|field:[a-z][a-z0-9_-]*|(in|out):[a-z][a-z0-9_.:-]*)(=.*)?$"
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["relation"],
+            "properties": {
+              "relation": { "$ref": "#/$defs/walkStep" },
+              "label": { "type": "string" },
+              "empty": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "if": { "properties": { "block": { "const": "table" } } },
+      "then": { "required": ["columns"], "properties": { "columns": { "minItems": 1 } } }
+    }
+  }
+}

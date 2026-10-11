@@ -1,0 +1,11 @@
+{
+  "why": "section 3.3: an alias makes a work document, which has a summary",
+  "expect": "'summary' is a required property",
+  "instance": {
+    "format": "openwarrant/1.0",
+    "profile": "delivery",
+    "alias": "OW-WAR-0146",
+    "uuid": "01a0d342-ee5e-7b71-9623-f2d8cd5acd4e",
+    "assurance_level": "basic"
+  }
+}

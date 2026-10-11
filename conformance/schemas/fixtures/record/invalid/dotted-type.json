@@ -1,0 +1,12 @@
+{
+  "why": "Appendix A `record-head`: a type is a word",
+  "expect": "@type pattern",
+  "instance": {
+    "id": "REQ-pr1",
+    "type": "x.risk",
+    "title": "a reset link expires",
+    "fields": {},
+    "relations": [],
+    "body": ""
+  }
+}

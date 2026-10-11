@@ -1,0 +1,11 @@
+{
+  "why": "sections 2 and 4.1: a ticket is a work document",
+  "expect": "'alias' is a required property",
+  "instance": {
+    "format": "openwarrant/1.0",
+    "profile": "ticket",
+    "uuid": "01a11589-ccbc-766b-9236-0fb33ed32523",
+    "summary": "A ticket.",
+    "priority": "2"
+  }
+}

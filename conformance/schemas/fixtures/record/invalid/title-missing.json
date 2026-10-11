@@ -1,0 +1,12 @@
+{
+  "why": "section 3.4: the title is REQUIRED (`format.title-missing`)",
+  "expect": "@title minLength",
+  "instance": {
+    "id": "REQ-pr1",
+    "type": "requirement",
+    "title": "",
+    "fields": {},
+    "relations": [],
+    "body": ""
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "why": "a ticket names the ticket profile",
+  "expect": "@profile const",
+  "instance": {
+    "format": "openwarrant/1.0",
+    "profile": "delivery",
+    "alias": "t-0d61d",
+    "uuid": "01a11589-ccbc-766b-9236-0fb33ed32523",
+    "summary": "A ticket."
+  }
+}

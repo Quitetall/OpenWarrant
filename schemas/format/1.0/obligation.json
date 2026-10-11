@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/obligation.json",
+  "title": "OpenWarrant Format 1.0: obligation record",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 3.7. Where this schema and the prose disagree, the prose wins and this schema is the defect. An obligation is an authored record (record.json) of type `obligation`. `scope` and `evidence` are REQUIRED (`format.field-missing`). `refusal` is RECOMMENDED: its absence is a warning (`format.refusal-missing`), not a refusal, so this schema admits an obligation without it. `disposition`, `verdict`, `state` and `status` MUST NOT be authored (`format.authored-state`): a disposition comes only from a recorded verdict.",
+  "allOf": [{ "$ref": "record.json" }],
+  "properties": {
+    "type": { "const": "obligation" },
+    "fields": {
+      "type": "object",
+      "required": ["scope", "evidence"],
+      "properties": {
+        "scope": {
+          "description": "What the claim covers and, as far as known, what it does not.",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "The observation that would settle it.",
+          "type": "string"
+        },
+        "refusal": {
+          "description": "An input the control is observed to reject.",
+          "type": "string"
+        },
+        "gate": {
+          "description": "`gate://<id>@<version>`, comma-separated.",
+          "type": "string",
+          "$comment": "Each element is common.json#/$defs/gateUri; the separator is `,` with optional spaces.",
+          "pattern": "^gate://[a-z0-9][a-z0-9._-]*@(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?(,[ ]*gate://[a-z0-9][a-z0-9._-]*@(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?)*$"
+        },
+        "scope_kind": {
+          "enum": [
+            "single_instance",
+            "enumerated_set",
+            "bounded_domain",
+            "bounded_corpus",
+            "sampled_population",
+            "temporal_window",
+            "existential",
+            "universal",
+            "formal_model"
+          ]
+        },
+        "criticality": {
+          "description": "`required` when absent.",
+          "enum": ["required", "advisory"]
+        },
+        "disposition": false,
+        "verdict": false,
+        "state": false,
+        "status": false
+      }
+    }
+  }
+}

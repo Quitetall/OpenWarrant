@@ -1,0 +1,154 @@
+{
+  "why": "section 8: every record carries `content_digest`",
+  "expect": "'content_digest' is a required property",
+  "instance": {
+    "schema": "oh.war/model/v1",
+    "format": "openwarrant/1.0",
+    "basis_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "records": [
+      {
+        "id": "OW-ADR-0003",
+        "type": "adr",
+        "source": "docs/adr/atoms/OW-ADR-0003.md",
+        "line": 1,
+        "span": [
+          0,
+          900
+        ],
+        "revision": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "fields": {
+          "status": "accepted"
+        },
+        "body": "…",
+        "ext": {}
+      },
+      {
+        "id": "OW-WAR-0146",
+        "type": "warrant",
+        "title": "A verification bundle carries what each gate printed",
+        "source": "docs/warrants/OW-WAR-0146.md",
+        "line": 9,
+        "span": [
+          0,
+          260
+        ],
+        "revision": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "fields": {
+          "format": "openwarrant/1.0",
+          "profile": "delivery",
+          "alias": "OW-WAR-0146",
+          "uuid": "01a0d342-ee5e-7b71-9623-f2d8cd5acd4e",
+          "summary": "A verification bundle carries what each gate printed.",
+          "assurance_level": "basic",
+          "paths": [
+            "crates/openwarrant-cli/src/verify/**"
+          ]
+        },
+        "body": "",
+        "ext": {
+          "kf.enterprise_id": "E-42"
+        }
+      },
+      {
+        "id": "OW-WAR-0146/OBL-001",
+        "type": "obligation",
+        "title": "a bundled gate run carries its output",
+        "document": "OW-WAR-0146",
+        "section": "OW-WAR-0146/S-assurance",
+        "source": "docs/warrants/OW-WAR-0146.md",
+        "line": 19,
+        "span": [
+          330,
+          812
+        ],
+        "revision": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "content_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "fields": {
+          "scope": "`war verify --bundle` on a scratch Warrant with one recorded run.\nNo claim about bundles with several runs.",
+          "gate": "gate://ops.conformance.plants@1.1.0",
+          "evidence": "- the run entry's `stdout.sha256` equals the file's sha256;",
+          "refusal": "with the stdout file removed, `text` is absent, never \"\"."
+        },
+        "body": "",
+        "ext": {},
+        "governed_by": "Brian Lam"
+      },
+      {
+        "id": "OW-WAR-0146/S-assurance",
+        "type": "section",
+        "title": "Assurance",
+        "document": "OW-WAR-0146",
+        "source": "docs/warrants/OW-WAR-0146.md",
+        "line": 18,
+        "span": [
+          318,
+          330
+        ],
+        "revision": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "content_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "fields": {},
+        "body": "",
+        "ext": {}
+      },
+      {
+        "id": "OW-WAR-0146/S-intent",
+        "type": "section",
+        "title": "Intent",
+        "document": "OW-WAR-0146",
+        "source": "docs/warrants/OW-WAR-0146.md",
+        "line": 11,
+        "span": [
+          260,
+          318
+        ],
+        "revision": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "content_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "fields": {},
+        "body": "The blind verifier decides from the bundle alone…\n",
+        "ext": {}
+      }
+    ],
+    "relations": [
+      {
+        "from": "OW-WAR-0146/OBL-001",
+        "kind": "evaluates",
+        "to": "REQ-pr1",
+        "to_revision": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      {
+        "from": "OW-WAR-0146/OBL-001",
+        "kind": "part_of",
+        "to": "OW-WAR-0146/M-1"
+      },
+      {
+        "from": "OW-WAR-0146/OBL-001",
+        "kind": "x.mentions",
+        "to": "md:AGENTS.md#tickets"
+      }
+    ],
+    "states": [
+      {
+        "record": "OW-WAR-0146",
+        "kind": "phase",
+        "value": "draft",
+        "provenance": "computed",
+        "facet": "phase"
+      },
+      {
+        "record": "OW-WAR-0146/OBL-001",
+        "kind": "disposition",
+        "value": "unverified",
+        "provenance": "computed",
+        "lapsed": false
+      }
+    ],
+    "diagnostics": [
+      {
+        "rule": "format.target-unknown",
+        "record": "OW-WAR-0146/OBL-001",
+        "message": "evaluates REQ-pr1: no record has that id"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "why": "frontmatter scalars are strings (section 3.2); the subset has no integers",
+  "expect": "@priority type: 2 is not of type 'string'",
+  "instance": {
+    "format": "openwarrant/1.0",
+    "profile": "ticket",
+    "alias": "t-0d61d",
+    "uuid": "01a11589-ccbc-766b-9236-0fb33ed32523",
+    "summary": "A ticket.",
+    "priority": 2
+  }
+}
