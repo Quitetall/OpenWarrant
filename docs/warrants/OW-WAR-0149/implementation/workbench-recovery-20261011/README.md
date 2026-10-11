@@ -40,3 +40,12 @@ at 2026-10-11 09:46 UTC; this supports an availability concern, not proof of eac
 individual failure's cause. No foreign process or service was stopped. The ticket
 remains claimed by codex; no observed/independent/signed completion is recorded.
 OW149 remains in progress and OW95 still has no real study participants.
+
+Hosted follow-up: the actual full web suite at
+`70cabdc1df896d30604b6da8d41614a988ebdff8` passed 230 tests in 145.599
+seconds (run 38129797012). Both new recovery scenarios passed, including
+original-receipt refusal, each repair-stage attachment and restart replay. This
+establishes those configured synthetic controls at that source revision; it does
+not establish actual provider confinement, human acceptance or native assurance.
+The combined-size refusal still needs an observed boundary control. The complete
+protected merge/release gate remains separate from this hosted web-suite pass.

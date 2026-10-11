@@ -28,5 +28,10 @@
     "path": "recovery-resume-diagnostic.log.gz",
     "uncompressed_sha256": "29413883b16c1439bbba1f3e13b65868926a24501fb8e37d9fe7e53dfa26b9dd",
     "uncompressed_bytes": 3879
+  },
+  {
+    "path": "recovery-hosted-web.log.gz",
+    "uncompressed_sha256": "3d65f2473643b5994f200690a7eb659232d7ccd914bae044d46c719f6355a2a5",
+    "uncompressed_bytes": 131980
   }
 ]
