@@ -98,6 +98,19 @@ pub fn sas_phases(repo: &Repository) -> Vec<(u8, String, Option<String>)> {
         .unwrap_or_default()
 }
 
+/// One Warrant's part of the corpus status, made on its own
+/// ([`build_with`]).
+struct Row {
+    alias: String,
+    rung: WarrantRung,
+    /// The SAS version its basis pins, if any.
+    pin: Option<String>,
+    /// Resolved `satisfied` against the contract as it compiles now.
+    satisfied: bool,
+    links: Vec<Link>,
+    status: WarrantStatus,
+}
+
 /// [`build`] over a corpus already loaded: each Warrant's assessment and
 /// contract digest are the corpus's, computed once.
 pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
@@ -117,7 +130,10 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
     let mut pins: std::collections::BTreeMap<String, usize> = Default::default();
     let mut milestones_by_alias: BTreeMap<String, Vec<MilestoneState>> = BTreeMap::new();
 
-    for &(entry, one) in &loaded {
+    // Each Warrant's row reads its own records alone: on the disk the rows
+    // are made across threads, then folded below in alias order, the first
+    // error in that order returned as the loop it replaced returned it.
+    let rows = crate::vfs::map_ordered(&loaded, 8, |&(entry, one)| -> Result<Row, RepoError> {
         let alias = one.alias();
         let valid = one.validated.is_some() && one.basis.is_some();
         let validity = if valid {
@@ -212,18 +228,11 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
             one.capabilities(&repo.profiles)
                 .has(openwarrant_core::Capability::Resolution),
         );
-        rung_by_alias.insert(alias.clone(), rung);
-        if let Some(v) = one
+        let pin = one
             .basis
             .as_ref()
             .and_then(|b| b.sas.as_ref())
-            .map(|p| p.version.clone())
-        {
-            *pins.entry(v).or_insert(0) += 1;
-        }
-        if resolved_satisfied {
-            satisfied_by_alias.insert(alias.clone());
-        }
+            .map(|p| p.version.clone());
 
         let ms = one.basis.as_ref().and_then(|b| {
             b.atoms
@@ -236,10 +245,7 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
                 })
                 .map(|g| milestone_states(&g, &established))
         });
-        if let Some(m) = &ms {
-            milestones_by_alias.insert(alias.clone(), m.clone());
-        }
-
+        let mut links = Vec::new();
         for c in &implements {
             links.push(Link {
                 warrant: alias.clone(),
@@ -250,7 +256,7 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
             });
         }
 
-        warrants.push(WarrantStatus {
+        let status = WarrantStatus {
             alias: alias.clone(),
             resolution,
             title,
@@ -300,7 +306,30 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
             resolution_ref: fs::is_file(one.dir.join("resolution.toml"))
                 .then(|| repo.relative(&one.dir.join("resolution.toml"))),
             review: review_of(repo, &one.dir).ok().filter(|r| !r.is_empty()),
-        });
+        };
+        Ok(Row {
+            alias,
+            rung,
+            pin,
+            satisfied: resolved_satisfied,
+            links,
+            status,
+        })
+    });
+    for row in rows {
+        let row = row?;
+        rung_by_alias.insert(row.alias.clone(), row.rung);
+        if let Some(v) = row.pin {
+            *pins.entry(v).or_insert(0) += 1;
+        }
+        if row.satisfied {
+            satisfied_by_alias.insert(row.alias.clone());
+        }
+        if let Some(m) = &row.status.milestones {
+            milestones_by_alias.insert(row.alias.clone(), m.clone());
+        }
+        links.extend(row.links);
+        warrants.push(row.status);
     }
 
     // Objectives — every §98 phase, then `unassigned` last.

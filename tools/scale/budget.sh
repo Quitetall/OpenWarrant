@@ -19,6 +19,11 @@
 # `applies_to` (build profile, Warrant count, resolved count) matches what
 # was measured. The limits are compared either way.
 #
+# `{ready}` in a row's argv is replaced, before each run and outside its
+# timing, by the first row of `war view ready --json` (`t-x` or `t-x/i-y`);
+# with nothing ready the run is unknown. A budget whose `applies_to` names
+# `tickets` is also matched against `war view tickets --json`.
+#
 # Every command runs with no ssh-agent reachable (SSH_AUTH_SOCK and
 # SSH_AGENT_PID unset), so an interactive row cannot sign anything.
 #
@@ -95,6 +100,7 @@ now_ns() { date +%s%N; }
 
 # The corpus as the tool counts it, before anything is timed.
 "$WAR" --root "$ROOT" --json status > "$TMP/status.json" 2>/dev/null </dev/null || true
+"$WAR" --root "$ROOT" --json view tickets > "$TMP/tickets.json" 2>/dev/null </dev/null || true
 CORPUS_BEFORE=$(git -C "$ROOT" status --porcelain 2>/dev/null | sha256sum | cut -d' ' -f1)
 
 : > "$TMP/runs.tsv"
@@ -105,12 +111,32 @@ while IFS=$'\t' read -r id limit stdin_json argv_json; do
     if [[ "$CAP" != 0 ]]; then cap_ms=$(( limit * CAP )); fi
     for run in $(seq 1 "$RUNS"); do
         rc=0
+        # `{ready}` is the first ready row now, read before the run and not
+        # timed. With nothing ready the run has no target: it is unknown.
+        RUN_ARGV=("${ARGV[@]}")
+        if [[ " ${ARGV[*]} " == *"{ready}"* ]]; then
+            READY=$("$WAR" --root "$ROOT" --json view ready 2>/dev/null </dev/null | python3 -c '
+import json, sys
+try:
+    rows = json.load(sys.stdin)["result"]["ready"]
+except Exception:
+    rows = []
+if rows:
+    r = rows[0]
+    print(r["ticket"] + ("/" + r["item"] if r.get("item") else ""))' || true)
+            if [[ -z "$READY" ]]; then
+                printf 'budget.sh: %s: nothing is ready, so {ready} names nothing\n' "$id" >&2
+                printf '%s\t%s\tdone\t0\t3\n' "$id" "$run" >> "$TMP/runs.tsv"
+                break
+            fi
+            RUN_ARGV=("${ARGV[@]/\{ready\}/$READY}")
+        fi
         t0=$(now_ns)
         if [[ "$cap_ms" != 0 ]]; then
             timeout --kill-after=5 "$(printf '%d.%03d' $((cap_ms / 1000)) $((cap_ms % 1000)))" \
-                "$WAR" --root "$ROOT" "${ARGV[@]}" < "$TMP/stdin" > "$TMP/out.log" 2>&1 || rc=$?
+                "$WAR" --root "$ROOT" "${RUN_ARGV[@]}" < "$TMP/stdin" > "$TMP/out.log" 2>&1 || rc=$?
         else
-            "$WAR" --root "$ROOT" "${ARGV[@]}" < "$TMP/stdin" > "$TMP/out.log" 2>&1 || rc=$?
+            "$WAR" --root "$ROOT" "${RUN_ARGV[@]}" < "$TMP/stdin" > "$TMP/out.log" 2>&1 || rc=$?
         fi
         t1=$(now_ns)
         ms=$(( (t1 - t0) / 1000000 ))
@@ -165,6 +191,12 @@ try:
     corpus.update(warrants=len(ws), by_phase=dict(sorted(phases.items())), resolved=phases.get("resolved", 0))
 except Exception as e:
     corpus.update(warrants="unknown", by_phase="unknown", resolved="unknown", error=f"war status --json unreadable: {e}")
+# The tickets (the smallest Warrant), as `war view tickets --json` counted them.
+try:
+    corpus.update(tickets=len(json.load(open(f"{T}/tickets.json"))["result"]["tickets"]),
+                  tickets_counted_by="war view tickets --json")
+except Exception as e:
+    corpus.update(tickets="unknown", tickets_error=f"war view tickets --json unreadable: {e}")
 marker = os.path.join(E["ROOT"], "SYNTH.json")
 if os.path.isfile(marker):
     try:
@@ -213,6 +245,11 @@ if isinstance(corpus["warrants"], int):
         reasons.append(f"{corpus['resolved']} resolved, budget wants at least {applies_to['resolved_at_least']}")
 else:
     reasons.append("corpus shape unknown")
+if "tickets" in applies_to:
+    if not isinstance(corpus["tickets"], int):
+        reasons.append("ticket count unknown")
+    elif corpus["tickets"] != applies_to["tickets"]:
+        reasons.append(f"{corpus['tickets']} tickets, budget is for {applies_to['tickets']}")
 
 held = not over and not unknown
 record = {

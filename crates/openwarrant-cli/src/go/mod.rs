@@ -221,41 +221,63 @@ fn blocked_in(
 /// Done items are left out: a person who finished it by hand finished it.
 #[must_use]
 pub fn blocked_nodes(tickets: &[Ticket]) -> Vec<BlockedNode> {
+    // One journal per open ticket, each read on its own: on the disk they
+    // fan out across threads, in ticket order (`vfs::map_ordered`).
+    let open: Vec<&Ticket> = tickets.iter().filter(|t| !t.checklist.is_done()).collect();
+    crate::vfs::map_ordered(&open, 256, |t| blocked_of(t))
+        .into_iter()
+        .flatten()
+        .collect()
+}
+
+/// Whether `bytes` could hold a JSON string equal to `word`: it holds `word`
+/// itself, or a `\u` escape that could spell it. Without either, no event in
+/// the journal has that type, and parsing it would find none.
+fn may_name(bytes: &[u8], word: &str) -> bool {
+    let has = |needle: &[u8]| bytes.windows(needle.len()).any(|w| w == needle);
+    has(word.as_bytes()) || has(b"\\u")
+}
+
+/// The nodes of one open ticket a run set aside, in [`blocked_nodes`]'s order.
+fn blocked_of(t: &Ticket) -> Vec<BlockedNode> {
     let mut out = Vec::new();
-    for t in tickets {
-        if t.checklist.is_done() {
-            continue;
-        }
-        let Ok(journal) = crate::journal_cmd::load(&t.dir) else {
-            continue;
-        };
-        if !journal
-            .events
-            .iter()
-            .any(|e| e.event_type == event::BLOCKED)
-        {
-            continue;
-        }
-        let mut nodes: Vec<String> = t
-            .checklist
-            .items
-            .iter()
-            .filter(|i| !i.done)
-            .filter_map(|i| i.id.as_ref().map(|id| format!("{}/{id}", t.id())))
-            .collect();
-        if t.checklist.items.is_empty() {
-            nodes.push(t.id().to_owned());
-        }
-        for node in nodes {
-            if let Some((reason, attempts, at)) = blocked_in(&journal, &node) {
-                out.push(BlockedNode {
-                    command: format!("war evidence go --retry {node}"),
-                    node,
-                    reason,
-                    attempts,
-                    at,
-                });
-            }
+    // Most journals never name `go.blocked`: those are not parsed. A
+    // journal that cannot be read here is loaded below, which reads it
+    // as before.
+    if let Ok(bytes) = crate::vfs::read(t.dir.join(crate::journal_cmd::FILE))
+        && !may_name(&bytes, event::BLOCKED)
+    {
+        return out;
+    }
+    let Ok(journal) = crate::journal_cmd::load(&t.dir) else {
+        return out;
+    };
+    if !journal
+        .events
+        .iter()
+        .any(|e| e.event_type == event::BLOCKED)
+    {
+        return out;
+    }
+    let mut nodes: Vec<String> = t
+        .checklist
+        .items
+        .iter()
+        .filter(|i| !i.done)
+        .filter_map(|i| i.id.as_ref().map(|id| format!("{}/{id}", t.id())))
+        .collect();
+    if t.checklist.items.is_empty() {
+        nodes.push(t.id().to_owned());
+    }
+    for node in nodes {
+        if let Some((reason, attempts, at)) = blocked_in(&journal, &node) {
+            out.push(BlockedNode {
+                command: format!("war evidence go --retry {node}"),
+                node,
+                reason,
+                attempts,
+                at,
+            });
         }
     }
     out

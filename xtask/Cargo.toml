@@ -8,5 +8,7 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 publish = false
+# `src/bin/scale-budget.rs` is a second binary; `cargo run -p xtask` stays the gate.
+default-run = "xtask"
 
 [dependencies]

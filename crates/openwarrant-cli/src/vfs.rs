@@ -182,6 +182,69 @@ pub fn is_hosted() -> bool {
     tree().is_some()
 }
 
+/// Whether reads on this thread go straight to the disk: neither hosted nor
+/// recording. Only then may a reader hand reads to other threads, which
+/// always read the disk (the mode is per thread) and record nothing.
+#[must_use]
+pub fn is_disk() -> bool {
+    MODE.with(|m| m.borrow().is_none())
+}
+
+/// Free `value` on a thread of its own when this thread reads the disk
+/// ([`is_disk`]): a corpus is a large tree of small allocations, and the
+/// answer that read it need not wait while it is freed. A process that
+/// exits first frees it with everything else. Elsewhere it is dropped here.
+pub fn drop_later<T: Send + 'static>(value: T) {
+    if is_disk() {
+        let _ = std::thread::Builder::new().spawn(move || drop(value));
+    }
+}
+
+/// The most threads [`map_ordered`] uses.
+const MAX_THREADS: usize = 16;
+
+/// `f` over every element of `items`, in order: across up to sixteen threads
+/// when this thread reads the disk ([`is_disk`]) and there are at least
+/// `per_thread` elements per thread to give each, else on this thread. The
+/// output is the same either way; only the wall clock differs.
+pub fn map_ordered<T, R, F>(items: &[T], per_thread: usize, f: F) -> Vec<R>
+where
+    T: Sync,
+    R: Send,
+    F: Fn(&T) -> R + Sync,
+{
+    let threads = std::thread::available_parallelism()
+        .map_or(1, std::num::NonZeroUsize::get)
+        .min(MAX_THREADS)
+        .min(items.len() / per_thread.max(1));
+    if threads < 2 || !is_disk() {
+        return items.iter().map(&f).collect();
+    }
+    let chunk = items.len().div_ceil(threads);
+    let f = &f;
+    std::thread::scope(|scope| {
+        // A part no thread could be made for is mapped here, in its place.
+        let parts: Vec<Result<_, &[T]>> = items
+            .chunks(chunk)
+            .map(|part| {
+                std::thread::Builder::new()
+                    .spawn_scoped(scope, move || part.iter().map(f).collect::<Vec<R>>())
+                    .map_err(|_| part)
+            })
+            .collect();
+        parts
+            .into_iter()
+            .flat_map(|p| match p {
+                Ok(h) => match h.join() {
+                    Ok(part) => part,
+                    Err(panic) => std::panic::resume_unwind(panic),
+                },
+                Err(part) => part.iter().map(f).collect(),
+            })
+            .collect()
+    })
+}
+
 fn note(p: &Path) {
     note_as(p, true);
 }

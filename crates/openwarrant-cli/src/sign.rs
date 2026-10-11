@@ -299,6 +299,79 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
     pending_with(&crate::corpus::Corpus::new(repo))
 }
 
+/// The first half of a Warrant's row in [`pending_with`]: skipped, an
+/// authorization awaiting its signature, or authorized (signed, current),
+/// whose resolution and corrections are read next.
+enum First<'a> {
+    Skip,
+    Pending(Box<Pending>),
+    Authorized {
+        dir: Utf8PathBuf,
+        alias: String,
+        one: &'a crate::repo::Loaded,
+    },
+}
+
+fn authorization_part<'a>(
+    repo: &Repository,
+    entry: &'a crate::corpus::Entry,
+) -> Result<First<'a>, RepoError> {
+    let dir = entry.dir.clone();
+    let Some(alias) = dir.file_name().map(str::to_owned) else {
+        return Ok(First::Skip);
+    };
+    let Some(one) = entry.ok() else {
+        return Ok(First::Skip);
+    };
+    if one.validated.is_none() || one.basis.is_none() {
+        return Ok(First::Skip);
+    }
+    let Ok(request) = authorize::request_for(repo, &alias, one, entry.ir().ok()) else {
+        return Ok(First::Skip);
+    };
+    let authorization = repo.load_authorization(&dir)?;
+    // Authorized means SIGNED and current, not merely recorded and current.
+    // A record whose digest matches but whose signature does not verify is
+    // pending again — that is how 57 file-only authorizations became acts
+    // the owner can clear in one pass, rather than a corpus-wide exception.
+    let authorized_current = authorization.as_ref().is_some_and(|a| {
+        authorize::authorizes_current_contract(a, &request.contract_digest)
+            && a.revision.authorization.as_ref().is_some_and(|auth| {
+                crate::authority_check::verify(
+                    repo,
+                    crate::authority_check::Act::Authorize,
+                    &alias,
+                    &auth.authorizer,
+                    Some(&a.revision.contract_digest),
+                )
+                .is_signed()
+            })
+    });
+    if authorized_current {
+        return Ok(First::Authorized { dir, alias, one });
+    }
+    let revision = authorization.as_ref().map_or(1, |a| {
+        if a.revision.contract_digest == request.contract_digest {
+            // Same bytes, missing signature: sign THIS revision. A bump
+            // here would claim the contract changed, and it did not.
+            a.revision.revision
+        } else {
+            a.revision.revision + 1
+        }
+    });
+    let amendment = if revision > 1 {
+        read_latest_amendment(&dir)
+    } else {
+        None
+    };
+    Ok(First::Pending(Box::new(Pending::Authorize {
+        alias,
+        request,
+        amendment,
+        revision,
+    })))
+}
+
 /// [`pending`] over a corpus already loaded: each Warrant's load, lowered
 /// contract and assessment are the corpus's.
 pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, RepoError> {
@@ -318,61 +391,21 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
     let ownership = std::cell::OnceCell::new();
     let mut entries: Vec<&crate::corpus::Entry> = corpus.entries()?.iter().collect();
     entries.sort_by(|a, b| a.dir.cmp(&b.dir));
-    for entry in entries {
-        let dir = entry.dir.clone();
-        let Some(alias) = dir.file_name().map(str::to_owned) else {
-            continue;
+    // The authorization half of each Warrant's row reads its own records
+    // alone: on the disk it is made across threads first, kept in directory
+    // order (`vfs::map_ordered`). The rest of each row (resolutions,
+    // corrections, and the ownership index they share) is read below, in
+    // turn, and the first error in directory order is returned as before.
+    let firsts = crate::vfs::map_ordered(&entries, 8, |entry| authorization_part(repo, entry));
+    for (entry, first) in entries.into_iter().zip(firsts) {
+        let (dir, alias, one) = match first? {
+            First::Skip => continue,
+            First::Pending(p) => {
+                out.push(*p);
+                continue;
+            }
+            First::Authorized { dir, alias, one } => (dir, alias, one),
         };
-        let Some(one) = entry.ok() else {
-            continue;
-        };
-        if one.validated.is_none() || one.basis.is_none() {
-            continue;
-        }
-        let Ok(request) = authorize::request_for(repo, &alias, one, entry.ir().ok()) else {
-            continue;
-        };
-        let authorization = repo.load_authorization(&dir)?;
-        // Authorized means SIGNED and current, not merely recorded and current.
-        // A record whose digest matches but whose signature does not verify is
-        // pending again — that is how 57 file-only authorizations became acts
-        // the owner can clear in one pass, rather than a corpus-wide exception.
-        let authorized_current = authorization.as_ref().is_some_and(|a| {
-            authorize::authorizes_current_contract(a, &request.contract_digest)
-                && a.revision.authorization.as_ref().is_some_and(|auth| {
-                    crate::authority_check::verify(
-                        repo,
-                        crate::authority_check::Act::Authorize,
-                        &alias,
-                        &auth.authorizer,
-                        Some(&a.revision.contract_digest),
-                    )
-                    .is_signed()
-                })
-        });
-        if !authorized_current {
-            let revision = authorization.as_ref().map_or(1, |a| {
-                if a.revision.contract_digest == request.contract_digest {
-                    // Same bytes, missing signature: sign THIS revision. A bump
-                    // here would claim the contract changed, and it did not.
-                    a.revision.revision
-                } else {
-                    a.revision.revision + 1
-                }
-            });
-            let amendment = if revision > 1 {
-                read_latest_amendment(&dir)
-            } else {
-                None
-            };
-            out.push(Pending::Authorize {
-                alias,
-                request,
-                amendment,
-                revision,
-            });
-            continue;
-        }
         if let Some(existing) = repo.load_resolution(&dir)? {
             // A recorded resolution with no verified signature is the same
             // situation as an unsigned authorization: the record exists, the
