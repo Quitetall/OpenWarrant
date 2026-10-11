@@ -1,0 +1,109 @@
+{
+  "source_commit": "a6b2d90ca939d6f80a648b9d9a8db93893bbe816",
+  "locale": "C",
+  "byte_count_command": [
+    "wc",
+    "-c"
+  ],
+  "word_count_command": [
+    "wc",
+    "-w"
+  ],
+  "rounding": "ceiling for both compared estimates",
+  "tokenizer_called": false,
+  "assurance_granted": false,
+  "sources": [
+    {
+      "path": "docs/sas/WAR_Software_Architecture_Specification.md",
+      "source_sha256": "97c69198140b6312e0f4da4b19a5cd16a87ea288ce83fbc66cacaca4612bfd92",
+      "source_command": [
+        "git",
+        "cat-file",
+        "blob",
+        "a6b2d90ca939d6f80a648b9d9a8db93893bbe816:docs/sas/WAR_Software_Architecture_Specification.md"
+      ],
+      "bytes_command": [
+        "wc",
+        "-c"
+      ],
+      "words_command": [
+        "wc",
+        "-w"
+      ],
+      "counter_input": "captured source blob on stdin",
+      "bytes": 147586,
+      "words": 20379,
+      "bytes_div_4_ceil": 36897,
+      "words_times_13_div_10_ceil": 26493
+    },
+    {
+      "path": "docs/sas/generated/NORMATIVE.md",
+      "source_sha256": "d65d6a9465fdf40b4f0e3bfa8c8fbf66fb85ccf9af2ccda873f40c7098f40794",
+      "source_command": [
+        "git",
+        "cat-file",
+        "blob",
+        "a6b2d90ca939d6f80a648b9d9a8db93893bbe816:docs/sas/generated/NORMATIVE.md"
+      ],
+      "bytes_command": [
+        "wc",
+        "-c"
+      ],
+      "words_command": [
+        "wc",
+        "-w"
+      ],
+      "counter_input": "captured source blob on stdin",
+      "bytes": 51800,
+      "words": 7513,
+      "bytes_div_4_ceil": 12950,
+      "words_times_13_div_10_ceil": 9767
+    },
+    {
+      "path": "crates/openwarrant-cli/src/check.rs",
+      "source_sha256": "f6522109c4ef9e109ef8ec3441431c3fab1356bf6918f015de198f397d2af298",
+      "source_command": [
+        "git",
+        "cat-file",
+        "blob",
+        "a6b2d90ca939d6f80a648b9d9a8db93893bbe816:crates/openwarrant-cli/src/check.rs"
+      ],
+      "bytes_command": [
+        "wc",
+        "-c"
+      ],
+      "words_command": [
+        "wc",
+        "-w"
+      ],
+      "counter_input": "captured source blob on stdin",
+      "bytes": 129989,
+      "words": 12379,
+      "bytes_div_4_ceil": 32498,
+      "words_times_13_div_10_ceil": 16093
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0064/atoms/10-intent.md",
+      "source_sha256": "3b54a77c5f7ea5e6c303effb26968dae3a033c41a188eab884cf47a197b6b17f",
+      "source_command": [
+        "git",
+        "cat-file",
+        "blob",
+        "a6b2d90ca939d6f80a648b9d9a8db93893bbe816:docs/warrants/OW-WAR-0064/atoms/10-intent.md"
+      ],
+      "bytes_command": [
+        "wc",
+        "-c"
+      ],
+      "words_command": [
+        "wc",
+        "-w"
+      ],
+      "counter_input": "captured source blob on stdin",
+      "bytes": 2811,
+      "words": 413,
+      "bytes_div_4_ceil": 703,
+      "words_times_13_div_10_ceil": 537
+    }
+  ]
+}

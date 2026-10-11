@@ -1,0 +1,20 @@
+{
+  "reported_by": "agent://codex",
+  "level": "claimed",
+  "source_revision": "a6b2d90ca939d6f80a648b9d9a8db93893bbe816",
+  "checks": {
+    "source_replay": "PASS: both full captures and eight per-row replays match retained JSON",
+    "memo_table": "PASS: all eight rows have six columns and a per-row command",
+    "file_links": "PASS: all memo Markdown links resolve to files",
+    "frozen_method": "PASS: exact original source hash unchanged",
+    "record_check": {
+      "pass": 40,
+      "warn": 25,
+      "unknown": 0,
+      "error": 0,
+      "worst": "warn"
+    }
+  },
+  "independent_review": "pending",
+  "qualification": false
+}

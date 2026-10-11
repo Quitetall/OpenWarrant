@@ -1,0 +1,73 @@
+{
+  "reported_by": "agent://codex",
+  "source_revision": "05d11221286c0ac2a89764c67241fbf2ab68e4bd",
+  "records": [
+    {
+      "warrant": "OW-WAR-0065",
+      "source_path": "docs/warrants/OW-WAR-0065/implementation/progress.json",
+      "source_revision": "4dcf9db7c503b2ecea4fc3de05e8cc05679fe20b",
+      "original_sha256": "3887ae877c2b7672b50d8db8b39bd94b16f2e66322ccec08b22bd6d7634da26c",
+      "original_archive_path": "archive/progress-viewer-repair-20261011/docs/warrants/OW-WAR-0065/implementation/progress.json",
+      "before_work_state": "in_progress",
+      "after_work_state": "in-progress",
+      "changed_fields": [
+        "work_state"
+      ],
+      "revision_meaning": "existing source revision retained; missing value records the exact historical report commit, not a new implementation or qualification claim"
+    },
+    {
+      "warrant": "OW-WAR-0090",
+      "source_path": "docs/warrants/OW-WAR-0090/implementation/progress.json",
+      "source_revision": "9ae56e2db5c0ec76572f41696af309d21fc8ee17",
+      "original_sha256": "eb6870cee7b66a10b4a046c35097c0a12275af21f3cc211cc8ce5ab55b4e8edd",
+      "original_archive_path": "archive/progress-viewer-repair-20261011/docs/warrants/OW-WAR-0090/implementation/progress.json",
+      "before_work_state": "blocked",
+      "after_work_state": "blocked",
+      "changed_fields": [
+        "revision"
+      ],
+      "revision_meaning": "existing source revision retained; missing value records the exact historical report commit, not a new implementation or qualification claim"
+    },
+    {
+      "warrant": "OW-WAR-0096",
+      "source_path": "docs/warrants/OW-WAR-0096/implementation/progress.json",
+      "source_revision": "770e40b2eb82e65a0fafb7a521ddd4797b97b00e",
+      "original_sha256": "c596474fb932f0f2e0b2af1e25919bcb6fa8961e7d6195ab85618dfdfeb9bd06",
+      "original_archive_path": "archive/progress-viewer-repair-20261011/docs/warrants/OW-WAR-0096/implementation/progress.json",
+      "before_work_state": "in-progress",
+      "after_work_state": "in-progress",
+      "changed_fields": [
+        "revision"
+      ],
+      "revision_meaning": "existing source revision retained; missing value records the exact historical report commit, not a new implementation or qualification claim"
+    },
+    {
+      "warrant": "OW-WAR-0117",
+      "source_path": "docs/warrants/OW-WAR-0117/implementation/progress.json",
+      "source_revision": "05d11221286c0ac2a89764c67241fbf2ab68e4bd",
+      "original_sha256": "29b7d64ca37f49acff233f2886294fe14b76a39d772b2920cc7399607112b911",
+      "original_archive_path": "archive/progress-viewer-repair-20261011/docs/warrants/OW-WAR-0117/implementation/progress.json",
+      "before_work_state": "in_progress",
+      "after_work_state": "in-progress",
+      "changed_fields": [
+        "work_state"
+      ],
+      "revision_meaning": "existing source revision retained; missing value records the exact historical report commit, not a new implementation or qualification claim"
+    },
+    {
+      "warrant": "OW-WAR-0149",
+      "source_path": "docs/warrants/OW-WAR-0149/implementation/progress.json",
+      "source_revision": "a5098ce1880450216907251eea067ae2c31ea905",
+      "original_sha256": "8194ebbfe4eb139b5b0263deb9997bbc823c7dd5fe4982457b3b483b9090c342",
+      "original_archive_path": "archive/progress-viewer-repair-20261011/docs/warrants/OW-WAR-0149/implementation/progress.json",
+      "before_work_state": "in-progress",
+      "after_work_state": "in-progress",
+      "changed_fields": [
+        "evidence"
+      ],
+      "revision_meaning": "existing source revision retained; missing value records the exact historical report commit, not a new implementation or qualification claim"
+    }
+  ],
+  "work_claims_changed": false,
+  "assurance_granted": false
+}
