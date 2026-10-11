@@ -198,21 +198,32 @@ def main():
                 journal.flush()
                 os.fsync(journal.fileno())
                 digest.update(line)
-            recorder = Recorder(declared, sink=append)
             def interrupted(*_):
                 raise KeyboardInterrupt()
+            # The handler is in place before the "started" event is written,
+            # so a SIGTERM that follows it is always retained as an
+            # interruption. One that lands while the recorder is still being
+            # made has nothing to retain, and propagates as before.
             previous = signal.signal(signal.SIGTERM, interrupted)
+            recorder = None
             try:
+                recorder = Recorder(declared, sink=append)
                 for value in commands(sys.stdin, args.max_seconds):
                     recorder.command(value)
                     if recorder.outcome is not None:
                         break
                 recorder.stop("end-of-input")
             except KeyboardInterrupt:
+                if recorder is None:
+                    raise
                 recorder.stop("signal-interruption")
             except TimeoutError:
+                if recorder is None:
+                    raise
                 recorder.stop("session-deadline")
             except (ValueError, RecursionError):
+                if recorder is None:
+                    raise
                 recorder.stop("invalid-input")
             finally:
                 signal.signal(signal.SIGTERM, previous)
