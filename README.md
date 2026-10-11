@@ -33,15 +33,16 @@ earlier spelling still works. [Where each command went](docs/COMMANDS.md).
 document `war admin compile` writes from the records, current by construction
 (`docs/generated/CURRENT.md`; its history is `docs/generated/HISTORY.md`).
 
-[Design draft](docs/sas/drafts/1.0.0-rc.3/README.md) ·
+[The standard: Format 1.0](docs/format/FORMAT-1.0.md) ·
 [Recorded progress](docs/warrants/generated/CORPUS_STATUS.md) ·
 [Build the CLI](#build-the-current-cli) ·
 [Contribute](CONTRIBUTING.md)
 
-> **Under development.** The standard and SDK described here are the RC.3 design
-> direction. This repository also contains the existing Rust libraries and `war`
-> CLI, whose current formats and rules remain documented separately. Planned
-> workflows and integrations are not claims of shipped functionality.
+> **Under development.** The document standard is
+> [OpenWarrant Format 1.0](docs/format/FORMAT-1.0.md), proposed in OW-ADR-0032
+> and not yet accepted by the owner. `war` reads it beside the older directory
+> encodings, which it reads forever. Sections of this page marked *planned* are
+> not claims of shipped functionality.
 
 ## One outcome, one Warrant
 
@@ -55,10 +56,30 @@ meaning. Requirements stay linked to their source. Work and review keep an hones
 history. Agents spend less time reconstructing context; developers spend less time
 copying records between tools.
 
-The planned source format is readable Markdown with structured metadata and
-defined sections. Small drafts remain useful before they contain execution or
-verification records. WAR expands to **Work Authorization Record**; the everyday
-name is **Warrant**.
+A Warrant is one Markdown file: a short frontmatter block, `## S-<slug>`
+sections, and records such as `## OBL-001 · obligation` with their fields and
+relations. A manifest and atom directory are optional. Every reader computes the
+same `content_digest` for each record, so meaning survives a reformat and a
+signature binds what was said. Dotted extension keys (`kf.enterprise_id`) are
+carried and ignored; nothing a reader ignores ever turns into a pass.
+[Format 1.0](docs/format/FORMAT-1.0.md) is the standard, the
+[JSON schemas](schemas/format/) describe its outputs, and
+[`conformance/format/`](conformance/format/) is the corpus another reader can
+run. WAR expands to **Work Authorization Record**; the everyday name is
+**Warrant**.
+
+## Context an agent can load in one command
+
+```bash
+war context OW-WAR-0146              # what one Warrant needs, in a fixed order
+war context t-0d61d --tokens 4000    # within a budget; nothing is cut mid-record
+```
+
+The output is deterministic: the same records give the same bytes. Each record
+is printed in full (`[F]`) or as its one-line summary (`[S]`) when the budget
+runs out, and `--strict` refuses instead of summarizing. `docs/generated/llms.txt`
+indexes every record with the command that loads it. `--json` gives the
+`oh.war/context/v1` packet; MCP clients get the same through `war_context`.
 
 ## Work first. Review when needed.
 
@@ -170,8 +191,9 @@ Inspect this repository's existing records and generated-file consistency:
 ```
 
 That command checks records and generated-file drift. It does not run every
-implementation test or provide human acceptance. The current format uses manifests
-and authored atoms, with generated Markdown and JSON views.
+implementation test or provide human acceptance. `war new "<title>" --format 1.0`
+writes a single-file Warrant; the older manifest-and-atoms directories read
+unchanged, with generated Markdown and JSON views.
 
 [QUICKSTART.md](QUICKSTART.md) covers the current workflow.
 Read [AGENTS.md](AGENTS.md) before agent work and
@@ -179,6 +201,7 @@ Read [AGENTS.md](AGENTS.md) before agent work and
 
 ## License
 
-[Apache-2.0](LICENSE). Versions distributed before the 2026-09-12 relicensing
+Code, schemas and the conformance corpus: [Apache-2.0](LICENSE). The text of the
+standard under `docs/format/`: [CC-BY-4.0](docs/format/LICENSE). Versions distributed before the 2026-09-12 relicensing
 remain available under AGPL-3.0-or-later. See [RELICENSING.md](RELICENSING.md).
 Adapted third-party skills retain their attribution and license notices.
