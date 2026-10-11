@@ -360,6 +360,7 @@ pub fn block_text(version: &str) -> String {
         "Ordinary coding needs no Warrant and no ticket: work here as in any repository.",
         "OpenWarrant tracks optional plans and checklists in this repository; run",
         "`war view prime` to see what is tracked (open work, who holds what, recent notes).",
+        "`war context <id>` loads what a task needs: a Warrant, item, record id or file, cited by id.",
         &format!("{STAMP_PREFIX}{version} -->"),
         BLOCK_END,
     ]

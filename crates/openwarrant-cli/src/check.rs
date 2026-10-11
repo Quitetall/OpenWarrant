@@ -423,6 +423,9 @@ pub fn run_with(
         // OW-WAR-0148 M18: docs/types.toml and the document index. Silent
         // for a program with neither a types file nor a bad [documents].
         crate::types::check(shared_corpus, &mut report);
+        // Format 1.0 section 10.1: a Format 1.0 work document's summary.
+        // Silent where there is none.
+        crate::context::format1::check(repo, &mut report);
     }
 
     // Accepting a SAS revision is the act that makes a specification normative
@@ -536,6 +539,13 @@ pub fn run_with(
                 Err(e) => drift_check(repo, Err(e), "sas-sections", &mut report),
             }
         }
+        // Format 1.0 section 10.2: the agent index, `docs/generated/llms.txt`.
+        drift_check(
+            repo,
+            crate::context::index_file(shared_corpus),
+            "context-index",
+            &mut report,
+        );
         // OW-ADR-0022: the master document, and the history when this
         // repository keeps one. `generated.drift`, the rule every projection
         // of a Warrant reports under: CURRENT.md is written by `compile` and by

@@ -34,7 +34,8 @@ pub const INSTRUCTIONS: &str = "OpenWarrant (`war`) MCP server. Ordinary work ne
 this: edit, build and test as you would in any repository; no Warrant, ticket or signature is \
 needed to write code. These tools help when you want to track or plan work. Tickets: \
 `war_prime` shows what is open, `war_ready` what can start now, `war_claim` takes an item, \
-`war_done` ticks it off; `war_create`, `war_add` and `war_note` keep the ticket current. No \
+`war_done` ticks it off; `war_create`, `war_add` and `war_note` keep the ticket current. \
+`war_context` loads what a task needs: give it a Warrant, ticket, item, record id or file path. No \
 ticket step needs a signature. Warrants are optional work plans; a Warrant whose type has a \
 sign-off step is approved by a person. This server cannot authorize, resolve, verify, accept a \
 SAS, correct a delivered file, or sign anything, and no tool records a signed response: those \
@@ -184,7 +185,7 @@ pub fn describe(repo: Repository) -> String {
     for r in REFUSED_TOOLS {
         out.push_str(&format!("  {r}\n"));
     }
-    out.push_str("resources: warrant://<alias>[/status|/journal], status://corpus, sas://current, pins://all, next://\n");
+    out.push_str("resources: warrant://<alias>[/status|/journal], status://corpus, sas://current, pins://all, next://, context://index, context://<target>\n");
     out
 }
 

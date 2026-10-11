@@ -28,6 +28,10 @@ use crate::repo::RepoError;
 pub struct CreateParams {
     /// What this work accomplishes, in one sentence.
     pub title: String,
+    /// One line (at most 200 bytes) saying what the work is for: the summary
+    /// an agent reads in `war_context` and the index before the rest.
+    #[serde(default)]
+    pub summary: Option<String>,
     /// Checklist items, one line each. May be empty: `war_add` adds later.
     #[serde(default)]
     pub items: Vec<String>,
@@ -168,6 +172,25 @@ pub struct PrimeParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct NoParams {}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct ContextParams {
+    /// A Warrant or ticket alias, `war://<uuid>`, an item (`t-x/i-y`), any
+    /// record id from docs/generated/llms.txt, or a repository path.
+    pub target: String,
+    /// Budget in bytes of the Markdown (default 16000).
+    #[serde(default)]
+    pub budget: Option<usize>,
+    /// Budget in tokens, 4 bytes each; ignored when `budget` is given.
+    #[serde(default)]
+    pub tokens: Option<usize>,
+    /// Relation steps to follow (default 3).
+    #[serde(default)]
+    pub depth: Option<usize>,
+    /// Refuse instead of listing any record by its summary only.
+    #[serde(default)]
+    pub strict: bool,
+}
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct AliasParams {
@@ -702,7 +725,7 @@ impl WarServer {
 
     #[tool(
         name = "war_resolve_dry_run",
-        description = "§56.1's thirteen requirements assessed for a Warrant without resolving anything (`war sign resolve --dry-run`). Read-only.",
+        description = "The thirteen resolution requirements assessed for a Warrant without resolving anything (`war sign resolve --dry-run`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_resolve_dry_run(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -860,7 +883,7 @@ impl WarServer {
 
     #[tool(
         name = "war_resolve_request",
-        description = "Emit the resolution request with §56.1's requirements assessed (`war sign resolve <alias>`). Writes nothing; resolution is a human act.",
+        description = "Emit the resolution request with the thirteen resolution requirements assessed (`war sign resolve <alias>`). Writes nothing; resolution is a human act.",
         annotations(read_only_hint = true)
     )]
     fn war_resolve_request(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -934,7 +957,7 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_validate",
-        description = "Run a Draft Proposal through §74.4's gauntlet without applying it (`war plan --proposal`). Writes nothing.",
+        description = "Run a Draft Proposal through the review checks `--apply` runs, without applying it (`war plan --proposal`). Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_plan_validate(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {
@@ -1081,6 +1104,42 @@ impl WarServer {
     }
 
     #[tool(
+        name = "war_context",
+        description = "Load the records a task needs (`war context <target>`): a Warrant, ticket, item, record id or file path, with the records its relations reach, each cited by id, type, path:line and revision, inside a byte budget. Records that did not fit are listed by summary with tier `summary`; ask for one by its id. The same arguments over the same files give the same bytes. Markdown in result.markdown. Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_context(&self, Parameters(p): Parameters<ContextParams>) -> ToolResult {
+        let corpus = crate::corpus::held(&self.repo);
+        let opts = crate::context::Options {
+            budget: crate::context::Options::budget_of(p.budget, p.tokens),
+            depth: p.depth.unwrap_or(crate::context::DEFAULT_DEPTH),
+            strict: p.strict,
+        };
+        let graph = match crate::context::graph_of(&corpus) {
+            Ok(g) => g,
+            Err(e) => return refused("context", &e),
+        };
+        let target = crate::context::relative_target(&self.repo, &p.target);
+        let result = crate::context::compile(&graph, &target, &opts);
+        let report = crate::context::report_of(&result);
+        let value = result.ok().map(|packet| {
+            let mut v = crate::output::value(&packet);
+            if let Some(o) = v.as_object_mut() {
+                o.insert("markdown".to_owned(), serde_json::json!(packet.markdown));
+            }
+            v
+        });
+        let text = crate::output::envelope("context", &report, value);
+        let value: serde_json::Value = serde_json::from_str(&text)
+            .map_err(|e| McpError::internal_error(format!("envelope is not JSON: {e}"), None))?;
+        Ok(if report.is_ready() {
+            CallToolResult::structured(value)
+        } else {
+            CallToolResult::structured_error(value)
+        })
+    }
+
+    #[tool(
         name = "war_ready",
         description = "What can start now (`war view ready`): open, unclaimed, unblocked items of light Warrants, most urgent and oldest first. Read-only.",
         annotations(read_only_hint = true)
@@ -1117,6 +1176,7 @@ impl WarServer {
     fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
         let args = crate::ticket::CreateArgs {
             title: p.title,
+            summary: p.summary,
             items: p.items,
             body: p.body,
             priority: p.priority,
@@ -1193,7 +1253,7 @@ impl WarServer {
 
     #[tool(
         name = "war_evidence_record",
-        description = "Run the gates the Warrant's assurance atom cites and mint §44.6 receipts into gate-runs/ (`war evidence record`).",
+        description = "Run the gates the Warrant's assurance atom cites and mint gate receipts into gate-runs/ (`war evidence record`).",
         annotations(read_only_hint = false)
     )]
     fn war_evidence_record(&self, Parameters(p): Parameters<EvidenceParams>) -> ToolResult {
@@ -1210,7 +1270,7 @@ impl WarServer {
 
     #[tool(
         name = "war_deliver",
-        description = "Declare a Warrant's deliverables delivered (`war admin deliver`): record §37.2 provenance on each — the sha256 of the file now, how it was made, the build of war that recorded it — and set content_addressed. Refuses a resolved Warrant, a missing file, and a path a later authorized Warrant governs (OW-ADR-0021); any refusal writes nothing. Run it before `war_evidence_record`: deliverables.toml is bound into every tree-bound receipt.",
+        description = "Declare a Warrant's deliverables delivered (`war admin deliver`): record provenance on each — the sha256 of the file now, how it was made, the build of war that recorded it — and set content_addressed. Refuses a resolved Warrant, a missing file, and a path a later authorized Warrant governs (OW-ADR-0021); any refusal writes nothing. Run it before `war_evidence_record`: deliverables.toml is bound into every tree-bound receipt.",
         annotations(read_only_hint = false)
     )]
     fn war_deliver(&self, Parameters(p): Parameters<DeliverParams>) -> ToolResult {
@@ -1279,7 +1339,7 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_apply",
-        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war plan new` and the seven §74.3 operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true, or the proposal answers an issue (`issue_file`/`issue`) under `[intake] policy_approval`; an issue-linked Warrant records plan/intake.json. Authorizes nothing.",
+        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war plan new` and the proposal's operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true, or the proposal answers an issue (`issue_file`/`issue`) under `[intake] policy_approval`; an issue-linked Warrant records plan/intake.json. Authorizes nothing.",
         annotations(read_only_hint = false)
     )]
     fn war_plan_apply(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {

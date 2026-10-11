@@ -27,6 +27,7 @@ pub mod check;
 pub mod commit;
 pub mod compile;
 pub mod console;
+pub mod context;
 pub mod context_select;
 pub mod contract_history;
 pub mod corpus;
@@ -555,7 +556,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
         "view",
         &[
             "ui", "tui", "board", "console", "watch", "overview", "progress", "warrants",
-            "tickets", "ls", "ready", "prime", "timeline",
+            "tickets", "ls", "ready", "prime", "context", "timeline",
         ],
     ),
     (
@@ -674,6 +675,10 @@ enum DailyCommand {
         /// issue's title unless given.
         #[arg(required_unless_present_any = ["issue", "issue_file"])]
         title: Option<String>,
+        /// One line (at most 200 bytes) saying what the work is for: what an
+        /// agent reads in `war context` and docs/generated/llms.txt first.
+        #[arg(long, value_name = "LINE")]
+        summary: Option<String>,
         /// A checklist item; repeat for more. Items can be added later with `war add`.
         #[arg(long = "item", short = 'i', value_name = "TEXT")]
         items: Vec<String>,
@@ -1628,6 +1633,31 @@ enum ViewCommand {
         ticket: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+    },
+    /// The records a task needs, cited by id, inside a byte budget.
+    ///
+    /// `war context <target>` (also `war view context`): a Warrant or ticket,
+    /// an item (`t-x/i-y`), any record id from docs/generated/llms.txt, or a
+    /// file path. Prints the target's records and those its relations reach,
+    /// whole, each headed by id, type, path:line and revision; whatever does
+    /// not fit is listed by its summary and marked [S], to load the same
+    /// way. The same arguments over the same files print the same bytes
+    /// (Format 1.0, section 10.3).
+    Context {
+        /// Alias, `war://<uuid>`, item, record id, or repository path.
+        target: String,
+        /// The budget in bytes of the Markdown output (default 16000).
+        #[arg(long, value_name = "BYTES", conflicts_with = "tokens")]
+        budget: Option<usize>,
+        /// The budget in tokens, counted as 4 bytes each.
+        #[arg(long, value_name = "N")]
+        tokens: Option<usize>,
+        /// How many relation steps to follow from the target (default 3).
+        #[arg(long, value_name = "D", default_value_t = context::DEFAULT_DEPTH)]
+        depth: usize,
+        /// Refuse instead of listing any record by its summary only.
+        #[arg(long)]
+        strict: bool,
     },
 }
 
@@ -2821,6 +2851,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
     match command {
         DailyCommand::Create {
             title,
+            summary,
             items,
             body,
             priority,
@@ -2889,6 +2920,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             }
             let args = ticket::CreateArgs {
                 title,
+                summary,
                 items,
                 body,
                 priority,
@@ -5262,6 +5294,23 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 .diagnostics
                 .extend(skew::findings(&repository.root));
             Ok(ticket_answer(mode, "prime", &outcome))
+        }
+        ViewCommand::Context {
+            target,
+            budget,
+            tokens,
+            depth,
+            strict,
+        } => {
+            let repository = ctx.open_repo()?;
+            let corpus = corpus::Corpus::new(&repository);
+            let opts = context::Options {
+                budget: context::Options::budget_of(budget, tokens),
+                depth,
+                strict,
+            };
+            let target = context::relative_target(&repository, &target);
+            Ok(context::answer(mode, &corpus, &target, &opts)?)
         }
         ViewCommand::Tickets {
             kind,

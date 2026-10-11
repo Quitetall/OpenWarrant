@@ -53,6 +53,13 @@ pub struct TicketManifest {
     /// The UUIDv7 the id is hashed from.
     pub uuid: String,
     pub title: String,
+    /// Format 1.0 section 10.1: one line, at most 200 bytes, saying what the
+    /// work is for — what an agent reads before deciding to read the rest
+    /// (`war context`, `docs/generated/llms.txt`). Absent from every ticket
+    /// written without one, so those read, and write back, byte for byte;
+    /// their title stands in.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
     pub profile: String,
     #[serde(default = "default_priority")]
     pub priority: u8,
@@ -1311,6 +1318,7 @@ mod tests {
             id: "t-3f2a".into(),
             uuid: "0199a0d2-1e89-7990-8b2c-5a43577b5ce5".into(),
             title: "A ticket".into(),
+            summary: None,
             profile: TICKET_PROFILE.into(),
             priority: 2,
             created_at: "2026-09-25T00:00:00Z".into(),
@@ -1367,6 +1375,7 @@ mod tests {
             id: "t-3f2a".into(),
             uuid: "0199a0d2-1e89-7990-8b2c-5a43577b5ce5".into(),
             title: "A ticket".into(),
+            summary: None,
             profile: TICKET_PROFILE.into(),
             priority: 2,
             created_at: "2026-09-25T00:00:00Z".into(),

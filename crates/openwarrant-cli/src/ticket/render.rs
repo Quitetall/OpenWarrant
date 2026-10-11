@@ -1113,7 +1113,10 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
     md.push_str(
         "How to work: `war next` lists what can start now; `war claim <id>` takes one; do it; \
          `war done <id> --note \"what you did\"` ticks it. Leave anything the next person needs \
-         with `war note <warrant> \"...\"`. No step needs a signature or anyone's approval.\n",
+         with `war note <warrant> \"...\"`. No step needs a signature or anyone's approval.\n\
+         To load what a task needs, run `war context <id>` with a Warrant, an item, a record id \
+         or a file path: its records, cited by id, within a byte budget. \
+         `docs/generated/llms.txt` lists every id with a one-line summary.\n",
     );
     // OW-WAR-0148 M17: the file ledger, when this repository keeps one.
     let ledger_dir = crate::ledger::Config::read(&store.root)
@@ -1297,6 +1300,10 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
             md.push_str(&format!("- {n}\n"));
         }
     }
+    md.push_str(&format!(
+        "\n`war context {}` loads this Warrant with the records it relates to; `war context <item>` loads one item.\n",
+        t.id()
+    ));
     Outcome::ok(
         md.trim_end().to_owned(),
         serde_json::json!({

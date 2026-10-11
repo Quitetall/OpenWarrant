@@ -103,7 +103,30 @@ else
     at_fail "an unreadable text is not clean" "exit $AT_RC: $AT_OUT"
 fi
 
+# Format 1.0 sections 10.1 and 13.13: agent-read text cites records by id,
+# not by section number. Shipped text (the template, the skills, what `war
+# mcp` serves) carries at most one `§N` per file; a planted file with two is
+# refused by file and line. Legacy atoms and record atoms are linted at warn
+# level (read, never rewritten: many are signed), so the count is reported
+# and the exit is 0; the same files without --warn exit 1.
+AT_OUT=$(python3 "$AT_LINT" --citations --max 1 "${AT_ARGS[@]}" 2>&1)
+AT_RC=$?
+printf 'See §46.2 and §51.2 for this.\n' > "$AT_TMP/cited.md"
+AT_OUT2=$(python3 "$AT_LINT" --citations --max 1 "planted=$AT_TMP/cited.md" 2>&1)
+AT_RC2=$?
+mapfile -t AT_LEGACY < <(LC_ALL=C find docs/warrants -path '*/atoms/*.md' | sort; LC_ALL=C find docs/records -name '*.md' -not -path '*/generated/*' | sort)
+AT_OUT3=$(python3 "$AT_LINT" --citations --warn "${AT_LEGACY[@]}" 2>&1)
+AT_RC3=$?
+AT_OUT4=$(python3 "$AT_LINT" --citations "${AT_LEGACY[@]}" 2>&1)
+AT_RC4=$?
+if [[ $AT_RC -eq 0 && $AT_RC2 -eq 1 && $AT_RC3 -eq 0 && $AT_RC4 -eq 1 ]] \
+    && grep -qF 'citation: planted:1: "' <<<"$AT_OUT2" && grep -q '(warn)$' <<<"$AT_OUT3"; then
+    at_ok "section references bounded" "shipped: $(tail -1 <<<"$AT_OUT"); legacy, warn: $(tail -1 <<<"$AT_OUT3" | sed 's/^agent-text: //')"
+else
+    at_fail "section references bounded" "shipped exit $AT_RC ($(tail -1 <<<"$AT_OUT")); planted exit $AT_RC2; legacy warn $AT_RC3 / strict $AT_RC4"
+fi
+
 command rm -rf "$AT_TMP" "$AT_REPO"
-unset AT_TMP AT_LINT AT_SKILLS AT_ARGS AT_OUT AT_OUT2 AT_RC AT_RC2 AT_TOOLS AT_REPO AT_EMPTY \
+unset AT_TMP AT_LINT AT_LEGACY AT_OUT3 AT_OUT4 AT_RC3 AT_RC4 AT_SKILLS AT_ARGS AT_OUT AT_OUT2 AT_RC AT_RC2 AT_TOOLS AT_REPO AT_EMPTY \
     AT_NEXT AT_READY
 unset -f at_ok at_fail
