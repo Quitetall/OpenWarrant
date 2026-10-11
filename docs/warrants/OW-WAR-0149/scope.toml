@@ -164,3 +164,15 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "conformance/plants.d/176-native-schema-pack.sh"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "apps/openwarrant-web/execution.py"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "apps/openwarrant-web/runtime_link.py"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/tests/dispatch_bundle_cli.rs"
+obligation_refs = ["OBL-001", "OBL-003"]

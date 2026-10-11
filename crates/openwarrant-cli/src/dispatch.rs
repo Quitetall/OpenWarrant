@@ -62,6 +62,25 @@ pub fn run(
     stage_id: &str,
     opts: Options<'_>,
 ) -> Result<Report, RepoError> {
+    run_for_subject(repo, alias, stage_id, opts, None)
+}
+
+/// A caller-pinned subject is a precondition; matching it grants no authority.
+#[derive(Debug, Clone, Copy)]
+pub struct ExpectedSubject<'a> {
+    pub warrant_uuid: openwarrant_core::WarUuid,
+    pub contract_digest: &'a str,
+}
+
+/// Keep the existing unpinned interface for ordinary callers. Applications that
+/// link their own identities can pin both fields through this entry point.
+pub fn run_for_subject(
+    repo: &Repository,
+    alias: &str,
+    stage_id: &str,
+    opts: Options<'_>,
+    expected: Option<ExpectedSubject<'_>>,
+) -> Result<Report, RepoError> {
     let Options {
         attempt_kind,
         prior_failure_evidence,
@@ -135,6 +154,20 @@ pub fn run(
     let current_contract = ir
         .contract_digest()
         .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
+    // An application identity link must never silently compile a different
+    // subject. Check before minting an attempt, writing context or retaining
+    // any packet/event. Matching these inputs does not grant authority.
+    if expected.is_some_and(|subject| {
+        subject.warrant_uuid.to_string() != ir.identity.uuid
+            || subject.contract_digest != current_contract
+    }) {
+        report.push(Diagnostic::error(
+            "dispatch.subject-mismatch",
+            repo.relative(&dir.join("manifest.toml")),
+            "Caller-pinned Warrant UUID or contract digest differs from current source; no Dispatch or compile event written",
+        ));
+        return Ok(report);
+    }
     if authority_ref
         .strip_prefix("authorization://")
         .is_some_and(|signed| signed != current_contract)

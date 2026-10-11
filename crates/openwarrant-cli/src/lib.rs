@@ -1759,6 +1759,12 @@ enum AdminCommand {
         /// so nothing downstream can mistake the work for authorized.
         #[arg(long)]
         prototype: bool,
+        /// Refuse if the current Warrant UUID differs. A precondition, not authority.
+        #[arg(long, requires = "expected_contract")]
+        expected_warrant: Option<openwarrant_core::WarUuid>,
+        /// Refuse if the current contract digest differs. Requires the expected UUID.
+        #[arg(long, requires = "expected_warrant")]
+        expected_contract: Option<String>,
     },
     /// Capture or check portable context for an existing Dispatch; never execute it.
     DispatchBundle {
@@ -6253,12 +6259,14 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             emit,
             emit_context,
             prototype,
+            expected_warrant,
+            expected_contract,
         } => {
             let repository = ctx.open_repo()?;
             let kind = attempt_kind
                 .parse::<openwarrant_core::execution::AttemptKind>()
                 .map_err(|e| repo::RepoError::Message(e.to_string()))?;
-            let report = dispatch::run(
+            let report = dispatch::run_for_subject(
                 &repository,
                 &alias,
                 &stage,
@@ -6269,6 +6277,12 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                     emit_context_to: emit_context.as_deref(),
                     prototype,
                 },
+                expected_warrant.zip(expected_contract.as_deref()).map(
+                    |(warrant_uuid, contract_digest)| dispatch::ExpectedSubject {
+                        warrant_uuid,
+                        contract_digest,
+                    },
+                ),
             )?;
             // The packet is the only thing on stdout when it goes there. An
             // actor piping `war dispatch` into a parser must get canonical JSON

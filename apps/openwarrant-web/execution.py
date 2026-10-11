@@ -16,6 +16,7 @@ from harness import bounded_command, argv
 from hotline import question, digest as hotline_digest
 from stages import plan as stage_plan, completed_from_evidence, frontier, StageError
 from stage_checks import checkpoint as stage_checkpoint
+import runtime_link
 
 LIMIT = 1024 * 1024
 
@@ -63,7 +64,7 @@ class Executor:
             "Invalid execution configuration",
         )
         require(
-            c["schema"] in ("oh.war/execution-config/v1", "oh.war/execution-config/v2") and argv(c["argv"]),
+            c["schema"] in ("oh.war/execution-config/v1", "oh.war/execution-config/v2", runtime_link.CONFIG) and argv(c["argv"]),
             "Invalid harness command",
         )
         require(
@@ -102,7 +103,8 @@ class Executor:
                     "verified_start",
                     "dependencies",
                     "checks",
-                } | ({"stage_plan"} if c["schema"] == "oh.war/execution-config/v2" else set()),
+                } | ({"stage_plan"} if c["schema"] in ("oh.war/execution-config/v2", runtime_link.CONFIG) else set())
+                | ({"runtime_link"} if c["schema"] == runtime_link.CONFIG else set()),
                 "Invalid start policy",
             )
             require(
@@ -134,6 +136,11 @@ class Executor:
                 try:
                     stage_plan(p["stage_plan"])
                 except StageError as error:
+                    raise ExecutionError(400, str(error)) from error
+            if "runtime_link" in p:
+                try:
+                    runtime_link.validate(p["runtime_link"], p["stage_plan"]["stages"])
+                except ValueError as error:
                     raise ExecutionError(400, str(error)) from error
 
     def stage_facts(self, id, policy, attempts, resuming=None):
@@ -603,6 +610,17 @@ class Executor:
                                prior_completed_stages=r["prior_completed_stages"])
             if "verification_repair" in r:
                 request.update(schema="oh.war/execution-request/v4", verification_repair=r["verification_repair"])
+            if "runtime_link" in policy:
+                # Do not send root context for a different worktree revision.
+                require(self.git("rev-parse", "HEAD") == self.git("rev-parse", "HEAD", cwd=worktree),
+                        "Core context and execution worktree revisions differ")
+                binding, context = runtime_link.prepare(
+                    self.store.sdk, self.root / ("context-" + r["attempt_id"]),
+                    policy["runtime_link"], r["stage"], r,
+                    self.read_file, self.decode, deadline,
+                )
+                r["runtime_dispatch"] = binding
+                request.update(schema="oh.war/execution-request/v5-draft.1", runtime_context=context)
             code, out, _err = bounded_command(
                 self.config["argv"], worktree, json.dumps(request).encode(), deadline, r
             )
@@ -712,6 +730,11 @@ class Executor:
                 if r["work_state"] == "completed"
                 else "Harness reported incomplete work",
             )
+        except runtime_link.RuntimeLinkError as e:
+            # These errors arise before the harness call. Normal CLI refusal
+            # launched no worker; unavailable observations remain UNKNOWN.
+            r.update(work_state="failed" if e.state == "refused" else "blocked",
+                     execution_state="stopped" if e.state == "refused" else "unknown", cause=str(e))
         except TimeoutError as e:
             r.update(work_state="blocked", execution_state="unknown", cause=str(e))
         except Exception as e:  # noqa: BLE001 -- worker boundary must record unexpected failures
