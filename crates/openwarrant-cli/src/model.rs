@@ -911,98 +911,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
     }
 
     // ---- Tickets and their items.
-    match corpus.tickets() {
-        Ok((tickets, faults)) => {
-            for f in faults {
-                b.diagnose(
-                    "model.ticket-unreadable",
-                    f.file.as_deref().unwrap_or("tickets"),
-                    f.message.clone(),
-                );
-            }
-            for t in tickets {
-                let tid = t.id().to_owned();
-                let manifest = t.dir.join("manifest.toml");
-                b.record(
-                    tid.clone(),
-                    "ticket",
-                    repo.relative(&manifest),
-                    file_digest(&manifest).unwrap_or_else(|| digest(t.checklist_text.as_bytes())),
-                    None,
-                );
-                lower_ticket(b.last(), &t.manifest);
-                // FORMAT-1.0 §12: the intent atom `S-intent`; the checklist
-                // `S-checklist`, its lines unchanged.
-                if let Some(path) = t.manifest.atom_path("intent") {
-                    let path = t.dir.join(path);
-                    if let Ok(bytes) = crate::vfs::read(&path) {
-                        let id = format!("{tid}/S-intent");
-                        b.record(
-                            id.clone(),
-                            "section",
-                            repo.relative(&path),
-                            digest(&bytes),
-                            Some(tid.clone()),
-                        );
-                        lower_atom_section(b.last(), &bytes, "Intent", &tid);
-                        b.relate(&id, "part_of", &tid);
-                    }
-                }
-                let checklist_id = format!("{tid}/S-checklist");
-                b.record(
-                    checklist_id.clone(),
-                    "section",
-                    repo.relative(&t.checklist_path),
-                    digest(t.checklist_text.as_bytes()),
-                    Some(tid.clone()),
-                );
-                lower_atom_section(b.last(), t.checklist_text.as_bytes(), "Checklist", &tid);
-                b.relate(&checklist_id, "part_of", &tid);
-                // OW-WAR-0148 M5: the ticket's relations as the ticket store
-                // itself reads them (`part_of`, `depends_on`, `promoted_to`).
-                for r in openwarrant_core::ticket::kernel_relations(&t.manifest, &t.checklist) {
-                    b.relate(&r.from, r.kind, &r.to);
-                }
-                let lines: Vec<&str> = t.checklist_text.split_inclusive('\n').collect();
-                let mut all_done = !t.checklist.items.is_empty();
-                for item in &t.checklist.items {
-                    all_done &= item.done;
-                    let Some(iid) = &item.id else { continue };
-                    let id = format!("{tid}/{iid}");
-                    let line = lines.get(item.line).copied().unwrap_or_default();
-                    b.record(
-                        id.clone(),
-                        "item",
-                        repo.relative(&t.checklist_path),
-                        digest(line.as_bytes()),
-                        Some(tid.clone()),
-                    );
-                    {
-                        let start: usize = lines.iter().take(item.line).map(|l| l.len()).sum();
-                        let r = b.last();
-                        r.title = Some(item.text.clone());
-                        r.document = Some(tid.clone());
-                        r.section = Some(checklist_id.clone());
-                        r.line = item.line + 1;
-                        r.span = [start, start + line.len()];
-                    }
-                    b.state(
-                        &id,
-                        "checklist",
-                        if item.done { "done" } else { "open" }.to_owned(),
-                        false,
-                    );
-                }
-                b.state(
-                    &tid,
-                    "checklist",
-                    if all_done { "done" } else { "open" }.to_owned(),
-                    false,
-                );
-            }
-        }
-        Err(e) => b.diagnose("model.tickets-unreadable", "tickets", e.to_string()),
-    }
+    lower_tickets(&mut b, corpus);
 
     // ---- Read in place (OW-WAR-0148 M10): each OpenSpec change or Spec
     // Kit feature an `[[adapters]]` entry names, its tasks as items and its
@@ -1079,26 +988,12 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
     // ---- Record atoms and authored relations (OW-WAR-0148 M3): records
     // join the others, relations join the existing kinds, and each refusal
     // is a diagnostic under its own rule.
-    let authored = corpus.records();
-    for r in &authored.records {
-        b.record(
-            r.id.clone(),
-            &r.record_type,
-            r.source.clone(),
-            r.revision.clone(),
-            None,
-        );
-        lower_span(b.last(), r);
-    }
-    for r in &authored.relations {
-        b.relate_pinned(&r.from, r.kind.as_str(), &r.target.id, r.target.pin.clone());
-    }
-    for f in &authored.faults {
-        b.diagnose(f.rule, &format!("{}:{}", f.file, f.line), f.message.clone());
-    }
+    lower_record_atoms(&mut b, corpus);
+
     // ---- Instruction sections (M16): each `##` section of CLAUDE.md and
     // AGENTS.md, type `instruction`, with its own span's revision. Nobody
     // governs them; a relation names one as `md:<file>#<slug>`.
+    let authored = corpus.records();
     for r in &authored.instructions {
         b.record(
             r.id.clone(),
@@ -1214,6 +1109,26 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         );
     }
 
+    seal(b, repo)
+}
+
+/// The tickets' part of the model alone, and with `record_atoms` the record
+/// atoms' too: what a ticket act can move, read without the Warrant, status
+/// or signature passes, so a ticket verb refreshes its lines of the index in
+/// milliseconds (t-ca38). Each record, relation and state here is the one
+/// [`build`] gives it.
+pub fn build_tickets(corpus: &Corpus, record_atoms: bool) -> Result<Model, RepoError> {
+    let mut b = Builder::default();
+    lower_tickets(&mut b, corpus);
+    if record_atoms {
+        lower_record_atoms(&mut b, corpus);
+    }
+    b.records.sort_by(|x, y| x.id.cmp(&y.id));
+    seal(b, corpus.repo())
+}
+
+/// Each record's content, and the model over the basis of every record.
+fn seal(mut b: Builder, repo: &Repository) -> Result<Model, RepoError> {
     finish_content(&mut b, repo);
 
     let pairs: Vec<(&str, &str)> = b
@@ -1232,6 +1147,124 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         states: b.states.into_iter().collect(),
         diagnostics: b.diagnostics.into_iter().collect(),
     })
+}
+
+/// The tickets and their items.
+fn lower_tickets(b: &mut Builder, corpus: &Corpus) {
+    let repo = corpus.repo();
+    match corpus.tickets() {
+        Ok((tickets, faults)) => {
+            for f in faults {
+                b.diagnose(
+                    "model.ticket-unreadable",
+                    f.file.as_deref().unwrap_or("tickets"),
+                    f.message.clone(),
+                );
+            }
+            for t in tickets {
+                let tid = t.id().to_owned();
+                let manifest = t.dir.join("manifest.toml");
+                b.record(
+                    tid.clone(),
+                    "ticket",
+                    repo.relative(&manifest),
+                    file_digest(&manifest).unwrap_or_else(|| digest(t.checklist_text.as_bytes())),
+                    None,
+                );
+                lower_ticket(b.last(), &t.manifest);
+                // FORMAT-1.0 §12: the intent atom `S-intent`; the checklist
+                // `S-checklist`, its lines unchanged.
+                if let Some(path) = t.manifest.atom_path("intent") {
+                    let path = t.dir.join(path);
+                    if let Ok(bytes) = crate::vfs::read(&path) {
+                        let id = format!("{tid}/S-intent");
+                        b.record(
+                            id.clone(),
+                            "section",
+                            repo.relative(&path),
+                            digest(&bytes),
+                            Some(tid.clone()),
+                        );
+                        lower_atom_section(b.last(), &bytes, "Intent", &tid);
+                        b.relate(&id, "part_of", &tid);
+                    }
+                }
+                let checklist_id = format!("{tid}/S-checklist");
+                b.record(
+                    checklist_id.clone(),
+                    "section",
+                    repo.relative(&t.checklist_path),
+                    digest(t.checklist_text.as_bytes()),
+                    Some(tid.clone()),
+                );
+                lower_atom_section(b.last(), t.checklist_text.as_bytes(), "Checklist", &tid);
+                b.relate(&checklist_id, "part_of", &tid);
+                // OW-WAR-0148 M5: the ticket's relations as the ticket store
+                // itself reads them (`part_of`, `depends_on`, `promoted_to`).
+                for r in openwarrant_core::ticket::kernel_relations(&t.manifest, &t.checklist) {
+                    b.relate(&r.from, r.kind, &r.to);
+                }
+                let lines: Vec<&str> = t.checklist_text.split_inclusive('\n').collect();
+                let mut all_done = !t.checklist.items.is_empty();
+                for item in &t.checklist.items {
+                    all_done &= item.done;
+                    let Some(iid) = &item.id else { continue };
+                    let id = format!("{tid}/{iid}");
+                    let line = lines.get(item.line).copied().unwrap_or_default();
+                    b.record(
+                        id.clone(),
+                        "item",
+                        repo.relative(&t.checklist_path),
+                        digest(line.as_bytes()),
+                        Some(tid.clone()),
+                    );
+                    {
+                        let start: usize = lines.iter().take(item.line).map(|l| l.len()).sum();
+                        let r = b.last();
+                        r.title = Some(item.text.clone());
+                        r.document = Some(tid.clone());
+                        r.section = Some(checklist_id.clone());
+                        r.line = item.line + 1;
+                        r.span = [start, start + line.len()];
+                    }
+                    b.state(
+                        &id,
+                        "checklist",
+                        if item.done { "done" } else { "open" }.to_owned(),
+                        false,
+                    );
+                }
+                b.state(
+                    &tid,
+                    "checklist",
+                    if all_done { "done" } else { "open" }.to_owned(),
+                    false,
+                );
+            }
+        }
+        Err(e) => b.diagnose("model.tickets-unreadable", "tickets", e.to_string()),
+    }
+}
+
+/// Record atoms and the relations authored beside them.
+fn lower_record_atoms(b: &mut Builder, corpus: &Corpus) {
+    let authored = corpus.records();
+    for r in &authored.records {
+        b.record(
+            r.id.clone(),
+            &r.record_type,
+            r.source.clone(),
+            r.revision.clone(),
+            None,
+        );
+        lower_span(b.last(), r);
+    }
+    for r in &authored.relations {
+        b.relate_pinned(&r.from, r.kind.as_str(), &r.target.id, r.target.pin.clone());
+    }
+    for f in &authored.faults {
+        b.diagnose(f.rule, &format!("{}:{}", f.file, f.line), f.message.clone());
+    }
 }
 
 /// `war model`: the model, and a report naming each of its diagnostics.

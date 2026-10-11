@@ -386,6 +386,63 @@ fn compile_writes_the_index_check_passes_it_and_refuses_a_hand_edit() {
     assert_eq!(rules(&check(&root)), ["error:context-index.drift"]);
 }
 
+/// t-ca38: each ticket act rewrites only its tickets' blocks of the index,
+/// and after every one the file is byte for byte what a full compile writes.
+/// The refusal beside it: an index that does not split into its blocks is
+/// not rebuilt by a ticket act, and the act still succeeds, saying so.
+#[test]
+fn ticket_acts_splice_their_blocks_and_each_equals_a_full_compile() {
+    let root = scratch("splice");
+    let idx = root.join("docs/generated/llms.txt");
+    let full = |root: &Path| -> String {
+        let spliced = std::fs::read_to_string(&idx).unwrap();
+        ok(&war(root, &["compile"]));
+        let compiled = std::fs::read_to_string(&idx).unwrap();
+        std::fs::write(&idx, &spliced).unwrap();
+        compiled
+    };
+    let t = ticket_id(&root);
+    let created = ok(&war(&root, &["create", "Second ticket", "--item", "One"]));
+    let t2 = created.split_whitespace().next().unwrap().to_owned();
+    let shown = ok(&war(&root, &["show", t2.as_str()]));
+    let item = shown
+        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
+        .find(|w| w.starts_with("i-"))
+        .map(|i| format!("{t2}/{i}"))
+        .unwrap();
+    let mut seen = Vec::new();
+    for args in [
+        vec!["add", t.as_str(), "Write the docs"],
+        vec!["note", t.as_str(), "halfway"],
+        vec!["edit", t2.as_str(), "--priority", "1"],
+        vec!["claim", item.as_str()],
+        vec!["done", item.as_str()],
+    ] {
+        ok(&war(&root, &args));
+        let now = std::fs::read_to_string(&idx).unwrap();
+        assert_eq!(now, full(&root), "after `war {}`", args.join(" "));
+        seen.push(now);
+    }
+    assert!(seen[0].contains(&format!(
+        "\n## docs/tickets/{t2}/manifest.toml\n> Second ticket\n"
+    )));
+    assert!(seen[4].contains(&format!("- {t2} · ticket · done · Second ticket · ")));
+    assert_ne!(seen[3], seen[4], "done moved the ticket's state");
+
+    // Two blocks out of order: refused, not rebuilt; the act stands.
+    let text = std::fs::read_to_string(&idx).unwrap();
+    let i = text.find("\n## ").unwrap();
+    let j = i + 1 + text[i + 1..].find("\n## ").unwrap();
+    let k = j + 1 + text[j + 1..].find("\n## ").unwrap_or(text.len() - j - 1);
+    let swapped = format!("{}{}{}{}", &text[..i], &text[j..k], &text[i..j], &text[k..]);
+    std::fs::write(&idx, &swapped).unwrap();
+    let out = war(&root, &["note", t.as_str(), "again"]);
+    let err = String::from_utf8_lossy(&out.stderr).into_owned();
+    assert!(out.status.success(), "{err}");
+    assert!(err.contains("context-index.refresh"), "{err}");
+    assert_eq!(std::fs::read_to_string(&idx).unwrap(), swapped);
+}
+
 #[test]
 fn a_summary_is_written_bounded_and_required_of_a_format_1_work_document() {
     let root = scratch("summary");

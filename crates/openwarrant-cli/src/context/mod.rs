@@ -833,16 +833,30 @@ fn inside_full(graph: &Graph, u: &Unit, full: &BTreeSet<String>) -> bool {
 /// by its own record, every other document by each of its records.
 #[must_use]
 pub fn index(graph: &Graph) -> String {
+    let mut out = index_header(graph);
+    for block in index_blocks(graph).values() {
+        out.push_str(block);
+    }
+    out
+}
+
+fn index_header(graph: &Graph) -> String {
+    format!(
+        "# {}\n\n> OpenWarrant index ({FORMAT}). Generated; do not edit. Read any line's record with `war context <id>`.\n",
+        graph.name
+    )
+}
+
+/// Each source's block of the index, keyed by the source, in the index's
+/// order: `\n## <source>\n> <summary>\n` and one line per record.
+fn index_blocks(graph: &Graph) -> BTreeMap<String, String> {
     // A work document is one line: its own record. Every unit inside it is
     // one `war context <alias>` away, so listing them would only repeat it.
     let mut by_source: BTreeMap<&str, Vec<&Unit>> = BTreeMap::new();
     for u in graph.units.values().filter(|u| u.document.is_none()) {
         by_source.entry(u.source.as_str()).or_default().push(u);
     }
-    let mut out = format!(
-        "# {}\n\n> OpenWarrant index ({FORMAT}). Generated; do not edit. Read any line's record with `war context <id>`.\n",
-        graph.name
-    );
+    let mut blocks = BTreeMap::new();
     for (source, mut units) in by_source {
         units.sort_by(|a, b| (a.line, &a.id).cmp(&(b.line, &b.id)));
         let summary = units
@@ -855,14 +869,38 @@ pub fn index(graph: &Graph) -> String {
                     .map_or_else(|| "-".to_owned(), one_line)
             })
             .unwrap_or_else(|| "-".to_owned());
-        out.push_str(&format!("\n## {source}\n> {summary}\n"));
+        let mut out = format!("\n## {source}\n> {summary}\n");
         for u in units {
             out.push_str("- ");
             out.push_str(&summary_line(u));
             out.push('\n');
         }
+        blocks.insert(source.to_owned(), out);
     }
-    out
+    blocks
+}
+
+/// An index file split back into its header and its blocks by source; `None`
+/// unless the pieces reassemble to exactly `text`, sources ascending.
+fn split_index(text: &str) -> Option<(String, BTreeMap<String, String>)> {
+    let mut starts: Vec<usize> = text.match_indices("\n## ").map(|(i, _)| i).collect();
+    starts.push(text.len());
+    let header = text.get(..starts[0])?.to_owned();
+    let mut blocks = BTreeMap::new();
+    let mut last: Option<String> = None;
+    for w in starts.windows(2) {
+        let block = &text[w[0]..w[1]];
+        let source = block.get(4..)?.split('\n').next()?.to_owned();
+        if last.as_ref().is_some_and(|l| *l >= source) {
+            return None;
+        }
+        last = Some(source.clone());
+        blocks.insert(source, block.to_owned());
+    }
+    let again: String = std::iter::once(header.as_str())
+        .chain(blocks.values().map(String::as_str))
+        .collect();
+    (again == text).then_some((header, blocks))
 }
 
 // ---- The corpus side ------------------------------------------------------
@@ -884,16 +922,34 @@ pub fn index_file(
     ))
 }
 
-/// Rewrite the index when the repository keeps one and its bytes moved:
-/// a ticket act that lists, retitles or changes the state of a work
-/// document moves its line, and ticket work must not leave
-/// `war check --generated` reporting drift (t-ca38). A repository that never
-/// compiled an index gets none from a ticket act. Whether it was written.
-pub fn refresh_index(repo: &crate::repo::Repository) -> Result<bool, Box<dyn std::error::Error>> {
-    if !repo.root.join(INDEX_PATH).is_file() {
+/// Rewrite the tickets' blocks of the index, and with `record_atoms` the
+/// record atoms' too, when the repository keeps one and they moved: a
+/// ticket act that lists, retitles or changes the state of a ticket, or
+/// writes record atoms (`war create --records`), moves exactly those
+/// blocks, and ticket work must not leave `war check --generated` reporting
+/// drift (t-ca38). Only those blocks are rebuilt, from
+/// [`crate::model::build_tickets`], so a ticket verb never pays for the
+/// Warrants' passes; each is the block a full build writes. An index
+/// that does not split cleanly into blocks is refused, not rebuilt. A
+/// repository that never compiled an index gets none. Whether it was written.
+pub fn refresh_index(
+    repo: &crate::repo::Repository,
+    record_atoms: bool,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    let path = repo.root.join(INDEX_PATH);
+    if !path.is_file() {
         return Ok(false);
     }
-    let (path, contents) = index_file(&crate::corpus::Corpus::new(repo))?;
+    let current = crate::vfs::read_to_string(&path)?;
+    let Some((header, mut blocks)) = split_index(&current) else {
+        return Err(format!("{INDEX_PATH} does not split into its blocks").into());
+    };
+    let corpus = crate::corpus::Corpus::new(repo);
+    let model = crate::model::build_tickets(&corpus, record_atoms)?;
+    blocks.extend(index_blocks(&adapter::graph(&corpus, &model)));
+    let contents: String = std::iter::once(header)
+        .chain(blocks.into_values())
+        .collect();
     let before = crate::compile::atomic::prestate(&path)?;
     if before == crate::compile::atomic::Prestate::of(contents.as_bytes()) {
         return Ok(false);

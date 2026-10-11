@@ -486,10 +486,13 @@ fi
 # ---------------------------------------------------------------- OBL-009 --
 # Timing, on THIS repository's corpus: every ticket command well under a
 # second (asserted < 2000 ms, generous for a loaded machine). The ticket made
-# here is removed afterwards; the corpus is untouched.
+# here is removed afterwards, and the index lines its acts wrote
+# (`docs/generated/llms.txt`, t-ca38) are put back; the corpus is untouched.
 TK_REAL_DIR="$REPO_ROOT/docs/tickets"
 TK_HAD_DIR=0; [[ -d "$TK_REAL_DIR" ]] && TK_HAD_DIR=1
 TK_HAD_CLAIMS=0; [[ -d "$REPO_ROOT/.openwarrant/state/claims" ]] && TK_HAD_CLAIMS=1
+TK_INDEX="$REPO_ROOT/docs/generated/llms.txt"; TK_INDEX_KEPT=$(mktemp)
+TK_HAD_INDEX=0; [[ -f "$TK_INDEX" ]] && TK_HAD_INDEX=1 && command cp -f "$TK_INDEX" "$TK_INDEX_KEPT"
 rw() { env -u OPENWARRANT_ACTOR "$WAR" "$@" </dev/null; }
 tk_ms() { local s e; s=$(date +%s%N); "$@" >/dev/null 2>&1; local rc=$?; e=$(date +%s%N); echo "$(( (e - s) / 1000000 )) $rc"; }
 TK_T=$(rw --json create "Timing probe (plant 45)" --item one --item two 2>/dev/null)
@@ -508,6 +511,8 @@ for d in "$TK_REAL_DIR"/t-*; do
 done
 [[ $TK_HAD_DIR -eq 0 ]] && rmdir "$TK_REAL_DIR" 2>/dev/null
 [[ $TK_HAD_CLAIMS -eq 0 ]] && command rm -rf "$REPO_ROOT/.openwarrant/state/claims"
+[[ $TK_HAD_INDEX -eq 1 ]] && command cp -f "$TK_INDEX_KEPT" "$TK_INDEX"
+command rm -f "$TK_INDEX_KEPT"
 if [[ -n "$TKR" && -z "$TK_SLOW" ]]; then
     tk_ok "each ticket command < 2 s here" "$TK_TIMES"
 else
