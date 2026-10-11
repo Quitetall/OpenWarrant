@@ -15,6 +15,22 @@ readme.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
+# cargo-binstall (docs/INSTALL.md): install the release workflow's prebuilt
+# archive instead of compiling. The asset names are package.py's
+# `openwarrant-<tag>-<system>-<machine>.tar.gz`, flat, with the binary at
+# `bin/war`; conformance/release/test_distribution.py holds these templates to
+# that naming. Only the two targets release.yml builds are mapped: any other
+# target has no `pkg-url`, finds no asset, and binstall falls back to building.
+[package.metadata.binstall]
+pkg-fmt = "tgz"
+bin-dir = "bin/{ bin }{ binary-ext }"
+
+[package.metadata.binstall.overrides.x86_64-unknown-linux-gnu]
+pkg-url = "{ repo }/releases/download/v{ version }/openwarrant-v{ version }-linux-x86_64.tar.gz"
+
+[package.metadata.binstall.overrides.aarch64-apple-darwin]
+pkg-url = "{ repo }/releases/download/v{ version }/openwarrant-v{ version }-darwin-arm64.tar.gz"
+
 [lib]
 name = "openwarrant_cli"
 path = "src/lib.rs"
