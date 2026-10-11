@@ -42,6 +42,7 @@ pub mod drafting;
 pub mod drafting_v2;
 pub mod epistemic;
 pub mod execution;
+pub mod format;
 pub mod frontmatter;
 pub mod gate;
 pub mod gate_run;
