@@ -391,6 +391,64 @@ fn verify_responses(
         }
     }
 
+    // The ordinary resolver signature query is also used by `war check`,
+    // signing readiness and signature supplementation. When a record exists,
+    // all those callers must ask about the same recorded outcome and role.
+    if act == Act::Resolve
+        && let Ok(dir) = repo.warrant_dir(subject)
+    {
+        let record = match repo.load_resolution(&dir) {
+            Ok(record) => record,
+            Err(error) => {
+                return Verdict::Unavailable {
+                    why: format!(
+                        "the recorded resolution for {subject} could not be read: {error}"
+                    ),
+                };
+            }
+        };
+        if let Some(record) = record {
+            if record.schema != crate::resolution_cmd::RECORD_SCHEMA {
+                return Verdict::Unavailable {
+                    why: format!(
+                        "the recorded resolution for {subject} has unsupported schema {:?}",
+                        record.schema
+                    ),
+                };
+            }
+            let mut unavailable = None;
+            candidates.retain(|path| {
+                let text = match crate::vfs::read_to_string(path) {
+                    Ok(text) => text,
+                    Err(error) => {
+                        unavailable = Some(format!(
+                            "{} could not be read: {error}",
+                            repo.relative(path)
+                        ));
+                        return false;
+                    }
+                };
+                let Ok(response) =
+                    toml::from_str::<crate::resolution_cmd::ResolutionResponse>(&text)
+                else {
+                    return false;
+                };
+                record.warrant == subject
+                    && crate::resolution_cmd::response_matches_record(&response, &record)
+            });
+            if candidates.is_empty() {
+                return match unavailable {
+                    Some(why) => Verdict::Unavailable { why },
+                    None => Verdict::Invalid {
+                        why: format!(
+                            "no typed resolution response matches the recorded subject, digest, resolver, role and outcomes for {subject}"
+                        ),
+                    },
+                };
+            }
+        }
+    }
+
     match binding(repo) {
         Binding::Register => verify_register(repo, act, subject, actor, bound_digest, &candidates),
         Binding::Failed { why, .. } => Verdict::Unavailable { why },
@@ -1318,8 +1376,13 @@ mod tests {
             }
         }
         let _cleanup = Cleanup(root.clone());
-        let repo = Repository::discover(None).unwrap();
-        let allowed = root.join("allowed_signers");
+        std::fs::write(root.join("openwarrant.toml"), "schema = \"oh.war/repository-config/v1\"\n[project]\nname = \"signed-fixture\"\nnamespace = \"FX\"\n[paths]\n").unwrap();
+        let responses = root.join("docs/authority/responses");
+        std::fs::create_dir_all(&responses).unwrap();
+        // Synthetic test assignments, not enrollment or operator consent.
+        std::fs::write(root.join("docs/authority/roles.toml"), "[[assignment]]\nactor = \"fixture\"\nactor_kind = \"human\"\nroles = [\"resolver\"]\nassigned_by = \"fixture\"\neffective_time = \"2026-10-10T00:00:00Z\"\nssh_principal = \"fixture\"\n").unwrap();
+        let repo = Repository::open(root.clone()).unwrap();
+        let allowed = root.join("docs/authority/allowed_signers");
         let encode = openwarrant_core::attestation::base64_encode;
         std::fs::write(
             &allowed,
@@ -1332,8 +1395,8 @@ mod tests {
             label: "resolution-fields-fixture".into(),
             via: String::new(),
         };
-        let path = root.join("FX-WAR-0001.response.toml");
-        let sig = root.join("FX-WAR-0001.response.toml.sig");
+        let path = responses.join("FX-WAR-0001.response.toml");
+        let sig = responses.join("FX-WAR-0001.response.toml.sig");
         let digest = format!("sha256:{}", "a".repeat(64));
         let baseline = crate::resolution_cmd::ResolutionResponse {
             schema: crate::resolution_cmd::RESPONSE_SCHEMA.into(),
@@ -1346,17 +1409,58 @@ mod tests {
             meaning: format!("fixture mentions {digest}"),
             effective_time: "2026-10-10T00:00:00Z".into(),
         };
+        let dir = root.join("docs/warrants/FX-WAR-0001");
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("manifest.toml"), "# lookup-only synthetic fixture").unwrap();
+        let record = crate::resolution_cmd::ResolutionRecord {
+            schema: crate::resolution_cmd::RECORD_SCHEMA.into(),
+            warrant: baseline.warrant.clone(),
+            locator: None,
+            resolution: openwarrant_core::resolution::Resolution {
+                id: "fixture-resolution".into(),
+                common_outcome: baseline.common_outcome,
+                profile_outcome: baseline.profile_outcome.clone(),
+                contract_revision: 1,
+                contract_digest: digest.clone(),
+                assurance_case_snapshot_digest: digest.clone(),
+                artifact_manifest_digest: digest.clone(),
+                gate_run_refs: vec![],
+                judgment_refs: vec![],
+                residual_risk_refs: vec![],
+                resolved_by_ref: "person://fixture".into(),
+                acting_role_ref: "role-assignment://fixture/resolver".into(),
+                meaning: baseline.meaning.clone(),
+                effective_at: baseline.effective_time.clone(),
+                recorded_at: baseline.effective_time.clone(),
+                standing: openwarrant_core::ResolutionStanding::Valid,
+            },
+        };
+        let recorded_bytes = toml::to_string(&record).unwrap();
+        std::fs::write(dir.join("resolution.toml"), &recorded_bytes).unwrap();
         for (case, mut response) in [
             ("exact", baseline.clone()),
             ("digest", baseline.clone()),
             ("subject", baseline.clone()),
             ("actor", baseline.clone()),
             ("schema", baseline.clone()),
+            ("outcome", baseline.clone()),
+            ("profile", baseline.clone()),
+            ("role", baseline.clone()),
+            ("supplement", baseline.clone()),
         ] {
             match case {
                 "digest" => response.contract_digest = format!("sha256:{}", "b".repeat(64)),
                 "subject" => response.warrant = "FX-WAR-0002".into(),
                 "actor" => response.resolved_by = "somebody-else".into(),
+                "outcome" => {
+                    response.common_outcome = openwarrant_core::resolution::CommonOutcome::Satisfied
+                }
+                "profile" => response.profile_outcome = "delivered".into(),
+                "role" => response.acting_role = "authorizer".into(),
+                "supplement" => {
+                    response.meaning = "Signing the unchanged recorded resolution".into();
+                    response.effective_time = "2026-10-11T00:00:00Z".into();
+                }
                 "schema" => {
                     response.schema = "future-resolution".into();
                     response
@@ -1406,8 +1510,54 @@ mod tests {
                 Some(&digest),
                 std::slice::from_ref(&path),
             );
-            assert_eq!(verdict.is_signed(), case == "exact", "{case}: {verdict:?}");
+            let identity_matches =
+                ["exact", "outcome", "profile", "role", "supplement"].contains(&case);
+            assert_eq!(verdict.is_signed(), identity_matches, "{case}: {verdict:?}");
+            let recorded = verify(&repo, Act::Resolve, "FX-WAR-0001", "fixture", Some(&digest));
+            assert_eq!(
+                crate::resolution_cmd::response_matches_record(&response, &record),
+                ["exact", "supplement"].contains(&case),
+                "ingestion matcher {case}"
+            );
+            assert_eq!(
+                recorded.is_signed(),
+                ["exact", "supplement"].contains(&case),
+                "recorded {case}: {recorded:?}"
+            );
         }
+        assert_eq!(
+            std::fs::read_to_string(dir.join("resolution.toml")).unwrap(),
+            recorded_bytes
+        );
+        let mut changed = record.clone();
+        changed.resolution.common_outcome = openwarrant_core::resolution::CommonOutcome::Satisfied;
+        std::fs::write(
+            dir.join("resolution.toml"),
+            toml::to_string(&changed).unwrap(),
+        )
+        .unwrap();
+        assert!(matches!(
+            verify(&repo, Act::Resolve, "FX-WAR-0001", "fixture", Some(&digest)),
+            Verdict::Invalid { .. }
+        ));
+        changed = record;
+        changed.schema = "oh.war/resolution/future".into();
+        std::fs::write(
+            dir.join("resolution.toml"),
+            toml::to_string(&changed).unwrap(),
+        )
+        .unwrap();
+        assert!(matches!(
+            verify(&repo, Act::Resolve, "FX-WAR-0001", "fixture", Some(&digest)),
+            Verdict::Unavailable { .. }
+        ));
+        std::fs::write(dir.join("resolution.toml"), "not valid toml").unwrap();
+        assert!(matches!(
+            verify(&repo, Act::Resolve, "FX-WAR-0001", "fixture", Some(&digest)),
+            Verdict::Unavailable { .. }
+        ));
+        std::fs::write(dir.join("resolution.toml"), recorded_bytes).unwrap();
+        assert!(verify(&repo, Act::Resolve, "FX-WAR-0001", "fixture", Some(&digest)).is_signed());
     }
 
     #[test]

@@ -145,6 +145,27 @@ pub struct ResolutionRecord {
     pub locator: Option<Locator>,
 }
 
+/// The v1 fields a resolution response can bind to an existing record. Later
+/// signature supplementation has its own time and explanatory meaning; the
+/// original record remains unchanged. V1 cannot bind native evidence or a
+/// complete record digest, so this is not a native acceptance mechanism.
+pub(crate) fn response_matches_record(
+    response: &ResolutionResponse,
+    record: &ResolutionRecord,
+) -> bool {
+    record.schema == RECORD_SCHEMA
+        && response.schema == RESPONSE_SCHEMA
+        && response.warrant == record.warrant
+        && response.contract_digest == record.resolution.contract_digest
+        && format!("person://{}", response.resolved_by) == record.resolution.resolved_by_ref
+        && format!(
+            "role-assignment://{}/{}",
+            response.resolved_by, response.acting_role
+        ) == record.resolution.acting_role_ref
+        && response.common_outcome == record.resolution.common_outcome
+        && response.profile_outcome == record.resolution.profile_outcome
+}
+
 /// The commit the tree is at, and which of `paths` are not committed there.
 /// `None` when git cannot answer — a resolution outside a repository records
 /// no locator rather than a made-up one.
@@ -556,9 +577,7 @@ pub fn ingest_with(
         // the record is left byte-for-byte alone. Anything else is refused.
         let existing = repo.load_resolution(&dir)?;
         let supplies_signature = existing.as_ref().is_some_and(|r| {
-            r.resolution.contract_digest == response.contract_digest
-                && r.resolution.common_outcome == response.common_outcome
-                && r.resolution.profile_outcome == response.profile_outcome
+            response_matches_record(&response, r)
                 && !crate::authority_check::verify_excluding(
                     repo,
                     crate::authority_check::Act::Resolve,
