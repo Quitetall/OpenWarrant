@@ -381,7 +381,7 @@ fn is_uuid(s: &str) -> bool {
 }
 
 /// §5 / Appendix A `ref`, optionally pinned: a record id, `<alias>/<id>`,
-/// an alias, an item id, `war://<uuid>` or `md:<file>#<slug>`.
+/// an alias, an item id, `war://<uuid>`, `md:<file>#<slug>` or `doc:<path>`.
 #[must_use]
 pub fn parse_target(token: &str) -> Option<Target> {
     if let Some(t) = crate::relation::parse_target(token) {
@@ -398,6 +398,7 @@ pub fn parse_target(token: &str) -> Option<Target> {
         }
     };
     let ok = id.strip_prefix("war://").is_some_and(is_uuid)
+        || id.strip_prefix("doc:").is_some_and(is_doc_path)
         || crate::ticket::is_item_id(id)
         || id
             .split_once('/')
@@ -406,6 +407,17 @@ pub fn parse_target(token: &str) -> Option<Target> {
         id: id.to_owned(),
         pin,
     })
+}
+
+/// Appendix A `path` after `doc:`: repository-relative, `/`-separated, no
+/// empty, `.` or `..` segment, and nothing a target list or pin would split.
+fn is_doc_path(p: &str) -> bool {
+    !p.is_empty()
+        && !p
+            .bytes()
+            .any(|b| b.is_ascii_whitespace() || matches!(b, b',' | b'@' | b'#' | b'\\'))
+        && p.split('/')
+            .all(|seg| !seg.is_empty() && seg != "." && seg != "..")
 }
 
 // ---- frontmatter (§3.2, Appendix A) ----------------------------------------

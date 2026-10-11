@@ -1,5 +1,5 @@
 {
-  "why": "Appendix A `ref` has no `doc:` form",
+  "why": "Appendix A `path` has no whitespace",
   "expect": "@relations/0/to pattern",
   "instance": {
     "id": "REQ-pr1",
@@ -9,7 +9,7 @@
     "relations": [
       {
         "kind": "supports",
-        "to": "doc:README.md"
+        "to": "doc:has space.md"
       }
     ],
     "body": ""

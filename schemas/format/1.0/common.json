@@ -51,9 +51,9 @@
       "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
     },
     "ref": {
-      "description": "Appendix A `ref`: a record id, `<alias>/<record-id or item-id>`, an alias, `war://<uuid>`, or `md:<path>#<slug>`. Appendix A gives `doc:<path>` (section 5) no place in a relation target.",
+      "description": "Appendix A `ref`: a record id, `<alias>/<record-id or item-id>`, an alias, an item id, `war://<uuid>`, `md:<path>#<slug>`, or `doc:<path>`.",
       "type": "string",
-      "pattern": "^([A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+|t-[0-9a-f]+)(/([A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+|i-[0-9a-f]+))?$|^war://[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$|^md:[^#\\s]+#[a-z0-9]+(-[a-z0-9]+)*$"
+      "pattern": "^([A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+|t-[0-9a-f]+)(/([A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+|i-[0-9a-f]+))?$|^war://[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$|^md:[^#\\s]+#[a-z0-9]+(-[a-z0-9]+)*$|^i-[0-9a-f]{3,16}$|^doc:(?!/)[^/\\s,@#\\\\]+(/[^/\\s,@#\\\\]+)*$"
     },
     "globalId": {
       "description": "Section 5: a global id as the model carries it: a record id, an alias (a work document's own record), `<alias>/<id>`, `md:<file>#<slug>`, `doc:<path>`, or `war://<uuid>`.",

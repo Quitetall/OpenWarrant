@@ -230,7 +230,9 @@ item, optionally ` — done by <actor>, <YYYY-MM-DD>` and `: <note>`.
 <id>` in the text is a relation. `[]`, `[y]` and other boxes are refused
 (`format.item`). A box line with no id group is reported
 (`format.item-id-missing`); a writer assigns an id. A group that is not at
-the end of the line is no id group. Item ids are unique in their document
+the end of the line is no id group; a group whose id is malformed
+(`(i-7)`) is refused (`format.item`). Items are read only in work
+documents; elsewhere a box line is text. Item ids are unique in their document
 (`format.id-duplicate`).
 
 In the model an item is a record of type `item`: its title is its text

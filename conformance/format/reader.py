@@ -73,9 +73,12 @@ NAME = rf"(?:{DOTTED}|{WORD})"
 RECORD_ID = r"[A-Z][A-Z0-9]*(?:-[A-Za-z0-9]+)+"
 ITEM_ID = r"i-[0-9a-f]{3,16}"
 ALIAS = rf"(?:{RECORD_ID}|t-[0-9a-f]+)"
+# Appendix A `path`: no empty, `.` or `..` segment.
+DOC_PATH = r"(?!/)(?:(?!\.\.?(?:/|[\s,@#]|$))[^/\s,@#\\]+)(?:/(?!\.\.?(?:/|[\s,@#]|$))[^/\s,@#\\]+)*"
 UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 REF = (
-    rf"(?:war://{UUID}|md:[^#\s,]+#[a-z0-9-]+|{ALIAS}/(?:{RECORD_ID}|{ITEM_ID})|{ALIAS})"
+    rf"(?:war://{UUID}|md:[^#\s,]+#[a-z0-9-]+|doc:{DOC_PATH}"
+    rf"|{ALIAS}/(?:{RECORD_ID}|{ITEM_ID})|{ALIAS}|{ITEM_ID})"
 )
 TARGET_RE = re.compile(rf"({REF})(?:@(sha256:[0-9a-f]{{64}}))?")
 FIELD_RE = re.compile(rf"({NAME}):(?: (.*))?")
