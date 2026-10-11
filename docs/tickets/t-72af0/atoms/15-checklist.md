@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Prove UNKNOWN preserves missing context while allowing a remediated retry without uncertain writer state (i-b882) — done by codex, 2026-10-11: Claimed bounded implementation: actual HTTP/SDK/Git permission-denied preparation reproduced blocked/unknown before any worker launch. Fix preserves blocked context while recording stopped prelaunch execution; remediation retries successfully. Three targeted tests passed (6.823s), including uncertain writer refusal and changed contract refusal. Full web suite and hosted gate remain pending. No independent assurance or human acceptance claimed.
