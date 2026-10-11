@@ -2,28 +2,28 @@
   "exit": 0,
   "outcome": "compiled",
   "refusal": null,
-  "basis_digest": "sha256:56c2d1526fad77614cbd90c509a47e6a8ffca43124573e772cdb899416070969",
-  "model_digest": "sha256:b6cd8502044d9064645bcf1b20c3ea41c026b8f87dca1312a60fcd77f2ea5b0c",
-  "records": 28,
-  "relations": 20,
+  "basis_digest": "sha256:a02e0f614e83b918f84f9f3b751daad188ae09838c40d0a64737257bcdd3a804",
+  "model_digest": "sha256:e25372ac7a5a579996cbafbd2864c441b38f87a62470eb94d2a3d4ae9be31b8e",
+  "records": 40,
+  "relations": 37,
   "states": 18,
   "host_rules": [],
   "projections": [
     [
       "docs/warrants/HC-WAR-0001/generated/WAR.md",
-      "sha256:fb9f0baa30aad1f5904ca2890e91ef103053f3ad360949265eb021fcb62ece18"
+      "sha256:e4acdd89844fd764d2ce36b8fb70d12ac3b811c6d310e10b747d12cbe865045c"
     ],
     [
       "docs/warrants/HC-WAR-0001/generated/WAR.json",
-      "sha256:5b3a18f67877d2dcfb84921eb1f67cbf350c560782bbab86c277ebfc825c7928"
+      "sha256:da804493af9a15f8dadeeea36e9ec64bf51f694f7342313fbaa825bff95abed5"
     ],
     [
       "docs/warrants/HC-WAR-0002/generated/WAR.md",
-      "sha256:7afbaeaf65e3427cd2d6b13866e0b276722cfe0eaa1c561e7c1f39ea41deb1a3"
+      "sha256:89dd32ab09428354e84a9937292e884407a16c367074b1febca6112462efdab1"
     ],
     [
       "docs/warrants/HC-WAR-0002/generated/WAR.json",
-      "sha256:da12cb789a20e94729842c4a77db9604983e60371c381103fb16435f00832720"
+      "sha256:f87fa27c53fbc4dd24e7f1785508542afbfe5794eaeb57d11b0e778ce4ad2980"
     ]
   ]
 }

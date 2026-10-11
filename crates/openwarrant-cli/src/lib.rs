@@ -2662,6 +2662,22 @@ fn official_section(
     ))
 }
 
+/// A ticket act that may move the agent index (create, add, done, note,
+/// edit) refreshes it after an accepted outcome (t-ca38). Claims never
+/// reach it: the index reads no claim lock. A refresh that fails is said,
+/// never swallowed, and never turns the accepted act into a refusal.
+fn refresh_index_after(repository: &repo::Repository, outcome: &ticket::Outcome) {
+    if outcome.is_refused() {
+        return;
+    }
+    if let Err(e) = context::refresh_index(repository) {
+        eprintln!(
+            "warning (context-index.refresh): {e}; `war admin compile` rewrites {}",
+            context::INDEX_PATH
+        );
+    }
+}
+
 /// Print a ticket command's answer and return its exit code: the rendering
 /// (or the refusal, on stderr) for a person, the envelope under `--json`.
 fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -> u8 {
@@ -2918,6 +2934,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     body.as_deref(),
                     priority,
                 )?;
+                refresh_index_after(&repository, &outcome);
                 return Ok(ticket_answer(mode, "create", &outcome));
             }
             let mut items = items;
@@ -2942,11 +2959,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 part_of,
                 issue,
             };
-            Ok(ticket_answer(
-                mode,
-                "create",
-                &ticket::create(&store, &args)?,
-            ))
+            let outcome = ticket::create(&store, &args)?;
+            refresh_index_after(&repository, &outcome);
+            Ok(ticket_answer(mode, "create", &outcome))
         }
         DailyCommand::Claim {
             target,
@@ -2986,6 +3001,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     o.insert("ledger_prompt".to_owned(), serde_json::json!(ask));
                 }
             }
+            refresh_index_after(&repository, &outcome);
             Ok(ticket_answer(mode, "done", &outcome))
         }
         DailyCommand::Add {
@@ -3004,7 +3020,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             actor,
         } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
             let parts = ticket::parts::PartsArgs {
                 tests,
                 name,
@@ -3037,6 +3053,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     if_rev.as_deref(),
                 )?
             };
+            refresh_index_after(&repository, &outcome);
             Ok(ticket_answer(mode, "add", &outcome))
         }
         DailyCommand::Note {
@@ -3045,12 +3062,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             actor,
         } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
-            Ok(ticket_answer(
-                mode,
-                "note",
-                &ticket::note(&store, &target, &text, if_rev.as_deref())?,
-            ))
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let outcome = ticket::note(&store, &target, &text, if_rev.as_deref())?;
+            refresh_index_after(&repository, &outcome);
+            Ok(ticket_answer(mode, "note", &outcome))
         }
         DailyCommand::Edit {
             ticket: target,
@@ -3063,7 +3078,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             actor,
         } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
             let none = |v: Option<String>| v.map(|v| Some(v).filter(|v| v != "none" && v != "-"));
             let args = ticket::EditArgs {
                 kind: none(kind),
@@ -3074,11 +3089,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 due: none(due),
                 if_rev,
             };
-            Ok(ticket_answer(
-                mode,
-                "edit",
-                &ticket::edit(&store, &target, &args)?,
-            ))
+            let outcome = ticket::edit(&store, &target, &args)?;
+            refresh_index_after(&repository, &outcome);
+            Ok(ticket_answer(mode, "edit", &outcome))
         }
         // M10: one id space. A light Warrant's id shows it whole, wherever
         // the command is `show` or `status`; an alias falls through to the

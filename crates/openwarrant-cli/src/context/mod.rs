@@ -884,6 +884,24 @@ pub fn index_file(
     ))
 }
 
+/// Rewrite the index when the repository keeps one and its bytes moved:
+/// a ticket act that lists, retitles or changes the state of a work
+/// document moves its line, and ticket work must not leave
+/// `war check --generated` reporting drift (t-ca38). A repository that never
+/// compiled an index gets none from a ticket act. Whether it was written.
+pub fn refresh_index(repo: &crate::repo::Repository) -> Result<bool, Box<dyn std::error::Error>> {
+    if !repo.root.join(INDEX_PATH).is_file() {
+        return Ok(false);
+    }
+    let (path, contents) = index_file(&crate::corpus::Corpus::new(repo))?;
+    let before = crate::compile::atomic::prestate(&path)?;
+    if before == crate::compile::atomic::Prestate::of(contents.as_bytes()) {
+        return Ok(false);
+    }
+    crate::compile::atomic::write_if(&path, &contents, &before)?;
+    Ok(true)
+}
+
 /// A target as the compiler reads it: an absolute path inside the
 /// repository becomes repository-relative, so the packet never carries a
 /// machine's path; anything else is unchanged.

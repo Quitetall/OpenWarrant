@@ -316,7 +316,7 @@ fn paths_items_and_records_resolve_and_an_unknown_target_is_refused() {
         .as_array()
         .unwrap()
         .iter()
-        .find(|r| r["type"] == "item")
+        .find(|r| r["type"] == "item" && r["title"] == "Read the file")
         .unwrap()["id"]
         .as_str()
         .unwrap()

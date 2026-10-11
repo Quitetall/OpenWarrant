@@ -79,8 +79,10 @@ PY
 # sections (§98, §106) are `section` records. No `roadmap` record: the
 # scaffold's phases are the SAS's §98, with no roadmap store. No `adr`: no
 # ADR atom. No `document`: both indexed documents (AGENTS.md, the SAS) are
-# typed, so none is an untyped `doc:` record.
-MD_WANT_TYPES="deliverable instruction item obligation phase question requirement section spec stage ticket warrant"
+# typed, so none is an untyped `doc:` record. `milestone` (Format 1.0, its
+# legacy lowering table): each `45-milestones.yaml` milestone is a
+# record, beside the stages it carries.
+MD_WANT_TYPES="deliverable instruction item milestone obligation phase question requirement section spec stage ticket warrant"
 MD_WANT_KINDS="depends_on implements parent part_of promoted_to roadmap supersedes"
 if [[ $MD_STATUS -eq 0 ]] && grep -qx "types $MD_WANT_TYPES" <<<"$MD_KINDS"; then
     md_ok "model names every record kind" "$MD_WANT_TYPES"
