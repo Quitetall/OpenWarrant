@@ -1,0 +1,55 @@
+{
+  "schema": "oh.war/implementation-observations/v1",
+  "implementation_revision": "ff5af6d1",
+  "merged_main_revision": "b376e5103daf8cd850f44d867a82a044c6054cbd",
+  "refreshed_revision": "879b9a332f613fd8779454e50a31bc42a0b2c9fd",
+  "refresh_preserved_tree": true,
+  "human_acceptance": false,
+  "independent_verification": false,
+  "results": {
+    "counterexample_before_fix": "FAIL: genuinely signed satisfied response counted as support for cancelled record",
+    "targeted_tests": "PASS: three authority-check tests; public cryptographic seam and shared ingestion matcher",
+    "library_run": "UNKNOWN suite completion: timeout 124 at 300 seconds; 444 cases observed passing of 446 listed; no fabricated overall pass",
+    "missing_cases": "PASS in isolated reruns: Bonsai qualification pilot (135.39 seconds) and migration completion-claim refusal (0.00 seconds)",
+    "clippy": "PASS: CLI all targets/all features with warnings denied",
+    "build": "PASS: CLI binary"
+  },
+  "logs": [
+    {
+      "file": "resolution-outcome-red.log.gz",
+      "uncompressed_sha256": "254fa0a1493c41faf4427f5a7a4163ed894d8ae1f8cf5aad92f91bce8818dff4"
+    },
+    {
+      "file": "resolution-outcome-green.log.gz",
+      "uncompressed_sha256": "27d7627579d467ff84fea6dc700c1c46c3151e43165e2b5454bd4c349db4ff41"
+    },
+    {
+      "file": "resolution-outcome-shared-green.log.gz",
+      "uncompressed_sha256": "53d8ce688eff044306d65c43a31e700549de1a63191922c70f8a8d0d685ed89b"
+    },
+    {
+      "file": "resolution-outcome-library.log.gz",
+      "uncompressed_sha256": "82890209fa2285ffcfd4fafa58aad7faca3991702027fd0b977c47534169eb72"
+    },
+    {
+      "file": "resolution-outcome-test-list.log.gz",
+      "uncompressed_sha256": "f364cd923a85bcec806b5c24b6eaf7c484d921f03fd2adf50c0e7c2ec6cf2e8e"
+    },
+    {
+      "file": "resolution-outcome-pilot.log.gz",
+      "uncompressed_sha256": "342739a50e17d8d699a879fd19203b6039445afadc1a1000168aad45119ddec7"
+    },
+    {
+      "file": "resolution-outcome-migration.log.gz",
+      "uncompressed_sha256": "d2f784dd3c9d8de46cb825fcca413e5422c4497a6f5d36a89d5f7e673e74ffad"
+    },
+    {
+      "file": "resolution-outcome-clippy.log.gz",
+      "uncompressed_sha256": "1d70593c8392f50f7cd2bdde4916c7a78d2e34a7c25fb64e7b1f1367dbabcb7e"
+    },
+    {
+      "file": "resolution-outcome-build.log.gz",
+      "uncompressed_sha256": "bd9cfc48334e9390a31777d3c0251c22b025c31953c02a10fcebafbef464dea6"
+    }
+  ]
+}

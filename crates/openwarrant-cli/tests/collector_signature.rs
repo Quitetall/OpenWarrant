@@ -1141,6 +1141,41 @@ fn namespace_fixture_entry() {
                 .any(|d| d["rule"] == "resolution.requirement-unmet" && d["severity"] == "unknown"),
             "native receipt must not satisfy independent completion gates: {resolution}"
         );
+        let review = run(&[
+            "resolve",
+            "IX-WAR-0003",
+            "--runtime-selection",
+            "selected.json",
+            "--native-store",
+            root.join("store").to_str().unwrap(),
+        ]);
+        let review: serde_json::Value = serde_json::from_slice(&review.stdout).unwrap();
+        assert_eq!(
+            review["result"]["runtime"]["standing"],
+            if actual_native { "matches" } else { "refused" },
+            "{review}"
+        );
+        assert_eq!(review["result"]["response_ingestion_supported"], false);
+        assert_eq!(review["result"]["assurance_granted"], false);
+        assert_eq!(review["result"]["request"]["requirements_met"], false);
+        assert!(
+            !scratch
+                .join("docs/warrants/IX-WAR-0003/resolution.toml")
+                .exists()
+        );
+        let stdin_review = run_input(
+            &[
+                "resolve",
+                "IX-WAR-0003",
+                "--runtime-selection",
+                "-",
+                "--native-store",
+                root.join("store").to_str().unwrap(),
+            ],
+            &fs::read(scratch.join("selected.json")).unwrap(),
+        );
+        let stdin_review: serde_json::Value = serde_json::from_slice(&stdin_review.stdout).unwrap();
+        assert_eq!(stdin_review["result"], review["result"]);
         if !actual_native {
             println!(
                 "native CLI assessment: activated sealed fixture executable reached; invalid native response refused with no assurance"

@@ -49,6 +49,22 @@ use crate::resolve::{assess, declared_obligations};
 pub const REQUEST_SCHEMA: &str = "oh.war/resolution-request/v1";
 pub const RESPONSE_SCHEMA: &str = "oh.war/resolution-response/v1";
 pub const RECORD_SCHEMA: &str = "oh.war/resolution/v1";
+pub const RUNTIME_REQUEST_SCHEMA: &str = "oh.war/runtime-resolution-request/v1-draft.1";
+
+/// Read-only review packet. This is not a signed response or an accepted
+/// resolution: the legacy signer/ingester does not yet bind runtime selections.
+/// Existing request, response and recorded-resolution schemas are unchanged.
+#[derive(Debug, Clone, Serialize)]
+pub struct RuntimeResolutionRequest {
+    pub schema: String,
+    pub request: ResolutionRequest,
+    pub assurance_case_snapshot_digest: String,
+    pub artifact_manifest_digest: String,
+    pub selections: Vec<crate::runtime_capture::Selection>,
+    pub runtime: serde_json::Value,
+    pub response_ingestion_supported: bool,
+    pub assurance_granted: bool,
+}
 
 /// What an agent may emit: the state of the thirteen, what a signature would
 /// bind, and who may sign. No recommendation, no suggested wording.
@@ -127,6 +143,27 @@ pub struct ResolutionRecord {
     pub resolution: Resolution,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub locator: Option<Locator>,
+}
+
+/// The v1 fields a resolution response can bind to an existing record. Later
+/// signature supplementation has its own time and explanatory meaning; the
+/// original record remains unchanged. V1 cannot bind native evidence or a
+/// complete record digest, so this is not a native acceptance mechanism.
+pub(crate) fn response_matches_record(
+    response: &ResolutionResponse,
+    record: &ResolutionRecord,
+) -> bool {
+    record.schema == RECORD_SCHEMA
+        && response.schema == RESPONSE_SCHEMA
+        && response.warrant == record.warrant
+        && response.contract_digest == record.resolution.contract_digest
+        && format!("person://{}", response.resolved_by) == record.resolution.resolved_by_ref
+        && format!(
+            "role-assignment://{}/{}",
+            response.resolved_by, response.acting_role
+        ) == record.resolution.acting_role_ref
+        && response.common_outcome == record.resolution.common_outcome
+        && response.profile_outcome == record.resolution.profile_outcome
 }
 
 /// The commit the tree is at, and which of `paths` are not committed there.
@@ -265,6 +302,57 @@ pub fn request(repo: &Repository, alias: &str) -> Result<ResolutionRequest, Repo
     request_for(repo, alias, &one, None, &|| assess(repo, &one))
 }
 
+/// Assemble the human review context from current sources and freshly resolved
+/// provider verification. The trusted callback is the same SDK seam used by
+/// resolution assessment; a capture's saved verdict is never an input.
+/// The packet preserves the exact selections while clearing no human gate.
+pub fn request_with_runtime(
+    repo: &Repository,
+    alias: &str,
+    runtime: crate::resolve::runtime::Input<'_>,
+) -> Result<(RuntimeResolutionRequest, Report), RepoError> {
+    let dir = repo.warrant_dir(alias)?;
+    let one = repo.load_warrant(&dir)?;
+    one.require(&repo.profiles, openwarrant_core::Capability::Resolution)?;
+    let bound = bind(alias, &one, None)?;
+    let evidence = crate::evidence::load(repo, &dir)?;
+    let selections = runtime.selections.to_vec();
+    let assessment = crate::resolve::assess_with_runtime(repo, &one, &evidence, runtime)?;
+    let mut report = Report::default();
+    if !assessment.checks.not_applicable.contains(11) {
+        crate::resolve::runtime::report(&mut report, alias, &assessment.runtime_receipts);
+    }
+    let runtime = crate::runtime_capture::render_assessment(&assessment.runtime_receipts);
+    let assurance_case_snapshot_digest = bound.assurance_case_snapshot_digest.clone();
+    let artifact_manifest_digest = bound.artifact_manifest_digest.clone();
+    let request = request_from_assessment(repo, alias, &one, bound, assessment)?;
+    for unmet in &request.unmet {
+        report.push(Diagnostic::unknown(
+            "resolution.requirement-unmet",
+            alias,
+            unmet,
+        ));
+    }
+    report.push(Diagnostic::unknown(
+        "resolution.native-response-unavailable",
+        alias,
+        "read-only review packet; native selection binding in human signing and response ingestion remains unavailable",
+    ));
+    Ok((
+        RuntimeResolutionRequest {
+            schema: RUNTIME_REQUEST_SCHEMA.into(),
+            request,
+            assurance_case_snapshot_digest,
+            artifact_manifest_digest,
+            selections,
+            runtime,
+            response_ingestion_supported: false,
+            assurance_granted: false,
+        },
+        report,
+    ))
+}
+
 /// [`request`] for a Warrant already loaded, with its lowered contract and
 /// its assessment from the caller when it holds them (the corpus). The
 /// contract is bound before the assessment is asked for, as before, so the
@@ -276,11 +364,21 @@ pub fn request_for(
     lowered: Option<&openwarrant_compiler::WarIr>,
     assessment: &dyn Fn() -> Result<crate::resolve::Assessment, RepoError>,
 ) -> Result<ResolutionRequest, RepoError> {
-    let dir = one.dir.clone();
     // OW-ADR-0031: a kind without `resolution` is never resolved.
     one.require(&repo.profiles, openwarrant_core::Capability::Resolution)?;
     let bound = bind(alias, one, lowered)?;
     let a = assessment()?;
+    request_from_assessment(repo, alias, one, bound, a)
+}
+
+fn request_from_assessment(
+    repo: &Repository,
+    alias: &str,
+    one: &crate::repo::Loaded,
+    bound: Bound,
+    a: crate::resolve::Assessment,
+) -> Result<ResolutionRequest, RepoError> {
+    let dir = one.dir.clone();
     let register = repo.load_authority_register()?;
     let performer = repo.performer();
     let declared = declared_obligations(one);
@@ -479,9 +577,7 @@ pub fn ingest_with(
         // the record is left byte-for-byte alone. Anything else is refused.
         let existing = repo.load_resolution(&dir)?;
         let supplies_signature = existing.as_ref().is_some_and(|r| {
-            r.resolution.contract_digest == response.contract_digest
-                && r.resolution.common_outcome == response.common_outcome
-                && r.resolution.profile_outcome == response.profile_outcome
+            response_matches_record(&response, r)
                 && !crate::authority_check::verify_excluding(
                     repo,
                     crate::authority_check::Act::Resolve,

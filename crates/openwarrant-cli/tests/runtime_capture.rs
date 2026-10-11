@@ -144,12 +144,17 @@ fn katana_process_checks_native_mapping_without_inventing_cost_or_authority() {
     let respond = |native: &Value| {
         // Protocol stand-in only. This cannot establish native log validity.
         let response = json!({"schema":"katana/openwarrant-verification/v1","status":"validated","assurance":"not-established","native":native});
+        let pending = executable.with_extension("pending");
         fs::write(
-            &executable,
+            &pending,
             format!("#!/bin/sh\nprintf '%s\\n' '{}'\n", response),
         )
         .unwrap();
-        fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+        fs::set_permissions(&pending, fs::Permissions::from_mode(0o700)).unwrap();
+        // Publish a fresh inode instead of rewriting an executable in place.
+        // The protocol fixture changes responses; production availability
+        // failures still remain UNKNOWN in the provider adapter.
+        fs::rename(pending, &executable).unwrap();
     };
     for (status, outcome) in [
         ("completed", RuntimeOutcome::Completed),
@@ -314,6 +319,168 @@ impl Fixture {
     fn storage(&self) -> PathBuf {
         self.root.join("docs/warrants/IX-WAR-0003/runtime-receipts")
     }
+}
+
+#[test]
+fn runtime_resolution_request_preserves_unknown_and_cannot_ingest_a_response() {
+    let f = Fixture::with_runtime_count(1);
+    let imported = value(&f.import());
+    let digest = imported["result"]["digest"].as_str().unwrap();
+    let selected = json!({"schema":capture::SELECTION_REQUEST_SCHEMA,
+        "selections":[{"stage_id":"STAGE-001","capture_digest":digest}]});
+    fs::write(
+        f.root.join("selected.json"),
+        serde_json::to_vec(&selected).unwrap(),
+    )
+    .unwrap();
+    let request = value(&war(
+        &f.root,
+        &[
+            "resolve",
+            "IX-WAR-0003",
+            "--runtime-selection",
+            "selected.json",
+            "--json",
+        ],
+    ));
+    assert_eq!(request["command"], "resolve.runtime_request", "{request}");
+    assert_eq!(
+        request["result"]["schema"],
+        "oh.war/runtime-resolution-request/v1-draft.1"
+    );
+    assert_eq!(request["result"]["selections"], selected["selections"]);
+    assert_eq!(
+        request["result"]["request"]["contract_digest"],
+        f.dispatch.contract_digest
+    );
+    assert_eq!(request["result"]["runtime"]["standing"], "unknown");
+    assert_eq!(request["result"]["request"]["requirements_met"], false);
+    assert_eq!(request["result"]["response_ingestion_supported"], false);
+    assert_eq!(request["result"]["assurance_granted"], false);
+    let manifest = f.root.join("docs/warrants/IX-WAR-0003/deliverables.toml");
+    let manifest_digest = fs::read(manifest)
+        .map(|bytes| format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)))
+        .unwrap_or_else(|_| "absent".into());
+    assert_eq!(
+        request["result"]["artifact_manifest_digest"],
+        manifest_digest
+    );
+    assert!(
+        request["result"]["assurance_case_snapshot_digest"]
+            .as_str()
+            .is_some_and(|d| d.starts_with("sha256:") && d.len() == 71)
+    );
+    assert!(
+        request["result"]["request"]["unmet"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|u| u == "runtime receipts match the basis"),
+        "{request}"
+    );
+    let refused = value(&war(
+        &f.root,
+        &[
+            "resolve",
+            "IX-WAR-0003",
+            "--runtime-selection",
+            "selected.json",
+            "--response",
+            "no-human-response.toml",
+            "--json",
+        ],
+    ));
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "resolution.native-response-unavailable"
+                && d["severity"] == "unknown"),
+        "{refused}"
+    );
+    assert!(
+        !f.root
+            .join("docs/warrants/IX-WAR-0003/resolution.toml")
+            .exists()
+    );
+    let legacy = value(&war(&f.root, &["resolve", "IX-WAR-0003", "--json"]));
+    assert_eq!(legacy["result"]["schema"], "oh.war/resolution-request/v1");
+    fs::write(
+        f.root.join("future-selection.json"),
+        br#"{"schema":"oh.war/runtime-selection-request/future","selections":[]}"#,
+    )
+    .unwrap();
+    let future = value(&war(
+        &f.root,
+        &[
+            "resolve",
+            "IX-WAR-0003",
+            "--runtime-selection",
+            "future-selection.json",
+            "--response",
+            "no-human-response.toml",
+            "--json",
+        ],
+    ));
+    assert!(
+        future["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "runtime.selection-unsupported-schema"
+                && d["severity"] == "unknown"),
+        "{future}"
+    );
+    assert!(
+        !f.root
+            .join("docs/warrants/IX-WAR-0003/resolution.toml")
+            .exists()
+    );
+    let fresh = war(
+        &f.root,
+        &[
+            "dispatch",
+            "IX-WAR-0003",
+            "STAGE-001",
+            "--prototype",
+            "--emit",
+            f.root.join("next-dispatch.json").to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert!(
+        fresh.status.success(),
+        "{}",
+        String::from_utf8_lossy(&fresh.stdout)
+    );
+    let stale = value(&war(
+        &f.root,
+        &[
+            "resolve",
+            "IX-WAR-0003",
+            "--runtime-selection",
+            "selected.json",
+            "--json",
+        ],
+    ));
+    assert_eq!(stale["result"]["runtime"]["standing"], "refused");
+    assert!(
+        stale["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(
+                |d| d["rule"] == "runtime.selection-superseded-attempt" && d["severity"] == "error"
+            ),
+        "{stale}"
+    );
+    assert_eq!(stale["result"]["selections"], selected["selections"]);
+    assert!(
+        !f.root
+            .join("docs/warrants/IX-WAR-0003/resolution.toml")
+            .exists()
+    );
 }
 
 #[test]

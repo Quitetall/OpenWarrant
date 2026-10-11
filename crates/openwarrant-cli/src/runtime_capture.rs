@@ -15,6 +15,7 @@ pub mod protected_input;
 pub mod protected_job;
 mod recorded;
 mod selection;
+pub(crate) use selection::render as render_assessment;
 pub use selection::{
     REQUEST_SCHEMA as SELECTION_REQUEST_SCHEMA, Selection, SelectionRequest, assess_selected,
 };

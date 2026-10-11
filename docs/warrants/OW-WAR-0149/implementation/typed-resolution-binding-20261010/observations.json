@@ -1,0 +1,30 @@
+{
+  "schema": "oh.war/implementation-observations/v1",
+  "implementation_revision": "ca4af5f696c43e4957e3c4a7408808d21929d1ac",
+  "human_acceptance": false,
+  "independent_verification": false,
+  "results": {
+    "counterexample_before_fix": "FAIL: wrong contract_digest genuinely signed response reported Signed when meaning mentioned expected digest",
+    "targeted_tests": "PASS: 3 authority_check tests; exact signed response accepted; signed wrong digest, subject, actor and schema refused",
+    "library": "PASS: 446 tests",
+    "clippy": "PASS: openwarrant-cli all targets/all features, -D warnings"
+  },
+  "logs": [
+    {
+      "file": "typed-resolution-red.log.gz",
+      "uncompressed_sha256": "1ce061de6b8d16b7e8731edccaf1b0f9b8010726c721f76a48174e73357fdfbd"
+    },
+    {
+      "file": "typed-resolution-green.log.gz",
+      "uncompressed_sha256": "825cf69816729b90050f202691eff595d3a61742e1d309cce0f9f6465acdfb4a"
+    },
+    {
+      "file": "typed-resolution-library.log.gz",
+      "uncompressed_sha256": "67089ba0bc3253bf7daba98b2b78d47f11a445719de7b2dd0a5ede77bbf3f2f6"
+    },
+    {
+      "file": "typed-resolution-clippy.log.gz",
+      "uncompressed_sha256": "f30ace5b78dfa3eb63f10b068a33a8c32a527a3eafa3fd6bd8430eda26108b94"
+    }
+  ]
+}

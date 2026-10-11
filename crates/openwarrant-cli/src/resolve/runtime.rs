@@ -62,7 +62,7 @@ impl Input<'_> {
     }
 }
 
-pub(super) fn report(report: &mut Report, alias: &str, assessment: &RuntimeBasisAssessment) {
+pub(crate) fn report(report: &mut Report, alias: &str, assessment: &RuntimeBasisAssessment) {
     let mut push = |standing, code, detail: String| {
         let message = format!("{alias}: {detail}");
         report.push(match standing {
