@@ -254,3 +254,112 @@ fn stage_result(standing: ReceiptStanding, code: &'static str, detail: &str) -> 
         cost_observation: Observation::Unknown,
     }
 }
+
+/// Check a Dispatch against the captured current source basis, without native
+/// observations. Returns the source's provider kind, not execution eligibility.
+/// No authority, runtime outcome, cost, confinement or assurance is established.
+pub fn check_runtime_dispatch_basis(
+    basis: &CompilationBasis,
+    validated: &ValidatedManifest,
+    dispatch: &openwarrant_core::execution::StageDispatch,
+) -> Result<ProviderKind, RuntimeBasisAssessment> {
+    // An empty evidence set makes native observations genuinely unavailable.
+    // Reuse the full source-inventory checks; never interpret missing receipts
+    // as a successful execution assessment.
+    let inventory = assess_runtime_basis(basis, validated, &[]);
+    if inventory.standing == ReceiptStanding::Refused
+        || (inventory.standing == ReceiptStanding::Unknown && inventory.stages.is_empty())
+    {
+        return Err(inventory);
+    }
+    if !inventory
+        .stages
+        .iter()
+        .any(|s| s.stage_id == dispatch.stage_id)
+    {
+        return Err(result(
+            ReceiptStanding::Refused,
+            "runtime-basis.unexpected-stage",
+            "Dispatch is not for a current runtime stage",
+        ));
+    }
+    let mut selected = None;
+    let mut milestone_matches = false;
+    for atom in basis.atoms.iter().filter(|a| a.role == "milestones") {
+        let graph = std::str::from_utf8(&atom.bytes)
+            .ok()
+            .and_then(|s| openwarrant_core::milestones::parse(s).ok())
+            .ok_or_else(|| {
+                result(
+                    ReceiptStanding::Refused,
+                    "runtime-basis.invalid-milestones",
+                    "current milestone source cannot be parsed",
+                )
+            })?;
+        milestone_matches |= graph
+            .milestones
+            .iter()
+            .any(|m| m.id == dispatch.milestone_id && m.stage_refs.contains(&dispatch.stage_id));
+        for stage in graph.stages {
+            if stage.id == dispatch.stage_id {
+                selected = Some(stage);
+            }
+        }
+    }
+    let stage = selected.ok_or_else(|| {
+        result(
+            ReceiptStanding::Unknown,
+            "runtime-basis.stage-missing",
+            "current stage unavailable",
+        )
+    })?;
+    let kind = match stage.executor_kind {
+        ExecutorKind::Katana => ProviderKind::Katana,
+        ExecutorKind::Blut => ProviderKind::Blut,
+        _ => {
+            return Err(result(
+                ReceiptStanding::Refused,
+                "runtime-basis.unexpected-stage",
+                "not a native runtime stage",
+            ));
+        }
+    };
+    let ir = lower(basis, validated).map_err(|e| {
+        result(
+            ReceiptStanding::Refused,
+            "runtime-basis.invalid-contract",
+            e.to_string(),
+        )
+    })?;
+    let contract = ir.contract_digest().map_err(|e| {
+        result(
+            ReceiptStanding::Refused,
+            "runtime-basis.invalid-contract",
+            e.to_string(),
+        )
+    })?;
+    let mut unsigned = dispatch.clone();
+    unsigned.dispatch_digest.clear();
+    let digest_matches = sha256_digest(DigestDomain::Dispatch, &unsigned)
+        .is_ok_and(|d| d == dispatch.dispatch_digest);
+    if dispatch.warrant_ref != format!("war://{}", ir.identity.uuid)
+        || dispatch.contract_digest != contract
+        || dispatch.workspace_basis_digest != ir.integrity.workspace_basis_digest
+        || dispatch
+            .validate(&required_normative_sources(basis))
+            .is_err()
+        || !milestone_matches
+        || !digest_matches
+        || stage
+            .executor_ref
+            .as_deref()
+            .is_none_or(|r| r.trim().is_empty())
+    {
+        return Err(result(
+            ReceiptStanding::Refused,
+            "runtime-basis.dispatch-mismatch",
+            "Dispatch does not match the current basis, milestone or canonical digest",
+        ));
+    }
+    Ok(kind)
+}

@@ -2428,10 +2428,26 @@ fn actual_katana_turn_roundtrips_through_capture_and_current_resolution() {
     assert!(producer.is_absolute() && executable.is_absolute());
     let f = Fixture::with_runtime_count(1);
     let binding = f.root.join("checked-binding.json");
-    fs::write(&binding, serde_json::to_vec(&json!({
-        "warrant_ref":f.dispatch.warrant_ref,"contract_digest":f.dispatch.contract_digest,
-        "dispatch_digest":f.dispatch.dispatch_digest,"stage_id":f.dispatch.stage_id,"attempt_id":f.dispatch.attempt_id
-    })).unwrap()).unwrap();
+    let exported = war(
+        &f.root,
+        &[
+            "runtime",
+            "binding",
+            "IX-WAR-0003",
+            &f.dispatch.dispatch_id,
+            "--json",
+        ],
+    );
+    assert!(
+        exported.status.success(),
+        "{}",
+        String::from_utf8_lossy(&exported.stdout)
+    );
+    fs::write(
+        &binding,
+        serde_json::to_vec(&value(&exported)["result"]["binding"]).unwrap(),
+    )
+    .unwrap();
     let native = f.root.join("native-local-turn");
     let produced = Command::new("/usr/bin/timeout")
         .arg("30")
@@ -3038,4 +3054,169 @@ fn inline_capture_refuses_malformed_frames_and_keeps_missing_dispatch_unknown() 
     assert_eq!(error.code, "runtime.capture-source-unavailable");
     assert!(error.unknown);
     assert!(!f.storage().exists());
+}
+
+#[test]
+fn current_recorded_dispatch_exports_native_binding_without_receipt_or_authority() {
+    let f = Fixture::with_runtime_count(1);
+    let journal = f.root.join("docs/warrants/IX-WAR-0003/journal.jsonl");
+    let before = fs::read(&journal).unwrap();
+    let out = war(
+        &f.root,
+        &[
+            "runtime",
+            "binding",
+            "IX-WAR-0003",
+            &f.dispatch.dispatch_id,
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let result = value(&out)["result"].clone();
+    assert_eq!(
+        result["binding"],
+        json!({
+            "warrant_ref":f.dispatch.warrant_ref,
+            "contract_digest":f.dispatch.contract_digest,
+            "dispatch_digest":f.dispatch.dispatch_digest,
+            "stage_id":f.dispatch.stage_id,
+            "attempt_id":f.dispatch.attempt_id
+        })
+    );
+    assert_eq!(result["assurance_granted"], false);
+    assert_eq!(result["execution_eligibility"], "not-assessed");
+    assert!(
+        result["dispatch_ref"]
+            .as_str()
+            .unwrap()
+            .ends_with(&format!("/{}.json", f.dispatch.dispatch_id))
+    );
+    assert!(
+        result["compile_event_ref"]
+            .as_str()
+            .unwrap()
+            .contains("#event:")
+    );
+    assert_eq!(fs::read(journal).unwrap(), before);
+    assert!(!f.storage().exists());
+}
+
+#[test]
+fn recorded_binding_refuses_stale_superseded_and_unbound_inputs() {
+    for (case, rule, severity) in [
+        ("stale", "runtime-basis.dispatch-mismatch", "error"),
+        ("superseded", "runtime.binding-superseded", "error"),
+        (
+            "missing-event",
+            "runtime.capture-recorded-dispatch",
+            "unknown",
+        ),
+        ("changed-packet", "runtime-basis.dispatch-mismatch", "error"),
+        ("missing-source", "runtime-basis.source-missing", "unknown"),
+    ] {
+        let f = Fixture::with_runtime_count(1);
+        let dir = f.root.join("docs/warrants/IX-WAR-0003");
+        match case {
+            "stale" => {
+                let p = dir.join("atoms/10-intent.md");
+                let mut bytes = fs::read(&p).unwrap();
+                bytes.extend_from_slice(b"\nChanged outcome.\n");
+                fs::write(p, bytes).unwrap();
+            }
+            "superseded" => {
+                let next = f.root.join("new-attempt.json");
+                let out = war(
+                    &f.root,
+                    &[
+                        "dispatch",
+                        "IX-WAR-0003",
+                        "STAGE-001",
+                        "--prototype",
+                        "--emit",
+                        next.to_str().unwrap(),
+                        "--json",
+                    ],
+                );
+                assert!(
+                    out.status.success(),
+                    "{}",
+                    String::from_utf8_lossy(&out.stdout)
+                );
+            }
+            "missing-event" => {
+                fs::write(dir.join("journal.jsonl"), b"").unwrap();
+            }
+            "changed-packet" => {
+                let mut altered = serde_json::to_value(&f.dispatch).unwrap();
+                altered["objective"] = json!("Changed task with the old canonical digest");
+                fs::write(
+                    dir.join(format!("dispatches/{}.json", f.dispatch.dispatch_id)),
+                    serde_json::to_vec(&altered).unwrap(),
+                )
+                .unwrap();
+            }
+            "missing-source" => {
+                fs::remove_file(dir.join("atoms/10-intent.md")).unwrap();
+            }
+            _ => unreachable!(),
+        }
+        let journal = fs::read(dir.join("journal.jsonl")).unwrap();
+        let out = war(
+            &f.root,
+            &[
+                "runtime",
+                "binding",
+                "IX-WAR-0003",
+                &f.dispatch.dispatch_id,
+                "--json",
+            ],
+        );
+        let response = value(&out);
+        assert!(
+            response["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == rule && d["severity"] == severity),
+            "{case}: {response}"
+        );
+        assert!(
+            response["result"].get("binding").is_none(),
+            "{case}: {response}"
+        );
+        assert_eq!(fs::read(dir.join("journal.jsonl")).unwrap(), journal);
+        assert!(!f.storage().exists());
+    }
+}
+
+#[test]
+fn blut_recorded_binding_retains_blut_native_field_names() {
+    let f = Fixture::with_executor(1, "blut");
+    let out = war(
+        &f.root,
+        &[
+            "runtime",
+            "binding",
+            "IX-WAR-0003",
+            &f.dispatch.dispatch_id,
+            "--json",
+        ],
+    );
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let result = value(&out)["result"].clone();
+    assert_eq!(result["provider_kind"], "blut");
+    assert_eq!(result["binding"]["stage_id"], f.dispatch.stage_id);
+    assert_eq!(result["binding"]["attempt_id"], f.dispatch.attempt_id);
+    assert!(result["binding"].get("stage").is_none());
+    assert!(result["binding"].get("attempt").is_none());
+    assert_eq!(result["assurance_granted"], false);
 }

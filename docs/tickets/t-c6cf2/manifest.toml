@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-c6cf2` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-c6cf2"
+uuid = "01a12c25-e877-76d0-bde5-be9535a9ae0f"
+title = "Export a current recorded Dispatch binding for native provider execution"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-11T18:07:24Z"
+created_by = "codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

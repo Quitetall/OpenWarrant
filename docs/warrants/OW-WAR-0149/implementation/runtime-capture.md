@@ -135,3 +135,31 @@ source basis, exact recorded Dispatch/compile-event bytes and stage-attempt
 frontier after native verification. Observed changes return UNKNOWN without
 publishing a capture or changing prior evidence. The host still provides writer
 isolation or locking; this read comparison is not atomic launch fencing.
+
+## Export a native binding before execution
+
+```sh
+war runtime binding OW-WAR-0149 <retained-dispatch-id> --json
+```
+
+The reference SDK entry is `openwarrant_cli::runtime_capture::binding`. The pure
+compiler entry `runtime_basis::check_runtime_dispatch_basis` checks current
+source inventory and canonical Dispatch identity without native observations.
+The command derives values from the retained Dispatch and its unique compile
+event, checks current source bytes and milestone membership, rejects a newer
+recorded attempt, and rechecks source/attempt identity before returning. It does
+not append a journal event or create a receipt.
+
+The draft `oh.war/runtime-binding/v1-draft.1` response contains `binding`,
+`provider_kind`, `dispatch_ref`, and `compile_event_ref`. Both native bindings use
+`stage_id` and `attempt_id`, as their actual producer/verifier interfaces define. Existing provider
+formats and digest domains remain unchanged. Callers can pass `result.binding`
+to the native provider interface instead of manually copying five identifiers.
+A fault response has no binding; check the report and refuse missing data.
+
+`execution_eligibility` is always `not-assessed` and `assurance_granted` is false.
+This operation does not check permission to start, select an authenticated
+provider build, deliver task context, enforce a budget or sandbox, or qualify
+execution. Source rechecking detects observed changes; it is not a writer lock
+or proof that local history is authentic. The caller must admit actual execution
+and provide the exact compiled context under the workflow's policy.
