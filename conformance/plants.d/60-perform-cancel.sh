@@ -435,5 +435,66 @@ for PC_CASE in other:dispatch-mismatch resolve:self-completion notjson:not-json 
     fi
 done
 
+# A writer record appears after spawn. Launch contenders together, before
+# any record is visible: admission must cover the probe-to-spawn interval.
+# Keep the winner running until the contenders have answered; otherwise a
+# legitimate later recovery could look like a concurrent second start.
+pc_reset
+PC_MARK="$PC_TMP/racing.marker"
+PC_RACE_OUT="$PC_TMP/racing"
+mkdir -p "$PC_RACE_OUT"
+if python3 - "$PC_WAR" "$PC_ROOT" "$PC_W" "$PC_MARK" "$PC_RACE_OUT" <<'PY'
+import os, pathlib, signal, subprocess, sys, time
+war, root, warrant, marker, output = sys.argv[1:]
+env = dict(os.environ, WRITES_UNTIL_KILLED_MARKER=marker)
+processes = []
+streams = []
+try:
+    for i in range(8):
+        stream = open(pathlib.Path(output) / f"call-{i}.log", "w")
+        streams.append(stream)
+        processes.append(subprocess.Popen(
+            [war, "--root", root, "perform", warrant, "STAGE-001", "--prototype"],
+            env=env, stdout=stream, stderr=subprocess.STDOUT))
+    deadline = time.monotonic() + 60
+    while sum(p.poll() is not None for p in processes) < 7 and time.monotonic() < deadline:
+        time.sleep(0.05)
+    live = [p for p in processes if p.poll() is None]
+    # Read the seven refusals before cancelling the sole admitted command.
+    refused = []
+    for i, p in enumerate(processes):
+        if p.poll() is not None:
+            text = (pathlib.Path(output) / f"call-{i}.log").read_text()
+            refused.append(p.returncode != 0 and (
+                "perform.writer-busy" in text or "perform.writer-alive" in text))
+    admission_ok = len(live) == 1 and len(refused) == 7 and all(refused)
+finally:
+    for p in processes:
+        if p.poll() is None:
+            p.send_signal(signal.SIGTERM)
+    for p in processes:
+        try:
+            p.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            p.kill()
+            p.wait(timeout=20)
+    for stream in streams:
+        stream.close()
+lines = pathlib.Path(marker).read_text().splitlines() if pathlib.Path(marker).exists() else []
+writers = {line.split()[1] for line in lines if line.startswith("performer ")}
+print(f"{len(writers)} fixture writer(s); seven named refusals: {admission_ok}")
+sys.exit(0 if admission_ok and len(writers) == 1 else 1)
+PY
+then
+    if [[ "$(pc_compiled)" == 1 && "$(pc_packets)" == 1 && "$(pc_submissions)" == 0 ]]; then
+        pc_ok "simultaneous starts have one writer" "one writer and Dispatch; seven named refusals before compilation"
+    else
+        pc_fail "simultaneous starts have one writer" "compiled $(pc_compiled), packets $(pc_packets), submissions $(pc_submissions)"
+    fi
+else
+    pc_fail "simultaneous starts have one writer" "the concurrent fixture did not establish one admitted writer and seven refusals"
+fi
+pc_kill_writers "$PC_MARK"
+
 corpus_gone "$PC_ROOT"
 rm -rf "$PC_TMP"

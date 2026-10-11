@@ -1,0 +1,134 @@
+{
+  "warrant": "OW-WAR-0131",
+  "basis_revision": "d5a47d74a3af6e1a4ea94fc89956817fa2dbf3bd",
+  "source_dirty": true,
+  "before": {
+    "exit_codes": [
+      2,
+      2,
+      1,
+      1,
+      2,
+      2,
+      2,
+      1
+    ],
+    "performer_spans_in_marker": {
+      "1632916": [
+        0,
+        290
+      ],
+      "1632920": [
+        2,
+        295
+      ],
+      "1632918": [
+        4,
+        299
+      ],
+      "1632934": [
+        6,
+        294
+      ],
+      "1632941": [
+        8,
+        292
+      ]
+    },
+    "overlapping_performer_pairs": [
+      [
+        "1632916",
+        "1632920"
+      ],
+      [
+        "1632916",
+        "1632918"
+      ],
+      [
+        "1632916",
+        "1632934"
+      ],
+      [
+        "1632916",
+        "1632941"
+      ],
+      [
+        "1632920",
+        "1632934"
+      ],
+      [
+        "1632920",
+        "1632941"
+      ],
+      [
+        "1632918",
+        "1632920"
+      ],
+      [
+        "1632918",
+        "1632934"
+      ],
+      [
+        "1632918",
+        "1632941"
+      ],
+      [
+        "1632934",
+        "1632941"
+      ]
+    ],
+    "performers_started": 5,
+    "max_concurrent": 1,
+    "source_revision": "d5a47d74a3af6e1a4ea94fc89956817fa2dbf3bd",
+    "binary_sha256": "a333e6b6921bef079ab55c21b9d8ace369fdc5831f66ca7665151d1935ea4f4e",
+    "marker_sha256": "d934604d4303383b8ded36821ebdc98d6cb8e7a4f568d28d16422c0cc1991123",
+    "remaining_process_observation": "",
+    "classification": "FAIL: overlapping fixture performers despite max_concurrent=1",
+    "qualification": false
+  },
+  "after": {
+    "exit_codes": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "performer_spans_in_marker": {
+      "2122603": [
+        0,
+        57
+      ]
+    },
+    "overlapping_performer_pairs": [],
+    "performers_started": 1,
+    "max_concurrent": 1,
+    "result": "PASS",
+    "scope": "Eight simultaneous prototype-mode calls in one scratch checkout with fixture actors.",
+    "source_dirty": true,
+    "binary_sha256": "e9117227717624a02122bbf1f0ab31ee90c9d724820692d3632761ca9e885316",
+    "independent_verification": false,
+    "qualification": false
+  },
+  "selected_controls": {
+    "passed": 19,
+    "failed": 0,
+    "scope": "60-perform-cancel.sh, Linux scratch corpora and fake adapter; full-corpus positive check omitted in standalone helper run."
+  },
+  "source_sha256": {
+    "crates/openwarrant-cli/src/perform.rs": "c6ab3736ccdc37053b22668b13eb586cdb3d1be135dbb82a23c5a5bd8f22420f",
+    "conformance/plants.d/60-perform-cancel.sh": "305580e1f2b1dfe9cdfc905cc2679c3ebf50b2c216729ed13da25de2ad5bdb1f",
+    "docs/PERFORM.md": "c00e34c634e41141c8a856d5e110550e668175404ccf579d97547c2bdd33f912"
+  },
+  "independent_verification": false,
+  "qualification": false,
+  "limitations": [
+    "Initial fixed-binary full-corpus check timed out before the concurrent calls: UNKNOWN.",
+    "Full repository gate remains required.",
+    "No macOS runner, real coding model, remote writer, sandbox or human qualification claimed.",
+    "Durable orphan probing remains per stage."
+  ]
+}

@@ -276,6 +276,32 @@ fn perform_one(
         ));
         return Ok(report);
     }
+    // Hold one kernel lock across admission, compilation, spawn and reap.
+    // A writer record alone leaves a probe-to-spawn race between CLI processes.
+    // Lock the existing repository directory: no mutable lock-file identity
+    // or source artifact is introduced. A dead owner releases the lock, but
+    // the durable writer probe below still fences its surviving process group.
+    let _admission = match writer_admission(&repo.root) {
+        Ok(Some(held)) => held,
+        Ok(None) => {
+            if handoff_inner(repo, &dir, alias, stage_id, &mut report, false) {
+                report.push(Diagnostic::error(
+                    "perform.writer-busy",
+                    repo.relative(&dir),
+                    format!("{alias}/{stage_id}: another performer command holds this checkout's writer admission; nothing is compiled or spawned"),
+                ));
+            }
+            return Ok(report);
+        }
+        Err(error) => {
+            report.push(Diagnostic::unknown(
+                "perform.writer-unknown",
+                repo.relative(&dir),
+                format!("{alias}/{stage_id}: exclusive writer admission cannot be established: {error}; nothing is compiled or spawned"),
+            ));
+            return Ok(report);
+        }
+    };
     // OW-WAR-0132: questions, spend and attempts, before anything is compiled.
     // Every refusal that applies is reported, so a run blocked twice says so.
     let Some(kind) = hotline_admitted(repo, &dir, alias, stage_id, &mut report)? else {
@@ -1083,6 +1109,24 @@ enum Liveness {
     Unknown(String),
 }
 
+#[cfg(unix)]
+fn writer_admission(root: &camino::Utf8Path) -> std::io::Result<Option<std::fs::File>> {
+    let held = std::fs::File::open(root)?;
+    match rustix::fs::flock(&held, rustix::fs::FlockOperation::NonBlockingLockExclusive) {
+        Ok(()) => Ok(Some(held)),
+        Err(error) if error == rustix::io::Errno::WOULDBLOCK => Ok(None),
+        Err(error) => Err(error.into()),
+    }
+}
+
+#[cfg(not(unix))]
+fn writer_admission(_: &camino::Utf8Path) -> std::io::Result<Option<std::fs::File>> {
+    Err(std::io::Error::new(
+        std::io::ErrorKind::Unsupported,
+        "this platform has no supported writer admission lock",
+    ))
+}
+
 fn probe(record: &WriterRecord) -> Liveness {
     match group_liveness(record.pgid) {
         Liveness::Alive => match leader_started(record.pid) {
@@ -1108,6 +1152,17 @@ pub(crate) fn handoff(
     alias: &str,
     stage_id: &str,
     report: &mut Report,
+) -> bool {
+    handoff_inner(repo, dir, alias, stage_id, report, true)
+}
+
+fn handoff_inner(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    alias: &str,
+    stage_id: &str,
+    report: &mut Report,
+    retire_gone: bool,
 ) -> bool {
     let dispatches = dir.join(DISPATCHES_DIR);
     let Ok(entries) = std::fs::read_dir(&dispatches) else {
@@ -1172,6 +1227,11 @@ pub(crate) fn handoff(
                 clear = false;
             }
             Liveness::Gone => {
+                // A contender that did not acquire admission may observe,
+                // but cannot retire records underneath the admitted writer.
+                if !retire_gone {
+                    continue;
+                }
                 let _ = std::fs::remove_file(&path);
                 report.push(Diagnostic::pass(
                     "perform.writer-stopped",
