@@ -116,7 +116,14 @@ pub fn permit_with_journals() {
 /// or recording run, whose every read is observed), and no
 /// [`DISABLE_ENV`].
 fn may_use() -> bool {
-    cfg!(unix) && PERMITTED.load(Ordering::Relaxed) && crate::vfs::is_disk() && !disabled_by_env()
+    may_use_if(PERMITTED.load(Ordering::Relaxed))
+}
+
+/// [`may_use`] for a command that did (`true`) or did not permit it: what
+/// a test asks without permitting it for its whole process, whose other
+/// tests read this repository's own tickets.
+fn may_use_if(permitted: bool) -> bool {
+    cfg!(unix) && permitted && crate::vfs::is_disk() && !disabled_by_env()
 }
 
 fn env_on(name: &str) -> bool {
@@ -1066,22 +1073,25 @@ mod tests {
 
     #[test]
     fn hosted_and_recording_runs_never_use_it() {
-        permit();
+        // Never `permit()` here: the flag is the process's, and the other
+        // tests of this binary read this repository's own tickets, whose
+        // cache would then be written under its real git directory.
         // OPENWARRANT_NO_CACHE in the test's own environment would turn it
         // off everywhere, which proves nothing here.
         if disabled_by_env() || !cfg!(unix) {
             return;
         }
-        assert!(may_use());
+        assert!(may_use_if(true));
+        assert!(!may_use_if(false));
         let tree = std::rc::Rc::new(crate::vfs::Tree::new(
             Utf8PathBuf::from("/basis"),
             std::collections::BTreeMap::new(),
             std::collections::BTreeSet::new(),
         ));
-        assert!(!crate::vfs::hosted(tree, may_use));
+        assert!(!crate::vfs::hosted(tree, || may_use_if(true)));
         let recorder = std::rc::Rc::new(std::cell::RefCell::new(crate::vfs::Recorder::default()));
-        assert!(!crate::vfs::recording(recorder, may_use));
-        assert!(may_use());
+        assert!(!crate::vfs::recording(recorder, || may_use_if(true)));
+        assert!(may_use_if(true));
     }
 
     #[test]
