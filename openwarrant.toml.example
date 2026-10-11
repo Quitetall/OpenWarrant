@@ -43,3 +43,29 @@ warrants = "docs/warrants"
 # authoritative merely because it is in Git (§17.2).
 commit = true
 verify_drift = true
+
+# §46.1's nine independence dimensions, for verification performed in this
+# repository. Absent means UNDECLARED, and `war check` says so rather than
+# assume §46.1's mostly-true defaults. Each ingested verdict is still judged on
+# its own flags; this table only lets `war check` report §46.3's minimums.
+#
+# [independence]
+# performer_transcript_blind = true
+# performer_rationale_blind = true
+# separate_writable_workspace = true
+# cannot_modify_subject_artifacts = true
+# cannot_modify_gate_definition = true
+# cannot_modify_gate_fixtures = true
+# separate_context_compilation = true
+# distinct_model_required = false
+# distinct_human_required = false
+#
+# A repository where one person holds every role (a solo owner working through
+# agents) declares that instead, once. It is the same as nine `false`
+# dimensions and claims nothing: no minimum is met, the compliance score does
+# not move, and `war check` states the gap as one note rather than a WARN on
+# every run. A dimension set `true` beside it is refused by name
+# (independence.single-actor-contradicted). docs/VERIFICATION.md.
+#
+# [independence]
+# single_actor = true

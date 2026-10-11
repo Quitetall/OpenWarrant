@@ -60,6 +60,8 @@ mod root_flag;
 mod runtime_capture;
 #[path = "sdk_cli.rs"]
 mod sdk_cli;
+#[path = "single_actor_cli.rs"]
+mod single_actor_cli;
 #[path = "submission_binding_cli.rs"]
 mod submission_binding_cli;
 #[path = "suggested_commands.rs"]

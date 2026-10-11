@@ -43,6 +43,12 @@ Warrant" means a `Warrant:` (or `Warrants:`) line whose id names a directory
 Warrant or a ticket in this checkout; an id that names nothing earns
 nothing.
 
+The score never reads `openwarrant.toml`'s `[independence]`. A tick is
+`verified` only when a verdict by someone other than the performer raised
+it; a declared single actor (`[independence] single_actor = true`,
+docs/VERIFICATION.md) earns nothing, and the score is the same with or
+without it.
+
 The window is the last `[score] window` commits (500 by default) reachable
 from HEAD; with `[adoption] baseline`, commits before the baseline are not
 counted, since nothing governed them.
