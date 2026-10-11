@@ -5,12 +5,14 @@
 # so `war create`/`done` make `war check --generated` fail until someone
 # recompiles". Not so: `war next` renders ready items live from the ticket
 # store (t-67ed kept `actions`, what CURRENT.md and the timeline read,
-# unchanged), and no projection names a ticket. The one path from ticket work
-# to a projection is evidence: the corpus status projects each receipt's
-# admissibility, and a tree-bound receipt is admissible only while the tree it
-# names has not moved — which ticket files do not move (t-5d82). The drift the
-# 2026-09-26 evidence run saw came from receipts and verifications recorded
-# after the last compile, not from a ticket.
+# unchanged). Two paths run from ticket work to a projection. The agent index
+# (Format 1.0 section 10.2, docs/generated/llms.txt) lists each ticket with
+# its state, so the acts that move a ticket's line rewrite the index when the
+# repository keeps one. The other is evidence: the corpus status projects each
+# receipt's admissibility, and a tree-bound receipt is admissible only while
+# the tree it names has not moved — which ticket files do not move (t-5d82).
+# The drift the 2026-09-26 evidence run saw came from receipts and
+# verifications recorded after the last compile, not from a ticket.
 #
 # So this plant holds the whole path over a scratch corpus whose projection
 # depends on the tree: a tree-bound gate, a recorded receipt, compiled and

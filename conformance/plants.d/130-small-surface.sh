@@ -69,7 +69,7 @@ declare -A SS_MEMBERS=(
     [plan]="new promote render impact model state roadmap types type frontier estimate questions ask answer answers"
     [sign]="authorize resolve correct amend attest standing sas inbox authority native-resolve approve release"
     [evidence]="record gate verify prepare run perform go submit kpi mark document eval runtime"
-    [view]="ui tui board console watch overview warrants ready prime timeline"
+    [view]="ui tui board console watch overview warrants ready prime context timeline"
     [admin]="compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat release renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry bonsai blut projects update version merge-ticket preset ledger score"
 )
 SS_BAD=""
@@ -89,13 +89,14 @@ else
 fi
 
 # Every earlier top-level spelling (docs/COMMANDS.md's inventory, 89 with the
-# aliases; `schemas` is a `schema`-feature build's and is left out here):
+# aliases; `schemas` is a `schema`-feature build's and is left out here), and
+# `war context`, the spelling Format 1.0 names, hidden the same way:
 # absent from `war --help`, and answering its own `--help` under its own
 # name, with nothing on stderr (no deprecation warning).
 SS_OLD="new promote render impact model state roadmap frontier questions ask answer answers \
 authorize resolve correct amend attest standing sas inbox authority \
 gate verify prepare run perform submit kpi mark document eval \
-ui tui board console watch overview progress warrants tickets ls ready prime \
+ui tui board console watch overview progress warrants tickets ls ready prime context \
 compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat \
 release renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry \
 bonsai blut projects update version merge-ticket \
@@ -116,7 +117,7 @@ for w in $SS_OLD; do
     esac
 done
 command rm -f "$SS_ERR"
-if [[ -z "$SS_MISS" && $SS_N -eq 88 ]]; then
+if [[ -z "$SS_MISS" && $SS_N -eq 89 ]]; then
     ss_ok "every old spelling, hidden, answers" "$SS_N spellings: none in \`war --help\`, each its own usage, no warning"
 else
     ss_fail "every old spelling, hidden, answers" "$SS_N checked; wrong:$SS_MISS"

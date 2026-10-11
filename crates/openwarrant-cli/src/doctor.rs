@@ -111,6 +111,19 @@ pub fn run(
         "verifier_configured": !repo.config.verify.verifier_argv.is_empty(),
         "backend_probed": false, "signer_custody": "UNKNOWN"
     });
+    // The ticket cache: whether the daily read verbs use it, and where.
+    let cache = crate::ticket::cache::describe(&repo.root);
+    report.note(match cache["dir"].as_str() {
+        Some(dir) => format!(
+            "Ticket cache: in use by `war next`, `war view ready`, `war view tickets`, `war status` and `war claim`, at {dir} (local, never committed; it only answers what is unchanged since it was read). {}=1 turns it off.",
+            crate::ticket::cache::DISABLE_ENV
+        ),
+        None => format!(
+            "Ticket cache: off ({}); every ticket is read from its files.",
+            cache["why"].as_str().unwrap_or("unknown")
+        ),
+    });
+    result["ticket_cache"] = cache;
     // M9: the signing setup, probed without signing anything.
     let (signing, signing_json) = crate::signing_probe::probe(&repo);
     report.diagnostics.extend(signing);

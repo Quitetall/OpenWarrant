@@ -1,0 +1,12 @@
+{
+  "why": "section 3.3: `implements` is a relation of the document's record; its value is targets",
+  "expect": "@implements",
+  "instance": {
+    "format": "openwarrant/1.0",
+    "profile": "delivery",
+    "alias": "OW-WAR-0146",
+    "uuid": "01a0d342-ee5e-7b71-9623-f2d8cd5acd4e",
+    "summary": "A verification bundle carries what each gate printed.",
+    "implements": "the requirement above"
+  }
+}

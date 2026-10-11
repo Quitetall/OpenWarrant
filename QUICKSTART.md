@@ -62,6 +62,19 @@ managed block at its end, between `<!-- openwarrant:begin -->` and
 and touches nothing outside it ([INSTALL](docs/INSTALL.md#the-pointer-block-in-claudemd-and-agentsmd));
 `war admin agents-md --force` would replace the whole file with the full guide.
 
+### One file per Warrant (Format 1.0)
+
+```bash
+war new "Add password reset" --format 1.0   # writes docs/warrants/APP-WAR-0001.md
+war check APP-WAR-0001
+war context APP-WAR-0001                     # what an agent loads to start it
+```
+
+The file is the whole Warrant: frontmatter, `## S-<slug>` sections, and records
+such as `## OBL-001 · obligation`. No manifest or atom directory is needed, and
+directory Warrants keep working beside it. The rules are in
+[docs/format/FORMAT-1.0.md](docs/format/FORMAT-1.0.md).
+
 For legacy approvals, `war sign APP-WAR-0001` shows the exact pending act and asks
 for confirmation. `war view console` supplies a terminal checklist. SSH signing is a
 separate option; terminal confirmation alone is not cryptographic human presence.

@@ -1,0 +1,18 @@
+{
+  "why": "contract.rs ActorKind is serde rename_all lowercase: `policyservice` on the wire, never `policy_service`",
+  "expect": "@acceptance/actor_kind enum",
+  "instance": {
+    "schema": "oh.war/sas-revision/v1",
+    "version": "9.9.9",
+    "source": "docs/sas/X.md",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "state": "accepted",
+    "acceptance": {
+      "accepted_by": "svc",
+      "actor_kind": "policy_service",
+      "acting_role": "policy",
+      "meaning": "m",
+      "effective_time": "2026-10-11T00:00:00Z"
+    }
+  }
+}

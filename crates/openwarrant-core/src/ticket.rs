@@ -53,6 +53,13 @@ pub struct TicketManifest {
     /// The UUIDv7 the id is hashed from.
     pub uuid: String,
     pub title: String,
+    /// Format 1.0 section 10.1: one line, at most 200 bytes, saying what the
+    /// work is for — what an agent reads before deciding to read the rest
+    /// (`war context`, `docs/generated/llms.txt`). Absent from every ticket
+    /// written without one, so those read, and write back, byte for byte;
+    /// their title stands in.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
     pub profile: String,
     #[serde(default = "default_priority")]
     pub priority: u8,
@@ -450,10 +457,16 @@ pub fn is_ticket_id(s: &str) -> bool {
     is_hash_id(s, "t-")
 }
 
-/// `i-` and 3 to 16 of `[0-9a-z]`.
+/// `i-` and 3 to 16 lowercase hex digits (FORMAT-1.0 §5): the tool mints
+/// hex, and an item is never named by hand.
 #[must_use]
 pub fn is_item_id(s: &str) -> bool {
-    is_hash_id(s, "i-")
+    s.strip_prefix("i-").is_some_and(|rest| {
+        (3..=16).contains(&rest.len())
+            && rest
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    })
 }
 
 fn sha_hex(seed: &str) -> String {
@@ -687,7 +700,7 @@ fn split_id_group(text: &str) -> Result<Option<(&str, String, Vec<Blocker>)>, St
     }
     if !is_item_id(first) {
         return Err(format!(
-            "item id {first:?}; an id is i- and 3 to 16 of [0-9a-z]"
+            "item id {first:?}; an id is i- and 3 to 16 lowercase hex digits"
         ));
     }
     let mut after = Vec::new();
@@ -1258,6 +1271,12 @@ mod tests {
         ] {
             assert!(!is_ticket_id(bad) && !is_item_id(bad), "{bad}");
         }
+        // An item id is hex only; a ticket id may be any [0-9a-z].
+        assert!(is_item_id("i-9c01") && is_item_id("i-0123456789abcdef"));
+        for bad in ["i-zzzz", "i-7", "i-9C01", "i-0123456789abcdef0"] {
+            assert!(!is_item_id(bad), "{bad}");
+        }
+        assert!(is_ticket_id("t-zzzz"));
     }
 
     #[test]
@@ -1311,6 +1330,7 @@ mod tests {
             id: "t-3f2a".into(),
             uuid: "0199a0d2-1e89-7990-8b2c-5a43577b5ce5".into(),
             title: "A ticket".into(),
+            summary: None,
             profile: TICKET_PROFILE.into(),
             priority: 2,
             created_at: "2026-09-25T00:00:00Z".into(),
@@ -1367,6 +1387,7 @@ mod tests {
             id: "t-3f2a".into(),
             uuid: "0199a0d2-1e89-7990-8b2c-5a43577b5ce5".into(),
             title: "A ticket".into(),
+            summary: None,
             profile: TICKET_PROFILE.into(),
             priority: 2,
             created_at: "2026-09-25T00:00:00Z".into(),

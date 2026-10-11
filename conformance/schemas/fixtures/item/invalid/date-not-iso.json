@@ -1,0 +1,12 @@
+{
+  "why": "Appendix A `done`: the date is YYYY-MM-DD",
+  "expect": "@done_on pattern",
+  "instance": {
+    "id": "i-4d11",
+    "done": true,
+    "text": "Email template",
+    "after": [],
+    "done_by": "claude",
+    "done_on": "25/09/2026"
+  }
+}

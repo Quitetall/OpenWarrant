@@ -1,0 +1,5 @@
+id = "120-field-duplicate"
+kind = "refuse"
+section = "3.5"
+rule = "format.field-duplicate"
+says = """A field name appears once per record (`format.field-duplicate`)."""

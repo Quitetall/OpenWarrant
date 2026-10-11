@@ -1,0 +1,5 @@
+id = "140-section-missing-decision"
+kind = "refuse"
+section = "4.1"
+rule = "format.section-missing"
+says = """`decision` requires Intent and Basis"""

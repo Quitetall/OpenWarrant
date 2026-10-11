@@ -167,6 +167,7 @@ value of the `--json` envelope, the same under either spelling.
 | `war view warrants` (aliases `tickets`, `ls`) | `war warrants`, `war tickets`, `war ls` | `tickets` |
 | `war view ready` | `war ready` | `ready` |
 | `war view prime` | `war prime` | `prime` |
+| `war view context` (Format 1.0, new) | `war context`, the spelling the format and `llms.txt` name | `context` |
 | `war view timeline` | `war status --timeline` (new name) | `status` |
 
 ### `war admin …`
@@ -227,6 +228,12 @@ value of the `--json` envelope, the same under either spelling.
   the twelve without dropping a verb a person types daily. The block now
   says `war view prime`; a block written earlier says `war prime`, which
   still works.
+- **`context` is under `view`, and `war context` works.** Format 1.0
+  section 10.3 names the command `war context <target>`, and every line of
+  `docs/generated/llms.txt` tells an agent to run it, so the top-level
+  spelling answers, hidden like every member's earlier spelling. It is an
+  agent's read, as `prime` is, and a person types the twelve daily verbs; the
+  help lists it with `prime` under `view` rather than dropping a verb.
 - **`war sign` is both the signature and the group.** clap tells them apart
   cleanly: the group's members are matched only as the first word after
   `sign` (`args_conflicts_with_subcommands`), and no sign target (an alias,

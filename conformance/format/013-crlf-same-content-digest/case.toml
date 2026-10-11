@@ -1,0 +1,4 @@
+id = "013-crlf-same-content-digest"
+kind = "accept"
+section = "9"
+says = """`body` has CRLF replaced by LF ... The same record has the same `content_digest`"""

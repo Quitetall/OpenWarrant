@@ -1,0 +1,5 @@
+id = "125-relation-pin-short"
+kind = "refuse"
+section = "3.6"
+rule = "format.relation-target"
+says = """optionally pinned `@sha256:<64 hex>`"""

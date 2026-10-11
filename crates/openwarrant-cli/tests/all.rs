@@ -14,6 +14,8 @@
 mod authority_transition_cli;
 #[path = "board_cli.rs"]
 mod board_cli;
+#[path = "context_cli.rs"]
+mod context_cli;
 #[path = "diff_target.rs"]
 mod diff_target;
 #[path = "dispatch_bundle_cli.rs"]
@@ -24,6 +26,8 @@ mod doctor_cli;
 mod document_draft;
 #[path = "eval_subject_cli.rs"]
 mod eval_subject_cli;
+#[path = "format_cli.rs"]
+mod format_cli;
 #[path = "frontier_integrity_cli.rs"]
 mod frontier_integrity_cli;
 #[path = "inbox_classify.rs"]
@@ -62,6 +66,8 @@ mod runtime_capture;
 mod sdk_cli;
 #[path = "single_actor_cli.rs"]
 mod single_actor_cli;
+#[path = "ssh_verdicts.rs"]
+mod ssh_verdicts;
 #[path = "submission_binding_cli.rs"]
 mod submission_binding_cli;
 #[path = "suggested_commands.rs"]
@@ -70,6 +76,8 @@ mod suggested_commands;
 mod telemetry_integrity_cli;
 #[path = "tick_ladder_cli.rs"]
 mod tick_ladder_cli;
+#[path = "ticket_cache_cli.rs"]
+mod ticket_cache_cli;
 #[path = "tickets_cli.rs"]
 mod tickets_cli;
 #[path = "verification_subject_cli.rs"]

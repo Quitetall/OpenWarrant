@@ -33,6 +33,21 @@ is `war_prime`, `war_ready`, `war_claim`, `war_done`, `war_create`, `war_add`
 and `war_note`. `war next` lists what is ready; with nothing tracked it says
 "nothing tracked; work freely".
 
+## Loading context
+
+```bash
+war context <id>      # a Warrant, ticket, item (t-x/i-y), record id or file path
+```
+
+`war context` prints what a task needs: the records of its target and the
+records they relate to, each headed by id, type, `path:line` and revision,
+within a byte budget (16000 by default; `--budget <bytes>` or `--tokens <n>`).
+A line marked `[S]` is listed by its one-line summary only; run `war context`
+on its id to read it whole. `docs/generated/llms.txt` lists every id with its
+summary. The same command over the same files prints the same bytes; over
+MCP it is `war_context`. Ordinary coding needs none of this; use it when a
+task names tracked work.
+
 ## Planning with a Warrant (optional)
 
 A Warrant writes a piece of work down before it starts: what it is for, what

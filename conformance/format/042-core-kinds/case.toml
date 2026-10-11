@@ -1,0 +1,4 @@
+id = "042-core-kinds"
+kind = "accept"
+section = "3.6"
+says = """Core kinds, a closed set"""

@@ -155,8 +155,9 @@ pub struct Projection {
     /// Repository-relative.
     pub path: String,
     /// `warrant` (that Warrant's own view), `corpus` (every Warrant's),
-    /// `roadmap` (every phase's) or `declared` (a document's projection that
-    /// selects the subject, OW-WAR-0148 M6).
+    /// `roadmap` (every phase's), `index` (the agent index, Format 1.0
+    /// section 10.2) or `declared` (a document's projection that selects the
+    /// subject, OW-WAR-0148 M6).
     pub scope: String,
     /// The affected records it includes.
     pub selects: Vec<String>,
@@ -471,6 +472,16 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
             "roadmap",
             &p.id,
         );
+    }
+    // Format 1.0 section 10.2: the agent index lists the subject, when it is
+    // not a unit of a work document, and each document holding a reached
+    // record, by its own line.
+    let graph = crate::context::adapter::graph(corpus, model);
+    let index = repo.root.join(crate::context::INDEX_PATH);
+    for id in std::iter::once(subject.id.as_str()).chain(documents.iter().map(|d| d.id.as_str())) {
+        if graph.units.get(id).is_some_and(|u| u.document.is_none()) {
+            include(index.clone(), "index", id);
+        }
     }
     // OW-WAR-0148 M6: the declared projections that select the subject.
     for p in crate::render_cmd::selecting(corpus, model, &subject.id, &reached) {

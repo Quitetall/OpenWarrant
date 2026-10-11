@@ -1,0 +1,4 @@
+id = "010-dotted-relation-kind"
+kind = "accept"
+section = "3.6"
+says = """A dotted kind (`x.mentions`) is an extension kind: carried and inert."""

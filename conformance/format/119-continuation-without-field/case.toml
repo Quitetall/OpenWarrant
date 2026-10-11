@@ -1,0 +1,5 @@
+id = "119-continuation-without-field"
+kind = "refuse"
+section = "3.5"
+rule = "format.attribute"
+says = """a **continuation**, a line beginning with two spaces, which belongs to the field above it"""

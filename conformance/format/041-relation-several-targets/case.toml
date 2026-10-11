@@ -1,0 +1,4 @@
+id = "041-relation-several-targets"
+kind = "accept"
+section = "3.6"
+says = """a **relation**, `<kind> <target>[, <target>]…`"""

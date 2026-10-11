@@ -1,0 +1,4 @@
+id = "049-extension-kind-target-not-reported"
+kind = "accept"
+section = "3.6"
+says = """A dotted kind is an extension kind: carried and inert. `format.target-unknown` does not apply to it."""

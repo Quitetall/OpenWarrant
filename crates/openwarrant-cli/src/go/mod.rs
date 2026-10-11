@@ -224,10 +224,19 @@ pub fn blocked_nodes(tickets: &[Ticket]) -> Vec<BlockedNode> {
     // One journal per open ticket, each read on its own: on the disk they
     // fan out across threads, in ticket order (`vfs::map_ordered`).
     let open: Vec<&Ticket> = tickets.iter().filter(|t| !t.checklist.is_done()).collect();
-    crate::vfs::map_ordered(&open, 256, |t| blocked_of(t))
-        .into_iter()
-        .flatten()
-        .collect()
+    // The ticket cache read them already, from the same journals.
+    if open.iter().all(|t| t.blocked.is_some()) {
+        return open
+            .into_iter()
+            .flat_map(|t| t.blocked.clone().unwrap_or_default())
+            .collect();
+    }
+    crate::vfs::map_ordered(&open, 256, |t| {
+        t.blocked.clone().unwrap_or_else(|| blocked_of(t))
+    })
+    .into_iter()
+    .flatten()
+    .collect()
 }
 
 /// Whether `bytes` could hold a JSON string equal to `word`: it holds `word`
@@ -239,7 +248,7 @@ fn may_name(bytes: &[u8], word: &str) -> bool {
 }
 
 /// The nodes of one open ticket a run set aside, in [`blocked_nodes`]'s order.
-fn blocked_of(t: &Ticket) -> Vec<BlockedNode> {
+pub(crate) fn blocked_of(t: &Ticket) -> Vec<BlockedNode> {
     let mut out = Vec::new();
     // Most journals never name `go.blocked`: those are not parsed. A
     // journal that cannot be read here is loaded below, which reads it

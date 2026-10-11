@@ -1,0 +1,12 @@
+{
+  "why": "priority is 0 to 4",
+  "expect": "@priority pattern",
+  "instance": {
+    "format": "openwarrant/1.0",
+    "profile": "ticket",
+    "alias": "t-0d61d",
+    "uuid": "01a11589-ccbc-766b-9236-0fb33ed32523",
+    "summary": "A ticket.",
+    "priority": "7"
+  }
+}

@@ -1,0 +1,5 @@
+id = "130-id-duplicate-item"
+kind = "refuse"
+section = "3.8"
+rule = "format.id-duplicate"
+says = """Item ids are unique in their document (`format.id-duplicate`)."""

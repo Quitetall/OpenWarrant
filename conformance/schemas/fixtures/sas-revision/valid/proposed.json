@@ -1,0 +1,12 @@
+{
+  "schema": "oh.war/sas-revision/v1",
+  "version": "1.4.0",
+  "source": "docs/sas/X.md",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "state": "proposed",
+  "predecessor": "1.3.0",
+  "requirements": {
+    "WAR-SAS-RQ-001": "text"
+  },
+  "architecture_changing": true
+}

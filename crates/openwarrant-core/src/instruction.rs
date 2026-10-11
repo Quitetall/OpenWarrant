@@ -360,6 +360,7 @@ pub fn block_text(version: &str) -> String {
         "Ordinary coding needs no Warrant and no ticket: work here as in any repository.",
         "OpenWarrant tracks optional plans and checklists in this repository; run",
         "`war view prime` to see what is tracked (open work, who holds what, recent notes).",
+        "`war context <id>` loads what a task needs: a Warrant, item, record id or file, cited by id.",
         &format!("{STAMP_PREFIX}{version} -->"),
         BLOCK_END,
     ]
@@ -535,12 +536,15 @@ mod tests {
     fn a_writer_refuses_two_blocks_an_unterminated_one_and_a_stray_end() {
         let one = block_text("1.0.0");
         let two = format!("{one}\n\nx\n\n{one}\n");
+        // The second block opens on the line after everything before it,
+        // however many lines the block itself holds.
+        let at = two[..two.rfind(one.as_str()).unwrap()]
+            .matches('\n')
+            .count()
+            + 1;
         assert!(matches!(
             upsert(&two, "1.0.0"),
-            Err(BlockError::Duplicate {
-                first: 1,
-                second: 11
-            })
+            Err(BlockError::Duplicate { first: 1, second }) if second == at
         ));
         let open = format!("a\n{BLOCK_BEGIN}\nb\n");
         assert_eq!(

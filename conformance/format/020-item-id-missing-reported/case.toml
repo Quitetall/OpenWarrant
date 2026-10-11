@@ -1,0 +1,4 @@
+id = "020-item-id-missing-reported"
+kind = "accept"
+section = "3.8"
+says = """A box line with no id group is reported (`format.item-id-missing`)"""

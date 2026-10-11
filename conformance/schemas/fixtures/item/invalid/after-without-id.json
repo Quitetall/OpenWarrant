@@ -1,0 +1,11 @@
+{
+  "why": "Appendix A `item`: `after` sits in the id group",
+  "expect": "@after maxItems",
+  "instance": {
+    "done": false,
+    "text": "Email template",
+    "after": [
+      "i-9c01"
+    ]
+  }
+}

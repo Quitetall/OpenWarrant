@@ -1,0 +1,5 @@
+id = "301-context-target-unknown"
+kind = "refuse"
+section = "10.3"
+rule = "context.target-unknown"
+says = """None is refused (`context.target-unknown`)."""

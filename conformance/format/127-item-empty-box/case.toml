@@ -1,0 +1,5 @@
+id = "127-item-empty-box"
+kind = "refuse"
+section = "3.8"
+rule = "format.item"
+says = """`[]` ... refused (`format.item`)"""

@@ -1,0 +1,17 @@
+{
+  "why": "section 3.7: `status` MUST NOT be authored",
+  "expect": "False schema does not allow 'done'",
+  "instance": {
+    "id": "OBL-001",
+    "type": "obligation",
+    "title": "a bundled gate run carries its output",
+    "fields": {
+      "scope": "s",
+      "evidence": "e",
+      "refusal": "r",
+      "status": "done"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

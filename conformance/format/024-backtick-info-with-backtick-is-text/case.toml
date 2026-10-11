@@ -1,0 +1,4 @@
+id = "024-backtick-info-with-backtick-is-text"
+kind = "accept"
+section = "3.9"
+says = """A backtick fence's info string contains no backtick."""

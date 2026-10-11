@@ -389,6 +389,7 @@ pub fn apply(repo: &Repository, store: &Store, import: &Import) -> Result<Outcom
             id: p.id.clone(),
             uuid: p.uuid.clone(),
             title: ticket::one_line(&p.incoming.title),
+            summary: None,
             profile: TICKET_PROFILE.to_owned(),
             priority: p.incoming.priority,
             created_at: p.incoming.created_at.clone(),

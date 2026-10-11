@@ -1,0 +1,5 @@
+id = "146-field-missing-alias"
+kind = "refuse"
+section = "3.3"
+rule = "format.field-missing"
+says = """A missing REQUIRED frontmatter key (`alias` for a work document) is `format.field-missing` at line 1."""

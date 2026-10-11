@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/frontmatter.json",
+  "title": "OpenWarrant Format 1.0: document frontmatter",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md sections 3.2, 3.3, 7.2 and 7.3. Where this schema and the prose disagree, the prose wins and this schema is the defect. It describes the frontmatter of any Format 1.0 document (a single-file Warrant, a ticket, or a record document) as the JSON object a reader holds after reading the frontmatter subset: each `key: scalar` a string, each `key:` list an array of strings, keys as written (dotted keys unsplit). The bytes are Appendix A's to describe: this schema does not see comments, quoting, duplicate keys or the fences, which a reader refuses as `format.frontmatter`. A document with an `alias` is a work document and also has `uuid` and `summary`. Under `format: openwarrant/1.0`, an undotted key that neither section 3.3 nor a built-in profile (`delivery`, `decision`, `ticket`) declares is refused (`format.key-unknown`); under a later 1.x minor it is ignored (section 7.2). The undotted keys of any other profile are that profile's to declare and are not constrained here.",
+  "type": "object",
+  "required": ["format", "profile"],
+  "propertyNames": { "$ref": "common.json#/$defs/name" },
+  "properties": {
+    "format": {
+      "description": "Sections 3.3 and 6: `openwarrant/<major>.<minor>`. This schema describes major 1.",
+      "type": "string",
+      "pattern": "^openwarrant/1\\.(0|[1-9][0-9]*)$"
+    },
+    "profile": {
+      "description": "The profile that governs the document, by name.",
+      "$ref": "common.json#/$defs/word"
+    },
+    "alias": {
+      "description": "The repository-local id. Its presence makes the document a work document.",
+      "$ref": "common.json#/$defs/alias"
+    },
+    "uuid": { "$ref": "common.json#/$defs/uuidv7" },
+    "summary": {
+      "description": "One line, at most 200 bytes, saying what the work is for.",
+      "allOf": [{ "$ref": "common.json#/$defs/line" }],
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "paths": {
+      "description": "Repository globs the work touches (section 10.3).",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "implements": { "$ref": "#/$defs/relationTargets" },
+    "depends_on": { "$ref": "#/$defs/relationTargets" },
+    "supersedes": { "$ref": "#/$defs/relationTargets" },
+    "part_of": { "$ref": "#/$defs/relationTargets" },
+    "requires": {
+      "description": "Section 7.3: extension names a reader must understand. Each is a dotted (extension) name.",
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/dotted" }
+    }
+  },
+  "additionalProperties": {
+    "description": "Any other key: a dotted extension key (carried in the model as `ext`), a key a profile declares, or an undotted key a later 1.x minor defines. Its value is a scalar or a flat list.",
+    "$ref": "common.json#/$defs/fieldValue"
+  },
+  "allOf": [
+    {
+      "description": "Section 3.3: a work document has an alias, a uuid and a summary.",
+      "if": { "required": ["alias"] },
+      "then": { "required": ["uuid", "summary"] }
+    },
+    {
+      "description": "Sections 2 and 4.1: a ticket is a work document with the `ticket` profile.",
+      "if": { "required": ["profile"], "properties": { "profile": { "const": "ticket" } } },
+      "then": { "required": ["alias"] }
+    },
+    {
+      "description": "Section 3.3: the built-in `delivery` profile declares `assurance_level`.",
+      "if": { "required": ["profile"], "properties": { "profile": { "const": "delivery" } } },
+      "then": {
+        "properties": {
+          "assurance_level": {
+            "description": "The prose names the key, not its values; the values are those the reference reader admits ($comment).",
+            "$comment": "crates/openwarrant-core/src/manifest.rs:84 `AssuranceLevel` (basic, controlled, high).",
+            "enum": ["basic", "controlled", "high"]
+          }
+        }
+      }
+    },
+    {
+      "description": "Section 3.3: the built-in `ticket` profile declares `type`, `priority`, `labels`, `created_at`, `created_by`, `imported_from`, `promoted_to`, `issue`, `issue_url` and `due`.",
+      "if": { "required": ["profile"], "properties": { "profile": { "const": "ticket" } } },
+      "then": {
+        "properties": {
+          "type": {
+            "description": "One of the types the ticket profile declares in `[fields] types` (profiles/ticket.toml). The set is the profile's; here, a word.",
+            "$ref": "common.json#/$defs/word"
+          },
+          "priority": {
+            "description": "0 (most urgent) to 4.",
+            "$comment": "crates/openwarrant-cli/src/ticket/mod.rs:1306 refuses a priority above 4; crates/openwarrant-core/src/ticket.rs:39 defaults it to 2.",
+            "type": "string",
+            "pattern": "^[0-4]$"
+          },
+          "labels": {
+            "description": "Free labels, unless the profile closes the set (`[fields] labels_closed`).",
+            "type": "array",
+            "items": { "type": "string", "pattern": "^\\S+$" }
+          },
+          "created_at": { "$ref": "common.json#/$defs/timestamp" },
+          "created_by": {
+            "description": "The actor that created the ticket.",
+            "type": "string",
+            "minLength": 1
+          },
+          "imported_from": {
+            "description": "`<format>:<id>` of the record the work was imported from.",
+            "$comment": "crates/openwarrant-core/src/ticket.rs `imported_from` (`beads:bd-a1b2`, `openspec:add-2fa`).",
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*:\\S+$"
+          },
+          "promoted_to": {
+            "description": "The alias of the Warrant the ticket was promoted to.",
+            "$ref": "common.json#/$defs/alias"
+          },
+          "issue": {
+            "description": "The number of the tracker issue the ticket mirrors.",
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "issue_url": { "type": "string", "pattern": "^https?://\\S+$" },
+          "due": { "$ref": "common.json#/$defs/date" }
+        }
+      }
+    },
+    {
+      "description": "Section 7.2: under `openwarrant/1.0`, an undotted key a built-in profile does not declare is refused.",
+      "if": { "required": ["format"], "properties": { "format": { "const": "openwarrant/1.0" } } },
+      "then": { "$ref": "#/$defs/knownKeysUnder10" }
+    }
+  ],
+  "$defs": {
+    "coreKey": {
+      "enum": ["format", "profile", "alias", "uuid", "summary", "paths", "requires", "implements", "depends_on", "supersedes", "part_of"]
+    },
+    "relationTargets": {
+      "description": "Section 3.3: a relation of the document's own record (`implements`, `depends_on`, `supersedes`, `part_of`), not a field: one target, `, `-separated targets, or a list. A target that does not parse is refused (`format.relation-target`).",
+      "anyOf": [
+        { "type": "string", "pattern": "^\\S+(, \\S+)*$" },
+        { "type": "array", "items": { "type": "string", "pattern": "^\\S+$" } }
+      ]
+    },
+    "knownKeysUnder10": {
+      "$comment": "A profile other than the three built-in ones declares its own undotted keys. Profile files (oh.war/profile/v1) have no member that declares frontmatter keys yet, so nothing narrower is said for them here.",
+      "allOf": [
+        {
+          "if": { "required": ["profile"], "properties": { "profile": { "const": "delivery" } } },
+          "then": {
+            "propertyNames": {
+              "anyOf": [
+                { "$ref": "common.json#/$defs/dotted" },
+                { "$ref": "#/$defs/coreKey" },
+                { "const": "assurance_level" }
+              ]
+            }
+          }
+        },
+        {
+          "if": { "required": ["profile"], "properties": { "profile": { "const": "decision" } } },
+          "then": {
+            "propertyNames": {
+              "anyOf": [{ "$ref": "common.json#/$defs/dotted" }, { "$ref": "#/$defs/coreKey" }]
+            }
+          }
+        },
+        {
+          "if": { "required": ["profile"], "properties": { "profile": { "const": "ticket" } } },
+          "then": {
+            "propertyNames": {
+              "anyOf": [
+                { "$ref": "common.json#/$defs/dotted" },
+                { "$ref": "#/$defs/coreKey" },
+                { "enum": ["type", "priority", "labels", "created_at", "created_by", "imported_from", "promoted_to", "issue", "issue_url", "due"] }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,5 @@
+id = "148-doc-target-dotdot"
+kind = "refuse"
+section = "A"
+rule = "format.relation-target"
+says = """path = a repository-relative path, "/"-separated, no ".." ; a target that does not parse is refused (`format.relation-target`, 3.6)."""

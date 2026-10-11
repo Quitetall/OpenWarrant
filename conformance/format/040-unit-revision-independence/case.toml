@@ -1,0 +1,4 @@
+id = "040-unit-revision-independence"
+kind = "accept"
+section = "5"
+says = """Editing one unit moves its revision and no other."""

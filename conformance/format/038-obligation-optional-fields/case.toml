@@ -1,0 +1,4 @@
+id = "038-obligation-optional-fields"
+kind = "accept"
+section = "3.7"
+says = """`scope_kind` ... `criticality` `required` (default) or `advisory`"""

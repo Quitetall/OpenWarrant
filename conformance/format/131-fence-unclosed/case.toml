@@ -1,0 +1,5 @@
+id = "131-fence-unclosed"
+kind = "refuse"
+section = "3.9"
+rule = "format.fence-unclosed"
+says = """An unclosed fence is refused (`format.fence-unclosed`)."""

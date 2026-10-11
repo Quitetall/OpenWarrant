@@ -1,0 +1,4 @@
+id = "034-item-implements"
+kind = "accept"
+section = "3.8"
+says = """`implements <id>` in the text is a relation."""

@@ -1,0 +1,4 @@
+id = "006-records-document"
+kind = "accept"
+section = "3.4"
+says = """A heading `## <id> · <type> — <title>` opens a record."""

@@ -1,0 +1,10 @@
+{
+  "why": "section 4.2: the manifest MUST NOT carry a key the frontmatter defines",
+  "expect": "@ not: {'profile': 'delivery'",
+  "instance": {
+    "profile": "delivery",
+    "context": {
+      "budget": 24000
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "oh.war/model/v1",
+  "format": "openwarrant/1.0",
+  "basis_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "records": [],
+  "relations": [],
+  "states": [],
+  "diagnostics": [],
+  "x.future": "a consumer ignores members it does not know"
+}

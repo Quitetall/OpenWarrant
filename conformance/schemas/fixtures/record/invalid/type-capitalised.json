@@ -1,0 +1,12 @@
+{
+  "why": "Appendix A `record-head`: a type is a lowercase word or a dotted name",
+  "expect": "@type",
+  "instance": {
+    "id": "REQ-pr1",
+    "type": "Requirement",
+    "title": "a reset link expires",
+    "fields": {},
+    "relations": [],
+    "body": ""
+  }
+}

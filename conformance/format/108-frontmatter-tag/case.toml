@@ -1,0 +1,5 @@
+id = "108-frontmatter-tag"
+kind = "refuse"
+section = "3.2"
+rule = "format.frontmatter"
+says = """tags"""

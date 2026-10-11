@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/item.json",
+  "title": "OpenWarrant Format 1.0: checklist item",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 3.8 and Appendix A `item`. Where this schema and the prose disagree, the prose wins and this schema is the defect. One item line `- [ ] <text> (<item-id>[, after <ref>]…)[ — done by <actor>, <YYYY-MM-DD>[: <note>]]` as a reader holds it: `done` is the box (`[x]` and `[X]` are done, `[ ]` open), `after` each `after` reference in order, and `done_by`, `done_on` and `note` the optional completion. `implements <id>` in the text is a relation (section 3.8), listed in `implements`. A box line with no id group is reported (`format.item-id-missing`) and has no `id`; a writer assigns one. Boxes other than `[ ]`, `[x]` and `[X]` are refused (`format.item`) and never reach this shape.",
+  "type": "object",
+  "required": ["done", "text", "after"],
+  "properties": {
+    "id": { "$ref": "common.json#/$defs/itemId" },
+    "done": { "type": "boolean" },
+    "text": { "$ref": "common.json#/$defs/line" },
+    "after": {
+      "description": "Appendix A `item-ref`: an item, a ticket, or another ticket's item.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(i-[0-9a-f]+|([A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+|t-[0-9a-f]+)(/i-[0-9a-f]+)?)$"
+      }
+    },
+    "implements": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/ref" }
+    },
+    "done_by": {
+      "description": "The actor that ticked the box.",
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^,\\n\\r]+$"
+    },
+    "done_on": { "$ref": "common.json#/$defs/date" },
+    "note": { "$ref": "common.json#/$defs/line" }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "description": "Appendix A `done`: only a done item carries a completion.",
+      "if": { "properties": { "done": { "const": false } } },
+      "then": {
+        "properties": { "done_by": false, "done_on": false, "note": false }
+      }
+    },
+    {
+      "description": "Appendix A `done`: `done by <actor>, <date>` come together, and a note follows them.",
+      "dependentRequired": {
+        "done_by": ["done_on"],
+        "done_on": ["done_by"],
+        "note": ["done_by", "done_on"]
+      }
+    },
+    {
+      "description": "Appendix A `item`: an `after` reference sits in the id group, so an item without an id has none.",
+      "if": { "not": { "required": ["id"] } },
+      "then": { "properties": { "after": { "maxItems": 0 } } }
+    }
+  ]
+}

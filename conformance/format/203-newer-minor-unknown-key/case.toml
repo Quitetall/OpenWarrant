@@ -1,0 +1,5 @@
+id = "203-newer-minor-unknown-key"
+kind = "unknown"
+section = "7.2"
+rule = "format.newer-minor"
+says = """An undotted name neither this format nor the profile defines is refused ..., unless the document declares a newer minor ...; then it is ignored and reported `UNKNOWN`."""

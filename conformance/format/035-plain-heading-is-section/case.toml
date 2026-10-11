@@ -1,0 +1,4 @@
+id = "035-plain-heading-is-section"
+kind = "accept"
+section = "3.4"
+says = """Any other `## <name>` heading opens a section."""
