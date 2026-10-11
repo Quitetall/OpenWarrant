@@ -1298,11 +1298,12 @@ mod tests {
             "{}",
             r.diagnostics[0].message
         );
+        // Plain `war init` writes no example: the format is named instead.
         assert!(
             r.diagnostics[0]
                 .message
-                .contains(&format!("copy {}", repo.root.join(ROLES_EXAMPLE))),
-            "an absent register points at the example beside it: {}",
+                .contains("OpenWarrant's docs/authority/roles.toml.example"),
+            "{}",
             r.diagnostics[0].message
         );
         assert!(
@@ -1313,6 +1314,29 @@ mod tests {
             r.diagnostics[1].message
         );
         assert!(register_grants_nobody(&repo));
+
+        // With the example beside it, an absent register points at it by path.
+        std::fs::create_dir_all(root.join("docs/authority")).unwrap();
+        std::fs::copy(
+            Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../docs/authority/roles.toml.example"),
+            root.join(ROLES_EXAMPLE),
+        )
+        .unwrap();
+        let mut r = Report::default();
+        r.push(Diagnostic::error(
+            "sign.who",
+            "x",
+            format!("{NO_ELIGIBLE}: docs/authority/roles.toml gives the role to nobody"),
+        ));
+        finish(&repo, &mut r);
+        assert!(
+            r.diagnostics[0]
+                .message
+                .contains(&format!("copies {}", repo.root.join(ROLES_EXAMPLE))),
+            "an absent register points at the example beside it: {}",
+            r.diagnostics[0].message
+        );
 
         // Present, naming signers, none eligible for the act: said as such,
         // at the same resolved path, and not read as an absent register.
