@@ -12,7 +12,8 @@
     "docs/warrants/OW-WAR-0090/implementation/dependency-currency-20261010/README.md",
     "docs/warrants/OW-WAR-0090/implementation/board-shared-corpus-20261010/README.md",
     "docs/releases/qualification-20261011/packaging-corrected-47cc/observation.json",
-    "docs/releases/qualification-20261011/native-2692/observation.json"
+    "docs/releases/qualification-20261011/native-2692/observation.json",
+    "docs/warrants/OW-WAR-0090/implementation/review-inventory-20261011/observation.json"
   ],
   "next_steps": [
     "Finish workflow lifecycle, independent verification and required real integrations.",
