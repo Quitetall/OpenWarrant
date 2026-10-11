@@ -4,6 +4,7 @@ use super::*;
 use std::{fs, path::Path};
 
 #[derive(Serialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct ResultPacket {
     pub schema: &'static str,
     pub response: Response,

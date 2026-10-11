@@ -40,6 +40,7 @@ pub struct HostEnrollment {
 /// Exact policy observations for a future versioned native acceptance response.
 /// Deserializing these identifiers does not authenticate a host or grant access.
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(deny_unknown_fields)]
 pub struct NativePolicyBinding {
     pub schema: String,

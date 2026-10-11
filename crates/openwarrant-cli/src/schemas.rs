@@ -159,6 +159,7 @@ fn file_path(root: &Utf8Path, record: &str) -> Utf8PathBuf {
 pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let (files, pack) = render_all()?;
+    let native = crate::resolution_cmd::native::schema::render()?;
     // Candidate publication is separate from the frozen active pack. Adding a
     // second record format must not silently rebind existing contract digests.
     let candidate_path = repo.root.join(PACK_DIR).join("oh.war/verification/v2.json");
@@ -217,7 +218,18 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
         }
     };
     report.notes.push("verification/v2.json is a candidate publication outside the active 0.2.0 pack; it does not adopt the format or change contract identity".into());
+    report.notes.push("schemas/native-draft is a separate experimental pack of canonical producer shapes, examples and structural TypeScript; validation grants no authority or assurance and does not change the active pack".into());
     if check {
+        for (name, text) in &native {
+            compare(
+                &repo
+                    .root
+                    .join(crate::resolution_cmd::native::schema::PACK_DIR)
+                    .join(name),
+                text,
+                &mut report,
+            );
+        }
         for (record, text) in &files {
             compare(&file_path(&repo.root, record), text, &mut report);
         }
@@ -278,6 +290,22 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
     })?;
     for (name, text) in &typescript {
         let path = type_dir.join(name);
+        std::fs::write(&path, text).map_err(|source| RepoError::Io {
+            context: format!("could not write {path}"),
+            source,
+        })?;
+    }
+    for (name, text) in native {
+        let path = repo
+            .root
+            .join(crate::resolution_cmd::native::schema::PACK_DIR)
+            .join(name);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|source| RepoError::Io {
+                context: format!("could not create {parent}"),
+                source,
+            })?;
+        }
         std::fs::write(&path, text).map_err(|source| RepoError::Io {
             context: format!("could not write {path}"),
             source,

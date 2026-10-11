@@ -7,12 +7,15 @@ use crate::runtime_capture::{Fault, Selection, native_host::NativeAssessment};
 use openwarrant_core::runtime_collector::Fault as CryptoFault;
 use std::time::Duration;
 
+#[cfg(feature = "schema")]
+pub mod schema;
 pub mod signing;
 
 pub const RESPONSE_SCHEMA: &str = "oh.war/native-resolution-response/v2-draft.1";
 pub const RECORD_SCHEMA: &str = "oh.war/resolution/v2-draft.1";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(deny_unknown_fields)]
 pub struct Response {
     pub schema: String,
