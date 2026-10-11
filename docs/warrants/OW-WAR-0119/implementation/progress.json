@@ -1,0 +1,16 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0119",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "47cc456348ae0ebe4291177647b6f563fb191c21",
+  "summary": "Observed 32 hosted identity controls and 10 focused identity/BLUT tests passing. Original 23 ADR identities preserved; current 36-ADR population explicitly bounded. Independent review and human resolution remain pending.",
+  "notes": "docs/warrants/OW-WAR-0119/implementation/identity-controls-20261011/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0119/implementation/identity-controls-20261011/observation.json"
+  ],
+  "next_steps": [
+    "Independent reviewer assesses all five obligations against retained exact sources and observed refusal cases.",
+    "Reconcile governed delivery evidence and obtain human resolution when eligible."
+  ]
+}

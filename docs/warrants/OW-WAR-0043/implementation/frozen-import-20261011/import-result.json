@@ -1,0 +1,17 @@
+commit                        0e0e04a7a6cff7901c073c27cc233d9af9f11664
+ADRs imported                 173
+historical claims             82
+promoted resolutions          0   (OBL-003 expects 0)
+legacy_declared_unqualified   101
+preservation failures         0   (OBL-002 expects 0)
+unmapped elements             227 distinct / 267 occurrence(s)
+  batch     7  Gate
+  batch     7  Reversal triggers
+  batch     6  Reservation
+  batch     5  Build gate
+  batch     4  Anti-re-litigation clause
+  batch     4  Anti-reinvention
+  batch     4  Cross-references
+  batch     3  Non-goals / stays forbidden
+  batch     3  Rollback
+  212 singleton(s) need one disposition each (T2)

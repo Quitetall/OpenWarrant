@@ -1,0 +1,30 @@
+{
+  "performer": "agent://codex",
+  "source": "47cc456348ae0ebe4291177647b6f563fb191c21",
+  "corpus_and_procedure_source": "e7b853275580f3696f830d75685826efaa9ad73c",
+  "archive_sha256": "2646a69bfbdf62399028a57c580799b223b3f899216287c6ba9e68d049d3f96e",
+  "binary_sha256": "8f9a3b0587c1757f049cae2c2e341421bd21a263a495cef2de0fe5d5b80d68e7",
+  "hosted_controls_pass": 11,
+  "hosted_controls_fail": 0,
+  "source_manifest": [
+    {
+      "path": "tools/friction/measure.sh",
+      "sha256": "8d45ce246ade7384c71281cd35c09a46a71231d97c21c6d9238afbfb9782d672"
+    },
+    {
+      "path": "docs/friction/baseline-1.json",
+      "sha256": "319ccd902ae0c4ec76150d30e2f12e2df33edcda94425e710ff2d7ae65fbce6f"
+    },
+    {
+      "path": "docs/friction/baseline-2.json",
+      "sha256": "95efdb5ffca0c7bb0688f8cfe0240a5bb8cdaeaff17e942a5db8d2285ac97937"
+    },
+    {
+      "path": "docs/FRICTION.md",
+      "sha256": "ae7d80f443756c70e11e598c955354cbca58cb969d087c55ab37624422619fb2"
+    }
+  ],
+  "human_time_measured": false,
+  "target_achievement_established": false,
+  "independent_verification": false
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "error",
+  "diagnostics": [
+    {
+      "severity": "error",
+      "rule": "cli.error",
+      "file": null,
+      "message": "a legacy completion line for \"0057-training-campaign-plan.md\" was promoted to a verified resolution with no admissible evidence. §96.3: it remains a HISTORICAL CLAIM, not a newly verified WAR resolution"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 1
+}

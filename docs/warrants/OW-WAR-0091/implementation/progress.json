@@ -4,9 +4,11 @@
   "work_state": "blocked",
   "reported_by": "agent://codex",
   "revision": "9d005a1e08aafb60fd9b1ef0f11f2a300a1cf9fab2ebc9bd5dc519e7794fe9bc",
-  "summary": "Publication runbook prepared; blocked by incomplete OW90 qualification and absent exact release permission. No tag or release published.",
+  "summary": "Publication runbook and successful Linux/macOS packaging rehearsal retained. Stable publication remains blocked by incomplete OW90 qualification and final release authorization. No new tag or release published.",
   "notes": "docs/warrants/OW-WAR-0091/implementation/notes.md",
-  "evidence": [],
+  "evidence": [
+    "docs/warrants/OW-WAR-0091/implementation/native-rehearsal-20261011/run.json"
+  ],
   "next_steps": [
     "Complete four-phase qualification under OW90.",
     "Prepare exact release subject and owner permission request.",
