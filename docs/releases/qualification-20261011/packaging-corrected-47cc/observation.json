@@ -1,0 +1,130 @@
+{
+  "reported_by": "agent://codex",
+  "run_id": 38149192266,
+  "source_head": "47cc456348ae0ebe4291177647b6f563fb191c21",
+  "archives": [
+    {
+      "archive": "openwarrant-codex-completion-audit-darwin-arm64.tar.gz",
+      "sha256": "0643fcbf8fc2f7e6eb4361a4701777a0d9530b796b63239ec93e7776034259bf",
+      "host": "Darwin",
+      "architecture": "arm64",
+      "source_git_head": "47cc456348ae0ebe4291177647b6f563fb191c21",
+      "entries": 365,
+      "binary_version": "war 1.0.0-alpha.3 (unreleased, commit 47cc456348ae)",
+      "binary_source_linkage": "caller-supplied-unestablished",
+      "sdk_source_sha256": "a75459501ed95a28d7bb4d28f4756b6794a838616ce6989cdd68bc525a5b868a",
+      "hosted_commands": {
+        "installed-skill-links": 0,
+        "version": 0,
+        "sdk-example": 0,
+        "interactive": 0,
+        "prototype-init": 0,
+        "prototype-new": 0,
+        "prototype-compile": 0,
+        "prototype-overview": 0
+      },
+      "qualified": false,
+      "promotable": false
+    },
+    {
+      "archive": "openwarrant-codex-completion-audit-linux-x86_64.tar.gz",
+      "sha256": "2646a69bfbdf62399028a57c580799b223b3f899216287c6ba9e68d049d3f96e",
+      "host": "Linux",
+      "architecture": "x86_64",
+      "source_git_head": "47cc456348ae0ebe4291177647b6f563fb191c21",
+      "entries": 366,
+      "binary_version": "war 1.0.0-alpha.3 (unreleased, commit 47cc456348ae)",
+      "binary_source_linkage": "caller-supplied-unestablished",
+      "sdk_source_sha256": "a75459501ed95a28d7bb4d28f4756b6794a838616ce6989cdd68bc525a5b868a",
+      "hosted_commands": {
+        "installed-skill-links": 0,
+        "version": 0,
+        "sdk-example": 0,
+        "interactive": 0,
+        "prototype-init": 0,
+        "prototype-new": 0,
+        "prototype-compile": 0,
+        "prototype-overview": 0
+      },
+      "qualified": false,
+      "promotable": false
+    }
+  ],
+  "matching_ir_sha256": "f201839a49c2116f512fb95aea81652b8427e8e6857bd62b3784098cd8f7159b",
+  "ir_entries": 145,
+  "matching_sdk_payload": true,
+  "downloaded_linux_replay": {
+    "passed": true,
+    "receipt": "downloaded-linux-install.json",
+    "qualification_established": false
+  },
+  "wrong_checksum_control": {
+    "exit_code": 1,
+    "refusal": "ValueError: Archive checksum mismatch",
+    "receipt_written": false
+  },
+  "checker_sha256": "a2adcb5c23b60d5a46e178dff44a721ed0cec52a7a29b6477caacf6f933f2ad1",
+  "publication": "SKIPPED",
+  "model_calls": 0,
+  "independent_qualification_established": false,
+  "limitations": [
+    "Native binary/source linkage is explicitly caller-supplied-unestablished in the package; successful CI and hashes do not provide independent build provenance.",
+    "Only downloaded Linux walkthrough replayed locally; macOS walkthrough is the actual hosted observation.",
+    "Phase exits, real users, independent review, secure human acceptance and publication permission remain separate."
+  ],
+  "retained_original_artifacts": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-kf-recovery-20261010/integration-20261011/native-packaging-47cc-20261011/original-artifacts",
+  "retained_files": {
+    "candidate-aarch64-apple-darwin.json.gz": {
+      "sha256": "de060d61dbae63dc231e195211e370278515f0869c83c682e6645af7a91a3fc5",
+      "bytes": 10577
+    },
+    "install-aarch64-apple-darwin.json.gz": {
+      "sha256": "0f7263ec5eeae93694e6720be1151d5a27ea37bc319d56eaf5473e30135a78cc",
+      "bytes": 12601
+    },
+    "candidate-x86_64-unknown-linux-gnu.json.gz": {
+      "sha256": "17280b232eb613c1fc26515458e4a8da68c9d02c00d0eef3666236f9e097cc19",
+      "bytes": 10532
+    },
+    "install-x86_64-unknown-linux-gnu.json.gz": {
+      "sha256": "8bf02536a977e26289271b51335a177f9fa108f14a1206b4e24b5ab9ae60eca6",
+      "bytes": 12513
+    },
+    "ir-aarch64-apple-darwin.sha256": {
+      "sha256": "f201839a49c2116f512fb95aea81652b8427e8e6857bd62b3784098cd8f7159b",
+      "bytes": 16095
+    },
+    "ir-x86_64-unknown-linux-gnu.sha256": {
+      "sha256": "f201839a49c2116f512fb95aea81652b8427e8e6857bd62b3784098cd8f7159b",
+      "bytes": 16095
+    },
+    "downloaded-linux-install.json.gz": {
+      "sha256": "97ac2908f3ea598aaa6764225672b7e26e18270b1f6df59518e338e0d5699699",
+      "bytes": 12542
+    },
+    "hosted-release.log.gz": {
+      "sha256": "98de566092e77d9a34526d67697e79a8f32bb5cafba0545f6bc466c5526e4f1f",
+      "bytes": 231204
+    },
+    "run.json.gz": {
+      "sha256": "ae0ae58474663cc1c62bcd80d284519f5f650c14b7e9a19993388073af0c8755",
+      "bytes": 1190
+    },
+    "run-detail.json.gz": {
+      "sha256": "1b498ca1136b8e9567baf24e57c9cb8b4c84faca4cf428afbaa4eea591033c6b",
+      "bytes": 1684
+    },
+    "artifacts.json.gz": {
+      "sha256": "8c9876336e4deb062138385cf907a7c654aec0111860ccd1d529628d2be5fb8a",
+      "bytes": 732
+    },
+    "wrong-sha.stderr": {
+      "sha256": "3f26543a1207dcfecdd4cd612377d88277990e26b4a62137fefd1aa64c7ada4e",
+      "bytes": 666
+    },
+    "downloaded-linux-install.log": {
+      "sha256": "f35015691735799122e8dd7d31db72c6db9c5989a0610e8abdf73bd905b76114",
+      "bytes": 147
+    }
+  }
+}

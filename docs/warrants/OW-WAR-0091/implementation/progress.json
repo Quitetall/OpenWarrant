@@ -3,11 +3,12 @@
   "warrant": "OW-WAR-0091",
   "work_state": "blocked",
   "reported_by": "agent://codex",
-  "revision": "9d005a1e08aafb60fd9b1ef0f11f2a300a1cf9fab2ebc9bd5dc519e7794fe9bc",
-  "summary": "Publication runbook and successful Linux/macOS packaging rehearsal retained. Stable publication remains blocked by incomplete OW90 qualification and final release authorization. No new tag or release published.",
+  "revision": "47cc456348ae0ebe4291177647b6f563fb191c21",
+  "summary": "Publication runbook and corrected native Linux/macOS packaging rehearsal pass at the retained 47cc4563 subject. All publication steps were skipped; this creates no tag or release. Stable publication remains blocked by OW90, exact release permission and independent build/download qualification.",
   "notes": "docs/warrants/OW-WAR-0091/implementation/notes.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0091/implementation/native-rehearsal-20261011/run.json"
+    "docs/warrants/OW-WAR-0091/implementation/native-rehearsal-20261011/run.json",
+    "docs/releases/qualification-20261011/packaging-corrected-47cc/observation.json"
   ],
   "next_steps": [
     "Complete four-phase qualification under OW90.",
