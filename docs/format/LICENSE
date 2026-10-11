@@ -1,0 +1,23 @@
+OpenWarrant Format specification text
+Copyright 2026 Brian Lam
+
+The text of the OpenWarrant Format specification in this directory
+(docs/format/: FORMAT-*.md, README.md, GOVERNANCE.md) is licensed under the
+Creative Commons Attribution 4.0 International License (CC BY 4.0).
+
+You are free to share and adapt the text for any purpose, including
+commercially, provided you give appropriate credit, provide a link to the
+license, and indicate if changes were made.
+
+Human-readable summary: https://creativecommons.org/licenses/by/4.0/
+Legal code (the binding terms): https://creativecommons.org/licenses/by/4.0/legalcode
+
+Attribution: "OpenWarrant Format, by Brian Lam, CC BY 4.0", with a link to
+the source repository and the version used.
+
+Not covered by this license: code. The grammar (FORMAT-1.0 Appendix A), the
+JSON schemas under schemas/, the conformance corpus under conformance/, the
+code examples in the specification, and all software in this repository are
+licensed under the Apache License, Version 2.0 (see the LICENSE and NOTICE
+files at the repository root). Implementing the format requires no license
+beyond these.
