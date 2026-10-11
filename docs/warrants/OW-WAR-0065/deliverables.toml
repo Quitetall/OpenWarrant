@@ -14,13 +14,13 @@ provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
-producer = "claude"
-producing_attempt = "OW-WAR-0065/attempt-1"
-contract_digest = "unrecorded"
-input_digests = []
-tool_or_runtime_identity = "wc (coreutils) + the performer"
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0065/tokenizer-counts-20261011"
+contract_digest = "0412c1cc078a275234820f3c0fd50f97d35ece14c21961e98586a8c36226cd1c"
+input_digests = ["sha256:f57c782342cd7a291a8a56a77da79134e7f23331d2538c105bfe1bf129794a99", "sha256:63ea88144cb2de43081073e99fd2fe62291ff25b8caa95336f05eb69c3571329"]
+tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 77c07a58a68b, dirty, debug)"
 creation_method = "authored"
-content_digest = "sha256:50694a3cbc6ff6198a808ecf8fdfad36c6543d3e7d49790a5075f9fbf5f7f07b"
+content_digest = "sha256:16dc269c3dfb15f8bee9b6183155e66ef950e8c58c38643a82a83486ef873f02"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository-lifetime"
