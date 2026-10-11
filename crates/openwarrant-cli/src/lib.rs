@@ -539,6 +539,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "sas",
             "inbox",
             "authority",
+            "native-resolve",
             "approve",
             "release",
         ],

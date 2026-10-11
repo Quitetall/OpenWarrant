@@ -134,3 +134,12 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "crates/openwarrant-cli/tests/support/native_acceptance.rs"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Native command inventory and matching refusal controls; unsigned reporting scope.
+[[scope]]
+path_glob = "docs/COMMANDS.md"
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[scope]]
+path_glob = "conformance/plants.d/130-small-surface.sh"
+obligation_refs = ["OBL-001", "OBL-003"]
