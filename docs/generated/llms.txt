@@ -554,9 +554,9 @@
 
 ## docs/records/password-reset/20-product.md
 > -
-- Q-pr1 · question · - · Password reset: scope · docs/records/password-reset/20-product.md:1
 - NG-pr1 · non_goal · - · Recovering an account without access to its registered email address. · docs/records/password-reset/20-product.md:11
 - NG-pr2 · non_goal · - · Changing a password while signed in. That flow exists and does not change. · docs/records/password-reset/20-product.md:16
+- Q-pr1 · question · - · Should a completed reset sign the account out of its other sessions? · docs/records/password-reset/20-product.md:20
 
 ## docs/records/password-reset/30-architecture.md
 > -
@@ -1362,7 +1362,7 @@
 
 ## docs/tickets/t-0d61d/atoms/10-intent.md
 > -
-- t-0d61d/S-intent · section · - · Intent · docs/tickets/t-0d61d/atoms/10-intent.md:1
+- t-0d61d/S-intent · section · - · M14: presets, roles and officialness · docs/tickets/t-0d61d/atoms/10-intent.md:1
 
 ## docs/tickets/t-0d61d/atoms/15-checklist.md
 > -
@@ -1378,7 +1378,7 @@
 
 ## docs/tickets/t-0e4f/atoms/10-intent.md
 > -
-- t-0e4f/S-intent · section · - · Intent · docs/tickets/t-0e4f/atoms/10-intent.md:1
+- t-0e4f/S-intent · section · - · Plant 64 writes a fixed /tmp path, so parallel batteries collide · docs/tickets/t-0e4f/atoms/10-intent.md:1
 
 ## docs/tickets/t-0e4f/atoms/15-checklist.md
 > -
@@ -1392,7 +1392,7 @@
 
 ## docs/tickets/t-0f24/atoms/10-intent.md
 > -
-- t-0f24/S-intent · section · - · Intent · docs/tickets/t-0f24/atoms/10-intent.md:1
+- t-0f24/S-intent · section · - · A refused 'war standing propose' may have written into docs/ (seen once) · docs/tickets/t-0f24/atoms/10-intent.md:1
 
 ## docs/tickets/t-0f24/atoms/15-checklist.md
 > -
@@ -1407,7 +1407,7 @@
 
 ## docs/tickets/t-13506/atoms/10-intent.md
 > -
-- t-13506/S-intent · section · - · Intent · docs/tickets/t-13506/atoms/10-intent.md:1
+- t-13506/S-intent · section · - · Use the configured authority source consistently for role consumers · docs/tickets/t-13506/atoms/10-intent.md:1
 
 ## docs/tickets/t-13506/atoms/15-checklist.md
 > -
@@ -1420,7 +1420,7 @@
 
 ## docs/tickets/t-15f42/atoms/10-intent.md
 > -
-- t-15f42/S-intent · section · - · Intent · docs/tickets/t-15f42/atoms/10-intent.md:1
+- t-15f42/S-intent · section · - · GRAMMAR.md: every standard cell quotes the SAS or says unspecified (OW-WAR-0122 OBL-004) · docs/tickets/t-15f42/atoms/10-intent.md:1
 
 ## docs/tickets/t-15f42/atoms/15-checklist.md
 > -
@@ -1433,7 +1433,7 @@
 
 ## docs/tickets/t-1746f/atoms/10-intent.md
 > -
-- t-1746f/S-intent · section · - · Intent · docs/tickets/t-1746f/atoms/10-intent.md:1
+- t-1746f/S-intent · section · - · Detect normative rules lost under unsupported numbered SAS headings · docs/tickets/t-1746f/atoms/10-intent.md:1
 
 ## docs/tickets/t-1746f/atoms/15-checklist.md
 > -
@@ -1446,7 +1446,7 @@
 
 ## docs/tickets/t-17ccb/atoms/10-intent.md
 > -
-- t-17ccb/S-intent · section · - · Intent · docs/tickets/t-17ccb/atoms/10-intent.md:1
+- t-17ccb/S-intent · section · - · Telemetry success paths honor the shared JSON report envelope · docs/tickets/t-17ccb/atoms/10-intent.md:1
 
 ## docs/tickets/t-17ccb/atoms/15-checklist.md
 > -
@@ -1460,7 +1460,7 @@
 
 ## docs/tickets/t-1de2/atoms/10-intent.md
 > -
-- t-1de2/S-intent · section · - · Intent · docs/tickets/t-1de2/atoms/10-intent.md:1
+- t-1de2/S-intent · section · - · OW-WAR-0116/0115 verdicts: GET /api/act, progress evidence, act command line, Help binary row · docs/tickets/t-1de2/atoms/10-intent.md:1
 
 ## docs/tickets/t-1de2/atoms/15-checklist.md
 > -
@@ -1473,7 +1473,7 @@
 
 ## docs/tickets/t-22fd/atoms/10-intent.md
 > -
-- t-22fd/S-intent · section · - · Intent · docs/tickets/t-22fd/atoms/10-intent.md:1
+- t-22fd/S-intent · section · - · Signing must not make evidence stale · docs/tickets/t-22fd/atoms/10-intent.md:1
 
 ## docs/tickets/t-22fd/atoms/15-checklist.md
 > -
@@ -1488,7 +1488,7 @@
 
 ## docs/tickets/t-26ca/atoms/10-intent.md
 > -
-- t-26ca/S-intent · section · - · Intent · docs/tickets/t-26ca/atoms/10-intent.md:1
+- t-26ca/S-intent · section · - · war ui drops an oversized request under load instead of answering 431 · docs/tickets/t-26ca/atoms/10-intent.md:1
 
 ## docs/tickets/t-26ca/atoms/15-checklist.md
 > -
@@ -1503,7 +1503,7 @@
 
 ## docs/tickets/t-280c/atoms/10-intent.md
 > -
-- t-280c/S-intent · section · - · Intent · docs/tickets/t-280c/atoms/10-intent.md:1
+- t-280c/S-intent · section · - · war next is slow (~7.5 s) · docs/tickets/t-280c/atoms/10-intent.md:1
 
 ## docs/tickets/t-280c/atoms/15-checklist.md
 > -
@@ -1518,7 +1518,7 @@
 
 ## docs/tickets/t-2c94/atoms/10-intent.md
 > -
-- t-2c94/S-intent · section · - · Intent · docs/tickets/t-2c94/atoms/10-intent.md:1
+- t-2c94/S-intent · section · - · 69-current: 'OW-WAR-0073's signature stands' passes if the dry run fails · docs/tickets/t-2c94/atoms/10-intent.md:1
 
 ## docs/tickets/t-2c94/atoms/15-checklist.md
 > -
@@ -1531,7 +1531,7 @@
 
 ## docs/tickets/t-2d02e/atoms/10-intent.md
 > -
-- t-2d02e/S-intent · section · - · Intent · docs/tickets/t-2d02e/atoms/10-intent.md:1
+- t-2d02e/S-intent · section · - · Make contractor frozen-module copy work across filesystems · docs/tickets/t-2d02e/atoms/10-intent.md:1
 
 ## docs/tickets/t-2d02e/atoms/15-checklist.md
 > -
@@ -1544,7 +1544,7 @@
 
 ## docs/tickets/t-30da3/atoms/10-intent.md
 > -
-- t-30da3/S-intent · section · - · Intent · docs/tickets/t-30da3/atoms/10-intent.md:1
+- t-30da3/S-intent · section · - · Write the KF decision documents: OW-ADR-0024 (OW-WAR-0126), kf-compiler.md and OW-ADR-0027 (OW-WAR-0128) · docs/tickets/t-30da3/atoms/10-intent.md:1
 
 ## docs/tickets/t-30da3/atoms/15-checklist.md
 > -
@@ -1557,7 +1557,7 @@
 
 ## docs/tickets/t-3293/atoms/10-intent.md
 > -
-- t-3293/S-intent · section · - · Intent · docs/tickets/t-3293/atoms/10-intent.md:1
+- t-3293/S-intent · section · - · Partial verdicts: 0141 OBL-004, 0133 OBL-005, 0136 OBL-006, 0130 OBL-002, 0134 OBL-005 · docs/tickets/t-3293/atoms/10-intent.md:1
 
 ## docs/tickets/t-3293/atoms/15-checklist.md
 > -
@@ -1570,7 +1570,7 @@
 
 ## docs/tickets/t-34509/atoms/10-intent.md
 > -
-- t-34509/S-intent · section · - · Intent · docs/tickets/t-34509/atoms/10-intent.md:1
+- t-34509/S-intent · section · - · Report unsupported stored verification formats as UNKNOWN without granting assurance · docs/tickets/t-34509/atoms/10-intent.md:1
 
 ## docs/tickets/t-34509/atoms/15-checklist.md
 > -
@@ -1583,7 +1583,7 @@
 
 ## docs/tickets/t-354e/atoms/10-intent.md
 > -
-- t-354e/S-intent · section · - · Intent · docs/tickets/t-354e/atoms/10-intent.md:1
+- t-354e/S-intent · section · - · The battery inherits the caller's CLAUDE_* environment · docs/tickets/t-354e/atoms/10-intent.md:1
 
 ## docs/tickets/t-354e/atoms/15-checklist.md
 > -
@@ -1598,7 +1598,7 @@
 
 ## docs/tickets/t-35670/atoms/10-intent.md
 > -
-- t-35670/S-intent · section · - · Intent · docs/tickets/t-35670/atoms/10-intent.md:1
+- t-35670/S-intent · section · - · M13: optional parts and the tick ladder · docs/tickets/t-35670/atoms/10-intent.md:1
 
 ## docs/tickets/t-35670/atoms/15-checklist.md
 > -
@@ -1614,7 +1614,7 @@
 
 ## docs/tickets/t-35e20/atoms/10-intent.md
 > -
-- t-35e20/S-intent · section · - · Intent · docs/tickets/t-35e20/atoms/10-intent.md:1
+- t-35e20/S-intent · section · - · M11: concurrency at Beads' level or better · docs/tickets/t-35e20/atoms/10-intent.md:1
 
 ## docs/tickets/t-35e20/atoms/15-checklist.md
 > -
@@ -1632,7 +1632,7 @@
 
 ## docs/tickets/t-3834a/atoms/10-intent.md
 > -
-- t-3834a/S-intent · section · - · Intent · docs/tickets/t-3834a/atoms/10-intent.md:1
+- t-3834a/S-intent · section · - · Preserve legacy telemetry baseline bytes and distinguish actual observation source · docs/tickets/t-3834a/atoms/10-intent.md:1
 
 ## docs/tickets/t-3834a/atoms/15-checklist.md
 > -
@@ -1645,7 +1645,7 @@
 
 ## docs/tickets/t-38f04/atoms/10-intent.md
 > -
-- t-38f04/S-intent · section · - · Intent · docs/tickets/t-38f04/atoms/10-intent.md:1
+- t-38f04/S-intent · section · - · M18: every development document is a type · docs/tickets/t-38f04/atoms/10-intent.md:1
 
 ## docs/tickets/t-38f04/atoms/15-checklist.md
 > -
@@ -1660,7 +1660,7 @@
 
 ## docs/tickets/t-39dc/atoms/10-intent.md
 > -
-- t-39dc/S-intent · section · - · Intent · docs/tickets/t-39dc/atoms/10-intent.md:1
+- t-39dc/S-intent · section · - · war deliver: declare a deliverable delivered, by command · docs/tickets/t-39dc/atoms/10-intent.md:1
 
 ## docs/tickets/t-39dc/atoms/15-checklist.md
 > -
@@ -1674,7 +1674,7 @@
 
 ## docs/tickets/t-418bc/atoms/10-intent.md
 > -
-- t-418bc/S-intent · section · - · Intent · docs/tickets/t-418bc/atoms/10-intent.md:1
+- t-418bc/S-intent · section · - · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/atoms/10-intent.md:1
 
 ## docs/tickets/t-418bc/atoms/15-checklist.md
 > -
@@ -1687,7 +1687,7 @@
 
 ## docs/tickets/t-470e/atoms/10-intent.md
 > -
-- t-470e/S-intent · section · - · Intent · docs/tickets/t-470e/atoms/10-intent.md:1
+- t-470e/S-intent · section · - · 59-webui-lan reads the act log before the remedy is written, under load · docs/tickets/t-470e/atoms/10-intent.md:1
 
 ## docs/tickets/t-470e/atoms/15-checklist.md
 > -
@@ -1701,7 +1701,7 @@
 
 ## docs/tickets/t-473a3/atoms/10-intent.md
 > -
-- t-473a3/S-intent · section · - · Intent · docs/tickets/t-473a3/atoms/10-intent.md:1
+- t-473a3/S-intent · section · - · M10: one store, one noun, bring your work with you · docs/tickets/t-473a3/atoms/10-intent.md:1
 
 ## docs/tickets/t-473a3/atoms/15-checklist.md
 > -
@@ -1717,7 +1717,7 @@
 
 ## docs/tickets/t-4c3f/atoms/10-intent.md
 > -
-- t-4c3f/S-intent · section · - · Intent · docs/tickets/t-4c3f/atoms/10-intent.md:1
+- t-4c3f/S-intent · section · - · 59-webui-lan: the bound-only check reads every listener on the machine, so a parallel battery holding the same port on 127.0.0.1 fails it · docs/tickets/t-4c3f/atoms/10-intent.md:1
 
 ## docs/tickets/t-4c3f/atoms/15-checklist.md
 > -
@@ -1730,7 +1730,7 @@
 
 ## docs/tickets/t-4db64/atoms/10-intent.md
 > -
-- t-4db64/S-intent · section · - · Intent · docs/tickets/t-4db64/atoms/10-intent.md:1
+- t-4db64/S-intent · section · - · OW-WAR-0148 M1: one compiled corpus model · docs/tickets/t-4db64/atoms/10-intent.md:1
 
 ## docs/tickets/t-4db64/atoms/15-checklist.md
 > -
@@ -1745,7 +1745,7 @@
 
 ## docs/tickets/t-4f521/atoms/10-intent.md
 > -
-- t-4f521/S-intent · section · - · Intent · docs/tickets/t-4f521/atoms/10-intent.md:1
+- t-4f521/S-intent · section · - · 0116 OBL-003's unobserved lines; document.review scoped to its Warrant · docs/tickets/t-4f521/atoms/10-intent.md:1
 
 ## docs/tickets/t-4f521/atoms/15-checklist.md
 > -
@@ -1758,7 +1758,7 @@
 
 ## docs/tickets/t-51280/atoms/10-intent.md
 > -
-- t-51280/S-intent · section · - · Intent · docs/tickets/t-51280/atoms/10-intent.md:1
+- t-51280/S-intent · section · - · M9: ordinary work is ordinary · docs/tickets/t-51280/atoms/10-intent.md:1
 
 ## docs/tickets/t-51280/atoms/15-checklist.md
 > -
@@ -1775,7 +1775,7 @@
 
 ## docs/tickets/t-512eb/atoms/10-intent.md
 > -
-- t-512eb/S-intent · section · - · Intent · docs/tickets/t-512eb/atoms/10-intent.md:1
+- t-512eb/S-intent · section · - · Deliver OW-WAR-0148 implementations at the signed file paths · docs/tickets/t-512eb/atoms/10-intent.md:1
 
 ## docs/tickets/t-512eb/atoms/15-checklist.md
 > -
@@ -1788,7 +1788,7 @@
 
 ## docs/tickets/t-5134/atoms/10-intent.md
 > -
-- t-5134/S-intent · section · - · Intent · docs/tickets/t-5134/atoms/10-intent.md:1
+- t-5134/S-intent · section · - · Plant checks that pass without checking anything · docs/tickets/t-5134/atoms/10-intent.md:1
 
 ## docs/tickets/t-5134/atoms/15-checklist.md
 > -
@@ -1803,7 +1803,7 @@
 
 ## docs/tickets/t-515e/atoms/10-intent.md
 > -
-- t-515e/S-intent · section · - · Intent · docs/tickets/t-515e/atoms/10-intent.md:1
+- t-515e/S-intent · section · - · Plants pipe grep into grep -q under pipefail (SIGPIPE race) · docs/tickets/t-515e/atoms/10-intent.md:1
 
 ## docs/tickets/t-515e/atoms/15-checklist.md
 > -
@@ -1817,7 +1817,7 @@
 
 ## docs/tickets/t-54257/atoms/10-intent.md
 > -
-- t-54257/S-intent · section · - · Intent · docs/tickets/t-54257/atoms/10-intent.md:1
+- t-54257/S-intent · section · - · Connect current runtime receipt assessment to resolution · docs/tickets/t-54257/atoms/10-intent.md:1
 
 ## docs/tickets/t-54257/atoms/15-checklist.md
 > -
@@ -1830,7 +1830,7 @@
 
 ## docs/tickets/t-5872/atoms/10-intent.md
 > -
-- t-5872/S-intent · section · - · Intent · docs/tickets/t-5872/atoms/10-intent.md:1
+- t-5872/S-intent · section · - · Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations · docs/tickets/t-5872/atoms/10-intent.md:1
 
 ## docs/tickets/t-5872/atoms/15-checklist.md
 > -
@@ -1843,7 +1843,7 @@
 
 ## docs/tickets/t-59006/atoms/10-intent.md
 > -
-- t-59006/S-intent · section · - · Intent · docs/tickets/t-59006/atoms/10-intent.md:1
+- t-59006/S-intent · section · - · M7: from a prompt to typed records · docs/tickets/t-59006/atoms/10-intent.md:1
 
 ## docs/tickets/t-59006/atoms/15-checklist.md
 > -
@@ -1858,7 +1858,7 @@
 
 ## docs/tickets/t-5a29/atoms/10-intent.md
 > -
-- t-5a29/S-intent · section · - · Intent · docs/tickets/t-5a29/atoms/10-intent.md:1
+- t-5a29/S-intent · section · - · docs/AUTHENTICATION.md is out of date after the LAN web UI · docs/tickets/t-5a29/atoms/10-intent.md:1
 
 ## docs/tickets/t-5a29/atoms/15-checklist.md
 > -
@@ -1871,7 +1871,7 @@
 
 ## docs/tickets/t-5b1f7/atoms/10-intent.md
 > -
-- t-5b1f7/S-intent · section · - · Intent · docs/tickets/t-5b1f7/atoms/10-intent.md:1
+- t-5b1f7/S-intent · section · - · Complete OW-WAR-0101 local drafting observation · docs/tickets/t-5b1f7/atoms/10-intent.md:1
 
 ## docs/tickets/t-5b1f7/atoms/15-checklist.md
 > -
@@ -1884,7 +1884,7 @@
 
 ## docs/tickets/t-5d82/atoms/10-intent.md
 > -
-- t-5d82/S-intent · section · - · Intent · docs/tickets/t-5d82/atoms/10-intent.md:1
+- t-5d82/S-intent · section · - · Ticket bookkeeping must not make evidence stale · docs/tickets/t-5d82/atoms/10-intent.md:1
 
 ## docs/tickets/t-5d82/atoms/15-checklist.md
 > -
@@ -1898,7 +1898,7 @@
 
 ## docs/tickets/t-5f49/atoms/10-intent.md
 > -
-- t-5f49/S-intent · section · - · Intent · docs/tickets/t-5f49/atoms/10-intent.md:1
+- t-5f49/S-intent · section · - · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/atoms/10-intent.md:1
 
 ## docs/tickets/t-5f49/atoms/15-checklist.md
 > -
@@ -1913,7 +1913,7 @@
 
 ## docs/tickets/t-64f2e/atoms/10-intent.md
 > -
-- t-64f2e/S-intent · section · - · Intent · docs/tickets/t-64f2e/atoms/10-intent.md:1
+- t-64f2e/S-intent · section · - · Restore the five missing SPDX headers found by the repository gate · docs/tickets/t-64f2e/atoms/10-intent.md:1
 
 ## docs/tickets/t-64f2e/atoms/15-checklist.md
 > -
@@ -1926,7 +1926,7 @@
 
 ## docs/tickets/t-66d2f/atoms/10-intent.md
 > -
-- t-66d2f/S-intent · section · - · Intent · docs/tickets/t-66d2f/atoms/10-intent.md:1
+- t-66d2f/S-intent · section · - · Keep the full integration gate usable within its declared CI budget · docs/tickets/t-66d2f/atoms/10-intent.md:1
 
 ## docs/tickets/t-66d2f/atoms/15-checklist.md
 > -
@@ -1942,7 +1942,7 @@
 
 ## docs/tickets/t-67b5f/atoms/10-intent.md
 > -
-- t-67b5f/S-intent · section · - · Intent · docs/tickets/t-67b5f/atoms/10-intent.md:1
+- t-67b5f/S-intent · section · - · M8: war host, the standalone half of Liminal hosting · docs/tickets/t-67b5f/atoms/10-intent.md:1
 
 ## docs/tickets/t-67b5f/atoms/15-checklist.md
 > -
@@ -1957,7 +1957,7 @@
 
 ## docs/tickets/t-67ed/atoms/10-intent.md
 > -
-- t-67ed/S-intent · section · - · Intent · docs/tickets/t-67ed/atoms/10-intent.md:1
+- t-67ed/S-intent · section · - · Make the ticket loop the documented default everywhere · docs/tickets/t-67ed/atoms/10-intent.md:1
 
 ## docs/tickets/t-67ed/atoms/15-checklist.md
 > -
@@ -1972,7 +1972,7 @@
 
 ## docs/tickets/t-7a7e6/atoms/10-intent.md
 > -
-- t-7a7e6/S-intent · section · - · Intent · docs/tickets/t-7a7e6/atoms/10-intent.md:1
+- t-7a7e6/S-intent · section · - · M6: projection targets: one set of records, many documents · docs/tickets/t-7a7e6/atoms/10-intent.md:1
 
 ## docs/tickets/t-7a7e6/atoms/15-checklist.md
 > -
@@ -1988,7 +1988,7 @@
 
 ## docs/tickets/t-7aca/atoms/10-intent.md
 > -
-- t-7aca/S-intent · section · - · Intent · docs/tickets/t-7aca/atoms/10-intent.md:1
+- t-7aca/S-intent · section · - · A whole-Warrant verification bundle cut a long gate stream to its tail, so the Warrant's own plant section (printed early) never reached the blind verifier · docs/tickets/t-7aca/atoms/10-intent.md:1
 
 ## docs/tickets/t-7aca/atoms/15-checklist.md
 > -
@@ -2001,7 +2001,7 @@
 
 ## docs/tickets/t-833e/atoms/10-intent.md
 > -
-- t-833e/S-intent · section · - · Intent · docs/tickets/t-833e/atoms/10-intent.md:1
+- t-833e/S-intent · section · - · OW-WAR-0112: evidence for OBL-001/002/003/006 the blind verifier did not see · docs/tickets/t-833e/atoms/10-intent.md:1
 
 ## docs/tickets/t-833e/atoms/15-checklist.md
 > -
@@ -2014,7 +2014,7 @@
 
 ## docs/tickets/t-83d6c/atoms/10-intent.md
 > -
-- t-83d6c/S-intent · section · - · Intent · docs/tickets/t-83d6c/atoms/10-intent.md:1
+- t-83d6c/S-intent · section · - · Make runner controls use their allocated scratch variables · docs/tickets/t-83d6c/atoms/10-intent.md:1
 
 ## docs/tickets/t-83d6c/atoms/15-checklist.md
 > -
@@ -2028,7 +2028,7 @@
 
 ## docs/tickets/t-84d84/atoms/10-intent.md
 > -
-- t-84d84/S-intent · section · - · Intent · docs/tickets/t-84d84/atoms/10-intent.md:1
+- t-84d84/S-intent · section · - · Keep the full read-only board below the web request deadline · docs/tickets/t-84d84/atoms/10-intent.md:1
 
 ## docs/tickets/t-84d84/atoms/15-checklist.md
 > -
@@ -2043,7 +2043,7 @@
 
 ## docs/tickets/t-87fb/atoms/10-intent.md
 > -
-- t-87fb/S-intent · section · - · Intent · docs/tickets/t-87fb/atoms/10-intent.md:1
+- t-87fb/S-intent · section · - · OW-WAR-0147: evidence for OBL-003/005/006/008 the blind verifier did not establish · docs/tickets/t-87fb/atoms/10-intent.md:1
 
 ## docs/tickets/t-87fb/atoms/15-checklist.md
 > -
@@ -2056,7 +2056,7 @@
 
 ## docs/tickets/t-88d2/atoms/10-intent.md
 > -
-- t-88d2/S-intent · section · - · Intent · docs/tickets/t-88d2/atoms/10-intent.md:1
+- t-88d2/S-intent · section · - · war prepare's commit carried only tree-bound paths, so HEAD's projections drifted from HEAD's records and every battery (a clone of HEAD) failed its clean-corpus check · docs/tickets/t-88d2/atoms/10-intent.md:1
 
 ## docs/tickets/t-88d2/atoms/15-checklist.md
 > -
@@ -2069,7 +2069,7 @@
 
 ## docs/tickets/t-8a2c/atoms/10-intent.md
 > -
-- t-8a2c/S-intent · section · - · Intent · docs/tickets/t-8a2c/atoms/10-intent.md:1
+- t-8a2c/S-intent · section · - · Found by the verifier-fix agents: a whole-ticket claim hints a refused done; context_artifacts reads outside the repository; a one-line file (SECTIONS.json) travels in a bundle with no text · docs/tickets/t-8a2c/atoms/10-intent.md:1
 
 ## docs/tickets/t-8a2c/atoms/15-checklist.md
 > -
@@ -2082,7 +2082,7 @@
 
 ## docs/tickets/t-8a876/atoms/10-intent.md
 > -
-- t-8a876/S-intent · section · - · Intent · docs/tickets/t-8a876/atoms/10-intent.md:1
+- t-8a876/S-intent · section · - · Bind stage submissions to the exact compiled dispatch · docs/tickets/t-8a876/atoms/10-intent.md:1
 
 ## docs/tickets/t-8a876/atoms/15-checklist.md
 > -
@@ -2096,7 +2096,7 @@
 
 ## docs/tickets/t-8c7f1/atoms/10-intent.md
 > -
-- t-8c7f1/S-intent · section · - · Intent · docs/tickets/t-8c7f1/atoms/10-intent.md:1
+- t-8c7f1/S-intent · section · - · M15: native graph executor, pluggable executors · docs/tickets/t-8c7f1/atoms/10-intent.md:1
 
 ## docs/tickets/t-8c7f1/atoms/15-checklist.md
 > -
@@ -2113,7 +2113,7 @@
 
 ## docs/tickets/t-95254/atoms/10-intent.md
 > -
-- t-95254/S-intent · section · - · Intent · docs/tickets/t-95254/atoms/10-intent.md:1
+- t-95254/S-intent · section · - · Bind authorized Dispatch to exact signed current contract and immutable context holders · docs/tickets/t-95254/atoms/10-intent.md:1
 
 ## docs/tickets/t-95254/atoms/15-checklist.md
 > -
@@ -2126,7 +2126,7 @@
 
 ## docs/tickets/t-9a4a9/atoms/10-intent.md
 > -
-- t-9a4a9/S-intent · section · - · Intent · docs/tickets/t-9a4a9/atoms/10-intent.md:1
+- t-9a4a9/S-intent · section · - · OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh) · docs/tickets/t-9a4a9/atoms/10-intent.md:1
 
 ## docs/tickets/t-9a4a9/atoms/15-checklist.md
 > -
@@ -2139,7 +2139,7 @@
 
 ## docs/tickets/t-9d3e/atoms/10-intent.md
 > -
-- t-9d3e/S-intent · section · - · Intent · docs/tickets/t-9d3e/atoms/10-intent.md:1
+- t-9d3e/S-intent · section · - · war ready and war claim can disagree on whether an item is blocked · docs/tickets/t-9d3e/atoms/10-intent.md:1
 
 ## docs/tickets/t-9d3e/atoms/15-checklist.md
 > -
@@ -2154,7 +2154,7 @@
 
 ## docs/tickets/t-9f7e/atoms/10-intent.md
 > -
-- t-9f7e/S-intent · section · - · Intent · docs/tickets/t-9f7e/atoms/10-intent.md:1
+- t-9f7e/S-intent · section · - · Verification bundles too large for the blind verifier · docs/tickets/t-9f7e/atoms/10-intent.md:1
 
 ## docs/tickets/t-9f7e/atoms/15-checklist.md
 > -
@@ -2169,7 +2169,7 @@
 
 ## docs/tickets/t-9f99/atoms/10-intent.md
 > -
-- t-9f99/S-intent · section · - · Intent · docs/tickets/t-9f99/atoms/10-intent.md:1
+- t-9f99/S-intent · section · - · Apply nine drafted amendments to atoms as new contract revisions · docs/tickets/t-9f99/atoms/10-intent.md:1
 
 ## docs/tickets/t-9f99/atoms/15-checklist.md
 > -
@@ -2180,9 +2180,22 @@
 > Apply nine drafted amendments to atoms as new contract revisions
 - t-9f99 · ticket · done · Apply nine drafted amendments to atoms as new contract revisions · docs/tickets/t-9f99/manifest.toml:1
 
+## docs/tickets/t-a01e1/atoms/10-intent.md
+> -
+- t-a01e1/S-intent · section · - · Deliver fresh committed context to resumed work and every verification repair stage · docs/tickets/t-a01e1/atoms/10-intent.md:1
+
+## docs/tickets/t-a01e1/atoms/15-checklist.md
+> -
+- t-a01e1/S-checklist · section · - · Checklist · docs/tickets/t-a01e1/atoms/15-checklist.md:1
+- t-a01e1/i-b812 · item · done · Prove fresh hotline resume and all-stage verification repair context · docs/tickets/t-a01e1/atoms/15-checklist.md:3
+
+## docs/tickets/t-a01e1/manifest.toml
+> Deliver fresh committed context to resumed work and every verification repair stage
+- t-a01e1 · ticket · done · Deliver fresh committed context to resumed work and every verification repair stage · docs/tickets/t-a01e1/manifest.toml:1
+
 ## docs/tickets/t-a5c53/atoms/10-intent.md
 > -
-- t-a5c53/S-intent · section · - · Intent · docs/tickets/t-a5c53/atoms/10-intent.md:1
+- t-a5c53/S-intent · section · - · Preserve source classification in legacy Dispatch selection and portable disclosure checks · docs/tickets/t-a5c53/atoms/10-intent.md:1
 
 ## docs/tickets/t-a5c53/atoms/15-checklist.md
 > -
@@ -2195,7 +2208,7 @@
 
 ## docs/tickets/t-a92bb/atoms/10-intent.md
 > -
-- t-a92bb/S-intent · section · - · Intent · docs/tickets/t-a92bb/atoms/10-intent.md:1
+- t-a92bb/S-intent · section · - · M12: a small surface · docs/tickets/t-a92bb/atoms/10-intent.md:1
 
 ## docs/tickets/t-a92bb/atoms/15-checklist.md
 > -
@@ -2210,7 +2223,7 @@
 
 ## docs/tickets/t-ad636/atoms/10-intent.md
 > -
-- t-ad636/S-intent · section · - · Intent · docs/tickets/t-ad636/atoms/10-intent.md:1
+- t-ad636/S-intent · section · - · M4: fixed states plus declared refinements · docs/tickets/t-ad636/atoms/10-intent.md:1
 
 ## docs/tickets/t-ad636/atoms/15-checklist.md
 > -
@@ -2225,7 +2238,7 @@
 
 ## docs/tickets/t-ade4/atoms/10-intent.md
 > -
-- t-ade4/S-intent · section · - · Intent · docs/tickets/t-ade4/atoms/10-intent.md:1
+- t-ade4/S-intent · section · - · war eval's result is not deterministic: a bundle's token count varies by one · docs/tickets/t-ade4/atoms/10-intent.md:1
 
 ## docs/tickets/t-ade4/atoms/15-checklist.md
 > -
@@ -2240,7 +2253,7 @@
 
 ## docs/tickets/t-ae2be/atoms/10-intent.md
 > -
-- t-ae2be/S-intent · section · - · Intent · docs/tickets/t-ae2be/atoms/10-intent.md:1
+- t-ae2be/S-intent · section · - · M5: tickets on the kernel, ticket features, GitHub in and out, the demonstration · docs/tickets/t-ae2be/atoms/10-intent.md:1
 
 ## docs/tickets/t-ae2be/atoms/15-checklist.md
 > -
@@ -2256,7 +2269,7 @@
 
 ## docs/tickets/t-b0708/atoms/10-intent.md
 > -
-- t-b0708/S-intent · section · - · Intent · docs/tickets/t-b0708/atoms/10-intent.md:1
+- t-b0708/S-intent · section · - · M2: a document's type chooses its capabilities, and new manifests pin their profile · docs/tickets/t-b0708/atoms/10-intent.md:1
 
 ## docs/tickets/t-b0708/atoms/15-checklist.md
 > -
@@ -2273,7 +2286,7 @@
 
 ## docs/tickets/t-b95cc/atoms/10-intent.md
 > -
-- t-b95cc/S-intent · section · - · Intent · docs/tickets/t-b95cc/atoms/10-intent.md:1
+- t-b95cc/S-intent · section · - · M17: compliance score and file ledger · docs/tickets/t-b95cc/atoms/10-intent.md:1
 
 ## docs/tickets/t-b95cc/atoms/15-checklist.md
 > -
@@ -2290,7 +2303,7 @@
 
 ## docs/tickets/t-b9610/atoms/10-intent.md
 > -
-- t-b9610/S-intent · section · - · Intent · docs/tickets/t-b9610/atoms/10-intent.md:1
+- t-b9610/S-intent · section · - · Reject stale independent verification after its reviewed subject changes · docs/tickets/t-b9610/atoms/10-intent.md:1
 
 ## docs/tickets/t-b9610/atoms/15-checklist.md
 > -
@@ -2305,7 +2318,7 @@
 
 ## docs/tickets/t-c1325/atoms/10-intent.md
 > -
-- t-c1325/S-intent · section · - · Intent · docs/tickets/t-c1325/atoms/10-intent.md:1
+- t-c1325/S-intent · section · - · Keep typed-document compile output inside the JSON envelope · docs/tickets/t-c1325/atoms/10-intent.md:1
 
 ## docs/tickets/t-c1325/atoms/15-checklist.md
 > -
@@ -2318,7 +2331,7 @@
 
 ## docs/tickets/t-c360a/atoms/10-intent.md
 > -
-- t-c360a/S-intent · section · - · Intent · docs/tickets/t-c360a/atoms/10-intent.md:1
+- t-c360a/S-intent · section · - · bonsai qualification-plants unit test fails under concurrent load: scope_findings[0] was not outside-warrant.txt · docs/tickets/t-c360a/atoms/10-intent.md:1
 
 ## docs/tickets/t-c360a/atoms/15-checklist.md
 > -
@@ -2332,7 +2345,7 @@
 
 ## docs/tickets/t-ca38/atoms/10-intent.md
 > -
-- t-ca38/S-intent · section · - · Intent · docs/tickets/t-ca38/atoms/10-intent.md:1
+- t-ca38/S-intent · section · - · Ticket operations leave the corpus projections stale · docs/tickets/t-ca38/atoms/10-intent.md:1
 
 ## docs/tickets/t-ca38/atoms/15-checklist.md
 > -
@@ -2346,7 +2359,7 @@
 
 ## docs/tickets/t-cba8f/atoms/10-intent.md
 > -
-- t-cba8f/S-intent · section · - · Intent · docs/tickets/t-cba8f/atoms/10-intent.md:1
+- t-cba8f/S-intent · section · - · Bind provider runtime receipts to actual dispatch and compilation basis · docs/tickets/t-cba8f/atoms/10-intent.md:1
 
 ## docs/tickets/t-cba8f/atoms/15-checklist.md
 > -
@@ -2362,7 +2375,7 @@
 
 ## docs/tickets/t-cc3c9/atoms/10-intent.md
 > -
-- t-cc3c9/S-intent · section · - · Intent · docs/tickets/t-cc3c9/atoms/10-intent.md:1
+- t-cc3c9/S-intent · section · - · M16: CLAUDE.md and AGENTS.md · docs/tickets/t-cc3c9/atoms/10-intent.md:1
 
 ## docs/tickets/t-cc3c9/atoms/15-checklist.md
 > -
@@ -2376,7 +2389,7 @@
 
 ## docs/tickets/t-ccf4e/atoms/10-intent.md
 > -
-- t-ccf4e/S-intent · section · - · Intent · docs/tickets/t-ccf4e/atoms/10-intent.md:1
+- t-ccf4e/S-intent · section · - · Compute supported OW-WAR-0041 derived metrics without inventing missing measurements · docs/tickets/t-ccf4e/atoms/10-intent.md:1
 
 ## docs/tickets/t-ccf4e/atoms/15-checklist.md
 > -
@@ -2391,7 +2404,7 @@
 
 ## docs/tickets/t-cee5/atoms/10-intent.md
 > -
-- t-cee5/S-intent · section · - · Intent · docs/tickets/t-cee5/atoms/10-intent.md:1
+- t-cee5/S-intent · section · - · war prepare: take a Warrant to its sign-off unattended · docs/tickets/t-cee5/atoms/10-intent.md:1
 
 ## docs/tickets/t-cee5/atoms/15-checklist.md
 > -
@@ -2406,7 +2419,7 @@
 
 ## docs/tickets/t-d052/atoms/10-intent.md
 > -
-- t-d052/S-intent · section · - · Intent · docs/tickets/t-d052/atoms/10-intent.md:1
+- t-d052/S-intent · section · - · Battery plants that fail only under parallel load · docs/tickets/t-d052/atoms/10-intent.md:1
 
 ## docs/tickets/t-d052/atoms/15-checklist.md
 > -
@@ -2419,9 +2432,23 @@
 > Battery plants that fail only under parallel load
 - t-d052 · ticket · done · Battery plants that fail only under parallel load · docs/tickets/t-d052/manifest.toml:1
 
+## docs/tickets/t-d1037/atoms/10-intent.md
+> -
+- t-d1037/S-intent · section · - · Compile runtime context from an execution worktree checkpoint and retain it in the original project · docs/tickets/t-d1037/atoms/10-intent.md:1
+
+## docs/tickets/t-d1037/atoms/15-checklist.md
+> -
+- t-d1037/S-checklist · section · - · Checklist · docs/tickets/t-d1037/atoms/15-checklist.md:1
+- t-d1037/i-c03c · item · open · Compile and package exact checkpoint context; reject changed contracts and unrelated workspaces · docs/tickets/t-d1037/atoms/15-checklist.md:3
+- t-d1037/i-8751 · item · open · Preserve typed unavailable source-workspace observations as UNKNOWN through Dispatch and bundle CLI reports; prove missing/inaccessible source controls without changing known refusal cases · docs/tickets/t-d1037/atoms/15-checklist.md:4
+
+## docs/tickets/t-d1037/manifest.toml
+> Compile runtime context from an execution worktree checkpoint and retain it in the original project
+- t-d1037 · ticket · open · Compile runtime context from an execution worktree checkpoint and retain it in the original project · docs/tickets/t-d1037/manifest.toml:1
+
 ## docs/tickets/t-d65d4/atoms/10-intent.md
 > -
-- t-d65d4/S-intent · section · - · Intent · docs/tickets/t-d65d4/atoms/10-intent.md:1
+- t-d65d4/S-intent · section · - · M3: records and typed relations, and war impact · docs/tickets/t-d65d4/atoms/10-intent.md:1
 
 ## docs/tickets/t-d65d4/atoms/15-checklist.md
 > -
@@ -2437,7 +2464,7 @@
 
 ## docs/tickets/t-dc28/atoms/10-intent.md
 > -
-- t-dc28/S-intent · section · - · Intent · docs/tickets/t-dc28/atoms/10-intent.md:1
+- t-dc28/S-intent · section · - · Collision-free ids for amendments and plants · docs/tickets/t-dc28/atoms/10-intent.md:1
 
 ## docs/tickets/t-dc28/atoms/15-checklist.md
 > -
@@ -2452,7 +2479,7 @@
 
 ## docs/tickets/t-dec1/atoms/10-intent.md
 > -
-- t-dec1/S-intent · section · - · Intent · docs/tickets/t-dec1/atoms/10-intent.md:1
+- t-dec1/S-intent · section · - · war evidence record cannot run software.repo.bonsai-evidence@1.0.0 · docs/tickets/t-dec1/atoms/10-intent.md:1
 
 ## docs/tickets/t-dec1/atoms/15-checklist.md
 > -
@@ -2466,7 +2493,7 @@
 
 ## docs/tickets/t-dee8e/atoms/10-intent.md
 > -
-- t-dee8e/S-intent · section · - · Intent · docs/tickets/t-dee8e/atoms/10-intent.md:1
+- t-dee8e/S-intent · section · - · OW-WAR-0114 D-022: generate schemas/oh.war/roadmap/v1.json into the pack · docs/tickets/t-dee8e/atoms/10-intent.md:1
 
 ## docs/tickets/t-dee8e/atoms/15-checklist.md
 > -
@@ -2479,7 +2506,7 @@
 
 ## docs/tickets/t-e14c0/atoms/10-intent.md
 > -
-- t-e14c0/S-intent · section · - · Intent · docs/tickets/t-e14c0/atoms/10-intent.md:1
+- t-e14c0/S-intent · section · - · Capture real monotonic study timing without inventing participant observations · docs/tickets/t-e14c0/atoms/10-intent.md:1
 
 ## docs/tickets/t-e14c0/atoms/15-checklist.md
 > -
@@ -2492,7 +2519,7 @@
 
 ## docs/tickets/t-ea8f8/atoms/10-intent.md
 > -
-- t-ea8f8/S-intent · section · - · Intent · docs/tickets/t-ea8f8/atoms/10-intent.md:1
+- t-ea8f8/S-intent · section · - · Prepare OW-WAR-0148 deliverable path amendment without changing signed scope · docs/tickets/t-ea8f8/atoms/10-intent.md:1
 
 ## docs/tickets/t-ea8f8/atoms/15-checklist.md
 > -
@@ -2505,7 +2532,7 @@
 
 ## docs/tickets/t-eca6/atoms/10-intent.md
 > -
-- t-eca6/S-intent · section · - · Intent · docs/tickets/t-eca6/atoms/10-intent.md:1
+- t-eca6/S-intent · section · - · war next costs two git walks per receipt, and the evidence wave made it 4x slower · docs/tickets/t-eca6/atoms/10-intent.md:1
 
 ## docs/tickets/t-eca6/atoms/15-checklist.md
 > -
@@ -2520,7 +2547,7 @@
 
 ## docs/tickets/t-f815/atoms/10-intent.md
 > -
-- t-f815/S-intent · section · - · Intent · docs/tickets/t-f815/atoms/10-intent.md:1
+- t-f815/S-intent · section · - · OW-WAR-0120's budget at 1,000 Warrants: check --generated, compile, next and console over their limits · docs/tickets/t-f815/atoms/10-intent.md:1
 
 ## docs/tickets/t-f815/atoms/15-checklist.md
 > -
@@ -2533,7 +2560,7 @@
 
 ## docs/tickets/t-fa114/atoms/10-intent.md
 > -
-- t-fa114/S-intent · section · - · Intent · docs/tickets/t-fa114/atoms/10-intent.md:1
+- t-fa114/S-intent · section · - · Check current authorization in read-only Preflight · docs/tickets/t-fa114/atoms/10-intent.md:1
 
 ## docs/tickets/t-fa114/atoms/15-checklist.md
 > -
@@ -2546,7 +2573,7 @@
 
 ## docs/tickets/t-fed6/atoms/10-intent.md
 > -
-- t-fed6/S-intent · section · - · Intent · docs/tickets/t-fed6/atoms/10-intent.md:1
+- t-fed6/S-intent · section · - · Verification records must not make evidence stale · docs/tickets/t-fed6/atoms/10-intent.md:1
 
 ## docs/tickets/t-fed6/atoms/15-checklist.md
 > -
@@ -2561,15 +2588,15 @@
 
 ## docs/warrants/OW-WAR-0001/atoms/10-intent.md
 > -
-- OW-WAR-0001/S-intent · section · - · Intent · docs/warrants/OW-WAR-0001/atoms/10-intent.md:1
+- OW-WAR-0001/S-intent · section · - · Intent · docs/warrants/OW-WAR-0001/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0001/atoms/20-basis.md
 > -
-- OW-WAR-0001/S-basis · section · - · Basis · docs/warrants/OW-WAR-0001/atoms/20-basis.md:1
+- OW-WAR-0001/S-basis · section · - · Basis · docs/warrants/OW-WAR-0001/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0001/atoms/40-work-order.md
 > -
-- OW-WAR-0001/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0001/atoms/40-work-order.md:1
+- OW-WAR-0001/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0001/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0001/atoms/45-milestones.yaml
 > -
@@ -2600,15 +2627,15 @@
 
 ## docs/warrants/OW-WAR-0002/atoms/10-intent.md
 > -
-- OW-WAR-0002/S-intent · section · - · Intent · docs/warrants/OW-WAR-0002/atoms/10-intent.md:1
+- OW-WAR-0002/S-intent · section · - · Intent · docs/warrants/OW-WAR-0002/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0002/atoms/20-basis.md
 > -
-- OW-WAR-0002/S-basis · section · - · Basis · docs/warrants/OW-WAR-0002/atoms/20-basis.md:1
+- OW-WAR-0002/S-basis · section · - · Basis · docs/warrants/OW-WAR-0002/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0002/atoms/40-work-order.md
 > -
-- OW-WAR-0002/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0002/atoms/40-work-order.md:1
+- OW-WAR-0002/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0002/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml
 > -
@@ -2640,19 +2667,19 @@
 
 ## docs/warrants/OW-WAR-0003/../../adr/atoms/OW-ADR-0001-canonical-json-implementation.md
 > -
-- OW-WAR-0003/S-adr · section · - · Adr · docs/warrants/OW-WAR-0003/../../adr/atoms/OW-ADR-0001-canonical-json-implementation.md:1
+- OW-WAR-0003/S-adr · section · - · ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation · docs/warrants/OW-WAR-0003/../../adr/atoms/OW-ADR-0001-canonical-json-implementation.md:15
 
 ## docs/warrants/OW-WAR-0003/atoms/10-intent.md
 > -
-- OW-WAR-0003/S-intent · section · - · Intent · docs/warrants/OW-WAR-0003/atoms/10-intent.md:1
+- OW-WAR-0003/S-intent · section · - · Intent · docs/warrants/OW-WAR-0003/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0003/atoms/20-basis.md
 > -
-- OW-WAR-0003/S-basis · section · - · Basis · docs/warrants/OW-WAR-0003/atoms/20-basis.md:1
+- OW-WAR-0003/S-basis · section · - · Basis · docs/warrants/OW-WAR-0003/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0003/atoms/40-work-order.md
 > -
-- OW-WAR-0003/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0003/atoms/40-work-order.md:1
+- OW-WAR-0003/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0003/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0003/atoms/45-milestones.yaml
 > -
@@ -2686,15 +2713,15 @@
 
 ## docs/warrants/OW-WAR-0004/atoms/10-intent.md
 > -
-- OW-WAR-0004/S-intent · section · - · Intent · docs/warrants/OW-WAR-0004/atoms/10-intent.md:1
+- OW-WAR-0004/S-intent · section · - · Intent · docs/warrants/OW-WAR-0004/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0004/atoms/20-basis.md
 > -
-- OW-WAR-0004/S-basis · section · - · Basis · docs/warrants/OW-WAR-0004/atoms/20-basis.md:1
+- OW-WAR-0004/S-basis · section · - · Basis · docs/warrants/OW-WAR-0004/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0004/atoms/40-work-order.md
 > -
-- OW-WAR-0004/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0004/atoms/40-work-order.md:1
+- OW-WAR-0004/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0004/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0004/atoms/45-milestones.yaml
 > -
@@ -2722,15 +2749,15 @@
 
 ## docs/warrants/OW-WAR-0005/atoms/10-intent.md
 > -
-- OW-WAR-0005/S-intent · section · - · Intent · docs/warrants/OW-WAR-0005/atoms/10-intent.md:1
+- OW-WAR-0005/S-intent · section · - · Intent · docs/warrants/OW-WAR-0005/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0005/atoms/20-basis.md
 > -
-- OW-WAR-0005/S-basis · section · - · Basis · docs/warrants/OW-WAR-0005/atoms/20-basis.md:1
+- OW-WAR-0005/S-basis · section · - · Basis · docs/warrants/OW-WAR-0005/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0005/atoms/40-work-order.md
 > -
-- OW-WAR-0005/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0005/atoms/40-work-order.md:1
+- OW-WAR-0005/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0005/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0005/atoms/45-milestones.yaml
 > -
@@ -2753,7 +2780,7 @@
 
 ## docs/warrants/OW-WAR-0005/atoms/80-validation.md
 > -
-- OW-WAR-0005/S-validation · section · - · Validation · docs/warrants/OW-WAR-0005/atoms/80-validation.md:1
+- OW-WAR-0005/S-validation · section · - · Ongoing Validation · docs/warrants/OW-WAR-0005/atoms/80-validation.md:10
 
 ## docs/warrants/OW-WAR-0005/deliverables.toml
 > -
@@ -2766,15 +2793,15 @@
 
 ## docs/warrants/OW-WAR-0006/atoms/10-intent.md
 > -
-- OW-WAR-0006/S-intent · section · - · Intent · docs/warrants/OW-WAR-0006/atoms/10-intent.md:1
+- OW-WAR-0006/S-intent · section · - · Intent · docs/warrants/OW-WAR-0006/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0006/atoms/20-basis.md
 > -
-- OW-WAR-0006/S-basis · section · - · Basis · docs/warrants/OW-WAR-0006/atoms/20-basis.md:1
+- OW-WAR-0006/S-basis · section · - · Basis · docs/warrants/OW-WAR-0006/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0006/atoms/40-work-order.md
 > -
-- OW-WAR-0006/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0006/atoms/40-work-order.md:1
+- OW-WAR-0006/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0006/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0006/atoms/45-milestones.yaml
 > -
@@ -2803,15 +2830,15 @@
 
 ## docs/warrants/OW-WAR-0007/atoms/10-intent.md
 > -
-- OW-WAR-0007/S-intent · section · - · Intent · docs/warrants/OW-WAR-0007/atoms/10-intent.md:1
+- OW-WAR-0007/S-intent · section · - · Intent · docs/warrants/OW-WAR-0007/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0007/atoms/20-basis.md
 > -
-- OW-WAR-0007/S-basis · section · - · Basis · docs/warrants/OW-WAR-0007/atoms/20-basis.md:1
+- OW-WAR-0007/S-basis · section · - · Basis · docs/warrants/OW-WAR-0007/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0007/atoms/40-work-order.md
 > -
-- OW-WAR-0007/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0007/atoms/40-work-order.md:1
+- OW-WAR-0007/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0007/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0007/atoms/45-milestones.yaml
 > -
@@ -2841,15 +2868,15 @@
 
 ## docs/warrants/OW-WAR-0008/atoms/10-intent.md
 > -
-- OW-WAR-0008/S-intent · section · - · Intent · docs/warrants/OW-WAR-0008/atoms/10-intent.md:1
+- OW-WAR-0008/S-intent · section · - · Intent · docs/warrants/OW-WAR-0008/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0008/atoms/20-basis.md
 > -
-- OW-WAR-0008/S-basis · section · - · Basis · docs/warrants/OW-WAR-0008/atoms/20-basis.md:1
+- OW-WAR-0008/S-basis · section · - · Basis · docs/warrants/OW-WAR-0008/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0008/atoms/40-work-order.md
 > -
-- OW-WAR-0008/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0008/atoms/40-work-order.md:1
+- OW-WAR-0008/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0008/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0008/atoms/45-milestones.yaml
 > -
@@ -2876,15 +2903,15 @@
 
 ## docs/warrants/OW-WAR-0009/atoms/10-intent.md
 > -
-- OW-WAR-0009/S-intent · section · - · Intent · docs/warrants/OW-WAR-0009/atoms/10-intent.md:1
+- OW-WAR-0009/S-intent · section · - · Intent · docs/warrants/OW-WAR-0009/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0009/atoms/20-basis.md
 > -
-- OW-WAR-0009/S-basis · section · - · Basis · docs/warrants/OW-WAR-0009/atoms/20-basis.md:1
+- OW-WAR-0009/S-basis · section · - · Basis · docs/warrants/OW-WAR-0009/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0009/atoms/40-work-order.md
 > -
-- OW-WAR-0009/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0009/atoms/40-work-order.md:1
+- OW-WAR-0009/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0009/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0009/atoms/45-milestones.yaml
 > -
@@ -2914,15 +2941,15 @@
 
 ## docs/warrants/OW-WAR-0010/atoms/10-intent.md
 > -
-- OW-WAR-0010/S-intent · section · - · Intent · docs/warrants/OW-WAR-0010/atoms/10-intent.md:1
+- OW-WAR-0010/S-intent · section · - · Intent · docs/warrants/OW-WAR-0010/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0010/atoms/20-basis.md
 > -
-- OW-WAR-0010/S-basis · section · - · Basis · docs/warrants/OW-WAR-0010/atoms/20-basis.md:1
+- OW-WAR-0010/S-basis · section · - · Basis · docs/warrants/OW-WAR-0010/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0010/atoms/40-work-order.md
 > -
-- OW-WAR-0010/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0010/atoms/40-work-order.md:1
+- OW-WAR-0010/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0010/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0010/atoms/45-milestones.yaml
 > -
@@ -2949,15 +2976,15 @@
 
 ## docs/warrants/OW-WAR-0011/atoms/10-intent.md
 > -
-- OW-WAR-0011/S-intent · section · - · Intent · docs/warrants/OW-WAR-0011/atoms/10-intent.md:1
+- OW-WAR-0011/S-intent · section · - · Intent · docs/warrants/OW-WAR-0011/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0011/atoms/20-basis.md
 > -
-- OW-WAR-0011/S-basis · section · - · Basis · docs/warrants/OW-WAR-0011/atoms/20-basis.md:1
+- OW-WAR-0011/S-basis · section · - · Basis · docs/warrants/OW-WAR-0011/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0011/atoms/40-work-order.md
 > -
-- OW-WAR-0011/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0011/atoms/40-work-order.md:1
+- OW-WAR-0011/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0011/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0011/atoms/45-milestones.yaml
 > -
@@ -2984,15 +3011,15 @@
 
 ## docs/warrants/OW-WAR-0012/atoms/10-intent.md
 > -
-- OW-WAR-0012/S-intent · section · - · Intent · docs/warrants/OW-WAR-0012/atoms/10-intent.md:1
+- OW-WAR-0012/S-intent · section · - · Intent · docs/warrants/OW-WAR-0012/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0012/atoms/20-basis.md
 > -
-- OW-WAR-0012/S-basis · section · - · Basis · docs/warrants/OW-WAR-0012/atoms/20-basis.md:1
+- OW-WAR-0012/S-basis · section · - · Basis · docs/warrants/OW-WAR-0012/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0012/atoms/40-work-order.md
 > -
-- OW-WAR-0012/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0012/atoms/40-work-order.md:1
+- OW-WAR-0012/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0012/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0012/atoms/45-milestones.yaml
 > -
@@ -3019,15 +3046,15 @@
 
 ## docs/warrants/OW-WAR-0013/atoms/10-intent.md
 > -
-- OW-WAR-0013/S-intent · section · - · Intent · docs/warrants/OW-WAR-0013/atoms/10-intent.md:1
+- OW-WAR-0013/S-intent · section · - · Intent · docs/warrants/OW-WAR-0013/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0013/atoms/20-basis.md
 > -
-- OW-WAR-0013/S-basis · section · - · Basis · docs/warrants/OW-WAR-0013/atoms/20-basis.md:1
+- OW-WAR-0013/S-basis · section · - · Basis · docs/warrants/OW-WAR-0013/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0013/atoms/40-work-order.md
 > -
-- OW-WAR-0013/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0013/atoms/40-work-order.md:1
+- OW-WAR-0013/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0013/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0013/atoms/45-milestones.yaml
 > -
@@ -3054,15 +3081,15 @@
 
 ## docs/warrants/OW-WAR-0014/atoms/10-intent.md
 > -
-- OW-WAR-0014/S-intent · section · - · Intent · docs/warrants/OW-WAR-0014/atoms/10-intent.md:1
+- OW-WAR-0014/S-intent · section · - · Intent · docs/warrants/OW-WAR-0014/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0014/atoms/20-basis.md
 > -
-- OW-WAR-0014/S-basis · section · - · Basis · docs/warrants/OW-WAR-0014/atoms/20-basis.md:1
+- OW-WAR-0014/S-basis · section · - · Basis · docs/warrants/OW-WAR-0014/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0014/atoms/40-work-order.md
 > -
-- OW-WAR-0014/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0014/atoms/40-work-order.md:1
+- OW-WAR-0014/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0014/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0014/atoms/45-milestones.yaml
 > -
@@ -3087,15 +3114,15 @@
 
 ## docs/warrants/OW-WAR-0015/atoms/10-intent.md
 > -
-- OW-WAR-0015/S-intent · section · - · Intent · docs/warrants/OW-WAR-0015/atoms/10-intent.md:1
+- OW-WAR-0015/S-intent · section · - · Intent · docs/warrants/OW-WAR-0015/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0015/atoms/20-basis.md
 > -
-- OW-WAR-0015/S-basis · section · - · Basis · docs/warrants/OW-WAR-0015/atoms/20-basis.md:1
+- OW-WAR-0015/S-basis · section · - · Basis · docs/warrants/OW-WAR-0015/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0015/atoms/40-work-order.md
 > -
-- OW-WAR-0015/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0015/atoms/40-work-order.md:1
+- OW-WAR-0015/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0015/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0015/atoms/45-milestones.yaml
 > -
@@ -3119,15 +3146,15 @@
 
 ## docs/warrants/OW-WAR-0016/atoms/10-intent.md
 > -
-- OW-WAR-0016/S-intent · section · - · Intent · docs/warrants/OW-WAR-0016/atoms/10-intent.md:1
+- OW-WAR-0016/S-intent · section · - · Intent · docs/warrants/OW-WAR-0016/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0016/atoms/20-basis.md
 > -
-- OW-WAR-0016/S-basis · section · - · Basis · docs/warrants/OW-WAR-0016/atoms/20-basis.md:1
+- OW-WAR-0016/S-basis · section · - · Basis · docs/warrants/OW-WAR-0016/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0016/atoms/40-work-order.md
 > -
-- OW-WAR-0016/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0016/atoms/40-work-order.md:1
+- OW-WAR-0016/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0016/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0016/atoms/45-milestones.yaml
 > -
@@ -3157,15 +3184,15 @@
 
 ## docs/warrants/OW-WAR-0017/atoms/10-intent.md
 > -
-- OW-WAR-0017/S-intent · section · - · Intent · docs/warrants/OW-WAR-0017/atoms/10-intent.md:1
+- OW-WAR-0017/S-intent · section · - · Intent · docs/warrants/OW-WAR-0017/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0017/atoms/20-basis.md
 > -
-- OW-WAR-0017/S-basis · section · - · Basis · docs/warrants/OW-WAR-0017/atoms/20-basis.md:1
+- OW-WAR-0017/S-basis · section · - · Basis · docs/warrants/OW-WAR-0017/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0017/atoms/40-work-order.md
 > -
-- OW-WAR-0017/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0017/atoms/40-work-order.md:1
+- OW-WAR-0017/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0017/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0017/atoms/45-milestones.yaml
 > -
@@ -3195,15 +3222,15 @@
 
 ## docs/warrants/OW-WAR-0018/atoms/10-intent.md
 > -
-- OW-WAR-0018/S-intent · section · - · Intent · docs/warrants/OW-WAR-0018/atoms/10-intent.md:1
+- OW-WAR-0018/S-intent · section · - · Intent · docs/warrants/OW-WAR-0018/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0018/atoms/20-basis.md
 > -
-- OW-WAR-0018/S-basis · section · - · Basis · docs/warrants/OW-WAR-0018/atoms/20-basis.md:1
+- OW-WAR-0018/S-basis · section · - · Basis · docs/warrants/OW-WAR-0018/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0018/atoms/40-work-order.md
 > -
-- OW-WAR-0018/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0018/atoms/40-work-order.md:1
+- OW-WAR-0018/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0018/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0018/atoms/45-milestones.yaml
 > -
@@ -3230,15 +3257,15 @@
 
 ## docs/warrants/OW-WAR-0019/atoms/10-intent.md
 > -
-- OW-WAR-0019/S-intent · section · - · Intent · docs/warrants/OW-WAR-0019/atoms/10-intent.md:1
+- OW-WAR-0019/S-intent · section · - · Intent · docs/warrants/OW-WAR-0019/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0019/atoms/20-basis.md
 > -
-- OW-WAR-0019/S-basis · section · - · Basis · docs/warrants/OW-WAR-0019/atoms/20-basis.md:1
+- OW-WAR-0019/S-basis · section · - · Basis · docs/warrants/OW-WAR-0019/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0019/atoms/40-work-order.md
 > -
-- OW-WAR-0019/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0019/atoms/40-work-order.md:1
+- OW-WAR-0019/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0019/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0019/atoms/45-milestones.yaml
 > -
@@ -3268,15 +3295,15 @@
 
 ## docs/warrants/OW-WAR-0020/atoms/10-intent.md
 > -
-- OW-WAR-0020/S-intent · section · - · Intent · docs/warrants/OW-WAR-0020/atoms/10-intent.md:1
+- OW-WAR-0020/S-intent · section · - · Intent · docs/warrants/OW-WAR-0020/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0020/atoms/20-basis.md
 > -
-- OW-WAR-0020/S-basis · section · - · Basis · docs/warrants/OW-WAR-0020/atoms/20-basis.md:1
+- OW-WAR-0020/S-basis · section · - · Basis · docs/warrants/OW-WAR-0020/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0020/atoms/40-work-order.md
 > -
-- OW-WAR-0020/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0020/atoms/40-work-order.md:1
+- OW-WAR-0020/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0020/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0020/atoms/45-milestones.yaml
 > -
@@ -3310,15 +3337,15 @@
 
 ## docs/warrants/OW-WAR-0021/atoms/10-intent.md
 > -
-- OW-WAR-0021/S-intent · section · - · Intent · docs/warrants/OW-WAR-0021/atoms/10-intent.md:1
+- OW-WAR-0021/S-intent · section · - · Intent · docs/warrants/OW-WAR-0021/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0021/atoms/20-basis.md
 > -
-- OW-WAR-0021/S-basis · section · - · Basis · docs/warrants/OW-WAR-0021/atoms/20-basis.md:1
+- OW-WAR-0021/S-basis · section · - · Basis · docs/warrants/OW-WAR-0021/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0021/atoms/40-work-order.md
 > -
-- OW-WAR-0021/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0021/atoms/40-work-order.md:1
+- OW-WAR-0021/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0021/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0021/atoms/45-milestones.yaml
 > -
@@ -3346,15 +3373,15 @@
 
 ## docs/warrants/OW-WAR-0022/atoms/10-intent.md
 > -
-- OW-WAR-0022/S-intent · section · - · Intent · docs/warrants/OW-WAR-0022/atoms/10-intent.md:1
+- OW-WAR-0022/S-intent · section · - · Intent · docs/warrants/OW-WAR-0022/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0022/atoms/20-basis.md
 > -
-- OW-WAR-0022/S-basis · section · - · Basis · docs/warrants/OW-WAR-0022/atoms/20-basis.md:1
+- OW-WAR-0022/S-basis · section · - · Basis · docs/warrants/OW-WAR-0022/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0022/atoms/40-work-order.md
 > -
-- OW-WAR-0022/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0022/atoms/40-work-order.md:1
+- OW-WAR-0022/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0022/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0022/atoms/45-milestones.yaml
 > -
@@ -3384,15 +3411,15 @@
 
 ## docs/warrants/OW-WAR-0023/atoms/10-intent.md
 > -
-- OW-WAR-0023/S-intent · section · - · Intent · docs/warrants/OW-WAR-0023/atoms/10-intent.md:1
+- OW-WAR-0023/S-intent · section · - · Intent · docs/warrants/OW-WAR-0023/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0023/atoms/20-basis.md
 > -
-- OW-WAR-0023/S-basis · section · - · Basis · docs/warrants/OW-WAR-0023/atoms/20-basis.md:1
+- OW-WAR-0023/S-basis · section · - · Basis · docs/warrants/OW-WAR-0023/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0023/atoms/40-work-order.md
 > -
-- OW-WAR-0023/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0023/atoms/40-work-order.md:1
+- OW-WAR-0023/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0023/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0023/atoms/45-milestones.yaml
 > -
@@ -3419,15 +3446,15 @@
 
 ## docs/warrants/OW-WAR-0024/atoms/10-intent.md
 > -
-- OW-WAR-0024/S-intent · section · - · Intent · docs/warrants/OW-WAR-0024/atoms/10-intent.md:1
+- OW-WAR-0024/S-intent · section · - · Intent · docs/warrants/OW-WAR-0024/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0024/atoms/20-basis.md
 > -
-- OW-WAR-0024/S-basis · section · - · Basis · docs/warrants/OW-WAR-0024/atoms/20-basis.md:1
+- OW-WAR-0024/S-basis · section · - · Basis · docs/warrants/OW-WAR-0024/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0024/atoms/40-work-order.md
 > -
-- OW-WAR-0024/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0024/atoms/40-work-order.md:1
+- OW-WAR-0024/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0024/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0024/atoms/45-milestones.yaml
 > -
@@ -3454,15 +3481,15 @@
 
 ## docs/warrants/OW-WAR-0025/atoms/10-intent.md
 > -
-- OW-WAR-0025/S-intent · section · - · Intent · docs/warrants/OW-WAR-0025/atoms/10-intent.md:1
+- OW-WAR-0025/S-intent · section · - · Intent · docs/warrants/OW-WAR-0025/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0025/atoms/20-basis.md
 > -
-- OW-WAR-0025/S-basis · section · - · Basis · docs/warrants/OW-WAR-0025/atoms/20-basis.md:1
+- OW-WAR-0025/S-basis · section · - · Basis · docs/warrants/OW-WAR-0025/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0025/atoms/40-work-order.md
 > -
-- OW-WAR-0025/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0025/atoms/40-work-order.md:1
+- OW-WAR-0025/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0025/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0025/atoms/45-milestones.yaml
 > -
@@ -3486,15 +3513,15 @@
 
 ## docs/warrants/OW-WAR-0026/atoms/10-intent.md
 > -
-- OW-WAR-0026/S-intent · section · - · Intent · docs/warrants/OW-WAR-0026/atoms/10-intent.md:1
+- OW-WAR-0026/S-intent · section · - · Intent · docs/warrants/OW-WAR-0026/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0026/atoms/20-basis.md
 > -
-- OW-WAR-0026/S-basis · section · - · Basis · docs/warrants/OW-WAR-0026/atoms/20-basis.md:1
+- OW-WAR-0026/S-basis · section · - · Basis · docs/warrants/OW-WAR-0026/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0026/atoms/40-work-order.md
 > -
-- OW-WAR-0026/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0026/atoms/40-work-order.md:1
+- OW-WAR-0026/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0026/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0026/atoms/45-milestones.yaml
 > -
@@ -3521,15 +3548,15 @@
 
 ## docs/warrants/OW-WAR-0027/atoms/10-intent.md
 > -
-- OW-WAR-0027/S-intent · section · - · Intent · docs/warrants/OW-WAR-0027/atoms/10-intent.md:1
+- OW-WAR-0027/S-intent · section · - · Intent · docs/warrants/OW-WAR-0027/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0027/atoms/20-basis.md
 > -
-- OW-WAR-0027/S-basis · section · - · Basis · docs/warrants/OW-WAR-0027/atoms/20-basis.md:1
+- OW-WAR-0027/S-basis · section · - · Basis · docs/warrants/OW-WAR-0027/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0027/atoms/40-work-order.md
 > -
-- OW-WAR-0027/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0027/atoms/40-work-order.md:1
+- OW-WAR-0027/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0027/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0027/atoms/45-milestones.yaml
 > -
@@ -3558,15 +3585,15 @@
 
 ## docs/warrants/OW-WAR-0028/atoms/10-intent.md
 > -
-- OW-WAR-0028/S-intent · section · - · Intent · docs/warrants/OW-WAR-0028/atoms/10-intent.md:1
+- OW-WAR-0028/S-intent · section · - · Intent · docs/warrants/OW-WAR-0028/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0028/atoms/20-basis.md
 > -
-- OW-WAR-0028/S-basis · section · - · Basis · docs/warrants/OW-WAR-0028/atoms/20-basis.md:1
+- OW-WAR-0028/S-basis · section · - · Basis · docs/warrants/OW-WAR-0028/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0028/atoms/40-work-order.md
 > -
-- OW-WAR-0028/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0028/atoms/40-work-order.md:1
+- OW-WAR-0028/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0028/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0028/atoms/45-milestones.yaml
 > -
@@ -3593,15 +3620,15 @@
 
 ## docs/warrants/OW-WAR-0029/atoms/10-intent.md
 > -
-- OW-WAR-0029/S-intent · section · - · Intent · docs/warrants/OW-WAR-0029/atoms/10-intent.md:1
+- OW-WAR-0029/S-intent · section · - · Intent · docs/warrants/OW-WAR-0029/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0029/atoms/20-basis.md
 > -
-- OW-WAR-0029/S-basis · section · - · Basis · docs/warrants/OW-WAR-0029/atoms/20-basis.md:1
+- OW-WAR-0029/S-basis · section · - · Basis · docs/warrants/OW-WAR-0029/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0029/atoms/40-work-order.md
 > -
-- OW-WAR-0029/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0029/atoms/40-work-order.md:1
+- OW-WAR-0029/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0029/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0029/atoms/45-milestones.yaml
 > -
@@ -3631,15 +3658,15 @@
 
 ## docs/warrants/OW-WAR-0030/atoms/10-intent.md
 > -
-- OW-WAR-0030/S-intent · section · - · Intent · docs/warrants/OW-WAR-0030/atoms/10-intent.md:1
+- OW-WAR-0030/S-intent · section · - · Intent · docs/warrants/OW-WAR-0030/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0030/atoms/20-basis.md
 > -
-- OW-WAR-0030/S-basis · section · - · Basis · docs/warrants/OW-WAR-0030/atoms/20-basis.md:1
+- OW-WAR-0030/S-basis · section · - · Basis · docs/warrants/OW-WAR-0030/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0030/atoms/40-work-order.md
 > -
-- OW-WAR-0030/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0030/atoms/40-work-order.md:1
+- OW-WAR-0030/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0030/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0030/atoms/45-milestones.yaml
 > -
@@ -3666,15 +3693,15 @@
 
 ## docs/warrants/OW-WAR-0031/atoms/10-intent.md
 > -
-- OW-WAR-0031/S-intent · section · - · Intent · docs/warrants/OW-WAR-0031/atoms/10-intent.md:1
+- OW-WAR-0031/S-intent · section · - · Intent · docs/warrants/OW-WAR-0031/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0031/atoms/20-basis.md
 > -
-- OW-WAR-0031/S-basis · section · - · Basis · docs/warrants/OW-WAR-0031/atoms/20-basis.md:1
+- OW-WAR-0031/S-basis · section · - · Basis · docs/warrants/OW-WAR-0031/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0031/atoms/40-work-order.md
 > -
-- OW-WAR-0031/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0031/atoms/40-work-order.md:1
+- OW-WAR-0031/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0031/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0031/atoms/45-milestones.yaml
 > -
@@ -3702,15 +3729,15 @@
 
 ## docs/warrants/OW-WAR-0032/atoms/10-intent.md
 > -
-- OW-WAR-0032/S-intent · section · - · Intent · docs/warrants/OW-WAR-0032/atoms/10-intent.md:1
+- OW-WAR-0032/S-intent · section · - · Intent · docs/warrants/OW-WAR-0032/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0032/atoms/20-basis.md
 > -
-- OW-WAR-0032/S-basis · section · - · Basis · docs/warrants/OW-WAR-0032/atoms/20-basis.md:1
+- OW-WAR-0032/S-basis · section · - · Basis · docs/warrants/OW-WAR-0032/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0032/atoms/40-work-order.md
 > -
-- OW-WAR-0032/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0032/atoms/40-work-order.md:1
+- OW-WAR-0032/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0032/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0032/atoms/45-milestones.yaml
 > -
@@ -3736,15 +3763,15 @@
 
 ## docs/warrants/OW-WAR-0033/atoms/10-intent.md
 > -
-- OW-WAR-0033/S-intent · section · - · Intent · docs/warrants/OW-WAR-0033/atoms/10-intent.md:1
+- OW-WAR-0033/S-intent · section · - · Intent · docs/warrants/OW-WAR-0033/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0033/atoms/20-basis.md
 > -
-- OW-WAR-0033/S-basis · section · - · Basis · docs/warrants/OW-WAR-0033/atoms/20-basis.md:1
+- OW-WAR-0033/S-basis · section · - · Basis · docs/warrants/OW-WAR-0033/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0033/atoms/40-work-order.md
 > -
-- OW-WAR-0033/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0033/atoms/40-work-order.md:1
+- OW-WAR-0033/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0033/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0033/atoms/45-milestones.yaml
 > -
@@ -3772,15 +3799,15 @@
 
 ## docs/warrants/OW-WAR-0034/atoms/10-intent.md
 > -
-- OW-WAR-0034/S-intent · section · - · Intent · docs/warrants/OW-WAR-0034/atoms/10-intent.md:1
+- OW-WAR-0034/S-intent · section · - · Intent · docs/warrants/OW-WAR-0034/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0034/atoms/20-basis.md
 > -
-- OW-WAR-0034/S-basis · section · - · Basis · docs/warrants/OW-WAR-0034/atoms/20-basis.md:1
+- OW-WAR-0034/S-basis · section · - · Basis · docs/warrants/OW-WAR-0034/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0034/atoms/40-work-order.md
 > -
-- OW-WAR-0034/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0034/atoms/40-work-order.md:1
+- OW-WAR-0034/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0034/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0034/atoms/45-milestones.yaml
 > -
@@ -3807,15 +3834,15 @@
 
 ## docs/warrants/OW-WAR-0035/atoms/10-intent.md
 > -
-- OW-WAR-0035/S-intent · section · - · Intent · docs/warrants/OW-WAR-0035/atoms/10-intent.md:1
+- OW-WAR-0035/S-intent · section · - · Intent · docs/warrants/OW-WAR-0035/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0035/atoms/20-basis.md
 > -
-- OW-WAR-0035/S-basis · section · - · Basis · docs/warrants/OW-WAR-0035/atoms/20-basis.md:1
+- OW-WAR-0035/S-basis · section · - · Basis · docs/warrants/OW-WAR-0035/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0035/atoms/40-work-order.md
 > -
-- OW-WAR-0035/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0035/atoms/40-work-order.md:1
+- OW-WAR-0035/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0035/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0035/atoms/45-milestones.yaml
 > -
@@ -3838,15 +3865,15 @@
 
 ## docs/warrants/OW-WAR-0036/atoms/10-intent.md
 > -
-- OW-WAR-0036/S-intent · section · - · Intent · docs/warrants/OW-WAR-0036/atoms/10-intent.md:1
+- OW-WAR-0036/S-intent · section · - · Intent · docs/warrants/OW-WAR-0036/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0036/atoms/20-basis.md
 > -
-- OW-WAR-0036/S-basis · section · - · Basis · docs/warrants/OW-WAR-0036/atoms/20-basis.md:1
+- OW-WAR-0036/S-basis · section · - · Basis · docs/warrants/OW-WAR-0036/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0036/atoms/40-work-order.md
 > -
-- OW-WAR-0036/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0036/atoms/40-work-order.md:1
+- OW-WAR-0036/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0036/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0036/atoms/45-milestones.yaml
 > -
@@ -3874,15 +3901,15 @@
 
 ## docs/warrants/OW-WAR-0037/atoms/10-intent.md
 > -
-- OW-WAR-0037/S-intent · section · - · Intent · docs/warrants/OW-WAR-0037/atoms/10-intent.md:1
+- OW-WAR-0037/S-intent · section · - · Intent · docs/warrants/OW-WAR-0037/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0037/atoms/20-basis.md
 > -
-- OW-WAR-0037/S-basis · section · - · Basis · docs/warrants/OW-WAR-0037/atoms/20-basis.md:1
+- OW-WAR-0037/S-basis · section · - · Basis · docs/warrants/OW-WAR-0037/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0037/atoms/40-work-order.md
 > -
-- OW-WAR-0037/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0037/atoms/40-work-order.md:1
+- OW-WAR-0037/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0037/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0037/atoms/45-milestones.yaml
 > -
@@ -3906,15 +3933,15 @@
 
 ## docs/warrants/OW-WAR-0038/atoms/10-intent.md
 > -
-- OW-WAR-0038/S-intent · section · - · Intent · docs/warrants/OW-WAR-0038/atoms/10-intent.md:1
+- OW-WAR-0038/S-intent · section · - · Intent · docs/warrants/OW-WAR-0038/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0038/atoms/20-basis.md
 > -
-- OW-WAR-0038/S-basis · section · - · Basis · docs/warrants/OW-WAR-0038/atoms/20-basis.md:1
+- OW-WAR-0038/S-basis · section · - · Basis · docs/warrants/OW-WAR-0038/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0038/atoms/40-work-order.md
 > -
-- OW-WAR-0038/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0038/atoms/40-work-order.md:1
+- OW-WAR-0038/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0038/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0038/atoms/45-milestones.yaml
 > -
@@ -3945,15 +3972,15 @@
 
 ## docs/warrants/OW-WAR-0039/atoms/10-intent.md
 > -
-- OW-WAR-0039/S-intent · section · - · Intent · docs/warrants/OW-WAR-0039/atoms/10-intent.md:1
+- OW-WAR-0039/S-intent · section · - · Intent · docs/warrants/OW-WAR-0039/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0039/atoms/20-basis.md
 > -
-- OW-WAR-0039/S-basis · section · - · Basis · docs/warrants/OW-WAR-0039/atoms/20-basis.md:1
+- OW-WAR-0039/S-basis · section · - · Basis · docs/warrants/OW-WAR-0039/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0039/atoms/40-work-order.md
 > -
-- OW-WAR-0039/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0039/atoms/40-work-order.md:1
+- OW-WAR-0039/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0039/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0039/atoms/45-milestones.yaml
 > -
@@ -3980,15 +4007,15 @@
 
 ## docs/warrants/OW-WAR-0040/atoms/10-intent.md
 > -
-- OW-WAR-0040/S-intent · section · - · Intent · docs/warrants/OW-WAR-0040/atoms/10-intent.md:1
+- OW-WAR-0040/S-intent · section · - · Intent · docs/warrants/OW-WAR-0040/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0040/atoms/20-basis.md
 > -
-- OW-WAR-0040/S-basis · section · - · Basis · docs/warrants/OW-WAR-0040/atoms/20-basis.md:1
+- OW-WAR-0040/S-basis · section · - · Basis · docs/warrants/OW-WAR-0040/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0040/atoms/40-work-order.md
 > -
-- OW-WAR-0040/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0040/atoms/40-work-order.md:1
+- OW-WAR-0040/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0040/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0040/atoms/45-milestones.yaml
 > -
@@ -4014,15 +4041,15 @@
 
 ## docs/warrants/OW-WAR-0041/atoms/10-intent.md
 > -
-- OW-WAR-0041/S-intent · section · - · Intent · docs/warrants/OW-WAR-0041/atoms/10-intent.md:1
+- OW-WAR-0041/S-intent · section · - · Intent · docs/warrants/OW-WAR-0041/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0041/atoms/20-basis.md
 > -
-- OW-WAR-0041/S-basis · section · - · Basis · docs/warrants/OW-WAR-0041/atoms/20-basis.md:1
+- OW-WAR-0041/S-basis · section · - · Basis · docs/warrants/OW-WAR-0041/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0041/atoms/40-work-order.md
 > -
-- OW-WAR-0041/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0041/atoms/40-work-order.md:1
+- OW-WAR-0041/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0041/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0041/atoms/45-milestones.yaml
 > -
@@ -4051,15 +4078,15 @@
 
 ## docs/warrants/OW-WAR-0042/atoms/10-intent.md
 > -
-- OW-WAR-0042/S-intent · section · - · Intent · docs/warrants/OW-WAR-0042/atoms/10-intent.md:1
+- OW-WAR-0042/S-intent · section · - · Intent · docs/warrants/OW-WAR-0042/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0042/atoms/20-basis.md
 > -
-- OW-WAR-0042/S-basis · section · - · Basis · docs/warrants/OW-WAR-0042/atoms/20-basis.md:1
+- OW-WAR-0042/S-basis · section · - · Basis · docs/warrants/OW-WAR-0042/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0042/atoms/40-work-order.md
 > -
-- OW-WAR-0042/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0042/atoms/40-work-order.md:1
+- OW-WAR-0042/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0042/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0042/atoms/45-milestones.yaml
 > -
@@ -4084,15 +4111,15 @@
 
 ## docs/warrants/OW-WAR-0043/atoms/10-intent.md
 > -
-- OW-WAR-0043/S-intent · section · - · Intent · docs/warrants/OW-WAR-0043/atoms/10-intent.md:1
+- OW-WAR-0043/S-intent · section · - · Intent · docs/warrants/OW-WAR-0043/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0043/atoms/20-basis.md
 > -
-- OW-WAR-0043/S-basis · section · - · Basis · docs/warrants/OW-WAR-0043/atoms/20-basis.md:1
+- OW-WAR-0043/S-basis · section · - · Basis · docs/warrants/OW-WAR-0043/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0043/atoms/40-work-order.md
 > -
-- OW-WAR-0043/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0043/atoms/40-work-order.md:1
+- OW-WAR-0043/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0043/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0043/atoms/45-milestones.yaml
 > -
@@ -4121,15 +4148,15 @@
 
 ## docs/warrants/OW-WAR-0044/atoms/10-intent.md
 > -
-- OW-WAR-0044/S-intent · section · - · Intent · docs/warrants/OW-WAR-0044/atoms/10-intent.md:1
+- OW-WAR-0044/S-intent · section · - · Intent · docs/warrants/OW-WAR-0044/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0044/atoms/20-basis.md
 > -
-- OW-WAR-0044/S-basis · section · - · Basis · docs/warrants/OW-WAR-0044/atoms/20-basis.md:1
+- OW-WAR-0044/S-basis · section · - · Basis · docs/warrants/OW-WAR-0044/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0044/atoms/40-work-order.md
 > -
-- OW-WAR-0044/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0044/atoms/40-work-order.md:1
+- OW-WAR-0044/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0044/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0044/atoms/45-milestones.yaml
 > -
@@ -4160,15 +4187,15 @@
 
 ## docs/warrants/OW-WAR-0045/atoms/10-intent.md
 > -
-- OW-WAR-0045/S-intent · section · - · Intent · docs/warrants/OW-WAR-0045/atoms/10-intent.md:1
+- OW-WAR-0045/S-intent · section · - · Intent · docs/warrants/OW-WAR-0045/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0045/atoms/20-basis.md
 > -
-- OW-WAR-0045/S-basis · section · - · Basis · docs/warrants/OW-WAR-0045/atoms/20-basis.md:1
+- OW-WAR-0045/S-basis · section · - · Basis · docs/warrants/OW-WAR-0045/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0045/atoms/40-work-order.md
 > -
-- OW-WAR-0045/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0045/atoms/40-work-order.md:1
+- OW-WAR-0045/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0045/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0045/atoms/45-milestones.yaml
 > -
@@ -4195,15 +4222,15 @@
 
 ## docs/warrants/OW-WAR-0046/atoms/10-intent.md
 > -
-- OW-WAR-0046/S-intent · section · - · Intent · docs/warrants/OW-WAR-0046/atoms/10-intent.md:1
+- OW-WAR-0046/S-intent · section · - · Intent · docs/warrants/OW-WAR-0046/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0046/atoms/20-basis.md
 > -
-- OW-WAR-0046/S-basis · section · - · Basis · docs/warrants/OW-WAR-0046/atoms/20-basis.md:1
+- OW-WAR-0046/S-basis · section · - · Basis · docs/warrants/OW-WAR-0046/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0046/atoms/40-work-order.md
 > -
-- OW-WAR-0046/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0046/atoms/40-work-order.md:1
+- OW-WAR-0046/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0046/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0046/atoms/45-milestones.yaml
 > -
@@ -4236,15 +4263,15 @@
 
 ## docs/warrants/OW-WAR-0047/atoms/10-intent.md
 > -
-- OW-WAR-0047/S-intent · section · - · Intent · docs/warrants/OW-WAR-0047/atoms/10-intent.md:1
+- OW-WAR-0047/S-intent · section · - · Intent · docs/warrants/OW-WAR-0047/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0047/atoms/20-basis.md
 > -
-- OW-WAR-0047/S-basis · section · - · Basis · docs/warrants/OW-WAR-0047/atoms/20-basis.md:1
+- OW-WAR-0047/S-basis · section · - · Basis · docs/warrants/OW-WAR-0047/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0047/atoms/40-work-order.md
 > -
-- OW-WAR-0047/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0047/atoms/40-work-order.md:1
+- OW-WAR-0047/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0047/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml
 > -
@@ -4271,15 +4298,15 @@
 
 ## docs/warrants/OW-WAR-0048/atoms/10-intent.md
 > -
-- OW-WAR-0048/S-intent · section · - · Intent · docs/warrants/OW-WAR-0048/atoms/10-intent.md:1
+- OW-WAR-0048/S-intent · section · - · Intent · docs/warrants/OW-WAR-0048/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0048/atoms/20-basis.md
 > -
-- OW-WAR-0048/S-basis · section · - · Basis · docs/warrants/OW-WAR-0048/atoms/20-basis.md:1
+- OW-WAR-0048/S-basis · section · - · Basis · docs/warrants/OW-WAR-0048/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0048/atoms/40-work-order.md
 > -
-- OW-WAR-0048/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0048/atoms/40-work-order.md:1
+- OW-WAR-0048/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0048/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0048/atoms/45-milestones.yaml
 > -
@@ -4304,15 +4331,15 @@
 
 ## docs/warrants/OW-WAR-0049/atoms/10-intent.md
 > -
-- OW-WAR-0049/S-intent · section · - · Intent · docs/warrants/OW-WAR-0049/atoms/10-intent.md:1
+- OW-WAR-0049/S-intent · section · - · Intent · docs/warrants/OW-WAR-0049/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0049/atoms/20-basis.md
 > -
-- OW-WAR-0049/S-basis · section · - · Basis · docs/warrants/OW-WAR-0049/atoms/20-basis.md:1
+- OW-WAR-0049/S-basis · section · - · Basis · docs/warrants/OW-WAR-0049/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0049/atoms/40-work-order.md
 > -
-- OW-WAR-0049/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0049/atoms/40-work-order.md:1
+- OW-WAR-0049/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0049/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0049/atoms/45-milestones.yaml
 > -
@@ -4336,15 +4363,15 @@
 
 ## docs/warrants/OW-WAR-0050/atoms/10-intent.md
 > -
-- OW-WAR-0050/S-intent · section · - · Intent · docs/warrants/OW-WAR-0050/atoms/10-intent.md:1
+- OW-WAR-0050/S-intent · section · - · Intent · docs/warrants/OW-WAR-0050/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0050/atoms/20-basis.md
 > -
-- OW-WAR-0050/S-basis · section · - · Basis · docs/warrants/OW-WAR-0050/atoms/20-basis.md:1
+- OW-WAR-0050/S-basis · section · - · Basis · docs/warrants/OW-WAR-0050/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0050/atoms/40-work-order.md
 > -
-- OW-WAR-0050/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0050/atoms/40-work-order.md:1
+- OW-WAR-0050/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0050/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0050/atoms/45-milestones.yaml
 > -
@@ -4372,15 +4399,15 @@
 
 ## docs/warrants/OW-WAR-0055/atoms/10-intent.md
 > -
-- OW-WAR-0055/S-intent · section · - · Intent · docs/warrants/OW-WAR-0055/atoms/10-intent.md:1
+- OW-WAR-0055/S-intent · section · - · Intent · docs/warrants/OW-WAR-0055/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0055/atoms/20-basis.md
 > -
-- OW-WAR-0055/S-basis · section · - · Basis · docs/warrants/OW-WAR-0055/atoms/20-basis.md:1
+- OW-WAR-0055/S-basis · section · - · Basis · docs/warrants/OW-WAR-0055/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0055/atoms/40-work-order.md
 > -
-- OW-WAR-0055/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0055/atoms/40-work-order.md:1
+- OW-WAR-0055/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0055/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0055/atoms/45-milestones.yaml
 > -
@@ -4415,15 +4442,15 @@
 
 ## docs/warrants/OW-WAR-0056/atoms/10-intent.md
 > -
-- OW-WAR-0056/S-intent · section · - · Intent · docs/warrants/OW-WAR-0056/atoms/10-intent.md:1
+- OW-WAR-0056/S-intent · section · - · Intent · docs/warrants/OW-WAR-0056/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0056/atoms/20-basis.md
 > -
-- OW-WAR-0056/S-basis · section · - · Basis · docs/warrants/OW-WAR-0056/atoms/20-basis.md:1
+- OW-WAR-0056/S-basis · section · - · Basis · docs/warrants/OW-WAR-0056/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0056/atoms/40-work-order.md
 > -
-- OW-WAR-0056/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0056/atoms/40-work-order.md:1
+- OW-WAR-0056/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0056/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0056/atoms/45-milestones.yaml
 > -
@@ -4455,15 +4482,15 @@
 
 ## docs/warrants/OW-WAR-0057/atoms/10-intent.md
 > -
-- OW-WAR-0057/S-intent · section · - · Intent · docs/warrants/OW-WAR-0057/atoms/10-intent.md:1
+- OW-WAR-0057/S-intent · section · - · Intent · docs/warrants/OW-WAR-0057/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0057/atoms/20-basis.md
 > -
-- OW-WAR-0057/S-basis · section · - · Basis · docs/warrants/OW-WAR-0057/atoms/20-basis.md:1
+- OW-WAR-0057/S-basis · section · - · Basis · docs/warrants/OW-WAR-0057/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0057/atoms/40-work-order.md
 > -
-- OW-WAR-0057/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0057/atoms/40-work-order.md:1
+- OW-WAR-0057/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0057/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0057/atoms/45-milestones.yaml
 > -
@@ -4489,15 +4516,15 @@
 
 ## docs/warrants/OW-WAR-0058/atoms/10-intent.md
 > -
-- OW-WAR-0058/S-intent · section · - · Intent · docs/warrants/OW-WAR-0058/atoms/10-intent.md:1
+- OW-WAR-0058/S-intent · section · - · Intent · docs/warrants/OW-WAR-0058/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0058/atoms/20-basis.md
 > -
-- OW-WAR-0058/S-basis · section · - · Basis · docs/warrants/OW-WAR-0058/atoms/20-basis.md:1
+- OW-WAR-0058/S-basis · section · - · Basis · docs/warrants/OW-WAR-0058/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0058/atoms/40-work-order.md
 > -
-- OW-WAR-0058/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0058/atoms/40-work-order.md:1
+- OW-WAR-0058/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0058/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0058/atoms/45-milestones.yaml
 > -
@@ -4529,15 +4556,15 @@
 
 ## docs/warrants/OW-WAR-0059/atoms/10-intent.md
 > -
-- OW-WAR-0059/S-intent · section · - · Intent · docs/warrants/OW-WAR-0059/atoms/10-intent.md:1
+- OW-WAR-0059/S-intent · section · - · Intent · docs/warrants/OW-WAR-0059/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0059/atoms/20-basis.md
 > -
-- OW-WAR-0059/S-basis · section · - · Basis · docs/warrants/OW-WAR-0059/atoms/20-basis.md:1
+- OW-WAR-0059/S-basis · section · - · Basis · docs/warrants/OW-WAR-0059/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0059/atoms/40-work-order.md
 > -
-- OW-WAR-0059/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0059/atoms/40-work-order.md:1
+- OW-WAR-0059/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0059/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0059/atoms/45-milestones.yaml
 > -
@@ -4572,15 +4599,15 @@
 
 ## docs/warrants/OW-WAR-0060/atoms/10-intent.md
 > -
-- OW-WAR-0060/S-intent · section · - · Intent · docs/warrants/OW-WAR-0060/atoms/10-intent.md:1
+- OW-WAR-0060/S-intent · section · - · Intent · docs/warrants/OW-WAR-0060/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0060/atoms/20-basis.md
 > -
-- OW-WAR-0060/S-basis · section · - · Basis · docs/warrants/OW-WAR-0060/atoms/20-basis.md:1
+- OW-WAR-0060/S-basis · section · - · Basis · docs/warrants/OW-WAR-0060/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0060/atoms/40-work-order.md
 > -
-- OW-WAR-0060/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0060/atoms/40-work-order.md:1
+- OW-WAR-0060/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0060/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0060/atoms/45-milestones.yaml
 > -
@@ -4606,15 +4633,15 @@
 
 ## docs/warrants/OW-WAR-0061/atoms/10-intent.md
 > -
-- OW-WAR-0061/S-intent · section · - · Intent · docs/warrants/OW-WAR-0061/atoms/10-intent.md:1
+- OW-WAR-0061/S-intent · section · - · Intent · docs/warrants/OW-WAR-0061/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0061/atoms/20-basis.md
 > -
-- OW-WAR-0061/S-basis · section · - · Basis · docs/warrants/OW-WAR-0061/atoms/20-basis.md:1
+- OW-WAR-0061/S-basis · section · - · Basis · docs/warrants/OW-WAR-0061/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0061/atoms/40-work-order.md
 > -
-- OW-WAR-0061/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0061/atoms/40-work-order.md:1
+- OW-WAR-0061/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0061/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0061/atoms/45-milestones.yaml
 > -
@@ -4638,15 +4665,15 @@
 
 ## docs/warrants/OW-WAR-0062/atoms/10-intent.md
 > -
-- OW-WAR-0062/S-intent · section · - · Intent · docs/warrants/OW-WAR-0062/atoms/10-intent.md:1
+- OW-WAR-0062/S-intent · section · - · Intent · docs/warrants/OW-WAR-0062/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0062/atoms/20-basis.md
 > -
-- OW-WAR-0062/S-basis · section · - · Basis · docs/warrants/OW-WAR-0062/atoms/20-basis.md:1
+- OW-WAR-0062/S-basis · section · - · Basis · docs/warrants/OW-WAR-0062/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0062/atoms/40-work-order.md
 > -
-- OW-WAR-0062/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0062/atoms/40-work-order.md:1
+- OW-WAR-0062/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0062/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0062/atoms/45-milestones.yaml
 > -
@@ -4673,15 +4700,15 @@
 
 ## docs/warrants/OW-WAR-0063/atoms/10-intent.md
 > -
-- OW-WAR-0063/S-intent · section · - · Intent · docs/warrants/OW-WAR-0063/atoms/10-intent.md:1
+- OW-WAR-0063/S-intent · section · - · Intent · docs/warrants/OW-WAR-0063/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0063/atoms/20-basis.md
 > -
-- OW-WAR-0063/S-basis · section · - · Basis · docs/warrants/OW-WAR-0063/atoms/20-basis.md:1
+- OW-WAR-0063/S-basis · section · - · Basis · docs/warrants/OW-WAR-0063/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0063/atoms/40-work-order.md
 > -
-- OW-WAR-0063/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0063/atoms/40-work-order.md:1
+- OW-WAR-0063/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0063/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0063/atoms/45-milestones.yaml
 > -
@@ -4707,15 +4734,15 @@
 
 ## docs/warrants/OW-WAR-0064/atoms/10-intent.md
 > -
-- OW-WAR-0064/S-intent · section · - · Intent · docs/warrants/OW-WAR-0064/atoms/10-intent.md:1
+- OW-WAR-0064/S-intent · section · - · Intent · docs/warrants/OW-WAR-0064/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0064/atoms/20-basis.md
 > -
-- OW-WAR-0064/S-basis · section · - · Basis · docs/warrants/OW-WAR-0064/atoms/20-basis.md:1
+- OW-WAR-0064/S-basis · section · - · Basis · docs/warrants/OW-WAR-0064/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0064/atoms/40-work-order.md
 > -
-- OW-WAR-0064/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0064/atoms/40-work-order.md:1
+- OW-WAR-0064/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0064/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0064/atoms/45-milestones.yaml
 > -
@@ -4742,15 +4769,15 @@
 
 ## docs/warrants/OW-WAR-0065/atoms/10-intent.md
 > -
-- OW-WAR-0065/S-intent · section · - · Intent · docs/warrants/OW-WAR-0065/atoms/10-intent.md:1
+- OW-WAR-0065/S-intent · section · - · Intent · docs/warrants/OW-WAR-0065/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0065/atoms/20-basis.md
 > -
-- OW-WAR-0065/S-basis · section · - · Basis · docs/warrants/OW-WAR-0065/atoms/20-basis.md:1
+- OW-WAR-0065/S-basis · section · - · Basis · docs/warrants/OW-WAR-0065/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0065/atoms/40-work-order.md
 > -
-- OW-WAR-0065/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0065/atoms/40-work-order.md:1
+- OW-WAR-0065/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0065/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0065/atoms/45-milestones.yaml
 > -
@@ -4772,15 +4799,15 @@
 
 ## docs/warrants/OW-WAR-0066/atoms/10-intent.md
 > -
-- OW-WAR-0066/S-intent · section · - · Intent · docs/warrants/OW-WAR-0066/atoms/10-intent.md:1
+- OW-WAR-0066/S-intent · section · - · Intent · docs/warrants/OW-WAR-0066/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0066/atoms/20-basis.md
 > -
-- OW-WAR-0066/S-basis · section · - · Basis · docs/warrants/OW-WAR-0066/atoms/20-basis.md:1
+- OW-WAR-0066/S-basis · section · - · Basis · docs/warrants/OW-WAR-0066/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0066/atoms/40-work-order.md
 > -
-- OW-WAR-0066/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0066/atoms/40-work-order.md:1
+- OW-WAR-0066/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0066/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0066/atoms/45-milestones.yaml
 > -
@@ -4800,15 +4827,15 @@
 
 ## docs/warrants/OW-WAR-0067/atoms/10-intent.md
 > -
-- OW-WAR-0067/S-intent · section · - · Intent · docs/warrants/OW-WAR-0067/atoms/10-intent.md:1
+- OW-WAR-0067/S-intent · section · - · Intent · docs/warrants/OW-WAR-0067/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0067/atoms/20-basis.md
 > -
-- OW-WAR-0067/S-basis · section · - · Basis · docs/warrants/OW-WAR-0067/atoms/20-basis.md:1
+- OW-WAR-0067/S-basis · section · - · Basis · docs/warrants/OW-WAR-0067/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0067/atoms/40-work-order.md
 > -
-- OW-WAR-0067/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0067/atoms/40-work-order.md:1
+- OW-WAR-0067/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0067/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0067/atoms/45-milestones.yaml
 > -
@@ -4835,15 +4862,15 @@
 
 ## docs/warrants/OW-WAR-0068/atoms/10-intent.md
 > -
-- OW-WAR-0068/S-intent · section · - · Intent · docs/warrants/OW-WAR-0068/atoms/10-intent.md:1
+- OW-WAR-0068/S-intent · section · - · Intent · docs/warrants/OW-WAR-0068/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0068/atoms/20-basis.md
 > -
-- OW-WAR-0068/S-basis · section · - · Basis · docs/warrants/OW-WAR-0068/atoms/20-basis.md:1
+- OW-WAR-0068/S-basis · section · - · Basis · docs/warrants/OW-WAR-0068/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0068/atoms/40-work-order.md
 > -
-- OW-WAR-0068/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0068/atoms/40-work-order.md:1
+- OW-WAR-0068/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0068/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0068/atoms/45-milestones.yaml
 > -
@@ -4883,15 +4910,15 @@
 
 ## docs/warrants/OW-WAR-0069/atoms/10-intent.md
 > -
-- OW-WAR-0069/S-intent · section · - · Intent · docs/warrants/OW-WAR-0069/atoms/10-intent.md:1
+- OW-WAR-0069/S-intent · section · - · Intent · docs/warrants/OW-WAR-0069/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0069/atoms/20-basis.md
 > -
-- OW-WAR-0069/S-basis · section · - · Basis · docs/warrants/OW-WAR-0069/atoms/20-basis.md:1
+- OW-WAR-0069/S-basis · section · - · Basis · docs/warrants/OW-WAR-0069/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0069/atoms/40-work-order.md
 > -
-- OW-WAR-0069/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0069/atoms/40-work-order.md:1
+- OW-WAR-0069/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0069/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0069/atoms/45-milestones.yaml
 > -
@@ -4940,15 +4967,15 @@
 
 ## docs/warrants/OW-WAR-0070/atoms/10-intent.md
 > -
-- OW-WAR-0070/S-intent · section · - · Intent · docs/warrants/OW-WAR-0070/atoms/10-intent.md:1
+- OW-WAR-0070/S-intent · section · - · Intent · docs/warrants/OW-WAR-0070/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0070/atoms/20-basis.md
 > -
-- OW-WAR-0070/S-basis · section · - · Basis · docs/warrants/OW-WAR-0070/atoms/20-basis.md:1
+- OW-WAR-0070/S-basis · section · - · Basis · docs/warrants/OW-WAR-0070/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0070/atoms/40-work-order.md
 > -
-- OW-WAR-0070/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0070/atoms/40-work-order.md:1
+- OW-WAR-0070/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0070/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0070/atoms/45-milestones.yaml
 > -
@@ -4969,15 +4996,15 @@
 
 ## docs/warrants/OW-WAR-0071/../../adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md
 > -
-- OW-WAR-0071/S-adr · section · - · Adr · docs/warrants/OW-WAR-0071/../../adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md:1
+- OW-WAR-0071/S-adr · section · - · ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority · docs/warrants/OW-WAR-0071/../../adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md:14
 
 ## docs/warrants/OW-WAR-0071/atoms/10-intent.md
 > -
-- OW-WAR-0071/S-intent · section · - · Intent · docs/warrants/OW-WAR-0071/atoms/10-intent.md:1
+- OW-WAR-0071/S-intent · section · - · Intent · docs/warrants/OW-WAR-0071/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0071/atoms/20-basis.md
 > -
-- OW-WAR-0071/S-basis · section · - · Basis · docs/warrants/OW-WAR-0071/atoms/20-basis.md:1
+- OW-WAR-0071/S-basis · section · - · Basis · docs/warrants/OW-WAR-0071/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0071/atoms/60-assurance.md
 > -
@@ -4992,15 +5019,15 @@
 
 ## docs/warrants/OW-WAR-0072/atoms/10-intent.md
 > -
-- OW-WAR-0072/S-intent · section · - · Intent · docs/warrants/OW-WAR-0072/atoms/10-intent.md:1
+- OW-WAR-0072/S-intent · section · - · Intent · docs/warrants/OW-WAR-0072/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0072/atoms/20-basis.md
 > -
-- OW-WAR-0072/S-basis · section · - · Basis · docs/warrants/OW-WAR-0072/atoms/20-basis.md:1
+- OW-WAR-0072/S-basis · section · - · Basis · docs/warrants/OW-WAR-0072/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0072/atoms/40-work-order.md
 > -
-- OW-WAR-0072/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0072/atoms/40-work-order.md:1
+- OW-WAR-0072/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0072/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0072/atoms/45-milestones.yaml
 > -
@@ -5026,15 +5053,15 @@
 
 ## docs/warrants/OW-WAR-0073/atoms/10-intent.md
 > -
-- OW-WAR-0073/S-intent · section · - · Intent · docs/warrants/OW-WAR-0073/atoms/10-intent.md:1
+- OW-WAR-0073/S-intent · section · - · Intent · docs/warrants/OW-WAR-0073/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0073/atoms/20-basis.md
 > -
-- OW-WAR-0073/S-basis · section · - · Basis · docs/warrants/OW-WAR-0073/atoms/20-basis.md:1
+- OW-WAR-0073/S-basis · section · - · Basis · docs/warrants/OW-WAR-0073/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0073/atoms/40-work-order.md
 > -
-- OW-WAR-0073/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0073/atoms/40-work-order.md:1
+- OW-WAR-0073/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0073/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0073/atoms/45-milestones.yaml
 > -
@@ -5062,15 +5089,15 @@
 
 ## docs/warrants/OW-WAR-0074/atoms/10-intent.md
 > -
-- OW-WAR-0074/S-intent · section · - · Intent · docs/warrants/OW-WAR-0074/atoms/10-intent.md:1
+- OW-WAR-0074/S-intent · section · - · Intent · docs/warrants/OW-WAR-0074/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0074/atoms/20-basis.md
 > -
-- OW-WAR-0074/S-basis · section · - · Basis · docs/warrants/OW-WAR-0074/atoms/20-basis.md:1
+- OW-WAR-0074/S-basis · section · - · Basis · docs/warrants/OW-WAR-0074/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0074/atoms/40-work-order.md
 > -
-- OW-WAR-0074/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0074/atoms/40-work-order.md:1
+- OW-WAR-0074/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0074/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0074/atoms/45-milestones.yaml
 > -
@@ -5092,15 +5119,15 @@
 
 ## docs/warrants/OW-WAR-0075/atoms/10-intent.md
 > -
-- OW-WAR-0075/S-intent · section · - · Intent · docs/warrants/OW-WAR-0075/atoms/10-intent.md:1
+- OW-WAR-0075/S-intent · section · - · Intent · docs/warrants/OW-WAR-0075/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0075/atoms/20-basis.md
 > -
-- OW-WAR-0075/S-basis · section · - · Basis · docs/warrants/OW-WAR-0075/atoms/20-basis.md:1
+- OW-WAR-0075/S-basis · section · - · Basis · docs/warrants/OW-WAR-0075/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0075/atoms/40-work-order.md
 > -
-- OW-WAR-0075/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0075/atoms/40-work-order.md:1
+- OW-WAR-0075/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0075/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0075/atoms/45-milestones.yaml
 > -
@@ -5124,15 +5151,15 @@
 
 ## docs/warrants/OW-WAR-0076/atoms/10-intent.md
 > -
-- OW-WAR-0076/S-intent · section · - · Intent · docs/warrants/OW-WAR-0076/atoms/10-intent.md:1
+- OW-WAR-0076/S-intent · section · - · Intent · docs/warrants/OW-WAR-0076/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0076/atoms/20-basis.md
 > -
-- OW-WAR-0076/S-basis · section · - · Basis · docs/warrants/OW-WAR-0076/atoms/20-basis.md:1
+- OW-WAR-0076/S-basis · section · - · Basis · docs/warrants/OW-WAR-0076/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0076/atoms/40-work-order.md
 > -
-- OW-WAR-0076/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0076/atoms/40-work-order.md:1
+- OW-WAR-0076/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0076/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0076/atoms/45-milestones.yaml
 > -
@@ -5156,15 +5183,15 @@
 
 ## docs/warrants/OW-WAR-0077/atoms/10-intent.md
 > -
-- OW-WAR-0077/S-intent · section · - · Intent · docs/warrants/OW-WAR-0077/atoms/10-intent.md:1
+- OW-WAR-0077/S-intent · section · - · Intent · docs/warrants/OW-WAR-0077/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0077/atoms/20-basis.md
 > -
-- OW-WAR-0077/S-basis · section · - · Basis · docs/warrants/OW-WAR-0077/atoms/20-basis.md:1
+- OW-WAR-0077/S-basis · section · - · Basis · docs/warrants/OW-WAR-0077/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0077/atoms/40-work-order.md
 > -
-- OW-WAR-0077/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0077/atoms/40-work-order.md:1
+- OW-WAR-0077/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0077/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0077/atoms/45-milestones.yaml
 > -
@@ -5188,15 +5215,15 @@
 
 ## docs/warrants/OW-WAR-0078/atoms/10-intent.md
 > -
-- OW-WAR-0078/S-intent · section · - · Intent · docs/warrants/OW-WAR-0078/atoms/10-intent.md:1
+- OW-WAR-0078/S-intent · section · - · Intent · docs/warrants/OW-WAR-0078/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0078/atoms/20-basis.md
 > -
-- OW-WAR-0078/S-basis · section · - · Basis · docs/warrants/OW-WAR-0078/atoms/20-basis.md:1
+- OW-WAR-0078/S-basis · section · - · Basis · docs/warrants/OW-WAR-0078/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0078/atoms/40-work-order.md
 > -
-- OW-WAR-0078/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0078/atoms/40-work-order.md:1
+- OW-WAR-0078/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0078/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0078/atoms/45-milestones.yaml
 > -
@@ -5220,15 +5247,15 @@
 
 ## docs/warrants/OW-WAR-0079/atoms/10-intent.md
 > -
-- OW-WAR-0079/S-intent · section · - · Intent · docs/warrants/OW-WAR-0079/atoms/10-intent.md:1
+- OW-WAR-0079/S-intent · section · - · Intent · docs/warrants/OW-WAR-0079/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0079/atoms/20-basis.md
 > -
-- OW-WAR-0079/S-basis · section · - · Basis · docs/warrants/OW-WAR-0079/atoms/20-basis.md:1
+- OW-WAR-0079/S-basis · section · - · Basis · docs/warrants/OW-WAR-0079/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0079/atoms/40-work-order.md
 > -
-- OW-WAR-0079/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0079/atoms/40-work-order.md:1
+- OW-WAR-0079/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0079/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0079/atoms/45-milestones.yaml
 > -
@@ -5252,15 +5279,15 @@
 
 ## docs/warrants/OW-WAR-0080/atoms/10-intent.md
 > -
-- OW-WAR-0080/S-intent · section · - · Intent · docs/warrants/OW-WAR-0080/atoms/10-intent.md:1
+- OW-WAR-0080/S-intent · section · - · Intent · docs/warrants/OW-WAR-0080/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0080/atoms/20-basis.md
 > -
-- OW-WAR-0080/S-basis · section · - · Basis · docs/warrants/OW-WAR-0080/atoms/20-basis.md:1
+- OW-WAR-0080/S-basis · section · - · Basis · docs/warrants/OW-WAR-0080/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0080/atoms/40-work-order.md
 > -
-- OW-WAR-0080/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0080/atoms/40-work-order.md:1
+- OW-WAR-0080/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0080/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0080/atoms/45-milestones.yaml
 > -
@@ -5284,15 +5311,15 @@
 
 ## docs/warrants/OW-WAR-0081/atoms/10-intent.md
 > -
-- OW-WAR-0081/S-intent · section · - · Intent · docs/warrants/OW-WAR-0081/atoms/10-intent.md:1
+- OW-WAR-0081/S-intent · section · - · Intent · docs/warrants/OW-WAR-0081/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0081/atoms/20-basis.md
 > -
-- OW-WAR-0081/S-basis · section · - · Basis · docs/warrants/OW-WAR-0081/atoms/20-basis.md:1
+- OW-WAR-0081/S-basis · section · - · Basis · docs/warrants/OW-WAR-0081/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0081/atoms/40-work-order.md
 > -
-- OW-WAR-0081/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0081/atoms/40-work-order.md:1
+- OW-WAR-0081/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0081/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0081/atoms/45-milestones.yaml
 > -
@@ -5316,15 +5343,15 @@
 
 ## docs/warrants/OW-WAR-0082/atoms/10-intent.md
 > -
-- OW-WAR-0082/S-intent · section · - · Intent · docs/warrants/OW-WAR-0082/atoms/10-intent.md:1
+- OW-WAR-0082/S-intent · section · - · Intent · docs/warrants/OW-WAR-0082/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0082/atoms/20-basis.md
 > -
-- OW-WAR-0082/S-basis · section · - · Basis · docs/warrants/OW-WAR-0082/atoms/20-basis.md:1
+- OW-WAR-0082/S-basis · section · - · Basis · docs/warrants/OW-WAR-0082/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0082/atoms/40-work-order.md
 > -
-- OW-WAR-0082/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0082/atoms/40-work-order.md:1
+- OW-WAR-0082/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0082/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0082/atoms/45-milestones.yaml
 > -
@@ -5348,15 +5375,15 @@
 
 ## docs/warrants/OW-WAR-0083/atoms/10-intent.md
 > -
-- OW-WAR-0083/S-intent · section · - · Intent · docs/warrants/OW-WAR-0083/atoms/10-intent.md:1
+- OW-WAR-0083/S-intent · section · - · Intent · docs/warrants/OW-WAR-0083/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0083/atoms/20-basis.md
 > -
-- OW-WAR-0083/S-basis · section · - · Basis · docs/warrants/OW-WAR-0083/atoms/20-basis.md:1
+- OW-WAR-0083/S-basis · section · - · Basis · docs/warrants/OW-WAR-0083/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0083/atoms/40-work-order.md
 > -
-- OW-WAR-0083/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0083/atoms/40-work-order.md:1
+- OW-WAR-0083/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0083/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0083/atoms/45-milestones.yaml
 > -
@@ -5380,15 +5407,15 @@
 
 ## docs/warrants/OW-WAR-0084/atoms/10-intent.md
 > -
-- OW-WAR-0084/S-intent · section · - · Intent · docs/warrants/OW-WAR-0084/atoms/10-intent.md:1
+- OW-WAR-0084/S-intent · section · - · Intent · docs/warrants/OW-WAR-0084/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0084/atoms/20-basis.md
 > -
-- OW-WAR-0084/S-basis · section · - · Basis · docs/warrants/OW-WAR-0084/atoms/20-basis.md:1
+- OW-WAR-0084/S-basis · section · - · Basis · docs/warrants/OW-WAR-0084/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0084/atoms/40-work-order.md
 > -
-- OW-WAR-0084/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0084/atoms/40-work-order.md:1
+- OW-WAR-0084/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0084/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0084/atoms/45-milestones.yaml
 > -
@@ -5412,15 +5439,15 @@
 
 ## docs/warrants/OW-WAR-0085/atoms/10-intent.md
 > -
-- OW-WAR-0085/S-intent · section · - · Intent · docs/warrants/OW-WAR-0085/atoms/10-intent.md:1
+- OW-WAR-0085/S-intent · section · - · Intent · docs/warrants/OW-WAR-0085/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0085/atoms/20-basis.md
 > -
-- OW-WAR-0085/S-basis · section · - · Basis · docs/warrants/OW-WAR-0085/atoms/20-basis.md:1
+- OW-WAR-0085/S-basis · section · - · Basis · docs/warrants/OW-WAR-0085/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0085/atoms/40-work-order.md
 > -
-- OW-WAR-0085/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0085/atoms/40-work-order.md:1
+- OW-WAR-0085/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0085/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0085/atoms/45-milestones.yaml
 > -
@@ -5444,15 +5471,15 @@
 
 ## docs/warrants/OW-WAR-0086/atoms/10-intent.md
 > -
-- OW-WAR-0086/S-intent · section · - · Intent · docs/warrants/OW-WAR-0086/atoms/10-intent.md:1
+- OW-WAR-0086/S-intent · section · - · Intent · docs/warrants/OW-WAR-0086/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0086/atoms/20-basis.md
 > -
-- OW-WAR-0086/S-basis · section · - · Basis · docs/warrants/OW-WAR-0086/atoms/20-basis.md:1
+- OW-WAR-0086/S-basis · section · - · Basis · docs/warrants/OW-WAR-0086/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0086/atoms/40-work-order.md
 > -
-- OW-WAR-0086/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0086/atoms/40-work-order.md:1
+- OW-WAR-0086/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0086/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0086/atoms/45-milestones.yaml
 > -
@@ -5476,15 +5503,15 @@
 
 ## docs/warrants/OW-WAR-0087/atoms/10-intent.md
 > -
-- OW-WAR-0087/S-intent · section · - · Intent · docs/warrants/OW-WAR-0087/atoms/10-intent.md:1
+- OW-WAR-0087/S-intent · section · - · Intent · docs/warrants/OW-WAR-0087/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0087/atoms/20-basis.md
 > -
-- OW-WAR-0087/S-basis · section · - · Basis · docs/warrants/OW-WAR-0087/atoms/20-basis.md:1
+- OW-WAR-0087/S-basis · section · - · Basis · docs/warrants/OW-WAR-0087/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0087/atoms/40-work-order.md
 > -
-- OW-WAR-0087/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0087/atoms/40-work-order.md:1
+- OW-WAR-0087/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0087/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0087/atoms/45-milestones.yaml
 > -
@@ -5508,15 +5535,15 @@
 
 ## docs/warrants/OW-WAR-0088/atoms/10-intent.md
 > -
-- OW-WAR-0088/S-intent · section · - · Intent · docs/warrants/OW-WAR-0088/atoms/10-intent.md:1
+- OW-WAR-0088/S-intent · section · - · Intent · docs/warrants/OW-WAR-0088/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0088/atoms/20-basis.md
 > -
-- OW-WAR-0088/S-basis · section · - · Basis · docs/warrants/OW-WAR-0088/atoms/20-basis.md:1
+- OW-WAR-0088/S-basis · section · - · Basis · docs/warrants/OW-WAR-0088/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0088/atoms/40-work-order.md
 > -
-- OW-WAR-0088/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0088/atoms/40-work-order.md:1
+- OW-WAR-0088/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0088/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0088/atoms/45-milestones.yaml
 > -
@@ -5540,15 +5567,15 @@
 
 ## docs/warrants/OW-WAR-0089/atoms/10-intent.md
 > -
-- OW-WAR-0089/S-intent · section · - · Intent · docs/warrants/OW-WAR-0089/atoms/10-intent.md:1
+- OW-WAR-0089/S-intent · section · - · Intent · docs/warrants/OW-WAR-0089/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0089/atoms/20-basis.md
 > -
-- OW-WAR-0089/S-basis · section · - · Basis · docs/warrants/OW-WAR-0089/atoms/20-basis.md:1
+- OW-WAR-0089/S-basis · section · - · Basis · docs/warrants/OW-WAR-0089/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0089/atoms/40-work-order.md
 > -
-- OW-WAR-0089/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0089/atoms/40-work-order.md:1
+- OW-WAR-0089/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0089/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0089/atoms/45-milestones.yaml
 > -
@@ -5572,15 +5599,15 @@
 
 ## docs/warrants/OW-WAR-0090/atoms/10-intent.md
 > -
-- OW-WAR-0090/S-intent · section · - · Intent · docs/warrants/OW-WAR-0090/atoms/10-intent.md:1
+- OW-WAR-0090/S-intent · section · - · Intent · docs/warrants/OW-WAR-0090/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0090/atoms/20-basis.md
 > -
-- OW-WAR-0090/S-basis · section · - · Basis · docs/warrants/OW-WAR-0090/atoms/20-basis.md:1
+- OW-WAR-0090/S-basis · section · - · Basis · docs/warrants/OW-WAR-0090/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0090/atoms/40-work-order.md
 > -
-- OW-WAR-0090/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0090/atoms/40-work-order.md:1
+- OW-WAR-0090/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0090/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0090/atoms/45-milestones.yaml
 > -
@@ -5604,15 +5631,15 @@
 
 ## docs/warrants/OW-WAR-0091/atoms/10-intent.md
 > -
-- OW-WAR-0091/S-intent · section · - · Intent · docs/warrants/OW-WAR-0091/atoms/10-intent.md:1
+- OW-WAR-0091/S-intent · section · - · Intent · docs/warrants/OW-WAR-0091/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0091/atoms/20-basis.md
 > -
-- OW-WAR-0091/S-basis · section · - · Basis · docs/warrants/OW-WAR-0091/atoms/20-basis.md:1
+- OW-WAR-0091/S-basis · section · - · Basis · docs/warrants/OW-WAR-0091/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0091/atoms/40-work-order.md
 > -
-- OW-WAR-0091/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0091/atoms/40-work-order.md:1
+- OW-WAR-0091/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0091/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0091/atoms/45-milestones.yaml
 > -
@@ -5636,15 +5663,15 @@
 
 ## docs/warrants/OW-WAR-0092/atoms/10-intent.md
 > -
-- OW-WAR-0092/S-intent · section · - · Intent · docs/warrants/OW-WAR-0092/atoms/10-intent.md:1
+- OW-WAR-0092/S-intent · section · - · Intent · docs/warrants/OW-WAR-0092/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0092/atoms/20-basis.md
 > -
-- OW-WAR-0092/S-basis · section · - · Basis · docs/warrants/OW-WAR-0092/atoms/20-basis.md:1
+- OW-WAR-0092/S-basis · section · - · Basis · docs/warrants/OW-WAR-0092/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0092/atoms/40-work-order.md
 > -
-- OW-WAR-0092/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0092/atoms/40-work-order.md:1
+- OW-WAR-0092/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0092/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0092/atoms/45-milestones.yaml
 > -
@@ -5664,20 +5691,20 @@
 
 ## docs/warrants/OW-WAR-0093/atoms/10-intent.md
 > -
-- OW-WAR-0093/S-intent · section · - · Intent · docs/warrants/OW-WAR-0093/atoms/10-intent.md:1
+- OW-WAR-0093/S-intent · section · - · Intent · docs/warrants/OW-WAR-0093/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0093/atoms/20-basis.md
 > -
-- OW-WAR-0093/S-basis · section · - · Basis · docs/warrants/OW-WAR-0093/atoms/20-basis.md:1
+- OW-WAR-0093/S-basis · section · - · Basis · docs/warrants/OW-WAR-0093/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0093/atoms/40-work-order.md
 > -
-- OW-WAR-0093/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0093/atoms/40-work-order.md:1
+- OW-WAR-0093/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0093/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0093/atoms/45-milestones.yaml
 > -
-- OW-WAR-0093/M1 · milestone · - · title: "" · docs/warrants/OW-WAR-0093/atoms/45-milestones.yaml:4
-- OW-WAR-0093/STAGE-001 · stage · - · title: "" · docs/warrants/OW-WAR-0093/atoms/45-milestones.yaml:9
+- OW-WAR-0093/M1 · milestone · - · - · docs/warrants/OW-WAR-0093/atoms/45-milestones.yaml:4
+- OW-WAR-0093/STAGE-001 · stage · - · - · docs/warrants/OW-WAR-0093/atoms/45-milestones.yaml:9
 
 ## docs/warrants/OW-WAR-0093/atoms/60-assurance.md
 > -
@@ -5692,15 +5719,15 @@
 
 ## docs/warrants/OW-WAR-0094/atoms/10-intent.md
 > -
-- OW-WAR-0094/S-intent · section · - · Intent · docs/warrants/OW-WAR-0094/atoms/10-intent.md:1
+- OW-WAR-0094/S-intent · section · - · Intent · docs/warrants/OW-WAR-0094/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0094/atoms/20-basis.md
 > -
-- OW-WAR-0094/S-basis · section · - · Basis · docs/warrants/OW-WAR-0094/atoms/20-basis.md:1
+- OW-WAR-0094/S-basis · section · - · Basis · docs/warrants/OW-WAR-0094/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0094/atoms/40-work-order.md
 > -
-- OW-WAR-0094/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0094/atoms/40-work-order.md:1
+- OW-WAR-0094/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0094/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0094/atoms/45-milestones.yaml
 > -
@@ -5719,15 +5746,15 @@
 
 ## docs/warrants/OW-WAR-0095/atoms/10-intent.md
 > -
-- OW-WAR-0095/S-intent · section · - · Intent · docs/warrants/OW-WAR-0095/atoms/10-intent.md:1
+- OW-WAR-0095/S-intent · section · - · Intent · docs/warrants/OW-WAR-0095/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0095/atoms/20-basis.md
 > -
-- OW-WAR-0095/S-basis · section · - · Basis · docs/warrants/OW-WAR-0095/atoms/20-basis.md:1
+- OW-WAR-0095/S-basis · section · - · Basis · docs/warrants/OW-WAR-0095/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0095/atoms/40-work-order.md
 > -
-- OW-WAR-0095/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0095/atoms/40-work-order.md:1
+- OW-WAR-0095/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0095/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0095/atoms/45-milestones.yaml
 > -
@@ -5746,15 +5773,15 @@
 
 ## docs/warrants/OW-WAR-0096/atoms/10-intent.md
 > -
-- OW-WAR-0096/S-intent · section · - · Intent · docs/warrants/OW-WAR-0096/atoms/10-intent.md:1
+- OW-WAR-0096/S-intent · section · - · Intent · docs/warrants/OW-WAR-0096/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0096/atoms/20-basis.md
 > -
-- OW-WAR-0096/S-basis · section · - · Basis · docs/warrants/OW-WAR-0096/atoms/20-basis.md:1
+- OW-WAR-0096/S-basis · section · - · Basis · docs/warrants/OW-WAR-0096/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0096/atoms/40-work-order.md
 > -
-- OW-WAR-0096/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0096/atoms/40-work-order.md:1
+- OW-WAR-0096/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0096/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0096/atoms/45-milestones.yaml
 > -
@@ -5774,15 +5801,15 @@
 
 ## docs/warrants/OW-WAR-0097/atoms/10-intent.md
 > -
-- OW-WAR-0097/S-intent · section · - · Intent · docs/warrants/OW-WAR-0097/atoms/10-intent.md:1
+- OW-WAR-0097/S-intent · section · - · Intent · docs/warrants/OW-WAR-0097/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0097/atoms/20-basis.md
 > -
-- OW-WAR-0097/S-basis · section · - · Basis · docs/warrants/OW-WAR-0097/atoms/20-basis.md:1
+- OW-WAR-0097/S-basis · section · - · Basis · docs/warrants/OW-WAR-0097/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0097/atoms/40-work-order.md
 > -
-- OW-WAR-0097/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0097/atoms/40-work-order.md:1
+- OW-WAR-0097/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0097/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0097/atoms/45-milestones.yaml
 > -
@@ -5801,15 +5828,15 @@
 
 ## docs/warrants/OW-WAR-0098/atoms/10-intent.md
 > -
-- OW-WAR-0098/S-intent · section · - · Intent · docs/warrants/OW-WAR-0098/atoms/10-intent.md:1
+- OW-WAR-0098/S-intent · section · - · Intent · docs/warrants/OW-WAR-0098/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0098/atoms/20-basis.md
 > -
-- OW-WAR-0098/S-basis · section · - · Basis · docs/warrants/OW-WAR-0098/atoms/20-basis.md:1
+- OW-WAR-0098/S-basis · section · - · Basis · docs/warrants/OW-WAR-0098/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0098/atoms/40-work-order.md
 > -
-- OW-WAR-0098/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0098/atoms/40-work-order.md:1
+- OW-WAR-0098/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0098/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0098/atoms/45-milestones.yaml
 > -
@@ -5828,15 +5855,15 @@
 
 ## docs/warrants/OW-WAR-0099/atoms/10-intent.md
 > -
-- OW-WAR-0099/S-intent · section · - · Intent · docs/warrants/OW-WAR-0099/atoms/10-intent.md:1
+- OW-WAR-0099/S-intent · section · - · Intent · docs/warrants/OW-WAR-0099/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0099/atoms/20-basis.md
 > -
-- OW-WAR-0099/S-basis · section · - · Basis · docs/warrants/OW-WAR-0099/atoms/20-basis.md:1
+- OW-WAR-0099/S-basis · section · - · Basis · docs/warrants/OW-WAR-0099/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0099/atoms/40-work-order.md
 > -
-- OW-WAR-0099/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0099/atoms/40-work-order.md:1
+- OW-WAR-0099/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0099/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0099/atoms/45-milestones.yaml
 > -
@@ -5855,15 +5882,15 @@
 
 ## docs/warrants/OW-WAR-0100/atoms/10-intent.md
 > -
-- OW-WAR-0100/S-intent · section · - · Intent · docs/warrants/OW-WAR-0100/atoms/10-intent.md:1
+- OW-WAR-0100/S-intent · section · - · Intent · docs/warrants/OW-WAR-0100/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0100/atoms/20-basis.md
 > -
-- OW-WAR-0100/S-basis · section · - · Basis · docs/warrants/OW-WAR-0100/atoms/20-basis.md:1
+- OW-WAR-0100/S-basis · section · - · Basis · docs/warrants/OW-WAR-0100/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0100/atoms/40-work-order.md
 > -
-- OW-WAR-0100/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0100/atoms/40-work-order.md:1
+- OW-WAR-0100/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0100/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0100/atoms/45-milestones.yaml
 > -
@@ -5882,15 +5909,15 @@
 
 ## docs/warrants/OW-WAR-0101/atoms/10-intent.md
 > -
-- OW-WAR-0101/S-intent · section · - · Intent · docs/warrants/OW-WAR-0101/atoms/10-intent.md:1
+- OW-WAR-0101/S-intent · section · - · Intent · docs/warrants/OW-WAR-0101/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0101/atoms/20-basis.md
 > -
-- OW-WAR-0101/S-basis · section · - · Basis · docs/warrants/OW-WAR-0101/atoms/20-basis.md:1
+- OW-WAR-0101/S-basis · section · - · Basis · docs/warrants/OW-WAR-0101/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0101/atoms/40-work-order.md
 > -
-- OW-WAR-0101/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0101/atoms/40-work-order.md:1
+- OW-WAR-0101/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0101/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0101/atoms/45-milestones.yaml
 > -
@@ -5911,15 +5938,15 @@
 
 ## docs/warrants/OW-WAR-0102/atoms/10-intent.md
 > -
-- OW-WAR-0102/S-intent · section · - · Intent · docs/warrants/OW-WAR-0102/atoms/10-intent.md:1
+- OW-WAR-0102/S-intent · section · - · Intent · docs/warrants/OW-WAR-0102/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0102/atoms/20-basis.md
 > -
-- OW-WAR-0102/S-basis · section · - · Basis · docs/warrants/OW-WAR-0102/atoms/20-basis.md:1
+- OW-WAR-0102/S-basis · section · - · Basis · docs/warrants/OW-WAR-0102/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0102/atoms/40-work-order.md
 > -
-- OW-WAR-0102/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0102/atoms/40-work-order.md:1
+- OW-WAR-0102/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0102/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0102/atoms/45-milestones.yaml
 > -
@@ -5938,15 +5965,15 @@
 
 ## docs/warrants/OW-WAR-0103/atoms/10-intent.md
 > -
-- OW-WAR-0103/S-intent · section · - · Intent · docs/warrants/OW-WAR-0103/atoms/10-intent.md:1
+- OW-WAR-0103/S-intent · section · - · Intent · docs/warrants/OW-WAR-0103/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0103/atoms/20-basis.md
 > -
-- OW-WAR-0103/S-basis · section · - · Basis · docs/warrants/OW-WAR-0103/atoms/20-basis.md:1
+- OW-WAR-0103/S-basis · section · - · Basis · docs/warrants/OW-WAR-0103/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0103/atoms/40-work-order.md
 > -
-- OW-WAR-0103/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0103/atoms/40-work-order.md:1
+- OW-WAR-0103/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0103/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0103/atoms/45-milestones.yaml
 > -
@@ -5965,15 +5992,15 @@
 
 ## docs/warrants/OW-WAR-0104/atoms/10-intent.md
 > -
-- OW-WAR-0104/S-intent · section · - · Intent · docs/warrants/OW-WAR-0104/atoms/10-intent.md:1
+- OW-WAR-0104/S-intent · section · - · Intent · docs/warrants/OW-WAR-0104/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0104/atoms/20-basis.md
 > -
-- OW-WAR-0104/S-basis · section · - · Basis · docs/warrants/OW-WAR-0104/atoms/20-basis.md:1
+- OW-WAR-0104/S-basis · section · - · Basis · docs/warrants/OW-WAR-0104/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0104/atoms/40-work-order.md
 > -
-- OW-WAR-0104/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0104/atoms/40-work-order.md:1
+- OW-WAR-0104/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0104/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0104/atoms/45-milestones.yaml
 > -
@@ -5993,15 +6020,15 @@
 
 ## docs/warrants/OW-WAR-0105/atoms/10-intent.md
 > -
-- OW-WAR-0105/S-intent · section · - · Intent · docs/warrants/OW-WAR-0105/atoms/10-intent.md:1
+- OW-WAR-0105/S-intent · section · - · Intent · docs/warrants/OW-WAR-0105/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0105/atoms/20-basis.md
 > -
-- OW-WAR-0105/S-basis · section · - · Basis · docs/warrants/OW-WAR-0105/atoms/20-basis.md:1
+- OW-WAR-0105/S-basis · section · - · Basis · docs/warrants/OW-WAR-0105/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0105/atoms/40-work-order.md
 > -
-- OW-WAR-0105/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0105/atoms/40-work-order.md:1
+- OW-WAR-0105/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0105/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0105/atoms/45-milestones.yaml
 > -
@@ -6020,15 +6047,15 @@
 
 ## docs/warrants/OW-WAR-0106/atoms/10-intent.md
 > -
-- OW-WAR-0106/S-intent · section · - · Intent · docs/warrants/OW-WAR-0106/atoms/10-intent.md:1
+- OW-WAR-0106/S-intent · section · - · Intent · docs/warrants/OW-WAR-0106/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0106/atoms/20-basis.md
 > -
-- OW-WAR-0106/S-basis · section · - · Basis · docs/warrants/OW-WAR-0106/atoms/20-basis.md:1
+- OW-WAR-0106/S-basis · section · - · Basis · docs/warrants/OW-WAR-0106/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0106/atoms/40-work-order.md
 > -
-- OW-WAR-0106/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0106/atoms/40-work-order.md:1
+- OW-WAR-0106/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0106/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0106/atoms/45-milestones.yaml
 > -
@@ -6047,15 +6074,15 @@
 
 ## docs/warrants/OW-WAR-0107/atoms/10-intent.md
 > -
-- OW-WAR-0107/S-intent · section · - · Intent · docs/warrants/OW-WAR-0107/atoms/10-intent.md:1
+- OW-WAR-0107/S-intent · section · - · Intent · docs/warrants/OW-WAR-0107/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0107/atoms/20-basis.md
 > -
-- OW-WAR-0107/S-basis · section · - · Basis · docs/warrants/OW-WAR-0107/atoms/20-basis.md:1
+- OW-WAR-0107/S-basis · section · - · Basis · docs/warrants/OW-WAR-0107/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0107/atoms/40-work-order.md
 > -
-- OW-WAR-0107/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0107/atoms/40-work-order.md:1
+- OW-WAR-0107/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0107/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0107/atoms/45-milestones.yaml
 > -
@@ -6074,15 +6101,15 @@
 
 ## docs/warrants/OW-WAR-0108/atoms/10-intent.md
 > -
-- OW-WAR-0108/S-intent · section · - · Intent · docs/warrants/OW-WAR-0108/atoms/10-intent.md:1
+- OW-WAR-0108/S-intent · section · - · Intent · docs/warrants/OW-WAR-0108/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0108/atoms/20-basis.md
 > -
-- OW-WAR-0108/S-basis · section · - · Basis · docs/warrants/OW-WAR-0108/atoms/20-basis.md:1
+- OW-WAR-0108/S-basis · section · - · Basis · docs/warrants/OW-WAR-0108/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0108/atoms/40-work-order.md
 > -
-- OW-WAR-0108/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0108/atoms/40-work-order.md:1
+- OW-WAR-0108/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0108/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0108/atoms/45-milestones.yaml
 > -
@@ -6103,15 +6130,15 @@
 
 ## docs/warrants/OW-WAR-0109/atoms/10-intent.md
 > -
-- OW-WAR-0109/S-intent · section · - · Intent · docs/warrants/OW-WAR-0109/atoms/10-intent.md:1
+- OW-WAR-0109/S-intent · section · - · Intent · docs/warrants/OW-WAR-0109/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0109/atoms/20-basis.md
 > -
-- OW-WAR-0109/S-basis · section · - · Basis · docs/warrants/OW-WAR-0109/atoms/20-basis.md:1
+- OW-WAR-0109/S-basis · section · - · Basis · docs/warrants/OW-WAR-0109/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0109/atoms/40-work-order.md
 > -
-- OW-WAR-0109/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0109/atoms/40-work-order.md:1
+- OW-WAR-0109/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0109/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0109/atoms/45-milestones.yaml
 > -
@@ -6133,15 +6160,15 @@
 
 ## docs/warrants/OW-WAR-0110/atoms/10-intent.md
 > -
-- OW-WAR-0110/S-intent · section · - · Intent · docs/warrants/OW-WAR-0110/atoms/10-intent.md:1
+- OW-WAR-0110/S-intent · section · - · Intent · docs/warrants/OW-WAR-0110/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0110/atoms/20-basis.md
 > -
-- OW-WAR-0110/S-basis · section · - · Basis · docs/warrants/OW-WAR-0110/atoms/20-basis.md:1
+- OW-WAR-0110/S-basis · section · - · Basis · docs/warrants/OW-WAR-0110/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0110/atoms/40-work-order.md
 > -
-- OW-WAR-0110/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0110/atoms/40-work-order.md:1
+- OW-WAR-0110/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0110/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0110/atoms/45-milestones.yaml
 > -
@@ -6163,15 +6190,15 @@
 
 ## docs/warrants/OW-WAR-0111/atoms/10-intent.md
 > -
-- OW-WAR-0111/S-intent · section · - · Intent · docs/warrants/OW-WAR-0111/atoms/10-intent.md:1
+- OW-WAR-0111/S-intent · section · - · Intent · docs/warrants/OW-WAR-0111/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0111/atoms/20-basis.md
 > -
-- OW-WAR-0111/S-basis · section · - · Basis · docs/warrants/OW-WAR-0111/atoms/20-basis.md:1
+- OW-WAR-0111/S-basis · section · - · Basis · docs/warrants/OW-WAR-0111/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0111/atoms/40-work-order.md
 > -
-- OW-WAR-0111/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0111/atoms/40-work-order.md:1
+- OW-WAR-0111/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0111/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0111/atoms/45-milestones.yaml
 > -
@@ -6196,19 +6223,19 @@
 
 ## docs/warrants/OW-WAR-0112/../../adr/atoms/OW-ADR-0021-pin-ownership.md
 > -
-- OW-WAR-0112/S-adr · section · - · Adr · docs/warrants/OW-WAR-0112/../../adr/atoms/OW-ADR-0021-pin-ownership.md:1
+- OW-WAR-0112/S-adr · section · - · ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it · docs/warrants/OW-WAR-0112/../../adr/atoms/OW-ADR-0021-pin-ownership.md:14
 
 ## docs/warrants/OW-WAR-0112/atoms/10-intent.md
 > -
-- OW-WAR-0112/S-intent · section · - · Intent · docs/warrants/OW-WAR-0112/atoms/10-intent.md:1
+- OW-WAR-0112/S-intent · section · - · Intent · docs/warrants/OW-WAR-0112/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0112/atoms/20-basis.md
 > -
-- OW-WAR-0112/S-basis · section · - · Basis · docs/warrants/OW-WAR-0112/atoms/20-basis.md:1
+- OW-WAR-0112/S-basis · section · - · Basis · docs/warrants/OW-WAR-0112/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0112/atoms/40-work-order.md
 > -
-- OW-WAR-0112/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0112/atoms/40-work-order.md:1
+- OW-WAR-0112/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0112/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0112/atoms/45-milestones.yaml
 > -
@@ -6293,19 +6320,19 @@
 
 ## docs/warrants/OW-WAR-0113/../../adr/atoms/OW-ADR-0022-current-by-relation.md
 > -
-- OW-WAR-0113/S-adr · section · - · Adr · docs/warrants/OW-WAR-0113/../../adr/atoms/OW-ADR-0022-current-by-relation.md:1
+- OW-WAR-0113/S-adr · section · - · ADR OW-0022: Two projections, current by relation; atoms are the only authored thing · docs/warrants/OW-WAR-0113/../../adr/atoms/OW-ADR-0022-current-by-relation.md:14
 
 ## docs/warrants/OW-WAR-0113/atoms/10-intent.md
 > -
-- OW-WAR-0113/S-intent · section · - · Intent · docs/warrants/OW-WAR-0113/atoms/10-intent.md:1
+- OW-WAR-0113/S-intent · section · - · Intent · docs/warrants/OW-WAR-0113/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0113/atoms/20-basis.md
 > -
-- OW-WAR-0113/S-basis · section · - · Basis · docs/warrants/OW-WAR-0113/atoms/20-basis.md:1
+- OW-WAR-0113/S-basis · section · - · Basis · docs/warrants/OW-WAR-0113/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0113/atoms/40-work-order.md
 > -
-- OW-WAR-0113/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0113/atoms/40-work-order.md:1
+- OW-WAR-0113/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0113/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0113/atoms/45-milestones.yaml
 > -
@@ -6378,19 +6405,19 @@
 
 ## docs/warrants/OW-WAR-0114/../../adr/atoms/OW-ADR-0023-roadmap-is-a-record.md
 > -
-- OW-WAR-0114/S-adr · section · - · Adr · docs/warrants/OW-WAR-0114/../../adr/atoms/OW-ADR-0023-roadmap-is-a-record.md:1
+- OW-WAR-0114/S-adr · section · - · ADR OW-0023: The roadmap is a record — one per program, beside the SAS · docs/warrants/OW-WAR-0114/../../adr/atoms/OW-ADR-0023-roadmap-is-a-record.md:14
 
 ## docs/warrants/OW-WAR-0114/atoms/10-intent.md
 > -
-- OW-WAR-0114/S-intent · section · - · Intent · docs/warrants/OW-WAR-0114/atoms/10-intent.md:1
+- OW-WAR-0114/S-intent · section · - · Intent · docs/warrants/OW-WAR-0114/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0114/atoms/20-basis.md
 > -
-- OW-WAR-0114/S-basis · section · - · Basis · docs/warrants/OW-WAR-0114/atoms/20-basis.md:1
+- OW-WAR-0114/S-basis · section · - · Basis · docs/warrants/OW-WAR-0114/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0114/atoms/40-work-order.md
 > -
-- OW-WAR-0114/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0114/atoms/40-work-order.md:1
+- OW-WAR-0114/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0114/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0114/atoms/45-milestones.yaml
 > -
@@ -6465,15 +6492,15 @@
 
 ## docs/warrants/OW-WAR-0115/atoms/10-intent.md
 > -
-- OW-WAR-0115/S-intent · section · - · Intent · docs/warrants/OW-WAR-0115/atoms/10-intent.md:1
+- OW-WAR-0115/S-intent · section · - · Intent · docs/warrants/OW-WAR-0115/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0115/atoms/20-basis.md
 > -
-- OW-WAR-0115/S-basis · section · - · Basis · docs/warrants/OW-WAR-0115/atoms/20-basis.md:1
+- OW-WAR-0115/S-basis · section · - · Basis · docs/warrants/OW-WAR-0115/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0115/atoms/40-work-order.md
 > -
-- OW-WAR-0115/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0115/atoms/40-work-order.md:1
+- OW-WAR-0115/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0115/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0115/atoms/45-milestones.yaml
 > -
@@ -6504,15 +6531,15 @@
 
 ## docs/warrants/OW-WAR-0116/atoms/10-intent.md
 > -
-- OW-WAR-0116/S-intent · section · - · Intent · docs/warrants/OW-WAR-0116/atoms/10-intent.md:1
+- OW-WAR-0116/S-intent · section · - · Intent · docs/warrants/OW-WAR-0116/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0116/atoms/20-basis.md
 > -
-- OW-WAR-0116/S-basis · section · - · Basis · docs/warrants/OW-WAR-0116/atoms/20-basis.md:1
+- OW-WAR-0116/S-basis · section · - · Basis · docs/warrants/OW-WAR-0116/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0116/atoms/40-work-order.md
 > -
-- OW-WAR-0116/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0116/atoms/40-work-order.md:1
+- OW-WAR-0116/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0116/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0116/atoms/45-milestones.yaml
 > -
@@ -6554,15 +6581,15 @@
 
 ## docs/warrants/OW-WAR-0117/atoms/10-intent.md
 > -
-- OW-WAR-0117/S-intent · section · - · Intent · docs/warrants/OW-WAR-0117/atoms/10-intent.md:1
+- OW-WAR-0117/S-intent · section · - · Intent · docs/warrants/OW-WAR-0117/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0117/atoms/20-basis.md
 > -
-- OW-WAR-0117/S-basis · section · - · Basis · docs/warrants/OW-WAR-0117/atoms/20-basis.md:1
+- OW-WAR-0117/S-basis · section · - · Basis · docs/warrants/OW-WAR-0117/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0117/atoms/40-work-order.md
 > -
-- OW-WAR-0117/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0117/atoms/40-work-order.md:1
+- OW-WAR-0117/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0117/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0117/atoms/45-milestones.yaml
 > -
@@ -6591,15 +6618,15 @@
 
 ## docs/warrants/OW-WAR-0118/atoms/10-intent.md
 > -
-- OW-WAR-0118/S-intent · section · - · Intent · docs/warrants/OW-WAR-0118/atoms/10-intent.md:1
+- OW-WAR-0118/S-intent · section · - · Intent · docs/warrants/OW-WAR-0118/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0118/atoms/20-basis.md
 > -
-- OW-WAR-0118/S-basis · section · - · Basis · docs/warrants/OW-WAR-0118/atoms/20-basis.md:1
+- OW-WAR-0118/S-basis · section · - · Basis · docs/warrants/OW-WAR-0118/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0118/atoms/40-work-order.md
 > -
-- OW-WAR-0118/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0118/atoms/40-work-order.md:1
+- OW-WAR-0118/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0118/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0118/atoms/45-milestones.yaml
 > -
@@ -6630,15 +6657,15 @@
 
 ## docs/warrants/OW-WAR-0119/atoms/10-intent.md
 > -
-- OW-WAR-0119/S-intent · section · - · Intent · docs/warrants/OW-WAR-0119/atoms/10-intent.md:1
+- OW-WAR-0119/S-intent · section · - · Intent · docs/warrants/OW-WAR-0119/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0119/atoms/20-basis.md
 > -
-- OW-WAR-0119/S-basis · section · - · Basis · docs/warrants/OW-WAR-0119/atoms/20-basis.md:1
+- OW-WAR-0119/S-basis · section · - · Basis · docs/warrants/OW-WAR-0119/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0119/atoms/40-work-order.md
 > -
-- OW-WAR-0119/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0119/atoms/40-work-order.md:1
+- OW-WAR-0119/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0119/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0119/atoms/45-milestones.yaml
 > -
@@ -6668,15 +6695,15 @@
 
 ## docs/warrants/OW-WAR-0120/atoms/10-intent.md
 > -
-- OW-WAR-0120/S-intent · section · - · Intent · docs/warrants/OW-WAR-0120/atoms/10-intent.md:1
+- OW-WAR-0120/S-intent · section · - · Intent · docs/warrants/OW-WAR-0120/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0120/atoms/20-basis.md
 > -
-- OW-WAR-0120/S-basis · section · - · Basis · docs/warrants/OW-WAR-0120/atoms/20-basis.md:1
+- OW-WAR-0120/S-basis · section · - · Basis · docs/warrants/OW-WAR-0120/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0120/atoms/40-work-order.md
 > -
-- OW-WAR-0120/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0120/atoms/40-work-order.md:1
+- OW-WAR-0120/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0120/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0120/atoms/45-milestones.yaml
 > -
@@ -6710,15 +6737,15 @@
 
 ## docs/warrants/OW-WAR-0121/atoms/10-intent.md
 > -
-- OW-WAR-0121/S-intent · section · - · Intent · docs/warrants/OW-WAR-0121/atoms/10-intent.md:1
+- OW-WAR-0121/S-intent · section · - · Intent · docs/warrants/OW-WAR-0121/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0121/atoms/20-basis.md
 > -
-- OW-WAR-0121/S-basis · section · - · Basis · docs/warrants/OW-WAR-0121/atoms/20-basis.md:1
+- OW-WAR-0121/S-basis · section · - · Basis · docs/warrants/OW-WAR-0121/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0121/atoms/40-work-order.md
 > -
-- OW-WAR-0121/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0121/atoms/40-work-order.md:1
+- OW-WAR-0121/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0121/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0121/atoms/45-milestones.yaml
 > -
@@ -6757,15 +6784,15 @@
 
 ## docs/warrants/OW-WAR-0122/atoms/10-intent.md
 > -
-- OW-WAR-0122/S-intent · section · - · Intent · docs/warrants/OW-WAR-0122/atoms/10-intent.md:1
+- OW-WAR-0122/S-intent · section · - · Intent · docs/warrants/OW-WAR-0122/atoms/10-intent.md:11
 
 ## docs/warrants/OW-WAR-0122/atoms/20-basis.md
 > -
-- OW-WAR-0122/S-basis · section · - · Basis · docs/warrants/OW-WAR-0122/atoms/20-basis.md:1
+- OW-WAR-0122/S-basis · section · - · Basis · docs/warrants/OW-WAR-0122/atoms/20-basis.md:11
 
 ## docs/warrants/OW-WAR-0122/atoms/40-work-order.md
 > -
-- OW-WAR-0122/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0122/atoms/40-work-order.md:1
+- OW-WAR-0122/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0122/atoms/40-work-order.md:11
 
 ## docs/warrants/OW-WAR-0122/atoms/45-milestones.yaml
 > -
@@ -6796,15 +6823,15 @@
 
 ## docs/warrants/OW-WAR-0123/atoms/10-intent.md
 > -
-- OW-WAR-0123/S-intent · section · - · Intent · docs/warrants/OW-WAR-0123/atoms/10-intent.md:1
+- OW-WAR-0123/S-intent · section · - · Intent · docs/warrants/OW-WAR-0123/atoms/10-intent.md:11
 
 ## docs/warrants/OW-WAR-0123/atoms/20-basis.md
 > -
-- OW-WAR-0123/S-basis · section · - · Basis · docs/warrants/OW-WAR-0123/atoms/20-basis.md:1
+- OW-WAR-0123/S-basis · section · - · Basis · docs/warrants/OW-WAR-0123/atoms/20-basis.md:11
 
 ## docs/warrants/OW-WAR-0123/atoms/40-work-order.md
 > -
-- OW-WAR-0123/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0123/atoms/40-work-order.md:1
+- OW-WAR-0123/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0123/atoms/40-work-order.md:11
 
 ## docs/warrants/OW-WAR-0123/atoms/45-milestones.yaml
 > -
@@ -6837,15 +6864,15 @@
 
 ## docs/warrants/OW-WAR-0124/atoms/10-intent.md
 > -
-- OW-WAR-0124/S-intent · section · - · Intent · docs/warrants/OW-WAR-0124/atoms/10-intent.md:1
+- OW-WAR-0124/S-intent · section · - · Intent · docs/warrants/OW-WAR-0124/atoms/10-intent.md:11
 
 ## docs/warrants/OW-WAR-0124/atoms/20-basis.md
 > -
-- OW-WAR-0124/S-basis · section · - · Basis · docs/warrants/OW-WAR-0124/atoms/20-basis.md:1
+- OW-WAR-0124/S-basis · section · - · Basis · docs/warrants/OW-WAR-0124/atoms/20-basis.md:11
 
 ## docs/warrants/OW-WAR-0124/atoms/40-work-order.md
 > -
-- OW-WAR-0124/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0124/atoms/40-work-order.md:1
+- OW-WAR-0124/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0124/atoms/40-work-order.md:11
 
 ## docs/warrants/OW-WAR-0124/atoms/45-milestones.yaml
 > -
@@ -6883,15 +6910,15 @@
 
 ## docs/warrants/OW-WAR-0125/atoms/10-intent.md
 > -
-- OW-WAR-0125/S-intent · section · - · Intent · docs/warrants/OW-WAR-0125/atoms/10-intent.md:1
+- OW-WAR-0125/S-intent · section · - · Intent · docs/warrants/OW-WAR-0125/atoms/10-intent.md:11
 
 ## docs/warrants/OW-WAR-0125/atoms/20-basis.md
 > -
-- OW-WAR-0125/S-basis · section · - · Basis · docs/warrants/OW-WAR-0125/atoms/20-basis.md:1
+- OW-WAR-0125/S-basis · section · - · Basis · docs/warrants/OW-WAR-0125/atoms/20-basis.md:11
 
 ## docs/warrants/OW-WAR-0125/atoms/40-work-order.md
 > -
-- OW-WAR-0125/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0125/atoms/40-work-order.md:1
+- OW-WAR-0125/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0125/atoms/40-work-order.md:11
 
 ## docs/warrants/OW-WAR-0125/atoms/45-milestones.yaml
 > -
@@ -6932,15 +6959,15 @@
 
 ## docs/warrants/OW-WAR-0126/atoms/10-intent.md
 > -
-- OW-WAR-0126/S-intent · section · - · Intent · docs/warrants/OW-WAR-0126/atoms/10-intent.md:1
+- OW-WAR-0126/S-intent · section · - · Intent · docs/warrants/OW-WAR-0126/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0126/atoms/20-basis.md
 > -
-- OW-WAR-0126/S-basis · section · - · Basis · docs/warrants/OW-WAR-0126/atoms/20-basis.md:1
+- OW-WAR-0126/S-basis · section · - · Basis · docs/warrants/OW-WAR-0126/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0126/atoms/40-work-order.md
 > -
-- OW-WAR-0126/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0126/atoms/40-work-order.md:1
+- OW-WAR-0126/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0126/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0126/atoms/45-milestones.yaml
 > -
@@ -6964,15 +6991,15 @@
 
 ## docs/warrants/OW-WAR-0127/atoms/10-intent.md
 > -
-- OW-WAR-0127/S-intent · section · - · Intent · docs/warrants/OW-WAR-0127/atoms/10-intent.md:1
+- OW-WAR-0127/S-intent · section · - · Intent · docs/warrants/OW-WAR-0127/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0127/atoms/20-basis.md
 > -
-- OW-WAR-0127/S-basis · section · - · Basis · docs/warrants/OW-WAR-0127/atoms/20-basis.md:1
+- OW-WAR-0127/S-basis · section · - · Basis · docs/warrants/OW-WAR-0127/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0127/atoms/40-work-order.md
 > -
-- OW-WAR-0127/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0127/atoms/40-work-order.md:1
+- OW-WAR-0127/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0127/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0127/atoms/45-milestones.yaml
 > -
@@ -7010,15 +7037,15 @@
 
 ## docs/warrants/OW-WAR-0128/atoms/10-intent.md
 > -
-- OW-WAR-0128/S-intent · section · - · Intent · docs/warrants/OW-WAR-0128/atoms/10-intent.md:1
+- OW-WAR-0128/S-intent · section · - · Intent · docs/warrants/OW-WAR-0128/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0128/atoms/20-basis.md
 > -
-- OW-WAR-0128/S-basis · section · - · Basis · docs/warrants/OW-WAR-0128/atoms/20-basis.md:1
+- OW-WAR-0128/S-basis · section · - · Basis · docs/warrants/OW-WAR-0128/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0128/atoms/40-work-order.md
 > -
-- OW-WAR-0128/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0128/atoms/40-work-order.md:1
+- OW-WAR-0128/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0128/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0128/atoms/45-milestones.yaml
 > -
@@ -7044,15 +7071,15 @@
 
 ## docs/warrants/OW-WAR-0129/atoms/10-intent.md
 > -
-- OW-WAR-0129/S-intent · section · - · Intent · docs/warrants/OW-WAR-0129/atoms/10-intent.md:1
+- OW-WAR-0129/S-intent · section · - · Intent · docs/warrants/OW-WAR-0129/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0129/atoms/20-basis.md
 > -
-- OW-WAR-0129/S-basis · section · - · Basis · docs/warrants/OW-WAR-0129/atoms/20-basis.md:1
+- OW-WAR-0129/S-basis · section · - · Basis · docs/warrants/OW-WAR-0129/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0129/atoms/40-work-order.md
 > -
-- OW-WAR-0129/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0129/atoms/40-work-order.md:1
+- OW-WAR-0129/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0129/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0129/atoms/45-milestones.yaml
 > -
@@ -7082,15 +7109,15 @@
 
 ## docs/warrants/OW-WAR-0130/atoms/10-intent.md
 > -
-- OW-WAR-0130/S-intent · section · - · Intent · docs/warrants/OW-WAR-0130/atoms/10-intent.md:1
+- OW-WAR-0130/S-intent · section · - · Intent · docs/warrants/OW-WAR-0130/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0130/atoms/20-basis.md
 > -
-- OW-WAR-0130/S-basis · section · - · Basis · docs/warrants/OW-WAR-0130/atoms/20-basis.md:1
+- OW-WAR-0130/S-basis · section · - · Basis · docs/warrants/OW-WAR-0130/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0130/atoms/40-work-order.md
 > -
-- OW-WAR-0130/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0130/atoms/40-work-order.md:1
+- OW-WAR-0130/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0130/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0130/atoms/45-milestones.yaml
 > -
@@ -7132,15 +7159,15 @@
 
 ## docs/warrants/OW-WAR-0131/atoms/10-intent.md
 > -
-- OW-WAR-0131/S-intent · section · - · Intent · docs/warrants/OW-WAR-0131/atoms/10-intent.md:1
+- OW-WAR-0131/S-intent · section · - · Intent · docs/warrants/OW-WAR-0131/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0131/atoms/20-basis.md
 > -
-- OW-WAR-0131/S-basis · section · - · Basis · docs/warrants/OW-WAR-0131/atoms/20-basis.md:1
+- OW-WAR-0131/S-basis · section · - · Basis · docs/warrants/OW-WAR-0131/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0131/atoms/40-work-order.md
 > -
-- OW-WAR-0131/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0131/atoms/40-work-order.md:1
+- OW-WAR-0131/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0131/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0131/atoms/45-milestones.yaml
 > -
@@ -7175,15 +7202,15 @@
 
 ## docs/warrants/OW-WAR-0132/atoms/10-intent.md
 > -
-- OW-WAR-0132/S-intent · section · - · Intent · docs/warrants/OW-WAR-0132/atoms/10-intent.md:1
+- OW-WAR-0132/S-intent · section · - · Intent · docs/warrants/OW-WAR-0132/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0132/atoms/20-basis.md
 > -
-- OW-WAR-0132/S-basis · section · - · Basis · docs/warrants/OW-WAR-0132/atoms/20-basis.md:1
+- OW-WAR-0132/S-basis · section · - · Basis · docs/warrants/OW-WAR-0132/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0132/atoms/40-work-order.md
 > -
-- OW-WAR-0132/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0132/atoms/40-work-order.md:1
+- OW-WAR-0132/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0132/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0132/atoms/45-milestones.yaml
 > -
@@ -7222,15 +7249,15 @@
 
 ## docs/warrants/OW-WAR-0133/atoms/10-intent.md
 > -
-- OW-WAR-0133/S-intent · section · - · Intent · docs/warrants/OW-WAR-0133/atoms/10-intent.md:1
+- OW-WAR-0133/S-intent · section · - · Intent · docs/warrants/OW-WAR-0133/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0133/atoms/20-basis.md
 > -
-- OW-WAR-0133/S-basis · section · - · Basis · docs/warrants/OW-WAR-0133/atoms/20-basis.md:1
+- OW-WAR-0133/S-basis · section · - · Basis · docs/warrants/OW-WAR-0133/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0133/atoms/40-work-order.md
 > -
-- OW-WAR-0133/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0133/atoms/40-work-order.md:1
+- OW-WAR-0133/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0133/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0133/atoms/45-milestones.yaml
 > -
@@ -7286,15 +7313,15 @@
 
 ## docs/warrants/OW-WAR-0134/atoms/10-intent.md
 > -
-- OW-WAR-0134/S-intent · section · - · Intent · docs/warrants/OW-WAR-0134/atoms/10-intent.md:1
+- OW-WAR-0134/S-intent · section · - · Intent · docs/warrants/OW-WAR-0134/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0134/atoms/20-basis.md
 > -
-- OW-WAR-0134/S-basis · section · - · Basis · docs/warrants/OW-WAR-0134/atoms/20-basis.md:1
+- OW-WAR-0134/S-basis · section · - · Basis · docs/warrants/OW-WAR-0134/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0134/atoms/40-work-order.md
 > -
-- OW-WAR-0134/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0134/atoms/40-work-order.md:1
+- OW-WAR-0134/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0134/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0134/atoms/45-milestones.yaml
 > -
@@ -7328,15 +7355,15 @@
 
 ## docs/warrants/OW-WAR-0135/atoms/10-intent.md
 > -
-- OW-WAR-0135/S-intent · section · - · Intent · docs/warrants/OW-WAR-0135/atoms/10-intent.md:1
+- OW-WAR-0135/S-intent · section · - · Intent · docs/warrants/OW-WAR-0135/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0135/atoms/20-basis.md
 > -
-- OW-WAR-0135/S-basis · section · - · Basis · docs/warrants/OW-WAR-0135/atoms/20-basis.md:1
+- OW-WAR-0135/S-basis · section · - · Basis · docs/warrants/OW-WAR-0135/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0135/atoms/40-work-order.md
 > -
-- OW-WAR-0135/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0135/atoms/40-work-order.md:1
+- OW-WAR-0135/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0135/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0135/atoms/45-milestones.yaml
 > -
@@ -7371,15 +7398,15 @@
 
 ## docs/warrants/OW-WAR-0136/atoms/10-intent.md
 > -
-- OW-WAR-0136/S-intent · section · - · Intent · docs/warrants/OW-WAR-0136/atoms/10-intent.md:1
+- OW-WAR-0136/S-intent · section · - · Intent · docs/warrants/OW-WAR-0136/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0136/atoms/20-basis.md
 > -
-- OW-WAR-0136/S-basis · section · - · Basis · docs/warrants/OW-WAR-0136/atoms/20-basis.md:1
+- OW-WAR-0136/S-basis · section · - · Basis · docs/warrants/OW-WAR-0136/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0136/atoms/40-work-order.md
 > -
-- OW-WAR-0136/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0136/atoms/40-work-order.md:1
+- OW-WAR-0136/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0136/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0136/atoms/45-milestones.yaml
 > -
@@ -7428,15 +7455,15 @@
 
 ## docs/warrants/OW-WAR-0137/atoms/10-intent.md
 > -
-- OW-WAR-0137/S-intent · section · - · Intent · docs/warrants/OW-WAR-0137/atoms/10-intent.md:1
+- OW-WAR-0137/S-intent · section · - · Intent · docs/warrants/OW-WAR-0137/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0137/atoms/20-basis.md
 > -
-- OW-WAR-0137/S-basis · section · - · Basis · docs/warrants/OW-WAR-0137/atoms/20-basis.md:1
+- OW-WAR-0137/S-basis · section · - · Basis · docs/warrants/OW-WAR-0137/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0137/atoms/40-work-order.md
 > -
-- OW-WAR-0137/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0137/atoms/40-work-order.md:1
+- OW-WAR-0137/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0137/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0137/atoms/45-milestones.yaml
 > -
@@ -7480,15 +7507,15 @@
 
 ## docs/warrants/OW-WAR-0138/atoms/10-intent.md
 > -
-- OW-WAR-0138/S-intent · section · - · Intent · docs/warrants/OW-WAR-0138/atoms/10-intent.md:1
+- OW-WAR-0138/S-intent · section · - · Intent · docs/warrants/OW-WAR-0138/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0138/atoms/20-basis.md
 > -
-- OW-WAR-0138/S-basis · section · - · Basis · docs/warrants/OW-WAR-0138/atoms/20-basis.md:1
+- OW-WAR-0138/S-basis · section · - · Basis · docs/warrants/OW-WAR-0138/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0138/atoms/40-work-order.md
 > -
-- OW-WAR-0138/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0138/atoms/40-work-order.md:1
+- OW-WAR-0138/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0138/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0138/atoms/45-milestones.yaml
 > -
@@ -7536,15 +7563,15 @@
 
 ## docs/warrants/OW-WAR-0139/atoms/10-intent.md
 > -
-- OW-WAR-0139/S-intent · section · - · Intent · docs/warrants/OW-WAR-0139/atoms/10-intent.md:1
+- OW-WAR-0139/S-intent · section · - · Intent · docs/warrants/OW-WAR-0139/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0139/atoms/20-basis.md
 > -
-- OW-WAR-0139/S-basis · section · - · Basis · docs/warrants/OW-WAR-0139/atoms/20-basis.md:1
+- OW-WAR-0139/S-basis · section · - · Basis · docs/warrants/OW-WAR-0139/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0139/atoms/40-work-order.md
 > -
-- OW-WAR-0139/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0139/atoms/40-work-order.md:1
+- OW-WAR-0139/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0139/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0139/atoms/45-milestones.yaml
 > -
@@ -7586,15 +7613,15 @@
 
 ## docs/warrants/OW-WAR-0140/atoms/10-intent.md
 > -
-- OW-WAR-0140/S-intent · section · - · Intent · docs/warrants/OW-WAR-0140/atoms/10-intent.md:1
+- OW-WAR-0140/S-intent · section · - · Intent · docs/warrants/OW-WAR-0140/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0140/atoms/20-basis.md
 > -
-- OW-WAR-0140/S-basis · section · - · Basis · docs/warrants/OW-WAR-0140/atoms/20-basis.md:1
+- OW-WAR-0140/S-basis · section · - · Basis · docs/warrants/OW-WAR-0140/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0140/atoms/40-work-order.md
 > -
-- OW-WAR-0140/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0140/atoms/40-work-order.md:1
+- OW-WAR-0140/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0140/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0140/atoms/45-milestones.yaml
 > -
@@ -7637,15 +7664,15 @@
 
 ## docs/warrants/OW-WAR-0141/atoms/10-intent.md
 > -
-- OW-WAR-0141/S-intent · section · - · Intent · docs/warrants/OW-WAR-0141/atoms/10-intent.md:1
+- OW-WAR-0141/S-intent · section · - · Intent · docs/warrants/OW-WAR-0141/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0141/atoms/20-basis.md
 > -
-- OW-WAR-0141/S-basis · section · - · Basis · docs/warrants/OW-WAR-0141/atoms/20-basis.md:1
+- OW-WAR-0141/S-basis · section · - · Basis · docs/warrants/OW-WAR-0141/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0141/atoms/40-work-order.md
 > -
-- OW-WAR-0141/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0141/atoms/40-work-order.md:1
+- OW-WAR-0141/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0141/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0141/atoms/45-milestones.yaml
 > -
@@ -7688,19 +7715,19 @@
 
 ## docs/warrants/OW-WAR-0142/../../adr/atoms/OW-ADR-0029-standing-authorization.md
 > -
-- OW-WAR-0142/S-adr · section · - · Adr · docs/warrants/OW-WAR-0142/../../adr/atoms/OW-ADR-0029-standing-authorization.md:1
+- OW-WAR-0142/S-adr · section · - · ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work · docs/warrants/OW-WAR-0142/../../adr/atoms/OW-ADR-0029-standing-authorization.md:14
 
 ## docs/warrants/OW-WAR-0142/atoms/10-intent.md
 > -
-- OW-WAR-0142/S-intent · section · - · Intent · docs/warrants/OW-WAR-0142/atoms/10-intent.md:1
+- OW-WAR-0142/S-intent · section · - · Intent · docs/warrants/OW-WAR-0142/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0142/atoms/20-basis.md
 > -
-- OW-WAR-0142/S-basis · section · - · Basis · docs/warrants/OW-WAR-0142/atoms/20-basis.md:1
+- OW-WAR-0142/S-basis · section · - · Basis · docs/warrants/OW-WAR-0142/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0142/atoms/40-work-order.md
 > -
-- OW-WAR-0142/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0142/atoms/40-work-order.md:1
+- OW-WAR-0142/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0142/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0142/atoms/45-milestones.yaml
 > -
@@ -7776,15 +7803,15 @@
 
 ## docs/warrants/OW-WAR-0143/atoms/10-intent.md
 > -
-- OW-WAR-0143/S-intent · section · - · Intent · docs/warrants/OW-WAR-0143/atoms/10-intent.md:1
+- OW-WAR-0143/S-intent · section · - · Intent · docs/warrants/OW-WAR-0143/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0143/atoms/20-basis.md
 > -
-- OW-WAR-0143/S-basis · section · - · Basis · docs/warrants/OW-WAR-0143/atoms/20-basis.md:1
+- OW-WAR-0143/S-basis · section · - · Basis · docs/warrants/OW-WAR-0143/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0143/atoms/40-work-order.md
 > -
-- OW-WAR-0143/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0143/atoms/40-work-order.md:1
+- OW-WAR-0143/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0143/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0143/atoms/45-milestones.yaml
 > -
@@ -7829,15 +7856,15 @@
 
 ## docs/warrants/OW-WAR-0144/atoms/10-intent.md
 > -
-- OW-WAR-0144/S-intent · section · - · Intent · docs/warrants/OW-WAR-0144/atoms/10-intent.md:1
+- OW-WAR-0144/S-intent · section · - · Intent · docs/warrants/OW-WAR-0144/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0144/atoms/20-basis.md
 > -
-- OW-WAR-0144/S-basis · section · - · Basis · docs/warrants/OW-WAR-0144/atoms/20-basis.md:1
+- OW-WAR-0144/S-basis · section · - · Basis · docs/warrants/OW-WAR-0144/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0144/atoms/40-work-order.md
 > -
-- OW-WAR-0144/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0144/atoms/40-work-order.md:1
+- OW-WAR-0144/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0144/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0144/atoms/45-milestones.yaml
 > -
@@ -7864,15 +7891,15 @@
 
 ## docs/warrants/OW-WAR-0145/atoms/10-intent.md
 > -
-- OW-WAR-0145/S-intent · section · - · Intent · docs/warrants/OW-WAR-0145/atoms/10-intent.md:1
+- OW-WAR-0145/S-intent · section · - · Intent · docs/warrants/OW-WAR-0145/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0145/atoms/20-basis.md
 > -
-- OW-WAR-0145/S-basis · section · - · Basis · docs/warrants/OW-WAR-0145/atoms/20-basis.md:1
+- OW-WAR-0145/S-basis · section · - · Basis · docs/warrants/OW-WAR-0145/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0145/atoms/40-work-order.md
 > -
-- OW-WAR-0145/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0145/atoms/40-work-order.md:1
+- OW-WAR-0145/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0145/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0145/atoms/45-milestones.yaml
 > -
@@ -7897,15 +7924,15 @@
 
 ## docs/warrants/OW-WAR-0146/atoms/10-intent.md
 > -
-- OW-WAR-0146/S-intent · section · - · Intent · docs/warrants/OW-WAR-0146/atoms/10-intent.md:1
+- OW-WAR-0146/S-intent · section · - · Intent · docs/warrants/OW-WAR-0146/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0146/atoms/20-basis.md
 > -
-- OW-WAR-0146/S-basis · section · - · Basis · docs/warrants/OW-WAR-0146/atoms/20-basis.md:1
+- OW-WAR-0146/S-basis · section · - · Basis · docs/warrants/OW-WAR-0146/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0146/atoms/40-work-order.md
 > -
-- OW-WAR-0146/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0146/atoms/40-work-order.md:1
+- OW-WAR-0146/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0146/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0146/atoms/45-milestones.yaml
 > -
@@ -7929,15 +7956,15 @@
 
 ## docs/warrants/OW-WAR-0147/atoms/10-intent.md
 > -
-- OW-WAR-0147/S-intent · section · - · Intent · docs/warrants/OW-WAR-0147/atoms/10-intent.md:1
+- OW-WAR-0147/S-intent · section · - · Intent · docs/warrants/OW-WAR-0147/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0147/atoms/20-basis.md
 > -
-- OW-WAR-0147/S-basis · section · - · Basis · docs/warrants/OW-WAR-0147/atoms/20-basis.md:1
+- OW-WAR-0147/S-basis · section · - · Basis · docs/warrants/OW-WAR-0147/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0147/atoms/40-work-order.md
 > -
-- OW-WAR-0147/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0147/atoms/40-work-order.md:1
+- OW-WAR-0147/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0147/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0147/atoms/45-milestones.yaml
 > -
@@ -7989,15 +8016,15 @@
 
 ## docs/warrants/OW-WAR-0148/atoms/10-intent.md
 > -
-- OW-WAR-0148/S-intent · section · - · Intent · docs/warrants/OW-WAR-0148/atoms/10-intent.md:1
+- OW-WAR-0148/S-intent · section · - · Intent · docs/warrants/OW-WAR-0148/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0148/atoms/20-basis.md
 > -
-- OW-WAR-0148/S-basis · section · - · Basis · docs/warrants/OW-WAR-0148/atoms/20-basis.md:1
+- OW-WAR-0148/S-basis · section · - · Basis · docs/warrants/OW-WAR-0148/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0148/atoms/40-work-order.md
 > -
-- OW-WAR-0148/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0148/atoms/40-work-order.md:1
+- OW-WAR-0148/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0148/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0148/atoms/45-milestones.yaml
 > -
@@ -8097,15 +8124,15 @@
 
 ## docs/warrants/OW-WAR-0149/atoms/10-intent.md
 > -
-- OW-WAR-0149/S-intent · section · - · Intent · docs/warrants/OW-WAR-0149/atoms/10-intent.md:1
+- OW-WAR-0149/S-intent · section · - · Intent · docs/warrants/OW-WAR-0149/atoms/10-intent.md:10
 
 ## docs/warrants/OW-WAR-0149/atoms/20-basis.md
 > -
-- OW-WAR-0149/S-basis · section · - · Basis · docs/warrants/OW-WAR-0149/atoms/20-basis.md:1
+- OW-WAR-0149/S-basis · section · - · Basis · docs/warrants/OW-WAR-0149/atoms/20-basis.md:10
 
 ## docs/warrants/OW-WAR-0149/atoms/40-work-order.md
 > -
-- OW-WAR-0149/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0149/atoms/40-work-order.md:1
+- OW-WAR-0149/S-work-order · section · - · Work Order · docs/warrants/OW-WAR-0149/atoms/40-work-order.md:10
 
 ## docs/warrants/OW-WAR-0149/atoms/45-milestones.yaml
 > -

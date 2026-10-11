@@ -426,9 +426,6 @@ pub fn run_with(
         // OW-WAR-0148 M18: docs/types.toml and the document index. Silent
         // for a program with neither a types file nor a bad [documents].
         crate::types::check(shared_corpus, &mut report);
-        // Format 1.0 section 10.1: a Format 1.0 work document's summary.
-        // Silent where there is none.
-        crate::context::format1::check(repo, &mut report);
     }
 
     // Accepting a SAS revision is the act that makes a specification normative

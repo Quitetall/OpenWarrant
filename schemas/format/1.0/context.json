@@ -26,7 +26,7 @@
   },
   "$defs": {
     "step": {
-      "description": "Section 10.3 step 2, in step order.",
+      "description": "Section 10.3 step 2, in step order; then `item-intent`, step 1's placing of an item root's document `S-intent` (or, without one, the document record) at distance 1, whose `from` is the item.",
       "enum": [
         "out:implements",
         "out:depends_on",
@@ -35,14 +35,15 @@
         "in:evaluates",
         "out:part_of",
         "in:part_of",
-        "in:implements"
+        "in:implements",
+        "item-intent"
       ]
     },
     "record": {
       "type": "object",
       "required": ["id", "type", "title", "state", "source", "line", "revision", "distance", "tier"],
       "properties": {
-        "id": { "$ref": "common.json#/$defs/globalId" },
+        "id": { "$ref": "common.json#/$defs/modelId" },
         "type": { "$ref": "common.json#/$defs/name" },
         "title": {
           "description": "The title, or for a record without one its first non-blank body line cut at 120 bytes and ended with `…` (section 10.2).",
@@ -62,7 +63,7 @@
           "required": ["step", "from"],
           "properties": {
             "step": { "$ref": "#/$defs/step" },
-            "from": { "$ref": "common.json#/$defs/globalId" }
+            "from": { "$ref": "common.json#/$defs/modelId" }
           },
           "additionalProperties": false
         },

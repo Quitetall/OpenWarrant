@@ -408,6 +408,38 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 b.relate(&id, "part_of", &alias);
             }
         }
+        // Any other authored atom (an `adr`, a `validation`) is a section
+        // too, `S-<role>`, so no authored text drops out of the model
+        // (FORMAT-1.0 §1); a second atom of one role is `S-<role>-2`.
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        for atom in basis.atoms.iter().filter(|a| {
+            !matches!(
+                a.role.as_str(),
+                "intent" | "basis" | "work_order" | "assurance" | "milestones"
+            )
+        }) {
+            let slug = atom.role.replace(['_', '.'], "-").to_ascii_lowercase();
+            let mut sid = format!("S-{slug}");
+            let mut n = 1;
+            while !seen.insert(sid.clone()) {
+                n += 1;
+                sid = format!("S-{slug}-{n}");
+            }
+            let id = format!("{alias}/{sid}");
+            let mut title = atom.role.replace('_', " ");
+            if let Some(f) = title.get(..1) {
+                title = f.to_ascii_uppercase() + &title[1..];
+            }
+            b.record(
+                id.clone(),
+                "section",
+                repo.relative(&one.dir.join(&atom.source)),
+                digest(&atom.bytes),
+                Some(alias.clone()),
+            );
+            lower_atom_section(b.last(), &atom.bytes, &title, &alias);
+            b.relate(&id, "part_of", &alias);
+        }
         for (source, rev, atom) in atoms_of("assurance") {
             let text = String::from_utf8_lossy(&atom.bytes);
             if let Ok(set) = openwarrant_core::obligation::parse(&text) {
@@ -443,7 +475,10 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     let r = b.last();
                     r.title.clone_from(&m.title);
                     r.document = Some(alias.clone());
-                    r.line = yaml_id_line(&text, &m.id);
+                    if let Some((line, span)) = yaml_entry(&text, &m.id) {
+                        r.line = line;
+                        r.span = span;
+                    }
                     b.relate(&id, "part_of", &alias);
                     for d in &m.depends_on {
                         b.relate(&id, "depends_on", &format!("{alias}/{d}"));
@@ -467,10 +502,11 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             }
         }
         let deliverables_path = one.dir.join("deliverables.toml");
-        if let (Ok(set), Some(rev)) = (
+        if let (Ok(set), Ok(dtext)) = (
             repo.load_deliverables(&one.dir),
-            file_digest(&deliverables_path),
+            crate::vfs::read_to_string(&deliverables_path),
         ) {
+            let rev = digest(dtext.as_bytes());
             for d in &set.records {
                 let id = format!("{alias}/{}", d.id);
                 let governor = ownership
@@ -483,7 +519,21 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     rev.clone(),
                     Some(governor),
                 );
-                b.last().document = Some(alias.clone());
+                // Not in FORMAT-1.0 §12's table: its `[[…]]` entry is its
+                // span, its `title` the title, its `target_ref` a field
+                // (what a work document's `paths` holds in Format 1.0).
+                let r = b.last();
+                r.document = Some(alias.clone());
+                if !d.title.is_empty() {
+                    r.title = Some(d.title.clone());
+                }
+                if !d.target_ref.is_empty() {
+                    r.fields.insert("target_ref".to_owned(), fv(&d.target_ref));
+                }
+                if let Some((line, span)) = toml_entry(&dtext, &d.id) {
+                    r.line = line;
+                    r.span = span;
+                }
                 b.relate(&id, "part_of", &alias);
             }
         }
@@ -498,9 +548,13 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 let Ok(bytes) = crate::vfs::read(&p) else {
                     continue;
                 };
-                let qid = toml::from_str::<toml::Value>(&String::from_utf8_lossy(&bytes))
-                    .ok()
-                    .and_then(|v| v.get("id").and_then(|i| i.as_str()).map(str::to_owned));
+                let parsed = toml::from_str::<toml::Value>(&String::from_utf8_lossy(&bytes)).ok();
+                let field = |k: &str| {
+                    parsed
+                        .as_ref()
+                        .and_then(|v| v.get(k).and_then(|i| i.as_str()).map(str::to_owned))
+                };
+                let (qid, question) = (field("id"), field("question"));
                 let Some(qid) = qid else {
                     b.diagnose(
                         "model.question-unreadable",
@@ -518,6 +572,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     Some(alias.clone()),
                 );
                 b.last().document = Some(alias.clone());
+                b.last().title = question;
                 b.relate(&id, "part_of", &alias);
             }
         }
@@ -627,6 +682,10 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             let accepted_by = rm
                 .accepted()
                 .and_then(|r| r.acceptance.as_ref().map(|a| a.accepted_by.clone()));
+            let phases_text = atom
+                .as_deref()
+                .and_then(|p| crate::vfs::read_to_string(p).ok())
+                .unwrap_or_default();
             for p in &rm.phases.phases {
                 b.record(
                     p.id.clone(),
@@ -635,6 +694,12 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     rev.clone(),
                     accepted_by.clone(),
                 );
+                let r = b.last();
+                r.title = Some(p.title.clone()).filter(|t| !t.is_empty());
+                if let Some((line, span)) = yaml_entry(&phases_text, &p.id) {
+                    r.line = line;
+                    r.span = span;
+                }
             }
             for pl in &rm.manifest.placements {
                 b.relate(&pl.warrant, "roadmap", &pl.phase);
@@ -719,6 +784,17 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             rev.clone(),
             spec_acceptor(corpus, &rev),
         );
+        b.last().title = h1(&text);
+        // FORMAT-1.0 §8: each section's own span, line and heading.
+        let place = |r: &mut Record, title: &str, start: usize, end: usize| {
+            r.title = Some(title.to_owned()).filter(|t| !t.is_empty());
+            r.line = bytes[..start.min(bytes.len())]
+                .iter()
+                .filter(|c| **c == b'\n')
+                .count()
+                + 1;
+            r.span = [start, end];
+        };
         for section in openwarrant_core::sas_sections::split(&bytes)
             .iter()
             .filter(|s| s.kind == openwarrant_core::sas_sections::SectionKind::Numbered)
@@ -731,6 +807,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 format!("sha256:{}", section.sha256),
                 None,
             );
+            place(b.last(), &section.title, section.start, section.end);
             if links {
                 b.relate(&id, "part_of", &spec);
             }
@@ -743,6 +820,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     format!("sha256:{}", sub.sha256),
                     None,
                 );
+                place(b.last(), &sub.title, sub.start, sub.end);
                 if links {
                     b.relate(&sid, "part_of", &id);
                 }
@@ -751,6 +829,19 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         for r in status.requirements.iter().filter(|r| r.title.is_some()) {
             let id = r.requirement.canonical();
             b.record(id.clone(), "requirement", source.clone(), rev.clone(), None);
+            // Its §106 table row `| <id> | <title> |` is its span.
+            let rec = b.last();
+            rec.title.clone_from(&r.title);
+            let prefix = format!("| {id} |");
+            let mut at = 0;
+            for (n, l) in text.split_inclusive('\n').enumerate() {
+                if l.starts_with(&prefix) {
+                    rec.line = n + 1;
+                    rec.span = [at, at + l.len()];
+                    break;
+                }
+                at += l.len();
+            }
             if links {
                 b.relate(&id, "part_of", &spec);
             }
@@ -934,7 +1025,13 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 w.revision.clone(),
                 None,
             );
+            b.last().title = Some(w.title.clone()).filter(|t| !t.is_empty());
             b.state(&w.id, "checklist", w.state().to_owned(), false);
+            let tasks_text = w
+                .tasks_file
+                .as_ref()
+                .and_then(|f| crate::vfs::read_to_string(repo.root.join(f)).ok())
+                .unwrap_or_default();
             for t in &w.tasks {
                 b.record(
                     t.id.clone(),
@@ -943,6 +1040,19 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     t.revision.clone(),
                     Some(w.id.clone()),
                 );
+                {
+                    let r = b.last();
+                    r.title = Some(t.text.clone());
+                    r.document = Some(w.id.clone());
+                    if let Some((line, span)) = t
+                        .line
+                        .checked_sub(1)
+                        .and_then(|n| lines_span(&tasks_text, n, n + 1))
+                    {
+                        r.line = line;
+                        r.span = span;
+                    }
+                }
                 b.state(
                     &t.id,
                     "checklist",
@@ -959,6 +1069,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 r.revision.clone(),
                 None,
             );
+            b.last().title = Some(r.title.clone()).filter(|t| !t.is_empty());
         }
         for (from, kind, to) in &tree.relations {
             b.relate(from, kind, to);
@@ -1017,13 +1128,9 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             _ => continue,
         };
         let id = d.id();
-        b.record(
-            id.clone(),
-            kind,
-            d.path.clone(),
-            file_digest(&repo.root.join(&d.path)).unwrap_or_else(|| digest(b"")),
-            None,
-        );
+        let bytes = crate::vfs::read(repo.root.join(&d.path)).unwrap_or_default();
+        b.record(id.clone(), kind, d.path.clone(), digest(&bytes), None);
+        b.last().title = doc_title(&String::from_utf8_lossy(&bytes));
         b.states.insert(State {
             record: id,
             kind: "document".to_owned(),
@@ -1368,15 +1475,104 @@ fn lower_obligation(
     }
 }
 
-/// The 1-based line of a YAML list entry `id: <id>`, else 1.
-fn yaml_id_line(text: &str, id: &str) -> usize {
-    let quoted = format!("\"{id}\"");
-    text.lines()
-        .position(|l| {
-            let t = l.trim_start().trim_start_matches("- ");
-            t.starts_with("id:") && (t.contains(&quoted) || t.trim_end().ends_with(id))
-        })
-        .map_or(1, |n| n + 1)
+fn unquote(v: &str) -> &str {
+    let v = v.trim();
+    v.strip_prefix('"')
+        .and_then(|x| x.strip_suffix('"'))
+        .or_else(|| v.strip_prefix('\'').and_then(|x| x.strip_suffix('\'')))
+        .unwrap_or(v)
+}
+
+/// Lines `from..to` of `text` (0-based), trailing blank lines left out:
+/// (1-based line of `from`, `[start, end]` in bytes).
+fn lines_span(text: &str, from: usize, to: usize) -> Option<(usize, [usize; 2])> {
+    let lines: Vec<&str> = text.split_inclusive('\n').collect();
+    let mut to = to.min(lines.len());
+    while to > from + 1 && lines[to - 1].trim().is_empty() {
+        to -= 1;
+    }
+    if from >= to {
+        return None;
+    }
+    let start: usize = lines[..from].iter().map(|l| l.len()).sum();
+    let end: usize = start + lines[from..to].iter().map(|l| l.len()).sum::<usize>();
+    Some((from + 1, [start, end]))
+}
+
+/// A YAML list entry `- id: <id>` (quoted or not), through the line before
+/// its next sibling (FORMAT-1.0 §8 `line`, `span` of a legacy milestone,
+/// stage or phase).
+fn yaml_entry(text: &str, id: &str) -> Option<(usize, [usize; 2])> {
+    let lines: Vec<&str> = text.lines().collect();
+    let at = lines.iter().position(|l| {
+        l.trim_start()
+            .strip_prefix("- ")
+            .and_then(|r| r.trim_start().strip_prefix("id:"))
+            .is_some_and(|v| unquote(v) == id)
+    })?;
+    let indent = lines[at].len() - lines[at].trim_start().len();
+    let end = lines[at + 1..]
+        .iter()
+        .position(|l| !l.trim().is_empty() && l.len() - l.trim_start().len() <= indent)
+        .map_or(lines.len(), |p| at + 1 + p);
+    lines_span(text, at, end)
+}
+
+/// A TOML array-of-tables entry holding `id = "<id>"`, from its `[[` line
+/// through the line before the next `[[` (a legacy deliverable's span).
+fn toml_entry(text: &str, id: &str) -> Option<(usize, [usize; 2])> {
+    let lines: Vec<&str> = text.lines().collect();
+    let at = lines.iter().position(|l| {
+        l.trim()
+            .strip_prefix("id")
+            .and_then(|r| r.trim_start().strip_prefix('='))
+            .is_some_and(|v| unquote(v) == id)
+    })?;
+    let start = lines[..at]
+        .iter()
+        .rposition(|l| l.trim_start().starts_with("[["))?;
+    let end = lines[at + 1..]
+        .iter()
+        .position(|l| l.trim_start().starts_with("[["))
+        .map_or(lines.len(), |p| at + 1 + p);
+    lines_span(text, start, end)
+}
+
+/// A whole-file legacy document's title: its first `# ` heading after any
+/// frontmatter, else its frontmatter's `title` (`title = "…"` between `+++`
+/// fences, or `title: …` between `---` fences).
+fn doc_title(text: &str) -> Option<String> {
+    h1(text).or_else(|| {
+        let fence = text.lines().next()?.trim_end();
+        if fence != "---" && fence != "+++" {
+            return None;
+        }
+        text.lines()
+            .skip(1)
+            .take_while(|l| l.trim_end() != fence)
+            .find_map(|l| {
+                let rest = l.strip_prefix("title")?.trim_start();
+                let v = rest.strip_prefix('=').or_else(|| rest.strip_prefix(':'))?;
+                Some(unquote(v).to_owned()).filter(|v| !v.is_empty())
+            })
+    })
+}
+
+/// The first `# ` heading after any frontmatter.
+fn h1(text: &str) -> Option<String> {
+    let mut in_front = text.starts_with("---\n") || text.starts_with("---\r\n");
+    for (i, l) in text.lines().enumerate() {
+        if in_front {
+            if i > 0 && l.trim_end() == "---" {
+                in_front = false;
+            }
+            continue;
+        }
+        if let Some(t) = l.strip_prefix("# ") {
+            return Some(t.trim().to_owned());
+        }
+    }
+    None
 }
 
 /// A legacy stage (FORMAT-1.0 §4.1, §12): `executor`, `tier`,
@@ -1389,7 +1585,10 @@ fn lower_stage(
 ) {
     r.title.clone_from(&s.title);
     r.document = Some(document.to_owned());
-    r.line = yaml_id_line(text, &s.id);
+    if let Some((line, span)) = yaml_entry(text, &s.id) {
+        r.line = line;
+        r.span = span;
+    }
     r.fields.insert(
         "executor".to_owned(),
         fv(s.executor_ref
@@ -1444,6 +1643,9 @@ fn lower_ticket(r: &mut Record, m: &openwarrant_core::ticket::TicketManifest) {
     }
     if let Some(v) = &m.due {
         f.insert("due".to_owned(), fv(v));
+    }
+    if let Some(v) = &m.summary {
+        f.insert("summary".to_owned(), fv(v));
     }
 }
 

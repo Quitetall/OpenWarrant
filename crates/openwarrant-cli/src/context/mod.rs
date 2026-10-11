@@ -13,12 +13,10 @@
 //!
 //! The compiler reads a [`Graph`]: [`Unit`]s (a record with its title,
 //! summary, location, revision, primary state and exact text) and the
-//! relations between them. [`adapter::graph`] builds it from today's
-//! corpus and `oh.war/model/v1`. Every member the Format 1.0 model owes
-//! (`title`, `body`, `content_digest`, `span`, `line`, `document`) is
-//! read from its source there, behind one `ADAPTER(model §8)` marker per
-//! member, so the integration with the model's content members replaces
-//! the adapter and leaves this module alone.
+//! relations between them. [`adapter::graph`] builds it from
+//! `oh.war/model/v1` alone: each unit is a model record with its title,
+//! document, line, revision and `content_digest`, and its text is the
+//! record's own span of its source as the model gives it.
 //!
 //! # What is pure here
 //!
@@ -27,7 +25,6 @@
 //! environment, no claim locks, no directory order.
 
 pub mod adapter;
-pub mod format1;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -304,15 +301,14 @@ fn one_line(s: &str) -> String {
     s.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
+/// Its title, else `-`. A record whose heading has none is given its first
+/// body line as its title by the adapter, from the model's `body`.
 fn shown_title(u: &Unit) -> String {
-    match u.title.as_deref().map(one_line).filter(|t| !t.is_empty()) {
-        Some(t) => t,
-        None => u
-            .text
-            .as_deref()
-            .and_then(|t| t.lines().skip(1).find(|l| !l.trim().is_empty()))
-            .map_or_else(|| "-".to_owned(), cut_title),
-    }
+    u.title
+        .as_deref()
+        .map(one_line)
+        .filter(|t| !t.is_empty())
+        .unwrap_or_else(|| "-".to_owned())
 }
 
 fn shown_state(u: &Unit) -> String {
@@ -394,7 +390,7 @@ fn seg(p: &[u8], s: &[u8]) -> bool {
 pub struct Seeds {
     pub roots: Vec<String>,
     pub zero: BTreeSet<String>,
-    pub one: BTreeSet<String>,
+    pub one: BTreeMap<String, String>,
 }
 
 fn normalize_path(target: &str) -> String {
@@ -458,9 +454,9 @@ pub fn resolve(graph: &Graph, target: &str) -> Result<Seeds, Refusal> {
                 // document without one gives its own record instead.
                 let intent = format!("{doc}/S-intent");
                 if graph.units.contains_key(&intent) {
-                    seeds.one.insert(intent);
+                    seeds.one.insert(intent, u.id.clone());
                 } else if graph.units.contains_key(doc) {
-                    seeds.one.insert(doc.clone());
+                    seeds.one.insert(doc.clone(), u.id.clone());
                 }
             }
         }
@@ -527,6 +523,17 @@ const STEPS: [(&str, bool, &str, Option<&str>); 8] = [
     ("in:part_of", false, "part_of", Some("consequence")),
     ("in:implements", false, "implements", Some("interface")),
 ];
+
+/// The step that gives an item root its document's Intent (or the document
+/// itself) at distance 1, outside the walk's eight (section 10.3, step 1).
+pub const STEP_ITEM_INTENT: &str = "item-intent";
+
+fn item_intent(item: &str) -> Via {
+    Via {
+        step: STEP_ITEM_INTENT.to_owned(),
+        from: item.to_owned(),
+    }
+}
 
 /// One record of the selection.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -613,9 +620,9 @@ pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Fi
             next.insert(to);
         }
         if level == 1 {
-            for id in &seeds.one {
+            for (id, from) in &seeds.one {
                 if !reached.contains_key(id) {
-                    reached.insert(id.clone(), (1, None));
+                    reached.insert(id.clone(), (1, Some(item_intent(from))));
                     next.insert(id.clone());
                 }
             }
@@ -626,8 +633,10 @@ pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Fi
         }
     }
     if depth == 0 {
-        for id in &seeds.one {
-            reached.entry(id.clone()).or_insert((1, None));
+        for (id, from) in &seeds.one {
+            reached
+                .entry(id.clone())
+                .or_insert((1, Some(item_intent(from))));
         }
     }
     let list = reached

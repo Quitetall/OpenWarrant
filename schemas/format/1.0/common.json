@@ -56,6 +56,15 @@
       "type": "string",
       "pattern": "^([A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+|t-[0-9a-f]+)(/([A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+|i-[0-9a-f]+))?$|^war://[0-9a-fA-F-]{36}$|^md:[^#\\s]+#[a-z0-9]+(-[a-z0-9]+)*$|^doc:\\S+$"
     },
+    "legacyId": {
+      "description": "Section 12: an id a legacy store gives and the model carries unrenamed. A directory Warrant's milestone, `<alias>/M1` or `<alias>/MB` (an uppercase letter, then uppercase letters or digits, with no `-` group), and a SAS section or subsection, `WAR-SAS-101.1` (a record id with dotted numbers). No Format 1.0 document authors one.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+/[A-Z][A-Z0-9]*$|^[A-Z][A-Z0-9]*(-[A-Za-z0-9]+)+(\\.[0-9]+)+$"
+    },
+    "modelId": {
+      "description": "An id as the model and a context packet carry it: a global id (section 5), or a legacy store's id lowered unrenamed (section 12).",
+      "anyOf": [{ "$ref": "#/$defs/globalId" }, { "$ref": "#/$defs/legacyId" }]
+    },
     "sha256": {
       "description": "Section 9: `sha256:` and 64 lowercase hex digits.",
       "type": "string",
@@ -81,6 +90,14 @@
     "relationKind": {
       "description": "Section 3.6: a core kind, or a dotted extension kind (carried and inert). Any other kind is refused (`format.relation-kind`).",
       "anyOf": [{ "$ref": "#/$defs/coreRelationKind" }, { "$ref": "#/$defs/dotted" }]
+    },
+    "legacyRelationKind": {
+      "description": "Section 12: a relation kind a legacy store gives and the model carries unrenamed, beside the core and dotted kinds: a directory Warrant's `[[roadmap]]` (`roadmap`) and `[[parents]]` (`parent`), and a promoted ticket's `promoted_to`. No Format 1.0 document authors one; an authored one is refused (`format.relation-kind`).",
+      "enum": ["roadmap", "parent", "promoted_to"]
+    },
+    "modelRelationKind": {
+      "description": "A relation kind as the model carries it: a core or dotted kind (section 3.6), or a legacy store's kind (section 12).",
+      "anyOf": [{ "$ref": "#/$defs/relationKind" }, { "$ref": "#/$defs/legacyRelationKind" }]
     },
     "gateUri": {
       "description": "Appendix A `gate-uri`: `gate://<gate-id>@<semver>`. Appendix A does not define `gate-id`; the shape here (lowercase labels joined by `.`, `_` or `-`) is the one every example uses.",

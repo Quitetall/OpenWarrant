@@ -1352,14 +1352,14 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         .map(ticket::one_line)
         .filter(|s| !s.is_empty());
     if let Some(s) = &summary
-        && s.len() > crate::context::format1::SUMMARY_MAX
+        && s.len() > openwarrant_core::format::SUMMARY_MAX
     {
         return Ok(Outcome::refused(
             "ticket.summary",
             String::new(),
             format!(
                 "a summary is one line of at most {} bytes; this one is {}. Say what the work is for, and put the rest in --body",
-                crate::context::format1::SUMMARY_MAX,
+                openwarrant_core::format::SUMMARY_MAX,
                 s.len()
             ),
         ));

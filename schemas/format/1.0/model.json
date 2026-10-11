@@ -38,7 +38,7 @@
         "ext"
       ],
       "properties": {
-        "id": { "description": "As authored; a global id (section 5).", "$ref": "common.json#/$defs/globalId" },
+        "id": { "description": "As authored; a global id (section 5).", "$ref": "common.json#/$defs/modelId" },
         "type": {
           "description": "As authored. A core type, a profile's type, or a legacy store's type (`adr`, `roadmap`, `phase`).",
           "$ref": "common.json#/$defs/name"
@@ -49,11 +49,11 @@
         },
         "document": {
           "description": "The global id of the work document that holds the record; absent otherwise.",
-          "$ref": "common.json#/$defs/globalId"
+          "$ref": "common.json#/$defs/modelId"
         },
         "section": {
           "description": "The id of the last section opened before the record in its document; absent if none.",
-          "$ref": "common.json#/$defs/globalId"
+          "$ref": "common.json#/$defs/modelId"
         },
         "source": {
           "description": "Repository-relative path with `/`.",
@@ -101,8 +101,8 @@
       "type": "object",
       "required": ["from", "kind", "to"],
       "properties": {
-        "from": { "$ref": "common.json#/$defs/globalId" },
-        "kind": { "$ref": "common.json#/$defs/relationKind" },
+        "from": { "$ref": "common.json#/$defs/modelId" },
+        "kind": { "$ref": "common.json#/$defs/modelRelationKind" },
         "to": { "type": "string", "minLength": 1 },
         "to_revision": { "$ref": "common.json#/$defs/sha256" }
       }
@@ -112,7 +112,7 @@
       "type": "object",
       "required": ["record", "kind", "value", "provenance"],
       "properties": {
-        "record": { "$ref": "common.json#/$defs/globalId" },
+        "record": { "$ref": "common.json#/$defs/modelId" },
         "kind": { "type": "string", "minLength": 1 },
         "value": { "type": "string" },
         "provenance": { "type": "string", "minLength": 1 },

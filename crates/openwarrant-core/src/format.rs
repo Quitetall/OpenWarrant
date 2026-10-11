@@ -42,6 +42,8 @@ pub const VERSION: &str = "openwarrant/1.0";
 /// The major and minor this reader implements.
 pub const MAJOR: u32 = 1;
 pub const MINOR: u32 = 0;
+/// The longest work document `summary` the format allows, in bytes (§3.3).
+pub const SUMMARY_MAX: usize = 200;
 
 /// §3.3: the undotted frontmatter keys the core defines.
 pub const CORE_KEYS: [&str; 7] = [
@@ -814,6 +816,23 @@ pub fn parse(bytes: &[u8]) -> Document {
                     format!("a work document declares `{key}:`"),
                 );
             }
+        }
+        // §3.3, §10.1: one line of at most SUMMARY_MAX bytes. The format
+        // bounds it and names no refusal for it, so a long one is a warning.
+        if let Some((_, value, line)) = get("summary")
+            && let Some(s) = value.as_str()
+            && s.len() > SUMMARY_MAX
+        {
+            doc.push(
+                Outcome::Warning,
+                "context.summary-shape",
+                *line,
+                format!(
+                    "`summary` is {} bytes; one line of 1 to {SUMMARY_MAX} bytes is what the \
+                     index shows",
+                    s.len()
+                ),
+            );
         }
     }
 
