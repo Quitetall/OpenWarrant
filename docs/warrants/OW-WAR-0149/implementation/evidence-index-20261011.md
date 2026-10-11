@@ -59,3 +59,7 @@ exists in this checkout; it does not grant assurance or establish a verdict.
 | `docs/warrants/OW-WAR-0149/implementation/workbench-dispatch-20261011/README.md` | Yes |
 | `docs/warrants/OW-WAR-0149/implementation/workbench-captures-20261011/README.md` | Yes |
 | `docs/warrants/OW-WAR-0149/implementation/workbench-workspace-20261011/README.md` | Yes |
+
+## Public Katana bound one-shot CLI
+
+[CLI observations and retained red/green controls](katana-cli-20261011/README.md): six CLI and eight native receipt tests pass; draft Katana PR 14. Participant acceptance and real-agent qualification remain open.
