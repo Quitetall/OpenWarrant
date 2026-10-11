@@ -20,10 +20,11 @@
 # carries the contract atoms, the deliverables' bytes, the plants naming the
 # Warrant, the gate runs and prior verifications — and nothing the performer
 # said about them. A Warrant too large for one bundle (`[verify]
-# max_bundle_tokens`, t-9f7e) is sent as one bundle per obligation, and `war
+# max_bundle_tokens`, t-9f7e) is split into one bundle per obligation, and `war
 # verify --run` calls this script once per bundle, each under the timeout:
 # the script answers for exactly the obligations in `request.obligations`,
-# whichever scope the bundle has.
+# whichever scope the bundle has. If fixed records still exceed that budget,
+# this wrapper refuses before any backend call rather than discarding bindings.
 #
 # The model chooses, per obligation, a disposition and the evidence for it —
 # nothing else. Who the verifier is, and the independence it has, are written
@@ -71,6 +72,35 @@ trap 'rm -rf "$work" "$err" "$answer"' EXIT
 # after the model returns could bind the answer to bytes it never read.
 cp -- "$bundle" "$work/bundle.json"
 bundle="$work/bundle.json"
+# Honor the compiler's declared reading budget before even probing the backend.
+# Fixed binding records are never discarded to make an oversized packet fit.
+python3 - "$bundle" <<'PY'
+import json, sys
+def unique_fields(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate packet field")
+        result[key] = value
+    return result
+try:
+    with open(sys.argv[1]) as source:
+        packet = json.load(source, object_pairs_hook=unique_fields)
+    budget = packet["budget_tokens"]
+    estimate = packet["estimated_tokens"]
+    over = packet["over_budget"]
+    if (type(budget) is not int or type(estimate) is not int
+            or not 0 <= budget < 2**64 or not 0 <= estimate < 2**64
+            or type(over) is not bool):
+        raise ValueError("invalid compiler budget metadata")
+except (OSError, ValueError, KeyError, TypeError, RecursionError) as error:
+    print(f"verify.bundle-invalid-budget: {error}; no backend called", file=sys.stderr)
+    sys.exit(65)
+if over or estimate > budget:
+    print(f"verify.bundle-over-budget: {estimate} estimated tokens exceed the "
+          f"{budget}-token budget; exact context retained, no backend called", file=sys.stderr)
+    sys.exit(75)
+PY
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 version=$("$claude" --version 2>/dev/null | head -1 || true)
 status=0

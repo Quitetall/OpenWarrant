@@ -1,0 +1,42 @@
+{
+  "reported_by": "agent://codex",
+  "basis_revision": "f735d990b8d0380e9664b41f6dce6f7b489b326d",
+  "source_dirty": true,
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 970dc7ee6be5, dirty, debug)",
+  "binary_sha256": "e1622c4a78620b951081f53917f3c6a5e8bd406f202372a4d320a119523e423c",
+  "source_sha256": {
+    "tools/verifier/claude-verifier.sh": "7d2d1d0455b33d92f32e4aac88731c39a4485c3bde164a04db17de49e2e90f30",
+    "conformance/plants.d/62-verifier.sh": "f247a4dc51ee76420c2e792aee262b5f385dc3d41bd60803d5d0b173ed903d5e",
+    "conformance/lib.sh": "6628198c3071e13b35ddade8c508dac257b65e4c55f026c332c6e6d111d4c655",
+    "docs/VERIFICATION.md": "f11af7293e406f4ad23c8e036b16c5f5d60bd5e7ce8e0434743b1ce358156f35"
+  },
+  "tests": {
+    "passed": 17,
+    "failed": 0,
+    "exit_code": 0,
+    "scope": "Positive generated-record check and 16 fake-backend controls in the selected 62-verifier plant; not a full gate"
+  },
+  "reproductions": {
+    "oversized_packet": {
+      "old_exit": 0,
+      "old_backend_calls": 2,
+      "new_exit": 75,
+      "new_backend_calls": 0,
+      "input_unchanged": true,
+      "response_bytes": 0
+    },
+    "ambiguous_budget": {
+      "old_exit": 0,
+      "old_backend_calls": 2,
+      "new_exit": 65,
+      "new_backend_calls": 0,
+      "input_unchanged": true,
+      "response_bytes": 0
+    }
+  },
+  "test_setup_correction": "First broad run had a separate cwd-in-repository failure because TMPDIR was inside the worktree. Final run uses an owned directory outside the worktree. Original failure retained.",
+  "model_calls": 0,
+  "independent_review_established": false,
+  "qualification": false,
+  "remaining": "Retain all bindings; actual over-budget delivery, independent review, operator/model/cost/confinement qualification and full CI remain separate."
+}

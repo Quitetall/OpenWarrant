@@ -1432,6 +1432,10 @@
 > war next is slow (~7.5 s)
 - t-280c · ticket · done · war next is slow (~7.5 s) · docs/tickets/t-280c/manifest.toml:1
 
+## docs/tickets/t-28c41/manifest.toml
+> Refuse oversized verifier packets before backend calls
+- t-28c41 · ticket · done · Refuse oversized verifier packets before backend calls · docs/tickets/t-28c41/manifest.toml:1
+
 ## docs/tickets/t-2c94/manifest.toml
 > 69-current: 'OW-WAR-0073's signature stands' passes if the dry run fails
 - t-2c94 · ticket · done · 69-current: 'OW-WAR-0073's signature stands' passes if the dry run fails · docs/tickets/t-2c94/manifest.toml:1
