@@ -3959,7 +3959,7 @@ review that lists questions without answers is a plan, not a review.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Canonical WAR IR (§63) | `crates/openwarrant-compiler/src/ir.rs` | verified |
+| D-001 | Canonical WAR IR (§63) | `crates/openwarrant-compiler/src/ir.rs` | drift |
 | D-002 | RFC 8785 canonicalization | `crates/openwarrant-compiler/src/canonical.rs` | drift |
 | D-003 | Domain-separated digest preimages (§65) | `crates/openwarrant-compiler/src/digest.rs` | verified |
 | D-004 | Manifest and atoms lowered to IR | `crates/openwarrant-compiler/src/lower.rs` | drift |
