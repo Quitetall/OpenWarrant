@@ -119,6 +119,15 @@ pub fn exit_code(report: &Report) -> u8 {
 /// Render the envelope for a report.
 #[must_use]
 pub fn envelope(command: &str, report: &Report, result: Option<serde_json::Value>) -> String {
+    envelope_with_status(command, report, result, exit_code(report))
+}
+
+fn envelope_with_status(
+    command: &str,
+    report: &Report,
+    result: Option<serde_json::Value>,
+    status: u8,
+) -> String {
     let e = Envelope {
         schema: SCHEMA,
         command,
@@ -147,14 +156,14 @@ pub fn envelope(command: &str, report: &Report, result: Option<serde_json::Value
             "not_ready"
         },
         verdict_line: report.verdict_line(),
-        exit_code: exit_code(report),
+        exit_code: status,
         result,
     };
     // Pretty, and only ever the envelope on stdout: rmcp and any pipe reader
     // depend on stdout being one JSON value.
     serde_json::to_string_pretty(&e).unwrap_or_else(|err| {
         format!(
-            "{{\"schema\":\"{SCHEMA}\",\"command\":{command:?},\"diagnostics\":[{{\"severity\":\"error\",\"rule\":\"cli.serialize\",\"file\":null,\"message\":{:?}}}],\"notes\":[],\"counts\":{{\"pass\":0,\"warn\":0,\"unknown\":0,\"error\":1,\"worst\":\"error\"}},\"verdict\":\"not_ready\",\"verdict_line\":\"NOT READY\",\"exit_code\":2}}",
+            "{{\"schema\":\"{SCHEMA}\",\"command\":{command:?},\"diagnostics\":[{{\"severity\":\"error\",\"rule\":\"cli.serialize\",\"file\":null,\"message\":{:?}}}],\"notes\":[],\"counts\":{{\"pass\":0,\"warn\":0,\"unknown\":0,\"error\":1,\"worst\":\"error\"}},\"verdict\":\"not_ready\",\"verdict_line\":\"NOT READY\",\"exit_code\":{status}}}",
             err.to_string()
         )
     })
@@ -190,6 +199,11 @@ pub fn emit(mode: Mode, command: &str, human: &str, result: serde_json::Value) {
 /// The bare-error path (`run` returned `Err`): under `--json` the error is
 /// still an envelope on stdout, so a caller never has to parse stderr.
 pub fn error(mode: Mode, message: &str) {
+    error_with_status(mode, message, crate::EXIT_DIAGNOSTIC);
+}
+
+/// Render an invocation error with the actual process status chosen by the caller.
+pub fn error_with_status(mode: Mode, message: &str, status: u8) {
     match mode {
         Mode::Human => eprintln!("error: {message}"),
         Mode::Json => {
@@ -201,7 +215,11 @@ pub fn error(mode: Mode, message: &str) {
                 message,
             ));
             let mut out = std::io::stdout().lock();
-            let _ = writeln!(out, "{}", envelope("error", &report, None));
+            let _ = writeln!(
+                out,
+                "{}",
+                envelope_with_status("error", &report, None, status)
+            );
         }
     }
 }

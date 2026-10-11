@@ -1399,6 +1399,65 @@ capture={'schema':'oh.war/runtime-capture-inline/v1-draft.1',
         self.assertFalse(marker.exists(), "worker must not launch with altered context")
 
 
+    def test_next_runtime_stage_receives_fresh_committed_worktree_context(self):
+        fields = self.linked_runtime()
+        self.stop()
+        graph = self.repo / "docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml"
+        graph.write_text(graph.read_text().replace('executor_kind: "agent"',
+            'executor_kind: "katana"\n    executor_ref: "synthetic"').replace(
+            'executor_ref: "synthetic"', 'executor_ref: "synthetic"\n    context_artifacts: ["notes.md"]'))
+        (self.repo / "notes.md").write_text('---\nclassification: internal\n---\nCheckpoint one.\n')
+        self.git("add", ".")
+        self.git("commit", "-qm", "two-stage context fixture")
+        self.base = self.git("rev-parse", "HEAD").strip()
+        packet = self.root / "staged-reference.json"
+        subprocess.run([WAR, "--root", str(self.repo), "dispatch", "IX-WAR-0003", "STAGE-001",
+                        "--prototype", "--emit", str(packet), "--json"],
+                       capture_output=True, timeout=30, check=True)
+        policy = self.config["warrants"][fields["warrant_id"]]
+        policy["base_commit"] = self.base
+        policy["runtime_link"]["contract_digest"] = json.loads(packet.read_bytes())["contract_digest"]
+        policy["stage_plan"]["stages"]["finish"] = {
+            "title": "Read checkpoint", "outcome": "Use current context", "dependencies": ["build"],
+            "checks": policy["checks"]}
+        policy["runtime_link"]["stages"]["finish"] = "STAGE-002"
+        self.harness.write_text("""import base64,gzip,json,sys,subprocess,pathlib,tempfile
+r=json.load(sys.stdin); p=pathlib.Path(r['worktree']); c=r['runtime_context']
+raw=gzip.decompress(base64.b64decode(c['bundle_base64'],validate=True))
+with tempfile.TemporaryDirectory() as name:
+ f=pathlib.Path(name)/'context.json'; f.write_bytes(raw)
+ out=subprocess.run([sys.argv[1],'dispatch-bundle','check',str(f),'--expected-digest',c['bundle_digest'],
+                     '--read','notes.md','--json'],capture_output=True,check=True)
+ checked=json.loads(out.stdout)['result']; assert checked['execution_authorized'] is False
+ expected='Checkpoint one.' if r['stage']=='build' else 'Checkpoint two.'
+ assert expected in checked['content'], checked['content']
+if r['stage']=='build':
+ (p/'notes.md').write_text('---\\nclassification: internal\\n---\\nCheckpoint two.\\n')
+(p/'result.txt').write_text('implemented\\n')
+(p/'stage-progress.txt').write_text(r['stage']+'\\n')
+subprocess.run(['git','add','notes.md','result.txt','stage-progress.txt'],cwd=p,check=True,stdout=sys.stderr)
+subprocess.run(['git','commit','-qm','stage checkpoint'],cwd=p,check=True,stdout=sys.stderr)
+print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_id'],
+'source_sha256':r['source_sha256'],'work_state':'completed','notes':'Read '+expected,
+'next_steps':[]}))
+""")
+        self.start()
+        status, first = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, first)
+        first = self.wait_run(first["attempt_id"])
+        self.assertEqual(first["work_state"], "in-progress", first)
+        self.assertNotEqual(first["result_revision"], self.base)
+        self.assertEqual(self.git("rev-parse", "HEAD").strip(), self.base)
+        status, second = self.call("/api/runs", "POST", {**fields, "stage": "finish"})
+        self.assertEqual(status, 202, second)
+        second = self.wait_run(second["attempt_id"])
+        self.assertEqual(second["work_state"], "completed", second)
+        self.assertEqual(second["notes"], "Read Checkpoint two.")
+        self.assertFalse(second["qualified"])
+        self.assertEqual(first["worktree"], second["worktree"])
+        self.assertNotEqual(first["runtime_dispatch"]["dispatch_id"], second["runtime_dispatch"]["dispatch_id"])
+        self.assertNotEqual(first["runtime_dispatch"]["core_attempt_id"], second["runtime_dispatch"]["core_attempt_id"])
+
 if __name__ == "__main__":
     import unittest
 

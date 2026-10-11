@@ -694,13 +694,12 @@ class Executor:
             if "verification_repair" in r:
                 request.update(schema="oh.war/execution-request/v4", verification_repair=r["verification_repair"])
             if "runtime_link" in policy:
-                # Do not send root context for a different worktree revision.
-                require(self.git("rev-parse", "HEAD") == self.git("rev-parse", "HEAD", cwd=worktree),
-                        "Core context and execution worktree revisions differ")
+                # The SDK reads this clean checkpoint and retains Dispatch history
+                # in the original project. It rejects a different source contract.
                 binding, context = runtime_link.prepare(
                     self.store.sdk, self.root / ("context-" + r["attempt_id"]),
                     policy["runtime_link"], r["stage"], r,
-                    self.read_file, self.decode, deadline,
+                    self.read_file, self.decode, deadline, source_workspace=worktree,
                 )
                 r["runtime_dispatch"] = binding
                 request.update(schema="oh.war/execution-request/v5-draft.1", runtime_context=context)

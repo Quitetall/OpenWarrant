@@ -81,6 +81,19 @@ pub fn run_for_subject(
     opts: Options<'_>,
     expected: Option<ExpectedSubject<'_>>,
 ) -> Result<Report, RepoError> {
+    run_for_workspace(repo, alias, stage_id, opts, expected, None)
+}
+
+/// Select source context from a clean checkpoint in the same Git repository.
+/// Authority and retained records continue to belong to `repo`.
+pub fn run_for_workspace(
+    repo: &Repository,
+    alias: &str,
+    stage_id: &str,
+    opts: Options<'_>,
+    expected: Option<ExpectedSubject<'_>>,
+    source_workspace: Option<&Utf8Path>,
+) -> Result<Report, RepoError> {
     let Options {
         attempt_kind,
         prior_failure_evidence,
@@ -222,9 +235,22 @@ pub fn run_for_subject(
     // §33 — the context manifest. Slice C1: stage-relevant selection —
     // required atoms, plus whatever the stage declares (atoms, sections,
     // artifacts, external refs); everything else omitted with a true reason.
-    let commit = git_head(repo);
-    let selection = match crate::context_select::select(repo, &dir, basis, stage, commit.as_deref())
-    {
+    let workspace = source_workspace
+        .map(|path| crate::source_workspace::SourceWorkspace::open(repo, path, alias, basis))
+        .transpose()?;
+    let source_repo = workspace.as_ref().map_or(repo, |w| &w.repository);
+    let source_dir = source_repo.warrant_dir(alias)?;
+    let commit = workspace
+        .as_ref()
+        .map(|w| w.revision.clone())
+        .or_else(|| git_head(repo));
+    let selection = match crate::context_select::select(
+        source_repo,
+        &source_dir,
+        basis,
+        stage,
+        commit.as_deref(),
+    ) {
         Ok(s) => s,
         Err(refusals) => {
             for r in refusals {
@@ -246,7 +272,13 @@ pub fn run_for_subject(
         .unwrap_or_else(|| repo.config.context.budget());
     let (mut included, omitted, item_bytes) =
         (selection.included, selection.omitted, selection.bytes);
-    let holders = check_holders(repo, &dir, basis, commit.as_deref(), &mut included);
+    let holders = check_holders(
+        source_repo,
+        &source_dir,
+        basis,
+        commit.as_deref(),
+        &mut included,
+    );
     if !authority_ref.starts_with("prototype://")
         && included
             .iter()
@@ -394,6 +426,9 @@ pub fn run_for_subject(
         )));
     };
 
+    if let Some(workspace) = &workspace {
+        workspace.recheck()?;
+    }
     if let Some(path) = emit_context_to {
         let text = serde_json::to_string_pretty(&context)
             .map_err(|e| RepoError::Message(e.to_string()))?;
