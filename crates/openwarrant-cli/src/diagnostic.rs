@@ -208,13 +208,13 @@ impl Report {
     /// The readiness line printed after the findings.
     ///
     /// Deliberately never the bare word "READY". §32 defines readiness as
-    /// including Preflight, which does not exist in Phase 1; printing "READY"
+    /// including full Preflight; the separate local assessment is partial. Printing "READY"
     /// unqualified would claim more than was checked, and a reader would
     /// reasonably take it to mean the work can be executed.
     #[must_use]
     pub fn verdict_line(&self) -> String {
         if self.is_ready() {
-            "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)"
+            "WELL-FORMED (record only — Preflight is partial; `war check` does not establish execution readiness or run gates)"
                 .to_owned()
         } else {
             "NOT READY".to_owned()

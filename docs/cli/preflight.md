@@ -45,11 +45,11 @@ not an addition to the frozen schema pack or a signed Preflight receipt.
 
 Current authorization signature and role checks do not establish the live actor
 path or complete gate/side-effect authority observations. These are not implemented.
-OW-WAR-0011 therefore remains partial, as its recorded basis requires. The old
-`war check` success text still says Preflight is not implemented. Its source is
-pinned by resolved OW-WAR-0005/D-002 and needs a human-signed correction before
-editing. `war check` still proves record well-formedness, not execution readiness
-or successful gates; that distinction must remain after any wording correction.
+OW-WAR-0011 therefore remains partial, as its recorded basis requires. `war check` names Preflight as partial and still proves record well-formedness,
+not execution readiness or successful gates. The old OW-WAR-0005/D-002 source pin
+is historical: the current pin index reports OW-WAR-0112/D-017 as its successor
+owner. No historical delivered bytes or signed records are rewritten by the
+wording correction.
 
 Tests in `crates/openwarrant-cli/tests/preflight_cli.rs` cover the public command:
 all dimensions, unknown runtime refusal, stale commitment refusal, missing atom
