@@ -3177,6 +3177,11 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         // every commit).
                         value["compliance"] =
                             output::value(&score::compute(&score::measure(&repository)));
+                        // Issue #132 item 3: a declared single actor, named
+                        // once here rather than warned per `war check`.
+                        if let Some((_, v)) = check::single_actor_standing(&repository) {
+                            value["independence"] = v;
+                        }
                         output::emit(mode, "status", &text, value);
                     }
                     output::Mode::Human => {
@@ -3214,6 +3219,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         println!("\n{}", scored.render().trim_end());
                         if let Some(t) = score::trend_summary(&repository.root) {
                             println!("\n{t}");
+                        }
+                        if let Some((line, _)) = check::single_actor_standing(&repository) {
+                            println!("\n{line}");
                         }
                     }
                 },

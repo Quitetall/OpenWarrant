@@ -730,6 +730,37 @@ fn contract_digests(corpus: &[Loaded]) -> BTreeMap<String, String> {
     out
 }
 
+/// How `war status` names a repository's `single_actor` declaration (issue
+/// #132 item 3), or `None` when `[independence]` does not write it. The
+/// words are fixed so nothing can read them as a pass: a declared single
+/// actor is "single actor (declared)", never "independent", and it earns
+/// nothing in the compliance score, which never reads `[independence]`.
+pub(crate) fn single_actor_standing(repo: &Repository) -> Option<(String, serde_json::Value)> {
+    let declared = repo.config.independence.as_ref()?;
+    if !declared.single_actor {
+        return None;
+    }
+    let contradicted = declared.contradictions();
+    Some(if contradicted.is_empty() {
+        (
+            "independence: single actor (declared) — one actor holds every role, so no \
+             verification here is independent; declared, not verified, and worth no score"
+                .to_owned(),
+            serde_json::json!({"declared": "single_actor", "independent": false}),
+        )
+    } else {
+        (
+            format!(
+                "independence: single actor contradicted — [independence] also sets {} \
+                 true (`war check`: independence.single-actor-contradicted)",
+                contradicted.join(", ")
+            ),
+            serde_json::json!({"declared": "single_actor", "independent": false,
+                "contradicted_by": contradicted}),
+        )
+    })
+}
+
 /// §46.3 — report, ONCE, whether verification here meets each level's minimum.
 ///
 /// Independence is declared per repository, so reporting it per Warrant says the
@@ -744,7 +775,7 @@ fn contract_digests(corpus: &[Loaded]) -> BTreeMap<String, String> {
 fn report_independence(repo: &Repository, loaded: &[Loaded], report: &mut Report) {
     let config_path = repo.relative(&repo.root.join("openwarrant.toml"));
 
-    let Some(independence) = &repo.config.independence else {
+    let Some(declared) = &repo.config.independence else {
         report.push(Diagnostic::warn(
             "independence.undeclared",
             config_path,
@@ -756,12 +787,55 @@ fn report_independence(repo: &Repository, loaded: &[Loaded], report: &mut Report
         return;
     };
 
+    let independence = declared.dimensions;
+
+    // Issue #132 item 3: `single_actor = true` beside a dimension set `true`
+    // says both "one actor" and "a separation exists". Neither half is
+    // believed: the contradiction is refused by name and the warning below is
+    // NOT suppressed, so the declaration cannot quiet a claim it contradicts.
+    let contradicted = declared.contradictions();
+    if !contradicted.is_empty() {
+        report.push(Diagnostic::error(
+            "independence.single-actor-contradicted",
+            config_path.clone(),
+            format!(
+                "[independence] declares single_actor = true and also {} = true. A single \
+                 actor holds every role, so no separation exists: set those dimensions false, \
+                 or remove single_actor if the separation is real",
+                contradicted.join(" = true, ")
+            ),
+        ));
+    }
+
     // Group by the level actually declared, since the minimum differs per level.
     let mut by_level: BTreeMap<String, usize> = BTreeMap::new();
     for one in loaded {
         if let Some(v) = &one.validated {
             *by_level.entry(v.assurance_level.to_string()).or_insert(0) += 1;
         }
+    }
+
+    // A declared single actor: the gap is stated once, as a repository
+    // fact, instead of a WARN per assurance level on every run. Nothing here
+    // is a PASS: every level's minimum stays unmet, and the note says so.
+    if declared.is_single_actor() {
+        let unmet: Vec<String> = by_level
+            .iter()
+            .filter(|(level, _)| independence.meets(level).is_err())
+            .map(|(level, count)| format!("{count} {level}"))
+            .collect();
+        report.note(format!(
+            "independence — not evaluated per Warrant: {config_path} declares a single actor \
+             ([independence] single_actor = true), so no verification here is independent of \
+             the work and §46.3's minimum is unmet{}. Declared, not verified; \
+             `independence.insufficient` is not repeated for it",
+            if unmet.is_empty() {
+                String::new()
+            } else {
+                format!(" for {} Warrant(s)", unmet.join(", "))
+            }
+        ));
+        return;
     }
 
     for (level, count) in by_level {
