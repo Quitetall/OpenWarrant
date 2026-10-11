@@ -3,12 +3,13 @@
   "warrant": "OW-WAR-0117",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "2d3c6904493729b87e29e18a2db72233324182b3",
-  "summary": "Fixed ambiguous blind-verifier answers: duplicate JSON fields and conflicting obligation verdicts now settle nothing. Both controls failed before the fix; final selected suite passed the positive compiled corpus and all 14 fake-backend controls (15 PASS, zero FAIL). No model call or independent qualification is claimed.",
-  "notes": "docs/warrants/OW-WAR-0117/implementation/ambiguous-answers-20261011/README.md",
+  "revision": "f735d990b8d0380e9664b41f6dce6f7b489b326d",
+  "summary": "Fixed ambiguous blind-verifier answers: duplicate JSON fields and conflicting obligation verdicts now settle nothing. Both controls failed before the fix; final selected suite passed the positive compiled corpus and all 14 fake-backend controls (15 PASS, zero FAIL). No model call or independent qualification is claimed. The bundled verifier now refuses oversized or ambiguous budget metadata before any backend call. Both new controls failed before their fixes; final selected suite passes 17 checks, zero failures, with a fake backend only.",
+  "notes": "docs/warrants/OW-WAR-0117/implementation/budget-refusal-20261011/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0117/implementation/verifier-controls-20261011/observation.json",
-    "docs/warrants/OW-WAR-0117/implementation/ambiguous-answers-20261011/observation.json"
+    "docs/warrants/OW-WAR-0117/implementation/ambiguous-answers-20261011/observation.json",
+    "docs/warrants/OW-WAR-0117/implementation/budget-refusal-20261011/observation.json"
   ],
   "next_steps": [
     "Independent reviewer evaluates exact current evidence and governed delivery history before any assurance or resolution.",
