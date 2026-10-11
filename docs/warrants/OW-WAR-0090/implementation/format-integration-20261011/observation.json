@@ -1,0 +1,106 @@
+{
+  "binary_version": "war 1.0.0-alpha.3 (unreleased, commit 7108e15ca577, debug)",
+  "cli_format_corpus": {
+    "exit_code": 0,
+    "fail": 0,
+    "pass": 105
+  },
+  "files": [
+    {
+      "original_bytes": 480,
+      "original_sha256": "074ed094819c4d08128d38359cc5810e30c2078a0e2f5496e96033daad7d0699",
+      "path": "format-integration-build.log.gz"
+    },
+    {
+      "original_bytes": 210,
+      "original_sha256": "5c1eb45ed279a65702ed5c4679b166e5a379730a5a30bbf8b4c8515d6507063f",
+      "path": "format-integration-committed-build.log.gz"
+    },
+    {
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": "format-integration-fmt.log.gz"
+    },
+    {
+      "original_bytes": 455,
+      "original_sha256": "5c5f3a15753b5c46c9eb45e80027e60b30884cf9ce648b55d2708aa9341bead1",
+      "path": "format-integration-compile.json.gz"
+    },
+    {
+      "original_bytes": 869400,
+      "original_sha256": "fb22223bbdff989eca896f20793881f49749792eed11d147f0c40ec349f359b2",
+      "path": "format-integration-check.json.gz"
+    },
+    {
+      "original_bytes": 49,
+      "original_sha256": "7f60265750e57de43c5cd79af7ff6f7e2136f2f3807befc29286fc80509ed47a",
+      "path": "format-python.log.gz"
+    },
+    {
+      "original_bytes": 23831,
+      "original_sha256": "01e99ccdea6e45c558d7b0b2f271a7b90bf3d9b6e062630bb558f177230686d1",
+      "path": "format-schemas.log.gz"
+    },
+    {
+      "original_bytes": 46,
+      "original_sha256": "d6f3b52797043e2581570ef3f0eb06a640ccced30c5a61571c58c6acbb3e38fb",
+      "path": "format-war.log.gz"
+    },
+    {
+      "original_bytes": 3074,
+      "original_sha256": "60788740707bc3f96e6895e81349db371858ee1f986de38086f1447c99bb6029",
+      "path": "format-fixture-whitespace.log.gz"
+    },
+    {
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": "format-war-committed.log.gz"
+    },
+    {
+      "original_bytes": 869400,
+      "original_sha256": "fb22223bbdff989eca896f20793881f49749792eed11d147f0c40ec349f359b2",
+      "path": "format-check-committed.json.gz"
+    },
+    {
+      "original_bytes": 46,
+      "original_sha256": "d6f3b52797043e2581570ef3f0eb06a640ccced30c5a61571c58c6acbb3e38fb",
+      "path": "format-war-committed-retry.log.gz"
+    },
+    {
+      "original_bytes": 50,
+      "original_sha256": "b0159c6d2979ebbc7b3a3c1db9f6ffedec36d24e75705600e704dbc3960b7113",
+      "path": "format-war-committed-retry-status.json.gz"
+    }
+  ],
+  "fixture_bytes_preserved": true,
+  "format_schemas": {
+    "fail": 0,
+    "pass": 264
+  },
+  "full_diff_whitespace_exit": 2,
+  "human_acceptance": false,
+  "independent_verification": false,
+  "initial_committed_corpus_observation": "UNKNOWN: empty log and exit status not retained; later captured retry passed",
+  "integrated_heads": [
+    "683b913c565df32b60c5082a9ff02b2c51a50b59",
+    "800e5df3c3bde6cf85e9faa388ec75b9cb4b9cb2"
+  ],
+  "model_calls": 0,
+  "originals": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/native-kf-recovery-20261010/integration-20261011/release-review-inventory-20261011",
+  "production_diff_whitespace_exit": 0,
+  "python_format_corpus": {
+    "fail": 0,
+    "pass": 103,
+    "skipped": 2
+  },
+  "qualification_established": false,
+  "record_check": {
+    "error": 0,
+    "pass": 2029,
+    "unknown": 0,
+    "warn": 630,
+    "worst": "warn"
+  },
+  "schema": "openwarrant.performer-observation/v1",
+  "source_git_head": "7108e15ca577cc1b82edb81471a0bb27b444e4fb"
+}
