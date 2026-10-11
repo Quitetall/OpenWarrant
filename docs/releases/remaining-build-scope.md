@@ -17,9 +17,25 @@ assign Warrant identifiers, approve contracts or claim phase completion.
 | OW90 | Collect all four phase exits and exact release review subjects |
 | OW91 | Owner-permitted publication, then download and verify exact public bytes |
 
-Available evidence is frozen in [the review inventory](rc3-review-inventory.json).
+The [historical review inventory](rc3-review-inventory.json) preserves its original
+source subject and gaps. It is not a current status report. Generate a fresh,
+deterministic input snapshot for the revision being reviewed:
+
+```bash
+python3 conformance/release/review_inventory.py --revision HEAD --output /path/to/new-review.json
+```
+
+The command reads committed bytes, not working-file edits. It lists the complete
+Git source inventory, exact work reports, SHA-256 hashes of their referenced
+evidence, missing evidence and Warrant directories without a work report. It
+refuses duplicate report fields, mismatched report identities or schemas, unsafe evidence references, linked inputs,
+unsupported submodules and replacement of an existing snapshot. Its private
+performer-artifact schema is not part of the OpenWarrant standard. The generator
+hash identifies the tool separately from the selected source revision.
+
 A hash proves which bytes were listed. It does not establish independent approval.
-OW90 cannot close while the Phase 3 product and its required observations are absent.
+Neither a completed work report nor an inventory grants qualification or permission
+to publish. OW90 cannot close while its required phase and user observations are absent.
 
 ## Skill-driven local and cloud drafting
 
