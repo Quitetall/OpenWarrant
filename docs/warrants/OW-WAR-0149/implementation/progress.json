@@ -45,12 +45,13 @@
     "docs/warrants/OW-WAR-0149/implementation/http-fixture-discovery-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/inline-capture-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-review-request-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/typed-resolution-binding-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/typed-resolution-binding-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/resolution-outcome-binding-20261010/README.md"
   ],
   "next_steps": [
-    "Resolution signatures now bind exact typed schema, subject, actor and contract digest. Test recorded outcome/role matching and historical signature supplementation; then bind exact native evidence and snapshots in human signing and response ingestion with fresh reassessment. Connect workbench draft/attempt identities to retained Dispatches. BLUT contributor agreement and OW95 participants remain unavailable; no human act is fabricated.",
+    "V1 signature queries and existing-record ingestion now share exact subject, digest, resolver, role and outcome matching while preserving historical supplementation. Implement versioned native evidence, snapshot and policy bindings in signing/ingestion with fresh reassessment, then connect workbench identities to retained Dispatches. BLUT contributor agreement and OW95 participants remain unavailable; no human act is fabricated.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "ca4af5f696c43e4957e3c4a7408808d21929d1ac"
+  "revision": "879b9a332f613fd8779454e50a31bc42a0b2c9fd"
 }
