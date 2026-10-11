@@ -74,18 +74,17 @@ impl Emitter<'_> {
         // These runtime string constraints cannot narrow TypeScript's string
         // type. Preserve the JSON Schema and reject malformed metadata.
         for key in ["pattern", "minLength", "maxLength"] {
-            if let Some(value) = object.get(key) {
-                if schema["type"] != "string"
+            if let Some(value) = object.get(key)
+                && (schema["type"] != "string"
                     || if key == "pattern" {
                         !value.is_string()
                     } else {
                         value.as_u64().is_none()
-                    }
-                {
-                    return Err(format!(
-                        "{key} requires a string schema and valid constraint"
-                    ));
-                }
+                    })
+            {
+                return Err(format!(
+                    "{key} requires a string schema and valid constraint"
+                ));
             }
         }
         if let Some(kinds) = object.get("type").and_then(Value::as_array) {
