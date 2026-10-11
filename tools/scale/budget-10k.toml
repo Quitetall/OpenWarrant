@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# The speed budget of the daily verbs at 10,000 Warrants (the plan's "Warrants
+# are tickets": the smallest Warrant is a title, and the loop an agent runs
+# all day is `war next`, `war view ready`, `war claim`).
+#
+# The corpus is what tools/scale/synth-corpus.sh builds with
+#
+#   --n 200 --resolved 0 --tickets 9800 --unsigned
+#
+# 9,800 tickets (most a title only, the rest one to three items, with epics,
+# blockers, done and claimed tickets in a fixed mix) beside 200 directory
+# Warrants, all drafts: 10,000 Warrants in a program that never opted into
+# sign-off. The signed path at scale is budget.toml's (1,000 Warrants, at
+# least 500 resolved); this file does not replace it, and neither file's
+# numbers move the other's.
+#
+# Each row is at most 50 ms median, wall clock per process, for a release
+# build. `{ready}` in an argv is the first row of `war view ready --json`,
+# read before each run and not timed, so every `claim` run takes the item an
+# agent would take next rather than renewing the one it already holds.
+#
+# tools/scale/budget.sh times each row and exits 1 naming every row that is
+# over its limit or unknown. `cargo scale-budget` builds the corpus and
+# runs this file (CONTRIBUTING.md). Changing a number here is an owner's
+# decision, not a fix for a red gate.
+
+schema = "openwarrant.scale/budget/v1"
+
+[applies_to]
+build_profile = "release"
+warrants = 200
+tickets = 9800
+statistic = "median"
+
+[[command]]
+id = "ready"
+argv = ["view", "ready"]
+limit_ms = 50
+
+[[command]]
+id = "next"
+argv = ["next"]
+limit_ms = 50
+
+[[command]]
+id = "claim"
+argv = ["claim", "{ready}"]
+limit_ms = 50

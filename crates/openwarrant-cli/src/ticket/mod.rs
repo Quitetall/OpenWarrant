@@ -480,6 +480,16 @@ impl Store {
 
     /// Every ticket directory (one holding a `manifest.toml`), sorted.
     pub(crate) fn ticket_dirs(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
+        Ok(self
+            .entries()?
+            .into_iter()
+            .filter(|path| crate::vfs::is_file(path.join("manifest.toml")))
+            .collect())
+    }
+
+    /// Every entry of the ticket directory, sorted, before
+    /// [`Self::ticket_dirs`] keeps those holding a `manifest.toml`.
+    fn entries(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
         let entries = match crate::vfs::read_dir(&self.dir) {
             Ok(e) => e,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
@@ -496,11 +506,12 @@ impl Store {
             let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
                 continue;
             };
-            if crate::vfs::is_file(path.join("manifest.toml")) {
-                out.push(path);
-            }
+            out.push(path);
         }
-        out.sort();
+        // Every entry is a child of one directory, so path order is the
+        // order of the last component's bytes: sorted on that, read once per
+        // entry rather than walked out of both paths per comparison.
+        out.sort_by_cached_key(|p| p.file_name().map(str::to_owned));
         Ok(out)
     }
 
@@ -560,10 +571,70 @@ impl Store {
     pub fn load_all(&self) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
         let mut tickets = Vec::new();
         let mut faults = Vec::new();
-        for dir in self.ticket_dirs()? {
-            match self.load(&dir) {
+        let entries = self.entries()?;
+        // Each ticket is a few small files read on their own, so the disk
+        // reads fan out across threads; the order is the sorted directory
+        // order either way (`vfs::map_ordered`).
+        let loaded = crate::vfs::map_ordered(&entries, 256, |dir| {
+            crate::vfs::is_file(dir.join("manifest.toml")).then(|| self.load(dir))
+        });
+        for one in loaded.into_iter().flatten() {
+            match one {
                 Ok(t) => tickets.push(t),
                 Err(d) => faults.push(d),
+            }
+        }
+        Ok((tickets, faults))
+    }
+
+    /// What `war claim <query>` reads: every readable ticket [`resolve`]
+    /// could name for `query`, and every ticket their items wait on, which
+    /// is all [`open_blockers`] looks up. For `t-x` or `t-x/i-y` those are
+    /// the tickets whose directory name starts with `t-x` (a ticket's
+    /// directory is its id) and the blockers' own; for any other query
+    /// (`i-y` searches every ticket's items) every ticket, as
+    /// [`Self::load_all`]. A ticket outside the set can neither match the
+    /// query nor be one a match waits on, so resolving over the set gives
+    /// what resolving over every ticket gives.
+    pub fn load_for(&self, query: &str) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
+        let query = query.trim();
+        let prefix = match query.split_once('/') {
+            Some((t, _)) => t,
+            None if query.starts_with("t-") => query,
+            None => return self.load_all(),
+        };
+        let entries = self.entries()?;
+        let named = |dir: &Utf8PathBuf, name: &str| dir.file_name() == Some(name);
+        let mut tickets: Vec<Ticket> = Vec::new();
+        let mut faults = Vec::new();
+        let mut take = |dir: &Utf8PathBuf, tickets: &mut Vec<Ticket>| {
+            if crate::vfs::is_file(dir.join("manifest.toml")) {
+                match self.load(dir) {
+                    Ok(t) => tickets.push(t),
+                    Err(d) => faults.push(d),
+                }
+            }
+        };
+        for dir in entries
+            .iter()
+            .filter(|d| d.file_name().is_some_and(|n| n.starts_with(prefix)))
+        {
+            take(dir, &mut tickets);
+        }
+        let waited_on: BTreeSet<String> = tickets
+            .iter()
+            .flat_map(|t| {
+                t.checklist.items.iter().flat_map(move |i| {
+                    i.after
+                        .iter()
+                        .map(move |b| ticket::split_record_id(&b.record_id(t.id())).0.to_owned())
+                })
+            })
+            .filter(|id| !tickets.iter().any(|t| t.id() == id))
+            .collect();
+        for id in &waited_on {
+            if let Some(dir) = entries.iter().find(|d| named(d, id)) {
+                take(dir, &mut tickets);
             }
         }
         Ok((tickets, faults))
@@ -870,9 +941,19 @@ fn holder(c: Option<&claim::Claim>, now: u64) -> String {
 /// relation to a global record id (`t-x/i-y` or `t-x`,
 /// [`ticket::Blocker::record_id`]); `war plan model` emits the same relation.
 fn open_blockers(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
+    open_blockers_by(&|id| tickets.iter().find(|x| x.id() == id), t, item)
+}
+
+/// [`open_blockers`], finding a ticket by id with `find`: what a scan of
+/// the tickets for the first with that id finds ([`first_by_id`]).
+fn open_blockers_by<'a>(
+    find: &dyn Fn(&str) -> Option<&'a Ticket>,
+    t: &Ticket,
+    item: &Item,
+) -> Vec<String> {
     item.after
         .iter()
-        .filter_map(|b| match record_done(tickets, t, &b.record_id(t.id())) {
+        .filter_map(|b| match record_done(find, t, &b.record_id(t.id())) {
             Some(true) => None,
             Some(false) => Some(b.to_string()),
             None => Some(format!("{b} (unknown)")),
@@ -880,15 +961,25 @@ fn open_blockers(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
         .collect()
 }
 
+/// Each id's first ticket in `tickets`, by id: the one
+/// `tickets.iter().find(|x| x.id() == id)` finds, without the scan.
+fn first_by_id(tickets: &[Ticket]) -> std::collections::HashMap<&str, &Ticket> {
+    let mut by = std::collections::HashMap::with_capacity(tickets.len());
+    for t in tickets {
+        by.entry(t.id()).or_insert(t);
+    }
+    by
+}
+
 /// Whether the ticket record `id` (`t-x` or `t-x/i-y`) is done; `None` when
 /// it names nothing. `t` is consulted first, as the ticket being read now.
-fn record_done(tickets: &[Ticket], t: &Ticket, id: &str) -> Option<bool> {
+fn record_done<'a>(
+    find: &dyn Fn(&str) -> Option<&'a Ticket>,
+    t: &Ticket,
+    id: &str,
+) -> Option<bool> {
     let (tid, iid) = ticket::split_record_id(id);
-    let owner = if tid == t.id() {
-        Some(t)
-    } else {
-        tickets.iter().find(|x| x.id() == tid)
-    }?;
+    let owner: &Ticket = if tid == t.id() { t } else { find(tid)? };
     match iid {
         Some(i) => owner.item(i).map(|x| x.done),
         None => Some(owner.checklist.is_done()),
@@ -1693,12 +1784,14 @@ pub struct ReadyRow {
     /// 1-based line of an unnamed item in the checklist.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub line: Option<usize>,
-    /// A claim past its TTL: `war claim --steal` may take it.
+    /// A claim past its TTL: `war claim --steal` may take it. Boxed, as is
+    /// `expired_claim`: a ready set holds a row per open item, and almost
+    /// none carries a claim.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub stale_claim: Option<claim::Claim>,
+    pub stale_claim: Option<Box<claim::Claim>>,
     /// M11: a claim whose lease ran out: a plain `war claim` takes it.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub expired_claim: Option<claim::Claim>,
+    pub expired_claim: Option<Box<claim::Claim>>,
     #[serde(skip)]
     created_at: String,
     #[serde(skip)]
@@ -1731,17 +1824,27 @@ pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, Re
             _ => Err(()),
         }
     };
-    let mut rows = Vec::new();
-    for t in tickets {
+    // The epics: every ticket some other names `part_of`, read once rather
+    // than one scan of every ticket per ticket without items.
+    let parents: BTreeSet<&str> = tickets
+        .iter()
+        .filter_map(|x| x.manifest.part_of.as_deref())
+        .collect();
+    let by_id = first_by_id(tickets);
+    let find = |id: &str| by_id.get(id).copied();
+    // Each ticket's rows depend on it, the claims and the blockers alone:
+    // on the disk they are made across threads, kept in ticket order.
+    let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
+        let mut rows = Vec::new();
         if t.checklist.is_done() {
-            continue;
+            return rows;
         }
         let whole = claim_on(&claims, t.id(), None);
         let whole_stale: Takeable = match whole {
             None => (None, None),
             Some((_, c)) => match stale(c) {
                 Ok(s) => s,
-                Err(()) => continue,
+                Err(()) => return rows,
             },
         };
         let row = |item: Option<String>,
@@ -1755,21 +1858,21 @@ pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, Re
             item,
             text,
             line,
-            stale_claim,
-            expired_claim,
+            stale_claim: stale_claim.map(Box::new),
+            expired_claim: expired_claim.map(Box::new),
             created_at: t.manifest.created_at.clone(),
             order,
         };
         if t.checklist.items.is_empty() {
             // An epic with tickets of its own and no items is worked through
             // its tickets, never whole (OW-WAR-0148 M5).
-            if children_of(tickets, t.id()).is_empty() {
+            if !parents.contains(t.id()) {
                 rows.push(row(None, t.manifest.title.clone(), None, 0, whole_stale));
             }
-            continue;
+            return rows;
         }
         for (order, item) in t.checklist.items.iter().enumerate() {
-            if item.done || !open_blockers(tickets, t, item).is_empty() {
+            if item.done || !open_blockers_by(&find, t, item).is_empty() {
                 continue;
             }
             let mut stale_claim = whole_stale.clone();
@@ -1790,24 +1893,53 @@ pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, Re
                 stale_claim,
             ));
         }
-    }
-    rows.sort_by(|a, b| {
-        (a.priority, &a.created_at, &a.ticket, a.order).cmp(&(
-            b.priority,
-            &b.created_at,
-            &b.ticket,
-            b.order,
-        ))
-    });
-    Ok(rows)
+        rows
+    };
+    let rows: Vec<ReadyRow> = crate::vfs::map_ordered(tickets, 512, rows_of)
+        .into_iter()
+        .flatten()
+        .collect();
+    // Most urgent, then oldest, first. The keys are sorted, not the rows,
+    // and each row then moves once. A row's index breaks every tie, so this
+    // unstable sort orders the rows exactly as a stable sort of the rows on
+    // the four keys alone.
+    let mut by: Vec<(u8, &str, &str, usize, usize)> = rows
+        .iter()
+        .enumerate()
+        .map(|(i, r)| {
+            (
+                r.priority,
+                r.created_at.as_str(),
+                r.ticket.as_str(),
+                r.order,
+                i,
+            )
+        })
+        .collect();
+    by.sort_unstable();
+    let by: Vec<usize> = by.into_iter().map(|k| k.4).collect();
+    let mut slots: Vec<Option<ReadyRow>> = rows.into_iter().map(Some).collect();
+    Ok(by
+        .into_iter()
+        .filter_map(|i| slots.get_mut(i).and_then(Option::take))
+        .collect())
 }
 
 /// `war view ready`.
 pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
+    ready_for(store, None)
+}
+
+/// [`ready`] for the one output `mode` that will print it: only that form
+/// is built, and the other is left empty (an empty text, or JSON `null`).
+/// `None` builds both, as [`ready`].
+pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Outcome, RepoError> {
+    let human_too = !matches!(mode, Some(crate::output::Mode::Json));
+    let json_too = !matches!(mode, Some(crate::output::Mode::Human));
     let (tickets, faults) = store.load_all()?;
     let rows = ready_rows(store, &tickets)?;
     let mut human = String::new();
-    if rows.is_empty() {
+    if human_too && rows.is_empty() {
         // M9: the same plain first line `war next` prints; ordinary work
         // goes on either way.
         if tickets.iter().any(|t| !t.checklist.is_done()) {
@@ -1822,7 +1954,8 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
             );
         }
     }
-    for r in &rows {
+    let line_of = |r: &ReadyRow| -> String {
+        let mut human = String::new();
         let what = match (&r.item, r.line) {
             (Some(_), _) => r.text.clone(),
             (None, Some(line)) => format!(
@@ -1850,11 +1983,18 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
             ));
         }
         human.push('\n');
+        human
+    };
+    if human_too {
+        // One line per row, made across threads on the disk, in row order.
+        human.extend(crate::vfs::map_ordered(&rows, 1024, line_of));
     }
-    let mut out = Outcome::ok(
-        human.trim_end().to_owned(),
-        serde_json::json!({"schema": "oh.war/ticket-ready/v1", "ready": rows}),
-    );
+    let result = if json_too {
+        serde_json::json!({"schema": "oh.war/ticket-ready/v1", "ready": &rows})
+    } else {
+        serde_json::Value::Null
+    };
+    let mut out = Outcome::ok(human.trim_end().to_owned(), result);
     for f in faults {
         out.report.push(Diagnostic::warn(
             f.rule.clone(),
@@ -1862,6 +2002,7 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
             format!("skipped: {}", f.message),
         ));
     }
+    crate::vfs::drop_later((tickets, rows));
     Ok(out)
 }
 
@@ -1883,7 +2024,7 @@ fn new_claim(store: &Store, ticket: &str, item: Option<&str>, now: u64) -> claim
 
 /// `war claim <item|ticket> [--steal]`.
 pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, RepoError> {
-    let (mut tickets, _) = store.load_all()?;
+    let (mut tickets, _) = store.load_for(query)?;
     let target = match resolve(&tickets, query) {
         Ok(t) => t,
         Err(d) => return Ok(Outcome::from_diagnostic(d)),

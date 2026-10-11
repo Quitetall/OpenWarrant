@@ -11754,7 +11754,7 @@ would answer the owner's question with a number nobody measured.
 |---|---|---|---|
 | D-001 | The synthetic corpus generator | `tools/scale/synth-corpus.sh` | drift |
 | D-002 | The declared budget | `tools/scale/budget.toml` | verified |
-| D-003 | The budget gate | `tools/scale/budget.sh` | verified |
+| D-003 | The budget gate | `tools/scale/budget.sh` | drift |
 | D-004 | The 1,000-Warrant measurement | `docs/scale/baseline-1000.json` | verified |
 | D-005 | Journals, archiving and the budget, answered from the numbers | `docs/RETENTION.md` | verified |
 | D-006 | The retention plants | `conformance/plants.d/52-retention.sh` | verified |

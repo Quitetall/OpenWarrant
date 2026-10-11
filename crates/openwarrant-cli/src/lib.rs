@@ -3316,12 +3316,17 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
             let next = next::run(&repository)?;
-            output::emit(
-                mode,
-                "next",
-                next::render(&next).trim_end(),
-                output::value(&next),
-            );
+            // Only the form this mode prints is built: `emit` prints the
+            // text in human mode and the value under `--json`, never both.
+            match mode {
+                output::Mode::Human => output::emit(
+                    mode,
+                    "next",
+                    next::render(&next).trim_end(),
+                    serde_json::Value::Null,
+                ),
+                output::Mode::Json => output::emit(mode, "next", "", output::value(&next)),
+            }
             Ok(EXIT_OK)
         }
         DailyCommand::Check {
@@ -5098,7 +5103,8 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
     match command {
         ViewCommand::Ready { actor } => {
             let (_, store) = ctx.tickets(actor.as_deref())?;
-            Ok(ticket_answer(mode, "ready", &ticket::ready(&store)?))
+            let outcome = ticket::ready_for(&store, Some(mode))?;
+            Ok(ticket_answer(mode, "ready", &outcome))
         }
         ViewCommand::Prime {
             ticket: target,

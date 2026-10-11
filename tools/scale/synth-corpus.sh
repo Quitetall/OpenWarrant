@@ -54,7 +54,21 @@
 # Usage:
 #   tools/scale/synth-corpus.sh --n <count> --resolved <count> --out <dir> [--war <binary>]
 #                               [--log-bytes <n>] [--resolve-with response|sign]
+#                               [--tickets <count>] [--unsigned]
 #
+# --unsigned makes no key, starts no agent and signs nothing: the SAS stays
+# proposed and every directory Warrant a draft, so it needs --resolved 0.
+# It is the shape of a program that never opted into sign-off (the scale
+# budget at 10,000, tools/scale/budget-10k.toml), and it runs where no
+# ssh-agent may be started.
+# --tickets adds that many tickets (the smallest Warrant: a title) beside the
+# --n directory Warrants, each made by `war create` and worked by the real
+# ticket verbs (`war add --after`, `war claim --as`, `war done`), in a fixed
+# mix that is a function of each ticket's ordinal: about 70% a title only,
+# the rest with one to three items; one in 500 an epic with five tickets
+# `--part-of` it; one in 50 waiting `--after` the ticket made before it; one
+# in 25 done; one in 40 claimed by one of three synthetic agents. The ticket
+# count is read back from `war view tickets --json`.
 # --out must not exist or be empty; a non-empty one is refused before
 # anything is written. --war defaults to `war` on PATH. The counts printed
 # at the end come from `war status --json`, not from this script's tally.
@@ -75,6 +89,8 @@ N=""
 RESOLVED=""
 OUT=""
 LOG_BYTES=""
+TICKETS=0
+UNSIGNED=0
 RESOLVE_WITH="response"
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -84,15 +100,19 @@ while [[ $# -gt 0 ]]; do
         --out) OUT="${2:?}"; shift 2 ;;
         --log-bytes) LOG_BYTES="${2:?}"; shift 2 ;;
         --resolve-with) RESOLVE_WITH="${2:?}"; shift 2 ;;
+        --tickets) TICKETS="${2:?}"; shift 2 ;;
+        --unsigned) UNSIGNED=1; shift ;;
         -h|--help) usage ;;
         *) printf 'synth-corpus.sh: unknown argument %s\n' "$1" >&2; usage ;;
     esac
 done
-[[ "$N" =~ ^[1-9][0-9]*$ && "$RESOLVED" =~ ^[0-9]+$ && -n "$OUT" ]] || usage
+[[ "$N" =~ ^[1-9][0-9]*$ && "$RESOLVED" =~ ^[0-9]+$ && "$TICKETS" =~ ^[0-9]+$ && -n "$OUT" ]] || usage
 [[ "$RESOLVE_WITH" == response || "$RESOLVE_WITH" == sign ]] || usage
 # The program's own first Warrant (from `war init --program`) is one of the
 # N and stays a draft, so at most N-1 can be resolved.
 (( RESOLVED <= N - 1 )) || { printf 'synth-corpus.sh: --resolved must be at most --n minus 1\n' >&2; exit 2; }
+# Nothing is resolved without a signature.
+(( UNSIGNED == 0 || RESOLVED == 0 )) || { printf 'synth-corpus.sh: --unsigned needs --resolved 0\n' >&2; exit 2; }
 
 if [[ -e "$OUT" ]]; then
     [[ -d "$OUT" ]] || { printf 'synth-corpus.sh: %s exists and is not a directory; refusing\n' "$OUT" >&2; exit 2; }
@@ -163,6 +183,7 @@ commit() { "${GIT[@]}" add -A >/dev/null; "${GIT[@]}" commit -qm "$1" >/dev/null
 cd "$OUT"
 git init -q .
 quiet war init --program "Scale" --namespace SC
+if [[ "$UNSIGNED" == 0 ]]; then
 ssh-keygen -q -t ed25519 -N "" -C synth -f "$TMP/id_synth"
 KEY_FP=$(ssh-keygen -lf "$TMP/id_synth.pub" | awk '{print $2}')
 printf 'synth namespaces="oh.war/response,oh.war/dsse" %s\n' "$(cut -d' ' -f1,2 "$TMP/id_synth.pub")" > docs/authority/allowed_signers
@@ -183,6 +204,7 @@ ssh-add -q "$TMP/id_synth" 2>/dev/null
 KEYS=$(ssh-add -l 2>/dev/null || true)
 if [[ "$(printf '%s\n' "$KEYS" | grep -c .)" != 1 ]] || ! grep -qF -- "$KEY_FP" <<<"$KEYS"; then
     die "the throwaway agent holds more or other than its own key; refusing"
+fi
 fi
 
 # The fixture gate: every fixture deliverable's bytes against synth/SHA256SUMS.
@@ -222,9 +244,14 @@ mkdir -p synth
 GATE="gate://synth.fixture-bytes@1.1.0"
 
 quiet war sas propose 0.1.0
-quiet war sign 0.1.0 --ssh-sign
-commit "program, signer, SAS 0.1.0"
-say "program SC, SAS accepted"
+if [[ "$UNSIGNED" == 0 ]]; then
+    quiet war sign 0.1.0 --ssh-sign
+    commit "program, signer, SAS 0.1.0"
+    say "program SC, SAS accepted"
+else
+    commit "program, SAS 0.1.0 proposed"
+    say "program SC, SAS proposed (--unsigned: no key, nothing signed)"
+fi
 
 # --- N-1 Warrants through `war new`, with real atoms ----------------------------
 atom_body() { # <file> <body>: keep the frontmatter `war new` wrote, replace the rest
@@ -350,6 +377,8 @@ say "$((N - 1)) Warrants drafted"
 # in flight, and the others stay drafts beside the program's own first one.
 REST=$(( N - 1 - RESOLVED ))
 AUTHORIZE=$(( RESOLVED + REST / 2 ))
+# --unsigned: nothing is authorized, and every Warrant stays a draft.
+if [[ "$UNSIGNED" == 1 ]]; then AUTHORIZE=0; fi
 if (( AUTHORIZE > 0 )); then
     TARGETS=$(IFS=,; echo "${ALIASES[*]:0:$AUTHORIZE}")
     quiet war sign --batch "$TARGETS" --ssh-sign --as "Scale Signer"
@@ -426,19 +455,72 @@ quiet war compile
 commit "resolutions and projections"
 say "$RESOLVED resolved"
 
+# --- tickets: the smallest Warrant, through the ticket verbs ----------------------
+# `war create` lists the ticket directory and reads nothing else, so this part
+# grows linearly; the verbs that read every ticket (`--part-of`, `add --after`,
+# `claim`, `done`) are a few percent of the rows.
+EPIC=""
+PREV=""
+for k in $(seq 1 "$TICKETS"); do
+    args=(-p $(( k % 5 )))
+    if (( k % 7 == 0 )); then args+=(-l "area-$(( k % 4 ))"); fi
+    # A ticket that will be done whole (one in 25) is a title only.
+    (( k % 25 == 4 )) || case $(( k % 20 )) in
+        14|15) args+=(-i "synthetic item one of ticket $k") ;;
+        16|17) args+=(-i "synthetic item one of ticket $k" -i "synthetic item two of ticket $k") ;;
+        18|19) args+=(-i "synthetic item one of ticket $k" -i "synthetic item two of ticket $k"
+                      -i "synthetic item three of ticket $k") ;;
+    esac
+    title="Synthetic ticket $k"
+    if (( k % 500 == 1 )); then
+        title="Synthetic epic $k"
+        args=(-p 1)
+    elif [[ -n "$EPIC" ]] && (( k % 500 >= 2 && k % 500 <= 6 )); then
+        args+=(--part-of "$EPIC")
+    fi
+    out=$(war create "$title" "${args[@]}" </dev/null 2>&1) || die "war create failed at ticket $k: $out"
+    id="${out%%$'\n'*}"
+    id="${id%% *}"
+    [[ "$id" == t-* ]] || die "war create printed no ticket id at ticket $k: $out"
+    if (( k % 500 == 1 )); then
+        EPIC="$id"
+        continue
+    fi
+    if (( k % 50 == 3 )) && [[ -n "$PREV" ]]; then
+        quiet war add "$id" "synthetic follow-up of ticket $k" --after "$PREV"
+    fi
+    if (( k % 25 == 4 )); then
+        quiet war claim "$id" --as synth-agent-0
+        quiet war done "$id" --as synth-agent-0
+    elif (( k % 40 == 5 )); then
+        quiet war claim "$id" --as "synth-agent-$(( k % 3 ))"
+    fi
+    PREV="$id"
+    if (( k % 1000 == 0 )); then commit "tickets through $k"; say "$k tickets"; fi
+done
+if (( TICKETS > 0 )); then
+    commit "tickets"
+    say "$TICKETS tickets"
+fi
+
 # --- what the tool says was reached ---------------------------------------------
 CHECK_RC=0
 war check >"$TMP/check.log" 2>&1 </dev/null || CHECK_RC=$?
 war --json status >"$TMP/status.json" 2>/dev/null </dev/null || true
+war --json view tickets >"$TMP/tickets.json" 2>/dev/null </dev/null || true
 SYNTH_RC=0
-python3 - "$TMP/status.json" "$N" "$RESOLVED" "$CHECK_RC" "$LOG_BYTES" "$(( $(date +%s) - T0 ))" "$WAR" "$RESOLVE_WITH" "$AUTHORIZE" "$OUT/SYNTH.json" <<'PY' || SYNTH_RC=$?
+python3 - "$TMP/status.json" "$N" "$RESOLVED" "$CHECK_RC" "$LOG_BYTES" "$(( $(date +%s) - T0 ))" "$WAR" "$RESOLVE_WITH" "$AUTHORIZE" "$OUT/SYNTH.json" "$TMP/tickets.json" "$TICKETS" "$UNSIGNED" <<'PY' || SYNTH_RC=$?
 import collections, json, sys
-path, n, resolved, check_rc, log_bytes, secs, war, resolve_with, authorized, marker = sys.argv[1:]
+path, n, resolved, check_rc, log_bytes, secs, war, resolve_with, authorized, marker, tickets_path, tickets, unsigned = sys.argv[1:]
 try:
     ws = json.load(open(path))["result"]["warrants"]
 except Exception as e:
     print(json.dumps({"schema": "openwarrant.scale/synth-counts/v1", "error": f"war status --json unreadable: {e}"}))
     sys.exit(1)
+try:
+    ts = json.load(open(tickets_path))["result"]["tickets"]
+except Exception:
+    ts = None
 phases = collections.Counter(w["state"]["phase"] for w in ws)
 out = {
     "schema": "openwarrant.scale/synth-counts/v1",
@@ -446,13 +528,16 @@ out = {
     "warrants": len(ws),
     "by_phase": dict(sorted(phases.items())),
     "resolved": phases.get("resolved", 0),
-    "asked": {"n": int(n), "resolved": int(resolved)},
+    "tickets": len(ts) if ts is not None else "unknown",
+    "tickets_counted_by": "war view tickets --json",
+    "asked": {"n": int(n), "resolved": int(resolved), "tickets": int(tickets)},
     "implementation_log_bytes": int(log_bytes),
     "war_check_exit": int(check_rc),
     "war": war,
     "seconds": int(secs),
     "generator": "tools/scale/synth-corpus.sh",
     "resolve_with": resolve_with,
+    "unsigned": unsigned == "1",
     "authorized_by_batch": int(authorized),
     "gate": "gate://synth.fixture-bytes@1.1.0 (fixture: sha256sum --check synth/SHA256SUMS; inputs synth/**)",
     "fixture": "every record is synthetic; the signer, performer and verifier are throwaway names",
@@ -461,7 +546,8 @@ print(json.dumps(out, sort_keys=True))
 with open(marker, "w", encoding="utf-8") as f:
     json.dump(out, f, indent=2, sort_keys=True)
     f.write("\n")
-ok = out["warrants"] == int(n) and out["resolved"] == int(resolved) and int(check_rc) == 0
+ok = (out["warrants"] == int(n) and out["resolved"] == int(resolved) and int(check_rc) == 0
+      and out["tickets"] == int(tickets))
 sys.exit(0 if ok else 1)
 PY
 commit "SYNTH.json: what war status --json counted"

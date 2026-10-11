@@ -438,13 +438,88 @@ fn is_question(id: &str) -> bool {
 }
 
 pub fn run(repo: &Repository) -> Result<Next, RepoError> {
-    run_with(&crate::corpus::Corpus::new(repo))
+    let corpus = crate::corpus::Corpus::new(repo);
+    let next = run_with(&corpus);
+    crate::vfs::drop_later(corpus);
+    next
 }
 
 /// [`run`] over a corpus already loaded, so a caller that also needs the
 /// status, the sign queue or the frontier (`war admin compile`'s master document,
 /// the web UI) builds each once.
 pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
+    // The tickets and the Warrants are separate records, and reading one
+    // never waits on the other: on the disk the tickets are read on a thread
+    // of their own while the Warrants are judged here. The corpus keeps what
+    // each read, and everything below reads it as if read in turn.
+    if !crate::vfs::is_disk() {
+        return judged(corpus, || ticket_side(corpus));
+    }
+    std::thread::scope(|scope| {
+        // With no thread to be had, the tickets are read in turn, as before.
+        let side = std::thread::Builder::new()
+            .spawn_scoped(scope, || ticket_side(corpus))
+            .ok();
+        judged(corpus, || match side.map(|h| h.join()) {
+            Some(Ok(side)) => side,
+            Some(Err(panic)) => std::panic::resume_unwind(panic),
+            None => ticket_side(corpus),
+        })
+    })
+}
+
+/// What `war next` reads from the ticket store: the ready rows over the
+/// corpus's tickets (as [`ready_tickets`] reads them) and, when the tickets
+/// load, the nodes a run set aside.
+struct TicketSide {
+    ready: Result<Vec<ReadyItem>, RepoError>,
+    blocked: Option<Vec<crate::go::BlockedNode>>,
+}
+
+fn ticket_side(corpus: &crate::corpus::Corpus) -> TicketSide {
+    let ready = || {
+        crate::ticket::Store::open(corpus.repo(), None)
+            .and_then(|store| {
+                let (tickets, _faults) = corpus.tickets()?;
+                crate::ticket::ready_rows(&store, tickets)
+            })
+            .map(|rows| crate::vfs::map_ordered(&rows, 1024, ReadyItem::of))
+    };
+    let blocked = || {
+        corpus
+            .tickets()
+            .ok()
+            .map(|(tickets, _)| crate::go::blocked_nodes(tickets))
+    };
+    if !crate::vfs::is_disk() {
+        return TicketSide {
+            ready: ready(),
+            blocked: blocked(),
+        };
+    }
+    // Once the tickets are read, the ready rows and the set-aside nodes are
+    // two separate reads of them (the second reads each journal).
+    let _ = corpus.tickets();
+    std::thread::scope(|scope| {
+        let set_aside = std::thread::Builder::new()
+            .spawn_scoped(scope, blocked)
+            .ok();
+        let ready = ready();
+        TicketSide {
+            ready,
+            blocked: match set_aside.map(|h| h.join()) {
+                Some(Ok(b)) => b,
+                Some(Err(panic)) => std::panic::resume_unwind(panic),
+                None => blocked(),
+            },
+        }
+    })
+}
+
+fn judged(
+    corpus: &crate::corpus::Corpus,
+    tickets: impl FnOnce() -> TicketSide,
+) -> Result<Next, RepoError> {
     let repo = corpus.repo();
     let status = corpus.status()?;
     let pending = corpus.pending()?;
@@ -459,11 +534,14 @@ pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
     }
     judge(repo, pending, &mut next);
     preset_acts(repo, &mut next);
-    ready_tickets_with(corpus, &mut next);
+    let side = tickets();
+    ready_rows_into(side.ready, &mut next);
     // OW-WAR-0148 M15: what a run set aside is a person's to look at, and is
-    // not offered as ready meanwhile.
-    if let Ok((tickets, _)) = corpus.tickets() {
-        next.blocked = crate::go::blocked_nodes(tickets);
+    // not offered as ready meanwhile. With nothing set aside, every row stays.
+    if let Some(blocked) = side.blocked
+        && !blocked.is_empty()
+    {
+        next.blocked = blocked;
         next.ready.retain(|r| {
             let id = match &r.item {
                 Some(i) => format!("{}/{i}", r.ticket),
@@ -518,21 +596,15 @@ pub fn ready_tickets(repo: &Repository, next: &mut Next) {
         let (tickets, _faults) = store.load_all()?;
         crate::ticket::ready_rows(&store, &tickets)
     });
-    ready_rows_into(rows, next);
+    ready_rows_into(
+        rows.map(|rows| rows.iter().map(ReadyItem::of).collect()),
+        next,
+    );
 }
 
-/// [`ready_tickets`] over the corpus's tickets.
-pub fn ready_tickets_with(corpus: &crate::corpus::Corpus, next: &mut Next) {
-    let rows = crate::ticket::Store::open(corpus.repo(), None).and_then(|store| {
-        let (tickets, _faults) = corpus.tickets()?;
-        crate::ticket::ready_rows(&store, tickets)
-    });
-    ready_rows_into(rows, next);
-}
-
-fn ready_rows_into(rows: Result<Vec<crate::ticket::ReadyRow>, RepoError>, next: &mut Next) {
+fn ready_rows_into(rows: Result<Vec<ReadyItem>, RepoError>, next: &mut Next) {
     match rows {
-        Ok(rows) => next.ready = rows.iter().map(ReadyItem::of).collect(),
+        Ok(rows) => next.ready = rows,
         Err(e) => next.findings.push(Finding {
             rule: "next.tickets-unreadable".to_owned(),
             severity: "unknown".to_owned(),
@@ -736,8 +808,10 @@ fn order(next: &mut Next) {
 #[must_use]
 pub fn render(n: &Next) -> String {
     let mut s = String::new();
-    for r in &n.ready {
-        s.push_str(&format!(
+    // A ready set can hold thousands of rows: their lines are made across
+    // threads on the disk, in order (`vfs::map_ordered`).
+    s.extend(crate::vfs::map_ordered(&n.ready, 1024, |r| {
+        format!(
             "{:<6} {:<12} {:<10} {}\n{:>6} p{} {}{}\n",
             "ready",
             r.ticket,
@@ -751,8 +825,8 @@ pub fn render(n: &Next) -> String {
             } else {
                 String::new()
             },
-        ));
-    }
+        )
+    }));
     for a in &n.actions {
         s.push_str(&format!(
             "{:<6} {:<12} {:<10} {}{}\n{:>6} {}\n",
