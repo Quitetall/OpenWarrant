@@ -657,10 +657,15 @@ enum DailyCommand {
         #[arg(long, value_name = "COMMIT", conflicts_with = "guided")]
         baseline: Option<String>,
         /// The vibe preset (docs/PRESETS.md): no signatures, no PR gate, and
-        /// `war done` claims an unclaimed item itself. Without a preset flag,
-        /// no preset is written and nothing changes.
+        /// `war done` claims an unclaimed item itself. Plain `war init`
+        /// writes it; the flag says so explicitly.
         #[arg(long, conflicts_with_all = ["guided", "team", "regulated"])]
         vibe: bool,
+        /// Write no preset: the repository is held to the defaults
+        /// docs/PRESETS.md gives a repository without one. `--program`
+        /// writes no preset either way.
+        #[arg(long, conflicts_with_all = ["guided", "vibe", "team", "regulated"])]
+        no_preset: bool,
         /// The team preset: the PR gate on, signatures batched at release,
         /// and the signing examples under docs/authority/.
         #[arg(long, conflicts_with_all = ["guided", "regulated"])]
@@ -3325,18 +3330,24 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             non_interactive: _,
             baseline,
             vibe,
+            no_preset,
             team,
             regulated,
         } => {
             // OW-WAR-0148 M14: the preset is written after everything plain
-            // init writes, so without a flag the bytes are today's.
-            let preset = [
+            // init writes. Plain `war init` is vibe (owner, 2026-10-11): the
+            // smallest setup is the default. `--program` scaffolds sign-off,
+            // so it gets no preset unless one is named; `--no-preset` keeps
+            // the bytes init wrote before presets.
+            let named = [
                 (vibe, preset::Preset::Vibe),
                 (team, preset::Preset::Team),
                 (regulated, preset::Preset::Regulated),
             ]
             .into_iter()
             .find_map(|(on, p)| on.then_some(p));
+            let preset =
+                named.or_else(|| (!no_preset && program.is_none()).then_some(preset::Preset::Vibe));
             let chosen = baseline
                 .as_deref()
                 .map_or(init::Baseline::Head, init::Baseline::Named);

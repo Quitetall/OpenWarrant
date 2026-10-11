@@ -59,16 +59,27 @@ fi
 
 ps_repo plain
 psw "$PS_T/plain" init >/dev/null 2>&1; PS_PLAIN_RC=$?
-PS_PLAIN_HAS=$(grep -cE '^\[(preset|roles|notify)\]' "$PS_T/plain/openwarrant.toml")
-PS_PLAIN=$(psw "$PS_T/plain" --json admin preset | ps_py '"%s %s" % (v["result"]["preset"], v["result"]["roles_declared"])')
+PS_PLAIN=$(psw "$PS_T/plain" --json admin preset | ps_py '"%s" % v["result"]["preset"]')
+ps_repo none
+psw "$PS_T/none" init --no-preset >/dev/null 2>&1; PS_NONE_RC=$?
+PS_NONE_HAS=$(grep -cE '^\[(preset|roles|notify)\]' "$PS_T/none/openwarrant.toml")
+PS_NONE=$(psw "$PS_T/none" --json admin preset | ps_py '"%s %s" % (v["result"]["preset"], v["result"]["roles_declared"])')
+ps_repo program
+psw "$PS_T/program" init --program Demo >/dev/null 2>&1; PS_PROG_RC=$?
+PS_PROG_HAS=$(grep -cE '^\[preset\]' "$PS_T/program/openwarrant.toml")
 ps_repo both
 PS_BOTH=$(psw "$PS_T/both" init --vibe --team 2>&1); PS_BOTH_RC=$?
-if [[ $PS_PLAIN_RC -eq 0 && "$PS_PLAIN_HAS" == "0" && "$PS_PLAIN" == "None False" \
-    && $PS_BOTH_RC -eq 2 && ! -e "$PS_T/both/openwarrant.toml" ]] \
-    && grep -qF "cannot be used with" <<<"$PS_BOTH"; then
-    ps_ok "plain init writes no preset" "no [preset], [roles] or [notify]; --vibe --team refused, nothing written"
+ps_repo nonevibe
+PS_NV=$(psw "$PS_T/nonevibe" init --no-preset --vibe 2>&1); PS_NV_RC=$?
+if [[ $PS_PLAIN_RC -eq 0 && "$PS_PLAIN" == "vibe" \
+    && $PS_NONE_RC -eq 0 && "$PS_NONE_HAS" == "0" && "$PS_NONE" == "None False" \
+    && $PS_PROG_RC -eq 0 && "$PS_PROG_HAS" == "0" \
+    && $PS_BOTH_RC -eq 2 && ! -e "$PS_T/both/openwarrant.toml" \
+    && $PS_NV_RC -eq 2 && ! -e "$PS_T/nonevibe/openwarrant.toml" ]] \
+    && grep -qF "cannot be used with" <<<"$PS_BOTH" && grep -qF "cannot be used with" <<<"$PS_NV"; then
+    ps_ok "plain init writes vibe" "plain: vibe; --no-preset and --program: no [preset]; --vibe --team and --no-preset --vibe refused, nothing written"
 else
-    ps_fail "plain init writes no preset" "plain exit $PS_PLAIN_RC tables $PS_PLAIN_HAS ($PS_PLAIN); both exit $PS_BOTH_RC: $(head -1 <<<"$PS_BOTH")"
+    ps_fail "plain init writes vibe" "plain exit $PS_PLAIN_RC ($PS_PLAIN); none exit $PS_NONE_RC tables $PS_NONE_HAS ($PS_NONE); program exit $PS_PROG_RC preset $PS_PROG_HAS; both exit $PS_BOTH_RC; none+vibe exit $PS_NV_RC: $(head -1 <<<"$PS_NV")"
 fi
 
 # ---- 2. switching keeps a person's edits ----------------------------------------
