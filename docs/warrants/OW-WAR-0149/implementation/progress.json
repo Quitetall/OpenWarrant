@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "The context bridge is on main. Capture transport passed hosted checks and awaits the required merge gate. Exact committed execution-worktree context and bounded refusal controls pass CLI, staged web and conformance tests; the full local web suite timed out. Runtime-linked resume/repair coverage and real provider/human qualification remain.",
+  "summary": "Context and capture integration are on main. Exact execution-worktree context and bounded refusal controls have local coverage. Katana public bound one-shot CLI transport is proposed in draft PR 14; six CLI and eight native receipt tests pass. Real provider/human qualification, participant acceptance and remaining lifecycle coverage are still open.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/evidence-index-20261011.md",
