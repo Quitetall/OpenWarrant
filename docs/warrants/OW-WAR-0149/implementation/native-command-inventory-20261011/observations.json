@@ -47,13 +47,31 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
       "note": "Partial projection writes; complete regeneration still required"
+    },
+    {
+      "path": "native-command-inventory-compile-final.json.gz",
+      "result": "PASS",
+      "sha256": "ff49aaea377addecb91c91c5281efc66c346ccbd1653ec95ed3df253c490ce14",
+      "compressed_sha256": "fc65c023a46a0fb1b2eb8f5b75bd89151d2004806d9e55b92cab395f57f89bb3"
+    },
+    {
+      "path": "native-command-inventory-check-final.json.gz",
+      "result": "PASS",
+      "sha256": "91ea69f65a8e0f8f2affb273e70cc18c7c9f80b8646e9ea2e41c2ca65568952b",
+      "compressed_sha256": "23c796ee69e479207e3987fa043029bfb8daf229603e699ae9c0962ebdb1c641"
+    },
+    {
+      "path": "native-command-inventory-integration-final.log.gz",
+      "result": "PASS",
+      "sha256": "b14a2f8062aa7db0d0597f752d4fdada97116439ce8e5fbd6fb2ef25fb160d81",
+      "compressed_sha256": "02fb9cb84d89d86ab3e0cb14a32ba5677c3be134036a7fe49c1a86af5aadcba2"
     }
   ],
   "ci_failure_subject": "91c5975cac42de27f2daa4e14914cb48ed0071c4",
   "ci_run": 38109369663,
   "remaining": [
-    "Regenerate authored-source projections and rerun committed integration suite",
     "Full CI gate must pass before merge",
     "Native schemas, Dispatch mapping, actual human/production and participant qualification remain"
-  ]
+  ],
+  "committed_integration_subject": "1125dc9d"
 }

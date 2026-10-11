@@ -19,6 +19,9 @@ also failed on wrapping; the correction and final check passed. The actual help
 plant passed all four controls, and all-target/all-feature CLI Clippy passed.
 
 The original failed CI and local runs remain compressed and hashed beside the
-successful observations. A regenerated committed tracker, integration rerun and
-full CI are still needed for this checkpoint. Existing native format and real
+successful observations. Regeneration first reached a 60-second command limit; its incomplete observation
+is UNKNOWN and retained. A bounded rerun completed all seven projection writes.
+The generated check passed with 2028 PASS, 625 WARN, no errors or unknowns. The
+committed integration suite passed: 234 passed, four ignored. Full CI is still
+required before merging this checkpoint. Existing native format and real
 human/production qualification limits remain; OW95 has no actual participants.

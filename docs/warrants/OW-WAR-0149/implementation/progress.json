@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected native policy is on main. Exact signed CLI ingestion and human SSH transport pass Katana/BLUT software fixtures. Native command inventory and protected-host refusal controls are corrected after full CI findings; native formats, workbench identity integration and qualification remain.",
+  "summary": "Protected native policy is on main. Exact signed CLI ingestion and human SSH transport pass Katana/BLUT software fixtures. Corrected command inventory and protected-host refusal controls pass unit/integration tests and the help plant; native formats, workbench identity integration and qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
