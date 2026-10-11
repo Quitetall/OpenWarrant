@@ -15,6 +15,9 @@ war init --namespace APP
 war create "Add password reset" --item "Reset endpoint" --item "Email template"
 ```
 
+Or install with `cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli`;
+Homebrew and crates.io are not set up yet ([every way, and what each needs](docs/INSTALL.md#one-line)).
+
 Then `war next` shows what can start, `war claim <id>` takes an item,
 `war done <id> --note "..."` ticks it off, and `war view prime` is what the next
 agent (or person) reads first: open tickets, remaining items, who holds what,

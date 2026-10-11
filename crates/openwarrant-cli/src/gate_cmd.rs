@@ -801,8 +801,13 @@ pub mod source {
     /// the one an earlier gate in the same process left.
     static TREE_READS: TreeReads = std::sync::Mutex::new(None);
 
-    /// Off (`None`), or on with what has been read so far.
-    pub type TreeReads = std::sync::Mutex<Option<std::collections::HashMap<String, Vec<String>>>>;
+    /// Off (`None`), or on with what has been read so far: one slot per
+    /// question, so threads asking the same question at once wait for the
+    /// first one's read instead of each running it (plant 69).
+    pub type TreeReads = std::sync::Mutex<Option<std::collections::HashMap<String, TreeSlot>>>;
+
+    /// One question's answer, once read.
+    pub type TreeSlot = std::sync::Arc<std::sync::Mutex<Option<Vec<String>>>>;
 
     /// Remember [`moved_since`]'s git reads for the rest of this process. For
     /// one-shot read-only commands only (`war next`, `war check`, `war status`).
@@ -841,26 +846,26 @@ pub mod source {
         key: String,
         read: impl FnOnce() -> Result<Vec<String>, String>,
     ) -> Result<Vec<String>, String> {
-        let remembered = memo
+        let slot = memo
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .as_ref()
-            .map(|m| m.get(&key).cloned());
-        match remembered {
-            None => read(),
-            Some(Some(paths)) => Ok(paths),
-            Some(None) => {
-                let paths = read()?;
-                if let Some(m) = memo
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner)
-                    .as_mut()
-                {
-                    m.insert(key, paths.clone());
-                }
-                Ok(paths)
-            }
+            .as_mut()
+            .map(|m| std::sync::Arc::clone(m.entry(key).or_default()));
+        let Some(slot) = slot else {
+            return read();
+        };
+        // Held across the read: a second thread asking this question waits
+        // here and takes the answer. An error leaves the slot empty, so the
+        // next asker reads again.
+        let mut answer = slot
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(paths) = answer.as_ref() {
+            return Ok(paths.clone());
         }
+        let paths = read()?;
+        *answer = Some(paths.clone());
+        Ok(paths)
     }
 
     fn git(root: &Utf8Path, args: &[&str]) -> Result<Vec<u8>, String> {
@@ -1703,6 +1708,30 @@ mod source_tests {
             tree_read_in(&on, "err".into(), read),
             Ok(vec!["moved-3".into()])
         );
+    }
+
+    /// Plant 69's regression: threads asking one question at once read the
+    /// tree once between them.
+    #[test]
+    fn concurrent_askers_share_one_tree_read() {
+        let on: TreeReads = std::sync::Mutex::new(Some(std::collections::HashMap::new()));
+        let calls = std::sync::atomic::AtomicUsize::new(0);
+        let read = || {
+            calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            std::thread::sleep(std::time::Duration::from_millis(20));
+            Ok(vec!["moved".to_owned()])
+        };
+        std::thread::scope(|s| {
+            for _ in 0..8 {
+                s.spawn(|| {
+                    assert_eq!(
+                        tree_read_in(&on, "k".into(), read),
+                        Ok(vec!["moved".into()])
+                    );
+                });
+            }
+        });
+        assert_eq!(calls.load(std::sync::atomic::Ordering::SeqCst), 1);
     }
 
     #[test]

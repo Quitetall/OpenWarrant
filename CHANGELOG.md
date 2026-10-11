@@ -6,6 +6,29 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- `[independence] single_actor = true` (issue #132): a repository where one
+  person holds every role declares it once. It is the same as nine `false`
+  dimensions and claims nothing: `war check` replaces the per-run
+  `independence.insufficient` WARN with one NOT CHECKED note, `war status`
+  reports `independence: single actor (declared)` (`"independence"` under
+  `--json`), and the compliance score does not move. Beside a dimension set
+  `true` it is refused by name, `independence.single-actor-contradicted`,
+  and the WARN stays. No preset writes it.
+
+### Changed
+
+- `war sign` (issue #132): a refusal that nobody is eligible names the
+  register by the path it resolved, says whether it is absent (pointing at
+  the `roles.toml.example` beside it) or present with no one eligible for
+  the act, and `war sign --all` stops after the first structural refusal
+  (no register, no ssh principal, an unreadable trust source) with
+  `sign.sweep-stopped` counting the acts not attempted, instead of repeating
+  it per act. Under `--ssh-sign` the signer's principal is resolved before
+  the sign screen is drawn, so `sign.ssh-principal` refuses before the act
+  is shown.
+
 ## [1.0.0-alpha.3] — 2026-10-09
 
 ### Added

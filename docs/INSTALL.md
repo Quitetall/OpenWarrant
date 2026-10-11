@@ -6,6 +6,21 @@ running (OW-WAR-0143).
 Published builds exist for Linux x86_64 and macOS on Apple silicon. On any
 other platform, build from source (the third way below).
 
+## One line
+
+| how | the line | today |
+|---|---|---|
+| `install.sh` | `curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh \| bash` | works; `war update` manages the result |
+| cargo-binstall | `cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli` | works once the binstall metadata is on `main` (below) |
+| cargo-binstall, from crates.io | `cargo binstall openwarrant-cli` | not yet: nothing is published on crates.io ([PUBLISHING.md](PUBLISHING.md)) |
+| Homebrew | `brew install quitetall/openwarrant/openwarrant` | not yet: the tap repository does not exist (below) |
+| `cargo install`, from crates.io | `cargo install --locked openwarrant-cli` | not yet, as above; from a clone it works |
+
+All of them install the same two release archives, so all of them stop at
+Linux x86_64 and macOS on Apple silicon. Only `install.sh` (and the tarball
+by hand) puts `war` where `war update` manages it; the others are updated the
+way they were installed.
+
 ## Three ways to install
 
 **1. `install.sh`** (recommended). It installs the newest release into the
@@ -55,15 +70,88 @@ ln -s ~/.local/lib/openwarrant/<version>/bin/war ~/.local/bin/war
 Use exactly that layout and a symlink, and `war update` manages it from then
 on. A copied binary is never managed.
 
-**3. `cargo install`**, from crates.io or a checkout:
+**3. `cargo install`**, from a checkout (or from crates.io, once the crates
+are published there; today they are not):
 
 ```bash
-cargo install --locked openwarrant-cli
 cargo install --locked --path crates/openwarrant-cli   # from a clone
+cargo install --locked openwarrant-cli                 # from crates.io, once published
 ```
 
 This puts a binary in `~/.cargo/bin`. `war update` does not manage it and
 will not overwrite it. Update it the same way you installed it.
+
+## cargo-binstall
+
+[cargo-binstall](https://github.com/cargo-bins/cargo-binstall) installs the
+release archive instead of compiling. `crates/openwarrant-cli/Cargo.toml`
+carries `[package.metadata.binstall]`, which maps the two targets the
+release builds to their assets:
+
+| Rust target | release asset |
+|---|---|
+| `x86_64-unknown-linux-gnu` | `openwarrant-v<version>-linux-x86_64.tar.gz` |
+| `aarch64-apple-darwin` | `openwarrant-v<version>-darwin-arm64.tar.gz` |
+
+`<version>` is the crate's version in the manifest binstall reads, so it
+fetches the release whose tag is `v<version>`, and takes `bin/war` from it.
+Any other target has no mapping, and binstall falls back to building from
+source. `conformance/release/test_distribution.py` holds these names to the
+ones `conformance/release/package.py` publishes.
+
+```bash
+# Today, from the repository: binstall clones it to read the manifest.
+cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli
+# Once openwarrant-cli is on crates.io:
+cargo binstall openwarrant-cli
+```
+
+`--git` clones the default branch, so it installs the release named by the
+version on `main`. Between a version bump on `main` and that release being
+published there is no archive to find, and binstall falls back to building
+from source. To pin a release, use `install.sh` with `OW_VERSION`, or a clone
+at that tag with `cargo binstall --manifest-path crates/openwarrant-cli`.
+
+What it does not do: binstall downloads the archive over HTTPS from the
+release, but it does not read the `.sha256` beside it, so the checksum
+`install.sh` and `war update` insist on is not checked. The binary lands in
+`~/.cargo/bin`, which `war update` treats as unmanaged; update it with
+`cargo binstall` again.
+
+## Homebrew
+
+The formula lives in a tap repository that does not exist yet,
+`Quitetall/homebrew-openwarrant`. Once it does:
+
+```bash
+brew install quitetall/openwarrant/openwarrant
+```
+
+It installs the same release archives (macOS on Apple silicon, Linux
+x86_64), pinned by the SHA-256 each release publishes. The formula is
+rendered, never hand-edited: `packaging/homebrew/openwarrant.rb` is the
+template, and `packaging/homebrew/render.py` fills it for one published
+release from that release's own `.sha256` files. It refuses, writing
+nothing, when either `.sha256` is missing or malformed, names another file,
+or a placeholder is left unfilled.
+
+```bash
+python3 packaging/homebrew/render.py --tag v1.0.0-alpha.3 --output openwarrant.rb
+```
+
+Setting the tap up is the owner's step, once:
+
+1. Create the public repository `Quitetall/homebrew-openwarrant` (Homebrew
+   requires the `homebrew-` prefix; `brew` drops it from the tap name).
+2. Render the formula for the release to offer, and commit it there as
+   `Formula/openwarrant.rb`.
+3. On a Mac: `brew install --formula ./Formula/openwarrant.rb` and
+   `brew test openwarrant`, then `brew audit --strict openwarrant`.
+4. For each later release, render again and commit. Nothing in this
+   repository pushes to the tap.
+
+A `war` installed by Homebrew is updated with `brew upgrade`; `war update`
+treats it as unmanaged.
 
 ## The one way to update
 
@@ -309,6 +397,38 @@ jobs:
         #   war-version: v1.0.0-alpha.3   # a release instead of a build
         #   comment: "true"               # also comment; needs pull-requests: write
 ```
+
+**Pinning the action.** The action lives in a subdirectory, and GitHub
+resolves `owner/repo/path@ref` for any ref: a commit, a branch or a tag.
+Two pins work:
+
+```yaml
+- uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>   # immutable
+- uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@v1.0.0-alpha.3 # a release tag
+```
+
+A commit SHA is the pin to prefer: it cannot move. A release tag reads
+better, and runs the action as it was at that release (the action builds
+`war` from that same commit unless `war-version` says otherwise); a tag can
+in principle be moved by whoever can push tags, which a SHA cannot. There is
+no floating `v1` tag, and none is planned until there is a stable release.
+
+The action is not on the GitHub Marketplace. The Marketplace lists an
+action only from a public repository with a single `action.yml` at its root
+and no workflow files; this repository has neither. Listing it would take a
+dedicated repository (for example `Quitetall/openwarrant-check`) holding:
+
+- `action.yml`: this action, changed in one place. Here it finds
+  `install.sh` and the source it builds from three directories above
+  `github.action_path`; there, that source is absent, so it would always
+  install a release (`war-version` required, or defaulted to the release
+  the action's own tag names) through `install.sh` fetched from that
+  release;
+- `README.md` with the workflow above, `LICENSE`, and release tags that
+  match OpenWarrant's.
+
+That repository does not exist; creating and publishing it is the owner's
+decision.
 
 The job reruns when someone reviews, because an approving review can be
 what makes the cited Warrant official. Its inputs are `pr` (default: the
