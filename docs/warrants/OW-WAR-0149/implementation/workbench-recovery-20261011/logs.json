@@ -38,5 +38,10 @@
     "path": "recovery-combined-budget.log.gz",
     "uncompressed_sha256": "ed866dacd9226b687bd465b7d7900e09d1b3c4c9b2c4eae19e1f2065f88cee97",
     "uncompressed_bytes": 2437
+  },
+  {
+    "path": "recovery-hosted-boundary.log.gz",
+    "uncompressed_sha256": "1364f54249398d1025d0f25e1539db3216c1e767cb20ee4096ee1e2400b53706",
+    "uncompressed_bytes": 132239
   }
 ]

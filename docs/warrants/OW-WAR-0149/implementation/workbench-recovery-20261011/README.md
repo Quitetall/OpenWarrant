@@ -56,3 +56,12 @@ with individual packages; whole-Warrant repair must refuse their combined size
 before its worker creates a launch marker. Its first local run timed out during
 reference Dispatch creation (30-second bound), before that control. This run is
 unavailable; the new boundary assertion still awaits hosted observation.
+
+Hosted boundary follow-up at `fe0e3d053aa85291c0e995e736dec2763bfb063c`:
+run 38130735658 passed all 231 web tests in 153.224 seconds. The individually
+valid packages completed both ordinary stages, then their combined repair context
+produced the exact configured refusal before the repair worker launch marker
+existed. The two prior recovery scenarios also passed in that complete run.
+Ticket i-b812 is complete at the unverified claimed level, with the actual hosted
+run cited. This is not an observed/independent/signed ticket level or a project
+assurance judgment. Real provider and protected release gates remain separate.
