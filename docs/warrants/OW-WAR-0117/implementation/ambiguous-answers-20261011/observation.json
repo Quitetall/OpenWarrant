@@ -1,0 +1,38 @@
+{
+  "source_revision": "2d3c6904493729b87e29e18a2db72233324182b3",
+  "reported_by": "agent://codex",
+  "model_calls": 0,
+  "assurance_granted": false,
+  "independent_review_established": false,
+  "scope": "Actual wrapper and war verify --run through synthetic CLAUDE_BIN, no real model or confinement qualification.",
+  "controls": {
+    "red": {
+      "pass": 12,
+      "fail": 3,
+      "note": "Two new ambiguous-answer refusals fail; positive corpus additionally fails before new ticket projection is compiled."
+    },
+    "green_before_compile": {
+      "pass": 14,
+      "fail": 1,
+      "note": "All verifier controls pass; positive corpus still awaits ticket projection regeneration."
+    },
+    "final": {
+      "pass": 15,
+      "fail": 0,
+      "note": "Positive compiled corpus plus all 14 verifier controls pass."
+    }
+  },
+  "command": "timeout 480 env TMPDIR=<owned scratch>/tmp bash -c source conformance/lib.sh; run_plant_files \"$REPO_ROOT/conformance/plants.d/62-verifier.sh\"; assert FAILED=0",
+  "raw_log_sha256": {
+    "red": "c907d44441a52e76b6582e6c37d82268d04de81d8e5d414a03fac85e74c9394a",
+    "green": "53200bfe91880db18f2a868bd14504ac0440ce0e007491ed5c4eb69ff90f2e80",
+    "final": "f5bc8c08241768e6366f74e3bec87f61de07d2c50f52763d2eff5cb5ab0365b2"
+  },
+  "source_sha256": {
+    "tools/verifier/claude-verifier.sh": "19f4e3ce9690e5f8169ad5a554f415ac2e9135576d5921d22de6eba2fdfaa3c2",
+    "conformance/plants.d/62-verifier.sh": "51aeb56932412b94926ecf73dc722650ac87199034906ff9c37a8f3fdb7aa46e",
+    "conformance/lib.sh": "6628198c3071e13b35ddade8c508dac257b65e4c55f026c332c6e6d111d4c655"
+  },
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 09b557eb0ed9, dirty, debug)",
+  "projection_refresh": "Initial 120-second compile did not produce a report during storage journal contention. The following check reported only two corpus-status.drift errors for the changed work report. A serialized compile retry completed; final check is recorded separately."
+}

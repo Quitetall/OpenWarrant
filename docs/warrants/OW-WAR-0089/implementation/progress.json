@@ -3,15 +3,16 @@
   "warrant": "OW-WAR-0089",
   "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "43a3c2f2a3704e9d439b2e2a1f360c49b5191ac6",
-  "summary": "Candidate packaging implementation completed, unverified: native Linux/macOS installs, documented examples, archive integrity and refusal tests observed. Phase 3 evidence, independent release qualification and publication permission remain separate blockers under OW90/91.",
+  "revision": "47cc456348ae0ebe4291177647b6f563fb191c21",
+  "summary": "Corrected native candidate packaging rehearsal passed on Linux and macOS at 47cc4563: both installed walkthroughs, gate, matching 145-entry IR and artifact roundtrip. Downloaded Linux replay passed all eight steps; wrong checksum refused without a receipt. Implementation remains unverified; independent build provenance, Phase 3 qualification and publication permission stay open.",
   "notes": "docs/warrants/OW-WAR-0089/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0089/implementation/observation.json",
     "docs/warrants/OW-WAR-0089/implementation/linux-install.json",
     "docs/warrants/OW-WAR-0089/implementation/tests.log",
     "docs/warrants/OW-WAR-0089/implementation/gate.log",
-    "docs/warrants/OW-WAR-0089/implementation/native-20260918/comparison.json"
+    "docs/warrants/OW-WAR-0089/implementation/native-20260918/comparison.json",
+    "docs/releases/qualification-20261011/packaging-corrected-47cc/observation.json"
   ],
   "next_steps": [
     "Finish Phase 3 workflow/user evidence and independent release qualification under OW90.",

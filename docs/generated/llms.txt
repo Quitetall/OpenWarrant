@@ -7,9 +7,9 @@
 - md:AGENTS.md#tickets-the-default-work-loop · instruction · - · Tickets: the default work loop · AGENTS.md:11
 - md:AGENTS.md#read-the-context-needed-for-this-task · instruction · - · Read the context needed for this task · AGENTS.md:27
 - md:AGENTS.md#fit-the-hosts-context-documents · instruction · - · Fit the host's context documents · AGENTS.md:63
-- md:AGENTS.md#apply-the-right-work-and-assurance-model · instruction · - · Apply the right work and assurance model · AGENTS.md:81
-- md:AGENTS.md#preserve-truthful-records · instruction · - · Preserve truthful records · AGENTS.md:94
-- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:106
+- md:AGENTS.md#apply-the-right-work-and-assurance-model · instruction · - · Apply the right work and assurance model · AGENTS.md:84
+- md:AGENTS.md#preserve-truthful-records · instruction · - · Preserve truthful records · AGENTS.md:97
+- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:109
 
 ## CHANGELOG.md
 > -
@@ -599,6 +599,10 @@
 ## docs/releases/qualification-20261011/lamu-current-2692/README.md
 > -
 - doc:docs/releases/qualification-20261011/lamu-current-2692/README.md · document · - · Current LAMU SDK exchange · docs/releases/qualification-20261011/lamu-current-2692/README.md:1
+
+## docs/releases/qualification-20261011/packaging-corrected-47cc/README.md
+> -
+- doc:docs/releases/qualification-20261011/packaging-corrected-47cc/README.md · document · - · Corrected native packaging rehearsal · docs/releases/qualification-20261011/packaging-corrected-47cc/README.md:1
 
 ## docs/releases/remaining-build-scope.md
 > -
@@ -1488,6 +1492,10 @@
 > M10: one store, one noun, bring your work with you
 - t-473a3 · ticket · done · M10: one store, one noun, bring your work with you · docs/tickets/t-473a3/manifest.toml:1
 
+## docs/tickets/t-4948f/manifest.toml
+> Correct stale additive agent-guidance installation instructions (OW68/S08)
+- t-4948f · ticket · done · Correct stale additive agent-guidance installation instructions (OW68/S08) · docs/tickets/t-4948f/manifest.toml:1
+
 ## docs/tickets/t-4c3f/manifest.toml
 > 59-webui-lan: the bound-only check reads every listener on the machine, so a parallel battery holding the same port on 127.0.0.1 fails it
 - t-4c3f · ticket · done · 59-webui-lan: the bound-only check reads every listener on the machine, so a parallel battery holding the same port on 127.0.0.1 fails it · docs/tickets/t-4c3f/manifest.toml:1
@@ -1547,6 +1555,10 @@
 ## docs/tickets/t-5f49/manifest.toml
 > war ui answers 431 instead of 413 for an oversized body, under load
 - t-5f49 · ticket · done · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/manifest.toml:1
+
+## docs/tickets/t-62f58/manifest.toml
+> Reject ambiguous blind-verifier answers (OW117)
+- t-62f58 · ticket · done · Reject ambiguous blind-verifier answers (OW117) · docs/tickets/t-62f58/manifest.toml:1
 
 ## docs/tickets/t-63626/manifest.toml
 > Expose native OpenWarrant-bound Katana CLI execution through the shared provider contract
@@ -1751,6 +1763,10 @@
 ## docs/tickets/t-e6340/manifest.toml
 > Correct stale Preflight coverage messages without claiming execution readiness
 - t-e6340 · ticket · done · Correct stale Preflight coverage messages without claiming execution readiness · docs/tickets/t-e6340/manifest.toml:1
+
+## docs/tickets/t-e9b0a/manifest.toml
+> Retain successful corrected native packaging and phase observations (OW85/89/90)
+- t-e9b0a · ticket · done · Retain successful corrected native packaging and phase observations (OW85/89/90) · docs/tickets/t-e9b0a/manifest.toml:1
 
 ## docs/tickets/t-e9ef7/manifest.toml
 > Retain OW119 identity controls and successful native release rehearsal

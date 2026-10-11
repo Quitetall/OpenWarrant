@@ -39,6 +39,11 @@ for i, o in enumerate(obls):
                   "distinct_human_required": True})
     out.append(v)
 doc = {"verdicts": out}
+if mode == "duplicate":
+    out.insert(0, {"obligation": obls[0], "disposition": "refuted", "evidence": "conflicting fixture"})
+if mode == "duplicate-field":
+    print('{"verdicts": [], "verdicts": ' + json.dumps(out) + '}')
+    sys.exit(0)
 if mode == "claim":
     doc["actor"] = "the-performer"
 print(json.dumps(doc))
@@ -77,7 +82,7 @@ else
 fi
 
 # OBL-002: unclear answers settle nothing.
-for VF_M in garbage skip probably; do
+for VF_M in garbage skip probably duplicate duplicate-field; do
     vf "$VF_M"
     case $VF_M in
         skip) VF_WANT=1 ;;               # the skipped first obligation only

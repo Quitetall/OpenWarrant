@@ -30641,7 +30641,7 @@ performer's report under another name.
 |---|---|---|---|
 | D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | drift |
 | D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | verified |
-| D-003 | The verifier plants | `conformance/plants.d/62-verifier.sh` | verified |
+| D-003 | The verifier plants | `conformance/plants.d/62-verifier.sh` | drift |
 | D-004 | How to run the verifier and read what it says | `docs/VERIFICATION.md` | drift |
 
 #### OW-WAR-0133 — Evidence reuse after a source change, and the compiler's source, conflict and omission rules
