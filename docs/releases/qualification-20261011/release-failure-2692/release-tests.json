@@ -1,0 +1,27 @@
+{
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "conformance/release",
+    "-p",
+    "test_*.py",
+    "-v"
+  ],
+  "observed_exit_code": 0,
+  "tests_run": 18,
+  "duration_seconds": 34.354,
+  "source_sha256": {
+    "conformance/release/check_preview.py": "9024253e45f4938371ef613ae18a831e584a777019ec6e0798feaa3d7e33ae7f",
+    "conformance/release/install_check.py": "a2adcb5c23b60d5a46e178dff44a721ed0cec52a7a29b6477caacf6f933f2ad1",
+    "conformance/release/package.py": "05059b192f6fca603a69cf484f6150ce5164f17efa96e988dc1564b9498af3d5",
+    "conformance/release/test_distribution.py": "6793db47d3b5d89daf4a5e62cb2414c65249570c073409f67adee9e99420cb0d",
+    "conformance/release/test_package.py": "747b9055dc6829d83755f8c6a320ac79518d83c64a6fc462021149097c220b59",
+    "conformance/release/test_preview.py": "a8e38d315e942f430c157458c785ffc1a2c3a176249241fc5ce5e8dcce50f83c"
+  },
+  "provenance_sha256": "359f0a1158b792f181630a3290cd2728f4b3cffba268558dc20425c80ddb97a5",
+  "scope": "release conformance tests, not corrected native installation",
+  "qualification_established": false
+}

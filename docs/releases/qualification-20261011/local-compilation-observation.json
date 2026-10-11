@@ -1,0 +1,16 @@
+{
+  "command": [
+    "war",
+    "admin",
+    "compile",
+    "--json"
+  ],
+  "timeout_seconds": 240,
+  "exit_code": 124,
+  "state": "UNKNOWN",
+  "stdout": "",
+  "source_subject": "2692fbda1d376b6aa5a8eaffd2fe95f89869a04d",
+  "scope": "audit checkout with unsigned evidence and ticket present",
+  "observed_generated_changes": [],
+  "qualification_established": false
+}

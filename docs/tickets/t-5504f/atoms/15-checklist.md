@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Retain Linux/macOS and real LAMU receipts with exact tested source identities; audit remaining scope without changing assurance (i-f05e) — done by codex, 2026-10-11: Retained exact 2692fbda Linux/macOS matching Phase 1 receipts, 232-test hosted web log and fresh real LAMU integration. Audited 145 source reports and actual authority rungs; 64 draft-rung Warrants have no progress report. Fresh read-only preparation selects 116 planned Warrants and 21 human acts; all verification steps remain planned. Receipt hashes, captured source hashes and document links pass. docs/releases/qualification-20261011/README.md. Performer observation only; no qualification, disposition or signature.

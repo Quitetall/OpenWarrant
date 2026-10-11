@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Verify upstream notice and cached VCS identity, add current version mappings, observe positive catalog and incorrect provenance refusal (i-6004) — done by codex, 2026-10-11: Observed exact missing-notice refusal locally and on both native packaging jobs. Both current crates declare upstream VCS 79437f291b2c44053d00dcd5db969fd0cca7c887; retrieved LICENSE matches unchanged retained SHA256 0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a. Added only 3.5.1 mappings; current notice collector passes and wrong commit/hash refuse. All 18 release conformance tests pass. Full corrected native package/install remains pending; no qualification or publication. docs/releases/qualification-20261011/release-failure-2692/notice-controls.json.
