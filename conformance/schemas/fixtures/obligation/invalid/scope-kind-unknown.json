@@ -1,0 +1,17 @@
+{
+  "why": "section 3.7: scope_kind is one of nine",
+  "expect": "@fields/scope_kind enum",
+  "instance": {
+    "id": "OBL-001",
+    "type": "obligation",
+    "title": "a bundled gate run carries its output",
+    "fields": {
+      "scope": "s",
+      "evidence": "e",
+      "refusal": "r",
+      "scope_kind": "vibes"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

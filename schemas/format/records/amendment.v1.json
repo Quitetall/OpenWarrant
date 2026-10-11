@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/records/amendment.v1.json",
+  "title": "oh.war/amendment/v1",
+  "description": "Hand-written and normative for the frozen record `oh.war/amendment/v1` (docs/COMPATIBILITY.md): a section 31 amendment record, `docs/warrants/<alias>/amendments/<id>.yaml`. The file is a structured atom (the restricted YAML subset of OW-ADR-0003, never full YAML), read into this JSON object exactly as that reader holds it: every scalar a string (no implicit typing, so `re_preflight_required` is the string `\"true\"` or `\"false\"`), a flow sequence an array of strings, and a block sequence of flat mappings an array of objects. Where this schema and the prose that governs the record (docs/COMPATIBILITY.md, SAS sections 30 and 31) disagree, the prose wins and this schema is the defect. Not expressed here: that `id` agrees with the file name, the order of amendments, and what the amendment changed.",
+  "$comment": "Written from crates/openwarrant-core/src/autonomy.rs: `AmendmentRecord` at autonomy.rs:187, `from_structured` at autonomy.rs:283 and `AmendmentRecord::validate` at autonomy.rs:220; the band vocabulary at autonomy.rs:70; `ContractElement` at crates/openwarrant-core/src/contract.rs:193 (`parse`); the restricted reader at crates/openwarrant-core/src/structured.rs:269; the top-level `sas_revision` pin at crates/openwarrant-cli/src/repo.rs:1609 (OW-ADR-0016); the writers at crates/openwarrant-cli/src/amendment_id.rs:253 and crates/openwarrant-cli/src/sas_repin.rs:251. The reader does not check `schema` and ignores keys it does not read; this schema refuses an unknown key, because a frozen record gains a member only when its schema does (docs/COMPATIBILITY.md, Additive only). The reader reads an `artifact_admissibility` other than `inadmissible` as `remain_admissible`, and a `re_preflight_required` other than `true` (any case) as false. autonomy.rs is pinned by resolved OW-WAR-0010, which is why `war schemas` does not generate this schema.",
+  "x-oh-war-schema": "oh.war/amendment/v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "band",
+    "semantic_diff",
+    "reason",
+    "restart_or_repair_instruction",
+    "authorizer",
+    "effective_time"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Every frozen record names its schema (docs/COMPATIBILITY.md); the amendment reader itself does not read this key.",
+      "const": "oh.war/amendment/v1"
+    },
+    "id": { "description": "`AM-<n>` or `AM-<n>-<hash>`.", "$ref": "#/$defs/nonBlank" },
+    "band": {
+      "description": "The section 30 band the change falls into.",
+      "enum": ["local_choice", "auto_authorized_revision", "manual_revision"]
+    },
+    "semantic_diff": {
+      "description": "Section 31's structured semantic diff: at least one changed contract element.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["element", "before", "after"],
+        "properties": {
+          "element": {
+            "description": "One of section 28.5's seventeen contract elements.",
+            "enum": [
+              "intent",
+              "scope",
+              "basis_requirements",
+              "assumptions",
+              "constraints",
+              "adr_references",
+              "deliverables",
+              "milestones",
+              "stages",
+              "capabilities",
+              "autonomy",
+              "resources",
+              "gates",
+              "obligations",
+              "rollback",
+              "amendment_policy",
+              "assurance_requirements"
+            ]
+          },
+          "before": { "type": "string" },
+          "after": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "reason": { "$ref": "#/$defs/nonBlank" },
+    "governing_adr_or_policy": { "type": "string" },
+    "affected_stages": { "$ref": "#/$defs/list" },
+    "affected_milestones": { "$ref": "#/$defs/list" },
+    "affected_attempts": { "$ref": "#/$defs/list" },
+    "affected_gate_runs": { "$ref": "#/$defs/list" },
+    "artifact_admissibility": { "enum": ["remain_admissible", "inadmissible"] },
+    "restart_or_repair_instruction": { "$ref": "#/$defs/nonBlank" },
+    "re_preflight_required": { "enum": ["true", "false"] },
+    "authorizer": { "$ref": "#/$defs/nonBlank" },
+    "effective_time": { "$ref": "#/$defs/nonBlank" },
+    "sas_revision": {
+      "description": "OW-ADR-0016: the SAS revision this amendment re-pins the Warrant to (`war sas repin`).",
+      "$ref": "#/$defs/nonBlank"
+    },
+    "predecessor_sas_revision": {
+      "description": "The SAS revision a re-pin moves from; written beside `sas_revision` (sas_repin.rs:263), read by no reader.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "description": "Sections 30.2 and 30.3: a band that creates a revision names the authority for it.",
+      "if": {
+        "required": ["band"],
+        "properties": { "band": { "enum": ["auto_authorized_revision", "manual_revision"] } }
+      },
+      "then": {
+        "required": ["governing_adr_or_policy"],
+        "properties": { "governing_adr_or_policy": { "$ref": "#/$defs/nonBlank" } }
+      }
+    },
+    {
+      "description": "Section 31: when earlier work no longer holds, readiness is re-established.",
+      "if": {
+        "required": ["artifact_admissibility"],
+        "properties": { "artifact_admissibility": { "const": "inadmissible" } }
+      },
+      "then": {
+        "required": ["re_preflight_required"],
+        "properties": { "re_preflight_required": { "const": "true" } }
+      }
+    }
+  ],
+  "$defs": {
+    "nonBlank": { "type": "string", "pattern": "\\S" },
+    "list": { "type": "array", "items": { "type": "string" } }
+  }
+}

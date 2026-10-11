@@ -1,0 +1,12 @@
+{
+  "why": "section 5: a record id starts with an uppercase letter",
+  "expect": "@id pattern",
+  "instance": {
+    "id": "req-pr1",
+    "type": "requirement",
+    "title": "a reset link expires",
+    "fields": {},
+    "relations": [],
+    "body": ""
+  }
+}

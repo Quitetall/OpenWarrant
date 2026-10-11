@@ -1,0 +1,13 @@
+{
+  "why": "types.rs PackFile denies unknown fields",
+  "expect": "('license' was unexpected)",
+  "instance": {
+    "schema": "oh.war/pack/v1",
+    "name": "ops",
+    "version": "1.0.0",
+    "profiles": [
+      "runbook.toml"
+    ],
+    "license": "MIT"
+  }
+}

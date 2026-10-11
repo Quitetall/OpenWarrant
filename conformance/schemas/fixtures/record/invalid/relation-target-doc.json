@@ -1,0 +1,17 @@
+{
+  "why": "Appendix A `ref` has no `doc:` form",
+  "expect": "@relations/0/to pattern",
+  "instance": {
+    "id": "REQ-pr1",
+    "type": "requirement",
+    "title": "a reset link expires",
+    "fields": {},
+    "relations": [
+      {
+        "kind": "supports",
+        "to": "doc:README.md"
+      }
+    ],
+    "body": ""
+  }
+}

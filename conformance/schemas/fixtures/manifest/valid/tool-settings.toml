@@ -1,0 +1,6 @@
+# Tool settings beside warrant.md; nothing the frontmatter says.
+[context]
+budget = 24000
+
+[x.ci]
+runner = "ubuntu-latest"

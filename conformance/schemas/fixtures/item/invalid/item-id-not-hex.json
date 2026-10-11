@@ -1,0 +1,10 @@
+{
+  "why": "section 5: an item id is `i-` and lowercase hex",
+  "expect": "@id pattern",
+  "instance": {
+    "id": "i-XYZ",
+    "done": false,
+    "text": "Email template",
+    "after": []
+  }
+}

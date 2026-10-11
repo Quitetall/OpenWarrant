@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/model.json",
+  "title": "oh.war/model/v1 (Format 1.0 section 8)",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 8 (and section 9 for the digests). Where this schema and the prose disagree, the prose wins and this schema is the defect. The canonical JSON model a reader produces. Absent optional members are omitted, never `null`. A consumer MUST ignore members it does not know, so every object here admits members it does not name. Not expressed here, and checked by a conformance case instead: the sort orders (records by `id`; relations by `(from, kind, to, to_revision)`; states by `(record, kind, value)`; diagnostics by `(rule, record, message)`, all by UTF-8 bytes), RFC 8785 serialization, and the digest values. schemas/oh.war/model/v1.json is generated from the reference implementation and describes what it emits today, a subset section 8 says it owes additions to.",
+  "x-oh-war-schema": "oh.war/model/v1",
+  "type": "object",
+  "required": ["schema", "format", "basis_digest", "records", "relations", "states", "diagnostics"],
+  "properties": {
+    "schema": { "const": "oh.war/model/v1" },
+    "format": {
+      "description": "The highest format version the reader implements.",
+      "type": "string",
+      "pattern": "^openwarrant/1\\.(0|[1-9][0-9]*)$"
+    },
+    "basis_digest": {
+      "description": "`sha256:` of the RFC 8785 bytes of the array of `[id, revision]` pairs, in record order.",
+      "$ref": "common.json#/$defs/sha256"
+    },
+    "records": { "type": "array", "items": { "$ref": "#/$defs/record" } },
+    "relations": { "type": "array", "items": { "$ref": "#/$defs/relation" } },
+    "states": { "type": "array", "items": { "$ref": "#/$defs/state" } },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "source",
+        "line",
+        "span",
+        "revision",
+        "content_digest",
+        "fields",
+        "body",
+        "ext"
+      ],
+      "properties": {
+        "id": { "description": "As authored; a global id (section 5).", "$ref": "common.json#/$defs/globalId" },
+        "type": {
+          "description": "As authored. A core type, a profile's type, or a legacy store's type (`adr`, `roadmap`, `phase`).",
+          "$ref": "common.json#/$defs/name"
+        },
+        "title": {
+          "description": "The heading's title; absent only for legacy records with none.",
+          "type": "string"
+        },
+        "document": {
+          "description": "The global id of the work document that holds the record; absent otherwise.",
+          "$ref": "common.json#/$defs/globalId"
+        },
+        "section": {
+          "description": "The id of the last section opened before the record in its document; absent if none.",
+          "$ref": "common.json#/$defs/globalId"
+        },
+        "source": {
+          "description": "Repository-relative path with `/`.",
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^/\\\\][^\\\\]*$"
+        },
+        "line": { "description": "1-based line of the heading.", "type": "integer", "minimum": 1 },
+        "span": {
+          "description": "`[start, end]` byte offsets of the unit's span, `[start, end)` (section 3.4).",
+          "type": "array",
+          "prefixItems": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "integer", "minimum": 0 }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "revision": {
+          "description": "`sha256:` of the exact bytes of the span (section 9).",
+          "$ref": "common.json#/$defs/sha256"
+        },
+        "content_digest": {
+          "description": "Over meaning, domain `oh.war/record-content/v1` (section 9).",
+          "$ref": "common.json#/$defs/sha256"
+        },
+        "fields": {
+          "description": "Name to string, or to an array of strings for a frontmatter list. `{}` when none.",
+          "type": "object",
+          "additionalProperties": { "$ref": "common.json#/$defs/fieldValue" }
+        },
+        "body": { "description": "The body text, exactly; `\"\"` when none.", "type": "string" },
+        "ext": {
+          "description": "Dotted names to value; `{}` when none. The prose does not fix the value's type.",
+          "type": "object",
+          "propertyNames": { "$ref": "common.json#/$defs/dotted" }
+        },
+        "governed_by": {
+          "description": "Under the authority profile; absent otherwise. The prose does not fix its type beyond a value; the reference implementation writes a string.",
+          "type": "string"
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "required": ["from", "kind", "to"],
+      "properties": {
+        "from": { "$ref": "common.json#/$defs/globalId" },
+        "kind": { "$ref": "common.json#/$defs/relationKind" },
+        "to": { "type": "string", "minLength": 1 },
+        "to_revision": { "$ref": "common.json#/$defs/sha256" }
+      }
+    },
+    "state": {
+      "description": "A value computed from records, journals and recorded acts (section 2). Never authored.",
+      "type": "object",
+      "required": ["record", "kind", "value", "provenance"],
+      "properties": {
+        "record": { "$ref": "common.json#/$defs/globalId" },
+        "kind": { "type": "string", "minLength": 1 },
+        "value": { "type": "string" },
+        "provenance": { "type": "string", "minLength": 1 },
+        "facet": { "type": "string" },
+        "refines": { "type": "string" },
+        "lapsed": { "type": "boolean" }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["rule", "record", "message"],
+      "properties": {
+        "rule": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9][a-z0-9_-]*)+$" },
+        "record": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

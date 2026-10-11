@@ -1,0 +1,18 @@
+{
+  "why": "section 3.6: a pin is `@sha256:<64 hex>`",
+  "expect": "@relations/0/to_revision pattern",
+  "instance": {
+    "id": "REQ-pr1",
+    "type": "requirement",
+    "title": "a reset link expires",
+    "fields": {},
+    "relations": [
+      {
+        "kind": "implements",
+        "to": "OUT-1",
+        "to_revision": "sha256:abc"
+      }
+    ],
+    "body": ""
+  }
+}

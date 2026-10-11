@@ -1,0 +1,48 @@
+{
+  "why": "section 10.3: a `full` record carries its exact span",
+  "expect": "'text' is a required property",
+  "instance": {
+    "schema": "oh.war/context/v1",
+    "target": "OW-WAR-0146/OBL-001",
+    "budget": 16000,
+    "bytes": 812,
+    "depth": 3,
+    "walk": "core",
+    "selection_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "records": [
+      {
+        "id": "OW-WAR-0146/OBL-001",
+        "type": "obligation",
+        "title": "a bundled gate run carries its output",
+        "state": "unverified",
+        "source": "docs/warrants/OW-WAR-0146.md",
+        "line": 19,
+        "revision": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "distance": 0,
+        "tier": "full"
+      },
+      {
+        "id": "OW-WAR-0146/M-1",
+        "type": "milestone",
+        "title": "the bundle carries output",
+        "state": "-",
+        "source": "docs/warrants/OW-WAR-0146.md",
+        "line": 30,
+        "revision": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "distance": 1,
+        "via": {
+          "step": "out:part_of",
+          "from": "OW-WAR-0146/OBL-001"
+        },
+        "tier": "summary"
+      }
+    ],
+    "diagnostics": [
+      {
+        "rule": "format.target-unknown",
+        "record": "OW-WAR-0146/OBL-001",
+        "message": "evaluates REQ-pr1: skipped"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "why": "section 6: this schema describes major 1; a 2.0 reader reads nothing",
+  "expect": "@format pattern",
+  "instance": {
+    "format": "openwarrant/2.0",
+    "profile": "delivery",
+    "alias": "OW-WAR-0146",
+    "uuid": "01a0d342-ee5e-7b71-9623-f2d8cd5acd4e",
+    "summary": "A verification bundle carries what each gate printed.",
+    "assurance_level": "basic"
+  }
+}

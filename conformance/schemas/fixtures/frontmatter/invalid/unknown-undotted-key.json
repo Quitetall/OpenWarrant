@@ -1,0 +1,12 @@
+{
+  "why": "section 7.2: under 1.0 an undotted key no one declares is refused (a typo)",
+  "expect": "'asurance_level' is not one of ['format'",
+  "instance": {
+    "format": "openwarrant/1.0",
+    "profile": "delivery",
+    "alias": "OW-WAR-0146",
+    "uuid": "01a0d342-ee5e-7b71-9623-f2d8cd5acd4e",
+    "summary": "A verification bundle carries what each gate printed.",
+    "asurance_level": "basic"
+  }
+}

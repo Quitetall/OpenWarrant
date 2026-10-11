@@ -1,0 +1,14 @@
+{
+  "why": "section 3.7: `evidence` is REQUIRED (`format.field-missing`)",
+  "expect": "'evidence' is a required property",
+  "instance": {
+    "id": "OBL-001",
+    "type": "obligation",
+    "title": "a bundled gate run carries its output",
+    "fields": {
+      "scope": "s"
+    },
+    "relations": [],
+    "body": ""
+  }
+}
