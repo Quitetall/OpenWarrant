@@ -3740,7 +3740,11 @@ reliance still depends on applicable standing and assurance checks.
 
 The existing v1 JSON Schema and TypeScript pack stays unchanged. Native response
 and record formats are experimental and outside that pack; strict native parsing
-defines this draft's boundary. Publishing a versioned native schema pack remains separate completion work.
+defines this draft's reader boundary. `war admin schemas` publishes a separate
+experimental `schemas/native-draft/` pack with JSON Schemas, structural TypeScript,
+unsigned examples and independent digest manifests. Shape validation does not
+establish signature validity, authority, freshness or assurance. Contract
+format-basis selection and active v1 publication bytes remain unchanged.
 The tested SSH command below remains experimental, not production qualification.
 
 Recheck snapshots, selections and policy around acceptance; use the existing

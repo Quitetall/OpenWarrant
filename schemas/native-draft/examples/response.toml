@@ -1,0 +1,35 @@
+schema = "oh.war/native-resolution-response/v2-draft.1"
+warrant = "EXAMPLE-ONLY"
+warrant_uuid = "01a12897-783e-71c5-a729-22bc7d21adfa"
+resolution_id = "01a12897-783e-71c5-a729-22bc7d21adfb"
+resolved_by = "example-only"
+acting_role = "resolver"
+common_outcome = "cancelled"
+profile_outcome = "cancelled"
+meaning = "Unsigned format illustration only; no actual decision or approval."
+effective_time = "2026-10-11T00:00:00Z"
+contract_revision = 1
+contract_digest = "0000000000000000000000000000000000000000000000000000000000000000"
+assurance_case_snapshot_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+artifact_manifest_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+gate_run_refs = []
+judgment_refs = []
+residual_risk_refs = []
+require_user_presence = true
+
+[[selections]]
+stage_id = "EXAMPLE-STAGE"
+capture_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+[policy]
+schema = "oh.war/runtime-native-policy-binding/v1-draft.1"
+repository = "example-only"
+collector = "example-only"
+authority_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+active_enrollment_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+host_configuration_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+native_configuration_digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+[locator]
+commit_sha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+worktree_clean = true

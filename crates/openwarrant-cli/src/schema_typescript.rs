@@ -64,8 +64,27 @@ impl Emitter<'_> {
                     | "minItems"
                     | "maxItems"
                     | "uniqueItems"
+                    | "pattern"
+                    | "minLength"
+                    | "maxLength"
             ) {
                 return Err(format!("Unsupported TypeScript schema keyword: {key}"));
+            }
+        }
+        // These runtime string constraints cannot narrow TypeScript's string
+        // type. Preserve the JSON Schema and reject malformed metadata.
+        for key in ["pattern", "minLength", "maxLength"] {
+            if let Some(value) = object.get(key)
+                && (schema["type"] != "string"
+                    || if key == "pattern" {
+                        !value.is_string()
+                    } else {
+                        value.as_u64().is_none()
+                    })
+            {
+                return Err(format!(
+                    "{key} requires a string schema and valid constraint"
+                ));
             }
         }
         if let Some(kinds) = object.get("type").and_then(Value::as_array) {
@@ -304,7 +323,7 @@ mod tests {
     #[test]
     fn refuses_unknown_keywords_and_missing_references() {
         assert!(
-            emit(json!({"type":"string","pattern":"x"}))
+            emit(json!({"type":"string","unevaluatedProperties":false}))
                 .unwrap_err()
                 .contains("Unsupported")
         );
@@ -314,6 +333,21 @@ mod tests {
                 .contains("Unresolved")
         );
         assert!(emit(json!({"$ref":"https://example.invalid/schema"})).is_err());
+    }
+
+    #[test]
+    fn string_constraints_remain_runtime_checks() {
+        let body = emit(json!({"type":"string","pattern":"^[a-f]+$","minLength":1,"maxLength":40}))
+            .unwrap();
+        assert!(body.contains("export type Document = (string);"));
+        assert!(body.contains("retain JSON Schema runtime validation"));
+        for invalid in [
+            json!({"type":"string","pattern":true}),
+            json!({"type":"string","minLength":-1}),
+            json!({"type":"integer","maxLength":3}),
+        ] {
+            assert!(emit(invalid).is_err());
+        }
     }
 
     #[test]

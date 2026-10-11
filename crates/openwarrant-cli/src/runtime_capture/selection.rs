@@ -10,12 +10,14 @@ use std::collections::BTreeSet;
 pub const REQUEST_SCHEMA: &str = "oh.war/runtime-selection-request/v1-draft.1";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(deny_unknown_fields)]
 pub struct Selection {
     pub stage_id: String,
     pub capture_digest: String,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(deny_unknown_fields)]
 pub struct SelectionRequest {
     pub schema: String,
