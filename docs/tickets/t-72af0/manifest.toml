@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-72af0` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-72af0"
+uuid = "01a12ae2-d0fc-7520-98cf-232fd40e9a2e"
+title = "Recover after context preparation is unavailable before worker launch"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-11T12:14:30Z"
+created_by = "codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

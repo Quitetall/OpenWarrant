@@ -116,6 +116,44 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
         self.assertEqual(run["work_state"], "in-progress" if stage == "build" else "completed", run)
         return run
 
+    def test_unavailable_context_before_launch_can_retry_after_remediation(self):
+        t = self.fixture
+        t.stop()
+        marker = t.root / "worker-launched"
+        fault = t.root / "context-unavailable"
+        fault.write_text("inject once")
+        t.harness.write_text("from pathlib import Path\nPath(" + repr(str(marker))
+                             + ").write_text('launched')\n" + t.harness.read_text())
+        wrapper = t.root / "unavailable-context.py"
+        wrapper.write_text("#!" + sys.executable + "\n" +
+            "import pathlib,subprocess,sys\n" +
+            "fault=pathlib.Path(" + repr(str(fault)) + ")\n" +
+            "config=None\n" +
+            "if fault.exists() and 'dispatch' in sys.argv and '--source-workspace' in sys.argv:\n" +
+            " config=pathlib.Path(sys.argv[sys.argv.index('--source-workspace')+1])/'openwarrant.toml'\n" +
+            " mode=config.stat().st_mode; config.chmod(0)\n" +
+            "try:\n" +
+            " r=subprocess.run([" + repr(WAR) + ",*sys.argv[1:]],capture_output=True,timeout=30)\n" +
+            "finally:\n" +
+            " if config is not None: config.chmod(mode)\n" +
+            "sys.stdout.buffer.write(r.stdout);sys.stderr.buffer.write(r.stderr);sys.exit(r.returncode)\n")
+        wrapper.chmod(0o700)
+        t.report_args = ["--war", str(wrapper)]
+        t.start()
+        code, started = t.call("/api/runs", "POST", self.fields)
+        self.assertEqual(code, 202, started)
+        failed = self.wait_attempt(started["attempt_id"])
+        self.assertEqual(failed["work_state"], "blocked", failed)
+        self.assertIn("Context preparation unknown: workspace.unavailable", failed["cause"])
+        self.assertFalse(marker.exists(), "No implementation worker may launch without context")
+        self.assertEqual(failed["execution_state"], "stopped", failed)
+        fault.unlink()
+        retried = self.run_stage("build")
+        self.assertNotEqual(retried["attempt_id"], failed["attempt_id"])
+        self.assertTrue(marker.exists())
+        self.assertEqual(retried["execution_state"], "stopped")
+        self.assertEqual(t.git("rev-parse", "HEAD").strip(), t.base)
+
     def test_hotline_resume_receives_committed_question_checkpoint_context(self):
         t = self.fixture
         implementation = t.harness.read_text()
