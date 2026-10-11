@@ -1712,6 +1712,10 @@
 > bonsai qualification-plants unit test fails under concurrent load: scope_findings[0] was not outside-warrant.txt
 - t-c360a · ticket · done · bonsai qualification-plants unit test fails under concurrent load: scope_findings[0] was not outside-warrant.txt · docs/tickets/t-c360a/manifest.toml:1
 
+## docs/tickets/t-c55c2/manifest.toml
+> Keep committed corpus status equal to the public JSON payload
+- t-c55c2 · ticket · done · Keep committed corpus status equal to the public JSON payload · docs/tickets/t-c55c2/manifest.toml:1
+
 ## docs/tickets/t-c6cf2/manifest.toml
 > Export a current recorded Dispatch binding for native provider execution
 - t-c6cf2 · ticket · done · Export a current recorded Dispatch binding for native provider execution · docs/tickets/t-c6cf2/manifest.toml:1

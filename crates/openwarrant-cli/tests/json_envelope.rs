@@ -110,9 +110,11 @@ fn the_corpus_projection_is_the_result_payload_verbatim() {
         std::fs::read_to_string(repo_root().join("docs/warrants/generated/CORPUS_STATUS.json"))
             .expect("committed projection");
     let committed: serde_json::Value = serde_json::from_str(&committed).unwrap();
-    assert_eq!(
-        v["result"], committed,
-        "the envelope carries the committed projection"
+    // Keep the exact equality check, but do not dump the entire corpus twice
+    // on failure: its gate-input inventories can overwhelm the CI log.
+    assert!(
+        v["result"] == committed,
+        "the envelope carries the committed projection; run war admin compile after staging source files"
     );
 }
 
