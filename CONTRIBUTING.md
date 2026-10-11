@@ -125,7 +125,17 @@ step of `cargo xtask gate`: run it before a release, and with any change to
 what those three commands read. The battery exercises the same tooling at a
 small size, refusals included, in `conformance/plants.d/174-scale-budget.sh`.
 Time on a quiet machine: the numbers are wall clock, and a loaded one (or an
-output file on a busy disk) measures the machine. The signed path at scale is
+output file on a busy disk) measures the machine.
+
+The three verbs (and `war view tickets`, `war status`) answer unchanged
+tickets from a local cache under git's common directory
+(`<common>/openwarrant/cache/`, `crates/openwarrant-cli/src/ticket/cache.rs`):
+an entry is used only when every file it came from stats exactly as it did,
+and anything else is read from the files. `OPENWARRANT_NO_CACHE=1` turns it
+off, `OPENWARRANT_CACHE_TRACE=1` says what each run took from it, and `war
+admin doctor` says where it is. A file changed less than two seconds ago is
+never cached, so a corpus just copied (`--corpus`, `cp -a`) is read from its
+files until it settles; the plant is `conformance/plants.d/177-ticket-cache.sh`. The signed path at scale is
 the separate 1,000-Warrant budget in `docs/RETENTION.md`.
 
 ## Commit messages
