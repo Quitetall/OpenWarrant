@@ -1,0 +1,51 @@
+{
+  "reported_by": "agent://codex",
+  "source_revision": "4dcf9db7c503b2ecea4fc3de05e8cc05679fe20b",
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 77c07a58a68b, dirty, debug)",
+  "command": [
+    "timeout",
+    "480",
+    "env",
+    "TMPDIR=<owned scratch>/tmp",
+    "bash",
+    "<owned scratch>/run.sh"
+  ],
+  "runner": "source conformance/lib.sh; run_plant_files \"$REPO_ROOT/conformance/plants.d/62-verifier.sh\"; assert FAILED=0",
+  "source_sha256": {
+    "tools/verifier/claude-verifier.sh": "c58afe416a0a2b9698e00c559388b46fc23981a2b34a93a9feee8f45ef06101e",
+    "conformance/plants.d/62-verifier.sh": "c01cdd6b2a2b2cbaed372c0433aaef04ce24e3a52ee55ea69dc5004807e1686e",
+    "conformance/lib.sh": "6628198c3071e13b35ddade8c508dac257b65e4c55f026c332c6e6d111d4c655",
+    "crates/openwarrant-cli/src/verify.rs": "b9deeef167874d4cc430e2bf955d02d156802aca104741724efdceacea4737fb",
+    "crates/openwarrant-cli/src/bundle.rs": "9f9157b7db1a17df12d4266dc90b3245200004b6bb9cd7773e7f6807083c2931",
+    "openwarrant.toml": "377ec3711bb86174ba66a6e492aa3439785ffa8b7737a9045efecf5b14b3e893",
+    "docs/VERIFICATION.md": "984dbbbef602d294a2d283367060ef2111efdef5b24bf763c0fb79c3f931bfcf"
+  },
+  "raw_log_sha256": "2ffa7c099d75aa9a8e96b419a1ef955fbfe70353988f6d5a7c20b07540992943",
+  "exit_code": 0,
+  "passed": 13,
+  "failed": 0,
+  "scope": "One positive corpus check and the 12 named fake-backend controls in 62-verifier.sh. No real model judgment, tool confinement or spend accounting is established.",
+  "model_calls": 0,
+  "independent_review_established": false,
+  "assurance_granted": false,
+  "review_packet_observation": {
+    "path": "docs/warrants/OW-WAR-0065/verifications/bundle-f138948ce11a963b.json",
+    "sha256": "0fc8610e4464678be8fab6605138f2dba59f149038f2316df3b3fe6d050a1d7b",
+    "bytes": 1093899,
+    "estimated_tokens": 273474,
+    "budget_tokens": 48000,
+    "gate_input_entries": 6559,
+    "gate_input_json_bytes": 943838,
+    "result": "over budget; not dispatched; exact trust inputs retained"
+  },
+  "setup_attempts": [
+    {
+      "method": "depth-1 file clone",
+      "result": "did not yield a usable checkout; the runner reported missing conformance/lib.sh; no control observation from this attempt"
+    },
+    {
+      "method": "shared local clone and exact checkout",
+      "result": "completed; selected controls observed"
+    }
+  ]
+}
