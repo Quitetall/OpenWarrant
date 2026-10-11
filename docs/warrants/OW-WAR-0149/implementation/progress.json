@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Protected native assessment, inline capture ingestion, stdin selection, resolution dry runs and source-bound runtime review packets are implemented, unverified. Exact native signing/response ingestion, workbench contract mapping and broader qualification remain.",
+  "summary": "Protected native assessment and source-bound review packets now expose fresh exact policy bindings and refuse changed authority, enrollment or host/native configuration. Native signed acceptance, ingestion, workbench mapping and qualification remain.",
   "notes": "docs/warrants/OW-WAR-0149/implementation/runtime-capture.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/sdk-tests.log",
@@ -46,12 +46,13 @@
     "docs/warrants/OW-WAR-0149/implementation/inline-capture-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/native-review-request-20261010/README.md",
     "docs/warrants/OW-WAR-0149/implementation/typed-resolution-binding-20261010/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/resolution-outcome-binding-20261010/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/resolution-outcome-binding-20261010/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/native-policy-binding-20261010/README.md"
   ],
   "next_steps": [
-    "V1 signature queries and existing-record ingestion now share exact subject, digest, resolver, role and outcome matching while preserving historical supplementation. Implement versioned native evidence, snapshot and policy bindings in signing/ingestion with fresh reassessment, then connect workbench identities to retained Dispatches. BLUT contributor agreement and OW95 participants remain unavailable; no human act is fabricated.",
+    "Implement versioned native evidence, snapshot and protected policy bindings in human signing, response ingestion and record readers, with fresh reassessment. Native policy binding is implemented and fixture-tested; workbench identities still need actual retained Dispatch mapping. OW95 participants and BLUT contributor agreement remain unavailable.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."
   ],
-  "revision": "879b9a332f613fd8779454e50a31bc42a0b2c9fd"
+  "revision": "50d297f7c351a2ff2860621df0b4f211ffed8ab0"
 }

@@ -1,0 +1,104 @@
+{
+  "schema": "oh.war/implementation-observation/v1-draft.1",
+  "implementation_revision": "50d297f7c351a2ff2860621df0b4f211ffed8ab0",
+  "reported_by": "agent://codex",
+  "human_acceptance": false,
+  "independent_verdict": false,
+  "native_response_ingestion_supported": false,
+  "checks": {
+    "format": "PASS",
+    "clippy_all_targets_all_features": "PASS",
+    "collector_tests": "PASS: 4 passed, 2 ignored",
+    "protected_account_basic": "PASS",
+    "protected_account_katana": "PASS",
+    "protected_account_blut": "PASS",
+    "configured_environment_case": "PASS"
+  },
+  "incomplete_suites": [
+    {
+      "file": "native-policy-runtime.log.gz",
+      "overall": "UNKNOWN",
+      "process_exit": 124,
+      "observed_passes": 26,
+      "observed_failed_cases": [
+        "runtime_capture::blut_verifier_does_not_inherit_the_callers_environment"
+      ]
+    },
+    {
+      "file": "native-policy-runtime-configured.log.gz",
+      "overall": "UNKNOWN",
+      "process_exit": 143,
+      "observed_passes": 3,
+      "observed_failed_cases": []
+    }
+  ],
+  "initial_build_attempt": {
+    "exit": 124,
+    "status": "UNKNOWN",
+    "captured_in_tool_output_only": true,
+    "later_build": "PASS"
+  },
+  "binary_build_metadata": "Tests compiled with base revision 9e2c8c2bb725 and dirty working tree. These source bytes were subsequently committed at implementation_revision; this is not a clean-commit binary provenance claim.",
+  "files": [
+    {
+      "file": "native-policy-final-build.log.gz",
+      "uncompressed_sha256": "c4c2c84c6eb3f507011310e94c51d3b164f4a7cd45224689a436d28d7f04b9ac",
+      "uncompressed_bytes": 291
+    },
+    {
+      "file": "native-policy-build.log.gz",
+      "uncompressed_sha256": "b9242c54791689e174a7c800b59536da5254983e234a3bca282578d581c6af78",
+      "uncompressed_bytes": 291
+    },
+    {
+      "file": "native-policy-collector.log.gz",
+      "uncompressed_sha256": "04e59242d05ac39a595293e9aba1975743dd6e4da9b72ab954caa96ef880d593",
+      "uncompressed_bytes": 761
+    },
+    {
+      "file": "native-policy-namespace.log.gz",
+      "uncompressed_sha256": "91b1c98a410f587638c02520fdbf976b7fcb2497d2d5014d7370d3f1f1e3f6f0",
+      "uncompressed_bytes": 4517
+    },
+    {
+      "file": "native-policy-katana.log.gz",
+      "uncompressed_sha256": "161ad691bda87e7c491f321bfda4523580965ec196202ac45a47d1fea87f1116",
+      "uncompressed_bytes": 4509
+    },
+    {
+      "file": "native-policy-blut.log.gz",
+      "uncompressed_sha256": "a42262f6a3bff4361016640fede55d177112832373535371822cc464b8cbcf29",
+      "uncompressed_bytes": 4665
+    },
+    {
+      "file": "native-policy-environment.log.gz",
+      "uncompressed_sha256": "96a644528d8932a985499e7e0bf3814d1c6d4fafec442708d847c4526fbe8118",
+      "uncompressed_bytes": 199
+    },
+    {
+      "file": "native-policy-runtime.log.gz",
+      "uncompressed_sha256": "7304e1fd6c860892a419d19b181778a6b6c1d6d1053e2fc1d9590a2ba875b957",
+      "uncompressed_bytes": 6257
+    },
+    {
+      "file": "native-policy-runtime-configured.log.gz",
+      "uncompressed_sha256": "452750c65f732f8a6e2ee29b064326169360d1e4f53bf3c62828ddd3dfc908f3",
+      "uncompressed_bytes": 1221
+    },
+    {
+      "file": "native-policy-clippy.log.gz",
+      "uncompressed_sha256": "01df6e992c6b8d7dd6edbbf2ff55e2b8e19386772b242824268ed7565fa3fda4",
+      "uncompressed_bytes": 191
+    },
+    {
+      "file": "native-policy-format.log.gz",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "uncompressed_bytes": 0
+    },
+    {
+      "file": "native-policy-cleanup.json.gz",
+      "uncompressed_sha256": "1bc057e89316bdd4d1d792899e28d99fc0c023938c3e803fb9de96da894213e0",
+      "uncompressed_bytes": 569
+    }
+  ]
+}
