@@ -3,11 +3,13 @@
 import base64
 import hashlib
 import json
+import random
 import subprocess
 import sys
 import time
 import unittest
 import uuid
+from pathlib import Path
 
 import test_execution as execution_tests
 from test_workflow import WAR
@@ -265,6 +267,51 @@ print(json.dumps({'schema':'oh.war/verification-result/v1','verification_id':r['
         t.stop()
         t.start()
         self.assertEqual(t.call(captures_route)[1], recorded)
+
+    def test_combined_repair_context_refuses_before_worker_launch(self):
+        t = self.fixture
+        t.stop()
+        graph = t.repo / "docs/warrants/IX-WAR-0003/atoms/45-milestones.yaml"
+        graph.write_text(graph.read_text().replace("    context_artifacts:",
+            "    budget_tokens: 1000000\n    context_artifacts:"))
+        for seed, path in enumerate(("build-context.md", "finish-context.md")):
+            # Reproducible public noise: each package fits the transport limit,
+            # while both required stage packages exceed the combined allowance.
+            padding = base64.b64encode(random.Random(seed).randbytes(350000)).decode()
+            original = (t.repo / path).read_text()
+            (t.repo / path).write_text(original + "<!-- fixture padding -->" + padding)
+        t.git("add", ".")
+        t.git("commit", "-qm", "bounded combined transport fixture")
+        t.base = t.git("rev-parse", "HEAD").strip()
+        packet = t.root / "large-reference.json"
+        subprocess.run([WAR, "--root", str(t.repo), "dispatch", "IX-WAR-0003", "STAGE-001",
+                        "--prototype", "--emit", str(packet), "--json"],
+                       capture_output=True, timeout=30, check=True)
+        policy = t.config["warrants"][self.fields["warrant_id"]]
+        policy["base_commit"] = t.base
+        policy["runtime_link"]["contract_digest"] = json.loads(packet.read_bytes())["contract_digest"]
+        program = t.harness.read_text().replace(
+            " (p/path).write_text('---\\nclassification: internal\\n---\\n'+text+'\\n')",
+            " padding=(p/path).read_text().split('<!-- fixture padding -->',1)[1]\n"
+            " (p/path).write_text('---\\nclassification: internal\\n---\\n'+text+'\\n<!-- fixture padding -->'+padding)")
+        self.assertIn("padding=(p/path)", program)
+        program = program.replace("if r.get('verification_repair'):\n",
+            "if r.get('verification_repair'):\n (p/'repair-launched.txt').write_text('launched')\n", 1)
+        t.harness.write_text(program)
+        t.start()
+        self.install_verifier()
+        self.run_stage("build")
+        original = self.run_stage("finish")
+        failed = self.verify(original["attempt_id"])
+        self.assertEqual(failed["effective_verdict"], "fail", failed)
+        code, repair = t.call("/api/verification/" + failed["verification_id"] + "/repair", "POST", {})
+        self.assertEqual(code, 202, repair)
+        repair = self.wait_attempt(repair["attempt_id"])
+        self.assertEqual(repair["execution_state"], "stopped", repair)
+        self.assertEqual(repair["work_state"], "failed", repair)
+        self.assertEqual(repair["cause"], "Combined repair context exceeds the 1 MiB workflow transport limit")
+        self.assertFalse((Path(repair["worktree"]) / "repair-launched.txt").exists())
+        self.assertFalse(repair["qualified"])
 
 
 if __name__ == "__main__":

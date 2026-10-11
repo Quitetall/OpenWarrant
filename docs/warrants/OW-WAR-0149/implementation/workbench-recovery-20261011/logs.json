@@ -33,5 +33,10 @@
     "path": "recovery-hosted-web.log.gz",
     "uncompressed_sha256": "3d65f2473643b5994f200690a7eb659232d7ccd914bae044d46c719f6355a2a5",
     "uncompressed_bytes": 131980
+  },
+  {
+    "path": "recovery-combined-budget.log.gz",
+    "uncompressed_sha256": "ed866dacd9226b687bd465b7d7900e09d1b3c4c9b2c4eae19e1f2065f88cee97",
+    "uncompressed_bytes": 2437
   }
 ]

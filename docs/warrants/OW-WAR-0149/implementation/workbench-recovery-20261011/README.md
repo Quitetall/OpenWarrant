@@ -49,3 +49,10 @@ establishes those configured synthetic controls at that source revision; it does
 not establish actual provider confinement, human acceptance or native assurance.
 The combined-size refusal still needs an observed boundary control. The complete
 protected merge/release gate remains separate from this hosted web-suite pass.
+
+A further real-control fixture uses two incompressible declared context artifacts
+with sufficient explicit stage token budgets. The ordinary stages must complete
+with individual packages; whole-Warrant repair must refuse their combined size
+before its worker creates a launch marker. Its first local run timed out during
+reference Dispatch creation (30-second bound), before that control. This run is
+unavailable; the new boundary assertion still awaits hosted observation.
