@@ -134,6 +134,7 @@ pub const TABLE: &[&str] = &[
     // holds this list to all of them.
     "sign.who",
     "sign.ssh-principal",
+    "sign.sweep-stopped",
     "sign.ssh-refused",
     "sign.actor-key-mismatch",
     "sign.not-verified",
@@ -317,6 +318,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         // look next, and none of these remedies signs anything.
         "sign.who"
         | "sign.ssh-principal"
+        | "sign.sweep-stopped"
         | "sign.ssh-refused"
         | "sign.actor-key-mismatch"
         | "sign.not-verified"

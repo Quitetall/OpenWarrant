@@ -161,6 +161,8 @@ impl Entry {
 pub struct Corpus {
     repo: Repository,
     entries: OnceLock<Result<Vec<Entry>, Kept>>,
+    /// Each entry's position by its directory, for [`Self::entry_at`].
+    by_dir: OnceLock<std::collections::HashMap<Utf8PathBuf, usize>>,
     currencies: OnceLock<crate::relations::Currencies>,
     status: OnceLock<Result<openwarrant_core::status::CorpusStatus, Kept>>,
     pending: OnceLock<Result<Vec<crate::sign::Pending>, Kept>>,
@@ -197,6 +199,7 @@ impl Corpus {
         Self {
             repo: repo.clone(),
             entries: OnceLock::new(),
+            by_dir: OnceLock::new(),
             currencies: OnceLock::new(),
             status: OnceLock::new(),
             pending: OnceLock::new(),
@@ -223,12 +226,18 @@ impl Corpus {
     /// consumer to treat as it always has.
     pub fn entries(&self) -> Result<&[Entry], RepoError> {
         kept(&self.entries, || {
-            Ok(self
-                .repo
-                .warrant_dirs()?
+            let dirs = self.repo.warrant_dirs()?;
+            // Each Warrant is read on its own, so the reads fan out across
+            // threads on the disk, kept in directory order
+            // (`vfs::map_ordered`).
+            let loaded = crate::vfs::map_ordered(&dirs, 16, |dir| {
+                self.repo.load_warrant(dir).map_err(Kept::of)
+            });
+            Ok(dirs
                 .into_iter()
-                .map(|dir| Entry {
-                    loaded: self.repo.load_warrant(&dir).map_err(Kept::of),
+                .zip(loaded)
+                .map(|(dir, loaded)| Entry {
+                    loaded,
                     dir,
                     ir: OnceLock::new(),
                     contract: OnceLock::new(),
@@ -245,10 +254,20 @@ impl Corpus {
         self.entries().ok()?.iter().find(|e| e.name() == alias)
     }
 
-    /// The entry for `dir`, if the corpus lists it.
+    /// The entry for `dir`, if the corpus lists it: the first whose
+    /// directory equals it, found by a hash of the directories (a path's
+    /// hash agrees with its equality) rather than a scan per lookup.
     #[must_use]
     pub fn entry_at(&self, dir: &Utf8Path) -> Option<&Entry> {
-        self.entries().ok()?.iter().find(|e| e.dir == dir)
+        let entries = self.entries().ok()?;
+        let by_dir = self.by_dir.get_or_init(|| {
+            let mut by = std::collections::HashMap::with_capacity(entries.len());
+            for (i, e) in entries.iter().enumerate() {
+                by.entry(e.dir.clone()).or_insert(i);
+            }
+            by
+        });
+        by_dir.get(dir).map(|&i| &entries[i])
     }
 
     /// Every Warrant that loaded, in directory order — what the

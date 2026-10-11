@@ -299,6 +299,79 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
     pending_with(&crate::corpus::Corpus::new(repo))
 }
 
+/// The first half of a Warrant's row in [`pending_with`]: skipped, an
+/// authorization awaiting its signature, or authorized (signed, current),
+/// whose resolution and corrections are read next.
+enum First<'a> {
+    Skip,
+    Pending(Box<Pending>),
+    Authorized {
+        dir: Utf8PathBuf,
+        alias: String,
+        one: &'a crate::repo::Loaded,
+    },
+}
+
+fn authorization_part<'a>(
+    repo: &Repository,
+    entry: &'a crate::corpus::Entry,
+) -> Result<First<'a>, RepoError> {
+    let dir = entry.dir.clone();
+    let Some(alias) = dir.file_name().map(str::to_owned) else {
+        return Ok(First::Skip);
+    };
+    let Some(one) = entry.ok() else {
+        return Ok(First::Skip);
+    };
+    if one.validated.is_none() || one.basis.is_none() {
+        return Ok(First::Skip);
+    }
+    let Ok(request) = authorize::request_for(repo, &alias, one, entry.ir().ok()) else {
+        return Ok(First::Skip);
+    };
+    let authorization = repo.load_authorization(&dir)?;
+    // Authorized means SIGNED and current, not merely recorded and current.
+    // A record whose digest matches but whose signature does not verify is
+    // pending again — that is how 57 file-only authorizations became acts
+    // the owner can clear in one pass, rather than a corpus-wide exception.
+    let authorized_current = authorization.as_ref().is_some_and(|a| {
+        authorize::authorizes_current_contract(a, &request.contract_digest)
+            && a.revision.authorization.as_ref().is_some_and(|auth| {
+                crate::authority_check::verify(
+                    repo,
+                    crate::authority_check::Act::Authorize,
+                    &alias,
+                    &auth.authorizer,
+                    Some(&a.revision.contract_digest),
+                )
+                .is_signed()
+            })
+    });
+    if authorized_current {
+        return Ok(First::Authorized { dir, alias, one });
+    }
+    let revision = authorization.as_ref().map_or(1, |a| {
+        if a.revision.contract_digest == request.contract_digest {
+            // Same bytes, missing signature: sign THIS revision. A bump
+            // here would claim the contract changed, and it did not.
+            a.revision.revision
+        } else {
+            a.revision.revision + 1
+        }
+    });
+    let amendment = if revision > 1 {
+        read_latest_amendment(&dir)
+    } else {
+        None
+    };
+    Ok(First::Pending(Box::new(Pending::Authorize {
+        alias,
+        request,
+        amendment,
+        revision,
+    })))
+}
+
 /// [`pending`] over a corpus already loaded: each Warrant's load, lowered
 /// contract and assessment are the corpus's.
 pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, RepoError> {
@@ -318,61 +391,21 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
     let ownership = std::cell::OnceCell::new();
     let mut entries: Vec<&crate::corpus::Entry> = corpus.entries()?.iter().collect();
     entries.sort_by(|a, b| a.dir.cmp(&b.dir));
-    for entry in entries {
-        let dir = entry.dir.clone();
-        let Some(alias) = dir.file_name().map(str::to_owned) else {
-            continue;
+    // The authorization half of each Warrant's row reads its own records
+    // alone: on the disk it is made across threads first, kept in directory
+    // order (`vfs::map_ordered`). The rest of each row (resolutions,
+    // corrections, and the ownership index they share) is read below, in
+    // turn, and the first error in directory order is returned as before.
+    let firsts = crate::vfs::map_ordered(&entries, 8, |entry| authorization_part(repo, entry));
+    for (entry, first) in entries.into_iter().zip(firsts) {
+        let (dir, alias, one) = match first? {
+            First::Skip => continue,
+            First::Pending(p) => {
+                out.push(*p);
+                continue;
+            }
+            First::Authorized { dir, alias, one } => (dir, alias, one),
         };
-        let Some(one) = entry.ok() else {
-            continue;
-        };
-        if one.validated.is_none() || one.basis.is_none() {
-            continue;
-        }
-        let Ok(request) = authorize::request_for(repo, &alias, one, entry.ir().ok()) else {
-            continue;
-        };
-        let authorization = repo.load_authorization(&dir)?;
-        // Authorized means SIGNED and current, not merely recorded and current.
-        // A record whose digest matches but whose signature does not verify is
-        // pending again — that is how 57 file-only authorizations became acts
-        // the owner can clear in one pass, rather than a corpus-wide exception.
-        let authorized_current = authorization.as_ref().is_some_and(|a| {
-            authorize::authorizes_current_contract(a, &request.contract_digest)
-                && a.revision.authorization.as_ref().is_some_and(|auth| {
-                    crate::authority_check::verify(
-                        repo,
-                        crate::authority_check::Act::Authorize,
-                        &alias,
-                        &auth.authorizer,
-                        Some(&a.revision.contract_digest),
-                    )
-                    .is_signed()
-                })
-        });
-        if !authorized_current {
-            let revision = authorization.as_ref().map_or(1, |a| {
-                if a.revision.contract_digest == request.contract_digest {
-                    // Same bytes, missing signature: sign THIS revision. A bump
-                    // here would claim the contract changed, and it did not.
-                    a.revision.revision
-                } else {
-                    a.revision.revision + 1
-                }
-            });
-            let amendment = if revision > 1 {
-                read_latest_amendment(&dir)
-            } else {
-                None
-            };
-            out.push(Pending::Authorize {
-                alias,
-                request,
-                amendment,
-                revision,
-            });
-            continue;
-        }
         if let Some(existing) = repo.load_resolution(&dir)? {
             // A recorded resolution with no verified signature is the same
             // situation as an unsigned authorization: the record exists, the
@@ -572,6 +605,65 @@ pub fn pending_for(repo: &Repository, opts: &Options) -> Result<Vec<Pending>, Re
             .collect());
     }
     pending(repo)
+}
+
+/// Who signs `p`, and whether they can sign it by the chosen method — both
+/// answered before any screen is drawn (issue #132 item 1). Under
+/// `--ssh-sign` the signer's binding (`roles.toml`'s `ssh_principal`, or the
+/// store's) is resolved here, so an actor with no principal is refused
+/// `sign.ssh-principal` before the act is shown, not after the human has
+/// read it. Nothing is signed or written.
+pub(crate) fn preflight(
+    repo: &Repository,
+    p: &Pending,
+    opts: &Options,
+) -> Result<String, (&'static str, String)> {
+    let actor = who_with_authority(repo, p, opts)?;
+    if opts.ssh_sign {
+        crate::authority_check::signer_for(repo, &actor, &[act_of(p)])?;
+    }
+    Ok(actor)
+}
+
+/// A refusal every act of the batch would repeat word for word: the
+/// register grants nobody (absent, unreadable, or no human signer), the
+/// signer has no ssh principal, or the trust source cannot be read. Not an
+/// act-specific refusal (a proposer, an assignment, a choice of signer).
+fn structural_refusal(repo: &Repository, rule: &str, why: &str) -> bool {
+    match rule {
+        "sign.ssh-principal" => true,
+        "sign.who" if why.starts_with(crate::signing_probe::NO_ELIGIBLE) => {
+            crate::signing_probe::register_grants_nobody(repo)
+        }
+        _ => rule.starts_with("authority.") && why.ends_with("nothing was signed"),
+    }
+}
+
+/// Report one act's preflight refusal. Under `--all`, a structural refusal
+/// stops the sweep: it is reported once, with the count of acts not
+/// attempted, instead of once per act. Returns whether the sweep stops.
+fn refuse_in_sweep(
+    repo: &Repository,
+    opts: &Options,
+    report: &mut Report,
+    p: &Pending,
+    (rule, why): (&'static str, String),
+    remaining: usize,
+) -> bool {
+    let stop = opts.all && remaining > 0 && structural_refusal(repo, rule, &why);
+    report.push(Diagnostic::error(rule, line(p), why));
+    if stop {
+        report.push(Diagnostic::warn(
+            "sign.sweep-stopped",
+            "war sign --all".to_owned(),
+            format!(
+                "stopped after the first structural refusal ({rule}): {remaining} more act(s) \
+                 not attempted, and each would be refused the same way. Nothing was signed; \
+                 fix the refusal above and run `war sign --all` again"
+            ),
+        ));
+    }
+    stop
 }
 
 /// Preserve the trusted-source reason when a requested actor is excluded.
@@ -1899,11 +1991,20 @@ fn dry_run(
     // ingest error used to return past the cleanup below and leave a
     // `.draft.toml` in the temp directory (three were found, 2026-09-25).
     let _cleanup = RemoveOnDrop(tmp.clone());
-    for p in chosen {
-        let actor = match who_with_authority(repo, p, opts) {
+    for (n, p) in chosen.iter().enumerate() {
+        let actor = match preflight(repo, p, opts) {
             Ok(a) => a,
             Err((rule, why)) => {
-                report.push(Diagnostic::error(rule, line(p), why));
+                if refuse_in_sweep(
+                    repo,
+                    opts,
+                    &mut report,
+                    p,
+                    (rule, why),
+                    chosen.len() - n - 1,
+                ) {
+                    break;
+                }
                 continue;
             }
         };
@@ -3038,11 +3139,14 @@ fn run_acts(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<R
         return dry_run(repo, &chosen, opts, report);
     }
 
-    for p in chosen {
-        let actor = match who_with_authority(repo, p, opts) {
+    let total = chosen.len();
+    for (n, p) in chosen.into_iter().enumerate() {
+        let actor = match preflight(repo, p, opts) {
             Ok(a) => a,
             Err((rule, why)) => {
-                report.push(Diagnostic::error(rule, line(p), why));
+                if refuse_in_sweep(repo, opts, &mut report, p, (rule, why), total - n - 1) {
+                    break;
+                }
                 continue;
             }
         };

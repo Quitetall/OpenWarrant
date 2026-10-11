@@ -88,6 +88,13 @@ def license_notices(head):
     return files
 
 
+def archive_name(label,system,machine):
+    # The published asset name. install.sh, `war update`, the cargo-binstall
+    # metadata and packaging/homebrew/render.py all spell it this way;
+    # conformance/release/test_distribution.py holds them to it.
+    return f'openwarrant-{label}-{system.lower()}-{machine}.tar.gz'
+
+
 def bundle(war,output,label):
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,95}',label):raise ValueError('Unsafe candidate label')
     if output.exists() or output.is_symlink():raise ValueError('Output directory already exists')
@@ -123,7 +130,7 @@ def bundle(war,output,label):
     if git('rev-parse','HEAD').decode().strip()!=head or sha(war.read_bytes())!=sha(binary):
         raise ValueError('Source or executable changed during packaging')
     output.mkdir()
-    name=f'openwarrant-{label}-{platform.system().lower()}-{platform.machine()}.tar.gz'
+    name=archive_name(label,platform.system(),platform.machine())
     data=buffer.getvalue();publish_new(output/name,data)
     publish_new(output/(name+'.sha256'),(sha(data)+'  '+name+'\n').encode())
     publish_new(output/'candidate.json',(json.dumps({'archive':name,'sha256':sha(data),'manifest':manifest},indent=2)+'\n').encode())

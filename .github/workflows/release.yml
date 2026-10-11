@@ -293,3 +293,26 @@ jobs:
           [[ -f "$NOTES" ]] || { echo "no release notes at $NOTES for $PREVIEW_TAG" >&2; exit 1; }
           gh release upload "$PREVIEW_TAG" dist/*
           gh release edit "$PREVIEW_TAG" --target "$GITHUB_SHA" --draft=false --prerelease --latest=false --notes-file "$NOTES"
+
+  # The Homebrew formula for the release just published, attached to it as an
+  # asset (docs/INSTALL.md "Homebrew"). Its own job, after `preview`, so a
+  # failure here cannot stop or alter a publication: it reads only what the
+  # release now serves, and pushes to no tap. render.py refuses a release
+  # whose .sha256 assets are missing or malformed.
+  formula:
+    name: render Homebrew formula
+    needs: preview
+    if: github.event_name == 'workflow_dispatch' && inputs.preview_tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Render and attach openwarrant.rb
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_TAG: ${{ inputs.preview_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$PREVIEW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$ ]] || exit 1
+          python3 packaging/homebrew/render.py --tag "$PREVIEW_TAG" --repo "$GITHUB_REPOSITORY" --output "$RUNNER_TEMP/openwarrant.rb"
+          gh release upload "$PREVIEW_TAG" "$RUNNER_TEMP/openwarrant.rb"

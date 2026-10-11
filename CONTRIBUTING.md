@@ -105,6 +105,29 @@ collided; both are now safe to create on any branch:
 5. **Open a pull request.** Describe the diff you are actually submitting, not
    the state of the tree.
 
+## The speed budget
+
+The verbs an agent runs all day stay fast on a large program: `war view
+ready`, `war next` and `war claim` each at most 50 ms median, for a release
+build, on 10,000 Warrants (9,800 tickets and 200 directory Warrants, nothing
+signed). `tools/scale/budget-10k.toml` holds the numbers; changing one is the
+owner's decision, never the way to turn the check green.
+
+```bash
+cargo scale-budget                     # build, make the corpus, time it
+cargo scale-budget --keep              # ... and say where the corpus is
+cargo scale-budget --corpus <kept-dir> # time a copy of a corpus made before
+```
+
+It exits 0 only when every row is within its limit, and 1 naming each row
+that is over or unknown. Building the corpus takes minutes, so this is not a
+step of `cargo xtask gate`: run it before a release, and with any change to
+what those three commands read. The battery exercises the same tooling at a
+small size, refusals included, in `conformance/plants.d/174-scale-budget.sh`.
+Time on a quiet machine: the numbers are wall clock, and a loaded one (or an
+output file on a busy disk) measures the machine. The signed path at scale is
+the separate 1,000-Warrant budget in `docs/RETENTION.md`.
+
 ## Commit messages
 
 Say what changed and why it is correct. Where a review or a test found a real

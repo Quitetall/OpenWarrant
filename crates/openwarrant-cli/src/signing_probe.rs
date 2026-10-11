@@ -36,6 +36,8 @@ pub const BLOCKS_ONLY: &str = "This blocks only the sign-off, not your work.";
 /// Where the two authority files live under the default binding.
 pub const ROLES: &str = "docs/authority/roles.toml";
 pub const ALLOWED: &str = "docs/authority/allowed_signers";
+/// The example register `war init` writes beside [`ROLES`].
+pub const ROLES_EXAMPLE: &str = "docs/authority/roles.toml.example";
 
 /// What the ssh agent behind `SSH_AUTH_SOCK` says, as `ssh-add -L` reports it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -587,6 +589,13 @@ pub const NO_ELIGIBLE: &str = "no eligible signer";
 
 /// Precise wording for "nobody eligible": the file that is missing, or the
 /// role nobody holds, or the self-act rule, each with how to fix it.
+///
+/// Issue #132 item 1: every case names the register by the path it was
+/// resolved at (this checkout, under `--root`), because an owner who wrote
+/// it in another checkout of the same repository could not tell from a
+/// relative path which file was read. An absent register points at the
+/// example `war init` writes beside it; a register that exists and names
+/// signers, none eligible for this act, says so instead of reading as absent.
 fn no_signer(repo: &Repository, message: &str) -> String {
     if !matches!(
         crate::authority_check::binding(repo),
@@ -594,19 +603,52 @@ fn no_signer(repo: &Repository, message: &str) -> String {
     ) {
         return message.to_owned();
     }
+    let roles = repo.root.join(ROLES);
     match Roles::read(repo) {
-        Roles::Absent => format!(
-            "{ROLES} does not exist, so no one is registered to sign this. {FIX}, or a person \
-             writes it by hand, naming themselves with the authorizer and resolver roles (the \
-             format is OpenWarrant's docs/authority/roles.toml.example)"
+        Roles::Absent => {
+            let example = repo.root.join(ROLES_EXAMPLE);
+            let copy = if example.is_file() {
+                format!("copies {example} to it, puts their own name and ssh principal in it")
+            } else {
+                "writes it by hand, naming themselves with the authorizer and resolver roles \
+                 (the format is OpenWarrant's docs/authority/roles.toml.example)"
+                    .to_owned()
+            };
+            format!(
+                "{roles} does not exist (absent, not ineligible), so no one is registered to \
+                 sign this. A person {copy} and commits it; or {FIX}"
+            )
+        }
+        Roles::Unreadable(why) => format!("{roles} could not be read, so no one may sign: {why}"),
+        Roles::Read { signers, total } if signers.is_empty() => format!(
+            "{roles} exists and holds {total} assignment(s), and gives no human the authorizer \
+             or resolver role, so no one can sign this. A person adds an [[assignment]] for \
+             themselves with actor_kind = \"human\" and those roles"
         ),
-        Roles::Unreadable(why) => format!("{ROLES} could not be read, so no one may sign: {why}"),
-        Roles::Read { signers, .. } if signers.is_empty() => format!(
-            "{ROLES} gives no human the authorizer or resolver role, so no one can sign this. A \
-             person adds an [[assignment]] for themselves with actor_kind = \"human\" and those \
-             roles"
+        Roles::Read { signers, .. } => format!(
+            "{roles} exists and names {}, and none of them is eligible for this act: the \
+             role it needs is held by no one else, or every holder proposed it and a proposer \
+             does not sign their own (§27.2)",
+            signers
+                .iter()
+                .map(|s| s.actor.as_str())
+                .collect::<Vec<_>>()
+                .join(", ")
         ),
-        Roles::Read { .. } => message.to_owned(),
+    }
+}
+
+/// Whether the register itself leaves nobody to sign anything: absent,
+/// unreadable, or no human holding the authorizer or resolver role. Such a
+/// refusal is the same for every act, which is why `war sign --all` stops
+/// after the first one. Always `false` under a store binding.
+pub(crate) fn register_grants_nobody(repo: &Repository) -> bool {
+    matches!(
+        crate::authority_check::binding(repo),
+        crate::authority_check::Binding::Register
+    ) && match Roles::read(repo) {
+        Roles::Absent | Roles::Unreadable(_) => true,
+        Roles::Read { signers, .. } => signers.is_empty(),
     }
 }
 
@@ -1246,20 +1288,72 @@ mod tests {
             "Ada is not eligible to sign this; the register permits: nobody",
         ));
         finish(&repo, &mut r);
+        let resolved = repo.root.join(ROLES);
+        assert!(
+            r.diagnostics[0].message.starts_with(&format!(
+                "{resolved} does not exist (absent, not ineligible)"
+            )),
+            "{}",
+            r.diagnostics[0].message
+        );
+        // Plain `war init` writes no example: the format is named instead.
         assert!(
             r.diagnostics[0]
                 .message
-                .starts_with("docs/authority/roles.toml does not exist"),
+                .contains("OpenWarrant's docs/authority/roles.toml.example"),
             "{}",
             r.diagnostics[0].message
         );
         assert!(
             r.diagnostics[1]
                 .message
-                .contains(": docs/authority/roles.toml does not exist"),
+                .contains(&format!(": {resolved} does not exist")),
             "{}",
             r.diagnostics[1].message
         );
+        assert!(register_grants_nobody(&repo));
+
+        // With the example beside it, an absent register points at it by path.
+        std::fs::create_dir_all(root.join("docs/authority")).unwrap();
+        std::fs::copy(
+            Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../docs/authority/roles.toml.example"),
+            root.join(ROLES_EXAMPLE),
+        )
+        .unwrap();
+        let mut r = Report::default();
+        r.push(Diagnostic::error(
+            "sign.who",
+            "x",
+            format!("{NO_ELIGIBLE}: docs/authority/roles.toml gives the role to nobody"),
+        ));
+        finish(&repo, &mut r);
+        assert!(
+            r.diagnostics[0]
+                .message
+                .contains(&format!("copies {}", repo.root.join(ROLES_EXAMPLE))),
+            "an absent register points at the example beside it: {}",
+            r.diagnostics[0].message
+        );
+
+        // Present, naming signers, none eligible for the act: said as such,
+        // at the same resolved path, and not read as an absent register.
+        std::fs::copy(root.join(ROLES_EXAMPLE), root.join(ROLES)).unwrap();
+        let mut r = Report::default();
+        r.push(Diagnostic::error(
+            "sign.who",
+            "x",
+            format!("{NO_ELIGIBLE}: docs/authority/roles.toml gives the role to nobody"),
+        ));
+        finish(&repo, &mut r);
+        let m = &r.diagnostics[0].message;
+        assert!(
+            m.starts_with(&format!("{resolved} exists and names ")),
+            "{m}"
+        );
+        assert!(m.contains("none of them is eligible for this act"), "{m}");
+        assert!(!m.contains("does not exist"), "{m}");
+        assert!(!register_grants_nobody(&repo));
         std::fs::remove_dir_all(root).unwrap();
     }
 

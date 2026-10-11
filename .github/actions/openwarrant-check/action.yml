@@ -17,6 +17,10 @@
 #
 # Pin it by commit, as every action should be:
 #   - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
+# or by a release tag, which GitHub resolves for a subdirectory action too:
+#   - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@v1.0.0-alpha.3
+# A SHA cannot move; a tag reads better. There is no floating `v1` tag, and the
+# action is not on the Marketplace (docs/INSTALL.md says what that would take).
 #
 # It uses no other action. `war` is built from this action's own commit
 # (the code the workflow pinned) unless `war-version` names a release, which

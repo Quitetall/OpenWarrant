@@ -77,7 +77,8 @@ pub use authority::{
     ActorRole, AuthorityError, AuthorityRegister, PolicyResolutionContext, RoleAssignment,
 };
 pub use config::{
-    AuthorityPolicy, ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfig,
+    AuthorityPolicy, ConfigError, GeneratedPolicy, IndependenceDeclaration, Namespace, Paths,
+    RepositoryConfig,
 };
 pub use contract::{
     ActorKind, Authorization, ContractCoverage, ContractElement, ContractError, ContractRevision,
