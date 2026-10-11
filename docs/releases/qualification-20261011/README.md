@@ -1,6 +1,7 @@
 # Current completion and qualification audit
 
-This is a performer observation of source `2692fbda1d376b6aa5a8eaffd2fe95f89869a04d`.
+This records performer observations of source `2692fbda1d376b6aa5a8eaffd2fe95f89869a04d`
+and the separately tested corrected packaging subject `47cc456348ae0ebe4291177647b6f563fb191c21`.
 It does not verify a Warrant, accept a document, resolve an obligation or qualify
 Stable 1.0. Earlier observations remain unchanged.
 
@@ -12,7 +13,7 @@ Stable 1.0. Earlier observations remain unchanged.
 | Reference web workflow | PASS, 232 tests in 134.705 seconds | [observation](web-2692/observation.json), retained `hosted-workflow.log.gz`; run 38140403856, job 114472932083 |
 | Real LAMU SDK exchange | PASS, all six provider suites, adapter tests, repeatable package production, current SDK consumption, tamper/duplicate refusal and record/legacy exchange | [observation](lamu-current-2692/observation.json), retained `receipt.json.gz` and `run.log.gz` |
 | Repository gate | PASS, 14 steps and 1,610 counted plants; candidate merged into main as `0d02f12cc7089c3d67b0fd902a1dfa7d30266cfe` | [observation](gate-2692/observation.json), retained `hosted-gate.log.gz`; run 38140403895 |
-| Native packaging rehearsal | FAIL on both hosts at notice collection; publication skipped | [failure](release-failure-2692/observation.json), retained `failed-packaging.log.gz`; run 38140559239 |
+| Original native packaging rehearsal | FAIL on both hosts at notice collection; publication skipped | [failure](release-failure-2692/observation.json), retained `failed-packaging.log.gz`; run 38140559239 |
 
 The LAMU provider is published source
 `735947a6b016f95457067b3aeb992cb3adc98b62`. It retains its agreed SDK dependency
@@ -26,7 +27,8 @@ missing-platform observation for this subject. It does not supply final
 independent phase review. The repository gate and packaging rehearsal were
 still running when the initial native/integration observations were collected.
 The later gate pass and packaging failure are retained separately above. No
-future corrected native packaging result is inferred here.
+future corrected native packaging result is inferred from that failed run; the
+later successful subject is recorded separately below.
 
 The packaging failure is `ValueError: Missing license text: rmcp 3.5.1` on both
 hosts. The crate distributions omit the text. Both current crate VCS records
@@ -37,6 +39,19 @@ New version-specific provenance entries preserve the old entries and text.
 [Actual collector controls](release-failure-2692/notice-controls.json) collect
 both current notices and refuse an altered source commit or notice hash. They
 do not establish a successful corrected native package/install rehearsal.
+
+## Corrected packaging observation
+
+The later corrected rehearsal passed on source `47cc456348ae0ebe4291177647b6f563fb191c21`
+in [run 38149192266](https://github.com/Quitetall/OpenWarrant/actions/runs/38149192266).
+Both native installs, the gate and artifact roundtrip passed; all publication
+steps were skipped. The original downloaded archives, receipts and full log are
+retained in [the corrected observation](packaging-corrected-47cc/README.md).
+A local replay of the downloaded Linux package passed all eight installed steps;
+an incorrect archive checksum refused before writing a receipt. The packages
+still label binary/source linkage as unestablished and qualification as false.
+This closes the corrected packaging observation gap for that subject, not final
+phase qualification or release permission.
 
 ## Remaining scopes
 
@@ -96,9 +111,9 @@ planning envelope does not clear any completion gate.
 
 ## Next work
 
-1. Rerun the corrected packaging rehearsal on both hosts after the notice fix
-   is committed. Retain failed and corrected subjects separately. The original
-   combined candidate merged only after its protected checks passed.
+1. Retain the now-passing corrected packaging subject separately from its failures.
+   Recheck the final release candidate and establish independent build provenance;
+   neither an earlier rehearsal nor its source-head label qualifies later code.
 2. Close concrete implementation gaps and collect real observations under the
    existing scopes. Ordinary prompt-only work remains unverified.
 3. Run the real-user study when participants are available. Collect independent
