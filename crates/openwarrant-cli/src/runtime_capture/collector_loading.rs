@@ -37,6 +37,19 @@ pub struct HostEnrollment {
     enrollment: LoadedEnrollment,
     observation: HostObservation,
 }
+/// Exact policy observations for a future versioned native acceptance response.
+/// Deserializing these identifiers does not authenticate a host or grant access.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct NativePolicyBinding {
+    pub schema: String,
+    pub repository: String,
+    pub collector: String,
+    pub authority_digest: String,
+    pub active_enrollment_digest: String,
+    pub host_configuration_digest: String,
+    pub native_configuration_digest: String,
+}
 pub(super) struct HostObservation {
     store: PathBuf,
     bytes: Vec<u8>,
@@ -56,6 +69,52 @@ impl HostObservation {
     }
 }
 impl HostEnrollment {
+    /// Reobserve current authority and activation as well as protected bytes.
+    /// This is a snapshot check, not atomic launch fencing or acceptance.
+    pub(super) fn native_policy_binding(&self) -> Result<NativePolicyBinding, Fault> {
+        self.observation.check()?;
+        let native = self
+            .observation
+            .native
+            .as_ref()
+            .ok_or(Fault::Unavailable("native configuration not observed"))?;
+        let snapshot = snapshot_for_execution(&self.enrollment.authority_store)?;
+        let authority_digest = snapshot
+            .revision
+            .digest()
+            .map_err(|_| Fault::Rejected("authority digest unavailable"))?;
+        if authority_digest != self.enrollment.enrollment().authority_digest {
+            return Err(Fault::Rejected("runtime authority changed"));
+        }
+        let enrollment_digest = self
+            .enrollment
+            .active_digest
+            .as_ref()
+            .ok_or(Fault::Unavailable("collector activation not observed"))?;
+        if snapshot
+            .active_collectors
+            .get(&self.collector)
+            .is_none_or(|active| active.digest != *enrollment_digest)
+        {
+            return Err(Fault::Rejected("collector activation changed"));
+        }
+        self.observation.check()?;
+        Ok(NativePolicyBinding {
+            schema: "oh.war/runtime-native-policy-binding/v1-draft.1".into(),
+            repository: self.repository.clone(),
+            collector: self.collector.clone(),
+            authority_digest,
+            active_enrollment_digest: enrollment_digest.clone(),
+            host_configuration_digest: format!(
+                "sha256:{}",
+                openwarrant_compiler::sha256_hex(&self.observation.bytes)
+            ),
+            native_configuration_digest: format!(
+                "sha256:{}",
+                openwarrant_compiler::sha256_hex(native)
+            ),
+        })
+    }
     pub(super) fn with_native_configuration(mut self, bytes: Vec<u8>) -> Result<Self, Fault> {
         self.observation.native = Some(bytes);
         self.observation.check()?;

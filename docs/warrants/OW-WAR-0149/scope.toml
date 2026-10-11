@@ -112,3 +112,8 @@ obligation_refs = ["OBL-001", "OBL-003"]
 [[scope]]
 path_glob = "crates/openwarrant-cli/src/authority_check.rs"
 obligation_refs = ["OBL-001", "OBL-003"]
+
+# Draft native policy binding; no authorization or stable format adoption.
+[[scope]]
+path_glob = "docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md"
+obligation_refs = ["OBL-001", "OBL-003"]

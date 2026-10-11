@@ -843,13 +843,52 @@ fn namespace_fixture_entry() {
         )).unwrap();
         let native_repo =
             openwarrant_cli::repo::Repository::open(scratch.clone().try_into().unwrap()).unwrap();
-        openwarrant_cli::runtime_capture::native_host::NativeAssessment::load(
-            &native_repo,
-            "unused-empty-selection",
-            &[],
-            &root.join("store"),
-        )
-        .unwrap();
+        let empty_assessment =
+            openwarrant_cli::runtime_capture::native_host::NativeAssessment::load(
+                &native_repo,
+                "unused-empty-selection",
+                &[],
+                &root.join("store"),
+            )
+            .unwrap();
+        let policy = empty_assessment.policy_binding().unwrap();
+        assert_eq!(
+            policy.schema,
+            "oh.war/runtime-native-policy-binding/v1-draft.1"
+        );
+        assert_eq!(policy.repository, "fixture");
+        assert_eq!(policy.collector, "collector");
+        assert_eq!(
+            policy.host_configuration_digest,
+            format!(
+                "sha256:{}",
+                openwarrant_compiler::sha256_hex(
+                    &fs::read(root.join("store/runtime-host.json")).unwrap()
+                )
+            )
+        );
+        assert_eq!(
+            policy.native_configuration_digest,
+            format!(
+                "sha256:{}",
+                openwarrant_compiler::sha256_hex(
+                    &fs::read(root.join("store/runtime-native.json")).unwrap()
+                )
+            )
+        );
+        let signed_enrollment =
+            Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
+        assert_eq!(
+            policy.authority_digest,
+            signed_enrollment.enrollment.authority_digest
+        );
+        assert_eq!(
+            policy.active_enrollment_digest,
+            format!(
+                "sha256:{}",
+                openwarrant_compiler::sha256_hex(&signed_enrollment.encode().unwrap())
+            )
+        );
         println!(
             "native assessment: empty selection reads operator-protected configuration under actual execution UID; no native execution claimed"
         );
@@ -862,6 +901,12 @@ fn namespace_fixture_entry() {
             );
             std::thread::sleep(Duration::from_millis(10));
         }
+        assert!(
+            matches!(empty_assessment.policy_binding(), Err(ref f) if !f.unknown && f.message == "runtime native configuration changed")
+        );
+        println!(
+            "native policy binding: changed protected bytes invalidate even an empty selection"
+        );
         let invalid_native = openwarrant_cli::runtime_capture::native_host::NativeAssessment::load(
             &native_repo,
             "unused-empty-selection",
@@ -1275,6 +1320,9 @@ fn namespace_fixture_entry() {
         .unwrap();
         let dispatch: openwarrant_core::execution::StageDispatch =
             serde_json::from_value(dispatch).unwrap();
+        let held_policy = held.policy_binding().unwrap();
+        assert_eq!(held_policy.repository, "fixture");
+        assert_eq!(held.policy_binding().unwrap(), held_policy);
         let held_verification = held.resolve(&dispatch, &interface).unwrap();
         fs::write(scratch.join("native-policy-held"), b"held").unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
@@ -1288,6 +1336,10 @@ fn namespace_fixture_entry() {
         assert!(
             matches!(held_verification.verifier.verify(b"synthetic receipt without a native seal"), Err(ProviderFailure::Rejected(ref why)) if why == "runtime native configuration changed")
         );
+        assert!(
+            matches!(held.policy_binding(), Err(ref f) if !f.unknown && f.message == "runtime native configuration changed")
+        );
+        assert!(held.resolve(&dispatch, &interface).is_none());
         println!(
             "native assessment: changed protected spend policy invalidated held verification before launch without changing collector activation"
         );
@@ -1323,6 +1375,14 @@ fn namespace_fixture_entry() {
         println!(
             "activated verifier: sealed execution passed; inactive enrollment, repository, collector, scope, provider and writable executable refused"
         );
+        let policy_guard = openwarrant_cli::runtime_capture::native_host::NativeAssessment::load(
+            &native_repo,
+            "unused-empty-selection",
+            &[],
+            &root.join("store"),
+        )
+        .unwrap();
+        policy_guard.policy_binding().unwrap();
         fs::write(scratch.join("host-ready"), b"ready").unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
         while !root.join("host-changed").exists() {
@@ -1335,6 +1395,9 @@ fn namespace_fixture_entry() {
         assert!(
             matches!(activated.run(&[], Duration::from_secs(3), 1024), Err(ProviderFailure::Rejected(ref why)) if why == "runtime host configuration changed")
         );
+        assert!(
+            matches!(policy_guard.policy_binding(), Err(ref f) if !f.unknown && f.message == "runtime host configuration changed")
+        );
         println!(
             "protected runtime host: changed UID mapping refused before launch without changing activation"
         );
@@ -1344,6 +1407,12 @@ fn namespace_fixture_entry() {
             assert!(Instant::now() < deadline, "operator selection unavailable");
             std::thread::sleep(Duration::from_millis(10));
         }
+        assert!(
+            matches!(policy_guard.policy_binding(), Err(ref f) if !f.unknown && f.message == "collector activation changed")
+        );
+        println!(
+            "native policy binding: exact host restored; replaced active enrollment still refused"
+        );
         assert!(
             !Command::new("/usr/bin/timeout")
                 .arg("3")
@@ -1402,6 +1471,23 @@ fn namespace_fixture_entry() {
             collector: &updated.collector,
         };
         reloaded.allows(Use { ..usage }).unwrap();
+        let renewed_policy = openwarrant_cli::runtime_capture::native_host::NativeAssessment::load(
+            &native_repo,
+            "unused-empty-selection",
+            &[],
+            &root.join("store"),
+        )
+        .unwrap();
+        let renewed_binding = renewed_policy.policy_binding().unwrap();
+        let active_signed =
+            Signed::decode(&fs::read(root.join("replacement.json")).unwrap()).unwrap();
+        assert_eq!(
+            renewed_binding.active_enrollment_digest,
+            format!(
+                "sha256:{}",
+                openwarrant_compiler::sha256_hex(&active_signed.encode().unwrap())
+            )
+        );
         assert_eq!(
             fs::read(job.files()[0].input.argument()).unwrap(),
             b"approved native input\n"
@@ -1423,6 +1509,12 @@ fn namespace_fixture_entry() {
         assert!(
             matches!(reloaded.allows(usage), Err(Fault::Rejected(_))),
             "revoked authority remained usable"
+        );
+        assert!(
+            matches!(renewed_policy.policy_binding(), Err(ref f) if !f.unknown && f.message == "runtime authority changed")
+        );
+        println!(
+            "native policy binding: renewed activation observed; signed authority revocation refused"
         );
         assert!(matches!(
             replacement_verifier.run(&[], Duration::from_secs(3), 1024),
@@ -2149,8 +2241,8 @@ fn namespace_fixture_entry() {
         std::thread::sleep(Duration::from_millis(10));
     }
     let host_path = root.join("store/runtime-host.json");
-    let mut host: serde_json::Value =
-        serde_json::from_slice(&fs::read(&host_path).unwrap()).unwrap();
+    let original_host = fs::read(&host_path).unwrap();
+    let mut host: serde_json::Value = serde_json::from_slice(&original_host).unwrap();
     host["execution_uid"] = serde_json::json!(2);
     fs::write(&host_path, serde_json::to_vec(&host).unwrap()).unwrap();
     fs::write(root.join("host-changed"), b"changed").unwrap();
@@ -2163,6 +2255,9 @@ fn namespace_fixture_entry() {
         assert!(Instant::now() < deadline, "executor readiness unavailable");
         std::thread::sleep(Duration::from_millis(10));
     }
+    // The executor observed the host refusal before `ready`. Restore those exact
+    // bytes so the following policy refusal isolates collector replacement.
+    fs::write(&host_path, original_host).unwrap();
     let mut replacement = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap()).unwrap();
     // Replace the operator-owned path after the execution account sealed its
     // approved image. The old image must still execute; a fresh load must fail.

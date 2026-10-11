@@ -4,7 +4,7 @@
 use super::{
     Fault, Provider, Request, Selection, Verification,
     blut_process::{BlutProcessConfig, BlutProcessVerifier, BlutProtectedInputs},
-    collector_loading::{self, LoadedEnrollment},
+    collector_loading::{self, HostEnrollment, LoadedEnrollment, NativePolicyBinding},
     collector_signature::OpenSshSignatureCheck,
     katana_process::{KatanaProcessConfig, KatanaProcessVerifier},
     protected_input::ProtectedInput,
@@ -78,6 +78,8 @@ struct Adapter {
 }
 pub struct NativeAssessment {
     adapters: Vec<Adapter>,
+    host: HostEnrollment,
+    policy: NativePolicyBinding,
 }
 fn host_fault(fault: openwarrant_core::runtime_collector::Fault) -> Fault {
     use openwarrant_core::runtime_collector::Fault::*;
@@ -116,10 +118,14 @@ impl NativeAssessment {
             OpenSshSignatureCheck::new(repo.root.as_std_path().to_owned(), Duration::from_secs(10))
                 .map_err(host_fault)?;
         // Authenticate the execution account even when the selection is empty.
-        LoadedEnrollment::load_host(store, repo.root.as_std_path(), &signatures)
+        let host = LoadedEnrollment::load_host(store, repo.root.as_std_path(), &signatures)
             .map_err(host_fault)?;
         let bytes = collector_loading::configuration_bytes(store, "runtime-native.json")
             .map_err(host_fault)?;
+        let host = host
+            .with_native_configuration(bytes.clone())
+            .map_err(host_fault)?;
+        let policy = host.native_policy_binding().map_err(host_fault)?;
         let value = crate::sdk::wire::decode_value(&bytes)
             .map_err(|e| super::fault("runtime.native-host", e, false))?;
         if ![
@@ -240,6 +246,13 @@ impl NativeAssessment {
                 .map_err(host_fault)?
                 .with_native_configuration(bytes.clone())
                 .map_err(host_fault)?;
+            if host.native_policy_binding().map_err(host_fault)? != policy {
+                return Err(super::fault(
+                    "runtime.native-host",
+                    "native policy changed during assessment loading",
+                    false,
+                ));
+            }
             let (verifier, registry_digest): (Box<dyn ReceiptVerifier>, Option<String>) =
                 match provider.kind {
                     ProviderKind::Katana => {
@@ -403,7 +416,30 @@ impl NativeAssessment {
                 hard_spend_cap_required: entry.hard_spend_cap_required,
             });
         }
-        Ok(Self { adapters })
+        if host.native_policy_binding().map_err(host_fault)? != policy {
+            return Err(super::fault(
+                "runtime.native-host",
+                "native policy changed during assessment loading",
+                false,
+            ));
+        }
+        Ok(Self {
+            adapters,
+            host,
+            policy,
+        })
+    }
+    /// Fresh protected observations, not caller-supplied policy or assurance.
+    pub fn policy_binding(&self) -> Result<NativePolicyBinding, Fault> {
+        let current = self.host.native_policy_binding().map_err(host_fault)?;
+        if current != self.policy {
+            return Err(super::fault(
+                "runtime.native-host",
+                "native policy changed",
+                false,
+            ));
+        }
+        Ok(current)
     }
     /// Only an exact retained dispatch and provider receive this host's policy.
     pub fn resolve(
@@ -411,6 +447,7 @@ impl NativeAssessment {
         dispatch: &StageDispatch,
         provider: &ProviderInterface,
     ) -> Option<Verification<'_>> {
+        self.policy_binding().ok()?;
         let binding = RuntimeBinding::from_dispatch(dispatch);
         self.adapters
             .iter()
