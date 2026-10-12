@@ -37,6 +37,61 @@ const FROZEN_KEYS: [&str; 8] = [
     "verdict_line",
 ];
 
+#[test]
+fn fixture_eval_keeps_setup_output_inside_the_child_process() {
+    let root = std::env::temp_dir().join(format!(
+        "ow-eval-json-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&root).unwrap();
+    let run = |task: &str, name: &str| {
+        Command::new(env!("CARGO_BIN_EXE_war"))
+            .env("OPENWARRANT_NO_CACHE", "1")
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("TMPDIR", &root)
+            .args(["evidence", "eval", "run", "--json", "--task", task])
+            .arg("--drafter")
+            .arg(repo_root().join("evals/fixtures/fixture-agent.sh"))
+            .arg("--verifier")
+            .arg(repo_root().join("conformance/fixtures/verifier/establishes-all.sh"))
+            .arg("--out")
+            .arg(root.join(name))
+            .current_dir(repo_root())
+            .output()
+            .unwrap()
+    };
+    let accepted = run("run-01-echo", "accepted.json");
+    let result = std::fs::read(root.join("accepted.json"));
+    let refused = run("no-such-eval-task", "refused.json");
+    let refused_file_exists = root.join("refused.json").exists();
+    // Clean up before assertions so the regression's red run leaves no scratch.
+    std::fs::remove_dir_all(root).unwrap();
+
+    assert!(
+        accepted.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&accepted.stdout),
+        String::from_utf8_lossy(&accepted.stderr)
+    );
+    let positive = envelope(&String::from_utf8_lossy(&accepted.stdout));
+    assert_eq!(positive["exit_code"], 0);
+    let result: serde_json::Value = serde_json::from_slice(&result.unwrap()).unwrap();
+    assert_eq!(result["tasks"][0]["score"], "would_satisfy");
+    assert_eq!(
+        result["tasks"][0]["requirements_unmet_by_the_loop"],
+        serde_json::json!([])
+    );
+    assert!(!refused.status.success());
+    let negative = envelope(&String::from_utf8_lossy(&refused.stdout));
+    assert_eq!(negative["exit_code"], refused.status.code().unwrap());
+    assert!(!refused_file_exists);
+}
+
 fn envelope(stdout: &str) -> serde_json::Value {
     let v: serde_json::Value = serde_json::from_str(stdout)
         .unwrap_or_else(|e| panic!("stdout is not one JSON value: {e}\n{stdout}"));
