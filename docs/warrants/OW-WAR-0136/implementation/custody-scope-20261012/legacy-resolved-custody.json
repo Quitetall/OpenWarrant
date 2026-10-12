@@ -1,0 +1,125 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "attest.custody",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "attest.verified",
+      "file": null,
+      "message": "docs/warrants/OW-WAR-0014/attestations/resolve-1.dsse.json: resolve attested by brian (SHA256:rbQkmt00CyZdpZIB4TMr0dJ/I8N/ElwcfqgJM35leiE), 3 subject(s) intact"
+    },
+    {
+      "severity": "pass",
+      "rule": "attest.custody-audited",
+      "file": null,
+      "message": "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json: 5 of 9 §41.5 fields present, 4 UNKNOWN (listed under NOT CHECKED); not attested; its own seal recomputes"
+    },
+    {
+      "severity": "pass",
+      "rule": "attest.custody-field",
+      "file": null,
+      "message": "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · collector: war gate --run"
+    },
+    {
+      "severity": "pass",
+      "rule": "attest.custody-field",
+      "file": null,
+      "message": "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · storage event: committed in 797706e058bb053ef3a7e214ab5bf8692dd4f9fd 2026-09-02T20:52:11-04:00"
+    },
+    {
+      "severity": "pass",
+      "rule": "attest.custody-field",
+      "file": null,
+      "message": "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · instrument or runner identity: linux x86_64 / rustc 1.97.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "attest.custody-field",
+      "file": null,
+      "message": "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · calibration or qualification: software.repo.war-check@1.0.0 qualified by QuiteTall via conformance/plant.sh, run by cargo xtask gate (docs/gates/software.repo.war-check@1.0.0.yaml)"
+    },
+    {
+      "severity": "pass",
+      "rule": "attest.custody-field",
+      "file": null,
+      "message": "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · derivative lineage: relied on by resolution 01a064c8-7fb3-72e2-b41f-2b04845deff2 (docs/warrants/OW-WAR-0014/resolution.toml)"
+    }
+  ],
+  "notes": [
+    "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · original digest: UNKNOWN (not attested)",
+    "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · transfer method: UNKNOWN (the receipt records no transfer, and nothing else does)",
+    "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · transformations: UNKNOWN (none is recorded, and an absent record is not evidence that none occurred)",
+    "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json · access history: UNKNOWN (git records no reads)"
+  ],
+  "counts": {
+    "pass": 7,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is partial; `war check` does not establish execution readiness or run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/custody-audit/v1",
+    "warrant": "OW-WAR-0014",
+    "resolution_id": "01a064c8-7fb3-72e2-b41f-2b04845deff2",
+    "attestations": [
+      "docs/warrants/OW-WAR-0014/attestations/resolve-1.dsse.json"
+    ],
+    "verdict": "intact",
+    "receipts": [
+      {
+        "receipt": "docs/warrants/OW-WAR-0014/gate-runs/software_repo_war-check_1_0_0.receipt.json",
+        "fields": [
+          {
+            "field": "collector",
+            "status": "present",
+            "value": "war gate --run"
+          },
+          {
+            "field": "original digest",
+            "status": "unknown",
+            "reason": "not attested"
+          },
+          {
+            "field": "transfer method",
+            "status": "unknown",
+            "reason": "the receipt records no transfer, and nothing else does"
+          },
+          {
+            "field": "storage event",
+            "status": "present",
+            "value": "committed in 797706e058bb053ef3a7e214ab5bf8692dd4f9fd 2026-09-02T20:52:11-04:00"
+          },
+          {
+            "field": "instrument or runner identity",
+            "status": "present",
+            "value": "linux x86_64 / rustc 1.97.1"
+          },
+          {
+            "field": "calibration or qualification",
+            "status": "present",
+            "value": "software.repo.war-check@1.0.0 qualified by QuiteTall via conformance/plant.sh, run by cargo xtask gate (docs/gates/software.repo.war-check@1.0.0.yaml)"
+          },
+          {
+            "field": "transformations",
+            "status": "unknown",
+            "reason": "none is recorded, and an absent record is not evidence that none occurred"
+          },
+          {
+            "field": "access history",
+            "status": "unknown",
+            "reason": "git records no reads"
+          },
+          {
+            "field": "derivative lineage",
+            "status": "present",
+            "value": "relied on by resolution 01a064c8-7fb3-72e2-b41f-2b04845deff2 (docs/warrants/OW-WAR-0014/resolution.toml)"
+          }
+        ]
+      }
+    ]
+  }
+}

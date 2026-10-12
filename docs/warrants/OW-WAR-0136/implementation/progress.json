@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0136",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "249fee7be50a6c28cdeec33465e5e87c2973547f",
+  "summary": "Custody and invalidation controls pass 30/0, with four unit tests passing. A read-only audit of resolved OW14 retains original-digest UNKNOWN. Nine closure requirements and the real owner demonstration remain unmet; historical signatures and independent findings are preserved. All retained attestations verify (268 PASS).",
+  "notes": "docs/warrants/OW-WAR-0136/implementation/custody-scope-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0136/implementation/custody-scope-20261012/observation.json"
+  ],
+  "next_steps": [
+    "Run the full registered gate on the exact committed candidate.",
+    "Preserve and address the existing OBL-006 independent finding with the actual owner demonstration; fixture acts cannot substitute.",
+    "Reconcile deliveries, exact authorization, independent judgments and human acceptance without rewriting history."
+  ]
+}
