@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0134",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "4a71eb72d7775e962d6bcf23b6309e8425fd0a86",
+  "summary": "Current acceptance-candidate controls pass: 28 selected runtime checks and five unit tests cover changed scope, exact-candidate re-verification, pinned corrections and unreadable history. The resolution dry run still reports nine unmet requirements; no independent acceptance is claimed.",
+  "notes": "docs/warrants/OW-WAR-0134/implementation/candidate-scope-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0134/implementation/candidate-scope-20261012/observation.json"
+  ],
+  "next_steps": [
+    "Run the full registered gate on the exact committed candidate.",
+    "Reconcile delivery history and assess all obligations independently; retain historical records.",
+    "Human acceptance and resolution remain separate."
+  ]
+}

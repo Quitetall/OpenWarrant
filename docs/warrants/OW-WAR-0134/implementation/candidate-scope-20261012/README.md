@@ -1,0 +1,9 @@
+# Acceptance candidate scope audit
+
+The current implementation reads the accepted locator and exact Git candidate, tests declared gate-input scope, and binds renewed verification to the candidate subject, packet coverage and ingested record bytes. Pinned deliverables are checked against the authorized correction-chain head; renewed verification cannot clear a changed pin. The pull-request workflow checks the merge candidate against its first parent.
+
+All 28 selected conformance controls pass, including the positive corpus check. They cover unrelated changes, in-scope paths, exact-candidate re-verification, modified verdicts and journals, packet coverage, checkout isolation, correction controls, and unreadable history reported as UNKNOWN. All five acceptance unit tests pass on Rust 1.97.1. Scratch signing and verifier fixtures exercise protocol controls; they are not real operator or independent qualification of OpenWarrant. The tested binary identifies an earlier dirty build basis; its exact hash and current relevant source hashes are recorded, not represented as a clean final-commit build.
+
+The read-only resolution dry run exits 2: five PASS, one WARN and nine UNKNOWN. It identifies D-003 as moved under later OW148 ownership and leaves exact authorization, artifact digests, dispositions, gates, unknowns, blockers, judgments, independence and residual-risk requirements unmet. No historical pin, signature or independent verdict was rewritten. OW134 remains in progress.
+
+The signing guide still uses older compatibility spellings and a historical receipt limitation. This audit records current implementation behavior; it does not silently change the authorized guide or claim every scope requirement is closed. Full registered CI, independent assessment of all obligations, delivery reconciliation and human acceptance remain separate.
