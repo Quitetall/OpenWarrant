@@ -1,0 +1,37 @@
+{
+  "schema": "openwarrant.scoped-runtime-observation/v1",
+  "warrant": "OW-WAR-0146",
+  "source_basis": "b9d942667c5ffb1363c8e00a256392b4af1ce0ca",
+  "binary": {
+    "identity": "war 1.0.0-alpha.3 (unreleased, commit 02cea3d83b99, dirty, debug)",
+    "sha256": "147e29a154fe004cc90c8d10270ce9d387baeb226e62450490da8ef5b56bea3d",
+    "profile": "debug",
+    "identity_basis": "02cea3 dirty implementation build, including the direct duplicate-response fix later committed as b9d942; not a clean release build"
+  },
+  "platform": "Linux-7.2.9-1-cachyos-x86_64-with-glibc2.44",
+  "suite": {
+    "exit_code": 0,
+    "combined_passed": 19,
+    "combined_failed": 0,
+    "positive_corpus_checks": 1,
+    "feature_controls": 7
+  },
+  "source_files": {
+    "conformance/plants.d/47-bundle-output.sh": "ce072510418c7216590737c71f6b55be8fbde7ece4a7d7d25e3f8131e3f1f3b4",
+    "conformance/lib.sh": "6628198c3071e13b35ddade8c508dac257b65e4c55f026c332c6e6d111d4c655",
+    "crates/openwarrant-cli/src/bundle.rs": "9f9157b7db1a17df12d4266dc90b3245200004b6bb9cd7773e7f6807083c2931"
+  },
+  "closure": {
+    "exit_code": 2,
+    "counts": {
+      "pass": 5,
+      "warn": 0,
+      "unknown": 9,
+      "error": 0,
+      "worst": "unknown"
+    }
+  },
+  "human_acceptance": false,
+  "independent_disposition": false,
+  "full_registered_gate_executed": false
+}
