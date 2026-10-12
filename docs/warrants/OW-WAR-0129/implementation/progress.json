@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0129",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "3c5251a2d2b27c80efc6f887c53415a03df6127b",
+  "summary": "Dispatch-budget scope audited: fifteen current CLI controls and one compiler boundary test pass. Over-budget work starts no actor and emits no packet or gate receipt; invalid bundles are refused, with in-budget controls observed. Historical delivery reconciliation, exact-subject gate evidence and independent/human closure remain pending.",
+  "notes": "docs/warrants/OW-WAR-0129/implementation/budget-scope-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0129/implementation/budget-scope-20261012/observation.json",
+    "docs/warrants/OW-WAR-0129/implementation/budget-scope-20261012/closure.json"
+  ],
+  "next_steps": [
+    "Reconcile historical delivery versions: current closure identifies D-001 and D-002 as moved under later OW133 ownership; preserve original records.",
+    "Obtain admissible registered gate evidence and independent reassessment for the exact reviewed subject.",
+    "Human acceptance and resolution remain separate."
+  ]
+}
