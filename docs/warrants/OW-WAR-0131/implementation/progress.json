@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0131",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "1f39643fe0bb30ba6303c622bd35dd1019f7b637",
+  "summary": "Fixed a reproduced simultaneous-start race: five overlapping fixture writers before, one without overlap after. All 19 selected cancellation, handoff, adapter and concurrency controls pass on Linux. Full gate, independent assessment and macOS observation are not claimed. Direct shared-checkout handoff now refuses surviving writers on other stages or sibling Warrants. All 21 selected controls pass, including controller-SIGKILL cases; unreadable writer metadata stops admission as unknown.",
+  "notes": "docs/warrants/OW-WAR-0131/implementation/checkout-handoff-20261011/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0131/implementation/writer-admission-20261011/observation.json",
+    "docs/warrants/OW-WAR-0131/implementation/checkout-handoff-20261011/observation.json"
+  ],
+  "next_steps": [
+    "Run the full repository gate on the exact committed candidate.",
+    "Independent reviewer assesses current evidence and delivery history; human acceptance remains separate.",
+    "Establish macOS cancellation and writer behavior before claiming that platform."
+  ]
+}

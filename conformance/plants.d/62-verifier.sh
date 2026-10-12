@@ -14,6 +14,7 @@ VF_TMP=$(mktemp -d)
 VF_WRAP=$(realpath tools/verifier/claude-verifier.sh)
 cat > "$VF_TMP/claude" <<'FAKE'
 #!/usr/bin/env bash
+printf '%s\n' called >> "$VF_LOG/calls"
 if [[ "${1:-}" == "--version" ]]; then echo "fake-claude 0.0"; exit 0; fi
 printf '%s\n' "$@" > "$VF_LOG/argv"
 pwd > "$VF_LOG/cwd"
@@ -63,6 +64,52 @@ vf_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 vf_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 vf_count() { grep -c "^disposition = \"$1\"" <<<"$VF_OUT"; }
 vf_flags() { grep -E '^(actor|kind|performer_|separate_|cannot_|distinct_)' <<<"$VF_OUT" | sort | uniq -c; }
+
+# A packet whose fixed context exceeds the configured reading budget must
+# never reach a model, including its version probe. Keep every binding intact.
+VF_OVER_BUNDLE="$VF_TMP/over-budget.json"
+python3 - "$VF_BUNDLE" "$VF_OVER_BUNDLE" <<'PY'
+import json, sys
+with open(sys.argv[1]) as source:
+    packet = json.load(source)
+packet["budget_tokens"] = 1
+packet["over_budget"] = True
+with open(sys.argv[2], "w") as output:
+    json.dump(packet, output)
+PY
+VF_ORIGINAL_BUNDLE=$VF_BUNDLE
+VF_BUNDLE=$VF_OVER_BUNDLE
+VF_INPUT_BEFORE=$(sha256sum "$VF_BUNDLE")
+: > "$VF_TMP/calls"
+vf good
+VF_INPUT_AFTER=$(sha256sum "$VF_BUNDLE")
+if [[ $VF_STATUS -ne 0 && -z "$VF_OUT" && ! -s "$VF_TMP/calls" \
+    && "$VF_INPUT_BEFORE" == "$VF_INPUT_AFTER" ]] \
+    && grep -q 'verify.bundle-over-budget' "$VF_TMP/stderr"; then
+    vf_ok "oversized packet calls no backend" "no version probe, no inference, no response, exact input retained"
+else
+    vf_fail "oversized packet calls no backend" "exit $VF_STATUS, backend called $([[ -s "$VF_TMP/calls" ]] && echo yes || echo no)"
+fi
+VF_BUNDLE=$VF_ORIGINAL_BUNDLE
+
+# Duplicate keys cannot turn an explicit small cap into a permissive one.
+VF_BUNDLE="$VF_TMP/ambiguous-budget.json"
+python3 - "$VF_ORIGINAL_BUNDLE" "$VF_BUNDLE" <<'PY'
+import sys
+with open(sys.argv[1]) as source:
+    packet = source.read()
+with open(sys.argv[2], "w") as output:
+    output.write('{"budget_tokens":1,"over_budget":true,' + packet.lstrip()[1:])
+PY
+: > "$VF_TMP/calls"
+vf good
+if [[ $VF_STATUS -ne 0 && -z "$VF_OUT" && ! -s "$VF_TMP/calls" ]] \
+    && grep -q 'verify.bundle-invalid-budget' "$VF_TMP/stderr"; then
+    vf_ok "ambiguous budget calls no backend" "duplicate packet fields refused before version or inference"
+else
+    vf_fail "ambiguous budget calls no backend" "exit $VF_STATUS, backend called $([[ -s "$VF_TMP/calls" ]] && echo yes || echo no)"
+fi
+VF_BUNDLE=$VF_ORIGINAL_BUNDLE
 
 # OBL-001: verdicts pass through; nothing the model says about who it is or
 # what independence it has reaches the response.

@@ -1,0 +1,16 @@
+{
+  "candidate_revision": "bf233f4c44dd66318eb5c0c26357c01a2a811963",
+  "observed_revision": "d5a47d74a3af6e1a4ea94fc89956817fa2dbf3bd",
+  "source_sha256": {
+    "tools/verifier/claude-verifier.sh": "7d2d1d0455b33d92f32e4aac88731c39a4485c3bde164a04db17de49e2e90f30",
+    "conformance/plants.d/62-verifier.sh": "f247a4dc51ee76420c2e792aee262b5f385dc3d41bd60803d5d0b173ed903d5e",
+    "conformance/plants.d/69-idempotency.sh": "387f1508eb5795b9d484464bc1edc2ca09f71aa6f3b63a33ecfe4122c458ff28",
+    "conformance/plants.d/83-tokens.sh": "cb5f99a170a93ea0b62128f5fec4751bab9d4a8ff560dff460ebc185c85431e0",
+    "crates/openwarrant-compiler/src/dispatch.rs": "aca4710e70e4430093d3a1ce6addd1f51f04cf9c1c15966d1cc5111b301ade5e",
+    "crates/openwarrant-cli/src/batch_cmd.rs": "6839b198a8b2a665f0d9cddcdbc8ea23af3d998c2bddc5047093048632fee578",
+    "crates/openwarrant-cli/src/journal_cmd.rs": "c7edc8460f6e69b29196f8731a417e84daecb770184f0d07b0989f6f4c294631",
+    "crates/openwarrant-cli/src/compat.rs": "44fa6ac863c947e4d09f8b53e23841190d024cba666dd676446355fe609a16ae"
+  },
+  "meaning": "These eight current source files equal the files in the retained 62-control observation. This is source identity, not a new run or full qualification.",
+  "independent_verification": false
+}

@@ -276,6 +276,32 @@ fn perform_one(
         ));
         return Ok(report);
     }
+    // Hold one kernel lock across admission, compilation, spawn and reap.
+    // A writer record alone leaves a probe-to-spawn race between CLI processes.
+    // Lock the existing repository directory: no mutable lock-file identity
+    // or source artifact is introduced. A dead owner releases the lock, but
+    // the durable writer probe below still fences its surviving process group.
+    let _admission = match writer_admission(&repo.root) {
+        Ok(Some(held)) => held,
+        Ok(None) => {
+            if checkout_handoff(repo, &dir, alias, stage_id, &mut report, false) {
+                report.push(Diagnostic::error(
+                    "perform.writer-busy",
+                    repo.relative(&dir),
+                    format!("{alias}/{stage_id}: another performer command holds this checkout's writer admission; nothing is compiled or spawned"),
+                ));
+            }
+            return Ok(report);
+        }
+        Err(error) => {
+            report.push(Diagnostic::unknown(
+                "perform.writer-unknown",
+                repo.relative(&dir),
+                format!("{alias}/{stage_id}: exclusive writer admission cannot be established: {error}; nothing is compiled or spawned"),
+            ));
+            return Ok(report);
+        }
+    };
     // OW-WAR-0132: questions, spend and attempts, before anything is compiled.
     // Every refusal that applies is reported, so a run blocked twice says so.
     let Some(kind) = hotline_admitted(repo, &dir, alias, stage_id, &mut report)? else {
@@ -283,7 +309,7 @@ fn perform_one(
     };
     // Handoff, before anything is compiled: a stage whose previous writer may
     // still be writing gets no second one, and no Dispatch either.
-    if !handoff(repo, &dir, alias, stage_id, &mut report) {
+    if !checkout_handoff(repo, &dir, alias, stage_id, &mut report, true) {
         return Ok(report);
     }
 
@@ -1083,6 +1109,24 @@ enum Liveness {
     Unknown(String),
 }
 
+#[cfg(unix)]
+fn writer_admission(root: &camino::Utf8Path) -> std::io::Result<Option<std::fs::File>> {
+    let held = std::fs::File::open(root)?;
+    match rustix::fs::flock(&held, rustix::fs::FlockOperation::NonBlockingLockExclusive) {
+        Ok(()) => Ok(Some(held)),
+        Err(error) if error == rustix::io::Errno::WOULDBLOCK => Ok(None),
+        Err(error) => Err(error.into()),
+    }
+}
+
+#[cfg(not(unix))]
+fn writer_admission(_: &camino::Utf8Path) -> std::io::Result<Option<std::fs::File>> {
+    Err(std::io::Error::new(
+        std::io::ErrorKind::Unsupported,
+        "this platform has no supported writer admission lock",
+    ))
+}
+
 fn probe(record: &WriterRecord) -> Liveness {
     match group_liveness(record.pgid) {
         Liveness::Alive => match leader_started(record.pid) {
@@ -1109,18 +1153,104 @@ pub(crate) fn handoff(
     stage_id: &str,
     report: &mut Report,
 ) -> bool {
-    let dispatches = dir.join(DISPATCHES_DIR);
-    let Ok(entries) = std::fs::read_dir(&dispatches) else {
-        // No dispatches directory: nothing was ever handed over.
-        return true;
+    handoff_inner(repo, dir, alias, stage_id, report, true, true)
+}
+
+// Direct perform writes this checkout, unlike go's isolated worktree actors.
+// A dead controller releases admission but can leave a writer on any stage.
+// Inspect every legacy writer index retained in this checkout before reuse.
+fn checkout_handoff(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    alias: &str,
+    stage_id: &str,
+    report: &mut Report,
+    retire_gone: bool,
+) -> bool {
+    let mut directories = match repo.warrant_dirs() {
+        Ok(directories) => directories,
+        Err(error) => {
+            report.push(Diagnostic::unknown(
+                "perform.writer-unknown",
+                repo.relative(&repo.warrants_dir()),
+                format!("{alias}/{stage_id}: writer indexes in this checkout cannot be enumerated: {error}; nothing is compiled or spawned"),
+            ));
+            return false;
+        }
     };
-    let mut records: Vec<camino::Utf8PathBuf> = entries
-        .filter_map(Result::ok)
-        .filter_map(|e| camino::Utf8PathBuf::from_path_buf(e.path()).ok())
-        .filter(|p| p.extension() == Some(WRITER_EXT))
-        .collect();
-    records.sort();
+    directories.push(dir.to_owned());
+    directories.sort();
+    directories.dedup();
     let mut clear = true;
+    for directory in directories {
+        if !handoff_inner(
+            repo,
+            &directory,
+            alias,
+            stage_id,
+            report,
+            retire_gone,
+            false,
+        ) {
+            clear = false;
+        }
+    }
+    clear
+}
+
+fn handoff_inner(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    alias: &str,
+    stage_id: &str,
+    report: &mut Report,
+    retire_gone: bool,
+    same_stage_only: bool,
+) -> bool {
+    let dispatches = dir.join(DISPATCHES_DIR);
+    let entries = match std::fs::read_dir(&dispatches) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return true,
+        Err(error) => {
+            report.push(Diagnostic::unknown(
+                "perform.writer-unknown",
+                repo.relative(&dispatches),
+                format!("{alias}/{stage_id}: the writer index cannot be read: {error}; no absent writer is inferred"),
+            ));
+            return false;
+        }
+    };
+    let mut records = Vec::new();
+    let mut clear = true;
+    for entry in entries {
+        let path = match entry {
+            Ok(entry) => entry.path(),
+            Err(error) => {
+                report.push(Diagnostic::unknown(
+                    "perform.writer-unknown",
+                    repo.relative(&dispatches),
+                    format!("{alias}/{stage_id}: a writer-index entry cannot be read: {error}"),
+                ));
+                clear = false;
+                continue;
+            }
+        };
+        if path.extension() != Some(std::ffi::OsStr::new(WRITER_EXT)) {
+            continue;
+        }
+        match camino::Utf8PathBuf::from_path_buf(path) {
+            Ok(path) => records.push(path),
+            Err(_) => {
+                report.push(Diagnostic::unknown(
+                    "perform.writer-unknown",
+                    repo.relative(&dispatches),
+                    format!("{alias}/{stage_id}: a writer-record path is not UTF-8 and cannot be inspected"),
+                ));
+                clear = false;
+            }
+        }
+    }
+    records.sort();
     for path in records {
         let at = repo.relative(&path);
         let parsed: Option<WriterRecord> = std::fs::read_to_string(&path)
@@ -1141,7 +1271,7 @@ pub(crate) fn handoff(
             clear = false;
             continue;
         };
-        if record.stage_id != stage_id {
+        if same_stage_only && record.stage_id != stage_id {
             continue;
         }
         match probe(&record) {
@@ -1150,10 +1280,10 @@ pub(crate) fn handoff(
                     "perform.writer-alive",
                     at,
                     format!(
-                        "{alias}/{stage_id}: dispatch {} is still being performed by pid {} \
+                        "{alias}/{stage_id}: dispatch {} (stage {}) is still being performed by pid {} \
                          (process group {}), which can still write. A second writer is not \
                          started while the first can; stop it, or let it finish",
-                        record.dispatch_id, record.pid, record.pgid
+                        record.dispatch_id, record.stage_id, record.pid, record.pgid
                     ),
                 ));
                 clear = false;
@@ -1172,6 +1302,11 @@ pub(crate) fn handoff(
                 clear = false;
             }
             Liveness::Gone => {
+                // A contender that did not acquire admission may observe,
+                // but cannot retire records underneath the admitted writer.
+                if !retire_gone {
+                    continue;
+                }
                 let _ = std::fs::remove_file(&path);
                 report.push(Diagnostic::pass(
                     "perform.writer-stopped",

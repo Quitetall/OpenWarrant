@@ -1,0 +1,75 @@
+{
+  "warrant": "OW-WAR-0131",
+  "basis_revision": "1f39643fe0bb30ba6303c622bd35dd1019f7b637",
+  "source_dirty": true,
+  "before": {
+    "source_revision": "1f39643fe0bb30ba6303c622bd35dd1019f7b637",
+    "cases": [
+      {
+        "case": "other-stage",
+        "exit_code": 2,
+        "new_writer_started": true,
+        "old_writer_marker_before": 2,
+        "old_writer_marker_after": 266,
+        "old_writer_alive_after": true,
+        "expected_rule": "perform.writer-alive",
+        "classification": "FAIL: a new writer started while the other-stage writer remained alive and writing"
+      },
+      {
+        "case": "unreadable-index",
+        "exit_code": 2,
+        "new_writer_started": false,
+        "old_writer_marker_before": 2,
+        "old_writer_marker_after": 2,
+        "old_writer_alive_after": true,
+        "expected_rule": "perform.writer-unknown",
+        "classification": "REFUSED by dispatch.retention-unavailable; not evidence that a second writer started"
+      }
+    ],
+    "binary_sha256": "e9117227717624a02122bbf1f0ab31ee90c9d724820692d3632761ca9e885316",
+    "qualification": false
+  },
+  "after": {
+    "source_revision": "1f39643fe0bb30ba6303c622bd35dd1019f7b637",
+    "cases": [
+      {
+        "case": "other-stage",
+        "exit_code": 2,
+        "new_writer_started": false,
+        "old_writer_marker_before": 2,
+        "old_writer_marker_after": 2,
+        "old_writer_alive_after": true,
+        "expected_rule": "perform.writer-alive"
+      },
+      {
+        "case": "unreadable-index",
+        "exit_code": 2,
+        "new_writer_started": false,
+        "old_writer_marker_before": 2,
+        "old_writer_marker_after": 2,
+        "old_writer_alive_after": true,
+        "expected_rule": "perform.writer-unknown"
+      }
+    ],
+    "binary_sha256": "154e9c82bb05267ffa22aa8b5c763783379ca3ace256abeda9980634a6dc6613",
+    "qualification": false
+  },
+  "selected_controls": {
+    "passed": 21,
+    "failed": 0,
+    "scope": "Linux scratch corpora, real controller-SIGKILL fixtures, fake adapter; full-corpus positive check omitted in standalone helper run."
+  },
+  "source_sha256": {
+    "crates/openwarrant-cli/src/perform.rs": "90d983b0680b617ea5d4fe3d19bc2b43d6d1172ba6990ad028ac9a52c7007409",
+    "conformance/plants.d/60-perform-cancel.sh": "a09bfc5f083a2d3fe0f3607e211ccca5d8de1418070f386be8be6874b561bf14",
+    "docs/PERFORM.md": "7e3e660c4d3cb044c20e7e96c6cd131c9b0864a17b5ba65fea0f09ba3c9bff8e"
+  },
+  "independent_verification": false,
+  "qualification": false,
+  "limitations": [
+    "The before unreadable-index case was already refused by dispatch retention; it did not start another actor.",
+    "Registered full gate remains required.",
+    "No macOS, real model, remote writer, uncooperative process or sandbox qualification.",
+    "Go retains stage-specific handoff for isolated worktrees."
+  ]
+}

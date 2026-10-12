@@ -70,10 +70,23 @@ check reports it as an orphan, which shows the check can see one.
 
 ## One writer at a time (handoff)
 
+Before admission or compilation, `war perform` takes a non-blocking kernel
+lock on this checkout's existing root directory. It holds the lock through
+spawn, cancellation, reap and submission. Concurrent commands in the same
+checkout cannot both pass the check-to-spawn interval. A contender reports
+`perform.writer-alive` when a recorded writer is visible, or
+`perform.writer-busy` while another command holds admission; it compiles and
+starts nothing. Failure to establish the lock reports
+`UNKNOWN perform.writer-unknown`. A contender does not retire writer records.
+The lock needs no lock file and is released by the kernel when its owner exits.
+
 **Guaranteed.** While a performer runs, `dispatches/<dispatch>.writer` records
 its pid, its process group, the leader's start time, the stage, and the
 Dispatch. The record is removed only once the group is shown gone. Before a new
-`war perform` on the same stage compiles anything, it probes every such record:
+direct `war perform` compiles anything, it probes every retained writer record
+in the checkout's recognized legacy Warrant directories, including other stages
+and sibling Warrants. A controller's death does not establish its writer's death.
+The isolated-worktree scheduler `war go` retains its stage-specific handoff.
 
 | The probe finds | Result |
 |---|---|
@@ -97,22 +110,23 @@ Exercised by: `60-perform-cancel.sh`:
   `perform.writer-unknown`.
 - A planted record naming a group that is gone is handed off: the record is
   removed and the performer starts.
+- Eight simultaneous calls produce one fixture writer and one Dispatch;
+  the other seven receive named refusals before compilation.
+- After SIGKILL to a controller, the still-live recorded writer blocks a call
+  on another stage and a call on a sibling Warrant in the same checkout.
+- Unreadable writer indexes, entries or writer paths return
+  `UNKNOWN perform.writer-unknown`; absent writers are not inferred from errors.
 
 The unit test `a_writer_is_alive_gone_or_unknown_and_never_guessed` covers
 the probe's three answers.
 
 **Not covered:**
 
-- **Two `war perform` calls started at the same instant.** Each probes, finds no
-  writer, and compiles. The record is written once the performer is spawned, so
-  in the window between probe and spawn neither call can see the other. One
-  operator running one command at a time does not hit this. A scheduler that
-  starts several at once would.
 - **A writer on another machine**, or in another checkout of the same
   repository. The record lives in this working tree and names a local process
   group. A remote writer is not probed, and not excluded.
-- **Other stages.** Handoff is per stage. `max_concurrent = 1` is a policy of
-  this command, not a lock across the repository.
+- Remote writers, other checkouts and processes that bypass this advisory
+  protocol are not excluded by the lock or by inspection of retained records.
 
 ## The claude adapter
 

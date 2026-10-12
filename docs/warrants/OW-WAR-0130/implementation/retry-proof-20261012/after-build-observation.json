@@ -1,0 +1,8 @@
+{
+  "revision": "4433ee361fa4d2c78f621515c81a6832e6dcfdd9",
+  "source_dirty": false,
+  "binary_identity": "war 1.0.0-alpha.2",
+  "binary_sha256": "8fd3cded44bc90ead045ebdb858488ab0b6f42237cc2c9ebe1898f3b94fb59bf",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "build_exit_code": 0
+}

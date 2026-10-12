@@ -1,0 +1,7 @@
+# Verifier reading-budget refusal
+
+The bundled Claude verifier now checks the compiler budget metadata on one immutable local copy before any version probe or inference. Oversized packets, invalid numeric/boolean metadata and duplicate packet fields yield no response and no backend call. No binding or rule is cut, no disposition is generated, and the caller's packet remains unchanged.
+
+The oversized-packet and ambiguous-budget controls each called the fake backend twice and emitted a response before their fixes. They now refuse with zero calls and zero response bytes. The final selected plant passes 17 checks: one positive generated-record check and 16 fake-backend controls. `observation.json` pins wrapper, plant, documentation and binary identities. The first broad run's additional temporary-directory setup failure is retained; its final correction places TMPDIR outside the repository.
+
+These are performer observations using a fake backend. They establish neither a real model's judgment nor provider confinement, human presence, monetary spend enforcement, independent assurance or a release gate. The guard trusts the compiler's recorded estimate; it is not a model-specific tokenizer. Other configured backends still need their own limit enforcement. The compiler retains oversized exact packets; this does not solve how to deliver all their required context within a smaller review window. OW117 stays in progress.
