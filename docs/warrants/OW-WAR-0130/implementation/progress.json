@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0130",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "bf233f4c44dd66318eb5c0c26357c01a2a811963",
+  "summary": "Executed the missing historical before-fix retry control: the old binary rewrites a verification then fails; the fixed binary replays without changing the complete Warrant content tree or record modification time. Retained current 62-control evidence includes the idempotency, crash recovery and compatibility cases; eight source hashes still match. Independent disposition and full scope closure remain pending.",
+  "notes": "docs/warrants/OW-WAR-0130/implementation/retry-proof-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0130/implementation/retry-proof-20261012/historical-retry-observation.json",
+    "docs/warrants/OW-WAR-0130/implementation/retry-proof-20261012/exact-observation.json",
+    "docs/warrants/OW-WAR-0130/implementation/retry-proof-20261012/current-source-binding.json"
+  ],
+  "next_steps": [
+    "Independent reviewer reassesses OBL-002 using the actual historical control; retain previous findings unchanged.",
+    "Audit the full declared act inventory, deliverables and required gate receipts against the approved contract before claiming completion.",
+    "Human acceptance and resolution remain separate."
+  ]
+}

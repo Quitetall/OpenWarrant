@@ -1,0 +1,23 @@
+{
+  "scope": "same literal v1 fixture response and same scratch Warrant, historical before/after binaries",
+  "before": {
+    "exit_code": 1,
+    "record_rewritten": true,
+    "named_duplicate_refusal": true
+  },
+  "after": {
+    "exit_code": 0,
+    "record_and_journal_unchanged": true,
+    "whole_warrant_tree_unchanged": true,
+    "named_replay": true
+  },
+  "fixture_response_sha256": "5c1b2414dab0036ec1805651e4b305189d84c1fc165a779ed94795e51a703223",
+  "initial_record_sha256": "e7747ce1a62023efc12f3c51377032c37dbd36c35ecda06344cae0712420fce3",
+  "initial_warrant_tree_sha256": "1eed1c50b9326ba0758bbbc9d1d22b5a9ebb410c9b4f109762cae779d951bc7f",
+  "binary_sha256": {
+    "before": "011e76449a1bdc405d90ac5d39c70d5337cfab417c862c59f83fa202e202db56",
+    "after": "8fd3cded44bc90ead045ebdb858488ab0b6f42237cc2c9ebe1898f3b94fb59bf"
+  },
+  "independent_verification": false,
+  "qualification": false
+}
