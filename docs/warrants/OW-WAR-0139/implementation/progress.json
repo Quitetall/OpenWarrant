@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0139",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "5921aa7738036e11b0248631cdd9c0d415398e9d",
+  "summary": "LAN and unchanged loopback controls pass 57/0; pairing units pass 4/0; exact historical 13-response header baseline reproduced. Nine closure requirements remain unmet.",
+  "notes": "docs/warrants/OW-WAR-0139/implementation/lan-controls-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0139/implementation/lan-controls-20261012/observation.json"
+  ],
+  "next_steps": [
+    "Independently assess scoped obligations and run the full registered gate on the exact candidate.",
+    "Obtain actual operator observations and decisions on signing and TLS options.",
+    "Reconcile later delivery ownership and obtain human acceptance without rewriting signed history."
+  ]
+}

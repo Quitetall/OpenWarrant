@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0140",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "5921aa7738036e11b0248631cdd9c0d415398e9d",
+  "summary": "27 contractor controls and 24 profile units pass; separate-cache historical binaries preserve all 142 parent-corpus IR, composition and contract digests. Nine closure requirements remain unmet.",
+  "notes": "docs/warrants/OW-WAR-0140/implementation/profile-controls-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0140/implementation/profile-controls-20261012/observation.json"
+  ],
+  "next_steps": [
+    "Independently assess all scoped obligations and run the full registered candidate gate.",
+    "Reconcile later delivery ownership without rewriting signed history.",
+    "Obtain actual human acceptance; legal and financial qualification remain outside AM-003 scope."
+  ]
+}

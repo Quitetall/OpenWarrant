@@ -1,0 +1,42 @@
+{
+  "schema": "openwarrant.scoped-runtime-observation/v1",
+  "warrant": "OW-WAR-0140",
+  "source_commit": "5921aa7738036e11b0248631cdd9c0d415398e9d",
+  "selected_controls": {
+    "passed": 27,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "profile_units": {
+    "passed": 24,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "historical_comparison": {
+    "schema": "openwarrant.historical-profile-observation/v1",
+    "before_commit": "975950a141aa038064e2e09d9ef19faef116268d",
+    "after_commit": "e995a450b12d2664dd72de2b6a51f2afddf7da2c",
+    "fixture_commit": "c57215b1c371fe7b49e0fe54960638622b41a752",
+    "same_fixture_path": true,
+    "core_profile_definitions": "exact after-commit definitions added to otherwise before-commit corpus",
+    "warrants": 142,
+    "changed_ir_or_composition_digests": [],
+    "changed_contract_digests": [],
+    "build_namespace": "automatic per-workspace build-dir",
+    "before_identity": "war 1.0.0-alpha.2 (unreleased, commit 975950a141aa, debug)",
+    "after_identity": "war 1.0.0-alpha.2 (unreleased, commit e995a450b12d, debug)",
+    "before_binary_sha256": "c2fef2ec0574236c367ee227ca55b209e337973e9f1b48807ea9fefaa0959bc9",
+    "after_binary_sha256": "f078997b5765a6029019ed08e5dfb8885debcbba2c9fde6520523e33da62e69b",
+    "human_acceptance": false,
+    "independent_verdict": false
+  },
+  "closure": {
+    "exit_code": 2,
+    "pass": 5,
+    "warn": 9,
+    "unknown": 9,
+    "error": 0
+  },
+  "human_acceptance": false,
+  "independent_verdict": false
+}

@@ -1590,7 +1590,7 @@
 
 ## docs/tickets/t-68998/manifest.toml
 > Refuse simultaneous Warrant performers before dispatch or spawn
-- t-68998 · ticket · open · Refuse simultaneous Warrant performers before dispatch or spawn · docs/tickets/t-68998/manifest.toml:1
+- t-68998 · ticket · done · Refuse simultaneous Warrant performers before dispatch or spawn · docs/tickets/t-68998/manifest.toml:1
 
 ## docs/tickets/t-72af0/manifest.toml
 > Recover after context preparation is unavailable before worker launch

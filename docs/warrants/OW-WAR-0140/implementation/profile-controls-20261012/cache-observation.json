@@ -1,0 +1,17 @@
+{
+  "schema": "openwarrant.cache-observation/v1",
+  "shared_namespace": {
+    "build_exit_code": 0,
+    "after_expected_output": "2",
+    "after_observed_output": "1",
+    "result": "wrong earlier binary despite success"
+  },
+  "isolated_namespace": {
+    "build_exit_code": 0,
+    "after_observed_output": "2",
+    "result": "correct after binary"
+  },
+  "historical_after_dependency_path": "correct after worktree",
+  "historical_after_shared_build_exit": 101,
+  "project_source_modified": false
+}
