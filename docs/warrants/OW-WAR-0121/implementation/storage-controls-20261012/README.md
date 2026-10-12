@@ -18,3 +18,15 @@ The writer inventory is a static source check, not a separate crash execution
 for each of the six writers. No kernel rename crash, physical power-loss,
 macOS/Windows, multi-file transaction or independent/human acceptance is claimed.
 Parent closure remains 6 PASS, 5 WARN, 8 UNKNOWN, 0 ERROR.
+
+## Clean release supplement
+
+The clean source commit 43a33fb2f4d2e1ffa846fef289df4fdaf9589bed built
+successfully offline with Rust 1.97.1 in 425 seconds. Its actual release version
+and SHA-256 are in release-observation.json. With that exact artifact available,
+the registered plant passed 22 feature controls plus the positive corpus check:
+23 PASS, zero failures, including absence of OPENWARRANT_FAULT in the release
+binary. The earlier UNKNOWN remains in the original log as actual history.
+The private clone's atomic.rs bytes matched source and its metadata was copied
+from source for the plant's freshness predicate. No binary timestamp was altered.
+This proves the bounded release-hook property, not full release qualification.
