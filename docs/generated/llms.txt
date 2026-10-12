@@ -1704,6 +1704,10 @@
 > M5: tickets on the kernel, ticket features, GitHub in and out, the demonstration
 - t-ae2be · ticket · done · M5: tickets on the kernel, ticket features, GitHub in and out, the demonstration · docs/tickets/t-ae2be/manifest.toml:1
 
+## docs/tickets/t-aef77/manifest.toml
+> Keep verifier fixtures within their declared dispatch budgets
+- t-aef77 · ticket · done · Keep verifier fixtures within their declared dispatch budgets · docs/tickets/t-aef77/manifest.toml:1
+
 ## docs/tickets/t-b0708/manifest.toml
 > M2: a document's type chooses its capabilities, and new manifests pin their profile
 - t-b0708 · ticket · done · M2: a document's type chooses its capabilities, and new manifests pin their profile · docs/tickets/t-b0708/manifest.toml:1
