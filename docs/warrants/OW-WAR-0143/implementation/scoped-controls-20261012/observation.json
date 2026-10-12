@@ -1,0 +1,46 @@
+{
+  "schema": "openwarrant.scoped-runtime-observation/v1",
+  "warrant": "OW-WAR-0143",
+  "source_basis": "2085ae428d25e2ffe68dc89153f6b8d33b9fb972",
+  "binary": {
+    "identity": "war 1.0.0-alpha.3 (unreleased, commit d172e9fde9f2, dirty, debug)",
+    "sha256": "45a83662a1ea8b3b5efd35fe57db632bb0726d9fffe26ec77136b16fa0a5a6de",
+    "profile": "debug",
+    "identity_basis": "d172e9fde9f2 dirty implementation build; source code unchanged since compilation"
+  },
+  "platform": "Linux-7.2.9-1-cachyos-x86_64-with-glibc2.44",
+  "suite": {
+    "exit_code": 0,
+    "passed": 38,
+    "failed": 0,
+    "positive_corpus_checks": 1,
+    "feature_controls": 37
+  },
+  "source_files": {
+    "crates/openwarrant-cli/src/build_identity.rs": "f5db1c752fc9d4bf8f384ae933e81107f5781b7bdc9ccf18213d68be38126ab8",
+    "crates/openwarrant-cli/build.rs": "0f7c07a86514940a7cb553291230a1dddca8fe80e0b0506eeae832bf4e71550f",
+    "crates/openwarrant-cli/src/install.rs": "0f944e8db81ae2e785ce5562ee53387c2c2c07b3513f21a9aad35ada407e5c47",
+    "crates/openwarrant-cli/src/notice.rs": "cd7627a24c4ef6343bfbb1d1f500b25205eee7e632e1e36a15a48adb91114b74",
+    "install.sh": "933c641da7e13f1ec8d3f7ed1c1f2bb2f94ae1732e083f43f593e995ed0391f5",
+    "conformance/plants.d/61-update.sh": "e3fbad9d0510b1b7aafc76a2b1a62522e86d47a247b2ae64cd33ec67a37309e1",
+    "docs/INSTALL.md": "7dcbb27bd054e0ea82c1824c5628a624e2e737a9eb9550cb1622c9500075ab94"
+  },
+  "closure": {
+    "exit_code": 2,
+    "counts": {
+      "pass": 6,
+      "warn": 2,
+      "unknown": 8,
+      "error": 0,
+      "worst": "unknown"
+    }
+  },
+  "human_acceptance": false,
+  "independent_disposition": false,
+  "full_registered_gate_executed": false,
+  "install_units": {
+    "exit_code": 0,
+    "passed": 6,
+    "failed": 0
+  }
+}
