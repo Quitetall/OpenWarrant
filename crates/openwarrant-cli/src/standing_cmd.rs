@@ -324,7 +324,14 @@ fn resolved_deliverables_file(repo: &Repository, path: &str) -> bool {
         .is_some()
 }
 
-/// Every covered authorization in the corpus: (alias, reference, time).
+// References name class identity; alternate accepted revision spellings must
+// never grant another allowance. Keep recorded bytes intact.
+fn canonical_reference(reference: &str) -> Option<String> {
+    let (id, revision) = standing::parse_reference(reference)?;
+    Some(standing::reference(&id, revision))
+}
+
+/// Every covered authorization in the corpus: (alias, canonical reference, time).
 fn covered_records(repo: &Repository) -> Vec<(String, String, String)> {
     let mut out = Vec::new();
     for dir in repo.warrant_dirs().unwrap_or_default() {
@@ -337,10 +344,7 @@ fn covered_records(repo: &Repository) -> Vec<(String, String, String)> {
         let Some(auth) = record.revision.authorization else {
             continue;
         };
-        if let Some(basis) = auth
-            .policy_basis
-            .filter(|b| b.starts_with(standing::SCHEME))
-        {
+        if let Some(basis) = auth.policy_basis.and_then(|b| canonical_reference(&b)) {
             out.push((alias, basis, auth.effective_time));
         }
     }
@@ -349,14 +353,62 @@ fn covered_records(repo: &Repository) -> Vec<(String, String, String)> {
 
 /// How many Warrants a class covered strictly before `(at, alias)`.
 fn used_before(repo: &Repository, reference: &str, at: &str, alias: &str) -> u32 {
+    let reference = canonical_reference(reference);
     let t = standing::epoch_seconds(at);
     let n = covered_records(repo)
         .into_iter()
         .filter(|(a, r, when)| {
-            r == reference && a != alias && (standing::epoch_seconds(when), a.as_str()) < (t, alias)
+            Some(r) == reference.as_ref()
+                && a != alias
+                && (standing::epoch_seconds(when), a.as_str()) < (t, alias)
         })
         .count();
     u32::try_from(n).unwrap_or(u32::MAX)
+}
+
+fn used_for_admission(repo: &Repository, reference: &str, alias: &str) -> Result<u32, RepoError> {
+    let reference = canonical_reference(reference);
+    let mut used = 0_u32;
+    for dir in repo.warrant_dirs()? {
+        if dir.file_name() == Some(alias) {
+            continue;
+        }
+        // A parse/read failure is not evidence of an unused slot.
+        if let Some(record) = repo.load_authorization(&dir)?
+            && record
+                .revision
+                .authorization
+                .as_ref()
+                .and_then(|authorization| authorization.policy_basis.as_deref())
+                .and_then(canonical_reference)
+                .is_some_and(|basis| Some(&basis) == reference.as_ref())
+        {
+            used = used.saturating_add(1);
+        }
+    }
+    Ok(used)
+}
+
+/// Keep capacity and in-flight ownership checks together with the write.
+/// Lock the existing corpus directory: no source or lock file is created,
+/// and process exit releases the guard. Different aliases/classes must share
+/// this guard; their individual atomic authorization writes are not enough.
+#[cfg(unix)]
+fn standing_admission(root: &Utf8Path) -> std::io::Result<Option<std::fs::File>> {
+    let held = std::fs::File::open(root)?;
+    match rustix::fs::flock(&held, rustix::fs::FlockOperation::NonBlockingLockExclusive) {
+        Ok(()) => Ok(Some(held)),
+        Err(error) if error == rustix::io::Errno::WOULDBLOCK => Ok(None),
+        Err(error) => Err(error.into()),
+    }
+}
+
+#[cfg(not(unix))]
+fn standing_admission(_: &Utf8Path) -> std::io::Result<Option<std::fs::File>> {
+    Err(std::io::Error::new(
+        std::io::ErrorKind::Unsupported,
+        "this platform has no supported standing admission lock",
+    ))
 }
 
 // ---------------------------------------------------------------------------
@@ -674,6 +726,26 @@ pub fn apply(
 ) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let dir = repo.warrant_dir(alias)?;
+    let _admission = match standing_admission(&repo.warrants_dir()) {
+        Ok(Some(held)) => held,
+        Ok(None) => {
+            report.push(Diagnostic::unknown(
+                "standing.admission-busy",
+                repo.relative(&dir),
+                "Another standing application holds this corpus. Retry when it exits; \
+                 capacity and ownership were not checked, and nothing was written.",
+            ));
+            return Ok(report);
+        }
+        Err(error) => {
+            report.push(Diagnostic::unknown(
+                "standing.admission-unknown",
+                repo.relative(&dir),
+                format!("Could not hold standing admission: {error}; nothing was written."),
+            ));
+            return Ok(report);
+        }
+    };
     let authorization_path = dir.join("authorization.toml");
     let before = match crate::compile::atomic::prestate(&authorization_path) {
         Ok(p) => p,
@@ -709,6 +781,7 @@ pub fn apply(
         );
         return Ok(report);
     };
+    let reference = class.reference();
     let terms = match &class.parsed {
         Ok(c) => c.clone(),
         Err(refusals) => {
@@ -748,7 +821,17 @@ pub fn apply(
     };
     let now = crate::gate_cmd::receipt::now_rfc3339_public();
     let revoked = revocation_of(repo, &class);
-    let used = used_before(repo, &reference, &now, alias);
+    let used = match used_for_admission(repo, &reference, alias) {
+        Ok(used) => used,
+        Err(error) => {
+            report.push(Diagnostic::unknown(
+                "standing.capacity-unknown",
+                at.clone(),
+                format!("Could not establish used capacity: {error}; nothing was written."),
+            ));
+            return Ok(report);
+        }
+    };
     let mut refused_any = false;
     if let Err(r) = standing::in_force(
         &terms,
@@ -830,6 +913,8 @@ pub fn apply(
                 .authorization
                 .as_ref()
                 .and_then(|a| a.policy_basis.as_deref())
+                .and_then(canonical_reference)
+                .as_deref()
                 == Some(reference.as_str());
         if same {
             report.push(Diagnostic::pass(
@@ -1690,6 +1775,112 @@ pub fn revoke_ingest_with(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    struct CountFixture(Repository);
+
+    impl CountFixture {
+        fn new() -> Self {
+            let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+                .unwrap()
+                .join(format!(
+                    "war-standing-count-{}-{}",
+                    std::process::id(),
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_nanos()
+                ));
+            std::fs::create_dir_all(root.join("docs/warrants/FX-WAR-0003")).unwrap();
+            std::fs::write(root.join("openwarrant.toml"), "schema = \"oh.war/repository-config/v1\"\n[project]\nname = \"count-fixture\"\nnamespace = \"FX\"\n[paths]\n").unwrap();
+            std::fs::write(root.join("docs/warrants/FX-WAR-0003/manifest.toml"), "").unwrap();
+            Self(Repository::open(root).unwrap())
+        }
+
+        fn authorization_path(&self) -> Utf8PathBuf {
+            self.0.warrants_dir().join("FX-WAR-0003/authorization.toml")
+        }
+    }
+
+    impl Drop for CountFixture {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0.root);
+        }
+    }
+
+    #[test]
+    fn admission_counts_existing_records_without_timestamp_or_alias_order() {
+        let fixture = CountFixture::new();
+        // Synthetic capacity claim, not a signed authorization. Admission
+        // must conservatively count it even if its timestamp is in the future.
+        std::fs::write(
+            fixture.authorization_path(),
+            r#"schema = "oh.war/authorization/v1"
+warrant = "FX-WAR-0003"
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "fixture"
+proposer = "fixture"
+[revision.coverage]
+covered = []
+[revision.authorization]
+authorizer = "fixture"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "synthetic count fixture"
+effective_time = "2999-01-01T00:00:00Z"
+policy_basis = "standing://count@1"
+independence = "separate_role"
+"#,
+        )
+        .unwrap();
+        assert_eq!(
+            used_before(
+                &fixture.0,
+                "standing://count@1",
+                "2999-01-01T00:00:00Z",
+                "FX-WAR-0002"
+            ),
+            0
+        );
+        assert_eq!(
+            used_for_admission(&fixture.0, "standing://count@1", "FX-WAR-0002").unwrap(),
+            1
+        );
+        assert_eq!(
+            used_for_admission(&fixture.0, "standing://count@1", "FX-WAR-0003").unwrap(),
+            0
+        );
+        let canonical = std::fs::read_to_string(fixture.authorization_path()).unwrap();
+        for variant in ["standing://count@01", "standing://count@+1"] {
+            std::fs::write(
+                fixture.authorization_path(),
+                canonical.replace("standing://count@1", variant),
+            )
+            .unwrap();
+            assert_eq!(
+                used_for_admission(&fixture.0, "standing://count@1", "FX-WAR-0002").unwrap(),
+                1,
+                "one parsed class cannot gain a separate allowance for {variant}"
+            );
+            assert_eq!(
+                used_before(
+                    &fixture.0,
+                    "standing://count@1",
+                    "2999-01-01T00:00:00Z",
+                    "FX-WAR-0004"
+                ),
+                1
+            );
+        }
+    }
+
+    #[test]
+    fn admission_does_not_treat_an_unreadable_authorization_as_unused_capacity() {
+        let fixture = CountFixture::new();
+        std::fs::write(fixture.authorization_path(), "not valid TOML = [").unwrap();
+        assert!(used_for_admission(&fixture.0, "standing://count@1", "FX-WAR-0002").is_err());
+    }
 
     #[test]
     fn subjects_and_targets_are_stable() {

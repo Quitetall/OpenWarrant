@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0142",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "d172e9fde9f2d6755fe947ad66e62eecaa71690f",
+  "summary": "Fixed observed standing-class oversubscription from concurrent requests and alternate reference spellings: limit one previously issued two records. Unknown capacity writes nothing. 52 controls and all 475 CLI units pass; nine closure requirements remain unmet.",
+  "notes": "docs/warrants/OW-WAR-0142/implementation/admission-limit-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0142/implementation/admission-limit-20261012/summary.json"
+  ],
+  "next_steps": [
+    "Run the full registered gate on the exact committed fix and independently assess remaining obligations.",
+    "Obtain the owner-defined first class and actual operator observations without activating a fabricated policy.",
+    "Reconcile later delivery ownership and obtain human acceptance without rewriting signed history."
+  ]
+}

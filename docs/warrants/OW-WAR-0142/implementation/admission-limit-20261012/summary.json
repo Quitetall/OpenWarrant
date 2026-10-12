@@ -1,0 +1,126 @@
+{
+  "schema": "openwarrant.scoped-runtime-observation/v1",
+  "warrant": "OW-WAR-0142",
+  "source_basis": "d172e9fde9f2d6755fe947ad66e62eecaa71690f",
+  "before_binary_sha256": "0cbe9ad5ebc166b5ceb8a1493eee495eef164c3b035ee14b28d0b4625085431e",
+  "fixed_binary_identity": "war 1.0.0-alpha.3 (unreleased, commit d172e9fde9f2, dirty, debug)",
+  "fixed_binary_sha256": "45a83662a1ea8b3b5efd35fe57db632bb0726d9fffe26ec77136b16fa0a5a6de",
+  "red_cli": {
+    "exit_code": 1,
+    "limit": 1,
+    "authorizations": 2
+  },
+  "red_unit_tests": {
+    "exit_code": 101,
+    "passed": 2,
+    "failed": 2
+  },
+  "red_controls": {
+    "exit_code": 1,
+    "passed": 46,
+    "failed": 2
+  },
+  "fixed_cli": {
+    "limit": 1,
+    "requests": [
+      {
+        "alias": "SR-WAR-0002",
+        "exit": 0,
+        "authorization_exists": true,
+        "recorded": true,
+        "exhausted": false
+      },
+      {
+        "alias": "SR-WAR-0003",
+        "exit": 2,
+        "authorization_exists": false,
+        "recorded": false,
+        "exhausted": false
+      }
+    ],
+    "recorded": 1
+  },
+  "unknown_capacity_cli": {
+    "exit_code": 2,
+    "capacity_unknown": true,
+    "authorization_exists": false,
+    "target_tree_unchanged": true
+  },
+  "final_controls": {
+    "exit_code": 0,
+    "passed": 52,
+    "failed": 0
+  },
+  "fixed_units": {
+    "exit_code": 0,
+    "passed": 4,
+    "failed": 0
+  },
+  "clippy_all_targets_exit_code": 0,
+  "format_exit_code": 0,
+  "real_active_class_inventory": [],
+  "closure": {
+    "exit_code": 2,
+    "pass": 5,
+    "warn": 11,
+    "unknown": 9,
+    "error": 0
+  },
+  "human_acceptance": false,
+  "independent_verdict": false,
+  "cli_library_tests": {
+    "exit_code": 0,
+    "passed": 475,
+    "failed": 0
+  },
+  "alias_red_cli": {
+    "limit": 1,
+    "requests": [
+      {
+        "alias": "SR-WAR-0002",
+        "exit": 0,
+        "authorization_exists": true,
+        "recorded": true,
+        "exhausted": false
+      },
+      {
+        "alias": "SR-WAR-0003",
+        "exit": 0,
+        "authorization_exists": true,
+        "recorded": true,
+        "exhausted": false
+      }
+    ],
+    "recorded": 2
+  },
+  "alias_fixed_cli": {
+    "limit": 1,
+    "requests": [
+      {
+        "alias": "SR-WAR-0002",
+        "exit": 0,
+        "authorization_exists": true,
+        "recorded": true,
+        "exhausted": false
+      },
+      {
+        "alias": "SR-WAR-0003",
+        "exit": 2,
+        "authorization_exists": false,
+        "recorded": false,
+        "exhausted": true
+      }
+    ],
+    "recorded": 1
+  },
+  "alias_red_unit_tests": {
+    "exit_code": 101,
+    "passed": 3,
+    "failed": 1
+  },
+  "expanded_red_controls": {
+    "exit_code": 1,
+    "passed": 46,
+    "failed": 6
+  }
+}

@@ -49,5 +49,34 @@
   },
   "independent_verdict": false,
   "human_acceptance": false,
-  "original_release_baseline_reproduced": false
+  "original_release_baseline_reproduced": false,
+  "fresh_release_measurement": {
+    "runs": 5,
+    "exit_code": 0,
+    "status": "complete",
+    "binary": {
+      "path": "/mnt/4tb/tmp/openwarrant-ow141-intake-20261012/corpus/target/release/war",
+      "version": "war 1.0.0-alpha.3 (unreleased, commit 36257832c01b)",
+      "build_profile": "release",
+      "build_profile_determined_by": "binary path (target/release)",
+      "sha256": "390c09d22c8624ac1d1d7264315559a15647a8a14451593cfa3989c28983b8ab"
+    },
+    "intake": {
+      "median_ms": 120,
+      "max_ms": 217,
+      "per_run_ms": [
+        217,
+        115,
+        120,
+        216,
+        115
+      ]
+    },
+    "human_steps": "counted, not timed",
+    "model_latency": "not_measured",
+    "build_exit_code": 0,
+    "build_source_clean": true,
+    "build_source_commit": "36257832c01b770da89aba272bd2cb947fc21962",
+    "first_background_attempt_exit_code": 127
+  }
 }

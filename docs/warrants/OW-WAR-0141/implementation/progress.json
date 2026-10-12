@@ -4,13 +4,12 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "36257832c01b770da89aba272bd2cb947fc21962",
-  "summary": "46 intake/friction controls and four intake units pass. Fresh debug intake median 277 ms over three fixture runs; human/model time and original release baseline remain unmeasured or unreproduced. Eight closure requirements remain unmet.",
+  "summary": "46 intake/friction controls and four intake units pass. Clean release five-run intake median 120 ms/max 217 ms; debug median 277 ms. Human/model time and original release baseline remain unmeasured or unreproduced. Eight closure requirements remain unmet.",
   "notes": "docs/warrants/OW-WAR-0141/implementation/intake-controls-20261012/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0141/implementation/intake-controls-20261012/observation.json"
   ],
   "next_steps": [
-    "Obtain the scoped release-build measurement without replacing historical records or assuming dirty-source custody.",
     "Independently assess remaining obligations and run the exact full candidate gate.",
     "Reconcile later ownership and obtain human acceptance; real users and model quality need separate evidence."
   ]

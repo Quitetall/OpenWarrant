@@ -1,0 +1,20 @@
+{
+  "limit": 1,
+  "requests": [
+    {
+      "alias": "SR-WAR-0002",
+      "exit": 0,
+      "authorization_exists": true,
+      "recorded": true,
+      "exhausted": false
+    },
+    {
+      "alias": "SR-WAR-0003",
+      "exit": 2,
+      "authorization_exists": false,
+      "recorded": false,
+      "exhausted": true
+    }
+  ],
+  "recorded": 1
+}

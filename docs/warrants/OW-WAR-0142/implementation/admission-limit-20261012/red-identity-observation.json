@@ -1,0 +1,20 @@
+{
+  "rows": [
+    {
+      "alias": "SR-WAR-0002",
+      "record_warrant": "SR-WAR-0002",
+      "contract_digest": "333842499854e4f38ce025c43cc53b43c6e182859118a730ee8084937042ab5f",
+      "class": "standing://race-one@1",
+      "time": "2026-10-12T05:36:49Z"
+    },
+    {
+      "alias": "SR-WAR-0003",
+      "record_warrant": "SR-WAR-0003",
+      "contract_digest": "31984b4e59180749037804eb8097969729295b6f26e921a269cb166a98a64d77",
+      "class": "standing://race-one@1",
+      "time": "2026-10-12T05:36:49Z"
+    }
+  ],
+  "distinct_aliases": true,
+  "distinct_contracts": true
+}

@@ -548,6 +548,104 @@ if [[ $SB_SHORT_OK -eq 1 ]]; then
 else
     st_fail "an application after expires_at" "the class never covered anything before it expired"
 fi
+# Admission is a corpus transaction, not just an atomic write to one alias.
+# Holding the corpus directory lock must refuse even an otherwise valid class.
+st_class "$ST_TMP/locked.toml" "admission-locked" 1 '"src/**"' "" 1
+sb standing propose "$ST_TMP/locked.toml" >/dev/null 2>&1
+st_sign "$SB" standing:admission-locked@1 >/dev/null
+SB_LOCKED=$(st_warrant "$SB" "standing://admission-locked@1" "Held admission" src/admission-locked.rs)
+python3 - "$SB/docs/warrants" "$ST_TMP/admission-ready" "$ST_TMP/admission-release" <<'LOCK' &
+import os, fcntl, pathlib, sys, time
+fd = os.open(sys.argv[1], os.O_RDONLY)
+try:
+    fcntl.flock(fd, fcntl.LOCK_EX)
+    pathlib.Path(sys.argv[2]).write_text("held\n")
+    deadline = time.monotonic() + 30
+    while not pathlib.Path(sys.argv[3]).exists():
+        if time.monotonic() >= deadline:
+            raise SystemExit("admission lock control timed out")
+        time.sleep(0.01)
+finally:
+    os.close(fd)
+LOCK
+SB_LOCK_PID=$!
+for ((SB_WAIT = 0; SB_WAIT < 500; SB_WAIT++)); do
+    [[ -f "$ST_TMP/admission-ready" ]] && break
+    sleep 0.01
+done
+SB_LOCK_BEFORE=$(st_tree "$SB/docs/warrants/$SB_LOCKED")
+SB_LOCK_OUT=$(sb standing apply "$SB_LOCKED" 2>&1); SB_LOCK_STATUS=$?
+printf 'release\n' > "$ST_TMP/admission-release"
+wait "$SB_LOCK_PID"; SB_LOCK_EXIT=$?
+if [[ -f "$ST_TMP/admission-ready" && $SB_LOCK_EXIT -eq 0 && $SB_LOCK_STATUS -ne 0 ]] \
+    && grep -q 'standing.admission-busy' <<<"$SB_LOCK_OUT" \
+    && [[ "$(st_tree "$SB/docs/warrants/$SB_LOCKED")" == "$SB_LOCK_BEFORE" ]]; then
+    st_ok "held admission writes nothing" "standing.admission-busy, unchanged contract and journal"
+else
+    st_fail "held admission writes nothing" "lock $SB_LOCK_EXIT, apply $SB_LOCK_STATUS: $(st_errors "$SB_LOCK_OUT")"
+fi
+
+# Two distinct contracts race for the sole slot. A transient busy refusal is
+# allowed; after the winner exits, the loser must observe actual exhaustion.
+st_class "$ST_TMP/race.toml" "admission-race" 1 '"src/**"' "" 1
+sb standing propose "$ST_TMP/race.toml" >/dev/null 2>&1
+st_sign "$SB" standing:admission-race@1 >/dev/null
+SB_RACE_A=$(st_warrant "$SB" "standing://admission-race@1" "Race A" src/admission-race-a.rs)
+SB_RACE_B=$(st_warrant "$SB" "standing://admission-race@1" "Race B" src/admission-race-b.rs)
+sb standing apply "$SB_RACE_A" > "$ST_TMP/race-a.out" 2>&1 & SB_RACE_PID_A=$!
+sb standing apply "$SB_RACE_B" > "$ST_TMP/race-b.out" 2>&1 & SB_RACE_PID_B=$!
+wait "$SB_RACE_PID_A"; SB_RACE_EXIT_A=$?
+wait "$SB_RACE_PID_B"; SB_RACE_EXIT_B=$?
+SB_RACE_COUNT=0
+for SB_RACE_ALIAS in "$SB_RACE_A" "$SB_RACE_B"; do
+    [[ -f "$SB/docs/warrants/$SB_RACE_ALIAS/authorization.toml" ]] && SB_RACE_COUNT=$((SB_RACE_COUNT + 1))
+done
+if [[ $SB_RACE_COUNT -eq 1 ]]; then
+    [[ -f "$SB/docs/warrants/$SB_RACE_A/authorization.toml" ]] && SB_RACE_LOSER=$SB_RACE_B || SB_RACE_LOSER=$SB_RACE_A
+    st_refused "a raced class admits one only" "$SB_RACE_LOSER" 'standing\.exhausted'
+else
+    st_fail "a raced class admits one only" "$SB_RACE_COUNT records, exits $SB_RACE_EXIT_A/$SB_RACE_EXIT_B"
+fi
+
+# An unreadable prior claim cannot be counted as an unused slot. The requested
+# contract is valid; uncertainty about the corpus is UNKNOWN, not its failure.
+SB_BAD_CLAIM=$(st_warrant "$SB" "standing://routine@1" "Unknown prior claim" src/admission-bad.rs)
+SB_UNKNOWN=$(st_warrant "$SB" "standing://routine@1" "Unknown capacity" src/admission-unknown.rs)
+printf 'not valid TOML = [\n' > "$SB/docs/warrants/$SB_BAD_CLAIM/authorization.toml"
+SB_UNKNOWN_BEFORE=$(st_tree "$SB/docs/warrants/$SB_UNKNOWN")
+SB_UNKNOWN_OUT=$(sb standing apply "$SB_UNKNOWN" 2>&1); SB_UNKNOWN_STATUS=$?
+if [[ $SB_UNKNOWN_STATUS -eq 2 ]] && grep -qE '^UNKNOWN +standing\.capacity-unknown ' <<<"$SB_UNKNOWN_OUT" \
+    && [[ ! -f "$SB/docs/warrants/$SB_UNKNOWN/authorization.toml" ]] \
+    && [[ "$(st_tree "$SB/docs/warrants/$SB_UNKNOWN")" == "$SB_UNKNOWN_BEFORE" ]]; then
+    st_ok "unknown capacity writes nothing" "standing.capacity-unknown; valid contract unchanged"
+else
+    st_fail "unknown capacity writes nothing" "exit $SB_UNKNOWN_STATUS: $(st_errors "$SB_UNKNOWN_OUT")"
+fi
+command rm -f "$SB/docs/warrants/$SB_BAD_CLAIM/authorization.toml"
+
+# Accepted alternate spellings identify one class, never another allowance.
+st_class "$ST_TMP/alias.toml" "admission-alias" 1 '"src/**"' "" 1
+sb standing propose "$ST_TMP/alias.toml" >/dev/null 2>&1
+st_sign "$SB" standing:admission-alias@1 >/dev/null
+SB_ALIAS_A=$(st_warrant "$SB" "standing://admission-alias@1" "Alias A" src/admission-alias-a.rs)
+SB_ALIAS_B=$(st_warrant "$SB" "standing://admission-alias@1" "Alias B" src/admission-alias-b.rs)
+SB_ALIAS_OUT=$(sb standing apply "$SB_ALIAS_A" --class standing://admission-alias@01 2>&1)
+if grep -q 'standing.recorded' <<<"$SB_ALIAS_OUT" \
+    && grep -q 'policy_basis = "standing://admission-alias@1"' "$SB/docs/warrants/$SB_ALIAS_A/authorization.toml"; then
+    st_ok "alternate reference records identity" "@01 records canonical @1"
+else
+    st_fail "alternate reference records identity" "$(st_errors "$SB_ALIAS_OUT")"
+fi
+SB_ALIAS_BEFORE=$(st_tree "$SB/docs/warrants/$SB_ALIAS_A")
+SB_ALIAS_REPLAY=$(sb standing apply "$SB_ALIAS_A" --class standing://admission-alias@+1 2>&1); SB_ALIAS_STATUS=$?
+if [[ $SB_ALIAS_STATUS -eq 0 ]] && grep -q 'standing.already-covered' <<<"$SB_ALIAS_REPLAY" \
+    && [[ "$SB_ALIAS_BEFORE" == "$(st_tree "$SB/docs/warrants/$SB_ALIAS_A")" ]]; then
+    st_ok "alternate reference replays unchanged" "@+1 replays @1 without a second act"
+else
+    st_fail "alternate reference replays unchanged" "exit $SB_ALIAS_STATUS: $(st_errors "$SB_ALIAS_REPLAY")"
+fi
+st_refused "alternate reference shares allowance" "$SB_ALIAS_B" 'standing\.exhausted'
+
 # Past max_warrants: a class that covers one.
 st_class "$ST_TMP/one.toml" "one" 1 '"src/**"' "" 1
 sb standing propose "$ST_TMP/one.toml" >/dev/null 2>&1
