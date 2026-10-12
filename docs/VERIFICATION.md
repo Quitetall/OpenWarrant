@@ -52,7 +52,9 @@ cut; a response answering an obligation its bundle did not carry is refused
 wrapper 11-23 s each on 2026-09-26.
 
 Splitting cannot always make the fixed contract and binding records fit. The
-bundled Claude verifier checks the compiler's recorded budget on its immutable
+CLI refuses to dispatch each over-budget packet to any configured adapter, before
+starting that process or ingesting a response for the packet. In-budget packets
+remain eligible for dispatch. The bundled Claude verifier also checks the compiler's recorded budget on its immutable
 local packet copy before even probing the backend version. An over-budget packet
 returns `verify.bundle-over-budget`, with no backend call or verification
 response. Missing, invalid or duplicate budget fields return
@@ -61,7 +63,7 @@ The packet remains available for inspection. Revise the work scope or explicitly
 configure a suitable reading budget before trying again; a refusal does not
 establish or refute the Warrant's obligations. This checks the compiler's token
 estimate, not a model-specific tokenizer or monetary spend. Other configured
-backends remain responsible for enforcing their declared limits.
+backends remain responsible for enforcing their additional declared limits.
 
 ## How it is kept blind and powerless
 

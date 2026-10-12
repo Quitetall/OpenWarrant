@@ -1600,8 +1600,8 @@ fn over_budget(report: &mut Report, repo: &Repository, path: &Utf8PathBuf, b: &B
             repo.relative(path),
             format!(
                 "~{} tokens against `[verify] max_bundle_tokens` = {}: the atoms, request and \
-                 records alone exceed it, so no more could be cut. It is written and sent as it \
-                 is; expect the verifier to be slow",
+                 records alone exceed it, so no more could be cut. The exact packet remains \
+                 available for inspection; `--run` refuses to send it",
                 b.estimated_tokens, b.budget_tokens
             ),
         ));
@@ -1771,7 +1771,19 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
                 repo.relative(bundle_path)
             ),
         ));
-        over_budget(&mut report, repo, bundle_path, bundle);
+        if bundle.over_budget {
+            report.push(Diagnostic::error(
+                "verify.bundle-over-budget",
+                repo.relative(bundle_path),
+                format!(
+                    "{alias} [{which}]: ~{} tokens exceed `[verify] max_bundle_tokens` = {}; \
+                     the exact packet is retained, but no verifier is called and no response is \
+                     ingested for it. Revise the work scope or configure a suitable reading budget",
+                    bundle.estimated_tokens, bundle.budget_tokens
+                ),
+            ));
+            continue;
+        }
         let packets = serde_json::to_string(&vec![crate::verify::ReviewedPacket {
             path: repo.relative(bundle_path),
             digest: digest.clone(),

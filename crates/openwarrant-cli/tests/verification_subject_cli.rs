@@ -3245,3 +3245,128 @@ fn duplicate_response_verdicts_refuse_whole_before_any_record_or_journal_write()
         }
     }
 }
+
+#[test]
+fn over_budget_dispatch_never_calls_a_configured_adapter_or_writes_verdicts() {
+    for limit in [1, 48_000] {
+        let fixture = Fixture::new();
+        let config_path = fixture.0.join("openwarrant.toml");
+        let marker = fixture.0.join("adapter-called");
+        let mut config: toml::Value =
+            toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+        config["verify"]
+            .as_table_mut()
+            .unwrap()
+            .insert("max_bundle_tokens".into(), toml::Value::Integer(limit));
+        config["verify"]["verifier_argv"] = toml::Value::Array(
+            [
+                "sh",
+                "-c",
+                "printf called > \"$1\"; exit 73",
+                "fixture-adapter",
+                marker.to_str().unwrap(),
+            ]
+            .into_iter()
+            .map(|s| toml::Value::String(s.to_owned()))
+            .collect(),
+        );
+        fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+        for args in [
+            vec!["init", "-q", "--template=", "--initial-branch=fixture"],
+            vec!["add", "."],
+            vec![
+                "-c",
+                "user.name=fixture",
+                "-c",
+                "user.email=fixture@invalid",
+                "commit",
+                "-qm",
+                "budget fixture",
+            ],
+        ] {
+            let git = Command::new("git")
+                .current_dir(&fixture.0)
+                .env_remove("GIT_DIR")
+                .env_remove("GIT_WORK_TREE")
+                .args(args)
+                .output()
+                .unwrap();
+            assert!(
+                git.status.success(),
+                "{}",
+                String::from_utf8_lossy(&git.stderr)
+            );
+        }
+
+        let warrant = fixture.0.join("docs/warrants/IX-WAR-0003");
+        let journal_before = fs::read(warrant.join("journal.jsonl")).ok();
+        let verdicts_before: Vec<_> = fs::read_dir(warrant.join("verifications"))
+            .into_iter()
+            .flatten()
+            .filter_map(Result::ok)
+            .filter(|f| f.path().extension().is_some_and(|e| e == "toml"))
+            .map(|f| (f.file_name(), fs::read(f.path()).unwrap()))
+            .collect();
+        let report = fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--run",
+            "--json",
+        ]);
+        assert_eq!(report["exit_code"], 2, "{report}");
+        if limit == 1 {
+            assert!(
+                !marker.exists(),
+                "oversized packets must not call any adapter: {report}"
+            );
+            assert!(
+                report["diagnostics"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|d| d["rule"] == "verify.bundle-over-budget" && d["severity"] == "error"),
+                "{report}"
+            );
+            let packets: Vec<_> = fs::read_dir(warrant.join("verifications"))
+                .unwrap()
+                .filter_map(Result::ok)
+                .filter(|f| f.file_name().to_string_lossy().starts_with("bundle-"))
+                .collect();
+            assert!(
+                !packets.is_empty(),
+                "exact refused packets remain inspectable"
+            );
+            for packet in packets {
+                let packet: serde_json::Value =
+                    serde_json::from_slice(&fs::read(packet.path()).unwrap()).unwrap();
+                assert_eq!(packet["over_budget"], true);
+            }
+        } else {
+            assert_eq!(
+                fs::read_to_string(marker).unwrap(),
+                "called",
+                "an in-budget packet must reach the adapter"
+            );
+        }
+        assert_eq!(journal_before, fs::read(warrant.join("journal.jsonl")).ok());
+        for (name, bytes) in verdicts_before {
+            assert_eq!(
+                bytes,
+                fs::read(warrant.join("verifications").join(name)).unwrap()
+            );
+        }
+        assert_eq!(
+            fs::read_dir(warrant.join("verifications"))
+                .into_iter()
+                .flatten()
+                .filter_map(Result::ok)
+                .filter(|f| f.path().extension().is_some_and(|e| e == "toml"))
+                .count(),
+            0,
+            "dispatch failure must create no verdict"
+        );
+        assert!(!warrant.join("verifications/responses").exists());
+    }
+}
