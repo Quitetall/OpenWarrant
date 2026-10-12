@@ -1484,6 +1484,10 @@
 > war deliver: declare a deliverable delivered, by command
 - t-39dc · ticket · done · war deliver: declare a deliverable delivered, by command · docs/tickets/t-39dc/manifest.toml:1
 
+## docs/tickets/t-3f3e9/manifest.toml
+> Observe declared Linux storage crash and refusal controls
+- t-3f3e9 · ticket · done · Observe declared Linux storage crash and refusal controls · docs/tickets/t-3f3e9/manifest.toml:1
+
 ## docs/tickets/t-418bc/manifest.toml
 > Reconnect retained provider captures in source-detached runtime archive queries
 - t-418bc · ticket · done · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/manifest.toml:1
