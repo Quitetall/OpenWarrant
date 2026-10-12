@@ -364,6 +364,34 @@ pub fn run_with(
     baseline: Baseline<'_>,
     start_hint: bool,
 ) -> Result<Option<String>, InitError> {
+    run_with_output(namespace, name, root, baseline, start_hint, &mut |line| {
+        println!("{line}");
+    })
+}
+
+/// Capture setup details for the CLI's single JSON response.
+pub(crate) fn run_with_messages(
+    namespace: &str,
+    name: Option<&str>,
+    root: Option<Utf8PathBuf>,
+    baseline: Baseline<'_>,
+    start_hint: bool,
+) -> Result<Vec<String>, InitError> {
+    let mut messages = Vec::new();
+    run_with_output(namespace, name, root, baseline, start_hint, &mut |line| {
+        messages.push(line);
+    })?;
+    Ok(messages)
+}
+
+fn run_with_output(
+    namespace: &str,
+    name: Option<&str>,
+    root: Option<Utf8PathBuf>,
+    baseline: Baseline<'_>,
+    start_hint: bool,
+    emit: &mut impl FnMut(String),
+) -> Result<Option<String>, InitError> {
     let root = match root {
         Some(path) => path,
         None => {
@@ -438,15 +466,15 @@ pub fn run_with(
                     ),
                 });
             }
-            println!(
+            emit(format!(
                 "git init: {root} was not a git repository and now is ({root}/.git), so \
                  Warrant identity and journal history can be checked"
-            );
+            ));
         }
-        History::NoGit(why) => println!(
+        History::NoGit(why) => emit(format!(
             "git is not available ({why}); continuing without it. Warrant identity and journal \
              history cannot be checked until {root} is a git repository"
-        ),
+        )),
         History::Inside { .. } => {}
     }
 
@@ -495,24 +523,27 @@ pub fn run_with(
 
     // §76.3: silence on sound state is the ideal, but `init` is a mutation and
     // the operator needs to know what was created and where.
-    println!("initialized {} ({})", config.project.name, config_path);
+    emit(format!(
+        "initialized {} ({})",
+        config.project.name, config_path
+    ));
     if start_hint {
-        println!("{START_HINT}");
+        emit(START_HINT.to_owned());
     }
     for line in &block_lines {
-        println!("{line}");
+        emit(line.clone());
     }
     if let Some(id) = &recorded {
         let before = git_line(&root, &["rev-list", "--count", id]).unwrap_or_else(|| "?".into());
-        println!(
+        emit(format!(
             "adoption baseline {id} ({before} commit(s) of history): nothing up to it is \
              claimed, owned or verified by any Warrant; `war admin telemetry` counts untracked work \
              after it"
-        );
+        ));
     }
     if baseline != Baseline::Deferred {
         for dir in adrs {
-            println!("{}", migrate_line(dir, recorded.as_deref()));
+            emit(migrate_line(dir, recorded.as_deref()));
         }
     }
     Ok(recorded)
@@ -522,8 +553,8 @@ pub fn run_with(
 /// plain init, `[preset]` and `[roles]` appended to `openwarrant.toml` with
 /// the preset's defaults; `--team` and `--regulated` also write the signing
 /// examples (`docs/authority/*.example`, never the real files, which are a
-/// human's). Returns the lines to print. Plain `war init` never calls this,
-/// so it writes no preset and behaves exactly as before.
+/// human's). Returns the lines to print. Plain `war init` selects vibe;
+/// `--no-preset` skips this step. A program selects a preset only explicitly.
 pub fn apply_preset(
     root: Option<Utf8PathBuf>,
     preset: crate::preset::Preset,
@@ -609,6 +640,31 @@ pub fn run_program_with(
     root: Option<Utf8PathBuf>,
     baseline: Baseline<'_>,
 ) -> Result<Utf8PathBuf, InitError> {
+    run_program_with_output(program, namespace, root, baseline, &mut |line| {
+        println!("{line}");
+    })
+}
+
+pub(crate) fn run_program_with_messages(
+    program: &str,
+    namespace: &str,
+    root: Option<Utf8PathBuf>,
+    baseline: Baseline<'_>,
+) -> Result<Vec<String>, InitError> {
+    let mut messages = Vec::new();
+    run_program_with_output(program, namespace, root, baseline, &mut |line| {
+        messages.push(line);
+    })?;
+    Ok(messages)
+}
+
+fn run_program_with_output(
+    program: &str,
+    namespace: &str,
+    root: Option<Utf8PathBuf>,
+    baseline: Baseline<'_>,
+    emit: &mut impl FnMut(String),
+) -> Result<Utf8PathBuf, InitError> {
     // §106 rows are `<PREFIX>-SAS-RQ-NNN` and the prefix must be letters;
     // a namespace with a digit or dash would make every ref unparseable.
     let invalid = |context: String| InitError::Io {
@@ -628,7 +684,14 @@ pub fn run_program_with(
             "--program needs a non-empty name without a newline or `|`; got {program:?}"
         )));
     }
-    let recorded = run_with(namespace, Some(program), root.clone(), baseline, false)?;
+    let recorded = run_with_output(
+        namespace,
+        Some(program),
+        root.clone(),
+        baseline,
+        false,
+        emit,
+    )?;
     let root = match root {
         Some(r) => r,
         None => {
@@ -753,9 +816,12 @@ pub fn run_program_with(
     fs::write(&manifest_path, manifest + &refs)
         .map_err(io(format!("could not write {manifest_path}")))?;
 
-    println!("scaffolded {program}: {sas_path}, docs/authority/*.example, {gate_path}, {alias}");
-    println!(
+    emit(format!(
+        "scaffolded {program}: {sas_path}, docs/authority/*.example, {gate_path}, {alias}"
+    ));
+    emit(
         "next: edit the SAS, `war sign sas propose 0.1.0`, then a human signs it — `war next` says the rest"
+        .to_owned(),
     );
     Ok(root)
 }

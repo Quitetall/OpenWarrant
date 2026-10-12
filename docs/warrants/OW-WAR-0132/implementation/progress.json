@@ -4,10 +4,11 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "61894f410214f2a7349e4a8fbb0980a8d8787a05",
-  "summary": "Fixed an observed repair-cap bypass during recovery after policy changed: the old binary started another actor above the lowered cap; the fixed binary refuses before compilation/spawn. Raising the cap permits the same recovery. All 20 selected hotline/default runtime controls, seven performer unit tests and CLI all-targets Clippy pass; defaults and attempt labels are preserved.",
+  "summary": "Fixed an observed repair-cap bypass during recovery after policy changed: the old binary started another actor above the lowered cap; the fixed binary refuses before compilation/spawn. Raising the cap permits the same recovery. All 20 selected hotline/default runtime controls, seven performer unit tests and CLI all-targets Clippy pass; defaults and attempt labels are preserved. Initialization now returns one JSON envelope without changing human output or configuration; all ten public JSON-response controls pass.",
   "notes": "docs/warrants/OW-WAR-0132/implementation/repair-cap-20261012/README.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0132/implementation/repair-cap-20261012/observation.json"
+    "docs/warrants/OW-WAR-0132/implementation/repair-cap-20261012/observation.json",
+    "docs/warrants/OW-WAR-0132/implementation/init-json-20261012/observation.json"
   ],
   "next_steps": [
     "Run the full repository gate on the exact committed candidate.",

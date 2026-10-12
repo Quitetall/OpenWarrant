@@ -1,0 +1,26 @@
+{
+  "schema": "openwarrant.runtime-observation/v1",
+  "basis_commit": "767b52959255b9d85141e6777402de8bfca3ab32",
+  "working_tree": "dirty implementation candidate",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "red": {
+    "exit_code": 101,
+    "result": "stdout is not one JSON value: expected value at line 1 column 1",
+    "binary_digest": null
+  },
+  "green": {
+    "json_controls_passed": 10,
+    "json_controls_failed": 0,
+    "clippy_exit_code": 0,
+    "fmt_exit_code": 0
+  },
+  "source_sha256": {
+    "crates/openwarrant-cli/src/init/mod.rs": "74f852b102990e20ae3c27e82c907a4ade0faf873c8ca192a5db7d38eb9a85c1",
+    "crates/openwarrant-cli/src/lib.rs": "f646102291857be9a6ce578139dbf40e680d07cf7a8ba57285131f85420104eb",
+    "crates/openwarrant-cli/tests/json_envelope.rs": "73347ec8084f98fdb43c544f20267b40f1c7f42e8633988a8ceec460a417c41d"
+  },
+  "binary_sha256": "0cbe9ad5ebc166b5ceb8a1493eee495eef164c3b035ee14b28d0b4625085431e",
+  "independent_verification": false,
+  "human_acceptance": false,
+  "model_calls": 0
+}
