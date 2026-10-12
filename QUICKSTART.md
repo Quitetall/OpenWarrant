@@ -4,7 +4,7 @@
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash   # or cargo install --path crates/openwarrant-cli
-war init                       # asks nothing; the namespace comes from the directory name (--namespace APP picks one)
+war init                       # asks nothing; vibe preset, no signatures; the namespace comes from the directory name (--namespace APP picks one)
 war create "Describe the outcome" --item "First step" --item "Second step"
 ```
 

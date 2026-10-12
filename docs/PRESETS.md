@@ -5,13 +5,18 @@ How much rigour a repository asks for is a **repo preset** plus **roles**
 admin can vibe, and an outsider writes a formal Warrant that `war check`
 passes. Ordinary coding still needs no Warrant at all.
 
+Plain `war init` writes the **vibe** preset: no signatures, no required PR
+gate, and `war done` claims an unclaimed item itself. `war init --team` or
+`--regulated` asks for more; `war init --program` (the sign-off scaffold)
+writes no preset unless one is named.
+
 A repository with no `[preset]` and no `[roles]` table behaves exactly as it
-did before presets existed. Plain `war init` writes neither.
+did before presets existed. `war init --no-preset` writes neither.
 
 ## Choosing a preset
 
 ```bash
-war init --vibe          # or --team, or --regulated
+war init                 # vibe; or --team, --regulated, --no-preset
 war admin preset         # what is in force, and what follows from it
 war admin preset team    # switch an existing repository (`none` removes it)
 ```
@@ -27,7 +32,7 @@ war admin preset team    # switch an existing repository (`none` removes it)
 | write makes alone | tested | tested | formal |
 | triage, read, outsiders make alone | formal | formal | formal |
 
-`war init --<preset>` appends this to `openwarrant.toml`:
+`war init` (vibe) or `war init --<preset>` appends this to `openwarrant.toml`:
 
 ```toml
 [preset]
