@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0143",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "2085ae428d25e2ffe68dc89153f6b8d33b9fb972",
+  "summary": "Existing scoped implementation exercised: 37 feature controls plus positive corpus pass (38/0 total). Eight closure requirements remain unestablished.",
+  "notes": "docs/warrants/OW-WAR-0143/implementation/scoped-controls-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0143/implementation/scoped-controls-20261012/observation.json"
+  ],
+  "next_steps": [
+    "Reconcile later delivery ownership without rewriting signed history.",
+    "Obtain admissible exact-candidate gate evidence and independent obligation dispositions.",
+    "Obtain authorized human acceptance after actual closure requirements are met."
+  ]
+}
