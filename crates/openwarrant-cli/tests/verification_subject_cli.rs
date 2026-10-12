@@ -3370,3 +3370,100 @@ fn over_budget_dispatch_never_calls_a_configured_adapter_or_writes_verdicts() {
         assert!(!warrant.join("verifications/responses").exists());
     }
 }
+
+#[test]
+fn batch_recovery_retains_unreadable_markers_and_refuses_external_roots() {
+    for malformed in [false, true] {
+        let fixture = Fixture::new();
+        let outside = fixture.0.with_extension("recovery-outside");
+        fs::create_dir_all(&outside).unwrap();
+        fs::write(outside.join("keep.txt"), "unrelated bytes").unwrap();
+        let batches = fixture.0.join("docs/authority/batches");
+        fs::create_dir_all(&batches).unwrap();
+        let marker = batches.join("B-unsafe.recording");
+        let bytes = if malformed {
+            b"{truncated".to_vec()
+        } else {
+            serde_json::to_vec(&serde_json::json!({
+                "schema": "oh.war/batch-recording/v1", "batch_id": "B-unsafe",
+                "roots": [{"dir": outside.to_str().unwrap(), "copy": null}],
+                "paths": []
+            }))
+            .unwrap()
+        };
+        fs::write(&marker, &bytes).unwrap();
+        let result = fixture.run(&["sign", "--batch", "--recover", "B-unsafe", "--json"]);
+        let preserved = marker.exists() && fs::read(&marker).unwrap() == bytes;
+        let outside_preserved =
+            fs::read(outside.join("keep.txt")).ok() == Some(b"unrelated bytes".to_vec());
+        if outside.exists() {
+            fs::remove_dir_all(&outside).unwrap();
+        }
+        assert_ne!(
+            result["exit_code"], 0,
+            "unsafe recovery must refuse: {result}"
+        );
+        assert!(
+            preserved,
+            "recovery must retain the original marker: {result}"
+        );
+        assert!(
+            outside_preserved,
+            "recovery touched unrelated files: {result}"
+        );
+        assert!(
+            result["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "batch.recover-unreadable"
+                    || d["rule"] == "batch.recover-failed"),
+            "{result}"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn batch_recovery_checks_all_backups_before_removing_any_root() {
+    for symlink in [false, true] {
+        let fixture = Fixture::new();
+        let responses = fixture.0.join("docs/authority/responses");
+        fs::create_dir_all(&responses).unwrap();
+        fs::write(responses.join("keep.txt"), "current response").unwrap();
+        let batches = fixture.0.join("docs/authority/batches");
+        let copies = batches.join("B-check.recording.d");
+        fs::create_dir_all(copies.join("0")).unwrap();
+        fs::write(copies.join("0/keep.txt"), "older response").unwrap();
+        let second = fixture.0.join("docs/warrants/IX-WAR-0003");
+        let original = fs::read(second.join("manifest.toml")).unwrap();
+        if symlink {
+            std::os::unix::fs::symlink(&second, copies.join("1")).unwrap();
+        }
+        let marker = batches.join("B-check.recording");
+        let bytes = serde_json::to_vec(&serde_json::json!({
+            "schema":"oh.war/batch-recording/v1", "batch_id":"B-check",
+            "roots":[{"dir":"docs/authority/responses","copy":"0"},
+                     {"dir":"docs/warrants/IX-WAR-0003","copy":"1"}],
+            "paths":[]
+        }))
+        .unwrap();
+        fs::write(&marker, &bytes).unwrap();
+        let result = fixture.run(&["sign", "--batch", "--recover", "B-check", "--json"]);
+        assert_ne!(result["exit_code"], 0, "{result}");
+        assert_eq!(
+            fs::read(responses.join("keep.txt")).unwrap(),
+            b"current response"
+        );
+        assert_eq!(fs::read(second.join("manifest.toml")).unwrap(), original);
+        assert_eq!(fs::read(&marker).unwrap(), bytes);
+        assert!(
+            result["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "batch.recover-failed"),
+            "{result}"
+        );
+    }
+}

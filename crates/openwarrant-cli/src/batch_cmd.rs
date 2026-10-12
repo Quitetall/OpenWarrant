@@ -787,11 +787,23 @@ pub fn touches(repo: &Repository, m: &Marker, dir: &Utf8Path) -> bool {
 fn recover(repo: &Repository, id: &str, mut report: Report) -> Result<Report, RepoError> {
     let dir = repo.root.join(BATCHES);
     let marker = dir.join(format!("{id}.recording"));
-    let Some((_, m)) = interrupted(repo).into_iter().find(|(p, _)| *p == marker) else {
+    let Some((_, _)) = interrupted(repo).into_iter().find(|(p, _)| *p == marker) else {
         report.push(Diagnostic::error(
             "batch.nothing-to-recover",
             repo.relative(&marker),
             format!("no batch {id} is interrupted: there is no {id}.recording to recover from"),
+        ));
+        return Ok(report);
+    };
+    // Discovery keeps malformed markers visible to `check`; recovery must
+    // parse the actual bytes, never treat its display fallback as a snapshot.
+    let parsed = std::fs::read(&marker)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice::<Marker>(&bytes).ok());
+    let Some(m) = parsed else {
+        report.push(Diagnostic::error(
+            "batch.recover-unreadable", repo.relative(&marker),
+            "the recovery marker is unreadable; nothing restored and the original marker is retained",
         ));
         return Ok(report);
     };
@@ -915,10 +927,101 @@ impl Recording {
         Ok(Self { marker, copies, m })
     }
 
+    // A marker is recoverable data, not authority to choose arbitrary paths.
+    // Validate the entire snapshot before removing even the first directory.
+    fn validate_restore(&self, repo: &Repository) -> std::io::Result<()> {
+        let invalid = |message: &str| std::io::Error::other(message);
+        let safe = |base: &Utf8Path, relative: &str| -> std::io::Result<Utf8PathBuf> {
+            if relative.is_empty()
+                || !std::path::Path::new(relative)
+                    .components()
+                    .all(|c| matches!(c, std::path::Component::Normal(_)))
+            {
+                return Err(invalid(
+                    "recovery path must be a nonempty relative path without traversal",
+                ));
+            }
+            let mut path = base.to_path_buf();
+            for part in Utf8Path::new(relative).components() {
+                path.push(part.as_str());
+                match std::fs::symlink_metadata(&path) {
+                    Ok(meta) if meta.file_type().is_symlink() => {
+                        return Err(invalid("recovery path contains a symlink"));
+                    }
+                    Err(e) if e.kind() != std::io::ErrorKind::NotFound => return Err(e),
+                    _ => {}
+                }
+            }
+            Ok(path)
+        };
+        let mut allowed = repo.warrant_dirs().map_err(|e| invalid(&e.to_string()))?;
+        allowed.extend([
+            repo.root.join("docs/authority/responses"),
+            repo.root.join(crate::standing_cmd::DIR),
+            crate::roadmap_cmd::dir(repo),
+        ]);
+        safe(&repo.root, &repo.relative(&self.copies))?;
+        let mut roots = Vec::new();
+        for root in &self.m.roots {
+            let path = safe(&repo.root, &root.dir)?;
+            if !allowed.contains(&path) || roots.contains(&path) {
+                return Err(invalid(
+                    "recovery root is not a unique batch record directory",
+                ));
+            }
+            if let Some(copy) = &root.copy {
+                let backup = safe(&self.copies, copy)?;
+                if !backup.is_dir() {
+                    return Err(invalid("recovery backup directory is missing"));
+                }
+                let mut files = Vec::new();
+                list_files(&backup, &mut files)?;
+                for file in files {
+                    safe(&backup, file.strip_prefix(&backup).unwrap().as_str())?;
+                }
+            }
+            roots.push(path);
+        }
+        if roots.is_empty() {
+            return Err(invalid("recovery marker contains no batch roots"));
+        }
+        let mut paths = std::collections::BTreeSet::new();
+        for listed in &self.m.paths {
+            let path = safe(&repo.root, &listed.path)?;
+            let Some((index, _)) = roots
+                .iter()
+                .enumerate()
+                .find(|(_, root)| path != **root && path.starts_with(root))
+            else {
+                return Err(invalid("recovery record is outside its batch roots"));
+            };
+            if !paths.insert(&listed.path) {
+                return Err(invalid("recovery marker repeats a record path"));
+            }
+            if listed.prior != ABSENT {
+                let Some(copy) = &self.m.roots[index].copy else {
+                    return Err(invalid("recovery record has no prior backup"));
+                };
+                let backup = self
+                    .copies
+                    .join(copy)
+                    .join(path.strip_prefix(&roots[index]).unwrap());
+                let bytes = std::fs::read(backup)?;
+                if listed.prior != format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)) {
+                    return Err(invalid(
+                        "recovery backup does not match its recorded prior digest",
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// Put every root back whole, remove every path listed absent, and check
     /// every listed path against its prior digest. An error leaves the
     /// marker in place.
     fn restore(&self, repo: &Repository) -> std::io::Result<()> {
+        self.validate_restore(repo)?;
         for r in &self.m.roots {
             let d = repo.root.join(&r.dir);
             if d.exists() {

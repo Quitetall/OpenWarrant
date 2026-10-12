@@ -1380,6 +1380,10 @@
 > Retain native package friction observations without timing human work
 - t-041d4 · ticket · done · Retain native package friction observations without timing human work · docs/tickets/t-041d4/manifest.toml:1
 
+## docs/tickets/t-07d0e/manifest.toml
+> Refuse unsafe or unreadable batch recovery markers before writes
+- t-07d0e · ticket · done · Refuse unsafe or unreadable batch recovery markers before writes · docs/tickets/t-07d0e/manifest.toml:1
+
 ## docs/tickets/t-0d61d/manifest.toml
 > M14: presets, roles and officialness
 - t-0d61d · ticket · done · M14: presets, roles and officialness · docs/tickets/t-0d61d/manifest.toml:1
