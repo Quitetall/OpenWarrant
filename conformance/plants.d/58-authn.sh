@@ -26,7 +26,7 @@ SK_RESP="$PLANT_ROOT/docs/authority/responses"
 
 # The throwaway agent. Stdlib Python for the protocol, openssl for ed25519.
 cat > "$SK_TMP/agent.py" <<'PY'
-import os, socket, struct, subprocess, sys, tempfile, hashlib, base64
+import os, socket, struct, subprocess, sys, tempfile, hashlib, base64, time
 
 def s(b): return struct.pack(">I", len(b)) + b
 SK = b"sk-ssh-ed25519@openssh.com"
@@ -85,6 +85,18 @@ def serve(sock_path, keys, mode_file):
                     if not hit:
                         out = bytes([5])
                     else:
+                        # A one-shot handshake lets a test activate an already
+                        # signed store revision while this key is being asked.
+                        # No elapsed delay is taken as evidence of that order.
+                        if os.path.exists(mode_file + ".pause"):
+                            os.unlink(mode_file + ".pause")
+                            open(mode_file + ".requested", "w").close()
+                            deadline = time.monotonic() + 30
+                            while not os.path.exists(mode_file + ".release"):
+                                if time.monotonic() >= deadline:
+                                    raise TimeoutError("signing handshake was not released")
+                                time.sleep(0.02)
+                            os.unlink(mode_file + ".release")
                         mode = open(mode_file).read().strip()
                         out = bytes([14]) + s(sign(hit[0][1], hit[0][2], data, mode))
                 else:
@@ -159,6 +171,10 @@ python3 "$SK_TMP/agent.py" serve "$SSH_AUTH_SOCK" "$SK_TMP/mode" \
 SK_AGENT=$!
 for _ in $(seq 50); do [[ -S "$SSH_AUTH_SOCK" ]] && break; sleep 0.1; done
 sk_teardown() {
+    if [[ -n "${ST_SIGN_PID:-}" ]]; then
+        kill "$ST_SIGN_PID" 2>/dev/null; wait "$ST_SIGN_PID" 2>/dev/null
+        unset ST_SIGN_PID
+    fi
     kill "$SK_AGENT" 2>/dev/null; wait "$SK_AGENT" 2>/dev/null
     chmod -R u+rwx "$SK_TMP" 2>/dev/null
     if [[ -n "$SK_OLD_SOCK" ]]; then export SSH_AUTH_SOCK="$SK_OLD_SOCK"; else unset SSH_AUTH_SOCK; fi
@@ -397,7 +413,7 @@ st_transition() { # name, draft args… → a transition signed by the store's a
 st_head() { "$WAR" authority status --store "$ST_DIR" --unprotected-test-store --json 2>/dev/null \
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["head"])'; }
 
-for SK_N in 6 7 8 9 10 11; do
+for SK_N in 6 7 8 9 10 11 12 13; do
     "$WAR" --root "$PLANT_ROOT" new "Store plant Warrant $SK_N" >/dev/null 2>&1
 done
 "$WAR" --root "$PLANT_ROOT" compile >/dev/null 2>&1
@@ -539,6 +555,71 @@ if [[ $SK_STATUS -eq 0 ]] && [[ -f "$PLANT_ROOT/docs/warrants/SK-WAR-0008/author
     sk_ok "the store's human signs" "recorded; authority.signed through the store, labeled a test store"
 else
     sk_fail "the store's human signs" "exit $SK_STATUS: $(grep -E '^ERROR' <<<"$SK_OUT" | head -1) $(grep -E 'SK-WAR-0008' <<<"$SK_CHECK" | grep -E '^(ERROR|PASS) authority' | head -1)"
+fi
+
+# A valid head change during signing, not a corrupt/unreadable store. Prepare
+# and sign the transition first: activation only verifies it and cannot deadlock
+# on the disposable agent paused below. The actor keeps all its existing roles.
+st_unseal
+"$WAR" authority status --store "$ST_DIR" --emit "$SK_TMP/race.cur.json" --unprotected-test-store >/dev/null 2>&1 \
+    && "$WAR" authority draft --current "$SK_TMP/race.cur.json" --principal plain \
+        --role authority-admin --role authorizer --role resolver --role judge \
+        --emit "$SK_TMP/race.next.json" >/dev/null 2>&1 \
+    && "$WAR" authority propose --current "$SK_TMP/race.cur.json" --next "$SK_TMP/race.next.json" \
+        --emit "$SK_TMP/race.change.json" >/dev/null 2>&1 \
+    && "$WAR" authority approve --current "$SK_TMP/race.cur.json" --proposal "$SK_TMP/race.change.json" \
+        --principal plain --key "$SK_TMP/plain.pub" --emit "$SK_TMP/race.sig" >/dev/null 2>&1 \
+    || st_setup_failed "prepare a signed store transition for the signing race"
+st_seal
+st_wait_signer() {
+    python3 - "$SK_TMP/mode.requested" <<'EOP'
+import pathlib, sys, time
+p = pathlib.Path(sys.argv[1])
+deadline = time.monotonic() + 20
+while not p.exists():
+    if time.monotonic() >= deadline:
+        raise SystemExit("the disposable key was not asked to sign")
+    time.sleep(0.02)
+EOP
+}
+ST_RACE_BEFORE=$(st_head)
+touch "$SK_TMP/mode.pause"
+timeout -k 5 60 "$WAR" --root "$PLANT_ROOT" sign SK-WAR-0012 --ssh-sign --as "Plain Signer" </dev/null > "$SK_TMP/race.out" 2>&1 &
+ST_SIGN_PID=$!
+st_wait_signer || st_setup_failed "observe signing before moving the head"
+st_unseal
+"$WAR" authority activate --store "$ST_DIR" --proposal "$SK_TMP/race.change.json" \
+    --signature "plain=$SK_TMP/race.sig" --unprotected-test-store >/dev/null 2>&1 \
+    || st_setup_failed "activate the signed transition during signing"
+st_seal
+ST_RACE_AFTER=$(st_head)
+touch "$SK_TMP/mode.release"
+wait "$ST_SIGN_PID"; ST_SIGN_STATUS=$?
+unset ST_SIGN_PID
+ST_SIGN_OUT=$(cat "$SK_TMP/race.out")
+if [[ "$ST_RACE_BEFORE" != "$ST_RACE_AFTER" && $ST_SIGN_STATUS -ne 0 ]] \
+    && grep -q '^ERROR authority.stale-head ' <<<"$ST_SIGN_OUT" && sk_nothing SK-WAR-0012; then
+    sk_ok "head moved while signing, refused" "valid new head; authority.stale-head; no record, draft or signature"
+else
+    sk_fail "head moved while signing, refused" "exit $ST_SIGN_STATUS, head $ST_RACE_BEFORE → $ST_RACE_AFTER: $ST_SIGN_OUT"
+fi
+
+# Same handshake with no head change: the signer itself is not the refusal.
+command rm -f "$SK_TMP/mode.requested"
+touch "$SK_TMP/mode.pause"
+timeout -k 5 60 "$WAR" --root "$PLANT_ROOT" sign SK-WAR-0013 --ssh-sign --as "Plain Signer" </dev/null > "$SK_TMP/stable.out" 2>&1 &
+ST_SIGN_PID=$!
+st_wait_signer || st_setup_failed "observe the unchanged-head signing control"
+touch "$SK_TMP/mode.release"
+wait "$ST_SIGN_PID"; ST_SIGN_STATUS=$?
+unset ST_SIGN_PID
+ST_STABLE_VERIFY=$(st_war sign SK-WAR-0013 --verify)
+if [[ $ST_SIGN_STATUS -eq 0 && "$(st_head)" == "$ST_RACE_AFTER" ]] \
+    && [[ -f "$PLANT_ROOT/docs/warrants/SK-WAR-0013/authorization.toml" ]] \
+    && grep -q '^PASS sign.verified ' <<<"$ST_STABLE_VERIFY"; then
+    sk_ok "head unchanged while signing" "same handshake; authorization recorded and signature verifies"
+else
+    sk_fail "head unchanged while signing" "exit $ST_SIGN_STATUS: $(cat "$SK_TMP/stable.out") | $ST_STABLE_VERIFY"
 fi
 
 # The performer's register entries grant nothing: refused by name on the

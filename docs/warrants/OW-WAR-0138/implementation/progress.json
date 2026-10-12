@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0138",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "b81de66cf2a3f477ca164cb988c8239c421baebb",
+  "summary": "Closed the documented signing-head test gap: changed-head refusal and unchanged-head success observed through real CLI with disposable keys. Authentication and legacy authority controls pass 41/0; relevant unit suites pass 21/0. Nine closure requirements remain unmet.",
+  "notes": "docs/warrants/OW-WAR-0138/implementation/signing-head-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0138/implementation/signing-head-20261012/observation.json"
+  ],
+  "next_steps": [
+    "Run the full registered gate on the exact committed candidate.",
+    "Resolve protected-state adoption and reconcile historical delivery ownership.",
+    "Independently assess all obligations and obtain actual human acceptance; fixture flags do not prove physical presence or deployed store isolation."
+  ]
+}
