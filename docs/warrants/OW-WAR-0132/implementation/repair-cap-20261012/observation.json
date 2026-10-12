@@ -1,0 +1,59 @@
+{
+  "warrant": "OW-WAR-0132",
+  "base_revision": "61894f410214f2a7349e4a8fbb0980a8d8787a05",
+  "source_dirty": true,
+  "source_sha256": {
+    "crates/openwarrant-cli/src/perform.rs": "b4b1eb12077be3bc4e81fcf8b340be4dc85810cf1f754d1f59c48bd680a2f8ef",
+    "conformance/plants.d/52-hotline-defaults.sh": "158c38807844588bf9f88fe9f8dc3fddb4c03aff01595ca3c691e5185fb75aa4",
+    "docs/HOTLINE.md": "13a6186323f5f5109148d964cfa8254fc53dded13b4cc3c946b563a3d4b7018c"
+  },
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 61894f410214, dirty, debug)",
+  "binary_sha256": "f2d79388c80135a97f9aadf44b2338dbd3c1136870ac8a379635dff256c29473",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "red": {
+    "exit_code": 0,
+    "new_actor_started": true,
+    "endings_before": "answered,answered,failed",
+    "endings_after": "answered,answered,failed,answered",
+    "packets_before": 3,
+    "packets_after": 4,
+    "compiled_before": 3,
+    "compiled_after": 4,
+    "scope": "fixture performances then lower max_repairs from 3 to 1 after a failure",
+    "independent_verification": false,
+    "qualification": false
+  },
+  "green": {
+    "exit_code": 2,
+    "new_actor_started": false,
+    "endings_before": "answered,answered,failed",
+    "endings_after": "answered,answered,failed",
+    "packets_before": 3,
+    "packets_after": 3,
+    "compiled_before": 3,
+    "compiled_after": 3,
+    "scope": "fixture performances then lower max_repairs from 3 to 1 after a failure",
+    "independent_verification": false,
+    "qualification": false
+  },
+  "selected_controls": {
+    "pass": 20,
+    "fail": 0,
+    "scope": "52-hotline-defaults.sh via standalone scratch-helper prelude; full gate not run locally"
+  },
+  "performer_unit_tests": {
+    "pass": 7,
+    "fail": 0
+  },
+  "cli_all_targets_clippy": {
+    "exit_code": 0,
+    "warnings_denied": true
+  },
+  "first_clippy_result": {
+    "exit_code": 101,
+    "diagnostic": "this if statement can be collapsed",
+    "retained": "clippy-first-failure.log.gz"
+  },
+  "independent_verification": false,
+  "qualification": false
+}

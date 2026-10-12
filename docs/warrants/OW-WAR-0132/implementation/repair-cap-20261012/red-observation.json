@@ -1,0 +1,13 @@
+{
+  "exit_code": 0,
+  "new_actor_started": true,
+  "endings_before": "answered,answered,failed",
+  "endings_after": "answered,answered,failed,answered",
+  "packets_before": 3,
+  "packets_after": 4,
+  "compiled_before": 3,
+  "compiled_after": 4,
+  "scope": "fixture performances then lower max_repairs from 3 to 1 after a failure",
+  "independent_verification": false,
+  "qualification": false
+}
