@@ -2,21 +2,21 @@
 # OW-WAR-0148 M12 — a newcomer's first done, using only the daily verbs.
 #
 # The M12 target was three commands, as in Beads (`war init`, `war create
-# "x"`, `war done <id>`). Without a preset it is four: `war done` ticks only
+# "x"`, `war done <id>`). With `war init --no-preset` it is four: `war done` ticks only
 # what the caller has claimed (OW-WAR-0147 OBL-003, "done needs your own
 # claim": a done that needed no claim would let two agents finish one item),
-# so the path is init, create, claim, done. M14: under the vibe preset (`war
-# init --vibe`) it is three, because `war done` on an item nobody holds
+# so the path is init, create, claim, done. M14: under the vibe preset (plain
+# `war init` since 2026-10-11) it is three, because `war done` on an item nobody holds
 # claims it first; the journal records the claim and the tick.
 #
 # Each claim is paired with an observed refusal:
-# - A fresh repository (git init, nothing else) reaches its first done in
-#   four commands, each one a verb `war --help` lists, with no signature, no
+# - A fresh repository (git init, then `war init --no-preset`) reaches its
+#   first done in four commands, each one a verb `war --help` lists, with no signature, no
 #   question asked and nothing written outside the repository's own files.
 # - Refused, by name, with nothing ticked: the done before the claim
 #   (`ticket.not-claimed`) and a done of an id that names nothing
 #   (`ticket.unknown`).
-# - M14: under `--vibe`, the first done is three daily verbs, and the
+# - M14: under vibe (plain `war init`), the first done is three daily verbs, and the
 #   journal holds `ticket.claimed` then `ticket.item_done`. Refused even
 #   there, by name: a done of an item another agent holds
 #   (`ticket.claimed-by-other`) and of an item that waits on another
@@ -40,7 +40,7 @@ FD_DAILY=$(awk '$0 == "Commands:" {f=1; next} /^[^ ]/ || /^$/ {f=0} f && /^  [a-
 FD_STEPS=()
 
 # 1. init  2. create  3. claim  4. done
-FD_STEPS+=(init); fdw init >/dev/null 2>&1; FD_I=$?
+FD_STEPS+=(init); fdw init --no-preset >/dev/null 2>&1; FD_I=$?
 FD_STEPS+=(create); FD_OUT=$(fdw create --json "Fix the login redirect" 2>/dev/null); FD_C=$?
 FD_ID=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["result"]["id"])' "$FD_OUT" 2>/dev/null)
 # The refusal half first, on the same Warrant: done before any claim.
@@ -77,7 +77,7 @@ git -C "$FD_VROOT" init -q .
 fdv() { (cd "$FD_VROOT" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR \
     OPENWARRANT_NO_PROJECTS=1 "$FD_WAR" "$@" </dev/null); }
 FD_VSTEPS=()
-FD_VSTEPS+=(init); fdv init --vibe >/dev/null 2>&1; FD_VI=$?
+FD_VSTEPS+=(init); fdv init >/dev/null 2>&1; FD_VI=$?
 FD_VSTEPS+=(create); FD_VOUT=$(fdv create --json "Fix the login redirect" 2>/dev/null); FD_VC=$?
 FD_VID=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["result"]["id"])' "$FD_VOUT" 2>/dev/null)
 FD_VSTEPS+=(done); FD_VDONE=$(fdv done "$FD_VID" 2>&1); FD_VD=$?
@@ -89,7 +89,7 @@ for w in "${FD_VSTEPS[@]}"; do [[ " $FD_DAILY " == *" $w "* ]] || FD_VALL=0; don
 if [[ $FD_VI -eq 0 && $FD_VC -eq 0 && $FD_VD -eq 0 && "$FD_VSTATE" == "done" && ${#FD_VSTEPS[@]} -eq 3 \
     && $FD_VALL -eq 1 && "$FD_VEVENTS" == "ticket.created ticket.claimed ticket.item_done" ]] \
     && grep -qF 'claimed '"$FD_VID"' first: under the vibe preset' <<<"$FD_VDONE"; then
-    fd_ok "vibe: first done in three verbs" "init --vibe, create, done; journal: $FD_VEVENTS"
+    fd_ok "vibe: first done in three verbs" "init (vibe), create, done; journal: $FD_VEVENTS"
 else
     fd_fail "vibe: first done in three verbs" "init $FD_VI create $FD_VC done $FD_VD state '$FD_VSTATE' events '$FD_VEVENTS': $(head -2 <<<"$FD_VDONE" | tr '\n' '|')"
 fi
