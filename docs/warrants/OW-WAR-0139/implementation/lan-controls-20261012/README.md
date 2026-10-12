@@ -1,0 +1,9 @@
+# LAN and loopback runtime observations
+
+The existing LAN and unchanged loopback controls pass 57/0, including the positive corpus check. Pairing unit tests finish with 4/0. They exercise TLS configuration refusals, host and origin checks, pairing expiry and one-use codes, credential hashing and private permissions, revocation, nonce replay, host-only signing requests and loopback behavior. PTY controls observe software prompt behavior; they do not prove physical human presence, actual Wi-Fi devices, deployed protection or operator custody.
+
+A clean historical source at `269d3324fc403326c180ce16e10a26ee98e0cc95` was built and run. All local packages appear compiled in its retained log. Thirteen actual loopback HTTP responses have SHA-256 `532d4d64d802abe3aa6b26f68215cad571cd81d366d9e1b7b6e9fa7fd75f3dcd`, matching the recorded pre-LAN header baseline. The observation records its binary digest and exact identity. The current control binary identifies an earlier dirty build; this is not a clean final-candidate build claim.
+
+The historical build explicitly reused a shared Cargo build directory. A later profile comparison exposed cross-workspace artifact reuse in that approach; its minimal reproduction and corrected separate-cache builds are recorded with OW140. This header observation compiled every local package and matched the original baseline, but is bounded to that recorded build and replay. Future historical builds must use the configured per-workspace cache.
+
+The canonical resolution dry run exits 2 with five PASS, two WARN and nine UNKNOWN. D-001 and D-010 now have later OW148 ownership. Exact authorized revision, digests, dispositions, gates, unknowns, blockers, judgments, independence and risk authority remain unmet. U-001 and U-002 are not answered by these tests. Existing independent dispositions, delivery pins and signatures remain intact. OW139 stays in progress.

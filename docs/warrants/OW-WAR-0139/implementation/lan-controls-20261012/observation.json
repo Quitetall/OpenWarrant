@@ -1,0 +1,32 @@
+{
+  "schema": "openwarrant.scoped-runtime-observation/v1",
+  "warrant": "OW-WAR-0139",
+  "source_commit": "5921aa7738036e11b0248631cdd9c0d415398e9d",
+  "current_binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 767b52959255, dirty, debug)",
+  "selected_controls": {
+    "passed": 57,
+    "failed": 0,
+    "exit_code": 0,
+    "files": [
+      "59-webui-lan.sh",
+      "63-webui.sh"
+    ]
+  },
+  "pairing_units": {
+    "passed": 4,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "historical_header_requests": 13,
+  "historical_digest_match": true,
+  "closure": {
+    "exit_code": 2,
+    "pass": 5,
+    "warn": 2,
+    "unknown": 9,
+    "error": 0
+  },
+  "independent_verdict": false,
+  "human_acceptance": false,
+  "physical_lan_qualification": false
+}

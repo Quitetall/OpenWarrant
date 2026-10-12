@@ -1,0 +1,15 @@
+{
+  "schema": "openwarrant.historical-header-observation/v1",
+  "source_commit": "269d3324fc403326c180ce16e10a26ee98e0cc95",
+  "clean_source": true,
+  "binary_identity": "war 1.0.0-alpha.2 (unreleased, commit 269d3324fc40, debug)",
+  "binary_sha256": "93798b0240f01c20d0eca650aa7f1a1ba3e308eaf3ef5a935e2f0ca20c19e2bb",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "requests": 13,
+  "expected_sha256": "532d4d64d802abe3aa6b26f68215cad571cd81d366d9e1b7b6e9fa7fd75f3dcd",
+  "observed_sha256": "532d4d64d802abe3aa6b26f68215cad571cd81d366d9e1b7b6e9fa7fd75f3dcd",
+  "raw_headers_sha256": "532d4d64d802abe3aa6b26f68215cad571cd81d366d9e1b7b6e9fa7fd75f3dcd",
+  "match": true,
+  "network_scope": "own loopback listener",
+  "human_acceptance": false
+}

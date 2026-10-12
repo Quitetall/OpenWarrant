@@ -1,0 +1,143 @@
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Content-Length: 849
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 200 OK
+Content-Type: text/css; charset=utf-8
+Content-Length: 2530
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 401 Unauthorized
+Content-Type: text/plain
+Content-Length: 22
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 404 Not Found
+Content-Type: text/plain
+Content-Length: 13
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 404 Not Found
+Content-Type: text/plain
+Content-Length: 12
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/plain
+Content-Length: 10
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 403 Forbidden
+Content-Type: text/plain
+Content-Length: 14
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 405 Method Not Allowed
+Content-Type: text/plain
+Content-Length: 18
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/plain
+Content-Length: 40
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 403 Forbidden
+Content-Type: text/plain
+Content-Length: 30
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 405 Method Not Allowed
+Content-Type: text/plain
+Content-Length: 18
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 404 Not Found
+Content-Type: text/plain
+Content-Length: 12
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+HTTP/1.1 403 Forbidden
+Content-Type: text/plain
+Content-Length: 30
+Connection: close
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+X-Frame-Options: DENY
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
