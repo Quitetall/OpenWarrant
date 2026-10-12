@@ -916,6 +916,21 @@ pub fn ingest(
         return Ok(report);
     }
 
+    // One response supplies one observation per obligation. Check the whole
+    // envelope before retention, active writes or journal entries; per-file
+    // atomic guards cannot make conflicting rows into an unambiguous response.
+    let mut obligations = std::collections::BTreeSet::new();
+    for verdict in &response.verifications {
+        if !obligations.insert(&verdict.obligation) {
+            report.push(Diagnostic::error(
+                "verify.duplicate-obligation",
+                response_path.to_string(),
+                format!("{} appears more than once; the response is refused whole and nothing was written", verdict.obligation),
+            ));
+            return Ok(report);
+        }
+    }
+
     if response.schema == RESPONSE_SCHEMA
         && (response.reviewed_subject.is_none() || response.reviewed_packets.is_empty())
     {

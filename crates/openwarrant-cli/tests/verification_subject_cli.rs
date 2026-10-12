@@ -3179,3 +3179,69 @@ fn exact_contract_sources_travel_with_whole_and_split_packets() {
         }
     }
 }
+
+#[test]
+fn duplicate_response_verdicts_refuse_whole_before_any_record_or_journal_write() {
+    for bound in [false, true] {
+        for conflicting in [false, true] {
+            let fixture = Fixture::new();
+            if bound {
+                fixture.bound_response();
+            } else {
+                fixture.response();
+            }
+            let path = fixture.0.with_extension("response.toml");
+            let original = fs::read_to_string(&path).unwrap();
+            let mut response: toml::Value = toml::from_str(&original).unwrap();
+            let rows = response["verifications"].as_array_mut().unwrap();
+            let mut duplicate = rows[0].clone();
+            if conflicting {
+                duplicate["disposition"] = toml::Value::String("not_established".into());
+            }
+            rows.push(duplicate);
+            fs::write(&path, toml::to_string(&response).unwrap()).unwrap();
+            let snapshot = || {
+                [
+                    "verifications/OBL-001.toml",
+                    "verifications/OBL-002.toml",
+                    "journal.jsonl",
+                ]
+                .map(|p| fs::read(fixture.0.join("docs/warrants/IX-WAR-0003").join(p)).ok())
+            };
+            let before = snapshot();
+            let refused = fixture.run(&[
+                "verify",
+                "IX-WAR-0003",
+                "--response",
+                "response.toml",
+                "--json",
+            ]);
+            assert_eq!(
+                snapshot(),
+                before,
+                "ambiguous response wrote a record or journal: bound={bound}, conflicting={conflicting}: {refused}"
+            );
+            assert_eq!(refused["exit_code"], 2, "{refused}");
+            assert!(
+                refused["diagnostics"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|d| d["rule"] == "verify.duplicate-obligation"),
+                "{refused}"
+            );
+            if bound {
+                fs::write(path, original).unwrap();
+                let accepted = fixture.run(&[
+                    "verify",
+                    "IX-WAR-0003",
+                    "--response",
+                    "response.toml",
+                    "--json",
+                ]);
+                assert_eq!(accepted["exit_code"], 0, "{accepted}");
+                assert_eq!(accepted["counts"]["pass"], 2, "{accepted}");
+            }
+        }
+    }
+}
