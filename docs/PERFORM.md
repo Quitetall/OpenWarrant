@@ -83,7 +83,10 @@ The lock needs no lock file and is released by the kernel when its owner exits.
 **Guaranteed.** While a performer runs, `dispatches/<dispatch>.writer` records
 its pid, its process group, the leader's start time, the stage, and the
 Dispatch. The record is removed only once the group is shown gone. Before a new
-`war perform` on the same stage compiles anything, it probes every such record:
+direct `war perform` compiles anything, it probes every retained writer record
+in the checkout's recognized legacy Warrant directories, including other stages
+and sibling Warrants. A controller's death does not establish its writer's death.
+The isolated-worktree scheduler `war go` retains its stage-specific handoff.
 
 | The probe finds | Result |
 |---|---|
@@ -109,6 +112,10 @@ Exercised by: `60-perform-cancel.sh`:
   removed and the performer starts.
 - Eight simultaneous calls produce one fixture writer and one Dispatch;
   the other seven receive named refusals before compilation.
+- After SIGKILL to a controller, the still-live recorded writer blocks a call
+  on another stage and a call on a sibling Warrant in the same checkout.
+- Unreadable writer indexes, entries or writer paths return
+  `UNKNOWN perform.writer-unknown`; absent writers are not inferred from errors.
 
 The unit test `a_writer_is_alive_gone_or_unknown_and_never_guessed` covers
 the probe's three answers.
@@ -118,10 +125,8 @@ the probe's three answers.
 - **A writer on another machine**, or in another checkout of the same
   repository. The record lives in this working tree and names a local process
   group. A remote writer is not probed, and not excluded.
-- **A surviving orphan on another stage after its parent command dies.**
-  Admission is locked across this checkout while the command lives, but the
-  durable writer probe remains per stage. Remote writers, other checkouts and
-  processes that bypass this advisory protocol are not excluded by the lock.
+- Remote writers, other checkouts and processes that bypass this advisory
+  protocol are not excluded by the lock or by inspection of retained records.
 
 ## The claude adapter
 
