@@ -1,0 +1,53 @@
+{
+  "schema": "openwarrant.runtime-observation/v1",
+  "source_commit": "b81de66cf2a3f477ca164cb988c8239c421baebb",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 767b52959255, dirty, debug)",
+  "binary_sha256": "0cbe9ad5ebc166b5ceb8a1493eee495eef164c3b035ee14b28d0b4625085431e",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/sign.rs": "3f7a3fee9f6bb26a8254750812f8c0609dae4f37538026acfe11540aa7e86474",
+    "crates/openwarrant-cli/src/authority_check.rs": "0335095cf03523c560f5bf18411101fed2aabf61cd6069cb46334df2a1be3cac",
+    "crates/openwarrant-cli/src/authority_cmd/store.rs": "0d22913cbbf1426151a9f17ae2e58ec9fbf079e2e14c3f1b129d38d0389ecf8d",
+    "crates/openwarrant-core/src/presence.rs": "6f3d764cf7a57ccf3f83556f4a4c8ecaf83006b0884f7147ddc69076d3285c2c",
+    "crates/openwarrant-core/src/authority_transition.rs": "61e7d5a4c1062f9feb8bb855d3138bd11372cc3f835fd260d726a453bed129f3",
+    "conformance/plants.d/58-authn.sh": "30a64c421b682c90a4b3b685de2f06bd70eef95378522ffb70f3dcad348f3b5a",
+    "conformance/plants.d/96-authority.sh": "aac0352bd7fc280415f39039298f73ee97005ce7a1509b2ad33a0413f774070c",
+    "docs/AUTHENTICATION.md": "ab171f0f64222478af8bb6f3a19bdfc8d78e2b9e47d9fb94801609bc259c1fb6"
+  },
+  "selected_controls": {
+    "pass": 41,
+    "fail": 0,
+    "includes_positive_corpus": true,
+    "files": [
+      "58-authn.sh",
+      "96-authority.sh"
+    ],
+    "exit_code": 0
+  },
+  "unit_tests": {
+    "presence": 9,
+    "authority_transition": 9,
+    "authority_store": 3,
+    "fail": 0
+  },
+  "closure_dry_run": {
+    "exit_code": 2,
+    "counts": {
+      "pass": 5,
+      "warn": 4,
+      "unknown": 9,
+      "error": 0,
+      "worst": "unknown"
+    }
+  },
+  "fixture_scope": "Disposable software keys and test-mode stores; no physical authenticator or deployed OS isolation observed.",
+  "independent_verification": false,
+  "human_acceptance": false,
+  "model_calls": 0,
+  "setup_failures": [
+    "Initial clone timed out in host I/O; premature runner had no library and empty tallies, not coverage. Checkout completed before successful controls.",
+    "Short OW138 alias refused; canonical OW-WAR-0138 produced retained dry run.",
+    "Initial done used default actor and was refused; corrected command uses actual claim holder."
+  ],
+  "out_of_scope_probe": "OW139 pairing unit command ended with no terminal test result after compilation: UNKNOWN, not included in OW138 results."
+}

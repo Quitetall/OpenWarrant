@@ -84,9 +84,12 @@ The chain runs `--as` actor → `roles.toml` `ssh_principal` → exactly one
     is a test store named as protected is `authority.verify-unavailable` —
     never a fall back;
   - a grant read at one head and a store at another by the time the key has
-    signed is `authority.stale-head`, and the signature is removed. This one
-    is in the code (`sign.rs` `ssh_sign_act`) and not exercised: no plant
-    moves the store while the key is being asked.
+    signed is `authority.stale-head`, and the signature is removed.
+    `58-authn.sh` pauses a disposable key at its signing request, activates
+    an already signed, valid store revision, then releases the signature:
+    the act is refused and no record, draft or signature remains. The same
+    handshake with an unchanged head records an authorization that verifies.
+    This tests the head check, not a deployed store's OS protection.
   - **Carried by:** `authority_check.rs` (`verify_store`, `signer_for`) and
     `authority_cmd/store.rs` (`read_current`, whose guard refuses a store the
     execution account owns or any group or other can write).

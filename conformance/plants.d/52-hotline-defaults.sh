@@ -388,8 +388,44 @@ else
     hd_fail "a failed run is not a repair" "exit $HD_STATUS; endings '$HD_E'; earlier '$HD_PREV'; $(grep -m1 -E 'ERROR|UNKNOWN' <<< "$HD_OUT")"
 fi
 
+# A failed attempt does not waive a repair cap lowered before recovery.
+hd_reset
+hd_set max_repairs 3
+for HD_F in "$HD_TMP/marker-performer.sh" "$HD_TMP/marker-performer.sh" "$HD_FX/says-nothing.sh"; do
+    hd_set performer_argv "[\"$HD_F\"]"
+    hd_perform STAGE-001 > /dev/null
+done
+HD_E=$(hd_endings STAGE-001)
+[[ "$HD_E" == "answered,answered,failed" ]] || { printf 'PLANT SETUP FAILED: repair history %s\n' "$HD_E" >&2; exit 9; }
+hd_set max_repairs 1
+hd_set performer_argv "[\"$HD_TMP/marker-performer.sh\"]"
+command rm -- "$HD_MARKS/STAGE-001"
+HD_P0=$(hd_packets)
+HD_J0=$(grep -c '"type":"dispatch.compiled"' "$HD_DIR/journal.jsonl")
+HD_OUT=$(hd_perform STAGE-001); HD_STATUS=$?
+HD_J1=$(grep -c '"type":"dispatch.compiled"' "$HD_DIR/journal.jsonl")
+if [[ $HD_STATUS -ne 0 ]] && grep -q 'perform.repair-limit' <<< "$HD_OUT" \
+    && ! hd_marked STAGE-001 && [[ "$(hd_endings STAGE-001)" == "$HD_E" ]] \
+    && [[ "$(hd_packets)" == "$HD_P0" && "$HD_J0" == "$HD_J1" ]]; then
+    hd_ok "a lowered repair cap fences recovery" "perform.repair-limit; no actor, Dispatch, journal claim or ending"
+else
+    hd_fail "a lowered repair cap fences recovery" "exit $HD_STATUS; endings '$(hd_endings STAGE-001)'; packets $HD_P0 -> $(hd_packets); compiled $HD_J0 -> $HD_J1"
+fi
+
+# Raising the cap again admits that same recovery; refusal is not blanket.
+hd_set max_repairs 2
+HD_OUT=$(hd_perform STAGE-001); HD_STATUS=$?
+if [[ $HD_STATUS -eq 0 ]] && grep -q 'perform.answered' <<< "$HD_OUT" \
+    && hd_marked STAGE-001 && [[ "$(hd_endings STAGE-001)" == "answered,answered,failed,answered" ]]; then
+    hd_ok "a raised repair cap admits recovery" "same pending recovery answers after the cap permits repair 2"
+else
+    hd_fail "a raised repair cap admits recovery" "exit $HD_STATUS; endings '$(hd_endings STAGE-001)'"
+fi
+
+hd_keep lowered-policy
+
 # --- OBL-003 again: every perform.ended above says spend is unknown ----------
-# Over the kept journals: seven endings, answered and failed both. The grep for
+# Over the kept journals: eleven endings, answered and failed both. The grep for
 # a zero spend is over the raw lines, so it cannot be fooled by the parse.
 HD_SPEND=$(python3 - "$HD_TMP"/journal-*.jsonl << 'PY'
 import json, sys
@@ -409,8 +445,8 @@ print(n, bad)
 PY
 )
 HD_ZERO='\\"spend\\":(0|\\"0\\")'
-if [[ "$HD_SPEND" == "7 0" ]] && ! grep -qE "$HD_ZERO" "$HD_TMP"/journal-*.jsonl; then
-    hd_ok "spend is unknown, never zero" "7 perform.ended lines, each spend \"unknown\"; no spend 0"
+if [[ "$HD_SPEND" == "11 0" ]] && ! grep -qE "$HD_ZERO" "$HD_TMP"/journal-*.jsonl; then
+    hd_ok "spend is unknown, never zero" "11 perform.ended lines, each spend \"unknown\"; no spend 0"
 else
     hd_fail "spend is unknown, never zero" "perform.ended count and non-unknown: '$HD_SPEND'"
 fi

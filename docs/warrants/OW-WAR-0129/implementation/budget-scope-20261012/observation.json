@@ -1,0 +1,101 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "warrant": "OW-WAR-0129",
+  "reported_by": "agent://codex",
+  "observed_revision": "3c5251a2d2b27c80efc6f887c53415a03df6127b",
+  "source_dirty_before_controls": false,
+  "source_sha256": {
+    "crates/openwarrant-compiler/src/dispatch.rs": "aca4710e70e4430093d3a1ce6addd1f51f04cf9c1c15966d1cc5111b301ade5e",
+    "crates/openwarrant-cli/src/dispatch.rs": "94d6a9f0aa12aa565ecc2e2cb5fc0529640d9aa14ee18791174e1573192e2e7d",
+    "crates/openwarrant-cli/src/dispatch_bundle_cmd.rs": "b34037aa85d235913e27a22b1e70864a25cee5769b254e7f13946c8e9780f600",
+    "conformance/plants.d/83-tokens.sh": "cb5f99a170a93ea0b62128f5fec4751bab9d4a8ff560dff460ebc185c85431e0",
+    "crates/openwarrant-cli/src/perform.rs": "b4b1eb12077be3bc4e81fcf8b340be4dc85810cf1f754d1f59c48bd680a2f8ef",
+    "crates/openwarrant-cli/src/run_cmd.rs": "8fd8627434f7af270a63c5bdbe73f74b8e96fda7c06fbfdf27eb58693dd4c01b",
+    "crates/openwarrant-core/src/tokens.rs": "5e27cd4e5b1c8dcfc045d1ecc41abe92d1e8c783d254532047e7b4206516a2ca",
+    "conformance/lib.sh": "6628198c3071e13b35ddade8c508dac257b65e4c55f026c332c6e6d111d4c655"
+  },
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 61894f410214, dirty, debug)",
+  "binary_sha256": "f2d79388c80135a97f9aadf44b2338dbd3c1136870ac8a379635dff256c29473",
+  "binary_build_basis": "61894f410214f2a7349e4a8fbb0980a8d8787a05 with the OW132 repair-cap source change; dirty debug build retained, not a clean build of 3c5251a2",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "tests": {
+    "selected_cli_controls": {
+      "exit_code": 0,
+      "passed": 15,
+      "failed": 0,
+      "runner": "source conformance/lib.sh; run_plant_files \"$REPO_ROOT/conformance/plants.d/83-tokens.sh\"; assert FAILED=0",
+      "scope": "Positive generated-record check and fourteen public-command controls, fixture actors only."
+    },
+    "compiler_boundary": {
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "test": "dispatch::tests::the_compiler_refuses_over_budget_and_emits_at_budget"
+    }
+  },
+  "logs": {
+    "dispatch-controls.log.gz": {
+      "raw_sha256": "bd02c49c803cf0abe3585011893059bff2eeed81ab3a3fa67e650f5340983140",
+      "compressed_sha256": "53c4e2446b19d8ecaf059ba118b3a33478cad54a03254c1d84baad2e75cd6c02"
+    },
+    "compiler-boundary.log.gz": {
+      "raw_sha256": "e7b3a9c0cf5bdedcfd3dc4e52c07286bd1aac11ddd98b818f4f46af618aca6af",
+      "compressed_sha256": "27b7f98a82ff203de2859eec59e5af1682c2fb3e464a2c7bc0c58d4a9788ffb1"
+    }
+  },
+  "historical_source_binding": {
+    "observation_revision": "d5a47d74a3af6e1a4ea94fc89956817fa2dbf3bd",
+    "four_declared_source_files_match": true,
+    "note": "Source identity only; performer and run call paths are included separately. Current controls were executed again."
+  },
+  "deliverable_comparison": [
+    {
+      "id": "D-001",
+      "path": "crates/openwarrant-compiler/src/dispatch.rs",
+      "recorded_sha256": "sha256:129e9191e66eef50d69103ed5eae24be53e0b3700e28ee6c34beb98d1de827ae",
+      "current_sha256": "sha256:aca4710e70e4430093d3a1ce6addd1f51f04cf9c1c15966d1cc5111b301ade5e",
+      "matches_recorded": false
+    },
+    {
+      "id": "D-002",
+      "path": "crates/openwarrant-cli/src/dispatch.rs",
+      "recorded_sha256": "sha256:6b5b2100e8be92e4f2e0e8a716b884e804364b4fb4da4cd2175e64580a2c6e1f",
+      "current_sha256": "sha256:94d6a9f0aa12aa565ecc2e2cb5fc0529640d9aa14ee18791174e1573192e2e7d",
+      "matches_recorded": false
+    },
+    {
+      "id": "D-003",
+      "path": "crates/openwarrant-cli/src/dispatch_bundle_cmd.rs",
+      "recorded_sha256": "sha256:4740417c0420eec9c4d877d7b096d87d308434a757c2af807812c730e00692df",
+      "current_sha256": "sha256:b34037aa85d235913e27a22b1e70864a25cee5769b254e7f13946c8e9780f600",
+      "matches_recorded": false
+    },
+    {
+      "id": "D-004",
+      "path": "conformance/plants.d/83-tokens.sh",
+      "recorded_sha256": "sha256:1c20c426cead858aad627f57bfd3c3e7922916b7b020fc2bc35e86343515e824",
+      "current_sha256": "sha256:cb5f99a170a93ea0b62128f5fec4751bab9d4a8ff560dff460ebc185c85431e0",
+      "matches_recorded": false
+    }
+  ],
+  "closure_dry_run": {
+    "exit_code": 2,
+    "counts": {
+      "pass": 6,
+      "warn": 2,
+      "unknown": 8,
+      "error": 0,
+      "worst": "unknown"
+    },
+    "file": "closure.json",
+    "scope": "Read-only current closure evaluation, not an acceptance or signature."
+  },
+  "model_calls": 0,
+  "independent_verification": false,
+  "qualification": false,
+  "limitations": [
+    "Not the full registered conformance gate; these observations create no new gate receipt.",
+    "The unchanged-account control recomputes the historical formula from selected source bytes. No actual old-binary/current-binary packet comparison was executed.",
+    "Historical source and delivery records, existing verifier findings and all human authority records remain unchanged."
+  ]
+}

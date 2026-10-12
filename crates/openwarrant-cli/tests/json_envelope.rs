@@ -37,6 +37,181 @@ const FROZEN_KEYS: [&str; 8] = [
     "verdict_line",
 ];
 
+#[test]
+fn init_emits_one_json_value_without_changing_the_created_configuration() {
+    let root = std::env::temp_dir().join(format!(
+        "ow-init-json-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    let machine = root.join("machine");
+    let human = root.join("human");
+    std::fs::create_dir_all(&machine).unwrap();
+    std::fs::create_dir_all(&human).unwrap();
+    let run = |dir: &std::path::Path, json: bool| {
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_war"));
+        cmd.env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .args([
+                "init",
+                "--namespace",
+                "JS",
+                "--name",
+                "Transport",
+                "--no-preset",
+            ])
+            .current_dir(dir);
+        if json {
+            cmd.arg("--json");
+        }
+        cmd.output().unwrap()
+    };
+    let accepted = run(&machine, true);
+    let before = std::fs::read(machine.join("openwarrant.toml")).unwrap();
+    let refused = run(&machine, true);
+    let after = std::fs::read(machine.join("openwarrant.toml")).unwrap();
+    let ordinary = run(&human, false);
+    let human_config = std::fs::read(human.join("openwarrant.toml")).unwrap();
+    std::fs::remove_dir_all(root).unwrap();
+
+    assert!(accepted.status.success());
+    let positive = envelope(&String::from_utf8_lossy(&accepted.stdout));
+    assert_eq!(positive["command"], "init");
+    assert_eq!(positive["exit_code"], 0);
+    assert!(positive["notes"].as_array().unwrap().iter().any(|n| {
+        n.as_str()
+            .is_some_and(|s| s.contains("initialized Transport"))
+    }));
+    assert!(!refused.status.success());
+    let negative = envelope(&String::from_utf8_lossy(&refused.stdout));
+    assert_eq!(negative["exit_code"], refused.status.code().unwrap());
+    assert_eq!(
+        before, after,
+        "refused reinitialization preserves the config"
+    );
+    assert!(ordinary.status.success());
+    assert!(String::from_utf8_lossy(&ordinary.stdout).contains("initialized Transport"));
+    assert_eq!(before, human_config, "format changes no setup policy");
+}
+
+#[test]
+fn init_json_covers_presets_and_the_program_scaffold() {
+    let root = std::env::temp_dir().join(format!(
+        "ow-init-json-options-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    let cases: &[(&str, &[&str])] = &[
+        ("plain", &[]),
+        ("team", &["--team"]),
+        ("regulated", &["--regulated"]),
+        ("program", &["--program", "Transport", "--namespace", "JS"]),
+        ("derived", &["--program", "Transport"]),
+    ];
+    let mut outputs = Vec::new();
+    for (name, flags) in cases {
+        let dir = root.join(name);
+        std::fs::create_dir_all(&dir).unwrap();
+        let out = Command::new(env!("CARGO_BIN_EXE_war"))
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .args(["init", "--json"])
+            .args(*flags)
+            .current_dir(&dir)
+            .output()
+            .unwrap();
+        outputs.push((
+            *name,
+            out,
+            std::fs::read_to_string(dir.join("openwarrant.toml")).unwrap(),
+        ));
+    }
+    std::fs::remove_dir_all(root).unwrap();
+    for (name, out, config) in outputs {
+        assert!(
+            out.status.success(),
+            "{name}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let v = envelope(&String::from_utf8_lossy(&out.stdout));
+        assert_eq!(v["command"], "init");
+        assert_eq!(v["exit_code"], 0);
+        let notes = v["notes"].as_array().unwrap();
+        if matches!(name, "program" | "derived") {
+            assert!(notes.iter().any(|n| {
+                n.as_str()
+                    .is_some_and(|s| s.contains("scaffolded Transport"))
+            }));
+            assert!(!config.contains("[preset]"));
+        } else {
+            let expected = if name == "plain" { "vibe" } else { name };
+            let config: toml::Value = toml::from_str(&config).unwrap();
+            assert_eq!(config["preset"]["name"].as_str(), Some(expected));
+        }
+    }
+}
+
+#[test]
+fn fixture_eval_keeps_setup_output_inside_the_child_process() {
+    let root = std::env::temp_dir().join(format!(
+        "ow-eval-json-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&root).unwrap();
+    let run = |task: &str, name: &str| {
+        Command::new(env!("CARGO_BIN_EXE_war"))
+            .env("OPENWARRANT_NO_CACHE", "1")
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("TMPDIR", &root)
+            .args(["evidence", "eval", "run", "--json", "--task", task])
+            .arg("--drafter")
+            .arg(repo_root().join("evals/fixtures/fixture-agent.sh"))
+            .arg("--verifier")
+            .arg(repo_root().join("conformance/fixtures/verifier/establishes-all.sh"))
+            .arg("--out")
+            .arg(root.join(name))
+            .current_dir(repo_root())
+            .output()
+            .unwrap()
+    };
+    let accepted = run("run-01-echo", "accepted.json");
+    let result = std::fs::read(root.join("accepted.json"));
+    let refused = run("no-such-eval-task", "refused.json");
+    let refused_file_exists = root.join("refused.json").exists();
+    // Clean up before assertions so the regression's red run leaves no scratch.
+    std::fs::remove_dir_all(root).unwrap();
+
+    assert!(
+        accepted.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&accepted.stdout),
+        String::from_utf8_lossy(&accepted.stderr)
+    );
+    let positive = envelope(&String::from_utf8_lossy(&accepted.stdout));
+    assert_eq!(positive["exit_code"], 0);
+    let result: serde_json::Value = serde_json::from_slice(&result.unwrap()).unwrap();
+    assert_eq!(result["tasks"][0]["score"], "would_satisfy");
+    assert_eq!(
+        result["tasks"][0]["requirements_unmet_by_the_loop"],
+        serde_json::json!([])
+    );
+    assert!(!refused.status.success());
+    let negative = envelope(&String::from_utf8_lossy(&refused.stdout));
+    assert_eq!(negative["exit_code"], refused.status.code().unwrap());
+    assert!(!refused_file_exists);
+}
+
 fn envelope(stdout: &str) -> serde_json::Value {
     let v: serde_json::Value = serde_json::from_str(stdout)
         .unwrap_or_else(|e| panic!("stdout is not one JSON value: {e}\n{stdout}"));

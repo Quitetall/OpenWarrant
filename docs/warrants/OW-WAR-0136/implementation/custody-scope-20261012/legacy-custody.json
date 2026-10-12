@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "attest.custody",
+  "diagnostics": [
+    {
+      "severity": "error",
+      "rule": "attest.custody-unresolved",
+      "file": "OW-WAR-0001",
+      "message": "OW-WAR-0001 carries no resolution; custody is audited over the evidence a resolution relied on"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

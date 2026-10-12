@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0133",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "9078aec116eddeff9e158583a2b057c7a8dec005",
+  "summary": "Twenty evidence-reuse/context controls and one compiler conflict test pass; four AM-004 fixture evals match their baseline rung. Stale bindings and conflicting versions are refused, absent binding remains UNKNOWN, and resolved history stays unchanged. Authorization/delivery reconciliation and independent/human closure remain pending.",
+  "notes": "docs/warrants/OW-WAR-0133/implementation/reuse-scope-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0133/implementation/reuse-scope-20261012/observation.json",
+    "docs/warrants/OW-WAR-0133/implementation/reuse-scope-20261012/closure.json"
+  ],
+  "next_steps": [
+    "Reconcile current authorization and delivery history; retain historical records and later ownership.",
+    "Obtain admissible exact-subject gate evidence, independent reassessment and human acceptance."
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "reported_by": "agent://codex",
+  "warrant": "OW-WAR-0130",
+  "source_basis": "26880ca930c274ddcacd741f51665087e8665e55",
+  "source_dirty": true,
+  "source_sha256": {
+    "crates/openwarrant-cli/src/eval.rs": "20909f413329c0eb5e2bbe4c3fed49f8e99bcf67217752489c2a7baad2daba9f",
+    "crates/openwarrant-cli/tests/json_envelope.rs": "bc9201d828e7642ec90979f7a343fece8a16033872db56c43ed592a980572a0d",
+    "evals/fixtures/fixture-agent.sh": "0e8f5fc1a282401cfb1fc87c43c58c9cea3a8c778bb3c693699e68aeaf1e3a15",
+    "conformance/fixtures/verifier/establishes-all.sh": "433112ab68889ad62ea30def1e463bedf3d2f1eeb2d6ba450516a40be70ea414"
+  },
+  "before_eval_source_sha256": "dc2a90cc97295d8b5898c43edf4c675cffa45ace92a6f36a1b8ea79496d42c5a",
+  "final_binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 26880ca930c2, dirty, debug)",
+  "final_binary_sha256": "c4824e061bb87714fa29c0d20a6e50ffca9986ed290e9b22fbd9346183c4fca7",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "red": {
+    "exit_code": 101,
+    "passed": 0,
+    "failed": 1,
+    "named_failure": "stdout is not one JSON value: expected value at line 1 column 1",
+    "binary_sha256": null,
+    "binary_limitation": "Not captured before the later rebuild replaced it; the actual red regression log is retained."
+  },
+  "green_regression": {
+    "exit_code": 0,
+    "passed": 1,
+    "failed": 0
+  },
+  "json_envelope_suite": {
+    "exit_code": 0,
+    "passed": 8,
+    "failed": 0,
+    "cargo_target": "all",
+    "filter": "json_envelope::"
+  },
+  "cli_all_targets_clippy": {
+    "exit_code": 0,
+    "deny_warnings": true
+  },
+  "fmt": {
+    "exit_code": 0
+  },
+  "eval_runs": [
+    {
+      "task": "run-01-echo",
+      "exit_code": 0,
+      "single_json_stdout": true,
+      "score": "would_satisfy",
+      "unmet_authority_requirements": [
+        "exact authorized Contract Revision",
+        "no required unknown remains",
+        "no blocker remains",
+        "required judgments exist",
+        "residual risks have sufficient authority",
+        "resolver holds the role"
+      ],
+      "loop_requirements_unmet": []
+    },
+    {
+      "task": "run-02-timeout",
+      "exit_code": 0,
+      "single_json_stdout": true,
+      "score": "would_satisfy",
+      "unmet_authority_requirements": [
+        "exact authorized Contract Revision",
+        "no required unknown remains",
+        "no blocker remains",
+        "required judgments exist",
+        "residual risks have sufficient authority",
+        "resolver holds the role"
+      ],
+      "loop_requirements_unmet": []
+    },
+    {
+      "task": "run-03-submit",
+      "exit_code": 0,
+      "single_json_stdout": true,
+      "score": "would_satisfy",
+      "unmet_authority_requirements": [
+        "exact authorized Contract Revision",
+        "no required unknown remains",
+        "no blocker remains",
+        "required judgments exist",
+        "residual risks have sufficient authority",
+        "resolver holds the role"
+      ],
+      "loop_requirements_unmet": []
+    },
+    {
+      "task": "run-04-battery",
+      "exit_code": 0,
+      "single_json_stdout": true,
+      "score": "would_satisfy",
+      "unmet_authority_requirements": [
+        "exact authorized Contract Revision",
+        "no required unknown remains",
+        "no blocker remains",
+        "required judgments exist",
+        "residual risks have sufficient authority",
+        "resolver holds the role"
+      ],
+      "loop_requirements_unmet": []
+    }
+  ],
+  "logs": {
+    "red.log.gz": {
+      "raw_sha256": "9652fea8ed51a5c39d33d6d42a620c48379f00158589bca7174bd0c51a58df85",
+      "compressed_sha256": "cda8ca23d6109937fc88bea0d140d7f3e73891c558315c81166d7ff917462052"
+    },
+    "green.log.gz": {
+      "raw_sha256": "b49c65b2a1eefb6c0bc7b801d1d8cf2f52c008937cb246b08954af604e4671d1",
+      "compressed_sha256": "7e8481040385187bef5ea21894b68f2334df65b74a94f1962c1ed6f019dd204f"
+    },
+    "json-suite.log.gz": {
+      "raw_sha256": "bd534a3d6781dd2e5fee7b7e7e867f5895cdda73a421c604d41a4b6e085e11b6",
+      "compressed_sha256": "9a843cd2af5e910b02caded8b219a37f62ef14aee44d172dcc9ae8270d01cb27"
+    },
+    "clippy.log.gz": {
+      "raw_sha256": "3b473838340e1b8ce9ed9d19f4400293371ca904f316203bffd6a8c675044c50",
+      "compressed_sha256": "86f7f517661cc77befb7ab16519a0736c05846972f08d70e733c62aac960231c"
+    },
+    "setup-wrong-target.log.gz": {
+      "raw_sha256": "84b3cfde0eac61df3e33a7a3fe3d1b13204b5d67dc1568318868f8cbf9055e6e",
+      "compressed_sha256": "f93410ffedacdaf546cb27d806541c545dbaa27d19aa5a84e0e76ef70e7cd851"
+    },
+    "first-green-failure.log.gz": {
+      "raw_sha256": "20ad68080c29acd3ab85ebd5e45a3ba1d3ed044a08f979d006dd2efa1bb805d2",
+      "compressed_sha256": "b3e7b2ea957251aa4b773e4bd418dda3481f65dd7b762e959786fc0db68f26eb"
+    }
+  },
+  "setup_corrections": [
+    "Initial cargo --test json_envelope did not name an available target; retained separately, not counted as the red control. The suite is under --test all.",
+    "First code attempt expected init to supply a JSON envelope; it did not, so the eval failed before writing its result. Retained failure and direct probe; final code checks the captured child process status."
+  ],
+  "model_calls": 0,
+  "independent_verification": false,
+  "qualification": false,
+  "limitations": [
+    "Not the full required CI gate or registered conformance gate.",
+    "Fixture drafter/verifier only; no real model, human review or authorization.",
+    "Current eval results still list the six authority-owned unmet requirements. No authorization, disposition or resolution is awarded."
+  ]
+}

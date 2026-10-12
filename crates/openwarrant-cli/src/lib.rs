@@ -3366,20 +3366,44 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 init::guided(ctx.root.clone(), program.as_deref())?;
                 return Ok(EXIT_OK);
             }
+            let mut setup_messages = Vec::new();
             match (namespace, program) {
                 (Some(namespace), Some(program)) => {
-                    init::run_program_with(&program, &namespace, ctx.root.clone(), chosen)?;
+                    if ctx.json {
+                        setup_messages.extend(init::run_program_with_messages(
+                            &program,
+                            &namespace,
+                            ctx.root.clone(),
+                            chosen,
+                        )?);
+                    } else {
+                        init::run_program_with(&program, &namespace, ctx.root.clone(), chosen)?;
+                    }
                 }
                 (None, Some(program)) => {
                     // M9: `--program` without `--namespace` derives one from
                     // the program's name, letters only (it prefixes
                     // `<NS>-SAS-RQ-001`), instead of refusing.
                     let derived = init::derive_namespace(&program, true);
-                    init::run_program_with(&program, &derived, ctx.root.clone(), chosen)?;
-                    println!(
+                    if ctx.json {
+                        setup_messages.extend(init::run_program_with_messages(
+                            &program,
+                            &derived,
+                            ctx.root.clone(),
+                            chosen,
+                        )?);
+                    } else {
+                        init::run_program_with(&program, &derived, ctx.root.clone(), chosen)?;
+                    }
+                    let hint = format!(
                         "namespace {derived}, from the program's name (`--namespace` picks \
                          another)"
                     );
+                    if ctx.json {
+                        setup_messages.push(hint);
+                    } else {
+                        println!("{hint}");
+                    }
                 }
                 (namespace, None) => {
                     // OW-WAR-0147 / t-67ed: most work here starts as a
@@ -3393,18 +3417,54 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         init::derive_namespace(dir.file_name().unwrap_or_default(), false)
                     });
                     let ns = namespace.or_else(|| derived.clone()).unwrap_or_default();
-                    init::run_with(&ns, name.as_deref(), ctx.root.clone(), chosen, true)?;
+                    if ctx.json {
+                        setup_messages.extend(init::run_with_messages(
+                            &ns,
+                            name.as_deref(),
+                            ctx.root.clone(),
+                            chosen,
+                            true,
+                        )?);
+                    } else {
+                        init::run_with(&ns, name.as_deref(), ctx.root.clone(), chosen, true)?;
+                    }
                     if let Some(d) = derived {
-                        println!(
+                        let hint = format!(
                             "namespace {d}, from the directory name (`--namespace` picks another)"
                         );
+                        if ctx.json {
+                            setup_messages.push(hint);
+                        } else {
+                            println!("{hint}");
+                        }
                     }
                 }
             }
             if let Some(p) = preset {
                 for line in init::apply_preset(ctx.root.clone(), p)? {
-                    println!("{line}");
+                    if ctx.json {
+                        setup_messages.push(line);
+                    } else {
+                        println!("{line}");
+                    }
                 }
+            }
+            if ctx.json {
+                let mut report = diagnostic::Report {
+                    notes: setup_messages,
+                    ..Default::default()
+                };
+                report.push(diagnostic::Diagnostic::pass(
+                    "init.created",
+                    "Repository initialization completed",
+                ));
+                return Ok(go_answer(
+                    mode,
+                    "init",
+                    &report,
+                    serde_json::Value::Null,
+                    "",
+                ));
             }
             Ok(EXIT_OK)
         }

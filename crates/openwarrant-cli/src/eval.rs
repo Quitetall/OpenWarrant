@@ -542,8 +542,29 @@ fn make_scratch(
             String::from_utf8_lossy(&git.stderr).trim()
         )));
     }
-    crate::init::run_program(&format!("Eval {id}"), SCRATCH_NAMESPACE, Some(root.clone()))
+    // Setup is a child CLI operation too: the in-process scaffold prints
+    // terminal hints, which would corrupt the outer eval's JSON envelope.
+    let program = format!("Eval {id}");
+    let initialized = Command::new(&exe)
+        .args([
+            "init",
+            "--program",
+            &program,
+            "--namespace",
+            SCRATCH_NAMESPACE,
+        ])
+        .current_dir(&root)
+        .env("PATH", scratch.path_env())
+        .stdin(Stdio::null())
+        .output()
         .map_err(|e| RepoError::Message(format!("could not scaffold {root}: {e}")))?;
+    if !initialized.status.success() {
+        return Err(RepoError::Message(format!(
+            "could not scaffold {root} (exit {}): {}",
+            initialized.status.code().unwrap_or(-1),
+            String::from_utf8_lossy(&initialized.stderr).trim()
+        )));
+    }
     let fixture = task_dir.join("fixture");
     if fixture.is_dir() {
         copy_tree(&fixture, &root)?;

@@ -987,35 +987,40 @@ pub(crate) fn hotline_admitted(
     let recorded = endings(dir, stage_id)?;
     let refs: Vec<&str> = recorded.iter().map(String::as_str).collect();
     let kind = attempt_of(&refs);
-    match kind {
-        Attempt::Repair(n) if n > policy.repairs() => {
-            report.push(Diagnostic::error(
-                "perform.repair-limit",
-                repo.relative(&dir.join(crate::journal_cmd::FILE)),
-                format!(
-                    "{alias}/{stage_id}: this would be repair {n}, and [perform] max_repairs is {}. \
-                     {} accepted submission(s) are on record; a repair is a performance after one",
-                    policy.repairs(),
-                    refs.iter().filter(|o| **o == Ending::Answered.word()).count()
-                ),
-            ));
-            clear = false;
-        }
-        Attempt::Recovery(n) if n > policy.recoveries() => {
-            report.push(Diagnostic::error(
-                "perform.recovery-limit",
-                repo.relative(&dir.join(crate::journal_cmd::FILE)),
-                format!(
-                    "{alias}/{stage_id}: {n} performance(s) in a row ended without an accepted \
+    // Every performance after an accepted answer could produce another one.
+    // A recovery label does not waive the current repair cap: a policy can
+    // lower that cap after a failure, while the stage is awaiting recovery.
+    let repairs = refs
+        .iter()
+        .filter(|o| **o == Ending::Answered.word())
+        .count();
+    if repairs > usize::try_from(policy.repairs()).unwrap_or(usize::MAX) {
+        report.push(Diagnostic::error(
+            "perform.repair-limit",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!(
+                "{alias}/{stage_id}: this would be repair {repairs}, and [perform] max_repairs is {}. \
+                 {repairs} accepted submission(s) are on record; a repair is a performance after one",
+                policy.repairs(),
+            ),
+        ));
+        clear = false;
+    }
+    if let Attempt::Recovery(n) = kind
+        && n > policy.recoveries()
+    {
+        report.push(Diagnostic::error(
+            "perform.recovery-limit",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!(
+                "{alias}/{stage_id}: {n} performance(s) in a row ended without an accepted \
                      submission ({}), and [perform] max_recoveries is {}. Find out why before \
                      running it again",
-                    refs[refs.len() - usize::try_from(n).unwrap_or(0).min(refs.len())..].join(", "),
-                    policy.recoveries()
-                ),
-            ));
-            clear = false;
-        }
-        _ => {}
+                refs[refs.len() - usize::try_from(n).unwrap_or(0).min(refs.len())..].join(", "),
+                policy.recoveries()
+            ),
+        ));
+        clear = false;
     }
     Ok(clear.then_some(kind))
 }

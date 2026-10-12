@@ -483,6 +483,23 @@ done
 # Keep the winner running until the contenders have answered; otherwise a
 # legitimate later recovery could look like a concurrent second start.
 pc_reset
+# Add fixture startup latency to exercise the pre-spawn observer interval.
+# The assertions still observe actual writers; they never infer a start from time.
+PC_DELAYED="$PC_TMP/delayed-performer.sh"
+cat > "$PC_DELAYED" <<'DELAYED'
+#!/usr/bin/env bash
+sleep 1
+exec "$@"
+DELAYED
+chmod +x "$PC_DELAYED"
+python3 - "$PC_ROOT/openwarrant.toml" "$PC_DELAYED" "$PC_FX" <<'CONFIG'
+import json, pathlib, re, sys
+path = pathlib.Path(sys.argv[1])
+text, changed = re.subn(r"(?m)^performer_argv =.*$",
+    "performer_argv = " + json.dumps(sys.argv[2:]), path.read_text())
+assert changed == 1, changed
+path.write_text(text)
+CONFIG
 PC_MARK="$PC_TMP/racing.marker"
 PC_RACE_OUT="$PC_TMP/racing"
 mkdir -p "$PC_RACE_OUT"
@@ -502,6 +519,14 @@ try:
     deadline = time.monotonic() + 60
     while sum(p.poll() is not None for p in processes) < 7 and time.monotonic() < deadline:
         time.sleep(0.05)
+    # Admission can refuse the seven contenders before the winner's actor
+    # starts. Observe both fixture writers before cancelling that command.
+    def started():
+        lines = pathlib.Path(marker).read_text().splitlines() if pathlib.Path(marker).exists() else []
+        return any(line.startswith("performer ") for line in lines) and any(
+            line.startswith("child ") for line in lines)
+    while not started() and sum(p.poll() is None for p in processes) == 1 and time.monotonic() < deadline:
+        time.sleep(0.05)
     live = [p for p in processes if p.poll() is None]
     # Read the seven refusals before cancelling the sole admitted command.
     refused = []
@@ -510,7 +535,7 @@ try:
             text = (pathlib.Path(output) / f"call-{i}.log").read_text()
             refused.append(p.returncode != 0 and (
                 "perform.writer-busy" in text or "perform.writer-alive" in text))
-    admission_ok = len(live) == 1 and len(refused) == 7 and all(refused)
+    admission_ok = started() and len(live) == 1 and len(refused) == 7 and all(refused)
 finally:
     for p in processes:
         if p.poll() is None:

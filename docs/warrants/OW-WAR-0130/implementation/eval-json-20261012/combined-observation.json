@@ -1,0 +1,53 @@
+{
+  "candidate_revision": "9bfb5119975986ca79237aa1da0a03df554ff06b",
+  "source_dirty_before_controls": false,
+  "source_sha256": {
+    "crates/openwarrant-cli/src/lib.rs": "a91ad6a4574197927ebedf858a2e5a183ca2115f0815d677854315caf888ce97",
+    "crates/openwarrant-cli/src/eval.rs": "20909f413329c0eb5e2bbe4c3fed49f8e99bcf67217752489c2a7baad2daba9f",
+    "crates/openwarrant-cli/tests/json_envelope.rs": "bc9201d828e7642ec90979f7a343fece8a16033872db56c43ed592a980572a0d",
+    "conformance/plants.d/132-first-done.sh": "660329b392e13f88ad9e36a2eaa9a33ef299fe085e6cae527129401af38ff272",
+    "conformance/plants.d/140-presets.sh": "174719b3c2afe994151f9604e3850eebf851c8374dd27c7341a975a18f0738fc",
+    "conformance/lib.sh": "6628198c3071e13b35ddade8c508dac257b65e4c55f026c332c6e6d111d4c655"
+  },
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 9bfb51199759, debug)",
+  "binary_sha256": "8793bb54c9e318e5d660e97623d0e3bf810fa97239031ec261375356f9e4aa53",
+  "json_envelope_tests": {
+    "passed": 8,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "selected_init_preset_controls": {
+    "passed": 12,
+    "failed": 0,
+    "exit_code": 0,
+    "scope": "Positive generated-record check plus first-done/preset controls; not the whole gate."
+  },
+  "cli_all_targets_clippy": {
+    "exit_code": 0
+  },
+  "fmt": {
+    "exit_code": 0
+  },
+  "included_heads": {
+    "PR242": "216d87ade19692a1b6bd2e9afc4e922a031964ec",
+    "PR243": "3c5251a2d2b27c80efc6f887c53415a03df6127b",
+    "PR244": "26880ca930c274ddcacd741f51665087e8665e55"
+  },
+  "logs": {
+    "combined-json-suite.log.gz": {
+      "raw_sha256": "f21ce18eadac4b49a5db994838d74ab3c865355550faf78b1440265ab1c0588b",
+      "compressed_sha256": "a6846cc701b083fac2b9d1343b74b45baedcdbc51ac5b004f31eb614fc45888c"
+    },
+    "combined-init-controls.log.gz": {
+      "raw_sha256": "fed8ac8837f3c85d9d1b268ebfe7d0ecb0a8d100f211a9dd175e773d6dbdf5e3",
+      "compressed_sha256": "76811833eba493d172d664f7c45202aae2e355f586a89dd2f66f126fb6d0d0dd"
+    },
+    "combined-clippy.log.gz": {
+      "raw_sha256": "d63ff7b35745430a73ce74731ffd4d31b107b4a29d811065b3fdc9b6d7bdc148",
+      "compressed_sha256": "8c001f3ff121fb3c5588f22a27d2d8e111f6aea5196619d00dc010af0e00dfb1"
+    }
+  },
+  "model_calls": 0,
+  "independent_verification": false,
+  "qualification": false
+}

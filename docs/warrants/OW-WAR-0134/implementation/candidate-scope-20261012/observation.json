@@ -1,0 +1,37 @@
+{
+  "schema": "openwarrant.runtime-observation/v1",
+  "source_commit": "4a71eb72d7775e962d6bcf23b6309e8425fd0a86",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 767b52959255, dirty, debug)",
+  "binary_sha256": "0cbe9ad5ebc166b5ceb8a1493eee495eef164c3b035ee14b28d0b4625085431e",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/acceptance.rs": "0ff72fc9d39ecbbb74abd4cfac2fd37178eed89d2d64f90399b62c92abe56d4b",
+    "crates/openwarrant-cli/src/pins.rs": "05465061c5143994ad7c4a723661fb1ffa267fb397addadce601a85eb85384f5",
+    "crates/openwarrant-cli/src/lib.rs": "f646102291857be9a6ce578139dbf40e680d07cf7a8ba57285131f85420104eb",
+    ".github/workflows/ci.yml": "1a8e946ee922f6d42cf1d71989a9699884909fcf5f875f92cdc0e4366ff6c90f",
+    "conformance/plants.d/56-acceptance-validity.sh": "7b81d8b9ccf44066a21957eb9296a72069d58ad95aee1039de01a02cc0394653",
+    "docs/SIGNING.md": "de5546cbd2eb69261c91aaffb19e42fe3f58e06f436e56384725aff055b0d684"
+  },
+  "selected_controls": {
+    "pass": 28,
+    "fail": 0,
+    "includes_positive_corpus": true
+  },
+  "unit_tests": {
+    "pass": 5,
+    "fail": 0
+  },
+  "closure_dry_run": {
+    "exit_code": 2,
+    "counts": {
+      "pass": 5,
+      "warn": 1,
+      "unknown": 9,
+      "error": 0,
+      "worst": "unknown"
+    }
+  },
+  "independent_verification": false,
+  "human_acceptance": false,
+  "model_calls": 0
+}

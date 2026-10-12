@@ -1,0 +1,12 @@
+{
+  "schema": "oh.war/eval-timing/v1",
+  "started_at": "2026-10-12T01:58:22Z",
+  "tasks": [
+    {
+      "id": "run-03-submit",
+      "wall_secs": 9.630312882,
+      "max_wall_secs": 120,
+      "over_wall_time": false
+    }
+  ]
+}

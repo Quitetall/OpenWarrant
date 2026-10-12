@@ -1,0 +1,54 @@
+{
+  "schema": "openwarrant.runtime-observation/v1",
+  "source_commit": "249fee7be50a6c28cdeec33465e5e87c2973547f",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 767b52959255, dirty, debug)",
+  "binary_sha256": "0cbe9ad5ebc166b5ceb8a1493eee495eef164c3b035ee14b28d0b4625085431e",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/attest.rs": "6487d1314df1c196249d0da6e49018b6ef86b3ee9b43555299519e8cf2e1cb76",
+    "crates/openwarrant-cli/src/invalidation.rs": "2addc00af38215fd3ff34effe7db70238b7ecb5620651b7ba12c0d13f5ff3278",
+    "crates/openwarrant-cli/src/sign.rs": "3f7a3fee9f6bb26a8254750812f8c0609dae4f37538026acfe11540aa7e86474",
+    "crates/openwarrant-cli/src/evidence.rs": "f2e0d3d7d52cf4836d2eece190340d75ed549dcb90db8408cd8ddef246222379",
+    "conformance/plants.d/58-invalidation.sh": "b066bca6b5b7b48af48e644f56aa0b8b202d4b35ce083c3f51e097e2cf3e91bb",
+    "docs/INVALIDATION.md": "5b1acab63dd086266d56cb4a5610aaeb90a7c4b84f78ba709c6af0e313644b3d"
+  },
+  "selected_controls": {
+    "pass": 30,
+    "fail": 0,
+    "includes_positive_corpus": true
+  },
+  "unit_tests": {
+    "pass": 4,
+    "fail": 0
+  },
+  "legacy_audit": {
+    "warrant": "OW-WAR-0014",
+    "exit_code": 0,
+    "original_digest": "UNKNOWN: not attested",
+    "recorded": false
+  },
+  "closure_dry_run": {
+    "exit_code": 2,
+    "counts": {
+      "pass": 5,
+      "warn": 4,
+      "unknown": 9,
+      "error": 0,
+      "worst": "unknown"
+    }
+  },
+  "independent_verification": false,
+  "human_acceptance": false,
+  "model_calls": 0,
+  "retained_attestations": {
+    "exit_code": 0,
+    "counts": {
+      "pass": 268,
+      "warn": 0,
+      "unknown": 0,
+      "error": 0,
+      "worst": "pass"
+    },
+    "recorded": false
+  }
+}

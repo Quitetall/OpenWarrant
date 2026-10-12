@@ -162,6 +162,12 @@ A performance is refused before compiling when its number exceeds the limit:
 `perform.repair-limit` past `[perform] max_repairs`, and
 `perform.recovery-limit` past `[perform] max_recoveries`.
 
+Admission checks the current limits. After an accepted submission, the repair
+cap also applies to a recovery: a failed attempt does not waive that cap. If
+`max_repairs` is lowered from 3 to 1 after `answered, answered, failed`, the
+next call is refused before compiling or spawning. Raising the cap to 2
+permits that same recovery. Attempt labels and recovery counts stay separate.
+
 | key | default (U-001) | where the number comes from |
 |---|---|---|
 | `max_repairs` | 3 | the product spec's fallback of three repair cycles |
@@ -179,7 +185,9 @@ Plants: "max_recoveries = 1" (failed, failed, then `perform.recovery-limit`),
 "max_repairs = 1" (answered, answered, then `perform.repair-limit`), and "a
 failed run is not a repair" (with `max_repairs = 1`, answered, failed,
 answered is permitted). Each checks the journal's `perform.ended` outcomes
-against the runs.
+against the runs. The lowered-cap case also checks that no new marker,
+Dispatch, journal claim or ending exists; the raised-cap case shows admission
+is possible when the limit permits it.
 
 ## What is not counted
 
