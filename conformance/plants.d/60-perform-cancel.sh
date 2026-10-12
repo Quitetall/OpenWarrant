@@ -326,6 +326,49 @@ else
 fi
 pc_kill_writers "$PC_MARK"
 
+# A controller can die and release its admission lock while its performer
+# keeps writing. Another stage, or another Warrant in this checkout, cannot
+# treat that orphan as absent. Use the real emitted record, not a guessed PID.
+for PC_HANDOFF_CASE in stage warrant; do
+    pc_reset
+    PC_TARGET_W="$PC_W"
+    PC_TARGET_STAGE=STAGE-002
+    if [[ "$PC_HANDOFF_CASE" == warrant ]]; then
+        "$PC_WAR" --root "$PC_ROOT" new "Sibling handoff plant" > /dev/null 2>&1
+        PC_TARGET_W=PC-WAR-0003
+        if [[ ! -d "$PC_ROOT/docs/warrants/$PC_TARGET_W" ]]; then
+            pc_fail "orphan blocks another Warrant" "PLANT SETUP: sibling Warrant was not created"
+            continue
+        fi
+        command cp "$PC_DIR/atoms/45-milestones.yaml" "$PC_ROOT/docs/warrants/$PC_TARGET_W/atoms/45-milestones.yaml"
+        PC_TARGET_STAGE=STAGE-001
+    fi
+    PC_MARK="$PC_TMP/orphan-$PC_HANDOFF_CASE.marker"
+    PC_MARK2="$PC_TMP/replacement-$PC_HANDOFF_CASE.marker"
+    pc_start STAGE-001 "$PC_MARK" "$PC_TMP/orphan-$PC_HANDOFF_CASE.out"
+    if pc_wait_writing "$PC_MARK" 60; then
+        PC_OLD_WRITER=$(awk '$1 == "performer" {print $2; exit}' "$PC_MARK")
+        pc_stop "$PC_PID" KILL
+        PC_J0=$(pc_compiled)
+        PC_OUT=$(WRITES_UNTIL_KILLED_MARKER="$PC_MARK2" timeout -k 5 15 \
+            "$PC_WAR" --root "$PC_ROOT" perform "$PC_TARGET_W" "$PC_TARGET_STAGE" --prototype 2>&1)
+        PC_STATUS=$?
+        echo "$PC_OUT" >> "$PC_ALL_OUT"
+        if [[ $PC_STATUS -ne 0 ]] && grep -q "perform.writer-alive .*by pid $PC_OLD_WRITER " <<< "$PC_OUT" \
+            && [[ ! -e "$PC_MARK2" ]] && [[ "$(pc_compiled)" == "$PC_J0" ]] \
+            && pc_alive "$PC_OLD_WRITER"; then
+            pc_ok "orphan blocks another $PC_HANDOFF_CASE" "named live writer refused after controller SIGKILL; no replacement marker"
+        else
+            pc_fail "orphan blocks another $PC_HANDOFF_CASE" "exit $PC_STATUS, replacement marker $([[ -e "$PC_MARK2" ]] && echo present || echo absent): $(grep -m1 -E 'ERROR|UNKNOWN|PASS' <<< "$PC_OUT")"
+        fi
+    else
+        pc_stop "$PC_PID" KILL
+        pc_fail "orphan blocks another $PC_HANDOFF_CASE" "PLANT SETUP: the first writer never started"
+    fi
+    pc_kill_writers "$PC_MARK"
+    pc_kill_writers "$PC_MARK2"
+done
+
 # --- OBL-003: the supported branch is the compiled one ----------------------
 
 # The refusal branch is exercised by perform.rs's unit test (cargo test); the
