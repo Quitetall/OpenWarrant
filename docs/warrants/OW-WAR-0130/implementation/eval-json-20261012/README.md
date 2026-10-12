@@ -22,3 +22,12 @@ The initial wrong Cargo target and failed first fix are retained, rather than
 counted as passing controls. The original OW130 historical retry evidence and
 independent findings remain unchanged. Required CI, exact-subject gate evidence,
 independent reassessment, delivery reconciliation and human closure remain pending.
+
+## Combined candidate
+
+The pending init default, repair-cap fix and scope audits are combined by normal
+merges, with no rewritten history. The merged source passed all eight JSON-envelope
+tests and twelve selected first-done/preset controls; Clippy and formatting passed.
+Exact source/binary identities and included heads are in
+[combined-observation.json](combined-observation.json). Full CI on the final pushed
+combined candidate remains required before merging to main.
