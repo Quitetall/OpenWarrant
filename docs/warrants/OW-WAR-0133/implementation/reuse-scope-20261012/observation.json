@@ -1,0 +1,334 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "warrant": "OW-WAR-0133",
+  "reported_by": "agent://codex",
+  "observed_revision": "9078aec116eddeff9e158583a2b057c7a8dec005",
+  "source_dirty_before_controls": false,
+  "source_sha256": {
+    "crates/openwarrant-cli/src/gate_cmd.rs": "8e6ea3baa6a081413d7d1d7af50e4d0b97117fd50cbb37ec17e3be0ea9bcebd5",
+    "crates/openwarrant-cli/src/evidence.rs": "f2e0d3d7d52cf4836d2eece190340d75ed549dcb90db8408cd8ddef246222379",
+    "crates/openwarrant-cli/src/context_select.rs": "1b1dc1a2cb4e984d949931fcb01460b836b844ad93371fce84f714ed1b372432",
+    "crates/openwarrant-compiler/src/dispatch.rs": "aca4710e70e4430093d3a1ce6addd1f51f04cf9c1c15966d1cc5111b301ade5e",
+    "crates/openwarrant-cli/src/dispatch.rs": "94d6a9f0aa12aa565ecc2e2cb5fc0529640d9aa14ee18791174e1573192e2e7d",
+    "crates/openwarrant-core/src/context.rs": "7d4704b98c7235c6822f2477948457055800fb5b695418af1411b9d336ae8536",
+    "crates/openwarrant-cli/src/status.rs": "adcfe4fa863074e953138aa3fd7ccbc8cfdf079b11eb2f378d80d7967b12ce1e",
+    "crates/openwarrant-cli/src/eval.rs": "dc2a90cc97295d8b5898c43edf4c675cffa45ace92a6f36a1b8ea79496d42c5a",
+    "conformance/plants.d/55-evidence-reuse.sh": "c31463c63d08c08c1efa14a087e3a99e00f633edd108cce31d20aa99b650cbf3",
+    "conformance/lib.sh": "6628198c3071e13b35ddade8c508dac257b65e4c55f026c332c6e6d111d4c655",
+    "evals/baseline.json": "720ef311e1731d1b3c53c282e162146e016e66b2d83087a14af3ce0e5a40ab5e",
+    "evals/fixtures/fixture-agent.sh": "0e8f5fc1a282401cfb1fc87c43c58c9cea3a8c778bb3c693699e68aeaf1e3a15",
+    "conformance/fixtures/verifier/establishes-all.sh": "433112ab68889ad62ea30def1e463bedf3d2f1eeb2d6ba450516a40be70ea414",
+    "evals/tasks/run-01-echo/proposal.json": "f1ff569fdc534a3863d4b5a649a6baf8744417a55f7afe1c98115a5c2eeeeb2b",
+    "evals/tasks/run-01-echo/task.toml": "f19161b9e68e6ececf1d03eda28a8057abf12609f327d0800a100bf21d3ef36a",
+    "evals/tasks/run-01-echo/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl": "0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072",
+    "evals/tasks/run-01-echo/fixture/docs/gates/ops.echo@1.1.0.yaml": "1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac",
+    "evals/tasks/run-02-timeout/proposal.json": "8a546d13af6dc7681869a60264e15562e103289222eeb607ecdd1c5711858359",
+    "evals/tasks/run-02-timeout/task.toml": "b8d1db7f69688a9746d85c81ba9f751ac57004639d1b52cc1b26700942fb8a76",
+    "evals/tasks/run-02-timeout/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl": "0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072",
+    "evals/tasks/run-02-timeout/fixture/docs/gates/ops.echo@1.1.0.yaml": "1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac",
+    "evals/tasks/run-03-submit/proposal.json": "6dc61603ecedacacd562d203cb60c468484bd219b7c5fde52d55d78dbfc42c56",
+    "evals/tasks/run-03-submit/task.toml": "ed55c325c8844ac2156f7037f335a57ecb526e2dd6e62f8a66024da23dcc9cbe",
+    "evals/tasks/run-03-submit/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl": "0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072",
+    "evals/tasks/run-03-submit/fixture/docs/gates/ops.echo@1.1.0.yaml": "1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac",
+    "evals/tasks/run-04-battery/proposal.json": "fb6d17682614f881076f46bf502b8b33730fbb178c0209907f8fcd4feaddc244",
+    "evals/tasks/run-04-battery/task.toml": "18b0ea9705dcbf2c5d36e17d8687efcb9d489c6af40e3c96072d5472950ef09a",
+    "evals/tasks/run-04-battery/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl": "0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072",
+    "evals/tasks/run-04-battery/fixture/docs/gates/ops.echo@1.1.0.yaml": "1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+  },
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 61894f410214, dirty, debug)",
+  "binary_sha256": "f2d79388c80135a97f9aadf44b2338dbd3c1136870ac8a379635dff256c29473",
+  "binary_build_basis": "Dirty debug build based on 61894f410214 with the OW132 repair-cap source change; not a clean build of the observation revision.",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "selected_cli_controls": {
+    "passed": 20,
+    "failed": 0,
+    "exit_code": 0,
+    "runner": "source conformance/lib.sh; run_plant_files \"$REPO_ROOT/conformance/plants.d/55-evidence-reuse.sh\"; assert FAILED=0",
+    "scope": "Positive generated-record check and nineteen selected evidence-reuse/conflict controls, fixture scratch repositories."
+  },
+  "compiler_conflict_test": {
+    "passed": 1,
+    "failed": 0,
+    "exit_code": 0,
+    "test": "dispatch::tests::one_source_at_two_digests_is_refused_and_both_are_named"
+  },
+  "logs": {
+    "reuse-controls.log.gz": {
+      "raw_sha256": "ea0b29911b402dec5cb45b9a05437c75b081d79754dd5b4868ffc5670fce2b4d",
+      "compressed_sha256": "43f4aa3eef7fbde2bc505eeeda4dee85174114af3dd5aea603ce836d6eb19231"
+    },
+    "compiler-conflict.log.gz": {
+      "raw_sha256": "ad1c2aeceaabd911b21b8ebd509e413391527c1b3bf3aeb1e618a0ad3d7df7c4",
+      "compressed_sha256": "19265274b0875599ef7be942dbb9db64621ab0f3e49324fbd7288a964b55f11b"
+    }
+  },
+  "closure_dry_run": {
+    "exit_code": 2,
+    "counts": {
+      "pass": 5,
+      "warn": 1,
+      "unknown": 9,
+      "error": 0,
+      "worst": "unknown"
+    },
+    "file": "closure.json"
+  },
+  "manifest_comparison": [
+    {
+      "id": "D-001",
+      "path": "crates/openwarrant-cli/src/gate_cmd.rs",
+      "recorded_sha256": "sha256:70af1d16a8a905030e14f32c9ccf2df9f27164d4dab6433508c3abe4e117f569",
+      "current_sha256": "sha256:8e6ea3baa6a081413d7d1d7af50e4d0b97117fd50cbb37ec17e3be0ea9bcebd5"
+    },
+    {
+      "id": "D-002",
+      "path": "crates/openwarrant-cli/src/evidence.rs",
+      "recorded_sha256": "sha256:c9451b930ce491f9dac28057d4e5ab48f9e796d3170f301809df4e1de0c7db8e",
+      "current_sha256": "sha256:f2e0d3d7d52cf4836d2eece190340d75ed549dcb90db8408cd8ddef246222379"
+    },
+    {
+      "id": "D-003",
+      "path": "crates/openwarrant-cli/src/context_select.rs",
+      "recorded_sha256": "sha256:f0987b0479e39e8b8a74c55aa50423a67ce73313c27dd4b54100352159458a0a",
+      "current_sha256": "sha256:1b1dc1a2cb4e984d949931fcb01460b836b844ad93371fce84f714ed1b372432"
+    },
+    {
+      "id": "D-004",
+      "path": "crates/openwarrant-compiler/src/dispatch.rs",
+      "recorded_sha256": "sha256:129e9191e66eef50d69103ed5eae24be53e0b3700e28ee6c34beb98d1de827ae",
+      "current_sha256": "sha256:aca4710e70e4430093d3a1ce6addd1f51f04cf9c1c15966d1cc5111b301ade5e"
+    },
+    {
+      "id": "D-005",
+      "path": "conformance/plants.d/55-evidence-reuse.sh",
+      "recorded_sha256": "sha256:c31463c63d08c08c1efa14a087e3a99e00f633edd108cce31d20aa99b650cbf3",
+      "current_sha256": "sha256:c31463c63d08c08c1efa14a087e3a99e00f633edd108cce31d20aa99b650cbf3"
+    },
+    {
+      "id": "D-006",
+      "path": "docs/RESOLVING.md",
+      "recorded_sha256": "sha256:e7e73a84feaef9c2a21186de33bede09ea9dd066cb4d17afcb77ace36707d7f8",
+      "current_sha256": "sha256:501f7c385141c81d5aafe7db2d46b8d3f82b7a23297bc7eecec0c09305cac7aa"
+    },
+    {
+      "id": "D-007",
+      "path": "crates/openwarrant-cli/src/dispatch.rs",
+      "recorded_sha256": "sha256:6b5b2100e8be92e4f2e0e8a716b884e804364b4fb4da4cd2175e64580a2c6e1f",
+      "current_sha256": "sha256:94d6a9f0aa12aa565ecc2e2cb5fc0529640d9aa14ee18791174e1573192e2e7d"
+    },
+    {
+      "id": "D-008",
+      "path": "crates/openwarrant-core/src/context.rs",
+      "recorded_sha256": "sha256:74a97cf2504216e1331062f33de5f80cfe9dc17815cb888423ceedcc88e83c46",
+      "current_sha256": "sha256:7d4704b98c7235c6822f2477948457055800fb5b695418af1411b9d336ae8536"
+    },
+    {
+      "id": "D-009",
+      "path": "crates/openwarrant-cli/src/status.rs",
+      "recorded_sha256": "sha256:525e6bab89babc58d5f0aa5c1465b138bbd9985c3df8cc1cb448f1855ab394d5",
+      "current_sha256": "sha256:adcfe4fa863074e953138aa3fd7ccbc8cfdf079b11eb2f378d80d7967b12ce1e"
+    },
+    {
+      "id": "D-010",
+      "path": "crates/openwarrant-cli/src/eval.rs",
+      "recorded_sha256": "sha256:c01ab0d54271ea9ac3eeca0ae4675cfec49bfc1ed8f423099cfc6bcd8ef5f93e",
+      "current_sha256": "sha256:dc2a90cc97295d8b5898c43edf4c675cffa45ace92a6f36a1b8ea79496d42c5a"
+    },
+    {
+      "id": "D-011",
+      "path": "evals/baseline.json",
+      "recorded_sha256": "sha256:720ef311e1731d1b3c53c282e162146e016e66b2d83087a14af3ce0e5a40ab5e",
+      "current_sha256": "sha256:720ef311e1731d1b3c53c282e162146e016e66b2d83087a14af3ce0e5a40ab5e"
+    },
+    {
+      "id": "D-012",
+      "path": "conformance/plants.d/00-corpus.sh",
+      "recorded_sha256": "sha256:64e836453b4bc7cb2d4377c3de5be589af7843bcd7ec9e9343ded18add347702",
+      "current_sha256": "sha256:274a96cc1626ca64e37e8455f545dd4c398877644f2eeef16995bde8609621a1"
+    },
+    {
+      "id": "D-013",
+      "path": "evals/tasks/run-01-echo/fixture/docs/gates/ops.echo@1.1.0.yaml",
+      "recorded_sha256": "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac",
+      "current_sha256": "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+    },
+    {
+      "id": "D-014",
+      "path": "evals/tasks/run-01-echo/task.toml",
+      "recorded_sha256": "sha256:f19161b9e68e6ececf1d03eda28a8057abf12609f327d0800a100bf21d3ef36a",
+      "current_sha256": "sha256:f19161b9e68e6ececf1d03eda28a8057abf12609f327d0800a100bf21d3ef36a"
+    },
+    {
+      "id": "D-015",
+      "path": "evals/tasks/run-01-echo/proposal.json",
+      "recorded_sha256": "sha256:f1ff569fdc534a3863d4b5a649a6baf8744417a55f7afe1c98115a5c2eeeeb2b",
+      "current_sha256": "sha256:f1ff569fdc534a3863d4b5a649a6baf8744417a55f7afe1c98115a5c2eeeeb2b"
+    },
+    {
+      "id": "D-016",
+      "path": "evals/tasks/run-01-echo/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl",
+      "recorded_sha256": "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072",
+      "current_sha256": "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072"
+    },
+    {
+      "id": "D-017",
+      "path": "evals/tasks/run-02-timeout/fixture/docs/gates/ops.echo@1.1.0.yaml",
+      "recorded_sha256": "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac",
+      "current_sha256": "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+    },
+    {
+      "id": "D-018",
+      "path": "evals/tasks/run-02-timeout/task.toml",
+      "recorded_sha256": "sha256:b8d1db7f69688a9746d85c81ba9f751ac57004639d1b52cc1b26700942fb8a76",
+      "current_sha256": "sha256:b8d1db7f69688a9746d85c81ba9f751ac57004639d1b52cc1b26700942fb8a76"
+    },
+    {
+      "id": "D-019",
+      "path": "evals/tasks/run-02-timeout/proposal.json",
+      "recorded_sha256": "sha256:8a546d13af6dc7681869a60264e15562e103289222eeb607ecdd1c5711858359",
+      "current_sha256": "sha256:8a546d13af6dc7681869a60264e15562e103289222eeb607ecdd1c5711858359"
+    },
+    {
+      "id": "D-020",
+      "path": "evals/tasks/run-02-timeout/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl",
+      "recorded_sha256": "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072",
+      "current_sha256": "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072"
+    },
+    {
+      "id": "D-021",
+      "path": "evals/tasks/run-03-submit/fixture/docs/gates/ops.echo@1.1.0.yaml",
+      "recorded_sha256": "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac",
+      "current_sha256": "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+    },
+    {
+      "id": "D-022",
+      "path": "evals/tasks/run-03-submit/task.toml",
+      "recorded_sha256": "sha256:ed55c325c8844ac2156f7037f335a57ecb526e2dd6e62f8a66024da23dcc9cbe",
+      "current_sha256": "sha256:ed55c325c8844ac2156f7037f335a57ecb526e2dd6e62f8a66024da23dcc9cbe"
+    },
+    {
+      "id": "D-023",
+      "path": "evals/tasks/run-03-submit/proposal.json",
+      "recorded_sha256": "sha256:6dc61603ecedacacd562d203cb60c468484bd219b7c5fde52d55d78dbfc42c56",
+      "current_sha256": "sha256:6dc61603ecedacacd562d203cb60c468484bd219b7c5fde52d55d78dbfc42c56"
+    },
+    {
+      "id": "D-024",
+      "path": "evals/tasks/run-03-submit/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl",
+      "recorded_sha256": "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072",
+      "current_sha256": "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072"
+    },
+    {
+      "id": "D-025",
+      "path": "evals/tasks/run-04-battery/fixture/docs/gates/ops.echo@1.1.0.yaml",
+      "recorded_sha256": "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac",
+      "current_sha256": "sha256:1b53b7bd78c8e29c473b272c776b19cba56e2d244424f72442c63331d59709ac"
+    },
+    {
+      "id": "D-026",
+      "path": "evals/tasks/run-04-battery/task.toml",
+      "recorded_sha256": "sha256:18b0ea9705dcbf2c5d36e17d8687efcb9d489c6af40e3c96072d5472950ef09a",
+      "current_sha256": "sha256:18b0ea9705dcbf2c5d36e17d8687efcb9d489c6af40e3c96072d5472950ef09a"
+    },
+    {
+      "id": "D-027",
+      "path": "evals/tasks/run-04-battery/proposal.json",
+      "recorded_sha256": "sha256:fb6d17682614f881076f46bf502b8b33730fbb178c0209907f8fcd4feaddc244",
+      "current_sha256": "sha256:fb6d17682614f881076f46bf502b8b33730fbb178c0209907f8fcd4feaddc244"
+    },
+    {
+      "id": "D-028",
+      "path": "evals/tasks/run-04-battery/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl",
+      "recorded_sha256": "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072",
+      "current_sha256": "sha256:0862263a6defbe2c1e5aec02be5bc26bbb5962111bc58deaf8c3d2d42c22a072"
+    }
+  ],
+  "model_calls": 0,
+  "independent_verification": false,
+  "qualification": false,
+  "limitations": [
+    "Not the full registered gate and no new registered gate receipt is minted.",
+    "Source/history comparisons do not infer producers or grant ownership. Existing authorization, independent dispositions, gate receipts and pinned manifests are unchanged.",
+    "Fixture eval rungs do not authorize, resolve or qualify real agent work; six authority-owned requirements remain unmet in each result."
+  ],
+  "eval_replay": {
+    "runs": [
+      {
+        "task": "run-01-echo",
+        "exit_code": 0,
+        "score": "would_satisfy",
+        "baseline_score": "would_satisfy",
+        "loop_requirements_unmet": [],
+        "authority_requirements_unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority",
+          "resolver holds the role"
+        ],
+        "result_sha256": "b9d79b21dad78d2eb05e313172b9208be412fe8097b90f8cdcea93895ec6e374",
+        "stdout_sha256": "f3a2cee5bf90eed3ebc43264a380fc2f7b564d70e286bbe3a49a860698cd051e",
+        "stdout_is_single_json": false
+      },
+      {
+        "task": "run-02-timeout",
+        "exit_code": 0,
+        "score": "would_satisfy",
+        "baseline_score": "would_satisfy",
+        "loop_requirements_unmet": [],
+        "authority_requirements_unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority",
+          "resolver holds the role"
+        ],
+        "result_sha256": "5f554d039603eac9a1f7b4a0de95a044a97c3ed8b87442f50c700836d8161707",
+        "stdout_sha256": "a74bc009ef7ac4fb67ef071f311cb96a52003e9d84edc13913e52501fcb6ef4d",
+        "stdout_is_single_json": false
+      },
+      {
+        "task": "run-03-submit",
+        "exit_code": 0,
+        "score": "would_satisfy",
+        "baseline_score": "would_satisfy",
+        "loop_requirements_unmet": [],
+        "authority_requirements_unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority",
+          "resolver holds the role"
+        ],
+        "result_sha256": "5ce68ef5377f82cc9463dfda311aaab2eb00fae2a37bc19527ecdd30952e824c",
+        "stdout_sha256": "fd83909a610ce36028dc7840f5ad0cdd4cef8e77146a663cc3850872917ffb9e",
+        "stdout_is_single_json": false
+      },
+      {
+        "task": "run-04-battery",
+        "exit_code": 0,
+        "score": "would_satisfy",
+        "baseline_score": "would_satisfy",
+        "loop_requirements_unmet": [],
+        "authority_requirements_unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority",
+          "resolver holds the role"
+        ],
+        "result_sha256": "f654d01bdb5761f340fd25bdcb0f3b78ab1fee2994e8f9586a7ff4302819e4ce",
+        "stdout_sha256": "257b753708e785879ea1e98bf9069d22e7d8128b20d20155e304c92e2d6a598b",
+        "stdout_is_single_json": false
+      }
+    ],
+    "source_dirty_during_eval": true,
+    "scope": "Four AM-004 fixture-agent tasks replayed; each matches the recorded baseline rung and has zero loop-owned unmet requirements. Six authority-owned requirements remain unmet per task. No real agent or independent judgment.",
+    "command_template": "timeout -k 5 150 env OPENWARRANT_NO_PROJECTS=1 OPENWARRANT_NO_UPDATE_CHECK=1 TMPDIR=<owned scratch> target/debug/war eval run --task <id> --drafter <checkout>/evals/fixtures/fixture-agent.sh --verifier <checkout>/conformance/fixtures/verifier/establishes-all.sh --out <keeper>/<id>.json --json",
+    "stdout_observation": "Raw stdout includes initialization text before the final report; the retained result file is valid JSON. No claim of a single JSON stdout envelope."
+  }
+}

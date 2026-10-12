@@ -5,3 +5,4 @@
 - [ ] Execute OW130 historical before/after retry control without granting assurance (i-c27d)
 - [ ] Keep a lowered repair cap effective during pending recovery (OW132) (i-69e9)
 - [x] Audit OW129 budget scope and retain current public-command controls (i-4583) — done by agent://codex, 2026-10-12: OW129 scope audit retained: 15 current CLI controls and 1 compiler boundary test pass; closure dry run 6 PASS, 2 WARN, 8 UNKNOWN, 0 ERROR. In-progress report preserves delivery history and independent/human gates.
+- [x] Audit OW133 evidence reuse and context conflict controls (i-b293) — done by agent://codex, 2026-10-12: OW133 scoped audit retained: 20 current CLI controls and 1 compiler conflict test pass. Closure 5 PASS, 1 WARN, 9 UNKNOWN, 0 ERROR; AM-004 eval replay and authorization/delivery/independent/human reconciliation remain pending.

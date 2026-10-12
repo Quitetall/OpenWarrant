@@ -1,0 +1,12 @@
+{
+  "schema": "oh.war/eval-timing/v1",
+  "started_at": "2026-10-12T01:58:22Z",
+  "tasks": [
+    {
+      "id": "run-02-timeout",
+      "wall_secs": 9.627516382,
+      "max_wall_secs": 120,
+      "over_wall_time": false
+    }
+  ]
+}
