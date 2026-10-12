@@ -1,0 +1,51 @@
+{
+  "schema": "openwarrant.runtime-observation/v1",
+  "source_commit": "6d94916f77328182ffbcbf7195baee1580b7185b",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 767b52959255, dirty, debug)",
+  "binary_sha256": "0cbe9ad5ebc166b5ceb8a1493eee495eef164c3b035ee14b28d0b4625085431e",
+  "source_sha256": {
+    "crates/openwarrant-core/src/assignment.rs": "6eb62f2ed418a9495ad9fda425556d27f4057144b2af45228f9f5107eb52c3dc",
+    "crates/openwarrant-cli/src/authorize.rs": "db7cee5f9ca164dbdbaa5da8803c4dad0b63251cf982abe4506baeb5419328d9",
+    "crates/openwarrant-cli/src/sign.rs": "3f7a3fee9f6bb26a8254750812f8c0609dae4f37538026acfe11540aa7e86474",
+    "crates/openwarrant-cli/src/verify.rs": "b9deeef167874d4cc430e2bf955d02d156802aca104741724efdceacea4737fb",
+    "crates/openwarrant-cli/src/check.rs": "ba03f84bd429a035dcd1ce946c6f36d6549cd8163cf3cf4b2056a23aca32fdba",
+    "crates/openwarrant-cli/src/resolution_cmd.rs": "7d8ecaeed97ab1e4572a0fdce26749ec3eb22b05dbad178de258d7cb87bb0e86",
+    "conformance/plants.d/57-teams.sh": "07a0538b3f5308fe2233f00093bff8432a4da39ed0356455cac071dec13f9809",
+    "conformance/plants.d/84-verify-bundle.sh": "a804fcc20765a83ccbe999fd6a3da5f62465e8082fa8197cda83ce43917e096a",
+    "docs/TEAMS.md": "eb792b1e204f8f4cd31ff49a2727b23adb9ad6601866e562426177412ccda6a7"
+  },
+  "selected_controls": {
+    "pass": 53,
+    "fail": 0,
+    "includes_positive_corpus": true,
+    "plants": [
+      "57-teams.sh",
+      "84-verify-bundle.sh"
+    ]
+  },
+  "unit_tests": {
+    "target": "openwarrant-cli authorize::assignment::tests",
+    "pass": 9,
+    "fail": 0
+  },
+  "wrong_initial_unit_target": {
+    "target": "openwarrant-core assignment::tests",
+    "matched": 0,
+    "coverage_claimed": false
+  },
+  "closure_dry_run": {
+    "exit_code": 2,
+    "counts": {
+      "pass": 6,
+      "warn": 6,
+      "unknown": 8,
+      "error": 0,
+      "worst": "unknown"
+    }
+  },
+  "independent_verification": false,
+  "human_acceptance": false,
+  "real_participant_sessions": 0,
+  "model_calls": 0
+}

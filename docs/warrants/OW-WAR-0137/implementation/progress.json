@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0137",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "6d94916f77328182ffbcbf7195baee1580b7185b",
+  "summary": "Assigned-review and verifier-bundle controls pass 53/0, and all nine CLI assignment unit tests pass. Signed assignments narrow eligibility; identity counts are bounded to recorded fixture actors. Eight closure requirements remain unmet, without repinning or self-verification.",
+  "notes": "docs/warrants/OW-WAR-0137/implementation/team-scope-20261012/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0137/implementation/team-scope-20261012/observation.json"
+  ],
+  "next_steps": [
+    "Run the full registered gate on the exact committed candidate.",
+    "Reconcile historical delivery ownership and assess all declared obligations independently.",
+    "Human acceptance and resolution remain separate; fixture identities are not real-user study participants."
+  ]
+}

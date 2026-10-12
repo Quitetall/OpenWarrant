@@ -1,0 +1,7 @@
+# Team review scope audit
+
+All 53 selected runtime controls pass: the positive corpus check, team assignment controls and existing verifier-bundle compatibility controls. They exercise signed assignment digests, missing roles, agent and self-actor refusals, edited and removed assignments, personal queues, single assigned resolver selection, assigned verifier enforcement, human identity counts and preservation of earlier verifier records. These are scratch actor identities and fixture verifiers, not real developer sessions or independent assessment of OpenWarrant.
+
+All nine assignment unit tests pass on Rust 1.97.1. The first core-crate test filter matched zero tests and is not coverage. The pure assignment file is deliberately compiled through `authorize::assignment` in the CLI because the declared OW137 set excludes core's lib.rs; this observation does not claim a public core assignment API. Both logs are retained. The binary identifies its earlier dirty build basis; its exact hash and relevant source hashes are recorded.
+
+The read-only resolution dry run exits 2: six PASS, six WARN and eight UNKNOWN. D-002, D-005, D-009, D-010, D-012 and D-013 have moved under later OW148 ownership; no pin or signature was rewritten. Artifact digests, dispositions, required gates, unknowns, blockers, judgments, independence and residual-risk authority remain unmet. The full registered gate, independent obligation assessment, delivery reconciliation and human acceptance remain separate. OW137 stays in progress.

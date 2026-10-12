@@ -1,0 +1,48 @@
+{
+  "schema": "openwarrant.runtime-observation/v1",
+  "source_basis_commit": "6d94916f77328182ffbcbf7195baee1580b7185b",
+  "working_tree": "dirty test-fix candidate",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "binary_identity": "war 1.0.0-alpha.3 (unreleased, commit 767b52959255, dirty, debug)",
+  "binary_sha256": "0cbe9ad5ebc166b5ceb8a1493eee495eef164c3b035ee14b28d0b4625085431e",
+  "plant_sha256": "666240b8d64d1c17aada8073aa156e95fce2754f857f24ad380939fba858e6f4",
+  "ci_failure": {
+    "run": 38196016065,
+    "head": "767b52959255b9d85141e6777402de8bfca3ab32",
+    "gate": "FAIL: planted violations",
+    "planted_pass": 1646,
+    "planted_fail": 1,
+    "symptom": "zero fixture writers; seven named refusals true"
+  },
+  "red": {
+    "private_delayed_fixture": {
+      "exit_code": 1,
+      "pass": 1,
+      "fail": 1
+    },
+    "shipped_latency_regression_before_observer_fix": {
+      "exit_code": 1,
+      "pass": 1,
+      "fail": 1
+    }
+  },
+  "green": {
+    "isolated_observer_probe": {
+      "exit_code": 0,
+      "pass": 2,
+      "fail": 0
+    },
+    "full_selected_controls": {
+      "exit_code": 0,
+      "pass": 22,
+      "fail": 0,
+      "includes_positive_corpus": true
+    },
+    "bash_syntax_exit_code": 0
+  },
+  "product_admission_changed": false,
+  "one_writer_requirement_weakened": false,
+  "independent_verification": false,
+  "human_acceptance": false,
+  "model_calls": 0
+}

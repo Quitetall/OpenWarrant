@@ -1,0 +1,4 @@
+gate	cargo xtask gate	2026-10-12T02:58:43.8930509Z 0 fixture writer(s); seven named refusals: True
+gate	cargo xtask gate	2026-10-12T02:58:43.8982552Z FAIL  simultaneous starts have one writer the concurrent fixture did not establish one admitted writer and seven refusals
+gate	cargo xtask gate	2026-10-12T03:22:26.2790707Z 1646 passed, 1 failed
+gate	cargo xtask gate	2026-10-12T03:22:26.3441495Z gate: FAIL — 1/14 step(s) failed:
