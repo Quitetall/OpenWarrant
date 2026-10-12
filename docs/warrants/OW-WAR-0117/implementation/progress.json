@@ -3,13 +3,14 @@
   "warrant": "OW-WAR-0117",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "f735d990b8d0380e9664b41f6dce6f7b489b326d",
-  "summary": "Fixed ambiguous blind-verifier answers: duplicate JSON fields and conflicting obligation verdicts now settle nothing. Both controls failed before the fix; final selected suite passed the positive compiled corpus and all 14 fake-backend controls (15 PASS, zero FAIL). No model call or independent qualification is claimed. The bundled verifier now refuses oversized or ambiguous budget metadata before any backend call. Both new controls failed before their fixes; final selected suite passes 17 checks, zero failures, with a fake backend only.",
-  "notes": "docs/warrants/OW-WAR-0117/implementation/budget-refusal-20261011/README.md",
+  "revision": "02cea3d83b99458cdbd4d7c43d57dbe2f5a8d0bb",
+  "summary": "Fixed ambiguous blind-verifier answers: duplicate JSON fields and conflicting obligation verdicts now settle nothing. Both controls failed before the fix; final selected suite passed the positive compiled corpus and all 14 fake-backend controls (15 PASS, zero FAIL). No model call or independent qualification is claimed. The bundled verifier now refuses oversized or ambiguous budget metadata before any backend call. Both new controls failed before their fixes; final selected suite passes 17 checks, zero failures, with a fake backend only. Direct CLI response ingestion now refuses duplicate obligation rows before any record/history/journal writes. 44 reviewed-subject integrations and the four-case conformance plant pass. Broader regressions pass 475 units and 268 integrations, but aggregate runs expose projection drift from in-flight report edits; full candidate CI remains required.",
+  "notes": "docs/warrants/OW-WAR-0117/implementation/direct-duplicate-20261012/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0117/implementation/verifier-controls-20261011/observation.json",
     "docs/warrants/OW-WAR-0117/implementation/ambiguous-answers-20261011/observation.json",
-    "docs/warrants/OW-WAR-0117/implementation/budget-refusal-20261011/observation.json"
+    "docs/warrants/OW-WAR-0117/implementation/budget-refusal-20261011/observation.json",
+    "docs/warrants/OW-WAR-0117/implementation/direct-duplicate-20261012/observation.json"
   ],
   "next_steps": [
     "Independent reviewer evaluates exact current evidence and governed delivery history before any assurance or resolution.",

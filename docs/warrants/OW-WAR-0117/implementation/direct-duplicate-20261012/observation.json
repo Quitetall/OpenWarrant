@@ -1,0 +1,56 @@
+{
+  "schema": "openwarrant.scoped-runtime-observation/v1",
+  "warrant": "OW-WAR-0117",
+  "source_basis": "02cea3d83b99458cdbd4d7c43d57dbe2f5a8d0bb",
+  "red": {
+    "exit_code": 101,
+    "passed": 0,
+    "failed": 1,
+    "observation": "legacy identical duplicate response wrote active verdicts and journal"
+  },
+  "reviewed_subject_integration": {
+    "exit_code": 0,
+    "passed": 44,
+    "failed": 0
+  },
+  "conformance_final": {
+    "exit_code": 0,
+    "passed": 2,
+    "failed": 0,
+    "scope": "positive corpus plus four legacy/v2 identical/conflicting refusal cases with bound positive restoration"
+  },
+  "conformance_before": {
+    "exit_code": 1,
+    "passed": 1,
+    "failed": 1,
+    "scope": "preserved pre-fix binary, actual record/journal mutation refusal"
+  },
+  "cli_regressions_initial": {
+    "library_passed": 475,
+    "integration_passed": 268,
+    "integration_failed": 1,
+    "integration_ignored": 4,
+    "failure": "current corpus projection not regenerated after new sources"
+  },
+  "clippy_exit_code": 0,
+  "fmt_exit_code": 0,
+  "independent_disposition": false,
+  "human_acceptance": false,
+  "source_files": {
+    "crates/openwarrant-cli/src/verify.rs": "6c350c578e44b48424e581500caa4e9ad77014db2622fcce4978da920ab5c47e",
+    "crates/openwarrant-cli/tests/verification_subject_cli.rs": "23da7c72b7bdf953f6060e175a3bbed082cf2eca6919001de9275b0c64785be6",
+    "conformance/plants.d/84-direct-verdicts.sh": "7d3f6846ce3bc82483c0efd68801964a03cd610310d29d5a3531d6b46cd13221"
+  },
+  "cli_regressions_rerun": {
+    "library_passed": 475,
+    "integration_passed": 268,
+    "integration_failed": 1,
+    "integration_ignored": 4,
+    "failure": "evidence report added during run after projection compilation"
+  },
+  "projection_separate_control": {
+    "exit_code": 0,
+    "passed": 1,
+    "failed": 0
+  }
+}
