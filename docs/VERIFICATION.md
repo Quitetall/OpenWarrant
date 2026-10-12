@@ -59,6 +59,11 @@ local packet copy before even probing the backend version. An over-budget packet
 returns `verify.bundle-over-budget`, with no backend call or verification
 response. Missing, invalid or duplicate budget fields return
 `verify.bundle-invalid-budget`. No required rule or binding is removed to fit.
+Budget diagnostics list the three largest fixed fields by canonical JSON byte
+size. These are field names and sizes, not source contents or model token counts.
+They help locate the reading floor without removing required context or raising
+the limit.
+
 The packet remains available for inspection. Revise the work scope or explicitly
 configure a suitable reading budget before trying again; a refusal does not
 establish or refute the Warrant's obligations. This checks the compiler's token

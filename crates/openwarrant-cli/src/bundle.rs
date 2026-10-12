@@ -219,8 +219,8 @@ pub struct Bundle {
     pub prior_verifications: Vec<openwarrant_core::verification::Verification>,
     pub budget_tokens: u64,
     /// True when the bundle could not be brought under the budget (its
-    /// fixed parts — atoms, request, records — exceed it): written and sent
-    /// anyway, and said.
+    /// fixed parts — atoms, request, records — exceed it): retained
+    /// anyway for inspection; `--run` refuses dispatch, and says why.
     pub over_budget: bool,
     /// Over the bundle's whole canonical JSON, computed with this field 0.
     pub estimated_tokens: u64,
@@ -1593,6 +1593,45 @@ fn describe(b: &Bundle) -> String {
     )
 }
 
+// Explain the reading floor without printing source content or changing
+// the packet, its token estimate, or the admission decision.
+fn fixed_frame_profile(bundle: &Bundle) -> String {
+    let fields = [
+        ("request", serde_jcs::to_string(&bundle.request)),
+        (
+            "required_sources",
+            serde_jcs::to_string(&bundle.required_sources),
+        ),
+        ("atoms", serde_jcs::to_string(&bundle.atoms)),
+        (
+            "contract_sources",
+            serde_jcs::to_string(&bundle.contract_sources),
+        ),
+        ("gate_runs", serde_jcs::to_string(&bundle.gate_runs)),
+        (
+            "prior_verifications",
+            serde_jcs::to_string(&bundle.prior_verifications),
+        ),
+    ];
+    let mut sizes: Vec<_> = fields
+        .into_iter()
+        .filter_map(|(name, encoded)| encoded.ok().map(|text| (name, text.len())))
+        .collect();
+    sizes.sort_by_key(|(name, bytes)| (std::cmp::Reverse(*bytes), *name));
+    if sizes.is_empty() {
+        return "fixed-field sizes unavailable".to_owned();
+    }
+    format!(
+        "largest fixed fields (canonical bytes): {}",
+        sizes
+            .iter()
+            .take(3)
+            .map(|(name, bytes)| format!("{name}={bytes}"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    )
+}
+
 fn over_budget(report: &mut Report, repo: &Repository, path: &Utf8PathBuf, b: &Bundle) {
     if b.over_budget {
         report.push(Diagnostic::warn(
@@ -1601,8 +1640,10 @@ fn over_budget(report: &mut Report, repo: &Repository, path: &Utf8PathBuf, b: &B
             format!(
                 "~{} tokens against `[verify] max_bundle_tokens` = {}: the atoms, request and \
                  records alone exceed it, so no more could be cut. The exact packet remains \
-                 available for inspection; `--run` refuses to send it",
-                b.estimated_tokens, b.budget_tokens
+                 available for inspection; `--run` refuses to send it; {}",
+                b.estimated_tokens,
+                b.budget_tokens,
+                fixed_frame_profile(b)
             ),
         ));
     }
@@ -1778,8 +1819,8 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
                 format!(
                     "{alias} [{which}]: ~{} tokens exceed `[verify] max_bundle_tokens` = {}; \
                      the exact packet is retained, but no verifier is called and no response is \
-                     ingested for it. Revise the work scope or configure a suitable reading budget",
-                    bundle.estimated_tokens, bundle.budget_tokens
+                     ingested for it. Revise the work scope or configure a suitable reading budget; {}",
+                    bundle.estimated_tokens, bundle.budget_tokens, fixed_frame_profile(bundle)
                 ),
             ));
             continue;

@@ -1816,6 +1816,10 @@
 > Check current authorization in read-only Preflight
 - t-fa114 · ticket · done · Check current authorization in read-only Preflight · docs/tickets/t-fa114/manifest.toml:1
 
+## docs/tickets/t-fc052/manifest.toml
+> Explain no-fit review packets without dropping required context
+- t-fc052 · ticket · done · Explain no-fit review packets without dropping required context · docs/tickets/t-fc052/manifest.toml:1
+
 ## docs/tickets/t-fed6/manifest.toml
 > Verification records must not make evidence stale
 - t-fed6 · ticket · done · Verification records must not make evidence stale · docs/tickets/t-fed6/manifest.toml:1
