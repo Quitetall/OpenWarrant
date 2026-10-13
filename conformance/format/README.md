@@ -1,6 +1,6 @@
 # Format 1.0 conformance corpus
 
-This directory is the corpus of section 11.1 of
+This directory is the corpus of section 13.1 of
 [`docs/format/FORMAT-1.0.md`](../../docs/format/FORMAT-1.0.md). Each case was
 derived from a sentence of the specification. None was derived from a tool's
 output. Another implementation of the format can run these cases to show
@@ -27,8 +27,8 @@ conformance/format/<NNN>-<slug>/
   - `2NN` read `UNKNOWN`;
   - `3NN` are context cases.
 - **`says`** quotes the sentence the case tests.
-- **`rule`** names the section 11.2 rule id the case expects.
-- **Coverage:** every rule id of section 11.2 is expected by at least one
+- **`rule`** names the section 13.2 rule id the case expects.
+- **Coverage:** every rule id of section 13.2 is expected by at least one
   case. `run.py` fails if one is not.
 
 ## What is compared

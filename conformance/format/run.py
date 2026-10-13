@@ -237,7 +237,7 @@ def main():
         return 0
     if not a.reader:
         ap.error("--reader is required")
-    # 11.1: every rule of 11.2 has at least one case.
+    # 13.1: every rule of 13.2 has at least one case.
     covered = set()
     for case in cases([]):
         exp = os.path.join(case, "expected")

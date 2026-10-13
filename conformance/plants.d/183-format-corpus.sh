@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # SPDX-License-Identifier: Apache-2.0
-# Format 1.0's conformance corpus (docs/format/FORMAT-1.0.md section 11.1;
+# Format 1.0's conformance corpus (docs/format/FORMAT-1.0.md section 13.1;
 # conformance/format/) through war:
 # - war passes every case except those known-war.txt lists, and every listed
 #   case still fails (a settled divergence must leave the list); every rule
@@ -10,7 +10,7 @@
 #   expected model has a changed content_digest, each fails by that case's
 #   name. The copy is in a temporary directory; nothing in the tree moves.
 
-echo "== Format 1.0 conformance corpus (FORMAT-1.0 section 11.1) =="
+echo "== Format 1.0 conformance corpus (FORMAT-1.0 section 13.1) =="
 FC_WAR="$REPO_ROOT/${WAR#./}"
 FC_DIR="$REPO_ROOT/conformance/format"
 fc_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
