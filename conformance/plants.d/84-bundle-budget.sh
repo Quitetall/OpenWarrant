@@ -167,7 +167,11 @@ if [[ $BB_STATUS -ne 0 ]] && [[ "$(grep -c 'verify.outside-bundle' <<<"$BB_RUN")
 else
     bb_fail "an answer beyond the bundle is refused" "exit $BB_STATUS, $BB_REC record(s): $(grep -E '^(ERROR|PASS verify.recorded)' <<<"$BB_RUN" | head -2)"
 fi
-command cp -r conformance/fixtures "$PLANT_ROOT/conformance-fixtures"
+# Carry only the backend used here. Copying the entire fixture catalogue
+# adds unrelated source bindings and can make these 6000-token packets
+# impossible to dispatch; the over-budget refusal is intentional.
+mkdir -p "$PLANT_ROOT/conformance-fixtures/verifier"
+command cp conformance/fixtures/verifier/establishes-all.sh "$PLANT_ROOT/conformance-fixtures/verifier/establishes-all.sh"
 sed -i "s|^verifier_argv = .*|verifier_argv = [\"bash\", \"$PLANT_ROOT/conformance-fixtures/verifier/establishes-all.sh\"]|" "$PLANT_ROOT/openwarrant.toml"
 BB_RUN=$("$WAR" --root "$PLANT_ROOT" verify BB-WAR-0001 --performer claude --run 2>&1); BB_STATUS=$?
 BB_REC=$(ls "$BB_W"/verifications/OBL-*.toml 2>/dev/null | wc -l)

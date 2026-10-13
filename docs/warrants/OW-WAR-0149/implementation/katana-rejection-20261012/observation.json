@@ -1,0 +1,39 @@
+{
+  "schema": "openwarrant.scoped-runtime-observation/v1",
+  "source_basis": "a99f2b9facac1515e1650eed4aa08ce39d88a80c",
+  "scope": "Synthetic native mapping protocol test; diagnostic assertion only",
+  "code_change": "Report rejected field and exact ProviderFailure/VerifiedReceipt outcome without changing assertions, deadline or provider code",
+  "single_test": {
+    "pass": 1,
+    "fail": 0
+  },
+  "confirmed_repetitions": {
+    "pass": 100,
+    "fail": 0,
+    "executed": 100,
+    "parallelism": 4,
+    "deadline_seconds": 1
+  },
+  "full_integration_feedback": {
+    "pass": 270,
+    "fail": 0,
+    "ignored": 4,
+    "default_test_threads": true
+  },
+  "original_failure": "Retained in OW117 implementation/dispatch-budget-20261012/cli-regression.log.gz; underlying provider outcome absent there",
+  "cause": "UNKNOWN; not reproduced by these subsequent runs",
+  "runtime_bug_fixed": false,
+  "model_calls": 0,
+  "independent_disposition": false,
+  "human_acceptance": false,
+  "source_files": {
+    "crates/openwarrant-cli/tests/runtime_capture.rs": "be50b90a91bc28d8366f7fa5af9f65bd5cf4cf4b095bd716908349bc98366d77"
+  },
+  "fmt_exit_code": 0,
+  "clippy_exit_code": 0,
+  "test_binary": {
+    "path": "/mnt/4tb/build/cargo/9c/36c71eabbc4f30/debug/deps/all-b90f34ac3a476035",
+    "sha256": "082ba7e5179f8a971fa94e8cd440a1488b56655abbfe225dac87420b9cc10096",
+    "identity_basis": "a99f2b9f with diagnostic assertion only; compiled by Rust 1.97.1"
+  }
+}

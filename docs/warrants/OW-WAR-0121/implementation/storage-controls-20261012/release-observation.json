@@ -1,0 +1,33 @@
+{
+  "source_commit": "43a33fb2f4d2e1ffa846fef289df4fdaf9589bed",
+  "argv": [
+    "timeout",
+    "-k",
+    "10",
+    "900",
+    "/usr/bin/cargo",
+    "--config",
+    "build.rustc-wrapper=\"\"",
+    "build",
+    "-p",
+    "openwarrant-cli",
+    "--bin",
+    "war",
+    "--release",
+    "--locked",
+    "--offline",
+    "-j1"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 425.05605244636536,
+  "toolchain": "Rust 1.97.1",
+  "binary_version": "war 1.0.0-alpha.3 (unreleased, commit 43a33fb2f4d2)",
+  "binary_sha256": "826b39aa01fcb21fab3f0211094f5350f7f582610fc513703f195f5a7cbc34e6",
+  "fault_hook_string_present": false,
+  "registered_storage_controls_passed": 22,
+  "positive_corpus_passed": 1,
+  "failed": 0,
+  "independent_verification": false,
+  "human_acceptance": false,
+  "fixture_source_metadata": "atomic.rs bytes matched source; source metadata copied to clone for release freshness predicate"
+}

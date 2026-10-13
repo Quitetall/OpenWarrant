@@ -1,0 +1,15 @@
+{
+  "source_basis": "decd0c7188c95a3e50afff9ab424ba7875b2f639",
+  "toolchain": "Rust 1.97.1",
+  "platform": "Linux",
+  "binary_sha256": "6ac4e91ce0eaaf358dfc9b0bb7666d4b900d106d0146f00181f90c115f59f06a",
+  "binary_version": "war 1.0.0-alpha.3 (unreleased, commit d1592eae0369, dirty, debug)",
+  "scoped_controls": 21,
+  "positive_corpus": 1,
+  "failed": 0,
+  "unknown": [
+    "release build fault-hook absence: no exact release binary in private clone"
+  ],
+  "independent_verification": false,
+  "human_acceptance": false
+}

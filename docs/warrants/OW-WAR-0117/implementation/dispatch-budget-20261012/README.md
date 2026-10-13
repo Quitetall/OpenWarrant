@@ -1,0 +1,9 @@
+# CLI verifier budget admission
+
+The public CLI previously sent two roughly 2,900-token packets to a configured adapter despite a one-token budget. The new regression test observed both calls. Dispatch now refuses each over-budget packet before launching any adapter or ingesting its response. Exact packets remain inspectable; an in-budget control reaches the adapter. Packet schemas, subject binding and verdict admissibility are unchanged. This uses the compiler estimate, not a model tokenizer or monetary spend accounting.
+
+The reviewed-subject suite passes 45 tests in isolated scratch. The registered plant passes its positive corpus and adapter controls (2/0). CLI all-target Clippy and formatting pass. Initial attempts are retained separately: an incorrect Cargo target, fixture setup failures, and a shared-TMPDIR run (10 pass, 35 fail) where existing Git metadata prevents source inventory. No production checker was weakened. The private plant corpus initially had stale progress projections (two drift errors); regeneration followed by the complete selected plant passes.
+
+The adapter is synthetic and exits 73 after recording invocation. It provides no independent verdict or qualification. OW117 remains in progress: the closure dry run still has eight UNKNOWN requirements. Required context that cannot fit needs a revised scope or explicitly suitable budget; this change cannot manufacture a fitting review. Full candidate CI remains required.
+
+The broader CLI run passes 475 library tests and three binary tests, but its integration phase has 269 PASS, one FAIL and four ignored. The Katana mapping rejection assertion fails without reporting the underlying outcome. The unchanged test passes alone (1/0), then the complete integration suite passes with four test threads (270/0, four ignored). Its original failure cause is not established; the failed run is retained, no deadline or expectation was changed, and full candidate CI remains pending.
