@@ -158,19 +158,62 @@ fn malformed_resume_and_excessive_input_refuse() {
     assert!(!ok);
     assert_eq!(latest(&other.0)["metadata"][4][1], "Untitled Warrant");
 }
+struct DraftChild(std::process::Child);
+impl Drop for DraftChild {
+    fn drop(&mut self) {
+        // A failed assertion must not abandon the writer or its held lock.
+        let _ = self.0.kill();
+        let _ = self.0.wait();
+    }
+}
+fn checkpoint_failure(child: &mut std::process::Child) -> String {
+    use std::io::Read;
+    let before = child.try_wait();
+    #[cfg(not(target_os = "linux"))]
+    let kernel_wait = String::from("not observed on this platform");
+    #[cfg(target_os = "linux")]
+    let kernel_wait = {
+        let mut value = fs::read_to_string(format!("/proc/{}/wchan", child.id()))
+            .unwrap_or_else(|error| format!("unavailable: {error}"));
+        value.truncate(256);
+        value
+    };
+    let _ = child.kill();
+    let reaped = child.wait();
+    fn bounded(pipe: Option<impl Read>) -> String {
+        let mut bytes = Vec::new();
+        let result = pipe.map(|pipe| pipe.take(4096).read_to_end(&mut bytes));
+        format!(
+            "read={result:?}, bytes={:?}",
+            String::from_utf8_lossy(&bytes)
+        )
+    }
+    let stdout = bounded(child.stdout.take());
+    let stderr = bounded(child.stderr.take());
+    format!(
+        "before termination={before:?}; kernel wait={kernel_wait:?}; reaped={reaped:?}; stdout={stdout}; stderr={stderr}"
+    )
+}
+
 #[test]
 fn concurrent_writer_refuses_and_lock_releases_when_process_ends() {
     let root = Temp::new();
-    let mut child = command(&root.0, false).spawn().unwrap();
+    let mut child = DraftChild(command(&root.0, false).spawn().unwrap());
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
     while !root.0.join("draft/draft-000000.json").exists() {
-        assert!(std::time::Instant::now() < deadline);
+        let exited = child.0.try_wait().unwrap().is_some();
+        if exited || std::time::Instant::now() >= deadline {
+            panic!(
+                "initial draft checkpoint missing: {}",
+                checkpoint_failure(&mut child.0)
+            );
+        }
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
     let (ok, _, _) = run(&root.0, true, "");
     assert!(!ok);
-    child.kill().unwrap();
-    child.wait().unwrap();
+    child.0.kill().unwrap();
+    child.0.wait().unwrap();
     let (ok, report, _) = run(&root.0, true, "save\n");
     assert!(ok, "{report}");
     assert_eq!(report["result"]["saved"], true);
@@ -281,4 +324,50 @@ fn aggregate_checkpoint_depth_refuses_before_publishing_unresumable_state() {
     let (ok, report, _) = run(&root.0, true, "save\n");
     assert!(ok, "{report}");
     assert_eq!(report["result"]["saved"], true);
+}
+
+#[cfg(unix)]
+#[test]
+fn checkpoint_failure_reports_terminal_or_live_child_and_reaps_it() {
+    let mut exited = DraftChild(
+        Command::new("/bin/sh")
+            .args([
+                "-c",
+                "printf fixture-stdout; printf fixture-stderr >&2; exit 7",
+            ])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap(),
+    );
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+    while exited.0.try_wait().unwrap().is_none() {
+        assert!(std::time::Instant::now() < deadline);
+        std::thread::sleep(std::time::Duration::from_millis(5));
+    }
+    let observation = checkpoint_failure(&mut exited.0);
+    assert!(
+        observation.contains("before termination=Ok(Some"),
+        "{observation}"
+    );
+    assert!(
+        observation.contains("fixture-stdout") && observation.contains("fixture-stderr"),
+        "{observation}"
+    );
+    assert_eq!(exited.0.try_wait().unwrap().unwrap().code(), Some(7));
+    let mut running = DraftChild(
+        Command::new("/bin/sh")
+            .args(["-c", "exec sleep 30"])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap(),
+    );
+    let observation = checkpoint_failure(&mut running.0);
+    assert!(
+        observation.contains("before termination=Ok(None)"),
+        "{observation}"
+    );
+    assert!(running.0.try_wait().unwrap().is_some());
+    // Dropping the guard after reaping never kills a reused process ID.
 }
