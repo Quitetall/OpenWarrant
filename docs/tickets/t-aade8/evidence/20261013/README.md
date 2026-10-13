@@ -28,5 +28,5 @@ The five-second readiness expectation and sync_all are unchanged.
 
 Strict all-feature CLI integration Clippy passed. Exact concurrency replay passed
 in 0.11 seconds; the unchanged full module replay passed all eleven tests in
-0.59 seconds. Failed and passing logs are preserved. These passes do not claim a
+0.50 seconds. Failed and passing logs are preserved. These passes do not claim a
 storage repair, independent qualification, stable latency or a release gate.
