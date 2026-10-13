@@ -33,6 +33,20 @@ vb_verifier() { # argv as a TOML array body, e.g. '"bash", "x.sh"' or ''
     python3 - "$1" <<'PY'
 import re, sys
 p = "openwarrant.toml"; t = open(p).read()
+# These are local synthetic ingestion/independence fixtures, not model
+# capacity tests. The exact whole-repository subject can exceed the real
+# repository's 48000-token default. Give this fixture a bounded reading
+# budget; 84-bundle-budget and 84-budget-dispatch retain low-cap refusals.
+if sys.argv[1]:
+    table = re.search(r"(?ms)^\[verify\]\n.*?(?=^\[|\Z)", t)
+    if table is None:
+        raise SystemExit("fixture needs the existing verify table")
+    body = table.group()
+    if re.search(r"(?m)^max_bundle_tokens = .*$", body):
+        body = re.sub(r"(?m)^max_bundle_tokens = .*$", "max_bundle_tokens = 1000000", body, count=1)
+    else:
+        body = body.replace("[verify]\n", "[verify]\nmax_bundle_tokens = 1000000\n", 1)
+    t = t[:table.start()] + body + t[table.end():]
 line = "verifier_argv = [%s]" % sys.argv[1]
 if re.search(r"(?m)^verifier_argv = .*$", t):
     t = re.sub(r"(?m)^verifier_argv = .*$", line, t, count=1)

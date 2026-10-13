@@ -182,10 +182,11 @@ fn katana_process_checks_native_mapping_without_inventing_cost_or_authority() {
         let mut native = original.clone();
         native[field] = bad;
         respond(&native);
-        assert!(matches!(
-            verifier.verify(&serde_json::to_vec(&native).unwrap()),
-            Err(ProviderFailure::Rejected(_))
-        ));
+        let observed = verifier.verify(&serde_json::to_vec(&native).unwrap());
+        assert!(
+            matches!(&observed, Err(ProviderFailure::Rejected(_))),
+            "invalid native field {field} must be rejected; observed {observed:?}"
+        );
     }
     respond(&original);
     assert!(matches!(
