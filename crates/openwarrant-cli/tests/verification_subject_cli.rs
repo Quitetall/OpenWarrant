@@ -3467,3 +3467,75 @@ fn batch_recovery_checks_all_backups_before_removing_any_root() {
         );
     }
 }
+
+#[cfg(unix)]
+#[test]
+fn batch_recovery_refuses_special_backup_nodes_before_any_restore() {
+    let fixture = Fixture::new();
+    let responses = fixture.0.join("docs/authority/responses");
+    fs::create_dir_all(&responses).unwrap();
+    fs::write(responses.join("keep.txt"), "current response").unwrap();
+    let batches = fixture.0.join("docs/authority/batches");
+    let copies = batches.join("B-node.recording.d");
+    fs::create_dir_all(copies.join("0")).unwrap();
+    fs::write(copies.join("0/keep.txt"), "older response").unwrap();
+    fs::create_dir_all(copies.join("1")).unwrap();
+    rustix::fs::mknodat(
+        rustix::fs::CWD,
+        copies.join("1/not-a-file"),
+        rustix::fs::FileType::Fifo,
+        rustix::fs::Mode::from_bits_truncate(0o600),
+        0,
+    )
+    .unwrap();
+    let second = fixture.0.join("docs/warrants/IX-WAR-0003");
+    let original = fs::read(second.join("manifest.toml")).unwrap();
+    let marker = batches.join("B-node.recording");
+    let bytes = serde_json::to_vec(&serde_json::json!({
+        "schema":"oh.war/batch-recording/v1", "batch_id":"B-node",
+        "roots":[{"dir":"docs/authority/responses","copy":"0"},
+                 {"dir":"docs/warrants/IX-WAR-0003","copy":"1"}],
+        "paths":[]
+    }))
+    .unwrap();
+    fs::write(&marker, &bytes).unwrap();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["sign", "--batch", "--recover", "B-node", "--json"])
+        .current_dir(&fixture.0)
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+    while child.try_wait().unwrap().is_none() {
+        if std::time::Instant::now() >= deadline {
+            child.kill().unwrap();
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    let output = child.wait_with_output().unwrap();
+    assert_eq!(
+        fs::read(responses.join("keep.txt")).unwrap(),
+        b"current response"
+    );
+    assert_eq!(
+        output.status.code(),
+        Some(2),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let result: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(fs::read(second.join("manifest.toml")).unwrap(), original);
+    assert_eq!(fs::read(&marker).unwrap(), bytes);
+    assert!(
+        result["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "batch.recover-failed"),
+        "{result}"
+    );
+}

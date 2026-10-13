@@ -148,6 +148,16 @@ never cached, so a corpus just copied (`--corpus`, `cp -a`) is read from its
 files until it settles; the plant is `conformance/plants.d/180-ticket-cache.sh`. The signed path at scale is
 the separate 1,000-Warrant budget in `docs/RETENTION.md`.
 
+`war next`, `war status` and the overview and board views also keep each
+signature `ssh-keygen -Y verify` accepted, keyed by every byte it read, in
+`<common>/openwarrant/cache/ssh-verdicts/`
+(`crates/openwarrant-cli/src/ssh_verdicts.rs`; never read by a command that
+judges, gates or signs). It is bounded: the first use in a run prunes every
+entry unused for 90 days, then the least recently used until at most 4,096
+remain. It holds only passes, so a pruned entry costs one `ssh-keygen` run
+and never changes a verdict. `OPENWARRANT_NO_CACHE=1` turns it off too; the
+plant is `conformance/plants.d/181-ssh-verdict-cache.sh`.
+
 ## Commit messages
 
 Say what changed and why it is correct. Where a review or a test found a real

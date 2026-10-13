@@ -252,6 +252,10 @@ pub enum Effect {
     Prepare { alias: String },
     /// Something to tell the human.
     Say(String),
+    /// End the conversation here. A declined signature stops rather than
+    /// asking again: the files still say the step is undone, so asking again
+    /// would ask forever. `war init` resumes at it.
+    Stop,
 }
 
 /// The conversation's state: the facts and the answers not yet written.
@@ -281,8 +285,13 @@ impl Machine {
     /// Fresh facts after the front end applied effects; the step follows.
     pub fn observe(&mut self, facts: Facts) {
         self.facts = facts;
+        let unsigned_adopt = matches!(self.facts.adopt, Some((_, false)));
         self.step = if self.pending_signer.is_some() && self.step == Step::KeyLoaded {
             Step::KeyLoaded
+        } else if self.step == Step::SignAuthorize && unsigned_adopt {
+            // Preparing writes nothing the facts can see, so the files alone
+            // would send the conversation back to Authorize, forever.
+            Step::SignAuthorize
         } else {
             step_for(&self.facts)
         };
@@ -457,10 +466,13 @@ impl Machine {
                     target: self.latest_sas().unwrap_or("0.1.0").to_owned(),
                 }]
             } else {
-                vec![Effect::Say(format!(
-                    "Later: `war sign {} --ssh-sign`. `war next` will keep saying so.",
-                    self.latest_sas().unwrap_or("0.1.0")
-                ))]
+                vec![
+                    Effect::Say(format!(
+                        "Later: `war sign {} --ssh-sign`. `war next` will keep saying so.",
+                        self.latest_sas().unwrap_or("0.1.0")
+                    )),
+                    Effect::Stop,
+                ]
             }),
             (Step::Authorize, Answer::Proceed) => Ok(vec![Effect::Prepare {
                 alias: self.adopt_alias().unwrap_or_default().to_owned(),
@@ -470,10 +482,13 @@ impl Machine {
                     target: self.adopt_alias().unwrap_or_default().to_owned(),
                 }]
             } else {
-                vec![Effect::Say(format!(
-                    "Later: `war sign {} --ssh-sign`.",
-                    self.adopt_alias().unwrap_or("?")
-                ))]
+                vec![
+                    Effect::Say(format!(
+                        "Later: `war sign {} --ssh-sign`.",
+                        self.adopt_alias().unwrap_or("?")
+                    )),
+                    Effect::Stop,
+                ]
             }),
             (Step::Done, _) => Ok(vec![]),
             (step, other) => Err(format!(
@@ -696,10 +711,16 @@ mod tests {
         );
         m.prepared();
         assert_eq!(m.step, Step::SignAuthorize);
-        assert_eq!(
-            m.answer(Answer::SignNow(false)).unwrap().len(),
-            1,
-            "declining says how to do it later"
+        // The front end re-reads the files after every answer. Preparing
+        // wrote nothing they show, and the step must not fall back to
+        // Authorize: that was a loop no answer could leave (KnightLM,
+        // 2026-10-12).
+        m.observe(f.clone());
+        assert_eq!(m.step, Step::SignAuthorize);
+        let later = m.answer(Answer::SignNow(false)).unwrap();
+        assert!(
+            matches!(later.as_slice(), [Effect::Say(s), Effect::Stop] if s.contains("--ssh-sign")),
+            "declining says how to do it later, then stops: {later:?}"
         );
         f.adopt = Some(("DM-WAR-0001".into(), true));
         m.observe(f);

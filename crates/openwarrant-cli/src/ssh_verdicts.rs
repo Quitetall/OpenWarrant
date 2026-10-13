@@ -59,6 +59,23 @@
 //!   named by its key whose content is the format tag and the key; anything
 //!   else there is ignored. A write is a temporary file renamed into place,
 //!   and a failed write is ignored: the cache is never needed.
+//! - **Bound.** At most [`MAX_ENTRIES`] entries, none unused for longer than
+//!   [`MAX_UNUSED`]. An entry's last use is its file's mtime: written when
+//!   the pass is recorded, and set to now by a hit when it is more than
+//!   [`REFRESH_AFTER`] old (a metadata update, never a content write). The
+//!   first permitted use of the cache in a process prunes it ([`prune_once`])
+//!   before any entry is read, so an entry past the age is never answered
+//!   from. Which entries go is a function of the listing and the clock alone
+//!   ([`victims`]): every entry older than the age, then the oldest of the
+//!   rest (ties by name) until at most [`MAX_ENTRIES`] remain. The cap holds
+//!   after each prune; one run may record its own new passes above it, and
+//!   the next run's prune trims them. Leftover scratch from a process that
+//!   died mid-ask (`.ask-*`, `.*.tmp`) older than [`SCRATCH_AFTER`] goes too.
+//!   A removal is one `unlink` of one entry's file: a reader sees the whole
+//!   entry or none, and none is a miss, asked of `ssh-keygen` again over the
+//!   same bytes. The cache holds only passes, so pruning can cost a respawn
+//!   and never change a verdict. A writer racing the prune can at worst lose
+//!   a fresh pass to it, which is the same respawn.
 //! - **Trust.** Whoever can write `.git` can plant an entry, and could as
 //!   well rewrite the tree. An entry only ever turns the advice verbs' answer
 //!   to "verified"; every command that records, gates or signs asks
@@ -67,8 +84,23 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock, PoisonError};
+use std::time::{Duration, SystemTime};
 
 use camino::{Utf8Path, Utf8PathBuf};
+
+/// The most entries a prune leaves.
+pub const MAX_ENTRIES: usize = 4096;
+
+/// An entry unused for longer than this is pruned: 90 days.
+pub const MAX_UNUSED: Duration = Duration::from_secs(90 * 24 * 60 * 60);
+
+/// A hit sets its entry's mtime to now only when it is older than this, so a
+/// warm run is not a write per entry: one day.
+pub const REFRESH_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
+
+/// Scratch (`.ask-*`, `.*.tmp`) older than this was left by a process that
+/// died; a live ask lasts seconds: one day.
+pub const SCRATCH_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 
 /// Set to anything but `0` or nothing: the cache is neither read nor written.
 pub const DISABLE_ENV: &str = "OPENWARRANT_NO_CACHE";
@@ -224,7 +256,93 @@ fn entry_body(key: &str) -> String {
 /// Whether `dir` holds a good verdict for `key`.
 #[must_use]
 pub fn known_good(dir: &Utf8Path, key: &str) -> bool {
-    std::fs::read(entry_path(dir, key)).is_ok_and(|b| b == entry_body(key).as_bytes())
+    let path = entry_path(dir, key);
+    let good = std::fs::read(&path).is_ok_and(|b| b == entry_body(key).as_bytes());
+    if good {
+        refresh(&path, SystemTime::now());
+    }
+    good
+}
+
+/// Mark a hit as a use: its mtime set to `now` when older than
+/// [`REFRESH_AFTER`]. Failure is ignored; at worst the entry is pruned early.
+fn refresh(path: &Utf8Path, now: SystemTime) {
+    let stale = std::fs::metadata(path)
+        .and_then(|m| m.modified())
+        .is_ok_and(|m| now.duration_since(m).is_ok_and(|age| age > REFRESH_AFTER));
+    if stale && let Ok(f) = std::fs::File::options().write(true).open(path) {
+        let _ = f.set_modified(now);
+    }
+}
+
+/// Whether `name` is an entry's name: a key, 64 lowercase hex digits.
+fn is_key(name: &str) -> bool {
+    name.len() == 64 && name.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+}
+
+/// The entries (name, mtime) a prune at `now` removes: every one unused for
+/// longer than `max_unused` (a future mtime counts as just used), then the
+/// oldest of the rest, ties by name, until at most `max_entries` remain.
+/// Sorted by name. A function of its arguments alone.
+#[must_use]
+pub fn victims(
+    entries: &[(String, SystemTime)],
+    now: SystemTime,
+    max_entries: usize,
+    max_unused: Duration,
+) -> Vec<String> {
+    let mut by_age: Vec<&(String, SystemTime)> = entries.iter().collect();
+    by_age.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
+    let aged = |t: SystemTime| now.duration_since(t).is_ok_and(|age| age > max_unused);
+    let (mut out, kept): (Vec<_>, Vec<_>) = by_age.into_iter().partition(|e| aged(e.1));
+    let over = kept.len().saturating_sub(max_entries);
+    out.extend(kept.into_iter().take(over));
+    let mut names: Vec<String> = out.into_iter().map(|e| e.0.clone()).collect();
+    names.sort();
+    names
+}
+
+/// Prune `dir` at `now` by [`victims`], and remove scratch older than
+/// [`SCRATCH_AFTER`]. Names that are neither entries nor scratch are left
+/// alone. Returns how many entries were removed. Every failure is ignored.
+pub fn prune(dir: &Utf8Path, now: SystemTime, max_entries: usize, max_unused: Duration) -> usize {
+    let Ok(listing) = std::fs::read_dir(dir) else {
+        return 0;
+    };
+    let mut entries = Vec::new();
+    for item in listing.flatten() {
+        let Ok(name) = item.file_name().into_string() else {
+            continue;
+        };
+        let Ok(meta) = item.metadata() else { continue };
+        let Ok(mtime) = meta.modified() else { continue };
+        if is_key(&name) && meta.is_file() {
+            entries.push((name, mtime));
+        } else if (name.starts_with(".ask-") || (name.starts_with('.') && name.ends_with(".tmp")))
+            && now
+                .duration_since(mtime)
+                .is_ok_and(|age| age > SCRATCH_AFTER)
+        {
+            let path = dir.join(&name);
+            let _ = if meta.is_dir() {
+                std::fs::remove_dir_all(&path)
+            } else {
+                std::fs::remove_file(&path)
+            };
+        }
+    }
+    victims(&entries, now, max_entries, max_unused)
+        .into_iter()
+        .filter(|name| std::fs::remove_file(dir.join(name)).is_ok())
+        .count()
+}
+
+/// [`prune`] `dir` by [`MAX_ENTRIES`] and [`MAX_UNUSED`], once per process.
+pub fn prune_once(dir: &Utf8Path) {
+    static DONE: OnceLock<()> = OnceLock::new();
+    DONE.get_or_init(|| {
+        prune(dir, SystemTime::now(), MAX_ENTRIES, MAX_UNUSED);
+    });
 }
 
 /// What [`verify_exact`] observed.
