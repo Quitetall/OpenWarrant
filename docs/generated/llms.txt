@@ -443,6 +443,10 @@
 > -
 - doc:docs/design/ow148-path-amendment/README.md · document · - · OW-WAR-0148: proposed path amendment · docs/design/ow148-path-amendment/README.md:1
 
+## docs/design/portable-verifier-package-proposal.md
+> -
+- doc:docs/design/portable-verifier-package-proposal.md · document · - · Portable verifier package — proposal · docs/design/portable-verifier-package-proposal.md:1
+
 ## docs/design/progress-viewer-followups.md
 > -
 - doc:docs/design/progress-viewer-followups.md · document · - · Progress viewer follow-ups · docs/design/progress-viewer-followups.md:1
@@ -1599,6 +1603,10 @@
 ## docs/tickets/t-68998/manifest.toml
 > Refuse simultaneous Warrant performers before dispatch or spawn
 - t-68998 · ticket · done · Refuse simultaneous Warrant performers before dispatch or spawn · docs/tickets/t-68998/manifest.toml:1
+
+## docs/tickets/t-729d0/manifest.toml
+> Choose portable review delivery without losing exact assurance inputs
+- t-729d0 · ticket · done · Choose portable review delivery without losing exact assurance inputs · docs/tickets/t-729d0/manifest.toml:1
 
 ## docs/tickets/t-72af0/manifest.toml
 > Recover after context preparation is unavailable before worker launch
