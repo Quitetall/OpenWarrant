@@ -983,6 +983,8 @@ fn persisted_good(repo: &Repository, q: &crate::ssh_verdicts::Question<'_>) -> b
     let (Some(tool), Some(dir)) = (cache::ssh_keygen(), cache::dir_for(&repo.root)) else {
         return false;
     };
+    // Before any entry is read: an entry past the age is never answered from.
+    cache::prune_once(&dir);
     let Some(key) = q.key(tool) else {
         return false;
     };

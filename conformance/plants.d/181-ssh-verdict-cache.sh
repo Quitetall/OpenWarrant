@@ -18,6 +18,11 @@
 # - refused, with the cache warm: allowed_signers naming a throwaway key for
 #   every principal. Same bytes as with the cache off, unlike the untouched
 #   output, and no entry is added.
+# - pruned: every entry dated past 90 days unused is removed before it is
+#   read (none answered from), every signature asked again, same bytes;
+# - bounded: 4096 planted entries newer than the real ones; the real passes
+#   are evicted first (asked again, same bytes), and the next run leaves
+#   exactly 4096 and asks nothing.
 
 echo "== the ssh-keygen verdict cache: a pass for exactly these bytes, never a judgement =="
 
@@ -59,6 +64,48 @@ if [[ $SV_COLD_RUNS -gt 0 && $SV_COLD_ENTRIES -gt 0 && $SV_WARM_RUNS -eq 0 \
 else
     sv_fail "a pass is not asked twice" "cold $SV_COLD_RUNS runs, $SV_COLD_ENTRIES entries; warm $SV_WARM_RUNS; off $SV_OFF_RUNS; entries now $(sv_entries)"
 fi
+
+# --- pruned: every entry past the age (MAX_UNUSED, 90 days) ----------------------------
+# Each entry dated 2000: the run's prune removes them before any is read, so
+# none is answered from (the refusal half: an aged pass is not a pass), and
+# the same bytes come out with every signature asked again.
+find "$SV_DIR" -maxdepth 1 -type f -exec touch -d '2000-01-01 00:00:00' {} +
+sv_war pruned.json --json status; SV_PRUNED_RUNS=$SV_RUNS
+SV_STILL_OLD=$(find "$SV_DIR" -maxdepth 1 -type f ! -newermt '2001-01-01' | wc -l)
+if [[ $SV_PRUNED_RUNS -eq $SV_COLD_RUNS && $(sv_entries) -eq $SV_COLD_ENTRIES && $SV_STILL_OLD -eq 0 ]] \
+    && sv_same cold.json pruned.json; then
+    sv_ok "a pruned pass is only asked again" "every entry aged past 90 days: none answered from, $SV_PRUNED_RUNS runs as cold, same bytes, $SV_COLD_ENTRIES entries recorded afresh"
+else
+    sv_fail "a pruned pass is only asked again" "runs $SV_PRUNED_RUNS (cold $SV_COLD_RUNS); entries $(sv_entries) (cold $SV_COLD_ENTRIES); still dated 2000: $SV_STILL_OLD; same bytes: $(sv_same cold.json pruned.json && echo yes || echo no)"
+fi
+
+# --- the bound: at most MAX_ENTRIES (4096) after a prune, oldest first ------------------
+# 4096 well-formed entries for keys nobody asks, a day old; the real ones
+# two days old. Run 1's prune evicts the real (oldest) ones: asked again,
+# same bytes, recorded afresh above the cap. Run 2's prune evicts the oldest
+# planted ones: exactly 4096 left, nothing asked, same bytes.
+find "$SV_DIR" -maxdepth 1 -type f -exec touch -d '2 days ago' {} +
+python3 - "$SV_DIR" <<'PY'
+import os, sys
+d = sys.argv[1]
+for i in range(4096):
+    key = "f" * 32 + format(i, "032x")
+    with open(os.path.join(d, key), "w") as f:
+        f.write("oh.war/ssh-verdict-cache/v1\n" + key + "\n")
+PY
+find "$SV_DIR" -maxdepth 1 -type f -name 'ffffffff*' -exec touch -d '1 day ago' {} +
+sv_war bound1.json --json status; SV_BOUND1_RUNS=$SV_RUNS; SV_BOUND1_ENTRIES=$(sv_entries)
+sv_war bound2.json --json status; SV_BOUND2_RUNS=$SV_RUNS; SV_BOUND2_ENTRIES=$(sv_entries)
+if [[ $SV_BOUND1_RUNS -eq $SV_COLD_RUNS && $SV_BOUND1_ENTRIES -eq $((4096 + SV_COLD_ENTRIES)) \
+    && $SV_BOUND2_RUNS -eq 0 && $SV_BOUND2_ENTRIES -eq 4096 ]] \
+    && sv_same cold.json bound1.json && sv_same cold.json bound2.json; then
+    sv_ok "the cache is bounded at 4096" "evicted passes asked again ($SV_BOUND1_RUNS runs, same bytes); next run trims to exactly 4096, 0 runs, same bytes"
+else
+    sv_fail "the cache is bounded at 4096" "run 1: $SV_BOUND1_RUNS runs, $SV_BOUND1_ENTRIES entries; run 2: $SV_BOUND2_RUNS runs, $SV_BOUND2_ENTRIES entries (cold $SV_COLD_RUNS runs, $SV_COLD_ENTRIES entries)"
+fi
+find "$SV_DIR" -maxdepth 1 -type f -name 'ffffffff*' -delete
+[[ $(sv_entries) -eq $SV_COLD_ENTRIES ]] \
+    || { printf 'PLANT SETUP FAILED: %s entries after removing the planted ones, not %s\n' "$(sv_entries)" "$SV_COLD_ENTRIES" >&2; rm -rf "$SV_T"; exit 9; }
 
 # --- the judging commands never use it ------------------------------------------------
 sv_war check1.json --json check; SV_CHECK1=$SV_RUNS
@@ -131,4 +178,5 @@ fi
 cp "$SV_T/allowed.orig" "$SV_C/docs/authority/allowed_signers"
 
 rm -rf "$SV_T"
-unset SV_T SV_C SV_WAR SV_LOG SV_DIR SV_REAL SV_SIG SV_SIGS SV_BEFORE SV_RUNS
+unset SV_T SV_C SV_WAR SV_LOG SV_DIR SV_REAL SV_SIG SV_SIGS SV_BEFORE SV_RUNS SV_PRUNED_RUNS SV_STILL_OLD \
+    SV_BOUND1_RUNS SV_BOUND1_ENTRIES SV_BOUND2_RUNS SV_BOUND2_ENTRIES
