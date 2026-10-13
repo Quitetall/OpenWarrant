@@ -403,6 +403,10 @@
 > -
 - doc:docs/design/amendment-review/integration-results.md · document · - · Integrated candidate validation · docs/design/amendment-review/integration-results.md:1
 
+## docs/design/capture-attribution-authentication.md
+> -
+- doc:docs/design/capture-attribution-authentication.md · document · - · Capture attribution authentication — candidate SDK interface · docs/design/capture-attribution-authentication.md:1
+
 ## docs/design/ci-gate-runtime-budget-20261001.md
 > -
 - doc:docs/design/ci-gate-runtime-budget-20261001.md · document · - · Full CI gate runtime budget · docs/design/ci-gate-runtime-budget-20261001.md:1
@@ -1555,6 +1559,10 @@
 ## docs/tickets/t-5a29/manifest.toml
 > docs/AUTHENTICATION.md is out of date after the LAN web UI
 - t-5a29 · ticket · done · docs/AUTHENTICATION.md is out of date after the LAN web UI · docs/tickets/t-5a29/manifest.toml:1
+
+## docs/tickets/t-5acd4/manifest.toml
+> Authenticate bounded capture attribution against active collector enrollment
+- t-5acd4 · ticket · done · Authenticate bounded capture attribution against active collector enrollment · docs/tickets/t-5acd4/manifest.toml:1
 
 ## docs/tickets/t-5b1f7/manifest.toml
 > Complete OW-WAR-0101 local drafting observation
