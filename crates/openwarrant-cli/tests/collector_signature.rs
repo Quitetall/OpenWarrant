@@ -18,7 +18,7 @@ fn string(out: &mut Vec<u8>, bytes: &[u8]) {
     out.extend_from_slice(&u32::try_from(bytes.len()).unwrap().to_be_bytes());
     out.extend_from_slice(bytes);
 }
-fn fixture(namespace: &str, payload: &[u8], seed: u8) -> (String, String) {
+pub(super) fn fixture(namespace: &str, payload: &[u8], seed: u8) -> (String, String) {
     signed_fixture(namespace, payload, seed, None)
 }
 fn signed_fixture(
@@ -1080,6 +1080,91 @@ fn namespace_fixture_entry() {
             file_imported["result"]["digest"]
         );
         assert_eq!(imported["result"]["assurance_granted"], false);
+        // Real protected execution account and CLI transport; software fixture
+        // authority and signatures do not represent real human enrollment.
+        use openwarrant_core::runtime_collector::attribution::{Context, Proof, SignedAttribution};
+        let capture_request: openwarrant_cli::runtime_capture::Request =
+            serde_json::from_value(inline_request.clone()).unwrap();
+        let capture_payload =
+            openwarrant_cli::runtime_capture::attributed::payload(&capture_request, &raw).unwrap();
+        let capture_authority =
+            Revision::decode(&fs::read(root.join("genesis.json")).unwrap()).unwrap();
+        let capture_enrollment = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap())
+            .unwrap()
+            .authenticate(&capture_authority, "fixture", &verifier)
+            .unwrap();
+        let capture_dispatch: openwarrant_core::execution::StageDispatch =
+            serde_json::from_value(dispatch.clone()).unwrap();
+        let capture_binding =
+            openwarrant_core::document::runtime::RuntimeBinding::from_dispatch(&capture_dispatch);
+        let capture_use = Use {
+            repository: "fixture",
+            warrant,
+            provider: &capture_enrollment.enrollment().provider,
+            verifier_digest: &capture_enrollment.enrollment().verifier_digest,
+            collector: "collector",
+        };
+        let proof = Proof::for_context(&Context {
+            authority: &capture_authority,
+            enrollment: &capture_enrollment,
+            usage: &capture_use,
+            binding: &capture_binding,
+            payload: &capture_payload,
+        })
+        .unwrap();
+        let signature = fixture(
+            openwarrant_core::runtime_collector::attribution::NAMESPACE,
+            &proof.encode().unwrap(),
+            12,
+        )
+        .1;
+        let signed_capture = SignedAttribution { proof, signature };
+        fs::write(scratch.join("attributed-inline.json"), &capture_payload).unwrap();
+        fs::write(
+            scratch.join("capture-attribution.json"),
+            signed_capture.encode().unwrap(),
+        )
+        .unwrap();
+        let capture_store = root.join("store");
+        let attributed_args = [
+            "runtime",
+            "import-attributed-inline",
+            "IX-WAR-0003",
+            "--request",
+            "attributed-inline.json",
+            "--attribution",
+            "capture-attribution.json",
+            "--authority-store",
+            capture_store.to_str().unwrap(),
+            "--verifier-executable",
+            program.to_str().unwrap(),
+        ];
+        let attributed_import = run(&attributed_args);
+        assert!(
+            attributed_import.status.success(),
+            "{} {}",
+            String::from_utf8_lossy(&attributed_import.stdout),
+            String::from_utf8_lossy(&attributed_import.stderr)
+        );
+        let attributed_result: serde_json::Value =
+            serde_json::from_slice(&attributed_import.stdout).unwrap();
+        assert_eq!(attributed_result["result"]["assurance_granted"], false);
+        assert_ne!(
+            attributed_result["result"]["digest"],
+            imported["result"]["digest"]
+        );
+        let mut changed_request = capture_request.clone();
+        changed_request.metadata.status = "changed claimed status".into();
+        fs::write(
+            scratch.join("attributed-inline.json"),
+            openwarrant_cli::runtime_capture::attributed::payload(&changed_request, &raw).unwrap(),
+        )
+        .unwrap();
+        assert!(!run(&attributed_args).status.success());
+        fs::write(scratch.join("attributed-inline.json"), &capture_payload).unwrap();
+        println!(
+            "attributed CLI import: protected UID 1, current enrolled key and sealed executable; metadata substitution refused, no assurance"
+        );
         fs::write(scratch.join("selected.json"), serde_json::to_vec(&serde_json::json!({"schema":"oh.war/runtime-selection-request/v1-draft.1", "selections":[{"stage_id":"STAGE-001", "capture_digest":imported["result"]["digest"]}]})).unwrap()).unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
         while !root.join("native-adapter-configured").exists() {

@@ -36,6 +36,47 @@ cargo test -p openwarrant-cli --test all collector_signature::
 
 [Bounded observations](../warrants/OW-WAR-0149/implementation/capture-attribution-20261013/README.md)
 include synthetic SDK controls and real OpenSSH checks. They do not qualify a live
-operator or independent verifier. CLI imports do not yet consume this new proof;
-adding native transport and fresh-use checks is remaining work. The existing
+operator or independent verifier. The explicit attributed import below consumes this proof; native provider
+qualification, custody and fencing remain open. The existing
 unverified import interfaces retain their behavior and do not require a signer.
+
+## Explicit attributed import
+
+`runtime_capture::attributed::payload` prepares the canonical inline envelope from
+one request and its exact receipt bytes. The signed payload includes all request
+metadata, including declared provider, time, transport, command and original
+receipt reference. Whitespace in input JSON is not a signed claim; canonical
+field values and the original receipt bytes are. The collector signs the core
+`Proof` over this payload and the checked recorded binding, in the capture namespace.
+
+The reference CLI exposes a separate opt-in path:
+
+```sh
+war runtime import-attributed-inline OW-WAR-NNNN \
+  --request capture-inline.json --attribution capture-attribution.json \
+  --authority-store /operator/protected-store \
+  --verifier-executable /operator/protected-verifier --json
+```
+
+The operator store supplies authenticated current authority, active enrollment,
+collector/repository identity and the execution UID binding. The executable is
+observed against the enrolled byte digest and held as a sealed image on supported
+Linux hosts. This operation does not execute it. Caller-provided principal names,
+workspace authority files and submitted proof fields cannot replace host settings.
+The host rechecks authority, activation and configuration around signature checking.
+Unsupported protection or unavailable observations remain UNKNOWN; a known mismatch
+refuses. These snapshot checks do not provide atomic revocation fencing.
+
+The reusable `attributed::import_inline` takes a trusted `CaptureAuthenticator`.
+It passes the current recorded binding, declared provider and complete canonical
+payload to that host adapter, before provider checks and again before retention.
+An adapter must authenticate current inputs independently. Returning an object
+for another binding or payload refuses. No signing or authority activation occurs.
+
+Attributed records retain the signature and proof alongside original source blobs.
+`authenticated_on_import` is a historical observation; `trusted_on_read` is false.
+A retained observation is not an independently authenticated current verdict.
+Existing unsigned commands retain their interface; previously retained records
+are not rewritten. Native verification,
+current policy, caller/source custody, atomic fencing, independent assurance and
+human acceptance remain separate requirements. This does not close OW149.

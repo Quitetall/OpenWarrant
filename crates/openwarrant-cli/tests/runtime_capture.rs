@@ -3221,3 +3221,258 @@ fn blut_recorded_binding_retains_blut_native_field_names() {
     assert!(result["binding"].get("attempt").is_none());
     assert_eq!(result["assurance_granted"], false);
 }
+
+#[test]
+fn attributed_import_binds_complete_payload_and_rechecks_before_retention() {
+    use capture::attributed::{self, Authentication, CaptureAuthenticator};
+    use capture::collector_signature::OpenSshSignatureCheck;
+    use openwarrant_core::{
+        authority_transition::{Policy, Principal, REVISION_SCHEMA_V2, Revision},
+        contract::ActorKind,
+        runtime_collector::{
+            self, AuthenticatedEnrollment, Enrollment, Signed, Use,
+            attribution::{AuthenticatedAttribution, Context, Proof, SignedAttribution},
+        },
+    };
+    use std::{
+        cell::Cell,
+        collections::{BTreeMap, BTreeSet},
+        time::Duration,
+    };
+    let f = Fixture::with_runtime_count(1);
+    let repo = openwarrant_cli::repo::Repository::open(f.root.clone().try_into().unwrap()).unwrap();
+    let raw = fs::read(f.root.join("receipt.bin")).unwrap();
+    let mut request: Request = serde_json::from_value(f.request()).unwrap();
+    request.receipt = format!(
+        "receipt://sha256:{}",
+        openwarrant_compiler::sha256_hex(&raw)
+    );
+    let payload = attributed::payload(&request, &raw).unwrap();
+    let signatures = OpenSshSignatureCheck::new(f.root.clone(), Duration::from_secs(5)).unwrap();
+    let key = |seed| {
+        super::collector_signature::fixture(runtime_collector::NAMESPACE, b"fixture", seed).0
+    };
+    // Real software signatures, synthetic authority and admin label: not operator qualification.
+    let authority = Revision {
+        schema: REVISION_SCHEMA_V2.into(),
+        repository: "import-fixture".into(),
+        sequence: 0,
+        policy: Some(Policy::default()),
+        principals: BTreeMap::from([
+            (
+                "owner".into(),
+                Principal {
+                    public_key: key(41),
+                    roles: BTreeSet::from(["authority-admin".into()]),
+                    actor: Some("Fixture owner".into()),
+                    kind: Some(ActorKind::Human),
+                },
+            ),
+            (
+                "collector".into(),
+                Principal {
+                    public_key: key(42),
+                    roles: BTreeSet::from(["runtime-collector".into()]),
+                    actor: Some("Fixture collector".into()),
+                    kind: Some(ActorKind::Agent),
+                },
+            ),
+        ]),
+    };
+    let enrollment = Enrollment {
+        schema: runtime_collector::SCHEMA.into(),
+        repository: authority.repository.clone(),
+        authority_digest: authority.digest().unwrap(),
+        provider: runtime_collector::Provider {
+            kind: request.provider.kind.clone(),
+            identity: request.provider.identity.clone(),
+            version: request.provider.version.clone(),
+        },
+        verifier_digest: format!("sha256:{}", "a".repeat(64)),
+        collector: "collector".into(),
+        warrants: BTreeSet::from([f
+            .dispatch
+            .warrant_ref
+            .strip_prefix("war://")
+            .unwrap()
+            .into()]),
+    };
+    let signature = super::collector_signature::fixture(
+        runtime_collector::NAMESPACE,
+        &enrollment.encode().unwrap(),
+        41,
+    )
+    .1;
+    let grant = Signed {
+        enrollment,
+        signatures: BTreeMap::from([("owner".into(), signature)]),
+    }
+    .authenticate(&authority, "import-fixture", &signatures)
+    .unwrap();
+    struct Host<'a> {
+        authority: &'a Revision,
+        grant: &'a AuthenticatedEnrollment,
+        signatures: &'a OpenSshSignatureCheck,
+        calls: Cell<usize>,
+        refuse_second: bool,
+    }
+    impl CaptureAuthenticator for Host<'_> {
+        fn authenticate(
+            &self,
+            signed: &SignedAttribution,
+            binding: &RuntimeBinding,
+            provider: &capture::Provider,
+            payload: &[u8],
+        ) -> Result<AuthenticatedAttribution, capture::Fault> {
+            self.calls.set(self.calls.get() + 1);
+            if self.refuse_second && self.calls.get() == 2 {
+                return Err(capture::Fault {
+                    code: "fixture.revoked",
+                    message: "synthetic late revocation".into(),
+                    unknown: true,
+                });
+            }
+            let provider = runtime_collector::Provider {
+                kind: provider.kind.clone(),
+                identity: provider.identity.clone(),
+                version: provider.version.clone(),
+            };
+            let usage = Use {
+                repository: "import-fixture",
+                warrant: binding.warrant_ref.strip_prefix("war://").unwrap(),
+                provider: &provider,
+                verifier_digest: &self.grant.enrollment().verifier_digest,
+                collector: "collector",
+            };
+            signed
+                .authenticate(
+                    &Context {
+                        authority: self.authority,
+                        enrollment: self.grant,
+                        usage: &usage,
+                        binding,
+                        payload,
+                    },
+                    self.signatures,
+                )
+                .map_err(|e| capture::Fault {
+                    code: "fixture.signature",
+                    unknown: matches!(e, runtime_collector::attribution::Fault::Unavailable(_)),
+                    message: e.to_string(),
+                })
+        }
+    }
+    let usage = Use {
+        repository: "import-fixture",
+        warrant: f.dispatch.warrant_ref.strip_prefix("war://").unwrap(),
+        provider: &grant.enrollment().provider,
+        verifier_digest: &grant.enrollment().verifier_digest,
+        collector: "collector",
+    };
+    let binding = RuntimeBinding::from_dispatch(&f.dispatch);
+    let proof = Proof::for_context(&Context {
+        authority: &authority,
+        enrollment: &grant,
+        usage: &usage,
+        binding: &binding,
+        payload: &payload,
+    })
+    .unwrap();
+    let signature = super::collector_signature::fixture(
+        runtime_collector::attribution::NAMESPACE,
+        &proof.encode().unwrap(),
+        42,
+    )
+    .1;
+    let signed = SignedAttribution { proof, signature };
+    let host = Host {
+        authority: &authority,
+        grant: &grant,
+        signatures: &signatures,
+        calls: Cell::new(0),
+        refuse_second: false,
+    };
+    let authentication = || Authentication {
+        signed: &signed,
+        host: &host,
+    };
+    let old = capture::import_inline(&repo, "IX-WAR-0003", &payload, None).unwrap();
+    let old_path = f.root.join(old["reference"].as_str().unwrap());
+    let old_bytes = fs::read(&old_path).unwrap();
+    let result =
+        attributed::import_inline(&repo, "IX-WAR-0003", &payload, authentication(), None).unwrap();
+    assert_eq!(host.calls.get(), 2);
+    assert_ne!(result["digest"], old["digest"]);
+    let shown = capture::show(&repo, "IX-WAR-0003", result["digest"].as_str().unwrap()).unwrap();
+    assert_eq!(
+        shown["record"]["collector_attribution"]["signed"]["proof"],
+        serde_json::to_value(&signed.proof).unwrap()
+    );
+    assert_eq!(
+        shown["record"]["collector_attribution"]["trusted_on_read"],
+        false
+    );
+    assert_eq!(shown["record"]["assurance_granted"], false);
+    assert_eq!(shown["record"]["native_observation"]["standing"], "unknown");
+    let retained = fs::read_dir(f.storage()).unwrap().count();
+    // Same native bytes but changed metadata must not reuse the original signature.
+    let mut changed = request.clone();
+    changed.metadata.status = "different claim".into();
+    assert!(
+        attributed::import_inline(
+            &repo,
+            "IX-WAR-0003",
+            &attributed::payload(&changed, &raw).unwrap(),
+            authentication(),
+            None
+        )
+        .is_err()
+    );
+    let altered = b"different native bytes";
+    changed = request.clone();
+    changed.receipt = format!(
+        "receipt://sha256:{}",
+        openwarrant_compiler::sha256_hex(altered)
+    );
+    assert!(
+        attributed::import_inline(
+            &repo,
+            "IX-WAR-0003",
+            &attributed::payload(&changed, altered).unwrap(),
+            authentication(),
+            None
+        )
+        .is_err()
+    );
+    let host = Host {
+        authority: &authority,
+        grant: &grant,
+        signatures: &signatures,
+        calls: Cell::new(0),
+        refuse_second: true,
+    };
+    let refusal = attributed::import_inline(
+        &repo,
+        "IX-WAR-0003",
+        &payload,
+        Authentication {
+            signed: &signed,
+            host: &host,
+        },
+        None,
+    )
+    .unwrap_err();
+    assert_eq!(refusal.code, "fixture.revoked");
+    assert!(refusal.unknown);
+    assert_eq!(host.calls.get(), 2);
+    assert_eq!(fs::read_dir(f.storage()).unwrap().count(), retained);
+    assert_eq!(fs::read(old_path).unwrap(), old_bytes);
+    assert!(attributed::payload(&request, &vec![0; 4 * 1024 * 1024 + 1]).is_err());
+    changed = request.clone();
+    changed.schema = "future".into();
+    assert!(attributed::payload(&changed, &raw).unwrap_err().unknown);
+    assert_eq!(
+        capture::show(&repo, "IX-WAR-0003", old["digest"].as_str().unwrap()).unwrap()["record"]["collector_attribution"],
+        Value::Null
+    );
+}

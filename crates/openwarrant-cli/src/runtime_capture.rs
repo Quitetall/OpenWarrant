@@ -3,6 +3,7 @@
 //! Source reads are bounded and descriptor-relative; publication never replaces
 //! a retained object. Local checksums establish byte identity, not authenticity.
 pub mod activated_verifier;
+pub mod attributed;
 mod binding;
 pub mod blut_process;
 pub mod collector_loading;
@@ -64,6 +65,21 @@ pub enum Command {
         /// Bounded inline capture envelope file, or - for stdin.
         #[arg(long)]
         request: Utf8PathBuf,
+    },
+    /// Authenticate the collector's complete inline capture before retention. Does not establish native execution or assurance.
+    ImportAttributedInline {
+        alias: String,
+        #[arg(long)]
+        request: Utf8PathBuf,
+        /// Canonical signed attribution, read as bounded repository-relative bytes.
+        #[arg(long)]
+        attribution: Utf8PathBuf,
+        /// Explicit protected operator store; never inferred from submitted proof.
+        #[arg(long)]
+        authority_store: std::path::PathBuf,
+        /// Protected executable observed against the active enrollment digest.
+        #[arg(long)]
+        verifier_executable: std::path::PathBuf,
     },
     /// Inspect a retained content-addressed capture, including original bytes. Does not trust historical verdicts or establish execution.
     Show { alias: String, digest: String },
@@ -252,7 +268,7 @@ pub fn import(
     request: &Request,
     verification: Option<Verification<'_>>,
 ) -> Result<Value, Fault> {
-    import_source(repo, alias, request, None, verification)
+    import_source(repo, alias, request, None, verification, None)
 }
 
 /// Retain exact supplied bytes, with a content-addressed source reference.
@@ -264,6 +280,17 @@ pub fn import_receipt(
     request: &Request,
     receipt: &[u8],
     verification: Option<Verification<'_>>,
+) -> Result<Value, Fault> {
+    import_receipt_source(repo, alias, request, receipt, verification, None)
+}
+
+fn import_receipt_source(
+    repo: &Repository,
+    alias: &str,
+    request: &Request,
+    receipt: &[u8],
+    verification: Option<Verification<'_>>,
+    authentication: Option<attributed::Authentication<'_>>,
 ) -> Result<Value, Fault> {
     if receipt.len() > RECEIPT_LIMIT {
         return Err(fault(
@@ -279,7 +306,14 @@ pub fn import_receipt(
             false,
         ));
     }
-    import_source(repo, alias, request, Some(receipt), verification)
+    import_source(
+        repo,
+        alias,
+        request,
+        Some(receipt),
+        verification,
+        authentication,
+    )
 }
 
 /// Decode a bounded portable capture envelope and retain its original bytes.
@@ -290,6 +324,11 @@ pub fn import_inline(
     bytes: &[u8],
     verification: Option<Verification<'_>>,
 ) -> Result<Value, Fault> {
+    let (request, raw) = decode_inline(bytes)?;
+    import_receipt(repo, alias, &request, &raw, verification)
+}
+
+fn decode_inline(bytes: &[u8]) -> Result<(Request, Vec<u8>), Fault> {
     if bytes.len() > INLINE_LIMIT {
         return Err(fault(
             "runtime.capture-limit",
@@ -317,7 +356,7 @@ pub fn import_inline(
     debug_assert_eq!(inline.schema, INLINE_SCHEMA);
     let raw = base64_decode(&inline.receipt_base64)
         .map_err(|e| fault("runtime.capture-inline-encoding", e, false))?;
-    import_receipt(repo, alias, &inline.request, &raw, verification)
+    Ok((inline.request, raw))
 }
 
 fn import_source(
@@ -326,6 +365,7 @@ fn import_source(
     request: &Request,
     supplied: Option<&[u8]>,
     verification: Option<Verification<'_>>,
+    authentication: Option<attributed::Authentication<'_>>,
 ) -> Result<Value, Fault> {
     let encoded =
         serde_json::to_vec(request).map_err(|e| fault("runtime.capture-request", e, false))?;
@@ -375,6 +415,9 @@ fn import_source(
             &owned
         }
     };
+    if let Some(authentication) = &authentication {
+        attributed::check(authentication, request, &recorded, raw)?;
+    }
     let expectation = expectation(&recorded.dispatch, &provider, verification.as_ref());
     let assessment = assess_runtime_basis(
         &recorded.basis,
@@ -416,6 +459,10 @@ fn import_source(
             true,
         ));
     }
+    let attribution = authentication
+        .as_ref()
+        .map(|a| attributed::check(a, request, &current, raw))
+        .transpose()?;
     let actor = format!("agent://{}", repo.performer());
     // Capture is a pre-result source observation, not an RC.2 assurance
     // Record (which requires an exact result digest). Do not invent a result.
@@ -430,11 +477,14 @@ fn import_source(
         "provenance":{"source":recorded.dispatch_ref,"authenticity":"unverified"},
         "result_digest":null,"assurance_granted":false
     });
-    let record = json!({"schema":SCHEMA,"alias":alias,"declared_capture":request,"observation":observation,
+    let mut record = json!({"schema":SCHEMA,"alias":alias,"declared_capture":request,"observation":observation,
         "dispatch":blob(&recorded.dispatch_ref,&recorded.dispatch_bytes),
         "compile_event":blob(&recorded.event_ref,&recorded.event_bytes),
         "receipt":blob(&request.receipt,raw),"native_observation":native(&stage.receipt),
         "native_observation_is_trusted_on_read":false,"assurance_granted":false});
+    if let Some(attribution) = attribution {
+        record["collector_attribution"] = attribution;
+    }
     let bytes = openwarrant_compiler::to_canonical_bytes(&record)
         .map_err(|e| fault("runtime.capture-encoding", e, false))?;
     if bytes.len() > RECORD_LIMIT {
@@ -565,6 +615,41 @@ pub fn run(repo: &Repository, command: Command) -> (Report, Value) {
             let request: Request = serde_json::from_value(value)
                 .map_err(|e| fault("runtime.capture-request", e, false))?;
             import(repo, &alias, &request, None)
+        })(),
+        Command::ImportAttributedInline {
+            alias,
+            request,
+            attribution,
+            authority_store,
+            verifier_executable,
+        } => (|| {
+            let bytes = read(repo, &request, INLINE_LIMIT)?;
+            let signed =
+                openwarrant_core::runtime_collector::attribution::SignedAttribution::decode(&read(
+                    repo,
+                    &attribution,
+                    65_536,
+                )?)
+                .map_err(|error| match error {
+                    openwarrant_core::runtime_collector::attribution::Fault::Rejected(reason) => {
+                        fault("runtime.capture-attribution", reason, false)
+                    }
+                    openwarrant_core::runtime_collector::attribution::Fault::Unavailable(
+                        reason,
+                    ) => fault("runtime.capture-attribution", reason, true),
+                })?;
+            let host =
+                attributed::HostAuthenticator::load(repo, &authority_store, &verifier_executable)?;
+            attributed::import_inline(
+                repo,
+                &alias,
+                &bytes,
+                attributed::Authentication {
+                    signed: &signed,
+                    host: &host,
+                },
+                None,
+            )
         })(),
         Command::ImportInline { alias, request } => (|| {
             let bytes = if request.as_str() == "-" {
