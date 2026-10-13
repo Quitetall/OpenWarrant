@@ -978,6 +978,9 @@ impl Recording {
                 list_files(&backup, &mut files)?;
                 for file in files {
                     safe(&backup, file.strip_prefix(&backup).unwrap().as_str())?;
+                    if !std::fs::symlink_metadata(&file)?.is_file() {
+                        return Err(invalid("recovery backup contains a nonregular file"));
+                    }
                 }
             }
             roots.push(path);

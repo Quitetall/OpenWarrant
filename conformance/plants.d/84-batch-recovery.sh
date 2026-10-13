@@ -31,3 +31,36 @@ PYMARKER
 done
 command rm -rf "$BR_TMP"
 unset PLANT_ROOT
+
+# A later special node must not erase an earlier current root or block recovery.
+PLANT_ROOT=$(scratch_corpus BN)
+BN_ROOT="$PLANT_ROOT/docs/authority/responses"
+mkdir -p "$BN_ROOT" "$PLANT_ROOT/docs/authority/batches/B-node.recording.d/0"
+printf 'current response' > "$BN_ROOT/keep.txt"
+python3 - "$PLANT_ROOT" "$WAR" <<'PYNODE'
+import json, os, pathlib, subprocess, sys
+root, war = pathlib.Path(sys.argv[1]), sys.argv[2]
+backup = root / "docs/authority/batches/B-node.recording.d/0"
+os.mkfifo(backup / "not-a-file", 0o600)
+marker = root / "docs/authority/batches/B-node.recording"
+original = json.dumps({"schema":"oh.war/batch-recording/v1", "batch_id":"B-node",
+    "roots":[{"dir":"docs/authority/responses", "copy":"0"}], "paths":[]})
+marker.write_text(original)
+try:
+    result = subprocess.run([war, "--root", str(root), "sign", "--batch", "--recover", "B-node", "--json"], capture_output=True, timeout=5)
+except subprocess.TimeoutExpired:
+    raise SystemExit("recovery blocked reading a special node")
+report = json.loads(result.stdout)
+assert result.returncode == 2, report
+assert any(d["rule"] == "batch.recover-failed" and "nonregular" in d["message"] for d in report["diagnostics"]), report
+assert (root / "docs/authority/responses/keep.txt").read_text() == "current response"
+assert marker.read_text() == original
+PYNODE
+if [[ "$?" -eq 0 ]]; then
+    printf 'ok    recovery special node              refused before any restore, marker retained\n'
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  recovery special node              timed out or changed records\n'
+    FAILED=$((FAILED + 1))
+fi
+unset PLANT_ROOT

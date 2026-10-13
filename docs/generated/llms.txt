@@ -1724,6 +1724,10 @@
 > Reject stale independent verification after its reviewed subject changes
 - t-b9610 · ticket · open · Reject stale independent verification after its reviewed subject changes · docs/tickets/t-b9610/manifest.toml:1
 
+## docs/tickets/t-c0078/manifest.toml
+> Refuse special backup nodes before batch rollback
+- t-c0078 · ticket · done · Refuse special backup nodes before batch rollback · docs/tickets/t-c0078/manifest.toml:1
+
 ## docs/tickets/t-c1325/manifest.toml
 > Keep typed-document compile output inside the JSON envelope
 - t-c1325 · ticket · done · Keep typed-document compile output inside the JSON envelope · docs/tickets/t-c1325/manifest.toml:1

@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-c0078` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-c0078"
+uuid = "01a12f6a-749d-70f7-b6f4-e251c36728c4"
+title = "Refuse special backup nodes before batch rollback"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-12T09:21:08Z"
+created_by = "agent://codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"
