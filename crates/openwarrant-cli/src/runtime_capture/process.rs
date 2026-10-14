@@ -125,15 +125,38 @@ pub(super) fn observe_with_stdin(
         use std::os::unix::process::CommandExt;
         command.process_group(0);
     }
-    let mut child = command
+    command
         .stdin(input)
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .map_err(unavailable)?;
+        .stderr(Stdio::piped());
+    // A failed ETXTBSY exec did not start the verifier. Retry only that launch
+    // condition, under one deadline shared with the subsequent actual execution.
+    // Never retry a started program or turn inability to run into a verdict.
+    let deadline = Instant::now() + timeout;
+    let mut last_busy_error = None;
+    let mut child = loop {
+        if Instant::now() >= deadline {
+            return Err(unavailable(format!(
+                "native verifier startup deadline exceeded; {}; no result established",
+                last_busy_error.as_deref().unwrap_or("no launch completed")
+            )));
+        }
+        match command.spawn() {
+            Ok(child) => break child,
+            Err(error)
+                if error.raw_os_error() == Some(rustix::io::Errno::TXTBSY.raw_os_error()) =>
+            {
+                last_busy_error = Some(error.to_string());
+                std::thread::sleep(
+                    Duration::from_millis(5)
+                        .min(deadline.saturating_duration_since(Instant::now())),
+                );
+            }
+            Err(error) => return Err(unavailable(error)),
+        }
+    };
     let out = drain(child.stdout.take().expect("piped stdout"), limit);
     let err = drain(child.stderr.take().expect("piped stderr"), limit);
-    let deadline = Instant::now() + timeout;
     let mut stdout = None;
     let mut stderr = None;
     loop {
@@ -230,5 +253,129 @@ pub(super) fn decode_response(
         _ => Err(rejected(
             "contradictory native verifier status or exit code",
         )),
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod exec_contention_tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt;
+    struct Fixture(PathBuf);
+    impl Fixture {
+        fn new(body: &str) -> Self {
+            let root = std::env::temp_dir().join(format!(
+                "ow-exec-busy-{}",
+                openwarrant_core::WarUuid::mint()
+            ));
+            fs::create_dir(&root).unwrap();
+            let program = root.join("verifier.sh");
+            fs::write(&program, format!("#!/bin/sh\n{body}\n")).unwrap();
+            fs::set_permissions(&program, fs::Permissions::from_mode(0o700)).unwrap();
+            Self(root)
+        }
+        fn writer(&self) -> fs::File {
+            fs::OpenOptions::new()
+                .write(true)
+                .open(self.0.join("verifier.sh"))
+                .unwrap()
+        }
+        fn command(&self) -> Command {
+            Command::new(self.0.join("verifier.sh"))
+        }
+    }
+    impl Drop for Fixture {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn transient_busy_exec_reaches_the_actual_program_after_writer_release() {
+        let fixture = Fixture::new("/usr/bin/cat");
+        let payload = fixture.0.join("request.txt");
+        fs::write(&payload, "actual-verifier-input").unwrap();
+        let writer = fixture.writer();
+        let release = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(50));
+            drop(writer);
+        });
+        let observed = observe_with_stdin(
+            fixture.command(),
+            Duration::from_secs(1),
+            4096,
+            Stdio::from(fs::File::open(payload).unwrap()),
+        );
+        release.join().unwrap();
+        let observed = observed
+            .unwrap_or_else(|e| panic!("busy executable must run after its writer closes: {e:?}"));
+        assert!(observed.success);
+        assert_eq!(observed.stdout, b"actual-verifier-input");
+    }
+
+    #[test]
+    fn retained_writer_expires_as_unknown_without_any_fabricated_result() {
+        let fixture = Fixture::new("printf 'must-not-execute'");
+        let _writer = fixture.writer();
+        let observed = observe_with_stdin(
+            fixture.command(),
+            Duration::from_millis(100),
+            4096,
+            Stdio::null(),
+        );
+        match observed {
+            Err(ProviderFailure::Unavailable(why)) => assert!(
+                why.contains("deadline") && why.contains("Text file busy"),
+                "{why}"
+            ),
+            Err(other) => panic!("busy launch must remain an unavailable observation: {other:?}"),
+            Ok(_) => panic!("an executable with a retained writer must not run"),
+        }
+    }
+
+    #[test]
+    fn exec_retry_and_running_child_share_one_deadline() {
+        let fixture = Fixture::new("printf started > \"$0.started\"\nsleep 1.6\nprintf late");
+        let writer = fixture.writer();
+        let release = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(600));
+            drop(writer);
+        });
+        let observed = observe_with_stdin(
+            fixture.command(),
+            Duration::from_secs(2),
+            4096,
+            Stdio::null(),
+        );
+        release.join().unwrap();
+        assert!(
+            fixture.0.join("verifier.sh.started").exists(),
+            "the controlled program must actually start before its run deadline"
+        );
+        match observed {
+            Err(ProviderFailure::Unavailable(why)) => {
+                assert!(why.contains("native verifier deadline"), "{why}")
+            }
+            Err(other) => panic!("running timeout must remain unavailable: {other:?}"),
+            Ok(_) => panic!("startup retry must not reset the execution time allowance"),
+        }
+    }
+
+    #[test]
+    fn nonbusy_spawn_errors_remain_the_original_unavailable_observation() {
+        let fixture = Fixture::new("printf unused");
+        fs::remove_file(fixture.0.join("verifier.sh")).unwrap();
+        let observed = observe_with_stdin(
+            fixture.command(),
+            Duration::from_secs(1),
+            4096,
+            Stdio::null(),
+        );
+        match observed {
+            Err(ProviderFailure::Unavailable(why)) => {
+                assert!(why.contains("No such file"), "{why}")
+            }
+            Err(other) => panic!("missing executable must remain unavailable: {other:?}"),
+            Ok(_) => panic!("missing executable must not yield a result"),
+        }
     }
 }

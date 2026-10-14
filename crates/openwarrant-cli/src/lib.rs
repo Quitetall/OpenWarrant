@@ -2139,6 +2139,10 @@ enum EvidenceGroup {
         /// `software.repo.bonsai-evidence`; refused for any other gate.
         #[arg(long = "evidence-ref")]
         evidence_ref: Option<String>,
+        /// Agent attaching the observed receipt, e.g. agent://codex. Claimed
+        /// attribution only; does not change performer policy or grant authority.
+        #[arg(long = "as")]
+        recorder: Option<String>,
     },
     #[command(flatten)]
     Member(EvidenceCommand),
@@ -5058,13 +5062,15 @@ fn run_evidence(ctx: &Ctx, command: EvidenceGroup) -> Result<u8, Box<dyn std::er
             alias,
             gate,
             evidence_ref,
+            recorder,
         } => {
             let repository = ctx.open_repo()?;
-            let report = evidence::record(
+            let report = evidence::record_as(
                 &repository,
                 &alias,
                 gate.as_deref(),
                 evidence_ref.as_deref(),
+                recorder.as_deref(),
             )?;
             Ok(output::finish(mode, "evidence", &report, None))
         }
