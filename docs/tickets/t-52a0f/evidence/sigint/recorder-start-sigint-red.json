@@ -1,0 +1,5 @@
+{
+  "exit": -2,
+  "output_retained": false,
+  "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 14, in <module>\n    raise SystemExit(record.main())\n                     ~~~~~~~~~~~^^\n  File \"/mnt/4tb/tmp/openwarrant-delivery-continuation/conformance/study/record.py\", line 219, in main\n    recorder = Recorder(declared, sink=append)\n  File \"/mnt/4tb/tmp/openwarrant-delivery-continuation/conformance/study/record.py\", line 55, in __init__\n    self._event(\"started\")\n    ~~~~~~~~~~~^^^^^^^^^^^\n  File \"/mnt/4tb/tmp/openwarrant-delivery-continuation/conformance/study/record.py\", line 61, in _event\n    self.sink(event)\n    ~~~~~~~~~^^^^^^^\n  File \"/mnt/4tb/tmp/openwarrant-delivery-continuation/conformance/study/record.py\", line 206, in append\n    os.fsync(journal.fileno())\n    ~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File \"<string>\", line 11, in sync\n    os.kill(os.getpid(), signal.SIGINT)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyboardInterrupt\n"
+}

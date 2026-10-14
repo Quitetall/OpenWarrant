@@ -1,0 +1,41 @@
+........EE........
+======================================================================
+ERROR: test_sigint_during_started_event_sync_retains_unknown_session (test_record.RecorderTests.test_sigint_during_started_event_sync_retains_unknown_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-recorder-signal-completion/conformance/study/test_record.py", line 164, in test_sigint_during_started_event_sync_retains_unknown_session
+    self._assert_signal_during_started_event_sync("SIGINT")
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/mnt/4tb/tmp/openwarrant-recorder-signal-completion/conformance/study/test_record.py", line 152, in _assert_signal_during_started_event_sync
+    record = json.loads(out.read_bytes())
+                        ~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 777, in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmps0xx2967/out.json'
+
+======================================================================
+ERROR: test_sigterm_during_started_event_sync_retains_unknown_session (test_record.RecorderTests.test_sigterm_during_started_event_sync_retains_unknown_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-recorder-signal-completion/conformance/study/test_record.py", line 161, in test_sigterm_during_started_event_sync_retains_unknown_session
+    self._assert_signal_during_started_event_sync("SIGTERM")
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/mnt/4tb/tmp/openwarrant-recorder-signal-completion/conformance/study/test_record.py", line 152, in _assert_signal_during_started_event_sync
+    record = json.loads(out.read_bytes())
+                        ~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 777, in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmpy6x0w3f9/out.json'
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.539s
+
+FAILED (errors=2)

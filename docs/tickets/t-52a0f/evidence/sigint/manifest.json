@@ -1,0 +1,30 @@
+[
+  {
+    "file": "README.md",
+    "sha256": "77804eeec51eb54d3620786d06ff3f626a061f5ff697f13e008e4e06c6b6c327"
+  },
+  {
+    "file": "recorder-sigint-baseline-regression.log",
+    "sha256": "393922c52b93b68a18e076eb82f6c303158c2964c1376ffdf51ef388f52b184f"
+  },
+  {
+    "file": "recorder-sigint-tests-final.log",
+    "sha256": "7325b99cf29707f9f97bd5644521d43180205c94900d49de20211a0bcd762c8e"
+  },
+  {
+    "file": "recorder-sigint-tests.log",
+    "sha256": "390822dd80d31cd4e696ed38f16238142635f7177b2de04f7335e06640bb95db"
+  },
+  {
+    "file": "recorder-start-sigint-red.json",
+    "sha256": "5abe3b22535a266f379ad1e28edee8aa8262488707f1518e2cc5d3327f41a0d5"
+  },
+  {
+    "file": "recorder-start-sigint-red.stderr",
+    "sha256": "6a4970eafe8fb586c5d622967dfa430b838df598edd8cd456f0fbf3ca7ba1543"
+  },
+  {
+    "file": "recorder-start-sigint-repro.py",
+    "sha256": "cabb87f214ff7865b1948cd524a6a82dca9b3bf56b530058ff1447a042f5c8e0"
+  }
+]
