@@ -1862,7 +1862,7 @@
 
 ## docs/tickets/t-e577c/manifest.toml
 > Remove stale digest bookkeeping while preserving provenance fields and original history
-- t-e577c · ticket · open · Refresh unresolved delivery digests from observed current bytes · docs/tickets/t-e577c/manifest.toml:1
+- t-e577c · ticket · done · Refresh unresolved delivery digests from observed current bytes · docs/tickets/t-e577c/manifest.toml:1
 
 ## docs/tickets/t-e6340/manifest.toml
 > Correct stale Preflight coverage messages without claiming execution readiness
