@@ -72,7 +72,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
 | residual risks have sufficient authority | 57 |
-| every required gate has admissible result | 56 |
+| every required gate has admissible result | 55 |
 | required deliverables exist | 54 |
 | exact authorized Contract Revision | 21 |
 | runtime receipts match the basis | 2 |
