@@ -61,7 +61,9 @@ impl SignatureCheck for OpenSshSignatureCheck {
         payload: &[u8],
         signature: &str,
     ) -> Result<SignatureEvidence, Fault> {
-        if namespace != NAMESPACE {
+        if namespace != NAMESPACE
+            && namespace != openwarrant_core::runtime_collector::attribution::NAMESPACE
+        {
             return Err(Fault::Rejected("collector signature namespace"));
         }
         self.verify_exact(public_key, namespace, payload, signature)
