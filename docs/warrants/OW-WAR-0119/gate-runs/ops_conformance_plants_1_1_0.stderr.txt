@@ -1,27 +1,17 @@
-grep: /mnt/4tb/development/tmp/tmp.GdVnyub5yY/unreadable/closed.rs: Permission denied
-grep: /mnt/4tb/development/tmp/tmp.GdVnyub5yY/unreadable/closed.rs: Permission denied
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/60-perform-cancel.sh: line 152: 3870586 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/60-perform-cancel.sh: line 152: 3870691 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/4003821/task/4004104/children: No such file or directory
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/4003821/task/4004103/children: No such file or directory
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/4003821/task/4004130/children: No such file or directory
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/4004129/cmdline: No such file or directory
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/4003821/task/4004101/children: No such file or directory
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/4003821/task/4004776/children: No such file or directory
-/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/4003821/task/4005044/children: No such file or directory
-Traceback (most recent call last):
-  File "<stdin>", line 42, in <module>
-AssertionError: {'schema': 'oh.war/report/v1', 'command': 'error', 'diagnostics': [{'severity': 'error', 'rule': 'cli.error', 'file': None, 'message': 'verify.subject-unavailable: Git source inventory cannot be read'}], 'notes': [], 'counts': {'pass': 0, 'warn': 0, 'unknown': 0, 'error': 1, 'worst': 'error'}, 'verdict': 'not_ready', 'verdict_line': 'NOT READY', 'exit_code': 1}
+grep: /mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/tmp.9b3TAuFa9V/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/tmp.9b3TAuFa9V/unreadable/closed.rs: Permission denied
+/mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/war-isolated-battery.oWhv7x/r/conformance/plants.d/60-perform-cancel.sh: line 152: 1377627 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/war-isolated-battery.oWhv7x/r/conformance/plants.d/60-perform-cancel.sh: line 152: 1377700 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/war-isolated-battery.oWhv7x/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1479052/task/1479147/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/war-isolated-battery.oWhv7x/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1479052/task/1479145/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/war-isolated-battery.oWhv7x/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1479052/task/1479275/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/war-isolated-battery.oWhv7x/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1479052/task/1479286/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-source-inventory-20261014/full-sequence-tmp/war-isolated-battery.oWhv7x/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1479052/task/1479277/children: No such file or directory
 .......
 ----------------------------------------------------------------------
-Ran 7 tests in 3.728s
+Ran 7 tests in 3.721s
 
 OK
-Traceback (most recent call last):
-  File "/mnt/4tb/development/tmp/war-isolated-battery.363XN5/r/conformance/fixtures/verifier/required-sources.py", line 24, in <module>
-    assert report['exit_code']==0,report
-           ^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: {'schema': 'oh.war/report/v1', 'command': 'error', 'diagnostics': [{'severity': 'error', 'rule': 'cli.error', 'file': None, 'message': 'verify.subject-unavailable: Git source inventory cannot be read'}], 'notes': [], 'counts': {'pass': 0, 'warn': 0, 'unknown': 0, 'error': 1, 'worst': 'error'}, 'verdict': 'not_ready', 'verdict_line': 'NOT READY', 'exit_code': 1}
 test_assistance_failure_and_duplicate_remain_visible (test_evaluate.EvaluationTests.test_assistance_failure_and_duplicate_remain_visible) ... ok
 test_cli_with_no_sessions_reports_missing_not_success (test_evaluate.EvaluationTests.test_cli_with_no_sessions_reports_missing_not_success) ... ok
 test_exact_thresholds_and_fixed_denominator (test_evaluate.EvaluationTests.test_exact_thresholds_and_fixed_denominator) ... ok
@@ -42,6 +32,6 @@ test_unavailable_clock_and_failure_bound_preserve_unknown (test_record.RecorderT
 test_unavailable_clock_and_zero_elapsed_stay_unknown (test_record.RecorderTests.test_unavailable_clock_and_zero_elapsed_stay_unknown) ... ok
 
 ----------------------------------------------------------------------
-Ran 18 tests in 0.520s
+Ran 18 tests in 0.516s
 
 OK
