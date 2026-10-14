@@ -1,0 +1,6 @@
+id = "GR-ops.conformance.plants@1.1.0"
+gate = "ops.conformance.plants@1.1.0"
+askability = "askable"
+execution_status = "completed"
+verdict = "fail"
+reason_code = "failed"

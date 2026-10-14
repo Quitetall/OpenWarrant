@@ -106,6 +106,10 @@ wl_start() {
         env -u SSH_AUTH_SOCK XDG_STATE_HOME="$WL_STATE" "$WAR" --root "$PLANT_ROOT" ui --port 0 --as your-name-here "$@" &
     printf '%s' $! >"$WL_T/$tag.driver"
     for _ in $(seq 1 80); do grep -aq '#pair=' "$WL_T/$tag.log" 2>/dev/null && break; sleep 0.25; done
+    if ! grep -aq '#pair=' "$WL_T/$tag.log" 2>/dev/null; then
+        printf 'diagnostic: LAN fixture %s did not publish a pairing URL within the existing startup bound\n' "$tag"
+        tail -8 "$WL_T/$tag.log" | sed -E 's/#t=[0-9a-f]+/#t=<redacted>/g; s/#pair=[0-9a-f]+/#pair=<redacted>/g'
+    fi
 }
 wl_stop() { # by exact pid: the server, then its driver
     local p d
@@ -433,8 +437,10 @@ wl_start B "y" --lan 127.0.0.2:0 --name "$WL_NAME" --cert "$WL_T/cert.pem" --key
 WL_BP=$(wl_port B)
 WL_B1=$(wl_code B)
 WL_R=$(wl_pair B "$WL_B1" "$WL_T/jarB" plant-short/1.0)
-WL_B2=$(wl_next_code B "$WL_B1")
+# Observe freshness before waiting for an unrelated next-code announcement:
+# that wait may outlive this deliberately three-second credential.
 WL_BFRESH=$(wl_curl "$WL_BP" -b "$WL_T/jarB" -o /dev/null -w '%{http_code}' "https://$WL_NAME:$WL_BP/api/version")
+WL_B2=$(wl_next_code B "$WL_B1")
 if [[ "$WL_R" == 200* && "$WL_BFRESH" == 200 ]]; then
     sleep 4
     WL_R=$(wl_pair B "$WL_B2" "$WL_T/jarB2" plant-late/1.0)

@@ -38,7 +38,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-01 | 1 | draft.created 1 |
 | 2026-10-02 | 2 | draft.created 1, question.asked 1 |
 | 2026-10-03 | 3 | attestation.recorded 1, authorization.recorded 1, question.answered 1 |
-| 2026-10-14 | 70 | sync.receipt_attached 70 |
+| 2026-10-14 | 147 | sync.receipt_attached 147 |
 
 ## Roadmap revisions
 
@@ -36574,7 +36574,7 @@ device?
 | D-004 | the page: pairing, nonces, host-only rows | `crates/openwarrant-cli/src/webui/assets/app.js` | drift |
 | D-005 | WEBUI.md: Reach on the LAN | `docs/WEBUI.md` | verified |
 | D-006 | THREAT_MODEL row 13: loopback and LAN | `docs/THREAT_MODEL.md` | not_content_addressed |
-| D-007 | the plants | `conformance/plants.d/59-webui-lan.sh` | verified |
+| D-007 | the plants | `conformance/plants.d/59-webui-lan.sh` | drift |
 | D-008 | the TLS dependency and the QR code crate, exact pins (AM-003) | `crates/openwarrant-cli/Cargo.toml` | drift |
 | D-009 | the lockfile for D-008 (AM-003) | `Cargo.lock` | drift |
 | D-010 | `war ui --lan` flags and `war ui devices` (AM-003) | `crates/openwarrant-cli/src/lib.rs` | drift |
