@@ -435,6 +435,10 @@
 > -
 - doc:docs/design/full-provenance-migration.md · document · - · Full-provenance migration · docs/design/full-provenance-migration.md:1
 
+## docs/design/native-verifier-exec-contention.md
+> -
+- doc:docs/design/native-verifier-exec-contention.md · document · - · Native verifier startup contention · docs/design/native-verifier-exec-contention.md:1
+
 ## docs/design/openwarrant-friction.md
 > -
 - doc:docs/design/openwarrant-friction.md · document · - · OpenWarrant: less friction, safer AI implementation · docs/design/openwarrant-friction.md:1
@@ -1403,6 +1407,10 @@
 ## docs/tickets/t-0f24/manifest.toml
 > A refused 'war standing propose' may have written into docs/ (seen once)
 - t-0f24 · ticket · done · A refused 'war standing propose' may have written into docs/ (seen once) · docs/tickets/t-0f24/manifest.toml:1
+
+## docs/tickets/t-13014/manifest.toml
+> Recover transient native verifier exec contention within the original deadline
+- t-13014 · ticket · done · Recover transient native verifier exec contention within the original deadline · docs/tickets/t-13014/manifest.toml:1
 
 ## docs/tickets/t-13506/manifest.toml
 > Use the configured authority source consistently for role consumers
