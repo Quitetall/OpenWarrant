@@ -457,6 +457,39 @@ pub fn record(
     only: Option<&str>,
     evidence_ref: Option<&str>,
 ) -> Result<Report, RepoError> {
+    record_as(repo, alias, only, evidence_ref, None)
+}
+
+/// Same gate observations with explicit claimed recorder attribution. This
+/// neither changes the configured performer nor authenticates an agent identity.
+pub fn record_as(
+    repo: &Repository,
+    alias: &str,
+    only: Option<&str>,
+    evidence_ref: Option<&str>,
+    recorder: Option<&str>,
+) -> Result<Report, RepoError> {
+    // Attribution of the submitted observation, not an authenticated principal
+    // or a change to the configured performer used by independent gates.
+    if let Some(actor) = recorder
+        && actor.strip_prefix("agent://").is_none_or(|name| {
+            name.is_empty()
+                || actor.len() > 256
+                || name.split('/').any(|part| matches!(part, "" | "." | ".."))
+                || !name
+                    .bytes()
+                    .all(|c| c.is_ascii_alphanumeric() || b"-._/".contains(&c))
+        })
+    {
+        let mut report = Report::default();
+        report.push(Diagnostic::error(
+            "evidence.recorder-invalid",
+            "recorder".to_owned(),
+            "recorder must be a non-empty agent:// identifier of at most 256 bytes, using ASCII letters, digits, -, ., _, or /; no gate or journal write occurred",
+        ));
+        return Ok(report);
+    }
+    let actor = recorder.map_or_else(|| format!("agent://{}", repo.performer()), str::to_owned);
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
@@ -529,7 +562,6 @@ pub fn record(
     // or never reached the journal is not replayed; it is asked again. The
     // same receipt journalled by another actor is a conflict, and no gate
     // runs.
-    let actor = format!("agent://{}", repo.performer());
     let on_file = load(repo, &dir)?;
     let mut fresh: Vec<&String> = Vec::new();
     for key in &targets {
