@@ -39,151 +39,853 @@
     "OW-WAR-0147",
     "OW-WAR-0148"
   ],
-  "files": [],
+  "files": [
+    {
+      "original": "docs/warrants/OW-WAR-0066/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0066/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "f8621d0c789eca48a3cf252d779b3b4432f0a9d9335236255e740e8f1c8944ab",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0066/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0066/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0066/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0066/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "246f9d9a5a9cda5fe0582a9f94bd5584ac0ca8f418d33185506520e3c8cda3d9",
+      "bytes": 116332
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0066/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0066/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "5295ec93e2aebaed58468b1a15f3acf78b0895b4b06b575c8b22536482b4d628",
+      "bytes": 685
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0112/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0112/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "55605bbc780fb17d9aefafef62d7556436699ca5eda4cf148eae5de18b2b5349",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0112/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0112/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0112/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0112/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "b1108d4c2edf60f7ba0d6954a979e5fb8647c53d472d76b6161dfe90c31fba4b",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0112/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0112/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "c8d53c809eca81b797d22e454da6be06f50e47c416ecdff899fc77983d36ab59",
+      "bytes": 842
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0113/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0113/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "f2cfae462350faa5417aeb44a4b2c7826977e9e65a3223cdf084fc0c946ea6b5",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0113/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0113/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0113/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0113/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "213e513875d6917eeb54728621fed27f7f94b50da0341d798d1afe5f728b759d",
+      "bytes": 116329
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0113/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0113/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "c8535e1e49b5e60f42449f871e0170e2c55a3403fd79c5a462f85b11b994da4c",
+      "bytes": 856
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0114/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0114/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "44a78ad1f9a5c3e51bfdc9e40f4cc1a21b35d15afff6afb22e0e9f3527ea8816",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0114/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0114/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "4329be214ed6ef57fd22ebf95d9ad2f0a5108f7fe2404c333ac6c1a8a35bdd33",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0114/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0114/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "dbe10f1209c8e3fc801a6e38b49885a2b94df365affa29143941b9c7f5632e32",
+      "bytes": 104991
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0114/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0114/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0115/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0115/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "02dab51afd824791e3b591fd7d40b0e8d7c660d04a9ba9b4f6c3cfb0519484ed",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0115/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0115/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0115/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0115/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "067e9e2cc1d8276765034142e3f0e682ab0ab94310ffc73dbfc956851e9b7332",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0115/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0115/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "b419fc1e4cdf98630b5ca8b6b1b40cf02f177c8268baa38511474607da005628",
+      "bytes": 1013
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0116/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0116/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "2b59f2b76d157d3d5c84a6b2eb21d971d47998367794719725b1fd4088b268db",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0116/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0116/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0116/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0116/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "0e45871934d6b269f5fe897f4b2ea68932398d6d6235016cc8e4f7a563c0f676",
+      "bytes": 116329
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0116/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0116/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "2984ce2145b5f647388331a060c6fa0560d69d0f5f5007ef5731b1efdc489e72",
+      "bytes": 1327
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0117/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0117/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "d24b06e4080b626f69a09baec8432486ec3d41a6931bc8dd3bd5afdc83ed59dc",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0117/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0117/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0117/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0117/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "49c99633abc774e463a8d488a3a4147986c85c0684d12db99e23f17a222eba49",
+      "bytes": 116330
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0117/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0117/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "750d18d0cadfd0b0705560d36dc32a9df78fbc70a722e10690e6db590552045f",
+      "bytes": 1170
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0118/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0118/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "83a1d1d71248212b2a15b40834f701971027ee892e842db0ab53b8b285d0e9cd",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0118/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0118/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0118/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0118/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "e961549fecfd85bbb355713bcf16f7480255f227a4bcc0e22e9bef163b1af521",
+      "bytes": 116327
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0118/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0118/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "766882eeece22daa01963df5df68d5d45e262c80bb39fc416a87738ed7e60be0",
+      "bytes": 1013
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0119/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0119/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "dd01b0b17f5a672521c08d7f69bf0bcbe4c155165f61b049691c075b2d2fcb64",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0119/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0119/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0119/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0119/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "8482e50d6e7eba01ca005a6d03e85987a16d15aa8e96583afe281c5f3b492ce9",
+      "bytes": 116330
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0119/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0119/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "37f1b8701c25c51c03a5a265a50db70ba2295f75a32a62c4decf236fa0eb2fdf",
+      "bytes": 842
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0120/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0120/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "b79cf65aa3102730317b9d82e605b8254a0dcefe856727516afc2eac01bf71c4",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0120/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0120/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0120/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0120/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "d88d23d97e97abf5e003a82d1567a44f21198e3c714ed53874e1213e07c6450e",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0120/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0120/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "782c775ceeb46680f87fcced1f3e0ceed65a4018384a07781e6d77285b01afe8",
+      "bytes": 856
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0121/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0121/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "aa0c5fe11df3ff88e8cdf06eb8a9c8c80a1b8cfb81f10f9ae5f7ec9153ec39ef",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0121/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0121/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0121/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0121/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "73fe9e696e9f6733d6b46f84d9cc221c2e279fb02cfd9e348ca0206d2d50e63d",
+      "bytes": 116327
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0121/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0121/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "faf9c015b7f3ea1f7f34d90c9a7200361c1e186985119b765d247b5a147416f8",
+      "bytes": 856
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0122/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0122/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "e5b0fcdf7f4d60a8d2a9ed73dd63430b59660931dd1e5837ee15a217b32a7e35",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0122/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0122/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0122/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0122/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "6884162346d060a4348f47a034a8f21ac96a8d12aab5c35cf594c35260a7b5cd",
+      "bytes": 116327
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0122/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0122/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "13238df3bb29e514eccbae3af34faad19b834de94e0139cc924388dac033b5b3",
+      "bytes": 685
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0123/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0123/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "4073354746677b9ae6c912b2578d7975872088cd5ef52d188ebb7a9399d75ede",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0123/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0123/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0123/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0123/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "7ef94bdeb2eaa9e29b666a60538c5a9f2b1002b452dae50a065c60a52651c6d4",
+      "bytes": 116327
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0123/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0123/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "67a1654e649af1d5509afb8fd82611319769c265854992bed66494985dace21e",
+      "bytes": 1341
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0124/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0124/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "1d7c4ebfe088810e257182345a330f719f2132357fa5a8b02ea56d65f392ccc0",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0124/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0124/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0124/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0124/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "6a97c278abdd333bd267d0fe94d1eb1e24f06264a61f31da90e50de1cff0ed38",
+      "bytes": 116330
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0124/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0124/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "eeb50fe039220dc29f9d992749c7d18f4876ac56f7de38352b9814b97fb53142",
+      "bytes": 1013
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0125/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0125/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "1e135f8ff4a945a8c91a65e406d5a4ecaa5393ee9e6a82b33b27d9891919e9e6",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0125/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0125/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0125/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0125/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "704f5702f168868e9520b99c2489f0ddfe3e151a945765f35fbd9db78f5dd073",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0125/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0125/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "c1af066ef1eac30751f6f3bd73c2bf0c89e855d53e14d9ba2aff807d90df572f",
+      "bytes": 685
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0127/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0127/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "0cbe374cb0049c44597fa5b9b72da489cd7e67b0ac94b42322a7df6ca9e1bcd1",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0127/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0127/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0127/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0127/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "2241dee649efe9b083c926e4104c69808293a647158dd9ebd863ff5322995f80",
+      "bytes": 104983
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0127/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0127/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0129/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0129/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "5cefee0f4235b85a4c2779ca3217cf1ec4d296d49b41ca25cb2e4f744c55d18c",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0129/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0129/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0129/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0129/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "94c5a08380adf74e3489ff7d7950fbe6311a4f498eb7a1f364ea99e6b3c4dc1f",
+      "bytes": 116329
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0129/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0129/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "88bbb4ab352292c324fee30575f034723de0a32e870cc4d6666388ead338b7a1",
+      "bytes": 685
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0130/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0130/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "0ea06cb130a6069ffbeb2e178e11bf8068f3adee3f9b473917fa2ac195aa12c6",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0130/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0130/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "4329be214ed6ef57fd22ebf95d9ad2f0a5108f7fe2404c333ac6c1a8a35bdd33",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0130/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0130/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "992b3bb59ec129c7d142e5c24c37948be9ee4ab1381d574edfeaf8fdf6db5656",
+      "bytes": 116418
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0130/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0130/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "56dfe94896b8729fec101a09c19110a59c5f3cd8ddb934368965dc8386390b7f",
+      "bytes": 1160
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0131/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0131/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "6f7e59e3992e56c46ed81745c0e982011e77c5deb9c1603feb55b040cc675ede",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0131/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0131/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0131/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0131/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "647fd8b48e62183a9d9699d7ccce695319668bc922976d49e87fc8ef0aa0dea8",
+      "bytes": 116318
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0131/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0131/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "c9724ee9b7ae3b6ca7e60a129de110a4b6cc40c3b79e6708467e824e4da2b88c",
+      "bytes": 1475
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0132/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0132/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "ccae31ae31809a01083acda1cc3808f5dac6f45192438cd0ef8deaec4ec912f0",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0132/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0132/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0132/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0132/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "860fa4c2baafd943310e2b53801b5353aff7838131e86a5ba27ca9c37aa66a3a",
+      "bytes": 116321
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0132/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0132/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "f4251edffd7587d379d9e90f26a3224fe843e42cdcbcecf271f70c49a7b8626b",
+      "bytes": 666
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0133/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0133/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "cd1015e7788269a05b90bdd972f4771149b70c005c0a771476e114dec05e9d93",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0133/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0133/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0133/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0133/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "71a9767ccd222acde4ce4ba346a528c9c055d6058e868af8c647eeae36f7cea0",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0133/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0133/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "49529663690e934185be4aee1cdb5ed089e72e0136048ced3377394c244e6035",
+      "bytes": 343
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0134/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0134/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "65cdaabf8621872d61d1806b18d070f3f481846b5e9a00e6b31d83ae56ea218b",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0134/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0134/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0134/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0134/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "4244d8b5ac89f7f5282350b45876fe8ffda6d18b8da359fc541d1523490229e0",
+      "bytes": 116327
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0134/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0134/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "6a8170cf5ffda1e0cbbe317e5cb6c20d1be42a4efb188bfa634abd04b4c2f8a7",
+      "bytes": 671
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0135/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0135/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "129e5cb020fb4b055315546e37ef102e54c10ab2bad3337ec13a92ac2ecf55ee",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0135/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0135/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0135/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0135/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "02a79899141f5217f10cda5e1979e9a5202d66262f378807151a7562dadd1933",
+      "bytes": 116333
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0135/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0135/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "bc54ed93efeb614f3978cbd52e385b1806c59b5347e150f4204055e48d4bf2e2",
+      "bytes": 1013
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0136/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0136/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "97b627ac31cf8d9b73a6c3965ff397af6a2ef3ba107a93443504567e7ef7fe24",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0136/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0136/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0136/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0136/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "dce0a7382aea899f9e630f0427b2e5557ff7cfcc8f6200f58a88037825d95451",
+      "bytes": 116327
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0136/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0136/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "fef1751d09fd3d7b4f1b9b76f3140060b5719f1f8e785103219f9e3a19353147",
+      "bytes": 514
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0137/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0137/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "80662ac51e3613bbc92b3d0528f9a83bb24c662591b67b3c31ae89aa6e1b90ca",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0137/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0137/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0137/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0137/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "9ed51477bda8eee254b404ffd8e069f2f1ff5daec784635108233735c382b495",
+      "bytes": 116329
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0137/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0137/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "e7377e3f74c330de8eb2037fd8880826ed61bab882ea08b0806e463e837aecb3",
+      "bytes": 1170
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0138/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0138/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "f9ec297f31264a2189bc6c5b42d1841a95359f62c578ffb4110196eaf8e02622",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0138/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0138/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0138/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0138/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "3dfae098897bcb60bf160259b38aa0adbd4a2a2e39920ab23370e3c41120398f",
+      "bytes": 116333
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0138/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0138/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "e2bebd6e310b8907c9917e4a68ff8065df0194ffc39a6005816d48cd3eac1490",
+      "bytes": 514
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0139/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0139/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "b186a7c8bc1c96aefdf4eb7f3a98f1ca989d987f9dfbf39d8e68468bba610f2a",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0139/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0139/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0139/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0139/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "b958c7a8ca46c6bf85836c970063c45e3159ce6314a7793e237694adf92c6907",
+      "bytes": 116331
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0139/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0139/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "20f45f282721f7c2de6d58d26990c2e70e062751580b0afad3363c5e174a14d8",
+      "bytes": 856
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0140/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0140/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "b01fd6906fd3b6ae3475b93c9c2d782e67a401ff7a347accb0e1c4c67c83fd88",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0140/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0140/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0140/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0140/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "de72b8a2a1cb00377ae69bc539eeede9fc6bfb70cdf6fe718989d0b3169bd968",
+      "bytes": 116332
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0140/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0140/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "66a1ed8e3e149ab7af26707770c2f60b9bff5bf1756bea2df7001b7f32228070",
+      "bytes": 842
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0141/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0141/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "e6b2126081e7b5e6660155fab9ce8259ac62d3f56876a77271b876bed1228a27",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0141/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0141/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0141/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0141/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "e9ff2fca54557565be4b691b35663de0f752976bd03740fab31aa6a149bfe36e",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0141/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0141/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "443ff09c6fb765414dc0352188f8148d698718dcdbcd7255efd068731e009971",
+      "bytes": 685
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0142/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0142/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "937698afef1a60d9e2861a0565a49638595237b79faed97e0034a8952611c889",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0142/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0142/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0142/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0142/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "d617e295f2c7ef7a82b43c8133dadfdce4ff26fa51becaa80842e1adc2c843dd",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0142/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0142/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "7088858f6b8f493a4b3070cd70538df5c4e5b5e6060c6a18188cde97a3f342e7",
+      "bytes": 1198
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0143/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0143/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "4d961598f92cb2b785043e2abc262bc70c7601ee51315bcd07a919b1459af241",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0143/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0143/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0143/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0143/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "903987b6cb08ec702f7e6260a8db5e1d36a24c1ebcd5373a7fe3a9b43ecdbfbf",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0143/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0143/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "b4629d633b99069d0ee9cb863e5aba4a5302d4917130bcc3d98980fcd4b7c758",
+      "bytes": 671
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0144/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0144/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "f960091b4b75cbae564d2f7c5d6d9fe43665620085faf2583b767e776415e79d",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0144/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0144/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0144/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0144/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "bdc7e81ada1c5fdad77fb211bdc23e30ac3a3609724d9e6d2bd25e796fc50ebd",
+      "bytes": 116327
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0144/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0144/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "913a17a46e6585695fb57f5692e2e6de4a7c016e49ca08e31c6fb6037fa211d4",
+      "bytes": 856
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0145/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0145/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "9ac399c306302624d46fb41e012382e1064a19a4afae0bdafff81bcf2b75f883",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0145/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0145/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0145/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0145/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "6320489a92242ce47133784eb691b49e4c8238358d27e7a50d6db0fe3213c168",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0145/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0145/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "a54ab715aa3b546d286ed9d6267388f4a59fc853f358b69bd31e05c730a59245",
+      "bytes": 1174
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0146/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0146/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "c5b9c2f37251cebecfa52f4667cead281908bf9b10890594d4575fd56f162e29",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0146/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0146/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0146/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0146/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "277625cbc4788324514a88167ecdb1c8468c4565f8d6c233d72d7bc84ac80bba",
+      "bytes": 116328
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0146/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0146/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "ff53d3bb18b29c32d415772c6120847b905bd331226b6c16e292e00926579fb3",
+      "bytes": 1007
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0147/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0147/ops_conformance_plants_1_1_0.receipt.json",
+      "sha256": "e5a83c0a2912c7784340a4f1b4fb7a09b7d0f556750e652137eba703890d84e2",
+      "bytes": 1267
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0147/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0147/ops_conformance_plants_1_1_0.run.toml",
+      "sha256": "dde421cf89053bb00fd15b61f02660837176782886ca5ba461c5e287a79729b0",
+      "bytes": 171
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0147/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0147/ops_conformance_plants_1_1_0.stdout.txt",
+      "sha256": "07aca5c4c75ce6fd38412eb906a8c45b986a3a18d2f301949a0ffb7e23809172",
+      "bytes": 116324
+    },
+    {
+      "original": "docs/warrants/OW-WAR-0147/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
+      "archive": "docs/evidence/conformance-wave-20261014/previous/OW-WAR-0147/ops_conformance_plants_1_1_0.stderr.txt",
+      "sha256": "04f9ecb92bfba192824d16b467c6c63e6aa9fd49cc4aa92636fddea9319dd287",
+      "bytes": 494
+    }
+  ],
   "absent_previous_files": [
-    "docs/warrants/OW-WAR-0066/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0066/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0066/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0066/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0112/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0112/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0112/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0112/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0113/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0113/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0113/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0113/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0114/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0114/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0114/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0114/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0115/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0115/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0115/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0115/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0116/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0116/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0116/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0116/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0117/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0117/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0117/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0117/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0118/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0118/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0118/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0118/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0119/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0119/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0119/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0119/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0120/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0120/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0120/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0120/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0121/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0121/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0121/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0121/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0122/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0122/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0122/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0122/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0123/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0123/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0123/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0123/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0124/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0124/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0124/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0124/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0125/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0125/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0125/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0125/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0127/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0127/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0127/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0127/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0129/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0129/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0129/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0129/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0130/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0130/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0130/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0130/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0131/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0131/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0131/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0131/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0132/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0132/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0132/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0132/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0133/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0133/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0133/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0133/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0134/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0134/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0134/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0134/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0135/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0135/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0135/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0135/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0136/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0136/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0136/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0136/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0137/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0137/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0137/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0137/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0138/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0138/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0138/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0138/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0139/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0139/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0139/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0139/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0140/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0140/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0140/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0140/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0141/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0141/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0141/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0141/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0142/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0142/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0142/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0142/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0143/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0143/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0143/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0143/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0144/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0144/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0144/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0144/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0145/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0145/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0145/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0145/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0146/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0146/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0146/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0146/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0147/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0147/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0147/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0147/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt",
-    "docs/warrants/OW-WAR-0148/evidence/gates/ops_conformance_plants_1_1_0.receipt.json",
-    "docs/warrants/OW-WAR-0148/evidence/gates/ops_conformance_plants_1_1_0.run.toml",
-    "docs/warrants/OW-WAR-0148/evidence/gates/ops_conformance_plants_1_1_0.stdout.txt",
-    "docs/warrants/OW-WAR-0148/evidence/gates/ops_conformance_plants_1_1_0.stderr.txt"
-  ]
+    "docs/warrants/OW-WAR-0148/gate-runs/ops_conformance_plants_1_1_0.receipt.json",
+    "docs/warrants/OW-WAR-0148/gate-runs/ops_conformance_plants_1_1_0.run.toml",
+    "docs/warrants/OW-WAR-0148/gate-runs/ops_conformance_plants_1_1_0.stdout.txt",
+    "docs/warrants/OW-WAR-0148/gate-runs/ops_conformance_plants_1_1_0.stderr.txt"
+  ],
+  "scan_correction": "Initial local scan used evidence/gates instead of canonical gate-runs; corrected before any execution."
 }
