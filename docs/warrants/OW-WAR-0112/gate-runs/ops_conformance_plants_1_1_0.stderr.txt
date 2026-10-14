@@ -1,16 +1,16 @@
-grep: /mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/tmp.z5MMI4ouz9/unreadable/closed.rs: Permission denied
-grep: /mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/tmp.z5MMI4ouz9/unreadable/closed.rs: Permission denied
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.4afix1/r/conformance/plants.d/60-perform-cancel.sh: line 152: 1411263 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.4afix1/r/conformance/plants.d/60-perform-cancel.sh: line 152: 1411342 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.4afix1/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/1496765/cmdline: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.4afix1/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1496415/task/1496768/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.4afix1/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/1496767/cmdline: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.4afix1/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1496415/task/1496863/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.4afix1/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1496415/task/1496843/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.4afix1/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1496415/task/1496873/children: No such file or directory
+grep: /mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.MNrrLfJDCL/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.MNrrLfJDCL/unreadable/closed.rs: Permission denied
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.i3M9rf/r/conformance/plants.d/60-perform-cancel.sh: line 152: 1776395 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.i3M9rf/r/conformance/plants.d/60-perform-cancel.sh: line 152: 1776463 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.i3M9rf/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1851301/task/1851446/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.i3M9rf/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1851301/task/1851444/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.i3M9rf/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1851301/task/1851451/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.i3M9rf/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1851301/task/1851443/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.i3M9rf/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1851301/task/1851531/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.i3M9rf/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1851301/task/1851534/children: No such file or directory
 .......
 ----------------------------------------------------------------------
-Ran 7 tests in 3.765s
+Ran 7 tests in 3.740s
 
 OK
 test_assistance_failure_and_duplicate_remain_visible (test_evaluate.EvaluationTests.test_assistance_failure_and_duplicate_remain_visible) ... ok
@@ -31,6 +31,6 @@ test_unavailable_clock_and_failure_bound_preserve_unknown (test_record.RecorderT
 test_unavailable_clock_and_zero_elapsed_stay_unknown (test_record.RecorderTests.test_unavailable_clock_and_zero_elapsed_stay_unknown) ... ok
 
 ----------------------------------------------------------------------
-Ran 16 tests in 1.012s
+Ran 16 tests in 0.419s
 
 OK

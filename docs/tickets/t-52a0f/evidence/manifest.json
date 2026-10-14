@@ -1,0 +1,50 @@
+[
+  {
+    "file": "README.md",
+    "sha256": "7220444f7096171d04f81f33a923b5635d6a5432f2feb6a4e233236373ff06af"
+  },
+  {
+    "file": "recorder-fsync-tests.log",
+    "sha256": "1bcc7ed31f685cfd6233b261ad134753f28b3147f2d885885b5c9c02f89f8241"
+  },
+  {
+    "file": "recorder-fsync.trace",
+    "sha256": "79aebe9b79d166b9bd24aa19744d26eaabab00f1e35ec6ce0ad684eccd30df71"
+  },
+  {
+    "file": "recorder-regression-red.log",
+    "sha256": "30019cec4ee3ea4dee66575e6998d1c67142bef46763cdfd027a12759812779c"
+  },
+  {
+    "file": "recorder-signal-repetitions.log",
+    "sha256": "48c62bad3a47ffc12ba8eae0955035e59f6cdd8d6549c1fd56dd93b9f6730737"
+  },
+  {
+    "file": "recorder-start-interruption-green.json",
+    "sha256": "67428f8ea9d9b11e50d597231b6e8f2ce03c0ada0bb166543f39a8baa194ece8"
+  },
+  {
+    "file": "recorder-start-interruption-green.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "recorder-start-interruption-red.json",
+    "sha256": "a0298342a26822d4f4a2a0cfea880709091083d5149edbdb5d274ae9c5f8f08b"
+  },
+  {
+    "file": "recorder-start-interruption-red.stderr",
+    "sha256": "fdbb7a1efc2c787105cf1fe5faf91b24142b6db4ba102d54dc364c8f422a4451"
+  },
+  {
+    "file": "recorder-start-interruption-repro.py",
+    "sha256": "ea02bbdb5b9a87e5629f49cde45d432478c8e12f36e3c2639158fe4dbec746b6"
+  },
+  {
+    "file": "recorder-tests-green.log",
+    "sha256": "4f1101cbb17e560c11f14751b99d57298cb1359425d843219abf7a7c6c27a6d3"
+  },
+  {
+    "file": "study-plant-scoped-green.log",
+    "sha256": "97ea613edbe3d7e6cd433f560ab7e781efaa1caa22311b8062b690c3d4119b62"
+  }
+]

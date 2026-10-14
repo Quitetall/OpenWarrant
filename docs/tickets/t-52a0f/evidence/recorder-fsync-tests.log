@@ -1,0 +1,74 @@
+.......E/usr/lib/python3.14/subprocess.py:1139: ResourceWarning: subprocess 2258116 is still running
+  _warn("subprocess %s is still running" % self.pid,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+E.../usr/lib/python3.14/subprocess.py:832: ResourceWarning: unclosed file <_io.BufferedReader name=7>
+  _cleanup()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.14/subprocess.py:832: ResourceWarning: unclosed file <_io.BufferedReader name=5>
+  _cleanup()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....
+======================================================================
+ERROR: test_native_cli_sigterm_retains_unknown_interruption (test_record.RecorderTests.test_native_cli_sigterm_retains_unknown_interruption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-conformance-continuation/conformance/study/test_record.py", line 119, in test_native_cli_sigterm_retains_unknown_interruption
+    result, error = process.communicate(timeout=5)
+                    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 2154, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1268, in _check_timeout
+    raise TimeoutExpired(
+    ...<2 lines>...
+            stderr=b''.join(stderr_seq) if stderr_seq else None)
+subprocess.TimeoutExpired: Command '['/usr/bin/python3', '/mnt/4tb/tmp/openwarrant-conformance-continuation/conformance/study/record.py', '--metadata', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmprzz525c6/meta.json', '--out', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmprzz525c6/out.json']' timed out after 5 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-conformance-continuation/conformance/study/test_record.py", line 127, in test_native_cli_sigterm_retains_unknown_interruption
+    process.kill(); process.communicate(timeout=5)
+                    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 2154, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1268, in _check_timeout
+    raise TimeoutExpired(
+    ...<2 lines>...
+            stderr=b''.join(stderr_seq) if stderr_seq else None)
+subprocess.TimeoutExpired: Command '['/usr/bin/python3', '/mnt/4tb/tmp/openwarrant-conformance-continuation/conformance/study/record.py', '--metadata', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmprzz525c6/meta.json', '--out', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmprzz525c6/out.json']' timed out after 5 seconds
+
+======================================================================
+ERROR: test_sigterm_during_started_event_sync_retains_unknown_session (test_record.RecorderTests.test_sigterm_during_started_event_sync_retains_unknown_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-conformance-continuation/conformance/study/test_record.py", line 148, in test_sigterm_during_started_event_sync_retains_unknown_session
+    result = subprocess.run([sys.executable, "-c", child,
+        str(Path(__file__).parent), str(meta), str(out)],
+        input=b'', capture_output=True, timeout=5)
+  File "/usr/lib/python3.14/subprocess.py", line 557, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 2154, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1268, in _check_timeout
+    raise TimeoutExpired(
+    ...<2 lines>...
+            stderr=b''.join(stderr_seq) if stderr_seq else None)
+subprocess.TimeoutExpired: Command '['/usr/bin/python3', '-c', "import os, signal, sys\nsys.path.insert(0, sys.argv[1])\nimport record\noriginal = record.os.fsync\ncalls = 0\ndef sync(fd):\n    global calls\n    calls += 1\n    original(fd)\n    if calls == 1:\n        os.kill(os.getpid(), signal.SIGTERM)\nrecord.os.fsync = sync\nsys.argv = ['record.py', '--metadata', sys.argv[2], '--out', sys.argv[3]]\nraise SystemExit(record.main())\n", '/mnt/4tb/tmp/openwarrant-conformance-continuation/conformance/study', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmppesvnn5s/meta.json', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmppesvnn5s/out.json']' timed out after 5 seconds
+
+----------------------------------------------------------------------
+Ran 17 tests in 23.007s
+
+FAILED (errors=2)

@@ -130,13 +130,20 @@ class Recorder:
                 "operator_claims_authenticated": False}
 
 
-def commands(stream, seconds):
+def commands(stream, seconds, interrupted=lambda: False):
     deadline = time.monotonic() + seconds
     pending = b""
     while True:
+        if interrupted():
+            raise KeyboardInterrupt()
         remaining = deadline - time.monotonic()
-        if remaining <= 0 or not select.select([stream], [], [], remaining)[0]:
+        if remaining <= 0:
             raise TimeoutError("session deadline reached")
+        ready = select.select([stream], [], [], min(remaining, 0.1))[0]
+        if interrupted():
+            raise KeyboardInterrupt()
+        if not ready:
+            continue
         chunk = os.read(stream.fileno(), MAX_LINE + 1)
         if not chunk:
             if pending.strip():
@@ -198,20 +205,27 @@ def main():
                 journal.flush()
                 os.fsync(journal.fileno())
                 digest.update(line)
+            interruption_requested = False
             def interrupted(*_):
-                raise KeyboardInterrupt()
-            # The handler is in place before the "started" event is written,
-            # so a SIGTERM that follows it is always retained as an
-            # interruption. One that lands while the recorder is still being
-            # made has nothing to retain, and propagates as before.
-            previous = signal.signal(signal.SIGTERM, interrupted)
+                nonlocal interruption_requested
+                interruption_requested = True
+            # Finish each journal write before acting on SIGTERM or Ctrl-C. Raising in
+            # fsync can leave visible bytes without their digest or Recorder
+            # object, including during construction of the started event.
+            # Input polling observes the request within 100 ms when idle.
+            previous = {kind: signal.signal(kind, interrupted)
+                        for kind in (signal.SIGTERM, signal.SIGINT)}
             recorder = None
             try:
                 recorder = Recorder(declared, sink=append)
-                for value in commands(sys.stdin, args.max_seconds):
+                if interruption_requested:
+                    raise KeyboardInterrupt()
+                for value in commands(sys.stdin, args.max_seconds, lambda: interruption_requested):
                     recorder.command(value)
                     if recorder.outcome is not None:
                         break
+                    if interruption_requested:
+                        raise KeyboardInterrupt()
                 recorder.stop("end-of-input")
             except KeyboardInterrupt:
                 if recorder is None:
@@ -226,7 +240,8 @@ def main():
                     raise
                 recorder.stop("invalid-input")
             finally:
-                signal.signal(signal.SIGTERM, previous)
+                for kind, handler in previous.items():
+                    signal.signal(kind, handler)
             record = recorder.record()
             record["events"] = {"file": events.name, "sha256": digest.hexdigest(), "count": len(recorder.events)}
             record["metadata_sha256"] = hashlib.sha256(raw).hexdigest()

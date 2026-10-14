@@ -1568,6 +1568,10 @@
 > Plants pipe grep into grep -q under pipefail (SIGPIPE race)
 - t-515e · ticket · done · Plants pipe grep into grep -q under pipefail (SIGPIPE race) · docs/tickets/t-515e/manifest.toml:1
 
+## docs/tickets/t-52a0f/manifest.toml
+> Retain study recorder interruptions during durable journal writes
+- t-52a0f · ticket · open · Retain study recorder interruptions during durable journal writes · docs/tickets/t-52a0f/manifest.toml:1
+
 ## docs/tickets/t-54257/manifest.toml
 > Connect current runtime receipt assessment to resolution
 - t-54257 · ticket · done · Connect current runtime receipt assessment to resolution · docs/tickets/t-54257/manifest.toml:1

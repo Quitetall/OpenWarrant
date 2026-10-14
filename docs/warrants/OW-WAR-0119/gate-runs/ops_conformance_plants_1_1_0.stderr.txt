@@ -1,6 +1,93 @@
-grep: /mnt/4tb/tmp/battery-tmp/tmp.fkvDWYGgtt/unreadable/closed.rs: Permission denied
-grep: /mnt/4tb/tmp/battery-tmp/tmp.fkvDWYGgtt/unreadable/closed.rs: Permission denied
-/mnt/4tb/tmp/battery-tmp/war-isolated-battery.smv9Lw/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/2740302/cmdline: No such file or directory
-/mnt/4tb/tmp/battery-tmp/war-isolated-battery.smv9Lw/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2739652/task/2740282/children: No such file or directory
-/mnt/4tb/tmp/battery-tmp/war-isolated-battery.smv9Lw/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2739652/task/2741565/children: No such file or directory
-/mnt/4tb/tmp/battery-tmp/war-isolated-battery.smv9Lw/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2739652/task/2741534/children: No such file or directory
+grep: /mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.E1qsrGn86R/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.E1qsrGn86R/unreadable/closed.rs: Permission denied
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/plants.d/60-perform-cancel.sh: line 152: 1774426 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/plants.d/60-perform-cancel.sh: line 152: 1774495 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1858273/task/1858398/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1858273/task/1858399/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1858273/task/1858397/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1858273/task/1858404/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1858273/task/1858396/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/1858273/task/1858459/children: No such file or directory
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 3.720s
+
+OK
+test_assistance_failure_and_duplicate_remain_visible (test_evaluate.EvaluationTests.test_assistance_failure_and_duplicate_remain_visible) ... ok
+test_cli_with_no_sessions_reports_missing_not_success (test_evaluate.EvaluationTests.test_cli_with_no_sessions_reports_missing_not_success) ... ok
+test_exact_thresholds_and_fixed_denominator (test_evaluate.EvaluationTests.test_exact_thresholds_and_fixed_denominator) ... ok
+test_gap_overlap_and_missing_consent_refuse (test_evaluate.EvaluationTests.test_gap_overlap_and_missing_consent_refuse) ... ok
+test_invalid_numbers_exclusion_and_duplicate_keys_refuse (test_evaluate.EvaluationTests.test_invalid_numbers_exclusion_and_duplicate_keys_refuse) ... ok
+test_overrun_and_unknown_are_distinct (test_evaluate.EvaluationTests.test_overrun_and_unknown_are_distinct) ... ok
+test_actual_transitions_cover_time_and_cannot_qualify_a_study (test_record.RecorderTests.test_actual_transitions_cover_time_and_cannot_qualify_a_study) ... ok
+test_event_limit_keeps_room_to_record_stop (test_record.RecorderTests.test_event_limit_keeps_room_to_record_stop) ... ok
+test_exclusion_and_assistance_remain_visible (test_record.RecorderTests.test_exclusion_and_assistance_remain_visible) ... ok
+test_invalid_category_and_exclusion_never_invent_an_interval (test_record.RecorderTests.test_invalid_category_and_exclusion_never_invent_an_interval) ... ok
+test_metadata_rejects_private_extra_fields_and_missing_consent (test_record.RecorderTests.test_metadata_rejects_private_extra_fields_and_missing_consent) ... ok
+test_native_cli_eof_retains_measured_interruption_and_refuses_overwrite (test_record.RecorderTests.test_native_cli_eof_retains_measured_interruption_and_refuses_overwrite) ... ERROR
+/usr/lib/python3.14/subprocess.py:1139: ResourceWarning: subprocess 1998666 is still running
+  _warn("subprocess %s is still running" % self.pid,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_native_cli_partial_input_deadline_is_bounded_and_preserved (test_record.RecorderTests.test_native_cli_partial_input_deadline_is_bounded_and_preserved) ... ERROR
+/usr/lib/python3.14/subprocess.py:1139: ResourceWarning: subprocess 1999244 is still running
+  _warn("subprocess %s is still running" % self.pid,
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_native_cli_sigterm_retains_unknown_interruption (test_record.RecorderTests.test_native_cli_sigterm_retains_unknown_interruption) ... /usr/lib/python3.14/subprocess.py:277: ResourceWarning: unclosed file <_io.BufferedReader name=7>
+  for inst in _active[:]:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/usr/lib/python3.14/subprocess.py:277: ResourceWarning: unclosed file <_io.BufferedReader name=5>
+  for inst in _active[:]:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+FAIL
+test_unavailable_clock_and_failure_bound_preserve_unknown (test_record.RecorderTests.test_unavailable_clock_and_failure_bound_preserve_unknown) ... ok
+test_unavailable_clock_and_zero_elapsed_stay_unknown (test_record.RecorderTests.test_unavailable_clock_and_zero_elapsed_stay_unknown) ... ok
+
+======================================================================
+ERROR: test_native_cli_eof_retains_measured_interruption_and_refuses_overwrite (test_record.RecorderTests.test_native_cli_eof_retains_measured_interruption_and_refuses_overwrite)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/test_record.py", line 85, in test_native_cli_eof_retains_measured_interruption_and_refuses_overwrite
+    result, error = process.communicate(b'{"category":"review"}\n', timeout=5)
+                    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1221, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 2154, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1268, in _check_timeout
+    raise TimeoutExpired(
+    ...<2 lines>...
+            stderr=b''.join(stderr_seq) if stderr_seq else None)
+subprocess.TimeoutExpired: Command '['/usr/bin/python3', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/record.py', '--metadata', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.hdvcxqGkie/tmp45jugebb/metadata.json', '--out', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.hdvcxqGkie/tmp45jugebb/session.json', '--max-seconds', '2']' timed out after 5 seconds
+
+======================================================================
+ERROR: test_native_cli_partial_input_deadline_is_bounded_and_preserved (test_record.RecorderTests.test_native_cli_partial_input_deadline_is_bounded_and_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/test_record.py", line 148, in test_native_cli_partial_input_deadline_is_bounded_and_preserved
+    process.wait(timeout=5)
+    ~~~~~~~~~~~~^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1279, in wait
+    return self._wait(timeout=timeout)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 2076, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['/usr/bin/python3', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/record.py', '--metadata', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.hdvcxqGkie/tmpkbyn23la/meta.json', '--out', '/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.hdvcxqGkie/tmpkbyn23la/out.json', '--max-seconds', '0.1']' timed out after 5 seconds
+
+======================================================================
+FAIL: test_native_cli_sigterm_retains_unknown_interruption (test_record.RecorderTests.test_native_cli_sigterm_retains_unknown_interruption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/test_record.py", line 120, in test_native_cli_sigterm_retains_unknown_interruption
+    self.assertEqual(process.returncode, 1, error)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: -2 != 1 : b'Traceback (most recent call last):\n  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/record.py", line 242, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/record.py", line 210, in main\n    recorder = Recorder(declared, sink=append)\n  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/record.py", line 55, in __init__\n    self._event("started")\n    ~~~~~~~~~~~^^^^^^^^^^^\n  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/record.py", line 61, in _event\n    self.sink(event)\n    ~~~~~~~~~^^^^^^^\n  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/record.py", line 199, in append\n    os.fsync(journal.fileno())\n    ~~~~~~~~^^^^^^^^^^^^^^^^^^\n  File "/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.hJhoUL/r/conformance/study/record.py", line 202, in interrupted\n    raise KeyboardInterrupt()\nKeyboardInterrupt\n'
+
+----------------------------------------------------------------------
+Ran 16 tests in 13.007s
+
+FAILED (failures=1, errors=2)
+<sys>:0: ResourceWarning: unclosed file <_io.BufferedReader name=9>
+<sys>:0: ResourceWarning: unclosed file <_io.BufferedWriter name=4>
+<sys>:0: ResourceWarning: unclosed file <_io.BufferedReader name=6>

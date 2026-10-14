@@ -1,0 +1,24 @@
+2249027 fsync(3)                        = 0 <0.787710>
+2249027 fsync(3)                        = 0 <0.797259>
+2249027 fsync(3)                        = 0 <1.598204>
+2249027 fsync(4)                        = 0 <0.981202>
+2249027 +++ exited with 1 +++
+2248967 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=2249027, si_uid=1000, si_status=1, si_utime=4 /* 0.04 s */, si_stime=1 /* 0.01 s */} ---
+2254190 +++ exited with 2 +++
+2248967 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=2254190, si_uid=1000, si_status=2, si_utime=3 /* 0.03 s */, si_stime=1 /* 0.01 s */} ---
+2254208 fsync(3)                        = 0 <0.988678>
+2254208 fsync(3)                        = 0 <1.023404>
+2254208 fsync(4)                        = 0 <0.518708>
+2254208 +++ exited with 1 +++
+2248967 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=2254208, si_uid=1000, si_status=1, si_utime=2 /* 0.02 s */, si_stime=0} ---
+2258116 fsync(3 <unfinished ...>
+2260607 fsync(3 <unfinished ...>
+2258116 <... fsync resumed>)            = ?
+2258116 +++ killed by SIGKILL +++
+2248967 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_KILLED, si_pid=2258116, si_uid=1000, si_status=SIGKILL, si_utime=3 /* 0.03 s */, si_stime=1 /* 0.01 s */} ---
+2260607 <... fsync resumed>)            = ?
+2260607 +++ killed by SIGKILL +++
+2248967 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_KILLED, si_pid=2260607, si_uid=1000, si_status=SIGKILL, si_utime=3 /* 0.03 s */, si_stime=0} ---
+2261179 +++ exited with 1 +++
+2248967 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=2261179, si_uid=1000, si_status=1, si_utime=3 /* 0.03 s */, si_stime=0} ---
+2248967 +++ exited with 1 +++

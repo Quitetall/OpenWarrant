@@ -1,18 +1,17 @@
-grep: /mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/tmp.60oTsM69i1/unreadable/closed.rs: Permission denied
-grep: /mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/tmp.60oTsM69i1/unreadable/closed.rs: Permission denied
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/60-perform-cancel.sh: line 152: 3536849 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/60-perform-cancel.sh: line 152: 3537217 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3646066/task/3646150/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3646066/task/3646151/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3646066/task/3646149/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/3646153/cmdline: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3646066/task/3646156/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3646066/task/3646148/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3646066/task/3646206/children: No such file or directory
-/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.bYTPha/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3646066/task/3646207/children: No such file or directory
+grep: /mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.pXbrjn9tMz/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/tmp.pXbrjn9tMz/unreadable/closed.rs: Permission denied
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/60-perform-cancel.sh: line 152: 3805811 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/60-perform-cancel.sh: line 152: 3805879 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3878035/task/3878096/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3878035/task/3878097/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3878035/task/3878095/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/3878099/cmdline: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3878035/task/3878102/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3878035/task/3878189/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-continuation-runtime/tmp/war-isolated-battery.Is1zhH/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/3878035/task/3878180/children: No such file or directory
 .......
 ----------------------------------------------------------------------
-Ran 7 tests in 3.719s
+Ran 7 tests in 3.720s
 
 OK
 test_assistance_failure_and_duplicate_remain_visible (test_evaluate.EvaluationTests.test_assistance_failure_and_duplicate_remain_visible) ... ok
@@ -33,6 +32,6 @@ test_unavailable_clock_and_failure_bound_preserve_unknown (test_record.RecorderT
 test_unavailable_clock_and_zero_elapsed_stay_unknown (test_record.RecorderTests.test_unavailable_clock_and_zero_elapsed_stay_unknown) ... ok
 
 ----------------------------------------------------------------------
-Ran 16 tests in 0.431s
+Ran 16 tests in 0.424s
 
 OK
