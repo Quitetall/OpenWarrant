@@ -423,6 +423,10 @@
 > -
 - doc:docs/design/context-projection-and-shared-warrant-model.md · document · - · Context views and shared cross-project Warrants · docs/design/context-projection-and-shared-warrant-model.md:1
 
+## docs/design/evidence-recorder-attribution.md
+> -
+- doc:docs/design/evidence-recorder-attribution.md · document · - · Gate-evidence recorder attribution · docs/design/evidence-recorder-attribution.md:1
+
 ## docs/design/friction-feedback-review.md
 > -
 - doc:docs/design/friction-feedback-review.md · document · - · Friction feedback: retained changes and current gaps · docs/design/friction-feedback-review.md:1
@@ -1623,6 +1627,10 @@
 ## docs/tickets/t-68998/manifest.toml
 > Refuse simultaneous Warrant performers before dispatch or spawn
 - t-68998 · ticket · done · Refuse simultaneous Warrant performers before dispatch or spawn · docs/tickets/t-68998/manifest.toml:1
+
+## docs/tickets/t-6b030/manifest.toml
+> Record the actual agent attaching gate evidence without changing performer policy
+- t-6b030 · ticket · done · Record the actual agent attaching gate evidence without changing performer policy · docs/tickets/t-6b030/manifest.toml:1
 
 ## docs/tickets/t-6e9de/manifest.toml
 > Restore one run budget without forgetting held reservations
