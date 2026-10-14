@@ -40074,7 +40074,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-017 | The loop in five commands | `docs/TICKETS.md` | verified |
 | D-018 | Three steps to start | `README.md` | verified |
 | D-019 | Three steps to start | `QUICKSTART.md` | verified |
-| D-020 | Ticket and Claim | `CONTEXT.md` | verified |
+| D-020 | Ticket and Claim | `CONTEXT.md` | drift |
 | D-021 | The working form | `docs/PROFILES.md` | verified |
 
 ### OW-WAR-0148 — Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel
