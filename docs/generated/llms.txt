@@ -1652,6 +1652,10 @@
 > Recover after context preparation is unavailable before worker launch
 - t-72af0 · ticket · done · Recover after context preparation is unavailable before worker launch · docs/tickets/t-72af0/manifest.toml:1
 
+## docs/tickets/t-75246/manifest.toml
+> Return the standard report envelope from legacy migration JSON mode
+- t-75246 · ticket · done · Return the standard report envelope from legacy migration JSON mode · docs/tickets/t-75246/manifest.toml:1
+
 ## docs/tickets/t-7a7e6/manifest.toml
 > M6: projection targets: one set of records, many documents
 - t-7a7e6 · ticket · done · M6: projection targets: one set of records, many documents · docs/tickets/t-7a7e6/manifest.toml:1

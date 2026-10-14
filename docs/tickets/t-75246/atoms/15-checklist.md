@@ -1,0 +1,4 @@
+# Checklist
+
+- [x] Cover successful JSON migration through the public CLI and retain legacy artifact bytes (i-da40) — done by agent://codex, 2026-10-14: Public CLI regression fails on production text output under --json and passes against the mirrored changed dispatch. Result equals the legacy artifact with exact source body, one ADR and one retained historical claim. Pinned reader unchanged.
+- [x] Cover failed promotion and text mode without changing the pinned migration reader (i-8e88) — done by agent://codex, 2026-10-14: Three CLI controls pass, including the existing exit-1 promotion refusal before artifact writes and compatible text output plus --verify preserving artifact bytes and mtime. Scoped all-feature CLI Clippy and Rust formatting pass. No independent verification, signatures, authority or pinned reader changed.
