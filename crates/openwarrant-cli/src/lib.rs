@@ -6088,6 +6088,22 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
         } => {
             let artifact = migrate::import(&corpus, &commit, attempt_promotion)?;
             migrate::write_or_verify(&artifact, &out, verify)?;
+            if mode == output::Mode::Json {
+                let mut report = diagnostic::Report::default();
+                if !migrate::obligations_met(&artifact) {
+                    report.push(diagnostic::Diagnostic::error(
+                        "migrate.obligations-unmet",
+                        out.to_string(),
+                        "legacy migration preservation or no-promotion obligations were not met; inspect the result",
+                    ));
+                }
+                return Ok(output::finish(
+                    mode,
+                    "migrate",
+                    &report,
+                    Some(serde_json::to_value(&artifact)?),
+                ));
+            }
             migrate::print(&artifact);
             // OBL-002 and OBL-003 are countable, so they decide the exit code.
             // §96.3's other half — that a gate cannot arrive qualified — is a type
