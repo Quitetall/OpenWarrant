@@ -26,10 +26,10 @@ obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 [deliverable.provenance]
 producer = "agent://codex"
 producing_attempt = "OW-WAR-0111/unverified-preservation-repair"
-contract_digest = "unrecorded"
-tool_or_runtime_identity = "rustc 1.97.1"
+contract_digest = "4bd76924b820035c67ff954234c3be6742115ee1fa384208433f8f0adac2ec09"
+tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 1ad0f298ddb2, debug)"
 creation_method = "authored"
-content_digest = "sha256:14fa96518d53a0476e9ccb9e84d6e8c581ad5b4465fd684a4e0981807ad82b48"
+content_digest = "sha256:87f89cb3b3c43c3e88cdd76cbf4fa7140325dea3a5b093c1d44e6a03d210b51e"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

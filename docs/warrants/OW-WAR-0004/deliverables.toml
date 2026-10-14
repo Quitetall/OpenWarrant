@@ -26,10 +26,10 @@ obligation_refs = ["OBL-001", "OBL-002"]
 [deliverable.provenance]
 producer = "claude"
 producing_attempt = "OW-WAR-0004/attempt-1"
-contract_digest = "unrecorded"
-tool_or_runtime_identity = "rustc 1.97.1"
+contract_digest = "e8b329d18814c638553a7f460b04b8efb3e7da074ea29867d631b484083d49ab"
+tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 1ad0f298ddb2, debug)"
 creation_method = "authored"
-content_digest = "sha256:e30a87cb2fcc33b51bc77f7f4eee2c03e9a5e6ba36e94237595eb1024486b578"
+content_digest = "sha256:3bd74078a5101cd53ae821f45dfb4f0430067650ce31345430f9121bd309a3bc"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
