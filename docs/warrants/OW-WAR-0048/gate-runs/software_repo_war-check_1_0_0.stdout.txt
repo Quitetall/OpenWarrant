@@ -31,8 +31,8 @@ WARN deliverable.pin-stale              OW-WAR-0001: D-004 records sha256:459e38
                                              → auto: war admin pins --refresh --alias OW-WAR-0001
 PASS deliverable.digests                OW-WAR-0001: 4 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0001: 2 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0001: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:066789a01693dcbc2294ea4bd0f21bfffdb1c361)
-PASS journal.append-only                OW-WAR-0001: 38 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0001: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:3bf73cdf2d0b263fc340df590a138b31e10fb1f1)
+PASS journal.append-only                OW-WAR-0001: 39 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0001: signed by brian over docs/authority/responses/OW-WAR-0001.response.toml
 WARN sas.pin-superseded                 OW-WAR-0001: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0001/authorization.toml
@@ -70,8 +70,8 @@ PASS generated.drift                    OW-WAR-0002: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0003: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0003: 4 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0003: 3 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0003: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:bc8a563673d57251e4a8736211eb2a7f8371e112)
-PASS journal.append-only                OW-WAR-0003: 33 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0003: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:45626c06a109b4b226860e4c63e16b640b763ac3)
+PASS journal.append-only                OW-WAR-0003: 34 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0003: signed by brian over docs/authority/responses/OW-WAR-0003.response.toml
 WARN sas.pin-superseded                 OW-WAR-0003: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0003/authorization.toml
@@ -93,8 +93,8 @@ WARN deliverable.pin-stale              OW-WAR-0004: D-002 records sha256:0c3d08
                                              → auto: war admin pins --refresh --alias OW-WAR-0004
 PASS deliverable.digests                OW-WAR-0004: 2 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0004: 3 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0004: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:c246f5a5bfaa3eb0c98eb6a474905f98f414e836)
-PASS journal.append-only                OW-WAR-0004: 29 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0004: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:2bca7a20eee22ce89740438fef4953fff4632b6f)
+PASS journal.append-only                OW-WAR-0004: 30 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0004: signed by brian over docs/authority/responses/OW-WAR-0004.response.toml
 WARN sas.pin-superseded                 OW-WAR-0004: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0004/authorization.toml
@@ -139,8 +139,8 @@ WARN deliverable.pin-stale              OW-WAR-0006: D-003 records sha256:c4249c
                                              → auto: war admin pins --refresh --alias OW-WAR-0006
 PASS deliverable.digests                OW-WAR-0006: 3 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0006: 2 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0006: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:5acf4b180e8371438a8318d8eb565fd1f4908f84)
-PASS journal.append-only                OW-WAR-0006: 29 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0006: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:3a7e808538cc18294d3dd52e04bed842b5c7fa01)
+PASS journal.append-only                OW-WAR-0006: 30 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0006: signed by brian over docs/authority/responses/OW-WAR-0006.response.toml
 WARN sas.pin-superseded                 OW-WAR-0006: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0006/authorization.toml
@@ -152,8 +152,8 @@ PASS generated.drift                    OW-WAR-0006: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0007: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0007: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0007: 2 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0007: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:31a477f48e57af8c301104c13e7afce7b804dfe3)
-PASS journal.append-only                OW-WAR-0007: 33 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0007: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:99976d398a0c3f49735e8be22f84bab2991ea67a)
+PASS journal.append-only                OW-WAR-0007: 34 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0007: signed by brian over docs/authority/responses/OW-WAR-0007.response.toml
 WARN sas.pin-superseded                 OW-WAR-0007: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0007/authorization.toml
@@ -224,8 +224,8 @@ PASS generated.drift                    OW-WAR-0010: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0011: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0011: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0011: 1 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0011: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:0a059a523b88e3f33730b960c0054cb3ef8aaa3d)
-PASS journal.append-only                OW-WAR-0011: 26 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0011: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:9a17320e583ddea7cc23f718d7e76e4e351cf9bf)
+PASS journal.append-only                OW-WAR-0011: 27 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0011: signed by brian over docs/authority/responses/OW-WAR-0011.response.toml
 WARN sas.pin-superseded                 OW-WAR-0011: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0011/authorization.toml
@@ -252,8 +252,8 @@ PASS generated.drift                    OW-WAR-0012: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0013: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0013: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0013: 1 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0013: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:8f2570f97d35eabc61c271050e284423a94fac45)
-PASS journal.append-only                OW-WAR-0013: 25 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0013: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:d95db97626a5707524a1b619adc69a4fc5921040)
+PASS journal.append-only                OW-WAR-0013: 26 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0013: signed by brian over docs/authority/responses/OW-WAR-0013.response.toml
 WARN sas.pin-superseded                 OW-WAR-0013: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0013/authorization.toml
@@ -422,8 +422,8 @@ PASS generated.drift                    OW-WAR-0022: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0023: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0023: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0023: 2 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0023: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:36d2ed32f0bb9008db0675c6fcad0b9b51727abe)
-PASS journal.append-only                OW-WAR-0023: 28 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0023: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:8f7abffb049fb6b61312cc8dbcacf9e7f8733385)
+PASS journal.append-only                OW-WAR-0023: 29 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0023: signed by brian over docs/authority/responses/OW-WAR-0023.response.toml
 WARN sas.pin-superseded                 OW-WAR-0023: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0023/authorization.toml
@@ -466,8 +466,8 @@ PASS generated.drift                    OW-WAR-0025: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0026: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0026: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0026: 2 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0026: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:57644c11bde4a92546503188ec6d3232930f5c5c)
-PASS journal.append-only                OW-WAR-0026: 27 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0026: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:5473c535237b20d6b26b17d8a50b318d0b4c3806)
+PASS journal.append-only                OW-WAR-0026: 28 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0026: signed by brian over docs/authority/responses/OW-WAR-0026.response.toml
 WARN sas.pin-superseded                 OW-WAR-0026: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0026/authorization.toml
@@ -482,8 +482,8 @@ WARN deliverable.pin-stale              OW-WAR-0027: D-001 records sha256:d1a553
                                              → auto: war admin pins --refresh --alias OW-WAR-0027
 PASS deliverable.digests                OW-WAR-0027: 3 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0027: 1 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0027: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:331ab344535d692ecbea3cb63856008084163f55)
-PASS journal.append-only                OW-WAR-0027: 30 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0027: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:a82de97b01255de0bae4ed9b4765564874af57bf)
+PASS journal.append-only                OW-WAR-0027: 31 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0027: signed by brian over docs/authority/responses/OW-WAR-0027.response.toml
 WARN sas.pin-superseded                 OW-WAR-0027: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0027/authorization.toml
@@ -495,8 +495,8 @@ PASS generated.drift                    OW-WAR-0027: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0028: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0028: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0028: 1 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0028: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:777af3a8cb261d064db313a23a60ce0d44fbcb21)
-PASS journal.append-only                OW-WAR-0028: 28 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0028: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:d0612b9cf54e02c18aaf4755afedd21c9f169209)
+PASS journal.append-only                OW-WAR-0028: 29 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0028: signed by brian over docs/authority/responses/OW-WAR-0028.response.toml
 WARN sas.pin-superseded                 OW-WAR-0028: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0028/authorization.toml
@@ -508,8 +508,8 @@ PASS generated.drift                    OW-WAR-0028: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0029: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0029: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0029: 3 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0029: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:4458398c69984f88ecf6baefc9dcf0ac065196ec)
-PASS journal.append-only                OW-WAR-0029: 34 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0029: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:557988ad088dc43c791ad96478cec531026d32d6)
+PASS journal.append-only                OW-WAR-0029: 35 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0029: signed by brian over docs/authority/responses/OW-WAR-0029.response.toml
 WARN sas.pin-superseded                 OW-WAR-0029: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0029/authorization.toml
@@ -521,8 +521,8 @@ PASS generated.drift                    OW-WAR-0029: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0030: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0030: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0030: 3 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0030: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:7e3dc8fbfc37ae643fac65ee71bdbf1c06f614c7)
-PASS journal.append-only                OW-WAR-0030: 27 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0030: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:810ab6d6e5f3e07ce250f2c861c13adb794a210e)
+PASS journal.append-only                OW-WAR-0030: 28 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0030: signed by brian over docs/authority/responses/OW-WAR-0030.response.toml
 WARN sas.pin-superseded                 OW-WAR-0030: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0030/authorization.toml
@@ -554,8 +554,8 @@ PASS obligations.valid                  OW-WAR-0031: 3 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0031: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0032: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0032: 0 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0032: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:39e0dea88a80c5efa9a9226890cf35cf24fd4d06)
-PASS journal.append-only                OW-WAR-0032: 32 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0032: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:d71c40651d4ed847687d18dbf5cacbe6a994a7d1)
+PASS journal.append-only                OW-WAR-0032: 33 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0032: signed by brian over docs/authority/responses/OW-WAR-0032.response.toml
 WARN sas.pin-superseded                 OW-WAR-0032: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0032/authorization.toml
@@ -597,8 +597,8 @@ PASS obligations.valid                  OW-WAR-0034: 3 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0034: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0035: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0035: 1 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0035: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:6b4202cbda7b45951c8e80cab86d9bb07cb403d7)
-PASS journal.append-only                OW-WAR-0035: 27 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0035: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:712d39acb6b8a55c99aea6a416ab78aac1e8813e)
+PASS journal.append-only                OW-WAR-0035: 28 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0035: signed by brian over docs/authority/responses/OW-WAR-0035.response.toml
 WARN sas.pin-superseded                 OW-WAR-0035: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0035/authorization.toml
@@ -610,8 +610,8 @@ PASS generated.drift                    OW-WAR-0035: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0036: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0036: 2 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0036: 2 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0036: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:4617e59da8719b3ce86bac1b6197f53bf07ace85)
-PASS journal.append-only                OW-WAR-0036: 27 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0036: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:cc7cbca7963baff615464484a657b80a36163f7d)
+PASS journal.append-only                OW-WAR-0036: 28 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0036: signed by brian over docs/authority/responses/OW-WAR-0036.response.toml
 WARN sas.pin-superseded                 OW-WAR-0036: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0036/authorization.toml
@@ -623,8 +623,8 @@ PASS generated.drift                    OW-WAR-0036: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0037: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0037: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0037: 0 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0037: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:09c5db1faf604adc12f2829e92b796ab764bc7dd)
-PASS journal.append-only                OW-WAR-0037: 24 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0037: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:b2e40809609e4f491b13a9a5e520e759f2568e0e)
+PASS journal.append-only                OW-WAR-0037: 25 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0037: signed by brian over docs/authority/responses/OW-WAR-0037.response.toml
 WARN sas.pin-superseded                 OW-WAR-0037: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0037/authorization.toml
@@ -657,8 +657,8 @@ WARN deliverable.pin-stale              OW-WAR-0039: D-001 records sha256:991be2
                                              → auto: war admin pins --refresh --alias OW-WAR-0039
 PASS deliverable.digests                OW-WAR-0039: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0039: 0 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0039: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:e0a3a117f1ea29a818c5066959858f6b38ba8e3f)
-PASS journal.append-only                OW-WAR-0039: 27 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0039: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:9dbe86d8f28495ae11616ec93a71063f58192682)
+PASS journal.append-only                OW-WAR-0039: 28 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0039: signed by brian over docs/authority/responses/OW-WAR-0039.response.toml
 WARN sas.pin-superseded                 OW-WAR-0039: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0039/authorization.toml
@@ -669,8 +669,8 @@ PASS obligations.valid                  OW-WAR-0039: 3 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0039: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0040: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0040: 1 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0040: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:bcf6edb00be1d2b754dece92ea5e92cba734101e)
-PASS journal.append-only                OW-WAR-0040: 19 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0040: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:4607d37a0f5a88ac6ed0fc471bb0bdb3688e1602)
+PASS journal.append-only                OW-WAR-0040: 20 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0040: signed by brian over docs/authority/responses/OW-WAR-0040.response.toml
 WARN sas.pin-superseded                 OW-WAR-0040: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0040/authorization.toml
@@ -686,8 +686,8 @@ WARN deliverable.pin-stale              OW-WAR-0041: D-001 records sha256:991be2
                                              → auto: war admin pins --refresh --alias OW-WAR-0041
 PASS deliverable.digests                OW-WAR-0041: 2 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0041: 0 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0041: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:03af4fac6b807387efea836b68a17977e9ff7aac)
-PASS journal.append-only                OW-WAR-0041: 36 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0041: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:d2a204788a37fd7609da542ed59f08bb113c4c20)
+PASS journal.append-only                OW-WAR-0041: 37 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0041: signed by brian over docs/authority/responses/OW-WAR-0041.response.toml
 WARN sas.pin-superseded                 OW-WAR-0041: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0041/authorization.toml
@@ -704,8 +704,8 @@ PASS obligations.valid                  OW-WAR-0041: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0041: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0042: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0042: 2 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0042: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:7efe9ea9152aa0dfe972a54c97acad7d3f85cf11)
-PASS journal.append-only                OW-WAR-0042: 39 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0042: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:2b8c1202ae61a74caad46952ef2e31fbf29d5ba8)
+PASS journal.append-only                OW-WAR-0042: 40 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0042: signed by brian over docs/authority/responses/OW-WAR-0042.response.toml
 WARN sas.pin-superseded                 OW-WAR-0042: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0042/authorization.toml
@@ -723,8 +723,8 @@ PASS generated.drift                    OW-WAR-0042: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0043: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0043: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0043: 0 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0043: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:dc7745d722b29b6d2869757c0be745ebcd84cfe6)
-PASS journal.append-only                OW-WAR-0043: 30 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0043: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:3ff487612b75f4ece563dff32d08f9de0b9f4082)
+PASS journal.append-only                OW-WAR-0043: 31 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0043: signed by brian over docs/authority/responses/OW-WAR-0043.response.toml
 WARN sas.pin-superseded                 OW-WAR-0043: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0043/authorization.toml
@@ -745,8 +745,8 @@ PASS generated.drift                    OW-WAR-0043: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0044: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0044: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0044: 3 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0044: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:0fd79bf8480ebe767352e66cc18269a9f4266ef9)
-PASS journal.append-only                OW-WAR-0044: 42 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0044: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:212b39d59aedb9bf1b989d0cf01e5adc60fcb333)
+PASS journal.append-only                OW-WAR-0044: 43 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0044: signed by brian over docs/authority/responses/OW-WAR-0044.response.toml
 WARN sas.pin-superseded                 OW-WAR-0044: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0044/authorization.toml
@@ -763,8 +763,8 @@ PASS obligations.valid                  OW-WAR-0044: 5 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0044: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0045: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0045: 4 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0045: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:26a8dd2887301104c9a69751b9ac8bbccf1ed2ac)
-PASS journal.append-only                OW-WAR-0045: 42 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0045: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:e28be85025d2028ccc02e43bf0915677e8307c78)
+PASS journal.append-only                OW-WAR-0045: 43 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0045: signed by brian over docs/authority/responses/OW-WAR-0045.response.toml
 WARN sas.pin-superseded                 OW-WAR-0045: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0045/authorization.toml
@@ -810,8 +810,8 @@ WARN deliverable.pin-stale              OW-WAR-0047: D-001 records sha256:d1a553
                                              → auto: war admin pins --refresh --alias OW-WAR-0047
 PASS deliverable.digests                OW-WAR-0047: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0047: 1 requirement ref(s) and 1 roadmap ref(s) parse
-PASS evidence.admissible                OW-WAR-0047: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:b98935c39707793fe44c67a3bc0c42493989384f)
-PASS journal.append-only                OW-WAR-0047: 19 event(s), 2 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0047: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:199b2acf57f72969135016bae2f732e8d7fbc295)
+PASS journal.append-only                OW-WAR-0047: 20 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0047: signed by brian over docs/authority/responses/OW-WAR-0047.response.toml
 WARN sas.pin-superseded                 OW-WAR-0047: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0047/authorization.toml
@@ -826,10 +826,10 @@ PASS obligations.valid                  OW-WAR-0047: 3 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0047: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0048: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0048: 1 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0048: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0048: software.repo.war-check@1.0.0 · the receipt names tree:d0f73388e4fbd30b93d8cfbac144c47fcd0cf9e8 and 1 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0048/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0048
-PASS journal.append-only                OW-WAR-0048: 38 event(s), 2 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0048: 39 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0048: signed by brian over docs/authority/responses/OW-WAR-0048.response.toml
 WARN sas.pin-superseded                 OW-WAR-0048: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0048/authorization.toml
@@ -845,10 +845,10 @@ PASS obligations.valid                  OW-WAR-0048: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0048: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0049: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0049: 0 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0049: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0049: software.repo.war-check@1.0.0 · the receipt names tree:9f3d52506e38a44d6649d9ed7667bd1198503ff7 and 1 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0049/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0049
-PASS journal.append-only                OW-WAR-0049: 35 event(s), 2 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0049: 36 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0049: signed by brian over docs/authority/responses/OW-WAR-0049.response.toml
 WARN sas.pin-superseded                 OW-WAR-0049: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0049/authorization.toml
@@ -865,10 +865,10 @@ PASS obligations.valid                  OW-WAR-0049: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0049: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0050: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0050: 2 content-addressed deliverable(s) match their bytes
-WARN evidence.stale-binding             OW-WAR-0050: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0050: software.repo.war-check@1.0.0 · the receipt names tree:89232a1c3ccd0a83752a043733c3dcf586cd3917 and 1 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0050/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0050
-PASS journal.append-only                OW-WAR-0050: 19 event(s), 2 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0050: 20 event(s), 2 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0050: signed by brian over docs/authority/responses/OW-WAR-0050.response.toml
 WARN sas.pin-superseded                 OW-WAR-0050: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0050/authorization.toml
@@ -971,10 +971,10 @@ WARN deliverable.pin-stale              OW-WAR-0059: D-003 records sha256:5cf8fd
                                              → auto: war admin pins --refresh --alias OW-WAR-0059
 PASS deliverable.digests                OW-WAR-0059: 3 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0059: 3 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0059: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0059: software.repo.war-check@1.0.0 · the receipt names tree:d1748508b354709de490d58e825401e40849097e and 1 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0059/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0059
-PASS journal.append-only                OW-WAR-0059: 47 event(s), 1 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0059: 48 event(s), 1 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0059: signed by brian over docs/authority/responses/OW-WAR-0059.response.toml
 WARN sas.pin-superseded                 OW-WAR-0059: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0059/authorization.toml
@@ -1043,10 +1043,10 @@ WARN deliverable.pin-stale              OW-WAR-0063: D-003 records sha256:64e836
                                              → auto: war admin pins --refresh --alias OW-WAR-0063
 PASS deliverable.digests                OW-WAR-0063: 4 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0063: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0063: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0063: software.repo.war-check@1.0.0 · the receipt names tree:d87136498ca280b888814bffb296cb1cb4630df4 and 1 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0063/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0063
-PASS journal.append-only                OW-WAR-0063: 21 event(s), 0 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0063: 22 event(s), 0 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0063: signed by brian over docs/authority/responses/OW-WAR-0063.response.toml
 WARN sas.pin-superseded                 OW-WAR-0063: authorized against SAS 0.1.0-draft.3; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0063/authorization.toml
@@ -1057,10 +1057,10 @@ PASS obligations.valid                  OW-WAR-0063: 3 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0063: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0064: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0064: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0064: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0064: software.repo.war-check@1.0.0 · the receipt names tree:e8fb5eca8666f41bce376ac40caa67a8307303e1 and 1 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0064/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0064
-PASS journal.append-only                OW-WAR-0064: 24 event(s), 0 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0064: 25 event(s), 0 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0064: signed by brian over docs/authority/responses/OW-WAR-0064.response.toml
 WARN sas.pin-superseded                 OW-WAR-0064: authorized against SAS 0.1.0-draft.3; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0064/authorization.toml
@@ -1085,7 +1085,7 @@ PASS milestones.valid                   OW-WAR-0065: 1 milestone(s), 1 stage(s),
 PASS obligations.valid                  OW-WAR-0065: 2 obligation(s), each with a bounded scope and evidence
 PASS generated.drift                    OW-WAR-0065: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0066: manifest and composition are well-formed
-WARN evidence.stale-binding             OW-WAR-0066: ops.conformance.plants@1.1.0 · the receipt names tree:3fe123c3d5379ef1701fc9c3f9c473cca75bed6d and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0066: ops.conformance.plants@1.1.0 · the receipt names tree:3fe123c3d5379ef1701fc9c3f9c473cca75bed6d and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0066/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0066
 WARN evidence.stale-binding             OW-WAR-0066: ops.echo@1.0.0 · the receipt names tree:9729d66838274661a8b7382db6ef1108887babec and 3270 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.cargo/config.toml, .claude-plugin/marketplace.json, .claude-plugin/plugin.json, …) — a run over an earlier source is a record, not evidence about this one
@@ -1105,7 +1105,7 @@ PASS obligations.valid                  OW-WAR-0066: 2 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0066: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0067: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0067: 3 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0067: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0067: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0067/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0067
 PASS journal.append-only                OW-WAR-0067: 18 event(s), 0 backfilled, extends the committed journal
@@ -1118,7 +1118,7 @@ PASS milestones.valid                   OW-WAR-0067: 3 milestone(s), 7 stage(s),
 PASS obligations.valid                  OW-WAR-0067: 3 obligation(s), each with a bounded scope and evidence
 PASS generated.drift                    OW-WAR-0067: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0068: manifest and composition are well-formed
-WARN deliverable.pin-stale              OW-WAR-0068: D-001 records sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3 for CONTEXT.md and the file is now sha256:9b3c59b3ec800d1e099ab48c3742b4f081ac3a40069eb66a20644072480d0e44. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0068`
+WARN deliverable.pin-stale              OW-WAR-0068: D-001 records sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3 for CONTEXT.md and the file is now sha256:8dc96b0b179d02bf0ffbeb9f1937f59dd4252dc1a72570d725034c64a7496cd8. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0068`
                                              → docs/warrants/OW-WAR-0068/deliverables.toml
                                              → auto: war admin pins --refresh --alias OW-WAR-0068
 WARN deliverable.pin-stale              OW-WAR-0068: D-002 records sha256:42b9b654062768ce50c54df7f17fd35b029c775abe6c7df6c223ef399907ae80 for crates/openwarrant-cli/src/frontier.rs and the file is now sha256:bd446435a0d8ac3d25bb3c8b0dd8f9ce99ff4f281f5645883e0aa4e8d36596dd. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0068`
@@ -1129,7 +1129,7 @@ WARN deliverable.pin-stale              OW-WAR-0068: D-003 records sha256:4fb52d
                                              → auto: war admin pins --refresh --alias OW-WAR-0068
 PASS deliverable.digests                OW-WAR-0068: 10 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0068: 3 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0068: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0068: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0068/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0068
 PASS journal.append-only                OW-WAR-0068: 19 event(s), 0 backfilled, extends the committed journal
@@ -1143,7 +1143,7 @@ PASS obligations.valid                  OW-WAR-0068: 3 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0068: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0069: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0069: 3 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0069: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0069: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0069/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0069
 PASS journal.append-only                OW-WAR-0069: 24 event(s), 0 backfilled, extends the committed journal
@@ -1157,7 +1157,7 @@ PASS obligations.valid                  OW-WAR-0069: 3 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0069: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0070: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0070: 0 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0070: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0070: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0070/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0070
 PASS journal.append-only                OW-WAR-0070: 22 event(s), 0 backfilled, extends the committed journal
@@ -1172,7 +1172,7 @@ PASS generated.drift                    OW-WAR-0070: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0071: manifest and composition are well-formed
 PASS capability.not-applicable          OW-WAR-0071: profile decision does not select `stages` (the milestone graph and §56.1 requirement 12's runtime receipts): not applicable, not passed (OW-ADR-0031)
 PASS traceability.refs                  OW-WAR-0071: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0071: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0071: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0071/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0071
 PASS journal.append-only                OW-WAR-0071: 22 event(s), 0 backfilled, extends the committed journal
@@ -1188,7 +1188,7 @@ PASS obligations.valid                  OW-WAR-0071: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0071: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0072: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0072: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0072: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0072: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0072/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0072
 PASS journal.append-only                OW-WAR-0072: 22 event(s), 0 backfilled, extends the committed journal
@@ -1202,7 +1202,7 @@ PASS obligations.valid                  OW-WAR-0072: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0072: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0073: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0073: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0073: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0073: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0073/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0073
 PASS journal.append-only                OW-WAR-0073: 22 event(s), 0 backfilled, extends the committed journal
@@ -1216,7 +1216,7 @@ PASS obligations.valid                  OW-WAR-0073: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0073: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0074: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0074: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0074: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0074: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0074
 PASS journal.append-only                OW-WAR-0074: 24 event(s), 0 backfilled, extends the committed journal
@@ -1230,7 +1230,7 @@ PASS obligations.valid                  OW-WAR-0074: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0074: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0075: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0075: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0075: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0075: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0075/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0075
 PASS journal.append-only                OW-WAR-0075: 23 event(s), 0 backfilled, extends the committed journal
@@ -1244,7 +1244,7 @@ PASS obligations.valid                  OW-WAR-0075: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0075: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0076: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0076: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0076: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0076: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0076/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0076
 PASS journal.append-only                OW-WAR-0076: 24 event(s), 0 backfilled, extends the committed journal
@@ -1258,7 +1258,7 @@ PASS obligations.valid                  OW-WAR-0076: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0076: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0077: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0077: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0077: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0077: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0077/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0077
 PASS journal.append-only                OW-WAR-0077: 22 event(s), 0 backfilled, extends the committed journal
@@ -1272,7 +1272,7 @@ PASS obligations.valid                  OW-WAR-0077: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0077: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0078: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0078: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0078: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0078: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0078/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0078
 PASS journal.append-only                OW-WAR-0078: 22 event(s), 0 backfilled, extends the committed journal
@@ -1286,7 +1286,7 @@ PASS obligations.valid                  OW-WAR-0078: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0078: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0079: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0079: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0079: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0079: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0079/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0079
 PASS journal.append-only                OW-WAR-0079: 22 event(s), 0 backfilled, extends the committed journal
@@ -1300,7 +1300,7 @@ PASS obligations.valid                  OW-WAR-0079: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0079: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0080: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0080: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0080: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0080: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0080/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0080
 PASS journal.append-only                OW-WAR-0080: 22 event(s), 0 backfilled, extends the committed journal
@@ -1314,7 +1314,7 @@ PASS obligations.valid                  OW-WAR-0080: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0080: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0081: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0081: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0081: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0081: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0081/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0081
 PASS journal.append-only                OW-WAR-0081: 22 event(s), 0 backfilled, extends the committed journal
@@ -1328,7 +1328,7 @@ PASS obligations.valid                  OW-WAR-0081: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0081: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0082: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0082: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0082: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0082: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0082/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0082
 PASS journal.append-only                OW-WAR-0082: 22 event(s), 0 backfilled, extends the committed journal
@@ -1342,7 +1342,7 @@ PASS obligations.valid                  OW-WAR-0082: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0082: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0083: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0083: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0083: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0083: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0083/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0083
 PASS journal.append-only                OW-WAR-0083: 22 event(s), 0 backfilled, extends the committed journal
@@ -1356,7 +1356,7 @@ PASS obligations.valid                  OW-WAR-0083: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0083: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0084: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0084: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0084: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0084: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0084/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0084
 PASS journal.append-only                OW-WAR-0084: 22 event(s), 0 backfilled, extends the committed journal
@@ -1370,7 +1370,7 @@ PASS obligations.valid                  OW-WAR-0084: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0084: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0085: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0085: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0085: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0085: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0085/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0085
 PASS journal.append-only                OW-WAR-0085: 22 event(s), 0 backfilled, extends the committed journal
@@ -1385,7 +1385,7 @@ PASS bonsai-scope.valid                 OW-WAR-0085: machine scope resolves to d
 PASS generated.drift                    OW-WAR-0085: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0086: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0086: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0086: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0086: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0086/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0086
 PASS journal.append-only                OW-WAR-0086: 22 event(s), 0 backfilled, extends the committed journal
@@ -1399,7 +1399,7 @@ PASS obligations.valid                  OW-WAR-0086: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0086: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0087: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0087: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0087: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0087: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0087/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0087
 PASS journal.append-only                OW-WAR-0087: 22 event(s), 0 backfilled, extends the committed journal
@@ -1413,7 +1413,7 @@ PASS obligations.valid                  OW-WAR-0087: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0087: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0088: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0088: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0088: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0088: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0088/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0088
 PASS journal.append-only                OW-WAR-0088: 22 event(s), 0 backfilled, extends the committed journal
@@ -1427,7 +1427,7 @@ PASS obligations.valid                  OW-WAR-0088: 4 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0088: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0089: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0089: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0089: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0089: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0089/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0089
 PASS journal.append-only                OW-WAR-0089: 22 event(s), 0 backfilled, extends the committed journal
@@ -1442,7 +1442,7 @@ PASS bonsai-scope.valid                 OW-WAR-0089: machine scope resolves to d
 PASS generated.drift                    OW-WAR-0089: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0090: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0090: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0090: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0090: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0090/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0090
 PASS journal.append-only                OW-WAR-0090: 22 event(s), 0 backfilled, extends the committed journal
@@ -1457,7 +1457,7 @@ PASS bonsai-scope.valid                 OW-WAR-0090: machine scope resolves to d
 PASS generated.drift                    OW-WAR-0090: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0091: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0091: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0091: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0091: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0091/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0091
 PASS journal.append-only                OW-WAR-0091: 22 event(s), 0 backfilled, extends the committed journal
@@ -1700,7 +1700,7 @@ WARN deliverable.pin-stale              OW-WAR-0112: D-031 records sha256:75a500
                                              → auto: war admin pins --refresh --alias OW-WAR-0112
 PASS deliverable.digests                OW-WAR-0112: 44 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0112: 6 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0112: ops.conformance.plants@1.1.0 · the receipt names tree:217da1f0e84f3e5b7357a9438d9bb46e40a42346 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0112: ops.conformance.plants@1.1.0 · the receipt names tree:217da1f0e84f3e5b7357a9438d9bb46e40a42346 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0112/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0112
 WARN evidence.stale-binding             OW-WAR-0112: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:3eb47417110285aa411686118e41ca2bfb86406f00ed0c97d3cd7ec1beae4231, deliverables:sha256:612e462999ce54aa4bb4c4945554c834893b0f3daf9ebe8cd28f95ae9547c24c, tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3 and the contract now compiles to contract:sha256:19a98376009590dfe18f21e6014f3332491462a3016fbeddd97ae14dca737c74 — a run against an earlier revision is a record, not evidence about this one
@@ -1762,7 +1762,7 @@ WARN deliverable.pin-stale              OW-WAR-0113: D-031 records sha256:221cee
 WARN deliverable.pin-stale              OW-WAR-0113: D-032 records sha256:75a500b64289b0aee4affccd7a3ee72ea83ac0470180a2c546fecab94d4ba500 for crates/openwarrant-cli/src/lib.rs and the file is now sha256:a01813187aeb82d9bf837a2f4c857cd423db6351cc5caf69449f25baf477e925. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0113`
                                              → docs/warrants/OW-WAR-0113/deliverables.toml
                                              → auto: war admin pins --refresh --alias OW-WAR-0113
-WARN deliverable.pin-stale              OW-WAR-0113: D-033 records sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3 for CONTEXT.md and the file is now sha256:9b3c59b3ec800d1e099ab48c3742b4f081ac3a40069eb66a20644072480d0e44. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0113`
+WARN deliverable.pin-stale              OW-WAR-0113: D-033 records sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3 for CONTEXT.md and the file is now sha256:8dc96b0b179d02bf0ffbeb9f1937f59dd4252dc1a72570d725034c64a7496cd8. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0113`
                                              → docs/warrants/OW-WAR-0113/deliverables.toml
                                              → auto: war admin pins --refresh --alias OW-WAR-0113
 WARN deliverable.pin-stale              OW-WAR-0113: D-034 records sha256:539e76bd5214180159c83380f6a17e79b0e5dbf11e076b29b41eae956c5db0c7 for README.md and the file is now sha256:abeac9089f9e06e43c096cb0826f68a1556b07ef937960a81d2213172c1a0eb2. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0113`
@@ -1782,10 +1782,10 @@ WARN deliverable.pin-stale              OW-WAR-0113: D-038 records sha256:a1b78b
                                              → auto: war admin pins --refresh --alias OW-WAR-0113
 PASS deliverable.digests                OW-WAR-0113: 36 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0113: 6 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0113: ops.conformance.plants@1.1.0 · the receipt names tree:f13eee76dd2c75ccc459a21867a788238b91fbf4 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0113: ops.conformance.plants@1.1.0 · the receipt names tree:f13eee76dd2c75ccc459a21867a788238b91fbf4 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0113/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0113
-WARN evidence.stale-binding             OW-WAR-0113: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0113: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0113/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0113
 PASS journal.append-only                OW-WAR-0113: 35 event(s), 0 backfilled, extends the committed journal
@@ -1845,7 +1845,7 @@ WARN deliverable.pin-stale              OW-WAR-0114: D-023 records sha256:daca13
 WARN deliverable.pin-stale              OW-WAR-0114: D-024 records sha256:85f5e7eff8def10702ecd1fcc74f09cc8e0b6ba9d11d1db2b9c24cd576562a9f for docs/sas/WAR_Software_Architecture_Specification.md and the file is now sha256:97c69198140b6312e0f4da4b19a5cd16a87ea288ce83fbc66cacaca4612bfd92. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0114`
                                              → docs/warrants/OW-WAR-0114/deliverables.toml
                                              → auto: war admin pins --refresh --alias OW-WAR-0114
-WARN deliverable.pin-stale              OW-WAR-0114: D-029 records sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3 for CONTEXT.md and the file is now sha256:9b3c59b3ec800d1e099ab48c3742b4f081ac3a40069eb66a20644072480d0e44. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0114`
+WARN deliverable.pin-stale              OW-WAR-0114: D-029 records sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3 for CONTEXT.md and the file is now sha256:8dc96b0b179d02bf0ffbeb9f1937f59dd4252dc1a72570d725034c64a7496cd8. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0114`
                                              → docs/warrants/OW-WAR-0114/deliverables.toml
                                              → auto: war admin pins --refresh --alias OW-WAR-0114
 WARN deliverable.pin-stale              OW-WAR-0114: D-030 records sha256:7c28dac741ac3391bff5dfdcacaab679e913183dd8046bbf06ebf0c9e6a599e9 for docs/TUI.md and the file is now sha256:e5694605f324ccbd9c08a45108888cf9822b502db0af18be91966422734193a1. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0114`
@@ -1862,10 +1862,10 @@ WARN deliverable.pin-stale              OW-WAR-0114: D-036 records sha256:c0331a
                                              → auto: war admin pins --refresh --alias OW-WAR-0114
 PASS deliverable.digests                OW-WAR-0114: 33 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0114: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0114: ops.conformance.plants@1.1.0 · the receipt names tree:eb780c0215994bc8e0166809c84b4effdf23932e and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0114: ops.conformance.plants@1.1.0 · the receipt names tree:eb780c0215994bc8e0166809c84b4effdf23932e and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0114/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0114
-WARN evidence.stale-binding             OW-WAR-0114: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0114: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0114/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0114
 PASS journal.append-only                OW-WAR-0114: 17 event(s), 0 backfilled, extends the committed journal
@@ -1898,7 +1898,7 @@ WARN deliverable.pin-stale              OW-WAR-0115: D-003 records sha256:5bcdb7
                                              → auto: war admin pins --refresh --alias OW-WAR-0115
 PASS deliverable.digests                OW-WAR-0115: 6 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0115: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0115: ops.conformance.plants@1.1.0 · the receipt names tree:3db475e8a43e77032495ccc85b5bdee7dc21dd62 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0115: ops.conformance.plants@1.1.0 · the receipt names tree:3db475e8a43e77032495ccc85b5bdee7dc21dd62 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0115/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0115
 PASS journal.append-only                OW-WAR-0115: 19 event(s), 0 backfilled, extends the committed journal
@@ -1930,7 +1930,7 @@ WARN deliverable.pin-stale              OW-WAR-0116: D-010 records sha256:d12499
                                              → auto: war admin pins --refresh --alias OW-WAR-0116
 PASS deliverable.digests                OW-WAR-0116: 12 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0116: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0116: ops.conformance.plants@1.1.0 · the receipt names tree:9a08cc82152dadf5e25afed7879217ecd369bb20 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0116: ops.conformance.plants@1.1.0 · the receipt names tree:9a08cc82152dadf5e25afed7879217ecd369bb20 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0116/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0116
 WARN evidence.stale-binding             OW-WAR-0116: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:47ce387b2b36596e0ddae343564fecbb67bf95a2d7be349f30cc008dacfd018e, deliverables:sha256:2f026eba54f4e1bb4826c0704dd464559ef672f99ffdf69172aa2ceaa1c35f27, tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3 and the contract now compiles to contract:sha256:d0c959f72c2e26dc72737c73f6dba2372efe8ba42d6aace2db74b9cc3efc9388 — a run against an earlier revision is a record, not evidence about this one
@@ -1966,7 +1966,7 @@ PASS traceability.refs                  OW-WAR-0117: 1 requirement ref(s) and 1 
 WARN evidence.not-a-pass                OW-WAR-0117: ops.conformance.plants@1.0.0 · the run is not a §44.5 required pass (askability not_askable, execution not_run, verdict unknown)
                                              → docs/warrants/OW-WAR-0117/gate-runs/ops_conformance_plants_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0117
-WARN evidence.stale-binding             OW-WAR-0117: ops.conformance.plants@1.1.0 · the receipt names tree:fc954cb939ec5e6ac4c28c7b1daacc064b10928e and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0117: ops.conformance.plants@1.1.0 · the receipt names tree:fc954cb939ec5e6ac4c28c7b1daacc064b10928e and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0117/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0117
 PASS journal.append-only                OW-WAR-0117: 22 event(s), 0 backfilled, extends the committed journal
@@ -1988,7 +1988,7 @@ PASS manifest.valid                     OW-WAR-0118: manifest and composition ar
 PASS deliverable.owned                  OW-WAR-0118: the 4 deliverable(s) declared are the 4 the authorization signed for
 PASS deliverable.digests                OW-WAR-0118: 4 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0118: 0 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0118: ops.conformance.plants@1.1.0 · the receipt names tree:64e6302c8244f4629b19a433217527867a445b1d and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0118: ops.conformance.plants@1.1.0 · the receipt names tree:64e6302c8244f4629b19a433217527867a445b1d and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0118/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0118
 PASS journal.append-only                OW-WAR-0118: 22 event(s), 0 backfilled, extends the committed journal
@@ -2115,7 +2115,7 @@ WARN evidence.stale-binding             OW-WAR-0122: document.review@1.1.0 · th
 WARN evidence.stale-binding             OW-WAR-0122: ops.conformance.plants@1.1.0 · the receipt names tree:9729d66838274661a8b7382db6ef1108887babec and 3270 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.cargo/config.toml, .claude-plugin/marketplace.json, .claude-plugin/plugin.json, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0122/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0122
-WARN evidence.stale-binding             OW-WAR-0122: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0122: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0122/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0122
 PASS journal.append-only                OW-WAR-0122: 34 event(s), 0 backfilled, extends the committed journal
@@ -2267,7 +2267,7 @@ PASS manifest.valid                     OW-WAR-0126: manifest and composition ar
 PASS deliverable.owned                  OW-WAR-0126: the 1 deliverable(s) declared are the 1 the authorization signed for
 PASS deliverable.digests                OW-WAR-0126: 1 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0126: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0126: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0126: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0126/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0126
 PASS journal.append-only                OW-WAR-0126: 6 event(s), 0 backfilled, extends the committed journal
@@ -2304,7 +2304,7 @@ PASS traceability.refs                  OW-WAR-0127: 1 requirement ref(s) and 1 
 WARN evidence.stale-binding             OW-WAR-0127: ops.conformance.plants@1.1.0 · the receipt names tree:e68d1caf85390eea75caab55aea5f3b968ef329f and 3418 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.cargo/config.toml, .claude-plugin/marketplace.json, .claude-plugin/plugin.json, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0127/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0127
-WARN evidence.stale-binding             OW-WAR-0127: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0127: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0127/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0127
 PASS journal.append-only                OW-WAR-0127: 11 event(s), 0 backfilled, extends the committed journal
@@ -2326,7 +2326,7 @@ PASS manifest.valid                     OW-WAR-0128: manifest and composition ar
 PASS deliverable.owned                  OW-WAR-0128: the 2 deliverable(s) declared are the 2 the authorization signed for
 PASS deliverable.digests                OW-WAR-0128: 2 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0128: 2 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0128: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0128: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0128/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0128
 PASS journal.append-only                OW-WAR-0128: 6 event(s), 0 backfilled, extends the committed journal
@@ -2508,7 +2508,7 @@ PASS traceability.refs                  OW-WAR-0133: 2 requirement ref(s) and 1 
 WARN evidence.stale-binding             OW-WAR-0133: ops.conformance.plants@1.1.0 · the receipt names tree:9729d66838274661a8b7382db6ef1108887babec and 3270 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.cargo/config.toml, .claude-plugin/marketplace.json, .claude-plugin/plugin.json, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0133/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0133
-WARN evidence.stale-binding             OW-WAR-0133: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0133: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0133/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0133
 PASS journal.append-only                OW-WAR-0133: 36 event(s), 0 backfilled, extends the committed journal
@@ -2550,7 +2550,7 @@ PASS traceability.refs                  OW-WAR-0134: 2 requirement ref(s) and 1 
 WARN evidence.stale-binding             OW-WAR-0134: ops.conformance.plants@1.1.0 · the receipt names tree:9729d66838274661a8b7382db6ef1108887babec and 3270 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.cargo/config.toml, .claude-plugin/marketplace.json, .claude-plugin/plugin.json, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0134/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0134
-WARN evidence.stale-binding             OW-WAR-0134: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0134: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0134/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0134
 PASS journal.append-only                OW-WAR-0134: 29 event(s), 0 backfilled, extends the committed journal
@@ -2664,7 +2664,7 @@ PASS traceability.refs                  OW-WAR-0136: 3 requirement ref(s) and 1 
 WARN evidence.stale-binding             OW-WAR-0136: ops.conformance.plants@1.1.0 · the receipt names tree:9729d66838274661a8b7382db6ef1108887babec and 3270 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.cargo/config.toml, .claude-plugin/marketplace.json, .claude-plugin/plugin.json, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0136/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0136
-WARN evidence.stale-binding             OW-WAR-0136: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0136: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0136/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0136
 PASS journal.append-only                OW-WAR-0136: 37 event(s), 0 backfilled, extends the committed journal
@@ -2721,7 +2721,7 @@ PASS traceability.refs                  OW-WAR-0137: 1 requirement ref(s) and 1 
 WARN evidence.stale-binding             OW-WAR-0137: ops.conformance.plants@1.1.0 · the receipt names tree:9729d66838274661a8b7382db6ef1108887babec and 3270 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.cargo/config.toml, .claude-plugin/marketplace.json, .claude-plugin/plugin.json, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0137/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0137
-WARN evidence.stale-binding             OW-WAR-0137: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0137: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0137/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0137
 PASS journal.append-only                OW-WAR-0137: 21 event(s), 0 backfilled, extends the committed journal
@@ -2910,7 +2910,7 @@ PASS traceability.refs                  OW-WAR-0140: 2 requirement ref(s) and 1 
 WARN evidence.stale-binding             OW-WAR-0140: ops.conformance.plants@1.1.0 · the receipt names tree:9729d66838274661a8b7382db6ef1108887babec and 3270 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.cargo/config.toml, .claude-plugin/marketplace.json, .claude-plugin/plugin.json, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0140/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0140
-WARN evidence.stale-binding             OW-WAR-0140: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0140: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0140/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0140
 PASS journal.append-only                OW-WAR-0140: 21 event(s), 0 backfilled, extends the committed journal
@@ -3020,7 +3020,7 @@ WARN deliverable.pin-stale              OW-WAR-0142: D-013 records sha256:db18ed
 WARN deliverable.pin-stale              OW-WAR-0142: D-014 records sha256:4178a1fab18f5d1f4ed31253f393ea877c02b2ab47149a63b19da49958ed985f for conformance/plants.d/69-standing.sh and the file is now sha256:127d60d0e5196ba5d7c349c2dc3d498d738e836b38a09db3e895e4ba1e2f03fc. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0142`
                                              → docs/warrants/OW-WAR-0142/deliverables.toml
                                              → auto: war admin pins --refresh --alias OW-WAR-0142
-WARN deliverable.pin-stale              OW-WAR-0142: D-016 records sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3 for CONTEXT.md and the file is now sha256:9b3c59b3ec800d1e099ab48c3742b4f081ac3a40069eb66a20644072480d0e44. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0142`
+WARN deliverable.pin-stale              OW-WAR-0142: D-016 records sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3 for CONTEXT.md and the file is now sha256:8dc96b0b179d02bf0ffbeb9f1937f59dd4252dc1a72570d725034c64a7496cd8. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0142`
                                              → docs/warrants/OW-WAR-0142/deliverables.toml
                                              → auto: war admin pins --refresh --alias OW-WAR-0142
 WARN deliverable.pin-stale              OW-WAR-0142: D-018 records sha256:77dafda4c870063742c2df8547d047765a733110261dcf65e4e39f1b715d63cd for crates/openwarrant-cli/src/attest.rs and the file is now sha256:6487d1314df1c196249d0da6e49018b6ef86b3ee9b43555299519e8cf2e1cb76. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0142`
@@ -3172,12 +3172,15 @@ PASS manifest.valid                     OW-WAR-0147: manifest and composition ar
 WARN deliverable.pin-stale              OW-WAR-0147: D-009 records sha256:8f777843a8315e4cfefd5bba64aed1028530c11c0e6209f0113c8777320a8c2d for crates/openwarrant-cli/src/lib.rs and the file is now sha256:a01813187aeb82d9bf837a2f4c857cd423db6351cc5caf69449f25baf477e925. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0147`
                                              → docs/warrants/OW-WAR-0147/deliverables.toml
                                              → auto: war admin pins --refresh --alias OW-WAR-0147
+WARN deliverable.pin-stale              OW-WAR-0147: D-020 records sha256:9b3c59b3ec800d1e099ab48c3742b4f081ac3a40069eb66a20644072480d0e44 for CONTEXT.md and the file is now sha256:8dc96b0b179d02bf0ffbeb9f1937f59dd4252dc1a72570d725034c64a7496cd8. No resolution binds this manifest, so the pin is out of date rather than violated — `war admin pins --refresh --alias OW-WAR-0147`
+                                             → docs/warrants/OW-WAR-0147/deliverables.toml
+                                             → auto: war admin pins --refresh --alias OW-WAR-0147
 PASS deliverable.digests                OW-WAR-0147: 21 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0147: 3 requirement ref(s) and 1 roadmap ref(s) parse
 WARN evidence.stale-binding             OW-WAR-0147: ops.conformance.plants@1.1.0 · the receipt is bound to contract:sha256:83d9339ef63393f07d6a0630a439fc0013ff806faa97923ab2d9f386489090a0, deliverables:sha256:34724b97d2909750f7d2e020dfa8b19f2402286599f3e356ad7fa49650b1ba9e, tree:9729d66838274661a8b7382db6ef1108887babec and the contract now compiles to contract:sha256:ac363e740af7f39c75b97f953bca3423cfb9bb2004965075f0a26644b507733b — a run against an earlier revision is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0147/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0147
-WARN evidence.stale-binding             OW-WAR-0147: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 51 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, conformance/study/record.py, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0147: software.repo.war-check@1.0.0 · the receipt names tree:4c2292704a501dc050f90d490081ca902aec1dc6 and 52 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (CONTEXT.md, conformance/migration/test_cli_report.py, conformance/plants.d/178-migrate-json.sh, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0147/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0147
 PASS journal.append-only                OW-WAR-0147: 30 event(s), 0 backfilled, extends the committed journal
@@ -3430,7 +3433,7 @@ PASS projection.drift                   docs/records/password-reset/generated/ar
 PASS projection.drift                   docs/records/password-reset/generated/prd.md matches a fresh rendering
 PASS projection.drift                   docs/records/password-reset/generated/test-plan.md matches a fresh rendering
 PASS projection.drift                   docs/roadmap/generated/ROADMAP.md matches a fresh rendering
-PASS ticket.well-formed                 122 ticket(s), 259 item(s): every checklist well-formed, every blocker named (a ticket needs no signature, evidence or verification to be worked)
+PASS ticket.well-formed                 123 ticket(s), 260 item(s): every checklist well-formed, every blocker named (a ticket needs no signature, evidence or verification to be worked)
 
 REMEDIES:
   auto  war admin pins --refresh --alias OW-WAR-0001   (×2)
@@ -3471,7 +3474,7 @@ REMEDIES:
   auto  war admin pins --refresh --alias OW-WAR-0143   (×2)
   auto  war admin pins --refresh --alias OW-WAR-0144   (×1)
   auto  war admin pins --refresh --alias OW-WAR-0146   (×1)
-  auto  war admin pins --refresh --alias OW-WAR-0147   (×1)
+  auto  war admin pins --refresh --alias OW-WAR-0147   (×2)
   auto  war evidence record OW-WAR-0048   (×1)
   auto  war evidence record OW-WAR-0049   (×1)
   auto  war evidence record OW-WAR-0050   (×1)
@@ -3658,7 +3661,7 @@ REMEDIES:
   human war sign sas repin OW-WAR-0146   (×1)
   human war sign sas repin OW-WAR-0148   (×1)
 
-2054 pass · 493 warn · 0 unknown · 0 error   (worst: WARN)
+2054 pass · 494 warn · 0 unknown · 0 error   (worst: WARN)
 
 NOT CHECKED:
   · 145 of 145 Warrant(s) have no disposed              obligations — §38.6 yields no resolution verdict for them, which is the              expected state of work that has not been assessed
