@@ -69,7 +69,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | independence requirements are met | 145 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
-| every required gate has admissible result | 79 |
+| every required gate has admissible result | 78 |
 | artifact digests verify | 68 |
 | required judgments exist | 57 |
 | residual risks have sufficient authority | 57 |
