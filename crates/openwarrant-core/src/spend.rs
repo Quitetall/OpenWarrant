@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 /// USD millionths; integer arithmetic, never a floating point estimate.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct UsdMicros(pub u64);
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Policy {
     pub ceiling: Option<UsdMicros>,
     pub allow_unknown: bool,
@@ -23,7 +23,7 @@ impl Default for Policy {
     }
 }
 /// Host-supplied observations, not authenticated by naming this variant.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ChargeBound {
     AuthoritativeMaximum(UsdMicros),
     Estimate(UsdMicros),
@@ -40,10 +40,31 @@ pub enum Fault {
     #[error("refused: charge guarantee breached; further requests blocked")]
     Breached,
 }
+/// Typed observations for host-owned persistence, not an authenticated wire format.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Event {
+    Reserved { call: String, bound: ChargeBound },
+    Settled { call: String, actual: UsdMicros },
+}
+/// The host must authenticate completeness, order, run identity and policy before
+/// restore. Removing an event can grant money again; replay cannot detect that.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct History {
+    pub policy: Policy,
+    pub events: Vec<Event>,
+}
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+pub enum RecoveryFault {
+    #[error("refused: recorded run policy differs from expected policy")]
+    PolicyChanged,
+    #[error("refused: invalid budget history at event {index}: {fault}")]
+    InvalidEvent { index: usize, fault: Fault },
+}
 #[derive(Debug)]
 struct Entry {
     maximum: Option<UsdMicros>,
     settled: bool,
+    settlement_observed: bool,
 }
 /// One ledger for ALL callers/attempts in the run. Policy has no mutation API.
 /// These values are deliberately not a decoded/serialized enforcement receipt.
@@ -54,6 +75,7 @@ pub struct RunBudget {
     held: u64,
     calls: BTreeMap<String, Entry>,
     breached: bool,
+    events: Vec<Event>,
 }
 #[derive(Debug, PartialEq, Eq)]
 pub struct Accounting {
@@ -72,6 +94,36 @@ impl RunBudget {
             held: 0,
             calls: BTreeMap::new(),
             breached: false,
+            events: Vec::new(),
+        }
+    }
+    /// Reconstruct one authenticated, complete run history. An overcharge or
+    /// overflow is a valid observation: restore its poisoned ledger, never a
+    /// fresh budget. Other invalid events refuse the entire recovery.
+    pub fn restore(expected: Policy, history: &History) -> Result<Self, RecoveryFault> {
+        if expected != history.policy {
+            return Err(RecoveryFault::PolicyChanged);
+        }
+        let mut ledger = Self::new(expected);
+        for (index, event) in history.events.iter().enumerate() {
+            let result = match event {
+                Event::Reserved { call, bound } => ledger.reserve(call, *bound),
+                Event::Settled { call, actual } => match ledger.settle(call, Some(*actual)) {
+                    Err(Fault::Breached) => Ok(()),
+                    result => result,
+                },
+            };
+            result.map_err(|fault| RecoveryFault::InvalidEvent { index, fault })?;
+        }
+        Ok(ledger)
+    }
+    /// Copy the typed history, including observed charges that returned Breached.
+    /// Host persistence must complete BEFORE execution after a reservation; this
+    /// in-memory copy does not observe disk durability or grant policy authority.
+    pub fn history(&self) -> History {
+        History {
+            policy: self.policy,
+            events: self.events.clone(),
         }
     }
     pub fn reserve(&mut self, call: &str, bound: ChargeBound) -> Result<(), Fault> {
@@ -107,9 +159,14 @@ impl RunBudget {
             Entry {
                 maximum,
                 settled: false,
+                settlement_observed: false,
             },
         );
         self.held = held;
+        self.events.push(Event::Reserved {
+            call: call.into(),
+            bound,
+        });
         Ok(())
     }
     /// Missing/error/crash settlement leaves the reservation held. A reported
@@ -118,10 +175,15 @@ impl RunBudget {
     /// Every subsequent reserve then refuses.
     pub fn settle(&mut self, call: &str, actual: Option<UsdMicros>) -> Result<(), Fault> {
         let entry = self.calls.get_mut(call).ok_or(Fault::Call)?;
-        if entry.settled {
+        if entry.settlement_observed {
             return Err(Fault::Call);
         }
         let actual = actual.ok_or(Fault::Unavailable)?;
+        entry.settlement_observed = true;
+        self.events.push(Event::Settled {
+            call: call.into(),
+            actual,
+        });
         let Some(total) = self.accounted.checked_add(actual.0) else {
             self.breached = true;
             return Err(Fault::Breached);

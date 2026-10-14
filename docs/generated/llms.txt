@@ -1616,6 +1616,10 @@
 > Refuse simultaneous Warrant performers before dispatch or spawn
 - t-68998 · ticket · done · Refuse simultaneous Warrant performers before dispatch or spawn · docs/tickets/t-68998/manifest.toml:1
 
+## docs/tickets/t-6e9de/manifest.toml
+> Restore one run budget without forgetting held reservations
+- t-6e9de · ticket · done · Restore one run budget without forgetting held reservations · docs/tickets/t-6e9de/manifest.toml:1
+
 ## docs/tickets/t-72af0/manifest.toml
 > Recover after context preparation is unavailable before worker launch
 - t-72af0 · ticket · done · Recover after context preparation is unavailable before worker launch · docs/tickets/t-72af0/manifest.toml:1
