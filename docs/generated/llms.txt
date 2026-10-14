@@ -1708,6 +1708,10 @@
 > Exercise populated canonical IR and retain bounded archive preservation observations
 - t-8e677 · ticket · done · Exercise populated canonical IR and retain bounded archive preservation observations · docs/tickets/t-8e677/manifest.toml:1
 
+## docs/tickets/t-913e0/manifest.toml
+> Correct stale standing authorization status in the glossary
+- t-913e0 · ticket · done · Correct stale standing authorization status in the glossary · docs/tickets/t-913e0/manifest.toml:1
+
 ## docs/tickets/t-95254/manifest.toml
 > Bind authorized Dispatch to exact signed current contract and immutable context holders
 - t-95254 · ticket · done · Bind authorized Dispatch to exact signed current contract and immutable context holders · docs/tickets/t-95254/manifest.toml:1
