@@ -4,8 +4,8 @@
   "gate_binding_digest": "unbound:ops.conformance.plants@1.1.0",
   "subject_digests": [
     "contract:sha256:de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9",
-    "deliverables:sha256:9caba6745d5469fc32ad1a9d1f1725abad7dbc74ceae9a1709b6e186bcb11909",
-    "tree:2389a502e413c44a74ff6709dfc219ac4d5752e6"
+    "deliverables:sha256:28205f3e96bb1d3f9a3667fe0ad7f3a7e3c4eeaec6fd4b845186b07887dcf919",
+    "tree:f13eee76dd2c75ccc459a21867a788238b91fbf4"
   ],
   "fixture_digests": [],
   "runner": "war gate --run",
@@ -14,9 +14,9 @@
     "bash",
     "conformance/plant-isolated.sh"
   ],
-  "working_directory": "/mnt/4tb/tmp/openwarrant-conformance-evidence",
-  "started_at": "2026-10-14T08:13:57Z",
-  "completed_at": "2026-10-14T08:37:28Z",
+  "working_directory": "/mnt/4tb/tmp/openwarrant-conformance-continuation",
+  "started_at": "2026-10-14T13:41:45Z",
+  "completed_at": "2026-10-14T14:07:35Z",
   "exit_result": "pass",
   "selected_test_count": 0,
   "selected_test_manifest": [],
@@ -25,5 +25,5 @@
   "stderr_ref": "docs/warrants/OW-WAR-0113/gate-runs/ops_conformance_plants_1_1_0.stderr.txt",
   "resource_usage": "wall-clock only; 2 argv item(s)",
   "verdict": "pass",
-  "receipt_digest": "sha256:371238a7a269c807f0ee09ac01e39241c54594d7a683f213e59c337a53b9b8dd"
+  "receipt_digest": "sha256:876f627eaeef6c4e01d35698d08323e130c48cfb75663ade1938e9eb28a1c89a"
 }
