@@ -26,6 +26,7 @@ pub mod rationale;
 pub mod record;
 pub mod relation;
 pub mod runtime_collector;
+pub mod spend;
 pub mod telemetry_metrics;
 pub mod traceability;
 pub mod verification;
