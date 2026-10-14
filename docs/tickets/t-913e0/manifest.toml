@@ -1,0 +1,21 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-913e0` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-913e0"
+uuid = "01a13c27-d6c6-76ef-8fc1-360f51c13d74"
+title = "Correct stale standing authorization status in the glossary"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-14T20:43:26Z"
+created_by = "agent://codex"
+type = "chore"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"
