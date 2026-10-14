@@ -1516,6 +1516,10 @@
 > war deliver: declare a deliverable delivered, by command
 - t-39dc · ticket · done · war deliver: declare a deliverable delivered, by command · docs/tickets/t-39dc/manifest.toml:1
 
+## docs/tickets/t-3a90c/manifest.toml
+> Run a shared preparation gate once with all selected contracts bound before execution
+- t-3a90c · ticket · open · Run a shared preparation gate once with all selected contracts bound before execution · docs/tickets/t-3a90c/manifest.toml:1
+
 ## docs/tickets/t-3f3e9/manifest.toml
 > Observe declared Linux storage crash and refusal controls
 - t-3f3e9 · ticket · done · Observe declared Linux storage crash and refusal controls · docs/tickets/t-3f3e9/manifest.toml:1
