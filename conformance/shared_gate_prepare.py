@@ -21,6 +21,7 @@ def main():
     case = parser.add_mutually_exclusive_group()
     case.add_argument("--mutate-input", action="store_true")
     case.add_argument("--mutate-contract", action="store_true")
+    case.add_argument("--mutate-gate", action="store_true")
     case.add_argument("--warrant-specific", action="store_true")
     case.add_argument("--fail-gate", action="store_true")
     args = parser.parse_args()
@@ -67,6 +68,12 @@ def main():
             contract = root / "docs/warrants/IX-WAR-0001/atoms/10-intent.md"
             script += (f"; p=Path({str(contract)!r}); "
                        "p.write_text(p.read_text()+chr(10)+'Changed while gate runs.'+chr(10))")
+        if args.mutate_gate:
+            definition = gates / "software.repo.war-check@1.0.0.yaml"
+            script += (f"; p=Path({str(definition)!r}); "
+                       "p.write_text(chr(10).join('argv: '+__import__('json').dumps(('false',)) if "
+                       "line.startswith('argv: ') else line for line in "
+                       "p.read_text().splitlines())+chr(10))")
         if args.fail_gate:
             script += "; raise SystemExit(7)"
         gate = (repo / "docs/gates/ops.echo@1.0.0.yaml").read_text()
@@ -90,7 +97,7 @@ def main():
         for alias in selected:
             warrant = next(w for w in results if w["alias"] == alias)
             steps = [s for s in warrant["steps"] if s["step"] == "evidence"]
-            expected = ("unknown" if args.mutate_input or (
+            expected = ("unknown" if args.mutate_input or args.mutate_gate or (
                 args.mutate_contract and alias == selected[0]) else
                 "failed" if args.fail_gate else "done")
             assert len(steps) == 1 and steps[0]["outcome"] == expected, warrant
@@ -98,11 +105,11 @@ def main():
         assert observed == ["run"] * (2 if args.warrant_specific else 1), (
             f"one shared gate must execute once, observed {len(observed)} starts: {observed}"
         )
-        if args.mutate_input:
+        if args.mutate_input or args.mutate_gate:
             for alias in selected:
                 assert not (root / "docs/warrants" / alias / "gate-runs"
                             / "software_repo_war-check_1_0_0.receipt.json").exists(), alias
-            print("PASS changed shared input: UNKNOWN, no current attachments")
+            print("PASS changed shared question: UNKNOWN, no current attachments")
             return
         if args.mutate_contract:
             for alias in selected:

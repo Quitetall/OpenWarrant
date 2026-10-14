@@ -3,7 +3,7 @@
 # Warrants; synthetic fixtures establish no real authority or assurance.
 echo '== shared preparation observations =='
 SGP_WAR="$REPO_ROOT/${WAR#./}"
-for SGP_CASE in shared mutate-input mutate-contract warrant-specific fail-gate; do
+for SGP_CASE in shared mutate-input mutate-contract mutate-gate warrant-specific fail-gate; do
     SGP_ARGS=()
     [[ "$SGP_CASE" == shared ]] || SGP_ARGS+=("--$SGP_CASE")
     SGP_LOG=$(mktemp)

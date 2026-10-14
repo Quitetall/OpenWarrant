@@ -56,7 +56,7 @@
 //! Gates using `<warrant>`, document gates and Bonsai bindings remain separate.
 //! An immutable evidence directory retains the shared streams; per-Warrant
 //! attachments carry the unchanged seal, not additional executions. Moved
-//! inputs pause the group as UNKNOWN; moved member contracts pause only those
+//! inputs or gate definitions pause the group as UNKNOWN; moved member contracts pause only those
 //! members. Verifiers still run separately, one Warrant per job.
 //!
 //! # What it never does

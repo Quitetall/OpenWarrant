@@ -8,17 +8,20 @@ use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 use camino::Utf8PathBuf;
 
-pub(crate) fn eligible(repo: &Repository, key: &str) -> bool {
-    if crate::gate_cmd::is_bonsai_gate(key) || key.starts_with("document.") {
-        return false;
-    }
+fn definition(repo: &Repository, key: &str) -> Option<openwarrant_core::GateDefinition> {
     let mut report = Report::default();
     let registry = crate::check::load_gate_registry(repo, &mut report);
-    report.is_ready()
-        && registry
-            .definitions
-            .iter()
-            .any(|d| d.key() == key && !d.argv.iter().any(|a| a == crate::gate_cmd::WARRANT_ARG))
+    report
+        .is_ready()
+        .then(|| registry.definitions.into_iter().find(|d| d.key() == key))
+        .flatten()
+}
+
+pub(crate) fn eligible(repo: &Repository, key: &str) -> bool {
+    !crate::gate_cmd::is_bonsai_gate(key)
+        && !key.starts_with("document.")
+        && definition(repo, key)
+            .is_some_and(|d| !d.argv.iter().any(|a| a == crate::gate_cmd::WARRANT_ARG))
 }
 
 struct Member {
@@ -63,6 +66,15 @@ pub(crate) fn record(
              without Warrant-specific arguments or document/Bonsai bindings"
         )));
     }
+    let Some(definition_before) = definition(repo, key) else {
+        let mut report = Report::default();
+        report.push(Diagnostic::unknown(
+            "evidence.shared-source-moved",
+            key,
+            "the gate definition became unavailable before execution; nothing was run",
+        ));
+        return Ok(report);
+    };
     let mut subjects = Vec::new();
     let mut members = Vec::new();
     let mut seen = std::collections::BTreeSet::new();
@@ -175,12 +187,14 @@ pub(crate) fn record(
             "shared observation failed seal or subject validation".into(),
         ));
     }
-    if !matches!(super::reuse_of(repo, key, &receipt), super::Reuse::Holds(_)) {
+    if definition(repo, key).as_ref() != Some(&definition_before)
+        || !matches!(super::reuse_of(repo, key, &receipt), super::Reuse::Holds(_))
+    {
         report.push(Diagnostic::unknown(
             "evidence.shared-source-moved",
             repo.relative(&receipt_path),
             format!(
-                "{key}: source binding no longer holds after execution; the actual \
+                "{key}: gate definition or source binding no longer holds after execution; the actual \
                 observation remains at {}, but no current Warrant attachment was written",
                 repo.relative(&receipt_path)
             ),
