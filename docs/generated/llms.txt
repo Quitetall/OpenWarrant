@@ -1608,6 +1608,10 @@
 > war ui answers 431 instead of 413 for an oversized body, under load
 - t-5f49 · ticket · done · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/manifest.toml:1
 
+## docs/tickets/t-62891/manifest.toml
+> Capture original Git inventory refusal; unchanged replay passes do not establish repair
+- t-62891 · ticket · open · Diagnose Git inventory refusal in full verifier conformance · docs/tickets/t-62891/manifest.toml:1
+
 ## docs/tickets/t-62f58/manifest.toml
 > Reject ambiguous blind-verifier answers (OW117)
 - t-62f58 · ticket · done · Reject ambiguous blind-verifier answers (OW117) · docs/tickets/t-62f58/manifest.toml:1
@@ -1711,6 +1715,10 @@
 ## docs/tickets/t-8e677/manifest.toml
 > Exercise populated canonical IR and retain bounded archive preservation observations
 - t-8e677 · ticket · done · Exercise populated canonical IR and retain bounded archive preservation observations · docs/tickets/t-8e677/manifest.toml:1
+
+## docs/tickets/t-913e0/manifest.toml
+> Correct stale standing authorization status in the glossary
+- t-913e0 · ticket · done · Correct stale standing authorization status in the glossary · docs/tickets/t-913e0/manifest.toml:1
 
 ## docs/tickets/t-95254/manifest.toml
 > Bind authorized Dispatch to exact signed current contract and immutable context holders

@@ -38,7 +38,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-01 | 1 | draft.created 1 |
 | 2026-10-02 | 2 | draft.created 1, question.asked 1 |
 | 2026-10-03 | 3 | attestation.recorded 1, authorization.recorded 1, question.answered 1 |
-| 2026-10-14 | 158 | sync.receipt_attached 158 |
+| 2026-10-14 | 197 | sync.receipt_attached 197 |
 
 ## Roadmap revisions
 
@@ -40074,7 +40074,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-017 | The loop in five commands | `docs/TICKETS.md` | verified |
 | D-018 | Three steps to start | `README.md` | verified |
 | D-019 | Three steps to start | `QUICKSTART.md` | verified |
-| D-020 | Ticket and Claim | `CONTEXT.md` | verified |
+| D-020 | Ticket and Claim | `CONTEXT.md` | drift |
 | D-021 | The working form | `docs/PROFILES.md` | verified |
 
 ### OW-WAR-0148 — Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel

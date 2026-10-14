@@ -33,7 +33,9 @@ The candidate is not signed adoption or proof of shipped behavior.
   count (OW-ADR-0029). A Warrant inside it is authorized in the signer's name by
   a deterministic check (`war sign standing apply`); one outside is refused by term.
   It never covers an authority path and never resolves anything. Contingent on
-  OW-WAR-0142 Q-001; SAS §28.8 is proposed in 1.2.0, not accepted.
+  OW-WAR-0142's separate decisions. The facility is permitted by §28.8 of
+  [accepted SAS 1.3.0](docs/sas/revisions/1.3.0.toml). Each class still needs
+  its own human signature and explicit terms; SAS acceptance activates no class.
 - **Ticket:** the working form of a delivery Warrant (OW-WAR-0147,
   `docs/TICKETS.md`): an intent and a Markdown checklist under
   `docs/tickets/<t-id>/`, worked with `war create`, `ready`, `claim`, `done`.

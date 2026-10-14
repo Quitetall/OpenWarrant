@@ -1,0 +1,22 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-62891` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-62891"
+uuid = "01a13c7b-6db2-7102-9875-590e274fefe8"
+title = "Diagnose Git inventory refusal in full verifier conformance"
+summary = "Capture original Git inventory refusal; unchanged replay passes do not establish repair"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-14T22:14:44Z"
+created_by = "agent://codex"
+type = "bug"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"
