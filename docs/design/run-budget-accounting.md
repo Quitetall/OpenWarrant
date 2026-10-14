@@ -37,6 +37,25 @@ Repeated construction of an in-memory value does not enforce a cap.
 Do not decode a model's claimed estimate as an AuthoritativeMaximum. Integer zero
 is only a known zero when the host actually established that charge/bound.
 
+## Recovery from host-owned history
+
+`RunBudget::history()` returns the recorded policy and ordered typed events.
+`RunBudget::restore(expected_policy, &history)` replays that complete history.
+Unsettled reservations remain held, unknown calls stay unknown, and duplicate,
+out-of-order or impossible events refuse recovery at the offending index. A
+different expected policy refuses. An observed overcharge or arithmetic overflow
+restores a poisoned ledger; it does not grant a fresh ceiling. The history retains
+the actual reported charge even when its subtotal cannot fit in a `u64`.
+Such an overflow cannot subsequently be overwritten by settling that call again.
+
+These Rust types define no wire format, signature or persistence backend. A host
+must authenticate the history's run identity, completeness, order and policy,
+and persist each reservation before dispatch. Merely replaying a well-formed but
+truncated or substituted history cannot detect its missing events. A restored
+ledger alone therefore establishes no custody or crash-safe spending guarantee.
+Refused reservations and missing settlements do not append budget events, since
+they do not change accounting; a host may retain those attempts separately.
+
 The current Claude verifier adapter supplies neither an authoritative charge bound
 nor run-wide enforcement. Its SDK cost estimates and post-response budget threshold
 cannot qualify this integration. This module launches no backend, grants no
