@@ -127,6 +127,73 @@ impl HostEnrollment {
     pub fn collector(&self) -> &str {
         &self.collector
     }
+    pub(super) fn enrolled_verifier_digest(&self) -> &str {
+        &self.enrollment.enrollment().verifier_digest
+    }
+    /// Authenticate a collector claim over checked capture sources. The host
+    /// supplies the actual provider interface and observed protected executable
+    /// digest. Rechecking snapshots is not atomic revocation fencing.
+    pub fn authenticate_capture(
+        &self,
+        signed: &openwarrant_core::runtime_collector::attribution::SignedAttribution,
+        binding: &openwarrant_core::document::runtime::RuntimeBinding,
+        provider: &openwarrant_core::runtime_collector::Provider,
+        verifier_digest: &str,
+        payload: &[u8],
+        signatures: &OpenSshSignatureCheck,
+    ) -> Result<
+        openwarrant_core::runtime_collector::attribution::AuthenticatedAttribution,
+        openwarrant_core::runtime_collector::attribution::Fault,
+    > {
+        use openwarrant_core::runtime_collector::attribution::{Context, Fault as CaptureFault};
+        self.observation.check()?;
+        let before = snapshot_for_execution(&self.enrollment.authority_store)?;
+        let warrant = binding
+            .warrant_ref
+            .strip_prefix("war://")
+            .ok_or(CaptureFault::Rejected("capture Warrant reference"))?;
+        let usage = Use {
+            repository: &self.repository,
+            collector: &self.collector,
+            warrant,
+            provider,
+            verifier_digest,
+        };
+        self.enrollment.allows_active(usage)?;
+        let usage = Use {
+            repository: &self.repository,
+            collector: &self.collector,
+            warrant,
+            provider,
+            verifier_digest,
+        };
+        let context = Context {
+            authority: &before.revision,
+            enrollment: &self.enrollment.authenticated,
+            usage: &usage,
+            binding,
+            payload,
+        };
+        let checked = signed.authenticate(&context, signatures)?;
+        self.observation.check()?;
+        let after = snapshot_for_execution(&self.enrollment.authority_store)?;
+        if after.head != before.head
+            || after
+                .active_collectors
+                .get(&self.collector)
+                .map(|a| &a.digest)
+                != before
+                    .active_collectors
+                    .get(&self.collector)
+                    .map(|a| &a.digest)
+        {
+            return Err(CaptureFault::Rejected(
+                "collector authority or activation changed during capture authentication",
+            ));
+        }
+        self.enrollment.allows_active(usage)?;
+        Ok(checked)
+    }
     /// Acquires an already-activated enrollment using the protected host's
     /// identities. This records no activation. Native input custody remains
     /// a host responsibility; surrounding checks are not atomic launch fencing.

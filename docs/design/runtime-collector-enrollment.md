@@ -144,3 +144,10 @@ tests, and scoped Clippy with warnings denied passes. The earlier default-profil
 compile timed out before a test verdict. Lean reruns preserved assertions and
 test scope. Full repository and transport qualification remain open. See
 [retained observations](../warrants/OW-WAR-0149/implementation/collector-enrollment-20261010/README.md).
+
+The separate [capture attribution interface](capture-attribution-authentication.md)
+binds the complete canonical capture request and original receipt bytes to one
+current recorded dispatch. Its explicit `runtime import-attributed-inline` command
+uses protected active enrollment and a separately purposed capture signature.
+Ordinary unsigned capture imports do not enter this path. Historical retained
+attribution is not a fresh native verdict or an assurance mark.

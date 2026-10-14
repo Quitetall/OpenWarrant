@@ -1700,6 +1700,10 @@
 > M12: a small surface
 - t-a92bb · ticket · done · M12: a small surface · docs/tickets/t-a92bb/manifest.toml:1
 
+## docs/tickets/t-aade8/manifest.toml
+> Diagnose intermittent draft checkpoint startup timeout in integration suite
+- t-aade8 · ticket · open · Diagnose intermittent draft checkpoint startup timeout in integration suite · docs/tickets/t-aade8/manifest.toml:1
+
 ## docs/tickets/t-ad636/manifest.toml
 > M4: fixed states plus declared refinements
 - t-ad636 · ticket · done · M4: fixed states plus declared refinements · docs/tickets/t-ad636/manifest.toml:1
@@ -1715,6 +1719,10 @@
 ## docs/tickets/t-aef77/manifest.toml
 > Keep verifier fixtures within their declared dispatch budgets
 - t-aef77 · ticket · done · Keep verifier fixtures within their declared dispatch budgets · docs/tickets/t-aef77/manifest.toml:1
+
+## docs/tickets/t-af9b7/manifest.toml
+> Connect signed collector attribution to checked capture imports
+- t-af9b7 · ticket · done · Connect signed collector attribution to checked capture imports · docs/tickets/t-af9b7/manifest.toml:1
 
 ## docs/tickets/t-b0708/manifest.toml
 > M2: a document's type chooses its capabilities, and new manifests pin their profile

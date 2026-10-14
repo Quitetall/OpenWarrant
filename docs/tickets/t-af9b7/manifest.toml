@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-af9b7` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-af9b7"
+uuid = "01a13793-13dc-72d5-b9f6-fffbbf772310"
+title = "Connect signed collector attribution to checked capture imports"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-13T23:22:28Z"
+created_by = "agent://codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"
