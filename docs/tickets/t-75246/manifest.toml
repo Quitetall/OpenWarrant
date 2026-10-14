@@ -1,0 +1,21 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-75246` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-75246"
+uuid = "01a13bf0-4519-75a8-a282-82d8977e4b52"
+title = "Return the standard report envelope from legacy migration JSON mode"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-14T19:42:44Z"
+created_by = "agent://codex"
+type = "bug"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"
