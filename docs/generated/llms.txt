@@ -511,6 +511,10 @@
 > -
 - doc:docs/design/war-skills-audit.md · document · - · War skill and planning audit · docs/design/war-skills-audit.md:1
 
+## docs/evidence/structural-wave-20261014/README.md
+> -
+- doc:docs/evidence/structural-wave-20261014/README.md · document · - · Scoped structural evidence wave · docs/evidence/structural-wave-20261014/README.md:1
+
 ## docs/format/FORMAT-1.0.md
 > -
 - doc:docs/format/FORMAT-1.0.md · document · - · OpenWarrant Format 1.0 · docs/format/FORMAT-1.0.md:1
