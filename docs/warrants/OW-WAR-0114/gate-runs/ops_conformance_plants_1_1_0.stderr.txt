@@ -1,0 +1,38 @@
+grep: /mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/tmp.w1XGaIItwQ/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/tmp.w1XGaIItwQ/unreadable/closed.rs: Permission denied
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/60-perform-cancel.sh: line 152: 2885674 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/60-perform-cancel.sh: line 152: 2885742 Killed                     WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2991625/task/2993510/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2991625/task/2993514/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2991625/task/2993508/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2991625/task/2993529/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2991625/task/2993503/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/2995604/cmdline: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2991625/task/2995628/children: No such file or directory
+/mnt/4tb/tmp/openwarrant-conformance-runtime-20261014/war-isolated-battery.2RhJix/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2991625/task/2995603/children: No such file or directory
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 3.724s
+
+OK
+test_assistance_failure_and_duplicate_remain_visible (test_evaluate.EvaluationTests.test_assistance_failure_and_duplicate_remain_visible) ... ok
+test_cli_with_no_sessions_reports_missing_not_success (test_evaluate.EvaluationTests.test_cli_with_no_sessions_reports_missing_not_success) ... ok
+test_exact_thresholds_and_fixed_denominator (test_evaluate.EvaluationTests.test_exact_thresholds_and_fixed_denominator) ... ok
+test_gap_overlap_and_missing_consent_refuse (test_evaluate.EvaluationTests.test_gap_overlap_and_missing_consent_refuse) ... ok
+test_invalid_numbers_exclusion_and_duplicate_keys_refuse (test_evaluate.EvaluationTests.test_invalid_numbers_exclusion_and_duplicate_keys_refuse) ... ok
+test_overrun_and_unknown_are_distinct (test_evaluate.EvaluationTests.test_overrun_and_unknown_are_distinct) ... ok
+test_actual_transitions_cover_time_and_cannot_qualify_a_study (test_record.RecorderTests.test_actual_transitions_cover_time_and_cannot_qualify_a_study) ... ok
+test_event_limit_keeps_room_to_record_stop (test_record.RecorderTests.test_event_limit_keeps_room_to_record_stop) ... ok
+test_exclusion_and_assistance_remain_visible (test_record.RecorderTests.test_exclusion_and_assistance_remain_visible) ... ok
+test_invalid_category_and_exclusion_never_invent_an_interval (test_record.RecorderTests.test_invalid_category_and_exclusion_never_invent_an_interval) ... ok
+test_metadata_rejects_private_extra_fields_and_missing_consent (test_record.RecorderTests.test_metadata_rejects_private_extra_fields_and_missing_consent) ... ok
+test_native_cli_eof_retains_measured_interruption_and_refuses_overwrite (test_record.RecorderTests.test_native_cli_eof_retains_measured_interruption_and_refuses_overwrite) ... ok
+test_native_cli_partial_input_deadline_is_bounded_and_preserved (test_record.RecorderTests.test_native_cli_partial_input_deadline_is_bounded_and_preserved) ... ok
+test_native_cli_sigterm_retains_unknown_interruption (test_record.RecorderTests.test_native_cli_sigterm_retains_unknown_interruption) ... ok
+test_unavailable_clock_and_failure_bound_preserve_unknown (test_record.RecorderTests.test_unavailable_clock_and_failure_bound_preserve_unknown) ... ok
+test_unavailable_clock_and_zero_elapsed_stay_unknown (test_record.RecorderTests.test_unavailable_clock_and_zero_elapsed_stay_unknown) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.421s
+
+OK
