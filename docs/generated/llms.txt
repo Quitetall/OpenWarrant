@@ -479,6 +479,10 @@
 > -
 - doc:docs/design/reviewed-subject-binding-wip.md · document · - · Reviewed subject binding: saved implementation slices · docs/design/reviewed-subject-binding-wip.md:1
 
+## docs/design/run-budget-accounting.md
+> -
+- doc:docs/design/run-budget-accounting.md · document · - · One run budget — SDK accounting primitive · docs/design/run-budget-accounting.md:1
+
 ## docs/design/runtime-collector-enrollment.md
 > -
 - doc:docs/design/runtime-collector-enrollment.md · document · - · Runtime collector enrollment — candidate contract · docs/design/runtime-collector-enrollment.md:1
@@ -1419,6 +1423,10 @@
 ## docs/tickets/t-17d63/manifest.toml
 > Recheck merged Katana native interface without claiming coding-agent qualification
 - t-17d63 · ticket · done · Recheck merged Katana native interface without claiming coding-agent qualification · docs/tickets/t-17d63/manifest.toml:1
+
+## docs/tickets/t-196fd/manifest.toml
+> Add pure SDK run-budget reservation and settlement controls
+- t-196fd · ticket · done · Add pure SDK run-budget reservation and settlement controls · docs/tickets/t-196fd/manifest.toml:1
 
 ## docs/tickets/t-1de2/manifest.toml
 > OW-WAR-0116/0115 verdicts: GET /api/act, progress evidence, act command line, Help binary row
