@@ -209,11 +209,12 @@ def main():
             def interrupted(*_):
                 nonlocal interruption_requested
                 interruption_requested = True
-            # Finish each journal write before acting on SIGTERM. Raising in
+            # Finish each journal write before acting on SIGTERM or Ctrl-C. Raising in
             # fsync can leave visible bytes without their digest or Recorder
             # object, including during construction of the started event.
             # Input polling observes the request within 100 ms when idle.
-            previous = signal.signal(signal.SIGTERM, interrupted)
+            previous = {kind: signal.signal(kind, interrupted)
+                        for kind in (signal.SIGTERM, signal.SIGINT)}
             recorder = None
             try:
                 recorder = Recorder(declared, sink=append)
@@ -239,7 +240,8 @@ def main():
                     raise
                 recorder.stop("invalid-input")
             finally:
-                signal.signal(signal.SIGTERM, previous)
+                for kind, handler in previous.items():
+                    signal.signal(kind, handler)
             record = recorder.record()
             record["events"] = {"file": events.name, "sha256": digest.hexdigest(), "count": len(recorder.events)}
             record["metadata_sha256"] = hashlib.sha256(raw).hexdigest()
