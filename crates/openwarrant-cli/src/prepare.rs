@@ -51,7 +51,13 @@
 //! `war evidence document review`) reads the compiled projections, and every receipt
 //! changes them: it runs alone, with `war admin compile` immediately before it. Every
 //! other gate — the battery runs in a disposable clone (t-d052) — may run
-//! beside others, `--jobs` at a time, one Warrant per job; so may the verifier.
+//! beside others, `--jobs` at a time. Warrants whose next gate is the same
+//! share one observation with every selected contract bound before execution.
+//! Gates using `<warrant>`, document gates and Bonsai bindings remain separate.
+//! An immutable evidence directory retains the shared streams; per-Warrant
+//! attachments carry the unchanged seal, not additional executions. Moved
+//! inputs pause the group as UNKNOWN; moved member contracts pause only those
+//! members. Verifiers still run separately, one Warrant per job.
 //!
 //! # What it never does
 //!
@@ -359,24 +365,8 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<(Report, Prepared), Repo
         }
     };
     if !opts.dry_run {
-        phase(
-            repo,
-            &mut work,
-            opts.jobs,
-            false,
-            "evidence",
-            &gate_tasks(Class::Isolated),
-            record_gate,
-        );
-        phase(
-            repo,
-            &mut work,
-            1,
-            true,
-            "evidence",
-            &gate_tasks(Class::InTree),
-            record_gate,
-        );
+        evidence_phase(repo, &mut work, opts.jobs, Class::Isolated);
+        evidence_phase(repo, &mut work, 1, Class::InTree);
     }
     // 5. verify
     for w in work.iter_mut().filter(|w| w.live()) {
@@ -765,6 +755,138 @@ fn record_gate(repo: &Repository, alias: &str, key: &str) -> (Outcome, String) {
             }
         }
     }
+}
+
+/// Schedule each Warrant's next gate, keeping its stop-on-failure order. A
+/// round has at most one task per Warrant; only different groups run beside
+/// one another. Warrant-specific/document/Bonsai gates retain separate runs.
+fn evidence_phase(repo: &Repository, work: &mut [Work], jobs: usize, class: Class) {
+    loop {
+        let mut groups = std::collections::BTreeMap::<String, Vec<(usize, String)>>::new();
+        for (i, w) in work.iter().enumerate().filter(|(_, w)| w.live()) {
+            if let Some(step) = w.steps.iter().find(|s| {
+                s.step == "evidence"
+                    && s.outcome == Outcome::Planned
+                    && w.gates
+                        .iter()
+                        .any(|(key, c)| key == &s.subject && *c == class)
+            }) {
+                groups
+                    .entry(step.subject.clone())
+                    .or_default()
+                    .push((i, w.alias.clone()));
+            }
+        }
+        if groups.is_empty() {
+            break;
+        }
+        let serial = class == Class::InTree;
+        let results = Mutex::new(Vec::new());
+        let one = |(key, members): (String, Vec<(usize, String)>)| {
+            if members.len() > 1 && crate::evidence::shared::eligible(repo, &key) {
+                let aliases = members.iter().map(|(_, a)| a.clone()).collect::<Vec<_>>();
+                eprintln!("prepare: {}: shared evidence {key} …", aliases.join(", "));
+                let observation = if serial { compile(repo) } else { Ok(()) }.and_then(|()| {
+                    crate::evidence::shared::record(repo, &aliases, &key).map_err(|e| e.to_string())
+                });
+                for (i, alias) in members {
+                    let file = repo.relative(&repo.warrants_dir().join(&alias));
+                    let outcome = observation.as_ref().map_or_else(
+                        |e| (Outcome::Error, e.clone()),
+                        |r| shared_outcome(r, &file),
+                    );
+                    push_result(&results, (i, key.clone(), outcome.0, outcome.1));
+                }
+            } else {
+                for (i, alias) in members {
+                    let outcome = if serial { compile(repo) } else { Ok(()) }.map_or_else(
+                        |e| (Outcome::Error, e),
+                        |()| record_gate(repo, &alias, &key),
+                    );
+                    push_result(&results, (i, key.clone(), outcome.0, outcome.1));
+                }
+            }
+        };
+        in_parallel(
+            if serial { 1 } else { jobs.max(1) },
+            groups.into_iter().collect(),
+            one,
+        );
+        for (i, key, outcome, detail) in results.into_inner().unwrap_or_default() {
+            let w = &mut work[i];
+            if let Some(step) = w
+                .steps
+                .iter_mut()
+                .find(|s| s.step == "evidence" && s.subject == key && s.outcome == Outcome::Planned)
+            {
+                step.outcome = outcome;
+                step.detail = detail.clone();
+            }
+            match outcome {
+                Outcome::Done => {}
+                Outcome::Failed => {
+                    w.stop(State::Stopped, format!("evidence {key} failed: {detail}"))
+                }
+                Outcome::Unknown => {
+                    w.stop(State::Unknown, format!("evidence {key} UNKNOWN: {detail}"))
+                }
+                _ => w.stop(State::Error, format!("evidence {key}: {detail}")),
+            }
+            if !w.live() {
+                for step in w.steps.iter_mut().filter(|s| s.outcome == Outcome::Planned) {
+                    step.outcome = Outcome::Skipped;
+                    step.detail = "not reached: an earlier step stopped this Warrant".into();
+                }
+            }
+        }
+    }
+}
+
+fn shared_outcome(report: &Report, member: &str) -> (Outcome, String) {
+    if let Some(d) = report
+        .diagnostics
+        .iter()
+        .find(|d| d.rule == "evidence.shared-member-stale" && d.file.as_deref() == Some(member))
+    {
+        return (Outcome::Unknown, d.message.clone());
+    }
+    for (rule, outcome) in [
+        ("evidence.shared-source-moved", Outcome::Unknown),
+        ("gate-run.fail", Outcome::Failed),
+        ("gate-run.unaskable", Outcome::Unknown),
+        ("gate-run.no-result", Outcome::Unknown),
+    ] {
+        if let Some(d) = report.diagnostics.iter().find(|d| d.rule == rule) {
+            return (outcome, d.message.clone());
+        }
+    }
+    if let Some(d) = report
+        .diagnostics
+        .iter()
+        .find(|d| d.severity >= Severity::Unknown && d.rule != "evidence.shared-member-stale")
+    {
+        return (
+            if d.severity == Severity::Unknown {
+                Outcome::Unknown
+            } else {
+                Outcome::Error
+            },
+            d.message.clone(),
+        );
+    }
+    report
+        .diagnostics
+        .iter()
+        .find(|d| d.rule == "gate-run.pass")
+        .map_or_else(
+            || {
+                (
+                    Outcome::Unknown,
+                    "shared gate reported no passing result".into(),
+                )
+            },
+            |d| (Outcome::Done, d.message.clone()),
+        )
 }
 
 fn plan_verify(repo: &Repository, w: &mut Work, reverify: bool) {

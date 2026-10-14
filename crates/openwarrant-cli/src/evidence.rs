@@ -75,6 +75,8 @@ use openwarrant_core::{GateReceipt, GateRun};
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
+pub(crate) mod shared;
+
 /// The directory under a Warrant where its recorded runs live.
 pub const GATE_RUNS_DIR: &str = "gate-runs";
 
