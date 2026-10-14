@@ -1,0 +1,21 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-52a0f` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-52a0f"
+uuid = "01a13b30-7292-7119-8ac8-27fc00aa0b71"
+title = "Retain study recorder interruptions during durable journal writes"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-14T16:13:13Z"
+created_by = "agent://codex"
+type = "bug"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

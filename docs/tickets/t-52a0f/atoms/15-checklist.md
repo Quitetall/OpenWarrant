@@ -1,0 +1,4 @@
+# Checklist
+
+- [x] Preserve SIGTERM during the started event sync as an unknown session with exact ledger digest (i-06bb) — done by agent://codex, 2026-10-14: Real SIGTERM at the first durable started-event sync reproduced exit -2 without session. Handler now defers interruption until the event write finishes; regression, one 17-test suite run and scoped shipped plant pass. Correction: repetition result is 18 PASS and two write-timeout errors; a later traced suite is 15 PASS and two write-timeout errors. Original incorrect 20-pass note and its correction remain in the journal. Exact ledger digest and unknown outcome checked. Original five-second storage timeouts remain open; no participant or independent qualification implied.
+- [ ] Diagnose five-second study recorder write timeouts without weakening deadlines or durability (i-dc7f)

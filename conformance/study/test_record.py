@@ -126,6 +126,37 @@ class RecorderTests(unittest.TestCase):
                 if process.poll() is None:
                     process.kill(); process.communicate(timeout=5)
 
+    def test_sigterm_during_started_event_sync_retains_unknown_session(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); meta = root / "meta.json"; out = root / "out.json"
+            meta.write_text(json.dumps(declared()))
+            child = '''import os, signal, sys
+sys.path.insert(0, sys.argv[1])
+import record
+original = record.os.fsync
+calls = 0
+def sync(fd):
+    global calls
+    calls += 1
+    original(fd)
+    if calls == 1:
+        os.kill(os.getpid(), signal.SIGTERM)
+record.os.fsync = sync
+sys.argv = ['record.py', '--metadata', sys.argv[2], '--out', sys.argv[3]]
+raise SystemExit(record.main())
+'''
+            result = subprocess.run([sys.executable, "-c", child,
+                str(Path(__file__).parent), str(meta), str(out)],
+                input=b'', capture_output=True, timeout=5)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            record = json.loads(out.read_bytes())
+            self.assertEqual(record["outcome"], "unknown")
+            self.assertEqual(record["termination"], "signal-interruption")
+            events = (root / record["events"]["file"]).read_bytes()
+            self.assertEqual(hashlib.sha256(events).hexdigest(), record["events"]["sha256"])
+            self.assertEqual([json.loads(line)["kind"] for line in events.splitlines()],
+                             ["started", "stopped"])
+
     def test_unavailable_clock_and_failure_bound_preserve_unknown(self):
         def unavailable(): raise OSError("synthetic clock failure")
         r = Recorder(declared(), clock=lambda: 0)
