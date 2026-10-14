@@ -1005,6 +1005,341 @@
       "source": "docs/warrants/OW-WAR-0147/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
       "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0147/software_repo_war-check_1_0_0.stderr.txt",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0001/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0001/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0003/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0004/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0004/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0006/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0006/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0007/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0007/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0011/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0011/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0013/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0013/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0023/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0023/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0026/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0026/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0027/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0027/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0028/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0028/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0029/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0029/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0030/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0030/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0032/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0032/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0035/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0035/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0036/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0036/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0037/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0037/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0039/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0039/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0040/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0040/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0041/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0041/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0042/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0042/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0043/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0043/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0044/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0044/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0045/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0045/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0047/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0047/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0048/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0048/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0049/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0049/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0050/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0050/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0059/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0059/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0063/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0063/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0064/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0064/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0067/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0067/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0068/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0068/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0069/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0069/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0070/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0070/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0071/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0071/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0072/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0072/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0073/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0073/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0074/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0075/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0075/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0077/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0077/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0078/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0078/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0079/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0079/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0080/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0080/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0081/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0081/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0082/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0082/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0083/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0083/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0084/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0084/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0085/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0085/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0086/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0086/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0087/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0087/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0088/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0088/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0089/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0089/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0090/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0090/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0091/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0091/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0113/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0113/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0114/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0114/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0122/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0122/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0126/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0126/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0127/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0127/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0128/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0128/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0133/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0133/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0134/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0134/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0136/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0136/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0137/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0137/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0140/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0140/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
+    },
+    {
+      "source": "docs/warrants/OW-WAR-0147/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "retained": "docs/evidence/structural-wave-20261014/previous/OW-WAR-0147/software_repo_war-check_1_0_0.run.toml",
+      "sha256": "57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be"
     }
   ]
 }
