@@ -35,9 +35,10 @@ jobs:
   gate:
     name: gate
     runs-on: ubuntu-latest
-    # The same bound as CI's gate job: the full gate now takes about 40
-    # minutes there, and a release gate that times out first can never ship.
-    timeout-minutes: 60
+    # Match CI's 75-minute gate bound. Run 38668856947 reached all gate
+    # steps and plants at the old 60-minute boundary but was cancelled before
+    # the final candidate check. Keep every check and individual deadline.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

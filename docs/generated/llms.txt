@@ -600,6 +600,10 @@
 > -
 - doc:docs/releases/alpha3.md · document · - · OpenWarrant 1.0.0-alpha.3 — tickets are Warrants, and ordinary work is ordinary · docs/releases/alpha3.md:1
 
+## docs/releases/alpha4.md
+> -
+- doc:docs/releases/alpha4.md · document · - · OpenWarrant 1.0.0-alpha.4 — integration and conformance preview · docs/releases/alpha4.md:1
+
 ## docs/releases/candidate-rehearsal.md
 > -
 - doc:docs/releases/candidate-rehearsal.md · document · - · Candidate packaging and installation rehearsal · docs/releases/candidate-rehearsal.md:1
@@ -1583,6 +1587,10 @@
 ## docs/tickets/t-54257/manifest.toml
 > Connect current runtime receipt assessment to resolution
 - t-54257 · ticket · done · Connect current runtime receipt assessment to resolution · docs/tickets/t-54257/manifest.toml:1
+
+## docs/tickets/t-5501f/manifest.toml
+> Prepare alpha.4 preview with current integration fixes
+- t-5501f · ticket · done · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
 
 ## docs/tickets/t-5504f/manifest.toml
 > Retain current phase evidence and audit remaining Warrant completion scope
