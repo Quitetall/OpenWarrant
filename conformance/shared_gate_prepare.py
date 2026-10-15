@@ -24,6 +24,7 @@ def main():
     case.add_argument("--mutate-gate", action="store_true")
     case.add_argument("--warrant-specific", action="store_true")
     case.add_argument("--fail-gate", action="store_true")
+    case.add_argument("--different-orders", action="store_true")
     args = parser.parse_args()
     war = str(args.war.resolve(strict=True))
     repo = Path(__file__).resolve().parent.parent
@@ -38,6 +39,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="ow-shared-gate-") as temporary:
         root = Path(temporary) / "repository"
         shutil.copytree(repo / "conformance/fixtures/inbox/repository", root)
+        selected = ["IX-WAR-0001", "IX-WAR-0003"]
 
         def git(*argv):
             return subprocess.run(["git", *argv], cwd=root, env=env,
@@ -86,12 +88,26 @@ def main():
         gate = gate.replace('argv: ["true"]', "argv: " + json.dumps(argv))
         gate += '\ninputs: ["openwarrant.toml"]\n'
         (gates / "software.repo.war-check@1.0.0.yaml").write_text(gate)
+        if args.different_orders:
+            (gates / "plant.second@1.0.0.yaml").write_text(gate.replace(
+                'gate_id: "software.repo.war-check"', 'gate_id: "plant.second"'))
+            key = "gate://software.repo.war-check@1.0.0"
+            other = "gate://plant.second@1.0.0"
+            for ordinal, alias in enumerate(selected):
+                assurance = root / "docs/warrants" / alias / "atoms/60-assurance.md"
+                text = assurance.read_text()
+                assert text.count(key) == 2
+                if ordinal == 0:
+                    left, right = text.rsplit(key, 1)
+                    text = left + other + right
+                else:
+                    text = text.replace(key, other, 1)
+                assurance.write_text(text)
         compiled = cli("admin", "compile")
         assert compiled["exit_code"] == 0, compiled
         git("add", "-A")
         git("commit", "-qm", "synthetic shared-gate fixture")
 
-        selected = ["IX-WAR-0001", "IX-WAR-0003"]
         report = cli("evidence", "prepare", *selected, "--jobs", "1")
         results = report["result"]["warrants"]
         for alias in selected:
@@ -100,11 +116,20 @@ def main():
             expected = ("unknown" if args.mutate_input or args.mutate_gate or (
                 args.mutate_contract and alias == selected[0]) else
                 "failed" if args.fail_gate else "done")
-            assert len(steps) == 1 and steps[0]["outcome"] == expected, warrant
+            assert len(steps) == (2 if args.different_orders else 1), warrant
+            assert all(s["outcome"] == expected for s in steps), warrant
         observed = counter.read_text().splitlines()
-        assert observed == ["run"] * (2 if args.warrant_specific else 1), (
+        assert observed == ["run"] * (2 if args.warrant_specific or args.different_orders else 1), (
             f"one shared gate must execute once, observed {len(observed)} starts: {observed}"
         )
+        if args.different_orders:
+            for slug in ("software_repo_war-check_1_0_0", "plant_second_1_0_0"):
+                bound = [json.loads((root / "docs/warrants" / alias / "gate-runs"
+                                     / f"{slug}.receipt.json").read_text()) for alias in selected]
+                assert bound[0] == bound[1]
+                assert len({s for s in bound[0]["subject_digests"] if s.startswith("contract:")}) == 2
+            print("PASS different gate orders: each gate executes once with both contracts pre-bound")
+            return
         if args.mutate_input or args.mutate_gate:
             for alias in selected:
                 assert not (root / "docs/warrants" / alias / "gate-runs"
