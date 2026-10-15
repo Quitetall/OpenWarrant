@@ -1,0 +1,60 @@
+{
+  "head": "cd295857107f2d103f1e96f31d0a9100fda4e657",
+  "tested_merge_snapshot": "1abbe1e5f104f0e45171d07ac45871c1af436ae8",
+  "tested_tree": "b2ca430b72060f2599e5b64159ca9ef680f2817c",
+  "run": 38671322649,
+  "source_inventories_match": true,
+  "source_file_count": 12350,
+  "source_digest": "15b036e341f808f1c55d2c0de4da074f9276125e3dd3c0b6acdf9c2c436db0b0",
+  "linux": {
+    "host": "Linux",
+    "arch": "x86_64",
+    "passed": true
+  },
+  "macos": {
+    "host": "Darwin",
+    "arch": "arm64",
+    "passed": true
+  },
+  "checks": [
+    "binary_stability",
+    "build",
+    "cli",
+    "context",
+    "core",
+    "fixtures",
+    "inventory",
+    "skills",
+    "source_stability",
+    "stage",
+    "structure"
+  ],
+  "refusal_controls": [
+    {
+      "job": "Phase 1 ubuntu-latest",
+      "job_id": 116214880265,
+      "refusal_step": {
+        "completedAt": "2026-10-15T02:32:26Z",
+        "conclusion": "success",
+        "name": "Special-backup refusal preserves earlier records",
+        "number": 5,
+        "startedAt": "2026-10-15T02:32:26Z",
+        "status": "completed"
+      }
+    },
+    {
+      "job": "Phase 1 macos-latest",
+      "job_id": 116214880329,
+      "refusal_step": {
+        "completedAt": "2026-10-15T02:34:20Z",
+        "conclusion": "success",
+        "name": "Special-backup refusal preserves earlier records",
+        "number": 5,
+        "startedAt": "2026-10-15T02:34:19Z",
+        "status": "completed"
+      }
+    }
+  ],
+  "phase_exit_established": false,
+  "qualification_established": false
+}

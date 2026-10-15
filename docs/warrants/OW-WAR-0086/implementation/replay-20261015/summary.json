@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "provider_git_head": "60a3ae2d03815f87b3365268a349e05376241a17",
+  "consumer_git_head": "5cf336b2517f2c6ea30c2b762dabfffdc0f6fc45",
+  "sdk_revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
+  "changed_inputs": [],
+  "repeat_identical": true,
+  "provider_worktree_status": "",
+  "consumer_binary_sha256": "24e88c2a057b3ee9bd4fb34b4ef92984095f9312c5617618760f7e439d03d212",
+  "shared_contract_sha256": "5df49a40f5cd5aada38f95030c7bf0d1fdd6fc45b859d471271c7e0aa9f0c625",
+  "provider_suites": {
+    "source": true,
+    "conditions": true,
+    "selection": true,
+    "projections": true,
+    "package": true,
+    "budgets": true
+  },
+  "adapter_tests_exit": 0,
+  "exchange_passed": true,
+  "receipt_sha256": "1955f748973e47308764661a89a06c79f514a33e8785c9f0ea2c888cd6c4acd1",
+  "receipt_gz_sha256": "ab65544da076ba0e9b2263510adb8bf3cdf729a55c993c8dee5c69c07e6da55b",
+  "recorded_at": "2026-10-15T03:02:20.663572+00:00",
+  "assurance": "performer observation only; not independent verification or Phase 2 exit"
+}

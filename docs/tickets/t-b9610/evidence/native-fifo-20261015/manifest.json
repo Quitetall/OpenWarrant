@@ -1,0 +1,65 @@
+{
+  "source_base": "c8bc0cb0a4704af8db960694029664fd5c8f09e6",
+  "failed_native_run": 38670200456,
+  "candidate_source_sha256": {
+    ".github/workflows/phase1-native.yml": "51eb022adb99272fa26f6af6e65d04147f04942f3471b69b1494fd8ac710094d",
+    "crates/openwarrant-cli/tests/verification_subject_cli.rs": "822200ffaf09f91425e08d30e6f714b379face15861192aa5c7c2cdb1556f1df"
+  },
+  "files": [
+    {
+      "path": "phase1-Linux.json.gz",
+      "raw_sha256": "9a52c6d43d7b7916b5560d32b9da81ad8c661ec3aaafa102102166b23f28d931",
+      "raw_bytes": 3759097,
+      "gzip_sha256": "456c7cb55414b9e96c8f8f2bdcf836cbe0345db24a6783ca4a0a05e235b1f016"
+    },
+    {
+      "path": "phase1-macOS.json.gz",
+      "raw_sha256": "7f5f1df352e75fa750db39d641e04cb275fb78c8a9cf1f40f7baa7b4f164bf7a",
+      "raw_bytes": 3758075,
+      "gzip_sha256": "0eb7875a4ccbfdf6d898d5e1605692823d3041abc383cf8ebc698ae3faecb114"
+    },
+    {
+      "path": "failed-native-comparison.json.gz",
+      "raw_sha256": "04dfde6166336478d4a8d7da76984e15a01fab15ac5722d0ded6ae3366d4bab2",
+      "raw_bytes": 310,
+      "gzip_sha256": "d4d48bcbdded30642229b2b79e49d653f8e01b3deac68a2243800c6287cfe6e0"
+    },
+    {
+      "path": "fifo-fixture-linux.stdout.gz",
+      "raw_sha256": "2d827a6e509b709422485901ce65b05a97bc69b8d1dac46184d319e961a3efb8",
+      "raw_bytes": 215,
+      "gzip_sha256": "8fd42f34ae8eb0dda17cee6d18805d5daf92cf3dbcc44a968a79f1d0e6067bb1"
+    },
+    {
+      "path": "fifo-fixture-linux.stderr.gz",
+      "raw_sha256": "624bb6de6931fc57fa52992942b606faa15346b491d9b66c3b8622e654382053",
+      "raw_bytes": 293,
+      "gzip_sha256": "9e77c1d1edcccf658b7a3753948a351a2cda87fcc00ab3a6cb806483319bab54"
+    },
+    {
+      "path": "portable-verifier-suite.stdout.gz",
+      "raw_sha256": "bd1fdbb858bfa1976617560355b90d9f15995dafe4dc41331838c47741d4f066",
+      "raw_bytes": 5186,
+      "gzip_sha256": "40ef703819c62ff738e7ea74fb525753ccbef1536895dbc116b0cc5fde02d016"
+    },
+    {
+      "path": "portable-verifier-suite.stderr.gz",
+      "raw_sha256": "a448f6c6e9f9121aae41d479d9d59d6cd1a74ff83bba9e2176c4d0560bd43d1a",
+      "raw_bytes": 172,
+      "gzip_sha256": "206085b05a8fce4244af833178c3f8a6a0a117a9717e3dcb194e4b0eb0bf64d9"
+    },
+    {
+      "path": "portable-fifo-clippy.stdout.gz",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_bytes": 0,
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "portable-fifo-clippy.stderr.gz",
+      "raw_sha256": "ce981db209dc7b018d6a52bdc4256c4e95848f186784da2c4517bfd0243d71f8",
+      "raw_bytes": 192,
+      "gzip_sha256": "8ced3141f4926f1cecf8fa22218987f6ef6a888b30afc99f13aa150add3ad22c"
+    }
+  ],
+  "qualification_established": false
+}
