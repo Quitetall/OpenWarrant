@@ -140,6 +140,18 @@ def main():
     bundle = strict_json(raw)
     if bundle.get("schema") != "oh.war/verification-bundle/v2":
         raise ValueError("only a current v2 verification bundle is supported")
+    # The compiler preserves exact oversized packets for inspection. Refuse
+    # before even probing the provider or creating a review log, as --run does.
+    budget = bundle.get("budget_tokens")
+    estimate = bundle.get("estimated_tokens")
+    over = bundle.get("over_budget")
+    if (type(budget) is not int or type(estimate) is not int
+            or not 0 <= budget < 2**64 or not 0 <= estimate < 2**64
+            or type(over) is not bool):
+        raise ValueError("verify.bundle-invalid-budget: invalid compiler budget metadata; no backend called")
+    if over or estimate > budget:
+        raise ValueError(f"verify.bundle-over-budget: {estimate} estimated tokens exceed the "
+                         f"{budget}-token budget; exact input retained, no backend called")
     obligations = bundle["request"]["obligations"]
     if not obligations or len({o["id"] for o in obligations}) != len(obligations):
         raise ValueError("nonempty unique requested obligations required")

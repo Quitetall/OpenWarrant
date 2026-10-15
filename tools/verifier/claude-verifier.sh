@@ -59,7 +59,7 @@ Never establish an obligation because it is probably true, because the code look
 
 Answer with EXACTLY ONE JSON document and nothing else — no prose, no code fence:
 {"verdicts":[{"obligation":"OBL-001","disposition":"established|refuted|not_established","evidence":"<one paragraph naming the specific bundle items — file, test name, plant line, gate run id — that decide it>"}]}'
-argv=(-p "Verify the oh.war/verification-bundle/v1 on stdin. Output the verdicts JSON only."
+argv=(-p "Verify the oh.war/verification-bundle/v2 on stdin. Output the verdicts JSON only."
     --output-format text --no-session-persistence --model "$model"
     --tools "" --strict-mcp-config --restricted
     --disallowedTools "Bash,Edit,Write,NotebookEdit,WebFetch,WebSearch,Agent,Read,Glob,Grep,Task"

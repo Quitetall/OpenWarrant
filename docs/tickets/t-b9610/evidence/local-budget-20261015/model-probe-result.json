@@ -1,0 +1,49 @@
+{
+  "response": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "LOCAL_ROUTE_READY",
+          "reasoning_content": "We need to respond to user: \"Return LOCAL_ROUTE_READY.\" Then final only LOCAL_ROUTE_READY. User says local transport check, not software review. Return only LOCAL_ROUTE_READY. So final exactly that.\n",
+          "role": "assistant"
+        }
+      }
+    ],
+    "created": 1792102418,
+    "id": "chatcmpl-70be778cff8e",
+    "model": "qwen3.8-27b-heretic-rvn-q4_k_m",
+    "object": "chat.completion",
+    "timings": {
+      "cache_n": 0,
+      "draft_n": 36,
+      "draft_n_accepted": 30,
+      "predicted_ms": 574.626,
+      "predicted_n": 48,
+      "predicted_per_second": 81.79233101182334,
+      "predicted_per_token_ms": 12.226085106382978,
+      "prompt_ms": 349.67,
+      "prompt_n": 76,
+      "prompt_per_second": 217.3477850544799,
+      "prompt_per_token_ms": 4.60092105263158
+    },
+    "usage": {
+      "completion_tokens": 48,
+      "context_window": {
+        "n_ctx": 73728,
+        "n_ctx_train": 262144,
+        "near_full": false,
+        "occupancy_ratio": 0.001,
+        "prompt_tokens": 76,
+        "source": "engine_prompt_tokens"
+      },
+      "prompt_tokens": 76,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "total_tokens": 124
+    }
+  },
+  "qualification_established": false
+}
