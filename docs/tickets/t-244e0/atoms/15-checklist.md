@@ -1,0 +1,4 @@
+# Checklist
+
+- [x] Update rustls to the patched minimum without advisory exceptions (i-8fdf) — done by agent://codex, 2026-10-15: Exact manifest pin and lockfile updated only to rustls0.23.46. Four reproduced advisory findings now clear with policy unchanged; all-feature license check and four TLS compatibility/refusal controls pass. Full hosted CI remains separate. Evidence: OW149 implementation/katana-cli-20261015.
+- [x] Ship the portable localhost Katana CLI producer and prove capture refusals (i-be5b) — done by agent://codex, 2026-10-15: Portable real Katana CLI producer and repeat instructions added. Existing opt-in capture/current-resolution test passes with scripted localhost responses and exact native verifier. Positive captures retained; capability/log/head/fake-assurance refusals and required UNKNOWN results preserved. Claimed implementation completion only; hosted CI, real-agent/operator qualification and human acceptance remain separate.

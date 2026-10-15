@@ -70,7 +70,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required gate has admissible result | 116 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
-| artifact digests verify | 77 |
+| artifact digests verify | 80 |
 | required judgments exist | 57 |
 | residual risks have sufficient authority | 57 |
 | required deliverables exist | 54 |
@@ -279,7 +279,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | unknown | 0 | 0 of 4 | artifact digests verify |
-| `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
 | `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |

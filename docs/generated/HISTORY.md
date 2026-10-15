@@ -26466,7 +26466,7 @@ the app shows a `human` remedy and stops.
 | D-026 | QUICKSTART.md: three questions, two signatures | `QUICKSTART.md` | verified |
 | D-027 | The init plants | `conformance/plants.d/99-init.sh` | verified |
 | D-028 | ratatui and crossterm, exact versions | `Cargo.toml` | verified |
-| D-029 | The lockfile | `Cargo.lock` | verified |
+| D-029 | The lockfile | `Cargo.lock` | drift |
 | D-030 | The app | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
 | D-031 | The way in: no-args, tui.json, tui.no-tty | `crates/openwarrant-cli/src/lib.rs` | verified |
 | D-032 | The confinement test and NOT_YET | `crates/openwarrant-cli/src/main.rs` | verified |
@@ -33415,8 +33415,8 @@ at all.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | war perform: OS admission, writer record, handoff, cancellation | `crates/openwarrant-cli/src/perform.rs` | verified |
-| D-002 | The signal-handler dependency | `crates/openwarrant-cli/Cargo.toml` | verified |
-| D-003 | The lockfile entry for the signal-handler dependency | `Cargo.lock` | verified |
+| D-002 | The signal-handler dependency | `crates/openwarrant-cli/Cargo.toml` | drift |
+| D-003 | The lockfile entry for the signal-handler dependency | `Cargo.lock` | drift |
 | D-004 | The claude performer adapter | `tools/performer/claude-performer.sh` | verified |
 | D-005 | A performer that writes until killed, with a child | `conformance/fixtures/performer/writes-until-killed.sh` | verified |
 | D-006 | The cancellation, handoff and adapter plants | `conformance/plants.d/60-perform-cancel.sh` | verified |
@@ -36576,8 +36576,8 @@ device?
 | D-005 | WEBUI.md: Reach on the LAN | `docs/WEBUI.md` | verified |
 | D-006 | THREAT_MODEL row 13: loopback and LAN | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-007 | the plants | `conformance/plants.d/59-webui-lan.sh` | verified |
-| D-008 | the TLS dependency and the QR code crate, exact pins (AM-003) | `crates/openwarrant-cli/Cargo.toml` | verified |
-| D-009 | the lockfile for D-008 (AM-003) | `Cargo.lock` | verified |
+| D-008 | the TLS dependency and the QR code crate, exact pins (AM-003) | `crates/openwarrant-cli/Cargo.toml` | drift |
+| D-009 | the lockfile for D-008 (AM-003) | `Cargo.lock` | drift |
 | D-010 | `war ui --lan` flags and `war ui devices` (AM-003) | `crates/openwarrant-cli/src/lib.rs` | verified |
 
 ### OW-WAR-0140 — The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core
