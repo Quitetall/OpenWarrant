@@ -1,0 +1,22 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-e577c` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-e577c"
+uuid = "01a13c98-c780-736f-a6a0-2d1e406de77b"
+title = "Refresh unresolved delivery digests from observed current bytes"
+summary = "Remove stale digest bookkeeping while preserving provenance fields and original history"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-14T22:46:47Z"
+created_by = "agent://codex"
+type = "chore"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

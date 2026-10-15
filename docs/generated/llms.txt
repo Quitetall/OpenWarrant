@@ -1608,6 +1608,10 @@
 > war ui answers 431 instead of 413 for an oversized body, under load
 - t-5f49 · ticket · done · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/manifest.toml:1
 
+## docs/tickets/t-62891/manifest.toml
+> Capture original Git inventory refusal; unchanged replay passes do not establish repair
+- t-62891 · ticket · open · Diagnose Git inventory refusal in full verifier conformance · docs/tickets/t-62891/manifest.toml:1
+
 ## docs/tickets/t-62f58/manifest.toml
 > Reject ambiguous blind-verifier answers (OW117)
 - t-62f58 · ticket · done · Reject ambiguous blind-verifier answers (OW117) · docs/tickets/t-62f58/manifest.toml:1
@@ -1855,6 +1859,10 @@
 ## docs/tickets/t-e14c0/manifest.toml
 > Capture real monotonic study timing without inventing participant observations
 - t-e14c0 · ticket · done · Capture real monotonic study timing without inventing participant observations · docs/tickets/t-e14c0/manifest.toml:1
+
+## docs/tickets/t-e577c/manifest.toml
+> Remove stale digest bookkeeping while preserving provenance fields and original history
+- t-e577c · ticket · done · Refresh unresolved delivery digests from observed current bytes · docs/tickets/t-e577c/manifest.toml:1
 
 ## docs/tickets/t-e6340/manifest.toml
 > Correct stale Preflight coverage messages without claiming execution readiness
