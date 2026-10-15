@@ -361,9 +361,21 @@ title = "profile.pin-drift"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/repo.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "unrecorded"
+contract_digest = "14127f58e7867f4a7bd424a34689238325a8658b09aa819030a069eada32c231"
+tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 379acb09be68, debug)"
+creation_method = "edited under t-62891/i-acd2"
+content_digest = "sha256:8794003bf6f0b0c214eeca0e8fa23514ede0a816db7166c8c009fb3f465e15f2"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-036"

@@ -9,6 +9,114 @@ use std::{
 struct Fixture(PathBuf);
 
 #[test]
+fn corrupt_git_inventory_reports_its_cause_without_writing_a_verdict() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(&fixture.0)
+            .status()
+            .unwrap()
+            .success()
+    );
+    fs::write(fixture.0.join(".git/index"), b"broken").unwrap();
+    let state = || {
+        [
+            "verifications/OBL-001.toml",
+            "verifications/OBL-002.toml",
+            "journal.jsonl",
+        ]
+        .map(|p| fs::read(fixture.0.join("docs/warrants/IX-WAR-0003").join(p)).ok())
+    };
+    let before = state();
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--json",
+    ]);
+    assert_ne!(result["exit_code"], 0, "{result}");
+    assert_eq!(result["counts"]["error"], 0, "{result}");
+    assert_eq!(result["counts"]["unknown"], 1, "{result}");
+    let diagnostic = &result["diagnostics"][0];
+    assert_eq!(diagnostic["rule"], "verify.subject-unavailable", "{result}");
+    let text = diagnostic.to_string();
+    assert!(text.contains("exit status: 128"), "{result}");
+    assert!(
+        text.contains("index file smaller than expected"),
+        "{result}"
+    );
+    assert_eq!(state(), before);
+}
+
+#[test]
+#[cfg(unix)]
+fn git_inventory_failure_diagnostics_are_bounded() {
+    use std::os::unix::fs::PermissionsExt;
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(&fixture.0)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let bin = fixture.0.join("fixture-bin");
+    fs::create_dir(&bin).unwrap();
+    let git = bin.join("git");
+    fs::write(
+        &git,
+        format!(
+            "#!/bin/sh\nprintf '%s' 'inventory-start:{}:inventory-end' >&2\nexit 73\n",
+            "x".repeat(8192)
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(&git, fs::Permissions::from_mode(0o700)).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(&fixture.0)
+        .args([
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--json",
+        ])
+        .env(
+            "PATH",
+            std::env::join_paths(std::iter::once(bin).chain(std::env::split_paths(
+                &std::env::var_os("PATH").unwrap_or_default(),
+            )))
+            .unwrap(),
+        )
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .unwrap();
+    let result: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(result["counts"]["unknown"], 1, "{result}");
+    assert_eq!(result["counts"]["error"], 0, "{result}");
+    let message = result["diagnostics"][0]["message"].as_str().unwrap();
+    assert!(message.contains("exit status: 73"), "{result}");
+    assert!(message.contains("inventory-start:"), "{result}");
+    assert!(message.contains("stderr truncated"), "{result}");
+    assert!(!message.contains("inventory-end"), "{result}");
+    assert!(
+        message.len() < 2300,
+        "unbounded diagnostic: {} bytes",
+        message.len()
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications")
+            .exists()
+    );
+}
+
+#[test]
 fn explicit_plain_markdown_adr_remains_carried_as_a_contract_atom() {
     let fixture = Fixture::new();
     let directory = fixture.0.join("docs/adr/atoms");
