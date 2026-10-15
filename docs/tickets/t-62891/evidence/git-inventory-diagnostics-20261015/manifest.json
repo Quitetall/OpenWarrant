@@ -127,9 +127,42 @@
       "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "raw_bytes": 0,
       "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "path": "combined-cli-suite.stdout.gz",
+      "raw_sha256": "94fd5cd98eaa3ce10833d2f271310058a3704048c802ae6ce467bc51f06a0ce2",
+      "raw_bytes": 27036,
+      "gzip_sha256": "7ab04da596b12e23e3d09dd57db8c31544831a31c0d5c05e424af9693215da81"
+    },
+    {
+      "path": "combined-cli-suite.stderr.gz",
+      "raw_sha256": "d7082db73f6cd974d18b36bc95f8968a5aeda44d4e343d7ceb2723bc31b63c94",
+      "raw_bytes": 359,
+      "gzip_sha256": "6a28f192d0e37c307ef2427d23711c9cf766c61af0a093d5dffccf394719480f"
+    },
+    {
+      "path": "checkpoint-replay.stdout.gz",
+      "raw_sha256": "505f4924cdaec94192cca65d4c044329e7c8c412ef44dfacf7aeb1fc6edafcf4",
+      "raw_bytes": 204,
+      "gzip_sha256": "d2d1c9165f1d5a287220309f23270938ba34e57778242e011011caf16c05d367"
+    },
+    {
+      "path": "checkpoint-replay.stderr.gz",
+      "raw_sha256": "a0e1408579720f19287dc388ba51181f52c5885ff655457ea62d99f580aaa70a",
+      "raw_bytes": 172,
+      "gzip_sha256": "a6d02dcff31a2e5373a1de93102a8365145db5f03197366cfbe0eb5bb6f24c9a"
     }
   ],
   "qualified": false,
   "original_intermittent_failure_cause": "UNKNOWN",
-  "original_intermittent_failure_repaired": false
+  "original_intermittent_failure_repaired": false,
+  "combined_checkpoint": "3f3e54422175f9045c396acd5d7366d73a5872ca",
+  "combined_cli_suite": {
+    "passed": 285,
+    "failed": 1,
+    "ignored": 4,
+    "failure": "document_draft::concurrent_writer_refuses_and_lock_releases_when_process_ends",
+    "exact_replay_passed": true,
+    "underlying_repair_established": false
+  }
 }

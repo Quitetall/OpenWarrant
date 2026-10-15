@@ -42,3 +42,13 @@ The original full-sequence failure's cause and repair remain UNKNOWN; i-9f40 sta
 open. Full CI, independent verification, human acceptance and release qualification
 are not established by this observation. Only OW148/D-035 records the current
 edited source; older overlapping declarations and resolved manifests are unchanged.
+
+## Combined aggregate observation
+
+At combined checkpoint `3f3e54422175f9045c396acd5d7366d73a5872ca`, the full CLI
+integration suite returned **285 passed, 1 failed, 4 ignored**. The failed
+`document_draft::concurrent_writer_refuses_and_lock_releases_when_process_ends`
+reported its child live in `jbd2_log_wait_commit` at the unchanged five-second
+deadline. The child was then reaped with signal 9 and empty output. The exact
+isolated replay passes. Both logs are retained here. This is the existing
+t-aade8 investigation; the passing replay is not an established repair.
