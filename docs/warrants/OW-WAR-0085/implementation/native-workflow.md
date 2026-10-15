@@ -2,6 +2,15 @@
 
 ## Latest recorded observation
 
+Run 38674510635 passed all eleven Phase 1 checks and the FIFO refusal on both
+native hosts for PR head `bef7e690`, tested merge `6c2a59bd`, tree `8f68a09c`.
+Both 12,363-file inventories match that immutable tree. Full PR CI38674510650
+and post-merge main CI38679538732 passed. See the
+[final observations](native-20261015/final-bef7e690/README.md). Independent
+phase review and human acceptance remain pending.
+
+### Earlier successful portability checkpoint
+
 Run 38671322649 passed on Linux x86_64 and macOS arm64 at tested merge snapshot
 `1abbe1e5` (PR head `cd295857`). Both source inventories match, all eleven Phase 1
 checks passed, and the real FIFO recovery refusal passed on both hosts. Exact raw
