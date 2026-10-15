@@ -1,0 +1,38 @@
+{
+  "run": 38671322649,
+  "source_head": "cd295857107f2d103f1e96f31d0a9100fda4e657",
+  "tested_merge_snapshot": "1abbe1e5f104f0e45171d07ac45871c1af436ae8",
+  "files": [
+    {
+      "path": "phase1-Linux.json.gz",
+      "raw_sha256": "b2ec539164ab1f5c94a66484ccfddb452f2e9af4add3d877f5a1987ea4a320a8",
+      "raw_bytes": 3762443,
+      "gzip_sha256": "92a8a3cc7e0351d158d93893490e80daa1ed829208b09e06aa86cbfb5bc574d2"
+    },
+    {
+      "path": "phase1-macOS.json.gz",
+      "raw_sha256": "7d3023b07730b6a55dd5e11f87b9414661b7030699b219174bfc4107273146c2",
+      "raw_bytes": 3764949,
+      "gzip_sha256": "34c1edad42ac23b8771eb4bc639cea8e6069d4f9e3bbebcc7568a89c7c98d253"
+    },
+    {
+      "path": "run.json.gz",
+      "raw_sha256": "dca924643bf37b619c08ddd76f9b3337cd913fdb890146301093200d4b82c277",
+      "raw_bytes": 3985,
+      "gzip_sha256": "18bfe28cf32e842d06ffbd26a48dffa6d8e9d66a2f305edc902f1e11ab037b91"
+    },
+    {
+      "path": "hosted-run.log.gz",
+      "raw_sha256": "cd8199d8ea4b5a2454a6094c8945c2b6bfd74f4b436d7d4fe47b8e732b56f5ab",
+      "raw_bytes": 118937,
+      "gzip_sha256": "5422bb0a864c2ea619dcdbcbfc52306802412d31ce9d0d14d233bee5b246fc92"
+    },
+    {
+      "path": "pr284-merge-commit.txt.gz",
+      "raw_sha256": "27ad3971d1c3ebb0839773c9f9c69a7a9b05b3551cbad0dfb9c39ce5afc6ad13",
+      "raw_bytes": 1196,
+      "gzip_sha256": "463b5153b772b45fb3b58204bd6ad8fefb3c1be4a83a459f64a13ab5f038e93f"
+    }
+  ],
+  "qualification_established": false
+}
