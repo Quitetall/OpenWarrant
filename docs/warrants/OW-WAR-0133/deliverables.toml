@@ -36,12 +36,12 @@ provenance_required = false
 obligation_refs = ["OBL-002", "OBL-003"]
 
 [deliverable.provenance]
-producer = "claude"
+producer = "agent://codex"
 producing_attempt = "unrecorded"
 contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
-tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 1ad0f298ddb2, debug)"
-creation_method = "authored"
-content_digest = "sha256:830e769a0e0077092722b84e5b9f5fed9ea0b969732c8fe96db1d97bbdb08f8e"
+tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 379acb09be68, debug)"
+creation_method = "edited under t-3a90c"
+content_digest = "sha256:143c330025f6f98130cad2c29621d99f9ab4c0210de9717dd94905786fcbd80c"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

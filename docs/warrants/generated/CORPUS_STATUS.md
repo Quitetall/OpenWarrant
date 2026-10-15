@@ -70,7 +70,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required gate has admissible result | 116 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
-| artifact digests verify | 70 |
+| artifact digests verify | 68 |
 | required judgments exist | 57 |
 | residual risks have sufficient authority | 57 |
 | required deliverables exist | 54 |
@@ -296,7 +296,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0148` Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | draft | unknown | 0 | 0 of 5 | artifact digests verify |
+| `OW-WAR-0148` Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
 | `OW-WAR-0149` Shared Katana and BLUT runtime receipt binding contract | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
 
 ## Not reported here

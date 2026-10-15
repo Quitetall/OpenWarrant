@@ -34193,7 +34193,7 @@ this level requires. The author does not record them.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
-| D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | drift |
+| D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | verified |
 | D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
 | D-005 | The evidence-reuse and context plants | `conformance/plants.d/55-evidence-reuse.sh` | verified |
@@ -40719,7 +40719,7 @@ observer.
 | D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
 | D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
 | D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |
-| D-019 | A gate run once per commit, shared by citing Warrants | `crates/openwarrant-cli/src/prepare.rs` | not_content_addressed |
+| D-019 | A gate run once per commit, shared by citing Warrants | `crates/openwarrant-cli/src/prepare.rs` | verified |
 | D-020 | Capabilities in profile data, prerequisites, defaults | `crates/openwarrant-core/src/role.rs` | not_content_addressed |
 | D-021 | Delivery's capabilities | `profiles/delivery.toml` | not_content_addressed |
 | D-022 | Decision's capabilities (no stages) | `profiles/decision.toml` | not_content_addressed |
