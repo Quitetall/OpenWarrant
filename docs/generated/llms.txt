@@ -1634,7 +1634,7 @@
 
 ## docs/tickets/t-66d2f/manifest.toml
 > Keep the full integration gate usable within its declared CI budget
-- t-66d2f · ticket · done · Keep the full integration gate usable within its declared CI budget · docs/tickets/t-66d2f/manifest.toml:1
+- t-66d2f · ticket · open · Keep the full integration gate usable within its declared CI budget · docs/tickets/t-66d2f/manifest.toml:1
 
 ## docs/tickets/t-67b5f/manifest.toml
 > M8: war host, the standalone half of Liminal hosting

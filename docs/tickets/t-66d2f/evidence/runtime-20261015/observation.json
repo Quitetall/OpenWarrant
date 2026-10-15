@@ -1,0 +1,15 @@
+{
+  "run": 38668856947,
+  "job": 116207130054,
+  "head": "c8bc0cb0a4704af8db960694029664fd5c8f09e6",
+  "conclusion": "cancelled",
+  "started_at": "2026-10-15T02:02:56Z",
+  "completed_at": "2026-10-15T03:03:01Z",
+  "annotation": "The job has exceeded the maximum execution time of 1h0m0s",
+  "aggregate_gate": "PASS \u2014 14 step(s) green",
+  "conformance_passed": 1676,
+  "conformance_failed": 0,
+  "final_candidate_check": "not run",
+  "raw_log_sha256": "0b312c86e4b3d4e42dada15cc51cdc9a945e7bf02ebe80a71f9cfd03ad3c1fa5",
+  "compressed_log_sha256": "b9965b39db56ec610df377a3d8b8accc2f0faa621b7e8f0ac15105936c153c20"
+}

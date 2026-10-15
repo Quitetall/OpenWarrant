@@ -75,3 +75,21 @@ than `unknown`. Python dictionary comparison intentionally ignores key order.
 `os.walk` does not follow directory symlinks by default; the review stated otherwise.
 The input capture now explicitly refuses non-build symlink directories too, so an
 unfollowed source directory cannot be silently omitted from the inventory.
+
+## Fresh deterministic provider replay, 2026-10-15
+
+The existing integration driver passed again on a clean isolated LAMU commit
+`60a3ae2d03815f87b3365268a349e05376241a17` and OpenWarrant consumer
+`5cf336b2517f2c6ea30c2b762dabfffdc0f6fc45`. The provider retains the agreed
+SDK pin `4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd`; this replay does not
+change that contract or claim the provider consumes the current SDK revision.
+All six source/conditions/selection/projections/package/budgets suites, adapter
+tests, deterministic generation, second SDK consumer, tamper and duplicate
+refusals, and record/legacy exchange passed. Build inputs did not change.
+
+`replay-20261015/` retains the raw compressed receipt, hashes and scope. No
+models or live services were called; the other LAMU checkout was not changed.
+The raw receipt's static macOS-pending limitation is historical driver text.
+Fresh native Phase 1 observations are recorded separately under OW85
+`implementation/native-20261015/`, with their exact source identities. Neither
+replay establishes final phase acceptance, independent assurance or a human act.
