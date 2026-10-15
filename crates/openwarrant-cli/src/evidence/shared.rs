@@ -31,6 +31,21 @@ struct Member {
     binding: [String; 2],
 }
 
+pub(crate) struct Observation {
+    key: String,
+    members: Vec<Member>,
+    report: Report,
+    captured: Option<Captured>,
+}
+
+struct Captured {
+    definition: openwarrant_core::GateDefinition,
+    receipt_path: Utf8PathBuf,
+    run_bytes: Vec<u8>,
+    receipt_bytes: Vec<u8>,
+    receipt: openwarrant_core::GateReceipt,
+}
+
 fn current_binding(repo: &Repository, dir: &camino::Utf8Path) -> Result<[String; 2], RepoError> {
     let one = repo.load_warrant(dir)?;
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
@@ -55,11 +70,11 @@ fn current_binding(repo: &Repository, dir: &camino::Utf8Path) -> Result<[String;
 
 /// Only preparation's pending members enter this path. No subject can be added
 /// after execution; a later, unselected Warrant needs a new observation.
-pub(crate) fn record(
+pub(crate) fn observe(
     repo: &Repository,
     aliases: &[String],
     key: &str,
-) -> Result<Report, RepoError> {
+) -> Result<Observation, RepoError> {
     if aliases.len() < 2 || !eligible(repo, key) {
         return Err(RepoError::Message(format!(
             "{key}: shared recording needs at least two Warrants and a registered gate \
@@ -73,7 +88,12 @@ pub(crate) fn record(
             key,
             "the gate definition became unavailable before execution; nothing was run",
         ));
-        return Ok(report);
+        return Ok(Observation {
+            key: key.to_owned(),
+            members: vec![],
+            report,
+            captured: None,
+        });
     };
     let mut subjects = Vec::new();
     let mut members = Vec::new();
@@ -139,7 +159,7 @@ pub(crate) fn record(
         .join(GATE_RUNS_DIR)
         .join("shared")
         .join(openwarrant_core::WarUuid::mint().to_string());
-    let mut report = crate::gate_cmd::run_for(
+    let report = crate::gate_cmd::run_for(
         repo,
         true,
         Some(key),
@@ -154,7 +174,12 @@ pub(crate) fn record(
         .iter()
         .any(|d| d.rule == "gate-run.receipt")
     {
-        return Ok(report);
+        return Ok(Observation {
+            key: key.to_owned(),
+            members,
+            report,
+            captured: None,
+        });
     }
     let run_path = crate::gate_cmd::run_record_path(key, &store);
     let slug = key.replace(['/', ':', '@', '.'], "_");
@@ -187,35 +212,78 @@ pub(crate) fn record(
             "shared observation failed seal or subject validation".into(),
         ));
     }
-    if definition(repo, key).as_ref() != Some(&definition_before)
-        || !matches!(super::reuse_of(repo, key, &receipt), super::Reuse::Holds(_))
-    {
-        report.push(Diagnostic::unknown(
+    Ok(Observation {
+        key: key.to_owned(),
+        members,
+        report,
+        captured: Some(Captured {
+            definition: definition_before,
+            receipt_path,
+            run_bytes,
+            receipt_bytes,
+            receipt,
+        }),
+    })
+}
+
+impl Observation {
+    /// Release only the members whose earlier gates have succeeded. The recorded
+    /// subject set never changes; later rounds may attach, but cannot add subjects.
+    pub(crate) fn attach(&self, repo: &Repository, ready: &[String]) -> Result<Report, RepoError> {
+        let mut report = Report {
+            diagnostics: self.report.diagnostics.clone(),
+            notes: self.report.notes.clone(),
+        };
+        let Some(captured) = &self.captured else {
+            return Ok(report);
+        };
+        let Captured {
+            definition: definition_before,
+            receipt_path,
+            run_bytes,
+            receipt_bytes,
+            receipt,
+        } = captured;
+        let key = self.key.as_str();
+        if ready
+            .iter()
+            .any(|a| !self.members.iter().any(|m| &m.alias == a))
+        {
+            return Err(RepoError::Message(
+                "cannot add a member after shared execution".into(),
+            ));
+        }
+        if definition(repo, key).as_ref() != Some(definition_before)
+            || !matches!(super::reuse_of(repo, key, receipt), super::Reuse::Holds(_))
+        {
+            report.push(Diagnostic::unknown(
             "evidence.shared-source-moved",
-            repo.relative(&receipt_path),
+            repo.relative(receipt_path),
             format!(
                 "{key}: gate definition or source binding no longer holds after execution; the actual \
                 observation remains at {}, but no current Warrant attachment was written",
-                repo.relative(&receipt_path)
+                repo.relative(receipt_path)
             ),
         ));
-        return Ok(report);
-    }
-    let actor = format!("agent://{}", repo.performer());
-    let payload = attached_payload(key, &receipt.verdict.to_string(), &receipt.receipt_digest);
-    // A contract can change outside a gate's declared input set. Recheck each
-    // member separately: pause the changed one, not unrelated selected work.
-    let members = members
-        .into_iter()
+            return Ok(report);
+        }
+        let actor = format!("agent://{}", repo.performer());
+        let payload = attached_payload(key, &receipt.verdict.to_string(), &receipt.receipt_digest);
+        // A contract can change outside a gate's declared input set. Recheck each
+        // member separately: pause the changed one, not unrelated selected work.
+        let members = self.members
+        .iter()
+        .filter(|member| ready.contains(&member.alias))
         .filter(|member| {
-            if current_binding(repo, &member.dir).is_ok_and(|now| now == member.binding) {
+            if !crate::vfs::is_file(member.dir.join("resolution.toml"))
+                && current_binding(repo, &member.dir).is_ok_and(|now| now == member.binding) {
                 true
             } else {
                 report.push(Diagnostic::unknown(
                     "evidence.shared-member-stale",
                     repo.relative(&member.dir),
                     format!(
-                        "{}: contract or delivered bytes changed during {key}; \
+                        "{}: contract, delivered bytes or resolution changed before {key} attachment; \
                     the historical shared observation is retained without a current attachment",
                         member.alias
                     ),
@@ -224,47 +292,52 @@ pub(crate) fn record(
             }
         })
         .collect::<Vec<_>>();
-    // Check every attribution conflict before writing any attachment.
-    for member in &members {
-        if let crate::journal_cmd::Prior::Conflict { recorded_by } =
-            crate::journal_cmd::already_recorded(
-                &member.dir,
-                crate::journal_cmd::RECEIPT_ATTACHED,
-                &payload,
-                &actor,
-            )?
-        {
-            report.push(crate::journal_cmd::conflict(
-                repo.relative(&member.dir.join(crate::journal_cmd::FILE)),
-                crate::journal_cmd::RECEIPT_ATTACHED,
-                &recorded_by,
-                &actor,
-            ));
-            return Ok(report);
+        // Check every attribution conflict before writing any attachment.
+        for member in &members {
+            if let crate::journal_cmd::Prior::Conflict { recorded_by } =
+                crate::journal_cmd::already_recorded(
+                    &member.dir,
+                    crate::journal_cmd::RECEIPT_ATTACHED,
+                    &payload,
+                    &actor,
+                )?
+            {
+                report.push(crate::journal_cmd::conflict(
+                    repo.relative(&member.dir.join(crate::journal_cmd::FILE)),
+                    crate::journal_cmd::RECEIPT_ATTACHED,
+                    &recorded_by,
+                    &actor,
+                ));
+                return Ok(report);
+            }
         }
-    }
-    for member in members {
-        let out = member.dir.join(GATE_RUNS_DIR);
-        std::fs::create_dir_all(&out).map_err(|source| RepoError::Io {
-            context: format!("could not create shared attachment directory {out}"),
-            source,
-        })?;
-        crate::compile::atomic::write(&crate::gate_cmd::run_record_path(key, &out), &run_bytes)?;
-        crate::compile::atomic::write(&out.join(format!("{slug}.receipt.json")), &receipt_bytes)?;
-        crate::journal_cmd::record(
-            &member.dir,
-            &member.uuid,
-            crate::journal_cmd::RECEIPT_ATTACHED,
-            &actor,
-            &payload,
-        )?;
-        report.push(Diagnostic::pass(
+        for member in members {
+            let out = member.dir.join(GATE_RUNS_DIR);
+            std::fs::create_dir_all(&out).map_err(|source| RepoError::Io {
+                context: format!("could not create shared attachment directory {out}"),
+                source,
+            })?;
+            let slug = key.replace(['/', ':', '@', '.'], "_");
+            crate::compile::atomic::write(&crate::gate_cmd::run_record_path(key, &out), run_bytes)?;
+            crate::compile::atomic::write(
+                &out.join(format!("{slug}.receipt.json")),
+                receipt_bytes,
+            )?;
+            crate::journal_cmd::record(
+                &member.dir,
+                &member.uuid,
+                crate::journal_cmd::RECEIPT_ATTACHED,
+                &actor,
+                &payload,
+            )?;
+            report.push(Diagnostic::pass(
             "evidence.shared-attached",
             format!(
                 "{}: {key} attached the unchanged shared observation {}; no additional execution",
                 member.alias, receipt.receipt_digest,
             ),
         ));
+        }
+        Ok(report)
     }
-    Ok(report)
 }

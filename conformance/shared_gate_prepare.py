@@ -13,11 +13,13 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import tomllib
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--war", required=True, type=Path)
+    parser.add_argument("--jobs", type=int, choices=(1, 2), default=1)
     case = parser.add_mutually_exclusive_group()
     case.add_argument("--mutate-input", action="store_true")
     case.add_argument("--mutate-contract", action="store_true")
@@ -25,7 +27,10 @@ def main():
     case.add_argument("--warrant-specific", action="store_true")
     case.add_argument("--fail-gate", action="store_true")
     case.add_argument("--different-orders", action="store_true")
+    case.add_argument("--earlier-failure", action="store_true")
+    case.add_argument("--timeout-second", action="store_true")
     args = parser.parse_args()
+    ordered = args.different_orders or args.earlier_failure or args.timeout_second
     war = str(args.war.resolve(strict=True))
     repo = Path(__file__).resolve().parent.parent
     env = dict(os.environ)
@@ -61,7 +66,7 @@ def main():
         # recorder or depending on its private implementation.
         script = ("from pathlib import Path; "
                   f"p=Path({str(counter)!r}); "
-                  "p.write_text((p.read_text() if p.exists() else '')+'run'+chr(10)); "
+                  "f=p.open('a'); f.write('run'+chr(10)); f.close(); "
                   "print('observation-'+str(len(p.read_text().splitlines())))")
         if args.mutate_input:
             script += (f"; p=Path({str(root / 'openwarrant.toml')!r}); "
@@ -88,9 +93,15 @@ def main():
         gate = gate.replace('argv: ["true"]', "argv: " + json.dumps(argv))
         gate += '\ninputs: ["openwarrant.toml"]\n'
         (gates / "software.repo.war-check@1.0.0.yaml").write_text(gate)
-        if args.different_orders:
-            (gates / "plant.second@1.0.0.yaml").write_text(gate.replace(
-                'gate_id: "software.repo.war-check"', 'gate_id: "plant.second"'))
+        if ordered:
+            second = gate.replace('gate_id: "software.repo.war-check"', 'gate_id: "plant.second"')
+            if args.earlier_failure:
+                second = second.replace("argv: " + json.dumps(argv), "argv: " + json.dumps(
+                    ["python3", "-c", script + "; raise SystemExit(7)"]))
+            if args.timeout_second:
+                second = second.replace("argv: " + json.dumps(argv), "argv: " + json.dumps(
+                    ["python3", "-c", script + "; __import__('time').sleep(10)"]))
+            (gates / "plant.second@1.0.0.yaml").write_text(second)
             key = "gate://software.repo.war-check@1.0.0"
             other = "gate://plant.second@1.0.0"
             for ordinal, alias in enumerate(selected):
@@ -108,7 +119,7 @@ def main():
         git("add", "-A")
         git("commit", "-qm", "synthetic shared-gate fixture")
 
-        report = cli("evidence", "prepare", *selected, "--jobs", "1")
+        report = cli("evidence", "prepare", *selected, "--jobs", str(args.jobs))
         results = report["result"]["warrants"]
         for alias in selected:
             warrant = next(w for w in results if w["alias"] == alias)
@@ -116,13 +127,40 @@ def main():
             expected = ("unknown" if args.mutate_input or args.mutate_gate or (
                 args.mutate_contract and alias == selected[0]) else
                 "failed" if args.fail_gate else "done")
-            assert len(steps) == (2 if args.different_orders else 1), warrant
-            assert all(s["outcome"] == expected for s in steps), warrant
+            assert len(steps) == (2 if ordered else 1), warrant
+            if args.earlier_failure or args.timeout_second:
+                result = "unknown" if args.timeout_second else "failed"
+                expected_steps = ["done", result] if alias == selected[0] else [result, "skipped"]
+                assert [s["outcome"] for s in steps] == expected_steps, warrant
+                assert warrant["state"] == ("unknown" if args.timeout_second else "stopped"), warrant
+            else:
+                assert all(s["outcome"] == expected for s in steps), warrant
         observed = counter.read_text().splitlines()
-        assert observed == ["run"] * (2 if args.warrant_specific or args.different_orders else 1), (
+        assert observed == ["run"] * (2 if args.warrant_specific or ordered else 1), (
             f"one shared gate must execute once, observed {len(observed)} starts: {observed}"
         )
-        if args.different_orders:
+        if args.earlier_failure or args.timeout_second:
+            later = "software_repo_war-check_1_0_0.receipt.json"
+            assert (root / "docs/warrants" / selected[0] / "gate-runs" / later).exists()
+            assert not (root / "docs/warrants" / selected[1] / "gate-runs" / later).exists()
+            if args.timeout_second:
+                for alias in selected:
+                    assert not (root / "docs/warrants" / alias / "gate-runs"
+                                / "plant_second_1_0_0.receipt.json").exists()
+                attempts = list((root / "docs/warrants").glob(
+                    "*/gate-runs/shared/*/plant_second_1_0_0.run.toml"))
+                assert len(attempts) == 1
+                attempt = tomllib.loads(attempts[0].read_text())
+                assert attempt["execution_status"] == "timeout" and attempt["verdict"] == "unknown"
+                print("PASS timeout: one actual attempt, UNKNOWN retained, no fabricated receipt or retry")
+                return
+            failures = [json.loads((root / "docs/warrants" / alias / "gate-runs"
+                                    / "plant_second_1_0_0.receipt.json").read_text()) for alias in selected]
+            assert failures[0] == failures[1]
+            assert failures[0]["verdict"] == "fail"
+            print("PASS earlier failed/unknown gate: no silent retry or later attachment")
+            return
+        if ordered:
             for slug in ("software_repo_war-check_1_0_0", "plant_second_1_0_0"):
                 bound = [json.loads((root / "docs/warrants" / alias / "gate-runs"
                                      / f"{slug}.receipt.json").read_text()) for alias in selected]
@@ -168,7 +206,7 @@ def main():
                    for name in ("stdout_ref", "stderr_ref")}
         journals = {alias: (root / "docs/warrants" / alias / "journal.jsonl").read_bytes()
                     for alias in selected}
-        replay = cli("evidence", "prepare", *selected, "--jobs", "1")
+        replay = cli("evidence", "prepare", *selected, "--jobs", str(args.jobs))
         for warrant in replay["result"]["warrants"]:
             step = next(s for s in warrant["steps"] if s["step"] == "evidence")
             assert step["outcome"] == "current", warrant
@@ -180,7 +218,7 @@ def main():
         config.write_text(config.read_text() + "\n# next source revision\n")
         git("add", "-A")
         git("commit", "-qm", "move the synthetic gate input")
-        renewed = cli("evidence", "prepare", *selected, "--jobs", "1")
+        renewed = cli("evidence", "prepare", *selected, "--jobs", str(args.jobs))
         for warrant in renewed["result"]["warrants"]:
             step = next(s for s in warrant["steps"] if s["step"] == "evidence")
             assert step["outcome"] == "done", warrant

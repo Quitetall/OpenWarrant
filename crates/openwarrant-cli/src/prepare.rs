@@ -761,6 +761,11 @@ fn record_gate(repo: &Repository, alias: &str, key: &str) -> (Outcome, String) {
 /// round has at most one task per Warrant; only different groups run beside
 /// one another. Warrant-specific/document/Bonsai gates retain separate runs.
 fn evidence_phase(repo: &Repository, work: &mut [Work], jobs: usize, class: Class) {
+    // A group is unique by key within a round. Remove its saved observation
+    // briefly, work without holding the mutex, then restore it for later rounds.
+    // Failed observations are saved too: a later member must not silently retry.
+    type Saved = Result<crate::evidence::shared::Observation, String>;
+    let observations = Mutex::new(std::collections::BTreeMap::<String, Saved>::new());
     loop {
         let mut groups = std::collections::BTreeMap::<String, Vec<(usize, String)>>::new();
         for (i, w) in work.iter().enumerate().filter(|(_, w)| w.live()) {
@@ -782,36 +787,89 @@ fn evidence_phase(repo: &Repository, work: &mut [Work], jobs: usize, class: Clas
         }
         let serial = class == Class::InTree;
         let results = Mutex::new(Vec::new());
-        let one = |(key, members): (String, Vec<(usize, String)>)| {
-            if members.len() > 1 && crate::evidence::shared::eligible(repo, &key) {
-                let aliases = members.iter().map(|(_, a)| a.clone()).collect::<Vec<_>>();
-                eprintln!("prepare: {}: shared evidence {key} …", aliases.join(", "));
-                let observation = if serial { compile(repo) } else { Ok(()) }.and_then(|()| {
-                    crate::evidence::shared::record(repo, &aliases, &key).map_err(|e| e.to_string())
-                });
-                for (i, alias) in members {
-                    let file = repo.relative(&repo.warrants_dir().join(&alias));
-                    let outcome = observation.as_ref().map_or_else(
-                        |e| (Outcome::Error, e.clone()),
-                        |r| shared_outcome(r, &file),
-                    );
-                    push_result(&results, (i, key.clone(), outcome.0, outcome.1));
+        let tasks = groups
+            .into_iter()
+            .flat_map(|(key, ready)| {
+                let pending = work
+                    .iter()
+                    .filter(|w| {
+                        w.live()
+                            && w.steps.iter().any(|s| {
+                                s.step == "evidence"
+                                    && s.outcome == Outcome::Planned
+                                    && s.subject == key
+                            })
+                    })
+                    .map(|w| w.alias.clone())
+                    .collect::<Vec<_>>();
+                let saved = observations
+                    .lock()
+                    .is_ok_and(|cache| cache.contains_key(&key));
+                if saved || (pending.len() > 1 && crate::evidence::shared::eligible(repo, &key)) {
+                    vec![(key, ready, pending)]
+                } else {
+                    // Preserve parallel jobs for separate Warrant-specific
+                    // executions instead of serializing every member of a key.
+                    ready
+                        .into_iter()
+                        .map(|member| (key.clone(), vec![member], Vec::new()))
+                        .collect()
                 }
-            } else {
-                for (i, alias) in members {
-                    let outcome = if serial { compile(repo) } else { Ok(()) }.map_or_else(
-                        |e| (Outcome::Error, e),
-                        |()| record_gate(repo, &alias, &key),
-                    );
-                    push_result(&results, (i, key.clone(), outcome.0, outcome.1));
+            })
+            .collect();
+        let one =
+            |(key, members, pending): (String, Vec<(usize, String)>, Vec<String>)| {
+                let prior =
+                    match observations.lock() {
+                        Ok(mut cache) => cache.remove(&key),
+                        Err(_) => {
+                            for (i, _) in members {
+                                push_result(&results, (i, key.clone(), Outcome::Unknown,
+                            "shared observation cache is unavailable; nothing was retried".into()));
+                            }
+                            return;
+                        }
+                    };
+                if prior.is_some()
+                    || (pending.len() > 1 && crate::evidence::shared::eligible(repo, &key))
+                {
+                    let aliases = members.iter().map(|(_, a)| a.clone()).collect::<Vec<_>>();
+                    eprintln!("prepare: {}: shared evidence {key} …", aliases.join(", "));
+                    let preparation = if serial { compile(repo) } else { Ok(()) };
+                    let observation = prior.unwrap_or_else(|| {
+                        preparation.as_ref().map_err(Clone::clone).and_then(|()| {
+                            crate::evidence::shared::observe(repo, &pending, &key)
+                                .map_err(|e| e.to_string())
+                        })
+                    });
+                    let attached = preparation.and_then(|()| {
+                        observation
+                            .as_ref()
+                            .map_err(Clone::clone)
+                            .and_then(|o| o.attach(repo, &aliases).map_err(|e| e.to_string()))
+                    });
+                    if let Ok(mut cache) = observations.lock() {
+                        cache.insert(key.clone(), observation);
+                    }
+                    for (i, alias) in members {
+                        let file = repo.relative(&repo.warrants_dir().join(&alias));
+                        let outcome = attached.as_ref().map_or_else(
+                            |e| (Outcome::Error, e.clone()),
+                            |r| shared_outcome(r, &file),
+                        );
+                        push_result(&results, (i, key.clone(), outcome.0, outcome.1));
+                    }
+                } else {
+                    for (i, alias) in members {
+                        let outcome = if serial { compile(repo) } else { Ok(()) }.map_or_else(
+                            |e| (Outcome::Error, e),
+                            |()| record_gate(repo, &alias, &key),
+                        );
+                        push_result(&results, (i, key.clone(), outcome.0, outcome.1));
+                    }
                 }
-            }
-        };
-        in_parallel(
-            if serial { 1 } else { jobs.max(1) },
-            groups.into_iter().collect(),
-            one,
-        );
+            };
+        in_parallel(if serial { 1 } else { jobs.max(1) }, tasks, one);
         for (i, key, outcome, detail) in results.into_inner().unwrap_or_default() {
             let w = &mut work[i];
             if let Some(step) = w
