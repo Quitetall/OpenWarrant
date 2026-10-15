@@ -67,10 +67,10 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 |---|---|
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
+| every required gate has admissible result | 116 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | artifact digests verify | 68 |
-| every required gate has admissible result | 61 |
 | required judgments exist | 57 |
 | residual risks have sufficient authority | 57 |
 | required deliverables exist | 54 |
@@ -207,7 +207,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | unknown | 0 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
-| `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
+| `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | draft | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
 | `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | unknown | 0 | 0 of 1 | artifact digests verify |
@@ -296,7 +296,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0148` Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | draft | unknown | 0 | 0 of 5 | artifact digests verify |
+| `OW-WAR-0148` Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
 | `OW-WAR-0149` Shared Katana and BLUT runtime receipt binding contract | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
 
 ## Not reported here

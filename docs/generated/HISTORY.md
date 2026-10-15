@@ -16892,7 +16892,7 @@ one Warrant drifts the projection the next Warrant's gate run checks, so
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Gate receipts as committed evidence: admissibility, load, record, check | `crates/openwarrant-cli/src/evidence.rs` | verified |
+| D-001 | Gate receipts as committed evidence: admissibility, load, record, check | `crates/openwarrant-cli/src/evidence.rs` | drift |
 | D-002 | The resolution seam: request, ingest through the register, the §56.2 record, check | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-003 | The gate runner mints into a caller-chosen directory; Bonsai pairing scoped to its gate | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
 
@@ -40719,7 +40719,7 @@ observer.
 | D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
 | D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
 | D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |
-| D-019 | A gate run once per commit, shared by citing Warrants | `crates/openwarrant-cli/src/prepare.rs` | not_content_addressed |
+| D-019 | A gate run once per commit, shared by citing Warrants | `crates/openwarrant-cli/src/prepare.rs` | verified |
 | D-020 | Capabilities in profile data, prerequisites, defaults | `crates/openwarrant-core/src/role.rs` | not_content_addressed |
 | D-021 | Delivery's capabilities | `profiles/delivery.toml` | not_content_addressed |
 | D-022 | Decision's capabilities (no stages) | `profiles/decision.toml` | not_content_addressed |
