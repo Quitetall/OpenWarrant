@@ -1,0 +1,13 @@
+{
+  "model": "qwen3.8-27b-heretic-rvn-q4_k_m",
+  "lamu_version": "0.6.0 (git:e599e5e)",
+  "weights_path": "/home/brianklam/.local/share/lamu/models/qwen3.8-27b-heretic-rvn/RVN-Q4_K_M-multilingual-mtp.gguf",
+  "weights_size": 16998720992,
+  "weights_mtime_ns": 1791401132739313572,
+  "weights_content_digest": "not established",
+  "cloud_fallback_allowed": false,
+  "shared_registry_modified": false,
+  "inference_smoke_test": "model-probe-result.json",
+  "qualification_established": false,
+  "production_verdicts_recorded": 0
+}

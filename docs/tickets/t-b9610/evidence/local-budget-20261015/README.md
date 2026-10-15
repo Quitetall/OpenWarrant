@@ -22,3 +22,18 @@ This enforces the compiler's declared budget metadata; it does not implement a
 new tokenizer or prove that arbitrary caller-supplied estimates are honest.
 Snapshot closure and packet-size optimization remain open. No verdict,
 authority act, resolution or assurance mark was recorded.
+
+## Subsequent real local-model smoke check
+
+The private Qwen3.8-27B route subsequently returned the expected
+LOCAL_ROUTE_READY response, with76 prompt and48 completion tokens and a normal
+stop. See model-probe-result.json and runtime-observation.json. This checks local
+inference, not any Warrant obligation. No Warrant packet was submitted and no
+production verdict was ingested. The instance was stopped afterward, releasing
+its GPU allocation. Reusable configuration and startup scripts are retained in
+the local-verifier-20261015 artifact directory.
+
+packet-size-observation.json records the actual compiler-published input-map
+sizes and required-source sizes to guide the unresolved packet-size work.
+No required context was truncated, no budget was raised, and no new canonical
+digest scheme was introduced.
