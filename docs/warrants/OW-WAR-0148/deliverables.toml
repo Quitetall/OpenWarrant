@@ -189,9 +189,21 @@ title = "A gate run once per commit, shared by citing Warrants"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/prepare.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "unrecorded"
+contract_digest = "14127f58e7867f4a7bd424a34689238325a8658b09aa819030a069eada32c231"
+tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 379acb09be68, debug)"
+creation_method = "edited under t-3a90c"
+content_digest = "sha256:0d94fd3cc54da6a8c0c81cff321fe306d84bec71732125cb55cdfec5d038df83"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-020"
