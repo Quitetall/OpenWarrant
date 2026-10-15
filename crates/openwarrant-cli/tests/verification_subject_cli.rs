@@ -3588,14 +3588,19 @@ fn batch_recovery_refuses_special_backup_nodes_before_any_restore() {
     fs::create_dir_all(copies.join("0")).unwrap();
     fs::write(copies.join("0/keep.txt"), "older response").unwrap();
     fs::create_dir_all(copies.join("1")).unwrap();
-    rustix::fs::mknodat(
-        rustix::fs::CWD,
-        copies.join("1/not-a-file"),
-        rustix::fs::FileType::Fifo,
-        rustix::fs::Mode::from_bits_truncate(0o600),
-        0,
-    )
-    .unwrap();
+    // rustix does not expose mknodat/mkfifoat on Apple platforms. Keep
+    // the real FIFO plant on every supported Unix host.
+    let fifo = copies.join("1/not-a-file");
+    assert!(
+        Command::new("mkfifo")
+            .args(["-m", "600"])
+            .arg(&fifo)
+            .status()
+            .unwrap()
+            .success()
+    );
+    use std::os::unix::fs::FileTypeExt;
+    assert!(fs::symlink_metadata(&fifo).unwrap().file_type().is_fifo());
     let second = fixture.0.join("docs/warrants/IX-WAR-0003");
     let original = fs::read(second.join("manifest.toml")).unwrap();
     let marker = batches.join("B-node.recording");
