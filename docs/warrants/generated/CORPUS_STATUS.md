@@ -68,7 +68,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 93 |
+| artifact digests verify | 94 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
@@ -269,7 +269,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
-| `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0124` Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |

@@ -9,6 +9,121 @@ use std::{
 struct Fixture(PathBuf);
 
 #[test]
+fn preview_inspection_checks_exact_display_and_current_subject_without_writes() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let output = Fixture(fixture.0.with_extension("preview"));
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        output.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let path = PathBuf::from(emitted["result"]["previews"][0]["path"].as_str().unwrap());
+    let inspect = |path: &std::path::Path| {
+        fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--inspect-preview",
+            path.to_str().unwrap(),
+            "--json",
+        ])
+    };
+    let accepted = inspect(&path);
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+    assert_eq!(accepted["result"]["dispatch_eligible"], false);
+
+    let mut altered: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    altered["atoms"][0]["text"] = "An attacker changed this instruction.".into();
+    let raw = serde_jcs::to_string(&altered).unwrap();
+    let changed = output.0.join(format!(
+        "preview-{}.json",
+        openwarrant_compiler::digest::sha256_hex(raw.as_bytes())
+    ));
+    fs::write(&changed, raw).unwrap();
+    let refused = inspect(&changed);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.preview-binding"),
+        "{refused}"
+    );
+
+    // A canonical digest alone does not bind the raw archive bytes. Whitespace
+    // leaves its parsed value unchanged, but changes the file the view names.
+    let view: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let archive_path = path
+        .parent()
+        .unwrap()
+        .join(view["archive"]["path"].as_str().unwrap());
+    let original = fs::read(&archive_path).unwrap();
+    let mut changed_bytes = original.clone();
+    changed_bytes.extend_from_slice(b" \n");
+    fs::write(&archive_path, changed_bytes).unwrap();
+    let refused = inspect(&path);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.preview-binding"),
+        "{refused}"
+    );
+    fs::write(archive_path, original).unwrap();
+
+    let mut future = view.clone();
+    future["schema"] = "oh.war/verification-view-preview/v2".into();
+    let raw = serde_jcs::to_string(&future).unwrap();
+    let future_path = output.0.join(format!(
+        "preview-{}.json",
+        openwarrant_compiler::digest::sha256_hex(raw.as_bytes())
+    ));
+    fs::write(&future_path, raw).unwrap();
+    let unknown = inspect(&future_path);
+    assert_eq!(unknown["counts"]["unknown"], 1, "{unknown}");
+    assert_eq!(unknown["counts"]["error"], 0, "{unknown}");
+
+    let source = fixture.0.join("new-source.txt");
+    fs::write(&source, "The reviewed tree changed after capture.\n").unwrap();
+    let stale = inspect(&path);
+    assert_ne!(stale["exit_code"], 0, "{stale}");
+    assert!(
+        stale.to_string().contains("verify.preview-subject-stale"),
+        "{stale}"
+    );
+    let ticket = fixture.run(&[
+        "verify",
+        "t-0000",
+        "--inspect-preview",
+        path.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(ticket["exit_code"], 0, "{ticket}");
+    assert!(
+        ticket
+            .to_string()
+            .contains("verify.preview-warrant-required"),
+        "{ticket}"
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications")
+            .exists()
+    );
+}
+
+#[test]
 fn portable_review_preview_retains_full_bindings_without_spending_the_model_budget_on_them() {
     let fixture = Fixture::new();
     let sources = fixture.0.join("inventory");
