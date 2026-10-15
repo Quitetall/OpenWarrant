@@ -35333,7 +35333,7 @@ this level requires. The author does not record them.
 | D-015 | Signing an invalidation (AM-003; Q-001 a or b only) | `docs/SIGNING.md` | verified |
 | D-016 | The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
 | D-017 | The human acts an adopter meets (AM-003; Q-001 a or b only) | `docs/ADOPTING.md` | verified |
-| D-018 | The legacy workflow rendered from the AGENTS.md template (AM-003; Q-001 a or b only) | `docs/agents/legacy-warrant-workflow.md` | verified |
+| D-018 | The legacy workflow rendered from the AGENTS.md template (AM-003; Q-001 a or b only) | `docs/agents/legacy-warrant-workflow.md` | drift |
 
 ### OW-WAR-0137 — Teams: review assignment and a queue shared by more than one person
 
@@ -40070,7 +40070,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-012 | The loop, the process race, check and MCP, through the binary | `crates/openwarrant-cli/tests/tickets_cli.rs` | verified |
 | D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | verified |
 | D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
-| D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | verified |
+| D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | drift |
 | D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | verified |
 | D-017 | The loop in five commands | `docs/TICKETS.md` | verified |
 | D-018 | Three steps to start | `README.md` | verified |
