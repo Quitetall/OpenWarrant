@@ -1,0 +1,27 @@
+{
+  "run": 38674510635,
+  "head": "bef7e69086711a686fcc74a053f6d2cb6e239216",
+  "base": "c8bc0cb0a4704af8db960694029664fd5c8f09e6",
+  "tested_merge_snapshot": "6c2a59bd5aedb4daf1ec8d2a1bf5519a30c9e32b",
+  "tree": "8f68a09c300abe5f653f53ce811de5475090f6e9",
+  "source_file_count": 12363,
+  "source_digest": "75a35b0a24c0e4cd566547a1de6ea01da1d3cc7848d7d85fd48e3362e89aea73",
+  "immutable_git_source_inventory_matches_both_hosts": true,
+  "hosts": [
+    {
+      "host": "Linux",
+      "architecture": "x86_64",
+      "checks": 11,
+      "passed": true
+    },
+    {
+      "host": "Darwin",
+      "architecture": "arm64",
+      "checks": 11,
+      "passed": true
+    }
+  ],
+  "fifo_refusals_passed": true,
+  "phase_exit_established": false,
+  "qualification_established": false
+}
