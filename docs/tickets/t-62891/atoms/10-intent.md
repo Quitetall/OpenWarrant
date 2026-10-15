@@ -1,3 +1,7 @@
 # Diagnose Git inventory refusal in full verifier conformance
 
 Actual OW119 conformance on 379acb09 returned 1662 passed and 2 failed: 84-direct-verdicts and 84-review-source-closure both received verify.subject-unavailable: Git source inventory cannot be read. Actual failed receipt, stdout, stderr and journal retained under /mnt/4tb/artifacts/OpenWarrant/keep/conformance-continuation-20261014/conformance-json-main-refresh/failure-preserved. The unchanged required-source control passes in the same namespace shape with bounded Git stderr capture; expected exit 128 with no Git ancestor falls back correctly. Original Git stderr was discarded by repo.rs source_paths, so the original underlying cause is UNKNOWN. Do not infer repair, independent verification or qualification from replay passes. Do not weaken source checks, assertions or deadlines.
+
+## Notes
+
+- **2026-10-15 01:11 UTC, agent://codex:** Diagnostic follow-up: actual corrupt-index CLI failure exposed both discarded Git stderr and incorrect ERROR classification. Existing ObservationUnavailable now reports UNKNOWN and exit/status stderr bounded to 2048 bytes. Real Git success/corruption/restore plant and 50 isolated public verifier tests pass. Original i-9f40 remains open: no captured failure from the original full sequence and no underlying repair. First suite replay in shared /mnt/4tb/development/tmp failed 18/32 with not-a-Git-repository stderr; isolated replay 50/0. Evidence: evidence/git-inventory-diagnostics-20261015.
