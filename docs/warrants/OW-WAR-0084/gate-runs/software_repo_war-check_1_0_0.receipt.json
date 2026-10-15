@@ -5,7 +5,7 @@
   "subject_digests": [
     "contract:sha256:253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d",
     "deliverables:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "tree:2b5928ef130620cacbf9286123c79ebe45317763"
+    "tree:1510ed39af037eec67b3912077bc3fcddf2842d2"
   ],
   "fixture_digests": [],
   "runner": "war gate --run",
@@ -15,9 +15,9 @@
     "check",
     "--generated"
   ],
-  "working_directory": "/mnt/4tb/tmp/openwarrant-current-json-evidence",
-  "started_at": "2026-10-14T22:09:12Z",
-  "completed_at": "2026-10-14T22:09:17Z",
+  "working_directory": "/mnt/4tb/tmp/openwarrant-delivery-continuation",
+  "started_at": "2026-10-14T23:24:42Z",
+  "completed_at": "2026-10-14T23:24:47Z",
   "exit_result": "pass",
   "selected_test_count": 0,
   "selected_test_manifest": [],
@@ -26,5 +26,5 @@
   "stderr_ref": "docs/warrants/OW-WAR-0084/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
   "resource_usage": "wall-clock only; 3 argv item(s)",
   "verdict": "pass",
-  "receipt_digest": "sha256:6bfa51f9ebc515e6cde14e5f524e90665231bad8530e6b72a59e03a50f75622a"
+  "receipt_digest": "sha256:e06ad6832616b9063361ca7173c8fbd47c9d9ae6333eda3d18dc2893ab1f70c2"
 }
