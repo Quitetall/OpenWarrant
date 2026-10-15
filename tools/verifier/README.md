@@ -34,6 +34,11 @@ The command receives the exact packet references through
 `OPENWARRANT_REVIEWED_PACKETS`, supplied by OpenWarrant. Do not invent them
 for a production review.
 
+The client requires valid compiler budget metadata and refuses packets marked
+over budget, or whose estimate exceeds the budget, before any backend call or
+review-log write. Exact required context stays intact. This checks the supplied
+compiler metadata; it does not substitute a new tokenizer.
+
 The client permits HTTP to a literal loopback IP and port only. It ignores
 proxy settings, refuses redirects, requests no tools, and rejects a substituted
 model, tool call or incomplete answer. It retains the exact input bytes, raw

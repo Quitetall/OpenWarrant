@@ -1,0 +1,75 @@
+FFFFFFF
+======================================================================
+FAIL: test_compiler_budget_refusal_precedes_all_backend_calls_and_writes (__main__.Controls.test_compiler_budget_refusal_precedes_all_backend_calls_and_writes) (fields={'budget_tokens': 48000, 'estimated_tokens': 48001, 'over_budget': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-verifier-protocol-prompt-20261015/tools/verifier/test_local_verifier.py", line 137, in test_compiler_budget_refusal_precedes_all_backend_calls_and_writes
+    self.assertNotEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : local verifier run: /mnt/4tb/development/tmp/tmp6boyqjqw/logs/local-review-vof1iuxx
+
+
+======================================================================
+FAIL: test_compiler_budget_refusal_precedes_all_backend_calls_and_writes (__main__.Controls.test_compiler_budget_refusal_precedes_all_backend_calls_and_writes) (fields={'budget_tokens': 48000, 'estimated_tokens': 100, 'over_budget': True})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-verifier-protocol-prompt-20261015/tools/verifier/test_local_verifier.py", line 137, in test_compiler_budget_refusal_precedes_all_backend_calls_and_writes
+    self.assertNotEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : local verifier run: /mnt/4tb/development/tmp/tmp6boyqjqw/logs/local-review-1xl5r61g
+
+
+======================================================================
+FAIL: test_compiler_budget_refusal_precedes_all_backend_calls_and_writes (__main__.Controls.test_compiler_budget_refusal_precedes_all_backend_calls_and_writes) (fields={'budget_tokens': True, 'estimated_tokens': 100, 'over_budget': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-verifier-protocol-prompt-20261015/tools/verifier/test_local_verifier.py", line 137, in test_compiler_budget_refusal_precedes_all_backend_calls_and_writes
+    self.assertNotEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : local verifier run: /mnt/4tb/development/tmp/tmp6boyqjqw/logs/local-review-xbsabkh_
+
+
+======================================================================
+FAIL: test_compiler_budget_refusal_precedes_all_backend_calls_and_writes (__main__.Controls.test_compiler_budget_refusal_precedes_all_backend_calls_and_writes) (fields={'budget_tokens': 48000, 'estimated_tokens': -1, 'over_budget': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-verifier-protocol-prompt-20261015/tools/verifier/test_local_verifier.py", line 137, in test_compiler_budget_refusal_precedes_all_backend_calls_and_writes
+    self.assertNotEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : local verifier run: /mnt/4tb/development/tmp/tmp6boyqjqw/logs/local-review-dl4v5uqj
+
+
+======================================================================
+FAIL: test_compiler_budget_refusal_precedes_all_backend_calls_and_writes (__main__.Controls.test_compiler_budget_refusal_precedes_all_backend_calls_and_writes) (fields={'budget_tokens': 48000, 'estimated_tokens': 18446744073709551616, 'over_budget': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-verifier-protocol-prompt-20261015/tools/verifier/test_local_verifier.py", line 137, in test_compiler_budget_refusal_precedes_all_backend_calls_and_writes
+    self.assertNotEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : local verifier run: /mnt/4tb/development/tmp/tmp6boyqjqw/logs/local-review-4zxma718
+
+
+======================================================================
+FAIL: test_compiler_budget_refusal_precedes_all_backend_calls_and_writes (__main__.Controls.test_compiler_budget_refusal_precedes_all_backend_calls_and_writes) (fields={'budget_tokens': 48000, 'estimated_tokens': 100, 'over_budget': 'false'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-verifier-protocol-prompt-20261015/tools/verifier/test_local_verifier.py", line 137, in test_compiler_budget_refusal_precedes_all_backend_calls_and_writes
+    self.assertNotEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : local verifier run: /mnt/4tb/development/tmp/tmp6boyqjqw/logs/local-review-jqtkvn0_
+
+
+======================================================================
+FAIL: test_compiler_budget_refusal_precedes_all_backend_calls_and_writes (__main__.Controls.test_compiler_budget_refusal_precedes_all_backend_calls_and_writes) (fields={'budget_tokens': None, 'estimated_tokens': 100, 'over_budget': False})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-verifier-protocol-prompt-20261015/tools/verifier/test_local_verifier.py", line 137, in test_compiler_budget_refusal_precedes_all_backend_calls_and_writes
+    self.assertNotEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0 : local verifier run: /mnt/4tb/development/tmp/tmp6boyqjqw/logs/local-review-c7kre0uk
+
+
+----------------------------------------------------------------------
+Ran 1 test in 3.815s
+
+FAILED (failures=7)

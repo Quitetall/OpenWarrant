@@ -26,12 +26,14 @@ class Controls(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.bundle = {"schema": "oh.war/verification-bundle/v2", "warrant": "fixture",
+                       "budget_tokens": 48000, "estimated_tokens": 100, "over_budget": False,
                        "request": {"performer": "fixture-performer", "reviewed_subject": {
                            "contract_digest": "exact-before", "artifacts": {"file.rs": "before"}},
                            "obligations": [{"id": "OBL-001", "statement": "fixture"}]}}
         self.path = self.root / "bundle.json"
         self.path.write_text(json.dumps(self.bundle))
         self.received = []
+        self.health_requests = 0
         self.response = {"model": "fixture-model", "choices": [{"finish_reason": "stop", "message": {
             "content": json.dumps({"verdicts": [{"obligation": "OBL-001", "disposition": "established",
                                                  "evidence": "synthetic transport control only"}]})}}],
@@ -48,6 +50,7 @@ class Controls(unittest.TestCase):
                 pass
 
             def do_GET(self):
+                owner.health_requests += 1
                 self.send_response(200)
                 self.end_headers()
                 self.wfile.write(b'{"service":"lamu","status":"ok"}')
@@ -113,6 +116,31 @@ class Controls(unittest.TestCase):
         run = json.loads((logs[0] / "run.json").read_text())
         self.assertIsNone(run["api_charge_usd"])
         self.assertEqual(run["usage"]["completion_tokens"], 12)
+
+    def test_compiler_budget_refusal_precedes_all_backend_calls_and_writes(self):
+        cases = [
+            {"budget_tokens": 48000, "estimated_tokens": 48001, "over_budget": False},
+            {"budget_tokens": 48000, "estimated_tokens": 100, "over_budget": True},
+            {"budget_tokens": True, "estimated_tokens": 100, "over_budget": False},
+            {"budget_tokens": 48000, "estimated_tokens": -1, "over_budget": False},
+            {"budget_tokens": 48000, "estimated_tokens": 2**64, "over_budget": False},
+            {"budget_tokens": 48000, "estimated_tokens": 100, "over_budget": "false"},
+            {"budget_tokens": None, "estimated_tokens": 100, "over_budget": False},
+        ]
+        for fields in cases:
+            with self.subTest(fields=fields):
+                self.bundle.update(fields)
+                self.path.write_text(json.dumps(self.bundle))
+                before = self.path.read_bytes()
+                with self.server() as base:
+                    result = self.run_client(base)
+                self.assertNotEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout, "")
+                self.assertIn("verify.bundle-", result.stderr)
+                self.assertEqual(self.received, [])
+                self.assertEqual(self.health_requests, 0)
+                self.assertFalse((self.root / "logs").exists())
+                self.assertEqual(self.path.read_bytes(), before)
 
     def test_redirect_is_refused_without_answer(self):
         self.redirect = True

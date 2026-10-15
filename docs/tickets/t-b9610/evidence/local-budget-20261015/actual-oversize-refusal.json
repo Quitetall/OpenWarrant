@@ -1,0 +1,9 @@
+{
+  "exit_code": 2,
+  "stderr": "local verifier unavailable: verify.bundle-over-budget: 445266 estimated tokens exceed the 48000-token budget; exact input retained, no backend called\n",
+  "input_sha256": "23b2b11ffa218dac819d3bdf9962305ca04987ddfc906268acf907a12d66f153",
+  "input_unchanged": true,
+  "log_created": false,
+  "inference_called": false,
+  "qualification_established": false
+}
