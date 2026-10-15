@@ -1329,6 +1329,11 @@ enum EvidenceCommand {
         /// each carrying what that obligation names, excerpted to fit.
         #[arg(long, conflicts_with = "response")]
         bundle: bool,
+        /// Experimental offline review view and full v2 archive, in an
+        /// absolute directory outside the repository. Never dispatches or
+        /// establishes verification; current adapters refuse this format.
+        #[arg(long, requires = "bundle", conflicts_with_all = ["response", "run"])]
+        portable_preview: Option<Utf8PathBuf>,
         /// Write the bundle(s), run `[verify] verifier_argv` once on each, and
         /// ingest what each prints through the same seam as `--response`.
         #[arg(long, conflicts_with_all = ["response", "bundle"])]
@@ -5362,10 +5367,16 @@ fn run_evidence_member(
             performer,
             response,
             bundle,
+            portable_preview,
             run,
         } => {
             let repository = ctx.open_repo()?;
             if bundle {
+                if let Some(directory) = portable_preview {
+                    let (report, index) =
+                        bundle::preview::emit(&repository, &alias, &performer, &directory)?;
+                    return Ok(output::finish(mode, "verify.preview", &report, Some(index)));
+                }
                 let (report, index) = bundle::emit(&repository, &alias, &performer)?;
                 return Ok(output::finish(mode, "verify.bundle", &report, Some(index)));
             }

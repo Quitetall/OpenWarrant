@@ -151,6 +151,21 @@ class Controls(unittest.TestCase):
         self.assertIn("redirect", result.stderr)
         self.assertEqual(len(self.received), 1)
 
+    def test_review_preview_is_not_an_executable_bundle(self):
+        self.bundle["schema"] = "oh.war/verification-view-preview/v1"
+        self.bundle["dispatch_eligible"] = False
+        self.path.write_text(json.dumps(self.bundle))
+        before = self.path.read_bytes()
+        with self.server() as base:
+            result = self.run_client(base)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("only a current v2 verification bundle", result.stderr)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(self.health_requests, 0)
+        self.assertEqual(self.received, [])
+        self.assertFalse((self.root / "logs").exists())
+        self.assertEqual(self.path.read_bytes(), before)
+
     def test_substituted_model_tool_call_and_truncation_are_refused(self):
         for kind in ("model", "tool", "truncated"):
             with self.subTest(kind=kind):

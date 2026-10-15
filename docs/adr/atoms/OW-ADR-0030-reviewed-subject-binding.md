@@ -103,6 +103,40 @@ before the retention implementation.
 
 ## Portable packet binding
 
+### Experimental compact review preview
+
+An opt-in `war verify --bundle --portable-preview <directory>` may publish a separate
+`oh.war/verification-view-preview/v1` document beside the unchanged v2 bundle.
+It is a review preview, not an executable verification protocol. Existing
+adapters and response ingestion must continue to refuse it. It grants no
+qualification and cannot replace a retained v2 packet.
+
+The preview keeps contract atoms, contract sources, governing rules, fixtures
+and gate definitions exact. It moves the full machine subject map and raw
+gate-evidence sources out of the model view, into the accompanying immutable
+v2 archive. Gate-output excerpts remain explicitly bounded observations, never
+a claim that the unseen archive was reviewed. Each moved source retains its
+path, kind, byte digest and presence in the view; the archive reference carries
+the existing Rust VerificationBundle digest and the ordinary SHA-256 of the
+actual retained file bytes, including its final newline. The reference uses a
+sibling filename so the pair can be copied and read offline.
+The destination must be an absolute directory outside the reviewed repository;
+publication must not change the source tree it describes or follow output links.
+
+Allocate the model view's reading budget after this separation, using the
+existing captured source set and deterministic excerpt selection. If exact
+required rules and fixtures alone exceed the budget, report that fact; never
+remove them to obtain a fitting preview. Full source inventories bind the
+reviewed workspace but are not themselves instructions or evidence that the
+model inspected every source file. A preview remains ineligible for dispatch
+even when it fits.
+
+The preview is canonicalized by the existing Rust JCS implementation. Its
+filename uses ordinary SHA-256 of those exact bytes, with no new authority or
+verification digest domain. Adoption of a compact executable protocol requires
+separate response/storage bindings, source-coverage checks and compatibility
+refusals. This experiment does not adopt that protocol or amend the accepted SAS.
+
 Each `reviewed_packets` entry carries a retained repository-relative path and the full existing VerificationBundle digest. The path uses the existing shortened digest filename; qualification checks the full digest. Packet/request schema, exact subject, performer and covered obligations must match. Qualification reads the retained packet; it does not rebuild a different packet after prior verdicts changed.
 
 Contract and packet digests retain their existing Rust canonicalizers and digest domains. No replacement canonicalizer, Python digest implementation or model-created digest is introduced. `verify --bundle --json` returns a machine-readable packet index; configured verifier calls receive its Rust-computed references as transport metadata.
