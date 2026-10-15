@@ -1460,6 +1460,10 @@
 > Signing must not make evidence stale
 - t-22fd · ticket · done · Signing must not make evidence stale · docs/tickets/t-22fd/manifest.toml:1
 
+## docs/tickets/t-244e0/manifest.toml
+> Keep native CLI capture reproducible on a patched TLS dependency
+- t-244e0 · ticket · done · Keep native CLI capture reproducible on a patched TLS dependency · docs/tickets/t-244e0/manifest.toml:1
+
 ## docs/tickets/t-26ca/manifest.toml
 > war ui drops an oversized request under load instead of answering 431
 - t-26ca · ticket · done · war ui drops an oversized request under load instead of answering 431 · docs/tickets/t-26ca/manifest.toml:1

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "source": "da6553dbc8d8f3e73d09d70fecbdd677940783f5",
+  "binaries": {
+    "openwarrant_verifier": "/mnt/4tb/tmp/openwarrant-katana-merged-cli-20261015/target/debug/examples/openwarrant_verifier",
+    "katana": "/mnt/4tb/tmp/openwarrant-katana-merged-cli-20261015/target/debug/katana"
+  },
+  "binary_sha256": {
+    "openwarrant_verifier": "c6b5f5fde696098fb413604709007bc7919051752999d0e5b001af64d4f84add",
+    "katana": "a0ef96d5dcb245d3bd184c9c839fcf0e8270b6a774d6a7150224175fe821dde2"
+  },
+  "toolchain": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "provider_model": "scripted localhost fixtures only",
+  "human_assurance": false,
+  "cross_consumer_pending": true
+}
