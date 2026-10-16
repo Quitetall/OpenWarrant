@@ -339,6 +339,10 @@
 > -
 - OW-ADR-native-policy-e8b574f1 · adr · - · Bind native acceptance to protected policy observations · docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md:1
 
+## docs/adr/atoms/OW-ADR-package-source-gzip-1af3bdf8.md
+> -
+- OW-ADR-package-source-gzip-1af3bdf8 · adr · - · Bound a compressed full-source release capsule · docs/adr/atoms/OW-ADR-package-source-gzip-1af3bdf8.md:1
+
 ## docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md
 > -
 - OW-ADR-runtime-contract-80d7bda6 · adr · - · Retain exact runtime contract source snapshots · docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md:1
@@ -1540,6 +1544,10 @@
 > Reconnect retained provider captures in source-detached runtime archive queries
 - t-418bc · ticket · done · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/manifest.toml:1
 
+## docs/tickets/t-45f8c/manifest.toml
+> Publish preview bootstrap installer and checksum automatically
+- t-45f8c · ticket · open · Publish preview bootstrap installer and checksum automatically · docs/tickets/t-45f8c/manifest.toml:1
+
 ## docs/tickets/t-460f5/manifest.toml
 > Restore exact upstream notice provenance for rmcp 3.5.1 release packages
 - t-460f5 · ticket · done · Restore exact upstream notice provenance for rmcp 3.5.1 release packages · docs/tickets/t-460f5/manifest.toml:1
@@ -1594,7 +1602,7 @@
 
 ## docs/tickets/t-5501f/manifest.toml
 > Prepare alpha.4 preview with current integration fixes
-- t-5501f · ticket · done · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
+- t-5501f · ticket · open · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
 
 ## docs/tickets/t-5504f/manifest.toml
 > Retain current phase evidence and audit remaining Warrant completion scope

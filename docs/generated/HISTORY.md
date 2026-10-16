@@ -4214,6 +4214,55 @@ captures, assurance case and artifact snapshots. The legacy v1 response must
 remain compatible and must not be presented as native evidence acceptance.
 Until that path exists, native response ingestion remains explicitly unavailable.
 
+### OW-ADR-package-source-gzip-1af3bdf8 — Bound a compressed full-source release capsule (`proposed`)
+
+[source](../../docs/adr/atoms/OW-ADR-package-source-gzip-1af3bdf8.md)
+
+# Bound a compressed full-source release capsule
+
+## Status
+
+Proposed packaging decision for the owner-requested unverified alpha preview.
+This is not Stable qualification, SAS acceptance or authority to publish.
+
+## Observed failure
+
+Release run 38819931497 passed the full gate and both native builds at
+7ab1e6a70fd2d1673cb4c10d2208fc34d52f8557. Both package steps refused
+`Bundle payload limit exceeded`. The complete committed source tar alone is
+264,755,200 bytes against a 268,435,456-byte outer payload limit. It leaves
+less than 4 MB for the executable and notices. No source is dispensable merely
+to make this check pass.
+
+## Proposed representation
+
+A new `oh.war/candidate-bundle/v2` capsule carries the complete committed Git
+source as `sdk-source.tar.gz`, rather than uncompressed `sdk-source.tar`.
+The inner tar preserves every original path, byte, mode, symlink and notice.
+No source selection or history deletion is introduced. The outer manifest
+continues to bind each payload's actual bytes and SHA-256.
+
+The existing 256 MiB limits stay unchanged: committed source input, expanded
+source tar, outer payload, compressed distribution and expanded outer tar
+remain bounded at their respective layers. Source decompression must stop at
+limit plus one and refuse overflow before source extraction or executable
+execution. Existing tar member, sparse file, path, duplicate, link and manifest
+checks remain binding. Compression does not grant trust or qualification.
+
+Readers continue to support v1 without reinterpreting its uncompressed source
+entry. V2 requires its explicitly named gzip source; malformed or unsupported
+versions must not fall back to v1. The candidate remains `qualified = false`
+and `promotable = false`. Native build, install, provenance, parity and owner
+release gates remain required. An old published release or spent tag is never
+rewritten to activate this proposal.
+
+## Alternatives
+
+Raising the limits changes the resource policy. Omitting history or fixtures
+breaks the complete-source promise. Splitting binary and SDK distributions is
+a larger delivery interface change. A bounded compressed source member keeps
+the existing single downloadable artifact and full source context.
+
 ### OW-ADR-runtime-contract-80d7bda6 — Retain exact runtime contract source snapshots (`proposed`)
 
 [source](../../docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md)
@@ -27840,7 +27889,7 @@ assert it with.
 | D-016 | cli: the command and module list | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-017 | cli: the remedies for the new rules | `crates/openwarrant-cli/src/remedy.rs` | verified |
 | D-018 | cli: the app's Roadmap pane | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
-| D-019 | cli: war progress reads the record | `crates/openwarrant-cli/src/progress_viewer.rs` | verified |
+| D-019 | cli: war progress reads the record | `crates/openwarrant-cli/src/progress_viewer.rs` | drift |
 | D-020 | cli: the progress roadmap reader | `crates/openwarrant-cli/src/progress_viewer/roadmap.rs` | verified |
 | D-021 | compiler: the Roadmap section of CURRENT.md | `crates/openwarrant-compiler/src/current.rs` | verified |
 | D-022 | schema: oh.war/roadmap/v1 | `schemas/oh.war/roadmap/v1.json` | verified |
@@ -28451,12 +28500,12 @@ then the act is the one the server chose, and the key's dialog asks.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | war ui: the hardened loopback server | `crates/openwarrant-cli/src/webui/mod.rs` | verified |
+| D-001 | war ui: the hardened loopback server | `crates/openwarrant-cli/src/webui/mod.rs` | drift |
 | D-002 | the page | `crates/openwarrant-cli/src/webui/assets/index.html` | verified |
-| D-003 | the page's script | `crates/openwarrant-cli/src/webui/assets/app.js` | verified |
+| D-003 | the page's script | `crates/openwarrant-cli/src/webui/assets/app.js` | drift |
 | D-004 | the page's style | `crates/openwarrant-cli/src/webui/assets/app.css` | verified |
 | D-005 | the shared parser; no inline CSP | `crates/openwarrant-cli/src/progress_viewer/server.rs` | verified |
-| D-006 | war progress --serve is war ui | `crates/openwarrant-cli/src/progress_viewer.rs` | verified |
+| D-006 | war progress --serve is war ui | `crates/openwarrant-cli/src/progress_viewer.rs` | drift |
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
 | D-009 | README.md: war ui | `README.md` | verified |
@@ -36674,10 +36723,10 @@ device?
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | war ui --lan: TLS-only, exact Host and Origin, loopback unchanged | `crates/openwarrant-cli/src/webui/mod.rs` | verified |
+| D-001 | war ui --lan: TLS-only, exact Host and Origin, loopback unchanged | `crates/openwarrant-cli/src/webui/mod.rs` | drift |
 | D-002 | TLS for the LAN listener | `crates/openwarrant-cli/src/webui/tls.rs` | verified |
 | D-003 | pairing, device credentials, nonces | `crates/openwarrant-cli/src/webui/pairing.rs` | verified |
-| D-004 | the page: pairing, nonces, host-only rows | `crates/openwarrant-cli/src/webui/assets/app.js` | verified |
+| D-004 | the page: pairing, nonces, host-only rows | `crates/openwarrant-cli/src/webui/assets/app.js` | drift |
 | D-005 | WEBUI.md: Reach on the LAN | `docs/WEBUI.md` | verified |
 | D-006 | THREAT_MODEL row 13: loopback and LAN | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-007 | the plants | `conformance/plants.d/59-webui-lan.sh` | verified |
@@ -40166,7 +40215,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-003 | A Warrant naming a working-form profile is refused | `crates/openwarrant-core/src/manifest.rs` | verified |
 | D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | verified |
 | D-005 | The ticket module | `crates/openwarrant-core/src/lib.rs` | drift |
-| D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | verified |
+| D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | drift |
 | D-007 | Claims: hard-link locks, steal, release | `crates/openwarrant-cli/src/ticket/claim.rs` | verified |
 | D-008 | prime, show, tickets | `crates/openwarrant-cli/src/ticket/render.rs` | verified |
 | D-009 | The ticket subcommands, show and check routing, the init start line | `crates/openwarrant-cli/src/lib.rs` | drift |
@@ -40820,7 +40869,7 @@ observer.
 | D-012 | MCP tools read the corpus | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
 | D-013 | MCP resources read the corpus | `crates/openwarrant-cli/src/mcp/resources.rs` | not_content_addressed |
 | D-014 | war model: oh.war/model/v1 | `crates/openwarrant-cli/src/model.rs` | not_content_addressed |
-| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | verified |
+| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
 | D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
 | D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |

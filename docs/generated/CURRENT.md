@@ -958,7 +958,7 @@ SAS revision **1.3.0** (accepted), sha256:`97c69198140b6312e0f4da4b19a5cd16a87ea
 
 ## Decisions
 
-9 accepted decision(s), expanded; 26 proposed, one line each.
+9 accepted decision(s), expanded; 27 proposed, one line each.
 
 ### OW-ADR-0001 — ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation
 
@@ -1976,6 +1976,7 @@ are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
 - [OW-ADR-native-acceptance-7d21adfa](../../docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md) — Version native acceptance separately from legacy resolution
 - [OW-ADR-native-inputs-98b57f41](../../docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md) — Retain native verifier inputs as inert archive data
 - [OW-ADR-native-policy-e8b574f1](../../docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md) — Bind native acceptance to protected policy observations
+- [OW-ADR-package-source-gzip-1af3bdf8](../../docs/adr/atoms/OW-ADR-package-source-gzip-1af3bdf8.md) — Bound a compressed full-source release capsule
 - [OW-ADR-runtime-contract-80d7bda6](../../docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md) — Retain exact runtime contract source snapshots
 
 ## Roadmap
@@ -10518,7 +10519,7 @@ assert it with.
 | D-016 | cli: the command and module list | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-017 | cli: the remedies for the new rules | `crates/openwarrant-cli/src/remedy.rs` | verified |
 | D-018 | cli: the app's Roadmap pane | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
-| D-019 | cli: war progress reads the record | `crates/openwarrant-cli/src/progress_viewer.rs` | verified |
+| D-019 | cli: war progress reads the record | `crates/openwarrant-cli/src/progress_viewer.rs` | drift |
 | D-020 | cli: the progress roadmap reader | `crates/openwarrant-cli/src/progress_viewer/roadmap.rs` | verified |
 | D-021 | compiler: the Roadmap section of CURRENT.md | `crates/openwarrant-compiler/src/current.rs` | verified |
 | D-022 | schema: oh.war/roadmap/v1 | `schemas/oh.war/roadmap/v1.json` | verified |
@@ -11129,12 +11130,12 @@ then the act is the one the server chose, and the key's dialog asks.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | war ui: the hardened loopback server | `crates/openwarrant-cli/src/webui/mod.rs` | verified |
+| D-001 | war ui: the hardened loopback server | `crates/openwarrant-cli/src/webui/mod.rs` | drift |
 | D-002 | the page | `crates/openwarrant-cli/src/webui/assets/index.html` | verified |
-| D-003 | the page's script | `crates/openwarrant-cli/src/webui/assets/app.js` | verified |
+| D-003 | the page's script | `crates/openwarrant-cli/src/webui/assets/app.js` | drift |
 | D-004 | the page's style | `crates/openwarrant-cli/src/webui/assets/app.css` | verified |
 | D-005 | the shared parser; no inline CSP | `crates/openwarrant-cli/src/progress_viewer/server.rs` | verified |
-| D-006 | war progress --serve is war ui | `crates/openwarrant-cli/src/progress_viewer.rs` | verified |
+| D-006 | war progress --serve is war ui | `crates/openwarrant-cli/src/progress_viewer.rs` | drift |
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
 | D-009 | README.md: war ui | `README.md` | verified |
@@ -13105,7 +13106,7 @@ observer.
 | D-012 | MCP tools read the corpus | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
 | D-013 | MCP resources read the corpus | `crates/openwarrant-cli/src/mcp/resources.rs` | not_content_addressed |
 | D-014 | war model: oh.war/model/v1 | `crates/openwarrant-cli/src/model.rs` | not_content_addressed |
-| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | verified |
+| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
 | D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
 | D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |
@@ -15657,7 +15658,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-003 | A Warrant naming a working-form profile is refused | `crates/openwarrant-core/src/manifest.rs` | verified |
 | D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | verified |
 | D-005 | The ticket module | `crates/openwarrant-core/src/lib.rs` | drift |
-| D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | verified |
+| D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | drift |
 | D-007 | Claims: hard-link locks, steal, release | `crates/openwarrant-cli/src/ticket/claim.rs` | verified |
 | D-008 | prime, show, tickets | `crates/openwarrant-cli/src/ticket/render.rs` | verified |
 | D-009 | The ticket subcommands, show and check routing, the init start line | `crates/openwarrant-cli/src/lib.rs` | drift |
@@ -36322,10 +36323,10 @@ device?
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | war ui --lan: TLS-only, exact Host and Origin, loopback unchanged | `crates/openwarrant-cli/src/webui/mod.rs` | verified |
+| D-001 | war ui --lan: TLS-only, exact Host and Origin, loopback unchanged | `crates/openwarrant-cli/src/webui/mod.rs` | drift |
 | D-002 | TLS for the LAN listener | `crates/openwarrant-cli/src/webui/tls.rs` | verified |
 | D-003 | pairing, device credentials, nonces | `crates/openwarrant-cli/src/webui/pairing.rs` | verified |
-| D-004 | the page: pairing, nonces, host-only rows | `crates/openwarrant-cli/src/webui/assets/app.js` | verified |
+| D-004 | the page: pairing, nonces, host-only rows | `crates/openwarrant-cli/src/webui/assets/app.js` | drift |
 | D-005 | WEBUI.md: Reach on the LAN | `docs/WEBUI.md` | verified |
 | D-006 | THREAT_MODEL row 13: loopback and LAN | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-007 | the plants | `conformance/plants.d/59-webui-lan.sh` | verified |
