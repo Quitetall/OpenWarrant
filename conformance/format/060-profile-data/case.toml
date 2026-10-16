@@ -1,0 +1,4 @@
+id = "060-profile-data"
+kind = "accept"
+section = "7.5"
+says = """A profile is a TOML file, `profiles/<name>.toml`, schema `oh.war/profile/v1`"""

@@ -4,7 +4,7 @@
 # conformance/format/) through war:
 # - war passes every case except those known-war.txt lists, and every listed
 #   case still fails (a settled divergence must leave the list); every rule
-#   id of section 11.2 is expected by some case.
+#   id of section 13.2 is expected by some case.
 # - Refused: the same run over a copy of the corpus in which one case's
 #   expected refusal names another line, and in which one accept case's
 #   expected model has a changed content_digest, each fails by that case's

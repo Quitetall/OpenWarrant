@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+# A built-in profile of OpenWarrant Format 1.0 (docs/format/FORMAT-1.0.md
+# section 7.6), as profile data (section 7.5). Normative: this file is the
+# profile; where it and the prose disagree, the prose wins and this file is
+# the defect.
+schema = "oh.war/profile/v1"
+name = "ticket"
+form = "work"
+note = "A sentence and a checklist: work that is workable the moment it exists."
+capabilities = ["structure", "links", "claims", "checks"]
+
+[frontmatter]
+required = []
+optional = ["type", "priority", "labels", "created_at", "created_by", "imported_from", "promoted_to", "issue", "issue_url", "due"]
+
+[sections]
+required = ["Checklist"]
+optional = []
+
+[records]
+types = ["check", "kpi"]
+
+[fields.check]
+run = { required = true, shape = "line" }
+on = { required = false, shape = "line" }
+timeout = { required = false, shape = "int" }
+gating = { required = false, shape = "enum", values = ["true", "false"] }
+
+[fields.kpi]
+run = { required = true, shape = "line" }
+on = { required = false, shape = "line" }
+timeout = { required = false, shape = "int" }
+gating = { required = false, shape = "enum", values = ["true", "false"] }
+direction = { required = true, shape = "enum", values = ["min", "max"] }
+target = { required = false, shape = "line" }
+mode = { required = false, shape = "enum", values = ["threshold", "best", "optimise"] }
+
+[relations]
+allow = ["part_of", "depends_on", "implements", "constrains", "evaluates", "supersedes", "supports", "refutes", "trades_off_against", "causes", "qualifies", "selected_over"]
+
+[ticks]
+item = "claimed"

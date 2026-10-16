@@ -2,14 +2,24 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openwarrant.dev/schemas/format/1.0/context.json",
   "title": "oh.war/context/v1 (Format 1.0 section 10.3)",
-  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 10.3. Where this schema and the prose disagree, the prose wins and this schema is the defect. What `war context <target> --json` emits: the same selection as the Markdown rendering, with `bytes` the size of that rendering. A record given in full (`tier: full`) carries `text`, the exact span; a record given by its summary (`tier: summary`) does not. A root (distance 0) has no `via`; every other record names the first `(step, from)` that reached it. Not expressed here, and checked by a conformance case instead: the order (distance, type rank, source, line), that `bytes` does not exceed `budget`, that the `[F]` records precede the `[S]` ones, and `selection_digest`'s value. A refusal (`context.target-unknown`, `context.over-budget`) emits no packet.",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md sections 10.3 and 10.4. Where this schema and the prose disagree, the prose wins and this schema is the defect. What `war context <target> --json` emits: the same selection as the Markdown rendering, with `bytes` the size of that rendering. A record given in full (`tier: full`) carries `text`, the exact span; a record given by its summary (`tier: summary`) does not. A root (distance 0) has no `via`; every other record names the first `(step, from)` that reached it. Not expressed here, and checked by a conformance case instead: the order (distance, type rank, source, line), that `bytes` does not exceed `budget`, that the `[F]` records precede the `[S]` ones, and `selection_digest`'s value. A refusal (`context.target-unknown`, `context.over-budget`) emits no packet. Draft 3 (10.4) adds presets, additively: `preset` names the one used (`agent` when none was given), `budget` is `\"none\"` for a preset without one, and a preset that reads state records `journal` (`sha256:` and the first 12 hex of the journal digest) and `at` (the time it was given).",
   "x-oh-war-schema": "oh.war/context/v1",
   "type": "object",
   "required": ["schema", "target", "budget", "bytes", "depth", "walk", "selection_digest", "records", "diagnostics"],
   "properties": {
     "schema": { "const": "oh.war/context/v1" },
     "target": { "description": "The target as given.", "type": "string", "minLength": 1 },
-    "budget": { "description": "Bytes; `--tokens n` is `4n`; default 16000.", "type": "integer", "minimum": 0 },
+    "budget": {
+      "description": "Bytes; `--tokens n` is `4n`; default 16000; `none` for a preset without a budget (10.4).",
+      "anyOf": [{ "type": "integer", "minimum": 0 }, { "const": "none" }]
+    },
+    "preset": { "description": "Section 10.4: the preset used; `agent` when none was given.", "$ref": "common.json#/$defs/name" },
+    "journal": {
+      "description": "Section 10.4: for a preset that reads state, the journal digest's first 12 hex.",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{12}$"
+    },
+    "at": { "description": "Section 10.4: for a preset that reads state, the time it was given.", "$ref": "common.json#/$defs/timestamp" },
     "bytes": { "description": "UTF-8 bytes of the Markdown rendering.", "type": "integer", "minimum": 0 },
     "depth": { "description": "Default 3.", "type": "integer", "minimum": 0 },
     "walk": { "description": "The name of the walk used; a profile MAY declare another.", "type": "string", "minLength": 1 },
@@ -24,19 +34,42 @@
       "items": { "$ref": "model.json#/$defs/diagnostic" }
     }
   },
+  "dependentRequired": { "journal": ["at"], "at": ["journal"] },
+  "if": { "properties": { "walk": { "const": "core" } } },
+  "then": {
+    "description": "Section 10.3: the core walk follows its eight steps only.",
+    "properties": {
+      "records": { "items": { "properties": { "via": { "properties": { "step": { "$ref": "#/$defs/coreStep" } } } } } }
+    }
+  },
   "$defs": {
     "step": {
+      "description": "A step of the walk the packet names: under `walk core`, a step of `coreStep`; under another walk (a preset's, 10.4), `in:<kind>` or `out:<kind>` of a core kind.",
+      "anyOf": [
+        { "$ref": "#/$defs/coreStep" },
+        {
+          "description": "A step a profile's preset walks (10.4).",
+          "type": "string",
+          "pattern": "^(in|out):(part_of|depends_on|implements|constrains|evaluates|supersedes|supports|refutes|trades_off_against|causes|qualifies|selected_over)$"
+        }
+      ]
+    },
+    "coreStep": {
       "description": "Section 10.3 step 2, in step order; then `item-intent`, step 1's placing of an item root's document `S-intent` (or, without one, the document record) at distance 1, whose `from` is the item.",
-      "enum": [
-        "out:implements",
-        "out:depends_on",
-        "in:constrains",
-        "out:selected_over",
-        "in:evaluates",
-        "out:part_of",
-        "in:part_of",
-        "in:implements",
-        "item-intent"
+      "anyOf": [
+        {
+          "enum": [
+            "out:implements",
+            "out:depends_on",
+            "in:constrains",
+            "out:selected_over",
+            "in:evaluates",
+            "out:part_of",
+            "in:part_of",
+            "in:implements",
+            "item-intent"
+          ]
+        }
       ]
     },
     "record": {

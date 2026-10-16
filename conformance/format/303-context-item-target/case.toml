@@ -1,0 +1,4 @@
+id = "303-context-item-target"
+kind = "accept"
+section = "10.3"
+says = """an item id, the item, and at distance 1 its document's `S-intent` (without one, the document's record), reached by the step `item-intent` from the item"""

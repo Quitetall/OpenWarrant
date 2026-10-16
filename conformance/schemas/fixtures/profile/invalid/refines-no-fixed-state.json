@@ -1,0 +1,19 @@
+{
+  "why": "section 7.5: a `refines` naming no fixed state is refused (`profile.invalid`)",
+  "expect": "@states/0/refines enum",
+  "instance": {
+    "schema": "oh.war/profile/v1",
+    "name": "runbook",
+    "form": "document",
+    "capabilities": [
+      "structure",
+      "links"
+    ],
+    "states": [
+      {
+        "name": "parked",
+        "refines": "sleeping"
+      }
+    ]
+  }
+}

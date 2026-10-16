@@ -1,0 +1,4 @@
+id = "416-claim"
+kind = "accept"
+section = "11.3"
+says = """Before working on an item (or a work document with no items) an actor claims it."""

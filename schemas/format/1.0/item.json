@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openwarrant.dev/schemas/format/1.0/item.json",
   "title": "OpenWarrant Format 1.0: checklist item",
-  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 3.8 and Appendix A `item`. Where this schema and the prose disagree, the prose wins and this schema is the defect. One item line `- [ ] <text> (<item-id>[, after <ref>]…)[ — done by <actor>, <YYYY-MM-DD>[: <note>]]` as a reader holds it: `done` is the box (`[x]` and `[X]` are done, `[ ]` open), `after` each `after` reference in order, and `done_by`, `done_on` and `note` the optional completion. `implements <id>` in the text is a relation (section 3.8), listed in `implements`. A box line with no id group is reported (`format.item-id-missing`) and has no `id`; a writer assigns one. Boxes other than `[ ]`, `[x]` and `[X]` are refused (`format.item`) and never reach this shape.",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 3.8 and Appendix A `item`. Where this schema and the prose disagree, the prose wins and this schema is the defect. One item line `- [ ] <text> (<item-id>[, after <ref>]…)[ — done by <actor>, <YYYY-MM-DD>[: <note>]]` as a reader holds it: `done` is the box (`[x]` and `[X]` are done, `[ ]` open), `after` each `after` reference in order, and `done_by`, `done_on`, `level` and `note` the optional completion; `level` is draft 3's tick level (` [observed]`, ` [independent]` or ` [signed]`, section 11.4; `claimed` writes none). `implements <id>` in the text is a relation (section 3.8), listed in `implements`. A box line with no id group is reported (`format.item-id-missing`) and has no `id`; a writer assigns one. Boxes other than `[ ]`, `[x]` and `[X]` are refused (`format.item`) and never reach this shape.",
   "type": "object",
   "required": ["done", "text", "after"],
   "properties": {
@@ -28,6 +28,7 @@
       "pattern": "^[^,\\n\\r]+$"
     },
     "done_on": { "$ref": "common.json#/$defs/date" },
+    "level": { "enum": ["observed", "independent", "signed"] },
     "note": { "$ref": "common.json#/$defs/line" }
   },
   "additionalProperties": false,
@@ -36,7 +37,7 @@
       "description": "Appendix A `done`: only a done item carries a completion.",
       "if": { "properties": { "done": { "const": false } } },
       "then": {
-        "properties": { "done_by": false, "done_on": false, "note": false }
+        "properties": { "done_by": false, "done_on": false, "level": false, "note": false }
       }
     },
     {
@@ -44,7 +45,8 @@
       "dependentRequired": {
         "done_by": ["done_on"],
         "done_on": ["done_by"],
-        "note": ["done_by", "done_on"]
+        "note": ["done_by", "done_on"],
+        "level": ["done_by", "done_on"]
       }
     },
     {

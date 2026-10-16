@@ -1,0 +1,5 @@
+id = "429-idempotency-conflict"
+kind = "refuse"
+section = "11.2"
+rule = "work.idempotency-conflict"
+says = """An event whose `idempotency_key` is already in the journal from the same actor is a replay and is not written; from another actor it is refused (`work.idempotency-conflict`)."""

@@ -1,0 +1,5 @@
+id = "402-tick-unbacked-warns"
+kind = "accept"
+section = "11.4"
+rule = "work.tick-unbacked"
+says = """An unbacked level reads down to the highest backed one (`work.tick-unbacked`, a warning)."""

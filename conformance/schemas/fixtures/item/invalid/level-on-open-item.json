@@ -1,0 +1,11 @@
+{
+  "why": "Appendix A `done`: a level belongs to a done item's completion",
+  "expect": "False schema does not allow 'observed'",
+  "instance": {
+    "id": "i-9c01",
+    "done": false,
+    "text": "Reset endpoint",
+    "after": [],
+    "level": "observed"
+  }
+}

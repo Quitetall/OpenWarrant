@@ -1,0 +1,25 @@
+{
+ "act": "accept",
+ "records": [
+  [
+   "CON-1",
+   "sha256:eed29fee979546d1385e776f2a13e318a831258b1bad80390170068e2dd9b7ed",
+   "sha256:b2f31323f31f9d0af06cf1d2bec074e1bde1018381623a9eb25dcdddb3cf2143"
+  ],
+  [
+   "REQ-reset-1",
+   "sha256:df72d9374f95ad09b7531f6ff4e0a3452396d48cb373275fe55ae6ca55cefce4",
+   "sha256:752bc02899e867447b807afbbf1710dc4a351f2b59eee7adc17046043e199e31"
+  ],
+  [
+   "S-purpose",
+   "sha256:b1d6782792c2d5e668ba7d567f88aded9f6bb622deeea7b7bf7076a51715c9fa",
+   "sha256:eb4351069ef8099dbe7dd015231db24bcef92789b3a6b851e1fb60d33fc7b780"
+  ],
+  [
+   "S-scope",
+   "sha256:d275a57991a0bba8d03bf5b75f05eb5e0ea680dedf40a195aac06ed4c8a78bae",
+   "sha256:6deb6654a19863e8e5eed7d53752fdcb58fe9e03ca7fe4d1ed54d198b0e8f84b"
+  ]
+ ]
+}

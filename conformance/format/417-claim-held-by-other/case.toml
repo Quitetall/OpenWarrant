@@ -1,0 +1,5 @@
+id = "417-claim-held-by-other"
+kind = "refuse"
+section = "11.3"
+rule = "work.claimed-by-other"
+says = """A second claim on a claimed target is refused (`work.claimed-by-other`), naming the holder."""

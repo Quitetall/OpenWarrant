@@ -1,0 +1,5 @@
+id = "505-apply-identity"
+kind = "refuse"
+section = "10.5"
+rule = "apply.identity"
+says = """refuses it ... when its id or type changed (`apply.identity`)"""

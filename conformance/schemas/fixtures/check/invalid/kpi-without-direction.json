@@ -1,0 +1,14 @@
+{
+  "why": "section 12: a kpi has `direction` (`min` or `max`)",
+  "expect": "'direction' is a required property",
+  "instance": {
+    "id": "CHK-reset",
+    "type": "kpi",
+    "title": "reset tests pass",
+    "fields": {
+      "run": "./bench"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

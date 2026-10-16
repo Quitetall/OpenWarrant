@@ -1,0 +1,5 @@
+id = "418-claim-document-covers-items"
+kind = "refuse"
+section = "11.3"
+rule = "work.claimed-by-other"
+says = """A claim on a work document covers all its items."""

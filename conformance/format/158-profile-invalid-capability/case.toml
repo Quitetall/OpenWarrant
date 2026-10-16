@@ -1,0 +1,5 @@
+id = "158-profile-invalid-capability"
+kind = "refuse"
+section = "7.5"
+rule = "profile.invalid"
+says = """A profile file a capability outside 7.6... is refused (`profile.invalid`), and its documents read as `format.profile-unknown`."""

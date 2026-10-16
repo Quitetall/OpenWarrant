@@ -1,0 +1,5 @@
+id = "426-journal-torn"
+kind = "refuse"
+section = "11.2"
+rule = "work.journal-torn"
+says = """a tool MUST refuse ... an unterminated last line (`work.journal-torn`)."""

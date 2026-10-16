@@ -1,0 +1,25 @@
+schema = "oh.war/profile/v1"
+name = "runbook"
+form = "document"
+note = "An operational runbook."
+capabilities = ["structure", "links"]
+
+[frontmatter]
+required = []
+optional = ["owner"]
+
+[sections]
+required = ["Steps"]
+optional = []
+
+[records]
+types = ["step"]
+
+[fields.step]
+command = { required = true, shape = "line" }
+timeout = { required = false, shape = "int" }
+severity = { required = false, shape = "enum", values = ["low", "high"] }
+
+[[states]]
+name = "parked"
+refines = "sleeping"

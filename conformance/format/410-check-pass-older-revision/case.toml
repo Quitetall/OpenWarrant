@@ -1,0 +1,4 @@
+id = "410-check-pass-older-revision"
+kind = "accept"
+section = "12"
+says = """A pass on an older revision of the check, or of an item, ticks nothing."""

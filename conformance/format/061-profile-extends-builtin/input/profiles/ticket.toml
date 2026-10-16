@@ -1,0 +1,8 @@
+schema = "oh.war/profile/v1"
+name = "ticket"
+extends = "ticket"
+form = "work"
+note = "Our tickets carry the sprint they belong to."
+
+[frontmatter]
+optional = ["sprint"]

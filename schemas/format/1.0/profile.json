@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openwarrant.dev/schemas/format/1.0/profile.json",
   "title": "oh.war/profile/v1",
-  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md sections 2 and 7.4 (a profile is data, `oh.war/profile/v1`, TOML) and for the profile files the reference reader admits (`profiles/*.toml`, the profiles of a type pack). Where this schema and the prose of FORMAT-1.0.md disagree, the prose wins and this schema is the defect. The prose names what a profile declares (record types, relations, sections, frontmatter keys) but gives no member names, so the members here are the reader's ($comment). Three forms: a contract form (the default, a Warrant profile: a core profile restating itself, or an extension of one), a working form (`form = \"working\"`, the ticket), and a document type (`form = \"document\"`). Not expressed here: that `name` equals the file stem; that a core file restates its core's roles and kind data exactly; that a namespaced role's ordinal is unused; that a projection names only types and kinds its profile declares; that projection names and encodings are unique across a program.",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md sections 2 and 7.4 (a profile is data, `oh.war/profile/v1`, TOML) and for the profile files the reference reader admits (`profiles/*.toml`, the profiles of a type pack). Where this schema and the prose of FORMAT-1.0.md disagree, the prose wins and this schema is the defect. The prose names what a profile declares (record types, relations, sections, frontmatter keys) but gives no member names, so the members here are the reader's ($comment). Draft 3 (sections 7.5 and 7.6) adds a fourth form, Format 1.0 profile data (`form = \"work\"`, or `form = \"document\"` with the draft-3 tables): `extends`, `[frontmatter]`, `[sections]`, `[records]`, `[fields.<type>]` with shapes, `[relations]`, `[[states]]`, `[ticks]` and `[[presets]]`; the built-in profiles of 7.6 are such files (schemas/format/1.0/profiles/). The three earlier forms are those of the reference reader's own files: a contract form (the default, a Warrant profile: a core profile restating itself, or an extension of one), a working form (`form = \"working\"`, the ticket), and a document type (`form = \"document\"`). Not expressed here: that `name` equals the file stem; that a core file restates its core's roles and kind data exactly; that a namespaced role's ordinal is unused; that a projection names only types and kinds its profile declares; that projection names and encodings are unique across a program. Not expressed for the draft-3 form: that `extends` names a profile that exists, that a profile adds and narrows but never removes, and the capability prerequisites of 7.6 (`verification` needs `evidence`, `resolution` needs `authorization`, `checks` needs `claims`).",
   "$comment": "Contract and working form: crates/openwarrant-core/src/role.rs:742 `ProfileFile` (deny_unknown_fields) and role.rs:1338 `parse_definition`. Document form: crates/openwarrant-core/src/projection.rs:417 `DocumentFile` and its tables (deny_unknown_fields), projection.rs:560 `parse_document`. Closed sets: role.rs:115 `AtomRole::ALL`, role.rs:315 `Capability::ALL`, kernel_state.rs:83 `FixedState::ALL`, ticks.rs:98 tick levels, relation.rs `CoreKind`.",
   "x-oh-war-schema": "oh.war/profile/v1",
   "type": "object",
@@ -14,7 +14,7 @@
       "$ref": "common.json#/$defs/word"
     },
     "note": { "description": "Prose for a reader; carries no meaning.", "type": "string" },
-    "form": { "enum": ["contract", "working", "document"] },
+    "form": { "enum": ["contract", "working", "document", "work"] },
     "capabilities": {
       "description": "OW-ADR-0031: the capabilities this kind selects, from the closed set.",
       "type": "array",
@@ -28,8 +28,12 @@
     "required": ["form"],
     "properties": { "form": { "const": "document" } }
   },
-  "then": { "$ref": "#/$defs/documentForm" },
-  "else": { "$ref": "#/$defs/warrantForm" },
+  "then": { "anyOf": [{ "$ref": "#/$defs/documentForm" }, { "$ref": "#/$defs/format10" }] },
+  "else": {
+    "if": { "required": ["form"], "properties": { "form": { "const": "work" } } },
+    "then": { "$ref": "#/$defs/format10" },
+    "else": { "$ref": "#/$defs/warrantForm" }
+  },
   "$defs": {
     "capability": {
       "enum": [
@@ -41,7 +45,8 @@
         "verification",
         "authorization",
         "resolution",
-        "stages"
+        "stages",
+        "checks"
       ]
     },
     "atomRole": {
@@ -212,6 +217,115 @@
       }
     },
     "tickLevel": { "enum": ["claimed", "observed", "independent", "signed"] },
+    "format10": {
+      "description": "Format 1.0 profile data (FORMAT-1.0 section 7.5). A file with an unknown key, a capability outside 7.6, a `refines` naming no fixed state, or a preset named like a built-in is refused (`profile.invalid`).",
+      "required": ["schema", "name", "form"],
+      "properties": {
+        "schema": true,
+        "name": true,
+        "note": { "type": "string" },
+        "capabilities": true,
+        "records": true,
+        "relations": true,
+        "form": { "enum": ["work", "document"] },
+        "extends": {
+          "description": "A profile whose declarations this one starts from; a file named like a built-in profile replaces it only by extending it.",
+          "$ref": "common.json#/$defs/word"
+        },
+        "frontmatter": {
+          "description": "`[frontmatter]`: undotted keys beyond those of section 3.3.",
+          "type": "object",
+          "properties": {
+            "required": { "type": "array", "uniqueItems": true, "items": { "$ref": "common.json#/$defs/word" } },
+            "optional": { "type": "array", "uniqueItems": true, "items": { "$ref": "common.json#/$defs/word" } }
+          },
+          "additionalProperties": false
+        },
+        "sections": {
+          "description": "`[sections]`: section names; an unlisted section is accepted unless `closed = true`.",
+          "type": "object",
+          "properties": {
+            "required": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "optional": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "closed": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "fields": {
+          "description": "`[fields.<type>]`: per record type, `<name> = { required, shape, values }`.",
+          "type": "object",
+          "propertyNames": { "$ref": "common.json#/$defs/recordType" },
+          "additionalProperties": {
+            "type": "object",
+            "propertyNames": { "$ref": "common.json#/$defs/word" },
+            "additionalProperties": { "$ref": "#/$defs/fieldSpec" }
+          }
+        },
+        "states": {
+          "description": "`[[states]]`: declared states, each refining a fixed state of section 11.1.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "refines"],
+            "properties": {
+              "name": { "$ref": "common.json#/$defs/word" },
+              "refines": {
+                "enum": ["draft", "open", "in_progress", "done", "blocked", "claimed", "superseded", "failing",
+                         "accepted", "partially_accepted", "authorized", "verified", "resolved"]
+              },
+              "note": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "ticks": {
+          "description": "`[ticks]`: the minimum tick level (section 11.4) for an item, a milestone, and by the document's `type` key.",
+          "type": "object",
+          "properties": {
+            "item": { "$ref": "#/$defs/tickLevel" },
+            "milestone": { "$ref": "#/$defs/tickLevel" },
+            "types": { "type": "object", "additionalProperties": { "$ref": "#/$defs/tickLevel" } }
+          },
+          "additionalProperties": false
+        },
+        "presets": { "type": "array", "items": { "$ref": "#/$defs/preset" } }
+      },
+      "additionalProperties": false
+    },
+    "fieldSpec": {
+      "description": "Section 7.5: a field's declaration. `values` belongs to `shape = \"enum\"` alone.",
+      "type": "object",
+      "properties": {
+        "required": { "type": "boolean" },
+        "shape": { "enum": ["text", "line", "int", "id", "ids", "gate", "date", "enum"] },
+        "values": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      },
+      "additionalProperties": false,
+      "if": { "required": ["shape"], "properties": { "shape": { "const": "enum" } } },
+      "then": { "required": ["values"] },
+      "else": { "properties": { "values": false } }
+    },
+    "preset": {
+      "description": "Section 10.4: a context preset. A profile MUST NOT redefine a built-in one (`agent`, `agent.min`, `human`, `review`, `resume`).",
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "allOf": [
+            { "$ref": "common.json#/$defs/name" },
+            { "not": { "enum": ["agent", "agent.min", "human", "review", "resume"] } }
+          ]
+        },
+        "steps": { "type": "array", "items": { "$ref": "#/$defs/walkStep" } },
+        "depth": { "type": "integer", "minimum": 0 },
+        "budget": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "const": "none" }] },
+        "omit_types": { "type": "array", "items": { "$ref": "common.json#/$defs/recordType" } },
+        "omit_fields": { "type": "array", "items": { "$ref": "common.json#/$defs/name" } },
+        "editable": { "type": "boolean" },
+        "reads_state": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "documentForm": {
       "description": "A document type (projection.rs `DocumentFile`): records it composes and the projections of them. Its capabilities are `structure` and `links`, plus `acceptance` for the `roadmap` and `sas` stores.",
       "required": ["schema", "name", "form"],

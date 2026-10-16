@@ -1,0 +1,20 @@
+{
+  "why": "section 7.5: an `enum` shape names its `values`",
+  "expect": "'values' is a required property",
+  "instance": {
+    "schema": "oh.war/profile/v1",
+    "name": "runbook",
+    "form": "document",
+    "capabilities": [
+      "structure",
+      "links"
+    ],
+    "fields": {
+      "step": {
+        "severity": {
+          "shape": "enum"
+        }
+      }
+    }
+  }
+}

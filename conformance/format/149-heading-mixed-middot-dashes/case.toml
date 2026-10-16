@@ -1,0 +1,5 @@
+id = "149-heading-mixed-middot-dashes"
+kind = "refuse"
+section = "3.4"
+rule = "format.heading"
+says = """A heading uses one spelling for both separators; mixing them is refused (`format.heading`)."""

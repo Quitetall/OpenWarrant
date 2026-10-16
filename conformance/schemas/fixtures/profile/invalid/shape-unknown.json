@@ -1,0 +1,20 @@
+{
+  "why": "section 7.5: a field's shape is one of text, line, int, id, ids, gate, date, enum",
+  "expect": "@fields/step/command/shape enum",
+  "instance": {
+    "schema": "oh.war/profile/v1",
+    "name": "runbook",
+    "form": "document",
+    "capabilities": [
+      "structure",
+      "links"
+    ],
+    "fields": {
+      "step": {
+        "command": {
+          "shape": "url"
+        }
+      }
+    }
+  }
+}

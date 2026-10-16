@@ -1,0 +1,23 @@
+{
+  "why": "section 11.2: `class` is `draft_history`, `action_request` or `action_receipt`",
+  "expect": "@class enum",
+  "instance": {
+    "v": 2,
+    "id": "01a0f001-0000-7000-8000-000000000001",
+    "document_uuid": "01a0e1c2-0b7d-7c11-8f2e-5d6c7b8a9e10",
+    "type": "work.item_done",
+    "class": "receipt",
+    "actor_ref": "claude",
+    "occurred_at": "2026-10-12T11:00:00Z",
+    "payload": {
+      "item": "i-9c01",
+      "target": "t-0d61d/i-9c01",
+      "on": "2026-10-12",
+      "level": "observed",
+      "runs": [
+        "r-1"
+      ]
+    },
+    "idempotency_key": "d423a4b1749a6c308047d3c7c1e66a645f7eae836b5bd775a2744b6fff2b1278"
+  }
+}

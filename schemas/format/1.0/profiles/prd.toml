@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+# A built-in profile of OpenWarrant Format 1.0 (docs/format/FORMAT-1.0.md
+# section 7.6), as profile data (section 7.5). Normative: this file is the
+# profile; where it and the prose disagree, the prose wins and this file is
+# the defect.
+#
+# Section 7.6 gives this profile "their files' sections" and names none, so
+# this file requires none.
+schema = "oh.war/profile/v1"
+name = "prd"
+form = "document"
+note = "A prd document."
+capabilities = ["structure", "links"]
+
+[relations]
+allow = ["part_of", "depends_on", "implements", "constrains", "evaluates", "supersedes", "supports", "refutes", "trades_off_against", "causes", "qualifies", "selected_over"]

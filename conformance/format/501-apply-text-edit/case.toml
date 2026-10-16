@@ -1,0 +1,4 @@
+id = "501-apply-text-edit"
+kind = "accept"
+section = "10.5"
+says = """otherwise replaces the span's bytes with the block's."""

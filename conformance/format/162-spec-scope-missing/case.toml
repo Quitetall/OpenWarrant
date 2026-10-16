@@ -1,0 +1,5 @@
+id = "162-spec-scope-missing"
+kind = "refuse"
+section = "4.5"
+rule = "format.section-missing"
+says = """`SPEC.md` requires Purpose and Scope"""

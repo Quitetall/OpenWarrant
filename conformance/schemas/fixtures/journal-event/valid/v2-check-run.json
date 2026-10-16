@@ -1,0 +1,17 @@
+{
+  "v": 2,
+  "id": "01a0f001-0000-7000-8000-000000000001",
+  "document_uuid": "01a0e1c2-0b7d-7c11-8f2e-5d6c7b8a9e10",
+  "type": "check.run",
+  "class": "action_receipt",
+  "actor_ref": "claude",
+  "occurred_at": "2026-10-12T11:00:00Z",
+  "payload": {
+    "check": "CHK-reset",
+    "run": "r-1",
+    "verdict": "PASS",
+    "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "output_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "idempotency_key": "04a4302dfe360b30d22dd9e8e1727a625b585af8babf2a5c2dc272ea9ee650f2"
+}

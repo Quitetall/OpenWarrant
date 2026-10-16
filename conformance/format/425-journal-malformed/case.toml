@@ -1,0 +1,5 @@
+id = "425-journal-malformed"
+kind = "refuse"
+section = "11.2"
+rule = "work.journal-malformed"
+says = """a tool MUST refuse ... a line that does not parse (`work.journal-malformed`)"""
