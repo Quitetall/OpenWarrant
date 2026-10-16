@@ -914,8 +914,7 @@ fn other_format_states(
         } else if st.kind == StateKind::Computed.as_str()
             || st.kind == StateKind::Authenticated.as_str()
         {
-            FixedState::parse(&st.value)
-                .and_then(|f| family(f, work.contains(st.record.as_str())))
+            FixedState::parse(&st.value).and_then(|f| family(f, work.contains(st.record.as_str())))
         } else {
             None
         };
