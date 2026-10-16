@@ -1,0 +1,34 @@
+schema = "oh.war/deliverables/v1"
+
+# REVIEW PROPOSAL ONLY: not an active declaration, delivery or ownership grant.
+# No producing actor, attempt, input history or independent verdict is inferred.
+
+[[deliverable]]
+id = "D-001"
+title = "conformance/integration/selection/run.py"
+kind = "file"
+target_ref = "conformance/integration/selection/run.py"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "docs/integrations/selection.md"
+kind = "file"
+target_ref = "docs/integrations/selection.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-003"
+title = "docs/warrants/OW-WAR-0079/implementation/notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0079/implementation/notes.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]

@@ -1,0 +1,1324 @@
+schema = "oh.war/deliverables/v1"
+
+# REVIEW PROPOSAL ONLY: not an active declaration, delivery or ownership grant.
+# No producing actor, attempt, input history or independent verdict is inferred.
+
+[[deliverable]]
+id = "D-001"
+title = "conformance/sdk/author/FOOTER08-title-conflict.json"
+kind = "file"
+target_ref = "conformance/sdk/author/FOOTER08-title-conflict.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "conformance/sdk/author/FOOTER08-title-crlf.json"
+kind = "file"
+target_ref = "conformance/sdk/author/FOOTER08-title-crlf.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-003"
+title = "conformance/sdk/author/README.md"
+kind = "file"
+target_ref = "conformance/sdk/author/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "conformance/sdk/author/T54-minimum.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T54-minimum.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/sdk/author/T55-duplicate-field.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T55-duplicate-field.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/sdk/author/T55-footer-injection.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T55-footer-injection.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "conformance/sdk/author/T55-unit-injection.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T55-unit-injection.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "conformance/sdk/author/T56-duplicate-edit.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T56-duplicate-edit.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/author/T56-false-assurance.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T56-false-assurance.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/author/T56-revision.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T56-revision.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-011"
+title = "conformance/sdk/author/T56-unit-edit.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T56-unit-edit.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-012"
+title = "conformance/sdk/author/body.md"
+kind = "file"
+target_ref = "conformance/sdk/author/body.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "conformance/sdk/author/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/author/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-014"
+title = "conformance/sdk/author/minimal.md"
+kind = "file"
+target_ref = "conformance/sdk/author/minimal.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-015"
+title = "conformance/sdk/author/revision.md"
+kind = "file"
+target_ref = "conformance/sdk/author/revision.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-016"
+title = "conformance/sdk/author/title-crlf.md"
+kind = "file"
+target_ref = "conformance/sdk/author/title-crlf.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-017"
+title = "conformance/sdk/cli/README.md"
+kind = "file"
+target_ref = "conformance/sdk/cli/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-018"
+title = "conformance/sdk/cli/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/cli/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-019"
+title = "conformance/sdk/conditions/README.md"
+kind = "file"
+target_ref = "conformance/sdk/conditions/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-020"
+title = "conformance/sdk/conditions/all-fields.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/all-fields.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-021"
+title = "conformance/sdk/conditions/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/conditions/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-022"
+title = "conformance/sdk/conditions/embedded-double-star.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/embedded-double-star.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-023"
+title = "conformance/sdk/conditions/empty-list.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/empty-list.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-024"
+title = "conformance/sdk/conditions/empty-table.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/empty-table.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-025"
+title = "conformance/sdk/conditions/traversal.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/traversal.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-026"
+title = "conformance/sdk/conditions/unicode-path.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/unicode-path.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-027"
+title = "conformance/sdk/conditions/unknown-operator.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/unknown-operator.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-028"
+title = "conformance/sdk/conditions/wrong-type.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/wrong-type.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-029"
+title = "conformance/sdk/document/README.md"
+kind = "file"
+target_ref = "conformance/sdk/document/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-030"
+title = "conformance/sdk/document/adr.md"
+kind = "file"
+target_ref = "conformance/sdk/document/adr.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-031"
+title = "conformance/sdk/document/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/document/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-032"
+title = "conformance/sdk/document/combined-depth.md"
+kind = "file"
+target_ref = "conformance/sdk/document/combined-depth.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-033"
+title = "conformance/sdk/document/compact-deps.md"
+kind = "file"
+target_ref = "conformance/sdk/document/compact-deps.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-034"
+title = "conformance/sdk/document/context-background.md"
+kind = "file"
+target_ref = "conformance/sdk/document/context-background.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-035"
+title = "conformance/sdk/document/context-binding.md"
+kind = "file"
+target_ref = "conformance/sdk/document/context-binding.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-036"
+title = "conformance/sdk/document/crlf-unicode.md"
+kind = "file"
+target_ref = "conformance/sdk/document/crlf-unicode.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-037"
+title = "conformance/sdk/document/duplicate-key.md"
+kind = "file"
+target_ref = "conformance/sdk/document/duplicate-key.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-038"
+title = "conformance/sdk/document/duplicate-unit.md"
+kind = "file"
+target_ref = "conformance/sdk/document/duplicate-unit.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-039"
+title = "conformance/sdk/document/fenced-markers.md"
+kind = "file"
+target_ref = "conformance/sdk/document/fenced-markers.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-040"
+title = "conformance/sdk/document/invalid-utf8.bin"
+kind = "file"
+target_ref = "conformance/sdk/document/invalid-utf8.bin"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-041"
+title = "conformance/sdk/document/malformed-footer.md"
+kind = "file"
+target_ref = "conformance/sdk/document/malformed-footer.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-042"
+title = "conformance/sdk/document/minimal-rc2.md"
+kind = "file"
+target_ref = "conformance/sdk/document/minimal-rc2.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-043"
+title = "conformance/sdk/document/minimal-rc3.md"
+kind = "file"
+target_ref = "conformance/sdk/document/minimal-rc3.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-044"
+title = "conformance/sdk/document/missing-outcome.md"
+kind = "file"
+target_ref = "conformance/sdk/document/missing-outcome.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-045"
+title = "conformance/sdk/document/sas.md"
+kind = "file"
+target_ref = "conformance/sdk/document/sas.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-046"
+title = "conformance/sdk/document/trailing.md"
+kind = "file"
+target_ref = "conformance/sdk/document/trailing.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-047"
+title = "conformance/sdk/document/unknown-optional.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unknown-optional.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-048"
+title = "conformance/sdk/document/unknown-required.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unknown-required.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-049"
+title = "conformance/sdk/document/unresolved-required.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unresolved-required.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-050"
+title = "conformance/sdk/document/wrapped.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrapped.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-051"
+title = "conformance/sdk/document/wrong-schema.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrong-schema.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-052"
+title = "conformance/sdk/document/wrong-title.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrong-title.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-053"
+title = "conformance/sdk/legacy/README.md"
+kind = "file"
+target_ref = "conformance/sdk/legacy/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-054"
+title = "conformance/sdk/legacy/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-055"
+title = "conformance/sdk/legacy/corrupt.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/corrupt.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-056"
+title = "conformance/sdk/legacy/current.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/current.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-057"
+title = "conformance/sdk/legacy/escaping.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/escaping.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-058"
+title = "conformance/sdk/legacy/future.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/future.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-059"
+title = "conformance/sdk/legacy/missing.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/missing.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-060"
+title = "conformance/sdk/legacy/rc2.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/rc2.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-061"
+title = "conformance/sdk/legacy/resolved.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/resolved.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-062"
+title = "conformance/sdk/legacy/successor.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/successor.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-063"
+title = "conformance/sdk/legacy/unsupported.json"
+kind = "file"
+target_ref = "conformance/sdk/legacy/unsupported.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-064"
+title = "conformance/sdk/packet/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-065"
+title = "conformance/sdk/packet/duplicate-field.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/duplicate-field.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-066"
+title = "conformance/sdk/packet/invalid-kind.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/invalid-kind.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-067"
+title = "conformance/sdk/packet/invalid-role.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/invalid-role.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-068"
+title = "conformance/sdk/packet/noncanonical.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/noncanonical.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-069"
+title = "conformance/sdk/packet/unknown-field.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/unknown-field.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-070"
+title = "conformance/sdk/packet/valid.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/valid.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-071"
+title = "conformance/sdk/packet/wrong-schema.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/wrong-schema.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-072"
+title = "conformance/sdk/phase1.json"
+kind = "file"
+target_ref = "conformance/sdk/phase1.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-073"
+title = "conformance/sdk/records/agent-authorization-without-policy.json"
+kind = "file"
+target_ref = "conformance/sdk/records/agent-authorization-without-policy.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-074"
+title = "conformance/sdk/records/agent-human-spoof.json"
+kind = "file"
+target_ref = "conformance/sdk/records/agent-human-spoof.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-075"
+title = "conformance/sdk/records/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/records/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-076"
+title = "conformance/sdk/records/complete-unverified-view.json"
+kind = "file"
+target_ref = "conformance/sdk/records/complete-unverified-view.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-077"
+title = "conformance/sdk/records/conflated-state.json"
+kind = "file"
+target_ref = "conformance/sdk/records/conflated-state.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-078"
+title = "conformance/sdk/records/contract.json"
+kind = "file"
+target_ref = "conformance/sdk/records/contract.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-079"
+title = "conformance/sdk/records/observation-untrusted.json"
+kind = "file"
+target_ref = "conformance/sdk/records/observation-untrusted.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-080"
+title = "conformance/sdk/records/schemas.json"
+kind = "file"
+target_ref = "conformance/sdk/records/schemas.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-081"
+title = "conformance/sdk/records/unavailable-pass.json"
+kind = "file"
+target_ref = "conformance/sdk/records/unavailable-pass.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-082"
+title = "conformance/sdk/records/unknown-core-field.json"
+kind = "file"
+target_ref = "conformance/sdk/records/unknown-core-field.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-083"
+title = "conformance/sdk/records/unknown-observation.json"
+kind = "file"
+target_ref = "conformance/sdk/records/unknown-observation.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-084"
+title = "conformance/sdk/records/unsigned-completion.json"
+kind = "file"
+target_ref = "conformance/sdk/records/unsigned-completion.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-085"
+title = "conformance/sdk/records/wrong-result.json"
+kind = "file"
+target_ref = "conformance/sdk/records/wrong-result.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-086"
+title = "conformance/sdk/run_phase1.py"
+kind = "file"
+target_ref = "conformance/sdk/run_phase1.py"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-087"
+title = "conformance/sdk/skills/README.md"
+kind = "file"
+target_ref = "conformance/sdk/skills/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-088"
+title = "conformance/sdk/skills/artifacts.json"
+kind = "file"
+target_ref = "conformance/sdk/skills/artifacts.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-089"
+title = "conformance/sdk/skills/check_artifacts.py"
+kind = "file"
+target_ref = "conformance/sdk/skills/check_artifacts.py"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-090"
+title = "conformance/sdk/skills/context_entry.py"
+kind = "file"
+target_ref = "conformance/sdk/skills/context_entry.py"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-091"
+title = "conformance/sdk/skills/stages.json"
+kind = "file"
+target_ref = "conformance/sdk/skills/stages.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-092"
+title = "conformance/sdk/skills/test_context_entry.py"
+kind = "file"
+target_ref = "conformance/sdk/skills/test_context_entry.py"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-093"
+title = "conformance/sdk/source/.gitattributes"
+kind = "file"
+target_ref = "conformance/sdk/source/.gitattributes"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-094"
+title = "conformance/sdk/source/README.md"
+kind = "file"
+target_ref = "conformance/sdk/source/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-095"
+title = "conformance/sdk/source/abc.bin"
+kind = "file"
+target_ref = "conformance/sdk/source/abc.bin"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-096"
+title = "conformance/sdk/source/abc.json"
+kind = "file"
+target_ref = "conformance/sdk/source/abc.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-097"
+title = "conformance/sdk/source/abc.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/abc.lock.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-098"
+title = "conformance/sdk/source/architecture.json"
+kind = "file"
+target_ref = "conformance/sdk/source/architecture.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-099"
+title = "conformance/sdk/source/architecture.md"
+kind = "file"
+target_ref = "conformance/sdk/source/architecture.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-100"
+title = "conformance/sdk/source/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/source/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-101"
+title = "conformance/sdk/source/changed.md"
+kind = "file"
+target_ref = "conformance/sdk/source/changed.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-102"
+title = "conformance/sdk/source/combined.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/combined.lock.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-103"
+title = "conformance/sdk/source/conflicting.json"
+kind = "file"
+target_ref = "conformance/sdk/source/conflicting.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-104"
+title = "conformance/sdk/source/crlf-outcome.txt"
+kind = "file"
+target_ref = "conformance/sdk/source/crlf-outcome.txt"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-105"
+title = "conformance/sdk/source/crlf.json"
+kind = "file"
+target_ref = "conformance/sdk/source/crlf.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-106"
+title = "conformance/sdk/source/crlf.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/crlf.lock.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-107"
+title = "conformance/sdk/source/crlf.md"
+kind = "file"
+target_ref = "conformance/sdk/source/crlf.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-108"
+title = "conformance/sdk/source/decision.txt"
+kind = "file"
+target_ref = "conformance/sdk/source/decision.txt"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-109"
+title = "conformance/sdk/source/false-authority.json"
+kind = "file"
+target_ref = "conformance/sdk/source/false-authority.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-110"
+title = "conformance/sdk/source/mixed.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/mixed.lock.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-111"
+title = "conformance/sdk/source/outcome.txt"
+kind = "file"
+target_ref = "conformance/sdk/source/outcome.txt"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-112"
+title = "conformance/sdk/source/renamed.json"
+kind = "file"
+target_ref = "conformance/sdk/source/renamed.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-113"
+title = "conformance/sdk/source/renamed.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/renamed.lock.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-114"
+title = "conformance/sdk/source/renamed.md"
+kind = "file"
+target_ref = "conformance/sdk/source/renamed.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-115"
+title = "conformance/sdk/source/task.json"
+kind = "file"
+target_ref = "conformance/sdk/source/task.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-116"
+title = "conformance/sdk/source/task.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/task.lock.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-117"
+title = "conformance/sdk/source/task.md"
+kind = "file"
+target_ref = "conformance/sdk/source/task.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-118"
+title = "conformance/sdk/source/unsafe-path.json"
+kind = "file"
+target_ref = "conformance/sdk/source/unsafe-path.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-119"
+title = "conformance/sdk/source/wrong-identity.json"
+kind = "file"
+target_ref = "conformance/sdk/source/wrong-identity.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-120"
+title = "conformance/sdk/source/wrong-length.json"
+kind = "file"
+target_ref = "conformance/sdk/source/wrong-length.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-121"
+title = "conformance/sdk/test_inventory.py"
+kind = "file"
+target_ref = "conformance/sdk/test_inventory.py"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-122"
+title = "crates/openwarrant-core/examples/sdk_probe.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/examples/sdk_probe.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-123"
+title = "docs/reviews/phase-1.md"
+kind = "file"
+target_ref = "docs/reviews/phase-1.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-124"
+title = "crates/openwarrant-core/tests/skill_artifacts.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/skill_artifacts.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-125"
+title = "docs/warrants/OW-WAR-0085/implementation/native-workflow.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0085/implementation/native-workflow.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-126"
+title = "docs/warrants/OW-WAR-0085/implementation/notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0085/implementation/notes.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-127"
+title = ".claude/skills/war/SKILL.md"
+kind = "file"
+target_ref = ".claude/skills/war/SKILL.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-128"
+title = ".claude/skills/openwarrant/SKILL.md"
+kind = "file"
+target_ref = ".claude/skills/openwarrant/SKILL.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-129"
+title = ".claude/skills/openwarrant/references/sdk-artifacts.md"
+kind = "file"
+target_ref = ".claude/skills/openwarrant/references/sdk-artifacts.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-130"
+title = ".claude/skills/openwarrant/ADAPTATIONS.md"
+kind = "file"
+target_ref = ".claude/skills/openwarrant/ADAPTATIONS.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-131"
+title = ".claude/skills/openwarrant/LICENSE.mattpocock"
+kind = "file"
+target_ref = ".claude/skills/openwarrant/LICENSE.mattpocock"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-132"
+title = "docs/design/war-skills-audit.md"
+kind = "file"
+target_ref = "docs/design/war-skills-audit.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
