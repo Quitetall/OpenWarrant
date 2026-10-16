@@ -14,3 +14,8 @@ asked_at = "2026-09-24T08:38:02Z"
 question = "Under A, what bounds does a class carry by default? The draft proposes an expiry of at most 90 days from signing, at most 50 covered Warrants, and a ceiling of 24000 budget_tokens and 1800 wall_time_seconds per stage. Answer with the numbers, or 'as drafted'."
 blocking = true
 recommended = "as drafted: 90 days, 50 Warrants, 24000 tokens and 1800 s per stage. Revoking or re-signing a class is one act, so short bounds are cheap."
+
+[answer]
+answered_by = "person://Brian Lam"
+answered_at = "2026-10-16T22:32:26Z"
+answer = "as drafted"

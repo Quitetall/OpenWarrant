@@ -40,7 +40,7 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0029](docs/adr/atoms/OW-ADR-0029-standing-authorization.md) | ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work | `proposed` | no | `war://01a0d289-1e89-7990-8b2c-5a43577b5ce5` |
 | [OW-ADR-0030](docs/adr/atoms/OW-ADR-0030-reviewed-subject-binding.md) | ADR OW-0030: Bind a verdict to the subject that was reviewed | `proposed` | no | — |
 | [OW-ADR-0031](docs/adr/atoms/OW-ADR-0031-typed-records.md) | ADR OW-0031: Documents are typed records; a document's type selects its capabilities | `proposed` | no | `war://01a0feb6-ab80-73a5-abcb-7ade9cfaaeaa` |
-| [OW-ADR-0032](docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md) | ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale | `proposed` | no | — |
+| [OW-ADR-0032](docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md) | ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale | `accepted` | yes | — |
 | [OW-ADR-native-acceptance-7d21adfa](docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md) | Version native acceptance separately from legacy resolution | `proposed` | no | `war://01a0f502-4941-70a1-a446-e1eb77dff191` |
 | [OW-ADR-native-inputs-98b57f41](docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md) | Retain native verifier inputs as inert archive data | `proposed` | no | `war://01a0b4be-13af-7540-90a8-28d5c6d7ac59`<br>`war://01a0f502-4941-70a1-a446-e1eb77dff191` |
 | [OW-ADR-native-policy-e8b574f1](docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md) | Bind native acceptance to protected policy observations | `proposed` | no | `war://01a0f502-4941-70a1-a446-e1eb77dff191` |
@@ -69,7 +69,6 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0029** ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 - **OW-ADR-0030** ADR OW-0030: Bind a verdict to the subject that was reviewed
 - **OW-ADR-0031** ADR OW-0031: Documents are typed records; a document's type selects its capabilities
-- **OW-ADR-0032** ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale
 - **OW-ADR-native-acceptance-7d21adfa** Version native acceptance separately from legacy resolution
 - **OW-ADR-native-inputs-98b57f41** Retain native verifier inputs as inert archive data
 - **OW-ADR-native-policy-e8b574f1** Bind native acceptance to protected policy observations
@@ -86,6 +85,7 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0008** ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text — 2026-08-22
 - **OW-ADR-0017** ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0
 - **OW-ADR-0020** ADR OW-0020: ratatui and crossterm for the terminal dashboard
+- **OW-ADR-0032** ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale
 
 ## Rejected, Withdrawn, or Falsified
 
@@ -3834,7 +3834,7 @@ digest, so no existing contract digest moves.
 
 ## Status
 
-Proposed. Directed by the owner on 2026-10-11:
+Accepted by the owner on 2026-10-16. Directed by the owner on 2026-10-11:
 
 > "I want to make a durable document standard, not really the software
 > around it. The openwarrant style documents are what are read efficiently

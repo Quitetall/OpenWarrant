@@ -2490,7 +2490,7 @@
 
 ## docs/warrants/OW-WAR-0147/manifest.toml
 > Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in
-- OW-WAR-0147 · warrant · draft · Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in · docs/warrants/OW-WAR-0147/manifest.toml:1
+- OW-WAR-0147 · warrant · authorized · Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in · docs/warrants/OW-WAR-0147/manifest.toml:1
 
 ## docs/warrants/OW-WAR-0148/manifest.toml
 > Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel
@@ -2498,4 +2498,4 @@
 
 ## docs/warrants/OW-WAR-0149/manifest.toml
 > Shared Katana and BLUT runtime receipt binding contract
-- OW-WAR-0149 · warrant · draft · Shared Katana and BLUT runtime receipt binding contract · docs/warrants/OW-WAR-0149/manifest.toml:1
+- OW-WAR-0149 · warrant · authorized · Shared Katana and BLUT runtime receipt binding contract · docs/warrants/OW-WAR-0149/manifest.toml:1
