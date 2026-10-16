@@ -30642,7 +30642,7 @@ performer's report under another name.
 | D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | drift |
 | D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | verified |
 | D-003 | The verifier plants | `conformance/plants.d/62-verifier.sh` | verified |
-| D-004 | How to run the verifier and read what it says | `docs/VERIFICATION.md` | verified |
+| D-004 | How to run the verifier and read what it says | `docs/VERIFICATION.md` | drift |
 
 #### OW-WAR-0133 — Evidence reuse after a source change, and the compiler's source, conflict and omission rules
 
@@ -31386,11 +31386,11 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | drift |
+| D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | verified |
 | D-002 | war pins --candidate: the finding beside each resolved pin | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-003 | The --candidate flag | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | drift |
-| D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | drift |
+| D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | verified |
 | D-006 | After you sign: when the accepted candidate changes before merge | `docs/SIGNING.md` | verified |
 
 #### OW-WAR-0135 — The assurance mark: a baseline, its issuance, and what it binds

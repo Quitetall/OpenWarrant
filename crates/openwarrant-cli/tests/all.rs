@@ -16,6 +16,8 @@ mod authority_transition_cli;
 mod board_cli;
 #[path = "context_cli.rs"]
 mod context_cli;
+#[path = "delivery_provenance_cli.rs"]
+mod delivery_provenance_cli;
 #[path = "diff_target.rs"]
 mod diff_target;
 #[path = "dispatch_bundle_cli.rs"]
