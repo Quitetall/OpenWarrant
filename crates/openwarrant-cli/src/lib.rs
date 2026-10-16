@@ -1312,6 +1312,7 @@ enum EvidenceCommand {
     ///
     /// This command never verifies anything itself — the actor that produced
     /// the work cannot be the actor that clears it.
+    #[command(group(clap::ArgGroup::new("compact_action").args(["bundle", "run"])))]
     Verify {
         /// The Warrant's local alias.
         alias: String,
@@ -1330,8 +1331,9 @@ enum EvidenceCommand {
         #[arg(long, conflicts_with = "response")]
         bundle: bool,
         /// Emit v3 model inputs and exact archives for a v3-aware adapter.
-        /// Input emission only: no verifier call or result ingestion.
-        #[arg(long, requires = "bundle", conflicts_with_all = ["response", "run", "portable_preview", "inspect_preview"])]
+        /// Use --bundle to retain inputs, or --run to call the configured
+        /// v3-aware verifier and ingest its bound response.
+        #[arg(long, requires = "compact_action", conflicts_with_all = ["response", "portable_preview", "inspect_preview"])]
         compact: bool,
         /// Experimental offline review view and full v2 archive, in an
         /// absolute directory outside the repository. Never dispatches or
@@ -5419,7 +5421,11 @@ fn run_evidence_member(
                 return Ok(output::finish(mode, "verify.bundle", &report, Some(index)));
             }
             if run {
-                let report = bundle::run(&repository, &alias, &performer)?;
+                let report = if compact {
+                    bundle::run_compact(&repository, &alias, &performer)?
+                } else {
+                    bundle::run(&repository, &alias, &performer)?
+                };
                 return Ok(output::finish(mode, "verify.run", &report, None));
             }
             match response {

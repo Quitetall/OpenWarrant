@@ -63,8 +63,8 @@ reviewed source inputs.
 local verifier or response ingestion. It cannot be used with `--run`, cannot
 award assurance and does not unblock a production review yet. The accompanying
 v2 archive remains subject to its original budget refusal. Executable compact
-review transport and its ingestion checks are separate unfinished work under
-proposed ADR0030.
+review transport and its ingestion checks use a separate experimental protocol
+under proposed ADR0030; preview files remain ineligible.
 
 Before introducing that transport, inspect a retained preview against its
 original repository and actual performer:
@@ -104,7 +104,18 @@ is carried unchanged. Full byte/source/actor checks remain the ingester's job.
 The returned response uses v3 and retains exact view/archive references. It
 does not mean the model saw all archived bytes or that its claims establish
 assurance. The old v2 path and refusal of previews remain in place. No backend
-is started or configured by input emission; `--run --compact` remains disabled.
+is started or configured by input emission. To dispatch each compact input through
+the configured v3-aware verifier and ingest its answer, use:
+
+```bash
+war verify OW-WAR-0003 --performer agent://codex --run --compact --json
+```
+
+The runner supplies only the actual packet/view pair to each call. Oversized
+views stay inspectable but are never dispatched. Protocol downgrade or substituted
+response references are refused before ingestion; the normal ingest still checks
+current source, bytes, coverage and independence. Adapter failure or timeout
+records no verdict for that call. The default `--run` continues to use v2.
 
 Ingest the actual independent response with the existing `--response` command.
 The v3 path preflights the whole envelope and all referenced views before any

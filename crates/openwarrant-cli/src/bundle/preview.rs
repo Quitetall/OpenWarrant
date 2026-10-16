@@ -353,11 +353,11 @@ fn obligation_for(
 /// at the paths checked by existing packet validation. Each view also carries
 /// a sibling archive copy so the pair remains portable offline. Both view
 /// outputs are under the existing verification bookkeeping namespace.
-pub(crate) fn emit_compact(
+pub(super) fn retain_compact(
     repo: &Repository,
     alias: &str,
     performer: &str,
-) -> Result<(Report, Value), RepoError> {
+) -> Result<Vec<super::Dispatch>, RepoError> {
     let directory = repo.warrant_dir(alias)?.join("verifications");
     let relative = repo.relative(&directory);
     let archives = store::Directory::open(&repo.root, Utf8Path::new(&relative))?;
@@ -376,9 +376,7 @@ pub(crate) fn emit_compact(
             .map(|o| obligation_for(&src, o, Mode::Executable))
             .collect::<Result<Vec<_>, _>>()?
     };
-    let mut report = Report::default();
-    let mut packets = Vec::new();
-    let mut views = Vec::new();
+    let mut dispatches = Vec::new();
     for input in inputs {
         let digest = input.view["archive"]["digest"]
             .as_str()
@@ -389,19 +387,41 @@ pub(crate) fn emit_compact(
         archives.retain(&input.archive_name, &input.archive_bytes)?;
         retained_views.retain(&input.archive_name, &input.archive_bytes)?;
         retained_views.retain(&name, text.as_bytes())?;
-        packets.push(
-            json!({"path": repo.relative(&directory.join(&input.archive_name)), "digest": digest}),
-        );
-        views.push(json!({"path": repo.relative(&view_directory.join(&name)), "sha256": sha}));
-        report.push(Diagnostic::pass("verify.compact.bundle", format!("{alias}: retained model input {name} and exact archive; no verifier or result ingestion was performed")));
-        if input.view["over_budget"] == true {
-            report.push(Diagnostic::warn("verify.compact-over-budget", repo.relative(&view_directory.join(&name)), "Required context exceeds the reading budget; exact input retained and dispatch eligibility is false"));
+        dispatches.push(super::Dispatch {
+            path: view_directory.join(&name),
+            packet: crate::verify::ReviewedPacket { path: repo.relative(&directory.join(&input.archive_name)), digest: digest.into() },
+            view: Some(openwarrant_core::compact_verification_record::ReviewedView { path: repo.relative(&view_directory.join(&name)), sha256: sha }),
+            obligations: input.view["request"]["obligations"].as_array().unwrap().iter().map(|o| o["id"].as_str().unwrap().to_owned()).collect(),
+            scope: input.view["scope"].as_str().unwrap().into(),
+            estimated_tokens: input.view["estimated_tokens"].as_u64().unwrap(),
+            budget_tokens: input.view["budget_tokens"].as_u64().unwrap(),
+            over_budget: input.view["dispatch_eligible"] != true,
+            budget_profile: "Reading account applies to the complete deterministic model view; omitted raw evidence remains archived and is not a shown observation".into(),
+        });
+    }
+    Ok(dispatches)
+}
+
+pub(crate) fn emit_compact(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+) -> Result<(Report, Value), RepoError> {
+    let inputs = retain_compact(repo, alias, performer)?;
+    let mut report = Report::default();
+    let mut packets = Vec::new();
+    let mut views = Vec::new();
+    for input in inputs {
+        packets.push(input.packet);
+        views.push(input.view.unwrap());
+        report.push(Diagnostic::pass("verify.compact.bundle", format!("{alias}: retained model input {} and exact archive; no verifier or result ingestion was performed", input.path.file_name().unwrap())));
+        if input.over_budget {
+            report.push(Diagnostic::warn("verify.compact-over-budget", repo.relative(&input.path), "Required context exceeds the reading budget; exact input retained and dispatch eligibility is false"));
         }
     }
     let subject_archive = packets.first().map(|packet| {
         json!({
-            "path": packet["path"], "digest": packet["digest"],
-            "pointer": "/request/reviewed_subject"
+            "path": packet.path, "digest": packet.digest, "pointer": "/request/reviewed_subject"
         })
     });
     Ok((

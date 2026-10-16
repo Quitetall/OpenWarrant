@@ -141,6 +141,14 @@ archive's semantic digest using another canonicalizer. Rust source/byte checks
 at ingestion remain required. Existing preview identities never become inputs
 by changing a flag; v2 input admission and v3 result admission remain separate.
 
+The opt-in `verify --run --compact` runner uses those same retained inputs
+and the configured verifier deadline. It supplies exactly one view/archive pair
+per call. It checks the returned protocol and actual pair before ingestion,
+then applies the ordinary v3 byte/source/coverage/independence checks. Required
+context over the reading budget stays retained and is never dispatched. A failed
+or timed-out call creates no verdict for its obligations. Default execution
+continues to use v2, with no compact metadata inherited from the caller.
+
 The candidate response carries `warrant`, `reviewed_subject`, `reviewed_packets`,
 `reviewed_views` and `verifications`. Preparing stored observations must reject
 an empty Warrant, no observations, repeated or empty obligation identifiers,
