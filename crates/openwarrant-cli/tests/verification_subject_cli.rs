@@ -8,6 +8,357 @@ use std::{
 
 struct Fixture(PathBuf);
 
+#[cfg(feature = "schema")]
+#[test]
+fn schema_export_drift_checks_compact_candidate_without_adopting_it() {
+    let fixture = Fixture::new();
+    let written = fixture.run(&["admin", "schemas", "--json"]);
+    assert_eq!(written["exit_code"], 0, "{written}");
+    let path = fixture.0.join("schemas/oh.war/verification/v3.json");
+    let candidate: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(candidate["$id"], "oh.war/verification/v3");
+    let pack_path = fixture.0.join("schemas/pack.json");
+    let original = fs::read(&pack_path).unwrap();
+    assert_eq!(
+        original.as_slice(),
+        include_bytes!("../../../schemas/pack.json"),
+        "candidate publication must preserve the shipped active pack"
+    );
+    let pack: serde_json::Value = serde_json::from_slice(&original).unwrap();
+    assert_eq!(pack["version"], "0.2.0");
+    assert!(pack["files"].get("verification/v3").is_none());
+    let current = fixture.run(&["admin", "schemas", "--check", "--json"]);
+    assert_eq!(current["exit_code"], 0, "{current}");
+    fs::write(&path, "{}").unwrap();
+    let refused = fixture.run(&["admin", "schemas", "--check", "--json"]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "schemas.drift"
+                && d["file"]
+                    .as_str()
+                    .is_some_and(|p| p.ends_with("verification/v3.json"))),
+        "{refused}"
+    );
+    assert_eq!(fs::read(pack_path).unwrap(), original);
+}
+
+#[test]
+fn preview_inspection_checks_exact_display_and_current_subject_without_writes() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let output = Fixture(fixture.0.with_extension("preview"));
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        output.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let path = PathBuf::from(emitted["result"]["previews"][0]["path"].as_str().unwrap());
+    let inspect = |path: &std::path::Path| {
+        fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--inspect-preview",
+            path.to_str().unwrap(),
+            "--json",
+        ])
+    };
+    let accepted = inspect(&path);
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+    assert_eq!(accepted["result"]["dispatch_eligible"], false);
+
+    let mut altered: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    altered["atoms"][0]["text"] = "An attacker changed this instruction.".into();
+    let raw = serde_jcs::to_string(&altered).unwrap();
+    let changed = output.0.join(format!(
+        "preview-{}.json",
+        openwarrant_compiler::digest::sha256_hex(raw.as_bytes())
+    ));
+    fs::write(&changed, raw).unwrap();
+    let refused = inspect(&changed);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.preview-binding"),
+        "{refused}"
+    );
+
+    // A canonical digest alone does not bind the raw archive bytes. Whitespace
+    // leaves its parsed value unchanged, but changes the file the view names.
+    let view: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let archive_path = path
+        .parent()
+        .unwrap()
+        .join(view["archive"]["path"].as_str().unwrap());
+    let original = fs::read(&archive_path).unwrap();
+    let mut changed_bytes = original.clone();
+    changed_bytes.extend_from_slice(b" \n");
+    fs::write(&archive_path, changed_bytes).unwrap();
+    let refused = inspect(&path);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.preview-binding"),
+        "{refused}"
+    );
+    fs::write(archive_path, original).unwrap();
+
+    let mut future = view.clone();
+    future["schema"] = "oh.war/verification-view-preview/v2".into();
+    let raw = serde_jcs::to_string(&future).unwrap();
+    let future_path = output.0.join(format!(
+        "preview-{}.json",
+        openwarrant_compiler::digest::sha256_hex(raw.as_bytes())
+    ));
+    fs::write(&future_path, raw).unwrap();
+    let unknown = inspect(&future_path);
+    assert_eq!(unknown["counts"]["unknown"], 1, "{unknown}");
+    assert_eq!(unknown["counts"]["error"], 0, "{unknown}");
+
+    let source = fixture.0.join("new-source.txt");
+    fs::write(&source, "The reviewed tree changed after capture.\n").unwrap();
+    let stale = inspect(&path);
+    assert_ne!(stale["exit_code"], 0, "{stale}");
+    assert!(
+        stale.to_string().contains("verify.preview-subject-stale"),
+        "{stale}"
+    );
+    let ticket = fixture.run(&[
+        "verify",
+        "t-0000",
+        "--inspect-preview",
+        path.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(ticket["exit_code"], 0, "{ticket}");
+    assert!(
+        ticket
+            .to_string()
+            .contains("verify.preview-warrant-required"),
+        "{ticket}"
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications")
+            .exists()
+    );
+}
+
+#[test]
+fn portable_review_preview_retains_full_bindings_without_spending_the_model_budget_on_them() {
+    let fixture = Fixture::new();
+    let sources = fixture.0.join("inventory");
+    fs::create_dir(&sources).unwrap();
+    for n in 0..2000 {
+        fs::write(
+            sources.join(format!("source-{n:04}.txt")),
+            "inventory only\n",
+        )
+        .unwrap();
+    }
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]
+        .as_table_mut()
+        .unwrap()
+        .insert("max_bundle_tokens".into(), toml::Value::Integer(48_000));
+    fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+    let preview = Fixture(fixture.0.with_extension("preview"));
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        preview.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(result["exit_code"], 0, "{result}");
+    let entries = result["result"]["previews"].as_array().unwrap();
+    assert!(!entries.is_empty());
+    for entry in entries {
+        let path = fixture.0.join(entry["path"].as_str().unwrap());
+        let raw = fs::read(&path).unwrap();
+        let view: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert_eq!(view["schema"], "oh.war/verification-view-preview/v1");
+        assert_eq!(view["dispatch_eligible"], false);
+        assert_eq!(view["over_budget"], false, "{entry}");
+        assert!(view["request"].get("reviewed_subject").is_none());
+        let archive = path
+            .parent()
+            .unwrap()
+            .join(view["archive"]["path"].as_str().unwrap());
+        let bytes = fs::read(archive).unwrap();
+        assert_eq!(
+            view["archive"]["sha256"],
+            openwarrant_compiler::digest::sha256_hex(&bytes)
+        );
+        let original: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(original["schema"], "oh.war/verification-bundle/v2");
+        assert!(
+            original["request"]["reviewed_subject"]["gate_inputs"]
+                .as_object()
+                .unwrap()
+                .len()
+                >= 2000
+        );
+        assert_eq!(view["atoms"], original["atoms"]);
+        assert_eq!(view["contract_sources"], original["contract_sources"]);
+        for source in original["required_sources"].as_array().unwrap() {
+            if source["kind"] != "gate-evidence" {
+                assert!(
+                    view["required_sources"]
+                        .as_array()
+                        .unwrap()
+                        .contains(source)
+                );
+            }
+        }
+    }
+    let again = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        preview.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(again["exit_code"], 0, "{again}");
+    assert_eq!(
+        again["result"], result["result"],
+        "publishing outside the workspace must not change its reviewed subject"
+    );
+    let retained = PathBuf::from(entries[0]["path"].as_str().unwrap());
+    fs::write(&retained, "collision must survive").unwrap();
+    let refused = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        preview.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.packet-collision"),
+        "{refused}"
+    );
+    assert_eq!(
+        fs::read_to_string(retained).unwrap(),
+        "collision must survive"
+    );
+}
+
+#[test]
+fn portable_preview_refuses_workspace_outputs_and_preserves_over_budget_rules() {
+    let fixture = Fixture::new();
+    let inside = fixture.0.join("preview");
+    let refused = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--bundle",
+        "--portable-preview",
+        inside.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.preview-path"),
+        "{refused}"
+    );
+    assert!(!inside.exists());
+
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]
+        .as_table_mut()
+        .unwrap()
+        .insert("max_bundle_tokens".into(), toml::Value::Integer(1));
+    fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+    let output = Fixture(fixture.0.with_extension("preview"));
+    let report = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--bundle",
+        "--portable-preview",
+        output.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(report["exit_code"], 0, "{report}");
+    for entry in report["result"]["previews"].as_array().unwrap() {
+        let path = PathBuf::from(entry["path"].as_str().unwrap());
+        let view: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert_eq!(view["over_budget"], true);
+        assert_eq!(view["dispatch_eligible"], false);
+        let archive: serde_json::Value = serde_json::from_slice(
+            &fs::read(
+                path.parent()
+                    .unwrap()
+                    .join(view["archive"]["path"].as_str().unwrap()),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(view["atoms"], archive["atoms"]);
+        assert_eq!(view["contract_sources"], archive["contract_sources"]);
+        assert_eq!(view["required_sources"], archive["required_sources"]);
+    }
+}
+
+#[test]
+#[cfg(unix)]
+fn portable_preview_refuses_an_output_directory_link() {
+    use std::os::unix::fs::symlink;
+    let fixture = Fixture::new();
+    let target = Fixture(fixture.0.with_extension("target"));
+    let link = Fixture(fixture.0.with_extension("link"));
+    fs::create_dir(&target.0).unwrap();
+    let marker = target.0.join("keep.txt");
+    fs::write(&marker, "outside bytes").unwrap();
+    symlink(&target.0, &link.0).unwrap();
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--bundle",
+        "--portable-preview",
+        link.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(result["exit_code"], 0, "{result}");
+    assert_eq!(fs::read_to_string(marker).unwrap(), "outside bytes");
+    assert_eq!(fs::read_dir(&target.0).unwrap().count(), 1);
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications")
+            .exists()
+    );
+}
+
 #[test]
 fn corrupt_git_inventory_reports_its_cause_without_writing_a_verdict() {
     let fixture = Fixture::new();

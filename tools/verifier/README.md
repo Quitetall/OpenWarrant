@@ -39,6 +39,66 @@ over budget, or whose estimate exceeds the budget, before any backend call or
 review-log write. Exact required context stays intact. This checks the supplied
 compiler metadata; it does not substitute a new tokenizer.
 
+### Inspect an oversized packet offline
+
+The experimental preview command separates reading context from the lossless
+machine bindings and raw evidence archive:
+
+```bash
+war verify OW-WAR-0003 --performer agent://codex --bundle --portable-preview /absolute/path/outside/the/repository --json
+```
+
+Copy the emitted `preview-*.json` and its sibling `bundle-*.json` together to
+read them offline. The preview keeps exact governing sources, fixtures and
+contract atoms. It lists archived raw evidence and retains the existing bounded
+gate-output excerpts. A reference does not mean that an agent saw the archived
+bytes. Claims needing missing observations remain unestablished.
+
+The preview has its own token account. Required rules are kept even if they
+exceed the budget. Publication refuses output links and different bytes at a
+retained name. Outputs stay outside the repository so they do not change the
+reviewed source inputs.
+
+**Preview only:** `oh.war/verification-view-preview/v1` is not accepted by the
+local verifier or response ingestion. It cannot be used with `--run`, cannot
+award assurance and does not unblock a production review yet. The accompanying
+v2 archive remains subject to its original budget refusal. Executable compact
+review transport and its ingestion checks are separate unfinished work under
+proposed ADR0030.
+
+Before introducing that transport, inspect a retained preview against its
+original repository and actual performer:
+
+```bash
+war verify OW-WAR-0003 --performer agent://codex --inspect-preview /absolute/path/to/preview-HASH.json --json
+```
+
+This read-only check recomputes the view from the exact sibling archive, checks
+its raw and canonical hashes, and applies the existing packet validation to the
+current task, source snapshot, governing context and displayed evidence. It
+refuses altered displays even after someone recomputes the view filename hash.
+Changed source inputs make the preview stale. Neither file is imported, no
+verifier runs and no verdict or assurance is created. Inspection needs the
+original source repository; the package itself remains readable offline.
+Inputs are limited to 64 MiB each and are read without following path links.
+
+### Candidate compact storage codec
+
+The SDK exposes an opt-in `compact_verification_record` module for the proposed
+v3 stored envelope. `decode` parses that envelope; `StoredCompactVerification::binds`
+compares the subject, archive references and exact view references, requiring
+nonempty distinct files and valid relative paths and hashes. A match checks
+metadata only. It does not read the files, prove their contents, authenticate
+the reviewer, or establish independent assurance.
+
+The existing v1/v2 decoder continues to refuse this envelope. CLI ingestion
+does not accept it yet. The candidate JSON schema is published beside v1/v2,
+without changing the active schema pack. Regenerate that candidate with:
+
+```bash
+cargo run --locked -p openwarrant-core --features schema --example compact_verification_schema
+```
+
 The client permits HTTP to a literal loopback IP and port only. It ignores
 proxy settings, refuses redirects, requests no tools, and rejects a substituted
 model, tool call or incomplete answer. It retains the exact input bytes, raw

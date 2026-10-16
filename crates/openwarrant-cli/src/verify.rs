@@ -574,6 +574,28 @@ pub(crate) fn packets_cover(
     obligations: &[String],
     performer: &str,
 ) -> Result<bool, RepoError> {
+    packets_cover_with(
+        repo,
+        one,
+        reviewed,
+        packets,
+        obligations,
+        performer,
+        |path| crate::bundle::store::read(&repo.root, camino::Utf8Path::new(path)),
+    )
+}
+
+/// The same validation for bytes supplied by a portable package. The caller
+/// must separately bind the supplied bytes to that package; no file is imported.
+pub(crate) fn packets_cover_with(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    reviewed: &ReviewedSubject,
+    packets: &[ReviewedPacket],
+    obligations: &[String],
+    performer: &str,
+    read: impl Fn(&str) -> Result<Vec<u8>, RepoError>,
+) -> Result<bool, RepoError> {
     if packets.is_empty() {
         return Ok(false);
     }
@@ -610,7 +632,7 @@ pub(crate) fn packets_cover(
         {
             return Ok(false);
         }
-        let bytes = crate::bundle::store::read(&repo.root, camino::Utf8Path::new(&reference.path))?;
+        let bytes = read(&reference.path)?;
         // Canonical identity requires one unambiguous object, including nested
         // members. A plain Value decoder silently discards duplicate keys.
         // Nodes cannot outnumber input bytes; retain larger binary fixtures

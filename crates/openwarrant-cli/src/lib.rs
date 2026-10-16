@@ -1329,6 +1329,15 @@ enum EvidenceCommand {
         /// each carrying what that obligation names, excerpted to fit.
         #[arg(long, conflicts_with = "response")]
         bundle: bool,
+        /// Experimental offline review view and full v2 archive, in an
+        /// absolute directory outside the repository. Never dispatches or
+        /// establishes verification; current adapters refuse this format.
+        #[arg(long, requires = "bundle", conflicts_with_all = ["response", "run"])]
+        portable_preview: Option<Utf8PathBuf>,
+        /// Check a compact preview, its full archive and the current subject.
+        /// Read-only: no verifier, verdict, import or assurance is produced.
+        #[arg(long, conflicts_with_all = ["response", "bundle", "run", "portable_preview"])]
+        inspect_preview: Option<Utf8PathBuf>,
         /// Write the bundle(s), run `[verify] verifier_argv` once on each, and
         /// ingest what each prints through the same seam as `--response`.
         #[arg(long, conflicts_with_all = ["response", "bundle"])]
@@ -5348,8 +5357,15 @@ fn run_evidence_member(
         // OW-WAR-0148 M13: an item's independent verification, the same seam
         // at the size of one tick.
         EvidenceCommand::Verify {
-            alias, response, ..
+            alias,
+            response,
+            portable_preview,
+            inspect_preview,
+            ..
         } if ticket::is_ticket_ref(&alias) => {
+            if portable_preview.is_some() || inspect_preview.is_some() {
+                return Err(repo::RepoError::Message("verify.preview-warrant-required: compact legacy verification previews require a Warrant alias; no preview was read or written".into()).into());
+            }
             let (_, store) = ctx.tickets(None)?;
             let outcome = match response {
                 Some(path) => ticket::acts::verify_ingest(&store, &alias, &path)?,
@@ -5362,10 +5378,27 @@ fn run_evidence_member(
             performer,
             response,
             bundle,
+            portable_preview,
+            inspect_preview,
             run,
         } => {
             let repository = ctx.open_repo()?;
+            if let Some(path) = inspect_preview {
+                let (report, result) =
+                    bundle::preview::inspect(&repository, &alias, &performer, &path)?;
+                return Ok(output::finish(
+                    mode,
+                    "verify.preview.inspect",
+                    &report,
+                    Some(result),
+                ));
+            }
             if bundle {
+                if let Some(directory) = portable_preview {
+                    let (report, index) =
+                        bundle::preview::emit(&repository, &alias, &performer, &directory)?;
+                    return Ok(output::finish(mode, "verify.preview", &report, Some(index)));
+                }
                 let (report, index) = bundle::emit(&repository, &alias, &performer)?;
                 return Ok(output::finish(mode, "verify.bundle", &report, Some(index)));
             }

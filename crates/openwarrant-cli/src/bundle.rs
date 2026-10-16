@@ -49,6 +49,7 @@
 //! configured verifier too. A response answering an obligation its bundle did
 //! not carry is refused unread.
 
+pub(crate) mod preview;
 pub(crate) mod rendered;
 pub(crate) mod store;
 
