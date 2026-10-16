@@ -1,0 +1,11 @@
+# Planned runtime delivery scope
+
+OW149 previously had no deliverables.toml. Its draft now names 29 local artifacts: the shared contract/basis, enrollment design, SDK contracts, capture implementation, resolver/basis assessment, public controls, participant references and a real cross-project qualification report. These are proposed boundaries. Every row remains content_addressed=false and provenance_required=true, with no supplied producer or invented history. No declaration grants ownership or establishes completion.
+
+The original manifest and five authored atoms are unchanged; there is no authorization or resolution record. `war check OW-WAR-0149 --json` reports 37 pass/24 warnings/0 errors/0 unknown. Initial delivery dry-run identified the two missing reports and wrote nothing. A draft participant-reference document now records read-only source/PR observations, leaving one required artifact genuinely absent: cross-project-qualification.md. That delivery dry-run reports deliver.missing for D029 and retains the complete original state; no content digest or provenance is recorded.
+
+Katana PR14/15 are merged at the exact commits in the draft references. BLUT PR103/104 remain open with failing CLA checks; skipped checks stay skipped. Local checkouts differ from integration candidates, and Katana has uncommitted changes that were not used. No provider checkout, service, routing, acceptance, source pin or contributor agreement was changed. PR merges and check states do not substitute for participant acceptance, actual receipt validation or execution evidence.
+
+The shared work order's verified-start requirements remain unchanged. The missing qualification report must be backed by actual provider runs, raw receipt/verification observations, exact sources, independent findings and required authorized responses. It must not be generated from the current source observations as a completion claim.
+
+Raw commands and observations: `/mnt/4tb/artifacts/OpenWarrant/keep/conformance-continuation-20261014/runtime-delivery-declarations-20261016/`. The emitted authorization request is a request only, naming the proposed set for a human to review. No signature or authority action was performed.
