@@ -8,6 +8,44 @@ use std::{
 
 struct Fixture(PathBuf);
 
+#[cfg(feature = "schema")]
+#[test]
+fn schema_export_drift_checks_compact_candidate_without_adopting_it() {
+    let fixture = Fixture::new();
+    let written = fixture.run(&["admin", "schemas", "--json"]);
+    assert_eq!(written["exit_code"], 0, "{written}");
+    let path = fixture.0.join("schemas/oh.war/verification/v3.json");
+    let candidate: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(candidate["$id"], "oh.war/verification/v3");
+    let pack_path = fixture.0.join("schemas/pack.json");
+    let original = fs::read(&pack_path).unwrap();
+    assert_eq!(
+        original.as_slice(),
+        include_bytes!("../../../schemas/pack.json"),
+        "candidate publication must preserve the shipped active pack"
+    );
+    let pack: serde_json::Value = serde_json::from_slice(&original).unwrap();
+    assert_eq!(pack["version"], "0.2.0");
+    assert!(pack["files"].get("verification/v3").is_none());
+    let current = fixture.run(&["admin", "schemas", "--check", "--json"]);
+    assert_eq!(current["exit_code"], 0, "{current}");
+    fs::write(&path, "{}").unwrap();
+    let refused = fixture.run(&["admin", "schemas", "--check", "--json"]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "schemas.drift"
+                && d["file"]
+                    .as_str()
+                    .is_some_and(|p| p.ends_with("verification/v3.json"))),
+        "{refused}"
+    );
+    assert_eq!(fs::read(pack_path).unwrap(), original);
+}
+
 #[test]
 fn preview_inspection_checks_exact_display_and_current_subject_without_writes() {
     let fixture = Fixture::new();
