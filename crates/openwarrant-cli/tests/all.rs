@@ -14,6 +14,8 @@
 mod authority_transition_cli;
 #[path = "board_cli.rs"]
 mod board_cli;
+#[path = "context_apply_cli.rs"]
+mod context_apply_cli;
 #[path = "context_cli.rs"]
 mod context_cli;
 #[path = "diff_target.rs"]

@@ -943,6 +943,11 @@ impl Profiles {
         }
         self.found.get(name).map_or(Lookup::Missing, Lookup::Found)
     }
+
+    /// Every profile read from a file, by name.
+    pub fn found(&self) -> impl Iterator<Item = &Profile> {
+        self.found.values()
+    }
 }
 
 type Pending<'a> = BTreeMap<String, (&'a str, &'a [u8])>;

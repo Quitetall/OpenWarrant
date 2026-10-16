@@ -148,7 +148,7 @@ fn the_same_tree_gives_the_same_bytes_here_and_in_a_moved_clone_and_an_edit_move
         a, b,
         "the group spelling and the top-level one print the same bytes"
     );
-    assert!(a.starts_with("# Context: CT-WAR-0001\n<!-- oh.war/context/v1 · budget 16000 · depth 3 · walk core · selection sha256:"));
+    assert!(a.starts_with("# Context: CT-WAR-0001\n<!-- oh.war/context/v1 · budget 16000 · depth 3 · preset agent (walk core) · selection sha256:"));
     assert!(
         !a.contains(root.to_str().unwrap()),
         "no absolute path in the packet"
