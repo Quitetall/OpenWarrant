@@ -210,6 +210,8 @@ class War:
 
     def read(self, case, work):
         kind = case_kind(case)
+        if kind == "tracking" and read_args(case)[:1] == ["evaluate"]:
+            return war_evaluate(self.war, case, work)
         if kind in ("tracking", "apply"):
             # No adapter maps a tracking or apply case to war's commands yet;
             # war's results for these cases are listed in known-war.txt.
@@ -278,6 +280,92 @@ class War:
                                                "content_digest")} for r in recs],
             "relations": rels, "findings": findings,
         }
+
+
+# ------------------------------------------------- war: evaluate (12) --
+
+def war_run(war, tree, argv):
+    """`war <argv> --root <tree>` in `tree`: (exit code, stdout, stderr)."""
+    p = subprocess.run([war, *argv, "--root", tree], cwd=tree, env=ENV, capture_output=True,
+                       text=True, stdin=subprocess.DEVNULL, timeout=120)
+    return p.returncode, p.stdout, p.stderr
+
+
+def war_states(war, tree, records):
+    """The model's states of `records`, as 11.1's families: `{record, kind, value, provenance}`.
+
+    war's model names a fixed state's kind `computed` with a `facet`; 11.1's
+    `kind` is the family. An item's `checklist` state is the item's own; the
+    model also gives an item the phase of its checklist, which 11.1 does not.
+    """
+    _, out, err = war_run(war, tree, ["model", "--json"])
+    try:
+        states = json.loads(out)["result"]["states"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        raise RuntimeError(f"war model: {err.strip()[-300:]}")
+    family = {"open": "phase", "in_progress": "phase", "done": "phase", "draft": "phase",
+              "authorized": "phase", "resolved": "phase", "failing": "check",
+              "superseded": "currency", "accepted": "acceptance",
+              "partially_accepted": "acceptance", "verified": "outcome"}
+    got = set()
+    for st in states:
+        rec = st["record"]
+        if rec.split("/")[0] not in records:
+            continue
+        item = "/i-" in rec
+        if st["kind"] == "checklist":
+            if not item:
+                continue
+            kind = "checklist"
+        elif st["kind"] in ("computed", "authenticated"):
+            kind = family.get(st["value"])
+            if kind is None or (item and kind == "phase"):
+                continue
+        else:
+            continue
+        got.add((rec, kind, st["value"], st["provenance"]))
+    return [{"record": r, "kind": k, "value": v, "provenance": p}
+            for r, k, v, p in sorted(got)]
+
+
+def war_evaluate(war, case, work):
+    """`evaluate --actor A` (README, "Tracking cases") as `war check evaluate --as A --at <at>`."""
+    import shlex
+    tree = tracking_tree(case, work)
+    with open(os.path.join(case, "at")) as f:
+        at = f.read().strip()
+    # A program for the documents to live in, as for a model case; nothing
+    # it writes is compared.
+    code, _, err = war_run(war, tree, ["init", "--program", "Format corpus", "--namespace", "ZQ"])
+    if code != 0:
+        raise RuntimeError(f"war init: exit {code}: {err.strip()[-300:]}")
+    args = read_args(case)
+    sub = argparse.ArgumentParser(prog="evaluate")
+    sub.add_argument("--actor", required=True)
+    a = sub.parse_args(args[1:])
+    code, out, err = war_run(war, tree, ["--json", "check", "evaluate", "--as", a.actor,
+                                         "--at", at])
+    try:
+        env = json.loads(out)
+    except json.JSONDecodeError:
+        raise RuntimeError(f"war check evaluate: exit {code}: {err.strip()[-300:]} {shlex.join(args)}")
+    findings = {d["rule"] for d in env.get("diagnostics", []) if d.get("rule") in SPEC_RULES}
+    records = set()
+    for dp, _, fs in os.walk(os.path.join(case, "input")):
+        for f in fs:
+            if f.endswith(".md"):
+                records.add(f[:-3] if f != "ticket.md" else os.path.basename(dp))
+    # 11.4's warnings over the documents after the evaluation.
+    _, out, _ = war_run(war, tree, ["--json", "check"])
+    try:
+        diags = json.loads(out).get("diagnostics", [])
+    except json.JSONDecodeError:
+        diags = []
+    findings |= {f"{d['rule']} {d['file']}" for d in diags
+                 if d.get("rule") in WARNINGS and d.get("file")
+                 and d["file"].split(":")[0].startswith("docs/")}
+    return {"records": [], "relations": [], "findings": sorted(findings),
+            "states": war_states(war, tree, records), "tree": tree}
 
 
 # ---------------------------------------------------------------- compare --

@@ -8,7 +8,6 @@
 # The tracking (2NN tracker, 4NN) and apply (5NN) cases have no war adapter in
 # run.py yet; each fails until one is written and war implements sections 10.5, 11 and 12.
 165-done-suffix-level-unknown  # war does not refuse an unknown tick level in the done suffix (3.8)
-208-check-unknown  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 209-claim-remote-unreachable  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 210-journal-newer  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 211-profile-legacy-file  # war does not read draft-3 profile data (a legacy profile file, 7.5)
@@ -27,9 +26,6 @@
 405-spec-partially-accepted  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 406-spec-accepted  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 407-spec-no-acceptance-without-authority  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-408-check-pass-ticks-observed  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-409-check-fail-failing-no-tick  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-410-check-pass-older-revision  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 411-next-due-beats-priority  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 412-next-critical-path  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 413-next-ties  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
@@ -51,9 +47,6 @@
 429-idempotency-conflict  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 430-idempotency-replay  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 432-journal-key-mismatch  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-438-check-pass-stale-subject  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-439-check-pass-raises-claimed  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-440-check-fail-reopens  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 441-claim-document-while-item-held  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 442-hand-ticked-box-done  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 443-next-title-only-document  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
