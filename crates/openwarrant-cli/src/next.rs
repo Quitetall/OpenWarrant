@@ -252,6 +252,22 @@ pub fn derive(
                 format!("{alias}/{deliverable_id}"),
                 format!("{} drifted after resolution", request.target_ref),
             ),
+            // FORMAT-1.0 Appendix C.3: until an accept names the changed
+            // records, `next` lists that acceptance as an act waiting on a
+            // person.
+            Pending::AcceptSpec { request } => (
+                "specification".to_owned(),
+                "accept",
+                "spec".to_owned(),
+                format!(
+                    "{} of {} specification record(s) await acceptance ({} edited since \
+                     accepted, {} new)",
+                    request.records.len(),
+                    request.record_count,
+                    request.changed.len(),
+                    request.new.len()
+                ),
+            ),
             Pending::Invalidate { gate, request } => (
                 gate.clone(),
                 "invalidate",
@@ -735,9 +751,9 @@ fn target_of(p: &Pending) -> String {
             ..
         } => format!("{alias}/{deliverable_id}"),
         Pending::Invalidate { gate, .. } => gate.clone(),
-        Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => {
-            crate::sign::target_of(p)
-        }
+        Pending::AcceptStanding { .. }
+        | Pending::RevokeStanding { .. }
+        | Pending::AcceptSpec { .. } => crate::sign::target_of(p),
     }
 }
 

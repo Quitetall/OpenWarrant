@@ -110,6 +110,8 @@ pub mod sign;
 pub mod signing_probe;
 pub mod skew;
 mod source_workspace;
+pub mod spec_accept;
+pub mod spec_migrate;
 pub mod ssh_verdicts;
 pub mod standing_cmd;
 #[path = "state_cmd.rs"]
@@ -519,6 +521,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "promote",
             "render",
             "impact",
+            "spec",
             "model",
             "state",
             "roadmap",
@@ -1060,6 +1063,13 @@ enum PlanCommand {
         /// `t-3f2a/i-9c01`).
         record: String,
     },
+    /// The specification (FORMAT-1.0 §4.5): its acceptance, record by
+    /// record; the request a person signs to accept it; and the migration
+    /// of a legacy SAS into `SPEC.md` and `spec/<area>.md`.
+    Spec {
+        #[command(subcommand)]
+        command: SpecCommand,
+    },
     /// The compiled corpus as one document, `oh.war/model/v1` (OW-WAR-0148):
     /// every record with its revision and governor, every relation, the
     /// states the builders derive, and a diagnostic per relation whose target
@@ -1289,6 +1299,41 @@ enum SignCommand {
     Authority {
         #[command(subcommand)]
         command: authority_cmd::Command,
+    },
+}
+
+/// `war spec …` (FORMAT-1.0 §4.5, §14, Appendix C.3).
+#[derive(Subcommand)]
+enum SpecCommand {
+    /// Each record's acceptance, and the work and obligations citing each
+    /// record that is not accepted. Read-only.
+    Status,
+    /// The acceptance request: the records not accepted now (an edited
+    /// record's acceptance lapses for it alone), with the subject digest a
+    /// person signs. Writes nothing; `war sign spec` is the person's act.
+    /// With `--response`, judge a signed response and say whether it is
+    /// the act it claims to be.
+    Accept {
+        /// Every record, not only the unaccepted.
+        #[arg(long)]
+        all: bool,
+        /// A signed response to judge, instead of emitting the request.
+        #[arg(long, conflicts_with = "all")]
+        response: Option<Utf8PathBuf>,
+    },
+    /// Write a legacy SAS (`[paths] sas`) as `SPEC.md` and one
+    /// `spec/<area>.md` per top-level section (§14). A dry run unless
+    /// `--write`; the SAS is not touched and keeps its acceptance.
+    Migrate {
+        /// The SAS document, instead of the repository's.
+        #[arg(long)]
+        sas: Option<Utf8PathBuf>,
+        /// `version` for `SPEC.md` when no SAS revision names the document.
+        #[arg(long)]
+        version: Option<String>,
+        /// Write the files (refused when one exists or the reader refuses one).
+        #[arg(long)]
+        write: bool,
     },
 }
 
@@ -4067,6 +4112,109 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     &report,
                     impact.as_ref().map(output::value),
                 )),
+            }
+        }
+        PlanCommand::Spec { command } => {
+            let repository = ctx.open_repo()?;
+            match command {
+                SpecCommand::Status => {
+                    let corpus = corpus::Corpus::new(&repository);
+                    let (report, status) = spec_accept::status(&corpus)?;
+                    if mode == output::Mode::Human
+                        && let Some(st) = &status
+                    {
+                        println!(
+                            "specification: {} ({} of {} record(s) accepted)",
+                            st.document, st.accepted, st.records
+                        );
+                        for u in &st.unaccepted {
+                            println!(
+                                "  {}  {}{}{}",
+                                u.record,
+                                if u.lapsed {
+                                    "edited since accepted"
+                                } else {
+                                    "not accepted"
+                                },
+                                if u.cited_by.is_empty() {
+                                    ""
+                                } else {
+                                    "; cited by "
+                                },
+                                u.cited_by.join(", ")
+                            );
+                        }
+                    }
+                    Ok(output::finish(
+                        mode,
+                        "spec.status",
+                        &report,
+                        status.as_ref().map(output::value),
+                    ))
+                }
+                SpecCommand::Accept {
+                    response: Some(path),
+                    ..
+                } => Ok(output::finish(
+                    mode,
+                    "spec.accept",
+                    &spec_accept::ingest_with(&repository, &path, sign::IngestMode::Record)?,
+                    None,
+                )),
+                SpecCommand::Accept {
+                    all,
+                    response: None,
+                } => {
+                    let corpus = corpus::Corpus::new(&repository);
+                    match spec_accept::request(&corpus, all)? {
+                        Some(request) => {
+                            output::emit(
+                                mode,
+                                "spec.accept.request",
+                                &toml::to_string_pretty(&request).map_err(|e| {
+                                    repo::RepoError::Message(format!(
+                                        "could not render the request: {e}"
+                                    ))
+                                })?,
+                                output::value(&request),
+                            );
+                            eprintln!(
+                                "# {}: {} of {} record(s), {} edited since accepted, {} new. A \
+                                 person accepts it: `war sign spec --ssh-sign`",
+                                request.subject,
+                                request.records.len(),
+                                request.record_count,
+                                request.changed.len(),
+                                request.new.len()
+                            );
+                            Ok(0)
+                        }
+                        None => {
+                            let mut report = diagnostic::Report::default();
+                            report.push(diagnostic::Diagnostic::pass(
+                                "spec.nothing-to-accept",
+                                "no Format 1.0 specification, or every record is accepted"
+                                    .to_owned(),
+                            ));
+                            Ok(output::finish(mode, "spec.accept", &report, None))
+                        }
+                    }
+                }
+                SpecCommand::Migrate {
+                    sas,
+                    version,
+                    write,
+                } => {
+                    let (report, _) = spec_migrate::run(
+                        &repository,
+                        &spec_migrate::Options {
+                            sas,
+                            version,
+                            write,
+                        },
+                    )?;
+                    Ok(output::finish(mode, "spec.migrate", &report, None))
+                }
             }
         }
         // ---- OW-WAR-0148 M4: declared states -----------------------------

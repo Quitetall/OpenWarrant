@@ -92,6 +92,12 @@ pub enum Act {
     /// Subject `<id>`; it makes the Warrant official for the roles the
     /// approver's role allows, and authorizes nothing else.
     Approve,
+    /// FORMAT-1.0 Appendix C.2 — a person accepts records of the
+    /// specification (`SPEC.md` and its parts). Subject
+    /// `SPEC-<12 hex>`, bound to C.3's subject digest over the
+    /// `[id, revision, content_digest]` of each record it covers. Its own
+    /// schema, so a SAS acceptance never verifies as one, or the reverse.
+    AcceptSpec,
 }
 
 impl Act {
@@ -114,6 +120,7 @@ impl Act {
             Self::RevokeStanding => "oh.war/standing-revocation-response/v1",
             Self::SignOff => "oh.war/tick-signoff-response/v1",
             Self::Approve => "oh.war/warrant-approval-response/v1",
+            Self::AcceptSpec => crate::spec_accept::RESPONSE_SCHEMA,
         }
     }
 
@@ -129,6 +136,7 @@ impl Act {
             Self::RevokeStanding => "standing revocation",
             Self::SignOff => "sign-off",
             Self::Approve => "approval",
+            Self::AcceptSpec => "specification acceptance",
         }
     }
 }
@@ -206,9 +214,11 @@ impl Verdict {
 #[must_use]
 pub fn response_stem(act: Act, subject: &str) -> String {
     match act {
-        Act::Authorize | Act::Accept | Act::AcceptRoadmap | Act::AcceptStanding => {
-            subject.to_owned()
-        }
+        Act::Authorize
+        | Act::Accept
+        | Act::AcceptRoadmap
+        | Act::AcceptStanding
+        | Act::AcceptSpec => subject.to_owned(),
         Act::Resolve => format!("{subject}.resolution"),
         Act::Correct => format!("{subject}.correction"),
         Act::Invalidate => format!("{subject}.invalidation"),
@@ -1066,6 +1076,7 @@ const fn role_for(act: Act) -> &'static str {
         | Act::Correct
         | Act::AcceptRoadmap
         | Act::AcceptStanding
+        | Act::AcceptSpec
         | Act::RevokeStanding => "authorizer",
         // OW-WAR-0148 M14: approving a plan says the work may go ahead, as
         // an authorization does.

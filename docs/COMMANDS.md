@@ -107,6 +107,7 @@ value of the `--json` envelope, the same under either spelling.
 | `war plan promote` | `war promote` | `promote` |
 | `war plan render` | `war render` | `render` |
 | `war plan impact` | `war impact` | `impact` |
+| `war plan spec status`, `accept`, `migrate` (FORMAT-1.0 §4.5, §14, new) | `war spec` | `spec.status`, `spec.accept`, `spec.accept.request`, `spec.migrate` |
 | `war plan model` | `war model` | `model` |
 | `war plan state` | `war state` | `state` |
 | `war plan roadmap` | `war roadmap` | `roadmap` |

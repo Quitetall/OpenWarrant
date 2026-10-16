@@ -12,8 +12,9 @@
 //!   legacy Warrant (or ticket), whatever else it holds.
 //! - A record document is a `docs/records/<area>/*.md` whose frontmatter
 //!   declares `format:`; the `oh.war/records/v1` reader skips it.
-//! - The specification (§4.5) is `SPEC.md` at the root and its parts
-//!   `spec/<area>.md`, each when its frontmatter declares `format:`. Its
+//! - The specification (§4.5) is `SPEC.md` at the root and its parts,
+//!   `spec/<area>.md` or any indexed document of profile `spec` (see
+//!   [`spec_files`]), each when its frontmatter declares `format:`. Its
 //!   records are global; its own record is `doc:<path>`, type `spec`. A
 //!   file of profile `spec` that is not `SPEC.md` and names no `part_of` is
 //!   a second root and is refused (`format.document-duplicate`).
@@ -162,21 +163,65 @@ pub fn profiles(repo: &Repository) -> Profiles {
     Profiles::load(files.iter().map(|(f, b)| (f.as_str(), b.as_slice())))
 }
 
-/// `SPEC.md` and `spec/<area>.md` that declare `format:` (§4.5).
+/// `SPEC.md`, `spec/<area>.md`, and every other part, each when it
+/// declares `format:` (§4.5).
+///
+/// A part SHOULD live at `spec/<area>.md` and MAY live elsewhere: any
+/// document the development-document index reaches (`[documents] index`,
+/// by default `docs/**/*.md` and the root's `*.md`) whose frontmatter
+/// names profile `spec` is one. Record documents (`docs/records/<area>/`)
+/// are read in their own place, under their own profile, so they are not
+/// listed again here. One that names no `part_of` is a second root and is
+/// refused by [`load`], wherever it is.
 #[must_use]
 pub fn spec_files(repo: &Repository) -> Vec<Utf8PathBuf> {
     let declares = |p: &Utf8Path| {
         crate::vfs::read(p).is_ok_and(|b| format::declares_format(&String::from_utf8_lossy(&b)))
     };
     let root = repo.root.join("SPEC.md");
-    std::iter::once(root)
+    let mut out: Vec<Utf8PathBuf> = std::iter::once(root)
         .chain(
             sorted_entries(&repo.root.join("spec"))
                 .into_iter()
                 .filter(|p| p.extension() == Some("md")),
         )
         .filter(|p| crate::vfs::is_file(p) && declares(p))
-        .collect()
+        .collect();
+    let records: BTreeSet<Utf8PathBuf> = crate::records::files(repo).into_iter().collect();
+    let (globs, _) = crate::doc_index::globs(repo);
+    for rel in crate::doc_index::walk(repo, &globs) {
+        let p = repo.root.join(&rel);
+        if !rel.ends_with(".md") || out.contains(&p) || records.contains(&p) {
+            continue;
+        }
+        let Ok(bytes) = crate::vfs::read(&p) else {
+            continue;
+        };
+        let text = String::from_utf8_lossy(&bytes);
+        if format::declares_format(&text) && frontmatter_profile(&text) == Some("spec") {
+            out.push(p);
+        }
+    }
+    out
+}
+
+/// The `profile:` a document's frontmatter names, read without parsing the
+/// document: the first such line between the opening `---` and the next.
+fn frontmatter_profile(text: &str) -> Option<&str> {
+    let mut lines = text.trim_start_matches('\u{feff}').lines();
+    if lines.next()?.trim_end() != "---" {
+        return None;
+    }
+    for line in lines {
+        let line = line.trim_end();
+        if line == "---" {
+            return None;
+        }
+        if let Some(v) = line.strip_prefix("profile:") {
+            return Some(v.trim().trim_matches(['"', '\'']));
+        }
+    }
+    None
 }
 
 /// Read every Format 1.0 document of `repo`.

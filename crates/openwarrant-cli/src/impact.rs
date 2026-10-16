@@ -193,6 +193,23 @@ fn mentioned<'a>(text: &str, named: &BTreeSet<&'a str>) -> Vec<&'a str> {
 /// model (and the report says so by name).
 pub fn build(corpus: &Corpus, id: &str) -> Result<(Report, Option<Impact>), RepoError> {
     let model = crate::model::build(corpus)?;
+    let (mut report, impact) = build_on(corpus, &model, id)?;
+    // FORMAT-1.0 Appendix C.3: a specification record whose acceptance
+    // lapsed (or was never given) names the work and obligations citing it.
+    if impact.is_some()
+        && let Some(d) = crate::spec_accept::impact_warning(corpus, &model, id)
+    {
+        report.push(d);
+    }
+    Ok((report, impact))
+}
+
+/// [`build`] over a model already built.
+pub fn build_on(
+    corpus: &Corpus,
+    model: &Model,
+    id: &str,
+) -> Result<(Report, Option<Impact>), RepoError> {
     let mut report = Report::default();
     let Some(subject) = model.records.iter().find(|r| r.id == id) else {
         report.push(Diagnostic::error(
@@ -206,7 +223,7 @@ pub fn build(corpus: &Corpus, id: &str) -> Result<(Report, Option<Impact>), Repo
         ));
         return Ok((report, None));
     };
-    let impact = walk(corpus, &model, subject);
+    let impact = walk(corpus, model, subject);
     for e in impact.evaluations.iter().filter(|e| e.reads == "stale") {
         report.push(Diagnostic::warn(
             "impact.evaluation-stale",
