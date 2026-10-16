@@ -12,6 +12,7 @@ use openwarrant_core::Profile;
 pub mod acceptance;
 pub mod alias;
 pub mod amendment_id;
+pub mod apply_cmd;
 pub mod attest;
 pub mod authority_check;
 pub mod authority_cmd;
@@ -876,6 +877,29 @@ enum DailyCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
+    /// Read an edited package back into its documents (Format 1.0 §10.5).
+    ///
+    /// The package is what `war context <target> --preset human` printed,
+    /// edited between its `<!-- rec … -->` markers. Each changed block
+    /// replaces its record's text; a block whose record changed since the
+    /// package was made is refused (`apply.stale`), and one that no longer
+    /// parses, or names another record, is refused by its rule. A box
+    /// ticked by hand is done (at `claimed`) and one unticked is reopened,
+    /// journalled by the actor applying it; the line is rewritten with its
+    /// done suffix. Blocks of one document are applied together or not at
+    /// all. A block left out is left alone; text outside markers is never
+    /// written back.
+    Apply {
+        /// The edited package (Markdown).
+        #[arg(value_name = "PACKAGE")]
+        package: Utf8PathBuf,
+        /// Who applies it: the done suffix and the journal name them.
+        #[arg(long = "as", visible_alias = "actor", value_name = "ACTOR")]
+        actor: Option<String>,
+        /// Date a ticked box as of this time (RFC 3339) instead of now.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+    },
     /// Append a dated note to a Warrant: context for whoever comes next.
     ///
     /// For the next agent or person; Markdown, may span lines.
@@ -1728,21 +1752,43 @@ enum ViewCommand {
     /// not fit is listed by its summary and marked [S], to load the same
     /// way. The same arguments over the same files print the same bytes
     /// (Format 1.0, section 10.3).
+    ///
+    /// `--preset` picks what is selected and how (section 10.4): `agent`
+    /// (the default), `agent.min` (a tight window), `human` (everything,
+    /// editable: give it back with `war apply`), `review` (the obligations
+    /// and checks of the target and what they evaluate) and `resume` (the
+    /// target's items with their state, and what is next). `review` and
+    /// `resume` read the journals and claims as of `--at` (default now).
+    /// `--index` prints the index of section 10.2 instead
+    /// (docs/generated/llms.txt, as `war admin compile` writes it).
     Context {
         /// Alias, `war://<uuid>`, item, record id, or repository path.
-        target: String,
-        /// The budget in bytes of the Markdown output (default 16000).
+        #[arg(required_unless_present = "index")]
+        target: Option<String>,
+        /// The budget in bytes of the Markdown output (the preset's: 16000
+        /// for `agent`).
         #[arg(long, value_name = "BYTES", conflicts_with = "tokens")]
         budget: Option<usize>,
         /// The budget in tokens, counted as 4 bytes each.
         #[arg(long, value_name = "N")]
         tokens: Option<usize>,
-        /// How many relation steps to follow from the target (default 3).
-        #[arg(long, value_name = "D", default_value_t = context::DEFAULT_DEPTH)]
-        depth: usize,
+        /// How many relation steps to follow from the target (the preset's:
+        /// 3 for `agent`).
+        #[arg(long, value_name = "D")]
+        depth: Option<usize>,
         /// Refuse instead of listing any record by its summary only.
         #[arg(long)]
         strict: bool,
+        /// The preset: agent, agent.min, human, review or resume.
+        #[arg(long, value_name = "NAME", default_value = context::DEFAULT_PRESET)]
+        preset: String,
+        /// For a preset that reads state: answer as of this time (RFC 3339,
+        /// e.g. `2026-10-14T10:00:00Z`) instead of now.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+        /// Print the index (section 10.2) instead of a packet.
+        #[arg(long, conflicts_with_all = ["target", "budget", "tokens", "depth", "strict", "at"])]
+        index: bool,
     },
 }
 
@@ -3339,6 +3385,45 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             };
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "add", &outcome))
+        }
+        DailyCommand::Apply { package, actor, at } => {
+            let secs = match &at {
+                Some(at) => chrono::DateTime::parse_from_rfc3339(at.trim())
+                    .ok()
+                    .and_then(|d| u64::try_from(d.timestamp()).ok())
+                    .ok_or_else(|| {
+                        repo::RepoError::Message(format!(
+                            "apply.at: `--at {at}` is not an RFC 3339 time (e.g. \
+                             2026-10-14T10:00:00Z)"
+                        ))
+                    })?,
+                None => ticket::now_secs(),
+            };
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let text = vfs::read_to_string(&package).map_err(|source| repo::RepoError::Io {
+                context: format!("could not read {package}"),
+                source,
+            })?;
+            let opts = apply_cmd::Options {
+                actor: store.actor.clone(),
+                date: gate_cmd::receipt::rfc3339_from_secs(secs)[..10].to_owned(),
+            };
+            let outcome = apply_cmd::apply(&repository, &text, &opts)?;
+            let report = apply_cmd::report_of(&outcome);
+            if !outcome.applied.is_empty()
+                && let Err(e) = context::refresh_index(&repository, false)
+            {
+                eprintln!(
+                    "warning (context-index.refresh): {e}; `war admin compile` rewrites {}",
+                    context::INDEX_PATH
+                );
+            }
+            Ok(output::finish(
+                mode,
+                "apply",
+                &report,
+                Some(output::value(&outcome)),
+            ))
         }
         DailyCommand::Note {
             target,
@@ -5737,16 +5822,61 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             tokens,
             depth,
             strict,
+            preset,
+            at,
+            index,
         } => {
             let repository = ctx.open_repo()?;
-            let corpus = corpus::Corpus::new(&repository);
-            let opts = context::Options {
-                budget: context::Options::budget_of(budget, tokens),
-                depth,
-                strict,
+            // A built-in preset, else one a profile declares (section 10.4).
+            let preset = match context::Preset::builtin(&preset)
+                .map(Ok)
+                .or_else(|| context::Preset::declared(&preset, &format_doc::profiles(&repository)))
+            {
+                Some(Ok(p)) => p,
+                Some(Err(why)) => {
+                    return Err(repo::RepoError::Message(format!("context.preset: {why}")).into());
+                }
+                None => {
+                    return Err(repo::RepoError::Message(format!(
+                        "context.preset-unknown: `--preset {preset}` names no preset; the \
+                         built-in ones are {}, and no profile declares one of that name",
+                        context::PRESETS.join(", ")
+                    ))
+                    .into());
+                }
             };
-            let target = context::relative_target(&repository, &target);
-            Ok(context::answer(mode, &corpus, &target, &opts)?)
+            // A preset that reads state answers at one time (section 10.4):
+            // the claims' leases are judged then.
+            let at = if preset.reads_state {
+                let secs = match &at {
+                    Some(at) => chrono::DateTime::parse_from_rfc3339(at.trim())
+                        .ok()
+                        .and_then(|d| u64::try_from(d.timestamp()).ok())
+                        .ok_or_else(|| {
+                            repo::RepoError::Message(format!(
+                                "context.at: `--at {at}` is not an RFC 3339 time (e.g. \
+                                 2026-10-14T10:00:00Z)"
+                            ))
+                        })?,
+                    None => ticket::now_secs(),
+                };
+                ticket::answer_at(secs);
+                let text = at.map_or_else(
+                    || gate_cmd::receipt::rfc3339_from_secs(secs),
+                    |a| a.trim().to_owned(),
+                );
+                Some((text, secs))
+            } else {
+                None
+            };
+            let corpus = corpus::Corpus::new(&repository);
+            if index {
+                return Ok(context::answer_index(mode, &corpus)?);
+            }
+            let mut opts = context::Options::with(preset, budget, tokens, depth);
+            opts.strict = strict;
+            let target = context::relative_target(&repository, &target.unwrap_or_default());
+            Ok(context::answer(mode, &corpus, &target, &opts, at)?)
         }
         ViewCommand::Tickets {
             kind,

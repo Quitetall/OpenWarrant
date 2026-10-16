@@ -1110,11 +1110,14 @@ impl WarServer {
     )]
     fn war_context(&self, Parameters(p): Parameters<ContextParams>) -> ToolResult {
         let corpus = crate::corpus::held(&self.repo);
-        let opts = crate::context::Options {
-            budget: crate::context::Options::budget_of(p.budget, p.tokens),
-            depth: p.depth.unwrap_or(crate::context::DEFAULT_DEPTH),
-            strict: p.strict,
-        };
+        let mut opts = crate::context::Options::with(
+            crate::context::Preset::builtin(crate::context::DEFAULT_PRESET)
+                .unwrap_or_else(|| unreachable!("the default preset is built in")),
+            p.budget,
+            p.tokens,
+            p.depth,
+        );
+        opts.strict = p.strict;
         let graph = match crate::context::graph_of(&corpus) {
             Ok(g) => g,
             Err(e) => return refused("context", &e),

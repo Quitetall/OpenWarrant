@@ -196,7 +196,7 @@ fn a_work_document_target_gives_its_units_at_distance_zero_then_the_walk_in_type
             .any(|d| d.rule == RULE_TARGET_UNREAD && d.message.contains("GONE-1"))
     );
     assert!(p.markdown.starts_with(
-        "# Context: W-1\n<!-- oh.war/context/v1 · budget 16000 · depth 3 · walk core · selection sha256:"
+        "# Context: W-1\n<!-- oh.war/context/v1 · budget 16000 · depth 3 · preset agent (walk core) · selection sha256:"
     ));
     assert!(p.markdown.contains(
         "\n## Index\n[F] W-1 · warrant · draft · title of W-1 · docs/warrants/W-1.md:1\n"
@@ -315,7 +315,7 @@ fn roots_that_do_not_fit_are_refused_with_the_bytes_they_need() {
         &g,
         "REQ-a",
         &Options {
-            budget: 50,
+            budget: Some(50),
             ..Options::default()
         },
     )
@@ -328,7 +328,7 @@ fn roots_that_do_not_fit_are_refused_with_the_bytes_they_need() {
         &g,
         "REQ-a",
         &Options {
-            budget: header_and_index + 3,
+            budget: Some(header_and_index + 3),
             ..Options::default()
         },
     )
@@ -343,7 +343,7 @@ fn roots_that_do_not_fit_are_refused_with_the_bytes_they_need() {
                 &g,
                 "REQ-a",
                 &Options {
-                    budget: *b,
+                    budget: Some(*b),
                     ..Options::default()
                 },
             )
@@ -354,7 +354,7 @@ fn roots_that_do_not_fit_are_refused_with_the_bytes_they_need() {
         &g,
         "REQ-a",
         &Options {
-            budget: least,
+            budget: Some(least),
             ..Options::default()
         },
     )
@@ -378,7 +378,7 @@ fn a_partial_packet_marks_the_rest_s_and_never_cuts_a_record() {
         &g,
         "W-1",
         &Options {
-            budget: cut_at,
+            budget: Some(cut_at),
             ..Options::default()
         },
     )
@@ -428,7 +428,7 @@ fn strict_refuses_what_partial_output_would_give_by_summary() {
                 &g,
                 "W-1",
                 &Options {
-                    budget: *b,
+                    budget: Some(*b),
                     ..Options::default()
                 },
             )
@@ -440,7 +440,7 @@ fn strict_refuses_what_partial_output_would_give_by_summary() {
         &g,
         "W-1",
         &Options {
-            budget: tight,
+            budget: Some(tight),
             ..Options::default()
         },
     )
@@ -450,7 +450,7 @@ fn strict_refuses_what_partial_output_would_give_by_summary() {
         &g,
         "W-1",
         &Options {
-            budget: tight,
+            budget: Some(tight),
             strict: true,
             ..Options::default()
         },
@@ -463,7 +463,7 @@ fn strict_refuses_what_partial_output_would_give_by_summary() {
             &g,
             "W-1",
             &Options {
-                budget: whole,
+                budget: Some(whole),
                 strict: true,
                 ..Options::default()
             },
@@ -593,7 +593,7 @@ fn an_item_inside_a_section_given_in_full_is_f_and_its_line_is_not_repeated() {
     // section leaves the section `[S]`; its items are then not covered and
     // are not marked `[F]`.
     let tight = Options {
-        budget: p.markdown.find("> t-cd/S-checklist").unwrap(),
+        budget: Some(p.markdown.find("> t-cd/S-checklist").unwrap()),
         ..Options::default()
     };
     let q = compile(&g, "t-cd", &tight).unwrap();
@@ -611,4 +611,191 @@ fn an_item_inside_a_section_given_in_full_is_f_and_its_line_is_not_repeated() {
         r.markdown
     );
     assert!(!r.records.iter().any(|x| x.id == "t-cd/S-checklist"));
+}
+
+// ---- presets (section 10.4) ------------------------------------------------
+
+fn preset(name: &str) -> Options {
+    Options::of(Preset::builtin(name).unwrap())
+}
+
+#[test]
+fn every_builtin_preset_exists_and_an_unknown_name_is_none() {
+    for name in PRESETS {
+        assert_eq!(Preset::builtin(name).unwrap().name, name);
+    }
+    assert!(Preset::builtin("everything").is_none());
+    let o = Options::with(
+        Preset::builtin("agent.min").unwrap(),
+        None,
+        Some(100),
+        Some(2),
+    );
+    assert_eq!((o.budget, o.depth), (Some(400), 2));
+    let o = Options::with(Preset::builtin("human").unwrap(), None, None, None);
+    assert_eq!((o.budget, o.depth), (None, 3));
+}
+
+#[test]
+fn agent_min_cuts_rationale_and_its_continuations_and_never_reaches_an_option() {
+    let mut g = sample();
+    let mut req = unit(
+        "REQ-a",
+        "requirement",
+        "docs/records/a/10.md",
+        3,
+        "## REQ-a · requirement — a\nstatement: S.\nrationale: R\n  more R\nverify: V.\n\nrationale: body, kept\n",
+    );
+    req.title = Some("a".to_owned());
+    g.units.insert("REQ-a".to_owned(), req);
+    g.add(unit(
+        "OPT-a",
+        "option",
+        "docs/records/a/10.md",
+        30,
+        "## OPT-a · option — o\n",
+    ));
+    g.edges.push(edge("REQ-a", "selected_over", "OPT-a"));
+    let p = compile(&g, "REQ-a", &preset("agent.min")).unwrap();
+    assert!(
+        p.markdown
+            .contains("statement: S.\nverify: V.\n\nrationale: body, kept\n"),
+        "{}",
+        p.markdown
+    );
+    assert!(!p.markdown.contains("more R"));
+    assert!(!ids(&p).contains(&"OPT-a"));
+    // agent keeps both.
+    let full = compile(&g, "REQ-a", &Options::default()).unwrap();
+    assert!(full.markdown.contains("rationale: R\n  more R\n"));
+    assert!(ids(&full).contains(&"OPT-a"));
+}
+
+#[test]
+fn human_wraps_editable_units_gives_everything_and_puts_its_own_units_first() {
+    let mut g = sample();
+    for u in g.units.values_mut() {
+        u.editable = !u.work;
+    }
+    let p = compile(&g, "W-1", &preset("human")).unwrap();
+    assert!(
+        p.markdown
+            .contains("· budget none · depth 3 · preset human (walk core) ·")
+    );
+    assert!(!p.markdown.contains("[S] "));
+    assert!(p.records.iter().all(|r| r.tier == "full"));
+    assert_eq!(
+        &ids(&p)[..4],
+        ["W-1", "W-1/S-intent", "W-1/S-basis", "W-1/OBL-001"]
+    );
+    let s = &g.units["W-1/S-intent"];
+    assert!(p.markdown.contains(&format!(
+        "> W-1/S-intent · section · docs/warrants/W-1.md:6 · {}\n<!-- rec W-1/S-intent docs/warrants/W-1.md:6 {} -->\n## Intent\nwhy\n<!-- /rec -->\n\n",
+        short_revision(&s.revision),
+        s.revision
+    )));
+    // The work document's own record is never wrapped.
+    assert!(!p.markdown.contains("<!-- rec W-1 "));
+    // agent wraps nothing.
+    assert!(
+        !compile(&g, "W-1", &Options::default())
+            .unwrap()
+            .markdown
+            .contains("<!-- rec ")
+    );
+}
+
+#[test]
+fn review_walks_to_the_obligations_and_back_to_what_they_evaluate() {
+    let mut g = sample();
+    g.tracking = Some(Tracking {
+        at: "2026-10-14T10:00:00Z".to_owned(),
+        journal_digest: selection_digest([]),
+        ..Tracking::default()
+    });
+    let p = compile(&g, "REQ-a", &preset("review")).unwrap();
+    assert_eq!(ids(&p), ["REQ-a", "OBL-a"]);
+    assert!(
+        p.markdown
+            .contains("· preset review (walk review) · selection ")
+    );
+    assert!(
+        p.markdown
+            .contains(" · journal sha256:4f53cda18c2b · at 2026-10-14T10:00:00Z -->\n")
+    );
+    // From an obligation: out:evaluates reaches what it evaluates.
+    let o = compile(&g, "OBL-a", &preset("review")).unwrap();
+    assert_eq!(o.records[1].via.as_ref().unwrap().step, "out:evaluates");
+}
+
+#[test]
+fn resume_gives_each_item_its_state_line_and_at_most_three_next_and_refuses_a_non_work_target() {
+    let mut g = sample();
+    for (i, line) in [10, 11, 12, 13].iter().enumerate() {
+        g.add(unit(
+            &format!("t-ab/i-{i}{i}{i}"),
+            "item",
+            "docs/tickets/t-ab.md",
+            *line,
+            &format!("- [ ] more (i-{i}{i}{i})\n"),
+        ));
+    }
+    let mut t = Tracking {
+        at: "2026-10-14T10:00:00Z".to_owned(),
+        journal_digest: selection_digest([]),
+        ..Tracking::default()
+    };
+    t.state_lines.insert(
+        "t-ab/i-9c01".to_owned(),
+        "state claimed · holder bob · lease X".to_owned(),
+    );
+    t.next.insert(
+        "t-ab".to_owned(),
+        ["t-ab/i-000", "t-ab/i-111", "t-ab/i-222", "t-ab/i-333"]
+            .map(str::to_owned)
+            .to_vec(),
+    );
+    g.tracking = Some(t);
+    let p = compile(&g, "t-ab", &preset("resume")).unwrap();
+    assert!(
+        !ids(&p).contains(&"t-ab/S-intent"),
+        "the record and its items only"
+    );
+    assert!(p.markdown.contains("docs/tickets/t-ab.md:9 · sha256:"));
+    assert!(
+        p.markdown
+            .contains("\nstate claimed · holder bob · lease X\n- [ ] do it (i-9c01)\n")
+    );
+    assert!(p.markdown.ends_with(
+        "## Next\n- t-ab/i-000 · title of t-ab/i-000\n- t-ab/i-111 · title of t-ab/i-111\n- t-ab/i-222 · title of t-ab/i-222\n\n"
+    ));
+    let r = compile(&g, "REQ-a", &preset("resume")).unwrap_err();
+    assert_eq!(r.rule, RULE_TARGET_UNKNOWN);
+}
+
+#[test]
+fn a_profile_declares_a_preset_and_one_naming_an_unknown_step_is_an_error() {
+    let profiles = |steps: &str| {
+        let text = format!(
+            "schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"runbook\"\nform = \"document\"\ncapabilities = [\"structure\", \"links\"]\n[[presets]]\nname = \"oncall\"\nsteps = [{steps}]\ndepth = 2\nbudget = \"none\"\nreads_state = true\n"
+        );
+        openwarrant_core::format_profile::Profiles::load([(
+            "profiles/runbook.toml",
+            text.as_bytes(),
+        )])
+    };
+    let p = Preset::declared("oncall", &profiles("\"in:evaluates\""))
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        (p.walk.as_str(), p.depth, p.budget, p.reads_state),
+        ("oncall", 2, None, true)
+    );
+    assert_eq!(p.steps, ["in:evaluates"]);
+    assert!(Preset::declared("other", &profiles("\"in:evaluates\"")).is_none());
+    assert!(
+        Preset::declared("oncall", &profiles("\"sideways\""))
+            .unwrap()
+            .is_err()
+    );
 }

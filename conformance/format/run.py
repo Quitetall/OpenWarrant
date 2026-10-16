@@ -208,10 +208,38 @@ class War:
             raise RuntimeError(f"{argv[0]} {argv[1]}: exit {p.returncode}: {p.stderr.strip()[-400:]}")
         return p
 
+    def apply(self, case, work):
+        """An apply case (10.5): `war apply package.md --as A --at T` over input/
+        committed in the scratch program; the documents after are compared."""
+        tree = os.path.join(work, "repo")
+        shutil.copytree(self.template, tree, symlinks=True)
+        shutil.copytree(os.path.join(case, "input"), tree, dirs_exist_ok=True)
+        git = ["git", "-c", "user.name=corpus", "-c", "user.email=corpus@invalid",
+               "-c", "commit.gpgsign=false"]
+        self._run(git + ["add", "-A"], tree)
+        self._run(git + ["commit", "-q", "--allow-empty", "-m", "corpus input"], tree)
+        with open(os.path.join(case, "at")) as f:
+            at = f.read().strip()
+        args = read_args(case)
+        if args[:1] != ["apply"]:
+            raise RuntimeError(f"an apply case's args start with `apply`: {args}")
+        p = subprocess.run([self.war, "--json", "apply", os.path.join(case, "package.md"),
+                            *args[1:], "--at", at, "--root", tree], cwd=tree, env=ENV,
+                           capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120)
+        try:
+            env = json.loads(p.stdout)
+        except json.JSONDecodeError:
+            raise RuntimeError(f"war apply: exit {p.returncode}: {p.stderr.strip()[-400:]}")
+        findings = sorted(f"{d['rule']} {d['file']}" for d in env.get("diagnostics", [])
+                          if d.get("rule") in SPEC_RULES and d.get("file"))
+        return {"records": [], "relations": [], "findings": findings, "tree": tree}
+
     def read(self, case, work):
         kind = case_kind(case)
         if kind == "tracking" and read_args(case)[:1] == ["evaluate"]:
             return war_evaluate(self.war, case, work)
+        if kind == "apply":
+            return self.apply(case, work)
         if kind in ("tracking", "apply"):
             # No adapter maps a tracking or apply case to war's commands yet;
             # war's results for these cases are listed in known-war.txt.
@@ -223,11 +251,27 @@ class War:
         argv_file = os.path.join(case, "args")
         if os.path.isfile(argv_file):
             args = read_args(case)
+            # As for the python reader: a claim file's modification time is its since_unix.
+            touch_claims(os.path.join(tree, ".openwarrant", "state", "claims"))
+            # A preset that reads state digests every journal (10.4): the case's
+            # own, not the scratch program's.
+            for dp, _, fs in os.walk(os.path.join(tree, "docs")):
+                for f in fs:
+                    rel = os.path.relpath(os.path.join(dp, f), tree).replace(os.sep, "/")
+                    if f == "journal.jsonl" and rel not in files:
+                        os.remove(os.path.join(dp, f))
             if os.path.isfile(os.path.join(case, "expected", "context.md")):
                 p = subprocess.run([self.war, "context", *args, "--root", tree], cwd=tree,
                                    env=ENV, capture_output=True, text=True,
                                    stdin=subprocess.DEVNULL, timeout=120)
-                return {"records": [], "relations": [], "findings": [], "output": p.stdout,
+                output = p.stdout
+                if "--index" in args:
+                    # The index (10.2) of the case's own files: the scratch
+                    # program's documents are not the case's (as for model cases).
+                    head, *blocks = output.split("\n## ")
+                    output = head + "".join(
+                        "\n## " + b for b in blocks if b.split("\n", 1)[0] in files)
+                return {"records": [], "relations": [], "findings": [], "output": output,
                         "context_exit": p.returncode}
             p = subprocess.run([self.war, "--json", "context", *args, "--root", tree], cwd=tree,
                                env=ENV, capture_output=True, text=True,

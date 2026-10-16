@@ -5,20 +5,14 @@
 # amended and the case with it; never by editing an expected file to match war.
 
 # Draft 3, revision 1 (docs/format/FORMAT-1.0.md 1.0.0-draft.3): war implements draft 2.
-# The tracking (2NN tracker, 4NN) and apply (5NN) cases have no war adapter in
-# run.py yet; each fails until one is written and war implements sections 10.5, 11 and 12.
+# The tracking cases (2NN tracker, 4NN) have no war adapter in run.py yet; each
+# fails until one is written and war implements sections 11 and 12. The context
+# (3NN) and apply (5NN) cases have theirs.
 165-done-suffix-level-unknown  # war does not refuse an unknown tick level in the done suffix (3.8)
 209-claim-remote-unreachable  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 210-journal-newer  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 211-profile-legacy-file  # war does not read draft-3 profile data (a legacy profile file, 7.5)
-303-context-item-target  # war's header names `walk core`, not `preset agent (walk core)` (10.4); war does not read SPEC.md
-304-context-budget-summary-tier  # war's header names `walk core`, not `preset agent (walk core)` (10.4); war does not read SPEC.md
-305-context-preset-agent-min  # war has no --preset (10.4)
-306-context-preset-human  # war has no --preset (10.4)
-307-context-preset-review  # war has no --preset (10.4)
-308-context-preset-resume  # war has no --preset (10.4)
-309-index  # no adapter maps `--index` to war's index command (10.2)
-310-context-preset-agent-header  # war's header names `walk core`, not `preset agent (walk core)` (10.4)
+309-index  # war titles the index with [project] name, not the root directory's name (10.2), so the generated index does not change with the checkout's directory
 401-journal-v1-and-v2  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 402-tick-unbacked-warns  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 403-tick-observed-backed  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
@@ -52,11 +46,3 @@
 443-next-title-only-document  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 444-done-title-only-document  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
 445-next-median-even  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-501-apply-text-edit  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-502-apply-stale  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-503-apply-box-toggle  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-504-apply-deleted-block-ignored  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-505-apply-identity  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-506-apply-unchanged-ignored  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-507-apply-block-does-not-parse  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-508-apply-box-reopen  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)

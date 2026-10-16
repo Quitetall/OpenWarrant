@@ -651,10 +651,17 @@ pub fn model_states(corpus: &Corpus) -> Result<BTreeSet<crate::model::State>, Re
     }
     out.extend(warrants.iter().map(fixed_state));
     out.extend(phase_holding(corpus).iter().map(fixed_state));
+    let store = ticket::Store::open(corpus.repo(), None).ok();
+    let held = store.as_ref().map(|s| s.claims().unwrap_or_default());
+    out.extend(
+        format_warrant_phases(corpus, held.as_ref())
+            .iter()
+            .map(fixed_state),
+    );
     if let Ok((tickets, _)) = corpus.tickets()
-        && let Ok(store) = ticket::Store::open(corpus.repo(), None)
+        && let Some(store) = store
     {
-        let claims = store.claims().unwrap_or_default();
+        let claims = held.unwrap_or_default();
         let caps = store.definition.capabilities();
         for t in tickets {
             out.extend(
@@ -671,6 +678,104 @@ pub fn model_states(corpus: &Corpus) -> Result<BTreeSet<crate::model::State>, Re
         out.insert(fixed_state(&h));
     }
     Ok(out)
+}
+
+/// FORMAT-1.0 §11.1's `phase` of each Format 1.0 Warrant (a ticket's is
+/// [`ticket_holding`]'s): `done` when it has items and every box is `[x]`,
+/// `in_progress` when one is, or a live claim in `claims` names the
+/// Warrant or one of its items, else `open`. With no `claims` (the
+/// documents alone, §10.3), no claim is held. A Warrant with no items is
+/// `open` until claimed; one done as a whole is the tracker's (a journal
+/// event, §11.2), not read here.
+fn format_warrant_phases(corpus: &Corpus, claims: Option<&Claims>) -> Vec<Holding> {
+    let now = ticket::now_secs();
+    let live = |alias: &str, item: Option<&str>| {
+        claims.is_some_and(|c| {
+            ticket::claim_on(c, alias, item)
+                .is_some_and(|(_, c)| c.is_none_or(|c| !c.lease_expired(now)))
+        })
+    };
+    let mut out = Vec::new();
+    for d in &corpus.format_docs().docs {
+        if d.place != crate::format_doc::Place::Warrant || !d.admitted() {
+            continue;
+        }
+        let Some(alias) = d.doc.alias.as_deref() else {
+            continue;
+        };
+        let items: Vec<&openwarrant_core::format::Item> =
+            d.doc.units.iter().flat_map(|u| u.items.iter()).collect();
+        let started = items
+            .iter()
+            .any(|i| i.done || i.id.as_deref().is_some_and(|id| live(alias, Some(id))))
+            || live(alias, None);
+        let state = if !items.is_empty() && items.iter().all(|i| i.done) {
+            FixedState::Done
+        } else if started {
+            FixedState::InProgress
+        } else {
+            FixedState::Open
+        };
+        out.push(Holding {
+            record: alias.to_owned(),
+            state,
+            episode: None,
+        });
+    }
+    out
+}
+
+/// The states the documents alone give (FORMAT-1.0 §10.3's purity rule:
+/// no claim lock, journal or clock), from `states`, every state of the
+/// model ([`model_states`] and the builders'). What the index and a preset
+/// that does not read state show (§10.2, §10.4).
+///
+/// A ticket's and its items' fixed states are judged again with no claim
+/// held and no journal read (a document done as a whole by a journal event
+/// is not done here); a declared state (entered by a journal event) and a
+/// check's `failing` (its recorded run) are left out. Everything else the
+/// model states is read from documents and records of acts and is kept.
+#[must_use]
+pub fn document_states(
+    corpus: &Corpus,
+    states: &[crate::model::State],
+) -> Vec<crate::model::State> {
+    let mut tickets: Vec<Ticket> = corpus
+        .tickets()
+        .map(|(t, _)| t.to_vec())
+        .unwrap_or_default();
+    for t in &mut tickets {
+        t.done_whole = false;
+    }
+    let ticket_ids: BTreeSet<&str> = tickets.iter().map(Ticket::id).collect();
+    let of_ticket = |record: &str| {
+        ticket_ids.contains(record)
+            || record
+                .split_once('/')
+                .is_some_and(|(t, _)| ticket_ids.contains(t))
+    };
+    let failing = FixedState::Failing.as_str();
+    let mut out: Vec<crate::model::State> = states
+        .iter()
+        .filter(|s| s.kind != StateKind::Declared.as_str() && s.value != failing)
+        .filter(|s| !of_ticket(&s.record) || s.kind == "checklist")
+        .cloned()
+        .collect();
+    out.extend(format_warrant_phases(corpus, None).iter().map(fixed_state));
+    if let Ok(store) = ticket::Store::open(corpus.repo(), None) {
+        let caps = store.definition.capabilities();
+        let none = Claims::new();
+        for t in &tickets {
+            out.extend(
+                ticket_holding(caps, t, Some(&tickets), &none)
+                    .iter()
+                    .map(fixed_state),
+            );
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
 }
 
 // ---- `war show <alias>` --------------------------------------------------
