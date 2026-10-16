@@ -958,7 +958,7 @@ SAS revision **1.3.0** (accepted), sha256:`97c69198140b6312e0f4da4b19a5cd16a87ea
 
 ## Decisions
 
-9 accepted decision(s), expanded; 26 proposed, one line each.
+9 accepted decision(s), expanded; 27 proposed, one line each.
 
 ### OW-ADR-0001 — ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation
 
@@ -1976,6 +1976,7 @@ are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
 - [OW-ADR-native-acceptance-7d21adfa](../../docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md) — Version native acceptance separately from legacy resolution
 - [OW-ADR-native-inputs-98b57f41](../../docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md) — Retain native verifier inputs as inert archive data
 - [OW-ADR-native-policy-e8b574f1](../../docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md) — Bind native acceptance to protected policy observations
+- [OW-ADR-package-source-gzip-1af3bdf8](../../docs/adr/atoms/OW-ADR-package-source-gzip-1af3bdf8.md) — Bound a compressed full-source release capsule
 - [OW-ADR-runtime-contract-80d7bda6](../../docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md) — Retain exact runtime contract source snapshots
 
 ## Roadmap

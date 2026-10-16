@@ -13,6 +13,7 @@ from pathlib import Path, PurePosixPath
 import subprocess
 import tarfile
 import tempfile
+import zlib
 
 LIMIT=256*1024*1024
 
@@ -50,7 +51,8 @@ def verify(path,expected):
             files[name]=value
     if 'MANIFEST.json' not in files:raise ValueError('Missing manifest')
     manifest=json.loads(files['MANIFEST.json'],object_pairs_hook=unique)
-    if manifest.get('schema')!='oh.war/candidate-bundle/v1' or manifest.get('qualified') is not False or manifest.get('promotable') is not False:
+    schema=manifest.get('schema')
+    if schema not in ('oh.war/candidate-bundle/v1','oh.war/candidate-bundle/v2') or manifest.get('qualified') is not False or manifest.get('promotable') is not False:
         raise ValueError('Unsupported candidate or false qualification')
     inventory=manifest['files']
     if set(inventory)!=set(files)-{'MANIFEST.json'}:raise ValueError('Manifest inventory mismatch')
@@ -58,9 +60,28 @@ def verify(path,expected):
         if item['sha256']!=hashlib.sha256(files[name]).hexdigest() or item['bytes']!=len(files[name]):
             raise ValueError('Payload digest mismatch')
         if item['executable'] is not (name=='bin/war'):raise ValueError('Unexpected executable entry')
-    required={'bin/war','sdk-source.tar','LICENSE','CANDIDATE.md'}
+    source='sdk-source.tar' if schema=='oh.war/candidate-bundle/v1' else 'sdk-source.tar.gz'
+    required={'bin/war',source,'LICENSE','CANDIDATE.md'}
     if not required.issubset(files):raise ValueError('Required package component missing')
+    if schema=='oh.war/candidate-bundle/v2':
+        if 'sdk-source.tar' in files:raise ValueError('Ambiguous source representations')
+        source_tar(files,manifest)
     return files,manifest
+
+
+def source_tar(files,manifest):
+    """Decode the declared source representation, with the original tar bound."""
+    schema=manifest.get('schema')
+    if schema=='oh.war/candidate-bundle/v1':return files['sdk-source.tar']
+    if schema!='oh.war/candidate-bundle/v2':raise ValueError('Unsupported source representation')
+    if len(files['sdk-source.tar.gz'])>LIMIT:raise ValueError('Compressed SDK source size limit')
+    try:
+        with gzip.GzipFile(fileobj=io.BytesIO(files['sdk-source.tar.gz'])) as source:
+            data=source.read(LIMIT+1)
+    except (OSError,EOFError,zlib.error) as error:
+        raise ValueError('Malformed compressed SDK source') from error
+    if len(data)>LIMIT:raise ValueError('Expanded SDK source size limit')
+    return data
 
 
 def extract_source(data,destination):
@@ -103,7 +124,7 @@ def exercise(files,manifest):
             with path.open('xb') as f:f.write(data)
             path.chmod(0o755 if name=='bin/war' else 0o644)
         source_root=root/'source';source_root.mkdir()
-        extract_source(files['sdk-source.tar'],source_root)
+        extract_source(source_tar(files,manifest),source_root)
         skill_check=subprocess.run([sys.executable,str(source_root/'conformance/skills/check_skills.py')],cwd=source_root,text=True,capture_output=True,timeout=30)
         observations['installed-skill-links']={'exit_code':skill_check.returncode,'stdout':skill_check.stdout,'stderr':skill_check.stderr}
         if skill_check.returncode:raise ValueError('Installed skill structure check failed')
