@@ -284,6 +284,12 @@ value of the `--json` envelope, the same under either spelling.
   release (`war admin release`), and a new command needs no earlier one.
   The PR gate is a flag of a daily verb, `war check --pr <number>`
   (envelope `check.pr`); without `--pr`, `war check` reads no network.
+- **FORMAT-1.0 §12's checks are subcommands of the daily `war check`**:
+  `war check run [<target>]`, `evaluate`, `fire <trigger>` and
+  `install-hook` (envelopes `check.run`, `check.evaluate`, `check.fire`,
+  `check.install-hook`). They run a document's `check` records rather than
+  check the records, so they need no thirteenth verb; `war view watch
+  --checks` is the same runner as a poller.
 - **`types` and `type` are new under `plan`** (OW-WAR-0148 M18): a type is
   how a document is planned, beside `model`, `render` and `roadmap`.
   `war plan types` lists the types, `war plan types add <pack>` installs a

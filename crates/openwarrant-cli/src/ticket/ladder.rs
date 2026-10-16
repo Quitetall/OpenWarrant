@@ -164,6 +164,16 @@ pub fn backing(t: &Ticket) -> Backing {
     let Ok(journal) = crate::journal_cmd::parse(&text) else {
         return out;
     };
+    // FORMAT-1.0 §11.4, §12: a done's `runs` may name recorded `check.run`
+    // events by their `run`; those that passed back `observed`.
+    let passed: BTreeSet<String> = journal
+        .events
+        .iter()
+        .filter(|e| e.event_type == super::event::CHECK_RUN)
+        .filter_map(|e| serde_json::from_str::<crate::states::CheckRun>(&e.payload).ok())
+        .filter(|r| r.verdict.eq_ignore_ascii_case("pass"))
+        .map(|r| r.run)
+        .collect();
     for e in &journal.events {
         let Ok(p) = serde_json::from_str::<serde_json::Value>(&e.payload) else {
             continue;
@@ -173,7 +183,7 @@ pub fn backing(t: &Ticket) -> Backing {
             // FORMAT-1.0 §11.4: `observed` is backed by a done with that
             // level and passing runs, or a raise to it.
             super::event::ITEM_DONE
-                if s("level").as_deref() == Some("observed") && passing(p.get("runs")) =>
+                if s("level").as_deref() == Some("observed") && passing(p.get("runs"), &passed) =>
             {
                 if let Some(i) = s("item") {
                     out.observed.insert(i);
@@ -241,15 +251,20 @@ pub fn backing(t: &Ticket) -> Backing {
 /// Whether a done's `runs` pass (FORMAT-1.0 §11.4): at least one run
 /// passed and none failed or could not decide. A KPI that only records
 /// (`recorded`) decides nothing either way.
-fn passing(runs: Option<&serde_json::Value>) -> bool {
+fn passing(runs: Option<&serde_json::Value>, passed: &BTreeSet<String>) -> bool {
     let Some(runs) = runs.and_then(serde_json::Value::as_array) else {
         return false;
     };
-    let verdict = |r: &serde_json::Value| {
-        r.get("verdict")
+    // A run named by its id reads as the recorded `check.run` says; one
+    // that names no passing run is no pass.
+    let verdict = |r: &serde_json::Value| match r.as_str() {
+        Some(id) if passed.contains(id) => "pass".to_owned(),
+        Some(_) => "unknown".to_owned(),
+        None => r
+            .get("verdict")
             .and_then(serde_json::Value::as_str)
             .unwrap_or_default()
-            .to_owned()
+            .to_owned(),
     };
     runs.iter().any(|r| verdict(r) == "pass")
         && runs

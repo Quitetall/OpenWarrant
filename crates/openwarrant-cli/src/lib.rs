@@ -961,7 +961,12 @@ enum DailyCommand {
     /// Check the records deterministically, without any agent.
     ///
     /// §71.7. A Warrant's id checks that one; alone, the whole corpus.
+    /// `war check run|evaluate|fire|install-hook` are FORMAT-1.0 §12's
+    /// checks and triggers.
+    #[command(args_conflicts_with_subcommands = true)]
     Check {
+        #[command(subcommand)]
+        action: Option<CheckAction>,
         /// A single Warrant's local alias. Defaults to the whole corpus.
         alias: Option<String>,
         /// Also compare committed generated views against a fresh compilation.
@@ -990,6 +995,55 @@ enum DailyCommand {
         #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr"])]
         floor: Option<String>,
     },
+}
+
+/// `war check run|evaluate|fire|install-hook` (FORMAT-1.0 §12): a Format
+/// 1.0 document's `check` and `kpi` records, run, recorded in its journal
+/// (`trigger.fired`, `check.run`) and applied: a pass ticks what it
+/// evaluates at `observed`, a fail makes the check `failing` (and reopens
+/// with `reopen: true`), an UNKNOWN run ticks nothing.
+#[derive(Subcommand)]
+enum CheckAction {
+    /// Run checks now (the `manual` trigger), then apply what they found.
+    Run {
+        /// `<alias>`, `<alias>/<CHK-id>` or `<CHK-id>`. Omit for every check.
+        target: Option<String>,
+        /// Act as this actor (a name for the journal; it authorizes nothing).
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Apply the recorded runs, running nothing: each check's last run on
+    /// its current revision ticks, raises or reopens what it evaluates.
+    Evaluate {
+        /// One work document's alias. Omit for every one.
+        target: Option<String>,
+        /// Act as this actor.
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+        /// The time the ticks are dated (RFC 3339), for a reproducible run.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+    },
+    /// Fire a trigger (what a git hook, a CI step and `war view watch
+    /// --checks` call): `commit`, `pr.merged`, `ci:<name>`,
+    /// `schedule:<cron>` or `manual`. Each check declaring it runs once per
+    /// revision and subject.
+    Fire {
+        trigger: String,
+        /// The commit (default HEAD) or time the firing is about.
+        #[arg(long)]
+        subject: Option<String>,
+        /// Only these work documents (aliases). For `pr.merged` without
+        /// one, the aliases the subject commit's message names.
+        #[arg(long = "work", value_name = "ALIAS")]
+        work: Vec<String>,
+        /// Act as this actor.
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Install the `commit` trigger as git's `post-commit` hook. A hook
+    /// that is not OpenWarrant's is never overwritten.
+    InstallHook,
 }
 
 /// `war plan …`: shaping the work. Also flattened, hidden, into the top level.
@@ -1591,6 +1645,11 @@ enum ViewCommand {
         /// Stop after this many polls (for tests).
         #[arg(long, hide = true)]
         ticks: Option<u64>,
+        /// Also be a FORMAT-1.0 §12 evaluator: fire `commit` as HEAD moves
+        /// and `schedule:<cron>` as its minutes come, running the checks
+        /// that declare them and applying what they find.
+        #[arg(long)]
+        checks: bool,
     },
     /// List remaining Warrant records and status, read-only, from live sources.
     /// `progress` is an alias. Legacy resolution is not implementation completion.
@@ -2913,6 +2972,193 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     }
 }
 
+/// `war check run|evaluate|fire|install-hook` (FORMAT-1.0 §12): each a thin
+/// call into the one runner, `ticket::checks`.
+fn check_action(
+    ctx: &Ctx,
+    mode: output::Mode,
+    action: CheckAction,
+) -> Result<u8, Box<dyn std::error::Error>> {
+    use ticket::checks;
+    let firing = |f: &checks::Firing, report: diagnostic::Report, what: &str| {
+        let ran = f.runs.iter().filter(|r| r.recorded).count();
+        let mut lines = vec![format!(
+            "{what}: {ran} run(s) recorded, {} already recorded for this revision and subject",
+            f.runs.len() - ran
+        )];
+        for r in &f.runs {
+            lines.push(format!(
+                "  {} {} ({}){}",
+                r.check,
+                if r.recorded {
+                    r.verdict.as_str()
+                } else {
+                    "already recorded"
+                },
+                r.run,
+                r.reason
+                    .as_ref()
+                    .map(|x| format!(": {x}"))
+                    .unwrap_or_default()
+            ));
+        }
+        for e in &f.evaluation.effects {
+            lines.push(format!(
+                "  {} {} by {} ({})",
+                e.target, e.effect, e.check, e.run
+            ));
+        }
+        ticket::Outcome {
+            report,
+            human: lines.join("\n"),
+            result: serde_json::json!({"schema": "oh.war/check-fire/v1", "firing": f}),
+        }
+    };
+    let now = checks::moment;
+    match action {
+        CheckAction::Run { target, actor } => {
+            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (work, check) = match target.as_deref() {
+                None => (Vec::new(), None),
+                Some(t) if t.contains('/') => (
+                    vec![t.split('/').next().unwrap_or(t).to_owned()],
+                    Some(t.to_owned()),
+                ),
+                Some(t) if ticket::is_ticket_ref(t) => (vec![t.to_owned()], None),
+                Some(t) => (Vec::new(), Some(t.to_owned())),
+            };
+            let subject = now();
+            let sel = checks::Select {
+                trigger: "manual",
+                subject: &subject,
+                changed: None,
+                work,
+                check,
+            };
+            let (f, report) = checks::fire(&store, &sel)?;
+            if f.runs.is_empty() {
+                let o = ticket::Outcome::refused(
+                    checks::NOTHING_RULE,
+                    String::new(),
+                    format!(
+                        "no check or kpi record matches `{}` in a Format 1.0 work document",
+                        target.as_deref().unwrap_or("*")
+                    ),
+                );
+                return Ok(ticket_answer(mode, "check.run", &o));
+            }
+            Ok(ticket_answer(
+                mode,
+                "check.run",
+                &firing(&f, report, "manual"),
+            ))
+        }
+        CheckAction::Evaluate { target, actor, at } => {
+            if let Some(at) = at {
+                let secs = chrono::DateTime::parse_from_rfc3339(at.trim())
+                    .ok()
+                    .and_then(|d| u64::try_from(d.timestamp()).ok())
+                    .ok_or_else(|| {
+                        repo::RepoError::Message(format!(
+                            "check.at: `--at {at}` is not an RFC 3339 time (e.g. \
+                             2026-10-15T12:00:00Z)"
+                        ))
+                    })?;
+                ticket::answer_at(secs);
+            }
+            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (e, report) = checks::evaluate(&store, target.as_deref())?;
+            let mut lines: Vec<String> = e
+                .effects
+                .iter()
+                .map(|x| format!("{} {} by {} ({})", x.target, x.effect, x.check, x.run))
+                .collect();
+            for c in &e.failing {
+                lines.push(format!("{c} is failing"));
+            }
+            if lines.is_empty() {
+                lines.push(
+                    "nothing to apply: no recorded run ticks, raises or reopens anything"
+                        .to_owned(),
+                );
+            }
+            let o = ticket::Outcome {
+                report,
+                human: lines.join("\n"),
+                result: serde_json::json!({"schema": "oh.war/check-evaluate/v1", "evaluation": e}),
+            };
+            Ok(ticket_answer(mode, "check.evaluate", &o))
+        }
+        CheckAction::Fire {
+            trigger,
+            subject,
+            work,
+            actor,
+        } => {
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let head = || ticket::ladder::head_commit(&repository.root);
+            let subject = match trigger.as_str() {
+                "manual" => subject.unwrap_or_else(now),
+                t if t.starts_with("schedule:") => subject.unwrap_or_else(now),
+                _ => match subject.or_else(head) {
+                    Some(s) => s,
+                    None => {
+                        let o = ticket::Outcome::unknown(
+                            checks::UNKNOWN_RULE,
+                            String::new(),
+                            format!(
+                                "`{trigger}` names a commit, and there is no HEAD to name; nothing ran"
+                            ),
+                        );
+                        return Ok(ticket_answer(mode, "check.fire", &o));
+                    }
+                },
+            };
+            let changed = match trigger.as_str() {
+                "commit" => match checks::changed_paths(&repository.root, &subject) {
+                    Some(c) => Some(c),
+                    None => {
+                        let o = ticket::Outcome::unknown(
+                            checks::UNKNOWN_RULE,
+                            String::new(),
+                            format!("git could not say what {subject} changed; nothing ran"),
+                        );
+                        return Ok(ticket_answer(mode, "check.fire", &o));
+                    }
+                },
+                _ => None,
+            };
+            let work = if work.is_empty() && trigger == "pr.merged" {
+                checks::cited_work(&repository.root, &subject)
+            } else {
+                work
+            };
+            let sel = checks::Select {
+                trigger: &trigger,
+                subject: &subject,
+                changed,
+                work,
+                check: None,
+            };
+            let (f, report) = checks::fire(&store, &sel)?;
+            Ok(ticket_answer(
+                mode,
+                "check.fire",
+                &firing(&f, report, &trigger),
+            ))
+        }
+        CheckAction::InstallHook => {
+            let repository = ctx.open_repo()?;
+            let war = std::env::current_exe()
+                .ok()
+                .and_then(|p| p.to_str().map(str::to_owned))
+                .unwrap_or_else(|| "war".to_owned());
+            let o = checks::install_hook(&repository.root, &war)?;
+            Ok(ticket_answer(mode, "check.install-hook", &o))
+        }
+    }
+}
+
 fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
@@ -3543,6 +3789,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             }
             Ok(EXIT_OK)
         }
+        DailyCommand::Check {
+            action: Some(action),
+            ..
+        } => check_action(ctx, mode, action),
         DailyCommand::Check {
             pr: Some(pr),
             repo,
@@ -5616,9 +5866,19 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             interval,
             notify_send,
             ticks,
+            checks,
         } => {
             let repository = ctx.open_repo()?;
             if once {
+                if checks {
+                    for l in watch::Evaluator::default().poll(&repository)? {
+                        if mode == output::Mode::Human {
+                            println!("check  {l}");
+                        } else {
+                            eprintln!("check  {l}");
+                        }
+                    }
+                }
                 let snap = watch::snapshot(&repository)?;
                 output::emit(
                     mode,
@@ -5628,7 +5888,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 );
                 return Ok(EXIT_OK);
             }
-            watch::run(&repository, interval, notify_send, ticks)?;
+            watch::run(&repository, interval, notify_send, ticks, checks)?;
             Ok(EXIT_OK)
         }
         ViewCommand::Overview {

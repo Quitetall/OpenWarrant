@@ -615,8 +615,10 @@ fn fixed_state(h: &Holding) -> crate::model::State {
         record: h.record.clone(),
         kind: h.state.kind().as_str().to_owned(),
         value: h.state.as_str().to_owned(),
-        provenance: match h.state.kind() {
-            StateKind::Authenticated => "recorded",
+        // FORMAT-1.0 §11.1: `recorded` is read from a journal event, as a
+        // check's `failing` is (its last `check.run`).
+        provenance: match (h.state.kind(), h.state) {
+            (StateKind::Authenticated, _) | (_, FixedState::Failing) => "recorded",
             _ => "computed",
         }
         .to_owned(),

@@ -31,6 +31,7 @@
 
 pub mod acts;
 pub mod cache;
+pub mod checks;
 pub mod claim;
 pub mod format;
 pub mod ladder;
@@ -3626,9 +3627,8 @@ fn finish(
     query: &str,
     note: Option<&str>,
     if_rev: Option<&str>,
-    how: How,
+    mut how: How,
 ) -> Result<Outcome, RepoError> {
-    let check = !matches!(how, How::Claimed);
     let (tickets, _) = store.load_all()?;
     let target = match resolve(&tickets, query) {
         Ok(t) => t,
@@ -3720,6 +3720,21 @@ fn finish(
         }
         auto_claim = true;
     }
+    // FORMAT-1.0 §12: a Format 1.0 item a check evaluates with `on: done`
+    // (the default) is ticked only if the run passes, at `observed`; a fail
+    // or an UNKNOWN run ticks nothing. `--check` runs every check that
+    // evaluates it.
+    if t.format
+        && let Some(id) = &item_id
+        && matches!(how, How::Claimed | How::Check)
+    {
+        match checks::on_done(store, t, id, matches!(how, How::Check))? {
+            None => {}
+            Some(Ok(round)) => how = How::Ran(round),
+            Some(Err(refusal)) => return Ok(*refusal),
+        }
+    }
+    let check = !matches!(how, How::Claimed);
     // OW-WAR-0148 M13: the level this tick reaches, and the least it must.
     let checks = ladder::checks_of(t);
     let reach = if check {
