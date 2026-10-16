@@ -14,16 +14,17 @@ provenance_required = false
 obligation_refs = ["OBL-001"]
 
 [deliverable.provenance]
-producer = "claude"
+producer = "agent://codex"
 producing_attempt = "unrecorded"
 contract_digest = "b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349"
-tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 1ad0f298ddb2, debug)"
-creation_method = "authored"
-content_digest = "sha256:8e6ea3baa6a081413d7d1d7af50e4d0b97117fd50cbb37ec17e3be0ea9bcebd5"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit 1d501f7f45ea, debug)"
+creation_method = "Modified the existing file in known producing change 1cf66f0f859dc1c4e3fef8bc21b11cfadcfc66e3 from exact Git input 0a4504ac93bd8b303a8c6c0435638da70c0c1be7 (sha256:5e1414ccaa015141b8e9befdb5f1a571f7eadc48a646dfbad083e66e92ccb8ff). Earlier authorship and complete intermediate production history are not asserted; producing attempt remains unrecorded."
+content_digest = "sha256:d1e89e8617005cd6faafa1415ace15c139a202962506d95310982e1558db2787"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
+input_digests = ["sha256:5e1414ccaa015141b8e9befdb5f1a571f7eadc48a646dfbad083e66e92ccb8ff"]
 
 [[deliverable]]
 id = "D-002"

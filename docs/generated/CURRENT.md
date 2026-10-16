@@ -13118,14 +13118,14 @@ observer.
 | D-025 | §56.1 checks by capability; not applicable by name | `crates/openwarrant-cli/src/resolve.rs` | not_content_addressed |
 | D-026 | WarrantRung by capability | `crates/openwarrant-core/src/status.rs` | not_content_addressed |
 | D-027 | Authorize refuses a kind without the capability | `crates/openwarrant-cli/src/authorize.rs` | not_content_addressed |
-| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | not_content_addressed |
+| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | verified |
 | D-029 | Unassigned only for kinds that join the roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | not_content_addressed |
 | D-030 | Falsifiability from profile data | `crates/openwarrant-cli/src/resolution_cmd.rs` | not_content_addressed |
 | D-031 | Falsifiability from profile data | `crates/openwarrant-core/src/resolution.rs` | not_content_addressed |
 | D-032 | Standing coverage from profile data | `crates/openwarrant-core/src/standing.rs` | not_content_addressed |
 | D-033 | war new pins the profile digest | `crates/openwarrant-cli/src/new.rs` | not_content_addressed |
 | D-034 | profile_digest read from the manifest | `crates/openwarrant-core/src/manifest.rs` | not_content_addressed |
-| D-035 | profile.pin-drift | `crates/openwarrant-cli/src/repo.rs` | drift |
+| D-035 | profile.pin-drift | `crates/openwarrant-cli/src/repo.rs` | verified |
 | D-036 | Record atoms, ids, per-record revisions | `crates/openwarrant-core/src/record.rs` | not_content_addressed |
 | D-037 | Core and namespaced relation kinds | `crates/openwarrant-core/src/relation.rs` | not_content_addressed |
 | D-038 | Modules record, relation, lifecycle | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
@@ -31026,7 +31026,7 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | drift |
+| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
 | D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | verified |
 | D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
