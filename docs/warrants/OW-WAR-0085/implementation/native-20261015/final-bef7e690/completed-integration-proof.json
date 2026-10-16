@@ -1,0 +1,15 @@
+{
+  "pr": 284,
+  "head": "bef7e69086711a686fcc74a053f6d2cb6e239216",
+  "base": "c8bc0cb0a4704af8db960694029664fd5c8f09e6",
+  "merge": "f873ff0051c458d534a9f64a9f48a9d1f8e05cdc",
+  "tree": "8f68a09c300abe5f653f53ce811de5475090f6e9",
+  "ci_run": 38674510650,
+  "ci": "success",
+  "native_run": 38674510635,
+  "native": "success",
+  "final_candidate_check": "success",
+  "phase_exit_established": false,
+  "qualification_established": false,
+  "authority_acts_written": false
+}

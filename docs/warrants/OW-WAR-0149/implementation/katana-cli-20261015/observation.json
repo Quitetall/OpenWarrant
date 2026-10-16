@@ -1,0 +1,36 @@
+{
+  "schema": "openwarrant-performer-cli-integration-observation/1",
+  "openwarrant_base": "8de5f0c79240b3de971ca9958c73181d237747c1",
+  "openwarrant_changes": "exact rustls manifest pin and lockfile0.23.46; portable CLI fixture",
+  "provider_build_source": "da6553dbc8d8f3e73d09d70fecbdd677940783f5",
+  "provider_main_merge": "7b8de536d22b58fa5a1e72bdb813a250cef40828",
+  "provider_tree": "4d2214d5fcc62ad61896ed414e88d0ecb726aa56",
+  "provider_tests": {
+    "cli_passed": 6,
+    "native_passed": 8,
+    "instrumentation_child_ignored": 1
+  },
+  "openwarrant_tests": {
+    "tls_passed": 4,
+    "actual_cli_capture_passed": 1
+  },
+  "advisories_before": "four rustls findings",
+  "advisories_after": "pass",
+  "all_feature_licenses": "pass",
+  "rustls": "0.23.46",
+  "fixture_sha256": "5b4de341050695239599d67d658b1fbc8915240db79b2d36a3482fabd6e4f776",
+  "provider_binary_sha256": {
+    "openwarrant_verifier": "c6b5f5fde696098fb413604709007bc7919051752999d0e5b001af64d4f84add",
+    "katana": "a0ef96d5dcb245d3bd184c9c839fcf0e8270b6a774d6a7150224175fe821dde2"
+  },
+  "consumer_binary_sha256": "f8989138dfecedb65965e3c6f55717cc7a1a20e8d837845d4db5f2a132ee0d2f",
+  "fixture_only": true,
+  "phase_exit_established": false,
+  "human_assurance": false,
+  "unknowns_preserved": [
+    "confinement",
+    "mandatory spend accounting",
+    "absent native log"
+  ],
+  "ci_for_openwarrant_changes": "pending"
+}

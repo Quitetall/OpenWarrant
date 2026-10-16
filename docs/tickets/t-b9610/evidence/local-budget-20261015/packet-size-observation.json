@@ -1,0 +1,44 @@
+{
+  "request_input_entries": 5,
+  "reviewed_subject_input_entries": 8099,
+  "same_input_maps": false,
+  "budget_tokens": 48000,
+  "estimated_tokens": 445266,
+  "required_sources": [
+    {
+      "path": "docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md",
+      "kind": "governing-adr",
+      "text_bytes": 5621
+    },
+    {
+      "path": "docs/gates/software.repo.war-check@1.0.0.yaml",
+      "kind": "gate-definition",
+      "text_bytes": 6277
+    },
+    {
+      "path": "docs/sas/WAR_Software_Architecture_Specification.md",
+      "kind": "governing-sas",
+      "text_bytes": 137949
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.receipt.json",
+      "kind": "gate-evidence",
+      "text_bytes": 1300
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "kind": "gate-evidence",
+      "text_bytes": 173
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
+      "kind": "gate-evidence",
+      "text_bytes": 0
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.stdout.txt",
+      "kind": "gate-evidence",
+      "text_bytes": 415969
+    }
+  ]
+}

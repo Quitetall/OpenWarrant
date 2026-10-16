@@ -20,6 +20,8 @@ mod checks_cli;
 mod context_apply_cli;
 #[path = "context_cli.rs"]
 mod context_cli;
+#[path = "delivery_provenance_cli.rs"]
+mod delivery_provenance_cli;
 #[path = "diff_target.rs"]
 mod diff_target;
 #[path = "dispatch_bundle_cli.rs"]
@@ -30,6 +32,8 @@ mod doctor_cli;
 mod document_draft;
 #[path = "eval_subject_cli.rs"]
 mod eval_subject_cli;
+#[path = "evidence_recorder.rs"]
+mod evidence_recorder;
 #[path = "format_cli.rs"]
 mod format_cli;
 #[path = "frontier_integrity_cli.rs"]

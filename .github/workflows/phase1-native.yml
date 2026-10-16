@@ -31,6 +31,8 @@ jobs:
         env:
           RECEIPT: ${{ runner.temp }}/phase1-${{ runner.os }}.json
         run: python3 conformance/sdk/run_phase1.py --output "$RECEIPT"
+      - name: Special-backup refusal preserves earlier records
+        run: cargo test --locked -p openwarrant-cli --test all verification_subject_cli::batch_recovery_refuses_special_backup_nodes_before_any_restore -- --exact
       - name: Retain exact observation, including failures
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

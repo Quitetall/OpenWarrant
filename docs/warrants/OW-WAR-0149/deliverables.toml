@@ -1,0 +1,295 @@
+schema = "oh.war/deliverables/v1"
+
+# Proposed delivery boundaries only. No production, participant acceptance,
+# ownership grant, independent assurance or human act is recorded here.
+# Existing files are not asserted delivered. Required future reports need real evidence.
+
+[[deliverable]]
+id = "D-001"
+title = "Shared adapter work order and participant boundaries"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0149/atoms/40-work-order.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-002"
+title = "Shared adapter basis and participant reference constraints"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0149/atoms/20-basis.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-003"
+title = "Candidate collector enrollment and host responsibilities"
+kind = "file"
+target_ref = "docs/design/runtime-collector-enrollment.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "SDK runtime receipt contract and native assessment"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/runtime.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "SDK collector enrollment contract"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/runtime_collector.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "SDK attributable capture contract"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/runtime_collector/attribution.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "Assessment against the current compilation basis"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/runtime_basis.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "CLI capture and import entry point"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "Runtime capture implementation: activated_verifier"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/activated_verifier.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-010"
+title = "Runtime capture implementation: attributed"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/attributed.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-011"
+title = "Runtime capture implementation: binding"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/binding.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-012"
+title = "Runtime capture implementation: blut_process"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/blut_process.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "Runtime capture implementation: collector_loading"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/collector_loading.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-014"
+title = "Runtime capture implementation: collector_signature"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/collector_signature.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-015"
+title = "Runtime capture implementation: contract_snapshot"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/contract_snapshot.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-016"
+title = "Runtime capture implementation: katana_process"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/katana_process.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-017"
+title = "Runtime capture implementation: native_host"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/native_host.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-018"
+title = "Runtime capture implementation: process"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/process.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-019"
+title = "Runtime capture implementation: protected_executable"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/protected_executable.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-020"
+title = "Runtime capture implementation: protected_input"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/protected_input.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-021"
+title = "Runtime capture implementation: protected_job"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/protected_job.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-022"
+title = "Runtime capture implementation: recorded"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/recorded.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-023"
+title = "Runtime capture implementation: selection"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/runtime_capture/selection.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-024"
+title = "Runtime assessment connected to resolution"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolve/runtime.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-025"
+title = "Public receipt and collector controls: runtime_capture"
+kind = "file"
+target_ref = "crates/openwarrant-cli/tests/runtime_capture.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-026"
+title = "Public receipt and collector controls: collector_loading"
+kind = "file"
+target_ref = "crates/openwarrant-cli/tests/collector_loading.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-027"
+title = "Public receipt and collector controls: collector_signature"
+kind = "file"
+target_ref = "crates/openwarrant-cli/tests/collector_signature.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-028"
+title = "Exact provider implementations, shared revision and actual participant responses"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0149/implementation/provider-participant-references.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-029"
+title = "Real integration observations, independent findings and source/raw-evidence references"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0149/implementation/cross-project-qualification.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]

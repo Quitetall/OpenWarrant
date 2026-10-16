@@ -1,0 +1,22 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== the blind verifier (OW-WAR-0117) ==
+ok    oversized packet calls no backend  no version probe, no inference, no response, exact input retained
+ok    ambiguous budget calls no backend  duplicate packet fields refused before version or inference
+ok    verdicts pass through              1 established, 1 refuted, evidence kept
+ok    the model cannot name itself       identity and flags identical with and without its claims
+ok    an answer that is garbage          2 not_established
+ok    an answer that is skip             1 not_established
+ok    an answer that is probably         2 not_established
+ok    an answer that is duplicate        2 not_established
+ok    an answer that is duplicate-field  2 not_established
+ok    an unknown disposition is dropped  no "probably" in the response
+ok    a failing verifier records nothing verify.verifier-failed (exit 2), no record moved
+ok    war verify --run ingests it        OBL-001 recorded under claude-verifier
+ok    the verifier holds no tool         --tools '', no MCP, restricted, no session, empty cwd
+ok    independence only where true       distinct model: unset no, same no, different yes; human never
+ok    independence is declared           independence.sufficient 1 basic;independence.sufficient 1 controlled
+ok    an undeclared independence is seen without [independence]: independence.undeclared
+17 passed, 0 failed

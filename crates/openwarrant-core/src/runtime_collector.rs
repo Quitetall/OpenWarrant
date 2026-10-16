@@ -6,6 +6,8 @@
 //! It does not authenticate that authority, protect a file/process, observe an
 //! executable, activate configuration, or establish human review. A caller must
 //! not satisfy `SignatureCheck` by decoding assertions from the signed input.
+pub mod attribution;
+
 use crate::{authority_transition::Revision, contract::ActorKind};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};

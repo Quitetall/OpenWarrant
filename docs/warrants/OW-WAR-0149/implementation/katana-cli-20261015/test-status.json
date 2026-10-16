@@ -1,0 +1,37 @@
+[
+  {
+    "name": "tls",
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "test",
+      "--locked",
+      "-p",
+      "openwarrant-cli",
+      "--lib",
+      "webui::tls::tests::",
+      "--",
+      "--nocapture"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "native-cli-capture",
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "test",
+      "--locked",
+      "-p",
+      "openwarrant-cli",
+      "--test",
+      "all",
+      "runtime_capture::actual_katana_turn_roundtrips_through_capture_and_current_resolution",
+      "--",
+      "--ignored",
+      "--exact",
+      "--nocapture"
+    ],
+    "exit_code": 0
+  }
+]

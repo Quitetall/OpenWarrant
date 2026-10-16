@@ -1,0 +1,70 @@
+{
+  "schema": "openwarrant.scoped-runtime-observation/v1",
+  "warrant": "OW-WAR-0117",
+  "source_basis": "12f1d8894713af59aa8d5f05e793961be84c2cd1",
+  "binary": {
+    "identity": "war 1.0.0-alpha.3 (unreleased, commit 12f1d8894713, dirty, debug)",
+    "sha256": "044d9c504f6dd38a669366f7c966d4deb442fb11f68503648349e9b7d7d96d22",
+    "profile": "debug"
+  },
+  "platform": "Linux-7.2.9-1-cachyos-x86_64-with-glibc2.44",
+  "reproduction": {
+    "log": "red-valid-source.log.gz",
+    "exit_code": 101,
+    "observed": "A one-token reading budget still dispatched two packets of roughly 2900 estimated tokens to the configured synthetic adapter."
+  },
+  "reviewed_subject_suite": {
+    "passed": 45,
+    "failed": 0,
+    "isolated_tmpdir": true
+  },
+  "registered_plant": {
+    "passed": 2,
+    "failed": 0,
+    "positive_corpus_checks": 1,
+    "adapter_controls": "over-budget refusal and in-budget invocation"
+  },
+  "clippy_exit_code": 0,
+  "fmt_exit_code": 0,
+  "source_files": {
+    "crates/openwarrant-cli/src/bundle.rs": "f4041cae11ad8b3e2f4005708d085777e5ed7743bddab6d2f271b75d4f2e387e",
+    "crates/openwarrant-cli/tests/verification_subject_cli.rs": "c31c3199576f82b15631555821e1a120e1876f5649d79e81988d3fc77c639850",
+    "conformance/plants.d/84-budget-dispatch.sh": "6018ec85e016f958ff96a065a42d574ea499fe722a92d164ec9e6c831126a849"
+  },
+  "initial_wider_run": {
+    "passed": 10,
+    "failed": 35,
+    "cause": "Shared TMPDIR contains .git metadata; Git inventory is unavailable there. No shared files changed; isolated rerun passed."
+  },
+  "closure": {
+    "pass": 6,
+    "warn": 0,
+    "unknown": 8,
+    "error": 0,
+    "worst": "unknown"
+  },
+  "model_calls": 0,
+  "independent_disposition": false,
+  "human_acceptance": false,
+  "full_candidate_gate": "pending",
+  "broader_cli_run": {
+    "units_passed": 475,
+    "binary_tests_passed": 3,
+    "integrations_passed": 269,
+    "integrations_failed": 1,
+    "integrations_ignored": 4,
+    "failed_test": "runtime_capture::katana_process_checks_native_mapping_without_inventing_cost_or_authority",
+    "cause": "not established; failed rejection assertion in concurrent run"
+  },
+  "unchanged_katana_recheck": {
+    "passed": 1,
+    "failed": 0
+  },
+  "integration_recheck": {
+    "passed": 270,
+    "failed": 0,
+    "ignored": 4,
+    "test_threads": 4,
+    "same_code_and_assertions": true
+  }
+}

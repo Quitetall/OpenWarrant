@@ -18,7 +18,7 @@ fn string(out: &mut Vec<u8>, bytes: &[u8]) {
     out.extend_from_slice(&u32::try_from(bytes.len()).unwrap().to_be_bytes());
     out.extend_from_slice(bytes);
 }
-fn fixture(namespace: &str, payload: &[u8], seed: u8) -> (String, String) {
+pub(super) fn fixture(namespace: &str, payload: &[u8], seed: u8) -> (String, String) {
     signed_fixture(namespace, payload, seed, None)
 }
 fn signed_fixture(
@@ -1080,6 +1080,91 @@ fn namespace_fixture_entry() {
             file_imported["result"]["digest"]
         );
         assert_eq!(imported["result"]["assurance_granted"], false);
+        // Real protected execution account and CLI transport; software fixture
+        // authority and signatures do not represent real human enrollment.
+        use openwarrant_core::runtime_collector::attribution::{Context, Proof, SignedAttribution};
+        let capture_request: openwarrant_cli::runtime_capture::Request =
+            serde_json::from_value(inline_request.clone()).unwrap();
+        let capture_payload =
+            openwarrant_cli::runtime_capture::attributed::payload(&capture_request, &raw).unwrap();
+        let capture_authority =
+            Revision::decode(&fs::read(root.join("genesis.json")).unwrap()).unwrap();
+        let capture_enrollment = Signed::decode(&fs::read(root.join("enrollment.json")).unwrap())
+            .unwrap()
+            .authenticate(&capture_authority, "fixture", &verifier)
+            .unwrap();
+        let capture_dispatch: openwarrant_core::execution::StageDispatch =
+            serde_json::from_value(dispatch.clone()).unwrap();
+        let capture_binding =
+            openwarrant_core::document::runtime::RuntimeBinding::from_dispatch(&capture_dispatch);
+        let capture_use = Use {
+            repository: "fixture",
+            warrant,
+            provider: &capture_enrollment.enrollment().provider,
+            verifier_digest: &capture_enrollment.enrollment().verifier_digest,
+            collector: "collector",
+        };
+        let proof = Proof::for_context(&Context {
+            authority: &capture_authority,
+            enrollment: &capture_enrollment,
+            usage: &capture_use,
+            binding: &capture_binding,
+            payload: &capture_payload,
+        })
+        .unwrap();
+        let signature = fixture(
+            openwarrant_core::runtime_collector::attribution::NAMESPACE,
+            &proof.encode().unwrap(),
+            12,
+        )
+        .1;
+        let signed_capture = SignedAttribution { proof, signature };
+        fs::write(scratch.join("attributed-inline.json"), &capture_payload).unwrap();
+        fs::write(
+            scratch.join("capture-attribution.json"),
+            signed_capture.encode().unwrap(),
+        )
+        .unwrap();
+        let capture_store = root.join("store");
+        let attributed_args = [
+            "runtime",
+            "import-attributed-inline",
+            "IX-WAR-0003",
+            "--request",
+            "attributed-inline.json",
+            "--attribution",
+            "capture-attribution.json",
+            "--authority-store",
+            capture_store.to_str().unwrap(),
+            "--verifier-executable",
+            program.to_str().unwrap(),
+        ];
+        let attributed_import = run(&attributed_args);
+        assert!(
+            attributed_import.status.success(),
+            "{} {}",
+            String::from_utf8_lossy(&attributed_import.stdout),
+            String::from_utf8_lossy(&attributed_import.stderr)
+        );
+        let attributed_result: serde_json::Value =
+            serde_json::from_slice(&attributed_import.stdout).unwrap();
+        assert_eq!(attributed_result["result"]["assurance_granted"], false);
+        assert_ne!(
+            attributed_result["result"]["digest"],
+            imported["result"]["digest"]
+        );
+        let mut changed_request = capture_request.clone();
+        changed_request.metadata.status = "changed claimed status".into();
+        fs::write(
+            scratch.join("attributed-inline.json"),
+            openwarrant_cli::runtime_capture::attributed::payload(&changed_request, &raw).unwrap(),
+        )
+        .unwrap();
+        assert!(!run(&attributed_args).status.success());
+        fs::write(scratch.join("attributed-inline.json"), &capture_payload).unwrap();
+        println!(
+            "attributed CLI import: protected UID 1, current enrolled key and sealed executable; metadata substitution refused, no assurance"
+        );
         fs::write(scratch.join("selected.json"), serde_json::to_vec(&serde_json::json!({"schema":"oh.war/runtime-selection-request/v1-draft.1", "selections":[{"stage_id":"STAGE-001", "capture_digest":imported["result"]["digest"]}]})).unwrap()).unwrap();
         let deadline = Instant::now() + Duration::from_secs(10);
         while !root.join("native-adapter-configured").exists() {
@@ -2372,4 +2457,176 @@ fn namespace_fixture_entry() {
     println!(
         "operator UID 0: real normal-mode CLI bootstrap and activation, software signature; fixture removed; no human acceptance or host-account qualification claimed"
     );
+}
+
+#[test]
+fn capture_attribution_namespace_checks_exact_bytes_and_cannot_replay_enrollment() {
+    use openwarrant_core::runtime_collector::attribution;
+    let root = std::env::temp_dir().join(format!("ow-capture-attribution-{}", std::process::id()));
+    fs::create_dir(&root).unwrap();
+    let verifier = OpenSshSignatureCheck::new(root.clone(), Duration::from_secs(5)).unwrap();
+    let payload = b"bounded attribution proof bytes";
+    let (public, signature) = fixture(attribution::NAMESPACE, payload, 19);
+    let observed = verifier
+        .verify(&public, attribution::NAMESPACE, payload, &signature)
+        .unwrap();
+    assert!(observed.valid);
+    assert_eq!(observed.user_present, None);
+    assert!(
+        !verifier
+            .verify(
+                &public,
+                attribution::NAMESPACE,
+                b"changed proof",
+                &signature
+            )
+            .unwrap()
+            .valid
+    );
+    assert!(
+        verifier
+            .verify(&public, NAMESPACE, payload, &signature)
+            .is_err()
+    );
+    let (_, enrollment_signature) = fixture(NAMESPACE, payload, 19);
+    assert!(
+        verifier
+            .verify(
+                &public,
+                attribution::NAMESPACE,
+                payload,
+                &enrollment_signature
+            )
+            .is_err()
+    );
+    assert!(
+        verifier
+            .verify(&public, "another-purpose", payload, &signature)
+            .is_err()
+    );
+    assert!(!fs::read_dir(&root).unwrap().any(|entry| {
+        entry
+            .unwrap()
+            .file_name()
+            .to_string_lossy()
+            .starts_with("collector-ssh-")
+    }));
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn capture_sdk_authenticates_real_current_collector_signature_without_awarding_assurance() {
+    use openwarrant_core::{
+        authority_transition::{Policy, Principal, REVISION_SCHEMA_V2, Revision},
+        contract::ActorKind,
+        document::runtime::RuntimeBinding,
+        runtime_collector::{
+            Enrollment, Provider, SCHEMA, Signed, Use,
+            attribution::{Context, Proof, SignedAttribution},
+        },
+    };
+    use std::collections::{BTreeMap, BTreeSet};
+    let root = std::env::temp_dir().join(format!("ow-capture-sdk-{}", std::process::id()));
+    fs::create_dir(&root).unwrap();
+    let verifier = OpenSshSignatureCheck::new(root.clone(), Duration::from_secs(5)).unwrap();
+    let (owner_key, _) = fixture(NAMESPACE, b"key fixture", 31);
+    let (collector_key, _) = fixture(NAMESPACE, b"key fixture", 32);
+    let authority = Revision {
+        schema: REVISION_SCHEMA_V2.into(),
+        repository: "capture-fixture".into(),
+        sequence: 0,
+        policy: Some(Policy::default()),
+        principals: BTreeMap::from([
+            (
+                "owner".into(),
+                Principal {
+                    public_key: owner_key,
+                    roles: BTreeSet::from(["authority-admin".into()]),
+                    actor: Some("Synthetic owner".into()),
+                    kind: Some(ActorKind::Human),
+                },
+            ),
+            (
+                "collector".into(),
+                Principal {
+                    public_key: collector_key,
+                    roles: BTreeSet::from(["runtime-collector".into()]),
+                    actor: Some("Synthetic collector".into()),
+                    kind: Some(ActorKind::Agent),
+                },
+            ),
+        ]),
+    };
+    let uuid = "01a0f502-4941-70a1-a446-e1eb77dff191";
+    let enrollment = Enrollment {
+        schema: SCHEMA.into(),
+        repository: authority.repository.clone(),
+        authority_digest: authority.digest().unwrap(),
+        provider: Provider {
+            kind: "katana".into(),
+            identity: "synthetic-provider".into(),
+            version: "fixture-v1".into(),
+        },
+        verifier_digest: format!("sha256:{}", "a".repeat(64)),
+        collector: "collector".into(),
+        warrants: BTreeSet::from([uuid.into()]),
+    };
+    let (_, signature) = fixture(NAMESPACE, &enrollment.encode().unwrap(), 31);
+    let envelope = Signed {
+        enrollment,
+        signatures: BTreeMap::from([("owner".into(), signature)]),
+    };
+    let grant = envelope
+        .authenticate(&authority, "capture-fixture", &verifier)
+        .unwrap();
+    let usage = Use {
+        repository: "capture-fixture",
+        warrant: uuid,
+        provider: &envelope.enrollment.provider,
+        verifier_digest: &envelope.enrollment.verifier_digest,
+        collector: "collector",
+    };
+    let binding = RuntimeBinding {
+        warrant_ref: format!("war://{uuid}"),
+        contract_digest: "contract-fixture".into(),
+        dispatch_digest: "dispatch-fixture".into(),
+        stage_id: "stage-fixture".into(),
+        attempt_id: "attempt-fixture".into(),
+    };
+    let context = Context {
+        authority: &authority,
+        enrollment: &grant,
+        usage: &usage,
+        binding: &binding,
+        payload: b"actual fixture capture bytes",
+    };
+    let proof = Proof::for_context(&context).unwrap();
+    let (_, signature) = fixture(
+        openwarrant_core::runtime_collector::attribution::NAMESPACE,
+        &proof.encode().unwrap(),
+        32,
+    );
+    let signed = SignedAttribution { proof, signature };
+    assert_eq!(
+        signed.authenticate(&context, &verifier).unwrap().proof(),
+        &signed.proof
+    );
+    let wrong = fixture(
+        openwarrant_core::runtime_collector::attribution::NAMESPACE,
+        &signed.proof.encode().unwrap(),
+        31,
+    )
+    .1;
+    let altered = SignedAttribution {
+        signature: wrong,
+        ..signed.clone()
+    };
+    assert!(altered.authenticate(&context, &verifier).is_err());
+    let changed = Context {
+        payload: b"altered capture",
+        ..context
+    };
+    assert!(signed.authenticate(&changed, &verifier).is_err());
+    assert_eq!(fs::read_dir(&root).unwrap().count(), 0);
+    fs::remove_dir_all(root).unwrap();
 }

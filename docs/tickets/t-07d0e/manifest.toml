@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-07d0e` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-07d0e"
+uuid = "01a12f27-a302-7017-91d2-15da6ff20634"
+title = "Refuse unsafe or unreadable batch recovery markers before writes"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-12T08:08:09Z"
+created_by = "agent://codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

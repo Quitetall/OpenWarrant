@@ -267,9 +267,27 @@ impl Repository {
                 .collect::<Vec<_>>()
         } else {
             if self.root.ancestors().any(|p| p.join(".git").exists()) {
-                return Err(RepoError::Message(
-                    "verify.subject-unavailable: Git source inventory cannot be read".to_owned(),
-                ));
+                // Preserve the failed observation, not a malformed-Warrant
+                // verdict. A generic message hid the cause of intermittent
+                // inventory failures; bound stderr before exposing it.
+                const STDERR_LIMIT: usize = 2048;
+                let stderr = String::from_utf8_lossy(
+                    &output.stderr[..output.stderr.len().min(STDERR_LIMIT)],
+                );
+                let truncated = if output.stderr.len() > STDERR_LIMIT {
+                    " [stderr truncated at 2048 bytes]"
+                } else {
+                    ""
+                };
+                return Err(RepoError::ObservationUnavailable {
+                    rule: "verify.subject-unavailable",
+                    message: format!(
+                        "Git source inventory cannot be read ({}): {}{}",
+                        output.status,
+                        stderr.trim(),
+                        truncated
+                    ),
+                });
             }
             // Document-only/prototype repositories need no Git. Enumerate
             // data paths without following symlinks; selected unsafe nodes

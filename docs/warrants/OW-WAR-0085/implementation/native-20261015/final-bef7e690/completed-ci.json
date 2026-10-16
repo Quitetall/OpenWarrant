@@ -1,0 +1,197 @@
+{
+  "conclusion": "success",
+  "headSha": "bef7e69086711a686fcc74a053f6d2cb6e239216",
+  "jobs": [
+    {
+      "completedAt": "2026-10-15T03:07:25Z",
+      "conclusion": "success",
+      "databaseId": 116225157018,
+      "name": "bonsai-report",
+      "startedAt": "2026-10-15T03:07:08Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-15T03:07:10Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-15T03:07:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-15T03:07:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "success",
+          "name": "Read Warrant from pull request",
+          "number": 3,
+          "startedAt": "2026-10-15T03:07:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "skipped",
+          "name": "Build Warrant report tool",
+          "number": 4,
+          "startedAt": "2026-10-15T03:07:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "skipped",
+          "name": "Materialize pull-request candidate as data",
+          "number": 5,
+          "startedAt": "2026-10-15T03:07:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "skipped",
+          "name": "Build Warrant-pinned public Bonsai",
+          "number": 6,
+          "startedAt": "2026-10-15T03:07:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "skipped",
+          "name": "Emit Warrant-bound Bonsai evidence",
+          "number": 7,
+          "startedAt": "2026-10-15T03:07:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "skipped",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 8,
+          "startedAt": "2026-10-15T03:07:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 16,
+          "startedAt": "2026-10-15T03:07:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:22Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-10-15T03:07:22Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38674510650/job/116225157018"
+    },
+    {
+      "completedAt": "2026-10-15T04:04:11Z",
+      "conclusion": "success",
+      "databaseId": 116225157252,
+      "name": "gate",
+      "startedAt": "2026-10-15T03:07:08Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-15T03:07:10Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-15T03:07:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:21Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-15T03:07:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:30Z",
+          "conclusion": "success",
+          "name": "Show toolchain",
+          "number": 3,
+          "startedAt": "2026-10-15T03:07:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:40Z",
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 4,
+          "startedAt": "2026-10-15T03:07:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:41Z",
+          "conclusion": "success",
+          "name": "Install cargo-deny",
+          "number": 5,
+          "startedAt": "2026-10-15T03:07:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T03:07:45Z",
+          "conclusion": "success",
+          "name": "Install schema-validation dependency",
+          "number": 6,
+          "startedAt": "2026-10-15T03:07:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T04:03:03Z",
+          "conclusion": "success",
+          "name": "cargo xtask gate",
+          "number": 7,
+          "startedAt": "2026-10-15T03:07:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T04:04:09Z",
+          "conclusion": "success",
+          "name": "Acceptance still describes the merge candidate",
+          "number": 8,
+          "startedAt": "2026-10-15T04:03:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T04:04:09Z",
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 15,
+          "startedAt": "2026-10-15T04:04:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T04:04:09Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 16,
+          "startedAt": "2026-10-15T04:04:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-15T04:04:09Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-10-15T04:04:09Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38674510650/job/116225157252"
+    }
+  ],
+  "status": "completed"
+}

@@ -59,6 +59,10 @@ pub struct Options<'a> {
     /// §37.2 `producer`. Defaults to the recorded one, then the repository's
     /// performer.
     pub producer: Option<&'a str>,
+    /// The observed producing attempt for new bytes. Never inferred.
+    pub producing_attempt: Option<&'a str>,
+    /// Replace the prior input list when recording new bytes; absence keeps it.
+    pub input_digests: Option<&'a [String]>,
     /// §37.2 `creation_method`. Defaults to the recorded one, then `authored`.
     pub method: Option<&'a str>,
     /// Report what would be recorded and write nothing.
@@ -276,9 +280,15 @@ pub fn run_with(
                 .producer
                 .map(str::to_owned)
                 .unwrap_or_else(|| keep(&recorded.producer, repo.performer())),
-            producing_attempt: keep(&recorded.producing_attempt, "unrecorded".to_owned()),
+            producing_attempt: opts
+                .producing_attempt
+                .map(str::to_owned)
+                .unwrap_or_else(|| keep(&recorded.producing_attempt, "unrecorded".to_owned())),
             contract_digest: contract_digest.clone(),
-            input_digests: recorded.input_digests.clone(),
+            input_digests: opts
+                .input_digests
+                .map(<[String]>::to_vec)
+                .unwrap_or_else(|| recorded.input_digests.clone()),
             tool_or_runtime_identity: tool.clone(),
             creation_method: opts
                 .method
@@ -319,7 +329,8 @@ pub fn run_with(
         context: format!("could not read {manifest}"),
         source,
     })?;
-    let text = match apply(&original, &edits) {
+    let replace_inputs = opts.input_digests.is_some();
+    let text = match apply_with_inputs(&original, &edits, replace_inputs) {
         Ok(t) => t,
         Err(why) => {
             report.push(Diagnostic::error("deliver.unsupported-shape", file, why));
@@ -327,7 +338,7 @@ pub fn run_with(
             return Ok((report, delivered));
         }
     };
-    if let Err(why) = confirm(&text, &set.records, &edits) {
+    if let Err(why) = confirm(&text, &set.records, &edits, replace_inputs) {
         report.push(Diagnostic::error(
             "deliver.rewrite-mismatch",
             file,
@@ -403,8 +414,8 @@ fn quoted(s: &str) -> String {
     toml::Value::String(s.to_owned()).to_string()
 }
 
-/// The provenance keys this command writes, in §37.2's order, rendered.
-/// `input_digests` is never written: it is kept as recorded.
+/// Scalar provenance keys in §37.2's order. Explicit input-list replacement
+/// is handled separately; by default its original text stays untouched.
 fn provenance_lines(p: &ArtifactProvenance) -> [(&'static str, String); 10] {
     [
         ("producer", quoted(&p.producer)),
@@ -483,6 +494,68 @@ fn replaced(old: &str, key: &str, value: &str) -> String {
 /// shape this does not edit (an inline table, dotted keys) — rewriting those
 /// by guess is how a comment or a value is lost.
 pub fn apply(text: &str, edits: &[(String, ArtifactProvenance)]) -> Result<String, String> {
+    apply_with_inputs(text, edits, false)
+}
+
+fn digest_list(inputs: &[String]) -> String {
+    toml::Value::Array(inputs.iter().cloned().map(toml::Value::String).collect()).to_string()
+}
+
+// Use the TOML parser's actual value spans. Replacing only a key's first line
+// would leave a multiline array behind or mistake a # inside a string for a
+// comment. Bytes outside the replaced value stay exactly as authored.
+fn replace_input_values(
+    text: &str,
+    edits: &[(String, ArtifactProvenance)],
+) -> Result<String, String> {
+    #[derive(serde::Deserialize)]
+    struct Locations {
+        #[serde(default)]
+        deliverable: Vec<Location>,
+    }
+    #[derive(serde::Deserialize)]
+    struct Location {
+        id: String,
+        provenance: Option<Inputs>,
+    }
+    #[derive(serde::Deserialize)]
+    struct Inputs {
+        input_digests: Option<toml::Spanned<Vec<String>>>,
+    }
+    let locations: Locations =
+        toml::from_str(text).map_err(|e| format!("cannot locate input digests: {e}"))?;
+    let mut replacements = Vec::new();
+    for (id, provenance) in edits {
+        if let Some(span) = locations
+            .deliverable
+            .iter()
+            .find(|d| &d.id == id)
+            .and_then(|d| d.provenance.as_ref())
+            .and_then(|p| p.input_digests.as_ref())
+        {
+            replacements.push((span.span(), digest_list(&provenance.input_digests)));
+        }
+    }
+    replacements.sort_by_key(|(span, _)| std::cmp::Reverse(span.start));
+    let mut output = text.to_owned();
+    for (span, value) in replacements {
+        output.replace_range(span, &value);
+    }
+    Ok(output)
+}
+
+fn apply_with_inputs(
+    text: &str,
+    edits: &[(String, ArtifactProvenance)],
+    replace_inputs: bool,
+) -> Result<String, String> {
+    let updated;
+    let text = if replace_inputs {
+        updated = replace_input_values(text, edits)?;
+        &updated
+    } else {
+        text
+    };
     let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
     let trailing_newline = text.ends_with('\n');
     for (id, provenance) in edits {
@@ -527,7 +600,10 @@ pub fn apply(text: &str, edits: &[(String, ArtifactProvenance)]) -> Result<Strin
                 "{id}'s provenance has a nested table; `war admin deliver` edits a flat one only"
             ));
         }
-        let rendered = provenance_lines(provenance);
+        let mut rendered = provenance_lines(provenance).to_vec();
+        if replace_inputs {
+            rendered.push(("input_digests", digest_list(&provenance.input_digests)));
+        }
 
         // The provenance table first (it is below the main table, so the
         // indices above it stay put).
@@ -545,7 +621,10 @@ pub fn apply(text: &str, edits: &[(String, ArtifactProvenance)]) -> Result<Strin
                 let mut missing = Vec::new();
                 for (key, value) in &rendered {
                     if let Some(i) = (h + 1..t_end).find(|&i| key_of(&lines[i]) == Some(key)) {
-                        lines[i] = replaced(&lines[i], key, value);
+                        // Existing input values were replaced using parser spans.
+                        if *key != "input_digests" {
+                            lines[i] = replaced(&lines[i], key, value);
+                        }
                     } else {
                         missing.push(format!("{key} = {value}"));
                     }
@@ -588,6 +667,7 @@ fn confirm(
     text: &str,
     before: &[Deliverable],
     edits: &[(String, ArtifactProvenance)],
+    replace_inputs: bool,
 ) -> Result<(), String> {
     #[derive(serde::Deserialize)]
     struct File {
@@ -609,11 +689,13 @@ fn confirm(
         if let Some((_, p)) = edits.iter().find(|(id, _)| id == &was.id) {
             want.content_addressed = true;
             let mut p = p.clone();
-            p.input_digests = was
-                .provenance
-                .as_ref()
-                .map(|r| r.input_digests.clone())
-                .unwrap_or_default();
+            if !replace_inputs {
+                p.input_digests = was
+                    .provenance
+                    .as_ref()
+                    .map(|r| r.input_digests.clone())
+                    .unwrap_or_default();
+            }
             want.provenance = Some(p);
         }
         if &want != now {
@@ -713,7 +795,15 @@ source_holder = "git"
         // The new table sits inside D-001, before D-002's comment.
         let table = out.find("[deliverable.provenance]").unwrap();
         assert!(table < out.find("# a comment that belongs to D-002").unwrap());
-        assert!(confirm(&out, &parse(TWO), &[("D-001".into(), prov("sha256:new"))]).is_ok());
+        assert!(
+            confirm(
+                &out,
+                &parse(TWO),
+                &[("D-001".into(), prov("sha256:new"))],
+                false
+            )
+            .is_ok()
+        );
     }
 
     #[test]

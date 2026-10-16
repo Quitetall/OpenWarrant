@@ -1,0 +1,36 @@
+{
+  "exit": 1,
+  "output_retained": true,
+  "stderr": "",
+  "record": {
+    "participant": "P1",
+    "build_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "inputs_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "scenario": "synthetic startup signal control; no participant evidence",
+    "consent_confirmed": true,
+    "assisted": false,
+    "failures": [],
+    "schema": "oh.war/study-session-draft/v1",
+    "host_os": "Linux",
+    "measurement_method": "Python monotonic_ns sampled when commands are processed; categories, consent and outcomes are unverified operator claims",
+    "outcome": "unknown",
+    "termination": "signal-interruption",
+    "elapsed_seconds": 0.007346198,
+    "timing_error": null,
+    "intervals": [
+      {
+        "start": 0.0,
+        "end": 0.007346198,
+        "category": "setup"
+      }
+    ],
+    "qualification_established": false,
+    "operator_claims_authenticated": false,
+    "events": {
+      "file": "out.json.events.jsonl",
+      "sha256": "a2917eb941e52c077bf61a9fe01f41f49b24e7cb82991eb45d5629ee2d68c916",
+      "count": 2
+    },
+    "metadata_sha256": "8e70736a7d77cb510bb83733a32eb4311f399f6d34385518cc98683d124940db"
+  }
+}

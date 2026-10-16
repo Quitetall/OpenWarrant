@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Expose bounded recorder attribution in CLI and MCP; preserve independent gates and retry conflicts (i-1337) — done by agent://codex, 2026-10-14: CLI --as and MCP actor record the submitting agent label without changing protected performer policy. Legacy public API/default preserved; malformed/nonagent input refuses before gate/journal writes; replay/conflicts and unestablished independence remain. Three new controls and final CLI 483 units/3 binary/284 integration replay pass, four ignored; Clippy/fmt pass. First aggregate Katana ETXTBSY failure retained, not claimed repaired. Metadata is claimed, not authentication.

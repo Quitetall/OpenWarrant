@@ -441,6 +441,10 @@ pub struct EvidenceParams {
     /// `file:<path>#sha256:<digest>`; required for that gate only.
     #[serde(default)]
     pub evidence_ref: Option<String>,
+    /// Agent attaching evidence (agent:// identifier). Claimed attribution,
+    /// not authenticated identity, independent verification or a policy change.
+    #[serde(default)]
+    pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
@@ -1262,11 +1266,12 @@ impl WarServer {
     fn war_evidence_record(&self, Parameters(p): Parameters<EvidenceParams>) -> ToolResult {
         report_of(
             "evidence",
-            crate::evidence::record(
+            crate::evidence::record_as(
                 &self.repo,
                 &p.alias,
                 p.gate.as_deref(),
                 p.evidence_ref.as_deref(),
+                p.actor.as_deref(),
             ),
         )
     }

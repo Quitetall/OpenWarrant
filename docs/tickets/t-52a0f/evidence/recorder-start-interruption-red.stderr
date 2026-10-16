@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/mnt/4tb/artifacts/OpenWarrant/keep/conformance-continuation-20261014/recorder-start-interruption-repro.py", line 26, in <module>
+    assert result.returncode == 1 and out.exists(), "startup SIGTERM escaped without retained unknown session"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: startup SIGTERM escaped without retained unknown session

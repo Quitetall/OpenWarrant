@@ -403,6 +403,10 @@
 > -
 - doc:docs/design/amendment-review/integration-results.md · document · - · Integrated candidate validation · docs/design/amendment-review/integration-results.md:1
 
+## docs/design/capture-attribution-authentication.md
+> -
+- doc:docs/design/capture-attribution-authentication.md · document · - · Capture attribution authentication — candidate SDK interface · docs/design/capture-attribution-authentication.md:1
+
 ## docs/design/ci-gate-runtime-budget-20261001.md
 > -
 - doc:docs/design/ci-gate-runtime-budget-20261001.md · document · - · Full CI gate runtime budget · docs/design/ci-gate-runtime-budget-20261001.md:1
@@ -419,6 +423,10 @@
 > -
 - doc:docs/design/context-projection-and-shared-warrant-model.md · document · - · Context views and shared cross-project Warrants · docs/design/context-projection-and-shared-warrant-model.md:1
 
+## docs/design/evidence-recorder-attribution.md
+> -
+- doc:docs/design/evidence-recorder-attribution.md · document · - · Gate-evidence recorder attribution · docs/design/evidence-recorder-attribution.md:1
+
 ## docs/design/friction-feedback-review.md
 > -
 - doc:docs/design/friction-feedback-review.md · document · - · Friction feedback: retained changes and current gaps · docs/design/friction-feedback-review.md:1
@@ -430,6 +438,10 @@
 ## docs/design/full-provenance-migration.md
 > -
 - doc:docs/design/full-provenance-migration.md · document · - · Full-provenance migration · docs/design/full-provenance-migration.md:1
+
+## docs/design/native-verifier-exec-contention.md
+> -
+- doc:docs/design/native-verifier-exec-contention.md · document · - · Native verifier startup contention · docs/design/native-verifier-exec-contention.md:1
 
 ## docs/design/openwarrant-friction.md
 > -
@@ -475,6 +487,10 @@
 > -
 - doc:docs/design/reviewed-subject-binding-wip.md · document · - · Reviewed subject binding: saved implementation slices · docs/design/reviewed-subject-binding-wip.md:1
 
+## docs/design/run-budget-accounting.md
+> -
+- doc:docs/design/run-budget-accounting.md · document · - · One run budget — SDK accounting primitive · docs/design/run-budget-accounting.md:1
+
 ## docs/design/runtime-collector-enrollment.md
 > -
 - doc:docs/design/runtime-collector-enrollment.md · document · - · Runtime collector enrollment — candidate contract · docs/design/runtime-collector-enrollment.md:1
@@ -494,6 +510,14 @@
 ## docs/design/war-skills-audit.md
 > -
 - doc:docs/design/war-skills-audit.md · document · - · War skill and planning audit · docs/design/war-skills-audit.md:1
+
+## docs/evidence/conformance-wave-20261014/README.md
+> -
+- doc:docs/evidence/conformance-wave-20261014/README.md · document · - · Retained conformance evidence before the 2026-10-14 wave · docs/evidence/conformance-wave-20261014/README.md:1
+
+## docs/evidence/structural-wave-20261014/README.md
+> -
+- doc:docs/evidence/structural-wave-20261014/README.md · document · - · Scoped structural evidence wave · docs/evidence/structural-wave-20261014/README.md:1
 
 ## docs/format/FORMAT-1.0.md
 > -
@@ -579,6 +603,10 @@
 ## docs/releases/alpha3.md
 > -
 - doc:docs/releases/alpha3.md · document · - · OpenWarrant 1.0.0-alpha.3 — tickets are Warrants, and ordinary work is ordinary · docs/releases/alpha3.md:1
+
+## docs/releases/alpha4.md
+> -
+- doc:docs/releases/alpha4.md · document · - · OpenWarrant 1.0.0-alpha.4 — integration and conformance preview · docs/releases/alpha4.md:1
 
 ## docs/releases/candidate-rehearsal.md
 > -
@@ -1384,6 +1412,10 @@
 > Retain native package friction observations without timing human work
 - t-041d4 · ticket · done · Retain native package friction observations without timing human work · docs/tickets/t-041d4/manifest.toml:1
 
+## docs/tickets/t-07d0e/manifest.toml
+> Refuse unsafe or unreadable batch recovery markers before writes
+- t-07d0e · ticket · done · Refuse unsafe or unreadable batch recovery markers before writes · docs/tickets/t-07d0e/manifest.toml:1
+
 ## docs/tickets/t-0d61d/manifest.toml
 > M14: presets, roles and officialness
 - t-0d61d · ticket · done · M14: presets, roles and officialness · docs/tickets/t-0d61d/manifest.toml:1
@@ -1395,6 +1427,10 @@
 ## docs/tickets/t-0f24/manifest.toml
 > A refused 'war standing propose' may have written into docs/ (seen once)
 - t-0f24 · ticket · done · A refused 'war standing propose' may have written into docs/ (seen once) · docs/tickets/t-0f24/manifest.toml:1
+
+## docs/tickets/t-13014/manifest.toml
+> Recover transient native verifier exec contention within the original deadline
+- t-13014 · ticket · done · Recover transient native verifier exec contention within the original deadline · docs/tickets/t-13014/manifest.toml:1
 
 ## docs/tickets/t-13506/manifest.toml
 > Use the configured authority source consistently for role consumers
@@ -1416,6 +1452,10 @@
 > Recheck merged Katana native interface without claiming coding-agent qualification
 - t-17d63 · ticket · done · Recheck merged Katana native interface without claiming coding-agent qualification · docs/tickets/t-17d63/manifest.toml:1
 
+## docs/tickets/t-196fd/manifest.toml
+> Add pure SDK run-budget reservation and settlement controls
+- t-196fd · ticket · done · Add pure SDK run-budget reservation and settlement controls · docs/tickets/t-196fd/manifest.toml:1
+
 ## docs/tickets/t-1de2/manifest.toml
 > OW-WAR-0116/0115 verdicts: GET /api/act, progress evidence, act command line, Help binary row
 - t-1de2 · ticket · done · OW-WAR-0116/0115 verdicts: GET /api/act, progress evidence, act command line, Help binary row · docs/tickets/t-1de2/manifest.toml:1
@@ -1427,6 +1467,10 @@
 ## docs/tickets/t-22fd/manifest.toml
 > Signing must not make evidence stale
 - t-22fd · ticket · done · Signing must not make evidence stale · docs/tickets/t-22fd/manifest.toml:1
+
+## docs/tickets/t-244e0/manifest.toml
+> Keep native CLI capture reproducible on a patched TLS dependency
+- t-244e0 · ticket · done · Keep native CLI capture reproducible on a patched TLS dependency · docs/tickets/t-244e0/manifest.toml:1
 
 ## docs/tickets/t-26ca/manifest.toml
 > war ui drops an oversized request under load instead of answering 431
@@ -1484,6 +1528,14 @@
 > war deliver: declare a deliverable delivered, by command
 - t-39dc · ticket · done · war deliver: declare a deliverable delivered, by command · docs/tickets/t-39dc/manifest.toml:1
 
+## docs/tickets/t-3a90c/manifest.toml
+> Run a shared preparation gate once with all selected contracts bound before execution
+- t-3a90c · ticket · done · Run a shared preparation gate once with all selected contracts bound before execution · docs/tickets/t-3a90c/manifest.toml:1
+
+## docs/tickets/t-3f3e9/manifest.toml
+> Observe declared Linux storage crash and refusal controls
+- t-3f3e9 · ticket · done · Observe declared Linux storage crash and refusal controls · docs/tickets/t-3f3e9/manifest.toml:1
+
 ## docs/tickets/t-418bc/manifest.toml
 > Reconnect retained provider captures in source-detached runtime archive queries
 - t-418bc · ticket · done · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/manifest.toml:1
@@ -1532,9 +1584,17 @@
 > Plants pipe grep into grep -q under pipefail (SIGPIPE race)
 - t-515e · ticket · done · Plants pipe grep into grep -q under pipefail (SIGPIPE race) · docs/tickets/t-515e/manifest.toml:1
 
+## docs/tickets/t-52a0f/manifest.toml
+> Retain study recorder interruptions during durable journal writes
+- t-52a0f · ticket · in_progress · Retain study recorder interruptions during durable journal writes · docs/tickets/t-52a0f/manifest.toml:1
+
 ## docs/tickets/t-54257/manifest.toml
 > Connect current runtime receipt assessment to resolution
 - t-54257 · ticket · done · Connect current runtime receipt assessment to resolution · docs/tickets/t-54257/manifest.toml:1
+
+## docs/tickets/t-5501f/manifest.toml
+> Prepare alpha.4 preview with current integration fixes
+- t-5501f · ticket · done · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
 
 ## docs/tickets/t-5504f/manifest.toml
 > Retain current phase evidence and audit remaining Warrant completion scope
@@ -1552,6 +1612,10 @@
 > docs/AUTHENTICATION.md is out of date after the LAN web UI
 - t-5a29 · ticket · done · docs/AUTHENTICATION.md is out of date after the LAN web UI · docs/tickets/t-5a29/manifest.toml:1
 
+## docs/tickets/t-5acd4/manifest.toml
+> Authenticate bounded capture attribution against active collector enrollment
+- t-5acd4 · ticket · done · Authenticate bounded capture attribution against active collector enrollment · docs/tickets/t-5acd4/manifest.toml:1
+
 ## docs/tickets/t-5b1f7/manifest.toml
 > Complete OW-WAR-0101 local drafting observation
 - t-5b1f7 · ticket · done · Complete OW-WAR-0101 local drafting observation · docs/tickets/t-5b1f7/manifest.toml:1
@@ -1563,6 +1627,10 @@
 ## docs/tickets/t-5f49/manifest.toml
 > war ui answers 431 instead of 413 for an oversized body, under load
 - t-5f49 · ticket · done · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/manifest.toml:1
+
+## docs/tickets/t-62891/manifest.toml
+> Capture original Git inventory refusal; unchanged replay passes do not establish repair
+- t-62891 · ticket · in_progress · Diagnose Git inventory refusal in full verifier conformance · docs/tickets/t-62891/manifest.toml:1
 
 ## docs/tickets/t-62f58/manifest.toml
 > Reject ambiguous blind-verifier answers (OW117)
@@ -1596,9 +1664,21 @@
 > Refuse simultaneous Warrant performers before dispatch or spawn
 - t-68998 · ticket · done · Refuse simultaneous Warrant performers before dispatch or spawn · docs/tickets/t-68998/manifest.toml:1
 
+## docs/tickets/t-6b030/manifest.toml
+> Record the actual agent attaching gate evidence without changing performer policy
+- t-6b030 · ticket · done · Record the actual agent attaching gate evidence without changing performer policy · docs/tickets/t-6b030/manifest.toml:1
+
+## docs/tickets/t-6e9de/manifest.toml
+> Restore one run budget without forgetting held reservations
+- t-6e9de · ticket · done · Restore one run budget without forgetting held reservations · docs/tickets/t-6e9de/manifest.toml:1
+
 ## docs/tickets/t-72af0/manifest.toml
 > Recover after context preparation is unavailable before worker launch
 - t-72af0 · ticket · done · Recover after context preparation is unavailable before worker launch · docs/tickets/t-72af0/manifest.toml:1
+
+## docs/tickets/t-75246/manifest.toml
+> Return the standard report envelope from legacy migration JSON mode
+- t-75246 · ticket · done · Return the standard report envelope from legacy migration JSON mode · docs/tickets/t-75246/manifest.toml:1
 
 ## docs/tickets/t-7a7e6/manifest.toml
 > M6: projection targets: one set of records, many documents
@@ -1656,6 +1736,10 @@
 > Exercise populated canonical IR and retain bounded archive preservation observations
 - t-8e677 · ticket · done · Exercise populated canonical IR and retain bounded archive preservation observations · docs/tickets/t-8e677/manifest.toml:1
 
+## docs/tickets/t-913e0/manifest.toml
+> Correct stale standing authorization status in the glossary
+- t-913e0 · ticket · done · Correct stale standing authorization status in the glossary · docs/tickets/t-913e0/manifest.toml:1
+
 ## docs/tickets/t-95254/manifest.toml
 > Bind authorized Dispatch to exact signed current contract and immutable context holders
 - t-95254 · ticket · done · Bind authorized Dispatch to exact signed current contract and immutable context holders · docs/tickets/t-95254/manifest.toml:1
@@ -1688,6 +1772,10 @@
 > M12: a small surface
 - t-a92bb · ticket · done · M12: a small surface · docs/tickets/t-a92bb/manifest.toml:1
 
+## docs/tickets/t-aade8/manifest.toml
+> Diagnose intermittent draft checkpoint startup timeout in integration suite
+- t-aade8 · ticket · in_progress · Diagnose intermittent draft checkpoint startup timeout in integration suite · docs/tickets/t-aade8/manifest.toml:1
+
 ## docs/tickets/t-ad636/manifest.toml
 > M4: fixed states plus declared refinements
 - t-ad636 · ticket · done · M4: fixed states plus declared refinements · docs/tickets/t-ad636/manifest.toml:1
@@ -1699,6 +1787,14 @@
 ## docs/tickets/t-ae2be/manifest.toml
 > M5: tickets on the kernel, ticket features, GitHub in and out, the demonstration
 - t-ae2be · ticket · done · M5: tickets on the kernel, ticket features, GitHub in and out, the demonstration · docs/tickets/t-ae2be/manifest.toml:1
+
+## docs/tickets/t-aef77/manifest.toml
+> Keep verifier fixtures within their declared dispatch budgets
+- t-aef77 · ticket · done · Keep verifier fixtures within their declared dispatch budgets · docs/tickets/t-aef77/manifest.toml:1
+
+## docs/tickets/t-af9b7/manifest.toml
+> Connect signed collector attribution to checked capture imports
+- t-af9b7 · ticket · done · Connect signed collector attribution to checked capture imports · docs/tickets/t-af9b7/manifest.toml:1
 
 ## docs/tickets/t-b0708/manifest.toml
 > M2: a document's type chooses its capabilities, and new manifests pin their profile
@@ -1715,6 +1811,10 @@
 ## docs/tickets/t-b9610/manifest.toml
 > Reject stale independent verification after its reviewed subject changes
 - t-b9610 · ticket · in_progress · Reject stale independent verification after its reviewed subject changes · docs/tickets/t-b9610/manifest.toml:1
+
+## docs/tickets/t-c0078/manifest.toml
+> Refuse special backup nodes before batch rollback
+- t-c0078 · ticket · done · Refuse special backup nodes before batch rollback · docs/tickets/t-c0078/manifest.toml:1
 
 ## docs/tickets/t-c1325/manifest.toml
 > Keep typed-document compile output inside the JSON envelope
@@ -1780,6 +1880,10 @@
 > Capture real monotonic study timing without inventing participant observations
 - t-e14c0 · ticket · done · Capture real monotonic study timing without inventing participant observations · docs/tickets/t-e14c0/manifest.toml:1
 
+## docs/tickets/t-e577c/manifest.toml
+> Remove stale digest bookkeeping while preserving provenance fields and original history
+- t-e577c · ticket · done · Refresh unresolved delivery digests from observed current bytes · docs/tickets/t-e577c/manifest.toml:1
+
 ## docs/tickets/t-e6340/manifest.toml
 > Correct stale Preflight coverage messages without claiming execution readiness
 - t-e6340 · ticket · done · Correct stale Preflight coverage messages without claiming execution readiness · docs/tickets/t-e6340/manifest.toml:1
@@ -1807,6 +1911,10 @@
 ## docs/tickets/t-fa114/manifest.toml
 > Check current authorization in read-only Preflight
 - t-fa114 · ticket · done · Check current authorization in read-only Preflight · docs/tickets/t-fa114/manifest.toml:1
+
+## docs/tickets/t-fc052/manifest.toml
+> Explain no-fit review packets without dropping required context
+- t-fc052 · ticket · done · Explain no-fit review packets without dropping required context · docs/tickets/t-fc052/manifest.toml:1
 
 ## docs/tickets/t-fed6/manifest.toml
 > Verification records must not make evidence stale

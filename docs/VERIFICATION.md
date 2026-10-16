@@ -25,6 +25,18 @@ war resolve <alias> --dry-run                 # what still blocks closure
 `war prepare <alias>` runs these, and the service stages and document gates
 around them, in order (docs/SIGNING.md, "One sitting").
 
+When recording a changed delivery, supply the production facts you observed:
+`--producer`, `--method`, `--producing-attempt`, and one `--input-digest` per
+known input. Explicit input digests replace the previous list. Use
+`--clear-input-digests` only when that production had no inputs. An omitted
+field keeps its recorded value; do not carry an old producer or attempt forward
+as a claim about new work. Unknown production history stays unknown.
+
+These options record provenance, not authority or independent acceptance.
+Already-current deliveries retain their existing record. A resolved Warrant's
+manifest remains immutable. Local adapters and selection for one preparation
+run are documented in [the verifier guide](../tools/verifier/README.md).
+
 `--run` compiles the bundle, hands its path to the wrapper, and ingests
 what the wrapper prints through the same seam as `war verify --response`.
 Set `CLAUDE_PERFORMER_MODEL` to the model that did the work (for this
@@ -52,16 +64,23 @@ cut; a response answering an obligation its bundle did not carry is refused
 wrapper 11-23 s each on 2026-09-26.
 
 Splitting cannot always make the fixed contract and binding records fit. The
-bundled Claude verifier checks the compiler's recorded budget on its immutable
+CLI refuses to dispatch each over-budget packet to any configured adapter, before
+starting that process or ingesting a response for the packet. In-budget packets
+remain eligible for dispatch. The bundled Claude verifier also checks the compiler's recorded budget on its immutable
 local packet copy before even probing the backend version. An over-budget packet
 returns `verify.bundle-over-budget`, with no backend call or verification
 response. Missing, invalid or duplicate budget fields return
 `verify.bundle-invalid-budget`. No required rule or binding is removed to fit.
+Budget diagnostics list the three largest fixed fields by canonical JSON byte
+size. These are field names and sizes, not source contents or model token counts.
+They help locate the reading floor without removing required context or raising
+the limit.
+
 The packet remains available for inspection. Revise the work scope or explicitly
 configure a suitable reading budget before trying again; a refusal does not
 establish or refute the Warrant's obligations. This checks the compiler's token
 estimate, not a model-specific tokenizer or monetary spend. Other configured
-backends remain responsible for enforcing their declared limits.
+backends remain responsible for enforcing their additional declared limits.
 
 ## How it is kept blind and powerless
 

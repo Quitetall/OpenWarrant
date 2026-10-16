@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Reproduce ETXTBSY with a held writer; retry only failed busy exec and retain UNKNOWN on deadline or other failure (i-5144) — done by agent://codex, 2026-10-14: Reproduced Linux ETXTBSY with held executable writer before fix. Retry only failed busy exec under one deadline shared with execution; other errors stay unavailable, no started program repeated. Four controls, CLI 487 units/3 binary/281 integration (4 ignored), strict Clippy/fmt and 100 exact mapping repetitions pass. Historical writer/custody and broader native qualification remain unknown; no signed act or paid call.

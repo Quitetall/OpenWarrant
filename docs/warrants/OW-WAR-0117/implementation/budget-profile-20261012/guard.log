@@ -1,0 +1,8 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== verifier dispatch budget ==
+over-budget refuses without adapter or verdict writes; in-budget reaches adapter
+ok    verifier budget admission          refusal and in-budget control observed
+2 passed, 0 failed

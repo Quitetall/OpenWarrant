@@ -1371,7 +1371,7 @@ pub fn guided(root: Option<Utf8PathBuf>, program_hint: Option<&str>) -> Result<(
                     return Ok(());
                 };
                 if !a.is_empty() && !yes(&a) {
-                    println!("stopped; run `war init` again to resume here");
+                    println!("stopped; run `war init --guided` again to resume here");
                     return Ok(());
                 }
                 Answer::Proceed
@@ -1457,6 +1457,10 @@ pub fn guided(root: Option<Utf8PathBuf>, program_hint: Option<&str>) -> Result<(
                     m.prepared();
                 }
                 Effect::Say(text) => println!("{text}"),
+                Effect::Stop => {
+                    println!("stopped; run `war init --guided` again to resume here");
+                    return Ok(());
+                }
             }
         }
         let facts = guided::Facts::read(&root);

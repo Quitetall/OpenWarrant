@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/mnt/4tb/artifacts/OpenWarrant/keep/conformance-continuation-20261014/recorder-start-sigint-repro.py", line 27, in <module>
+    assert result.returncode == 1 and out.exists(), "startup SIGINT escaped without retained unknown session"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: startup SIGINT escaped without retained unknown session

@@ -1,0 +1,25 @@
+{
+  "source_commit": "38c7dbed775f5c1c517ab95c356d2ad9c333014f",
+  "estimated_tokens": 407450,
+  "budget_tokens": 48000,
+  "fields": {
+    "atoms": 7997,
+    "authorized_contract_digest": 66,
+    "budget_tokens": 5,
+    "contract_sources": 1766,
+    "deliverables": 1383,
+    "deliverables_not_carried": 158,
+    "estimated_tokens": 6,
+    "gate_runs": 1691,
+    "obligation_evidence": 180,
+    "over_budget": 4,
+    "plants": 613,
+    "prior_verifications": 1752,
+    "request": 1072971,
+    "required_sources": 540814,
+    "schema": 31,
+    "scope": 12,
+    "token_method": 38,
+    "warrant": 13
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "kind": "performer source observation, not participant acceptance or qualification",
+  "path": "docs/warrants/OW-WAR-0149/implementation/provider-participant-references.md",
+  "sha256": "586e9fabaa8081dbca7625b895719c8e8998be9892f9e0cc5e409467e732e1ad",
+  "provider_pr_metadata": [
+    {
+      "provider": "katana",
+      "pr": 14,
+      "head": "4aad94518a6ac8ceb697c74d07c5d6d679c21bb6",
+      "state": "MERGED"
+    },
+    {
+      "provider": "katana",
+      "pr": 15,
+      "head": "da6553dbc8d8f3e73d09d70fecbdd677940783f5",
+      "state": "MERGED"
+    },
+    {
+      "provider": "blut",
+      "pr": 103,
+      "head": "eca4ec7db2adea3a12f76243311c643e84cbb472",
+      "state": "OPEN"
+    },
+    {
+      "provider": "blut",
+      "pr": 104,
+      "head": "4600e86fd7083ab0d91b44036b108f3f716f4517",
+      "state": "OPEN"
+    }
+  ],
+  "qualification_report_absent": true
+}

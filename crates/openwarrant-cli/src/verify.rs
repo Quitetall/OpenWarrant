@@ -477,7 +477,9 @@ pub fn current_records(
                 return None;
             }
             let payload: serde_json::Value = serde_json::from_str(&event.payload).ok()?;
-            if payload["verification_protocol"] != RESPONSE_SCHEMA {
+            if payload["verification_protocol"] != RESPONSE_SCHEMA
+                && payload["verification_protocol"] != COMPACT_RESPONSE_SCHEMA
+            {
                 return None;
             }
             let reviewed: ReviewedSubject =
@@ -513,28 +515,76 @@ pub fn current_records(
                         .as_ref()
                         .is_some_and(|v| event.warrant_uuid == v.uuid.to_string())
                     && reviewed == &current
-                    && payload
-                        .get("reviewed_packets")
-                        .and_then(|v| serde_json::from_value::<Vec<ReviewedPacket>>(v.clone()).ok())
-                        .is_some_and(|packets| {
-                            record::decode(&String::from_utf8_lossy(&bytes))
-                                .is_ok_and(|stored| stored.binds(&current, &packets))
-                                && packets_cover(
-                                    repo,
-                                    one,
-                                    &current,
-                                    &packets,
-                                    std::slice::from_ref(&record.obligation),
-                                    &record.performer,
-                                )
-                                .unwrap_or(false)
-                        })
+                    && record::decode(&String::from_utf8_lossy(&bytes)).is_ok_and(|stored| {
+                        record_context_current(
+                            repo,
+                            one,
+                            &current,
+                            payload,
+                            &record.performer,
+                            std::slice::from_ref(&record.obligation),
+                            &stored,
+                        )
+                        .unwrap_or(false)
+                    })
                     && payload["obligation"] == record.obligation
                     && payload["record_digest"] == digest
             })
         })
         .cloned()
         .collect()
+}
+
+/// The same binding predicate is used for current work and immutable candidate
+/// assessment. A v3 record cannot qualify through the v2-only binding path.
+pub(crate) fn record_context_current(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    subject: &ReviewedSubject,
+    payload: &serde_json::Value,
+    performer: &str,
+    obligations: &[String],
+    stored: &record::ReadRecord,
+) -> Result<bool, RepoError> {
+    if payload["obligation"] != stored.verification.obligation
+        || payload["disposition"] != stored.verification.disposition.to_string()
+    {
+        return Ok(false);
+    }
+    let Some(protocol) = payload["verification_protocol"].as_str() else {
+        return Ok(false);
+    };
+    let Some(packets) = payload
+        .get("reviewed_packets")
+        .and_then(|v| serde_json::from_value::<Vec<ReviewedPacket>>(v.clone()).ok())
+    else {
+        return Ok(false);
+    };
+    let views = if protocol == COMPACT_RESPONSE_SCHEMA {
+        let Some(views) = payload.get("reviewed_views").and_then(|v| {
+            serde_json::from_value::<
+                    Vec<openwarrant_core::compact_verification_record::ReviewedView>,
+                >(v.clone())
+                .ok()
+        }) else {
+            return Ok(false);
+        };
+        views
+    } else if protocol == RESPONSE_SCHEMA {
+        vec![]
+    } else {
+        return Ok(false);
+    };
+    if !stored.binds_protocol(subject, &packets, &views, protocol)
+        || !packets_cover(repo, one, subject, &packets, obligations, performer)?
+    {
+        return Ok(false);
+    }
+    if protocol == COMPACT_RESPONSE_SCHEMA {
+        crate::bundle::preview::views_cover(repo, one, &packets, &views, obligations)
+    } else {
+        Ok(true)
+    }
 }
 
 /// One obligation put to the verifier.
@@ -553,6 +603,8 @@ pub const REQUEST_SCHEMA: &str = "oh.war/verification-request/v2";
 /// What a verifier returns.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VerificationResponse {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub reviewed_views: Vec<openwarrant_core::compact_verification_record::ReviewedView>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub reviewed_packets: Vec<ReviewedPacket>,
     pub schema: String,
@@ -573,6 +625,28 @@ pub(crate) fn packets_cover(
     packets: &[ReviewedPacket],
     obligations: &[String],
     performer: &str,
+) -> Result<bool, RepoError> {
+    packets_cover_with(
+        repo,
+        one,
+        reviewed,
+        packets,
+        obligations,
+        performer,
+        |path| crate::bundle::store::read(&repo.root, camino::Utf8Path::new(path)),
+    )
+}
+
+/// The same validation for bytes supplied by a portable package. The caller
+/// must separately bind the supplied bytes to that package; no file is imported.
+pub(crate) fn packets_cover_with(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    reviewed: &ReviewedSubject,
+    packets: &[ReviewedPacket],
+    obligations: &[String],
+    performer: &str,
+    read: impl Fn(&str) -> Result<Vec<u8>, RepoError>,
 ) -> Result<bool, RepoError> {
     if packets.is_empty() {
         return Ok(false);
@@ -610,7 +684,7 @@ pub(crate) fn packets_cover(
         {
             return Ok(false);
         }
-        let bytes = crate::bundle::store::read(&repo.root, camino::Utf8Path::new(&reference.path))?;
+        let bytes = read(&reference.path)?;
         // Canonical identity requires one unambiguous object, including nested
         // members. A plain Value decoder silently discards duplicate keys.
         // Nodes cannot outnumber input bytes; retain larger binary fixtures
@@ -709,6 +783,8 @@ pub(crate) fn packets_cover(
 }
 
 pub const RESPONSE_SCHEMA: &str = "oh.war/verification-response/v2";
+pub const COMPACT_RESPONSE_SCHEMA: &str =
+    openwarrant_core::compact_verification_record::RESPONSE_SCHEMA;
 pub const LEGACY_RESPONSE_SCHEMA: &str = "oh.war/verification-response/v1";
 
 /// Build the request for one Warrant.
@@ -843,7 +919,10 @@ pub fn validate_envelope(
     response: &VerificationResponse,
     ingesting: &str,
 ) -> Result<(), EnvelopeRefusal> {
-    if response.schema != RESPONSE_SCHEMA && response.schema != LEGACY_RESPONSE_SCHEMA {
+    if response.schema != RESPONSE_SCHEMA
+        && response.schema != LEGACY_RESPONSE_SCHEMA
+        && response.schema != COMPACT_RESPONSE_SCHEMA
+    {
         return Err(EnvelopeRefusal::UnknownSchema {
             found: response.schema.clone(),
         });
@@ -931,8 +1010,29 @@ pub fn ingest(
         }
     }
 
-    if response.schema == RESPONSE_SCHEMA
-        && (response.reviewed_subject.is_none() || response.reviewed_packets.is_empty())
+    if response.schema == COMPACT_RESPONSE_SCHEMA {
+        let parsed = openwarrant_core::compact_verification_record::decode_response(&text)
+            .and_then(|r| r.prepare_records().map(|_| ()));
+        if let Err(error) = parsed {
+            report.push(Diagnostic::error(
+                "verify.compact-response-malformed",
+                response_path.to_string(),
+                error.to_string(),
+            ));
+            return Ok(report);
+        }
+    } else if response.schema == RESPONSE_SCHEMA && !response.reviewed_views.is_empty() {
+        report.push(Diagnostic::error(
+            "verify.response-cross-protocol",
+            response_path.to_string(),
+            "view bindings require the explicit v3 response protocol; nothing written",
+        ));
+        return Ok(report);
+    }
+    if matches!(
+        response.schema.as_str(),
+        RESPONSE_SCHEMA | COMPACT_RESPONSE_SCHEMA
+    ) && (response.reviewed_subject.is_none() || response.reviewed_packets.is_empty())
     {
         report.push(Diagnostic::error(
             "verify.response-binding-required",
@@ -1008,6 +1108,23 @@ pub fn ingest(
             report.push(Diagnostic::error("verify.packet-binding", response_path.to_string(),
                 "packet identity, subject, performer or obligation coverage does not match; nothing was written"));
             return Ok(report);
+        }
+        if response.schema == COMPACT_RESPONSE_SCHEMA {
+            let ids: Vec<_> = response
+                .verifications
+                .iter()
+                .map(|v| v.obligation.clone())
+                .collect();
+            if !crate::bundle::preview::views_cover(
+                repo,
+                &one,
+                &response.reviewed_packets,
+                &response.reviewed_views,
+                &ids,
+            )? {
+                report.push(Diagnostic::error("verify.view-binding", response_path.to_string(), "actual view, archive projection or obligation coverage differs; nothing was written"));
+                return Ok(report);
+            }
         }
     } else if response.reviewed_subject.is_some() {
         report.push(Diagnostic::unknown(
@@ -1123,7 +1240,7 @@ pub fn ingest(
             continue;
         }
         let path = vdir.join(format!("{}.toml", v.obligation));
-        let stored = record::new(v, &response);
+        let stored = record::new(v, &response)?;
         let rendered = toml::to_string_pretty(&stored).map_err(|e| RepoError::Io {
             context: format!("could not serialize verification for {}", v.obligation),
             source: std::io::Error::other(e.to_string()),
@@ -1133,10 +1250,18 @@ pub fn ingest(
         // The record's own digest is in the payload so that a re-verification
         // reaching the same disposition on new evidence is a new event, not a
         // refused duplicate.
-        let payload = match &response.reviewed_subject {
+        let mut payload = match &response.reviewed_subject {
             Some(reviewed) => serde_json::to_string(&serde_json::json!({"obligation":v.obligation,"disposition":v.disposition,"record_digest":format!("sha256:{record_digest}"),"reviewed_subject":reviewed,"reviewed_packets":response.reviewed_packets,"verification_protocol":response.schema})).map_err(|e| RepoError::Message(e.to_string()))?,
             None => format!("{{\"obligation\":\"{}\",\"disposition\":\"{}\",\"record_digest\":\"sha256:{}\"}}", v.obligation, v.disposition, record_digest),
         };
+        if response.schema == COMPACT_RESPONSE_SCHEMA {
+            let mut value: serde_json::Value =
+                serde_json::from_str(&payload).map_err(|e| RepoError::Message(e.to_string()))?;
+            value["reviewed_views"] = serde_json::to_value(&response.reviewed_views)
+                .map_err(|e| RepoError::Message(e.to_string()))?;
+            payload =
+                serde_json::to_string(&value).map_err(|e| RepoError::Message(e.to_string()))?;
+        }
         let replay = match crate::journal_cmd::already_recorded(
             &dir,
             crate::journal_cmd::VERIFICATION_RECORDED,
@@ -1287,6 +1412,7 @@ mod tests {
 
     fn response(warrant: &str, schema: &str) -> VerificationResponse {
         VerificationResponse {
+            reviewed_views: vec![],
             reviewed_packets: vec![],
             reviewed_subject: None,
             schema: schema.to_owned(),
@@ -1320,11 +1446,11 @@ mod tests {
     fn an_unknown_response_schema_is_refused() {
         assert_eq!(
             validate_envelope(
-                &response("OW-WAR-0014", "oh.war/verification-response/v3"),
+                &response("OW-WAR-0014", "oh.war/verification-response/v4"),
                 "OW-WAR-0014"
             ),
             Err(EnvelopeRefusal::UnknownSchema {
-                found: "oh.war/verification-response/v3".to_owned()
+                found: "oh.war/verification-response/v4".to_owned()
             })
         );
     }
