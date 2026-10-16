@@ -571,9 +571,9 @@ fn judged(
         // M9: an empty list is said as what it means for ordinary work. A
         // ticket store that could not be read counts as tracked: "nothing
         // tracked" is a claim, and the finding above already says UNKNOWN.
-        let open_ticket = corpus.tickets().map_or(true, |(tickets, _)| {
-            tickets.iter().any(|t| !t.checklist.is_done())
-        });
+        let open_ticket = corpus
+            .tickets()
+            .map_or(true, |(tickets, _)| tickets.iter().any(|t| !t.is_done()));
         let open_warrant = status
             .warrants
             .iter()

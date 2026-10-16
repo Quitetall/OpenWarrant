@@ -215,7 +215,7 @@ fn of_concurrent_claim_processes_exactly_one_wins() {
         if !out.status.success() {
             let err = String::from_utf8_lossy(&out.stderr);
             assert!(
-                err.contains("ticket.claimed-by-other") && err.contains(winners[0].as_str()),
+                err.contains("work.claimed-by-other") && err.contains(winners[0].as_str()),
                 "{actor}: {err}"
             );
         }

@@ -82,6 +82,8 @@ mod ticket_cache_cli;
 mod tickets_cli;
 #[path = "verification_subject_cli.rs"]
 mod verification_subject_cli;
+#[path = "work_tracking_cli.rs"]
+mod work_tracking_cli;
 
 /// A file under tests/ that is not a module here would never run. This test
 /// fails until it is added.

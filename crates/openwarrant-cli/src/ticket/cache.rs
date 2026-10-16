@@ -508,10 +508,12 @@ impl Cache {
     /// [`Store::load_all`]'s per-directory answers, in listing order: exactly
     /// what reading the files gives, with the cache rewritten where it
     /// gained an entry. The shards are read while the store is listed.
+    #[allow(clippy::type_complexity)]
     pub(crate) fn load(
         &self,
         store: &Store,
-    ) -> Result<Vec<Option<Result<Ticket, Diagnostic>>>, crate::repo::RepoError> {
+    ) -> Result<(Vec<Utf8PathBuf>, Vec<Option<Result<Ticket, Diagnostic>>>), crate::repo::RepoError>
+    {
         let ids: Vec<usize> = (0..SHARDS).collect();
         let read = || crate::vfs::map_ordered(&ids, 1, |&i| self.read_shard(i));
         let (entries, shards) = std::thread::scope(|scope| {
@@ -553,7 +555,7 @@ impl Cache {
                 if listed { "cache" } else { "directory" }
             );
         }
-        Ok(got.into_iter().map(|g| g.ticket).collect())
+        Ok((entries, got.into_iter().map(|g| g.ticket).collect()))
     }
 
     /// Shard `i` again: every entry of it this run can vouch for, in
@@ -655,7 +657,7 @@ impl Cache {
     /// journal stats as it did, else [`crate::go::blocked_of`] over the
     /// files, stat'ed first. A done ticket has none to cache.
     fn journal(&self, t: &mut Ticket, old: Option<(Range<usize>, &[u8])>) -> Part {
-        if t.checklist.is_done() {
+        if t.is_done() {
             return Part::None;
         }
         let now = seen(&t.dir.join(crate::journal_cmd::FILE));
@@ -712,6 +714,9 @@ fn hit(dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ticket> {
         checklist,
         revision,
         blocked: None,
+        format: false,
+        done_whole: false,
+        depends_on: Vec::new(),
     })
 }
 

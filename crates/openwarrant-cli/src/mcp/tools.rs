@@ -116,7 +116,7 @@ pub struct DoneParams {
     pub note: Option<String>,
     /// Write only if the target is still at this revision (from `war_show`'s
     /// `revision`, or an item's); a stale one is refused
-    /// `warrant.stale-revision`, naming the current one.
+    /// `work.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
     /// Run the item's tests and KPIs first and tick at `observed` only when
@@ -139,7 +139,7 @@ pub struct AddParams {
     pub after: Vec<String>,
     /// Write only if the target is still at this revision (from `war_show`'s
     /// `revision`, or an item's); a stale one is refused
-    /// `warrant.stale-revision`, naming the current one.
+    /// `work.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
@@ -155,7 +155,7 @@ pub struct NoteParams {
     pub text: String,
     /// Write only if the target is still at this revision (from `war_show`'s
     /// `revision`, or an item's); a stale one is refused
-    /// `warrant.stale-revision`, naming the current one.
+    /// `work.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.

@@ -84,6 +84,13 @@ pub fn add(
     let what = target_item
         .as_ref()
         .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
+    if let Some(refusal) = super::format_unsupported(
+        store,
+        t,
+        "a checks atom beside the document (FORMAT-1.0 §12: a check is a record in the document)",
+    ) {
+        return Ok(refusal);
+    }
     // M11: a stale `--if-rev` writes nothing, part or item.
     if let Some(refusal) = super::check_if_rev(store, t, target_item.as_deref(), &what, if_rev) {
         return Ok(refusal);

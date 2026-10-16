@@ -258,7 +258,9 @@ value of the `--json` envelope, the same under either spelling.
   drafts a directory one, and a declared state is part of the type's
   workflow model, beside `model` and `impact`.
 - **`release` is under `admin`, beside `heartbeat`**: both manage claim
-  leases rather than the work itself.
+  leases rather than the work itself. **`reopen`** (FORMAT-1.0 §11.2's
+  `work.item_reopened`) sits beside them: unticking an item is rare, and a
+  thirteenth daily verb is not spent on it.
 - **`diff` and `commit` are under `admin`**, beside `compile`: both read the
   compiled projections.
 - **`dispatch` and `dispatch-bundle` stay under `admin`**, as planned: the

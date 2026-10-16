@@ -17,8 +17,52 @@ Notable changes to OpenWarrant. Format loosely follows
   `true` it is refused by name, `independence.single-actor-contradicted`,
   and the WARN stays. No preset writes it.
 
+- Work tracking under Format 1.0 draft 3 (FORMAT-1.0 §11). A Format 1.0
+  ticket (`docs/tickets/<id>.md` or `<id>/ticket.md`) is worked by `war
+  claim`, `done`, `add`, `note`, `admin release` and the new `war admin
+  reopen <item> --reason` (`work.item_reopened`), its journal written in
+  the `v: 2` envelope (`document_uuid`, an object payload, RFC 8785 lines,
+  `work.*` types). A directory ticket keeps writing `v: 1` and `ticket.*`;
+  a reader reads both, in one journal, and a `ticket.*` type as its
+  `work.*` name. `war check` now reads every ticket's journal
+  (`work.journal-torn`, `-malformed`, `-rewritten`) and warns of a tick
+  level the journal does not back (`work.tick-unbacked`). The kernel state
+  set gains `blocked`, `claimed`, `failing` (from a recorded `check.run`)
+  and `partially_accepted`, appended to `oh.war/model/v1`'s states.
+  `war next --at <RFC 3339>` answers as of a given time. Under draft 3
+  revision 1: a Format 1.0 ticket with no items is claimed and done as
+  itself (its done a `work.item_done` naming it, no line added); an item
+  is `blocked` while its document's `depends_on` is not done; a `part_of`
+  child counts as an item of its parent's phase; a journal line lacking a
+  member, with a `v` other than 1 or 2, or whose key does not match is
+  `work.journal-malformed`, a `v` above 2 UNKNOWN `work.journal-newer`,
+  and only a committed line missing, changed or reordered is
+  `work.journal-rewritten`; of two conflicting events the later
+  `occurred_at` (then the greater `id`) wins. `[claims]
+  claim_lease_minutes`/`claim_ttl_minutes` and `[next] prior_secs` are
+  read first, the old `[tickets]`/`[go]` keys after. The estimate median
+  of an even count is the lower middle value, and a missing `created_at`
+  sorts last.
+
 ### Changed
 
+- `war next`, `war view ready` and `war evidence go` share FORMAT-1.0
+  §11.5's order: due (inherited from what waits on an item), then the
+  remaining path (critical path first), then priority, `created_at`, id and
+  the item's position. A claim past its TTL whose lease is still live no
+  longer leaves its item in the ready set: it is live, and `war claim
+  --steal` still takes it. `oh.war/ticket-ready/v1` rows carry `due` and
+  `remaining_secs`.
+- Rule ids renamed under `work.` (FORMAT-1.0 §13.2), each message naming
+  the old id for one release (`(formerly ...)`): `work.stale-revision`
+  (`warrant.stale-revision`), `work.claimed-by-other`
+  (`ticket.claimed-by-other`), `work.claim-remote-unreachable`
+  (`ticket.claim-remote-unreachable`, now UNKNOWN rather than an error),
+  `work.journal-rewritten` (`journal.rewritten`), `work.journal-malformed`
+  (`journal.malformed`), `work.journal-torn` (`journal.torn-tail`),
+  `work.idempotency-conflict` (`journal.idempotency-conflict`). The same
+  fact in a `v: 1` and a `v: 2` line is one fact: payloads are compared as
+  RFC 8785 bytes.
 - `war sign` (issue #132): a refusal that nobody is eligible names the
   register by the path it resolved, says whether it is absent (pointing at
   the `roles.toml.example` beside it) or present with no one eligible for

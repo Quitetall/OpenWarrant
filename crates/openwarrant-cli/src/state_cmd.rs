@@ -80,6 +80,7 @@ struct Entry {
     note: Option<String>,
     actor: String,
     at: String,
+    id: String,
 }
 
 fn entries_in(dir: &Utf8Path) -> Vec<Entry> {
@@ -109,6 +110,7 @@ fn entries_in(dir: &Utf8Path) -> Vec<Entry> {
                 note: s("note"),
                 actor: e.actor_ref.clone(),
                 at: e.occurred_at.clone(),
+                id: e.id.clone(),
             })
         })
         .collect()
@@ -119,10 +121,18 @@ fn entries_in(dir: &Utf8Path) -> Vec<Entry> {
 /// profile no longer declares (or now declares refining something else)
 /// reads lapsed.
 fn evaluate(entries: Vec<Entry>, holding: &[Holding], declared: &[DeclaredState]) -> Vec<Declared> {
-    // The latest entry per (record, parent): journal order is append order.
+    // The latest entry per (record, parent), FORMAT-1.0 §11.2: the later
+    // `occurred_at`, and of two at one time the greater `id` — never the
+    // order of the lines.
     let mut latest: BTreeMap<(String, String), Entry> = BTreeMap::new();
     for e in entries {
-        latest.insert((e.record.clone(), e.refines.clone()), e);
+        let key = (e.record.clone(), e.refines.clone());
+        let wins = latest
+            .get(&key)
+            .is_none_or(|old| (e.at.as_str(), e.id.as_str()) > (old.at.as_str(), old.id.as_str()));
+        if wins {
+            latest.insert(key, e);
+        }
     }
     latest
         .into_values()
@@ -150,33 +160,76 @@ fn evaluate(entries: Vec<Entry>, holding: &[Holding], declared: &[DeclaredState]
 
 /// The fixed states holding for a ticket and its items. Nothing without
 /// `claims`: open, in progress and done are what claiming and finishing
-/// produce.
-pub fn ticket_holding(caps: Capabilities, t: &Ticket, claims: &Claims) -> Vec<Holding> {
+/// produce. FORMAT-1.0 §11.1 adds, beside them: `claimed` for an item or
+/// the ticket a live claim names (a claim whose lease ran out names
+/// nothing; a lock that does not parse still holds, fail closed), and
+/// `blocked` for an open item an item it waits on is not done — judged over
+/// `tickets` when given (a blocker in another ticket is looked up there),
+/// and not judged without them.
+pub fn ticket_holding(
+    caps: Capabilities,
+    t: &Ticket,
+    tickets: Option<&[Ticket]>,
+    claims: &Claims,
+) -> Vec<Holding> {
     let mut out = Vec::new();
     if !caps.has(openwarrant_core::Capability::Claims) {
         return out;
     }
+    let now = ticket::now_secs();
+    let live = |c: Option<&Claim>| c.is_none_or(|c| !c.lease_expired(now));
     let tid = t.id();
     out.push(Holding {
         record: tid.to_owned(),
-        state: match ticket::state_of(t, claims) {
+        state: match ticket::phase_of(t, tickets, claims) {
             ticket::TicketState::Open => FixedState::Open,
             ticket::TicketState::InProgress => FixedState::InProgress,
             ticket::TicketState::Done => FixedState::Done,
         },
         episode: None,
     });
+    let whole = ticket::claim_on(claims, tid, None);
+    if !t.is_done()
+        && let Some((_, c)) = whole
+        && live(c)
+    {
+        out.push(Holding {
+            record: tid.to_owned(),
+            state: FixedState::Claimed,
+            episode: c.map(|c| c.claim.clone()),
+        });
+    }
     for item in &t.checklist.items {
         let Some(iid) = &item.id else { continue };
-        let held = ticket::claim_on(claims, tid, Some(iid))
-            .or_else(|| ticket::claim_on(claims, tid, None));
+        let record = format!("{tid}/{iid}");
+        let held = ticket::claim_on(claims, tid, Some(iid)).or(whole);
         let (state, episode) = match (item.done, held) {
             (true, _) => (FixedState::Done, None),
             (false, Some((_, c))) => (FixedState::InProgress, c.map(|c| c.claim.clone())),
             (false, None) => (FixedState::Open, None),
         };
+        if !item.done
+            && let Some((_, c)) = held
+            && live(c)
+        {
+            out.push(Holding {
+                record: record.clone(),
+                state: FixedState::Claimed,
+                episode: episode.clone(),
+            });
+        }
+        if !item.done
+            && let Some(all) = tickets
+            && !ticket::waiting_on(all, t, item).is_empty()
+        {
+            out.push(Holding {
+                record: record.clone(),
+                state: FixedState::Blocked,
+                episode: None,
+            });
+        }
         out.push(Holding {
-            record: format!("{tid}/{iid}"),
+            record,
             state,
             episode,
         });
@@ -186,12 +239,17 @@ pub fn ticket_holding(caps: Capabilities, t: &Ticket, claims: &Claims) -> Vec<Ho
 
 /// The declared states on record for a ticket and its items.
 #[must_use]
-pub fn ticket_declared(store: &ticket::Store, t: &Ticket, claims: &Claims) -> Vec<Declared> {
+pub fn ticket_declared(
+    store: &ticket::Store,
+    t: &Ticket,
+    tickets: Option<&[Ticket]>,
+    claims: &Claims,
+) -> Vec<Declared> {
     let entries = entries_in(&t.dir);
     if entries.is_empty() {
         return Vec::new();
     }
-    let holding = ticket_holding(store.definition.capabilities(), t, claims);
+    let holding = ticket_holding(store.definition.capabilities(), t, tickets, claims);
     evaluate(entries, &holding, &store.definition.states)
 }
 
@@ -354,6 +412,202 @@ fn warrant_declared(corpus: &Corpus, dir: &Utf8Path, holding: &[Holding]) -> Vec
     evaluate(entries, holding, &declared)
 }
 
+// ---- fixed states: checks (FORMAT-1.0 §11.1, §12) -------------------------
+
+/// The payload of a `check.run` event (FORMAT-1.0 §11.2, §12), as read.
+/// The checks runner that records it is a later step; this is its shape.
+#[derive(Debug, Clone, PartialEq, serde::Deserialize)]
+pub struct CheckRun {
+    pub check: String,
+    pub run: String,
+    /// `PASS`, `FAIL` or `UNKNOWN` (read without regard to case).
+    pub verdict: String,
+    pub revision: String,
+    /// `[id, revision]` of each record or item the check evaluates, at the
+    /// run (draft 3, revision 1).
+    #[serde(default)]
+    pub subjects: Vec<(String, String)>,
+    #[serde(default)]
+    pub commit: Option<String>,
+    #[serde(default)]
+    pub output_sha256: Option<String>,
+    #[serde(default)]
+    pub value: Option<f64>,
+}
+
+/// The payload of a `trigger.fired` event (FORMAT-1.0 §12), as read.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+pub struct TriggerFired {
+    pub check: String,
+    pub trigger: String,
+    pub subject: String,
+}
+
+/// The last `check.run` of each check in a journal, by the check's id as
+/// the payload names it: the latest `occurred_at`, the greater `id`
+/// breaking a tie (FORMAT-1.0 §11.2). A payload that is not a run's shape
+/// is no run.
+#[must_use]
+pub fn last_runs(journal: &openwarrant_core::journal::Journal) -> BTreeMap<String, CheckRun> {
+    last_runs_where(journal, &|_| true)
+}
+
+/// [`last_runs`] over the runs `keep` admits (a check's current revision's).
+pub fn last_runs_where(
+    journal: &openwarrant_core::journal::Journal,
+    keep: &dyn Fn(&CheckRun) -> bool,
+) -> BTreeMap<String, CheckRun> {
+    let mut last: BTreeMap<String, ((String, String), CheckRun)> = BTreeMap::new();
+    for e in &journal.events {
+        if e.event_type != ticket::event::CHECK_RUN {
+            continue;
+        }
+        let Ok(run) = serde_json::from_str::<CheckRun>(&e.payload) else {
+            continue;
+        };
+        if !keep(&run) {
+            continue;
+        }
+        let at = (e.occurred_at.clone(), e.id.clone());
+        if last.get(&run.check).is_none_or(|(prev, _)| at > *prev) {
+            last.insert(run.check.clone(), (at, run));
+        }
+    }
+    last.into_iter().map(|(k, (_, r))| (k, r)).collect()
+}
+
+/// `failing` (FORMAT-1.0 §11.1): each check or kpi record of a Format 1.0
+/// work document whose last recorded run on its current revision
+/// (`check.run`, in the document's journal) failed. With no run on record a check has no such state: it is
+/// absent, never assumed passing or failing.
+fn failing(corpus: &Corpus) -> Vec<Holding> {
+    let repo = corpus.repo();
+    let mut out = Vec::new();
+    for d in corpus.format_docs().docs.iter().filter(|d| d.admitted()) {
+        let Some(alias) = d.doc.alias.as_deref() else {
+            continue;
+        };
+        // Each check with its current revision: a run on an older one says
+        // nothing about it now (§11.1, §12).
+        let checks: BTreeMap<&str, String> = d
+            .doc
+            .units
+            .iter()
+            .filter(|u| matches!(u.record_type.as_str(), "check" | "kpi"))
+            .map(|u| {
+                (
+                    u.id.as_str(),
+                    openwarrant_core::format::sha256(
+                        d.bytes.get(u.start..u.end).unwrap_or_default(),
+                    ),
+                )
+            })
+            .collect();
+        if checks.is_empty() {
+            continue;
+        }
+        let source = repo.root.join(&d.source);
+        let dir = match source.file_name() {
+            Some("warrant.md" | "ticket.md") => source.parent().map(Utf8Path::to_owned),
+            _ => source.parent().map(|p| p.join(alias)),
+        };
+        let Some(dir) = dir else { continue };
+        let Ok(journal) = crate::journal_cmd::load(&dir) else {
+            continue;
+        };
+        let current = |r: &CheckRun| {
+            let local = r.check.rsplit('/').next().unwrap_or(&r.check);
+            checks.get(local).is_some_and(|rev| *rev == r.revision)
+        };
+        let runs = last_runs_where(&journal, &current);
+        for c in checks.keys() {
+            let global = format!("{alias}/{c}");
+            let run = runs.get(*c).or_else(|| runs.get(&global));
+            if run.is_some_and(|r| r.verdict.eq_ignore_ascii_case("fail")) {
+                out.push(Holding {
+                    record: global,
+                    state: FixedState::Failing,
+                    episode: None,
+                });
+            }
+        }
+    }
+    out
+}
+
+// ---- the primary state (FORMAT-1.0 §11.1, §10.2) ----------------------------
+
+/// A work document's phases, latest last: the one shown is the latest
+/// that holds.
+const PHASES: [&str; 6] = [
+    "draft",
+    "open",
+    "in_progress",
+    "done",
+    "authorized",
+    "resolved",
+];
+
+/// The primary state a record shows in the index and in packets
+/// (FORMAT-1.0 §11.1, draft 3 revision 1): the first that holds of
+/// `superseded`; the record's `phase` (a work document, `warrant` or
+/// `ticket`: the latest of `draft`, `open`, `in_progress`, `done` or an
+/// Appendix C phase that holds); its `checklist` state (an item: `done`,
+/// `claimed`, `blocked` or `open`, in that order); its `check` state
+/// (`failing`); its `disposition`; its `acceptance` (`accepted`,
+/// `partially_accepted`); else `-`. A declared state that holds is shown
+/// after its parent: `in_progress/in_review`.
+///
+/// `states` are the model's states of this one record (`oh.war/model/v1`
+/// `states[]`): kernel states (`computed`, `authenticated`, `declared`)
+/// and the builders' (`phase`, `checklist`, `disposition`, ...).
+#[must_use]
+pub fn primary_state(record_type: &str, states: &[&crate::model::State]) -> String {
+    let holds = |v: &str| {
+        states
+            .iter()
+            .any(|s| s.value == v && !s.lapsed && s.kind != StateKind::Declared.as_str())
+    };
+    let first = |vs: &[&str]| vs.iter().find(|v| holds(v)).map(|v| (*v).to_owned());
+    let work = matches!(record_type, "warrant" | "ticket");
+    let base: Option<String> = first(&["superseded"])
+        .or_else(|| {
+            work.then(|| {
+                PHASES
+                    .iter()
+                    .rev()
+                    .find(|p| holds(p))
+                    .map(|p| (*p).to_owned())
+            })
+            .flatten()
+        })
+        .or_else(|| {
+            (record_type == "item")
+                .then(|| first(&["done", "claimed", "blocked", "open"]))
+                .flatten()
+        })
+        .or_else(|| first(&["failing"]))
+        .or_else(|| {
+            states
+                .iter()
+                .find(|s| s.kind == "disposition")
+                .map(|s| s.value.clone())
+        })
+        .or_else(|| first(&["accepted", "partially_accepted"]));
+    let Some(base) = base else {
+        return "-".to_owned();
+    };
+    // A declared state refining a state that holds follows it.
+    match states.iter().find(|s| {
+        s.kind == StateKind::Declared.as_str()
+            && !s.lapsed
+            && s.refines.as_deref().is_some_and(&holds)
+    }) {
+        Some(d) => format!("{base}/{}", d.value),
+        None => base,
+    }
+}
+
 // ---- the model -----------------------------------------------------------
 
 fn fixed_state(h: &Holding) -> crate::model::State {
@@ -401,11 +655,18 @@ pub fn model_states(corpus: &Corpus) -> Result<BTreeSet<crate::model::State>, Re
         let claims = store.claims().unwrap_or_default();
         let caps = store.definition.capabilities();
         for t in tickets {
-            out.extend(ticket_holding(caps, t, &claims).iter().map(fixed_state));
-            for d in ticket_declared(&store, t, &claims) {
+            out.extend(
+                ticket_holding(caps, t, Some(tickets), &claims)
+                    .iter()
+                    .map(fixed_state),
+            );
+            for d in ticket_declared(&store, t, Some(tickets), &claims) {
                 out.insert(declared_state(&d));
             }
         }
+    }
+    for h in failing(corpus) {
+        out.insert(fixed_state(&h));
     }
     Ok(out)
 }
@@ -499,8 +760,8 @@ fn subject(
             uuid: t.manifest.uuid.clone(),
             actor: store.actor.clone(),
             declared: store.definition.states.clone(),
-            holding: ticket_holding(store.definition.capabilities(), t, &claims),
-            on_record: ticket_declared(&store, t, &claims),
+            holding: ticket_holding(store.definition.capabilities(), t, Some(&tickets), &claims),
+            on_record: ticket_declared(&store, t, Some(&tickets), &claims),
             record,
         }));
     }
@@ -704,4 +965,105 @@ pub fn enter(
         human: message,
         result: result(true),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn st(kind: &str, value: &str, refines: Option<&str>, lapsed: bool) -> crate::model::State {
+        crate::model::State {
+            record: "t-1/i-1".to_owned(),
+            kind: kind.to_owned(),
+            value: value.to_owned(),
+            provenance: "computed".to_owned(),
+            facet: None,
+            refines: refines.map(str::to_owned),
+            lapsed,
+        }
+    }
+
+    /// FORMAT-1.0 §11.1: an item shows `done`, `claimed`, `blocked` or
+    /// `open`, the first that holds; a declared state that holds follows
+    /// it; a lapsed one does not.
+    #[test]
+    fn an_items_primary_state_is_the_first_that_holds() {
+        let open = st("computed", "open", None, false);
+        let blocked = st("computed", "blocked", None, false);
+        let claimed = st("computed", "claimed", None, false);
+        let in_progress = st("computed", "in_progress", None, false);
+        let review = st("declared", "in_review", Some("in_progress"), false);
+        let lapsed = st("declared", "in_review", Some("in_progress"), true);
+        assert_eq!(primary_state("item", &[&open, &blocked]), "blocked");
+        assert_eq!(primary_state("item", &[&open]), "open");
+        assert_eq!(
+            primary_state("item", &[&in_progress, &claimed, &review]),
+            "claimed/in_review"
+        );
+        assert_eq!(
+            primary_state("item", &[&in_progress, &claimed, &lapsed]),
+            "claimed"
+        );
+        // A declared state never stands in for a fixed one.
+        assert_eq!(primary_state("item", &[&review]), "-");
+    }
+
+    /// A work document shows its latest phase; `superseded` beats every
+    /// phase; an obligation its disposition; anything else `-`.
+    #[test]
+    fn a_documents_primary_state_is_its_latest_phase() {
+        let draft = st("computed", "draft", None, false);
+        let authorized = st("authenticated", "authorized", None, false);
+        let in_progress = st("computed", "in_progress", None, false);
+        let superseded = st("computed", "superseded", None, false);
+        let review = st("declared", "in_review", Some("in_progress"), false);
+        assert_eq!(primary_state("warrant", &[&draft]), "draft");
+        assert_eq!(
+            primary_state("warrant", &[&draft, &authorized]),
+            "authorized"
+        );
+        assert_eq!(
+            primary_state("ticket", &[&in_progress, &review]),
+            "in_progress/in_review"
+        );
+        assert_eq!(
+            primary_state("warrant", &[&authorized, &superseded]),
+            "superseded"
+        );
+        let disposition = st("disposition", "established", None, false);
+        assert_eq!(primary_state("obligation", &[&disposition]), "established");
+        assert_eq!(primary_state("requirement", &[&draft]), "-");
+    }
+
+    /// FORMAT-1.0 §11.1, §12: a check's last recorded run decides `failing`;
+    /// a later pass clears it, and with no run there is nothing to read.
+    #[test]
+    fn the_last_check_run_decides() {
+        let ev = |at: &str, verdict: &str| {
+            crate::journal_cmd::event_in(
+                crate::journal_cmd::Shape::V2,
+                "u",
+                ticket::event::CHECK_RUN,
+                "war",
+                at,
+                &format!(
+                    r#"{{"check":"CHK-1","run":"{at}","verdict":"{verdict}","revision":"sha256:0","subjects":[["t-1/i-1","sha256:1"]]}}"#
+                ),
+            )
+            .unwrap()
+        };
+        let mut j = openwarrant_core::journal::Journal::default();
+        assert!(last_runs(&j).is_empty());
+        j.append(ev("2026-10-15T10:00:00Z", "FAIL")).unwrap();
+        assert_eq!(last_runs(&j)["CHK-1"].verdict, "FAIL");
+        assert_eq!(last_runs(&j)["CHK-1"].subjects[0].0, "t-1/i-1");
+        j.append(ev("2026-10-15T11:00:00Z", "PASS")).unwrap();
+        assert_eq!(last_runs(&j)["CHK-1"].verdict, "PASS");
+        // A run on another revision of the check is not its last run now.
+        assert!(last_runs_where(&j, &|r| r.revision == "sha256:other").is_empty());
+        // A run whose time is earlier does not override a later one,
+        // whatever line it is on.
+        j.append(ev("2026-10-15T09:00:00Z", "FAIL")).unwrap();
+        assert_eq!(last_runs(&j)["CHK-1"].verdict, "PASS");
+    }
 }

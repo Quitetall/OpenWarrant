@@ -223,7 +223,7 @@ fn blocked_in(
 pub fn blocked_nodes(tickets: &[Ticket]) -> Vec<BlockedNode> {
     // One journal per open ticket, each read on its own: on the disk they
     // fan out across threads, in ticket order (`vfs::map_ordered`).
-    let open: Vec<&Ticket> = tickets.iter().filter(|t| !t.checklist.is_done()).collect();
+    let open: Vec<&Ticket> = tickets.iter().filter(|t| !t.is_done()).collect();
     // The ticket cache read them already, from the same journals.
     if open.iter().all(|t| t.blocked.is_some()) {
         return open
@@ -466,7 +466,10 @@ pub fn run(
     };
     run.overlay(&tickets);
     let mut history_report = Report::default();
-    let history = crate::estimate::learn(&tickets, run.policy.prior_secs, &mut history_report);
+    // `[next] prior_secs` first (FORMAT-1.0 §11.5), so `war next` and this
+    // run estimate alike.
+    let prior = crate::estimate::prior_secs(&run.store.root, Some(run.policy.prior_secs));
+    let history = crate::estimate::learn(&tickets, prior, &mut history_report);
     for d in history_report.diagnostics {
         run.report.push(d);
     }

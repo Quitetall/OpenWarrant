@@ -125,6 +125,7 @@ pub mod vfs;
 pub mod warrants;
 pub mod watch;
 pub mod webui;
+pub mod work_rules;
 
 #[derive(clap::Subcommand, Debug)]
 enum KfCommand {
@@ -577,6 +578,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "commit",
             "heartbeat",
             "release",
+            "reopen",
             "renumber",
             "agents-md",
             "import",
@@ -741,7 +743,18 @@ enum DailyCommand {
     /// then an agent's acts, then the acts a person signs. With nothing
     /// tracked it says "nothing tracked; work freely": ordinary work needs
     /// no Warrant. A signing step is always a person's.
-    Next,
+    ///
+    /// The ready items are FORMAT-1.0 §11.5's order: due first (inherited
+    /// from what waits on an item), then the critical path, then priority,
+    /// then age, alias and position. It is a function of the documents,
+    /// journals, claims and the time, so agents asking at once get one
+    /// order.
+    Next {
+        /// Answer as of this time (RFC 3339, e.g. `2026-10-15T12:00:00Z`)
+        /// instead of now: which claims' leases have run out is judged then.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+    },
     /// Start a Warrant's work in a worktree of its own, with its settings.
     ///
     /// Claims the item (or a Warrant with no items, or an agent stage
@@ -787,7 +800,7 @@ enum DailyCommand {
         #[arg(long)]
         note: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
@@ -856,7 +869,7 @@ enum DailyCommand {
         #[arg(long, value_name = "LEVEL")]
         min: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
@@ -872,7 +885,7 @@ enum DailyCommand {
         /// The note; Markdown, may span lines.
         text: String,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
@@ -905,7 +918,7 @@ enum DailyCommand {
         #[arg(long, value_name = "DATE")]
         due: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
@@ -1836,8 +1849,23 @@ enum AdminCommand {
     Release {
         target: String,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Untick a done item: its box opens again, its done suffix goes, and
+    /// the journal records why (`work.item_reopened`, FORMAT-1.0 §11.2).
+    Reopen {
+        /// The done item (`t-x/i-y`, or `i-y`).
+        target: String,
+        /// Why it is open again; journalled with the reopening.
+        #[arg(long)]
+        reason: String,
+        /// Write only if the item is still at this revision, the one `war
+        /// show --json` gave; refused `work.stale-revision` otherwise.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
@@ -3479,7 +3507,19 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let (report, result, human) = go::start::run(&repository, &id, &opts)?;
             Ok(go_answer(mode, "start", &report, result, &human))
         }
-        DailyCommand::Next => {
+        DailyCommand::Next { at } => {
+            if let Some(at) = at {
+                let secs = chrono::DateTime::parse_from_rfc3339(at.trim())
+                    .ok()
+                    .and_then(|d| u64::try_from(d.timestamp()).ok())
+                    .ok_or_else(|| {
+                        repo::RepoError::Message(format!(
+                            "next.at: `--at {at}` is not an RFC 3339 time (e.g. \
+                             2026-10-15T12:00:00Z)"
+                        ))
+                    })?;
+                ticket::answer_at(secs);
+            }
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
@@ -4286,7 +4326,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let corpus = corpus::Corpus::new(&repository);
             let store = ticket::Store::open(&repository, None)?;
             let prior = match go::policy::load(&repository.root) {
-                Ok(p) => p.prior_secs,
+                Ok(p) => estimate::prior_secs(&repository.root, Some(p.prior_secs)),
                 Err(d) => {
                     let mut report = diagnostic::Report::default();
                     report.push(d);
@@ -5909,6 +5949,19 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                 mode,
                 "release",
                 &ticket::release(&store, &target, if_rev.as_deref())?,
+            ))
+        }
+        AdminCommand::Reopen {
+            target,
+            reason,
+            if_rev,
+            actor,
+        } => {
+            let (_, store) = ctx.tickets(actor.as_deref())?;
+            Ok(ticket_answer(
+                mode,
+                "reopen",
+                &ticket::reopen(&store, &target, &reason, if_rev.as_deref())?,
             ))
         }
         AdminCommand::MergeTicket {

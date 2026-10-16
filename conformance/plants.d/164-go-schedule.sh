@@ -9,7 +9,7 @@
 # item after N3's).
 #
 # Accepted: before the history, an estimate is the prior (30m, `prior`);
-# after it, N1's is the median of its type and label (900s, `type+label`,
+# after it, N1's is the median of its type and label (600s, the lower middle of two, `type+label`,
 # n=2), N2's of its type (3600s, `type`), N3's of all (1200s, `all`, n=3);
 # the critical path is N2's two items (7200s), and it starts first. A due
 # date on N4 (not ready: it waits on N3) makes N3 start first, and N4 itself
@@ -76,8 +76,10 @@ sed -i 's/^- \[ \] /- [x] /' "$GE_ROOT/docs/tickets/$GE_H1/atoms/15-checklist.md
 GE_EST=$(gew --json plan estimate 2>/dev/null)
 GE_E1=$(ge_est "$GE_N1/$GE_n1"); GE_E2=$(ge_est "$GE_N2/$GE_n2a"); GE_E3=$(ge_est "$GE_N3/$GE_n3")
 GE_SAMPLES=$(ge_field "$GE_EST" '(v["result"]["history"]["samples"], v["result"]["history"]["unclaimed_ticks"])')
-if [[ "$GE_E1" == "(900, 'type+label', 2)" && "$GE_E2" == "(3600, 'type', 1)" && "$GE_E3" == "(1200, 'all', 3)" ]]; then
-    ge_ok "estimates come from the journal" "bug+ui 15m (n=2), feature 1h (n=1), chore 20m from all (n=3)"
+# FORMAT-1.0 §11.5 (draft 3 revision 1): with an even count the median is
+# the lower middle value, so bug+ui's 10m and 20m give 10m.
+if [[ "$GE_E1" == "(600, 'type+label', 2)" && "$GE_E2" == "(3600, 'type', 1)" && "$GE_E3" == "(1200, 'all', 3)" ]]; then
+    ge_ok "estimates come from the journal" "bug+ui 10m (n=2, the lower middle), feature 1h (n=1), chore 20m from all (n=3)"
 else
     ge_fail "estimates come from the journal" "N1 $GE_E1, N2 $GE_E2, N3 $GE_E3"
 fi

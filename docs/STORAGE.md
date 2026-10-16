@@ -96,7 +96,7 @@ newline included, in one `write`, and then fsyncs the file. An append that
 returned is on disk.
 
 An append cut short leaves a **torn tail**: a final line that has no newline
-and does not parse. `war check` reports it as `journal.torn-tail` (error) and
+and does not parse. `war check` reports it as `work.journal-torn` (error) and
 gives:
 
 - the line number and the byte offset where the unfinished line starts;
@@ -106,13 +106,13 @@ gives:
 
 `war` does not run the truncation (20-basis U-001). Repairing a journal is a
 person's act. Any command that must read the journal before it writes, which
-includes every append, refuses with the same `journal.torn-tail` message until
+includes every append, refuses with the same `work.journal-torn` message until
 the tail is removed.
 
-`journal.torn-tail` is reported only for that shape. A line that does not
+`work.journal-torn` is reported only for that shape. A line that does not
 parse and does have a newline after it was written whole. It is
-`journal.malformed`, as before, whether it is in the middle of the file or at
-the end. `journal.rewritten` and `journal.malformed` for committed lines are
+`work.journal-malformed`, as before, whether it is in the middle of the file or at
+the end. `work.journal-rewritten` and `work.journal-malformed` for committed lines are
 unchanged.
 
 If the last line has no newline but does parse, it was written whole by hand

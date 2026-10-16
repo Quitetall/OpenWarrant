@@ -855,7 +855,9 @@ fn unverified_capture_is_replayable_and_survives_loss_of_original_inputs() {
     let journal = f.root.join("docs/warrants/IX-WAR-0003/journal.jsonl");
     let mut text = fs::read_to_string(&journal).unwrap();
     text.push_str(" \t\n");
-    text.push_str(&serde_json::to_string(&json!({"v":1,"id":"synthetic-note-event","warrant_uuid":f.dispatch.warrant_ref.strip_prefix("war://").unwrap(),"type":"fixture.note","class":"draft_history","actor_ref":"agent://fixture","occurred_at":"2026-10-09T12:00:00Z","payload":"{}","idempotency_key":"fixture-note"})).unwrap());
+    let mut note = json!({"v":1,"id":"synthetic-note-event","warrant_uuid":f.dispatch.warrant_ref.strip_prefix("war://").unwrap(),"type":"fixture.note","class":"draft_history","actor_ref":"agent://fixture","occurred_at":"2026-10-09T12:00:00Z","payload":"{}","idempotency_key":""});
+    note["idempotency_key"] = v1_key(&note).into();
+    text.push_str(&serde_json::to_string(&note).unwrap());
     text.push('\n');
     fs::write(journal, text).unwrap();
     assert!(f.import().status.success());
@@ -3219,4 +3221,15 @@ fn blut_recorded_binding_retains_blut_native_field_names() {
     assert!(result["binding"].get("stage").is_none());
     assert!(result["binding"].get("attempt").is_none());
     assert_eq!(result["assurance_granted"], false);
+}
+
+/// The FORMAT-1.0 §11.2 key of a v1 event: sha256 of `<uuid> LF <type> LF
+/// <payload text>`. A line whose key does not match is malformed.
+fn v1_key(event: &serde_json::Value) -> String {
+    use sha2::Digest;
+    let s = |k: &str| event[k].as_str().unwrap_or_default().to_owned();
+    let d = sha2::Sha256::digest(
+        format!("{}\n{}\n{}", s("warrant_uuid"), s("type"), s("payload")).as_bytes(),
+    );
+    d.iter().map(|b| format!("{b:02x}")).collect()
 }

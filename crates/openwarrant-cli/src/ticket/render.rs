@@ -286,7 +286,7 @@ fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
             .filter_map(|(_, c)| c.clone())
             .collect(),
         dir: store.rel(&t.dir),
-        declared_states: crate::states::ticket_declared(store, t, claims),
+        declared_states: crate::states::ticket_declared(store, t, None, claims),
         kind: t.manifest.kind.clone(),
         labels: t.manifest.labels.clone(),
         part_of: t.manifest.part_of.clone(),
@@ -994,7 +994,11 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     if !children.is_empty() {
         result["tickets"] = serde_json::to_value(&children).unwrap_or_default();
     }
-    Ok(Outcome::ok(md.trim_end().to_owned(), result))
+    let mut out = Outcome::ok(md.trim_end().to_owned(), result);
+    for w in super::ladder::unbacked(store, t, &report) {
+        out.report.push(w);
+    }
+    Ok(out)
 }
 
 /// `## Checks` in `war show`: each test, each KPI with its latest, best and
