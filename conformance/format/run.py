@@ -211,9 +211,14 @@ class War:
     def read(self, case, work):
         kind = case_kind(case)
         if kind in ("tracking", "apply"):
-            # No adapter maps a tracking or apply case to war's commands yet;
-            # war's results for these cases are listed in known-war.txt.
-            raise RuntimeError(f"no war adapter for {kind} cases")
+            # A tracking case names one operation (README.md, "Tracking
+            # cases"); each has a method `track_<op>`. An operation with none
+            # is listed in known-war.txt.
+            op = read_args(case)[0]
+            handler = getattr(self, "track_" + op.replace("-", "_"), None)
+            if kind == "apply" or handler is None:
+                raise RuntimeError(f"no war adapter for {kind} operation {op!r}")
+            return handler(case, work)
         tree = os.path.join(work, "repo")
         shutil.copytree(self.template, tree, symlinks=True)
         shutil.copytree(os.path.join(case, "input"), tree, dirs_exist_ok=True)
@@ -278,6 +283,50 @@ class War:
                                                "content_digest")} for r in recs],
             "relations": rels, "findings": findings,
         }
+
+
+    def track_states(self, case, work):
+        """`states`: the states of `war model --json` (11.1) of the case's own records."""
+        tree = os.path.join(work, "repo")
+        shutil.copytree(self.template, tree, symlinks=True)
+        shutil.copytree(os.path.join(case, "input"), tree, dirs_exist_ok=True)
+        files = input_files(case)
+        env = dict(ENV, **war_acts_env(case))
+        p = subprocess.run([self.war, "model", "--json", "--root", tree], cwd=tree, env=env,
+                           capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120)
+        try:
+            model = json.loads(p.stdout)["result"]
+        except (json.JSONDecodeError, KeyError, TypeError):
+            raise RuntimeError(f"war model: exit {p.returncode}: {p.stderr.strip()[-400:]}")
+        own = {r["id"] for r in model["records"] if r.get("source") in files}
+        states = []
+        for s in model["states"]:
+            if s["record"] not in own or s["kind"] not in STATE_FAMILIES:
+                continue
+            states.append({k: s[k] for k in ("record", "kind", "value", "provenance",
+                                             "refines", "lapsed") if s.get(k) is not None
+                           and not (k == "lapsed" and s[k] is False)})
+        states.sort(key=lambda s: (s["record"], s["kind"], s["value"]))
+        findings = sorted({f"{d['rule']} {d['record']}" for d in model["diagnostics"]
+                           if d.get("rule") in SPEC_RULES})
+        return {"records": [], "relations": [], "findings": findings, "states": states,
+                "tree": tree}
+
+
+# The state families of section 11.1 (a state's `kind`).
+STATE_FAMILIES = {"phase", "checklist", "currency", "check", "disposition", "acceptance",
+                  "outcome"}
+
+
+def war_acts_env(case):
+    """Tracking cases: `acts/*.json` are acceptance acts taken as verified (README.md).
+
+    The corpus carries no signature. A debug build of war reads such a
+    directory from OPENWARRANT_CORPUS_ACTS, and says so on standard error; a
+    release build has no such path, so it believes only signed acts.
+    """
+    acts = os.path.join(case, "acts")
+    return {"OPENWARRANT_CORPUS_ACTS": acts} if os.path.isdir(acts) else {}
 
 
 # ---------------------------------------------------------------- compare --
