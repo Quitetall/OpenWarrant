@@ -201,35 +201,35 @@
 
 ## docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md
 > -
-- OW-ADR-0001 · adr · - · ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation · docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md:1
+- OW-ADR-0001 · adr · accepted · ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation · docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md:1
 
 ## docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md
 > -
-- OW-ADR-0002 · adr · - · ADR OW-0002: Parse atom frontmatter with a restricted reader, not a YAML library · docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md:1
+- OW-ADR-0002 · adr · accepted · ADR OW-0002: Parse atom frontmatter with a restricted reader, not a YAML library · docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md:1
 
 ## docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md
 > -
-- OW-ADR-0003 · adr · - · ADR OW-0003: Extend the restricted reader for structured atoms rather than adopt a YAML library · docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md:1
+- OW-ADR-0003 · adr · accepted · ADR OW-0003: Extend the restricted reader for structured atoms rather than adopt a YAML library · docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md:1
 
 ## docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md
 > -
-- OW-ADR-0004 · adr · - · ADR OW-0004: Represent partial authorization and partial contract coverage explicitly · docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md:1
+- OW-ADR-0004 · adr · accepted · ADR OW-0004: Represent partial authorization and partial contract coverage explicitly · docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md:1
 
 ## docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md
 > -
-- OW-ADR-0005 · adr · - · ADR OW-0005: A local gate is a candidate, and a gate is not a string · docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md:1
+- OW-ADR-0005 · adr · accepted · ADR OW-0005: A local gate is a candidate, and a gate is not a string · docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md:1
 
 ## docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md
 > -
-- OW-ADR-0006 · adr · - · ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown · docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md:1
+- OW-ADR-0006 · adr · accepted · ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown · docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md:1
 
 ## docs/adr/atoms/OW-ADR-0007-91-2-residue-narrowing.md
 > -
-- OW-ADR-0007 · adr · - · ADR OW-0007: §91.2 tests 11, 13, 14 and 15 are narrowed, each for a different reason · docs/adr/atoms/OW-ADR-0007-91-2-residue-narrowing.md:1
+- OW-ADR-0007 · adr · superseded · ADR OW-0007: §91.2 tests 11, 13, 14 and 15 are narrowed, each for a different reason · docs/adr/atoms/OW-ADR-0007-91-2-residue-narrowing.md:1
 
 ## docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md
 > -
-- OW-ADR-0008 · adr · - · ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text · docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md:1
+- OW-ADR-0008 · adr · accepted · ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text · docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md:1
 
 ## docs/adr/atoms/OW-ADR-0009-openwarrant-bonsai-authority-seam.md
 > -
@@ -265,7 +265,7 @@
 
 ## docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md
 > -
-- OW-ADR-0017 · adr · - · ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 · docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md:1
+- OW-ADR-0017 · adr · accepted · ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 · docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md:1
 
 ## docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md
 > -
@@ -277,7 +277,7 @@
 
 ## docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md
 > -
-- OW-ADR-0020 · adr · - · ADR OW-0020: ratatui and crossterm for the terminal dashboard · docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md:1
+- OW-ADR-0020 · adr · accepted · ADR OW-0020: ratatui and crossterm for the terminal dashboard · docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md:1
 
 ## docs/adr/atoms/OW-ADR-0021-pin-ownership.md
 > -
@@ -646,25 +646,25 @@
 
 ## docs/roadmap/atoms/20-phases.yaml
 > -
-- OW-PHASE-0 · phase · - · Telemetry shim · docs/roadmap/atoms/20-phases.yaml:20
-- OW-PHASE-1 · phase · - · File-native WAR compiler · docs/roadmap/atoms/20-phases.yaml:28
-- OW-PHASE-2 · phase · - · Agent planner · docs/roadmap/atoms/20-phases.yaml:36
-- OW-PHASE-3 · phase · - · ADR federation · docs/roadmap/atoms/20-phases.yaml:44
-- OW-PHASE-4 · phase · - · Knowledge Fabric registration · docs/roadmap/atoms/20-phases.yaml:52
-- OW-PHASE-5 · phase · - · Dispatch and Katana execution · docs/roadmap/atoms/20-phases.yaml:60
-- OW-PHASE-6 · phase · - · Gate Registry and assurance case · docs/roadmap/atoms/20-phases.yaml:68
-- OW-PHASE-7 · phase · - · BLUT adapter · docs/roadmap/atoms/20-phases.yaml:76
-- OW-PHASE-8 · phase · - · Liminal production compiler · docs/roadmap/atoms/20-phases.yaml:84
-- OW-PHASE-9 · phase · - · High-assurance controls · docs/roadmap/atoms/20-phases.yaml:92
-- OW-PHASE-10 · phase · - · Contractor Work Order profile · docs/roadmap/atoms/20-phases.yaml:100
+- OW-PHASE-0 · phase · accepted · Telemetry shim · docs/roadmap/atoms/20-phases.yaml:20
+- OW-PHASE-1 · phase · accepted · File-native WAR compiler · docs/roadmap/atoms/20-phases.yaml:28
+- OW-PHASE-2 · phase · accepted · Agent planner · docs/roadmap/atoms/20-phases.yaml:36
+- OW-PHASE-3 · phase · accepted · ADR federation · docs/roadmap/atoms/20-phases.yaml:44
+- OW-PHASE-4 · phase · accepted · Knowledge Fabric registration · docs/roadmap/atoms/20-phases.yaml:52
+- OW-PHASE-5 · phase · accepted · Dispatch and Katana execution · docs/roadmap/atoms/20-phases.yaml:60
+- OW-PHASE-6 · phase · accepted · Gate Registry and assurance case · docs/roadmap/atoms/20-phases.yaml:68
+- OW-PHASE-7 · phase · accepted · BLUT adapter · docs/roadmap/atoms/20-phases.yaml:76
+- OW-PHASE-8 · phase · accepted · Liminal production compiler · docs/roadmap/atoms/20-phases.yaml:84
+- OW-PHASE-9 · phase · accepted · High-assurance controls · docs/roadmap/atoms/20-phases.yaml:92
+- OW-PHASE-10 · phase · accepted · Contractor Work Order profile · docs/roadmap/atoms/20-phases.yaml:100
 
 ## docs/roadmap/roadmap.toml
 > -
-- OW-ROADMAP · roadmap · - · - · docs/roadmap/roadmap.toml:1
+- OW-ROADMAP · roadmap · accepted · - · docs/roadmap/roadmap.toml:1
 
 ## docs/sas/WAR_Software_Architecture_Specification.md
 > -
-- WAR-SAS · spec · - · WAR Software Architecture Specification · docs/sas/WAR_Software_Architecture_Specification.md:1
+- WAR-SAS · spec · accepted · WAR Software Architecture Specification · docs/sas/WAR_Software_Architecture_Specification.md:1
 - WAR-SAS-1 · section · - · Purpose · docs/sas/WAR_Software_Architecture_Specification.md:38
 - WAR-SAS-2 · section · - · Scope · docs/sas/WAR_Software_Architecture_Specification.md:55
 - WAR-SAS-2.1 · section · - · Initial scope · docs/sas/WAR_Software_Architecture_Specification.md:57
@@ -1714,7 +1714,7 @@
 
 ## docs/tickets/t-b9610/manifest.toml
 > Reject stale independent verification after its reviewed subject changes
-- t-b9610 · ticket · open · Reject stale independent verification after its reviewed subject changes · docs/tickets/t-b9610/manifest.toml:1
+- t-b9610 · ticket · in_progress · Reject stale independent verification after its reviewed subject changes · docs/tickets/t-b9610/manifest.toml:1
 
 ## docs/tickets/t-c1325/manifest.toml
 > Keep typed-document compile output inside the JSON envelope
@@ -1738,7 +1738,7 @@
 
 ## docs/tickets/t-cba8f/manifest.toml
 > Bind provider runtime receipts to actual dispatch and compilation basis
-- t-cba8f · ticket · open · Bind provider runtime receipts to actual dispatch and compilation basis · docs/tickets/t-cba8f/manifest.toml:1
+- t-cba8f · ticket · in_progress · Bind provider runtime receipts to actual dispatch and compilation basis · docs/tickets/t-cba8f/manifest.toml:1
 
 ## docs/tickets/t-cc3c9/manifest.toml
 > M16: CLAUDE.md and AGENTS.md
@@ -1750,7 +1750,7 @@
 
 ## docs/tickets/t-cee5/manifest.toml
 > war prepare: take a Warrant to its sign-off unattended
-- t-cee5 · ticket · open · war prepare: take a Warrant to its sign-off unattended · docs/tickets/t-cee5/manifest.toml:1
+- t-cee5 · ticket · in_progress · war prepare: take a Warrant to its sign-off unattended · docs/tickets/t-cee5/manifest.toml:1
 
 ## docs/tickets/t-d052/manifest.toml
 > Battery plants that fail only under parallel load
@@ -2086,7 +2086,7 @@
 
 ## docs/warrants/OW-WAR-0073/manifest.toml
 > war tui: the dashboard in the terminal
-- OW-WAR-0073 · warrant · authorized · war tui: the dashboard in the terminal · docs/warrants/OW-WAR-0073/manifest.toml:1
+- OW-WAR-0073 · warrant · superseded · war tui: the dashboard in the terminal · docs/warrants/OW-WAR-0073/manifest.toml:1
 
 ## docs/warrants/OW-WAR-0074/manifest.toml
 > Adopt the exact RC.2 build basis without rewriting history
