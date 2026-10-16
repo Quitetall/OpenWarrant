@@ -240,6 +240,9 @@ impl Outcome {
 /// One ticket as read from disk.
 #[derive(Debug, Clone)]
 pub struct Ticket {
+    /// The repository that supplied this reading, not a root reconstructed
+    /// from a directory that may have been replaced since the load.
+    pub(crate) repository_root: Utf8PathBuf,
     pub dir: Utf8PathBuf,
     pub manifest: TicketManifest,
     pub intent_path: Utf8PathBuf,
@@ -581,6 +584,7 @@ impl Store {
         let (checklist_path, checklist_text) = atom(CHECKLIST_ROLE)?;
         let checklist = ticket::parse(&checklist_text);
         Ok(Ticket {
+            repository_root: self.root.clone(),
             dir: dir.to_owned(),
             manifest,
             intent_path,

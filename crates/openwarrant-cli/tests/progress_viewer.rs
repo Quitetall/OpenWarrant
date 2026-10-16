@@ -270,6 +270,40 @@ fn working_form_nonregular_source_is_reported_without_waiting_for_a_writer() {
 }
 #[cfg(unix)]
 #[test]
+fn a_loaded_ticket_cannot_read_proof_through_a_replaced_directory() {
+    let fixture = Fixture::new();
+    let outside = Fixture::new();
+    fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let repo =
+        openwarrant_cli::repo::Repository::open(fixture.0.clone().try_into().unwrap()).unwrap();
+    let store = openwarrant_cli::ticket::Store::open(&repo, None).unwrap();
+    let loaded = store
+        .load(camino::Utf8Path::from_path(&dir).unwrap())
+        .unwrap();
+    std::fs::create_dir(outside.0.join("atoms")).unwrap();
+    std::fs::write(
+        outside.0.join("atoms/30-checks.md"),
+        "# Checks\n\n## Tests\n\n- outside: `echo outside-repository`\n",
+    )
+    .unwrap();
+    std::fs::rename(&dir, dir.with_extension("saved")).unwrap();
+    std::os::unix::fs::symlink(&outside.0, &dir).unwrap();
+    let report = openwarrant_cli::ticket::ladder::ticks_of(
+        &openwarrant_cli::ticket::ladder::Reader::new(&store),
+        &loaded,
+    );
+    assert!(report.unavailable.is_some(), "{report:?}");
+    assert!(report.checks.tests.is_empty());
+}
+
+#[cfg(unix)]
+#[test]
 fn nonregular_proof_atom_is_unknown_without_blocking_progress() {
     let fixture = Fixture::new();
     fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);

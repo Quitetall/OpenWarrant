@@ -596,7 +596,10 @@ impl Cache {
         let shard = shard_of(name);
         let old = &shards[shard];
         if let Some((_, tr, jr)) = old.get(name)
-            && let Some(mut t) = old.bytes.get(tr.clone()).and_then(|b| hit(dir, stamp, b))
+            && let Some(mut t) = old
+                .bytes
+                .get(tr.clone())
+                .and_then(|b| hit(&store.root, dir, stamp, b))
         {
             let old_journal = jr
                 .as_ref()
@@ -680,7 +683,7 @@ impl Cache {
 /// The ticket an entry holds, when its three files stat as they did: the
 /// manifest (`stamp`, already taken) and both atoms, at the paths the
 /// manifest names. Exactly what [`Store::load`] builds from the same files.
-fn hit(dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ticket> {
+fn hit(root: &Utf8Path, dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ticket> {
     let mut r = Reader::new(bytes);
     if r.stamp()? != stamp {
         return None;
@@ -703,6 +706,8 @@ fn hit(dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ticket> {
     }
     let checklist = ticket::parse(&checklist_text);
     Some(Ticket {
+        // Derived from this reader's store; never trusted from cache bytes.
+        repository_root: root.to_owned(),
         dir: dir.to_owned(),
         manifest,
         intent_path,

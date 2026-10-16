@@ -77,7 +77,7 @@ fn read_checks(t: &Ticket) -> Result<Checks, String> {
         Ok(meta) if !meta.is_file() => return Err("Proof source must be a regular file".into()),
         Ok(_) => {}
     }
-    crate::vfs::read_regular_to_string(t.dir.as_std_path(), path.as_std_path())
+    crate::vfs::read_regular_to_string(t.repository_root.as_std_path(), path.as_std_path())
         .map(|text| ticks::parse(&text))
         .map_err(|e| e.to_string())
 }
