@@ -93,7 +93,7 @@ FC_DOC_AFTER=$(sha256sum "$FC_ROOT/docs/tickets/t-fc03.md" | cut -c1-64)
 : > "$FC_ROOT/gate.txt"
 fc_war done t-fc03/i-fc31 --as dev >/dev/null 2>&1
 if [[ "$FC_REFUSED" == *"refused (check.failed)"* && "$FC_DOC_BEFORE" == "$FC_DOC_AFTER" ]] \
-    && fc_doc t-fc03 | grep -q -- '- \[x\] gated (i-fc31) — done by dev, .* \[observed\]$'; then
+    && grep -q -- '- \[x\] gated (i-fc31) — done by dev, .* \[observed\]$' <<<"$(fc_doc t-fc03)"; then
     fc_ok "done fires its check" "failing: refused check.failed, document unchanged; passing: [observed]"
 else
     fc_fail "done fires its check" "refusal '$FC_REFUSED', unchanged $([[ "$FC_DOC_BEFORE" == "$FC_DOC_AFTER" ]] && echo yes || echo no)"
@@ -112,7 +112,7 @@ FC_BEFORE_SRC=$(fc_doc t-fc04)
 mkdir -p "$FC_ROOT/src" && : > "$FC_ROOT/src/main.rs"
 fc_commit "src"
 if [[ "$FC_HOOK" == check.hook-exists && "$FC_THEIRS" == *"echo theirs"* && "$FC_BEFORE_SRC" != *"[x]"* ]] \
-    && fc_doc t-fc04 | grep -q -- '- \[x\] built (i-fc41) — done by .* \[observed\]$'; then
+    && grep -q -- '- \[x\] built (i-fc41) — done by .* \[observed\]$' <<<"$(fc_doc t-fc04)"; then
     fc_ok "the commit hook fires paths:" "a foreign hook kept (check.hook-exists); ours ticked i-fc41 [observed]"
 else
     fc_fail "the commit hook fires paths:" "hook '$FC_HOOK', theirs '$FC_THEIRS'; $(fc_doc t-fc04 | grep i-fc41)"
