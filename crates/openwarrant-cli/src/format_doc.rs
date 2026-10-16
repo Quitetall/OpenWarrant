@@ -12,6 +12,20 @@
 //!   legacy Warrant (or ticket), whatever else it holds.
 //! - A record document is a `docs/records/<area>/*.md` whose frontmatter
 //!   declares `format:`; the `oh.war/records/v1` reader skips it.
+//! - The specification (§4.5) is `SPEC.md` at the root and its parts
+//!   `spec/<area>.md`, each when its frontmatter declares `format:`. Its
+//!   records are global; its own record is `doc:<path>`, type `spec`. A
+//!   file of profile `spec` that is not `SPEC.md` and names no `part_of` is
+//!   a second root and is refused (`format.document-duplicate`).
+//!
+//! # Profiles
+//!
+//! Each document is read under its profile (§7.4): a built-in of §7.6, or
+//! a Format 1.0 profile file `profiles/<name>.toml`
+//! ([`openwarrant_core::format_profile`]). A refused file is reported
+//! (`profile.invalid`) and its documents read `format.profile-unknown`.
+//! A file without `format = "openwarrant/1.0"` is a legacy profile, read by
+//! the legacy registry; it governs no document here.
 //!
 //! A file at a Warrant or ticket path whose name is an alias and whose
 //! frontmatter declares no `format:` is refused (`format.unrecognised`, §6);
@@ -36,6 +50,7 @@ use std::collections::BTreeSet;
 use camino::{Utf8Path, Utf8PathBuf};
 
 use openwarrant_core::format::{self, Document, Outcome};
+use openwarrant_core::format_profile::{self, Lookup, Profiles};
 
 use crate::corpus::Corpus;
 use crate::diagnostic::{Diagnostic, Report};
@@ -47,6 +62,8 @@ pub enum Place {
     Warrant,
     Ticket,
     Records,
+    /// `SPEC.md` or `spec/<area>.md` (§4.5).
+    Spec,
 }
 
 /// One document read.
@@ -84,6 +101,8 @@ pub struct Fault {
 pub struct FormatDocs {
     pub docs: Vec<Loaded>,
     pub faults: Vec<Fault>,
+    /// The profiles the documents were read under.
+    pub profiles: Profiles,
 }
 
 impl FormatDocs {
@@ -131,30 +150,110 @@ fn sorted_entries(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
     out
 }
 
+/// The repository's profiles (§7.5): every `profiles/*.toml` that is a
+/// Format 1.0 profile, over the built-ins of §7.6.
+#[must_use]
+pub fn profiles(repo: &Repository) -> Profiles {
+    let files: Vec<(String, Vec<u8>)> = sorted_entries(&repo.root.join("profiles"))
+        .into_iter()
+        .filter(|p| p.extension() == Some("toml") && crate::vfs::is_file(p))
+        .filter_map(|p| Some((repo.relative(&p), crate::vfs::read(&p).ok()?)))
+        .collect();
+    Profiles::load(files.iter().map(|(f, b)| (f.as_str(), b.as_slice())))
+}
+
+/// `SPEC.md` and `spec/<area>.md` that declare `format:` (§4.5).
+#[must_use]
+pub fn spec_files(repo: &Repository) -> Vec<Utf8PathBuf> {
+    let declares = |p: &Utf8Path| {
+        crate::vfs::read(p).is_ok_and(|b| format::declares_format(&String::from_utf8_lossy(&b)))
+    };
+    let root = repo.root.join("SPEC.md");
+    std::iter::once(root)
+        .chain(
+            sorted_entries(&repo.root.join("spec"))
+                .into_iter()
+                .filter(|p| p.extension() == Some("md")),
+        )
+        .filter(|p| crate::vfs::is_file(p) && declares(p))
+        .collect()
+}
+
 /// Read every Format 1.0 document of `repo`.
 #[must_use]
 pub fn load(repo: &Repository) -> FormatDocs {
-    let mut out = FormatDocs::default();
+    let mut out = FormatDocs {
+        profiles: profiles(repo),
+        ..FormatDocs::default()
+    };
+    for bad in &out.profiles.invalid {
+        out.faults.push(Fault {
+            outcome: Outcome::Refusal,
+            rule: format_profile::INVALID_RULE,
+            file: bad.file.clone(),
+            line: 1,
+            message: format!(
+                "{}; a document naming this profile reads `format.profile-unknown`",
+                bad.detail
+            ),
+        });
+    }
     for (place, dir) in [
         (Place::Warrant, repo.warrants_dir()),
         (Place::Ticket, tickets_dir(repo)),
     ] {
         work_documents(repo, place, &dir, &mut out);
     }
-    for path in crate::records::files(repo) {
+    let others = spec_files(repo)
+        .into_iter()
+        .map(|p| (p, Place::Spec))
+        .chain(
+            crate::records::files(repo)
+                .into_iter()
+                .map(|p| (p, Place::Records)),
+        );
+    for (path, place) in others {
         let Ok(bytes) = crate::vfs::read(&path) else {
             continue;
         };
         if format::declares_format(&String::from_utf8_lossy(&bytes)) {
-            let doc = format::parse(&bytes);
+            let source = repo.relative(&path);
+            let doc = format::parse_with(&bytes, &out.profiles, &source);
             out.docs.push(Loaded {
-                source: repo.relative(&path),
-                place: Place::Records,
+                source,
+                place,
                 doc,
                 bytes,
             });
         }
     }
+    // §4.5: one root specification. A file of profile `spec` that is not
+    // `SPEC.md` and names no `part_of` is a second one.
+    for d in &out.docs {
+        if d.doc.profile == "spec"
+            && d.source != "SPEC.md"
+            && !d.doc.relations.iter().any(|r| r.kind == "part_of")
+        {
+            out.faults.push(Fault {
+                outcome: Outcome::Refusal,
+                rule: "format.document-duplicate",
+                file: d.source.clone(),
+                line: 1,
+                message: format!(
+                    "{} has profile `spec`, is not SPEC.md and names no `part_of`: a second \
+                     root specification. A part says `part_of: doc:SPEC.md`",
+                    d.source
+                ),
+            });
+        }
+    }
+    let second: BTreeSet<String> = out
+        .faults
+        .iter()
+        .filter(|f| f.rule == "format.document-duplicate")
+        .map(|f| f.file.clone())
+        .collect();
+    out.docs.retain(|d| !second.contains(&d.source));
     out
 }
 
@@ -198,7 +297,7 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
             continue;
         }
         seen.insert(alias.clone(), source.clone());
-        let mut doc = format::parse(&bytes);
+        let mut doc = format::parse_with(&bytes, &out.profiles, &source);
         // §3.3: a document at a work-document path is a work document, so
         // it declares `alias:`.
         if !doc.refused() && !doc.unknown() && doc.alias.is_none() {
@@ -237,10 +336,14 @@ fn manifest_restates(repo: &Repository, dir: &Utf8Path, doc: &Document, out: &mu
         });
         return;
     };
+    let declared: Vec<&str> = match out.profiles.lookup(&doc.profile) {
+        Lookup::Found(p) => p.frontmatter_keys().collect(),
+        _ => format::profile_keys(&doc.profile).to_vec(),
+    };
     let defined: BTreeSet<&str> = format::CORE_KEYS
         .iter()
-        .chain(format::profile_keys(&doc.profile))
         .copied()
+        .chain(declared)
         .chain(["atoms", "local_alias", "title", "schema"])
         .collect();
     for key in value.keys() {
