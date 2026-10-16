@@ -16,6 +16,16 @@ import tempfile
 
 ROOT=Path(__file__).resolve().parents[2]
 LIMIT=256*1024*1024
+# The source archive carries what builds, documents and checks the tool, not
+# the repository's own evidence. Evidence (archived history, run captures,
+# implementation records) grew the tree past LIMIT by alpha.4; it stays in
+# the repository, where it is cited, and out of the download.
+SOURCE_EXCLUDE=('archive/','artifacts/','docs/evidence/')
+WARRANT_EVIDENCE=re.compile(r'docs/warrants/[^/]+/(implementation|gate-runs|verifications)/')
+
+
+def in_source(path):
+    return not path.startswith(SOURCE_EXCLUDE) and not WARRANT_EVIDENCE.match(path)
 
 
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -33,6 +43,7 @@ def source_inventory(head):
         if not row:continue
         info,name=row.split(b'\t',1);mode,kind,oid,size=info.split()
         if kind!=b'blob':raise ValueError('Submodule source requires an explicit release profile')
+        if not in_source(name.decode()):continue
         total+=int(size)
         if total>LIMIT:raise ValueError('Source archive input limit exceeded')
         entries[name.decode()]={'mode':mode.decode(),'object':oid.decode(),'bytes':int(size)}
@@ -108,8 +119,9 @@ def bundle(war,output,label):
     required=['.claude/skills/openwarrant/LICENSE.mattpocock','docs/sas/drafts/1.0.0-rc.3/source-set.json',
               'docs/sas/drafts/1.0.0-rc.2/format-contract.md','conformance/sdk/cli/README.md']
     if any(name not in inventory for name in required):raise ValueError('Required source component missing')
-    # Full committed workspace retains manifests, SDK source and all fixture paths.
-    source=git('archive','--format=tar',head)
+    # The committed workspace less its evidence (in_source): manifests, SDK
+    # source and every fixture path stay.
+    source=git('--literal-pathspecs','archive','--format=tar',head,'--',*sorted(inventory))
     if len(source)>LIMIT:raise ValueError('Source archive output limit exceeded')
     files['sdk-source.tar']=source
     files['CANDIDATE.md']=('''# OpenWarrant candidate rehearsal\n\nThis bundle is unverified. It does not establish Stable 1.0 or permission to deploy.\nExtract sdk-source.tar into a separate source/ directory. This preserves all\ncanonical paths: standard at source/docs/sas/drafts/1.0.0-rc.3/, SDK at\nsource/crates/openwarrant-core/, and adapted skills at source/.claude/skills/.\nTheir relative links and original license notices remain intact. Do not relocate\nindividual skill or standard files away from their referenced source context.\nOpenWarrant owns the document standard and SDK. LAMU owns semantic compilation;\nworkflow applications own orchestration, UI, storage and execution policy.\nThe CLI includes historical document compilation, not a replacement semantic compiler.\n\nVerify MANIFEST.json against every unpacked file before running bin/war.\nUse conformance/release/install_check.py from a trusted checkout to inspect a bundle.\nKeep the unpacked directory separate: removing it rolls back this local installation;\nno shell profile, global binary or existing repository is modified.\nThe supplied binary is exercised but its linkage to this source commit is not\ncryptographically authenticated. Final qualification needs native build provenance.\n''').encode()
