@@ -98,6 +98,20 @@
     },
     async progress(main) {
       const d = await api("progress");
+      const forms = d.working_forms;
+      if (forms) {
+        main.append(el("h2", { text: "Working-form Warrants" }),
+          el("p", { class: "muted", text: `${forms.completed} completed · ${forms.remaining} remaining · ${forms.total} readable records. Checklist state is unverified; it does not grant permission to execute.` }));
+        if (!forms.coverage_complete)
+          main.append(el("p", { class: "note", text: "Incomplete coverage: unreadable records are excluded from counts. " + (forms.diagnostics || []).map(d => `${d.file || d.rule}: ${d.message}`).join(" · ") }));
+        if (forms.total && forms.coverage_complete) {
+          main.append(el("progress", { max: forms.total, value: forms.completed, "aria-label": "Completed working-form Warrants; unverified" }));
+        }
+        main.append(table(["Warrant", "title", "state", "checklist", "details"], (forms.records || []).map(w => [
+          code(w.id), w.title, el("span", { class: "badge", text: w.state.replaceAll("_", " ") }),
+          `${w.done}/${w.total}`, code("war show " + w.id)
+        ])));
+      }
       const rm = d.roadmap || {};
       main.append(el("h2", { text: (rm.program || "Program") + " — roadmap" }),
         el("p", { class: "muted", text: rm.error ? rm.error

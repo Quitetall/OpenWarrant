@@ -1828,7 +1828,7 @@ fn build_view(
         "tickets" => crate::ticket::board(&crate::ticket::Store::open(repo, None)?)?,
         // `war progress --snapshot`: attributed work reports, their links,
         // the frontier — the viewer's own validated snapshot.
-        "snapshot" => json!({"snapshot": crate::progress_viewer::json_snapshot(repo)?}),
+        "snapshot" => json!({"snapshot": crate::progress_viewer::json_snapshot_with(corpus)?}),
         _ => Value::Null,
     })
 }
@@ -1895,6 +1895,7 @@ fn progress(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
         "unassigned": unassigned,
         "ladder": ladder,
         "milestones": milestones,
+        "working_forms": crate::overview::working_forms(corpus, true)?,
     }))
 }
 

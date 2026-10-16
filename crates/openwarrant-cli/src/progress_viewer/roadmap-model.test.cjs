@@ -11,6 +11,16 @@ const nodes=[
  {id:'b',parent:'release',title:'SDK',outcome:'API',warrants:['W1']}
 ];
 const entries={W1:{report:{work_state:'completed'}},W2:{report:{work_state:'blocked'}}};
+test('working forms contribute checklist state without manufacturing work reports',()=>{
+ const mixed=[{id:'release',title:'Release',outcome:'Ship',warrants:['W1','t-open','t-done','t-active']}];
+ const forms=[{id:'t-open',state:'open'},{id:'t-done',state:'done'},{id:'t-active',state:'in_progress'}];
+ const s=model.roadmapStats(mixed,'release',entries,forms);
+ assert.equal(s.completed,2);assert.equal(s.percent,50);
+ assert.equal(model.roadmapMatches(s,'','active'),true);
+ assert.equal(model.roadmapMatches(s,'','unknown'),false);
+ assert.equal(model.roadmapMatches(s,'','open'),true);
+ assert.equal(s.reports.filter(Boolean).length,1);
+});
 test('shared references count once; blocked and missing reports do not count complete',()=>{
  const s=model.roadmapStats(nodes,'release',entries);
  assert.equal(s.aliases.length,2);assert.equal(s.completed,1);assert.equal(s.percent,50);

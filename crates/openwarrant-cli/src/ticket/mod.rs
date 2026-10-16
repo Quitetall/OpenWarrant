@@ -541,8 +541,11 @@ impl Store {
         let rel = self.rel(&manifest_path);
         let bad = |message: String| Diagnostic::error("ticket.manifest", rel.clone(), message);
         before_read(&manifest_path);
-        let text = crate::vfs::read_to_string(&manifest_path)
-            .map_err(|e| bad(format!("could not read it: {e}")))?;
+        let text = crate::vfs::read_regular_to_string(
+            self.root.as_std_path(),
+            manifest_path.as_std_path(),
+        )
+        .map_err(|e| bad(format!("could not read it: {e}")))?;
         let manifest: TicketManifest =
             toml::from_str(&text).map_err(|e| bad(format!("does not parse: {e}")))?;
         let revision = revision_of(text.as_bytes());
@@ -564,7 +567,7 @@ impl Store {
         let mut atom = |role: &str| -> Result<(Utf8PathBuf, String), Diagnostic> {
             let path = dir.join(manifest.atom_path(role).unwrap_or_default());
             before_read(&path);
-            crate::vfs::read_to_string(&path)
+            crate::vfs::read_regular_to_string(self.root.as_std_path(), path.as_std_path())
                 .map(|t| (path.clone(), t))
                 .map_err(|e| {
                     Diagnostic::error(

@@ -3,7 +3,6 @@
 use crate::{
     overview,
     repo::{RepoError, Repository},
-    status,
 };
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -63,6 +62,7 @@ pub(super) struct Snapshot {
     source_revision: String,
     record_digest: String,
     legacy: overview::Overview,
+    working_forms: overview::WorkingForms,
     reports: BTreeMap<String, ReportEntry>,
     roadmap: Option<roadmap::Roadmap>,
     stage_frontier: Option<crate::frontier::Frontier>,
@@ -164,15 +164,21 @@ fn read_report(root: &Path, path: &str, alias: &str) -> Result<(WorkReport, Stri
     Ok((report, sha(&bytes)))
 }
 fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
+    let compiled = crate::corpus::Corpus::new(repo);
+    capture_with(&compiled, live)
+}
+fn capture_with(compiled: &crate::corpus::Corpus, live: bool) -> Result<Snapshot, RepoError> {
+    let repo = compiled.repo();
     let root = repo.root.canonicalize().map_err(|e| err(e.to_string()))?;
-    let corpus = status::build(repo)?;
+    let corpus = compiled.status()?;
     // OW-ADR-0023: use the same observed corpus for both views. Calling
     // `view` would assess every Warrant a second time for the same snapshot.
-    let from_record = match crate::roadmap_cmd::view_with(repo, &corpus) {
+    let from_record = match crate::roadmap_cmd::view_with(repo, corpus) {
         Ok((_, v)) => Some(roadmap::from_record(&v)),
         Err(_) => None,
     };
-    let legacy = overview::build(corpus, true);
+    let legacy = overview::build(corpus.clone(), true);
+    let working_forms = overview::working_forms(compiled, true)?;
     let git = std::process::Command::new("git")
         .args(["rev-parse", "HEAD"])
         .current_dir(&root)
@@ -189,6 +195,7 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
         source_revision: revision,
         record_digest: String::new(),
         legacy,
+        working_forms,
         reports: BTreeMap::new(),
         roadmap: None,
         stage_frontier: None,
@@ -197,10 +204,23 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
         sources: BTreeMap::new(),
     };
     let mut known_aliases = std::collections::BTreeSet::new();
+    let form_sources: Vec<_> = snapshot
+        .working_forms
+        .records
+        .iter()
+        .flat_map(|record| {
+            known_aliases.insert(record.id.clone());
+            record.sources.iter().cloned()
+        })
+        .collect();
+    for name in form_sources {
+        link(&mut snapshot, &root, &name, live).map_err(err)?;
+    }
     // The configured Warrant directories, not a hard-coded docs path, define scope.
-    for dir in repo.warrant_dirs()? {
-        let manifest = repo.load_warrant(&dir)?;
-        let Some(basis) = manifest.basis else {
+    for entry in compiled.entries()? {
+        let dir = &entry.dir;
+        let manifest = entry.loaded()?;
+        let Some(basis) = &manifest.basis else {
             continue;
         };
         let alias = basis.manifest.local_alias.to_string();
@@ -263,8 +283,10 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
             link(&mut snapshot, &root, name, live).map_err(err)?;
         }
         snapshot.roadmap = Some(roadmap);
-        match crate::frontier::run(repo, None) {
-            Ok((report, frontier)) if report.is_ready() => snapshot.stage_frontier = Some(frontier),
+        match compiled.frontier() {
+            Ok((report, frontier)) if report.is_ready() => {
+                snapshot.stage_frontier = Some(frontier.clone())
+            }
             Ok((report, _)) => {
                 snapshot.stage_frontier_error = Some(format!(
                     "{}: {:?}",
@@ -277,6 +299,7 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
     }
     snapshot.record_digest = sha(&serde_json::to_vec(&(
         &snapshot.legacy,
+        &snapshot.working_forms,
         &snapshot.reports,
         &snapshot.roadmap,
         &snapshot.stage_frontier,
@@ -378,5 +401,9 @@ pub fn live_source(repo: &Repository, key: &str) -> Result<Option<Vec<u8>>, Stri
 
 /// The same validated snapshot used by both HTML consumers. No files are written.
 pub fn json_snapshot(repo: &Repository) -> Result<serde_json::Value, RepoError> {
-    serde_json::to_value(capture(repo, true)?).map_err(|e| err(e.to_string()))
+    json_snapshot_with(&crate::corpus::Corpus::new(repo))
+}
+
+pub fn json_snapshot_with(corpus: &crate::corpus::Corpus) -> Result<serde_json::Value, RepoError> {
+    serde_json::to_value(capture_with(corpus, true)?).map_err(|e| err(e.to_string()))
 }

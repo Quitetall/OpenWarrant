@@ -3,6 +3,143 @@
 use openwarrant_core::status::{CorpusStatus, WarrantRung};
 use serde::Serialize;
 
+/// Checklist completion is a work record, never an assurance assessment.
+#[derive(Debug, Serialize)]
+pub struct WorkingForm {
+    pub id: String,
+    pub title: String,
+    pub state: crate::ticket::TicketState,
+    pub done: usize,
+    pub total: usize,
+    pub sources: Vec<String>,
+    pub source_digest: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct WorkingFormDiagnostic {
+    severity: String,
+    rule: String,
+    file: Option<String>,
+    message: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct WorkingForms {
+    pub total: usize,
+    pub completed: usize,
+    pub remaining: usize,
+    pub includes_completed: bool,
+    pub qualification_assessed: bool,
+    pub coverage_complete: bool,
+    pub diagnostics: Vec<WorkingFormDiagnostic>,
+    pub records: Vec<WorkingForm>,
+}
+
+/// Use the same cached documents and state derivation as the ticket commands.
+pub fn working_forms(
+    corpus: &crate::corpus::Corpus,
+    all: bool,
+) -> Result<WorkingForms, crate::repo::RepoError> {
+    let (tickets, diagnostics) = corpus.tickets()?;
+    let claims = crate::ticket::Store::open(corpus.repo(), None)?.claims()?;
+    let mut records = Vec::new();
+    let mut completed = 0;
+    for ticket in tickets {
+        let state = crate::ticket::state_of(ticket, &claims);
+        if state == crate::ticket::TicketState::Done {
+            completed += 1;
+            if !all {
+                continue;
+            }
+        }
+        let (done, total) = ticket.checklist.progress();
+        // Include observed document contents, not just the manifest revision:
+        // an intent or checklist edit must invalidate a viewer snapshot too.
+        let bytes = serde_json::to_vec(&(&ticket.revision, &ticket.intent, &ticket.checklist_text))
+            .map_err(|e| crate::repo::RepoError::Message(e.to_string()))?;
+        records.push(WorkingForm {
+            id: ticket.id().into(),
+            title: ticket.manifest.title.clone(),
+            state,
+            done,
+            total,
+            sources: [
+                ticket.dir.join("manifest.toml"),
+                ticket.intent_path.clone(),
+                ticket.checklist_path.clone(),
+            ]
+            .iter()
+            .map(|path| corpus.repo().relative(path))
+            .collect(),
+            source_digest: openwarrant_compiler::sha256_hex(&bytes),
+        });
+    }
+    records.sort_by(|a, b| a.id.cmp(&b.id));
+    Ok(WorkingForms {
+        total: tickets.len(),
+        completed,
+        remaining: tickets.len() - completed,
+        includes_completed: all,
+        qualification_assessed: false,
+        coverage_complete: diagnostics.is_empty(),
+        diagnostics: diagnostics
+            .iter()
+            .map(|d| WorkingFormDiagnostic {
+                severity: d.severity.to_string(),
+                rule: d.rule.clone(),
+                file: d.file.clone(),
+                message: d.message.clone(),
+            })
+            .collect(),
+        records,
+    })
+}
+
+#[derive(Debug, Serialize)]
+pub struct UnifiedOverview {
+    #[serde(flatten)]
+    legacy: Overview,
+    working_forms: WorkingForms,
+}
+
+pub fn capture(
+    corpus: &crate::corpus::Corpus,
+    all: bool,
+) -> Result<UnifiedOverview, crate::repo::RepoError> {
+    Ok(UnifiedOverview {
+        legacy: build(corpus.status()?.clone(), all),
+        working_forms: working_forms(corpus, all)?,
+    })
+}
+
+pub fn render_unified(view: &UnifiedOverview) -> String {
+    let mut text = render(&view.legacy);
+    let forms = &view.working_forms;
+    text.push_str(&format!(
+        "\n## Working-form Warrants\n\n{} remaining | {} completed | {} readable records. Completion is unverified; no execution permission is inferred.\n\n",
+        forms.remaining, forms.completed, forms.total
+    ));
+    if !forms.coverage_complete {
+        text.push_str(
+            "Coverage is incomplete; unreadable records are excluded from these counts.\n",
+        );
+    }
+    for d in &forms.diagnostics {
+        text.push_str(&format!("- {}: {}\n", cell(&d.rule), cell(&d.message)));
+    }
+    for row in &forms.records {
+        text.push_str(&format!(
+            "- {} — {}: {} ({}/{})\n",
+            cell(&row.id),
+            cell(&row.title),
+            row.state.as_str(),
+            row.done,
+            row.total
+        ));
+    }
+    text
+}
+
 #[derive(Debug, Serialize)]
 pub struct Row {
     alias: String,

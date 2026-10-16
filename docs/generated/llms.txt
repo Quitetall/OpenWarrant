@@ -1744,6 +1744,10 @@
 > Bind authorized Dispatch to exact signed current contract and immutable context holders
 - t-95254 · ticket · done · Bind authorized Dispatch to exact signed current contract and immutable context holders · docs/tickets/t-95254/manifest.toml:1
 
+## docs/tickets/t-95aa5/manifest.toml
+> Show working-form Warrants in overview and offline/live progress viewer
+- t-95aa5 · ticket · open · Show working-form Warrants in overview and offline/live progress viewer · docs/tickets/t-95aa5/manifest.toml:1
+
 ## docs/tickets/t-9a4a9/manifest.toml
 > OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh)
 - t-9a4a9 · ticket · done · OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh) · docs/tickets/t-9a4a9/manifest.toml:1
