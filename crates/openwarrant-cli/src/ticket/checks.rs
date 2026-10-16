@@ -225,11 +225,12 @@ fn run_id(c: &CheckRecord, trigger: &str, subject: &str) -> String {
     format!("r-{}", &h[..16])
 }
 
-/// The `trigger.fired` payload: the check pinned at its revision, so the
-/// idempotency key holds the revision (§12) inside the payload §11.2 gives.
+/// The `trigger.fired` payload (§11.2): the check and its revision, so the
+/// idempotency key holds the revision (§12).
 fn fired_payload(c: &CheckRecord, trigger: &str, subject: &str) -> serde_json::Value {
     serde_json::json!({
-        "check": format!("{}@{}", c.id, c.revision),
+        "check": c.id,
+        "revision": c.revision,
         "trigger": trigger,
         "subject": subject,
     })

@@ -1,4 +1,4 @@
-# repo
+# Example shop
 
 > OpenWarrant index (openwarrant/1.0). Generated; do not edit. Read any line's record with `war context <id>`.
 

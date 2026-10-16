@@ -439,6 +439,7 @@ pub struct CheckRun {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
 pub struct TriggerFired {
     pub check: String,
+    pub revision: String,
     pub trigger: String,
     pub subject: String,
 }
@@ -593,7 +594,21 @@ pub fn primary_state(record_type: &str, states: &[&crate::model::State]) -> Stri
                 .find(|s| s.kind == "disposition")
                 .map(|s| s.value.clone())
         })
-        .or_else(|| first(&["accepted", "partially_accepted"]));
+        // Acceptance is an act's (Appendix C), never a status a file says of
+        // itself: a legacy ADR's `status: accepted` is a field (§14).
+        .or_else(|| {
+            ["accepted", "partially_accepted"]
+                .iter()
+                .find(|v| {
+                    states.iter().any(|s| {
+                        s.value == **v
+                            && !s.lapsed
+                            && s.provenance != "authored"
+                            && s.kind != StateKind::Declared.as_str()
+                    })
+                })
+                .map(|v| (*v).to_owned())
+        });
     let Some(base) = base else {
         return "-".to_owned();
     };
@@ -1402,6 +1417,19 @@ mod tests {
         let disposition = st("disposition", "established", None, false);
         assert_eq!(primary_state("obligation", &[&disposition]), "established");
         assert_eq!(primary_state("requirement", &[&draft]), "-");
+    }
+
+    /// FORMAT-1.0 §11.1, §14: `accepted` is an act's; a status a file says
+    /// of itself (a legacy ADR's `status: accepted`) is a field, not acceptance.
+    #[test]
+    fn acceptance_is_an_acts_not_a_files_own_status() {
+        let act = st("authenticated", "accepted", None, false);
+        assert_eq!(primary_state("spec", &[&act]), "accepted");
+        let said = crate::model::State {
+            provenance: "authored".to_owned(),
+            ..st("status", "accepted", None, false)
+        };
+        assert_eq!(primary_state("adr", &[&said]), "-");
     }
 
     /// FORMAT-1.0 §11.1, §12: a check's last recorded run decides `failing`;

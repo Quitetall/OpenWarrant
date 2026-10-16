@@ -6,4 +6,3 @@
 
 # Draft 3, revision 1 (docs/format/FORMAT-1.0.md 1.0.0-draft.3): war implements draft 2.
 # Every kind of case (model, context, tracking, apply) has a war adapter in run.py.
-309-index  # war titles the index with [project] name, not the root directory's name (10.2), so the generated index does not change with the checkout's directory

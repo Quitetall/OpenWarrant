@@ -97,11 +97,23 @@ def DocumentStates(repo_root):
 
 # -------------------------------------------------------------- index --
 
+def repository_name(root: str) -> str:
+    """10.2: `[project] name` of the repository's `openwarrant.toml`, or else the
+    name of its root directory."""
+    import tomllib
+    try:
+        with open(os.path.join(root, "openwarrant.toml"), "rb") as f:
+            name = tomllib.load(f).get("project", {}).get("name")
+    except (OSError, tomllib.TOMLDecodeError):
+        name = None
+    return name if isinstance(name, str) and name else os.path.basename(os.path.abspath(root))
+
+
 def build_index(root: str) -> str:
     """10.2: `docs/generated/llms.txt`."""
     states = DocumentStates(root)
     repo = states.repo
-    out = [f"# {os.path.basename(os.path.abspath(root))}", "",
+    out = [f"# {repository_name(root)}", "",
            "> OpenWarrant index (openwarrant/1.0). Generated; do not edit. "
            "Read any line's record with `war context <id>`."]
     for d in sorted((d for d in repo.docs if not (d.refused or d.unknown)), key=lambda d: d.source.encode()):

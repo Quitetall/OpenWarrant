@@ -711,6 +711,11 @@ def load_acts(path: str) -> list[dict]:
 
 # --------------------------------------------------------------- writes --
 
+# 11.2: the event types that carry `episode`.
+EPISODIC = {"work.claimed", "work.claim_reclaimed", "work.claim_stolen", "work.released",
+            "work.item_done", "work.item_reopened"}
+
+
 class Writer:
     """Writes to work documents through the compare-and-set of 11.3."""
 
@@ -728,7 +733,14 @@ class Writer:
         return p
 
     def append(self, doc, etype, payload, klass="action_receipt"):
-        """11.2: append one event; a replay is not written; a conflict is refused."""
+        """11.2: append one event; a replay is not written; a conflict is refused.
+
+        A claim, release, done or reopen carries `episode`: the number of
+        events of its type for its target already in the journal (11.2)."""
+        if etype in EPISODIC and "episode" not in payload:
+            target = payload.get("target")
+            payload = dict(payload, episode=sum(
+                1 for e in self.w.events(doc.alias, etype) if self.w.ev_target(doc, e) == target))
         line, key = event_line(doc, etype, payload, self.actor, self.w.at, klass)
         for e in self.w.journals.get(doc.alias, []):
             if e["idempotency_key"] == key:
@@ -892,8 +904,8 @@ def op_evaluate(world: World, actor: str):
     """12: what the last run on each check's current revision does.
 
     A pass ticks every open item it evaluates `observed` and raises a done one
-    below `observed`; a fail with `reopen: true` reopens each done item it
-    evaluates; UNKNOWN ticks nothing. A run counts only for the subjects whose
+    below `observed`; a gating fail with `reopen: true` reopens each done item
+    it evaluates; UNKNOWN ticks nothing. A run counts only for the subjects whose
     revision it names as current.
     """
     w = Writer(world, actor)
@@ -929,7 +941,9 @@ def op_evaluate(world: World, actor: str):
                         edits.append(w.line_edit(d, it, w.raised_line(line, "observed")))
                         events.append(("work.tick_raised", {"item": it["_iid"], "target": it["id"],
                                        "from": world.backed_level.get(it["id"], "claimed"), "to": "observed"}))
-                elif verdict == "FAIL" and rec["fields"].get("reopen") == "true" and it["_box"] == "x":
+                elif (verdict == "FAIL" and rec["fields"].get("reopen") == "true"
+                      and rec["fields"].get("gating") != "false" and it["_box"] == "x"
+                      and subjects.get(it["id"]) == it["revision"]):
                     edits.append(w.line_edit(d, it, w.open_line(w.line_text(it))))
                     events.append(("work.item_reopened", {"item": it["_iid"], "target": it["id"],
                                    "reason": f"{rec['id']} failed (run {p.get('run')})"}))

@@ -201,27 +201,27 @@
 
 ## docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md
 > -
-- OW-ADR-0001 · adr · accepted · ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation · docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md:1
+- OW-ADR-0001 · adr · - · ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation · docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md:1
 
 ## docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md
 > -
-- OW-ADR-0002 · adr · accepted · ADR OW-0002: Parse atom frontmatter with a restricted reader, not a YAML library · docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md:1
+- OW-ADR-0002 · adr · - · ADR OW-0002: Parse atom frontmatter with a restricted reader, not a YAML library · docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md:1
 
 ## docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md
 > -
-- OW-ADR-0003 · adr · accepted · ADR OW-0003: Extend the restricted reader for structured atoms rather than adopt a YAML library · docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md:1
+- OW-ADR-0003 · adr · - · ADR OW-0003: Extend the restricted reader for structured atoms rather than adopt a YAML library · docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md:1
 
 ## docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md
 > -
-- OW-ADR-0004 · adr · accepted · ADR OW-0004: Represent partial authorization and partial contract coverage explicitly · docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md:1
+- OW-ADR-0004 · adr · - · ADR OW-0004: Represent partial authorization and partial contract coverage explicitly · docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md:1
 
 ## docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md
 > -
-- OW-ADR-0005 · adr · accepted · ADR OW-0005: A local gate is a candidate, and a gate is not a string · docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md:1
+- OW-ADR-0005 · adr · - · ADR OW-0005: A local gate is a candidate, and a gate is not a string · docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md:1
 
 ## docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md
 > -
-- OW-ADR-0006 · adr · accepted · ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown · docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md:1
+- OW-ADR-0006 · adr · - · ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown · docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md:1
 
 ## docs/adr/atoms/OW-ADR-0007-91-2-residue-narrowing.md
 > -
@@ -229,7 +229,7 @@
 
 ## docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md
 > -
-- OW-ADR-0008 · adr · accepted · ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text · docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md:1
+- OW-ADR-0008 · adr · - · ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text · docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md:1
 
 ## docs/adr/atoms/OW-ADR-0009-openwarrant-bonsai-authority-seam.md
 > -
@@ -265,7 +265,7 @@
 
 ## docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md
 > -
-- OW-ADR-0017 · adr · accepted · ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 · docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md:1
+- OW-ADR-0017 · adr · - · ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 · docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md:1
 
 ## docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md
 > -
@@ -277,7 +277,7 @@
 
 ## docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md
 > -
-- OW-ADR-0020 · adr · accepted · ADR OW-0020: ratatui and crossterm for the terminal dashboard · docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md:1
+- OW-ADR-0020 · adr · - · ADR OW-0020: ratatui and crossterm for the terminal dashboard · docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md:1
 
 ## docs/adr/atoms/OW-ADR-0021-pin-ownership.md
 > -

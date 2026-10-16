@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** (`1.0.0-draft.3`, revision 1). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. |
+| Status | **Draft** (`1.0.0-draft.3`, revision 2). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. |
 | Decision record | OW-ADR-0032 |
 | Licence | Text: CC-BY-4.0 (`docs/format/LICENSE`). Grammar, schemas and examples: Apache-2.0 |
 | Governance | `docs/format/GOVERNANCE.md` |
@@ -244,7 +244,9 @@ continuation:
 Optional indentation, `-` or `*`, a box `[ ]` (open) or `[x]`/`[X]`
 (done), the text, a group `(<item-id>[, after <ref>]…)`, and, on a done
 item, optionally ` — done by <actor>, <YYYY-MM-DD>`, a tick level ` [observed]`,
-` [independent]` or ` [signed]` (11.4), and `: <note>`.
+` [independent]` or ` [signed]` (11.4), and `: <note>`. `claimed` writes no
+level; any other word in the brackets, `[claimed]` included, is refused
+(`format.item`).
 `after` names an item, a ticket, or another ticket's item. `implements
 <id>` in the text is a relation. `[]`, `[y]` and other boxes are refused
 (`format.item`). A box line with no id group is reported
@@ -681,7 +683,10 @@ A tool that serves agents MUST be able to generate an index,
 - <id> · <type> · <state> · <title> · <source>:<line>
 ```
 
-`<repository name>` is the name of the repository's root directory.
+`<repository name>` is the `name` of `[project]` in the repository's
+`openwarrant.toml`, or, with no such file or key, the name of the
+repository's root directory. A configured repository's index therefore
+does not change with where it is checked out.
 Sources are sorted by path, each group preceded by one blank line, and
 records by line. A work document is listed by its own record alone; its
 units are one `war context <alias>` away. Every record of any other
@@ -983,9 +988,9 @@ event is about (`t-0d61d/i-4d11`, or an alias for a whole document) and
 | `work.item_reopened` | `{item?, target, reason, episode}` |
 | `work.note_added` | `{target, note}` |
 | `work.edited` | `{target, from_revision, to_revision}` |
-| `work.tick_raised` | `{item, target, from, to, verifier? , signer?}` |
+| `work.tick_raised` | `{item, target, from, to, runs[]?, verifier?, signer?}`; `runs` names the passing `check.run` events that raise it to `observed` |
 | `check.run` | `{check, run, verdict, revision, subjects, commit?, output_sha256?, value?}` (12): `verdict` is `PASS`, `FAIL` or `UNKNOWN`; `revision` the check's; `subjects` the `[id, revision]` of each record or item it evaluates, at the run |
-| `trigger.fired` | `{check, trigger, subject}` (12) |
+| `trigger.fired` | `{check, revision, trigger, subject}` (12): `revision` the check's; `subject` the commit or time that fired it |
 | `state.entered` | `{record, state, refines, note?}` |
 
 Journals written before this format use `ticket.*` names for the same
@@ -1109,7 +1114,9 @@ has a REQUIRED `direction` (`min` or `max`), an OPTIONAL `target` (shape
 `number`), and `mode`:
 `threshold` (passes when it meets the target), `best` (passes when it
 meets the target and records the best value seen, default) or `optimise`
-(never fails; records the value).
+(never fails: a run that prints a number passes and records it). A
+`threshold` or `best` kpi with no `target` has nothing to meet: its run
+is `UNKNOWN` (`check.unknown`).
 
 **Triggers.** When a check runs:
 
@@ -1119,7 +1126,7 @@ meets the target and records the best value seen, default) or `optimise`
 | `done` | a tracker marks an evaluated item done; the item is ticked only if the run passes. A box ticked by hand fires nothing: it is done at `claimed`, and an evaluator that later runs the check and sees it pass raises it to `observed` |
 | `commit` | a commit changes the document or a path in its `paths` |
 | `paths:<glob>` | a commit changes a matching path, so work already done is checked again |
-| `pr.merged` | a pull request citing the work merges |
+| `pr.merged` | a pull request citing the work merges: its merge commit's message names the work document's alias or the global id of one of its records |
 | `ci:<name>` | the CI check `<name>` reports on a commit |
 | `schedule:<cron>` | at the times a five-field cron expression names, in UTC |
 
@@ -1129,7 +1136,7 @@ tool that does not understand it.
 **Semantics.**
 
 - A trigger is fired by an **evaluator**: `war` itself (`war done`, `war
-  watch`), a version-control hook, or a CI step. A document only declares
+  watch`), a version-control hook (git's `post-commit`), or a CI step. A document only declares
   triggers. Firing records `trigger.fired`; the run records `check.run`
   with its verdict and the sha256 of its output, kept beside the document
   (4.3). Both events' idempotency keys (11.2) contain the check's revision
@@ -1141,7 +1148,9 @@ tool that does not understand it.
   records an observation for every obligation it evaluates. A check never
   sets a disposition; that is Appendix C's verdict.
 - A **fail** ticks nothing and makes the check `failing`; with `reopen:
-  true` it also reopens each done item it evaluates. A run that could
+  true`, a gating check (`gating: true`) also reopens each done item it
+  evaluates whose `subjects` revision is the item's current one, so a run
+  on an item since re-done reopens nothing. A run that could
   not complete (timeout, missing tool, no number from a kpi) is `UNKNOWN`
   (`check.unknown`): it ticks nothing and is never reported as a pass or a
   fail.
@@ -1229,10 +1238,14 @@ legacy unit keeps the revision of its legacy bytes and has the
 
 **Migrating a specification.** A writer MAY migrate a legacy SAS into a
 specification (4.5) without changing it: it writes `SPEC.md` (Purpose and
-Scope from the SAS's opening sections) and one `spec/<area>.md` per
-top-level SAS section, each numbered section a section of its part, each
-§106 requirement row a `requirement` with id `REQ-` and the row's number
-with `.` replaced by `-` (`WAR-SAS-101.1` → `REQ-101-1`), its text as
+Scope from the SAS's opening sections, those before its first part, which
+no part repeats) and one `spec/<area>.md` per
+top-level SAS section (each `# Part` and `# Appendix`; in a SAS with
+neither, each numbered `#` section), each numbered section a section of
+its part, each §106 requirement row a `requirement` with id `REQ-` and the
+row's number less its `<NS>-SAS-` and `RQ-` prefixes, with `.` replaced
+by `-` (`WAR-SAS-RQ-001` → `REQ-001`, `WAR-SAS-101.1` → `REQ-101-1`), its
+text as
 `statement`, and the old id as the field `legacy.id`. The SAS files stay
 where they are and stay accepted; the new specification is not accepted
 until someone accepts it (Appendix C). A reader resolves an old id to the
@@ -1326,6 +1339,8 @@ item-id       = "i-" 3*16 hex ;                 (* lowercase *)
 item-ref      = item-id | alias [ "/" item-id ] ;
 done          = " — done by " actor ", " date [ " [" level "]" ] [ ": " text ] ;
 level         = "observed" | "independent" | "signed" ;
+                                    (* any other word in its place,
+                                       `claimed` included, is format.item *)
 gate-uri      = "gate://" gate-id "@" semver ;
 gate-id       = label { "." label } ;
 semver        = digit+ "." digit+ "." digit+ [ "-" text ] ;  (* SemVer 2.0.0 *)

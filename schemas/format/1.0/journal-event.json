@@ -83,7 +83,8 @@
             "properties": { "from_revision": { "$ref": "common.json#/$defs/sha256" }, "to_revision": { "$ref": "common.json#/$defs/sha256" } } } } } },
         { "if": { "properties": { "type": { "enum": ["work.tick_raised", "ticket.tick_raised"] } } },
           "then": { "properties": { "payload": { "required": ["item", "target", "from", "to"],
-            "properties": { "from": { "$ref": "#/$defs/level" }, "to": { "$ref": "#/$defs/level" } } } } } },
+            "properties": { "from": { "$ref": "#/$defs/level" }, "to": { "$ref": "#/$defs/level" },
+              "runs": { "type": "array", "items": { "type": "string" } } } } } } },
         { "if": { "properties": { "type": { "const": "check.run" } } },
           "then": { "properties": { "payload": { "required": ["check", "run", "verdict", "revision", "subjects"],
             "properties": {
@@ -96,7 +97,8 @@
               },
               "output_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } } } } } },
         { "if": { "properties": { "type": { "const": "trigger.fired" } } },
-          "then": { "properties": { "payload": { "required": ["check", "trigger", "subject"] } } } },
+          "then": { "properties": { "payload": { "required": ["check", "revision", "trigger", "subject"],
+            "properties": { "revision": { "$ref": "common.json#/$defs/sha256" } } } } } },
         { "if": { "properties": { "type": { "const": "state.entered" } } },
           "then": { "properties": { "payload": { "required": ["record", "state", "refines"] } } } }
       ]

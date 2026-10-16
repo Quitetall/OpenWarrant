@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -366,6 +367,7 @@ class War:
         tree = os.path.join(work, "repo")
         shutil.copytree(self.template, tree, symlinks=True)
         shutil.copytree(os.path.join(case, "input"), tree, dirs_exist_ok=True)
+        project_name_over_template(case, self.template, tree)
         files = input_files(case)
         argv_file = os.path.join(case, "args")
         if os.path.isfile(argv_file):
@@ -524,6 +526,22 @@ def war_evaluate(war, case, work):
                  and d["file"].split(":")[0].startswith("docs/")}
     return {"records": [], "relations": [], "findings": sorted(findings),
             "states": war_states(war, tree, records, at), "tree": tree}
+
+
+def project_name_over_template(case, template, tree):
+    """A case's `openwarrant.toml` names its project (10.2); war's scratch
+    program keeps its own configuration with that name in place of its own."""
+    import tomllib
+    given = os.path.join(case, "input", "openwarrant.toml")
+    if not os.path.isfile(given):
+        return
+    with open(given, "rb") as f:
+        name = tomllib.load(f)["project"]["name"]
+    with open(os.path.join(template, "openwarrant.toml")) as f:
+        text = f.read()
+    text = re.sub(r'(?m)^name = ".*"$', "name = " + json.dumps(name), text, count=1)
+    with open(os.path.join(tree, "openwarrant.toml"), "w") as f:
+        f.write(text)
 
 
 def war_acts_env(case):
