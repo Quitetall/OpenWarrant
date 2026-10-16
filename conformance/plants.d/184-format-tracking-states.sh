@@ -43,7 +43,7 @@ print(" ".join(sorted(d["rule"] + " " + (d.get("file") or "") for d in v.get("di
 fs_states() { fs_war --json plan states --at "$FS_AT" 2>/dev/null | python3 -c '
 import json, sys
 v = json.load(sys.stdin)
-print(" ".join(f"{s[\"record\"]}:{s[\"kind\"]}:{s[\"value\"]}" for s in v["result"]["states"]))' 2>&1; }
+print(" ".join(":".join((s["record"], s["kind"], s["value"])) for s in v["result"]["states"]))' 2>&1; }
 
 fs_ticket "- [ ] Reset endpoint (i-9c01)\n- [ ] Email template (i-4d11)\n- [ ] Docs (i-77be, after i-4d11)\n"
 fs_commit "the corpus's ticket"
@@ -100,7 +100,7 @@ fs_war done t-0d61d/i-9c01 --as carol >/dev/null 2>&1
 FS_EP=$(python3 -c '
 import json, sys
 evs = [json.loads(l) for l in open(sys.argv[1])]
-print(" ".join(f"{e[\"type\"].split(\".\")[1]}={e[\"payload\"].get(\"episode\")}" for e in evs
+print(" ".join(e["type"].split(".")[1] + "=" + str(e["payload"].get("episode")) for e in evs
                if e["payload"].get("target") == "t-0d61d/i-9c01"))' "$FS_J" 2>&1)
 if [[ "$FS_EP" == "claimed=0 item_done=0 item_reopened=0 claimed=1 item_done=1" ]]; then
     fs_ok "episode counts again" "$FS_EP"
