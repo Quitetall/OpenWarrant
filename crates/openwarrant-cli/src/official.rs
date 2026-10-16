@@ -41,9 +41,9 @@ pub const APPROVAL_SCHEMA: &str = "oh.war/warrant-approval-response/v1";
 /// The journal events (a light Warrant's own journal).
 pub mod event {
     /// Someone asked a person to approve the Warrant.
-    pub const REQUESTED: &str = "ticket.approval_requested";
+    pub const REQUESTED: &str = "work.approval_requested";
     /// A human's approval was recorded, its signature verified.
-    pub const APPROVED: &str = "ticket.approved";
+    pub const APPROVED: &str = "work.approved";
 }
 
 /// What a Warrant is, for officialness.
@@ -601,7 +601,7 @@ fn requested_at(t: &Ticket, digest: &str) -> bool {
     let Ok(text) = crate::vfs::read_to_string(t.dir.join(crate::journal_cmd::FILE)) else {
         return false;
     };
-    if !text.contains(event::REQUESTED) {
+    if !crate::journal_cmd::may_mention(&text, event::REQUESTED) {
         return false;
     }
     crate::journal_cmd::parse(&text).is_ok_and(|j| {
@@ -911,7 +911,7 @@ pub fn requested(repo: &Repository) -> Vec<Requested> {
         let Ok(text) = crate::vfs::read_to_string(&path) else {
             continue;
         };
-        if !text.contains(event::REQUESTED) {
+        if !crate::journal_cmd::may_mention(&text, event::REQUESTED) {
             continue;
         }
         let digest = statement_digest(t);

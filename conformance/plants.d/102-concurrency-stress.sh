@@ -13,7 +13,7 @@
 # item, journalled from it; under --if-rev, eight agents racing to increment
 # one field lose no update (the journal's chain of values has no gap or
 # repeat). Throughput is printed: claims per second over the race.
-# Refused: every lost race, by name (ticket.claimed-by-other); a claim on the
+# Refused: every lost race, by name (work.claimed-by-other); a claim on the
 # killed holder's item while it still heartbeats; and the lost update itself
 # without --if-rev (two writers from one read: one increment survives), so
 # the chain check is seen to catch one. Beads (`bd`) is not run unless it is
@@ -76,7 +76,7 @@ st_agent() {
         err=$(st_war "$at" claim "$next" --as "$me" 2>&1 >/dev/null); rc=$?
         if [[ $rc -eq 0 ]]; then
             echo "$next" >>"$log.won"
-        elif [[ $rc -eq 2 ]] && grep -q '^refused (ticket.claimed-by-other): ' <<<"$err"; then
+        elif [[ $rc -eq 2 ]] && grep -q '^refused (work.claimed-by-other): ' <<<"$err"; then
             echo "$next" >>"$log.lost"
         else
             echo "$next exit $rc: $err" >>"$log.bad"
@@ -133,7 +133,7 @@ else
     st_fail "zero double claims" "won $ST_NWON ($ST_NUNIQ distinct); journals (items, events, off) $ST_JCOUNT; refs match logs: $([[ "$ST_REFS_POOL" == "$ST_LOGS" ]] && echo yes || echo no)"
 fi
 if [[ -z "$ST_BAD" && $ST_NLOST -gt 0 ]]; then
-    st_ok "every lost race refused by name" "$ST_NLOST lost races, each ticket.claimed-by-other naming the holder; nothing else"
+    st_ok "every lost race refused by name" "$ST_NLOST lost races, each work.claimed-by-other naming the holder; nothing else"
 else
     st_fail "every lost race refused by name" "$ST_NLOST named; other outcomes: $(head -3 <<<"$ST_BAD")"
 fi
@@ -194,7 +194,7 @@ read -r ST_R1 ST_B1 < <(st_read)
 st_war "$ST_ROOT" edit "$ST_K" --priority $(( (ST_B1 + 1) % 5 )) --if-rev "$ST_R1" --as g2 >/dev/null 2>&1
 read -r _ ST_B2 < <(st_read)
 if [[ $ST_S -eq 0 && $ST_S1 -eq 0 && "$ST_A1" == $(( (ST_A0 + 1) % 5 )) && $ST_S2 -eq 2 && "$ST_B2" == $(( (ST_B0 + 2) % 5 )) ]] \
-    && grep -q 'warrant.stale-revision' <<<"$ST_ERR"; then
+    && grep -q 'work.stale-revision' <<<"$ST_ERR"; then
     st_ok "the lost update, and its guard" "unguarded, two increments from one read: $ST_A0 -> $ST_A1, one lost; with --if-rev the second was refused by name, reread and landed: $ST_B0 -> $ST_B2"
 else
     st_fail "the lost update, and its guard" "unguarded exits $ST_S/$ST_S1, $ST_A0 -> $ST_A1; guarded second $ST_S2 ($ST_ERR), $ST_B0 -> $ST_B2"
@@ -208,7 +208,7 @@ st_incr() {
         [[ -n "$r" ]] || continue
         if st_war "$ST_ROOT" edit "$ST_K" --priority $(( (p + 1) % 5 )) --if-rev "$r" --as "$me" >/dev/null 2>"$ST_TMP/log/$me.err"; then
             done=$((done + 1))
-        elif ! grep -q 'warrant.stale-revision' "$ST_TMP/log/$me.err"; then
+        elif ! grep -q 'work.stale-revision' "$ST_TMP/log/$me.err"; then
             echo "$me: $(cat "$ST_TMP/log/$me.err")" >>"$ST_TMP/log/incr.bad"
         fi
     done

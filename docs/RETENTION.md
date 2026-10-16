@@ -55,7 +55,7 @@ and the rule is load-bearing:
 - §33.8: "Compaction SHALL NOT launder untrusted influence". A summary written
   in place of events is exactly where that influence would disappear.
 - `war check` refuses any edit or deletion of a committed line with
-  `journal.rewritten` (`crates/openwarrant-cli/src/journal_cmd.rs`). A
+  `work.journal-rewritten` (`crates/openwarrant-cli/src/journal_cmd.rs`). A
   rewrite would have to be committed as a rewrite.
 - WAR-SAS-RQ-084: historical records remain available.
 

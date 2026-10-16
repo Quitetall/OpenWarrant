@@ -253,10 +253,10 @@ ST_OUT=$(st_war check 2>&1); ST_BASE_STATUS=$?
 # (a) A partial event appended with no newline.
 printf '%s' "$ST_HALF" >> "$ST_J"
 ST_OUT=$(st_war check 2>&1); ST_STATUS=$?
-ST_TRUNC=$(grep -E 'ERROR +journal\.torn-tail' <<<"$ST_OUT" | grep -oE 'truncate -s [0-9]+ [^` ]+' | head -1)
-if [[ $ST_STATUS -ne 0 ]] && grep -qE "ERROR +journal\.torn-tail.*offset $ST_JSIZE" <<<"$ST_OUT" \
-    && [[ "$ST_TRUNC" == "truncate -s $ST_JSIZE $ST_JREL" ]] && ! grep -q 'journal.malformed' <<<"$ST_OUT"; then
-    st_ok "a torn tail is named" "journal.torn-tail at offset $ST_JSIZE, not journal.malformed"
+ST_TRUNC=$(grep -E 'ERROR +work\.journal-torn' <<<"$ST_OUT" | grep -oE 'truncate -s [0-9]+ [^` ]+' | head -1)
+if [[ $ST_STATUS -ne 0 ]] && grep -qE "ERROR +work\.journal-torn.*offset $ST_JSIZE" <<<"$ST_OUT" \
+    && [[ "$ST_TRUNC" == "truncate -s $ST_JSIZE $ST_JREL" ]] && ! grep -q 'work.journal-malformed' <<<"$ST_OUT"; then
+    st_ok "a torn tail is named" "work.journal-torn at offset $ST_JSIZE, not work.journal-malformed"
 else
     st_fail "a torn tail is named" "exit $ST_STATUS, truncation [$ST_TRUNC]: $(grep 'journal\.' <<<"$ST_OUT" | head -2 | tr '\n' '|')"
 fi
@@ -269,9 +269,9 @@ fi
 # A journal writer reading that journal is refused, by the same name, and
 # writes nothing.
 ST_OUT=$(st_war journal "$ST_A" --backfill 2>&1); ST_STATUS=$?
-if [[ $ST_STATUS -ne 0 ]] && grep -q 'journal.torn-tail' <<<"$ST_OUT" && ! grep -q 'journal.not-empty' <<<"$ST_OUT" \
+if [[ $ST_STATUS -ne 0 ]] && grep -q 'work.journal-torn' <<<"$ST_OUT" && ! grep -q 'journal.not-empty' <<<"$ST_OUT" \
     && [[ $(stat -c %s "$ST_J") -eq $((ST_JSIZE + ${#ST_HALF})) ]]; then
-    st_ok "a writer on a torn journal" "refused naming journal.torn-tail"
+    st_ok "a writer on a torn journal" "refused naming work.journal-torn"
 else
     st_fail "a writer on a torn journal" "exit $ST_STATUS: $(head -c 300 <<<"$ST_OUT" | tr '\n' '|')"
 fi
@@ -280,7 +280,7 @@ fi
 if [[ -n "$ST_TRUNC" ]]; then (cd "$PLANT_ROOT" && eval "$ST_TRUNC"); fi
 ST_OUT=$(st_war check 2>&1); ST_STATUS=$?
 if [[ -n "$ST_TRUNC" ]] && [[ $ST_STATUS -eq $ST_BASE_STATUS ]] && [[ "$(st_sha "$ST_J")" == "$ST_JSHA" ]] \
-    && ! grep -qE 'journal\.(torn-tail|malformed)' <<<"$ST_OUT" && grep -qE "PASS +journal\.append-only.*$ST_A: $ST_JLINES event" <<<"$ST_OUT"; then
+    && ! grep -qE 'work\.journal-(torn|malformed)' <<<"$ST_OUT" && grep -qE "PASS +journal\.append-only.*$ST_A: $ST_JLINES event" <<<"$ST_OUT"; then
     st_ok "the named truncation repairs it" "$ST_JLINES event(s) kept; check exit $ST_STATUS as before"
 else
     st_fail "the named truncation repairs it" "exit $ST_STATUS (baseline $ST_BASE_STATUS), sha $(st_sha "$ST_J"): $(grep 'journal\.' <<<"$ST_OUT" | head -2 | tr '\n' '|')"
@@ -290,8 +290,8 @@ fi
 { head -n 1 "$ST_J"; printf '%s\n' "$ST_HALF"; tail -n +2 "$ST_J"; } > "$ST_TMP/middle.jsonl"
 cp "$ST_TMP/middle.jsonl" "$ST_J"
 ST_OUT=$(st_war check 2>&1); ST_STATUS=$?
-if [[ $ST_STATUS -ne 0 ]] && grep -qE 'ERROR +journal\.malformed' <<<"$ST_OUT" && ! grep -q 'journal.torn-tail' <<<"$ST_OUT"; then
-    st_ok "a bad middle line is not torn" "journal.malformed, not journal.torn-tail"
+if [[ $ST_STATUS -ne 0 ]] && grep -qE 'ERROR +work\.journal-malformed' <<<"$ST_OUT" && ! grep -q 'work.journal-torn' <<<"$ST_OUT"; then
+    st_ok "a bad middle line is not torn" "work.journal-malformed, not work.journal-torn"
 else
     st_fail "a bad middle line is not torn" "exit $ST_STATUS: $(grep 'journal\.' <<<"$ST_OUT" | head -2 | tr '\n' '|')"
 fi
@@ -299,8 +299,8 @@ fi
 #     malformed too.
 { cat "$ST_TMP/orig.jsonl"; printf '%s\n' "$ST_HALF"; } > "$ST_J"
 ST_OUT=$(st_war check 2>&1)
-if grep -qE 'ERROR +journal\.malformed' <<<"$ST_OUT" && ! grep -q 'journal.torn-tail' <<<"$ST_OUT"; then
-    st_ok "a terminated bad tail is not torn" "journal.malformed, not journal.torn-tail"
+if grep -qE 'ERROR +work\.journal-malformed' <<<"$ST_OUT" && ! grep -q 'work.journal-torn' <<<"$ST_OUT"; then
+    st_ok "a terminated bad tail is not torn" "work.journal-malformed, not work.journal-torn"
 else
     st_fail "a terminated bad tail is not torn" "$(grep 'journal\.' <<<"$ST_OUT" | head -2 | tr '\n' '|')"
 fi

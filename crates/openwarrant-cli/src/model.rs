@@ -1154,14 +1154,22 @@ fn lower_tickets(b: &mut Builder, corpus: &Corpus) {
     let repo = corpus.repo();
     match corpus.tickets() {
         Ok((tickets, faults)) => {
-            for f in faults {
+            // A Format 1.0 ticket is lowered as the document it is
+            // (`lower_document`), its faults reported by its reader.
+            for f in faults.iter().filter(|f| {
+                !f.rule.starts_with("format.")
+                    && !f
+                        .file
+                        .as_deref()
+                        .is_some_and(crate::ticket::format::is_document_path)
+            }) {
                 b.diagnose(
                     "model.ticket-unreadable",
                     f.file.as_deref().unwrap_or("tickets"),
                     f.message.clone(),
                 );
             }
-            for t in tickets {
+            for t in tickets.iter().filter(|t| !t.format) {
                 let tid = t.id().to_owned();
                 let manifest = t.dir.join("manifest.toml");
                 b.record(

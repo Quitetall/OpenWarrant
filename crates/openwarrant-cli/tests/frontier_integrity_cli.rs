@@ -59,13 +59,14 @@ fn damaged_journal_never_becomes_open_work() {
     );
     // Valid envelopes cannot hide an unreadable scheduling event.
     let write_event = |kind: &str, payload: &str| {
-        let event = serde_json::json!({
+        let mut event = serde_json::json!({
             "v": 1, "id": "01a0b230-6c1e-76a3-acf0-82ff86027c63",
             "warrant_uuid": "01a0b230-6c1e-76a3-acf0-82ea0221814a",
             "type": kind, "class": "draft_history", "actor_ref": "agent://fixture",
             "occurred_at": "2026-09-18T01:45:12Z", "payload": payload,
-            "idempotency_key": "fixture-event"
+            "idempotency_key": ""
         });
+        event["idempotency_key"] = v1_key(&event).into();
         std::fs::write(&journal, format!("{event}\n")).unwrap();
     };
     for kind in ["dispatch.compiled", "submission.recorded"] {
@@ -110,4 +111,15 @@ fn damaged_journal_never_becomes_open_work() {
     assert!(!bad.status.success());
     assert!(String::from_utf8_lossy(&bad.stdout).contains("milestones"));
     std::fs::remove_dir_all(root).unwrap();
+}
+
+/// The FORMAT-1.0 §11.2 key of a v1 event: sha256 of `<uuid> LF <type> LF
+/// <payload text>`. A line whose key does not match is malformed.
+fn v1_key(event: &serde_json::Value) -> String {
+    use sha2::Digest;
+    let s = |k: &str| event[k].as_str().unwrap_or_default().to_owned();
+    let d = sha2::Sha256::digest(
+        format!("{}\n{}\n{}", s("warrant_uuid"), s("type"), s("payload")).as_bytes(),
+    );
+    d.iter().map(|b| format!("{b:02x}")).collect()
 }
