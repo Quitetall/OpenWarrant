@@ -1,0 +1,134 @@
+schema = "oh.war/deliverables/v1"
+
+# REVIEW PROPOSAL ONLY: not an active declaration, delivery or ownership grant.
+# No producing actor, attempt, input history or independent verdict is inferred.
+
+[[deliverable]]
+id = "D-001"
+title = "crates/openwarrant-core/src/document/condition.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/condition.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "conformance/sdk/conditions/README.md"
+kind = "file"
+target_ref = "conformance/sdk/conditions/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-003"
+title = "conformance/sdk/conditions/all-fields.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/all-fields.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "conformance/sdk/conditions/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/conditions/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/sdk/conditions/embedded-double-star.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/embedded-double-star.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/sdk/conditions/empty-list.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/empty-list.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "conformance/sdk/conditions/empty-table.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/empty-table.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "conformance/sdk/conditions/traversal.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/traversal.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/conditions/unicode-path.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/unicode-path.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/conditions/unknown-operator.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/unknown-operator.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-011"
+title = "conformance/sdk/conditions/wrong-type.toml"
+kind = "file"
+target_ref = "conformance/sdk/conditions/wrong-type.toml"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-012"
+title = "conformance/integration/conditions/run.py"
+kind = "file"
+target_ref = "conformance/integration/conditions/run.py"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "docs/warrants/OW-WAR-0078/implementation/notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0078/implementation/notes.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
