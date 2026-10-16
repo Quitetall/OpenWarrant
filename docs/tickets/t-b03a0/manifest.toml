@@ -1,0 +1,22 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-b03a0` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-b03a0"
+uuid = "01a14634-d003-75e3-bf9b-332a418bfe89"
+title = "Keep current work and retired history consistent in progress views"
+summary = "Apply relation-derived currency without rewriting history; keep retired work out of default queues."
+profile = "ticket"
+priority = 2
+created_at = "2026-10-16T19:33:48Z"
+created_by = "agent://codex"
+type = "bug"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

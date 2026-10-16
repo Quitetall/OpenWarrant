@@ -273,6 +273,9 @@ pub fn derive(
     }
     // Agent acts: whatever stands between a Warrant and the human's next act.
     for w in &status.warrants {
+        if crate::status::is_retired(w) {
+            continue;
+        }
         use openwarrant_core::status::WarrantRung as R;
         let already_human = actions
             .iter()
@@ -325,7 +328,13 @@ pub fn derive(
         }
     }
     for s in &status.next_actionable {
-        if !capabilities(&s.warrant).has(C::Stages) {
+        if !capabilities(&s.warrant).has(C::Stages)
+            || status
+                .warrants
+                .iter()
+                .find(|w| w.alias == s.warrant)
+                .is_some_and(crate::status::is_retired)
+        {
             continue;
         }
         actions.push(Action {
@@ -574,10 +583,10 @@ fn judged(
         let open_ticket = corpus.tickets().map_or(true, |(tickets, _)| {
             tickets.iter().any(|t| !t.checklist.is_done())
         });
-        let open_warrant = status
-            .warrants
-            .iter()
-            .any(|w| w.rung != openwarrant_core::status::WarrantRung::Resolved);
+        let open_warrant = status.warrants.iter().any(|w| {
+            !crate::status::is_retired(w)
+                && w.rung != openwarrant_core::status::WarrantRung::Resolved
+        });
         next.idle = Some(
             if open_ticket || open_warrant {
                 IDLE_TRACKED

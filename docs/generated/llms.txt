@@ -1796,6 +1796,10 @@
 > Connect signed collector attribution to checked capture imports
 - t-af9b7 · ticket · done · Connect signed collector attribution to checked capture imports · docs/tickets/t-af9b7/manifest.toml:1
 
+## docs/tickets/t-b03a0/manifest.toml
+> Apply relation-derived currency without rewriting history; keep retired work out of default queues.
+- t-b03a0 · ticket · open · Keep current work and retired history consistent in progress views · docs/tickets/t-b03a0/manifest.toml:1
+
 ## docs/tickets/t-b0708/manifest.toml
 > M2: a document's type chooses its capabilities, and new manifests pin their profile
 - t-b0708 · ticket · done · M2: a document's type chooses its capabilities, and new manifests pin their profile · docs/tickets/t-b0708/manifest.toml:1
