@@ -109,6 +109,7 @@ value of the `--json` envelope, the same under either spelling.
 | `war plan impact` | `war impact` | `impact` |
 | `war plan spec status`, `accept`, `migrate` (FORMAT-1.0 §4.5, §14, new) | `war spec` | `spec.status`, `spec.accept`, `spec.accept.request`, `spec.migrate` |
 | `war plan model` | `war model` | `model` |
+| `war plan states` (FORMAT-1.0 §11.1, new) | none | `states` |
 | `war plan state` | `war state` | `state` |
 | `war plan roadmap` | `war roadmap` | `roadmap` |
 | `war plan types`, `war plan types add` (M18, new) | `war types` (hidden, as every group member) | `types`, `types.add` |
@@ -215,6 +216,7 @@ value of the `--json` envelope, the same under either spelling.
 | Spelling | Why |
 |---|---|
 | `war __release-check` | started detached by the release notice; never typed |
+| `war apply <package>` | FORMAT-1.0 §10.5: reads an edited `war view context --preset human` package back; the other half of that command, so it spends no thirteenth daily verb |
 | `war` alone | the terminal app, as `war view tui` |
 
 ## Choices, and why

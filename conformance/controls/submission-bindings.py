@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """Plant mismatches at the real dispatch/submit CLI boundary."""
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -48,6 +49,9 @@ def main():
 
         # Historical fixture metadata is deliberately absent. The CLI must
         # preserve that fixture's bytes and say UNKNOWN, never infer a binding.
+        # A historical journal's key matches what it holds (FORMAT-1.0 §11.2,
+        # v1: sha256 of uuid LF type LF payload), so the key is recomputed:
+        # a mismatched key is a malformed line, not a missing binding.
         original = journal.read_bytes()
         events = [json.loads(line) for line in original.splitlines()]
         for field in ("contract_digest", "attempt_id", "stage"):
@@ -57,6 +61,9 @@ def main():
                     payload = json.loads(event["payload"])
                     payload.pop(field)
                     event["payload"] = json.dumps(payload)
+                    event["idempotency_key"] = hashlib.sha256(
+                        f'{event["warrant_uuid"]}\n{event["type"]}\n{event["payload"]}'.encode()
+                    ).hexdigest()
             journal.write_text("".join(json.dumps(e) + "\n" for e in legacy))
             before = journal.read_bytes()
             result, report = submit(good)

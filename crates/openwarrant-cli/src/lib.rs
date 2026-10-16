@@ -2972,7 +2972,12 @@ fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -
                     _ => {}
                 }
             }
-            if !outcome.is_refused() {
+            // An UNKNOWN about part of the input (one unreadable task of
+            // several) leaves the rest of the outcome to say; an outcome
+            // that is only UNKNOWN has nothing more than its stderr line.
+            let happened =
+                outcome.report.count(diagnostic::Severity::Error) == 0 && !outcome.result.is_null();
+            if !outcome.is_refused() || happened {
                 println!("{}", outcome.human);
             }
         }
