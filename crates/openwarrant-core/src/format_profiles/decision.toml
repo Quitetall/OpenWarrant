@@ -1,0 +1,9 @@
+# Built-in Format 1.0 profile `decision` (FORMAT-1.0 section 7.6).
+schema = "oh.war/profile/v1"
+name = "decision"
+form = "work"
+note = "A decision taken as work: intent and basis, everything but stages."
+capabilities = ["structure", "links", "claims", "checks", "acceptance", "evidence", "verification", "authorization", "resolution"]
+
+[sections]
+required = ["Intent", "Basis"]

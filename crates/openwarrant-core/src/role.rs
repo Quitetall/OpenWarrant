@@ -1058,6 +1058,13 @@ impl ProfileRegistry {
     ) -> Result<Self, ProfileError> {
         let mut registry = Self::builtin();
         for (file, bytes) in sources {
+            // FORMAT-1.0 §7.5: a Format 1.0 profile (`form = "work"`,
+            // `[sections]`, `[[presets]]`, ...) governs Format 1.0
+            // documents only; `crate::format_profile` reads it, and this
+            // registry never does, so it cannot refuse the repository.
+            if crate::format_profile::is_format_profile(bytes) {
+                continue;
+            }
             // OW-WAR-0148 M6: a document type is read by its own parser.
             if let Some(document) = parse_document_file(file, bytes, &registry)? {
                 registry.documents.insert(document.name.clone(), document);
@@ -1093,6 +1100,9 @@ impl ProfileRegistry {
     ) -> Result<Self, ProfileError> {
         let mut registry = Self::with_definitions(sources)?;
         for (file, bytes) in builtins {
+            if crate::format_profile::is_format_profile(bytes) {
+                continue;
+            }
             let name = file_stem(file);
             if registry.definitions.contains_key(name) || registry.documents.contains_key(name) {
                 continue;
@@ -1897,6 +1907,43 @@ pub fn is_namespaced_extension_role(name: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_format_profile_file_is_skipped_not_refused() {
+        // FORMAT-1.0 section 7.5: a Format 1.0 profile file lives beside the
+        // legacy ones. This registry never reads it, so even one that would
+        // refuse here (form "work", unknown tables) leaves it unchanged.
+        let legacy: Vec<(&str, &[u8])> = vec![
+            (
+                "profiles/delivery.toml",
+                include_bytes!("../../../profiles/delivery.toml").as_slice(),
+            ),
+            (
+                "profiles/ticket.toml",
+                include_bytes!("../../../profiles/ticket.toml").as_slice(),
+            ),
+        ];
+        let plain = ProfileRegistry::with_definitions(legacy.clone()).expect("legacy parses");
+        let mut with = legacy;
+        with.push((
+            "profiles/runbook.toml",
+            b"schema = \"oh.war/profile/v1\"\nname = \"runbook\"\nform = \"work\"\n\
+[sections]\nrequired = [\"Steps\"]\n"
+                .as_slice(),
+        ));
+        let both = ProfileRegistry::with_definitions(with).expect("a Format 1.0 file is skipped");
+        assert_eq!(plain, both);
+        assert!(both.resolve("runbook").is_err());
+        // The control: the same file without the Format 1.0 marks is the
+        // legacy reader's, and it refuses it.
+        assert!(
+            ProfileRegistry::with_definitions([(
+                "profiles/runbook.toml",
+                b"schema = \"oh.war/profile/v1\"\nname = \"runbook\"\nform = \"wrk\"\n".as_slice(),
+            )])
+            .is_err()
+        );
+    }
 
     #[test]
     fn roles_round_trip_through_their_names() {

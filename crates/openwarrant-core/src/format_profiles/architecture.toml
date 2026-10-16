@@ -1,0 +1,6 @@
+# Built-in Format 1.0 profile `architecture` (FORMAT-1.0 section 7.6).
+schema = "oh.war/profile/v1"
+name = "architecture"
+form = "document"
+note = "A architecture document."
+capabilities = ["structure", "links"]

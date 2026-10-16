@@ -1736,8 +1736,8 @@ fn lower_document(b: &mut Builder, d: &crate::format_doc::Loaded) {
     };
     let span = |s: usize, e: usize| sha256(d.bytes.get(s..e).unwrap_or_default());
     // The document's own record: a work document's is its alias; any other
-    // document's is `doc:<path>` of type `document` (§4, §5), and its
-    // records are `part_of` it.
+    // document's is `doc:<path>` of type `document` (§4, §5), or `spec`
+    // for a specification (§4.5), and its records are `part_of` it.
     let container = work
         .clone()
         .unwrap_or_else(|| format!("{}{}", crate::doc_index::ID_PREFIX, d.source));
@@ -1745,6 +1745,10 @@ fn lower_document(b: &mut Builder, d: &crate::format_doc::Loaded) {
         container.clone(),
         if work.is_some() {
             doc.record_type()
+        } else if d.place == crate::format_doc::Place::Spec || doc.profile == "spec" {
+            // §4.5: a specification's own record, `doc:SPEC.md` (or a
+            // part's `doc:<path>`), is of type `spec`.
+            "spec"
         } else {
             crate::doc_index::UNTYPED_TYPE
         },

@@ -1,0 +1,31 @@
+# Built-in Format 1.0 profile `spec` (FORMAT-1.0 sections 4.5, 7.6).
+#
+# What only the root SPEC.md must have (`version`, Purpose and Scope) is
+# section 4.5's rule over that file, not a declaration here: a part
+# (`spec/<area>.md`) carries none of it.
+schema = "oh.war/profile/v1"
+name = "spec"
+form = "document"
+note = "What the system is and must do: SPEC.md and its parts."
+capabilities = ["structure", "links", "acceptance"]
+
+[frontmatter]
+optional = ["version"]
+
+[sections]
+optional = ["Purpose", "Scope", "Glossary", "Context"]
+
+[records]
+types = ["requirement", "constraint", "outcome", "decision", "option", "consequence", "interface", "term"]
+
+[fields.requirement]
+statement = { required = true, shape = "text" }
+rationale = { shape = "text" }
+verify = { shape = "text" }
+priority = { shape = "enum", values = ["must", "should", "may"] }
+
+[fields.constraint]
+statement = { required = true, shape = "text" }
+rationale = { shape = "text" }
+verify = { shape = "text" }
+priority = { shape = "enum", values = ["must", "should", "may"] }

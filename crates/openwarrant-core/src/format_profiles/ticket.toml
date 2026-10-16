@@ -1,0 +1,15 @@
+# Built-in Format 1.0 profile `ticket` (FORMAT-1.0 section 7.6).
+schema = "oh.war/profile/v1"
+name = "ticket"
+form = "work"
+note = "A sentence and a checklist: workable the moment it exists."
+capabilities = ["structure", "links", "claims", "checks"]
+
+[frontmatter]
+optional = ["type", "priority", "labels", "created_at", "created_by", "imported_from", "promoted_to", "issue", "issue_url", "due"]
+
+[sections]
+required = ["Checklist"]
+
+[fields.ticket]
+priority = { shape = "int" }

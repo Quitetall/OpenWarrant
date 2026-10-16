@@ -1,0 +1,9 @@
+# Built-in Format 1.0 profile `adr` (FORMAT-1.0 section 7.6).
+schema = "oh.war/profile/v1"
+name = "adr"
+form = "document"
+note = "An architecture decision record."
+capabilities = ["structure", "links", "acceptance"]
+
+[sections]
+required = ["Context", "Decision", "Consequences"]

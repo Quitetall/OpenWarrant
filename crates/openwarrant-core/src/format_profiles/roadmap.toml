@@ -1,0 +1,9 @@
+# Built-in Format 1.0 profile `roadmap` (FORMAT-1.0 section 7.6).
+schema = "oh.war/profile/v1"
+name = "roadmap"
+form = "document"
+note = "Phases of work, as `phase` records."
+capabilities = ["structure", "links", "claims"]
+
+[records]
+types = ["phase"]

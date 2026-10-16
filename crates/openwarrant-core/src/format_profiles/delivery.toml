@@ -1,0 +1,12 @@
+# Built-in Format 1.0 profile `delivery` (FORMAT-1.0 sections 4.1, 7.6).
+schema = "oh.war/profile/v1"
+name = "delivery"
+form = "work"
+note = "Delivery of a bounded intervention: intent, basis, work order, assurance."
+capabilities = ["structure", "links", "claims", "checks", "stages", "acceptance", "evidence", "verification", "authorization", "resolution"]
+
+[frontmatter]
+optional = ["assurance_level"]
+
+[sections]
+required = ["Intent", "Basis", "Work order", "Assurance"]
