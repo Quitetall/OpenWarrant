@@ -1,0 +1,4 @@
+# Checklist
+
+- [x] Correct shared state and default work queues; pass focused CLI, client and generated-view checks (i-cfc8) — done by agent://codex, 2026-10-16: Code implemented under OW-WAR-0148; both regressions observed failing before their fixes. 22 selected tests, fmt, all-target schema Clippy and initial generated check passed (2030 pass, 394 warnings, zero unknown/errors). Evidence is retained in currency-consistency-20261016 artifacts. Ticket tracking was added after implementation: create timed out after authored files, show confirmed them readable, then the item was claimed to record this act. No missing creation event or earlier claim was invented. Regenerate projections after tracking writes; main integration remains open.
+- [ ] Integrate the fix after required repository CI succeeds (i-b15e)

@@ -780,7 +780,12 @@ pub fn warrant_overview_with(
                 let binds = record.as_ref().is_some_and(|r| {
                     Some(r.resolution.contract_digest.as_str()) == entry.contract_digest()
                 });
-                crate::status::warrant_state(&one.dir, record.as_ref(), binds)
+                crate::status::warrant_state(
+                    &one.dir,
+                    record.as_ref(),
+                    binds,
+                    &currencies.of(validated.alias.as_str()),
+                )
             },
             currency: currencies.of(validated.alias.as_str()).to_string(),
             milestone_count: basis
