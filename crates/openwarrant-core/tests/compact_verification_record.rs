@@ -42,6 +42,110 @@ distinct_human_required = false
     }
 }
 
+fn response_text() -> String {
+    let mut value = toml::Value::try_from(candidate()).unwrap();
+    let root = value.as_table_mut().unwrap();
+    let observation = root.remove("verification").unwrap();
+    root.remove("verification_protocol");
+    root.insert("schema".into(), compact::RESPONSE_SCHEMA.into());
+    root.insert("warrant".into(), "FIX-WAR-0001".into());
+    root.insert(
+        "verifications".into(),
+        toml::Value::Array(vec![observation]),
+    );
+    toml::to_string(&value).unwrap()
+}
+
+#[test]
+fn compact_response_prepares_bound_observations_without_promoting_them() {
+    let text = response_text();
+    let response = compact::decode_response(&text).unwrap();
+    let records: Vec<_> = response.prepare_records().unwrap().collect();
+    assert_eq!(records.len(), 1);
+    let expected = candidate();
+    assert_eq!(records[0].reviewed_subject, expected.reviewed_subject);
+    assert_eq!(records[0].reviewed_packets, expected.reviewed_packets);
+    assert_eq!(records[0].reviewed_views, expected.reviewed_views);
+    assert_eq!(records[0].verification_protocol, compact::RESPONSE_SCHEMA);
+    assert_eq!(records[0].verification.obligation, "OBL-001");
+    assert_eq!(
+        serde_json::to_value(&records[0].verification).unwrap(),
+        serde_json::to_value(&expected.verification).unwrap()
+    );
+    assert!(matches!(
+        legacy::decode(&toml::to_string(&records[0]).unwrap()),
+        Err(VerificationRecordError::UnsupportedSchema { .. })
+    ));
+    for kind in [
+        "duplicate",
+        "missing-view",
+        "invalid-hash",
+        "no-observations",
+        "no-warrant",
+    ] {
+        let mut response = compact::decode_response(&text).unwrap();
+        match kind {
+            "duplicate" => response
+                .verifications
+                .push(response.verifications[0].clone()),
+            "missing-view" => response.reviewed_views.clear(),
+            "invalid-hash" => response.reviewed_views[0].sha256 = "invalid".into(),
+            "no-observations" => response.verifications.clear(),
+            "no-warrant" => response.warrant.clear(),
+            _ => unreachable!(),
+        }
+        assert!(response.prepare_records().is_err(), "{kind}");
+    }
+    assert!(
+        compact::decode_response(&format!("performer_rationale = 'trust me'\n{text}")).is_err()
+    );
+    for schema in [legacy::RESPONSE_SCHEMA, "oh.war/verification-response/v4"] {
+        let input = text.replace(compact::RESPONSE_SCHEMA, schema);
+        assert!(matches!(
+            compact::decode_response(&input),
+            Err(VerificationRecordError::UnsupportedSchema { .. })
+        ));
+    }
+}
+
+#[cfg(feature = "schema")]
+#[test]
+fn response_schema_is_published_without_adopting_the_protocol() {
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let published: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(root.join("schemas/oh.war/verification-response/v3.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(published["$id"], compact::RESPONSE_SCHEMA);
+    assert_eq!(
+        published["properties"]["schema"]["const"],
+        compact::RESPONSE_SCHEMA
+    );
+    assert_eq!(published["additionalProperties"], false);
+    for key in [
+        "warrant",
+        "reviewed_subject",
+        "reviewed_packets",
+        "reviewed_views",
+        "verifications",
+    ] {
+        assert!(
+            published["required"]
+                .as_array()
+                .unwrap()
+                .contains(&serde_json::json!(key))
+        );
+    }
+    assert_eq!(
+        published,
+        serde_json::to_value(compact::response_schema()).unwrap()
+    );
+    let pack: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(root.join("schemas/pack.json")).unwrap()).unwrap();
+    assert_eq!(pack["version"], "0.2.0");
+    assert!(pack["files"].get("verification-response/v3").is_none());
+}
+
 #[test]
 fn compact_codec_preserves_both_reference_sets_and_old_reader_refusal() {
     let record = candidate();

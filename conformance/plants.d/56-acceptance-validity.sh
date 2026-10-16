@@ -333,6 +333,53 @@ if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(r
 else
     av_fail "a re-verification clears it" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+# Compact re-verification must work in the immutable Git reader too. The
+# prior v2 review cannot clear this additional input change, so a reader that
+# silently drops v3 results cannot pass the positive control below.
+AV_V2_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+printf 'new compact candidate input\n' >> "$PLANT_ROOT/src/helper.txt"
+av_commit "a candidate requiring a fresh compact review"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt'; then
+    av_ok "old v2 review cannot clear new input" "compact control starts with an actual acceptance.candidate-moved"
+else
+    av_fail "old v2 review cannot clear new input" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+av_war verify "$AV_A" --performer claude --bundle --compact --json > "$AV_TMP/compact-request.json"
+python3 "$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
+    "$AV_TMP/compact-request.json" "$AV_TMP/reverify.toml" "$PLANT_ROOT" > "$AV_TMP/compact-response.toml"
+AV_COMPACT_INGEST=$(av_war verify "$AV_A" --response "$AV_TMP/compact-response.toml" 2>&1); AV_COMPACT_STATUS=$?
+av_commit "the exact compact review and its retained view"
+AV_COMPACT_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+AV_OUT=$(av_war pins --candidate "$AV_COMPACT_REVIEWED" 2>&1); AV_STATUS=$?
+if [[ $AV_COMPACT_STATUS -eq 0 && $AV_STATUS -eq 0 ]] \
+    && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT" \
+    && [[ "$(av_sha)" == "$AV_BEFORE" ]]; then
+    av_ok "compact review clears its Git candidate" "v3 record/view/journal checked; resolution bytes unchanged"
+else
+    av_fail "compact review clears its Git candidate" "ingest $AV_COMPACT_STATUS; candidate $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+AV_COMPACT_VIEW=$(python3 - "$AV_TMP/compact-request.json" <<'PY_VIEW'
+import json, sys
+print(json.load(open(sys.argv[1]))["result"]["views"][0]["path"])
+PY_VIEW
+)
+# Even valid JSON with changed raw bytes is not the exact view reviewed.
+printf '\n' >> "$PLANT_ROOT/$AV_COMPACT_VIEW"
+av_commit "alter a retained compact view after review"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+AV_FROZEN=$(av_war pins --candidate "$AV_COMPACT_REVIEWED" 2>&1); AV_FROZEN_STATUS=$?
+if [[ $AV_STATUS -ne 0 && $AV_FROZEN_STATUS -eq 0 ]] \
+    && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt' \
+    && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_FROZEN" \
+    && [[ "$(av_sha)" == "$AV_BEFORE" ]]; then
+    av_ok "altered compact view loses qualification" "current candidate moved; original Git candidate still re-verified"
+else
+    av_fail "altered compact view loses qualification" "candidate $AV_STATUS; frozen $AV_FROZEN_STATUS: $(av_lines "$AV_OUT") / $(av_lines "$AV_FROZEN")"
+fi
+git -C "$PLANT_ROOT" reset -q --hard "$AV_V2_REVIEWED"
+git -C "$PLANT_ROOT" clean -fdq
+
 # A newer source file does not erase the exact SAS this contract pins.
 AV_SAS=$(python3 - "$PLANT_ROOT" <<'PY_SAS'
 import sys, tomllib

@@ -1312,6 +1312,7 @@ enum EvidenceCommand {
     ///
     /// This command never verifies anything itself — the actor that produced
     /// the work cannot be the actor that clears it.
+    #[command(group(clap::ArgGroup::new("compact_action").args(["bundle", "run"])))]
     Verify {
         /// The Warrant's local alias.
         alias: String,
@@ -1329,6 +1330,11 @@ enum EvidenceCommand {
         /// each carrying what that obligation names, excerpted to fit.
         #[arg(long, conflicts_with = "response")]
         bundle: bool,
+        /// Emit v3 model inputs and exact archives for a v3-aware adapter.
+        /// Use --bundle to retain inputs, or --run to call the configured
+        /// v3-aware verifier and ingest its bound response.
+        #[arg(long, requires = "compact_action", conflicts_with_all = ["response", "portable_preview", "inspect_preview"])]
+        compact: bool,
         /// Experimental offline review view and full v2 archive, in an
         /// absolute directory outside the repository. Never dispatches or
         /// establishes verification; current adapters refuse this format.
@@ -5361,9 +5367,10 @@ fn run_evidence_member(
             response,
             portable_preview,
             inspect_preview,
+            compact,
             ..
         } if ticket::is_ticket_ref(&alias) => {
-            if portable_preview.is_some() || inspect_preview.is_some() {
+            if portable_preview.is_some() || inspect_preview.is_some() || compact {
                 return Err(repo::RepoError::Message("verify.preview-warrant-required: compact legacy verification previews require a Warrant alias; no preview was read or written".into()).into());
             }
             let (_, store) = ctx.tickets(None)?;
@@ -5380,6 +5387,7 @@ fn run_evidence_member(
             bundle,
             portable_preview,
             inspect_preview,
+            compact,
             run,
         } => {
             let repository = ctx.open_repo()?;
@@ -5394,6 +5402,16 @@ fn run_evidence_member(
                 ));
             }
             if bundle {
+                if compact {
+                    let (report, index) =
+                        bundle::preview::emit_compact(&repository, &alias, &performer)?;
+                    return Ok(output::finish(
+                        mode,
+                        "verify.compact.bundle",
+                        &report,
+                        Some(index),
+                    ));
+                }
                 if let Some(directory) = portable_preview {
                     let (report, index) =
                         bundle::preview::emit(&repository, &alias, &performer, &directory)?;
@@ -5403,7 +5421,11 @@ fn run_evidence_member(
                 return Ok(output::finish(mode, "verify.bundle", &report, Some(index)));
             }
             if run {
-                let report = bundle::run(&repository, &alias, &performer)?;
+                let report = if compact {
+                    bundle::run_compact(&repository, &alias, &performer)?
+                } else {
+                    bundle::run(&repository, &alias, &performer)?
+                };
                 return Ok(output::finish(mode, "verify.run", &report, None));
             }
             match response {

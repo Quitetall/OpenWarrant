@@ -63,8 +63,8 @@ reviewed source inputs.
 local verifier or response ingestion. It cannot be used with `--run`, cannot
 award assurance and does not unblock a production review yet. The accompanying
 v2 archive remains subject to its original budget refusal. Executable compact
-review transport and its ingestion checks are separate unfinished work under
-proposed ADR0030.
+review transport and its ingestion checks use a separate experimental protocol
+under proposed ADR0030; preview files remain ineligible.
 
 Before introducing that transport, inspect a retained preview against its
 original repository and actual performer:
@@ -82,6 +82,52 @@ verifier runs and no verdict or assurance is created. Inspection needs the
 original source repository; the package itself remains readable offline.
 Inputs are limited to 64 MiB each and are read without following path links.
 
+### Emit a compact model input
+
+```bash
+war verify OW-WAR-0003 --performer agent://codex --bundle --compact --json
+```
+
+This emits `oh.war/review-context/v3`: small packet/view references and a pointer
+to the retained subject. The model input is `oh.war/verification-view/v1`,
+distinct from a preview. Its required rules, fixtures and contracts stay exact;
+raw omitted evidence remains archived and does not count as evidence shown.
+Budget pressure retains an explicitly ineligible input instead of removing rules.
+
+The local adapter accepts this input only with exact compiler-produced
+`OPENWARRANT_REVIEWED_PACKETS` and `OPENWARRANT_REVIEWED_VIEWS` metadata. The
+harness supplies these from the index. It selects the actual pair, checks raw
+view and archive identities and task agreement before any provider call or log
+write, and sends only the view to the model. The Rust-computed archive digest
+is carried unchanged. Full byte/source/actor checks remain the ingester's job.
+
+The returned response uses v3 and retains exact view/archive references. It
+does not mean the model saw all archived bytes or that its claims establish
+assurance. The old v2 path and refusal of previews remain in place. No backend
+is started or configured by input emission. To dispatch each compact input through
+the configured v3-aware verifier and ingest its answer, use:
+
+```bash
+war verify OW-WAR-0003 --performer agent://codex --run --compact --json
+```
+
+The runner supplies only the actual packet/view pair to each call. Oversized
+views stay inspectable but are never dispatched. Protocol downgrade or substituted
+response references are refused before ingestion; the normal ingest still checks
+current source, bytes, coverage and independence. Adapter failure or timeout
+records no verdict for that call. The default `--run` continues to use v2.
+
+Ingest the actual independent response with the existing `--response` command.
+The v3 path preflights the whole envelope and all referenced views before any
+obligation record or journal write. It checks current source, canonical
+archives, exact canonical views and sibling archive bytes, request/performer
+and obligation coverage, reading budget, assignment and independence policy.
+It does not accept previews or infer v3 from optional fields in a v2 response.
+New records use a distinct v3 envelope and journal binding; prior raw records
+remain in history, and exact replay preserves their bytes. Current-work and
+immutable-candidate checks use the same binding predicate. Human acceptance,
+authorization and resolution remain separate acts.
+
 ### Candidate compact storage codec
 
 The SDK exposes an opt-in `compact_verification_record` module for the proposed
@@ -91,9 +137,18 @@ nonempty distinct files and valid relative paths and hashes. A match checks
 metadata only. It does not read the files, prove their contents, authenticate
 the reviewer, or establish independent assurance.
 
-The existing v1/v2 decoder continues to refuse this envelope. CLI ingestion
-does not accept it yet. The candidate JSON schema is published beside v1/v2,
-without changing the active schema pack. Regenerate that candidate with:
+`decode_response` separately selects the exact compact response protocol and
+refuses legacy or future versions and unknown fields. Its `prepare_records`
+method rejects empty observations, repeated obligation ids and invalid reference
+sets before returning a lazy record iterator. It preserves the supplied verdicts
+and independence claims; it does not improve or authenticate them. A caller
+must validate current source, declared obligations, actual view/archive bytes
+and verifier admissibility before writing or using any result for assurance.
+
+The frozen v1/v2 SDK decoder continues to refuse this envelope. The CLI uses
+the explicit v3 decoder and validates the additional bindings. The candidate
+JSON schema is published beside v1/v2, without changing the active schema pack.
+Regenerate that candidate with:
 
 ```bash
 cargo run --locked -p openwarrant-core --features schema --example compact_verification_schema
@@ -113,7 +168,8 @@ version and local backend before use. The client reports monetary cost as
 unknown; token usage is not a dollar meter. It cannot enforce a mandatory hard
 spend cap. No cost is silently reported as zero.
 
-The model receives only the generated bundle in a new two-message context.
+The model receives only the generated input (a v2 bundle or v1 executable view)
+in a new two-message context.
 The client runs in a fresh temporary directory and provides no filesystem
 tools. This isolates the review conversation; it is not an operating-system
 sandbox against a hostile provider process or another process under the same

@@ -1,10 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Experimental model view beside a lossless v2 archive (proposed ADR0030).
-//! This is deliberately not a verifier input or an ingestion protocol.
+//! Previews and opt-in model inputs use distinct wire identities. Emission
+//! never calls a verifier, ingests an observation or grants assurance.
 use super::*;
 use serde_json::{Value, json};
 
 const SCHEMA: &str = "oh.war/verification-view-preview/v1";
+const EXECUTABLE_SCHEMA: &str = openwarrant_core::compact_verification_record::VIEW_SCHEMA;
+
+#[derive(Clone, Copy)]
+enum Mode {
+    Preview,
+    Executable,
+}
 
 fn encoded(value: &Value) -> Result<String, RepoError> {
     serde_jcs::to_string(value).map_err(|e| RepoError::Message(e.to_string()))
@@ -16,11 +24,16 @@ fn account(mut value: Value, budget: u64) -> Result<Value, RepoError> {
     value["over_budget"] = json!(false);
     for _ in 0..16 {
         let estimate = openwarrant_core::tokens::estimate(encoded(&value)?.len() as u64);
-        if value["estimated_tokens"] == estimate && value["over_budget"] == (estimate > budget) {
+        let eligible = value["schema"] == EXECUTABLE_SCHEMA && estimate <= budget;
+        if value["estimated_tokens"] == estimate
+            && value["over_budget"] == (estimate > budget)
+            && value["dispatch_eligible"] == eligible
+        {
             return Ok(value);
         }
         value["estimated_tokens"] = json!(estimate);
         value["over_budget"] = json!(estimate > budget);
+        value["dispatch_eligible"] = json!(eligible);
     }
     Err(RepoError::Message(
         "verify.preview-accounting: token estimate did not converge".into(),
@@ -34,11 +47,15 @@ struct Preview {
 }
 
 fn project(bundle: &Bundle) -> Result<Preview, RepoError> {
+    project_for(bundle, Mode::Preview)
+}
+
+fn project_for(bundle: &Bundle, mode: Mode) -> Result<Preview, RepoError> {
     let (archive, digest) = canonical(bundle)?;
     let archive_name = format!("bundle-{}.json", short(&digest));
     let archive_bytes = (archive + "\n").into_bytes();
     let archive = serde_json::to_value(bundle).map_err(|e| RepoError::Message(e.to_string()))?;
-    let view = project_archive(archive, &archive_bytes, &digest)?;
+    let view = project_archive_for(archive, &archive_bytes, &digest, mode)?;
     Ok(Preview {
         archive_name,
         archive_bytes,
@@ -46,10 +63,15 @@ fn project(bundle: &Bundle) -> Result<Preview, RepoError> {
     })
 }
 
-fn project_archive(
+fn project_archive(view: Value, archive_bytes: &[u8], digest: &str) -> Result<Value, RepoError> {
+    project_archive_for(view, archive_bytes, digest, Mode::Preview)
+}
+
+fn project_archive_for(
     mut view: Value,
     archive_bytes: &[u8],
     digest: &str,
+    mode: Mode,
 ) -> Result<Value, RepoError> {
     let budget = view["budget_tokens"]
         .as_u64()
@@ -57,13 +79,25 @@ fn project_archive(
     let input_count = view["request"]["reviewed_subject"]["gate_inputs"]
         .as_object()
         .map_or(0, |m| m.len());
-    view["schema"] = json!(SCHEMA);
+    view["schema"] = json!(match mode {
+        Mode::Preview => SCHEMA,
+        Mode::Executable => EXECUTABLE_SCHEMA,
+    });
     view["dispatch_eligible"] = json!(false);
     view["limitations"] = json!([
         "Preview only: current verifier adapters and ingestion do not support this view.",
         "Archived bytes are available offline, but have not been shown in this view.",
         "Excerpts cannot establish claims requiring observations outside their coverage."
     ]);
+    if matches!(mode, Mode::Executable) {
+        view["response_schema"] =
+            json!(openwarrant_core::compact_verification_record::RESPONSE_SCHEMA);
+        view["limitations"] = json!([
+            "Only a v3-aware verifier may consume this model input; budget eligibility is not authority or assurance.",
+            "Archived bytes omitted from this view have not been shown to the model.",
+            "Excerpts cannot establish claims requiring observations outside their coverage."
+        ]);
+    }
     view["archive"] = json!({
         "path": format!("bundle-{}.json", short(digest)),
         "digest": digest,
@@ -74,6 +108,12 @@ fn project_archive(
         RepoError::Message("verify.preview-request: expected request object".into())
     })?;
     request.remove("reviewed_subject");
+    if matches!(mode, Mode::Executable)
+        && let Some(source_schema) = request.remove("schema")
+    {
+        // This is a projection, not another instance of the frozen request.
+        request.insert("source_schema".into(), source_schema);
+    }
     request.insert("reviewed_subject_archive".into(), json!({
         "pointer": "/request/reviewed_subject",
         "gate_input_count": input_count,
@@ -204,7 +244,93 @@ pub(crate) fn inspect(
 }
 
 fn obligation(src: &Sources, requested: &RequestedObligation) -> Result<Preview, RepoError> {
-    let fixed = project(&obligation_bundle_at(src, requested, 0)?)?;
+    obligation_for(src, requested, Mode::Preview)
+}
+
+/// Validate the actual viewed bytes and their archived projection. Callers
+/// must also use packets_cover for current source, actor and archive coverage.
+pub(crate) fn views_cover(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    packets: &[crate::verify::ReviewedPacket],
+    views: &[openwarrant_core::compact_verification_record::ReviewedView],
+    obligations: &[String],
+) -> Result<bool, RepoError> {
+    if views.is_empty() {
+        return Ok(false);
+    }
+    let directory = repo.relative(&one.dir.join("verifications"));
+    let mut covered = std::collections::BTreeSet::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for reference in views {
+        if reference.sha256.len() != 64
+            || !reference
+                .sha256
+                .bytes()
+                .all(|b| matches!(b,b'0'..=b'9'|b'a'..=b'f'))
+            || reference.path
+                != format!("{directory}/responses/views/view-{}.json", reference.sha256)
+            || !seen.insert(&reference.path)
+        {
+            return Ok(false);
+        }
+        let (raw, view) = read_value(&repo.root.join(&reference.path))?;
+        if sha256_hex(&raw) != reference.sha256
+            || encoded(&view)?.as_bytes() != raw.as_slice()
+            || view["schema"] != EXECUTABLE_SCHEMA
+            || view["over_budget"] != false
+            || view["dispatch_eligible"] != true
+            || !view["budget_tokens"]
+                .as_u64()
+                .is_some_and(|n| n <= repo.config.verify.max_bundle_tokens())
+        {
+            return Ok(false);
+        }
+        let Some(digest) = view["archive"]["digest"].as_str() else {
+            return Ok(false);
+        };
+        let matches: Vec<_> = packets.iter().filter(|p| p.digest == digest).collect();
+        if matches.len() != 1 {
+            return Ok(false);
+        }
+        let packet = matches[0];
+        let (archive_raw, archive) = read_value(&repo.root.join(&packet.path))?;
+        let name = format!("bundle-{}.json", short(digest));
+        if view["archive"]["path"] != name {
+            return Ok(false);
+        }
+        let sibling = repo
+            .root
+            .join(&reference.path)
+            .parent()
+            .ok_or_else(|| RepoError::Message("compact view has no directory".into()))?
+            .join(name);
+        let (sibling_raw, _) = read_value(&sibling)?;
+        if sibling_raw != archive_raw
+            || project_archive_for(archive.clone(), &archive_raw, digest, Mode::Executable)? != view
+        {
+            return Ok(false);
+        }
+        if let Some(rows) = archive["request"]["obligations"].as_array() {
+            for row in rows {
+                let Some(id) = row["id"].as_str() else {
+                    return Ok(false);
+                };
+                covered.insert(id.to_owned());
+            }
+        } else {
+            return Ok(false);
+        }
+    }
+    Ok(obligations.iter().all(|id| covered.contains(id)))
+}
+
+fn obligation_for(
+    src: &Sources,
+    requested: &RequestedObligation,
+    mode: Mode,
+) -> Result<Preview, RepoError> {
+    let fixed = project_for(&obligation_bundle_at(src, requested, 0)?, mode)?;
     let budget = src.budget.saturating_mul(4);
     let fixed_bytes = encoded(&fixed.view)?.len() as u64;
     if fixed_bytes >= budget {
@@ -212,7 +338,7 @@ fn obligation(src: &Sources, requested: &RequestedObligation) -> Result<Preview,
     }
     let mut allowance = usize::try_from(budget - fixed_bytes).unwrap_or(usize::MAX);
     for _ in 0..16 {
-        let preview = project(&obligation_bundle_at(src, requested, allowance)?)?;
+        let preview = project_for(&obligation_bundle_at(src, requested, allowance)?, mode)?;
         if preview.view["over_budget"] == false || allowance == 0 {
             return Ok(preview);
         }
@@ -221,6 +347,87 @@ fn obligation(src: &Sources, requested: &RequestedObligation) -> Result<Preview,
         allowance = allowance.saturating_sub(over.saturating_add(over / 4).saturating_add(1024));
     }
     Ok(fixed)
+}
+
+/// Retain v3 model inputs and their exact v2 archives. Canonical archives stay
+/// at the paths checked by existing packet validation. Each view also carries
+/// a sibling archive copy so the pair remains portable offline. Both view
+/// outputs are under the existing verification bookkeeping namespace.
+pub(super) fn retain_compact(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+) -> Result<Vec<super::Dispatch>, RepoError> {
+    let directory = repo.warrant_dir(alias)?.join("verifications");
+    let relative = repo.relative(&directory);
+    let archives = store::Directory::open(&repo.root, Utf8Path::new(&relative))?;
+    let view_directory = directory.join("responses/views");
+    let relative_views = repo.relative(&view_directory);
+    let retained_views = store::Directory::open(&repo.root, Utf8Path::new(&relative_views))?;
+    // Create namespaces before capture, including when an obligation names a
+    // directory. No output may silently change the subject it just captured.
+    let src = load(repo, alias, performer)?;
+    let inputs = if src.request.obligations.is_empty() {
+        vec![project_for(&warrant_bundle(&src)?, Mode::Executable)?]
+    } else {
+        src.request
+            .obligations
+            .iter()
+            .map(|o| obligation_for(&src, o, Mode::Executable))
+            .collect::<Result<Vec<_>, _>>()?
+    };
+    let mut dispatches = Vec::new();
+    for input in inputs {
+        let digest = input.view["archive"]["digest"]
+            .as_str()
+            .ok_or_else(|| RepoError::Message("verify.compact-archive: missing digest".into()))?;
+        let text = encoded(&input.view)?;
+        let sha = sha256_hex(text.as_bytes());
+        let name = format!("view-{sha}.json");
+        archives.retain(&input.archive_name, &input.archive_bytes)?;
+        retained_views.retain(&input.archive_name, &input.archive_bytes)?;
+        retained_views.retain(&name, text.as_bytes())?;
+        dispatches.push(super::Dispatch {
+            path: view_directory.join(&name),
+            packet: crate::verify::ReviewedPacket { path: repo.relative(&directory.join(&input.archive_name)), digest: digest.into() },
+            view: Some(openwarrant_core::compact_verification_record::ReviewedView { path: repo.relative(&view_directory.join(&name)), sha256: sha }),
+            obligations: input.view["request"]["obligations"].as_array().unwrap().iter().map(|o| o["id"].as_str().unwrap().to_owned()).collect(),
+            scope: input.view["scope"].as_str().unwrap().into(),
+            estimated_tokens: input.view["estimated_tokens"].as_u64().unwrap(),
+            budget_tokens: input.view["budget_tokens"].as_u64().unwrap(),
+            over_budget: input.view["dispatch_eligible"] != true,
+            budget_profile: "Reading account applies to the complete deterministic model view; omitted raw evidence remains archived and is not a shown observation".into(),
+        });
+    }
+    Ok(dispatches)
+}
+
+pub(crate) fn emit_compact(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+) -> Result<(Report, Value), RepoError> {
+    let inputs = retain_compact(repo, alias, performer)?;
+    let mut report = Report::default();
+    let mut packets = Vec::new();
+    let mut views = Vec::new();
+    for input in inputs {
+        packets.push(input.packet);
+        views.push(input.view.unwrap());
+        report.push(Diagnostic::pass("verify.compact.bundle", format!("{alias}: retained model input {} and exact archive; no verifier or result ingestion was performed", input.path.file_name().unwrap())));
+        if input.over_budget {
+            report.push(Diagnostic::warn("verify.compact-over-budget", repo.relative(&input.path), "Required context exceeds the reading budget; exact input retained and dispatch eligibility is false"));
+        }
+    }
+    let subject_archive = packets.first().map(|packet| {
+        json!({
+            "path": packet.path, "digest": packet.digest, "pointer": "/request/reviewed_subject"
+        })
+    });
+    Ok((
+        report,
+        json!({"schema": "oh.war/review-context/v3", "subject_archive": subject_archive, "packets": packets, "views": views, "qualification_established": false}),
+    ))
 }
 
 pub(crate) fn emit(

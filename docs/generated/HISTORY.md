@@ -3553,6 +3553,49 @@ the actual executable views supplied to its verifier, not infer those views
 later from an archive. Missing observations remain unestablished; an archive
 reference does not claim that all archived bytes were shown to the model.
 
+The opt-in `verify --bundle --compact` input emitter retains canonical v2
+archives and distinct model views under verification bookkeeping. Each view
+also retains an exact sibling archive copy for offline delivery. Its projected
+request uses `source_schema`, identifying the archived request's origin; it
+does not claim to be another complete frozen v2 request. The index points to
+the subject in its archive instead of duplicating large workspace maps.
+`dispatch_eligible` describes reading-budget eligibility for a v3-aware adapter;
+it grants no permission and establishes neither capability nor independence.
+Over-budget inputs retain exact required context and remain ineligible.
+
+A local adapter must receive exact compiler-supplied packet and view references,
+check retained view/archive bytes before backend contact, send only the view,
+and identify only that actual pair in its v3 response. It must not recompute an
+archive's semantic digest using another canonicalizer. Rust source/byte checks
+at ingestion remain required. Existing preview identities never become inputs
+by changing a flag; v2 input admission and v3 result admission remain separate.
+
+The opt-in `verify --run --compact` runner uses those same retained inputs
+and the configured verifier deadline. It supplies exactly one view/archive pair
+per call. It checks the returned protocol and actual pair before ingestion,
+then applies the ordinary v3 byte/source/coverage/independence checks. Required
+context over the reading budget stays retained and is never dispatched. A failed
+or timed-out call creates no verdict for its obligations. Default execution
+continues to use v2, with no compact metadata inherited from the caller.
+
+The candidate response carries `warrant`, `reviewed_subject`, `reviewed_packets`,
+`reviewed_views` and `verifications`. Preparing stored observations must reject
+an empty Warrant, no observations, repeated or empty obligation identifiers,
+and invalid reference sets before producing any record. Preparation preserves
+the received observation and independence claims; it never establishes them.
+Current task, source bytes, declared obligation coverage, actor admissibility
+and independence remain separate workflow checks before writes or assurance.
+
+The candidate CLI v3 ingest path performs those binding checks before any
+obligation or journal write. It retains the frozen v2 archive validation and
+adds exact canonical view bytes, the archived projection and sibling-copy
+identity, eligible bounded reading context, and view obligation coverage.
+The journal binds the explicit v3 protocol and view references as well as the
+original subject and archive references. Current-work and immutable-candidate
+assessment use the same predicate. A v3 record cannot qualify via a v2 event
+or by dropping its view metadata. Prior raw record bytes remain archived and
+exact replay stays byte preserving; unavailability never establishes currency.
+
 The candidate SDK codec is opt-in. Existing v1/v2 decoding and qualification
 remain unchanged and refuse v3 rather than discarding view bindings. Publishing
 the codec does not activate CLI ingestion, adopt a schema pack or accept this
@@ -34613,11 +34656,11 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | verified |
+| D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | drift |
 | D-002 | war pins --candidate: the finding beside each resolved pin | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-003 | The --candidate flag | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | drift |
-| D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | verified |
+| D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | drift |
 | D-006 | After you sign: when the accepted candidate changes before merge | `docs/SIGNING.md` | verified |
 
 ### OW-WAR-0135 — The assurance mark: a baseline, its issuance, and what it binds
