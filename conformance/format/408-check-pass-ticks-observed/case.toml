@@ -1,0 +1,4 @@
+id = "408-check-pass-ticks-observed"
+kind = "accept"
+section = "12"
+says = """A **pass** on the check's current revision ticks every open item it evaluates at `observed` (11.4)"""

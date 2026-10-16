@@ -1,0 +1,5 @@
+id = "166-check-run-missing"
+kind = "refuse"
+section = "12"
+rule = "format.field-missing"
+says = """| `run` | REQUIRED | a command, run by `sh -c` in the repository root, or `gate://<id>@<version>` |"""

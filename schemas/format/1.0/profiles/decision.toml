@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: Apache-2.0
+# A built-in profile of OpenWarrant Format 1.0 (docs/format/FORMAT-1.0.md
+# section 7.6), as profile data (section 7.5). Normative: this file is the
+# profile; where it and the prose disagree, the prose wins and this file is
+# the defect.
+schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
+name = "decision"
+form = "work"
+note = "Work whose outcome is a decision: intent and basis, without milestones or stages."
+capabilities = ["structure", "links", "claims", "checks", "acceptance", "evidence", "verification", "authorization", "resolution"]
+
+[frontmatter]
+required = []
+optional = []
+
+[sections]
+required = ["Intent", "Basis"]
+optional = []
+
+[records]
+types = ["obligation", "check", "kpi"]
+
+[fields.obligation]
+scope = { required = true, shape = "text" }
+evidence = { required = true, shape = "text" }
+refusal = { required = false, shape = "text" }
+gate = { required = false, shape = "gate" }
+scope_kind = { required = false, shape = "enum", values = ["single_instance", "enumerated_set", "bounded_domain", "bounded_corpus", "sampled_population", "temporal_window", "existential", "universal", "formal_model"] }
+criticality = { required = false, shape = "enum", values = ["required", "advisory"] }
+
+[fields.check]
+run = { required = true, shape = "line" }
+on = { required = false, shape = "line" }
+timeout = { required = false, shape = "int" }
+gating = { required = false, shape = "bool" }
+reopen = { required = false, shape = "bool" }
+
+[fields.kpi]
+run = { required = true, shape = "line" }
+on = { required = false, shape = "line" }
+timeout = { required = false, shape = "int" }
+gating = { required = false, shape = "bool" }
+reopen = { required = false, shape = "bool" }
+direction = { required = true, shape = "enum", values = ["min", "max"] }
+target = { required = false, shape = "number" }
+mode = { required = false, shape = "enum", values = ["threshold", "best", "optimise"] }
+
+[relations]
+allow = ["part_of", "depends_on", "implements", "constrains", "evaluates", "supersedes", "supports", "refutes", "trades_off_against", "causes", "qualifies", "selected_over"]
+
+[ticks]
+item = "claimed"

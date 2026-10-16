@@ -1,0 +1,4 @@
+id = "438-check-pass-stale-subject"
+kind = "accept"
+section = "12"
+says = """A run counts only for the revisions it names: a pass whose check `revision`, or whose `subjects` revision for an item or record, is not the current one ticks nothing for it."""

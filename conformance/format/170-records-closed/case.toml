@@ -1,0 +1,5 @@
+id = "170-records-closed"
+kind = "refuse"
+section = "7.5"
+rule = "format.key-unknown"
+says = """`types`: the record types its documents may hold beyond the core's; `closed = true` refuses any other undotted type (`format.key-unknown`)"""

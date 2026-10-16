@@ -201,6 +201,13 @@
       "authority": "generated"
     },
     {
+      "key": "check",
+      "id": "openwarrant/1.0#check",
+      "schema": "format/1.0/check.json",
+      "$id": "https://openwarrant.dev/schemas/format/1.0/check.json",
+      "authority": "normative"
+    },
+    {
       "key": "common",
       "id": "openwarrant/1.0#common",
       "schema": "format/1.0/common.json",
@@ -212,6 +219,13 @@
       "id": "openwarrant/1.0#frontmatter",
       "schema": "format/1.0/frontmatter.json",
       "$id": "https://openwarrant.dev/schemas/format/1.0/frontmatter.json",
+      "authority": "normative"
+    },
+    {
+      "key": "journal-event",
+      "id": "openwarrant/1.0#journal-event",
+      "schema": "format/1.0/journal-event.json",
+      "$id": "https://openwarrant.dev/schemas/format/1.0/journal-event.json",
       "authority": "normative"
     },
     {

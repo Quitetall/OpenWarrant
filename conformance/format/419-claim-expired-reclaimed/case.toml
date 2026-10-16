@@ -1,0 +1,4 @@
+id = "419-claim-expired-reclaimed"
+kind = "accept"
+section = "11.3"
+says = """A claim whose lease has run out is reclaimable by a plain claim, recorded as `work.claim_reclaimed`."""

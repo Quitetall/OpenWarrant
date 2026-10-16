@@ -1,0 +1,5 @@
+id = "441-claim-document-while-item-held"
+kind = "refuse"
+section = "11.3"
+rule = "work.claimed-by-other"
+says = """A claim on a work document covers all its items, so it is refused while another actor holds one of them"""

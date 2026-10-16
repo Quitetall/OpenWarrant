@@ -1,0 +1,4 @@
+id = "407-spec-no-acceptance-without-authority"
+kind = "accept"
+section = "4.5"
+says = """and has no acceptance state without the authority profile."""

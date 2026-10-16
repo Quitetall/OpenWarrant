@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openwarrant.dev/schemas/format/1.0/journal-event.json",
+  "title": "OpenWarrant Format 1.0: a journal event (v1 and v2)",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 11.2. Where this schema and the prose disagree, the prose wins and this schema is the defect. One line of a work document's `journal.jsonl`, as RFC 8785 JSON. A tracker writes `v: 2` events into the journal of a Format 1.0 work document; journals written before the format hold `v: 1` events, which name the document `warrant_uuid` and carry `payload` as RFC 8785 JSON text, a string. A reader reads both, forever, and one journal may hold both. `ticket.*` event types are read as the `work.*` type of the same suffix. A line with `v` greater than 2 is `UNKNOWN` (`work.journal-newer`) and is not described here. `target` is the global id of what an event is about (an item, or an alias for a whole document) and `item` the item's local id; a `work.item_done` that names a document with no items has no `item`. Core payloads are described for the v2 form; a v1 payload is text and its members are checked after parsing it, which a schema cannot do. Not expressed here: that `idempotency_key` is the sha256 of `<document_uuid> LF <type> LF <RFC 8785 payload>`; append-only (`work.journal-rewritten`), unterminated lines (`work.journal-torn`), exactly-once (`work.idempotency-conflict`), and that `occurred_at` is UTC.",
+  "x-oh-war-schema": "openwarrant/1.0#journal-event",
+  "oneOf": [{ "$ref": "#/$defs/v2" }, { "$ref": "#/$defs/v1" }],
+  "$defs": {
+    "common": {
+      "type": "object",
+      "properties": {
+        "id": { "description": "A UUIDv7.", "$ref": "common.json#/$defs/uuidv7" },
+        "type": {
+          "description": "A core type of the table in 11.2, a legacy `ticket.*` name, or a dotted extension type (carried).",
+          "type": "string",
+          "pattern": "^((work|ticket)\\.(created|item_added|claimed|claim_reclaimed|claim_stolen|released|item_done|item_reopened|note_added|edited|tick_raised)|check\\.run|trigger\\.fired|state\\.entered|[a-z0-9][a-z0-9_-]*(\\.[a-z0-9][a-z0-9_-]*)+)$"
+        },
+        "class": { "enum": ["draft_history", "action_request", "action_receipt"] },
+        "actor_ref": {
+          "description": "A name for a person or agent; `person://<name>` under Appendix C.",
+          "type": "string",
+          "minLength": 1
+        },
+        "occurred_at": { "description": "RFC 3339, UTC.", "$ref": "common.json#/$defs/timestamp" },
+        "idempotency_key": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "v2": {
+      "allOf": [{ "$ref": "#/$defs/common" }, { "$ref": "#/$defs/payloads" }],
+      "required": ["v", "id", "document_uuid", "type", "class", "actor_ref", "occurred_at", "payload", "idempotency_key"],
+      "properties": {
+        "v": { "const": 2 },
+        "id": true,
+        "document_uuid": { "description": "The work document's `uuid`.", "$ref": "common.json#/$defs/uuidv7" },
+        "type": true,
+        "class": true,
+        "actor_ref": true,
+        "occurred_at": true,
+        "payload": { "type": "object" },
+        "idempotency_key": true
+      },
+      "additionalProperties": false
+    },
+    "v1": {
+      "allOf": [{ "$ref": "#/$defs/common" }],
+      "required": ["v", "id", "warrant_uuid", "type", "class", "actor_ref", "occurred_at", "payload", "idempotency_key"],
+      "properties": {
+        "v": { "const": 1 },
+        "id": true,
+        "warrant_uuid": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+        "type": true,
+        "class": true,
+        "actor_ref": true,
+        "occurred_at": true,
+        "payload": { "description": "RFC 8785 JSON text of the payload object.", "type": "string", "pattern": "^\\{" },
+        "idempotency_key": true
+      },
+      "additionalProperties": false
+    },
+    "level": { "enum": ["claimed", "observed", "independent", "signed"] },
+    "payloads": {
+      "description": "Section 11.2's core payloads (v2). Each names its required members; other members are carried.",
+      "allOf": [
+        { "if": { "properties": { "type": { "enum": ["work.created", "ticket.created"] } } },
+          "then": { "properties": { "payload": { "required": ["document", "title", "items"], "properties": { "items": { "type": "array" } } } } } },
+        { "if": { "properties": { "type": { "enum": ["work.item_added", "ticket.item_added"] } } },
+          "then": { "properties": { "payload": { "required": ["item", "text"] } } } },
+        { "if": { "properties": { "type": { "enum": ["work.claimed", "ticket.claimed"] } } },
+          "then": { "properties": { "payload": { "required": ["claim", "target", "since"] } } } },
+        { "if": { "properties": { "type": { "enum": ["work.claim_reclaimed", "work.claim_stolen", "ticket.claim_reclaimed", "ticket.claim_stolen"] } } },
+          "then": { "properties": { "payload": { "required": ["claim", "target", "since", "from", "from_since"] } } } },
+        { "if": { "properties": { "type": { "enum": ["work.released", "ticket.released"] } } },
+          "then": { "properties": { "payload": { "required": ["claim", "target"] } } } },
+        { "if": { "properties": { "type": { "enum": ["work.item_done", "ticket.item_done"] } } },
+          "then": { "properties": { "payload": { "required": ["target", "on"],
+            "properties": { "level": { "$ref": "#/$defs/level" }, "runs": { "type": "array", "items": { "type": "string" } } } } } } },
+        { "if": { "properties": { "type": { "enum": ["work.item_reopened", "ticket.item_reopened"] } } },
+          "then": { "properties": { "payload": { "required": ["item", "target", "reason"] } } } },
+        { "if": { "properties": { "type": { "enum": ["work.note_added", "ticket.note_added"] } } },
+          "then": { "properties": { "payload": { "required": ["target", "note"] } } } },
+        { "if": { "properties": { "type": { "enum": ["work.edited", "ticket.edited"] } } },
+          "then": { "properties": { "payload": { "required": ["target", "from_revision", "to_revision"],
+            "properties": { "from_revision": { "$ref": "common.json#/$defs/sha256" }, "to_revision": { "$ref": "common.json#/$defs/sha256" } } } } } },
+        { "if": { "properties": { "type": { "enum": ["work.tick_raised", "ticket.tick_raised"] } } },
+          "then": { "properties": { "payload": { "required": ["item", "target", "from", "to"],
+            "properties": { "from": { "$ref": "#/$defs/level" }, "to": { "$ref": "#/$defs/level" } } } } } },
+        { "if": { "properties": { "type": { "const": "check.run" } } },
+          "then": { "properties": { "payload": { "required": ["check", "run", "verdict", "revision", "subjects"],
+            "properties": {
+              "verdict": { "enum": ["PASS", "FAIL", "UNKNOWN"] },
+              "revision": { "$ref": "common.json#/$defs/sha256" },
+              "subjects": {
+                "description": "The `[id, revision]` of each record or item the check evaluates, at the run.",
+                "type": "array",
+                "items": { "type": "array", "prefixItems": [{ "type": "string", "minLength": 1 }, { "$ref": "common.json#/$defs/sha256" }], "minItems": 2, "maxItems": 2 }
+              },
+              "output_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } } } } } },
+        { "if": { "properties": { "type": { "const": "trigger.fired" } } },
+          "then": { "properties": { "payload": { "required": ["check", "trigger", "subject"] } } } },
+        { "if": { "properties": { "type": { "const": "state.entered" } } },
+          "then": { "properties": { "payload": { "required": ["record", "state", "refines"] } } } }
+      ]
+    }
+  }
+}

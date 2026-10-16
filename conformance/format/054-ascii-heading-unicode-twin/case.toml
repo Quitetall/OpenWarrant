@@ -1,0 +1,4 @@
+id = "054-ascii-heading-unicode-twin"
+kind = "accept"
+section = "3.4"
+says = """The spelling changes the unit's `revision` (its bytes) and nothing else: the model and the `content_digest` are those of the Unicode form."""

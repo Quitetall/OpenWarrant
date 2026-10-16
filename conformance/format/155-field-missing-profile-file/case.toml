@@ -1,0 +1,5 @@
+id = "155-field-missing-profile-file"
+kind = "refuse"
+section = "7.5"
+rule = "format.field-missing"
+says = """A field a profile declares but a record lacks is refused when `required` (`format.field-missing`)."""

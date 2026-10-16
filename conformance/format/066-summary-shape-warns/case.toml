@@ -1,0 +1,5 @@
+id = "066-summary-shape-warns"
+kind = "accept"
+section = "3.3"
+rule = "context.summary-shape"
+says = """A `summary` over 200 bytes is a warning (`context.summary-shape`)."""

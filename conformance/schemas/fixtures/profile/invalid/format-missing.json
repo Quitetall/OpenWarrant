@@ -1,0 +1,17 @@
+{
+  "why": "section 7.5: a Format 1.0 profile file declares `format = \"openwarrant/1.0\"`",
+  "expect": "'format' is a required property",
+  "instance": {
+    "schema": "oh.war/profile/v1",
+    "name": "runbook",
+    "form": "work",
+    "capabilities": [
+      "structure"
+    ],
+    "frontmatter": {
+      "optional": [
+        "owner"
+      ]
+    }
+  }
+}

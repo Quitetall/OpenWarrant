@@ -1,0 +1,15 @@
+{
+  "why": "section 12: a trigger is one of the table's or a dotted extension",
+  "expect": "@fields/on pattern",
+  "instance": {
+    "id": "CHK-reset",
+    "type": "check",
+    "title": "reset tests pass",
+    "fields": {
+      "run": "make test",
+      "on": "nightly"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

@@ -1,0 +1,4 @@
+id = "444-done-title-only-document"
+kind = "accept"
+section = "11.1"
+says = """`done` | work document | it has items and every item is done; with no items, a `work.item_done` names the document"""

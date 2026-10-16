@@ -1,0 +1,4 @@
+id = "308-context-preset-resume"
+kind = "accept"
+section = "10.4"
+says = """the target's items with their state, holder and lease, done items with actor and date, then the next three items `next` would offer (11.5); depth 1; reads state"""

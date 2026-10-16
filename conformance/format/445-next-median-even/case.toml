@@ -1,0 +1,4 @@
+id = "445-next-median-even"
+kind = "accept"
+section = "11.5"
+says = """in whole seconds (with an even count, the lower of the two middle values)"""

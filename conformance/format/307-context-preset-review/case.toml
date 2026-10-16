@@ -1,0 +1,4 @@
+id = "307-context-preset-review"
+kind = "accept"
+section = "10.4"
+says = """the target, its obligations and what they evaluate, depth 2, no budget; reads state"""

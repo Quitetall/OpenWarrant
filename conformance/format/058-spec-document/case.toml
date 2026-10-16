@@ -1,0 +1,4 @@
+id = "058-spec-document"
+kind = "accept"
+section = "4.5"
+says = """It is `SPEC.md` at the repository root, with profile `spec`"""
