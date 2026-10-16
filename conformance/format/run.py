@@ -122,10 +122,17 @@ def evidence_journal(tree, alias):
     raise RuntimeError(f"journal/{alias}.jsonl: no work document {alias} in input/")
 
 
-def tracking_tree(case, work):
-    """input/ as a git working tree; journal/ at the evidence directories; claims/ in the store."""
+def tracking_tree(case, work, prepare=None):
+    """input/ as a git working tree; journal/ at the evidence directories; claims/ in the store.
+
+    `prepare(tree)`, when given, runs after input/ is copied and before the
+    first commit: a reader that needs files of its own beside the case's
+    (war's `openwarrant.toml`) writes them there.
+    """
     tree = os.path.join(work, "repo")
     shutil.copytree(os.path.join(case, "input"), tree)
+    if prepare is not None:
+        prepare(tree)
     jdir = os.path.join(case, "journal")
     git = ["git", "-c", "user.name=corpus", "-c", "user.email=corpus@invalid",
            "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false", "-c", "init.defaultBranch=main"]
@@ -210,9 +217,11 @@ class War:
 
     def read(self, case, work):
         kind = case_kind(case)
-        if kind in ("tracking", "apply"):
-            # No adapter maps a tracking or apply case to war's commands yet;
-            # war's results for these cases are listed in known-war.txt.
+        if kind == "tracking":
+            return self.track(case, work)
+        if kind == "apply":
+            # No adapter maps an apply case to war's commands yet; war's
+            # results for these cases are listed in known-war.txt.
             raise RuntimeError(f"no war adapter for {kind} cases")
         tree = os.path.join(work, "repo")
         shutil.copytree(self.template, tree, symlinks=True)
@@ -278,6 +287,135 @@ class War:
                                                "content_digest")} for r in recs],
             "relations": rels, "findings": findings,
         }
+
+
+    # ------------------------------------------------------------ tracking --
+    #
+    # A tracking case (README.md, "Tracking cases") is one operation, named by
+    # the first word of `args`, over input/ as a committed git tree with its
+    # journals and claim store. Each operation is one method `op_<name>`,
+    # dispatched on that word, so an operation is added without touching the
+    # others. Every war command runs `--at` the case's time, so a lease or a
+    # date is judged then, not now.
+
+    # The config war needs to open a repository. A case's own
+    # `openwarrant.toml` (its `[claims]`, `[next]`) is appended to it.
+    CONFIG = ('schema = "oh.war/repository-config/v1"\n\n'
+              '[project]\nname = "Format corpus"\nnamespace = "ZQ"\n')
+
+    def _prepare(self, tree):
+        own = os.path.join(tree, "openwarrant.toml")
+        extra = open(own).read() if os.path.isfile(own) else ""
+        with open(own, "w") as f:
+            f.write(self.CONFIG + ("\n" + extra if extra else ""))
+
+    def _war(self, tree, *argv):
+        """`war --json <argv> --root <tree>`: the report envelope, and its exit code."""
+        p = subprocess.run([self.war, "--json", *argv, "--root", tree], cwd=tree, env=ENV,
+                           capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120)
+        try:
+            return json.loads(p.stdout), p.returncode
+        except json.JSONDecodeError:
+            raise RuntimeError(f"war {argv[0]}: exit {p.returncode}: {p.stderr.strip()[-400:]}")
+
+    @staticmethod
+    def _findings(report):
+        """`<rule id> <path>:<line>` for each spec rule the report names. A claim
+        file is named from the claim store (`claims/<file>:1`, README.md)."""
+        out = set()
+        for d in report.get("diagnostics", []):
+            rule = d.get("rule")
+            if rule not in SPEC_RULES:
+                continue
+            where = d.get("file") or ""
+            marker = "openwarrant/claims/"
+            if marker in where:
+                # A claim file is one JSON object: its finding is at line 1.
+                where = "claims/" + where.split(marker, 1)[1]
+                where += "" if ":" in where else ":1"
+            out.add(f"{rule} {where}".rstrip())
+        return out
+
+    def track(self, case, work):
+        tree = tracking_tree(case, work, self._prepare)
+        with open(os.path.join(case, "at")) as f:
+            self.at = f.read().strip()
+        if os.path.isdir(os.path.join(case, "acts")):
+            self.op_acts(case, tree)
+        args = read_args(case)
+        op = getattr(self, "op_" + args[0], None)
+        if op is None:
+            raise RuntimeError(f"no war adapter for the tracking operation `{args[0]}`")
+        out = {"records": [], "relations": [], "findings": [], "states": [], "next": None,
+               "tree": tree}
+        out.update(op(tree, args[1:]))
+        out["findings"] = sorted(out["findings"])
+        return out
+
+    def _states(self, tree, findings=()):
+        """`war plan states`: the states of 11.1, and the findings of reading them."""
+        report, _ = self._war(tree, "plan", "states", "--at", self.at)
+        found = set(findings) | self._findings(report)
+        states = (report.get("result") or {}).get("states", [])
+        return {"states": states, "findings": found}
+
+    def _write(self, tree, argv):
+        """A write; its refusals, or else the states after it."""
+        report, code = self._war(tree, *argv, "--at", self.at)
+        found = self._findings(report)
+        if code != 0 or any(f.split(" ")[0] in REFUSALS | UNKNOWNS for f in found):
+            if not found:
+                msgs = [d.get("message", "")[:200] for d in report.get("diagnostics", [])]
+                raise RuntimeError(f"war {argv[0]}: exit {code}: {msgs}")
+            return {"findings": found}
+        return self._states(tree, found)
+
+    @staticmethod
+    def _flags(rest, *names):
+        """`--actor A --note T` and bare `--steal` into a dict; the first word is the target."""
+        target, opts, i = rest[0], {}, 1
+        while i < len(rest):
+            key = rest[i].lstrip("-")
+            if key in names and i + 1 < len(rest) and not rest[i + 1].startswith("--"):
+                opts[key], i = rest[i + 1], i + 2
+            else:
+                opts[key], i = True, i + 1
+        return target, opts
+
+    def op_states(self, tree, rest):
+        return self._states(tree)
+
+    def op_next(self, tree, rest):
+        report, _ = self._war(tree, "next", "--at", self.at)
+        ready = (report.get("result") or {}).get("ready", [])
+        cands = [r["ticket"] + ("/" + r["item"] if r.get("item") else "") for r in ready]
+        found = self._findings(report)
+        # `next`'s warnings are those of the states it is computed from.
+        found |= self._states(tree)["findings"]
+        return {"next": cands, "findings": found}
+
+    def op_claim(self, tree, rest):
+        target, o = self._flags(rest, "actor")
+        argv = ["claim", target, "--as", o["actor"]] + (["--steal"] if o.get("steal") else [])
+        return self._write(tree, argv)
+
+    def op_done(self, tree, rest):
+        target, o = self._flags(rest, "actor", "base")
+        return self._write(tree, ["done", target, "--as", o["actor"], "--if-rev", o["base"]])
+
+    def op_note(self, tree, rest):
+        target, o = self._flags(rest, "actor", "note")
+        return self._write(tree, ["note", target, o["note"], "--as", o["actor"]])
+
+    def op_evaluate(self, tree, rest):
+        # Section 12's `evaluate --actor A` (ticks what recorded check runs
+        # pass) belongs to the checks adapter; not implemented in this one.
+        raise RuntimeError("not implemented in this adapter: the tracking operation `evaluate`")
+
+    def op_acts(self, case, tree):
+        # acts/*.json (Appendix C acceptance acts, taken as verified) belong to
+        # the specification adapter; not implemented in this one.
+        raise RuntimeError("not implemented in this adapter: acts/ (Appendix C acceptance acts)")
 
 
 # ---------------------------------------------------------------- compare --

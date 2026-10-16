@@ -44,7 +44,34 @@ Notable changes to OpenWarrant. Format loosely follows
   of an even count is the lower middle value, and a missing `created_at`
   sorts last.
 
+- `war plan states [--at <RFC 3339>]` (FORMAT-1.0 §11.1, draft 3 revision
+  1): each state of the work documents by its family (`phase`,
+  `checklist`, ...) and provenance (`computed`, `recorded`, `declared`),
+  one `checklist` state per item, with the journal findings it was read
+  under; every state of a document whose journal holds a line newer than
+  v2 is UNKNOWN and left out (`unknown`). `war claim`, `done` and `note`
+  take a hidden `--at` for replaying a recorded history (the conformance
+  corpus's tracking cases now run against war). A Format 1.0 document's
+  claim, done, reopen and release carry `episode` (§11.2).
+
 ### Changed
+
+- FORMAT-1.0 §11 as the conformance corpus reads it: a Format 1.0
+  document's `war note` is one `work.note_added` event `{target, note}`
+  and no longer edits the document (`war show` lists the journal's notes);
+  the same note from the same actor replays, from another it is refused
+  `work.idempotency-conflict` at the line that records it. An unterminated
+  last journal line is `work.journal-torn` even when it parses. Journal,
+  stale-revision and whole-document claim refusals name the faulty line
+  or the holder's claim file. `war done --if-rev` on an item nobody holds
+  claims it first (compare-and-set keeps two finishers apart); without a
+  base an unclaimed done is still refused. An expired claim no longer
+  blocks a claim on its document or item. A done suffix's unknown tick
+  level (`[claimed]`) is refused `format.item` (§3.8). A profile file in
+  7.5's shape without `format` governs nothing and no longer stops the
+  legacy registry: its documents read `format.profile-unknown`, with a
+  `profile.format-missing` warning. `observed` is backed by a done naming
+  passing `check.run`s by `run` id (§11.4).
 
 - `war next`, `war view ready` and `war evidence go` share FORMAT-1.0
   §11.5's order: due (inherited from what waits on an item), then the
