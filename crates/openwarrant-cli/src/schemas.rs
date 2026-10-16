@@ -171,6 +171,10 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             "oh.war/verification/v3.json",
             openwarrant_core::compact_verification_record::schema(),
         ),
+        (
+            "oh.war/verification-response/v3.json",
+            openwarrant_core::compact_verification_record::response_schema(),
+        ),
     ]
     .into_iter()
     .map(|(name, schema)| {
@@ -229,7 +233,7 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             }
         }
     };
-    report.notes.push("verification/v2.json and verification/v3.json are candidate publications outside the active 0.2.0 pack; they do not adopt a format or change contract identity".into());
+    report.notes.push("verification/v2.json, verification/v3.json and verification-response/v3.json are candidate publications outside the active 0.2.0 pack; they do not adopt a format or change contract identity".into());
     report.notes.push("schemas/native-draft is a separate experimental pack of canonical producer shapes, examples and structural TypeScript; validation grants no authority or assurance and does not change the active pack".into());
     if check {
         for (name, text) in &native {

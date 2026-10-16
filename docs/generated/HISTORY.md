@@ -3553,6 +3553,14 @@ the actual executable views supplied to its verifier, not infer those views
 later from an archive. Missing observations remain unestablished; an archive
 reference does not claim that all archived bytes were shown to the model.
 
+The candidate response carries `warrant`, `reviewed_subject`, `reviewed_packets`,
+`reviewed_views` and `verifications`. Preparing stored observations must reject
+an empty Warrant, no observations, repeated or empty obligation identifiers,
+and invalid reference sets before producing any record. Preparation preserves
+the received observation and independence claims; it never establishes them.
+Current task, source bytes, declared obligation coverage, actor admissibility
+and independence remain separate workflow checks before writes or assurance.
+
 The candidate SDK codec is opt-in. Existing v1/v2 decoding and qualification
 remain unchanged and refuse v3 rather than discarding view bindings. Publishing
 the codec does not activate CLI ingestion, adopt a schema pack or accept this

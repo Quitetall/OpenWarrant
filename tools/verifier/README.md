@@ -91,6 +91,14 @@ nonempty distinct files and valid relative paths and hashes. A match checks
 metadata only. It does not read the files, prove their contents, authenticate
 the reviewer, or establish independent assurance.
 
+`decode_response` separately selects the exact compact response protocol and
+refuses legacy or future versions and unknown fields. Its `prepare_records`
+method rejects empty observations, repeated obligation ids and invalid reference
+sets before returning a lazy record iterator. It preserves the supplied verdicts
+and independence claims; it does not improve or authenticate them. A caller
+must validate current source, declared obligations, actual view/archive bytes
+and verifier admissibility before writing or using any result for assurance.
+
 The existing v1/v2 decoder continues to refuse this envelope. CLI ingestion
 does not accept it yet. The candidate JSON schema is published beside v1/v2,
 without changing the active schema pack. Regenerate that candidate with:
