@@ -1,36 +1,97 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Storage adapter for the shared public SDK record and retained bytes.
 use super::VerificationResponse;
+use openwarrant_core::compact_verification_record::{ReviewedView, StoredCompactVerification};
 use openwarrant_core::verification::Verification;
-pub(crate) use openwarrant_core::verification_record::StoredVerification;
+use openwarrant_core::verification_record::{ReviewedPacket, ReviewedSubject, StoredVerification};
+
+#[derive(serde::Serialize)]
+#[serde(untagged)]
+pub(crate) enum WrittenRecord {
+    V2(StoredVerification),
+    V3(StoredCompactVerification),
+}
+
+/// Read adapter only. It retains the full binding envelope and is deliberately
+/// not serializable: history retention always uses the original wire bytes.
+pub(crate) struct ReadRecord {
+    pub verification: Verification,
+    binding: Option<WrittenRecord>,
+}
+
+impl ReadRecord {
+    pub(crate) fn binds_protocol(
+        &self,
+        subject: &ReviewedSubject,
+        packets: &[ReviewedPacket],
+        views: &[ReviewedView],
+        protocol: &str,
+    ) -> bool {
+        match &self.binding {
+            Some(WrittenRecord::V2(value)) => {
+                protocol == super::RESPONSE_SCHEMA
+                    && views.is_empty()
+                    && value.binds(subject, packets)
+            }
+            Some(WrittenRecord::V3(value)) => {
+                protocol == super::COMPACT_RESPONSE_SCHEMA && value.binds(subject, packets, views)
+            }
+            None => false,
+        }
+    }
+}
 
 pub(crate) fn new(
     verification: &Verification,
     response: &VerificationResponse,
-) -> StoredVerification {
-    StoredVerification {
+) -> Result<WrittenRecord, crate::repo::RepoError> {
+    if response.schema == super::COMPACT_RESPONSE_SCHEMA {
+        return Ok(WrittenRecord::V3(StoredCompactVerification {
+            schema: openwarrant_core::compact_verification_record::SCHEMA.into(),
+            verification: verification.clone(),
+            verification_protocol: response.schema.clone(),
+            reviewed_subject: response.reviewed_subject.clone().ok_or_else(|| {
+                crate::repo::RepoError::Message("compact record requires a reviewed subject".into())
+            })?,
+            reviewed_packets: response.reviewed_packets.clone(),
+            reviewed_views: response.reviewed_views.clone(),
+        }));
+    }
+    Ok(WrittenRecord::V2(StoredVerification {
         schema: openwarrant_core::verification_record::SCHEMA.into(),
         verification: verification.clone(),
         verification_protocol: response.schema.clone(),
         reviewed_subject: response.reviewed_subject.clone(),
         reviewed_packets: response.reviewed_packets.clone(),
-    }
+    }))
 }
 
 pub(crate) fn decode(
     text: &str,
-) -> Result<StoredVerification, openwarrant_core::verification_record::VerificationRecordError> {
+) -> Result<ReadRecord, openwarrant_core::verification_record::VerificationRecordError> {
     use openwarrant_core::verification_record::DecodedVerificationRecord;
+    let root: toml::Value = toml::from_str(text).map_err(|e| {
+        openwarrant_core::verification_record::VerificationRecordError::Malformed(e.to_string())
+    })?;
+    if root.get("schema").and_then(toml::Value::as_str)
+        == Some(openwarrant_core::compact_verification_record::SCHEMA)
+    {
+        let record = openwarrant_core::compact_verification_record::decode(text)?;
+        return Ok(ReadRecord {
+            verification: record.verification.clone(),
+            binding: Some(WrittenRecord::V3(record)),
+        });
+    }
     match openwarrant_core::verification_record::decode(text)? {
-        DecodedVerificationRecord::V2(record) => Ok(*record),
+        DecodedVerificationRecord::V2(record) => Ok(ReadRecord {
+            verification: record.verification.clone(),
+            binding: Some(WrittenRecord::V2(*record)),
+        }),
         // The legacy CLI assessment reads one view. It never serializes this
         // unbound adapter value or promotes it to current qualification.
-        DecodedVerificationRecord::Legacy(verification) => Ok(StoredVerification {
-            schema: "oh.war/verification/v1".into(),
+        DecodedVerificationRecord::Legacy(verification) => Ok(ReadRecord {
             verification,
-            verification_protocol: "oh.war/verification-response/v1".into(),
-            reviewed_subject: None,
-            reviewed_packets: vec![],
+            binding: None,
         }),
     }
 }

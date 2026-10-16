@@ -9,6 +9,151 @@ use std::{
 struct Fixture(PathBuf);
 
 #[test]
+fn compact_ingestion_binds_current_views_and_replay_without_writing_on_tamper() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    fixture.bound_response();
+    let old = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(old["exit_code"], 0, "{old}");
+    let previous = fixture.review_state();
+    fixture.response();
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let response_path = fixture.0.with_extension("response.toml");
+    let mut response: toml::Value =
+        toml::from_str(&fs::read_to_string(&response_path).unwrap()).unwrap();
+    let packet = fixture
+        .0
+        .join(emitted["result"]["packets"][0]["path"].as_str().unwrap());
+    let archive: serde_json::Value = serde_json::from_slice(&fs::read(packet).unwrap()).unwrap();
+    response["schema"] = "oh.war/verification-response/v3".into();
+    for (key, value) in [
+        ("reviewed_subject", &archive["request"]["reviewed_subject"]),
+        ("reviewed_packets", &emitted["result"]["packets"]),
+        ("reviewed_views", &emitted["result"]["views"]),
+    ] {
+        response
+            .as_table_mut()
+            .unwrap()
+            .insert(key.into(), toml::Value::try_from(value).unwrap());
+    }
+    let original = toml::to_string(&response).unwrap();
+    fs::write(&response_path, &original).unwrap();
+    let ingest = || {
+        fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--response",
+            "response.toml",
+            "--json",
+        ])
+    };
+    let accepted = ingest();
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+    assert_eq!(accepted["counts"]["pass"], 2, "{accepted}");
+    let before = fixture.review_state();
+    for bytes in &previous[..2] {
+        let name = format!("{}.toml", openwarrant_compiler::sha256_hex(bytes));
+        assert_eq!(
+            fs::read(
+                fixture
+                    .0
+                    .join("docs/warrants/IX-WAR-0003/verifications/history")
+                    .join(name)
+            )
+            .unwrap(),
+            *bytes
+        );
+    }
+    let stored: toml::Value = toml::from_str(std::str::from_utf8(&before[0]).unwrap()).unwrap();
+    assert_eq!(stored["schema"].as_str(), Some("oh.war/verification/v3"));
+    let preparation = fixture.run(&["prepare", "IX-WAR-0003", "--dry-run", "--json"]);
+    let verify = preparation["result"]["warrants"][0]["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["step"] == "verify")
+        .unwrap();
+    assert_eq!(verify["outcome"], "current", "{preparation}");
+    assert_eq!(ingest()["exit_code"], 0);
+    assert_eq!(fixture.review_state(), before);
+    let original_view = fixture
+        .0
+        .join(response["reviewed_views"][0]["path"].as_str().unwrap());
+    let mut altered: serde_json::Value =
+        serde_json::from_slice(&fs::read(&original_view).unwrap()).unwrap();
+    altered["atoms"][0]["text"] = "forged instruction".into();
+    let text = serde_jcs::to_string(&altered).unwrap();
+    let sha = openwarrant_compiler::sha256_hex(text.as_bytes());
+    let path = original_view
+        .parent()
+        .unwrap()
+        .join(format!("view-{sha}.json"));
+    fs::write(&path, text).unwrap();
+    response["reviewed_views"][0]["path"] = path
+        .strip_prefix(&fixture.0)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .into();
+    response["reviewed_views"][0]["sha256"] = sha.into();
+    fs::write(&response_path, toml::to_string(&response).unwrap()).unwrap();
+    let refused = ingest();
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.view-binding"),
+        "{refused}"
+    );
+    assert_eq!(fixture.review_state(), before);
+    fs::write(response_path, original).unwrap();
+    fs::write(fixture.0.join("changed-source.txt"), "changed\n").unwrap();
+    let stale = ingest();
+    assert_ne!(stale["exit_code"], 0, "{stale}");
+    assert!(
+        stale["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{stale}"
+    );
+    assert_eq!(fixture.review_state(), before);
+    let stale_prepare = fixture.run(&["prepare", "IX-WAR-0003", "--dry-run", "--json"]);
+    let verify = stale_prepare["result"]["warrants"][0]["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["step"] == "verify")
+        .unwrap();
+    assert_ne!(verify["outcome"], "current", "{stale_prepare}");
+}
+
+#[test]
 fn compact_model_inputs_bind_exact_archives_and_do_not_change_the_subject() {
     let fixture = Fixture::new();
     assert!(
@@ -2872,7 +3017,7 @@ fn unsupported_future_response_is_unknown_and_v2_missing_bindings_is_invalid() {
     fixture.response();
     let path = fixture.0.with_extension("response.toml");
     let mut response: toml::Value = toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
-    response["schema"] = toml::Value::String("oh.war/verification-response/v3".into());
+    response["schema"] = toml::Value::String("oh.war/verification-response/v4".into());
     fs::write(&path, toml::to_string(&response).unwrap()).unwrap();
     let future = fixture.run(&[
         "verify",

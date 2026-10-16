@@ -247,6 +247,84 @@ fn obligation(src: &Sources, requested: &RequestedObligation) -> Result<Preview,
     obligation_for(src, requested, Mode::Preview)
 }
 
+/// Validate the actual viewed bytes and their archived projection. Callers
+/// must also use packets_cover for current source, actor and archive coverage.
+pub(crate) fn views_cover(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    packets: &[crate::verify::ReviewedPacket],
+    views: &[openwarrant_core::compact_verification_record::ReviewedView],
+    obligations: &[String],
+) -> Result<bool, RepoError> {
+    if views.is_empty() {
+        return Ok(false);
+    }
+    let directory = repo.relative(&one.dir.join("verifications"));
+    let mut covered = std::collections::BTreeSet::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for reference in views {
+        if reference.sha256.len() != 64
+            || !reference
+                .sha256
+                .bytes()
+                .all(|b| matches!(b,b'0'..=b'9'|b'a'..=b'f'))
+            || reference.path
+                != format!("{directory}/responses/views/view-{}.json", reference.sha256)
+            || !seen.insert(&reference.path)
+        {
+            return Ok(false);
+        }
+        let (raw, view) = read_value(&repo.root.join(&reference.path))?;
+        if sha256_hex(&raw) != reference.sha256
+            || encoded(&view)?.as_bytes() != raw.as_slice()
+            || view["schema"] != EXECUTABLE_SCHEMA
+            || view["over_budget"] != false
+            || view["dispatch_eligible"] != true
+            || !view["budget_tokens"]
+                .as_u64()
+                .is_some_and(|n| n <= repo.config.verify.max_bundle_tokens())
+        {
+            return Ok(false);
+        }
+        let Some(digest) = view["archive"]["digest"].as_str() else {
+            return Ok(false);
+        };
+        let matches: Vec<_> = packets.iter().filter(|p| p.digest == digest).collect();
+        if matches.len() != 1 {
+            return Ok(false);
+        }
+        let packet = matches[0];
+        let (archive_raw, archive) = read_value(&repo.root.join(&packet.path))?;
+        let name = format!("bundle-{}.json", short(digest));
+        if view["archive"]["path"] != name {
+            return Ok(false);
+        }
+        let sibling = repo
+            .root
+            .join(&reference.path)
+            .parent()
+            .ok_or_else(|| RepoError::Message("compact view has no directory".into()))?
+            .join(name);
+        let (sibling_raw, _) = read_value(&sibling)?;
+        if sibling_raw != archive_raw
+            || project_archive_for(archive.clone(), &archive_raw, digest, Mode::Executable)? != view
+        {
+            return Ok(false);
+        }
+        if let Some(rows) = archive["request"]["obligations"].as_array() {
+            for row in rows {
+                let Some(id) = row["id"].as_str() else {
+                    return Ok(false);
+                };
+                covered.insert(id.to_owned());
+            }
+        } else {
+            return Ok(false);
+        }
+    }
+    Ok(obligations.iter().all(|id| covered.contains(id)))
+}
+
 fn obligation_for(
     src: &Sources,
     requested: &RequestedObligation,

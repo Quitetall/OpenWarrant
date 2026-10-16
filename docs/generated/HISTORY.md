@@ -3578,6 +3578,16 @@ the received observation and independence claims; it never establishes them.
 Current task, source bytes, declared obligation coverage, actor admissibility
 and independence remain separate workflow checks before writes or assurance.
 
+The candidate CLI v3 ingest path performs those binding checks before any
+obligation or journal write. It retains the frozen v2 archive validation and
+adds exact canonical view bytes, the archived projection and sibling-copy
+identity, eligible bounded reading context, and view obligation coverage.
+The journal binds the explicit v3 protocol and view references as well as the
+original subject and archive references. Current-work and immutable-candidate
+assessment use the same predicate. A v3 record cannot qualify via a v2 event
+or by dropping its view metadata. Prior raw record bytes remain archived and
+exact replay stays byte preserving; unavailability never establishes currency.
+
 The candidate SDK codec is opt-in. Existing v1/v2 decoding and qualification
 remain unchanged and refuse v3 rather than discarding view bindings. Publishing
 the codec does not activate CLI ingestion, adopt a schema pack or accept this
@@ -34638,7 +34648,7 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | verified |
+| D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | drift |
 | D-002 | war pins --candidate: the finding beside each resolved pin | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-003 | The --candidate flag | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | drift |

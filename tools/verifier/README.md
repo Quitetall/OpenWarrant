@@ -103,9 +103,19 @@ is carried unchanged. Full byte/source/actor checks remain the ingester's job.
 
 The returned response uses v3 and retains exact view/archive references. It
 does not mean the model saw all archived bytes or that its claims establish
-assurance. This input-emission/response-collection slice does not enable
-`--run --compact` or compact CLI ingestion yet. The old v2 path and refusal
-of previews remain in place. No backend is started or configured by this command.
+assurance. The old v2 path and refusal of previews remain in place. No backend
+is started or configured by input emission; `--run --compact` remains disabled.
+
+Ingest the actual independent response with the existing `--response` command.
+The v3 path preflights the whole envelope and all referenced views before any
+obligation record or journal write. It checks current source, canonical
+archives, exact canonical views and sibling archive bytes, request/performer
+and obligation coverage, reading budget, assignment and independence policy.
+It does not accept previews or infer v3 from optional fields in a v2 response.
+New records use a distinct v3 envelope and journal binding; prior raw records
+remain in history, and exact replay preserves their bytes. Current-work and
+immutable-candidate checks use the same binding predicate. Human acceptance,
+authorization and resolution remain separate acts.
 
 ### Candidate compact storage codec
 
@@ -124,9 +134,10 @@ and independence claims; it does not improve or authenticate them. A caller
 must validate current source, declared obligations, actual view/archive bytes
 and verifier admissibility before writing or using any result for assurance.
 
-The existing v1/v2 decoder continues to refuse this envelope. CLI ingestion
-does not accept it yet. The candidate JSON schema is published beside v1/v2,
-without changing the active schema pack. Regenerate that candidate with:
+The frozen v1/v2 SDK decoder continues to refuse this envelope. The CLI uses
+the explicit v3 decoder and validates the additional bindings. The candidate
+JSON schema is published beside v1/v2, without changing the active schema pack.
+Regenerate that candidate with:
 
 ```bash
 cargo run --locked -p openwarrant-core --features schema --example compact_verification_schema
