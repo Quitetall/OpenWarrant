@@ -13,6 +13,9 @@ pub struct WorkingForm {
     pub total: usize,
     pub sources: Vec<String>,
     pub source_digest: String,
+    pub ticks: crate::ticket::ladder::TickReport,
+    pub milestones: Vec<crate::ticket::ladder::MilestoneView>,
+    pub proof_faults: Vec<openwarrant_core::ticket::Fault>,
 }
 
 #[derive(Debug, Serialize)]
@@ -27,6 +30,8 @@ pub struct WorkingFormDiagnostic {
 pub struct WorkingForms {
     pub total: usize,
     pub completed: usize,
+    pub ticks_below_minimum: usize,
+    pub proof_incomplete: usize,
     pub remaining: usize,
     pub includes_completed: bool,
     pub qualification_assessed: bool,
@@ -41,11 +46,20 @@ pub fn working_forms(
     all: bool,
 ) -> Result<WorkingForms, crate::repo::RepoError> {
     let (tickets, diagnostics) = corpus.tickets()?;
-    let claims = crate::ticket::Store::open(corpus.repo(), None)?.claims()?;
+    let store = crate::ticket::Store::open(corpus.repo(), None)?;
+    let claims = store.claims()?;
+    let reader = crate::ticket::ladder::Reader::new(&store);
     let mut records = Vec::new();
     let mut completed = 0;
+    let mut ticks_below_minimum = 0;
+    let mut proof_incomplete = 0;
     for ticket in tickets {
         let state = crate::ticket::state_of(ticket, &claims);
+        let ticks = crate::ticket::ladder::ticks_of(&reader, ticket);
+        ticks_below_minimum += ticks.counts.below_minimum;
+        if ticks.unavailable.is_some() || !ticks.checks.faults.is_empty() {
+            proof_incomplete += 1;
+        }
         if state == crate::ticket::TicketState::Done {
             completed += 1;
             if !all {
@@ -72,12 +86,17 @@ pub fn working_forms(
             .map(|path| corpus.repo().relative(path))
             .collect(),
             source_digest: openwarrant_compiler::sha256_hex(&bytes),
+            milestones: crate::ticket::ladder::milestones_of(&reader, ticket, &ticks),
+            proof_faults: ticks.checks.faults.clone(),
+            ticks,
         });
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
     Ok(WorkingForms {
         total: tickets.len(),
         completed,
+        ticks_below_minimum,
+        proof_incomplete,
         remaining: tickets.len() - completed,
         includes_completed: all,
         qualification_assessed: false,
@@ -124,6 +143,18 @@ pub fn render_unified(view: &UnifiedOverview) -> String {
             "Coverage is incomplete; unreadable records are excluded from these counts.\n",
         );
     }
+    if forms.ticks_below_minimum > 0 {
+        text.push_str(&format!(
+            "{} completed tick(s) below their configured proof minimum. Completion remains unverified.\n",
+            forms.ticks_below_minimum
+        ));
+    }
+    if forms.proof_incomplete > 0 {
+        text.push_str(&format!(
+            "Proof assessment incomplete for {} record(s); use --all for details.\n",
+            forms.proof_incomplete
+        ));
+    }
     for d in &forms.diagnostics {
         text.push_str(&format!("- {}: {}\n", cell(&d.rule), cell(&d.message)));
     }
@@ -136,6 +167,24 @@ pub fn render_unified(view: &UnifiedOverview) -> String {
             row.done,
             row.total
         ));
+        if let Some(reason) = &row.ticks.unavailable {
+            text.push_str(&format!("  - Proof UNKNOWN: {}\n", cell(reason)));
+        }
+        for m in &row.milestones {
+            text.push_str(&format!(
+                "  - {}: {} · minimum {}\n",
+                cell(&m.target),
+                cell(&m.marker),
+                m.minimum.as_str()
+            ));
+        }
+        for fault in &row.proof_faults {
+            text.push_str(&format!(
+                "  - {}: {}\n",
+                cell(fault.rule),
+                cell(&fault.message)
+            ));
+        }
     }
     text
 }

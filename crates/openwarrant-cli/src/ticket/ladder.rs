@@ -65,9 +65,21 @@ pub const OUTPUT_DIR: &str = ".openwarrant/state/checks";
 /// none (every ticket written before M13).
 #[must_use]
 pub fn checks_of(t: &Ticket) -> Checks {
-    crate::vfs::read_to_string(t.dir.join(ticks::CHECKS_FILE))
+    read_checks(t).unwrap_or_default()
+}
+
+/// Absence is optional; an existing source that cannot be read is UNKNOWN.
+fn read_checks(t: &Ticket) -> Result<Checks, String> {
+    let path = t.dir.join(ticks::CHECKS_FILE);
+    match crate::vfs::metadata(&path) {
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Checks::default()),
+        Err(e) => return Err(e.to_string()),
+        Ok(meta) if !meta.is_file() => return Err("Proof source must be a regular file".into()),
+        Ok(_) => {}
+    }
+    crate::vfs::read_regular_to_string(t.dir.as_std_path(), path.as_std_path())
         .map(|text| ticks::parse(&text))
-        .unwrap_or_default()
+        .map_err(|e| e.to_string())
 }
 
 /// The least `item` (or, `None`, the whole ticket) must reach, and which
@@ -379,6 +391,10 @@ impl TickCounts {
 pub struct TickReport {
     pub items: BTreeMap<String, TickView>,
     pub counts: TickCounts,
+    /// Current proof configuration could not be read. Empty counts in this
+    /// case are not evidence that every configured minimum was met.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unavailable: Option<String>,
     #[serde(skip)]
     pub checks: Checks,
     #[serde(skip)]
@@ -396,7 +412,15 @@ pub fn item_key(item: &Item) -> String {
 /// Every tick of `t` as a view shows it.
 #[must_use]
 pub fn ticks_of(reader: &Reader<'_>, t: &Ticket) -> TickReport {
-    let checks = checks_of(t);
+    let checks = match read_checks(t) {
+        Ok(checks) => checks,
+        Err(reason) => {
+            return TickReport {
+                unavailable: Some(reason),
+                ..TickReport::default()
+            };
+        }
+    };
     // Only a marker above claimed needs a record behind it; a ticket of
     // claimed ticks reads no journal here.
     let marked = t.checklist.items.iter().any(|i| {
@@ -1297,6 +1321,29 @@ pub struct MilestoneView {
     pub marker: String,
 }
 
+/// Milestone proof from the same tick reading used by every client.
+pub fn milestones_of(reader: &Reader<'_>, t: &Ticket, report: &TickReport) -> Vec<MilestoneView> {
+    report
+        .checks
+        .milestones
+        .iter()
+        .filter_map(|m| {
+            let item = t.item(&m.item)?;
+            let (minimum, _) = minimum(reader.store, t, &report.checks, Some(&m.item));
+            let view = report.items.get(&m.item);
+            Some(MilestoneView {
+                target: format!("{}/{}", t.id(), m.item),
+                ticket_title: t.manifest.title.clone(),
+                text: item.text.clone(),
+                minimum,
+                level: view.map(|v| v.level),
+                met: view.is_some_and(|v| v.meets_minimum),
+                marker: view.map_or_else(|| "open".to_owned(), TickView::marker),
+            })
+        })
+        .collect()
+}
+
 /// Every ticket's ticks and milestones, for the corpus views (`war status`,
 /// the roadmap, the board, the web page).
 #[derive(Debug, Clone, Default, Serialize)]
@@ -1326,22 +1373,7 @@ pub fn tracker(store: &Store) -> Result<Tracker, RepoError> {
             out.counts.signed += c.signed;
             out.counts.below_minimum += c.below_minimum;
         }
-        for m in &report.checks.milestones {
-            let Some(item) = t.item(&m.item) else {
-                continue;
-            };
-            let (minimum, _) = minimum(store, t, &report.checks, Some(&m.item));
-            let view = report.items.get(&m.item);
-            out.milestones.push(MilestoneView {
-                target: format!("{}/{}", t.id(), m.item),
-                ticket_title: t.manifest.title.clone(),
-                text: item.text.clone(),
-                minimum,
-                level: view.map(|v| v.level),
-                met: view.is_some_and(|v| v.meets_minimum),
-                marker: view.map_or_else(|| "open".to_owned(), TickView::marker),
-            });
-        }
+        out.milestones.extend(milestones_of(&reader, t, &report));
         if c.observed + c.independent + c.signed + c.below_minimum > 0
             || !report.checks.milestones.is_empty()
         {

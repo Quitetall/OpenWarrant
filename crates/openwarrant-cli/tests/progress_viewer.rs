@@ -268,6 +268,56 @@ fn working_form_nonregular_source_is_reported_without_waiting_for_a_writer() {
     assert_eq!(value["result"]["working_forms"]["total"], 0);
     assert!(value["result"]["working_forms"]["diagnostics"][0]["message"].is_string());
 }
+#[cfg(unix)]
+#[test]
+fn nonregular_proof_atom_is_unknown_without_blocking_progress() {
+    let fixture = Fixture::new();
+    fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let checks = dir.join("atoms/30-checks.md");
+    assert!(
+        Command::new("mkfifo")
+            .arg(&checks)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["progress", "--snapshot", "--json"])
+        .current_dir(&fixture.0)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let start = Instant::now();
+    loop {
+        if child.try_wait().unwrap().is_some() {
+            break;
+        }
+        if start.elapsed() > Duration::from_secs(4) {
+            child.kill().unwrap();
+            child.wait().unwrap();
+            panic!("progress blocked on an optional proof atom");
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    let output = child.wait_with_output().unwrap();
+    assert!(output.status.success());
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let record = &value["result"]["working_forms"]["records"][0];
+    assert!(record["ticks"]["unavailable"].is_string(), "{record}");
+    assert_eq!(record["state"], "open");
+    assert_eq!(
+        value["result"]["working_forms"]["qualification_assessed"],
+        false
+    );
+}
+
 /// `war progress --serve`, which is `war ui` opened at Progress
 /// (OW-WAR-0116): every `/api/` call carries the session token.
 struct Server {
