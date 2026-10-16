@@ -68,7 +68,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 100 |
+| artifact digests verify | 96 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
@@ -211,7 +211,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
 | `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | unknown | 0 | 0 of 1 | artifact digests verify |
-| `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | unknown | 0 | 0 of 1 | artifact digests verify |
+| `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
 | `OW-WAR-0064` Repair a delivered artifact: the correction act for a resolved Warrant | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0065` Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
 | `OW-WAR-0066` Run: the conformance battery as a service stage | draft | unknown | 0 | 0 of 2 | required deliverables exist |
@@ -267,8 +267,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | unknown | 0 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
-| `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | artifact digests verify |
-| `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |

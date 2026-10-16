@@ -81,16 +81,17 @@ provenance_required = false
 obligation_refs = ["OBL-004"]
 
 [deliverable.provenance]
-producer = "claude"
+producer = "agent://codex"
 producing_attempt = "unrecorded"
 contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
-tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 1ad0f298ddb2, debug)"
-creation_method = "authored"
-content_digest = "sha256:1a8e946ee922f6d42cf1d71989a9699884909fcf5f875f92cdc0e4366ff6c90f"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit 8a60a1aca769, debug)"
+creation_method = "Modified the existing finite CI job deadline from 60 to 75 minutes and updated its measured-runtime comment in Git bef7e69086711a686fcc74a053f6d2cb6e239216 from exact input 5cf336b2517f2c6ea30c2b762dabfffdc0f6fc45 (sha256:1a8e946ee922f6d42cf1d71989a9699884909fcf5f875f92cdc0e4366ff6c90f). Earlier authorship and complete intermediate history are not asserted; original production attempt remains unrecorded."
+content_digest = "sha256:8370d73381a61b843b0e08b8954f2b548120dd77d6dc4fe773b036d8621ec06f"
 media_type = "application/yaml"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
+input_digests = ["sha256:1a8e946ee922f6d42cf1d71989a9699884909fcf5f875f92cdc0e4366ff6c90f"]
 
 [[deliverable]]
 id = "D-005"

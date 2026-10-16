@@ -469,6 +469,7 @@ pub fn current_records(
     let Ok(journal) = crate::journal_cmd::load(&one.dir) else {
         return vec![];
     };
+    let current_gate_evidence = std::cell::OnceCell::new();
     let bound: Vec<_> = journal
         .events
         .iter()
@@ -482,8 +483,26 @@ pub fn current_records(
             {
                 return None;
             }
-            let reviewed: ReviewedSubject =
-                serde_json::from_value(payload.get("reviewed_subject")?.clone()).ok()?;
+            let subject = payload.get("reviewed_subject")?;
+            let recorded_evidence: BTreeMap<String, String> = subject
+                .get("gate_evidence")
+                .cloned()
+                .map(serde_json::from_value)
+                .transpose()
+                .ok()?
+                .unwrap_or_default();
+            // A changed observation already excludes this review. Do not
+            // rebuild its full typed subject or hash the checkout
+            // only to refuse it later. Matching evidence still reaches every
+            // subject, packet, view, actor and independence check below.
+            let evidence = current_gate_evidence
+                .get_or_init(|| gate_evidence(repo, one))
+                .as_ref()
+                .ok()?;
+            if &recorded_evidence != evidence {
+                return None;
+            }
+            let reviewed: ReviewedSubject = serde_json::from_value(subject.clone()).ok()?;
             Some((event, payload, reviewed))
         })
         .collect();

@@ -6,8 +6,23 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.4] — 2026-10-16
+
 ### Added
 
+- **OpenWarrant Format 1.0, draft 2** (`docs/format/FORMAT-1.0.md`, OW-ADR-0032
+  proposed): a single-file Warrant with an optional manifest, a model that
+  carries content and a `content_digest` over meaning (RFC 8785), dotted
+  extension names carried in `ext`, JSON schemas under `schemas/format/1.0/`,
+  and a conformance corpus with an independent Python reader
+  (`conformance/format/`). Spec text CC-BY-4.0; schemas and corpus Apache-2.0.
+- `war context <target>`: a deterministic, budgeted context packet for an
+  agent, and `docs/generated/llms.txt`, an index of every record with its
+  state that ticket commands keep current incrementally.
+- One-line installs: cargo-binstall metadata, a rendered Homebrew formula
+  attached to each release, and pinned GitHub Action references.
+- Native runtime receipts, verifier packets and acceptance schemas
+  (experimental, beside the unchanged v1 schemas).
 - `[independence] single_actor = true` (issue #132): a repository where one
   person holds every role declares it once. It is the same as nine `false`
   dimensions and claims nothing: `war check` replaces the per-run
@@ -113,6 +128,21 @@ Notable changes to OpenWarrant. Format loosely follows
   `work.idempotency-conflict` (`journal.idempotency-conflict`). The same
   fact in a `v: 1` and a `v: 2` line is one fact: payloads are compared as
   RFC 8785 bytes.
+
+- `war init` with no flags writes the `vibe` preset: no signatures, the PR
+  gate reported but not required, and `war done` claims an unclaimed item
+  itself. `--no-preset` keeps the old bytes; `--program` writes no preset
+  unless one is named.
+- The release bundle's source archive leaves out the repository's own
+  evidence (`archive/`, `artifacts/`, `docs/evidence/`, and Warrants'
+  `implementation/`, `gate-runs/` and `verifications/`). Build inputs,
+  standard text, skills and conformance fixtures keep their original paths.
+  Complete project history remains in Git; historical repository audits need
+  a full checkout.
+- Verification-history reads avoid repeated compact-record parsing and stop
+  scanning source when changed gate evidence already excludes an old review.
+  Matching evidence still reaches every existing binding and independence check.
+- Shared preparation gates run once across Warrant scheduling rounds.
 - `war sign` (issue #132): a refusal that nobody is eligible names the
   register by the path it resolved, says whether it is absent (pointing at
   the `roles.toml.example` beside it) or present with no one eligible for
@@ -122,6 +152,22 @@ Notable changes to OpenWarrant. Format loosely follows
   it per act. Under `--ssh-sign` the signer's principal is resolved before
   the sign screen is drawn, so `sign.ssh-principal` refuses before the act
   is shown.
+
+### Fixed
+
+- Git source checks preserve the real index, retain deleted-source paths when
+  files move into excluded bookkeeping, and keep hosted and recorded contexts
+  from borrowing other contexts' cached observations.
+- `war init --guided` no longer loops at "prepare the first Warrant": the
+  sign step is reachable, and declining a signature stops the setup instead
+  of asking again.
+- The SSH verdict cache is bounded (4096 entries, 90 days unused); pruning
+  only ever costs a re-check, never a different verdict.
+- Simultaneous `war perform` starts are fenced so exactly one writer runs;
+  a checkout is not reused while a retained writer may still run.
+- Oversized or ambiguous verifier packets and answers are refused before
+  any backend call or write.
+- rustls updated to 0.23.46 (RUSTSEC-2026-0346 to 0349).
 
 ## [1.0.0-alpha.3] — 2026-10-09
 

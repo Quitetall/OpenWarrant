@@ -1,0 +1,139 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "What changed between the accepted candidate and this one"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/acceptance.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit de410c25ba94, debug)"
+creation_method = "modified from retained Git ed1f6695c697dd94633e1867e76f4f14c9b3d60e in ab29cfe420de3cc8edafeb86de01d4a1a864cd90; earlier implementation retained as input; original authorship not claimed; only the retained file input is reconstructed; other production inputs and the producing attempt remain unestablished"
+content_digest = "sha256:903300d934937d97947a8c110f5d76c2cde6b26b3b591dded331c160436ae256"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0ff72fc9d39ecbbb74abd4cfac2fd37178eed89d2d64f90399b62c92abe56d4b"]
+
+[[deliverable]]
+id = "D-002"
+title = "war pins --candidate: the finding beside each resolved pin"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/pins.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 1ad0f298ddb2, debug)"
+creation_method = "authored"
+content_digest = "sha256:05465061c5143994ad7c4a723661fb1ffa267fb397addadce601a85eb85384f5"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The --candidate flag"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:a01813187aeb82d9bf837a2f4c857cd423db6351cc5caf69449f25baf477e925"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "The pull-request step that runs it against the merge candidate"
+kind = "file"
+target_ref = ".github/workflows/ci.yml"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit 8a60a1aca769, debug)"
+creation_method = "Updated the existing finite CI job deadline during prerelease preparation; current bytes equal Git 7ab1e6a70fd2d1673cb4c10d2208fc34d52f8557; actual input version d3d86febb8dfccf7f7f4ac41ee531d9ddc3d41bc (sha256:8370d73381a61b843b0e08b8954f2b548120dd77d6dc4fe773b036d8621ec06f). Earlier authorship and complete intermediate history are not asserted; the production attempt remains unrecorded."
+content_digest = "sha256:8370d73381a61b843b0e08b8954f2b548120dd77d6dc4fe773b036d8621ec06f"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:8370d73381a61b843b0e08b8954f2b548120dd77d6dc4fe773b036d8621ec06f"]
+
+[[deliverable]]
+id = "D-005"
+title = "The acceptance-validity plants"
+kind = "file"
+target_ref = "conformance/plants.d/56-acceptance-validity.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-005"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit de410c25ba94, debug)"
+creation_method = "modified from retained Git a606d517567d98d0103d6975e6477bc2da2567b0 in 50a1604402b005ff13818631e76b959dfbd8edb0; earlier implementation retained as input; original authorship not claimed; only the retained file input is reconstructed; other production inputs and the producing attempt remain unestablished"
+content_digest = "sha256:2f1bbefb0a8b907d1b1fb9c0ca9c5d3316c2c815302f30de83b42a638fdcd334"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:7b81d8b9ccf44066a21957eb9296a72069d58ad95aee1039de01a02cc0394653"]
+
+[[deliverable]]
+id = "D-006"
+title = "After you sign: when the accepted candidate changes before merge"
+kind = "file"
+target_ref = "docs/SIGNING.md"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8ce5a51674e828d01a4e5d71ede1c35aa05e2365ce0ad094ab07c2f41c4e907"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:de5546cbd2eb69261c91aaffb19e42fe3f58e06f436e56384725aff055b0d684"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

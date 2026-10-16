@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-15.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-16.
 
 ## Lineage
 
@@ -40,6 +40,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-03 | 3 | attestation.recorded 1, authorization.recorded 1, question.answered 1 |
 | 2026-10-14 | 365 | sync.receipt_attached 365 |
 | 2026-10-15 | 1 | sync.receipt_attached 1 |
+| 2026-10-16 | 12 | sync.receipt_attached 6, verification.recorded 6 |
 
 ## Roadmap revisions
 
@@ -16998,7 +16999,7 @@ one Warrant drifts the projection the next Warrant's gate run checks, so
 |---|---|---|---|
 | D-001 | Gate receipts as committed evidence: admissibility, load, record, check | `crates/openwarrant-cli/src/evidence.rs` | drift |
 | D-002 | The resolution seam: request, ingest through the register, the §56.2 record, check | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
-| D-003 | The gate runner mints into a caller-chosen directory; Bonsai pairing scoped to its gate | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
+| D-003 | The gate runner mints into a caller-chosen directory; Bonsai pairing scoped to its gate | `crates/openwarrant-cli/src/gate_cmd.rs` | drift |
 
 ### OW-WAR-0060 — Publish the corpus viewer: GitHub Pages from the committed projection
 
@@ -27107,7 +27108,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-010 | docs/generated/CURRENT.md | `docs/generated/CURRENT.md` | not_content_addressed |
 | D-011 | docs/generated/HISTORY.md | `docs/generated/HISTORY.md` | not_content_addressed |
 | D-012 | the [generated] history key | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
-| D-013 | openwarrant.toml: history = true here | `openwarrant.toml` | verified |
+| D-013 | openwarrant.toml: history = true here | `openwarrant.toml` | drift |
 | D-014 | check.rs: atom.role-unprojected, atom.preset-unanswered | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-015 | next.rs: judged actions | `crates/openwarrant-cli/src/next.rs` | drift |
 | D-016 | the app's Help pane shows the verdict | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
@@ -28724,7 +28725,7 @@ performer's report under another name.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | drift |
-| D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | verified |
+| D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | drift |
 | D-003 | The verifier plants | `conformance/plants.d/62-verifier.sh` | verified |
 | D-004 | How to run the verifier and read what it says | `docs/VERIFICATION.md` | drift |
 
@@ -33906,7 +33907,7 @@ responder must not read as "waiting normally".
 | D-001 | war frontier: a blocking question blocks its stage; no responder is UNKNOWN | `crates/openwarrant-cli/src/frontier.rs` | verified |
 | D-002 | war perform: question, spend and attempt admission; perform.ended | `crates/openwarrant-cli/src/perform.rs` | verified |
 | D-003 | [perform] allow_unmetered, hard_spend_cap, max_repairs, max_recoveries | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
-| D-004 | This repository's allow_unmetered = true | `openwarrant.toml` | verified |
+| D-004 | This repository's allow_unmetered = true | `openwarrant.toml` | drift |
 | D-005 | How the hotline blocks, who can answer, and the time, spend and attempt defaults | `docs/HOTLINE.md` | verified |
 | D-006 | The hotline-defaults plants | `conformance/plants.d/52-hotline-defaults.sh` | verified |
 | D-007 | The cancel plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/60-perform-cancel.sh` | verified |
@@ -34659,7 +34660,7 @@ this level requires. The author does not record them.
 | D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | verified |
 | D-002 | war pins --candidate: the finding beside each resolved pin | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-003 | The --candidate flag | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | drift |
+| D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | verified |
 | D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | verified |
 | D-006 | After you sign: when the accepted candidate changes before merge | `docs/SIGNING.md` | verified |
 
@@ -40819,7 +40820,7 @@ observer.
 | D-012 | MCP tools read the corpus | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
 | D-013 | MCP resources read the corpus | `crates/openwarrant-cli/src/mcp/resources.rs` | not_content_addressed |
 | D-014 | war model: oh.war/model/v1 | `crates/openwarrant-cli/src/model.rs` | not_content_addressed |
-| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
+| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | verified |
 | D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
 | D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
 | D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |
@@ -40832,7 +40833,7 @@ observer.
 | D-025 | §56.1 checks by capability; not applicable by name | `crates/openwarrant-cli/src/resolve.rs` | not_content_addressed |
 | D-026 | WarrantRung by capability | `crates/openwarrant-core/src/status.rs` | not_content_addressed |
 | D-027 | Authorize refuses a kind without the capability | `crates/openwarrant-cli/src/authorize.rs` | not_content_addressed |
-| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | not_content_addressed |
+| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | verified |
 | D-029 | Unassigned only for kinds that join the roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | not_content_addressed |
 | D-030 | Falsifiability from profile data | `crates/openwarrant-cli/src/resolution_cmd.rs` | not_content_addressed |
 | D-031 | Falsifiability from profile data | `crates/openwarrant-core/src/resolution.rs` | not_content_addressed |

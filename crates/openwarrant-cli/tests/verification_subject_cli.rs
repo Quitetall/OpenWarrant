@@ -9,8 +9,152 @@ use std::{
 struct Fixture(PathBuf);
 
 #[test]
+fn changed_gate_evidence_refuses_old_reviews_before_scanning_source() {
+    let (fixture, _script) = prepare_route_fixture();
+    let current = fixture.run(&["status", "--json"]);
+    let warrant = current["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    assert!(
+        warrant["obligations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|o| o["disposition"] == "established"),
+        "{warrant}"
+    );
+    let before = fixture.review_state();
+    // Synthetic run data changes what the reviewer saw; this is not a
+    // production GateRun or a claim that the fixture's gate actually ran.
+    let runs = fixture.0.join("docs/warrants/IX-WAR-0003/gate-runs");
+    fs::create_dir_all(&runs).unwrap();
+    fs::write(runs.join("probe.run.toml"), "id = \"probe\"\ngate = \"fixture.probe@1.0.0\"\naskability = \"askable\"\nexecution_status = \"completed\"\nverdict = \"pass\"\n").unwrap();
+    fs::write(runs.join("probe.stdout.txt"), "synthetic new observation\n").unwrap();
+    fs::write(runs.join("probe.stderr.txt"), "").unwrap();
+    let trace = fixture.0.with_extension("stale-run.trace.jsonl");
+    let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(&fixture.0)
+        .args(["status", "--json"])
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .env("GIT_TRACE2_EVENT", &trace)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let warrant = report["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    assert!(
+        warrant["obligations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|o| o["disposition"] == "unknown"),
+        "{warrant}"
+    );
+    assert_eq!(
+        fixture.review_state(),
+        before,
+        "reading cannot rewrite historical verdicts"
+    );
+    let walks = fs::read_to_string(&trace)
+        .unwrap_or_default()
+        .lines()
+        .filter(|line| {
+            let event: serde_json::Value = serde_json::from_str(line).unwrap();
+            event["event"] == "start"
+                && event["argv"].as_array().is_some_and(|args| {
+                    args.iter().any(|a| a == "ls-files") && args.iter().any(|a| a == "--cached")
+                })
+        })
+        .count();
+    let _ = fs::remove_file(trace);
+    assert_eq!(
+        walks, 0,
+        "an already-refused review must not enumerate and hash the whole source tree"
+    );
+}
+
+#[test]
+fn read_only_views_share_source_inventory_across_verified_obligations() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    fixture.bound_response();
+    let ingested = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(ingested["exit_code"], 0, "{ingested}");
+    for args in [
+        vec!["board", "--json"],
+        vec!["overview", "--snapshot", "--json"],
+    ] {
+        let trace = fixture.0.with_extension("tree-reads.jsonl");
+        let output = Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&fixture.0)
+            .args(&args)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("GIT_TRACE2_EVENT", &trace)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{args:?}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let mut reads = std::collections::BTreeMap::<Vec<String>, usize>::new();
+        for line in fs::read_to_string(&trace).unwrap().lines() {
+            let event: serde_json::Value = serde_json::from_str(line).unwrap();
+            if event["event"] != "start" {
+                continue;
+            }
+            let argv: Vec<String> = event["argv"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|arg| arg.as_str().unwrap().to_owned())
+                .collect();
+            if argv
+                .iter()
+                .any(|arg| arg == "--others" || arg == "--name-only")
+            {
+                *reads.entry(argv).or_default() += 1;
+            }
+        }
+        fs::remove_file(trace).unwrap();
+        assert!(!reads.is_empty(), "no tree observations: {args:?}");
+        assert!(
+            reads.values().all(|count| *count == 1),
+            "repeated tree observations for {args:?}: {reads:?}"
+        );
+    }
+}
+
+#[test]
 fn preparation_uses_explicit_compact_verifier_without_rewriting_repository_config() {
-    let (_, script) = prepare_route_fixture();
+    let (_fixture, script) = prepare_route_fixture();
     fs::remove_file(script.with_extension("calls")).unwrap();
     fs::remove_file(script).unwrap();
 }
@@ -514,35 +658,47 @@ fn compact_ingestion_binds_current_views_and_replay_without_writing_on_tamper() 
     let original_view = fixture
         .0
         .join(response["reviewed_views"][0]["path"].as_str().unwrap());
-    let mut altered: serde_json::Value =
-        serde_json::from_slice(&fs::read(&original_view).unwrap()).unwrap();
-    altered["atoms"][0]["text"] = "forged instruction".into();
-    let text = serde_jcs::to_string(&altered).unwrap();
-    let sha = openwarrant_compiler::sha256_hex(text.as_bytes());
-    let path = original_view
-        .parent()
-        .unwrap()
-        .join(format!("view-{sha}.json"));
-    fs::write(&path, text).unwrap();
-    response["reviewed_views"][0]["path"] = path
-        .strip_prefix(&fixture.0)
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .into();
-    response["reviewed_views"][0]["sha256"] = sha.into();
-    fs::write(&response_path, toml::to_string(&response).unwrap()).unwrap();
-    let refused = ingest();
-    assert_ne!(refused["exit_code"], 0, "{refused}");
-    assert!(
-        refused["diagnostics"]
-            .as_array()
+    for mutation in ["atoms", "prior_verifications"] {
+        let mut altered: serde_json::Value =
+            serde_json::from_slice(&fs::read(&original_view).unwrap()).unwrap();
+        if mutation == "atoms" {
+            altered["atoms"][0]["text"] = "forged instruction".into();
+        } else {
+            assert!(
+                !archive["prior_verifications"]
+                    .as_array()
+                    .unwrap()
+                    .is_empty()
+            );
+            altered["prior_verifications"] = archive["prior_verifications"].clone();
+        }
+        let text = serde_jcs::to_string(&altered).unwrap();
+        let sha = openwarrant_compiler::sha256_hex(text.as_bytes());
+        let path = original_view
+            .parent()
             .unwrap()
-            .iter()
-            .any(|d| d["rule"] == "verify.view-binding"),
-        "{refused}"
-    );
-    assert_eq!(fixture.review_state(), before);
+            .join(format!("view-{sha}.json"));
+        fs::write(&path, text).unwrap();
+        response["reviewed_views"][0]["path"] = path
+            .strip_prefix(&fixture.0)
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .into();
+        response["reviewed_views"][0]["sha256"] = sha.into();
+        fs::write(&response_path, toml::to_string(&response).unwrap()).unwrap();
+        let refused = ingest();
+        assert_ne!(refused["exit_code"], 0, "{refused}");
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.view-binding"),
+            "{refused}"
+        );
+        assert_eq!(fixture.review_state(), before);
+    }
     fs::write(response_path, original).unwrap();
     fs::write(fixture.0.join("changed-source.txt"), "changed\n").unwrap();
     let stale = ingest();
@@ -564,6 +720,71 @@ fn compact_ingestion_binds_current_views_and_replay_without_writing_on_tamper() 
         .find(|s| s["step"] == "verify")
         .unwrap();
     assert_ne!(verify["outcome"], "current", "{stale_prepare}");
+}
+
+#[test]
+fn compact_blind_input_archives_prior_judgments_without_showing_them() {
+    let fixture = Fixture::new();
+    fixture.response();
+    let response_path = fixture.0.with_extension("response.toml");
+    let response = fs::read_to_string(&response_path).unwrap().replace(
+        "synthetic public-seam fixture, not production assurance",
+        "PRIOR_VERDICT_SHOULD_STAY_ARCHIVED",
+    );
+    fs::write(&response_path, response).unwrap();
+    let recorded = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(recorded["exit_code"], 2, "{recorded}");
+    assert_eq!(recorded["counts"]["unknown"], 2, "{recorded}");
+    assert_eq!(recorded["counts"]["error"], 0, "{recorded}");
+    let before = fixture.review_state();
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    for reference in emitted["result"]["views"].as_array().unwrap() {
+        let path = fixture.0.join(reference["path"].as_str().unwrap());
+        let raw = fs::read(&path).unwrap();
+        let view: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert_eq!(view["prior_verifications"], serde_json::json!([]));
+        assert!(
+            !std::str::from_utf8(&raw)
+                .unwrap()
+                .contains("PRIOR_VERDICT_SHOULD_STAY_ARCHIVED")
+        );
+        let archive_path = path
+            .parent()
+            .unwrap()
+            .join(view["archive"]["path"].as_str().unwrap());
+        let archive: serde_json::Value =
+            serde_json::from_slice(&fs::read(archive_path).unwrap()).unwrap();
+        let prior = archive["prior_verifications"].as_array().unwrap();
+        assert!(!prior.is_empty());
+        assert!(
+            prior
+                .iter()
+                .all(|v| v["evidence"] == "PRIOR_VERDICT_SHOULD_STAY_ARCHIVED")
+        );
+        assert_eq!(
+            view["prior_verifications_archive"]["pointer"],
+            "/prior_verifications"
+        );
+        assert_eq!(view["prior_verifications_archive"]["count"], prior.len());
+        assert_eq!(view["atoms"], archive["atoms"]);
+        assert_eq!(view["contract_sources"], archive["contract_sources"]);
+    }
+    assert_eq!(fixture.review_state(), before);
 }
 
 #[test]
@@ -1863,6 +2084,8 @@ impl Drop for Fixture {
     fn drop(&mut self) {
         let _ = fs::remove_dir_all(&self.0);
         let _ = fs::remove_file(self.0.with_extension("response.toml"));
+        let _ = fs::remove_file(self.0.with_extension("prepare-adapter.py"));
+        let _ = fs::remove_file(self.0.with_extension("calls"));
     }
 }
 

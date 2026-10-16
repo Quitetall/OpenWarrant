@@ -1,0 +1,184 @@
+schema = "oh.war/deliverables/v1"
+
+# REVIEW PROPOSAL ONLY: not an active declaration, delivery or ownership grant.
+# No producing actor, attempt, input history or independent verdict is inferred.
+
+[[deliverable]]
+id = "D-001"
+title = "crates/openwarrant-core/src/document/author.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/author.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "conformance/sdk/author/FOOTER08-title-conflict.json"
+kind = "file"
+target_ref = "conformance/sdk/author/FOOTER08-title-conflict.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-003"
+title = "conformance/sdk/author/FOOTER08-title-crlf.json"
+kind = "file"
+target_ref = "conformance/sdk/author/FOOTER08-title-crlf.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "conformance/sdk/author/README.md"
+kind = "file"
+target_ref = "conformance/sdk/author/README.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/sdk/author/T54-minimum.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T54-minimum.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/sdk/author/T55-duplicate-field.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T55-duplicate-field.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "conformance/sdk/author/T55-footer-injection.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T55-footer-injection.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "conformance/sdk/author/T55-unit-injection.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T55-unit-injection.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/author/T56-duplicate-edit.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T56-duplicate-edit.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/author/T56-false-assurance.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T56-false-assurance.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-011"
+title = "conformance/sdk/author/T56-revision.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T56-revision.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-012"
+title = "conformance/sdk/author/T56-unit-edit.json"
+kind = "file"
+target_ref = "conformance/sdk/author/T56-unit-edit.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "conformance/sdk/author/body.md"
+kind = "file"
+target_ref = "conformance/sdk/author/body.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-014"
+title = "conformance/sdk/author/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/author/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-015"
+title = "conformance/sdk/author/minimal.md"
+kind = "file"
+target_ref = "conformance/sdk/author/minimal.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-016"
+title = "conformance/sdk/author/revision.md"
+kind = "file"
+target_ref = "conformance/sdk/author/revision.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-017"
+title = "conformance/sdk/author/title-crlf.md"
+kind = "file"
+target_ref = "conformance/sdk/author/title-crlf.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-018"
+title = "docs/warrants/OW-WAR-0076/implementation/sdk-author-notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0076/implementation/sdk-author-notes.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]

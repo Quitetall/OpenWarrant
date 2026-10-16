@@ -38,6 +38,8 @@ mod evidence_recorder;
 mod format_cli;
 #[path = "frontier_integrity_cli.rs"]
 mod frontier_integrity_cli;
+#[path = "gate_tree_reads.rs"]
+mod gate_tree_reads;
 #[path = "inbox_classify.rs"]
 mod inbox_classify;
 #[path = "inbox_cli.rs"]
