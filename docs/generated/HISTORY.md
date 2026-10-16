@@ -5470,7 +5470,7 @@ which is not a control. Recorded as a real gap rather than argued away.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | Generated Markdown parent with the §17.1 header | `crates/openwarrant-compiler/src/render.rs` | verified |
-| D-002 | Compilation and drift detection | `crates/openwarrant-cli/src/compile.rs` | verified |
+| D-002 | Compilation and drift detection | `crates/openwarrant-cli/src/compile.rs` | drift |
 
 ### OW-WAR-0005 — Implement deterministic war check and close the Phase 1 bootstrap
 
@@ -27103,7 +27103,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-005 | OW-WAR-0073's manifest, reverted to its signed bytes | `docs/warrants/OW-WAR-0073/manifest.toml` | verified |
 | D-006 | current.rs: the master document | `crates/openwarrant-compiler/src/current.rs` | verified |
 | D-007 | history.rs: the optional history | `crates/openwarrant-compiler/src/history.rs` | verified |
-| D-008 | compile.rs writes and drift-checks both | `crates/openwarrant-cli/src/compile.rs` | verified |
+| D-008 | compile.rs writes and drift-checks both | `crates/openwarrant-cli/src/compile.rs` | drift |
 | D-009 | the compiler's module list | `crates/openwarrant-compiler/src/lib.rs` | verified |
 | D-010 | docs/generated/CURRENT.md | `docs/generated/CURRENT.md` | not_content_addressed |
 | D-011 | docs/generated/HISTORY.md | `docs/generated/HISTORY.md` | not_content_addressed |
@@ -27853,7 +27853,7 @@ assert it with.
 | D-029 | CONTEXT.md: the term | `CONTEXT.md` | verified |
 | D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | verified |
 | D-031 | the plants | `conformance/plants.d/70-roadmap.sh` | verified |
-| D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | verified |
+| D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | drift |
 | D-033 | compiler: earlier roadmap revisions in HISTORY.md (AM-003) | `crates/openwarrant-compiler/src/history.rs` | verified |
 | D-034 | SAS 1.1.1, proposed: §98 points at the record (AM-003) | `docs/sas/revisions/1.1.1.toml` | verified |
 | D-035 | Roadmap revision 3, proposed: the retirements (AM-003) | `docs/roadmap/revisions/3.toml` | verified |
@@ -30033,7 +30033,7 @@ truncates nothing.
 | D-003 | Resolution written atomically, against its prestate | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-004 | Verification records written atomically | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-005 | Gate receipts written atomically | `crates/openwarrant-cli/src/gate_cmd.rs` | not_content_addressed |
-| D-006 | No partial generated parent: views and projections written atomically | `crates/openwarrant-cli/src/compile.rs` | verified |
+| D-006 | No partial generated parent: views and projections written atomically | `crates/openwarrant-cli/src/compile.rs` | drift |
 | D-007 | Response drafts written atomically before their rename | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-008 | Durable journal appends and journal.torn-tail | `crates/openwarrant-cli/src/journal_cmd.rs` | drift |
 | D-009 | storage.stray-temp in war check | `crates/openwarrant-cli/src/check.rs` | verified |
@@ -31487,7 +31487,7 @@ anything.
 | D-001 | OW-ADR-0028: SAS sections are atoms — identity, the two steps, the proposed §105 form | `docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md` | verified |
 | D-002 | The lossless, fence-aware section split and join | `crates/openwarrant-core/src/sas_sections.rs` | verified |
 | D-003 | The sas_sections export | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
-| D-004 | SECTIONS.json and SECTIONS.md written by war compile | `crates/openwarrant-cli/src/compile.rs` | verified |
+| D-004 | SECTIONS.json and SECTIONS.md written by war compile | `crates/openwarrant-cli/src/compile.rs` | drift |
 | D-005 | The generated section index | `docs/sas/generated/SECTIONS.json` | not_content_addressed |
 | D-006 | The generated section index, for reading | `docs/sas/generated/SECTIONS.md` | not_content_addressed |
 | D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | verified |
@@ -34305,7 +34305,7 @@ this level requires. The author does not record them.
 | D-006 | When recorded evidence still counts: the reuse rule and the compiler's three rules | `docs/RESOLVING.md` | verified |
 | D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | verified |
 | D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | verified |
-| D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | verified |
+| D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | drift |
 | D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | verified |
 | D-011 | The eval baseline, re-recorded (AM-002) | `evals/baseline.json` | verified |
 | D-012 | Two resolution plants re-pointed at a scratch fixture (AM-002) | `conformance/plants.d/00-corpus.sh` | drift |
