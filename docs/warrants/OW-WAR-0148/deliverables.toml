@@ -149,9 +149,22 @@ title = "war model, war impact, war state; create --issue"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-007", "OBL-008", "OBL-011"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "unrecorded"
+contract_digest = "14127f58e7867f4a7bd424a34689238325a8658b09aa819030a069eada32c231"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit 8a60a1aca769, debug)"
+creation_method = "Modified the existing CLI argument surface for explicit delivery input and attempt options in Git de410c25ba94380b6091d1d8020edbb46c034e8e from exact input 2eab11dacb4682fc109bd20e77397b1f8bed8390 (sha256:d30eb8df0c378856af6605d64805c7a9a77010bad97eeb8365798c02352b7a27). Earlier authorship and complete intermediate history are not asserted; original production attempt remains unrecorded."
+content_digest = "sha256:bd1032f8727a42ba72d6f115ff64c94a0300e2203e8a9826df15507d18c96a45"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:d30eb8df0c378856af6605d64805c7a9a77010bad97eeb8365798c02352b7a27"]
 
 [[deliverable]]
 id = "D-016"

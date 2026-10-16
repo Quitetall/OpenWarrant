@@ -34660,7 +34660,7 @@ this level requires. The author does not record them.
 | D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | verified |
 | D-002 | war pins --candidate: the finding beside each resolved pin | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-003 | The --candidate flag | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | drift |
+| D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | verified |
 | D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | verified |
 | D-006 | After you sign: when the accepted candidate changes before merge | `docs/SIGNING.md` | verified |
 
@@ -40820,7 +40820,7 @@ observer.
 | D-012 | MCP tools read the corpus | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
 | D-013 | MCP resources read the corpus | `crates/openwarrant-cli/src/mcp/resources.rs` | not_content_addressed |
 | D-014 | war model: oh.war/model/v1 | `crates/openwarrant-cli/src/model.rs` | not_content_addressed |
-| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
+| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | verified |
 | D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
 | D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
 | D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |
