@@ -444,7 +444,7 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 pub mod source {
     use camino::{Utf8Path, Utf8PathBuf};
     use openwarrant_compiler::sha256_hex;
-    use std::process::Command;
+    use std::{fs, path::PathBuf, process::Command};
 
     use crate::repo::Repository;
 
@@ -825,10 +825,11 @@ pub mod source {
     /// under it. Other memos (the ownership fingerprint) key off it.
     #[must_use]
     pub fn tree_reads_remembered() -> bool {
-        TREE_READS
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .is_some()
+        crate::vfs::is_disk()
+            && TREE_READS
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .is_some()
     }
 
     /// `read()`, or what it returned for `key` earlier in this process when
@@ -837,6 +838,12 @@ pub mod source {
         key: String,
         read: impl FnOnce() -> Result<Vec<String>, E>,
     ) -> Result<Vec<String>, E> {
+        // Each hosted basis and each recording owns its observations. A
+        // process-local disk memo must neither supply a different basis's
+        // answer nor omit an observation from a fresh recording.
+        if !crate::vfs::is_disk() {
+            return read();
+        }
         tree_read_in(&TREE_READS, key, read)
     }
 
@@ -869,6 +876,14 @@ pub mod source {
     }
 
     fn git(root: &Utf8Path, args: &[&str]) -> Result<Vec<u8>, String> {
+        git_observation(root, args, false)
+    }
+
+    fn git_observation(
+        root: &Utf8Path,
+        args: &[&str],
+        private_index: bool,
+    ) -> Result<Vec<u8>, String> {
         // OW-WAR-0148 M8: a hosted run (`war host`) spawns nothing; it
         // answers from its request's observation of this read, or fails as a
         // missing `git` does. A recording run remembers the answer.
@@ -882,16 +897,28 @@ pub mod source {
             }
             None => {}
         }
-        let outcome = git_uncached(root, args);
+        let outcome = git_uncached(root, args, private_index);
         crate::vfs::record_git(args, &outcome);
         outcome
     }
 
-    fn git_uncached(root: &Utf8Path, args: &[&str]) -> Result<Vec<u8>, String> {
-        let out = Command::new("git")
+    fn git_uncached(
+        root: &Utf8Path,
+        args: &[&str],
+        private_index: bool,
+    ) -> Result<Vec<u8>, String> {
+        let index = private_index.then(|| ReadIndex::new(root)).transpose()?;
+        let mut command = Command::new("git");
+        if let Some(index) = &index {
+            command.env("GIT_INDEX_FILE", index.0.join("index"));
+        }
+        let out = command
             .arg("-C")
             .arg(root.as_str())
             .args(args)
+            // These are observations, including during a mutating gate
+            // command. Git must not refresh index stat data as a side effect.
+            .env("GIT_OPTIONAL_LOCKS", "0")
             .output()
             .map_err(|e| format!("git could not be run: {e}"))?;
         if !out.status.success() {
@@ -902,6 +929,57 @@ pub mod source {
             ));
         }
         Ok(out.stdout)
+    }
+
+    /// Git's exact-content filtering can refresh index stat data even with
+    /// optional locks disabled. Give worktree diffs a private copy, removed
+    /// after the process ends. Hosted observations never create this scratch.
+    struct ReadIndex(PathBuf);
+
+    impl ReadIndex {
+        fn new(root: &Utf8Path) -> Result<Self, String> {
+            let paths = tree_read(format!("index-path\0{root}"), || {
+                let bytes = git_uncached(root, &["rev-parse", "--git-path", "index"], false)?;
+                let path = std::str::from_utf8(&bytes)
+                    .map_err(|_| "Git index path is not UTF-8".to_owned())?;
+                Ok::<_, String>(vec![path.strip_suffix('\n').unwrap_or(path).to_owned()])
+            })?;
+            let path = paths
+                .first()
+                .ok_or_else(|| "Git returned no index path".to_owned())?;
+            if path.is_empty() {
+                return Err("Git returned an empty index path".to_owned());
+            }
+            let source = root.join(path);
+            let dir = std::env::temp_dir()
+                .join(format!("ow-git-read-{}", openwarrant_core::WarUuid::mint()));
+            let mut builder = fs::DirBuilder::new();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::DirBuilderExt;
+                builder.mode(0o700);
+            }
+            builder
+                .create(&dir)
+                .map_err(|e| format!("cannot create private Git index directory: {e}"))?;
+            let index = Self(dir);
+            match fs::metadata(&source) {
+                Ok(meta) if meta.is_file() => {
+                    fs::copy(source, index.0.join("index"))
+                        .map_err(|e| format!("cannot copy Git index for observation: {e}"))?;
+                }
+                Ok(_) => return Err("Git index is not a regular file".to_owned()),
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+                Err(e) => return Err(format!("cannot inspect Git index: {e}")),
+            }
+            Ok(index)
+        }
+    }
+
+    impl Drop for ReadIndex {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
     }
 
     fn nul_paths(bytes: &[u8]) -> Vec<String> {
@@ -930,11 +1008,29 @@ pub mod source {
         tree: &str,
         ex: &Exclusions,
     ) -> Result<Vec<String>, String> {
-        let mut moved = tree_read(format!("diff\0{root}\0{tree}"), || -> Result<_, String> {
-            Ok(nul_paths(&git(
-                root,
-                &["diff", "--name-only", "-z", tree, "--"],
-            )?))
+        let mut moved = tree_read(format!("diff\0{root}\0{tree}"), || {
+            // A clean tracked tree needs one filesystem scan, not one per
+            // historical receipt. Compare the immutable trees after proving
+            // the checkout equals this exact tip. Untracked paths are still
+            // read below. A dirty or unavailable tip takes the original path.
+            // Mutating commands never use this process-local observation.
+            if tree_reads_remembered()
+                && let Ok(tips) = tree_read(format!("tip\0{root}"), || {
+                    head_tree(root).map(|tip| vec![tip])
+                })
+                && let Some(tip) = tips.first()
+                && let Ok(changes) = tree_read(format!("working-tip\0{root}\0{tip}"), || {
+                    diff_paths(root, tip, None)
+                })
+                && changes.is_empty()
+            {
+                return if tip == tree {
+                    Ok(Vec::new())
+                } else {
+                    diff_paths(root, tree, Some(tip))
+                };
+            }
+            diff_paths(root, tree, None)
         })?;
         moved.extend(tree_read(
             format!("others\0{root}"),
@@ -949,6 +1045,17 @@ pub mod source {
         moved.sort();
         moved.dedup();
         Ok(moved)
+    }
+
+    fn diff_paths(root: &Utf8Path, from: &str, to: Option<&str>) -> Result<Vec<String>, String> {
+        // Both names matter to source validity: a rename into an excluded
+        // bookkeeping path must not hide the deletion of the original input.
+        let mut args = vec!["diff", "--no-renames", "--name-only", "-z", from];
+        if let Some(to) = to {
+            args.push(to);
+        }
+        args.push("--");
+        Ok(nul_paths(&git_observation(root, &args, to.is_none())?))
     }
 
     /// Whether `pattern` matches `path`. `*` and `?` stay within one path
