@@ -63,6 +63,14 @@ over budget, or whose estimate exceeds the budget, before any backend call or
 review-log write. Exact required context stays intact. This checks the supplied
 compiler metadata; it does not substitute a new tokenizer.
 
+Pass `--thinking on` or `--thinking off` to request LAMU's supported
+`enable_thinking` setting. The default, `--thinking auto`, omits that field and
+keeps the provider default. The run log records `thinking_requested`; that is
+the requested mode, not proof that a model honored it. This option does not
+change the exact review context, system instructions, output limit or verdict
+checks. An incomplete answer remains unusable in every mode. No retry or mode
+switch happens automatically.
+
 ### Inspect an oversized packet offline
 
 The experimental preview command separates reading context from the lossless
