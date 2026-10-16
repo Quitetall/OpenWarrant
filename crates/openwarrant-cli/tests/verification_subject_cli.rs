@@ -9,6 +9,1299 @@ use std::{
 struct Fixture(PathBuf);
 
 #[test]
+fn changed_gate_evidence_refuses_old_reviews_before_scanning_source() {
+    let (fixture, _script) = prepare_route_fixture();
+    let current = fixture.run(&["status", "--json"]);
+    let warrant = current["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    assert!(
+        warrant["obligations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|o| o["disposition"] == "established"),
+        "{warrant}"
+    );
+    let before = fixture.review_state();
+    // Synthetic run data changes what the reviewer saw; this is not a
+    // production GateRun or a claim that the fixture's gate actually ran.
+    let runs = fixture.0.join("docs/warrants/IX-WAR-0003/gate-runs");
+    fs::create_dir_all(&runs).unwrap();
+    fs::write(runs.join("probe.run.toml"), "id = \"probe\"\ngate = \"fixture.probe@1.0.0\"\naskability = \"askable\"\nexecution_status = \"completed\"\nverdict = \"pass\"\n").unwrap();
+    fs::write(runs.join("probe.stdout.txt"), "synthetic new observation\n").unwrap();
+    fs::write(runs.join("probe.stderr.txt"), "").unwrap();
+    let trace = fixture.0.with_extension("stale-run.trace.jsonl");
+    let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(&fixture.0)
+        .args(["status", "--json"])
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .env("GIT_TRACE2_EVENT", &trace)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let warrant = report["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    assert!(
+        warrant["obligations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|o| o["disposition"] == "unknown"),
+        "{warrant}"
+    );
+    assert_eq!(
+        fixture.review_state(),
+        before,
+        "reading cannot rewrite historical verdicts"
+    );
+    let walks = fs::read_to_string(&trace)
+        .unwrap_or_default()
+        .lines()
+        .filter(|line| {
+            let event: serde_json::Value = serde_json::from_str(line).unwrap();
+            event["event"] == "start"
+                && event["argv"].as_array().is_some_and(|args| {
+                    args.iter().any(|a| a == "ls-files") && args.iter().any(|a| a == "--cached")
+                })
+        })
+        .count();
+    let _ = fs::remove_file(trace);
+    assert_eq!(
+        walks, 0,
+        "an already-refused review must not enumerate and hash the whole source tree"
+    );
+}
+
+#[test]
+fn read_only_views_share_source_inventory_across_verified_obligations() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    fixture.bound_response();
+    let ingested = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(ingested["exit_code"], 0, "{ingested}");
+    for args in [
+        vec!["board", "--json"],
+        vec!["overview", "--snapshot", "--json"],
+    ] {
+        let trace = fixture.0.with_extension("tree-reads.jsonl");
+        let output = Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&fixture.0)
+            .args(&args)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("GIT_TRACE2_EVENT", &trace)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{args:?}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let mut reads = std::collections::BTreeMap::<Vec<String>, usize>::new();
+        for line in fs::read_to_string(&trace).unwrap().lines() {
+            let event: serde_json::Value = serde_json::from_str(line).unwrap();
+            if event["event"] != "start" {
+                continue;
+            }
+            let argv: Vec<String> = event["argv"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|arg| arg.as_str().unwrap().to_owned())
+                .collect();
+            if argv
+                .iter()
+                .any(|arg| arg == "--others" || arg == "--name-only")
+            {
+                *reads.entry(argv).or_default() += 1;
+            }
+        }
+        fs::remove_file(trace).unwrap();
+        assert!(!reads.is_empty(), "no tree observations: {args:?}");
+        assert!(
+            reads.values().all(|count| *count == 1),
+            "repeated tree observations for {args:?}: {reads:?}"
+        );
+    }
+}
+
+#[test]
+fn preparation_uses_explicit_compact_verifier_without_rewriting_repository_config() {
+    let (_fixture, script) = prepare_route_fixture();
+    fs::remove_file(script.with_extension("calls")).unwrap();
+    fs::remove_file(script).unwrap();
+}
+
+#[test]
+fn preparation_preserves_unknown_reverification_despite_current_older_verdicts() {
+    let (fixture, script) = prepare_route_fixture();
+    let before = fixture.review_state();
+    let report = fixture.run(&[
+        "prepare",
+        "IX-WAR-0003",
+        "--reverify",
+        "--verifier",
+        "python3",
+        "--verifier",
+        script.to_str().unwrap(),
+        "--verifier",
+        "future",
+        "--json",
+    ]);
+    assert_eq!(report["exit_code"], 2, "{report}");
+    assert_eq!(report["counts"]["error"], 0, "{report}");
+    assert_eq!(report["counts"]["unknown"], 1, "{report}");
+    let warrant = &report["result"]["warrants"][0];
+    assert_eq!(warrant["state"], "unknown", "{report}");
+    assert!(
+        warrant["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["step"] == "verify"
+                && s["outcome"] == "unknown"
+                && s["detail"]
+                    .as_str()
+                    .unwrap()
+                    .contains("verify.response-schema")),
+        "{report}"
+    );
+    assert_eq!(fixture.review_state(), before);
+    fs::remove_file(script.with_extension("calls")).unwrap();
+    fs::remove_file(script).unwrap();
+}
+
+fn prepare_route_fixture() -> (Fixture, PathBuf) {
+    let fixture = Fixture::new();
+    let script = fixture.0.with_extension("prepare-adapter.py");
+    fs::write(&script, r#"import json, os, sys
+from pathlib import Path
+with Path(__file__).with_suffix('.calls').open('a') as calls: calls.write('called\n')
+path=Path(sys.argv[-1]);view=json.loads(path.read_text())
+if 'future' in sys.argv[1:-1]:
+    print('schema = "oh.war/verification-response/v4"\nverifications = []\nwarrant = '+json.dumps(view['warrant']))
+    sys.exit(0)
+assert view['schema']=='oh.war/verification-view/v1'
+assert view['dispatch_eligible'] and not view['over_budget']
+archive=json.loads((path.parent/view['archive']['path']).read_text())
+request=archive['request'];subject=request['reviewed_subject']
+print('schema = "oh.war/verification-response/v3"')
+print('warrant = '+json.dumps(view['warrant']))
+for ref in json.loads(os.environ['OPENWARRANT_REVIEWED_PACKETS']):
+    print('[[reviewed_packets]]')
+    for key in ['path','digest']:print(key+' = '+json.dumps(ref[key]))
+for ref in json.loads(os.environ['OPENWARRANT_REVIEWED_VIEWS']):
+    print('[[reviewed_views]]')
+    for key in ['path','sha256']:print(key+' = '+json.dumps(ref[key]))
+print('[reviewed_subject]')
+print('contract_digest = '+json.dumps(subject['contract_digest']))
+for key in ['artifacts','context_sources','gate_definitions','fixtures','gate_evidence','gate_inputs','gate_links']:
+    print('[reviewed_subject.'+key+']')
+    for name,value in subject.get(key,{}).items():print(json.dumps(name)+' = '+json.dumps(value))
+for obligation in request['obligations']:
+    print('[[verifications]]')
+    print('obligation = '+json.dumps(obligation['id']))
+    print('disposition = "established"')
+    print('evidence = "Synthetic local route control, not production qualification"')
+    print('performer = '+json.dumps(request['performer']))
+    print('[verifications.verifier]')
+    print('actor = "fixture-independent-service"')
+    print('kind = "service"')
+    print('[verifications.verifier.independence]')
+    for key in ['performer_transcript_blind','performer_rationale_blind','separate_writable_workspace','cannot_modify_subject_artifacts','cannot_modify_gate_definition','cannot_modify_gate_fixtures','separate_context_compilation']:print(key+' = true')
+    print('distinct_model_required = false')
+    print('distinct_human_required = false')
+"#).unwrap();
+    let assurance = fixture
+        .0
+        .join("docs/warrants/IX-WAR-0003/atoms/60-assurance.md");
+    let text = fs::read_to_string(&assurance).unwrap();
+    // This control isolates routing; real gate execution has separate plants.
+    fs::write(
+        &assurance,
+        text.lines()
+            .filter(|l| !l.starts_with("- **gate:**"))
+            .collect::<Vec<_>>()
+            .join("\n")
+            + "\n",
+    )
+    .unwrap();
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]["verifier_argv"] = toml::Value::try_from(vec!["false"]).unwrap();
+    fs::write(&config_path, toml::to_string(&config).unwrap()).unwrap();
+    let config_before = fs::read(&config_path).unwrap();
+    for args in [
+        vec!["init", "-q", "--template=", "--initial-branch=fixture"],
+        vec!["config", "user.name", "fixture"],
+        vec!["config", "user.email", "fixture@example.invalid"],
+        vec!["add", "."],
+        vec![
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "--no-gpg-sign",
+            "-qm",
+            "local preparation routing fixture",
+        ],
+    ] {
+        let output = Command::new("git")
+            .current_dir(&fixture.0)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    let plan = fixture.run(&[
+        "prepare",
+        "IX-WAR-0003",
+        "--compact",
+        "--verifier",
+        "python3",
+        "--verifier",
+        script.to_str().unwrap(),
+        "--dry-run",
+        "--json",
+    ]);
+    assert_eq!(plan["exit_code"], 0, "{plan}");
+    assert!(
+        plan["result"]["warrants"][0]["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["step"] == "verify"
+                && s["outcome"] == "planned"
+                && s["detail"].as_str().unwrap().contains("compact v3")
+                && s["detail"].as_str().unwrap().contains("explicit per-run")),
+        "{plan}"
+    );
+    assert!(
+        !script.with_extension("calls").exists(),
+        "planning must not start a verifier"
+    );
+    assert_eq!(fs::read(&config_path).unwrap(), config_before);
+    let report = fixture.run(&[
+        "prepare",
+        "IX-WAR-0003",
+        "--compact",
+        "--verifier",
+        "python3",
+        "--verifier",
+        script.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(report["exit_code"], 0, "{report}");
+    let steps = report["result"]["warrants"][0]["steps"].as_array().unwrap();
+    assert!(
+        steps
+            .iter()
+            .any(|s| s["step"] == "verify" && s["outcome"] == "done"),
+        "{report}"
+    );
+    assert_eq!(fs::read(config_path).unwrap(), config_before);
+    for raw in &fixture.review_state()[..2] {
+        let record: toml::Value = toml::from_str(std::str::from_utf8(raw).unwrap()).unwrap();
+        assert_eq!(record["schema"].as_str(), Some("oh.war/verification/v3"));
+    }
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/resolution.toml")
+            .exists()
+    );
+    (fixture, script)
+}
+
+#[test]
+fn compact_run_dispatches_only_the_actual_view_and_ingests_bound_results() {
+    compact_run_fixture(None);
+}
+
+#[test]
+fn compact_run_refuses_downgraded_or_substituted_response_bindings_without_verdict_writes() {
+    for fault in ["downgrade", "packet", "view"] {
+        compact_run_fixture(Some(fault));
+    }
+}
+
+fn compact_run_fixture(fault: Option<&str>) {
+    let fixture = Fixture::new();
+    let script = fixture.0.join("compact-adapter.py");
+    let responses = fixture.0.with_extension("responses.json");
+    let calls = fixture.0.with_extension("calls.jsonl");
+    fs::write(
+        &script,
+        r#"import json, os, sys
+from pathlib import Path
+manifest, calls, path = map(Path, sys.argv[1:])
+expected = json.loads(manifest.read_text())[path.name]
+view = json.loads(path.read_text())
+assert view['schema'] == 'oh.war/verification-view/v1'
+assert view['dispatch_eligible'] and not view['over_budget']
+assert 'reviewed_subject' not in view['request']
+assert json.loads(os.environ['OPENWARRANT_REVIEWED_PACKETS']) == expected['packets']
+assert json.loads(os.environ['OPENWARRANT_REVIEWED_VIEWS']) == expected['views']
+with calls.open('a') as output: output.write(json.dumps(path.name)+'\n')
+print(expected['response'])
+"#,
+    )
+    .unwrap();
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]["verifier_argv"] = toml::Value::try_from(vec![
+        "python3".to_owned(),
+        script.to_str().unwrap().to_owned(),
+        responses.to_str().unwrap().to_owned(),
+        calls.to_str().unwrap().to_owned(),
+    ])
+    .unwrap();
+    fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    fixture.response();
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let template: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    let mut manifest = serde_json::Map::new();
+    for (packet, view_ref) in emitted["result"]["packets"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .zip(emitted["result"]["views"].as_array().unwrap())
+    {
+        let view_path = fixture.0.join(view_ref["path"].as_str().unwrap());
+        let view: serde_json::Value =
+            serde_json::from_slice(&fs::read(&view_path).unwrap()).unwrap();
+        let archive: serde_json::Value = serde_json::from_slice(
+            &fs::read(fixture.0.join(packet["path"].as_str().unwrap())).unwrap(),
+        )
+        .unwrap();
+        let packets = serde_json::json!([packet]);
+        let views = serde_json::json!([view_ref]);
+        let mut response = template.clone();
+        response["schema"] = "oh.war/verification-response/v3".into();
+        for (key, value) in [
+            ("reviewed_subject", &archive["request"]["reviewed_subject"]),
+            ("reviewed_packets", &packets),
+            ("reviewed_views", &views),
+        ] {
+            response
+                .as_table_mut()
+                .unwrap()
+                .insert(key.into(), toml::Value::try_from(value).unwrap());
+        }
+        response["verifications"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|v| {
+                view["request"]["obligations"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|o| o["id"].as_str() == v["obligation"].as_str())
+            });
+        match fault {
+            Some("downgrade") => response["schema"] = "oh.war/verification-response/v2".into(),
+            Some("packet") => response["reviewed_packets"][0]["digest"] = "0".repeat(64).into(),
+            Some("view") => response["reviewed_views"][0]["sha256"] = "0".repeat(64).into(),
+            None => {}
+            Some(_) => unreachable!(),
+        }
+        manifest.insert(view_path.file_name().unwrap().to_str().unwrap().into(), serde_json::json!({"packets": packets, "views": views, "response": toml::to_string(&response).unwrap()}));
+    }
+    fs::write(&responses, serde_json::to_vec(&manifest).unwrap()).unwrap();
+    let warrant = fixture.0.join("docs/warrants/IX-WAR-0003");
+    let before: Vec<_> = [
+        "journal.jsonl",
+        "verifications/OBL-001.toml",
+        "verifications/OBL-002.toml",
+    ]
+    .iter()
+    .map(|p| fs::read(warrant.join(p)).ok())
+    .collect();
+    let report = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--run",
+        "--compact",
+        "--json",
+    ]);
+    if fault.is_some() {
+        assert_ne!(report["exit_code"], 0, "{report}");
+        assert!(
+            report["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.response-context"),
+            "{report}"
+        );
+        let after: Vec<_> = [
+            "journal.jsonl",
+            "verifications/OBL-001.toml",
+            "verifications/OBL-002.toml",
+        ]
+        .iter()
+        .map(|p| fs::read(warrant.join(p)).ok())
+        .collect();
+        assert_eq!(after, before, "{report}");
+        fs::remove_file(responses).unwrap();
+        fs::remove_file(calls).unwrap();
+        return;
+    }
+    assert_eq!(report["exit_code"], 0, "{report}");
+    let called: Vec<String> = fs::read_to_string(&calls)
+        .unwrap()
+        .lines()
+        .map(|s| serde_json::from_str(s).unwrap())
+        .collect();
+    assert_eq!(called.len(), manifest.len());
+    assert!(called.iter().all(|name| manifest.contains_key(name)));
+    for bytes in &fixture.review_state()[..2] {
+        let stored: toml::Value = toml::from_str(std::str::from_utf8(bytes).unwrap()).unwrap();
+        assert_eq!(stored["schema"].as_str(), Some("oh.war/verification/v3"));
+    }
+    let checked = fixture.run(&["check", "IX-WAR-0003", "--json"]);
+    assert!(
+        !checked["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "compat.newer-record"),
+        "the CLI must recognize the compact records it just wrote: {checked}"
+    );
+    let current_path = warrant.join("verifications/OBL-001.toml");
+    let current_bytes = fs::read(&current_path).unwrap();
+    let future = std::str::from_utf8(&current_bytes).unwrap().replacen(
+        "oh.war/verification/v3",
+        "oh.war/verification/v4",
+        1,
+    );
+    fs::write(&current_path, future).unwrap();
+    let future_state = fixture.review_state();
+    let future_check = fixture.run(&["check", "IX-WAR-0003", "--json"]);
+    assert_eq!(future_check["exit_code"], 2, "{future_check}");
+    assert!(
+        future_check["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| {
+                d["severity"] == "unknown"
+                    && d["message"]
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("verification/v4")
+            }),
+        "a future codec must remain UNKNOWN: {future_check}"
+    );
+    assert_eq!(fixture.review_state(), future_state);
+    fs::write(&current_path, current_bytes).unwrap();
+    let preparation = fixture.run(&["prepare", "IX-WAR-0003", "--dry-run", "--json"]);
+    assert!(
+        preparation["result"]["warrants"][0]["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|step| step["step"] == "verify" && step["outcome"] == "current"),
+        "{preparation}"
+    );
+    fs::remove_file(responses).unwrap();
+    fs::remove_file(calls).unwrap();
+}
+
+#[test]
+fn compact_ingestion_binds_current_views_and_replay_without_writing_on_tamper() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    fixture.bound_response();
+    let old = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(old["exit_code"], 0, "{old}");
+    let previous = fixture.review_state();
+    fixture.response();
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let response_path = fixture.0.with_extension("response.toml");
+    let mut response: toml::Value =
+        toml::from_str(&fs::read_to_string(&response_path).unwrap()).unwrap();
+    let packet = fixture
+        .0
+        .join(emitted["result"]["packets"][0]["path"].as_str().unwrap());
+    let archive: serde_json::Value = serde_json::from_slice(&fs::read(packet).unwrap()).unwrap();
+    response["schema"] = "oh.war/verification-response/v3".into();
+    for (key, value) in [
+        ("reviewed_subject", &archive["request"]["reviewed_subject"]),
+        ("reviewed_packets", &emitted["result"]["packets"]),
+        ("reviewed_views", &emitted["result"]["views"]),
+    ] {
+        response
+            .as_table_mut()
+            .unwrap()
+            .insert(key.into(), toml::Value::try_from(value).unwrap());
+    }
+    let original = toml::to_string(&response).unwrap();
+    fs::write(&response_path, &original).unwrap();
+    let ingest = || {
+        fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--response",
+            "response.toml",
+            "--json",
+        ])
+    };
+    let accepted = ingest();
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+    assert_eq!(accepted["counts"]["pass"], 2, "{accepted}");
+    let before = fixture.review_state();
+    for bytes in &previous[..2] {
+        let name = format!("{}.toml", openwarrant_compiler::sha256_hex(bytes));
+        assert_eq!(
+            fs::read(
+                fixture
+                    .0
+                    .join("docs/warrants/IX-WAR-0003/verifications/history")
+                    .join(name)
+            )
+            .unwrap(),
+            *bytes
+        );
+    }
+    let stored: toml::Value = toml::from_str(std::str::from_utf8(&before[0]).unwrap()).unwrap();
+    assert_eq!(stored["schema"].as_str(), Some("oh.war/verification/v3"));
+    let preparation = fixture.run(&["prepare", "IX-WAR-0003", "--dry-run", "--json"]);
+    let verify = preparation["result"]["warrants"][0]["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["step"] == "verify")
+        .unwrap();
+    assert_eq!(verify["outcome"], "current", "{preparation}");
+    assert_eq!(ingest()["exit_code"], 0);
+    assert_eq!(fixture.review_state(), before);
+    let original_view = fixture
+        .0
+        .join(response["reviewed_views"][0]["path"].as_str().unwrap());
+    for mutation in ["atoms", "prior_verifications"] {
+        let mut altered: serde_json::Value =
+            serde_json::from_slice(&fs::read(&original_view).unwrap()).unwrap();
+        if mutation == "atoms" {
+            altered["atoms"][0]["text"] = "forged instruction".into();
+        } else {
+            assert!(
+                !archive["prior_verifications"]
+                    .as_array()
+                    .unwrap()
+                    .is_empty()
+            );
+            altered["prior_verifications"] = archive["prior_verifications"].clone();
+        }
+        let text = serde_jcs::to_string(&altered).unwrap();
+        let sha = openwarrant_compiler::sha256_hex(text.as_bytes());
+        let path = original_view
+            .parent()
+            .unwrap()
+            .join(format!("view-{sha}.json"));
+        fs::write(&path, text).unwrap();
+        response["reviewed_views"][0]["path"] = path
+            .strip_prefix(&fixture.0)
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .into();
+        response["reviewed_views"][0]["sha256"] = sha.into();
+        fs::write(&response_path, toml::to_string(&response).unwrap()).unwrap();
+        let refused = ingest();
+        assert_ne!(refused["exit_code"], 0, "{refused}");
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.view-binding"),
+            "{refused}"
+        );
+        assert_eq!(fixture.review_state(), before);
+    }
+    fs::write(response_path, original).unwrap();
+    fs::write(fixture.0.join("changed-source.txt"), "changed\n").unwrap();
+    let stale = ingest();
+    assert_ne!(stale["exit_code"], 0, "{stale}");
+    assert!(
+        stale["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{stale}"
+    );
+    assert_eq!(fixture.review_state(), before);
+    let stale_prepare = fixture.run(&["prepare", "IX-WAR-0003", "--dry-run", "--json"]);
+    let verify = stale_prepare["result"]["warrants"][0]["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["step"] == "verify")
+        .unwrap();
+    assert_ne!(verify["outcome"], "current", "{stale_prepare}");
+}
+
+#[test]
+fn compact_blind_input_archives_prior_judgments_without_showing_them() {
+    let fixture = Fixture::new();
+    fixture.response();
+    let response_path = fixture.0.with_extension("response.toml");
+    let response = fs::read_to_string(&response_path).unwrap().replace(
+        "synthetic public-seam fixture, not production assurance",
+        "PRIOR_VERDICT_SHOULD_STAY_ARCHIVED",
+    );
+    fs::write(&response_path, response).unwrap();
+    let recorded = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(recorded["exit_code"], 2, "{recorded}");
+    assert_eq!(recorded["counts"]["unknown"], 2, "{recorded}");
+    assert_eq!(recorded["counts"]["error"], 0, "{recorded}");
+    let before = fixture.review_state();
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    for reference in emitted["result"]["views"].as_array().unwrap() {
+        let path = fixture.0.join(reference["path"].as_str().unwrap());
+        let raw = fs::read(&path).unwrap();
+        let view: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert_eq!(view["prior_verifications"], serde_json::json!([]));
+        assert!(
+            !std::str::from_utf8(&raw)
+                .unwrap()
+                .contains("PRIOR_VERDICT_SHOULD_STAY_ARCHIVED")
+        );
+        let archive_path = path
+            .parent()
+            .unwrap()
+            .join(view["archive"]["path"].as_str().unwrap());
+        let archive: serde_json::Value =
+            serde_json::from_slice(&fs::read(archive_path).unwrap()).unwrap();
+        let prior = archive["prior_verifications"].as_array().unwrap();
+        assert!(!prior.is_empty());
+        assert!(
+            prior
+                .iter()
+                .all(|v| v["evidence"] == "PRIOR_VERDICT_SHOULD_STAY_ARCHIVED")
+        );
+        assert_eq!(
+            view["prior_verifications_archive"]["pointer"],
+            "/prior_verifications"
+        );
+        assert_eq!(view["prior_verifications_archive"]["count"], prior.len());
+        assert_eq!(view["atoms"], archive["atoms"]);
+        assert_eq!(view["contract_sources"], archive["contract_sources"]);
+    }
+    assert_eq!(fixture.review_state(), before);
+}
+
+#[test]
+fn compact_model_inputs_bind_exact_archives_and_do_not_change_the_subject() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let request = || {
+        fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--json",
+        ])
+    };
+    let before = request();
+    assert_eq!(before["exit_code"], 0, "{before}");
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let index = &emitted["result"];
+    assert_eq!(index["schema"], "oh.war/review-context/v3");
+    assert!(
+        index.get("reviewed_subject").is_none(),
+        "the index must point to retained metadata rather than repeat it"
+    );
+    assert_eq!(
+        index["subject_archive"]["pointer"],
+        "/request/reviewed_subject"
+    );
+    let views = index["views"].as_array().unwrap();
+    let packets = index["packets"].as_array().unwrap();
+    assert!(!views.is_empty());
+    assert_eq!(views.len(), packets.len());
+    for (reference, packet) in views.iter().zip(packets) {
+        let path = fixture.0.join(reference["path"].as_str().unwrap());
+        let raw = fs::read(&path).unwrap();
+        assert_eq!(
+            reference["sha256"],
+            openwarrant_compiler::digest::sha256_hex(&raw)
+        );
+        let view: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert_eq!(view["schema"], "oh.war/verification-view/v1");
+        assert_eq!(view["response_schema"], "oh.war/verification-response/v3");
+        assert_eq!(view["over_budget"], false);
+        assert_eq!(view["dispatch_eligible"], true);
+        assert!(view["request"].get("reviewed_subject").is_none());
+        assert!(view["request"].get("schema").is_none());
+        assert_eq!(
+            view["request"]["source_schema"],
+            "oh.war/verification-request/v2"
+        );
+        let archive_name = view["archive"]["path"].as_str().unwrap();
+        let sibling = fs::read(path.parent().unwrap().join(archive_name)).unwrap();
+        let canonical = fs::read(fixture.0.join(packet["path"].as_str().unwrap())).unwrap();
+        assert_eq!(sibling, canonical);
+        assert_eq!(
+            view["archive"]["sha256"],
+            openwarrant_compiler::digest::sha256_hex(&canonical)
+        );
+        assert_eq!(view["archive"]["digest"], packet["digest"]);
+        let archive: serde_json::Value = serde_json::from_slice(&canonical).unwrap();
+        assert_eq!(archive["schema"], "oh.war/verification-bundle/v2");
+        assert_eq!(view["atoms"], archive["atoms"]);
+        assert_eq!(view["contract_sources"], archive["contract_sources"]);
+        for source in archive["required_sources"].as_array().unwrap() {
+            if source["kind"] != "gate-evidence" {
+                assert!(
+                    view["required_sources"]
+                        .as_array()
+                        .unwrap()
+                        .contains(source)
+                );
+            }
+        }
+    }
+    let after = request();
+    assert_eq!(
+        before["result"]["reviewed_subject"],
+        after["result"]["reviewed_subject"]
+    );
+    let replay = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(replay["result"], emitted["result"]);
+    let retained = fixture.0.join(views[0]["path"].as_str().unwrap());
+    fs::write(&retained, "do not replace collision bytes").unwrap();
+    let collision = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_ne!(collision["exit_code"], 0, "{collision}");
+    assert!(collision.to_string().contains("verify.packet-collision"));
+    assert_eq!(
+        fs::read_to_string(retained).unwrap(),
+        "do not replace collision bytes"
+    );
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]
+        .as_table_mut()
+        .unwrap()
+        .insert("max_bundle_tokens".into(), toml::Value::Integer(1));
+    fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+    let tiny = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(tiny["exit_code"], 0, "{tiny}");
+    for reference in tiny["result"]["views"].as_array().unwrap() {
+        let view: serde_json::Value = serde_json::from_slice(
+            &fs::read(fixture.0.join(reference["path"].as_str().unwrap())).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(view["over_budget"], true);
+        assert_eq!(view["dispatch_eligible"], false);
+        assert!(!view["atoms"].as_array().unwrap().is_empty());
+    }
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications/OBL-001.toml")
+            .exists()
+    );
+}
+
+#[cfg(feature = "schema")]
+#[test]
+fn schema_export_drift_checks_compact_candidate_without_adopting_it() {
+    let fixture = Fixture::new();
+    let written = fixture.run(&["admin", "schemas", "--json"]);
+    assert_eq!(written["exit_code"], 0, "{written}");
+    let path = fixture.0.join("schemas/oh.war/verification/v3.json");
+    let candidate: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(candidate["$id"], "oh.war/verification/v3");
+    let response_path = fixture
+        .0
+        .join("schemas/oh.war/verification-response/v3.json");
+    let response: serde_json::Value =
+        serde_json::from_slice(&fs::read(&response_path).unwrap()).unwrap();
+    assert_eq!(response["$id"], "oh.war/verification-response/v3");
+    let pack_path = fixture.0.join("schemas/pack.json");
+    let original = fs::read(&pack_path).unwrap();
+    assert_eq!(
+        original.as_slice(),
+        include_bytes!("../../../schemas/pack.json"),
+        "candidate publication must preserve the shipped active pack"
+    );
+    let pack: serde_json::Value = serde_json::from_slice(&original).unwrap();
+    assert_eq!(pack["version"], "0.2.0");
+    assert!(pack["files"].get("verification/v3").is_none());
+    let current = fixture.run(&["admin", "schemas", "--check", "--json"]);
+    assert_eq!(current["exit_code"], 0, "{current}");
+    for path in [path, response_path] {
+        let before = fs::read(&path).unwrap();
+        fs::write(&path, "{}").unwrap();
+        let refused = fixture.run(&["admin", "schemas", "--check", "--json"]);
+        assert_ne!(refused["exit_code"], 0, "{refused}");
+        let relative = path.strip_prefix(&fixture.0).unwrap().to_str().unwrap();
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "schemas.drift" && d["file"] == relative),
+            "{refused}"
+        );
+        fs::write(path, before).unwrap();
+    }
+    assert_eq!(fs::read(pack_path).unwrap(), original);
+}
+
+#[test]
+fn preview_inspection_checks_exact_display_and_current_subject_without_writes() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let output = Fixture(fixture.0.with_extension("preview"));
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        output.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let path = PathBuf::from(emitted["result"]["previews"][0]["path"].as_str().unwrap());
+    let inspect = |path: &std::path::Path| {
+        fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--inspect-preview",
+            path.to_str().unwrap(),
+            "--json",
+        ])
+    };
+    let accepted = inspect(&path);
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+    assert_eq!(accepted["result"]["dispatch_eligible"], false);
+
+    let mut altered: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    altered["atoms"][0]["text"] = "An attacker changed this instruction.".into();
+    let raw = serde_jcs::to_string(&altered).unwrap();
+    let changed = output.0.join(format!(
+        "preview-{}.json",
+        openwarrant_compiler::digest::sha256_hex(raw.as_bytes())
+    ));
+    fs::write(&changed, raw).unwrap();
+    let refused = inspect(&changed);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.preview-binding"),
+        "{refused}"
+    );
+
+    // A canonical digest alone does not bind the raw archive bytes. Whitespace
+    // leaves its parsed value unchanged, but changes the file the view names.
+    let view: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let archive_path = path
+        .parent()
+        .unwrap()
+        .join(view["archive"]["path"].as_str().unwrap());
+    let original = fs::read(&archive_path).unwrap();
+    let mut changed_bytes = original.clone();
+    changed_bytes.extend_from_slice(b" \n");
+    fs::write(&archive_path, changed_bytes).unwrap();
+    let refused = inspect(&path);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.preview-binding"),
+        "{refused}"
+    );
+    fs::write(archive_path, original).unwrap();
+
+    let mut future = view.clone();
+    future["schema"] = "oh.war/verification-view-preview/v2".into();
+    let raw = serde_jcs::to_string(&future).unwrap();
+    let future_path = output.0.join(format!(
+        "preview-{}.json",
+        openwarrant_compiler::digest::sha256_hex(raw.as_bytes())
+    ));
+    fs::write(&future_path, raw).unwrap();
+    let unknown = inspect(&future_path);
+    assert_eq!(unknown["counts"]["unknown"], 1, "{unknown}");
+    assert_eq!(unknown["counts"]["error"], 0, "{unknown}");
+
+    let source = fixture.0.join("new-source.txt");
+    fs::write(&source, "The reviewed tree changed after capture.\n").unwrap();
+    let stale = inspect(&path);
+    assert_ne!(stale["exit_code"], 0, "{stale}");
+    assert!(
+        stale.to_string().contains("verify.preview-subject-stale"),
+        "{stale}"
+    );
+    let ticket = fixture.run(&[
+        "verify",
+        "t-0000",
+        "--inspect-preview",
+        path.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(ticket["exit_code"], 0, "{ticket}");
+    assert!(
+        ticket
+            .to_string()
+            .contains("verify.preview-warrant-required"),
+        "{ticket}"
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications")
+            .exists()
+    );
+}
+
+#[test]
+fn portable_review_preview_retains_full_bindings_without_spending_the_model_budget_on_them() {
+    let fixture = Fixture::new();
+    let sources = fixture.0.join("inventory");
+    fs::create_dir(&sources).unwrap();
+    for n in 0..2000 {
+        fs::write(
+            sources.join(format!("source-{n:04}.txt")),
+            "inventory only\n",
+        )
+        .unwrap();
+    }
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]
+        .as_table_mut()
+        .unwrap()
+        .insert("max_bundle_tokens".into(), toml::Value::Integer(48_000));
+    fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+    let preview = Fixture(fixture.0.with_extension("preview"));
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        preview.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(result["exit_code"], 0, "{result}");
+    let entries = result["result"]["previews"].as_array().unwrap();
+    assert!(!entries.is_empty());
+    for entry in entries {
+        let path = fixture.0.join(entry["path"].as_str().unwrap());
+        let raw = fs::read(&path).unwrap();
+        let view: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert_eq!(view["schema"], "oh.war/verification-view-preview/v1");
+        assert_eq!(view["dispatch_eligible"], false);
+        assert_eq!(view["over_budget"], false, "{entry}");
+        assert!(view["request"].get("reviewed_subject").is_none());
+        let archive = path
+            .parent()
+            .unwrap()
+            .join(view["archive"]["path"].as_str().unwrap());
+        let bytes = fs::read(archive).unwrap();
+        assert_eq!(
+            view["archive"]["sha256"],
+            openwarrant_compiler::digest::sha256_hex(&bytes)
+        );
+        let original: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(original["schema"], "oh.war/verification-bundle/v2");
+        assert!(
+            original["request"]["reviewed_subject"]["gate_inputs"]
+                .as_object()
+                .unwrap()
+                .len()
+                >= 2000
+        );
+        assert_eq!(view["atoms"], original["atoms"]);
+        assert_eq!(view["contract_sources"], original["contract_sources"]);
+        for source in original["required_sources"].as_array().unwrap() {
+            if source["kind"] != "gate-evidence" {
+                assert!(
+                    view["required_sources"]
+                        .as_array()
+                        .unwrap()
+                        .contains(source)
+                );
+            }
+        }
+    }
+    let again = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        preview.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(again["exit_code"], 0, "{again}");
+    assert_eq!(
+        again["result"], result["result"],
+        "publishing outside the workspace must not change its reviewed subject"
+    );
+    let retained = PathBuf::from(entries[0]["path"].as_str().unwrap());
+    fs::write(&retained, "collision must survive").unwrap();
+    let refused = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--portable-preview",
+        preview.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.packet-collision"),
+        "{refused}"
+    );
+    assert_eq!(
+        fs::read_to_string(retained).unwrap(),
+        "collision must survive"
+    );
+}
+
+#[test]
+fn portable_preview_refuses_workspace_outputs_and_preserves_over_budget_rules() {
+    let fixture = Fixture::new();
+    let inside = fixture.0.join("preview");
+    let refused = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--bundle",
+        "--portable-preview",
+        inside.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused.to_string().contains("verify.preview-path"),
+        "{refused}"
+    );
+    assert!(!inside.exists());
+
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]
+        .as_table_mut()
+        .unwrap()
+        .insert("max_bundle_tokens".into(), toml::Value::Integer(1));
+    fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+    let output = Fixture(fixture.0.with_extension("preview"));
+    let report = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--bundle",
+        "--portable-preview",
+        output.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(report["exit_code"], 0, "{report}");
+    for entry in report["result"]["previews"].as_array().unwrap() {
+        let path = PathBuf::from(entry["path"].as_str().unwrap());
+        let view: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        assert_eq!(view["over_budget"], true);
+        assert_eq!(view["dispatch_eligible"], false);
+        let archive: serde_json::Value = serde_json::from_slice(
+            &fs::read(
+                path.parent()
+                    .unwrap()
+                    .join(view["archive"]["path"].as_str().unwrap()),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(view["atoms"], archive["atoms"]);
+        assert_eq!(view["contract_sources"], archive["contract_sources"]);
+        assert_eq!(view["required_sources"], archive["required_sources"]);
+    }
+}
+
+#[test]
+#[cfg(unix)]
+fn portable_preview_refuses_an_output_directory_link() {
+    use std::os::unix::fs::symlink;
+    let fixture = Fixture::new();
+    let target = Fixture(fixture.0.with_extension("target"));
+    let link = Fixture(fixture.0.with_extension("link"));
+    fs::create_dir(&target.0).unwrap();
+    let marker = target.0.join("keep.txt");
+    fs::write(&marker, "outside bytes").unwrap();
+    symlink(&target.0, &link.0).unwrap();
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--bundle",
+        "--portable-preview",
+        link.0.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_ne!(result["exit_code"], 0, "{result}");
+    assert_eq!(fs::read_to_string(marker).unwrap(), "outside bytes");
+    assert_eq!(fs::read_dir(&target.0).unwrap().count(), 1);
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications")
+            .exists()
+    );
+}
+
+#[test]
 fn corrupt_git_inventory_reports_its_cause_without_writing_a_verdict() {
     let fixture = Fixture::new();
     assert!(
@@ -791,6 +2084,8 @@ impl Drop for Fixture {
     fn drop(&mut self) {
         let _ = fs::remove_dir_all(&self.0);
         let _ = fs::remove_file(self.0.with_extension("response.toml"));
+        let _ = fs::remove_file(self.0.with_extension("prepare-adapter.py"));
+        let _ = fs::remove_file(self.0.with_extension("calls"));
     }
 }
 
@@ -2358,7 +3653,7 @@ fn unsupported_future_response_is_unknown_and_v2_missing_bindings_is_invalid() {
     fixture.response();
     let path = fixture.0.with_extension("response.toml");
     let mut response: toml::Value = toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
-    response["schema"] = toml::Value::String("oh.war/verification-response/v3".into());
+    response["schema"] = toml::Value::String("oh.war/verification-response/v4".into());
     fs::write(&path, toml::to_string(&response).unwrap()).unwrap();
     let future = fixture.run(&[
         "verify",
@@ -3356,7 +4651,7 @@ fn duplicate_response_verdicts_refuse_whole_before_any_record_or_journal_write()
 
 #[test]
 fn over_budget_dispatch_never_calls_a_configured_adapter_or_writes_verdicts() {
-    for limit in [1, 48_000] {
+    for (compact, limit) in [(false, 1), (false, 48_000), (true, 1), (true, 48_000)] {
         let fixture = Fixture::new();
         let config_path = fixture.0.join("openwarrant.toml");
         let marker = fixture.0.join("adapter-called");
@@ -3415,14 +4710,18 @@ fn over_budget_dispatch_never_calls_a_configured_adapter_or_writes_verdicts() {
             .filter(|f| f.path().extension().is_some_and(|e| e == "toml"))
             .map(|f| (f.file_name(), fs::read(f.path()).unwrap()))
             .collect();
-        let report = fixture.run(&[
+        let mut args = vec![
             "verify",
             "IX-WAR-0003",
             "--performer",
             "fixture-performer",
             "--run",
             "--json",
-        ]);
+        ];
+        if compact {
+            args.push("--compact");
+        }
+        let report = fixture.run(&args);
         assert_eq!(report["exit_code"], 2, "{report}");
         if limit == 1 {
             assert!(
@@ -3475,7 +4774,17 @@ fn over_budget_dispatch_never_calls_a_configured_adapter_or_writes_verdicts() {
             0,
             "dispatch failure must create no verdict"
         );
-        assert!(!warrant.join("verifications/responses").exists());
+        let responses = warrant.join("verifications/responses");
+        if compact {
+            // Retained input pairs live here before dispatch. A failed call
+            // may retain those inputs, but must create no response at all.
+            assert!(fs::read_dir(&responses).unwrap().all(|entry| {
+                let entry = entry.unwrap();
+                entry.file_name() == "views" && entry.file_type().unwrap().is_dir()
+            }));
+        } else {
+            assert!(!responses.exists());
+        }
     }
 }
 

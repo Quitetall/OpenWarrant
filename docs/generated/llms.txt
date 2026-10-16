@@ -427,6 +427,10 @@
 > -
 - doc:docs/design/context-projection-and-shared-warrant-model.md · document · - · Context views and shared cross-project Warrants · docs/design/context-projection-and-shared-warrant-model.md:1
 
+## docs/design/delivery-adoption-20261016/README.md
+> -
+- doc:docs/design/delivery-adoption-20261016/README.md · document · - · SDK delivery adoption proposals · docs/design/delivery-adoption-20261016/README.md:1
+
 ## docs/design/evidence-recorder-attribution.md
 > -
 - doc:docs/design/evidence-recorder-attribution.md · document · - · Gate-evidence recorder attribution · docs/design/evidence-recorder-attribution.md:1

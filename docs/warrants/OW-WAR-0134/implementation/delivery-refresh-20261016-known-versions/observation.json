@@ -1,0 +1,18 @@
+{
+  "scope": "actual known modification and input, not complete earlier authorship or authority",
+  "entry": {
+    "warrant": "OW-WAR-0134",
+    "deliverable": "D-004",
+    "target_ref": ".github/workflows/ci.yml",
+    "source_change": "bef7e69086711a686fcc74a053f6d2cb6e239216",
+    "input_commit": "5cf336b2517f2c6ea30c2b762dabfffdc0f6fc45",
+    "input_digest": "sha256:1a8e946ee922f6d42cf1d71989a9699884909fcf5f875f92cdc0e4366ff6c90f",
+    "current_digest": "sha256:8370d73381a61b843b0e08b8954f2b548120dd77d6dc4fe773b036d8621ec06f",
+    "producer": "agent://codex",
+    "producing_attempt": "unrecorded"
+  },
+  "all_other_entries_and_declarations_unchanged": true,
+  "content_addressed_status_records_actual_delivery": true,
+  "authorization_bytes_unchanged": true,
+  "no_resolution_or_acceptance": true
+}

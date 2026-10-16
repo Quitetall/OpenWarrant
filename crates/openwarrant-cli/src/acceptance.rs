@@ -360,7 +360,9 @@ fn reverified(
         else {
             continue;
         };
-        if payload["verification_protocol"] != crate::verify::RESPONSE_SCHEMA {
+        if payload["verification_protocol"] != crate::verify::RESPONSE_SCHEMA
+            && payload["verification_protocol"] != crate::verify::COMPACT_RESPONSE_SCHEMA
+        {
             continue;
         }
         // A later file write does not bind an old observation to a new
@@ -379,31 +381,22 @@ fn reverified(
             payload.get("record_digest").and_then(|v| v.as_str()),
             event.get("actor_ref").and_then(|v| v.as_str()),
         ) {
-            let Some(packets) = payload.get("reviewed_packets").and_then(|v| {
-                serde_json::from_value::<Vec<crate::verify::ReviewedPacket>>(v.clone()).ok()
-            }) else {
-                continue;
-            };
-            let Some(performer) = show(
+            let Some(stored) = show(
                 root,
                 candidate,
                 &format!("{rel_dir}/verifications/{o}.toml"),
             )
-            .and_then(|bytes| {
-                crate::verify::record::decode(&String::from_utf8_lossy(&bytes))
-                    .ok()
-                    .filter(|stored| stored.binds(&candidate_subject, &packets))
-            })
-            .map(|v| v.verification.performer) else {
+            .and_then(|bytes| crate::verify::record::decode(&String::from_utf8_lossy(&bytes)).ok()) else {
                 continue;
             };
-            if !crate::verify::packets_cover(
+            if !crate::verify::record_context_current(
                 repo,
                 one,
                 &candidate_subject,
-                &packets,
+                &payload,
+                &stored.verification.performer,
                 &[o.to_owned()],
-                &performer,
+                &stored,
             )
             .unwrap_or(false)
             {

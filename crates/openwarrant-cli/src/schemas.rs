@@ -162,14 +162,30 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
     let native = crate::resolution_cmd::native::schema::render()?;
     // Candidate publication is separate from the frozen active pack. Adding a
     // second record format must not silently rebind existing contract digests.
-    let candidate_path = repo.root.join(PACK_DIR).join("oh.war/verification/v2.json");
-    let candidate_text = serde_jcs::to_string(&openwarrant_core::verification_record::schema())
-        .map_err(|error| {
+    let candidates = [
+        (
+            "oh.war/verification/v2.json",
+            openwarrant_core::verification_record::schema(),
+        ),
+        (
+            "oh.war/verification/v3.json",
+            openwarrant_core::compact_verification_record::schema(),
+        ),
+        (
+            "oh.war/verification-response/v3.json",
+            openwarrant_core::compact_verification_record::response_schema(),
+        ),
+    ]
+    .into_iter()
+    .map(|(name, schema)| {
+        let text = serde_jcs::to_string(&schema).map_err(|error| {
             RepoError::Message(format!(
                 "could not render candidate verification schema: {error}"
             ))
-        })?
-        + "\n";
+        })? + "\n";
+        Ok((repo.root.join(PACK_DIR).join(name), text))
+    })
+    .collect::<Result<Vec<_>, RepoError>>()?;
     let mut typescript = crate::schema_typescript::render(&files).map_err(RepoError::Message)?;
     let pack_path = repo.root.join(PACK_DIR).join("pack.json");
     let pack_body = pack_text(&pack)?;
@@ -217,7 +233,7 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             }
         }
     };
-    report.notes.push("verification/v2.json is a candidate publication outside the active 0.2.0 pack; it does not adopt the format or change contract identity".into());
+    report.notes.push("verification/v2.json, verification/v3.json and verification-response/v3.json are candidate publications outside the active 0.2.0 pack; they do not adopt a format or change contract identity".into());
     report.notes.push("schemas/native-draft is a separate experimental pack of canonical producer shapes, examples and structural TypeScript; validation grants no authority or assurance and does not change the active pack".into());
     if check {
         for (name, text) in &native {
@@ -234,7 +250,9 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             compare(&file_path(&repo.root, record), text, &mut report);
         }
         compare(&pack_path, &pack_body, &mut report);
-        compare(&candidate_path, &candidate_text, &mut report);
+        for (path, text) in &candidates {
+            compare(path, text, &mut report);
+        }
         for (name, text) in &typescript {
             compare(
                 &repo.root.join(PACK_DIR).join("typescript").join(name),
@@ -269,16 +287,18 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             source,
         })?;
     }
-    if let Some(parent) = candidate_path.parent() {
-        std::fs::create_dir_all(parent).map_err(|source| RepoError::Io {
-            context: format!("could not create {parent}"),
+    for (path, text) in candidates {
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|source| RepoError::Io {
+                context: format!("could not create {parent}"),
+                source,
+            })?;
+        }
+        std::fs::write(&path, &text).map_err(|source| RepoError::Io {
+            context: format!("could not write {path}"),
             source,
         })?;
     }
-    std::fs::write(&candidate_path, &candidate_text).map_err(|source| RepoError::Io {
-        context: format!("could not write {candidate_path}"),
-        source,
-    })?;
     std::fs::write(&pack_path, &pack_body).map_err(|source| RepoError::Io {
         context: format!("could not write {pack_path}"),
         source,

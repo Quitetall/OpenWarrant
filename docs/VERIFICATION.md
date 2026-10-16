@@ -25,6 +25,18 @@ war resolve <alias> --dry-run                 # what still blocks closure
 `war prepare <alias>` runs these, and the service stages and document gates
 around them, in order (docs/SIGNING.md, "One sitting").
 
+When recording a changed delivery, supply the production facts you observed:
+`--producer`, `--method`, `--producing-attempt`, and one `--input-digest` per
+known input. Explicit input digests replace the previous list. Use
+`--clear-input-digests` only when that production had no inputs. An omitted
+field keeps its recorded value; do not carry an old producer or attempt forward
+as a claim about new work. Unknown production history stays unknown.
+
+These options record provenance, not authority or independent acceptance.
+Already-current deliveries retain their existing record. A resolved Warrant's
+manifest remains immutable. Local adapters and selection for one preparation
+run are documented in [the verifier guide](../tools/verifier/README.md).
+
 `--run` compiles the bundle, hands its path to the wrapper, and ingests
 what the wrapper prints through the same seam as `war verify --response`.
 Set `CLAUDE_PERFORMER_MODEL` to the model that did the work (for this

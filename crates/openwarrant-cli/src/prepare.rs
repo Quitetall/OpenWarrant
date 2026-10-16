@@ -87,6 +87,8 @@ pub struct Options {
     pub jobs: usize,
     pub commit: bool,
     pub reverify: bool,
+    pub compact: bool,
+    pub verifier: Vec<String>,
     pub dry_run: bool,
 }
 
@@ -381,7 +383,7 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<(Report, Prepared), Repo
             w.stop(State::AwaitsAuthorization, why);
             continue;
         }
-        plan_verify(repo, w, opts.reverify);
+        plan_verify(repo, w, opts);
     }
     if !opts.dry_run {
         let verify_tasks = |w: &Work| -> Vec<String> {
@@ -398,7 +400,7 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<(Report, Prepared), Repo
             false,
             "verify",
             &verify_tasks,
-            run_verify,
+            |repo, alias, _| run_verify(repo, alias, opts),
         );
         for w in work.iter_mut().filter(|w| w.live()) {
             judge_verdicts(repo, w);
@@ -947,7 +949,7 @@ fn shared_outcome(report: &Report, member: &str) -> (Outcome, String) {
         )
 }
 
-fn plan_verify(repo: &Repository, w: &mut Work, reverify: bool) {
+fn plan_verify(repo: &Repository, w: &mut Work, opts: &Options) {
     let (established, declared) = verdicts(repo, &w.dir);
     let alias = w.alias.clone();
     if declared.is_empty() {
@@ -959,7 +961,7 @@ fn plan_verify(repo: &Repository, w: &mut Work, reverify: bool) {
         );
         return;
     }
-    if !reverify && established.len() == declared.len() {
+    if !opts.reverify && established.len() == declared.len() {
         w.push(
             "verify",
             &alias,
@@ -968,29 +970,50 @@ fn plan_verify(repo: &Repository, w: &mut Work, reverify: bool) {
         );
         return;
     }
-    w.push(
-        "verify",
-        &alias,
-        Outcome::Planned,
-        format!(
-            "{}/{} established on file",
-            established.len(),
-            declared.len()
-        ),
+    let mut detail = format!(
+        "{}/{} established on file",
+        established.len(),
+        declared.len()
     );
+    if opts.compact {
+        detail.push_str("; compact v3 input");
+    }
+    if !opts.verifier.is_empty() {
+        detail.push_str("; explicit per-run verifier command");
+    }
+    w.push("verify", &alias, Outcome::Planned, detail);
 }
 
-fn run_verify(repo: &Repository, alias: &str, _: &str) -> (Outcome, String) {
+fn run_verify(repo: &Repository, alias: &str, opts: &Options) -> (Outcome, String) {
     let performer = repo.performer();
-    match war(repo, &["verify", alias, "--performer", &performer, "--run"]) {
+    let mut args = vec![
+        "verify".to_owned(),
+        alias.to_owned(),
+        "--performer".to_owned(),
+        performer,
+        "--run".to_owned(),
+    ];
+    if opts.compact {
+        args.push("--compact".to_owned());
+    }
+    args.extend(opts.verifier.iter().map(|arg| format!("--verifier={arg}")));
+    match war(repo, &args.iter().map(String::as_str).collect::<Vec<_>>()) {
         Err(e) => (Outcome::Error, e),
         Ok(env) if env.errors().next().is_some() => (Outcome::Error, env.first_error()),
-        Ok(env) => (
-            Outcome::Done,
-            env.find("verify.bundle")
-                .map(|d| d.message.clone())
-                .unwrap_or_else(|| "the verifier answered".to_owned()),
-        ),
+        Ok(env) => {
+            if let Some(unknown) = env.diagnostics.iter().find(|d| d.severity == "unknown") {
+                return (
+                    Outcome::Unknown,
+                    format!("{} {}", unknown.rule, unknown.message),
+                );
+            }
+            (
+                Outcome::Done,
+                env.find("verify.bundle")
+                    .map(|d| d.message.clone())
+                    .unwrap_or_else(|| "the verifier answered".to_owned()),
+            )
+        }
     }
 }
 
@@ -1043,7 +1066,7 @@ fn phase(
     serial: bool,
     label: &str,
     tasks: &dyn Fn(&Work) -> Vec<String>,
-    act: fn(&Repository, &str, &str) -> (Outcome, String),
+    act: impl Fn(&Repository, &str, &str) -> (Outcome, String) + Sync,
 ) {
     let batches: Vec<(usize, String, Vec<String>)> = work
         .iter()

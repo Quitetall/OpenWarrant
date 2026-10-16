@@ -1,9 +1,37 @@
 # OpenWarrant 1.0.0-alpha.4 — integration and conformance preview
 
-This alpha updates the planning and tracking CLI from alpha.3. Ordinary work
-still needs no signature. Use `war init --vibe`, `war create`, `war claim` and
-`war done`; human signing remains a separate assurance action.
+This unverified alpha updates the planning and tracking CLI from alpha.3. Ordinary work
+still needs no signature: `war init`, `war create`, `war claim`, `war done`.
+Human signing remains a separate assurance action.
 
+What is new for a user:
+
+- **OpenWarrant Format 1.0 (draft 2).** A Warrant can be one Markdown file
+  (`docs/warrants/<alias>.md`), read by `war` beside the older directory
+  form. The format is specified in `docs/format/FORMAT-1.0.md` with JSON
+  schemas and a conformance corpus; it is a draft and will change before
+  1.0.0.
+- **`war context <target>`** gives an agent exactly the records a piece of
+  work needs, within a byte budget, the same bytes every time.
+  `docs/generated/llms.txt` indexes every record with its state.
+- **`war init` defaults to the `vibe` preset**, and the guided setup
+  (`war init --guided`) no longer loops at the first Warrant's sign step.
+- **Installs:** cargo-binstall metadata and a Homebrew formula asset with
+  each release.
+- **Smaller download:** the bundle's source archive leaves out the
+  repository's own audit captures. SDK, standard, skill, build and conformance
+  fixture paths stay intact. Complete project history remains in Git; use a
+  full checkout to inspect or rerun the repository's historical audit.
+
+Also:
+
+- Keep Git source checks from changing the real index, including split
+  indexes, and detect source deletions when files move into bookkeeping.
+  Hosted inputs and fresh recordings keep their own observations.
+- Reduce repeated parsing and source scans when reading verification history.
+  Required checks and their limits stay the same.
+- Let the local verifier adapter select an explicit thinking mode. Fresh
+  compact inputs omit prior verifier conclusions; their archive retains them.
 - Update rustls to 0.23.46 to address RUSTSEC-2026-0346 through
   RUSTSEC-2026-0349. No advisory exceptions were added.
 - Retain a repeatable Katana CLI capture fixture and its usage notes under

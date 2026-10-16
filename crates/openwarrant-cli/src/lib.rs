@@ -1312,6 +1312,7 @@ enum EvidenceCommand {
     ///
     /// This command never verifies anything itself — the actor that produced
     /// the work cannot be the actor that clears it.
+    #[command(group(clap::ArgGroup::new("compact_action").args(["bundle", "run"])))]
     Verify {
         /// The Warrant's local alias.
         alias: String,
@@ -1329,10 +1330,28 @@ enum EvidenceCommand {
         /// each carrying what that obligation names, excerpted to fit.
         #[arg(long, conflicts_with = "response")]
         bundle: bool,
+        /// Emit v3 model inputs and exact archives for a v3-aware adapter.
+        /// Use --bundle to retain inputs, or --run to call the configured
+        /// v3-aware verifier and ingest its bound response.
+        #[arg(long, requires = "compact_action", conflicts_with_all = ["response", "portable_preview", "inspect_preview"])]
+        compact: bool,
+        /// Experimental offline review view and full v2 archive, in an
+        /// absolute directory outside the repository. Never dispatches or
+        /// establishes verification; current adapters refuse this format.
+        #[arg(long, requires = "bundle", conflicts_with_all = ["response", "run"])]
+        portable_preview: Option<Utf8PathBuf>,
+        /// Check a compact preview, its full archive and the current subject.
+        /// Read-only: no verifier, verdict, import or assurance is produced.
+        #[arg(long, conflicts_with_all = ["response", "bundle", "run", "portable_preview"])]
+        inspect_preview: Option<Utf8PathBuf>,
         /// Write the bundle(s), run `[verify] verifier_argv` once on each, and
         /// ingest what each prints through the same seam as `--response`.
         #[arg(long, conflicts_with_all = ["response", "bundle"])]
         run: bool,
+        /// Override the verifier command for this run only, one argv element
+        /// per flag. Does not change repository configuration or admission.
+        #[arg(long, value_name = "ARGV", requires = "run")]
+        verifier: Vec<String>,
     },
     /// Take Warrants to their sign-off unattended (t-cee5): deliver, run
     /// each gate-executed stage (`war evidence run`), record each cited gate not
@@ -1366,6 +1385,13 @@ enum EvidenceCommand {
         /// admissible `established` verdict.
         #[arg(long)]
         reverify: bool,
+        /// Use the experimental compact v3 verifier transport.
+        #[arg(long)]
+        compact: bool,
+        /// Override the verifier for this preparation run only, one argv
+        /// element per flag. Repository configuration remains unchanged.
+        #[arg(long, value_name = "ARGV")]
+        verifier: Vec<String>,
         /// Print each Warrant's plan and run nothing.
         #[arg(long)]
         dry_run: bool,
@@ -1770,6 +1796,17 @@ enum AdminCommand {
         /// `[project] performer`.
         #[arg(long)]
         producer: Option<String>,
+        /// The observed producing attempt for the bytes being recorded.
+        /// Omit to retain the existing value; this does not mint a receipt.
+        #[arg(long)]
+        producing_attempt: Option<String>,
+        /// Actual input digest, one per flag. Replaces the prior input list
+        /// when recording new bytes; omitted, the prior list is retained.
+        #[arg(long = "input-digest")]
+        input_digests: Vec<String>,
+        /// Record that this production had no inputs, replacing the old list.
+        #[arg(long, conflicts_with = "input_digests")]
+        clear_input_digests: bool,
         /// §37.2 `creation_method` (`authored`, `generated`, …). Defaults to
         /// the recorded one, then `authored`.
         #[arg(long)]
@@ -5178,6 +5215,8 @@ fn run_evidence_member(
             jobs,
             no_commit,
             reverify,
+            compact,
+            verifier,
             dry_run,
         } => {
             let repository = ctx.open_repo()?;
@@ -5187,6 +5226,8 @@ fn run_evidence_member(
                 jobs: jobs as usize,
                 commit: !no_commit,
                 reverify,
+                compact,
+                verifier,
                 dry_run,
             };
             let (report, result) = prepare::run(&repository, &options)?;
@@ -5348,8 +5389,20 @@ fn run_evidence_member(
         // OW-WAR-0148 M13: an item's independent verification, the same seam
         // at the size of one tick.
         EvidenceCommand::Verify {
-            alias, response, ..
+            alias,
+            response,
+            portable_preview,
+            inspect_preview,
+            compact,
+            verifier,
+            ..
         } if ticket::is_ticket_ref(&alias) => {
+            if !verifier.is_empty() {
+                return Err(repo::RepoError::Message("verify.verifier-warrant-required: per-run verifier commands require a Warrant alias; no verifier was called".into()).into());
+            }
+            if portable_preview.is_some() || inspect_preview.is_some() || compact {
+                return Err(repo::RepoError::Message("verify.preview-warrant-required: compact legacy verification previews require a Warrant alias; no preview was read or written".into()).into());
+            }
             let (_, store) = ctx.tickets(None)?;
             let outcome = match response {
                 Some(path) => ticket::acts::verify_ingest(&store, &alias, &path)?,
@@ -5362,15 +5415,50 @@ fn run_evidence_member(
             performer,
             response,
             bundle,
+            portable_preview,
+            inspect_preview,
+            compact,
             run,
+            verifier,
         } => {
             let repository = ctx.open_repo()?;
+            if let Some(path) = inspect_preview {
+                let (report, result) =
+                    bundle::preview::inspect(&repository, &alias, &performer, &path)?;
+                return Ok(output::finish(
+                    mode,
+                    "verify.preview.inspect",
+                    &report,
+                    Some(result),
+                ));
+            }
             if bundle {
+                if compact {
+                    let (report, index) =
+                        bundle::preview::emit_compact(&repository, &alias, &performer)?;
+                    return Ok(output::finish(
+                        mode,
+                        "verify.compact.bundle",
+                        &report,
+                        Some(index),
+                    ));
+                }
+                if let Some(directory) = portable_preview {
+                    let (report, index) =
+                        bundle::preview::emit(&repository, &alias, &performer, &directory)?;
+                    return Ok(output::finish(mode, "verify.preview", &report, Some(index)));
+                }
                 let (report, index) = bundle::emit(&repository, &alias, &performer)?;
                 return Ok(output::finish(mode, "verify.bundle", &report, Some(index)));
             }
             if run {
-                let report = bundle::run(&repository, &alias, &performer)?;
+                let report = if !verifier.is_empty() {
+                    bundle::run_with_verifier(&repository, &alias, &performer, compact, &verifier)?
+                } else if compact {
+                    bundle::run_compact(&repository, &alias, &performer)?
+                } else {
+                    bundle::run(&repository, &alias, &performer)?
+                };
                 return Ok(output::finish(mode, "verify.run", &report, None));
             }
             match response {
@@ -6628,6 +6716,9 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             alias,
             ids,
             producer,
+            producing_attempt,
+            input_digests,
+            clear_input_digests,
             method,
             dry_run,
         } => {
@@ -6638,6 +6729,12 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                 &deliver::Options {
                     ids: &ids,
                     producer: producer.as_deref(),
+                    producing_attempt: producing_attempt.as_deref(),
+                    input_digests: if clear_input_digests {
+                        Some(&[])
+                    } else {
+                        (!input_digests.is_empty()).then_some(input_digests.as_slice())
+                    },
                     method: method.as_deref(),
                     dry_run,
                 },

@@ -149,9 +149,22 @@ title = "war model, war impact, war state; create --issue"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-007", "OBL-008", "OBL-011"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "unrecorded"
+contract_digest = "14127f58e7867f4a7bd424a34689238325a8658b09aa819030a069eada32c231"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit 8a60a1aca769, debug)"
+creation_method = "Modified the existing CLI argument surface for explicit delivery input and attempt options in Git de410c25ba94380b6091d1d8020edbb46c034e8e from exact input 2eab11dacb4682fc109bd20e77397b1f8bed8390 (sha256:d30eb8df0c378856af6605d64805c7a9a77010bad97eeb8365798c02352b7a27). Earlier authorship and complete intermediate history are not asserted; original production attempt remains unrecorded."
+content_digest = "sha256:bd1032f8727a42ba72d6f115ff64c94a0300e2203e8a9826df15507d18c96a45"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:d30eb8df0c378856af6605d64805c7a9a77010bad97eeb8365798c02352b7a27"]
 
 [[deliverable]]
 id = "D-016"
@@ -291,9 +304,22 @@ title = "Verify refuses a kind without the capability"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/verify.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "unrecorded"
+contract_digest = "14127f58e7867f4a7bd424a34689238325a8658b09aa819030a069eada32c231"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit 1d501f7f45ea, debug)"
+creation_method = "Modified the existing file in known producing change 4781ad4f83e17816a3972740d89b063d9fca06c1 from exact Git input 6d169b460c49afdf3c7b42ce6b42fc2d63b6bb59 (sha256:2e3cd976ce0231bb87bd6a6f953955d73f6d404f2d3a06422aa98066b9f0e646). Earlier authorship and complete intermediate production history are not asserted; producing attempt remains unrecorded."
+content_digest = "sha256:f6b947ad737a9a373747155c25a2622419728e865aaea50c712d74e0e6e5d0ad"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:2e3cd976ce0231bb87bd6a6f953955d73f6d404f2d3a06422aa98066b9f0e646"]
 
 [[deliverable]]
 id = "D-029"
@@ -369,13 +395,14 @@ obligation_refs = ["OBL-005"]
 producer = "agent://codex"
 producing_attempt = "unrecorded"
 contract_digest = "14127f58e7867f4a7bd424a34689238325a8658b09aa819030a069eada32c231"
-tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 379acb09be68, debug)"
-creation_method = "edited under t-62891/i-acd2"
-content_digest = "sha256:8794003bf6f0b0c214eeca0e8fa23514ede0a816db7166c8c009fb3f465e15f2"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit 1d501f7f45ea, debug)"
+creation_method = "Modified the existing file in known producing change 0a4504ac93bd8b303a8c6c0435638da70c0c1be7 from exact Git input dd26a6de3a59f1d3839c5cdb1a0714b808551a13 (sha256:8794003bf6f0b0c214eeca0e8fa23514ede0a816db7166c8c009fb3f465e15f2). Earlier authorship and complete intermediate production history are not asserted; producing attempt remains unrecorded."
+content_digest = "sha256:a6c74052ebc04e42b052684c7a86c01cfede759384b9b1233605c74d2c565ce9"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
+input_digests = ["sha256:8794003bf6f0b0c214eeca0e8fa23514ede0a816db7166c8c009fb3f465e15f2"]
 
 [[deliverable]]
 id = "D-036"

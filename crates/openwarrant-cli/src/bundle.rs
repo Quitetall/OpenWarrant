@@ -49,6 +49,7 @@
 //! configured verifier too. A response answering an obligation its bundle did
 //! not carry is refused unread.
 
+pub(crate) mod preview;
 pub(crate) mod rendered;
 pub(crate) mod store;
 
@@ -1683,7 +1684,7 @@ pub fn emit(
 
 /// The obligations a response answers that its bundle did not carry. A
 /// response that does not parse answers none here; the ingest refuses it.
-fn outside(stdout: &str, bundle: &Bundle) -> Vec<String> {
+fn outside(stdout: &str, obligations: &[String]) -> Vec<String> {
     let Ok(response) = toml::from_str::<crate::verify::VerificationResponse>(stdout) else {
         return vec![];
     };
@@ -1691,7 +1692,7 @@ fn outside(stdout: &str, bundle: &Bundle) -> Vec<String> {
         .verifications
         .iter()
         .map(|v| v.obligation.clone())
-        .filter(|id| !bundle.request.obligations.iter().any(|o| &o.id == id))
+        .filter(|id| !obligations.contains(id))
         .collect()
 }
 
@@ -1708,8 +1709,14 @@ fn call(
     root: &Utf8PathBuf,
     timeout: u64,
     packets: &str,
+    views: Option<&str>,
 ) -> Result<Outcome, RepoError> {
-    let mut child = std::process::Command::new(&argv[0])
+    let mut command = std::process::Command::new(&argv[0]);
+    command.env_remove("OPENWARRANT_REVIEWED_VIEWS");
+    if let Some(views) = views {
+        command.env("OPENWARRANT_REVIEWED_VIEWS", views);
+    }
+    let mut child = command
         .args(&argv[1..])
         .arg(bundle_path.as_str())
         .env("OPENWARRANT_REVIEWED_PACKETS", packets)
@@ -1778,8 +1785,48 @@ fn call(
 /// out records nothing for its obligations and is reported by name; the
 /// others are still ingested — each obligation is judged on its own.
 pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, RepoError> {
+    run_mode(repo, alias, performer, false, None)
+}
+
+pub(crate) fn run_compact(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+) -> Result<Report, RepoError> {
+    run_mode(repo, alias, performer, true, None)
+}
+
+pub(crate) fn run_with_verifier(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+    compact: bool,
+    verifier: &[String],
+) -> Result<Report, RepoError> {
+    run_mode(repo, alias, performer, compact, Some(verifier))
+}
+
+struct Dispatch {
+    path: Utf8PathBuf,
+    packet: crate::verify::ReviewedPacket,
+    view: Option<openwarrant_core::compact_verification_record::ReviewedView>,
+    obligations: Vec<String>,
+    scope: String,
+    estimated_tokens: u64,
+    budget_tokens: u64,
+    over_budget: bool,
+    budget_profile: String,
+}
+
+fn run_mode(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+    compact: bool,
+    verifier: Option<&[String]>,
+) -> Result<Report, RepoError> {
     let mut report = Report::default();
-    let argv = &repo.config.verify.verifier_argv;
+    let argv = verifier.unwrap_or(&repo.config.verify.verifier_argv);
     if argv.is_empty() {
         report.push(Diagnostic::error(
             "verify.no-verifier",
@@ -1791,7 +1838,32 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
         ));
         return Ok(report);
     }
-    let bundles = write(repo, alias, performer)?;
+    let inputs = if compact {
+        preview::retain_compact(repo, alias, performer)?
+    } else {
+        write(repo, alias, performer)?
+            .into_iter()
+            .map(|(path, bundle, digest)| Dispatch {
+                packet: crate::verify::ReviewedPacket {
+                    path: repo.relative(&path),
+                    digest,
+                },
+                path,
+                view: None,
+                obligations: bundle
+                    .request
+                    .obligations
+                    .iter()
+                    .map(|o| o.id.clone())
+                    .collect(),
+                scope: bundle.scope.clone(),
+                estimated_tokens: bundle.estimated_tokens,
+                budget_tokens: bundle.budget_tokens,
+                over_budget: bundle.over_budget,
+                budget_profile: fixed_frame_profile(&bundle),
+            })
+            .collect()
+    };
     let timeout = repo.config.verify.timeout_secs();
     // Under `verifications/responses/`, not beside the records: every
     // `verifications/*.toml` is read as one obligation's verification, and a
@@ -1801,18 +1873,20 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
         .warrant_dir(alias)?
         .join("verifications")
         .join(RESPONSES_DIR);
-    for (bundle_path, bundle, digest) in &bundles {
-        let which = which(bundle);
+    for input in &inputs {
+        let bundle_path = &input.path;
+        let digest = &input.packet.digest;
+        let which = input.obligations.join(", ");
         report.push(Diagnostic::pass(
             "verify.bundle",
             format!(
                 "{alias} [{which}]: bundle {digest} ({} scope, ~{} tokens) written to {}",
-                bundle.scope,
-                bundle.estimated_tokens,
+                input.scope,
+                input.estimated_tokens,
                 repo.relative(bundle_path)
             ),
         ));
-        if bundle.over_budget {
+        if input.over_budget {
             report.push(Diagnostic::error(
                 "verify.bundle-over-budget",
                 repo.relative(bundle_path),
@@ -1820,17 +1894,27 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
                     "{alias} [{which}]: ~{} tokens exceed `[verify] max_bundle_tokens` = {}; \
                      the exact packet is retained, but no verifier is called and no response is \
                      ingested for it. Revise the work scope or configure a suitable reading budget; {}",
-                    bundle.estimated_tokens, bundle.budget_tokens, fixed_frame_profile(bundle)
+                    input.estimated_tokens, input.budget_tokens, input.budget_profile
                 ),
             ));
             continue;
         }
-        let packets = serde_json::to_string(&vec![crate::verify::ReviewedPacket {
-            path: repo.relative(bundle_path),
-            digest: digest.clone(),
-        }])
-        .map_err(|e| RepoError::Message(e.to_string()))?;
-        let stdout = match call(argv, bundle_path, &repo.root, timeout, &packets)? {
+        let packets = serde_json::to_string(&vec![input.packet.clone()])
+            .map_err(|e| RepoError::Message(e.to_string()))?;
+        let views = input
+            .view
+            .as_ref()
+            .map(|view| serde_json::to_string(&vec![view]))
+            .transpose()
+            .map_err(|e| RepoError::Message(e.to_string()))?;
+        let stdout = match call(
+            argv,
+            bundle_path,
+            &repo.root,
+            timeout,
+            &packets,
+            views.as_deref(),
+        )? {
             Outcome::TimedOut => {
                 report.push(Diagnostic::error(
                     "verify.verifier-timeout",
@@ -1852,7 +1936,19 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
             }
             Outcome::Answered(stdout) => stdout,
         };
-        let extra = outside(&stdout, bundle);
+        if let Some(view) = &input.view {
+            let response = toml::from_str::<crate::verify::VerificationResponse>(&stdout);
+            if !response.is_ok_and(|response| {
+                response.schema == crate::verify::COMPACT_RESPONSE_SCHEMA
+                    && response.reviewed_packets == [input.packet.clone()]
+                    && response.reviewed_views == [view.clone()]
+            }) {
+                report.push(Diagnostic::error("verify.response-context", repo.relative(bundle_path),
+                    "Compact response must bind the v3 protocol and the exact packet/view pair supplied to this call; nothing was ingested".to_owned()));
+                continue;
+            }
+        }
+        let extra = outside(&stdout, &input.obligations);
         if !extra.is_empty() {
             report.push(Diagnostic::error(
                 "verify.outside-bundle",

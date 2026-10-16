@@ -42,3 +42,7 @@ serde_json = { workspace = true }
 [[example]]
 name = "record_schemas"
 required-features = ["schema"]
+
+[[example]]
+name = "compact_verification_schema"
+required-features = ["schema"]

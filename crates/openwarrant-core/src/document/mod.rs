@@ -19,7 +19,7 @@ pub mod condition;
 mod metadata;
 pub mod packet;
 pub mod records;
-mod references;
+pub(crate) mod references;
 pub mod runtime;
 mod scan;
 pub mod schedule;

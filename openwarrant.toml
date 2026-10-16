@@ -23,6 +23,9 @@ history = true
 # bundle `war` compiled. Its verdicts are its own; the flags on each verdict
 # are written by the script from how it is built, not by the model.
 [verify]
+# Local qualification profile: retain required rules and current evidence.
+# SDK defaults stay unchanged; the selected model has a 73,728-token context.
+max_bundle_tokens = 60000
 verifier_argv = ["tools/verifier/claude-verifier.sh"]
 verifier_timeout_secs = 900
 

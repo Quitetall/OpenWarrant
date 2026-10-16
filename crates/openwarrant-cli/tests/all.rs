@@ -16,6 +16,8 @@ mod authority_transition_cli;
 mod board_cli;
 #[path = "context_cli.rs"]
 mod context_cli;
+#[path = "delivery_provenance_cli.rs"]
+mod delivery_provenance_cli;
 #[path = "diff_target.rs"]
 mod diff_target;
 #[path = "dispatch_bundle_cli.rs"]
@@ -32,6 +34,8 @@ mod evidence_recorder;
 mod format_cli;
 #[path = "frontier_integrity_cli.rs"]
 mod frontier_integrity_cli;
+#[path = "gate_tree_reads.rs"]
+mod gate_tree_reads;
 #[path = "inbox_classify.rs"]
 mod inbox_classify;
 #[path = "inbox_cli.rs"]

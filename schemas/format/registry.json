@@ -195,6 +195,18 @@
       "authority": "generated"
     },
     {
+      "id": "oh.war/verification/v3",
+      "schema": "oh.war/verification/v3.json",
+      "$id": "oh.war/verification/v3",
+      "authority": "generated"
+    },
+    {
+      "id": "oh.war/verification-response/v3",
+      "schema": "oh.war/verification-response/v3.json",
+      "$id": "oh.war/verification-response/v3",
+      "authority": "generated"
+    },
+    {
       "id": "oh.war/war/v1",
       "schema": "oh.war/war/v1.json",
       "$id": "oh.war/war/v1",

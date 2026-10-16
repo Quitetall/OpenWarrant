@@ -234,6 +234,15 @@ impl Repository {
         if let Some(paths) = &self.source_inventory {
             return Ok(paths.clone());
         }
+        // One-shot read-only views ask once per verified subject, sometimes
+        // through separate Repository instances. Share only this observation;
+        // mutating commands leave the memo off and always read fresh paths.
+        crate::gate_cmd::source::tree_read(format!("source-paths\0{}", self.root), || {
+            self.source_paths_uncached()
+        })
+    }
+
+    fn source_paths_uncached(&self) -> Result<Vec<String>, RepoError> {
         let mut command = std::process::Command::new("git");
         command.current_dir(&self.root).args([
             "ls-files",

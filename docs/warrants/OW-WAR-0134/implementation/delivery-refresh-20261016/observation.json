@@ -1,0 +1,37 @@
+{
+  "kind": "performer observation, not independent assurance",
+  "warrant": "OW-WAR-0134",
+  "recorded": [
+    {
+      "id": "D-001",
+      "target": "crates/openwarrant-cli/src/acceptance.rs",
+      "change_commit": "ab29cfe420de3cc8edafeb86de01d4a1a864cd90",
+      "base_commit": "ed1f6695c697dd94633e1867e76f4f14c9b3d60e",
+      "input_digest": "sha256:0ff72fc9d39ecbbb74abd4cfac2fd37178eed89d2d64f90399b62c92abe56d4b",
+      "current_digest": "sha256:903300d934937d97947a8c110f5d76c2cde6b26b3b591dded331c160436ae256",
+      "producer": "agent://codex",
+      "producing_attempt": "unrecorded",
+      "attempt_status": "preserved unrecorded; no new stage receipt inferred",
+      "method": "modified from retained Git ed1f6695c697dd94633e1867e76f4f14c9b3d60e in ab29cfe420de3cc8edafeb86de01d4a1a864cd90; earlier implementation retained as input; original authorship not claimed; only the retained file input is reconstructed; other production inputs and the producing attempt remain unestablished"
+    },
+    {
+      "id": "D-005",
+      "target": "conformance/plants.d/56-acceptance-validity.sh",
+      "change_commit": "50a1604402b005ff13818631e76b959dfbd8edb0",
+      "base_commit": "a606d517567d98d0103d6975e6477bc2da2567b0",
+      "input_digest": "sha256:7b81d8b9ccf44066a21957eb9296a72069d58ad95aee1039de01a02cc0394653",
+      "current_digest": "sha256:2f1bbefb0a8b907d1b1fb9c0ca9c5d3316c2c815302f30de83b42a638fdcd334",
+      "producer": "agent://codex",
+      "producing_attempt": "unrecorded",
+      "attempt_status": "preserved unrecorded; no new stage receipt inferred",
+      "method": "modified from retained Git a606d517567d98d0103d6975e6477bc2da2567b0 in 50a1604402b005ff13818631e76b959dfbd8edb0; earlier implementation retained as input; original authorship not claimed; only the retained file input is reconstructed; other production inputs and the producing attempt remain unestablished"
+    }
+  ],
+  "original_manifest_sha256": "72090cfa13f83f1279ecaf0a5c4e7985c29c075059a6fb0f39464b721f3758db",
+  "updated_manifest_sha256": "b0c12a5a252da86e87ecfc365253108da421021ef85fa2a330e5ced87c62cc2a",
+  "declared_set_unchanged": true,
+  "unselected_records_unchanged": true,
+  "authorization_unchanged": true,
+  "producing_attempts_remain_unrecorded": true,
+  "resolution_absent": true
+}
