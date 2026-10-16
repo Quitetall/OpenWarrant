@@ -1798,7 +1798,7 @@
 
 ## docs/tickets/t-b03a0/manifest.toml
 > Apply relation-derived currency without rewriting history; keep retired work out of default queues.
-- t-b03a0 · ticket · open · Keep current work and retired history consistent in progress views · docs/tickets/t-b03a0/manifest.toml:1
+- t-b03a0 · ticket · done · Keep current work and retired history consistent in progress views · docs/tickets/t-b03a0/manifest.toml:1
 
 ## docs/tickets/t-b0708/manifest.toml
 > M2: a document's type chooses its capabilities, and new manifests pin their profile
