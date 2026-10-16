@@ -103,6 +103,33 @@ before the retention implementation.
 
 ## Portable packet binding
 
+### Candidate compact verification storage
+
+A future executable compact transport uses
+`oh.war/verification-response/v3` and a distinct stored envelope,
+`oh.war/verification/v3`. It retains the frozen verification payload under
+`verification`, the full `reviewed_subject`, the existing `reviewed_packets`
+archive references, and required `reviewed_views` references. A view reference
+contains a repository-relative path and the ordinary SHA-256 of its exact file
+bytes. Archives retain their existing canonical VerificationBundle digests.
+The two reference sets must both be nonempty, contain no duplicate paths, and
+identify different files. Matching metadata alone proves neither file contents
+nor independent review: the workflow must validate retained bytes, the exact
+compiled view, current subject, performer, obligation coverage and independence.
+
+An executable view has a separate identity, `oh.war/verification-view/v1`.
+An experimental preview never becomes executable merely because it fits a
+budget or because a caller changes its dispatch flag. A response must identify
+the actual executable views supplied to its verifier, not infer those views
+later from an archive. Missing observations remain unestablished; an archive
+reference does not claim that all archived bytes were shown to the model.
+
+The candidate SDK codec is opt-in. Existing v1/v2 decoding and qualification
+remain unchanged and refuse v3 rather than discarding view bindings. Publishing
+the codec does not activate CLI ingestion, adopt a schema pack or accept this
+ADR. CLI dispatch, stored-history handling, journal bindings and qualification
+must adopt the complete protocol together before a compact review can qualify.
+
 ### Experimental compact review preview
 
 An opt-in `war verify --bundle --portable-preview <directory>` may publish a separate

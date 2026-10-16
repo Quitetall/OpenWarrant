@@ -3532,6 +3532,33 @@ before the retention implementation.
 
 ## Portable packet binding
 
+### Candidate compact verification storage
+
+A future executable compact transport uses
+`oh.war/verification-response/v3` and a distinct stored envelope,
+`oh.war/verification/v3`. It retains the frozen verification payload under
+`verification`, the full `reviewed_subject`, the existing `reviewed_packets`
+archive references, and required `reviewed_views` references. A view reference
+contains a repository-relative path and the ordinary SHA-256 of its exact file
+bytes. Archives retain their existing canonical VerificationBundle digests.
+The two reference sets must both be nonempty, contain no duplicate paths, and
+identify different files. Matching metadata alone proves neither file contents
+nor independent review: the workflow must validate retained bytes, the exact
+compiled view, current subject, performer, obligation coverage and independence.
+
+An executable view has a separate identity, `oh.war/verification-view/v1`.
+An experimental preview never becomes executable merely because it fits a
+budget or because a caller changes its dispatch flag. A response must identify
+the actual executable views supplied to its verifier, not infer those views
+later from an archive. Missing observations remain unestablished; an archive
+reference does not claim that all archived bytes were shown to the model.
+
+The candidate SDK codec is opt-in. Existing v1/v2 decoding and qualification
+remain unchanged and refuse v3 rather than discarding view bindings. Publishing
+the codec does not activate CLI ingestion, adopt a schema pack or accept this
+ADR. CLI dispatch, stored-history handling, journal bindings and qualification
+must adopt the complete protocol together before a compact review can qualify.
+
 ### Experimental compact review preview
 
 An opt-in `war verify --bundle --portable-preview <directory>` may publish a separate
@@ -36182,7 +36209,7 @@ test mode is labeled in every record it produces.
 | D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | verified |
 | D-008 | authority.md: the cutover | `docs/cli/authority.md` | verified |
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | verified |
-| D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | verified |
+| D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | verified |
 | D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | verified |
 | D-013 | store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004) | `crates/openwarrant-cli/src/authority_cmd/store.rs` | verified |
@@ -40094,7 +40121,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-002 | The registry's working form (form, core_roles, BadForm) | `crates/openwarrant-core/src/role.rs` | verified |
 | D-003 | A Warrant naming a working-form profile is refused | `crates/openwarrant-core/src/manifest.rs` | verified |
 | D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | verified |
-| D-005 | The ticket module | `crates/openwarrant-core/src/lib.rs` | verified |
+| D-005 | The ticket module | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | verified |
 | D-007 | Claims: hard-link locks, steal, release | `crates/openwarrant-cli/src/ticket/claim.rs` | verified |
 | D-008 | prime, show, tickets | `crates/openwarrant-cli/src/ticket/render.rs` | verified |

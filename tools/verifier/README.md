@@ -82,6 +82,23 @@ verifier runs and no verdict or assurance is created. Inspection needs the
 original source repository; the package itself remains readable offline.
 Inputs are limited to 64 MiB each and are read without following path links.
 
+### Candidate compact storage codec
+
+The SDK exposes an opt-in `compact_verification_record` module for the proposed
+v3 stored envelope. `decode` parses that envelope; `StoredCompactVerification::binds`
+compares the subject, archive references and exact view references, requiring
+nonempty distinct files and valid relative paths and hashes. A match checks
+metadata only. It does not read the files, prove their contents, authenticate
+the reviewer, or establish independent assurance.
+
+The existing v1/v2 decoder continues to refuse this envelope. CLI ingestion
+does not accept it yet. The candidate JSON schema is published beside v1/v2,
+without changing the active schema pack. Regenerate that candidate with:
+
+```bash
+cargo run --locked -p openwarrant-core --features schema --example compact_verification_schema
+```
+
 The client permits HTTP to a literal loopback IP and port only. It ignores
 proxy settings, refuses redirects, requests no tools, and rejects a substituted
 model, tool call or incomplete answer. It retains the exact input bytes, raw

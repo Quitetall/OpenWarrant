@@ -15,6 +15,7 @@ pub mod authority;
 pub mod authority_transition;
 pub mod autonomy;
 pub mod batch;
+pub mod compact_verification_record;
 pub mod context;
 pub mod deliverable;
 pub mod document;
