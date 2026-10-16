@@ -514,35 +514,47 @@ fn compact_ingestion_binds_current_views_and_replay_without_writing_on_tamper() 
     let original_view = fixture
         .0
         .join(response["reviewed_views"][0]["path"].as_str().unwrap());
-    let mut altered: serde_json::Value =
-        serde_json::from_slice(&fs::read(&original_view).unwrap()).unwrap();
-    altered["atoms"][0]["text"] = "forged instruction".into();
-    let text = serde_jcs::to_string(&altered).unwrap();
-    let sha = openwarrant_compiler::sha256_hex(text.as_bytes());
-    let path = original_view
-        .parent()
-        .unwrap()
-        .join(format!("view-{sha}.json"));
-    fs::write(&path, text).unwrap();
-    response["reviewed_views"][0]["path"] = path
-        .strip_prefix(&fixture.0)
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .into();
-    response["reviewed_views"][0]["sha256"] = sha.into();
-    fs::write(&response_path, toml::to_string(&response).unwrap()).unwrap();
-    let refused = ingest();
-    assert_ne!(refused["exit_code"], 0, "{refused}");
-    assert!(
-        refused["diagnostics"]
-            .as_array()
+    for mutation in ["atoms", "prior_verifications"] {
+        let mut altered: serde_json::Value =
+            serde_json::from_slice(&fs::read(&original_view).unwrap()).unwrap();
+        if mutation == "atoms" {
+            altered["atoms"][0]["text"] = "forged instruction".into();
+        } else {
+            assert!(
+                !archive["prior_verifications"]
+                    .as_array()
+                    .unwrap()
+                    .is_empty()
+            );
+            altered["prior_verifications"] = archive["prior_verifications"].clone();
+        }
+        let text = serde_jcs::to_string(&altered).unwrap();
+        let sha = openwarrant_compiler::sha256_hex(text.as_bytes());
+        let path = original_view
+            .parent()
             .unwrap()
-            .iter()
-            .any(|d| d["rule"] == "verify.view-binding"),
-        "{refused}"
-    );
-    assert_eq!(fixture.review_state(), before);
+            .join(format!("view-{sha}.json"));
+        fs::write(&path, text).unwrap();
+        response["reviewed_views"][0]["path"] = path
+            .strip_prefix(&fixture.0)
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .into();
+        response["reviewed_views"][0]["sha256"] = sha.into();
+        fs::write(&response_path, toml::to_string(&response).unwrap()).unwrap();
+        let refused = ingest();
+        assert_ne!(refused["exit_code"], 0, "{refused}");
+        assert!(
+            refused["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "verify.view-binding"),
+            "{refused}"
+        );
+        assert_eq!(fixture.review_state(), before);
+    }
     fs::write(response_path, original).unwrap();
     fs::write(fixture.0.join("changed-source.txt"), "changed\n").unwrap();
     let stale = ingest();
@@ -564,6 +576,71 @@ fn compact_ingestion_binds_current_views_and_replay_without_writing_on_tamper() 
         .find(|s| s["step"] == "verify")
         .unwrap();
     assert_ne!(verify["outcome"], "current", "{stale_prepare}");
+}
+
+#[test]
+fn compact_blind_input_archives_prior_judgments_without_showing_them() {
+    let fixture = Fixture::new();
+    fixture.response();
+    let response_path = fixture.0.with_extension("response.toml");
+    let response = fs::read_to_string(&response_path).unwrap().replace(
+        "synthetic public-seam fixture, not production assurance",
+        "PRIOR_VERDICT_SHOULD_STAY_ARCHIVED",
+    );
+    fs::write(&response_path, response).unwrap();
+    let recorded = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(recorded["exit_code"], 2, "{recorded}");
+    assert_eq!(recorded["counts"]["unknown"], 2, "{recorded}");
+    assert_eq!(recorded["counts"]["error"], 0, "{recorded}");
+    let before = fixture.review_state();
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    for reference in emitted["result"]["views"].as_array().unwrap() {
+        let path = fixture.0.join(reference["path"].as_str().unwrap());
+        let raw = fs::read(&path).unwrap();
+        let view: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert_eq!(view["prior_verifications"], serde_json::json!([]));
+        assert!(
+            !std::str::from_utf8(&raw)
+                .unwrap()
+                .contains("PRIOR_VERDICT_SHOULD_STAY_ARCHIVED")
+        );
+        let archive_path = path
+            .parent()
+            .unwrap()
+            .join(view["archive"]["path"].as_str().unwrap());
+        let archive: serde_json::Value =
+            serde_json::from_slice(&fs::read(archive_path).unwrap()).unwrap();
+        let prior = archive["prior_verifications"].as_array().unwrap();
+        assert!(!prior.is_empty());
+        assert!(
+            prior
+                .iter()
+                .all(|v| v["evidence"] == "PRIOR_VERDICT_SHOULD_STAY_ARCHIVED")
+        );
+        assert_eq!(
+            view["prior_verifications_archive"]["pointer"],
+            "/prior_verifications"
+        );
+        assert_eq!(view["prior_verifications_archive"]["count"], prior.len());
+        assert_eq!(view["atoms"], archive["atoms"]);
+        assert_eq!(view["contract_sources"], archive["contract_sources"]);
+    }
+    assert_eq!(fixture.review_state(), before);
 }
 
 #[test]

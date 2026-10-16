@@ -27107,7 +27107,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-010 | docs/generated/CURRENT.md | `docs/generated/CURRENT.md` | not_content_addressed |
 | D-011 | docs/generated/HISTORY.md | `docs/generated/HISTORY.md` | not_content_addressed |
 | D-012 | the [generated] history key | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
-| D-013 | openwarrant.toml: history = true here | `openwarrant.toml` | verified |
+| D-013 | openwarrant.toml: history = true here | `openwarrant.toml` | drift |
 | D-014 | check.rs: atom.role-unprojected, atom.preset-unanswered | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-015 | next.rs: judged actions | `crates/openwarrant-cli/src/next.rs` | verified |
 | D-016 | the app's Help pane shows the verdict | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
@@ -28724,7 +28724,7 @@ performer's report under another name.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | drift |
-| D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | verified |
+| D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | drift |
 | D-003 | The verifier plants | `conformance/plants.d/62-verifier.sh` | verified |
 | D-004 | How to run the verifier and read what it says | `docs/VERIFICATION.md` | drift |
 
@@ -33906,7 +33906,7 @@ responder must not read as "waiting normally".
 | D-001 | war frontier: a blocking question blocks its stage; no responder is UNKNOWN | `crates/openwarrant-cli/src/frontier.rs` | verified |
 | D-002 | war perform: question, spend and attempt admission; perform.ended | `crates/openwarrant-cli/src/perform.rs` | verified |
 | D-003 | [perform] allow_unmetered, hard_spend_cap, max_repairs, max_recoveries | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
-| D-004 | This repository's allow_unmetered = true | `openwarrant.toml` | verified |
+| D-004 | This repository's allow_unmetered = true | `openwarrant.toml` | drift |
 | D-005 | How the hotline blocks, who can answer, and the time, spend and attempt defaults | `docs/HOTLINE.md` | verified |
 | D-006 | The hotline-defaults plants | `conformance/plants.d/52-hotline-defaults.sh` | verified |
 | D-007 | The cancel plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/60-perform-cancel.sh` | verified |
