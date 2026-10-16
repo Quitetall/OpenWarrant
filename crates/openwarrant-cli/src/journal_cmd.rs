@@ -66,10 +66,11 @@ pub const CORRECTION_SIGNATURE_RECORDED: &str = "correction.signature_recorded";
 /// `war check` tells an authorized record from one edited afterwards.
 pub const CORRECTION_RECORDED: &str = "correction.recorded";
 
+/// Now, in Unix seconds: the process's `--at` when a command set one
+/// ([`crate::ticket::answer_at`]), so an event a replayed write appends
+/// occurs at the time it replays.
 fn now_secs() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(0, |d| d.as_secs())
+    crate::ticket::now_secs()
 }
 
 // ---- the envelope, v1 and v2 (FORMAT-1.0 §11.2) ------------------------------
@@ -265,21 +266,58 @@ const V2_MEMBERS: [&str; 9] = [
 /// merge adds them, are no change. `Err` names the first committed event
 /// missing, changed or out of order.
 pub fn extends(committed: &[JournalEvent], current: &[JournalEvent]) -> Result<(), String> {
+    extends_at(committed, current).map_err(|(_, e)| e)
+}
+
+/// [`extends`], naming the position (0-based, among the committed events)
+/// of the first committed event that is gone.
+pub fn extends_at(
+    committed: &[JournalEvent],
+    current: &[JournalEvent],
+) -> Result<(), (usize, String)> {
     let mut at = 0;
     for (position, old) in committed.iter().enumerate() {
         match current[at..].iter().position(|e| e == old) {
             Some(k) => at += k + 1,
             None => {
-                return Err(format!(
-                    "the journal is not append-only: committed event {:?} at position {position} \
-                     is missing, changed or out of order. A journal that can be rewritten \
-                     records what someone currently believes, not what happened",
-                    old.id
+                return Err((
+                    position,
+                    format!(
+                        "the journal is not append-only: committed event {:?} at position \
+                         {position} is missing, changed or out of order. A journal that can be \
+                         rewritten records what someone currently believes, not what happened",
+                        old.id
+                    ),
                 ));
             }
         }
     }
     Ok(())
+}
+
+/// The 1-based line of a journal's text that holds its `position`-th event
+/// (0-based): blank lines hold none.
+#[must_use]
+pub fn line_of_event(text: &str, position: usize) -> Option<usize> {
+    text.lines()
+        .enumerate()
+        .filter(|(_, l)| !l.trim().is_empty())
+        .nth(position)
+        .map(|(n, _)| n + 1)
+}
+
+/// The line a journal error names (`line N: ...`, what [`parse`] gives).
+#[must_use]
+pub fn error_line(error: &str) -> Option<usize> {
+    let rest = error.split("line ").nth(1)?;
+    rest.split(':').next()?.trim().parse().ok()
+}
+
+/// `<path>:<line>`, or `<path>` alone without a line: where a journal
+/// finding is reported (FORMAT-1.0 §13.1: a journal's repository path and
+/// the faulty line).
+fn at_line(rel: &str, line: Option<usize>) -> String {
+    line.map_or_else(|| rel.to_owned(), |n| format!("{rel}:{n}"))
 }
 
 /// Of two events about one target, the one that wins (FORMAT-1.0 §11.2):
@@ -345,10 +383,13 @@ pub fn parse(text: &str) -> Result<Journal, String> {
     Ok(journal)
 }
 
-/// An incomplete final write (OW-WAR-0121): the last line has no newline and
-/// does not parse. Only that shape is a torn tail (`work.journal-torn`). A
-/// bad line with a newline after it, anywhere, is `work.journal-malformed` —
-/// it was written whole, and something else is wrong with it.
+/// An incomplete final write (OW-WAR-0121): the last line has no newline.
+/// FORMAT-1.0 §11.2 refuses "an unterminated last line"
+/// (`work.journal-torn`), whether or not its bytes happen to parse: a
+/// writer always ends a line, so a line without its end was not finished,
+/// and an append after it would join two events on one line. A bad line
+/// with a newline after it, anywhere, is `work.journal-malformed` — it was
+/// written whole, and something else is wrong with it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TornTail {
     /// The byte offset where the unfinished line starts: the file's length
@@ -368,7 +409,7 @@ impl TornTail {
     pub fn describe(&self, path: &str) -> String {
         format!(
             "{}: line {} ({} byte(s) from offset {}) is an incomplete final \
-             write — no newline, and it does not parse. Every line before it is whole. \
+             write — it has no newline. Every line before it is whole. \
              `truncate -s {} {path}` removes only the unfinished bytes; war does not run it \
              for you (OW-WAR-0121 U-001){}",
             crate::work_rules::JOURNAL_TORN,
@@ -391,9 +432,7 @@ pub fn torn_tail(bytes: &[u8]) -> Option<TornTail> {
     }
     let offset = bytes.iter().rposition(|&b| b == b'\n').map_or(0, |i| i + 1);
     let last = &bytes[offset..];
-    if last.iter().all(u8::is_ascii_whitespace)
-        || std::str::from_utf8(last).is_ok_and(|l| parse_line(l).is_ok())
-    {
+    if last.iter().all(u8::is_ascii_whitespace) {
         return None;
     }
     // A bad line earlier is malformed whatever the tail looks like, so the
@@ -563,6 +602,21 @@ pub fn already_recorded(
             recorded_by: prior.actor_ref.clone(),
         })
     }
+}
+
+/// The 1-based line of the journal in `dir` that already records
+/// `event_type` with `payload` (the same fact, §11.2), if one does: where a
+/// `work.idempotency-conflict` is reported (FORMAT-1.0 §13.1, "the existing
+/// event's line").
+#[must_use]
+pub fn recorded_line(dir: &Utf8Path, event_type: &str, payload: &str) -> Option<usize> {
+    let text = crate::vfs::read_to_string(dir.join(FILE)).ok()?;
+    let kind = work_type(event_type);
+    let canonical = canonical_payload(payload);
+    text.lines().enumerate().find_map(|(n, line)| {
+        let e = parse_line(line).ok()?;
+        (e.event_type == kind && canonical_payload(&e.payload) == canonical).then_some(n + 1)
+    })
 }
 
 /// The refusal for a conflicting reuse: the rule, then who holds the key.
@@ -753,6 +807,11 @@ fn committed(repo: &Repository, rel: &str) -> Option<String> {
 /// `work.journal-newer` when a line is of an envelope newer than v2
 /// (FORMAT-1.0 §11.2).
 fn unreadable(name: &str, rel: String, e: &str) -> Diagnostic {
+    let rel = if is_newer(e) {
+        rel
+    } else {
+        at_line(&rel, error_line(e))
+    };
     if is_newer(e) {
         return Diagnostic::unknown(
             NEWER,
@@ -810,7 +869,7 @@ pub fn check_work(root: &Utf8Path, dirs: &[(String, camino::Utf8PathBuf)], repor
             let prefix = format!("{}: ", crate::work_rules::JOURNAL_TORN);
             report.push(Diagnostic::error(
                 crate::work_rules::JOURNAL_TORN,
-                rel.clone(),
+                at_line(&rel, Some(torn.line)),
                 format!(
                     "{name}: {}",
                     torn.describe(&rel).trim_start_matches(prefix.as_str())
@@ -842,11 +901,11 @@ pub fn check_work(root: &Utf8Path, dirs: &[(String, camino::Utf8PathBuf)], repor
             continue;
         };
         if let Ok(prior) = parse(&base)
-            && let Err(e) = extends(&prior.events, &journal.events)
+            && let Err((position, e)) = extends_at(&prior.events, &journal.events)
         {
             report.push(Diagnostic::error(
                 crate::work_rules::JOURNAL_REWRITTEN,
-                rel,
+                at_line(&rel, line_of_event(&base, position)),
                 format!(
                     "{name}: {e}. A journal is extended, never edited; if history must change, \
                      the change is a new event{}",
@@ -890,7 +949,7 @@ pub fn check(
         let prefix = format!("{}: ", crate::work_rules::JOURNAL_TORN);
         report.push(Diagnostic::error(
             crate::work_rules::JOURNAL_TORN,
-            rel.clone(),
+            at_line(&rel, Some(torn.line)),
             format!(
                 "{alias}: {} (the path is relative to the repository root)",
                 torn.describe(&rel).trim_start_matches(prefix.as_str())
@@ -920,10 +979,10 @@ pub fn check(
     if let Some(base) = committed(repo, &rel) {
         match parse(&base) {
             Ok(prior) => {
-                if let Err(e) = extends(&prior.events, &journal.events) {
+                if let Err((position, e)) = extends_at(&prior.events, &journal.events) {
                     report.push(Diagnostic::error(
                         crate::work_rules::JOURNAL_REWRITTEN,
-                        rel.clone(),
+                        at_line(&rel, line_of_event(&base, position)),
                         format!(
                             "{alias}: {e}. A journal is extended, never edited; if history \
                              must change, the change is a new event{}",
@@ -1428,7 +1487,7 @@ mod tests {
     }
 
     #[test]
-    fn only_an_unterminated_unparseable_last_line_is_a_torn_tail() {
+    fn an_unterminated_last_line_is_a_torn_tail_parseable_or_not() {
         let a = serde_json::to_string(&event("u", DRAFT_CREATED, "a", "t", "{}")).unwrap();
         let b = serde_json::to_string(&event("u", AUTHORIZATION_RECORDED, "a", "t", "{}")).unwrap();
         let half = &b[..b.len() / 2];
@@ -1442,13 +1501,15 @@ mod tests {
                 .contains(&format!("truncate -s {} j", a.len() + 1))
         );
 
-        // Whole, terminated, unterminated-but-parseable: none is torn.
+        // Whole and terminated is not torn. FORMAT-1.0 §11.2 refuses "an
+        // unterminated last line": one that parses is torn all the same.
         assert!(torn_tail(format!("{a}\n{b}\n").as_bytes()).is_none());
-        assert!(torn_tail(format!("{a}\n{b}").as_bytes()).is_none());
+        let whole = torn_tail(format!("{a}\n{b}").as_bytes()).expect("unterminated is torn");
+        assert_eq!((whole.line, whole.len), (2, b.len()));
         // The same bytes with a newline after them, or between good lines, are
         // a malformed journal, not a torn one.
         assert!(torn_tail(format!("{a}\n{half}\n").as_bytes()).is_none());
-        assert!(torn_tail(format!("{a}\n{half}\n{b}").as_bytes()).is_none());
+        assert!(torn_tail(format!("{a}\n{half}\n{b}\n").as_bytes()).is_none());
         assert!(parse(&format!("{a}\n{half}\n{b}\n")).is_err());
         // A bad middle line and a torn tail: the middle line wins.
         assert!(torn_tail(format!("{half}\n{a}\n{half}").as_bytes()).is_none());

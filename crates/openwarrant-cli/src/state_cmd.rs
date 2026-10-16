@@ -671,6 +671,214 @@ pub fn model_states(corpus: &Corpus) -> Result<BTreeSet<crate::model::State>, Re
     Ok(out)
 }
 
+// ---- FORMAT-1.0 §11.1: `war plan states` -----------------------------------
+
+/// One state of FORMAT-1.0 §11.1 (draft 3, revision 1) as `war plan states`
+/// reports it: `kind` is the state's family (`phase`, `checklist`,
+/// `currency`, `check`, `disposition`, `acceptance`, `outcome`) and
+/// `provenance` is `computed` (from documents and the claim store),
+/// `recorded` (from a journal event or an act) or `declared` (a profile's
+/// refinement, entered by `state.entered`). A declared state carries the
+/// fixed state it `refines`, and `lapsed` once that stopped holding.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct FormatState {
+    pub record: String,
+    pub kind: String,
+    pub value: String,
+    pub provenance: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refines: Option<String>,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub lapsed: bool,
+}
+
+/// The family of §11.1 a fixed state belongs to, on a work document
+/// (`work_document`) or another record: a work document's `open`,
+/// `in_progress`, `done`, `draft`, `authorized` and `resolved` are its
+/// `phase`; an item's `open`, `claimed`, `blocked` and `done` its
+/// `checklist`. `None` for a state §11.1 gives no family (a roadmap phase's
+/// `achieved`), and for a work document's `claimed` and `blocked`, which
+/// §11.1 reads as its phase `in_progress` and its items' `blocked`.
+#[must_use]
+pub const fn family(state: FixedState, work_document: bool) -> Option<&'static str> {
+    match state {
+        FixedState::Open | FixedState::InProgress | FixedState::Done if work_document => {
+            Some("phase")
+        }
+        FixedState::Draft | FixedState::Authorized | FixedState::Resolved => Some("phase"),
+        FixedState::Claimed | FixedState::Blocked if work_document => None,
+        FixedState::Open
+        | FixedState::InProgress
+        | FixedState::Done
+        | FixedState::Claimed
+        | FixedState::Blocked => Some("checklist"),
+        FixedState::Superseded => Some("currency"),
+        FixedState::Failing => Some("check"),
+        FixedState::Accepted | FixedState::PartiallyAccepted => Some("acceptance"),
+        FixedState::Verified if work_document => Some("outcome"),
+        FixedState::Verified => Some("disposition"),
+        FixedState::Achieved => None,
+    }
+}
+
+/// The one `checklist` state an item is in (§11.1): `done` when its box is
+/// `[x]`; else `claimed` under a live claim; else `blocked` when what it
+/// waits on is not done; else `open`. `holding` are the item's holdings.
+fn checklist_of(holding: &[&Holding]) -> FixedState {
+    let has = |s: FixedState| holding.iter().any(|h| h.state == s);
+    [FixedState::Done, FixedState::Claimed, FixedState::Blocked]
+        .into_iter()
+        .find(|s| has(*s))
+        .unwrap_or(FixedState::Open)
+}
+
+/// The §11.1 states of one ticket and its items: its `phase`, each item's
+/// `checklist` state, and the declared states on record for either.
+fn ticket_format_states(
+    store: &ticket::Store,
+    t: &Ticket,
+    tickets: &[Ticket],
+    claims: &Claims,
+) -> Vec<FormatState> {
+    let holding = ticket_holding(store.definition.capabilities(), t, Some(tickets), claims);
+    let mut out = Vec::new();
+    let tid = t.id();
+    let state = |record: &str, kind: &str, value: FixedState, provenance: &str| FormatState {
+        record: record.to_owned(),
+        kind: kind.to_owned(),
+        value: value.as_str().to_owned(),
+        provenance: provenance.to_owned(),
+        refines: None,
+        lapsed: false,
+    };
+    let mut kinds: BTreeMap<(String, String), &'static str> = BTreeMap::new();
+    if let Some(h) = holding.iter().find(|h| {
+        h.record == tid
+            && matches!(
+                h.state,
+                FixedState::Open | FixedState::InProgress | FixedState::Done
+            )
+    }) {
+        // §11.1: with no items, a document is done when a `work.item_done`
+        // names it, a recorded state; every other phase is computed.
+        let recorded = h.state == FixedState::Done && t.checklist.items.is_empty();
+        let provenance = if recorded { "recorded" } else { "computed" };
+        out.push(state(tid, "phase", h.state, provenance));
+        kinds.insert((tid.to_owned(), h.state.as_str().to_owned()), "phase");
+    }
+    for item in &t.checklist.items {
+        let Some(iid) = &item.id else { continue };
+        let record = format!("{tid}/{iid}");
+        let mine: Vec<&Holding> = holding.iter().filter(|h| h.record == record).collect();
+        let value = checklist_of(&mine);
+        out.push(state(&record, "checklist", value, "computed"));
+        // A declared state refining an item's `in_progress` (a claim it was
+        // entered under) is of the item's checklist.
+        for h in mine {
+            kinds.insert((record.clone(), h.state.as_str().to_owned()), "checklist");
+        }
+    }
+    for d in ticket_declared(store, t, Some(tickets), claims) {
+        let kind = kinds
+            .get(&(d.record.clone(), d.refines.clone()))
+            .copied()
+            .or_else(|| {
+                let parent = FixedState::parse(&d.refines)?;
+                family(parent, d.record == tid)
+            })
+            .unwrap_or(if d.record == tid {
+                "phase"
+            } else {
+                "checklist"
+            });
+        out.push(FormatState {
+            record: d.record,
+            kind: kind.to_owned(),
+            value: d.state,
+            provenance: "declared".to_owned(),
+            refines: Some(d.refines),
+            lapsed: d.lapsed,
+        });
+    }
+    out
+}
+
+/// What `war plan states` answers: the states of FORMAT-1.0 §11.1 over the
+/// work documents a tracker works, sorted by `(record, kind, value)`, and
+/// the findings of reading them: the journals' refusals (§11.2), a journal
+/// line newer than v2 (`UNKNOWN`), and the tick levels the journal does not
+/// back (§11.4, warnings).
+///
+/// Every state of a work document whose journal holds a line newer than v2
+/// is `UNKNOWN` (§11.2: "every state that depends on it is `UNKNOWN`"): it
+/// is not reported, and the document is listed in `unknown`, so no reader
+/// takes a state this build could not establish for one it did.
+pub fn format_states(repo: &Repository) -> Result<(Report, FormatStates), RepoError> {
+    let mut report = Report::default();
+    let store = ticket::Store::open(repo, None)?;
+    let mut found = Report::default();
+    ticket::check(&store, None, &mut found)?;
+    let mut unknown_dirs = BTreeSet::new();
+    for d in found.diagnostics {
+        if d.rule == crate::work_rules::JOURNAL_NEWER
+            && let Some(file) = &d.file
+        {
+            unknown_dirs.insert(file.trim_end_matches(crate::journal_cmd::FILE).to_owned());
+        }
+        if d.rule.starts_with("work.") {
+            report.push(d);
+        }
+    }
+    let (tickets, _) = store.load_all()?;
+    let claims = store.claims().unwrap_or_default();
+    let mut states = Vec::new();
+    let mut unknown = Vec::new();
+    for t in &tickets {
+        let dir = format!("{}/", store.rel(&t.dir));
+        if unknown_dirs.contains(&dir) {
+            unknown.push(t.id().to_owned());
+            continue;
+        }
+        states.extend(ticket_format_states(&store, t, &tickets, &claims));
+    }
+    states.sort_by(|a, b| {
+        (a.record.as_bytes(), &a.kind, &a.value).cmp(&(b.record.as_bytes(), &b.kind, &b.value))
+    });
+    states.dedup();
+    let n = states.len();
+    report.push(Diagnostic::pass(
+        "states.read",
+        format!(
+            "{n} state(s) of FORMAT-1.0 §11.1 over {} work document(s){}",
+            tickets.len() - unknown.len(),
+            if unknown.is_empty() {
+                String::new()
+            } else {
+                format!("; UNKNOWN for {}", unknown.join(", "))
+            }
+        ),
+    ));
+    Ok((
+        report,
+        FormatStates {
+            schema: "oh.war/states/v1",
+            states,
+            unknown,
+        },
+    ))
+}
+
+/// `war plan states --json`'s result.
+#[derive(Debug, Clone, Serialize)]
+pub struct FormatStates {
+    pub schema: &'static str,
+    pub states: Vec<FormatState>,
+    /// The work documents whose states are `UNKNOWN` (a journal line newer
+    /// than v2): none of their states is in `states`.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub unknown: Vec<String>,
+}
+
 // ---- `war show <alias>` --------------------------------------------------
 
 /// The declared states on record for a Warrant and its records, as a short

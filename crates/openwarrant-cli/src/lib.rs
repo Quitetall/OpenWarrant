@@ -788,6 +788,12 @@ enum DailyCommand {
         steal: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+        /// Act as of this time (RFC 3339) instead of now: the claim's
+        /// `since`, a done date and the journal's `occurred_at` are this
+        /// time, and leases are judged then. For replaying a recorded
+        /// history, such as the conformance corpus (conformance/format/).
+        #[arg(long, value_name = "RFC3339", hide = true)]
+        at: Option<String>,
     },
     /// Tick an item done in its Warrant's checklist and release the claim.
     ///
@@ -813,6 +819,12 @@ enum DailyCommand {
         check: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+        /// Act as of this time (RFC 3339) instead of now: the claim's
+        /// `since`, a done date and the journal's `occurred_at` are this
+        /// time, and leases are judged then. For replaying a recorded
+        /// history, such as the conformance corpus (conformance/format/).
+        #[arg(long, value_name = "RFC3339", hide = true)]
+        at: Option<String>,
     },
     /// Add an item to a Warrant, or a test, KPI or milestone.
     ///
@@ -891,6 +903,12 @@ enum DailyCommand {
         if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+        /// Act as of this time (RFC 3339) instead of now: the claim's
+        /// `since`, a done date and the journal's `occurred_at` are this
+        /// time, and leases are judged then. For replaying a recorded
+        /// history, such as the conformance corpus (conformance/format/).
+        #[arg(long, value_name = "RFC3339", hide = true)]
+        at: Option<String>,
     },
     /// Change a Warrant's type, labels, epic or priority.
     ///
@@ -1065,6 +1083,19 @@ enum PlanCommand {
     /// states the builders derive, and a diagnostic per relation whose target
     /// is not a record. Read-only; the same tree gives the same bytes.
     Model,
+    /// The states of FORMAT-1.0 §11.1 (draft 3, revision 1) over the work
+    /// documents a tracker works: each with its family (`phase`,
+    /// `checklist`, ...), its provenance (`computed`, `recorded`,
+    /// `declared`) and, for a declared state, what it refines and whether it
+    /// lapsed; and the findings of reading them (journal refusals, a line
+    /// newer than v2 as UNKNOWN, unbacked tick levels). Read-only: a pure
+    /// function of the documents, journals, claim store and a time.
+    States {
+        /// Answer as of this time (RFC 3339) instead of now: which claims'
+        /// leases have run out is judged then.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+    },
     // ---- OW-WAR-0148 M4: declared states ---------------------------------
     /// Enter a declared state on a record (OW-WAR-0148 M4): a refinement of
     /// a fixed kernel state that the record's profile declares in
@@ -2718,6 +2749,22 @@ fn refresh_index_after(
 
 /// Print a ticket command's answer and return its exit code: the rendering
 /// (or the refusal, on stderr) for a person, the envelope under `--json`.
+/// `--at <RFC 3339>`: answer (or act) as of that time for the rest of this
+/// process ([`ticket::answer_at`]). Nothing when `None`.
+fn answer_at(at: Option<&str>) -> Result<(), repo::RepoError> {
+    let Some(at) = at else { return Ok(()) };
+    let secs = chrono::DateTime::parse_from_rfc3339(at.trim())
+        .ok()
+        .and_then(|d| u64::try_from(d.timestamp()).ok())
+        .ok_or_else(|| {
+            repo::RepoError::Message(format!(
+                "cli.at: `--at {at}` is not an RFC 3339 time (e.g. 2026-10-15T12:00:00Z)"
+            ))
+        })?;
+    ticket::answer_at(secs);
+    Ok(())
+}
+
 fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -> u8 {
     match mode {
         output::Mode::Human => {
@@ -3005,7 +3052,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             target,
             steal,
             actor,
+            at,
         } => {
+            answer_at(at.as_deref())?;
             ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             Ok(ticket_answer(
@@ -3020,7 +3069,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             check,
             actor,
+            at,
         } => {
+            answer_at(at.as_deref())?;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let mut outcome =
                 ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?;
@@ -3099,7 +3150,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             text,
             if_rev,
             actor,
+            at,
         } => {
+            answer_at(at.as_deref())?;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::note(&store, &target, &text, if_rev.as_deref())?;
             refresh_index_after(&repository, &outcome, false);
@@ -3508,18 +3561,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             Ok(go_answer(mode, "start", &report, result, &human))
         }
         DailyCommand::Next { at } => {
-            if let Some(at) = at {
-                let secs = chrono::DateTime::parse_from_rfc3339(at.trim())
-                    .ok()
-                    .and_then(|d| u64::try_from(d.timestamp()).ok())
-                    .ok_or_else(|| {
-                        repo::RepoError::Message(format!(
-                            "next.at: `--at {at}` is not an RFC 3339 time (e.g. \
-                             2026-10-15T12:00:00Z)"
-                        ))
-                    })?;
-                ticket::answer_at(secs);
-            }
+            answer_at(at.as_deref())?;
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
@@ -4139,6 +4181,44 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     "model",
                     &report,
                     Some(output::value(&model)),
+                )),
+            }
+        }
+        PlanCommand::States { at } => {
+            answer_at(at.as_deref())?;
+            let repository = ctx.open_repo()?;
+            gate_cmd::source::remember_tree_reads();
+            ticket::cache::permit_with_journals();
+            let (report, states) = states::format_states(&repository)?;
+            match mode {
+                output::Mode::Human => {
+                    for s in &states.states {
+                        let refines = s
+                            .refines
+                            .as_ref()
+                            .map(|r| {
+                                format!(" (refines {r}{})", if s.lapsed { ", lapsed" } else { "" })
+                            })
+                            .unwrap_or_default();
+                        println!(
+                            "{}  {}  {}  {}{refines}",
+                            s.record, s.kind, s.value, s.provenance
+                        );
+                    }
+                    for d in report
+                        .diagnostics
+                        .iter()
+                        .filter(|d| d.severity != diagnostic::Severity::Pass)
+                    {
+                        eprintln!("{d}");
+                    }
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "states",
+                    &report,
+                    Some(output::value(&states)),
                 )),
             }
         }

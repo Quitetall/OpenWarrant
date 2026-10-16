@@ -417,13 +417,15 @@ pub fn now_secs() -> u64 {
         .map_or(0, |d| d.as_secs())
 }
 
-/// The time a read-only command answers at (`war next --at`), when given.
+/// The time a command answers or acts at (`--at`), when given.
 static AT: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
 
 /// Answer as of `secs` (Unix seconds) for the rest of this process: what
 /// `war next --at <rfc3339>` sets, so its answer is a pure function of the
-/// documents, journals, claim store and that time (FORMAT-1.0 §11.5). Only
-/// a read-only command sets it; the first setting stands.
+/// documents, journals, claim store and that time (FORMAT-1.0 §11.5). A
+/// write given `--at` (`claim`, `done`, `note`) acts then: what it records
+/// is dated then, for replaying a recorded history. The first setting
+/// stands.
 pub fn answer_at(secs: u64) {
     let _ = AT.set(secs);
 }
@@ -899,6 +901,18 @@ impl Store {
         event_type: &str,
         payload: &serde_json::Value,
     ) -> Result<(), RepoError> {
+        let mut payload = payload.clone();
+        // FORMAT-1.0 §11.2: so that a fact that really happens again (done,
+        // reopened, done again) is a new event, a Format 1.0 document's
+        // claim, done, reopen and release carry `episode`.
+        if t.format
+            && EPISODIC.contains(&event_type)
+            && payload.get("episode").is_none()
+            && let Some(target) = payload.get("target").and_then(|v| v.as_str())
+        {
+            let n = episode_of(&t.dir, event_type, target)?;
+            payload["episode"] = serde_json::json!(n);
+        }
         crate::journal_cmd::record(
             &t.dir,
             &t.manifest.uuid,
@@ -908,6 +922,43 @@ impl Store {
         )
         .map(|_| ())
     }
+}
+
+/// The event types whose payload carries `episode` (FORMAT-1.0 §11.2):
+/// `work.claimed` (and `work.claim_reclaimed`, `work.claim_stolen`, "as
+/// `work.claimed`"), `work.item_done`, `work.item_reopened`,
+/// `work.released`.
+pub const EPISODIC: [&str; 6] = [
+    event::CLAIMED,
+    event::CLAIM_RECLAIMED,
+    event::CLAIM_STOLEN,
+    event::ITEM_DONE,
+    event::ITEM_REOPENED,
+    event::RELEASED,
+];
+
+/// `episode` (FORMAT-1.0 §11.2): the number of events of `event_type` for
+/// `target` already in the journal in `dir`, its `ticket.*` spelling read as
+/// the `work.*` one.
+pub fn episode_of(dir: &Utf8Path, event_type: &str, target: &str) -> Result<u64, RepoError> {
+    let journal = crate::journal_cmd::load(dir)?;
+    let kind = crate::journal_cmd::work_type(event_type);
+    let n = journal
+        .events
+        .iter()
+        .filter(|e| crate::journal_cmd::work_type(&e.event_type) == kind)
+        .filter(|e| {
+            serde_json::from_str::<serde_json::Value>(&e.payload)
+                .ok()
+                .and_then(|p| {
+                    p.get("target")
+                        .and_then(|v| v.as_str())
+                        .map(|t| t == target)
+                })
+                .unwrap_or(false)
+        })
+        .count();
+    Ok(u64::try_from(n).unwrap_or(u64::MAX))
 }
 
 /// M11: renew the claims of the agent a command runs as when it names none
@@ -1291,12 +1342,19 @@ fn check_if_rev(
     if same_revision(given, &current) {
         return None;
     }
-    let file = if item.is_some() {
-        t.checklist_path.clone()
-    } else {
-        record_file(t)
+    // FORMAT-1.0 §13.1: a stale write is reported at the document and, for
+    // an item, the item's line.
+    let (file, line) = match item.and_then(|i| t.item(i)) {
+        Some(it) => (t.checklist_path.clone(), Some(it.line + 1)),
+        None => (record_file(t), None),
     };
-    Some(stale_revision(store, t, what, &file, given, &current))
+    let mut refusal = stale_revision(store, t, what, &file, given, &current);
+    if let Some(n) = line {
+        for d in &mut refusal.report.diagnostics {
+            d.file = d.file.take().map(|f| format!("{f}:{n}"));
+        }
+    }
+    Some(refusal)
 }
 
 // ---- writes ----------------------------------------------------------------
@@ -2530,9 +2588,10 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 ),
             ));
         }
-        // The whole ticket held by someone else holds this item too.
+        // The whole ticket held by someone else holds this item too, while
+        // its lease is live (an expired claim holds nothing, §11.3).
         if let Some((_, c)) = claim_on(&claims, t.id(), None)
-            && c.is_none_or(|c| c.actor != store.actor)
+            && c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
         {
             return Ok(claimed_by_other(
                 store.rel(&store.lock_path(t.id(), None)),
@@ -2563,22 +2622,35 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 ),
             ));
         }
-        // An item of it held by someone else: the ticket is not free whole.
-        let others: Vec<String> = claims
+        // An item of it held by someone else, under a live lease: the ticket
+        // is not free whole (§11.3). The refusal names the first holder's
+        // claim file.
+        let others: Vec<(&String, String)> = claims
             .iter()
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
-            .filter(|(_, c)| c.as_ref().is_none_or(|c| c.actor != store.actor))
-            .map(|(_, c)| {
-                c.as_ref().map_or_else(
+            .filter(|(_, c)| {
+                c.as_ref()
+                    .is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+            })
+            .map(|(k, c)| {
+                let who = c.as_ref().map_or_else(
                     || "an item (unreadable lock)".to_owned(),
                     |c| format!("{} by {}", c.target(), holder(Some(c), now)),
-                )
+                );
+                (k, who)
             })
             .collect();
-        if !others.is_empty() {
+        if let Some((first, _)) = others.first() {
+            let file = store.lock_of(
+                t.id(),
+                first
+                    .strip_prefix(&format!("{}--", t.id()))
+                    .and_then(|i| i.strip_suffix(".lock")),
+            );
+            let who: Vec<&str> = others.iter().map(|(_, w)| w.as_str()).collect();
             return Ok(claimed_by_other(
-                store.rel(&store.claims_dir),
-                format!("{what} cannot be claimed whole: {}", others.join("; ")),
+                store.rel(&file),
+                format!("{what} cannot be claimed whole: {}", who.join("; ")),
             ));
         }
     }
@@ -2686,12 +2758,15 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     let after = store.claims()?;
     let conflict = match &item {
         Some(_) => claim_on(&after, t.id(), None)
-            .filter(|(_, c)| c.is_none_or(|c| c.actor != store.actor))
+            .filter(|(_, c)| c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now)))
             .map(|(_, c)| holder(c, now)),
         None => after
             .iter()
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
-            .find(|(_, c)| c.as_ref().is_none_or(|c| c.actor != store.actor))
+            .find(|(_, c)| {
+                c.as_ref()
+                    .is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+            })
             .map(|(_, c)| holder(c.as_ref(), now)),
     };
     if let Some(other) = conflict {
@@ -3706,8 +3781,11 @@ fn finish(
         }
     }
     // OW-WAR-0148 M14: under the vibe preset, a done on an item nobody
-    // holds claims it first (init, create, done). Anywhere else the
-    // refusal stands: two agents never finish one item.
+    // holds claims it first (init, create, done). So does a done that names
+    // the revision it was based on (`--if-rev`, FORMAT-1.0 §11.3's
+    // compare-and-set): of two finishing one item from one revision, the
+    // second's base is stale and it writes nothing, so two agents still never
+    // finish one item. Anywhere else the refusal stands.
     let mut auto_claim = false;
     if let Err(refusal) = may_finish(store, t, item_id.as_deref(), &what) {
         let unclaimed = refusal
@@ -3715,7 +3793,8 @@ fn finish(
             .diagnostics
             .iter()
             .any(|d| d.rule == "ticket.not-claimed");
-        if !(unclaimed && store.preset == Some(crate::preset::Preset::Vibe)) {
+        let based = if_rev.is_some() && matches!(how, How::Claimed);
+        if !(unclaimed && (store.preset == Some(crate::preset::Preset::Vibe) || based)) {
             return Ok(*refusal);
         }
         auto_claim = true;
@@ -4446,6 +4525,14 @@ pub fn note(
     }
     let now = now_secs();
     let stamp = rfc3339(now);
+    // FORMAT-1.0 §11: the documents say what the work is and the journal what
+    // happened to it, so a Format 1.0 work document's note is a
+    // `work.note_added` event, `{target, note}` (§11.2), and the document is
+    // not touched. The time is not in the payload, so the same note by the
+    // same actor is a replay and by another a conflict (§11.2, exactly once).
+    if t.format {
+        return note_event(store, t, &what, item.as_deref(), body);
+    }
     let mut lines = body.lines();
     let mut entry = format!(
         "- **{} {} UTC, {}{}:** {}\n",
@@ -4491,6 +4578,53 @@ pub fn note(
         format!("noted on {}: {}", t.id(), entry.trim_end()),
         serde_json::json!({"schema": "oh.war/ticket-note/v1", "ticket": t.id(), "item": item, "at": stamp, "note": body}),
     ))
+}
+
+/// A Format 1.0 work document's note: one `work.note_added` event, written
+/// once (§11.2). The same note from the same actor replays and writes
+/// nothing; from another it is refused `work.idempotency-conflict`, at the
+/// line that already records it.
+fn note_event(
+    store: &Store,
+    t: &Ticket,
+    what: &str,
+    item: Option<&str>,
+    body: &str,
+) -> Result<Outcome, RepoError> {
+    let payload = serde_json::json!({"target": what, "note": body});
+    let text = payload.to_string();
+    let result = |replayed: bool| {
+        serde_json::json!({"schema": "oh.war/ticket-note/v1", "ticket": t.id(), "item": item,
+            "target": what, "note": body, "replayed": replayed})
+    };
+    match crate::journal_cmd::already_recorded(&t.dir, event::NOTE_ADDED, &text, &store.actor)? {
+        crate::journal_cmd::Prior::Equivalent { occurred_at } => Ok(Outcome::ok(
+            format!(
+                "{what}: this note is already recorded by {} ({occurred_at}); nothing written",
+                store.actor
+            ),
+            result(true),
+        )),
+        crate::journal_cmd::Prior::Conflict { recorded_by } => {
+            let journal = t.dir.join(crate::journal_cmd::FILE);
+            let rel = store.rel(&journal);
+            let file = crate::journal_cmd::recorded_line(&t.dir, event::NOTE_ADDED, &text)
+                .map_or_else(|| rel.clone(), |n| format!("{rel}:{n}"));
+            Ok(Outcome::from_diagnostic(crate::journal_cmd::conflict(
+                file,
+                event::NOTE_ADDED,
+                &recorded_by,
+                &store.actor,
+            )))
+        }
+        crate::journal_cmd::Prior::Fresh => {
+            store.journal(t, event::NOTE_ADDED, &payload)?;
+            Ok(Outcome::ok(
+                format!("noted on {what}: {body}"),
+                result(false),
+            ))
+        }
+    }
 }
 
 // ---- promote ---------------------------------------------------------------

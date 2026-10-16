@@ -164,6 +164,19 @@ pub fn backing(t: &Ticket) -> Backing {
     let Ok(journal) = crate::journal_cmd::parse(&text) else {
         return out;
     };
+    // FORMAT-1.0 §11.2: a done's `runs[]` may name `check.run` events by
+    // their `run`; each such run's verdict, as the journal records it.
+    let check_runs: BTreeMap<String, String> = journal
+        .events
+        .iter()
+        .filter(|e| e.event_type == super::event::CHECK_RUN)
+        .filter_map(|e| {
+            let p = serde_json::from_str::<serde_json::Value>(&e.payload).ok()?;
+            let run = p.get("run")?.as_str()?.to_owned();
+            let verdict = p.get("verdict")?.as_str()?.to_owned();
+            Some((run, verdict))
+        })
+        .collect();
     for e in &journal.events {
         let Ok(p) = serde_json::from_str::<serde_json::Value>(&e.payload) else {
             continue;
@@ -173,7 +186,8 @@ pub fn backing(t: &Ticket) -> Backing {
             // FORMAT-1.0 §11.4: `observed` is backed by a done with that
             // level and passing runs, or a raise to it.
             super::event::ITEM_DONE
-                if s("level").as_deref() == Some("observed") && passing(p.get("runs")) =>
+                if s("level").as_deref() == Some("observed")
+                    && passing(p.get("runs"), &check_runs) =>
             {
                 if let Some(i) = s("item") {
                     out.observed.insert(i);
@@ -240,16 +254,25 @@ pub fn backing(t: &Ticket) -> Backing {
 
 /// Whether a done's `runs` pass (FORMAT-1.0 §11.4): at least one run
 /// passed and none failed or could not decide. A KPI that only records
-/// (`recorded`) decides nothing either way.
-fn passing(runs: Option<&serde_json::Value>) -> bool {
+/// (`recorded`) decides nothing either way. A run is a receipt this build
+/// wrote (`{verdict, ...}`), or the id of a `check.run` event of the same
+/// journal (§11.2, `check.run`'s `run`), whose `PASS` passes; an id the
+/// journal does not record backs nothing.
+fn passing(runs: Option<&serde_json::Value>, check_runs: &BTreeMap<String, String>) -> bool {
     let Some(runs) = runs.and_then(serde_json::Value::as_array) else {
         return false;
     };
-    let verdict = |r: &serde_json::Value| {
-        r.get("verdict")
+    let verdict = |r: &serde_json::Value| match r.as_str() {
+        Some(id) => match check_runs.get(id).map(String::as_str) {
+            Some("PASS") => "pass".to_owned(),
+            Some(_) => "fail".to_owned(),
+            None => String::new(),
+        },
+        None => r
+            .get("verdict")
             .and_then(serde_json::Value::as_str)
             .unwrap_or_default()
-            .to_owned()
+            .to_owned(),
     };
     runs.iter().any(|r| verdict(r) == "pass")
         && runs
