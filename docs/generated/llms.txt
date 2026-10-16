@@ -507,6 +507,10 @@
 > -
 - doc:docs/format/README.md · document · - · OpenWarrant Format · docs/format/README.md:1
 
+## docs/format/draft-3-questions.md
+> -
+- doc:docs/format/draft-3-questions.md · document · - · Questions on FORMAT-1.0 draft 3: resolved · docs/format/draft-3-questions.md:1
+
 ## docs/integrations/budgets.md
 > -
 - doc:docs/integrations/budgets.md · document · - · Shared context budget and cache contract · docs/integrations/budgets.md:1
