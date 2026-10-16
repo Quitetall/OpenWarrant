@@ -615,8 +615,10 @@ fn fixed_state(h: &Holding) -> crate::model::State {
         record: h.record.clone(),
         kind: h.state.kind().as_str().to_owned(),
         value: h.state.as_str().to_owned(),
-        provenance: match h.state.kind() {
-            StateKind::Authenticated => "recorded",
+        // FORMAT-1.0 §11.1: `recorded` is read from a journal event, as a
+        // check's `failing` is (its last `check.run`).
+        provenance: match (h.state.kind(), h.state) {
+            (StateKind::Authenticated, _) | (_, FixedState::Failing) => "recorded",
             _ => "computed",
         }
         .to_owned(),
@@ -649,10 +651,17 @@ pub fn model_states(corpus: &Corpus) -> Result<BTreeSet<crate::model::State>, Re
     }
     out.extend(warrants.iter().map(fixed_state));
     out.extend(phase_holding(corpus).iter().map(fixed_state));
+    let store = ticket::Store::open(corpus.repo(), None).ok();
+    let held = store.as_ref().map(|s| s.claims().unwrap_or_default());
+    out.extend(
+        format_warrant_phases(corpus, held.as_ref())
+            .iter()
+            .map(fixed_state),
+    );
     if let Ok((tickets, _)) = corpus.tickets()
-        && let Ok(store) = ticket::Store::open(corpus.repo(), None)
+        && let Some(store) = store
     {
-        let claims = store.claims().unwrap_or_default();
+        let claims = held.unwrap_or_default();
         let caps = store.definition.capabilities();
         for t in tickets {
             out.extend(
@@ -841,6 +850,7 @@ pub fn format_states(repo: &Repository) -> Result<(Report, FormatStates), RepoEr
         }
         states.extend(ticket_format_states(&store, t, &tickets, &claims));
     }
+    states.extend(other_format_states(repo, &tickets, &unknown)?);
     states.sort_by(|a, b| {
         (a.record.as_bytes(), &a.kind, &a.value).cmp(&(b.record.as_bytes(), &b.kind, &b.value))
     });
@@ -868,6 +878,60 @@ pub fn format_states(repo: &Repository) -> Result<(Report, FormatStates), RepoEr
     ))
 }
 
+/// The §11.1 states of every record that is not a ticket or a ticket's item
+/// (those are [`ticket_format_states`]'s): the model's (`oh.war/model/v1`)
+/// kernel states by family — a Format 1.0 Warrant's phase, a check's
+/// `failing`, a record's `superseded`, `verified` — and its `acceptance`
+/// states (Appendix C), each with the model's provenance. A record of a
+/// document whose states are UNKNOWN (`unknown`) is left out with it.
+fn other_format_states(
+    repo: &Repository,
+    tickets: &[Ticket],
+    unknown: &[String],
+) -> Result<Vec<FormatState>, RepoError> {
+    let corpus = Corpus::new(repo);
+    let model = crate::model::build(&corpus)?;
+    let ticket_ids: BTreeSet<&str> = tickets.iter().map(Ticket::id).collect();
+    let work: BTreeSet<&str> = model
+        .records
+        .iter()
+        .filter(|r| matches!(r.kind.as_str(), "warrant" | "ticket"))
+        .map(|r| r.id.as_str())
+        .collect();
+    let mut out = Vec::new();
+    for st in &model.states {
+        let alias = st.record.split('/').next().unwrap_or_default();
+        let ticket_own = ticket_ids.contains(st.record.as_str())
+            || st
+                .record
+                .split_once('/')
+                .is_some_and(|(t, i)| ticket_ids.contains(t) && i.starts_with("i-"));
+        if ticket_own || unknown.iter().any(|u| u == alias) {
+            continue;
+        }
+        let kind = if st.kind == "acceptance" {
+            Some("acceptance")
+        } else if st.kind == StateKind::Computed.as_str()
+            || st.kind == StateKind::Authenticated.as_str()
+        {
+            FixedState::parse(&st.value)
+                .and_then(|f| family(f, work.contains(st.record.as_str())))
+        } else {
+            None
+        };
+        let Some(kind) = kind else { continue };
+        out.push(FormatState {
+            record: st.record.clone(),
+            kind: kind.to_owned(),
+            value: st.value.clone(),
+            provenance: st.provenance.clone(),
+            refines: None,
+            lapsed: false,
+        });
+    }
+    Ok(out)
+}
+
 /// `war plan states --json`'s result.
 #[derive(Debug, Clone, Serialize)]
 pub struct FormatStates {
@@ -877,6 +941,104 @@ pub struct FormatStates {
     /// than v2): none of their states is in `states`.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub unknown: Vec<String>,
+}
+
+/// FORMAT-1.0 §11.1's `phase` of each Format 1.0 Warrant (a ticket's is
+/// [`ticket_holding`]'s): `done` when it has items and every box is `[x]`,
+/// `in_progress` when one is, or a live claim in `claims` names the
+/// Warrant or one of its items, else `open`. With no `claims` (the
+/// documents alone, §10.3), no claim is held. A Warrant with no items is
+/// `open` until claimed; one done as a whole is the tracker's (a journal
+/// event, §11.2), not read here.
+fn format_warrant_phases(corpus: &Corpus, claims: Option<&Claims>) -> Vec<Holding> {
+    let now = ticket::now_secs();
+    let live = |alias: &str, item: Option<&str>| {
+        claims.is_some_and(|c| {
+            ticket::claim_on(c, alias, item)
+                .is_some_and(|(_, c)| c.is_none_or(|c| !c.lease_expired(now)))
+        })
+    };
+    let mut out = Vec::new();
+    for d in &corpus.format_docs().docs {
+        if d.place != crate::format_doc::Place::Warrant || !d.admitted() {
+            continue;
+        }
+        let Some(alias) = d.doc.alias.as_deref() else {
+            continue;
+        };
+        let items: Vec<&openwarrant_core::format::Item> =
+            d.doc.units.iter().flat_map(|u| u.items.iter()).collect();
+        let started = items
+            .iter()
+            .any(|i| i.done || i.id.as_deref().is_some_and(|id| live(alias, Some(id))))
+            || live(alias, None);
+        let state = if !items.is_empty() && items.iter().all(|i| i.done) {
+            FixedState::Done
+        } else if started {
+            FixedState::InProgress
+        } else {
+            FixedState::Open
+        };
+        out.push(Holding {
+            record: alias.to_owned(),
+            state,
+            episode: None,
+        });
+    }
+    out
+}
+
+/// The states the documents alone give (FORMAT-1.0 §10.3's purity rule:
+/// no claim lock, journal or clock), from `states`, every state of the
+/// model ([`model_states`] and the builders'). What the index and a preset
+/// that does not read state show (§10.2, §10.4).
+///
+/// A ticket's and its items' fixed states are judged again with no claim
+/// held and no journal read (a document done as a whole by a journal event
+/// is not done here); a declared state (entered by a journal event) and a
+/// check's `failing` (its recorded run) are left out. Everything else the
+/// model states is read from documents and records of acts and is kept.
+#[must_use]
+pub fn document_states(
+    corpus: &Corpus,
+    states: &[crate::model::State],
+) -> Vec<crate::model::State> {
+    let mut tickets: Vec<Ticket> = corpus
+        .tickets()
+        .map(|(t, _)| t.to_vec())
+        .unwrap_or_default();
+    for t in &mut tickets {
+        t.done_whole = false;
+    }
+    let ticket_ids: BTreeSet<&str> = tickets.iter().map(Ticket::id).collect();
+    let of_ticket = |record: &str| {
+        ticket_ids.contains(record)
+            || record
+                .split_once('/')
+                .is_some_and(|(t, _)| ticket_ids.contains(t))
+    };
+    let failing = FixedState::Failing.as_str();
+    let mut out: Vec<crate::model::State> = states
+        .iter()
+        .filter(|s| s.kind != StateKind::Declared.as_str() && s.value != failing)
+        .filter(|s| !of_ticket(&s.record) || s.kind == "checklist")
+        .cloned()
+        .collect();
+    out.extend(format_warrant_phases(corpus, None).iter().map(fixed_state));
+    if let Ok(store) = ticket::Store::open(corpus.repo(), None) {
+        let caps = store.definition.capabilities();
+        let none = Claims::new();
+        for t in &tickets {
+            out.extend(
+                ticket_holding(caps, t, Some(&tickets), &none)
+                    .iter()
+                    .map(fixed_state),
+            );
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
 }
 
 // ---- `war show <alias>` --------------------------------------------------

@@ -215,14 +215,154 @@ class War:
             raise RuntimeError(f"{argv[0]} {argv[1]}: exit {p.returncode}: {p.stderr.strip()[-400:]}")
         return p
 
+    def apply(self, case, work):
+        """An apply case (10.5): `war apply package.md --as A --at T` over input/
+        committed in the scratch program; the documents after are compared."""
+        tree = os.path.join(work, "repo")
+        shutil.copytree(self.template, tree, symlinks=True)
+        shutil.copytree(os.path.join(case, "input"), tree, dirs_exist_ok=True)
+        git = ["git", "-c", "user.name=corpus", "-c", "user.email=corpus@invalid",
+               "-c", "commit.gpgsign=false"]
+        self._run(git + ["add", "-A"], tree)
+        self._run(git + ["commit", "-q", "--allow-empty", "-m", "corpus input"], tree)
+        with open(os.path.join(case, "at")) as f:
+            at = f.read().strip()
+        args = read_args(case)
+        if args[:1] != ["apply"]:
+            raise RuntimeError(f"an apply case's args start with `apply`: {args}")
+        p = subprocess.run([self.war, "--json", "apply", os.path.join(case, "package.md"),
+                            *args[1:], "--at", at, "--root", tree], cwd=tree, env=ENV,
+                           capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120)
+        try:
+            env = json.loads(p.stdout)
+        except json.JSONDecodeError:
+            raise RuntimeError(f"war apply: exit {p.returncode}: {p.stderr.strip()[-400:]}")
+        findings = sorted(f"{d['rule']} {d['file']}" for d in env.get("diagnostics", [])
+                          if d.get("rule") in SPEC_RULES and d.get("file"))
+        return {"records": [], "relations": [], "findings": findings, "tree": tree}
+
+    # ------------------------------------------------------------ tracking --
+    #
+    # A tracking case (README.md, "Tracking cases") is one operation over
+    # input/ as a committed git tree with its journals and claim store
+    # (`tracking_tree`), under the minimal config war needs (a case's own
+    # `openwarrant.toml`, its `[claims]` or `[next]`, appended). Every war
+    # command runs `--at` the case's time, so a lease or a date is judged
+    # then, not now. The states of 11.1 are `war plan states` (`war_states`).
+
+    CONFIG = ('schema = "oh.war/repository-config/v1"\n\n'
+              '[project]\nname = "Format corpus"\nnamespace = "ZQ"\n')
+
+    def _prepare(self, tree):
+        own = os.path.join(tree, "openwarrant.toml")
+        extra = open(own).read() if os.path.isfile(own) else ""
+        with open(own, "w") as f:
+            f.write(self.CONFIG + ("\n" + extra if extra else ""))
+
+    def _war(self, tree, *argv):
+        """`war --json <argv> --root <tree>`: the report envelope, and its exit code."""
+        env = dict(ENV, **self.acts_env)
+        p = subprocess.run([self.war, "--json", *argv, "--root", tree], cwd=tree, env=env,
+                           capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120)
+        try:
+            return json.loads(p.stdout), p.returncode
+        except json.JSONDecodeError:
+            raise RuntimeError(f"war {argv[0]}: exit {p.returncode}: {p.stderr.strip()[-400:]}")
+
+    def _track(self, case, work, op):
+        """Set up the case's tree and run `op(tree, rest of args)`."""
+        tree = tracking_tree(case, work, self._prepare)
+        with open(os.path.join(case, "at")) as f:
+            self.at = f.read().strip()
+        self.acts_env = war_acts_env(case)
+        out = {"records": [], "relations": [], "findings": [], "states": [], "next": None,
+               "tree": tree}
+        out.update(op(tree, read_args(case)[1:]))
+        out["findings"] = sorted(out["findings"])
+        return out
+
+    def _states(self, tree, findings=()):
+        """`war plan states`: the states of 11.1, and the findings of reading them."""
+        report, _ = self._war(tree, "plan", "states", "--at", self.at)
+        found = set(findings) | war_findings(report)
+        states = (report.get("result") or {}).get("states", [])
+        return {"states": states, "findings": found}
+
+    def _write(self, tree, argv):
+        """A write; its refusals, or else the states after it."""
+        report, code = self._war(tree, *argv, "--at", self.at)
+        found = war_findings(report)
+        if code != 0 or any(f.split(" ")[0] in REFUSALS | UNKNOWNS for f in found):
+            if not found:
+                msgs = [d.get("message", "")[:200] for d in report.get("diagnostics", [])]
+                raise RuntimeError(f"war {argv[0]}: exit {code}: {msgs}")
+            return {"findings": found}
+        return self._states(tree, found)
+
+    @staticmethod
+    def _flags(rest, *names):
+        """`--actor A --note T` and bare `--steal` into a dict; the first word is the target."""
+        target, opts, i = rest[0], {}, 1
+        while i < len(rest):
+            key = rest[i].lstrip("-")
+            if key in names and i + 1 < len(rest) and not rest[i + 1].startswith("--"):
+                opts[key], i = rest[i + 1], i + 2
+            else:
+                opts[key], i = True, i + 1
+        return target, opts
+
+    def track_states(self, case, work):
+        """`states`: `war plan states --at <at>`."""
+        return self._track(case, work, lambda tree, rest: self._states(tree))
+
+    def track_next(self, case, work):
+        """`next`: the candidates of `war next --at <at>`, in order."""
+        def op(tree, rest):
+            report, _ = self._war(tree, "next", "--at", self.at)
+            ready = (report.get("result") or {}).get("ready", [])
+            cands = [r["ticket"] + ("/" + r["item"] if r.get("item") else "") for r in ready]
+            # `next`'s warnings are those of the states it is computed from.
+            found = war_findings(report) | self._states(tree)["findings"]
+            return {"next": cands, "findings": found}
+        return self._track(case, work, op)
+
+    def track_claim(self, case, work):
+        """`claim <target> --actor A [--steal]`: `war claim`, then the states."""
+        def op(tree, rest):
+            target, o = self._flags(rest, "actor")
+            steal = ["--steal"] if o.get("steal") else []
+            return self._write(tree, ["claim", target, "--as", o["actor"], *steal])
+        return self._track(case, work, op)
+
+    def track_done(self, case, work):
+        """`done <target> --actor A --base R`: `war done --if-rev R`, then the states."""
+        def op(tree, rest):
+            target, o = self._flags(rest, "actor", "base")
+            return self._write(tree, ["done", target, "--as", o["actor"], "--if-rev", o["base"]])
+        return self._track(case, work, op)
+
+    def track_note(self, case, work):
+        """`note <target> --actor A --note T`: `war note`, then the states."""
+        def op(tree, rest):
+            target, o = self._flags(rest, "actor", "note")
+            return self._write(tree, ["note", target, o["note"], "--as", o["actor"]])
+        return self._track(case, work, op)
+
     def read(self, case, work):
         kind = case_kind(case)
-        if kind == "tracking":
-            return self.track(case, work)
+        if kind == "tracking" and read_args(case)[:1] == ["evaluate"]:
+            return war_evaluate(self.war, case, work)
         if kind == "apply":
-            # No adapter maps an apply case to war's commands yet; war's
-            # results for these cases are listed in known-war.txt.
-            raise RuntimeError(f"no war adapter for {kind} cases")
+            return self.apply(case, work)
+        if kind in ("tracking", "apply"):
+            # A tracking case names one operation (README.md, "Tracking
+            # cases"); each has a method `track_<op>`. An operation with none
+            # is listed in known-war.txt.
+            op = read_args(case)[0]
+            handler = getattr(self, "track_" + op.replace("-", "_"), None)
+            if kind == "apply" or handler is None:
+                raise RuntimeError(f"no war adapter for {kind} operation {op!r}")
+            return handler(case, work)
         tree = os.path.join(work, "repo")
         shutil.copytree(self.template, tree, symlinks=True)
         shutil.copytree(os.path.join(case, "input"), tree, dirs_exist_ok=True)
@@ -230,11 +370,27 @@ class War:
         argv_file = os.path.join(case, "args")
         if os.path.isfile(argv_file):
             args = read_args(case)
+            # As for the python reader: a claim file's modification time is its since_unix.
+            touch_claims(os.path.join(tree, ".openwarrant", "state", "claims"))
+            # A preset that reads state digests every journal (10.4): the case's
+            # own, not the scratch program's.
+            for dp, _, fs in os.walk(os.path.join(tree, "docs")):
+                for f in fs:
+                    rel = os.path.relpath(os.path.join(dp, f), tree).replace(os.sep, "/")
+                    if f == "journal.jsonl" and rel not in files:
+                        os.remove(os.path.join(dp, f))
             if os.path.isfile(os.path.join(case, "expected", "context.md")):
                 p = subprocess.run([self.war, "context", *args, "--root", tree], cwd=tree,
                                    env=ENV, capture_output=True, text=True,
                                    stdin=subprocess.DEVNULL, timeout=120)
-                return {"records": [], "relations": [], "findings": [], "output": p.stdout,
+                output = p.stdout
+                if "--index" in args:
+                    # The index (10.2) of the case's own files: the scratch
+                    # program's documents are not the case's (as for model cases).
+                    head, *blocks = output.split("\n## ")
+                    output = head + "".join(
+                        "\n## " + b for b in blocks if b.split("\n", 1)[0] in files)
+                return {"records": [], "relations": [], "findings": [], "output": output,
                         "context_exit": p.returncode}
             p = subprocess.run([self.war, "--json", "context", *args, "--root", tree], cwd=tree,
                                env=ENV, capture_output=True, text=True,
@@ -289,133 +445,96 @@ class War:
         }
 
 
-    # ------------------------------------------------------------ tracking --
-    #
-    # A tracking case (README.md, "Tracking cases") is one operation, named by
-    # the first word of `args`, over input/ as a committed git tree with its
-    # journals and claim store. Each operation is one method `op_<name>`,
-    # dispatched on that word, so an operation is added without touching the
-    # others. Every war command runs `--at` the case's time, so a lease or a
-    # date is judged then, not now.
+# ------------------------------------------------- war: evaluate (12) --
 
-    # The config war needs to open a repository. A case's own
-    # `openwarrant.toml` (its `[claims]`, `[next]`) is appended to it.
-    CONFIG = ('schema = "oh.war/repository-config/v1"\n\n'
-              '[project]\nname = "Format corpus"\nnamespace = "ZQ"\n')
+def war_run(war, tree, argv):
+    """`war <argv> --root <tree>` in `tree`: (exit code, stdout, stderr)."""
+    p = subprocess.run([war, *argv, "--root", tree], cwd=tree, env=ENV, capture_output=True,
+                       text=True, stdin=subprocess.DEVNULL, timeout=120)
+    return p.returncode, p.stdout, p.stderr
 
-    def _prepare(self, tree):
-        own = os.path.join(tree, "openwarrant.toml")
-        extra = open(own).read() if os.path.isfile(own) else ""
-        with open(own, "w") as f:
-            f.write(self.CONFIG + ("\n" + extra if extra else ""))
 
-    def _war(self, tree, *argv):
-        """`war --json <argv> --root <tree>`: the report envelope, and its exit code."""
-        p = subprocess.run([self.war, "--json", *argv, "--root", tree], cwd=tree, env=ENV,
-                           capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120)
-        try:
-            return json.loads(p.stdout), p.returncode
-        except json.JSONDecodeError:
-            raise RuntimeError(f"war {argv[0]}: exit {p.returncode}: {p.stderr.strip()[-400:]}")
+def war_findings(report):
+    """`<rule id> <path>:<line>` for each spec rule a war report names. A claim
+    file is named from the claim store (`claims/<file>:1`, README.md)."""
+    out = set()
+    for d in report.get("diagnostics", []):
+        rule = d.get("rule")
+        if rule not in SPEC_RULES:
+            continue
+        where = d.get("file") or ""
+        marker = "openwarrant/claims/"
+        if marker in where:
+            # A claim file is one JSON object: its finding is at line 1.
+            where = "claims/" + where.split(marker, 1)[1]
+            where += "" if ":" in where else ":1"
+        out.add(f"{rule} {where}".rstrip())
+    return out
 
-    @staticmethod
-    def _findings(report):
-        """`<rule id> <path>:<line>` for each spec rule the report names. A claim
-        file is named from the claim store (`claims/<file>:1`, README.md)."""
-        out = set()
-        for d in report.get("diagnostics", []):
-            rule = d.get("rule")
-            if rule not in SPEC_RULES:
-                continue
-            where = d.get("file") or ""
-            marker = "openwarrant/claims/"
-            if marker in where:
-                # A claim file is one JSON object: its finding is at line 1.
-                where = "claims/" + where.split(marker, 1)[1]
-                where += "" if ":" in where else ":1"
-            out.add(f"{rule} {where}".rstrip())
-        return out
 
-    def track(self, case, work):
-        tree = tracking_tree(case, work, self._prepare)
-        with open(os.path.join(case, "at")) as f:
-            self.at = f.read().strip()
-        if os.path.isdir(os.path.join(case, "acts")):
-            self.op_acts(case, tree)
-        args = read_args(case)
-        op = getattr(self, "op_" + args[0], None)
-        if op is None:
-            raise RuntimeError(f"no war adapter for the tracking operation `{args[0]}`")
-        out = {"records": [], "relations": [], "findings": [], "states": [], "next": None,
-               "tree": tree}
-        out.update(op(tree, args[1:]))
-        out["findings"] = sorted(out["findings"])
-        return out
+def war_states(war, tree, records, at=None, env=None):
+    """The states of 11.1 of `records` (aliases, and their items), as `war plan
+    states` reports them: `{record, kind, value, provenance, refines?, lapsed?}`,
+    `kind` the family. The one reading of war's states every adapter shares."""
+    argv = [war, "--json", "plan", "states", "--root", tree] + (["--at", at] if at else [])
+    p = subprocess.run(argv, cwd=tree, env=env or ENV, capture_output=True, text=True,
+                       stdin=subprocess.DEVNULL, timeout=120)
+    try:
+        states = json.loads(p.stdout)["result"]["states"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        raise RuntimeError(f"war plan states: exit {p.returncode}: {p.stderr.strip()[-300:]}")
+    return [st for st in states if st["record"].split("/")[0] in records]
 
-    def _states(self, tree, findings=()):
-        """`war plan states`: the states of 11.1, and the findings of reading them."""
-        report, _ = self._war(tree, "plan", "states", "--at", self.at)
-        found = set(findings) | self._findings(report)
-        states = (report.get("result") or {}).get("states", [])
-        return {"states": states, "findings": found}
 
-    def _write(self, tree, argv):
-        """A write; its refusals, or else the states after it."""
-        report, code = self._war(tree, *argv, "--at", self.at)
-        found = self._findings(report)
-        if code != 0 or any(f.split(" ")[0] in REFUSALS | UNKNOWNS for f in found):
-            if not found:
-                msgs = [d.get("message", "")[:200] for d in report.get("diagnostics", [])]
-                raise RuntimeError(f"war {argv[0]}: exit {code}: {msgs}")
-            return {"findings": found}
-        return self._states(tree, found)
+def war_evaluate(war, case, work):
+    """`evaluate --actor A` (README, "Tracking cases") as `war check evaluate --as A --at <at>`."""
+    import shlex
+    tree = tracking_tree(case, work)
+    with open(os.path.join(case, "at")) as f:
+        at = f.read().strip()
+    # A program for the documents to live in, as for a model case; nothing
+    # it writes is compared.
+    code, _, err = war_run(war, tree, ["init", "--program", "Format corpus", "--namespace", "ZQ"])
+    if code != 0:
+        raise RuntimeError(f"war init: exit {code}: {err.strip()[-300:]}")
+    args = read_args(case)
+    sub = argparse.ArgumentParser(prog="evaluate")
+    sub.add_argument("--actor", required=True)
+    a = sub.parse_args(args[1:])
+    code, out, err = war_run(war, tree, ["--json", "check", "evaluate", "--as", a.actor,
+                                         "--at", at])
+    try:
+        env = json.loads(out)
+    except json.JSONDecodeError:
+        raise RuntimeError(f"war check evaluate: exit {code}: {err.strip()[-300:]} {shlex.join(args)}")
+    findings = {d["rule"] for d in env.get("diagnostics", []) if d.get("rule") in SPEC_RULES}
+    records = set()
+    for dp, _, fs in os.walk(os.path.join(case, "input")):
+        for f in fs:
+            if f.endswith(".md"):
+                records.add(f[:-3] if f != "ticket.md" else os.path.basename(dp))
+    # 11.4's warnings over the documents after the evaluation.
+    _, out, _ = war_run(war, tree, ["--json", "check"])
+    try:
+        diags = json.loads(out).get("diagnostics", [])
+    except json.JSONDecodeError:
+        diags = []
+    findings |= {f"{d['rule']} {d['file']}" for d in diags
+                 if d.get("rule") in WARNINGS and d.get("file")
+                 and d["file"].split(":")[0].startswith("docs/")}
+    return {"records": [], "relations": [], "findings": sorted(findings),
+            "states": war_states(war, tree, records, at), "tree": tree}
 
-    @staticmethod
-    def _flags(rest, *names):
-        """`--actor A --note T` and bare `--steal` into a dict; the first word is the target."""
-        target, opts, i = rest[0], {}, 1
-        while i < len(rest):
-            key = rest[i].lstrip("-")
-            if key in names and i + 1 < len(rest) and not rest[i + 1].startswith("--"):
-                opts[key], i = rest[i + 1], i + 2
-            else:
-                opts[key], i = True, i + 1
-        return target, opts
 
-    def op_states(self, tree, rest):
-        return self._states(tree)
+def war_acts_env(case):
+    """Tracking cases: `acts/*.json` are acceptance acts taken as verified (README.md).
 
-    def op_next(self, tree, rest):
-        report, _ = self._war(tree, "next", "--at", self.at)
-        ready = (report.get("result") or {}).get("ready", [])
-        cands = [r["ticket"] + ("/" + r["item"] if r.get("item") else "") for r in ready]
-        found = self._findings(report)
-        # `next`'s warnings are those of the states it is computed from.
-        found |= self._states(tree)["findings"]
-        return {"next": cands, "findings": found}
-
-    def op_claim(self, tree, rest):
-        target, o = self._flags(rest, "actor")
-        argv = ["claim", target, "--as", o["actor"]] + (["--steal"] if o.get("steal") else [])
-        return self._write(tree, argv)
-
-    def op_done(self, tree, rest):
-        target, o = self._flags(rest, "actor", "base")
-        return self._write(tree, ["done", target, "--as", o["actor"], "--if-rev", o["base"]])
-
-    def op_note(self, tree, rest):
-        target, o = self._flags(rest, "actor", "note")
-        return self._write(tree, ["note", target, o["note"], "--as", o["actor"]])
-
-    def op_evaluate(self, tree, rest):
-        # Section 12's `evaluate --actor A` (ticks what recorded check runs
-        # pass) belongs to the checks adapter; not implemented in this one.
-        raise RuntimeError("not implemented in this adapter: the tracking operation `evaluate`")
-
-    def op_acts(self, case, tree):
-        # acts/*.json (Appendix C acceptance acts, taken as verified) belong to
-        # the specification adapter; not implemented in this one.
-        raise RuntimeError("not implemented in this adapter: acts/ (Appendix C acceptance acts)")
+    The corpus carries no signature. A debug build of war reads such a
+    directory from OPENWARRANT_CORPUS_ACTS, and says so on standard error; a
+    release build has no such path, so it believes only signed acts.
+    """
+    acts = os.path.join(case, "acts")
+    return {"OPENWARRANT_CORPUS_ACTS": acts} if os.path.isdir(acts) else {}
 
 
 # ---------------------------------------------------------------- compare --

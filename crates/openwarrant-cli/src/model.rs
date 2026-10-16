@@ -1109,7 +1109,15 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         );
     }
 
-    seal(b, repo)
+    let mut model = seal(b, repo)?;
+    // FORMAT-1.0 §4.5, Appendix C.3: a specification's acceptance, held per
+    // record, from the signed acts that cover each record's revision now.
+    model
+        .states
+        .extend(crate::spec_accept::model_states(corpus, &model));
+    model.states.sort();
+    model.states.dedup();
+    Ok(model)
 }
 
 /// The tickets' part of the model alone, and with `record_atoms` the record
@@ -1334,6 +1342,28 @@ fn spec_acceptor(corpus: &Corpus, revision: &str) -> Option<String> {
         .iter()
         .find(|r| r.sha256 == hex && r.state == openwarrant_core::sas::SasRevisionState::Accepted)
         .and_then(|r| r.acceptance.as_ref().map(|a| a.accepted_by.clone()))
+}
+
+/// The records of the Format 1.0 specification (FORMAT-1.0 §4.5): every
+/// unit and item of `SPEC.md` and its parts, and each document's own
+/// `doc:<path>` record, with the revision and `content_digest` the full
+/// model gives them. Read from the specification's documents alone, so a
+/// caller that needs only these (an acceptance, `war next`) does not pay
+/// for the whole model.
+#[must_use]
+pub fn spec_records(corpus: &Corpus) -> Vec<Record> {
+    let mut b = Builder::default();
+    for d in corpus
+        .format_docs()
+        .docs
+        .iter()
+        .filter(|d| d.admitted() && d.doc.profile == "spec")
+    {
+        lower_document(&mut b, d);
+    }
+    b.records.sort_by(|x, y| x.id.cmp(&y.id));
+    finish_content(&mut b, corpus.repo());
+    b.records
 }
 
 /// The specification's id while its bytes are an accepted revision's and

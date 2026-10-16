@@ -17,6 +17,29 @@ Notable changes to OpenWarrant. Format loosely follows
   `true` it is refused by name, `independence.single-actor-contradicted`,
   and the WARN stays. No preset writes it.
 
+- Checks and triggers under Format 1.0 draft 3 (FORMAT-1.0 §12). A Format
+  1.0 ticket's `check` and `kpi` records run through one runner: `war check
+  run [<alias>|<alias>/<CHK-id>]` (the `manual` trigger), `war done` (the
+  `done` trigger, each check's default: the item is ticked `observed` only
+  when its gating checks pass, and a fail or an UNKNOWN run ticks nothing),
+  `war check fire <trigger>` (`commit`, `paths:<glob>`, `pr.merged`,
+  `ci:<name>`, `schedule:<cron>`; what a hook and a CI step call), `war
+  check install-hook` (git's `post-commit`; a hook that is not
+  OpenWarrant's is refused, `check.hook-exists`), `war view watch --checks`
+  (fires `commit` as HEAD moves and `schedule:<cron>` in UTC) and the
+  action's `fire` input. Each firing records `trigger.fired` (the check
+  pinned at its revision, with the subject) and `check.run` (verdict, the
+  check's revision, each evaluated item's `[id, revision]`, the output's
+  sha256, the output kept in the evidence directory); a firing already
+  recorded runs nothing. `war check evaluate` applies recorded runs: a
+  pass on the check's current revision ticks each open item whose revision
+  it names at `observed` (`work.item_done` with `runs` and `episode`) and
+  raises a done one below it (`work.tick_raised`); a fail makes the check
+  `failing` (provenance `recorded`) and, with `reopen: true`, reopens each
+  done item it names (`work.item_reopened` with `episode`); an UNKNOWN run
+  is `check.unknown` and ticks nothing. A done's `runs` naming a passing
+  `check.run` back `observed`.
+
 - Work tracking under Format 1.0 draft 3 (FORMAT-1.0 §11). A Format 1.0
   ticket (`docs/tickets/<id>.md` or `<id>/ticket.md`) is worked by `war
   claim`, `done`, `add`, `note`, `admin release` and the new `war admin

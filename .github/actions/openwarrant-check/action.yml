@@ -22,6 +22,10 @@
 # A SHA cannot move; a tag reads better. There is no floating `v1` tag, and the
 # action is not on the Marketplace (docs/INSTALL.md says what that would take).
 #
+# With `fire: ci:<name>` (or `pr.merged`) it is also a FORMAT-1.0 §12
+# evaluator: `war check fire` runs the check records that declare that
+# trigger, records each run, and ticks what a pass evaluates at `observed`.
+#
 # It uses no other action. `war` is built from this action's own commit
 # (the code the workflow pinned) unless `war-version` names a release, which
 # install.sh downloads and verifies against its published checksum.
@@ -65,6 +69,17 @@ inputs:
       that on.
     required: false
     default: "true"
+  fire:
+    description: >-
+      A FORMAT-1.0 §12 trigger to fire before the PR gate, running every
+      check record that declares it: `ci:<name>` (this CI check reporting
+      on the commit) or `pr.merged` (on a `pull_request` `closed` event
+      whose PR merged; the documents its merge commit's message cites).
+      Empty fires nothing. A failing check fails this step; an UNKNOWN run
+      fails it too, never passes it. The runs are recorded in this
+      checkout's journals: commit them back if they should outlive the job.
+    required: false
+    default: ""
 outputs:
   verdict:
     description: pass, not_required, refused or unknown.
@@ -101,6 +116,19 @@ runs:
         fi
         echo "$root/bin" >> "$GITHUB_PATH"
         "$root/bin/war" --version
+    - name: Fire the checks
+      id: fire
+      if: ${{ inputs.fire != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        TRIGGER: ${{ inputs.fire }}
+        SUBJECT: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+        OPENWARRANT_NO_UPDATE_CHECK: "1"
+        OPENWARRANT_ACTOR: ci
+      run: |
+        set -uo pipefail
+        war check fire "$TRIGGER" --subject "$SUBJECT"
     - name: Score the checkout
       id: score
       if: ${{ inputs.score == 'true' }}

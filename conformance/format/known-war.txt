@@ -5,30 +5,5 @@
 # amended and the case with it; never by editing an expected file to match war.
 
 # Draft 3, revision 1 (docs/format/FORMAT-1.0.md 1.0.0-draft.3): war implements draft 2.
-# run.py's war adapter runs the tracking cases' `states`, `next`, `claim`, `done` and
-# `note`; `evaluate` (12), acts/ (Appendix C) and the apply (5NN) cases have none yet.
-208-check-unknown  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-303-context-item-target  # war's header names `walk core`, not `preset agent (walk core)` (10.4); war does not read SPEC.md
-304-context-budget-summary-tier  # war's header names `walk core`, not `preset agent (walk core)` (10.4); war does not read SPEC.md
-305-context-preset-agent-min  # war has no --preset (10.4)
-306-context-preset-human  # war has no --preset (10.4)
-307-context-preset-review  # war has no --preset (10.4)
-308-context-preset-resume  # war has no --preset (10.4)
-309-index  # no adapter maps `--index` to war's index command (10.2)
-310-context-preset-agent-header  # war's header names `walk core`, not `preset agent (walk core)` (10.4)
-405-spec-partially-accepted  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-406-spec-accepted  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-408-check-pass-ticks-observed  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-409-check-fail-failing-no-tick  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-410-check-pass-older-revision  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-438-check-pass-stale-subject  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-439-check-pass-raises-claimed  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-440-check-fail-reopens  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-501-apply-text-edit  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-502-apply-stale  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-503-apply-box-toggle  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-504-apply-deleted-block-ignored  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-505-apply-identity  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-506-apply-unchanged-ignored  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-507-apply-block-does-not-parse  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
-508-apply-box-reopen  # no war adapter for tracking or apply cases (sections 10.5, 11, 12)
+# Every kind of case (model, context, tracking, apply) has a war adapter in run.py.
+309-index  # war titles the index with [project] name, not the root directory's name (10.2), so the generated index does not change with the checkout's directory

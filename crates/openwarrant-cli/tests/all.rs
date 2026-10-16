@@ -14,6 +14,10 @@
 mod authority_transition_cli;
 #[path = "board_cli.rs"]
 mod board_cli;
+#[path = "checks_cli.rs"]
+mod checks_cli;
+#[path = "context_apply_cli.rs"]
+mod context_apply_cli;
 #[path = "context_cli.rs"]
 mod context_cli;
 #[path = "diff_target.rs"]
@@ -66,6 +70,8 @@ mod runtime_capture;
 mod sdk_cli;
 #[path = "single_actor_cli.rs"]
 mod single_actor_cli;
+#[path = "spec_acceptance_cli.rs"]
+mod spec_acceptance_cli;
 #[path = "ssh_verdicts.rs"]
 mod ssh_verdicts;
 #[path = "submission_binding_cli.rs"]
