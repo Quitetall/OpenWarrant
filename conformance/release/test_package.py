@@ -98,5 +98,31 @@ class SourceExpansionTests(unittest.TestCase):
             self.assertEqual(list(root.iterdir()),[])
 
 
+class SourceSelectionTests(unittest.TestCase):
+    """The source archive leaves the repository's evidence out and keeps
+    everything the installed bundle is checked against."""
+
+    def test_evidence_is_out_and_required_components_stay(self):
+        from package import in_source
+        for path in ['archive/legacy-20260914/history.bundle','artifacts/x.json',
+                     'docs/evidence/structural-wave-20261014/a.json',
+                     'docs/warrants/OW-WAR-0086/implementation/x.json',
+                     'docs/warrants/OW-WAR-0001/gate-runs/r.json',
+                     'docs/warrants/OW-WAR-0001/verifications/v.json']:
+            with self.subTest(path=path):self.assertFalse(in_source(path))
+        for path in ['crates/openwarrant-core/Cargo.toml','conformance/sdk/cli/README.md',
+                     '.claude/skills/openwarrant/LICENSE.mattpocock','docs/sas/drafts/1.0.0-rc.3/format-contract.md',
+                     'docs/format/FORMAT-1.0.md','docs/warrants/OW-WAR-0001/manifest.toml',
+                     'docs/warrants/OW-WAR-0001/atoms/10-intent.md','docs/evidence.md']:
+            with self.subTest(path=path):self.assertTrue(in_source(path))
+
+    def test_committed_source_fits_the_limit(self):
+        from package import LIMIT,git,source_inventory
+        inventory=source_inventory(git('rev-parse','HEAD').decode().strip())
+        self.assertLess(sum(e['bytes'] for e in inventory.values()),LIMIT//2)
+        self.assertLess(len(inventory),16384)
+        self.assertFalse(any(p.startswith('archive/') for p in inventory))
+
+
 if __name__=='__main__':unittest.main()
 
