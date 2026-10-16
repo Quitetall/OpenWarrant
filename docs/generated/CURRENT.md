@@ -38658,6 +38658,40 @@ stages:
 - **evidence:** actual Katana and BLUT runs at exact revisions, independent findings, full local/hosted checks and required authorized participant acceptance. Synthetic fixtures and retained historical observations remain labeled. Performer checks do not award assurance or authorize/resolve this Warrant.
 <!-- atom docs/warrants/OW-WAR-0149/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | Shared adapter work order and participant boundaries | `docs/warrants/OW-WAR-0149/atoms/40-work-order.md` | not_content_addressed |
+| D-002 | Shared adapter basis and participant reference constraints | `docs/warrants/OW-WAR-0149/atoms/20-basis.md` | not_content_addressed |
+| D-003 | Candidate collector enrollment and host responsibilities | `docs/design/runtime-collector-enrollment.md` | not_content_addressed |
+| D-004 | SDK runtime receipt contract and native assessment | `crates/openwarrant-core/src/document/runtime.rs` | not_content_addressed |
+| D-005 | SDK collector enrollment contract | `crates/openwarrant-core/src/runtime_collector.rs` | not_content_addressed |
+| D-006 | SDK attributable capture contract | `crates/openwarrant-core/src/runtime_collector/attribution.rs` | not_content_addressed |
+| D-007 | Assessment against the current compilation basis | `crates/openwarrant-compiler/src/runtime_basis.rs` | not_content_addressed |
+| D-008 | CLI capture and import entry point | `crates/openwarrant-cli/src/runtime_capture.rs` | not_content_addressed |
+| D-009 | Runtime capture implementation: activated_verifier | `crates/openwarrant-cli/src/runtime_capture/activated_verifier.rs` | not_content_addressed |
+| D-010 | Runtime capture implementation: attributed | `crates/openwarrant-cli/src/runtime_capture/attributed.rs` | not_content_addressed |
+| D-011 | Runtime capture implementation: binding | `crates/openwarrant-cli/src/runtime_capture/binding.rs` | not_content_addressed |
+| D-012 | Runtime capture implementation: blut_process | `crates/openwarrant-cli/src/runtime_capture/blut_process.rs` | not_content_addressed |
+| D-013 | Runtime capture implementation: collector_loading | `crates/openwarrant-cli/src/runtime_capture/collector_loading.rs` | not_content_addressed |
+| D-014 | Runtime capture implementation: collector_signature | `crates/openwarrant-cli/src/runtime_capture/collector_signature.rs` | not_content_addressed |
+| D-015 | Runtime capture implementation: contract_snapshot | `crates/openwarrant-cli/src/runtime_capture/contract_snapshot.rs` | not_content_addressed |
+| D-016 | Runtime capture implementation: katana_process | `crates/openwarrant-cli/src/runtime_capture/katana_process.rs` | not_content_addressed |
+| D-017 | Runtime capture implementation: native_host | `crates/openwarrant-cli/src/runtime_capture/native_host.rs` | not_content_addressed |
+| D-018 | Runtime capture implementation: process | `crates/openwarrant-cli/src/runtime_capture/process.rs` | not_content_addressed |
+| D-019 | Runtime capture implementation: protected_executable | `crates/openwarrant-cli/src/runtime_capture/protected_executable.rs` | not_content_addressed |
+| D-020 | Runtime capture implementation: protected_input | `crates/openwarrant-cli/src/runtime_capture/protected_input.rs` | not_content_addressed |
+| D-021 | Runtime capture implementation: protected_job | `crates/openwarrant-cli/src/runtime_capture/protected_job.rs` | not_content_addressed |
+| D-022 | Runtime capture implementation: recorded | `crates/openwarrant-cli/src/runtime_capture/recorded.rs` | not_content_addressed |
+| D-023 | Runtime capture implementation: selection | `crates/openwarrant-cli/src/runtime_capture/selection.rs` | not_content_addressed |
+| D-024 | Runtime assessment connected to resolution | `crates/openwarrant-cli/src/resolve/runtime.rs` | not_content_addressed |
+| D-025 | Public receipt and collector controls: runtime_capture | `crates/openwarrant-cli/tests/runtime_capture.rs` | not_content_addressed |
+| D-026 | Public receipt and collector controls: collector_loading | `crates/openwarrant-cli/tests/collector_loading.rs` | not_content_addressed |
+| D-027 | Public receipt and collector controls: collector_signature | `crates/openwarrant-cli/tests/collector_signature.rs` | not_content_addressed |
+| D-028 | Exact provider implementations, shared revision and actual participant responses | `docs/warrants/OW-WAR-0149/implementation/provider-participant-references.md` | not_content_addressed |
+| D-029 | Real integration observations, independent findings and source/raw-evidence references | `docs/warrants/OW-WAR-0149/implementation/cross-project-qualification.md` | not_content_addressed |
+
 ## Replaced
 
 - OW-WAR-0073 → OW-WAR-0112
