@@ -9,6 +9,202 @@ use std::{
 struct Fixture(PathBuf);
 
 #[test]
+fn preparation_uses_explicit_compact_verifier_without_rewriting_repository_config() {
+    let (_, script) = prepare_route_fixture();
+    fs::remove_file(script.with_extension("calls")).unwrap();
+    fs::remove_file(script).unwrap();
+}
+
+#[test]
+fn preparation_preserves_unknown_reverification_despite_current_older_verdicts() {
+    let (fixture, script) = prepare_route_fixture();
+    let before = fixture.review_state();
+    let report = fixture.run(&[
+        "prepare",
+        "IX-WAR-0003",
+        "--reverify",
+        "--verifier",
+        "python3",
+        "--verifier",
+        script.to_str().unwrap(),
+        "--verifier",
+        "future",
+        "--json",
+    ]);
+    assert_eq!(report["exit_code"], 2, "{report}");
+    assert_eq!(report["counts"]["error"], 0, "{report}");
+    assert_eq!(report["counts"]["unknown"], 1, "{report}");
+    let warrant = &report["result"]["warrants"][0];
+    assert_eq!(warrant["state"], "unknown", "{report}");
+    assert!(
+        warrant["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["step"] == "verify"
+                && s["outcome"] == "unknown"
+                && s["detail"]
+                    .as_str()
+                    .unwrap()
+                    .contains("verify.response-schema")),
+        "{report}"
+    );
+    assert_eq!(fixture.review_state(), before);
+    fs::remove_file(script.with_extension("calls")).unwrap();
+    fs::remove_file(script).unwrap();
+}
+
+fn prepare_route_fixture() -> (Fixture, PathBuf) {
+    let fixture = Fixture::new();
+    let script = fixture.0.with_extension("prepare-adapter.py");
+    fs::write(&script, r#"import json, os, sys
+from pathlib import Path
+with Path(__file__).with_suffix('.calls').open('a') as calls: calls.write('called\n')
+path=Path(sys.argv[-1]);view=json.loads(path.read_text())
+if 'future' in sys.argv[1:-1]:
+    print('schema = "oh.war/verification-response/v4"\nverifications = []\nwarrant = '+json.dumps(view['warrant']))
+    sys.exit(0)
+assert view['schema']=='oh.war/verification-view/v1'
+assert view['dispatch_eligible'] and not view['over_budget']
+archive=json.loads((path.parent/view['archive']['path']).read_text())
+request=archive['request'];subject=request['reviewed_subject']
+print('schema = "oh.war/verification-response/v3"')
+print('warrant = '+json.dumps(view['warrant']))
+for ref in json.loads(os.environ['OPENWARRANT_REVIEWED_PACKETS']):
+    print('[[reviewed_packets]]')
+    for key in ['path','digest']:print(key+' = '+json.dumps(ref[key]))
+for ref in json.loads(os.environ['OPENWARRANT_REVIEWED_VIEWS']):
+    print('[[reviewed_views]]')
+    for key in ['path','sha256']:print(key+' = '+json.dumps(ref[key]))
+print('[reviewed_subject]')
+print('contract_digest = '+json.dumps(subject['contract_digest']))
+for key in ['artifacts','context_sources','gate_definitions','fixtures','gate_evidence','gate_inputs','gate_links']:
+    print('[reviewed_subject.'+key+']')
+    for name,value in subject.get(key,{}).items():print(json.dumps(name)+' = '+json.dumps(value))
+for obligation in request['obligations']:
+    print('[[verifications]]')
+    print('obligation = '+json.dumps(obligation['id']))
+    print('disposition = "established"')
+    print('evidence = "Synthetic local route control, not production qualification"')
+    print('performer = '+json.dumps(request['performer']))
+    print('[verifications.verifier]')
+    print('actor = "fixture-independent-service"')
+    print('kind = "service"')
+    print('[verifications.verifier.independence]')
+    for key in ['performer_transcript_blind','performer_rationale_blind','separate_writable_workspace','cannot_modify_subject_artifacts','cannot_modify_gate_definition','cannot_modify_gate_fixtures','separate_context_compilation']:print(key+' = true')
+    print('distinct_model_required = false')
+    print('distinct_human_required = false')
+"#).unwrap();
+    let assurance = fixture
+        .0
+        .join("docs/warrants/IX-WAR-0003/atoms/60-assurance.md");
+    let text = fs::read_to_string(&assurance).unwrap();
+    // This control isolates routing; real gate execution has separate plants.
+    fs::write(
+        &assurance,
+        text.lines()
+            .filter(|l| !l.starts_with("- **gate:**"))
+            .collect::<Vec<_>>()
+            .join("\n")
+            + "\n",
+    )
+    .unwrap();
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]["verifier_argv"] = toml::Value::try_from(vec!["false"]).unwrap();
+    fs::write(&config_path, toml::to_string(&config).unwrap()).unwrap();
+    let config_before = fs::read(&config_path).unwrap();
+    for args in [
+        vec!["init", "-q", "--template=", "--initial-branch=fixture"],
+        vec!["config", "user.name", "fixture"],
+        vec!["config", "user.email", "fixture@example.invalid"],
+        vec!["add", "."],
+        vec![
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "--no-gpg-sign",
+            "-qm",
+            "local preparation routing fixture",
+        ],
+    ] {
+        let output = Command::new("git")
+            .current_dir(&fixture.0)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    let plan = fixture.run(&[
+        "prepare",
+        "IX-WAR-0003",
+        "--compact",
+        "--verifier",
+        "python3",
+        "--verifier",
+        script.to_str().unwrap(),
+        "--dry-run",
+        "--json",
+    ]);
+    assert_eq!(plan["exit_code"], 0, "{plan}");
+    assert!(
+        plan["result"]["warrants"][0]["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["step"] == "verify"
+                && s["outcome"] == "planned"
+                && s["detail"].as_str().unwrap().contains("compact v3")
+                && s["detail"].as_str().unwrap().contains("explicit per-run")),
+        "{plan}"
+    );
+    assert!(
+        !script.with_extension("calls").exists(),
+        "planning must not start a verifier"
+    );
+    assert_eq!(fs::read(&config_path).unwrap(), config_before);
+    let report = fixture.run(&[
+        "prepare",
+        "IX-WAR-0003",
+        "--compact",
+        "--verifier",
+        "python3",
+        "--verifier",
+        script.to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(report["exit_code"], 0, "{report}");
+    let steps = report["result"]["warrants"][0]["steps"].as_array().unwrap();
+    assert!(
+        steps
+            .iter()
+            .any(|s| s["step"] == "verify" && s["outcome"] == "done"),
+        "{report}"
+    );
+    assert_eq!(fs::read(config_path).unwrap(), config_before);
+    for raw in &fixture.review_state()[..2] {
+        let record: toml::Value = toml::from_str(std::str::from_utf8(raw).unwrap()).unwrap();
+        assert_eq!(record["schema"].as_str(), Some("oh.war/verification/v3"));
+    }
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/resolution.toml")
+            .exists()
+    );
+    (fixture, script)
+}
+
+#[test]
 fn compact_run_dispatches_only_the_actual_view_and_ingests_bound_results() {
     compact_run_fixture(None);
 }

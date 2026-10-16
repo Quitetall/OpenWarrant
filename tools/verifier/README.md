@@ -34,6 +34,30 @@ The command receives the exact packet references through
 `OPENWARRANT_REVIEWED_PACKETS`, supplied by OpenWarrant. Do not invent them
 for a production review.
 
+To select the local adapter for one preparation run, without editing repository
+configuration, pass one command argument per `--verifier` flag:
+
+```bash
+war prepare OW-WAR-0003 --compact \
+  --verifier python3 --verifier tools/verifier/local-verifier.py \
+  --verifier=--model --verifier YOUR-LOCAL-MODEL \
+  --verifier=--log-root --verifier /absolute/path/to/private-review-runs
+```
+
+The same `--verifier` arguments work with `war verify <alias> --run`.
+`--compact` selects the experimental v3 transport. Arguments are passed directly
+to the process, without a shell. The repository's configured timeout still
+applies. Without these options the configured command and v2 transport remain
+the defaults.
+
+Add `--dry-run` to `prepare` to display the chosen transport and explicit
+command selection without starting the adapter. A forced review that returns
+`UNKNOWN` stops preparation as `UNKNOWN`, even when older verdicts are still
+current. Existing records remain intact; they cannot stand in for the requested
+new observation. Command selection grants no authority and leaves the source,
+packet, view, independence and human-acceptance checks in place. Establish the
+local runtime and its resource capacity before executing this command.
+
 The client requires valid compiler budget metadata and refuses packets marked
 over budget, or whose estimate exceeds the budget, before any backend call or
 review-log write. Exact required context stays intact. This checks the supplied
