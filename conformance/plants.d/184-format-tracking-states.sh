@@ -43,7 +43,8 @@ print(" ".join(sorted(d["rule"] + " " + (d.get("file") or "") for d in v.get("di
 fs_states() { fs_war --json plan states --at "$FS_AT" 2>/dev/null | python3 -c '
 import json, sys
 v = json.load(sys.stdin)
-print(" ".join(":".join((s["record"], s["kind"], s["value"])) for s in v["result"]["states"]))' 2>&1; }
+print(" ".join(":".join((s["record"], s["kind"], s["value"])) for s in v["result"]["states"]
+               if s["record"].split("/")[0] == "t-0d61d"))' 2>&1; }
 
 fs_ticket "- [ ] Reset endpoint (i-9c01)\n- [ ] Email template (i-4d11)\n- [ ] Docs (i-77be, after i-4d11)\n"
 fs_commit "the corpus's ticket"
