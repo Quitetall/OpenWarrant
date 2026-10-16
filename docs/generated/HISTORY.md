@@ -33157,10 +33157,10 @@ nothing about concurrent writers on a shared filesystem.
 | D-003c | war verify --response checks before its first write | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-003d | war evidence record checks before its first write | `crates/openwarrant-cli/src/evidence.rs` | not_content_addressed |
 | D-003e | The single-act authorization ingest checks before its first write | `crates/openwarrant-cli/src/authorize.rs` | verified |
-| D-004 | compat.rs: requires_war and schema-major recognition | `crates/openwarrant-cli/src/compat.rs` | verified |
+| D-004 | compat.rs: requires_war and schema-major recognition | `crates/openwarrant-cli/src/compat.rs` | drift |
 | D-005 | [project] requires_war | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
 | D-006 | Repository::discover runs the compat check once | `crates/openwarrant-cli/src/repo.rs` | drift |
-| D-007 | Reading backward: what an older war does with newer records | `docs/COMPATIBILITY.md` | verified |
+| D-007 | Reading backward: what an older war does with newer records | `docs/COMPATIBILITY.md` | drift |
 | D-008 | The idempotency, batch-atomicity and version plants | `conformance/plants.d/69-idempotency.sh` | verified |
 | D-013 | `war sign --batch --recover <id>` as a flag, and exit 2 for compat.war-too-old (AM-002) | `crates/openwarrant-cli/src/lib.rs` | drift |
 

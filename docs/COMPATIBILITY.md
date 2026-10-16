@@ -127,3 +127,10 @@ basis; a new pack or new review cannot reinterpret it. Migration must preserve
 originals, report affected records and obtain required acts, rather than globally
 bumping the compiler constant or regenerating signed deliverable manifests.
 See proposed [ADR 0030](adr/atoms/OW-ADR-0030-reviewed-subject-binding.md).
+
+The CLI also has an explicit candidate v3 decoder for compact verification
+records. Its compatibility report therefore recognizes verification records
+through v3; v4 remains UNKNOWN. This advertises implemented reader capability,
+not schema-pack adoption. The frozen v1/v2 SDK decoder still refuses v3, and
+the active pack and signed historical bases remain unchanged. Compact views,
+source bindings, independence and acceptance still need their own checks.
