@@ -40820,7 +40820,7 @@ observer.
 | D-012 | MCP tools read the corpus | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
 | D-013 | MCP resources read the corpus | `crates/openwarrant-cli/src/mcp/resources.rs` | not_content_addressed |
 | D-014 | war model: oh.war/model/v1 | `crates/openwarrant-cli/src/model.rs` | not_content_addressed |
-| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | verified |
+| D-015 | war model, war impact, war state; create --issue | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
 | D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
 | D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |
