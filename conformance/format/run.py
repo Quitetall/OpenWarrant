@@ -260,7 +260,9 @@ class War:
         findings = {f"{d['rule']} {d['record']}" for d in model["diagnostics"]
                     if d.get("rule") in SPEC_RULES}
         # `war check` is the checker over the same reading: it adds the rules
-        # the model does not carry (format.target-unknown).
+        # the model does not carry (format.target-unknown). It also runs the
+        # tracker of section 11, whose `work.*` findings a model case does not
+        # compare: tracking cases compare them in `states.json` (402).
         p = subprocess.run([self.war, "--json", "check", "--root", tree], cwd=tree, env=ENV,
                            capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120)
         try:
@@ -268,7 +270,8 @@ class War:
         except json.JSONDecodeError:
             raise RuntimeError(f"war check: exit {p.returncode}: {p.stderr.strip()[-400:]}")
         findings |= {f"{d['rule']} {d['file']}" for d in check.get("diagnostics", [])
-                     if d.get("rule") in SPEC_RULES and d.get("file")}
+                     if d.get("rule") in SPEC_RULES and d.get("file")
+                     and not d["rule"].startswith("work.")}
         findings = sorted(findings)
         return {
             "records": [{k: r.get(k) for k in ("id", "type", "title", "fields", "ext",
