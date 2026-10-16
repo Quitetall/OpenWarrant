@@ -956,7 +956,11 @@ that document's journal has one shape.
 - **Exactly once.** An event whose `idempotency_key` is already in the
   journal from the same actor is a replay and is not written; from another
   actor it is refused (`work.idempotency-conflict`). Time is not in the
-  key, so ten runners recording the same fact record it once.
+  key, so ten runners recording the same fact record it once. So that a
+  fact that really happens again (done, reopened, done again) is a new
+  event, `work.claimed`, `work.item_done`, `work.item_reopened` and
+  `work.released` carry `episode`: the number of events of the same type
+  for the same `target` already in the journal when it is written.
 - **No clock in meaning.** No state depends on the order of lines. Where
   two events about the same target conflict (`work.item_done` and
   `work.item_reopened`, two `state.entered`), the one with the later
@@ -972,11 +976,11 @@ event is about (`t-0d61d/i-4d11`, or an alias for a whole document) and
 |---|---|
 | `work.created` | `{document, title, items[]}` |
 | `work.item_added` | `{item, text, after?}` |
-| `work.claimed` | `{claim, target, since, lease_until?}` |
+| `work.claimed` | `{claim, target, since, lease_until?, episode}` |
 | `work.claim_reclaimed`, `work.claim_stolen` | as `work.claimed`, with `from`, `from_since` |
-| `work.released` | `{claim, target}` |
-| `work.item_done` | `{item, target, on, level?, runs[]?, note?}` |
-| `work.item_reopened` | `{item, target, reason}` |
+| `work.released` | `{claim, target, episode}` |
+| `work.item_done` | `{item?, target, on, level?, runs[]?, note?, episode}`; `item` is absent when `target` is a whole document |
+| `work.item_reopened` | `{item?, target, reason, episode}` |
 | `work.note_added` | `{target, note}` |
 | `work.edited` | `{target, from_revision, to_revision}` |
 | `work.tick_raised` | `{item, target, from, to, verifier? , signer?}` |
