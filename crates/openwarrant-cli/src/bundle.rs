@@ -1785,7 +1785,7 @@ fn call(
 /// out records nothing for its obligations and is reported by name; the
 /// others are still ingested — each obligation is judged on its own.
 pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, RepoError> {
-    run_mode(repo, alias, performer, false)
+    run_mode(repo, alias, performer, false, None)
 }
 
 pub(crate) fn run_compact(
@@ -1793,7 +1793,17 @@ pub(crate) fn run_compact(
     alias: &str,
     performer: &str,
 ) -> Result<Report, RepoError> {
-    run_mode(repo, alias, performer, true)
+    run_mode(repo, alias, performer, true, None)
+}
+
+pub(crate) fn run_with_verifier(
+    repo: &Repository,
+    alias: &str,
+    performer: &str,
+    compact: bool,
+    verifier: &[String],
+) -> Result<Report, RepoError> {
+    run_mode(repo, alias, performer, compact, Some(verifier))
 }
 
 struct Dispatch {
@@ -1813,9 +1823,10 @@ fn run_mode(
     alias: &str,
     performer: &str,
     compact: bool,
+    verifier: Option<&[String]>,
 ) -> Result<Report, RepoError> {
     let mut report = Report::default();
-    let argv = &repo.config.verify.verifier_argv;
+    let argv = verifier.unwrap_or(&repo.config.verify.verifier_argv);
     if argv.is_empty() {
         report.push(Diagnostic::error(
             "verify.no-verifier",

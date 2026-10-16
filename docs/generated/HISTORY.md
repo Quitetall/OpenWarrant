@@ -40823,7 +40823,7 @@ observer.
 | D-016 | The model schema joins the pack | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
 | D-017 | The compiled model's schema | `schemas/oh.war/model/v1.json` | not_content_addressed |
 | D-018 | Pack index, version unchanged | `schemas/pack.json` | not_content_addressed |
-| D-019 | A gate run once per commit, shared by citing Warrants | `crates/openwarrant-cli/src/prepare.rs` | verified |
+| D-019 | A gate run once per commit, shared by citing Warrants | `crates/openwarrant-cli/src/prepare.rs` | drift |
 | D-020 | Capabilities in profile data, prerequisites, defaults | `crates/openwarrant-core/src/role.rs` | not_content_addressed |
 | D-021 | Delivery's capabilities | `profiles/delivery.toml` | not_content_addressed |
 | D-022 | Decision's capabilities (no stages) | `profiles/decision.toml` | not_content_addressed |

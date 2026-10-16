@@ -1348,6 +1348,10 @@ enum EvidenceCommand {
         /// ingest what each prints through the same seam as `--response`.
         #[arg(long, conflicts_with_all = ["response", "bundle"])]
         run: bool,
+        /// Override the verifier command for this run only, one argv element
+        /// per flag. Does not change repository configuration or admission.
+        #[arg(long, value_name = "ARGV", requires = "run")]
+        verifier: Vec<String>,
     },
     /// Take Warrants to their sign-off unattended (t-cee5): deliver, run
     /// each gate-executed stage (`war evidence run`), record each cited gate not
@@ -1381,6 +1385,13 @@ enum EvidenceCommand {
         /// admissible `established` verdict.
         #[arg(long)]
         reverify: bool,
+        /// Use the experimental compact v3 verifier transport.
+        #[arg(long)]
+        compact: bool,
+        /// Override the verifier for this preparation run only, one argv
+        /// element per flag. Repository configuration remains unchanged.
+        #[arg(long, value_name = "ARGV")]
+        verifier: Vec<String>,
         /// Print each Warrant's plan and run nothing.
         #[arg(long)]
         dry_run: bool,
@@ -5193,6 +5204,8 @@ fn run_evidence_member(
             jobs,
             no_commit,
             reverify,
+            compact,
+            verifier,
             dry_run,
         } => {
             let repository = ctx.open_repo()?;
@@ -5202,6 +5215,8 @@ fn run_evidence_member(
                 jobs: jobs as usize,
                 commit: !no_commit,
                 reverify,
+                compact,
+                verifier,
                 dry_run,
             };
             let (report, result) = prepare::run(&repository, &options)?;
@@ -5368,8 +5383,12 @@ fn run_evidence_member(
             portable_preview,
             inspect_preview,
             compact,
+            verifier,
             ..
         } if ticket::is_ticket_ref(&alias) => {
+            if !verifier.is_empty() {
+                return Err(repo::RepoError::Message("verify.verifier-warrant-required: per-run verifier commands require a Warrant alias; no verifier was called".into()).into());
+            }
             if portable_preview.is_some() || inspect_preview.is_some() || compact {
                 return Err(repo::RepoError::Message("verify.preview-warrant-required: compact legacy verification previews require a Warrant alias; no preview was read or written".into()).into());
             }
@@ -5389,6 +5408,7 @@ fn run_evidence_member(
             inspect_preview,
             compact,
             run,
+            verifier,
         } => {
             let repository = ctx.open_repo()?;
             if let Some(path) = inspect_preview {
@@ -5421,7 +5441,9 @@ fn run_evidence_member(
                 return Ok(output::finish(mode, "verify.bundle", &report, Some(index)));
             }
             if run {
-                let report = if compact {
+                let report = if !verifier.is_empty() {
+                    bundle::run_with_verifier(&repository, &alias, &performer, compact, &verifier)?
+                } else if compact {
                     bundle::run_compact(&repository, &alias, &performer)?
                 } else {
                     bundle::run(&repository, &alias, &performer)?
