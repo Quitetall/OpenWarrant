@@ -1,0 +1,72 @@
+{
+  "kind": "performer assessment of actual external model observations; NOT independent dispositions or qualification",
+  "source_head": "788bdf0070006490e5894b2fe760765a3b98b4ad",
+  "actual_model": "qwen3.8-27b-heretic-rvn-q4_k_m",
+  "requested_thinking": "off",
+  "model_replied_to_all": true,
+  "records": [
+    {
+      "obligation": "OBL-003",
+      "actual_model_disposition": "established",
+      "actual_model_evidence": "Deliverable D-001 (crates/openwarrant-cli/src/acceptance.rs) contains the logic to return `UNKNOWN` when a locator is absent or the commit is not readable, explicitly avoiding `unchanged` or error states. Deliverable D-005 (conformance/plants.d/56-acceptance-validity.sh) contains plants that verify these specific behaviors on a scratch corpus. The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) executed these plants successfully, with the prior verification confirming the specific plant outputs ('ok no locator is UNKNOWN...', 'ok an unreadable locator is UNKNOWN...') were observed in the gate stdout. The obligation_evidence confirms the relevant terms (commit_sha, UNKNOWN, unchanged) were fully visible in the provided deliverables and gate outputs.",
+      "artifact_visible_text_bytes": {
+        "D-001": 0,
+        "D-005": 0
+      },
+      "required_sources_serialized_bytes": 163886,
+      "run_directory": "local-review-0w647bo_"
+    },
+    {
+      "obligation": "OBL-005",
+      "actual_model_disposition": "established",
+      "actual_model_evidence": "The prior verification record for OBL-005 (by claude-verifier) establishes the obligation based on the full content of D-005 (conformance/plants.d/56-acceptance-validity.sh) and the passing gate run GR-ops.conformance.plants@1.1.0. The evidence confirms that the plants script implements and passes checks for the selected Q-001 consequence (b): (1) the finding clears only after re-verification of the specific candidate; (2) a second in-scope commit re-raises the finding; (3) for a pinned deliverable, re-verification alone does not clear the finding, but a signed correction (using the existing 'behaviour-change' act kind) does. The gate run GR-ops.conformance.plants@1.1.0 shows a verdict of 'pass' with stdout indicating '1679 passed, 0 failed', confirming the execution of these checks. The war-check gate also passed, confirming the integrity of the record.",
+      "artifact_visible_text_bytes": {
+        "D-005": 192
+      },
+      "required_sources_serialized_bytes": 163886,
+      "run_directory": "local-review-5b4w5l9c"
+    },
+    {
+      "obligation": "OBL-001",
+      "actual_model_disposition": "established",
+      "actual_model_evidence": "D-005 (conformance/plants.d/56-acceptance-validity.sh) contains a plant that builds a scratch corpus with a resolved Warrant, commits a change to an in-scope file (src/helper.txt), runs `war pins --candidate HEAD`, and asserts a non-zero exit code and the presence of the `acceptance.candidate-moved` diagnostic naming the path. It also asserts `resolution.toml` is byte-identical before and after. The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) executed this battery, and the prior verification record confirms the specific plant output lines ('ok an in-scope change is named...') were observed in the captured stdout, establishing the claim within the stated scope.",
+      "artifact_visible_text_bytes": {
+        "D-001": 0,
+        "D-002": 0,
+        "D-003": 0,
+        "D-005": 0
+      },
+      "required_sources_serialized_bytes": 163886,
+      "run_directory": "local-review-68dvmmk1"
+    },
+    {
+      "obligation": "OBL-002",
+      "actual_model_disposition": "established",
+      "actual_model_evidence": "The conformance plant D-005 (conformance/plants.d/56-acceptance-validity.sh) contains a test block that commits a change to an out-of-scope file (README.txt) and asserts that `war pins --candidate HEAD` exits 0 and reports `acceptance.unchanged` with the path listed as out-of-scope. The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) executed this battery; its stdout (sha256:48d72b1c...) confirms '1679 passed, 0 failed', and the prior verification record explicitly cites the observed output line 'ok an out-of-scope change unchanged; README.txt out of scope (exit 0)'. This observed execution evidence establishes that an unrelated change leaves acceptance standing.",
+      "artifact_visible_text_bytes": {
+        "D-001": 114,
+        "D-002": 67,
+        "D-005": 129
+      },
+      "required_sources_serialized_bytes": 163886,
+      "run_directory": "local-review-o25mfewh"
+    },
+    {
+      "obligation": "OBL-004",
+      "actual_model_disposition": "not_established",
+      "actual_model_evidence": "The required deliverables D-004 (.github/workflows/ci.yml) and D-006 (docs/SIGNING.md) are present but truncated. The visible excerpts for D-004 (lines 1-2, 15-19, 89, 119, 224) show the `pull_request` trigger and a comment referencing OW-WAR-0134, but do not show the specific workflow step invoking `war pins --candidate` or the configuration ensuring a non-zero exit fails the job. The visible excerpts for D-006 (lines 1-2, 301, 305) show the document title and a command example, but do not show the required section stating what the finding means and what Q-001 requires next. The passing gate run for `software.repo.war-check@1.0.0` validates structural well-formedness but explicitly does not execute acceptance gates or verify the semantic content of the omitted bytes. Therefore, the specific evidence required to establish OBL-004 is missing from the visible view.",
+      "artifact_visible_text_bytes": {
+        "D-004": 159,
+        "D-006": 166
+      },
+      "required_sources_serialized_bytes": 163886,
+      "run_directory": "local-review-ts44n2p_"
+    }
+  ],
+  "material_concerns": [
+    "OBL-005 explicitly rests on a prior verifier conclusion rather than visible current observations. That is not accepted as current proof.",
+    "The model reports missing current workflow/signing excerpts for OBL-004.",
+    "Mandatory source context dominates the budget; artifact excerpts can be empty. Preserve exact binding rules, omit prior judgments from blind inputs, improve current evidence coverage before qualification."
+  ],
+  "work_state": "not qualified; Warrant remains unresolved; no human act performed"
+}
