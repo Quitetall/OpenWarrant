@@ -402,11 +402,15 @@ statement: Reset state MUST live in the existing accounts database.
   goes in `rationale`, never in the statement, so a context compiler can
   leave it out at a tight budget. A record SHOULD NOT cite another by a
   section number or `§` (`context.section-ref`); it cites the id.
-- **Acceptance** is an act of the authority profile (Appendix C): it binds
-  the revision and `content_digest` of `SPEC.md` and every part as one
-  set. Editing a record moves its own revision only, so a tool can name
-  exactly which work and obligations the change reaches. Without the
-  authority profile a specification has no acceptance state.
+- **Acceptance** is an act of the authority profile (Appendix C) and is
+  held **per record**. One `accept` covers any set of the specification's
+  records, usually all of them the first time and the changed ones after.
+  Editing a record moves its own revision only, so only that record stops
+  being accepted; every other record stays accepted, and a tool can name
+  exactly which work and obligations cite the unaccepted one. A
+  specification is `accepted` when every record is, `partially_accepted`
+  when some are, and has no acceptance state without the authority
+  profile.
 
 A specification written before this format (`docs/sas/`) is a legacy
 encoding (section 14).
@@ -832,7 +836,7 @@ The **fixed states**, which no profile may redefine:
 | `claimed` | item, work document | a live claim names it (11.3) | claims |
 | `superseded` | any record | another current record `supersedes` it | links |
 | `failing` | check, kpi | its last recorded run failed (12) | checks |
-| `accepted`, `authorized`, `verified`, `resolved` | Appendix C | | |
+| `accepted`, `partially_accepted`, `authorized`, `verified`, `resolved` | Appendix C | | |
 
 Under the `authorization` capability a work document's phase follows
 Appendix C after `draft`: `authorized`, then `resolved`; its items still
@@ -858,19 +862,28 @@ directory (4.3): `docs/warrants/<alias>/journal.jsonl`,
 JSON:
 
 ```text
-event = { v: 1, id, warrant_uuid, type, class, actor_ref, occurred_at, payload, idempotency_key }
+event = { v: 2, id, document_uuid, type, class, actor_ref, occurred_at, payload, idempotency_key }
 ```
 
 | member | value |
 |---|---|
+| `v` | `2` |
 | `id` | a UUIDv7 |
-| `warrant_uuid` | the work document's `uuid` (the name is historical; it names tickets too) |
+| `document_uuid` | the work document's `uuid` |
 | `type` | the event type, below |
 | `class` | `draft_history`, `action_request` or `action_receipt` |
 | `actor_ref` | who: a name for a person or agent, `person://<name>` under Appendix C |
 | `occurred_at` | RFC 3339, UTC |
-| `payload` | the event's object as RFC 8785 JSON **text** (a string), so the bytes hashed are the bytes stored |
-| `idempotency_key` | lowercase hex sha256 of `<warrant_uuid> LF <type> LF <payload>` |
+| `payload` | the event's payload, a JSON object |
+| `idempotency_key` | lowercase hex sha256 of `<document_uuid> LF <type> LF <RFC 8785 bytes of payload>` |
+
+A tracker writes `v: 2` events into the journal of a Format 1.0 work
+document. Journals written before this format hold `v: 1` events, which
+name the document `warrant_uuid` and carry `payload` as RFC 8785 JSON text
+(a string), with the key over that text. A reader MUST read both, forever,
+and MUST NOT rewrite a `v: 1` line; one journal may hold both. A tracker
+appending to a legacy directory work document keeps writing `v: 1`, so
+that document's journal has one shape.
 
 - **Append-only.** A journal only grows: a tool MUST refuse a journal whose
   committed lines were changed or removed (`work.journal-rewritten`), a
@@ -1280,7 +1293,7 @@ a terminal writes either file, once.
 
 | act | made by | subject | state it gives |
 |---|---|---|---|
-| `accept` | authorizer | a specification: `SPEC.md` and its parts as one set (4.5) | `accepted` |
+| `accept` | authorizer | records of a specification (4.5): all of them, or those not yet accepted | `accepted`, per record |
 | `authorize` | authorizer | a work document | `authorized` |
 | `verify` | verifier, not the performer | an obligation | a disposition; `verified` when every required obligation is established |
 | `resolve` | resolver | an authorized work document | `resolved` |
@@ -1305,14 +1318,17 @@ actor is an agent or whose verifier is the subject's performer.
 For a Format 1.0 subject, the **subject digest** is the digest (section 9),
 domain `oh.war/act-subject/v1`, over the array of `[id, revision,
 content_digest]` of every record the act covers, sorted by id: the whole
-document for `authorize` and `resolve`; every record of `SPEC.md` and its
-parts for `accept`; the obligation and its evidence for `verify`; the item
+document for `authorize` and `resolve`; the specification records it
+names for `accept`; the obligation and its evidence for `verify`; the item
 for `sign-off`. Binding both digests means a signature holds while the
 bytes are unchanged, and a reader can still tell, after a reformat, that
 the meaning did not move. When a covered record's revision changes, the
-state the act gave lapses: an accepted specification with an edited
-requirement is proposed again, and the change is reported with the records
-it reaches. Legacy subjects keep the digests their acts were signed over
+state the act gave lapses. For `accept` it lapses for that record alone:
+the specification becomes `partially_accepted`, a later `accept` naming
+the changed records restores it, and until then `next` lists that
+acceptance as an act waiting on a person and a tool reports the work and
+obligations that cite the unaccepted record. For the other acts it lapses
+for the whole subject. Legacy subjects keep the digests their acts were signed over
 (section 14).
 
 ### C.4 Presets, roles and official work
