@@ -521,6 +521,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "impact",
             "model",
             "state",
+            "states",
             "roadmap",
             "types",
             "type",
