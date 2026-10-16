@@ -339,6 +339,10 @@
 > -
 - OW-ADR-native-policy-e8b574f1 · adr · - · Bind native acceptance to protected policy observations · docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md:1
 
+## docs/adr/atoms/OW-ADR-package-source-gzip-1af3bdf8.md
+> -
+- OW-ADR-package-source-gzip-1af3bdf8 · adr · - · Bound a compressed full-source release capsule · docs/adr/atoms/OW-ADR-package-source-gzip-1af3bdf8.md:1
+
 ## docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md
 > -
 - OW-ADR-runtime-contract-80d7bda6 · adr · - · Retain exact runtime contract source snapshots · docs/adr/atoms/OW-ADR-runtime-contract-80d7bda6.md:1
@@ -1594,7 +1598,7 @@
 
 ## docs/tickets/t-5501f/manifest.toml
 > Prepare alpha.4 preview with current integration fixes
-- t-5501f · ticket · done · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
+- t-5501f · ticket · open · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
 
 ## docs/tickets/t-5504f/manifest.toml
 > Retain current phase evidence and audit remaining Warrant completion scope
@@ -1795,6 +1799,10 @@
 ## docs/tickets/t-af9b7/manifest.toml
 > Connect signed collector attribution to checked capture imports
 - t-af9b7 · ticket · done · Connect signed collector attribution to checked capture imports · docs/tickets/t-af9b7/manifest.toml:1
+
+## docs/tickets/t-b03a0/manifest.toml
+> Apply relation-derived currency without rewriting history; keep retired work out of default queues.
+- t-b03a0 · ticket · open · Keep current work and retired history consistent in progress views · docs/tickets/t-b03a0/manifest.toml:1
 
 ## docs/tickets/t-b0708/manifest.toml
 > M2: a document's type chooses its capabilities, and new manifests pin their profile

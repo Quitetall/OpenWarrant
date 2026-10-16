@@ -49,6 +49,16 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     build_with(&Corpus::new(repo))
 }
 
+/// Retired records remain readable history, not a queue for new work.
+/// An unavailable state stays visible for diagnosis; this is no admission grant.
+#[must_use]
+pub fn is_retired(warrant: &WarrantStatus) -> bool {
+    warrant.state.as_ref().is_some_and(|state| {
+        state.currency != openwarrant_core::Currency::Current
+            || state.standing == openwarrant_core::ResolutionStanding::Annulled
+    })
+}
+
 /// A Warrant's §24 state, as every projection reports it (OW-WAR-0148).
 ///
 /// Recorded from the journal when one exists (OW-WAR-0031). Otherwise
@@ -63,9 +73,10 @@ pub fn warrant_state(
     dir: &camino::Utf8Path,
     record: Option<&crate::resolution_cmd::ResolutionRecord>,
     binds_current_contract: bool,
+    currency: &crate::relations::Derived,
 ) -> WarrantState {
     let outcome = record.and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
-    crate::journal_cmd::load(dir)
+    let mut state = crate::journal_cmd::load(dir)
         .ok()
         .map(|mut j| {
             // A declared state's entry (OW-WAR-0148 M4) is no transition of
@@ -82,7 +93,21 @@ pub fn warrant_state(
             } else {
                 WarrantState::draft(Provenance::Derived)
             }
-        })
+        });
+    // A successor's authorized relation changes the current reading, never
+    // the predecessor's immutable journal or historical outcome. All corpus
+    // clients use the same relation derivation as the master and ownership.
+    match currency {
+        crate::relations::Derived::Current => {
+            state.currency = openwarrant_core::Currency::Current;
+        }
+        crate::relations::Derived::Superseded { .. } => state = state.superseded(),
+        crate::relations::Derived::Deprecated => {
+            state.currency = openwarrant_core::Currency::Deprecated;
+        }
+        crate::relations::Derived::Annulled => state = state.annulled(),
+    }
+    state
 }
 
 /// The phases the configured SAS declares in section 98, in its order, for a
@@ -129,6 +154,7 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
     let mut satisfied_by_alias: std::collections::BTreeSet<String> = Default::default();
     let mut pins: std::collections::BTreeMap<String, usize> = Default::default();
     let mut milestones_by_alias: BTreeMap<String, Vec<MilestoneState>> = BTreeMap::new();
+    let currencies = corpus.currencies();
 
     // Each Warrant's row reads its own records alone: on the disk the rows
     // are made across threads, then folded below in alias order, the first
@@ -264,7 +290,9 @@ pub fn build_with(corpus: &Corpus) -> Result<CorpusStatus, RepoError> {
             rung,
             roadmap,
             implements,
-            state: valid.then(|| warrant_state(&one.dir, record.as_ref(), resolved)),
+            state: valid.then(|| {
+                warrant_state(&one.dir, record.as_ref(), resolved, &currencies.of(&alias))
+            }),
             unmet: checks
                 .as_ref()
                 .map(|c| c.unmet().into_iter().map(str::to_owned).collect())
