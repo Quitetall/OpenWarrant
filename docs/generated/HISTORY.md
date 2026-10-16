@@ -3553,6 +3553,23 @@ the actual executable views supplied to its verifier, not infer those views
 later from an archive. Missing observations remain unestablished; an archive
 reference does not claim that all archived bytes were shown to the model.
 
+The opt-in `verify --bundle --compact` input emitter retains canonical v2
+archives and distinct model views under verification bookkeeping. Each view
+also retains an exact sibling archive copy for offline delivery. Its projected
+request uses `source_schema`, identifying the archived request's origin; it
+does not claim to be another complete frozen v2 request. The index points to
+the subject in its archive instead of duplicating large workspace maps.
+`dispatch_eligible` describes reading-budget eligibility for a v3-aware adapter;
+it grants no permission and establishes neither capability nor independence.
+Over-budget inputs retain exact required context and remain ineligible.
+
+A local adapter must receive exact compiler-supplied packet and view references,
+check retained view/archive bytes before backend contact, send only the view,
+and identify only that actual pair in its v3 response. It must not recompute an
+archive's semantic digest using another canonicalizer. Rust source/byte checks
+at ingestion remain required. Existing preview identities never become inputs
+by changing a flag; v2 input admission and v3 result admission remain separate.
+
 The candidate response carries `warrant`, `reviewed_subject`, `reviewed_packets`,
 `reviewed_views` and `verifications`. Preparing stored observations must reject
 an empty Warrant, no observations, repeated or empty obligation identifiers,

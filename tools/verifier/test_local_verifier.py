@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Transport/refusal controls with a synthetic server, never model qualification."""
 import contextlib
+import hashlib
 import http.server
 import importlib.util
 import json
@@ -80,14 +81,79 @@ class Controls(unittest.TestCase):
             server.server_close()
             thread.join()
 
-    def run_client(self, base, packets=True, cwd=None):
+    def run_client(self, base, packets=True, cwd=None, packet_refs=None, view_refs=None):
         env = dict(os.environ, HTTP_PROXY="http://192.0.2.1:9", HTTPS_PROXY="http://192.0.2.1:9")
         env.pop("OPENWARRANT_REVIEWED_PACKETS", None)
+        env.pop("OPENWARRANT_REVIEWED_VIEWS", None)
         if packets:
-            env["OPENWARRANT_REVIEWED_PACKETS"] = json.dumps([{"path": "packet.json", "digest": "packet-before"}])
+            env["OPENWARRANT_REVIEWED_PACKETS"] = json.dumps(packet_refs if packet_refs is not None else [{"path": "packet.json", "digest": "packet-before"}])
+        if view_refs is not None:
+            env["OPENWARRANT_REVIEWED_VIEWS"] = json.dumps(view_refs)
         return subprocess.run([sys.executable, str(HERE / "local-verifier.py"), "--endpoint", base,
                                "--model", "fixture-model", "--log-root", str(self.root / "logs"),
                                "--timeout", "3", str(self.path)], env=env, cwd=cwd, text=True, capture_output=True)
+
+    def compact_input(self):
+        repo=self.root/'repo';folder=repo/'docs/warrants/fixture/verifications';views=folder/'responses/views'
+        views.mkdir(parents=True,exist_ok=True)
+        archive=json.loads(json.dumps(self.bundle));archive['request']['schema']='oh.war/verification-request/v2'
+        archive['over_budget']=True;archive['estimated_tokens']=90000
+        raw=json.dumps(archive).encode();digest='a'*64;name='bundle-'+digest[:16]+'.json'
+        (folder/name).write_bytes(raw);(views/name).write_bytes(raw)
+        view=json.loads(json.dumps(self.bundle));view['schema']='oh.war/verification-view/v1'
+        view['response_schema']='oh.war/verification-response/v3';view['dispatch_eligible']=True
+        view['request'].pop('reviewed_subject');view['request']['source_schema']=archive['request']['schema']
+        view['request']['reviewed_subject_archive']={'pointer':'/request/reviewed_subject'}
+        view['archive']={'path':name,'digest':digest,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
+        data=json.dumps(view).encode();sha=hashlib.sha256(data).hexdigest()
+        self.path=views/('view-'+sha+'.json');self.path.write_bytes(data)
+        packets=[{'path':(folder/name).relative_to(repo).as_posix(),'digest':digest}]
+        refs=[{'path':self.path.relative_to(repo).as_posix(),'sha256':sha}]
+        return repo,packets,refs,view
+
+    def test_compact_view_is_the_only_model_input_and_response_binds_actual_pair(self):
+        repo,packets,views,view=self.compact_input()
+        with self.server() as base:
+            result=self.run_client(base,cwd=repo,packet_refs=packets,view_refs=views)
+        self.assertEqual(result.returncode,0,result.stderr)
+        response=tomllib.loads(result.stdout)
+        self.assertEqual(response['schema'],'oh.war/verification-response/v3')
+        self.assertEqual(response['reviewed_packets'],packets)
+        self.assertEqual(response['reviewed_views'],views)
+        # TOML displays default-empty maps explicitly; the typed subject is
+        # unchanged even when the source JSON omitted those optional maps.
+        expected=self.bundle['request']['reviewed_subject']
+        for key,value in expected.items():self.assertEqual(response['reviewed_subject'][key],value)
+        for key,value in response['reviewed_subject'].items():
+            if key not in expected:self.assertEqual(value,{})
+        self.assertEqual(json.loads(self.received[0]['messages'][1]['content']),view)
+        self.assertNotIn('reviewed_subject',json.loads(self.received[0]['messages'][1]['content'])['request'])
+
+    def test_compact_binding_refusals_precede_provider_contact_and_log_writes(self):
+        for kind in ['missing-view','wrong-view-hash','changed-sibling','changed-canonical','over-budget','not-eligible','preview-toggle','archive-link']:
+            with self.subTest(kind=kind):
+                repo,packets,views,view=self.compact_input()
+                if kind=='missing-view':views=None
+                elif kind=='wrong-view-hash':views[0]['sha256']='b'*64
+                elif kind=='changed-sibling':(self.path.parent/view['archive']['path']).write_bytes(b'changed')
+                elif kind=='changed-canonical':(repo/packets[0]['path']).write_bytes(b'changed')
+                elif kind in ('over-budget','not-eligible','preview-toggle'):
+                    if kind=='over-budget':view['over_budget']=True;view['estimated_tokens']=48001
+                    elif kind=='not-eligible':view['dispatch_eligible']=False
+                    else:view['schema']='oh.war/verification-view-preview/v1'
+                    self.path.write_text(json.dumps(view))
+                else:
+                    sibling=self.path.parent/view['archive']['path'];outside=self.root/'outside-archive.json'
+                    outside.write_bytes(sibling.read_bytes());sibling.unlink();sibling.symlink_to(outside)
+                original=self.path.read_bytes()
+                with self.server() as base:
+                    result=self.run_client(base,cwd=repo,packet_refs=packets,view_refs=views)
+                self.assertNotEqual(result.returncode,0,result.stderr)
+                self.assertEqual(result.stdout,'')
+                self.assertEqual(self.health_requests,0)
+                self.assertEqual(self.received,[])
+                self.assertFalse((self.root/'logs').exists())
+                self.assertEqual(self.path.read_bytes(),original)
 
     def test_loopback_only_no_credentials_or_remote_routes(self):
         for bad in ("https://127.0.0.1:8020", "http://localhost:8020", "http://192.0.2.1:8020",

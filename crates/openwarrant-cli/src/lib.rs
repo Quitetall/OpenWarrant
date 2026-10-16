@@ -1329,6 +1329,10 @@ enum EvidenceCommand {
         /// each carrying what that obligation names, excerpted to fit.
         #[arg(long, conflicts_with = "response")]
         bundle: bool,
+        /// Emit v3 model inputs and exact archives for a v3-aware adapter.
+        /// Input emission only: no verifier call or result ingestion.
+        #[arg(long, requires = "bundle", conflicts_with_all = ["response", "run", "portable_preview", "inspect_preview"])]
+        compact: bool,
         /// Experimental offline review view and full v2 archive, in an
         /// absolute directory outside the repository. Never dispatches or
         /// establishes verification; current adapters refuse this format.
@@ -5361,9 +5365,10 @@ fn run_evidence_member(
             response,
             portable_preview,
             inspect_preview,
+            compact,
             ..
         } if ticket::is_ticket_ref(&alias) => {
-            if portable_preview.is_some() || inspect_preview.is_some() {
+            if portable_preview.is_some() || inspect_preview.is_some() || compact {
                 return Err(repo::RepoError::Message("verify.preview-warrant-required: compact legacy verification previews require a Warrant alias; no preview was read or written".into()).into());
             }
             let (_, store) = ctx.tickets(None)?;
@@ -5380,6 +5385,7 @@ fn run_evidence_member(
             bundle,
             portable_preview,
             inspect_preview,
+            compact,
             run,
         } => {
             let repository = ctx.open_repo()?;
@@ -5394,6 +5400,16 @@ fn run_evidence_member(
                 ));
             }
             if bundle {
+                if compact {
+                    let (report, index) =
+                        bundle::preview::emit_compact(&repository, &alias, &performer)?;
+                    return Ok(output::finish(
+                        mode,
+                        "verify.compact.bundle",
+                        &report,
+                        Some(index),
+                    ));
+                }
                 if let Some(directory) = portable_preview {
                     let (report, index) =
                         bundle::preview::emit(&repository, &alias, &performer, &directory)?;

@@ -82,6 +82,31 @@ verifier runs and no verdict or assurance is created. Inspection needs the
 original source repository; the package itself remains readable offline.
 Inputs are limited to 64 MiB each and are read without following path links.
 
+### Emit a compact model input
+
+```bash
+war verify OW-WAR-0003 --performer agent://codex --bundle --compact --json
+```
+
+This emits `oh.war/review-context/v3`: small packet/view references and a pointer
+to the retained subject. The model input is `oh.war/verification-view/v1`,
+distinct from a preview. Its required rules, fixtures and contracts stay exact;
+raw omitted evidence remains archived and does not count as evidence shown.
+Budget pressure retains an explicitly ineligible input instead of removing rules.
+
+The local adapter accepts this input only with exact compiler-produced
+`OPENWARRANT_REVIEWED_PACKETS` and `OPENWARRANT_REVIEWED_VIEWS` metadata. The
+harness supplies these from the index. It selects the actual pair, checks raw
+view and archive identities and task agreement before any provider call or log
+write, and sends only the view to the model. The Rust-computed archive digest
+is carried unchanged. Full byte/source/actor checks remain the ingester's job.
+
+The returned response uses v3 and retains exact view/archive references. It
+does not mean the model saw all archived bytes or that its claims establish
+assurance. This input-emission/response-collection slice does not enable
+`--run --compact` or compact CLI ingestion yet. The old v2 path and refusal
+of previews remain in place. No backend is started or configured by this command.
+
 ### Candidate compact storage codec
 
 The SDK exposes an opt-in `compact_verification_record` module for the proposed
@@ -121,7 +146,8 @@ version and local backend before use. The client reports monetary cost as
 unknown; token usage is not a dollar meter. It cannot enforce a mandatory hard
 spend cap. No cost is silently reported as zero.
 
-The model receives only the generated bundle in a new two-message context.
+The model receives only the generated input (a v2 bundle or v1 executable view)
+in a new two-message context.
 The client runs in a fresh temporary directory and provides no filesystem
 tools. This isolates the review conversation; it is not an operating-system
 sandbox against a hostile provider process or another process under the same

@@ -8,6 +8,161 @@ use std::{
 
 struct Fixture(PathBuf);
 
+#[test]
+fn compact_model_inputs_bind_exact_archives_and_do_not_change_the_subject() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let request = || {
+        fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--json",
+        ])
+    };
+    let before = request();
+    assert_eq!(before["exit_code"], 0, "{before}");
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let index = &emitted["result"];
+    assert_eq!(index["schema"], "oh.war/review-context/v3");
+    assert!(
+        index.get("reviewed_subject").is_none(),
+        "the index must point to retained metadata rather than repeat it"
+    );
+    assert_eq!(
+        index["subject_archive"]["pointer"],
+        "/request/reviewed_subject"
+    );
+    let views = index["views"].as_array().unwrap();
+    let packets = index["packets"].as_array().unwrap();
+    assert!(!views.is_empty());
+    assert_eq!(views.len(), packets.len());
+    for (reference, packet) in views.iter().zip(packets) {
+        let path = fixture.0.join(reference["path"].as_str().unwrap());
+        let raw = fs::read(&path).unwrap();
+        assert_eq!(
+            reference["sha256"],
+            openwarrant_compiler::digest::sha256_hex(&raw)
+        );
+        let view: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert_eq!(view["schema"], "oh.war/verification-view/v1");
+        assert_eq!(view["response_schema"], "oh.war/verification-response/v3");
+        assert_eq!(view["over_budget"], false);
+        assert_eq!(view["dispatch_eligible"], true);
+        assert!(view["request"].get("reviewed_subject").is_none());
+        assert!(view["request"].get("schema").is_none());
+        assert_eq!(
+            view["request"]["source_schema"],
+            "oh.war/verification-request/v2"
+        );
+        let archive_name = view["archive"]["path"].as_str().unwrap();
+        let sibling = fs::read(path.parent().unwrap().join(archive_name)).unwrap();
+        let canonical = fs::read(fixture.0.join(packet["path"].as_str().unwrap())).unwrap();
+        assert_eq!(sibling, canonical);
+        assert_eq!(
+            view["archive"]["sha256"],
+            openwarrant_compiler::digest::sha256_hex(&canonical)
+        );
+        assert_eq!(view["archive"]["digest"], packet["digest"]);
+        let archive: serde_json::Value = serde_json::from_slice(&canonical).unwrap();
+        assert_eq!(archive["schema"], "oh.war/verification-bundle/v2");
+        assert_eq!(view["atoms"], archive["atoms"]);
+        assert_eq!(view["contract_sources"], archive["contract_sources"]);
+        for source in archive["required_sources"].as_array().unwrap() {
+            if source["kind"] != "gate-evidence" {
+                assert!(
+                    view["required_sources"]
+                        .as_array()
+                        .unwrap()
+                        .contains(source)
+                );
+            }
+        }
+    }
+    let after = request();
+    assert_eq!(
+        before["result"]["reviewed_subject"],
+        after["result"]["reviewed_subject"]
+    );
+    let replay = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(replay["result"], emitted["result"]);
+    let retained = fixture.0.join(views[0]["path"].as_str().unwrap());
+    fs::write(&retained, "do not replace collision bytes").unwrap();
+    let collision = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_ne!(collision["exit_code"], 0, "{collision}");
+    assert!(collision.to_string().contains("verify.packet-collision"));
+    assert_eq!(
+        fs::read_to_string(retained).unwrap(),
+        "do not replace collision bytes"
+    );
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["verify"]
+        .as_table_mut()
+        .unwrap()
+        .insert("max_bundle_tokens".into(), toml::Value::Integer(1));
+    fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+    let tiny = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--compact",
+        "--json",
+    ]);
+    assert_eq!(tiny["exit_code"], 0, "{tiny}");
+    for reference in tiny["result"]["views"].as_array().unwrap() {
+        let view: serde_json::Value = serde_json::from_slice(
+            &fs::read(fixture.0.join(reference["path"].as_str().unwrap())).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(view["over_budget"], true);
+        assert_eq!(view["dispatch_eligible"], false);
+        assert!(!view["atoms"].as_array().unwrap().is_empty());
+    }
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications/OBL-001.toml")
+            .exists()
+    );
+}
+
 #[cfg(feature = "schema")]
 #[test]
 fn schema_export_drift_checks_compact_candidate_without_adopting_it() {
