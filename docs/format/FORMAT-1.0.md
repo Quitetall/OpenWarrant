@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** (`1.0.0-draft.3`). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. |
+| Status | **Draft** (`1.0.0-draft.3`, revision 1). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. |
 | Decision record | OW-ADR-0032 |
 | Licence | Text: CC-BY-4.0 (`docs/format/LICENSE`). Grammar, schemas and examples: Apache-2.0 |
 | Governance | `docs/format/GOVERNANCE.md` |
@@ -70,10 +70,8 @@ one it does not implement as not applicable, never as `PASS`.
   from the document's profile. A dotted type
   (`com.example.risk`) is an extension type (7.2).
 - **Profile**: data (`oh.war/profile/v1`, TOML) naming the record types,
-  relations, sections and frontmatter keys a document may or must have. In
-  1.0 the keys and sections of the built-in profiles are the ones this
-  document names (3.3, 4.1); declaring them in profile data is reserved for
-  a later minor.
+  fields, relations, sections, frontmatter keys, states and context presets
+  a document may or must have (7.4 to 7.6).
 - **Relation**: `{from, kind, to}`, optionally pinning a revision of `to`.
 - **State**: a value computed from records, journals and, under the
   authority profile, recorded acts. A state is never authored.
@@ -169,13 +167,15 @@ line or the end of the span, are the **attribute block**. Each line is:
 - a **continuation**, a line beginning with two spaces, which belongs to
   the field above it.
 
-A line whose first word is a core kind (3.6) or a dotted name followed by
-a space is a relation line. Any other line is refused
-(`format.attribute`). A field name appears once
-per record (`format.field-duplicate`). A field's value is the text after
+A line is a field when it begins `<name>:`. Otherwise it is a relation
+line when it is a lowercase word or a dotted name, one space, and text;
+its kind is then checked (3.6), so `blocks REQ-1` is refused
+`format.relation-kind`. Any other line is refused (`format.attribute`).
+A field name appears once per record (`format.field-duplicate`). A field's value is the text after
 `: `, then each continuation with its first two spaces removed, joined by
 LF; if the first line is empty, the value starts at the first
-continuation. A REQUIRED field whose value is empty is missing. A reader
+continuation. A REQUIRED field whose value is empty is missing; an
+OPTIONAL field whose value is empty is absent. A reader
 MUST NOT read a key, a relation or an item inside a
 continuation. Everything after the blank line is the **body**; a record
 with no fields or relations starts with a blank line.
@@ -350,10 +350,11 @@ global and each is `part_of` it, outside `content_digest`.
 
 A repository's specification says what the system is and must do. It is
 `SPEC.md` at the repository root, with profile `spec`, and MAY be split
-into parts: `spec/<area>.md`, each with profile `spec` and `part_of:
-doc:SPEC.md` in its frontmatter. A repository has at most one root
-specification; a second file with profile `spec` that is not `SPEC.md`
-and names no `part_of` is refused (`format.document-duplicate`).
+into parts: documents with profile `spec` and `part_of: doc:SPEC.md` in
+their frontmatter, which SHOULD live at `spec/<area>.md`. A repository has
+at most one root specification: a file with profile `spec` that is not
+`SPEC.md` and names no `part_of` is refused (`format.document-duplicate`),
+whether or not `SPEC.md` exists.
 
 ```markdown
 ---
@@ -385,9 +386,12 @@ statement: Reset state MUST live in the existing accounts database.
   `doc:<path>`), type `spec`. Its records are global (section 5), so work
   cites them directly: `implements REQ-reset-1`.
 - **Keys.** `version` is REQUIRED on `SPEC.md`: a SemVer label the author
-  gives the specification as a whole. Parts carry none.
+  gives the specification as a whole. A part needs none; one it carries is
+  ignored.
 - **Sections.** `SPEC.md` requires Purpose and Scope (what is out of scope
   belongs in Scope). Glossary and Context are OPTIONAL. Parts require none.
+  These rules for the root are core rules of this section, not profile
+  data, because one profile governs the root and its parts.
 - **Record types.** `requirement`, `constraint`, `outcome`, `decision`,
   `option`, `consequence`, `interface` and `term`. A `requirement` or
   `constraint` has a REQUIRED `statement`: the binding sentence, using the
@@ -398,13 +402,17 @@ statement: Reset state MUST live in the existing accounts database.
   body the definition.
 - **Context engineering.** A specification is read by agents in pieces,
   so each record carries its own meaning. A `statement` SHOULD be one
-  sentence of at most 300 bytes (`context.statement-shape`); rationale
-  goes in `rationale`, never in the statement, so a context compiler can
-  leave it out at a tight budget. A record SHOULD NOT cite another by a
-  section number or `§` (`context.section-ref`); it cites the id.
+  sentence of at most 300 bytes. A checker warns
+  (`context.statement-shape`, at the record's heading line) when it is
+  longer, or when a `.`, `!` or `?` followed by a space occurs before its
+  end. Rationale goes in `rationale`, never in the statement, so a context
+  compiler can leave it out at a tight budget. A record SHOULD NOT cite
+  another by section number; a checker warns (`context.section-ref`, at
+  the line) on a `§` in any record of a specification. It cites the id.
 - **Acceptance** is an act of the authority profile (Appendix C) and is
-  held **per record**. One `accept` covers any set of the specification's
-  records, usually all of them the first time and the changed ones after.
+  held **per record**: every unit of `SPEC.md` and its parts, sections
+  included (the documents' own `doc:` records are not counted). One
+  `accept` covers any set of those records, usually all of them the first time and the changed ones after.
   Editing a record moves its own revision only, so only that record stops
   being accepted; every other record stays accepted, and a tool can name
   exactly which work and obligations cite the unaccepted one. A
@@ -496,41 +504,59 @@ capabilities (7.6) apply to it. Every document names one (`profile:`).
 A profile MAY narrow the core: require a field, a section or a relation;
 close a set. It MUST NOT loosen a core rule, change the meaning of a core
 type, kind, key or state, or give an extension kind core meaning. A
-document whose profile a reader cannot find is read under the core alone
-and every profile rule over it is `UNKNOWN` (`format.profile-unknown`).
+document whose profile a reader cannot find is read under the core alone:
+every profile rule over it is `UNKNOWN` (`format.profile-unknown`), and an
+undotted name it uses that the core does not define is not refused, since
+the missing profile might define it.
 
 ### 7.5 Profile data
 
 A profile is a TOML file, `profiles/<name>.toml`, schema
-`oh.war/profile/v1` (`schemas/format/1.0/profile.json`). The built-in
-profiles of 7.6 need no file; a file of the same name replaces one only by
-`extends` (below). Keys:
+`oh.war/profile/v1` (`schemas/format/1.0/profile.json`), that declares
+`format = "openwarrant/1.0"`; a profile file without that key is a legacy
+profile (section 14) and never governs a Format 1.0 document. The built-in
+profiles of 7.6 need no file. A repository file with a built-in's name
+replaces it only by naming it in `extends` (`extends = "ticket"` in
+`profiles/ticket.toml` starts from the built-in); without that it is
+`profile.invalid`. Keys:
 
 | key | value |
 |---|---|
 | `schema` | `"oh.war/profile/v1"` |
+| `format` | `"openwarrant/1.0"` |
 | `name` | the profile's name; equals the file stem |
-| `extends` | OPTIONAL: a profile whose declarations this one starts from. It may add and narrow, never remove |
+| `extends` | OPTIONAL: a profile whose declarations this one starts from. It may add and narrow, never remove: capabilities are the union, a field either requires is required, and its `form` is the base's |
 | `form` | `work` (its documents are work documents, 4.1) or `document` (4.4, 4.5) |
 | `note` | one line saying what the profile is for |
 | `capabilities` | a subset of the closed set of 7.6 |
 | `[frontmatter]` | `required`, `optional`: undotted keys beyond those of 3.3 |
 | `[sections]` | `required`, `optional`: section names; a document with a section neither lists is accepted unless `closed = true` |
-| `[records] types` | the record types its documents may hold, beyond `section` and `item` |
-| `[fields.<type>]` | per record type: `<name> = { required = bool, shape = "text" \| "line" \| "int" \| "id" \| "ids" \| "gate" \| "date" \| "enum", values = [...] }` |
+| `[records]` | `types`: the record types its documents may hold beyond the core's; `closed = true` refuses any other undotted type (`format.key-unknown`) |
+| `[fields.<type>]` | per record type: `<name> = { required = bool, shape = <shape>, values = [...] }` |
 | `[relations]` | `allow` (core kinds its records may use) and `require` (`[[from-type, kind, to-type]]`) |
 | `[[states]]` | declared states: `name`, `refines` (a fixed state of 11.1), `note` |
 | `[ticks]` | the minimum tick level (11.4): `item`, `milestone`, and `[ticks.types]` by the document's `type` key |
 | `[[presets]]` | context presets (10.4): `name`, `steps`, `depth`, `budget` (bytes or `"none"`), `omit_types`, `omit_fields`, `editable`, `reads_state` |
 
+**Shapes.** `text`: anything, continuations included. `line`: one line.
+`int`: an optional `-` and decimal digits. `number`: an `int`, optionally
+followed by `.` and digits. `date`: `YYYY-MM-DD`. `id`: one target (3.6).
+`ids`: targets separated by `, `. `gate`: `gate://<id>@<version>`, several
+separated by `, `. `enum`: one of `values`. `bool`: `true` or `false`.
+
 A field a profile declares but a record lacks is refused when `required`
 (`format.field-missing`). A value that does not have its `shape` is
-refused (`format.field-shape`). A field neither the core nor the profile
-declares for that type is refused (`format.key-unknown`), with 7.2's
-exception for a newer minor. A profile file with an unknown key, a
-capability outside 7.6, a `refines` naming no fixed state, or a preset
-named like a built-in is refused (`profile.invalid`), and its documents
-read as `format.profile-unknown`.
+refused (`format.field-shape`). Once the core or the profile declares a
+field table for a type, a field outside it is refused
+(`format.key-unknown`), with 7.2's exception for a newer minor; a type for
+which neither declares any field accepts any field. A section outside a
+`closed = true` set is refused the same way. A profile file is refused
+(`profile.invalid`), and its documents read as `format.profile-unknown`,
+when it has an unknown key; a `name` that is not its file stem; a
+capability outside 7.6 or without its prerequisite; a `refines` naming no
+fixed state of 11.1; a preset named like a built-in; an unknown shape, or
+an `enum` without `values`; an `extends` naming no profile, or a `form`
+other than its base's.
 
 A **pack** is a versioned set of profiles (`oh.war/pack/v1`: `name`,
 `version`, `profiles`) installed into `profiles/` and recorded in
@@ -555,8 +581,10 @@ reported as such, never as `PASS`.
 | `verification` | independent verdicts and dispositions (Appendix C) |
 | `authorization`, `resolution` | the acts of Appendix C |
 
-A capability's prerequisites: `verification` needs `evidence`;
-`resolution` needs `authorization`; `checks` needs `claims`.
+A capability's prerequisites: every other capability needs `structure`;
+`verification` needs `evidence`; `resolution` needs `authorization`;
+`checks` needs `claims`. These govern Format 1.0 profiles; legacy
+profiles keep their own (section 14).
 
 **Built-in profiles.** Each is defined by a profile file shipped with this
 document (`schemas/format/1.0/profiles/`), which is normative.
@@ -564,12 +592,12 @@ document (`schemas/format/1.0/profiles/`), which is normative.
 | profile | form | capabilities | requires |
 |---|---|---|---|
 | `ticket` | work | structure, links, claims, checks | Checklist |
-| `delivery` | work | all | Intent, Basis, Work order, Assurance; one obligation |
+| `delivery` | work | all | Intent, Basis, Work order, Assurance; at least one obligation (a core rule of 4.1, which profile data cannot state) |
 | `decision` | work | all but `stages` | Intent, Basis |
 | `spec` | document | structure, links, acceptance | 4.5 |
 | `adr` | document | structure, links, acceptance | Context, Decision, Consequences |
-| `roadmap` | document | structure, links, claims | phases as `phase` records |
-| `release`, `incident`, `prd`, `architecture`, `test-plan` | document | structure, links | their files' sections |
+| `roadmap` | document | structure, links, claims | nothing; its phases are `phase` records |
+| `release`, `incident`, `prd`, `architecture`, `test-plan` | document | structure, links | nothing; their files list the sections they recommend |
 
 ## 8. The canonical JSON model
 
@@ -653,12 +681,12 @@ A tool that serves agents MUST be able to generate an index,
 - <id> · <type> · <state> · <title> · <source>:<line>
 ```
 
-Sources sorted by path, records by line. A work document is listed by its
-own record alone; its units are one `war context <alias>` away. Every
-record of any other document is listed. The `> ` line is the work
-document's summary, or `-`. `<state>` is the record's **primary state**:
-the value of its state of kind `phase`, else `checklist`, else
-`disposition`, else `-`. A record with no title shows its first non-blank
+`<repository name>` is the name of the repository's root directory.
+Sources are sorted by path, each group preceded by one blank line, and
+records by line. A work document is listed by its own record alone; its
+units are one `war context <alias>` away. Every record of any other
+document is listed. The `> ` line is the document's `summary`, or `-`.
+`<state>` is the record's **primary state** (11.1), or `-`. A record with no title shows its first non-blank
 body line that is not one of its relation lines, cut at 120 bytes on a
 character boundary; `…` is added only when it was cut. With neither, the
 title is `-`.
@@ -700,7 +728,8 @@ these steps, in this order:
 | `in:implements` from an `interface` | interfaces |
 
 `out` follows a relation from the record; `in`, to it. Only core kinds are
-walked. A record's **distance** is the level that first reached it, and
+walked, and the containment `part_of` of 4.1, 4.4 and 4.5 is walked like
+an authored one, so a requirement reaches its specification. A record's **distance** is the level that first reached it, and
 its **via** the first `(step, from)` that did, by step order and then by
 `from` id. Unknown targets are skipped with a diagnostic. This walk is
 named `core`. A profile MAY declare another walk; the packet names the
@@ -715,7 +744,7 @@ walk it used.
 
 ```text
 # Context: <target>
-<!-- oh.war/context/v1 · budget <B> · depth <d> · walk <name> · selection <selection_digest> -->
+<!-- oh.war/context/v1 · budget <B> · depth <d> · preset <preset> (walk <walk>) · selection <selection_digest> -->
 
 ## Index
 [F] <id> · <type> · <state> · <title> · <source>:<line>
@@ -727,12 +756,17 @@ walk it used.
 
 ```
 
+The header always names the preset (10.4), `agent` when none was asked
+for. `<B>` is `none` for a preset without a budget. A document's own
+record has as its span the frontmatter and the preamble, up to its first
+unit; that span gives its text and revision.
+
 `selection_digest` is the `basis_digest` rule (section 8) over the
 selected records. In the index, `[F]` marks a record whose full text
 follows and `[S]` one given only by its summary. `<state>` is the primary
-state of 10.2, or `-`. An item whose section is given in full is marked
-`[F]` and has no entry of its own under Records: its line is already
-there. An item that is the target has its own entry.
+state of 11.1, or `-`. An item whose unit (the section or record whose
+span holds its line) is given in full is marked `[F]` and has no entry of
+its own under Records: its line is already there. An item that is the target has its own entry.
 
 **5. Budget.** Bytes are UTF-8 bytes of the Markdown rendering. If the
 header and index alone, or with the full text of every root, exceed the
@@ -740,7 +774,9 @@ budget, the compiler MUST refuse (`context.over-budget`), naming the bytes
 needed, and emit nothing. Otherwise records are given in full in order
 until the next one would not fit; it and every later record are `[S]`. A
 record is never cut. An `[S]` line is the agent's cue to run `war context
-<id>`.
+<id>`. A selected record whose text cannot be read from its source (a
+legacy record whose span the model does not give) is given by its summary
+only, with a warning (`context.span-unknown`).
 
 `--json` emits `oh.war/context/v1`, the same selection: `{schema, target,
 budget, bytes, depth, walk, selection_digest, records[{id, type, title,
@@ -762,21 +798,31 @@ person who needs everything the document type holds.
 A preset is profile data (7.5) and declares: the walk and its steps; the
 depth; the budget, or `none`; the record types and field names it leaves
 out; whether its records are **editable** (10.5); and whether it **reads
-state**. Without `--preset` the preset is `agent`. The packet header names
-the preset in place of `walk <name>`: `preset <name> (walk <walk>)`.
+state**. Without `--preset` the preset is `agent`. A preset that walks
+the core steps names its walk `core`; one with steps of its own names its
+walk after itself.
 
 | preset | for | selection |
 |---|---|---|
 | `agent` | an agent doing the work | 10.3 exactly: core walk, depth 3, budget 16000 |
-| `agent.min` | a tight window | depth 1 over `out:implements`, `in:constrains` and `in:evaluates`; leaves out `rationale` fields and `option` and `consequence` records; budget 4000 |
+| `agent.min` | a tight window | depth 1 over `out:implements`, `in:constrains` and `in:evaluates`; leaves out `option` and `consequence` records, and cuts each `rationale` field (its line and continuations) from the text it gives, the `>` line still naming the source revision; budget 4000 |
 | `human` | a person reading and working | the core walk, depth 3, no budget, every record `[F]`, editable; the work document's own units first in document order, then the rest in 10.3's order |
-| `review` | a reviewer or verifier | the target, its obligations and what they evaluate, depth 2, no budget; reads state |
-| `resume` | whoever picks the work up | the target's items with their state, holder and lease, done items with actor and date, then the next three items `next` would offer (11.5); depth 1; reads state |
+| `review` | a reviewer or verifier | depth 2 over `in:evaluates` (obligations and checks of the target) then `out:evaluates` (what they evaluate), no budget; reads state |
+| `resume` | whoever picks the work up | the target's record and items, the core walk to depth 1, no budget; reads state; rendered as below |
+
+**`resume` rendering.** After each item's `>` line comes one state line:
+`state <primary>[ · holder <actor> · lease <until>][ · by <actor> ·
+<date> · <level>]`, the holder part for a claimed item and the `by` part
+for a done one. After Records, a section `## Next` lists up to three of
+the target's candidates in the order of 11.5, one `- <id> · <title>` per
+line.
 
 A preset that reads state also reads the journals and claims of section
 11 and is a pure function of the documents, those files and the time
 given by `--at` (a tool MAY default it to its clock). Its header records
-both: `· journal sha256:<12 hex> · at <time>`. Every other preset is bound
+both: `· journal sha256:<12 hex> · at <time>`, the digest being the
+`basis_digest` rule (section 8) over `[path, sha256 of the file's bytes]`
+for every journal and every claim file, sorted by path. Every other preset is bound
 by 10.3's purity rule. A profile MAY declare further presets; it MUST NOT
 redefine a built-in one.
 
@@ -786,12 +832,15 @@ An editable preset wraps each record's text in markers that name its exact
 source:
 
 ```text
-<!-- rec OW-WAR-0146/S-intent OW-WAR-0146.md:7 sha256:<64 hex> -->
+<!-- rec OW-WAR-0146/S-intent docs/warrants/OW-WAR-0146.md:7 sha256:<64 hex> -->
 ## Intent
 …
 <!-- /rec -->
 ```
 
+The marker names the repository-relative path and line. The `>` line of
+10.3 is kept above the marker. A document's own record (its frontmatter
+and preamble) is not wrapped and cannot be edited through a package.
 A person MAY edit the text between markers and give the package back:
 `war apply <package>`. For each marked block, a writer:
 
@@ -806,7 +855,8 @@ A person MAY edit the text between markers and give the package back:
 
 A changed item box is not a text edit: `[ ]` to `[x]` records `done`, and
 `[x]` to `[ ]` records `reopen`, as events of section 11 by the actor
-applying the package, and the writer then rewrites the line as 3.8 shows.
+applying the package, and the writer then rewrites the line as 3.8 shows,
+dated with the date of `war apply`'s time (`--at`, default its clock).
 A new box line without an id is given one. Blocks of one document are
 applied together or not at all; a refusal in one document does not stop
 another. A block missing from the package is not a deletion; it is left
@@ -824,35 +874,40 @@ to it. Neither is authored by hand.
 ### 11.1 States
 
 A state is computed (section 2) and appears in the model (`states[]`).
-The **fixed states**, which no profile may redefine:
+Each has a `kind`, the family it belongs to, and a `provenance`:
+`computed` (from documents and the claim store), `recorded` (from a journal
+event or an act of Appendix C) or `declared` (below). The **fixed
+states**, which no profile may redefine:
 
-| state | of | holds when | capability |
-|---|---|---|---|
-| `draft` | work document | it has no item and no milestone | structure |
-| `open` | work document, item | nothing is done or claimed | claims |
-| `in_progress` | work document | an item is done or claimed, and not every item is done | claims |
-| `done` | work document, item | every item is done (at least one); an item: its box is `[x]` and the journal backs it (11.4) | claims |
-| `blocked` | item | an item it waits on (`after`, `depends_on`) is not done | claims |
-| `claimed` | item, work document | a live claim names it (11.3) | claims |
-| `superseded` | any record | another current record `supersedes` it | links |
-| `failing` | check, kpi | its last recorded run failed (12) | checks |
-| `accepted`, `partially_accepted`, `authorized`, `verified`, `resolved` | Appendix C | | |
+| kind | state | of | holds when | capability |
+|---|---|---|---|---|
+| `phase` | `open` | work document | not `done`, and no item is done or claimed | claims |
+| `phase` | `in_progress` | work document | an item is done or claimed, or the document itself is claimed, and it is not `done` | claims |
+| `phase` | `done` | work document | it has items and every item is done; with no items, a `work.item_done` names the document | claims |
+| `phase` | `draft`, `authorized`, `resolved` | work document | Appendix C: under `authorization`, a work document is `draft` until authorized | authorization |
+| `checklist` | `open`, `claimed`, `blocked`, `done` | item | `done`: its box is `[x]`; `claimed`: a live claim names it (11.3); `blocked`: an item or document it waits on (`after`, `depends_on`, or its document's `depends_on`) is not done; else `open` | claims |
+| `currency` | `superseded` | any record | another current record `supersedes` it | links |
+| `check` | `failing` | check, kpi | its last recorded run on its current revision failed (12) | checks |
+| `disposition` | the disposition | obligation | Appendix C | verification |
+| `acceptance` | `accepted`, `partially_accepted` | specification and its records | Appendix C | acceptance |
+| `outcome` | `verified` | work document | Appendix C | verification |
 
-Under the `authorization` capability a work document's phase follows
-Appendix C after `draft`: `authorized`, then `resolved`; its items still
-have the states above.
+A work document with no items is workable as it is: it is `open` until it
+is claimed or done, and `claim` and `done` act on the document itself. A
+work document `part_of` another counts as an item of it, for the parent's
+phase and for `next`. An item whose box is `[x]` is done, whether a tool
+or a person ticked it; how it was done is its tick level (11.4).
 
 A **declared state** (7.5) refines one fixed state: it is entered by a
 `state.entered` event naming it, holds only while its parent holds, and
 lapses when the parent stops holding; the later of two entries wins. A
-declared state satisfies no rule and no check. A state's `kind` in the
-model is `computed`, `recorded` (from an act or event) or `declared`.
+declared state satisfies no rule and no check. Its `kind` is its parent's
+and its provenance `declared`.
 
-The **primary state** shown in the index and in packets (10.2) is, in
-order: `superseded`; then for a work document its phase (`draft`, `open`,
-`in_progress`, `done`, or a later Appendix C phase); for an item `done`,
-`claimed`, `blocked` or `open`; for an obligation its disposition; else
-`-`. A declared state that holds is shown after it: `in_progress/in_review`.
+The **primary state** shown in the index and in packets is the first that
+holds of: `superseded`; the record's `phase`; its `checklist` state; its
+`check` state; its `disposition`; its `acceptance`; else `-`. A declared
+state that holds is shown after its parent: `in_progress/in_review`.
 
 ### 11.2 The journal
 
@@ -886,20 +941,32 @@ appending to a legacy directory work document keeps writing `v: 1`, so
 that document's journal has one shape.
 
 - **Append-only.** A journal only grows: a tool MUST refuse a journal whose
-  committed lines were changed or removed (`work.journal-rewritten`), a
-  line that does not parse (`work.journal-malformed`), and an unterminated
-  last line (`work.journal-torn`). A repository MUST mark journals
+  committed lines (those of the version in the current commit, `HEAD`)
+  are not all still present, unchanged and in the same order
+  (`work.journal-rewritten`); lines added between them, as a union merge
+  adds them, are not a change. It MUST refuse a line that does not parse
+  as JSON, lacks a member, has a `v` other than 1 or 2, or whose
+  `idempotency_key` does not match its content (`work.journal-malformed`),
+  and an unterminated last line (`work.journal-torn`). A line with `v`
+  greater than 2 is `UNKNOWN` (`work.journal-newer`), not malformed, and
+  every state that depends on it is `UNKNOWN`. A line's bytes need not be
+  RFC 8785; a reader parses it. A repository MUST mark journals
   `merge=union` (`**/journal.jsonl merge=union` in `.gitattributes`), so
   two branches that both appended merge to both events.
 - **Exactly once.** An event whose `idempotency_key` is already in the
   journal from the same actor is a replay and is not written; from another
   actor it is refused (`work.idempotency-conflict`). Time is not in the
   key, so ten runners recording the same fact record it once.
-- **No clock in meaning.** No state depends on the order of lines; where
-  two events conflict the rule says which wins (11.3, 11.4).
+- **No clock in meaning.** No state depends on the order of lines. Where
+  two events about the same target conflict (`work.item_done` and
+  `work.item_reopened`, two `state.entered`), the one with the later
+  `occurred_at` wins, and of two with the same time the one with the
+  greater `id`.
 
 Core event types and their payloads (other types are extension types,
-dotted, and carried):
+dotted, and carried). In payloads, `target` is the global id of what the
+event is about (`t-0d61d/i-4d11`, or an alias for a whole document) and
+`item` the item's local id:
 
 | type | payload |
 |---|---|
@@ -913,7 +980,7 @@ dotted, and carried):
 | `work.note_added` | `{target, note}` |
 | `work.edited` | `{target, from_revision, to_revision}` |
 | `work.tick_raised` | `{item, target, from, to, verifier? , signer?}` |
-| `check.run` | `{check, run, verdict, revision, commit?, output_sha256?, value?}` (12) |
+| `check.run` | `{check, run, verdict, revision, subjects, commit?, output_sha256?, value?}` (12): `verdict` is `PASS`, `FAIL` or `UNKNOWN`; `revision` the check's; `subjects` the `[id, revision]` of each record or item it evaluates, at the run |
 | `trigger.fired` | `{check, trigger, subject}` (12) |
 | `state.entered` | `{record, state, refines, note?}` |
 
@@ -935,14 +1002,17 @@ exists). The store is never committed.
 
 - **Exclusive.** A second claim on a claimed target is refused
   (`work.claimed-by-other`), naming the holder. A claim on a work document
-  covers all its items.
+  covers all its items, so it is refused while another actor holds one of
+  them, and a claim on an item is refused while another actor holds its
+  document.
 - **Leases.** A claim's lease runs `claim_lease_minutes` (default 30) past
   the later of `lease_until` and the file's modification time; the holder
   renews it by touching the file (`war heartbeat`, or any command the
   holder runs). A claim whose lease has run out is reclaimable by a plain
-  claim, recorded as `work.claim_reclaimed`. A live claim older than
-  `claim_ttl_minutes` (default 120) may be taken only on request
-  (`--steal`), recorded as `work.claim_stolen`.
+  claim, recorded as `work.claim_reclaimed`. A live claim whose `since`
+  is more than `claim_ttl_minutes` (default 120) ago may be taken only on
+  request (`--steal`), recorded as `work.claim_stolen`. Both settings live
+  in `openwarrant.toml` under `[claims]`.
 - **Across machines.** With `[claims] remote = "<name>"`, a claim is also
   the ref `refs/openwarrant/claims/<alias>[--<item>]` on that remote,
   pushed with `--force-with-lease` against the value read, so the remote
@@ -967,7 +1037,8 @@ from weakest to strongest: `claimed` (someone said so), `observed` (a
 check ran and passed, 12), `independent` (a verifier who is not the
 performer agreed, Appendix C), `signed` (a person signed it off, Appendix
 C). The level is written in the done suffix (3.8): `— done by claude,
-2026-10-12 [observed]: note`; `claimed` writes none. The suffix is
+2026-10-12 [observed]: note`; `claimed` writes none. A box ticked by
+hand, with no event, is done at `claimed`. A level above `claimed` is
 believed only as far as the journal backs it: `observed` needs a
 `work.item_done` with `level: observed` and passing `runs`, or a
 `work.tick_raised` to `observed`; `independent` and `signed` need the act
@@ -983,22 +1054,26 @@ minimum is `done` for `next` and is listed as below its minimum.
 
 `next` answers, for an actor, what to work on, as a pure function of the
 documents, journals, claim store and a time. Its **candidates** are the
-items that are open, not blocked, and not under a live claim (an expired
-claim does not count), and each work document with no items that is open
-and unclaimed. A work document `part_of` another counts as an item of it.
-Candidates are ordered by:
+items whose state is `open` (so neither blocked, claimed under a live
+claim, nor done; an expired claim does not count), and each work document
+with no items whose phase is `open`. A work document `part_of` another
+counts as an item of it. An item has its document's `due`, `priority`,
+`created_at` and labels. Candidates are ordered by:
 
 1. `due`, earliest first; a candidate inherits the earliest `due` of
    everything that waits on it; none sorts last;
 2. remaining path, longest first: the candidate's estimate plus the
    longest remaining path of what waits on it (the critical path first);
 3. `priority`, lowest number first (default 2);
-4. the document's `created_at`, then alias, then the item's position.
+4. `created_at`, earliest first, none last; then alias; then the item's
+   position in its document.
 
 An **estimate** is the median, over done items, of the time from an item's
 last `work.claimed` to its `work.item_done`, taken over items of the same
 `type` sharing a label, else sharing a label, else of the same `type`,
-else all; with no samples it is `prior_secs` (default 1800). Ten actors
+else all, in whole seconds (with an even count, the lower of the two
+middle values); with no samples it is `prior_secs` (default 1800, in
+`openwarrant.toml` under `[next]`). Ten actors
 asking at once get the same order; each then claims the first candidate it
 can, and 11.3 makes exactly one claim win. After the candidates, `next`
 lists acts that wait on a person (Appendix C).
@@ -1023,9 +1098,11 @@ timeout: 600
 | `on` | OPTIONAL | triggers, comma-separated (below); default `done` |
 | `timeout` | OPTIONAL | seconds; default 600 |
 | `gating` | OPTIONAL | `true` (default): a failure blocks the tick; `false`: recorded only |
+| `reopen` | OPTIONAL | `true`: when the check turns `failing`, a done item it evaluates is reopened (`work.item_reopened`); `false` (default) |
 
 A **kpi** is a check that measures: its command prints a number, and it
-has `direction` (`min` or `max`), an OPTIONAL `target`, and `mode`:
+has a REQUIRED `direction` (`min` or `max`), an OPTIONAL `target` (shape
+`number`), and `mode`:
 `threshold` (passes when it meets the target), `best` (passes when it
 meets the target and records the best value seen, default) or `optimise`
 (never fails; records the value).
@@ -1035,9 +1112,9 @@ meets the target and records the best value seen, default) or `optimise`
 | trigger | fires when |
 |---|---|
 | `manual` | someone asks (`war check run <id>`) |
-| `done` | someone marks an evaluated item done; the item is ticked only if the run passes |
+| `done` | a tracker marks an evaluated item done; the item is ticked only if the run passes. A box ticked by hand fires nothing: it is done at `claimed`, and an evaluator that later runs the check and sees it pass raises it to `observed` |
 | `commit` | a commit changes the document or a path in its `paths` |
-| `paths:<glob>` | a commit changes a matching path; a done item it evaluates whose run now fails becomes `failing`, and is reopened when `reopen: true` |
+| `paths:<glob>` | a commit changes a matching path, so work already done is checked again |
 | `pr.merged` | a pull request citing the work merges |
 | `ci:<name>` | the CI check `<name>` reports on a commit |
 | `schedule:<cron>` | at the times a five-field cron expression names, in UTC |
@@ -1055,14 +1132,19 @@ tool that does not understand it.
   and the subject (commit or time), so several evaluators firing the same
   trigger record it once.
 - A **pass** on the check's current revision ticks every open item it
-  evaluates at `observed` (11.4), through the compare-and-set of 11.3, and
+  evaluates at `observed` (11.4) and raises a done item it evaluates to
+  `observed` when it was below, through the compare-and-set of 11.3, and
   records an observation for every obligation it evaluates. A check never
   sets a disposition; that is Appendix C's verdict.
-- A **fail** ticks nothing and makes the check `failing`. A run that could
+- A **fail** ticks nothing and makes the check `failing`; with `reopen:
+  true` it also reopens each done item it evaluates. A run that could
   not complete (timeout, missing tool, no number from a kpi) is `UNKNOWN`
   (`check.unknown`): it ticks nothing and is never reported as a pass or a
   fail.
-- A pass on an older revision of the check, or of an item, ticks nothing.
+- A run counts only for the revisions it names: a pass whose check
+  `revision`, or whose `subjects` revision for an item or record, is not
+  the current one ticks nothing for it. `failing` looks only at runs on the
+  check's current revision, the last by `occurred_at`.
 
 ## 13. Conformance
 
@@ -1088,7 +1170,11 @@ conformance/format/<NNN>-<slug>/
 ```
 
 Exactly one `expected/` result is present. Tracking and apply cases are
-derived from sections 10.5, 11 and 12 as the others are from 3 to 10. A conforming tool passes a case when its output equals the
+derived from sections 10.5, 11 and 12 as the others are from 3 to 10.
+How a case names its operation, gives a committed journal, a claim
+file's modification time or an act without a signature, and spells a
+tracking refusal, is fixed by `conformance/format/README.md`, which is
+part of the corpus. A conforming tool passes a case when its output equals the
 expected bytes. `model.json` holds the compared subset of the model that
 `conformance/format/README.md` defines, after RFC 8785 canonicalization,
 its `diagnostics` compared as a set of `(rule, record)`. A context refusal
@@ -1110,7 +1196,7 @@ Refusals: `format.encoding`, `format.frontmatter`, `format.key-unknown`,
 `work.idempotency-conflict`.
 Unknown: `format.newer-major`, `format.newer-minor`,
 `format.requires-unknown`, `format.profile-unknown`,
-`work.claim-remote-unreachable`, `check.unknown`. Warnings:
+`work.claim-remote-unreachable`, `work.journal-newer`, `check.unknown`. Warnings:
 `format.target-unknown`, `format.refusal-missing`, `format.item-id-missing`,
 `format.legacy-obligation`, `context.summary-shape`,
 `context.statement-shape`, `context.section-ref`, `context.span-unknown`,
@@ -1373,11 +1459,13 @@ copy of its own facts.
 | `liminal` | Liminal: a host that compiles documents for a workspace | the exchange `oh.war/liminal-v1` (a request of documents as bytes, a response of the model and packets); basis ids `liminal-basis://<digest>` |
 | `blut` | BLUT: plan lowering and backends | `blut://<backend>@<pin>`; verdicts `blut/openwarrant-verification/v1` |
 | `contractor` | contractor work orders | acceptance, invoicing and legal terms outside the technical core |
+| `legacy` | readers of earlier encodings (section 14) | `legacy.id`: the id a record had in a legacy store |
 | `x` | private use | anything; never registered |
 
-A prefix is registered by the editor (GOVERNANCE.md). A tool MAY refuse a
-dotted name whose prefix is neither registered nor a reverse domain name
-(`format.prefix-unregistered`, a warning).
+A prefix is registered by the editor (GOVERNANCE.md). A checker warns
+(`format.prefix-unregistered`) on a dotted name whose prefix is neither
+registered nor a reverse domain name, that is a name of three or more
+labels whose first label is letters only (`com.example.risk`).
 
 ## Appendix E. References (non-normative)
 
