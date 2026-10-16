@@ -372,6 +372,42 @@ print(expected['response'])
         let stored: toml::Value = toml::from_str(std::str::from_utf8(bytes).unwrap()).unwrap();
         assert_eq!(stored["schema"].as_str(), Some("oh.war/verification/v3"));
     }
+    let checked = fixture.run(&["check", "IX-WAR-0003", "--json"]);
+    assert!(
+        !checked["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "compat.newer-record"),
+        "the CLI must recognize the compact records it just wrote: {checked}"
+    );
+    let current_path = warrant.join("verifications/OBL-001.toml");
+    let current_bytes = fs::read(&current_path).unwrap();
+    let future = std::str::from_utf8(&current_bytes).unwrap().replacen(
+        "oh.war/verification/v3",
+        "oh.war/verification/v4",
+        1,
+    );
+    fs::write(&current_path, future).unwrap();
+    let future_state = fixture.review_state();
+    let future_check = fixture.run(&["check", "IX-WAR-0003", "--json"]);
+    assert_eq!(future_check["exit_code"], 2, "{future_check}");
+    assert!(
+        future_check["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| {
+                d["severity"] == "unknown"
+                    && d["message"]
+                        .as_str()
+                        .unwrap_or("")
+                        .contains("verification/v4")
+            }),
+        "a future codec must remain UNKNOWN: {future_check}"
+    );
+    assert_eq!(fixture.review_state(), future_state);
+    fs::write(&current_path, current_bytes).unwrap();
     let preparation = fixture.run(&["prepare", "IX-WAR-0003", "--dry-run", "--json"]);
     assert!(
         preparation["result"]["warrants"][0]["steps"]

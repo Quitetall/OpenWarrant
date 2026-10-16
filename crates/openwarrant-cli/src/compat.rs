@@ -33,9 +33,9 @@ pub(crate) const WAR_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// `entrypoint` maps it to exit 2.
 pub(crate) const TOO_OLD: &str = "compat.war-too-old";
 
-/// The frozen records of docs/COMPATIBILITY.md and the schema major this
-/// `war` reads for each. A record's major moves only with a `v2`, which is a
-/// release the owner re-authorizes into; this table moves with it.
+/// The record families of docs/COMPATIBILITY.md and the highest schema major
+/// this CLI actually reads. This includes explicit candidate codecs; reader
+/// capability does not adopt a schema pack or reinterpret a signed contract.
 pub(crate) const FROZEN: &[(&str, u32)] = &[
     ("manifest", 1),
     ("atom", 1),
@@ -44,7 +44,7 @@ pub(crate) const FROZEN: &[(&str, u32)] = &[
     ("authorization", 1),
     ("judgments", 1),
     ("resolution", 1),
-    ("verification", 2),
+    ("verification", 3),
     ("correction", 1),
     ("sas-revision", 1),
     ("amendment", 1),
@@ -270,7 +270,7 @@ mod tests {
             Some(("stage-dispatch", 1))
         );
         assert_eq!(parse_schema("something/else"), None);
-        assert_eq!(known_major("verification"), Some(2));
+        assert_eq!(known_major("verification"), Some(3));
         assert_eq!(known_major("verification-response"), None);
 
         let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())
