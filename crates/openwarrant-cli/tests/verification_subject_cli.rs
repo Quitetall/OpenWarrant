@@ -9,6 +9,72 @@ use std::{
 struct Fixture(PathBuf);
 
 #[test]
+fn read_only_views_share_source_inventory_across_verified_obligations() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    fixture.bound_response();
+    let ingested = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(ingested["exit_code"], 0, "{ingested}");
+    for args in [
+        vec!["board", "--json"],
+        vec!["overview", "--snapshot", "--json"],
+    ] {
+        let trace = fixture.0.with_extension("tree-reads.jsonl");
+        let output = Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&fixture.0)
+            .args(&args)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("GIT_TRACE2_EVENT", &trace)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{args:?}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let mut reads = std::collections::BTreeMap::<Vec<String>, usize>::new();
+        for line in fs::read_to_string(&trace).unwrap().lines() {
+            let event: serde_json::Value = serde_json::from_str(line).unwrap();
+            if event["event"] != "start" {
+                continue;
+            }
+            let argv: Vec<String> = event["argv"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|arg| arg.as_str().unwrap().to_owned())
+                .collect();
+            if argv
+                .iter()
+                .any(|arg| arg == "--others" || arg == "--name-only")
+            {
+                *reads.entry(argv).or_default() += 1;
+            }
+        }
+        fs::remove_file(trace).unwrap();
+        assert!(!reads.is_empty(), "no tree observations: {args:?}");
+        assert!(
+            reads.values().all(|count| *count == 1),
+            "repeated tree observations for {args:?}: {reads:?}"
+        );
+    }
+}
+
+#[test]
 fn preparation_uses_explicit_compact_verifier_without_rewriting_repository_config() {
     let (_, script) = prepare_route_fixture();
     fs::remove_file(script.with_extension("calls")).unwrap();

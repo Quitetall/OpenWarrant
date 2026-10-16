@@ -833,19 +833,19 @@ pub mod source {
 
     /// `read()`, or what it returned for `key` earlier in this process when
     /// [`remember_tree_reads`] is on. An error is never remembered.
-    fn tree_read(
+    pub(crate) fn tree_read<E>(
         key: String,
-        read: impl FnOnce() -> Result<Vec<String>, String>,
-    ) -> Result<Vec<String>, String> {
+        read: impl FnOnce() -> Result<Vec<String>, E>,
+    ) -> Result<Vec<String>, E> {
         tree_read_in(&TREE_READS, key, read)
     }
 
     /// [`tree_read`] over a given memo, so a test can hold its own.
-    pub fn tree_read_in(
+    pub fn tree_read_in<E>(
         memo: &TreeReads,
         key: String,
-        read: impl FnOnce() -> Result<Vec<String>, String>,
-    ) -> Result<Vec<String>, String> {
+        read: impl FnOnce() -> Result<Vec<String>, E>,
+    ) -> Result<Vec<String>, E> {
         let slot = memo
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -930,18 +930,21 @@ pub mod source {
         tree: &str,
         ex: &Exclusions,
     ) -> Result<Vec<String>, String> {
-        let mut moved = tree_read(format!("diff\0{root}\0{tree}"), || {
+        let mut moved = tree_read(format!("diff\0{root}\0{tree}"), || -> Result<_, String> {
             Ok(nul_paths(&git(
                 root,
                 &["diff", "--name-only", "-z", tree, "--"],
             )?))
         })?;
-        moved.extend(tree_read(format!("others\0{root}"), || {
-            Ok(nul_paths(&git(
-                root,
-                &["ls-files", "--others", "--exclude-standard", "-z"],
-            )?))
-        })?);
+        moved.extend(tree_read(
+            format!("others\0{root}"),
+            || -> Result<_, String> {
+                Ok(nul_paths(&git(
+                    root,
+                    &["ls-files", "--others", "--exclude-standard", "-z"],
+                )?))
+            },
+        )?);
         moved.retain(|p| !ex.excludes_from_tree(p));
         moved.sort();
         moved.dedup();
@@ -1672,7 +1675,7 @@ mod source_tests {
     #[test]
     fn tree_reads_are_remembered_only_when_turned_on() {
         let calls = std::cell::Cell::new(0);
-        let read = || {
+        let read = || -> Result<_, String> {
             calls.set(calls.get() + 1);
             Ok(vec![format!("moved-{}", calls.get())])
         };
@@ -1716,7 +1719,7 @@ mod source_tests {
     fn concurrent_askers_share_one_tree_read() {
         let on: TreeReads = std::sync::Mutex::new(Some(std::collections::HashMap::new()));
         let calls = std::sync::atomic::AtomicUsize::new(0);
-        let read = || {
+        let read = || -> Result<_, String> {
             calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
             std::thread::sleep(std::time::Duration::from_millis(20));
             Ok(vec!["moved".to_owned()])

@@ -13125,7 +13125,7 @@ observer.
 | D-032 | Standing coverage from profile data | `crates/openwarrant-core/src/standing.rs` | not_content_addressed |
 | D-033 | war new pins the profile digest | `crates/openwarrant-cli/src/new.rs` | not_content_addressed |
 | D-034 | profile_digest read from the manifest | `crates/openwarrant-core/src/manifest.rs` | not_content_addressed |
-| D-035 | profile.pin-drift | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-035 | profile.pin-drift | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-036 | Record atoms, ids, per-record revisions | `crates/openwarrant-core/src/record.rs` | not_content_addressed |
 | D-037 | Core and namespaced relation kinds | `crates/openwarrant-core/src/relation.rs` | not_content_addressed |
 | D-038 | Modules record, relation, lifecycle | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
@@ -29688,7 +29688,7 @@ one Warrant drifts the projection the next Warrant's gate run checks, so
 |---|---|---|---|
 | D-001 | Gate receipts as committed evidence: admissibility, load, record, check | `crates/openwarrant-cli/src/evidence.rs` | drift |
 | D-002 | The resolution seam: request, ingest through the register, the §56.2 record, check | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
-| D-003 | The gate runner mints into a caller-chosen directory; Bonsai pairing scoped to its gate | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
+| D-003 | The gate runner mints into a caller-chosen directory; Bonsai pairing scoped to its gate | `crates/openwarrant-cli/src/gate_cmd.rs` | drift |
 
 #### OW-WAR-0063 — Complete the conformance battery: the plants and tests the verifier named as missing
 
@@ -31026,7 +31026,7 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
+| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | drift |
 | D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | verified |
 | D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | verified |

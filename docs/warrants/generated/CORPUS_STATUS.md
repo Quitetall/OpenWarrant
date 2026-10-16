@@ -68,7 +68,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 96 |
+| artifact digests verify | 97 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
