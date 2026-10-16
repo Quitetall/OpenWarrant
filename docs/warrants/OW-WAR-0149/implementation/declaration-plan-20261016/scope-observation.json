@@ -1,0 +1,361 @@
+{
+  "kind": "performer planning observation, not a delivery or ownership grant",
+  "original_sources_unchanged": {
+    "docs/warrants/OW-WAR-0149/manifest.toml": "16186964cbc141ad92bff5cbc050afa5a29af76eb287389cf95332ac219634c4",
+    "docs/warrants/OW-WAR-0149/atoms/10-intent.md": "86025a25218203503878a4283b73c2c106b96d4efd719f9d5bc7005c0241a367",
+    "docs/warrants/OW-WAR-0149/atoms/20-basis.md": "3d4b7a1600414863a1295188c2dcd9fba6d33e463a8b411d2b8e08403b6ce234",
+    "docs/warrants/OW-WAR-0149/atoms/40-work-order.md": "48cc70d1f15fbbfc8b5ba9b6e58ab2768b7210ca320bc7b6f335455fc4a85afa",
+    "docs/warrants/OW-WAR-0149/atoms/45-milestones.yaml": "a372dd266a2aa621639d0f00c3ace4d41cb70c249533906af1614156db8f1ca2",
+    "docs/warrants/OW-WAR-0149/atoms/60-assurance.md": "8196a61b10f8b5836f3b93771d588b7b7534c3654598ecfffe8385f2f62abb12"
+  },
+  "entries": [
+    {
+      "path": "docs/warrants/OW-WAR-0149/atoms/40-work-order.md",
+      "title": "Shared adapter work order and participant boundaries",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003",
+        "OBL-004"
+      ],
+      "exists": true,
+      "sha256": "48cc70d1f15fbbfc8b5ba9b6e58ab2768b7210ca320bc7b6f335455fc4a85afa",
+      "id": "D-001"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0149/atoms/20-basis.md",
+      "title": "Shared adapter basis and participant reference constraints",
+      "obligations": [
+        "OBL-002",
+        "OBL-004"
+      ],
+      "exists": true,
+      "sha256": "3d4b7a1600414863a1295188c2dcd9fba6d33e463a8b411d2b8e08403b6ce234",
+      "id": "D-002"
+    },
+    {
+      "path": "docs/design/runtime-collector-enrollment.md",
+      "title": "Candidate collector enrollment and host responsibilities",
+      "obligations": [
+        "OBL-001",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "ff37f0c5203af874dd21bedaac0bd577a3aab7acf78ec04d3e9e0a210923bd8c",
+      "id": "D-003"
+    },
+    {
+      "path": "crates/openwarrant-core/src/document/runtime.rs",
+      "title": "SDK runtime receipt contract and native assessment",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "42751ab47c48c1251fd1c2b7fff2b771244767f5389bc9bf9e5bf0befb6da35e",
+      "id": "D-004"
+    },
+    {
+      "path": "crates/openwarrant-core/src/runtime_collector.rs",
+      "title": "SDK collector enrollment contract",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "6fd2f33273efc01e184a97730be0d68b2325354e16787025c5f9f1137be636b6",
+      "id": "D-005"
+    },
+    {
+      "path": "crates/openwarrant-core/src/runtime_collector/attribution.rs",
+      "title": "SDK attributable capture contract",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "99f61719df2be73e4ea27c1aac60c9d9e7c36806bb79e83ff5692ab3081c3e39",
+      "id": "D-006"
+    },
+    {
+      "path": "crates/openwarrant-compiler/src/runtime_basis.rs",
+      "title": "Assessment against the current compilation basis",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "db72b8f5b5e72c5176d4877f2e7def47bbc5a398853628704e20f4445bce336a",
+      "id": "D-007"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture.rs",
+      "title": "CLI capture and import entry point",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "c06909035759f5ee9ccbac196bf0977ed589a13a22100e6fd3651e0db45dddb7",
+      "id": "D-008"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/activated_verifier.rs",
+      "title": "Runtime capture implementation: activated_verifier",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "67968e2086370ba005a21d36c8005819d0f42081d1c990cd311148c50ed6eae5",
+      "id": "D-009"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/attributed.rs",
+      "title": "Runtime capture implementation: attributed",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "2c20dc24bb2598f1b8c7e5b740ed2e9722e53cfb61c48f885ec656a822f836bb",
+      "id": "D-010"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/binding.rs",
+      "title": "Runtime capture implementation: binding",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "214b253de39a33d5f1864535c951f845ad6bf8bc828dfe1488777dfa40309b1b",
+      "id": "D-011"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/blut_process.rs",
+      "title": "Runtime capture implementation: blut_process",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "186e9debdf426f61d10adb29a6ac8715bf3b122f48e7793d67c6ef0ec7993831",
+      "id": "D-012"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/collector_loading.rs",
+      "title": "Runtime capture implementation: collector_loading",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "8e59f3d419886640d4b5279b01fef2c8fc6a398196816facccbd55d4d1917f06",
+      "id": "D-013"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/collector_signature.rs",
+      "title": "Runtime capture implementation: collector_signature",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "2f1658b567cd0422a97098d4a45726e72f95e67d6c06ec65099fa2aa599e52ec",
+      "id": "D-014"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/contract_snapshot.rs",
+      "title": "Runtime capture implementation: contract_snapshot",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "e4c987b810ec7d8db8f829feaa1329c34379c3e023a5ecf342776815d6d7b4c6",
+      "id": "D-015"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/katana_process.rs",
+      "title": "Runtime capture implementation: katana_process",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "074683738abf30adbebf14ed492371690711bb9156484b367e9c7bac43c873ce",
+      "id": "D-016"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/native_host.rs",
+      "title": "Runtime capture implementation: native_host",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "0ac0d81a7b8693d1ad28305949b39b14f9143172374f49c08b5ae3951dd35d9d",
+      "id": "D-017"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/process.rs",
+      "title": "Runtime capture implementation: process",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "572b8eb4ba51cb4080f4106d107f6b79253327023ceee103f41bd7ed91e8fb3b",
+      "id": "D-018"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/protected_executable.rs",
+      "title": "Runtime capture implementation: protected_executable",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "532d746f4fdb478bd51c963ff19affc9d049cc020e9b5751ffdd51ff2540e89f",
+      "id": "D-019"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/protected_input.rs",
+      "title": "Runtime capture implementation: protected_input",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "de8f333c1607b61aa1d8d6109fb8a0083c11506e96b1c6f03954e5d16561be73",
+      "id": "D-020"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/protected_job.rs",
+      "title": "Runtime capture implementation: protected_job",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "ba92b8ea84cdc10ad96b827350afe62a859235e75c760a6635c323b201c00860",
+      "id": "D-021"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/recorded.rs",
+      "title": "Runtime capture implementation: recorded",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "49fb55180a56660f6c5af265e653ef79cf154313d975057f96cad78d48c9b8cd",
+      "id": "D-022"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/runtime_capture/selection.rs",
+      "title": "Runtime capture implementation: selection",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "e64b980ec46c0ae1626718d9a3058de10616e927a9b76cc61e804130e6253f83",
+      "id": "D-023"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/resolve/runtime.rs",
+      "title": "Runtime assessment connected to resolution",
+      "obligations": [
+        "OBL-001",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "760534e24e2224c61c2aa58e38c1b1f0396e36e72857a6710546581fe2d8214c",
+      "id": "D-024"
+    },
+    {
+      "path": "crates/openwarrant-cli/tests/runtime_capture.rs",
+      "title": "Public receipt and collector controls: runtime_capture",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "533f9ad79a67e8a9e7102fa2b49827a6b47700404573ba5c00f45ebc3d51cd95",
+      "id": "D-025"
+    },
+    {
+      "path": "crates/openwarrant-cli/tests/collector_loading.rs",
+      "title": "Public receipt and collector controls: collector_loading",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "2e3295abd11c973425f3fccbef12f9de595d270de6c09c65bd35af6a1c076525",
+      "id": "D-026"
+    },
+    {
+      "path": "crates/openwarrant-cli/tests/collector_signature.rs",
+      "title": "Public receipt and collector controls: collector_signature",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "exists": true,
+      "sha256": "174e3a1af9c00e75b901a8a1571ce72a5e09e4ad083e546692779eb505e4caba",
+      "id": "D-027"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0149/implementation/provider-participant-references.md",
+      "title": "Exact provider implementations, shared revision and actual participant responses",
+      "obligations": [
+        "OBL-002",
+        "OBL-004"
+      ],
+      "exists": false,
+      "sha256": null,
+      "id": "D-028"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0149/implementation/cross-project-qualification.md",
+      "title": "Real integration observations, independent findings and source/raw-evidence references",
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003",
+        "OBL-004"
+      ],
+      "exists": false,
+      "sha256": null,
+      "id": "D-029"
+    }
+  ],
+  "authorization_absent": true,
+  "resolution_absent": true
+}
