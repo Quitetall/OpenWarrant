@@ -150,8 +150,13 @@ python3 conformance/format/run.py --reader war -v 044      # one case, verbosely
   - `tracker.py` (10.5, 11, 12) for tracking and apply cases.
 - **Built-in profiles:** they are loaded from `schemas/format/1.0/profiles/`
   (7.6: the files are normative). A repository's own are `profiles/*.toml`.
-- **`--reader war`** has no adapter for tracking and apply cases yet. Those
-  cases are in `known-war.txt`.
+- **`--reader war`** dispatches a tracking case on its operation, one
+  method `War.track_<op>` each in `run.py`. `states` reads `war model
+  --json` and keeps the states of section 11.1 of the case's own records.
+  An operation with no method fails, and its cases are in `known-war.txt`.
+  A case's `acts/` is handed to a debug build of war as
+  `OPENWARRANT_CORPUS_ACTS`, the one place war takes an act as verified
+  without a signature; a release build has no such path.
 - **The gate:** plant `conformance/plants.d/183-format-corpus.sh` runs the
   war reader. It also proves that the runner fails when an expected file is
   changed.

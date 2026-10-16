@@ -89,9 +89,10 @@ pub fn act_of(p: &Pending) -> &'static str {
     match p {
         Pending::Authorize { .. } => "authorize",
         Pending::Resolve { .. } => "resolve",
-        Pending::Accept { .. } | Pending::AcceptRoadmap { .. } | Pending::AcceptStanding { .. } => {
-            "accept"
-        }
+        Pending::Accept { .. }
+        | Pending::AcceptRoadmap { .. }
+        | Pending::AcceptStanding { .. }
+        | Pending::AcceptSpec { .. } => "accept",
         Pending::RevokeStanding { .. } => "revoke",
         Pending::Correct { .. } => "correct",
         Pending::Invalidate { .. } => "invalidate",
@@ -110,7 +111,9 @@ pub fn target_of(p: &Pending) -> String {
             ..
         } => format!("{alias}/{deliverable_id}"),
         Pending::Invalidate { gate, .. } => gate.clone(),
-        Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => sign::target_of(p),
+        Pending::AcceptStanding { .. }
+        | Pending::RevokeStanding { .. }
+        | Pending::AcceptSpec { .. } => sign::target_of(p),
     }
 }
 
