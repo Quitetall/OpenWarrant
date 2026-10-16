@@ -1065,6 +1065,13 @@ impl ProfileRegistry {
             if crate::format_profile::is_format_profile(bytes) {
                 continue;
             }
+            // §7.5: a file in the shape of a Format 1.0 profile without its
+            // `format` key governs nothing, here or there; it is reported
+            // where Format 1.0 documents are read, never a fault of this
+            // registry.
+            if crate::format_profile::is_format_shaped_legacy(bytes) {
+                continue;
+            }
             // OW-WAR-0148 M6: a document type is read by its own parser.
             if let Some(document) = parse_document_file(file, bytes, &registry)? {
                 registry.documents.insert(document.name.clone(), document);

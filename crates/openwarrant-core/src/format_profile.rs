@@ -504,6 +504,34 @@ pub fn is_format_profile(bytes: &[u8]) -> bool {
         .is_some_and(|t| t.contains_key("format"))
 }
 
+/// The keys of 7.5 that no legacy profile file has: a file with one of them
+/// and no `format` key was written as a Format 1.0 profile and lacks the
+/// key that makes it one. (`[fields.<type>]` is one too: a legacy
+/// `[fields]` holds lists and flags, never a table per record type.)
+const FORMAT_ONLY_KEYS: [&str; 3] = ["frontmatter", "sections", "presets"];
+
+/// Whether `bytes` are a profile file written in the shape of 7.5 that does
+/// not declare `format` (a `[sections]` or `[fields.<type>]` table, ...).
+/// FORMAT-1.0 §7.5: "a profile file without that key is a legacy profile
+/// (section 14) and never governs a Format 1.0 document". Such a file is
+/// no legacy definition either, so the legacy registry does not read it
+/// (and does not refuse the repository over it): it governs nothing, and a
+/// document naming it reads `format.profile-unknown`.
+#[must_use]
+pub fn is_format_shaped_legacy(bytes: &[u8]) -> bool {
+    std::str::from_utf8(bytes)
+        .ok()
+        .and_then(|t| toml::from_str::<toml::Table>(t).ok())
+        .is_some_and(|t| {
+            let per_type_fields = t
+                .get("fields")
+                .and_then(toml::Value::as_table)
+                .is_some_and(|f| f.values().any(toml::Value::is_table));
+            !t.contains_key("format")
+                && (per_type_fields || FORMAT_ONLY_KEYS.iter().any(|k| t.contains_key(*k)))
+        })
+}
+
 fn is_word(s: &str) -> bool {
     let mut c = s.chars();
     c.next().is_some_and(|c| c.is_ascii_lowercase())

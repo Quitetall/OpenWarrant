@@ -1970,6 +1970,23 @@ fn items(
             }
             None => (None, None),
         };
+        // Appendix A: `level = "observed" | "independent" | "signed"`; a
+        // bracketed word after the date that is none of them (`[claimed]`,
+        // which writes none, or `[verified]`) is no level, and the item
+        // line is refused rather than read at a level it does not name.
+        if level.is_none()
+            && let Some(unknown) = done_on.as_deref().and_then(unknown_level)
+        {
+            faults.push((
+                "format.item",
+                n,
+                format!(
+                    "the done suffix's tick level `[{unknown}]` is not one of observed, \
+                     independent or signed (a `claimed` tick writes none, §11.4)"
+                ),
+            ));
+            continue;
+        }
         unit.items.push(Item {
             implements: crate::relation::implements_phrases(&it.text),
             id: it.id,
@@ -1985,6 +2002,16 @@ fn items(
             end,
         });
     }
+}
+
+/// The bracketed word after a done suffix's date that is not a tick level
+/// (Appendix A), if the date part ends with one: `claimed` in
+/// `2026-10-12 [claimed]`.
+fn unknown_level(done_on: &str) -> Option<&str> {
+    let inner = done_on.trim_end().strip_suffix(']')?;
+    let open = inner.rfind(" [")?;
+    let word = &inner[open + 2..];
+    (!word.is_empty() && !word.contains(' ')).then_some(word)
 }
 
 // ---- content digest (§9) ---------------------------------------------------

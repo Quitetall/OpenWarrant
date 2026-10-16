@@ -198,6 +198,28 @@ pub fn load(repo: &Repository) -> FormatDocs {
             ),
         });
     }
+    // §7.5: a profile file written in 7.5's shape without `format` is a
+    // legacy profile and never governs a Format 1.0 document: said once,
+    // as a warning, beside its documents' `format.profile-unknown`.
+    for p in sorted_entries(&repo.root.join("profiles")) {
+        if p.extension() == Some("toml")
+            && crate::vfs::read(&p).is_ok_and(|b| format_profile::is_format_shaped_legacy(&b))
+        {
+            out.faults.push(Fault {
+                outcome: Outcome::Warning,
+                rule: "profile.format-missing",
+                file: repo.relative(&p),
+                line: 1,
+                message: format!(
+                    "{} has a Format 1.0 profile's keys and no `format = \"openwarrant/1.0\"`: \
+                     without it the file is a legacy profile (FORMAT-1.0 §7.5) and governs no \
+                     Format 1.0 document, so a document naming it reads \
+                     `format.profile-unknown`. Add the key if it is meant to govern them",
+                    repo.relative(&p)
+                ),
+            });
+        }
+    }
     for (place, dir) in [
         (Place::Warrant, repo.warrants_dir()),
         (Place::Ticket, tickets_dir(repo)),
