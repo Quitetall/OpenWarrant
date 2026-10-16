@@ -98,5 +98,83 @@ class SourceExpansionTests(unittest.TestCase):
             self.assertEqual(list(root.iterdir()),[])
 
 
-if __name__=='__main__':unittest.main()
+class SourceCapsuleTests(unittest.TestCase):
+    def test_compressed_source_limits_corruption_and_profile_confusion_refuse(self):
+        import gzip
+        from unittest.mock import patch
+        from install_check import source_tar
+        self.assertEqual(source_tar(fixture(),{'schema':'oh.war/candidate-bundle/v1'}),fixture()['sdk-source.tar'])
+        for kind,message in [('expanded','Expanded SDK source size limit'),('truncated','Malformed compressed SDK source'),('garbage','Malformed compressed SDK source'),('ambiguous','Ambiguous'),('future','Unsupported candidate')]:
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as tmp,patch('install_check.LIMIT',32768):
+                files=fixture();files.pop('MANIFEST.json');old=files.pop('sdk-source.tar')
+                source=gzip.compress(b'x'*65536 if kind=='expanded' else old,mtime=0)
+                if kind=='truncated':source=source[:-4]
+                if kind=='garbage':source=b'not gzip'
+                files['sdk-source.tar.gz']=source
+                if kind=='ambiguous':files['sdk-source.tar']=old
+                manifest={'schema':'oh.war/candidate-bundle/v3' if kind=='future' else 'oh.war/candidate-bundle/v2','qualified':False,'promotable':False,
+                          'files':{p:{'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data),'executable':p=='bin/war'} for p,data in files.items()}}
+                files['MANIFEST.json']=json.dumps(manifest).encode();data=archive(files)
+                path=Path(tmp)/'capsule.tgz';path.write_bytes(data)
+                with self.assertRaisesRegex(ValueError,message):verify(path,hashlib.sha256(data).hexdigest())
+                self.assertEqual([p.name for p in Path(tmp).iterdir()],['capsule.tgz'])
 
+    def test_full_source_fits_without_raising_existing_limits(self):
+        import os
+        import subprocess
+        from unittest.mock import patch
+        import package
+        import install_check
+        self.assertEqual(package.LIMIT,256*1024*1024)
+        self.assertEqual(install_check.LIMIT,256*1024*1024)
+        with tempfile.TemporaryDirectory() as temporary:
+            base=Path(temporary);root=base/'repository';root.mkdir()
+            contents={
+                'LICENSE':b'MIT test fixture notice\n',
+                'Cargo.toml':b'[package]\nname="package-fixture"\nversion="0.1.0"\nedition="2021"\nlicense="MIT"\n',
+                'src/lib.rs':b'pub fn fixture() {}\n',
+                'tool.sh':b'#!/bin/sh\nexit 0\n',
+                'padding.txt':b'x'*(70*1024),
+            }
+            for path in [
+                'crates/openwarrant-core/Cargo.toml',
+                'conformance/sdk/document/minimal-rc3.md',
+                '.claude/skills/openwarrant/LICENSE.mattpocock',
+                '.claude/skills/openwarrant/references/sdk-artifacts.md',
+                'docs/sas/drafts/1.0.0-rc.3/format-contract.md',
+                'docs/sas/drafts/1.0.0-rc.3/source-set.json',
+                'docs/sas/drafts/1.0.0-rc.2/format-contract.md',
+                'conformance/sdk/cli/README.md',
+                'conformance/skills/check_skills.py',
+            ]:contents[path]=b'synthetic source packaging fixture\n'
+            contents['.claude/skills/openwarrant/references/sdk-artifacts.md']=b'See ../../../../conformance/sdk/cli/README.md\n'
+            contents['docs/sas/drafts/1.0.0-rc.3/format-contract.md']=b'See ../1.0.0-rc.2/format-contract.md\n'
+            contents['docs/sas/drafts/1.0.0-rc.3/sdk-contract.md']=b'See ../../../../conformance/sdk/cli/README.md\n'
+            for name,data in contents.items():
+                path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)
+                if name=='tool.sh':path.chmod(0o755)
+            (root/'context-link').symlink_to('src/lib.rs')
+            subprocess.run(['cargo','generate-lockfile','--offline'],cwd=root,check=True,capture_output=True,timeout=30)
+            for args in [
+                ['init','-q','--template=','--initial-branch=fixture'],['add','.'],
+                ['-c','user.name=fixture','-c','user.email=fixture@invalid','-c','commit.gpgSign=false','-c','core.hooksPath=/dev/null','commit','-qm','fixture'],
+            ]:subprocess.run(['git',*args],cwd=root,check=True,capture_output=True,timeout=30)
+            binary=base/'war';binary.write_bytes(b'#!/bin/sh\nprintf "war fixture\\n"\n#'+b'x'*(140*1024)+b'\n');binary.chmod(0o700)
+            expected={p.decode(): (root/os.fsdecode(p)).read_bytes() for p in subprocess.check_output(['git','ls-files','-z'],cwd=root,timeout=10).split(b'\0') if p}
+            with patch('package.ROOT',root),patch('package.LIMIT',200*1024),patch('install_check.LIMIT',200*1024):
+                result=package.bundle(binary,base/'output','fixture')
+                data=result.read_bytes();files,manifest=install_check.verify(result,hashlib.sha256(data).hexdigest())
+                self.assertEqual(manifest['schema'],'oh.war/candidate-bundle/v2')
+                self.assertFalse(manifest['qualified']);self.assertFalse(manifest['promotable'])
+                extracted=base/'source';extracted.mkdir()
+                source=install_check.source_tar(files,manifest)
+                self.assertEqual(source,subprocess.check_output(['git','archive','--format=tar','HEAD'],cwd=root,timeout=10))
+                install_check.extract_source(source,extracted)
+                actual={p.relative_to(extracted).as_posix():p.read_bytes() for p in extracted.rglob('*') if p.is_file()}
+                self.assertEqual(actual,expected)
+                self.assertTrue((extracted/'context-link').is_symlink())
+                self.assertEqual(os.readlink(extracted/'context-link'),'src/lib.rs')
+                self.assertTrue((extracted/'tool.sh').stat().st_mode & 0o111)
+
+
+if __name__=='__main__':unittest.main()
