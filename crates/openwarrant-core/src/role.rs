@@ -1927,7 +1927,7 @@ mod tests {
         let mut with = legacy;
         with.push((
             "profiles/runbook.toml",
-            b"schema = \"oh.war/profile/v1\"\nname = \"runbook\"\nform = \"work\"\n\
+            b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"runbook\"\nform = \"work\"\n\
 [sections]\nrequired = [\"Steps\"]\n"
                 .as_slice(),
         ));

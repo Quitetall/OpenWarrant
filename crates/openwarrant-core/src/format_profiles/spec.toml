@@ -1,18 +1,24 @@
-# Built-in Format 1.0 profile `spec` (FORMAT-1.0 sections 4.5, 7.6).
-#
-# What only the root SPEC.md must have (`version`, Purpose and Scope) is
-# section 4.5's rule over that file, not a declaration here: a part
-# (`spec/<area>.md`) carries none of it.
+# SPDX-License-Identifier: Apache-2.0
+# A built-in profile of OpenWarrant Format 1.0 (docs/format/FORMAT-1.0.md
+# section 7.6), as profile data (section 7.5). Normative: this file is the
+# profile; where it and the prose disagree, the prose wins and this file is
+# the defect.
 schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
 name = "spec"
 form = "document"
-note = "What the system is and must do: SPEC.md and its parts."
+note = "A repository's specification: SPEC.md and its parts spec/<area>.md (section 4.5)."
 capabilities = ["structure", "links", "acceptance"]
 
+# Section 4.5: `version` is REQUIRED on SPEC.md and parts carry none; Purpose
+# and Scope are required on SPEC.md and parts require none. One profile
+# serves both files, so those two rules are the core's (4.5), not this file's.
 [frontmatter]
+required = []
 optional = ["version"]
 
 [sections]
+required = []
 optional = ["Purpose", "Scope", "Glossary", "Context"]
 
 [records]
@@ -20,12 +26,15 @@ types = ["requirement", "constraint", "outcome", "decision", "option", "conseque
 
 [fields.requirement]
 statement = { required = true, shape = "text" }
-rationale = { shape = "text" }
-verify = { shape = "text" }
-priority = { shape = "enum", values = ["must", "should", "may"] }
+rationale = { required = false, shape = "text" }
+verify = { required = false, shape = "text" }
+priority = { required = false, shape = "enum", values = ["must", "should", "may"] }
 
 [fields.constraint]
 statement = { required = true, shape = "text" }
-rationale = { shape = "text" }
-verify = { shape = "text" }
-priority = { shape = "enum", values = ["must", "should", "may"] }
+rationale = { required = false, shape = "text" }
+verify = { required = false, shape = "text" }
+priority = { required = false, shape = "enum", values = ["must", "should", "may"] }
+
+[relations]
+allow = ["part_of", "depends_on", "implements", "constrains", "evaluates", "supersedes", "supports", "refutes", "trades_off_against", "causes", "qualifies", "selected_over"]

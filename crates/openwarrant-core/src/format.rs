@@ -123,6 +123,17 @@ pub fn type_fields(record_type: &str) -> Option<&'static [&'static str]> {
     }
 }
 
+/// The record types the core defines (§3.4, §3.7, §3.8, §4.1, §12).
+pub const CORE_TYPES: [&str; 7] = [
+    "section",
+    "item",
+    "obligation",
+    "milestone",
+    "stage",
+    "check",
+    "kpi",
+];
+
 /// §3.7: the scope kinds an obligation may name.
 pub const SCOPE_KINDS: [&str; 9] = [
     "single_instance",
@@ -141,8 +152,8 @@ pub const SCOPE_KINDS: [&str; 9] = [
 pub const TRIGGERS: [&str; 4] = ["manual", "done", "commit", "pr.merged"];
 
 /// The declaration of a core type's field (§3.7, §12): whether it is
-/// REQUIRED and its shape. `on` and a kpi's `target` have shapes no
-/// profile shape names; [`core_shape`] checks them.
+/// REQUIRED and its shape. A check's `on` has a shape no profile shape
+/// names; [`core_shape`] checks it.
 #[must_use]
 pub fn core_fields(record_type: &str) -> Option<BTreeMap<String, FieldDecl>> {
     let names = type_fields(record_type)?;
@@ -165,7 +176,8 @@ pub fn core_fields(record_type: &str) -> Option<BTreeMap<String, FieldDecl>> {
             ("obligation", "scope_kind") => e(&SCOPE_KINDS),
             ("obligation", "criticality") => e(&["required", "advisory"]),
             ("check" | "kpi", "timeout") => plain(false, Shape::Int),
-            ("check" | "kpi", "gating" | "reopen") => e(&["true", "false"]),
+            ("check" | "kpi", "gating" | "reopen") => plain(false, Shape::Bool),
+            ("kpi", "target") => plain(false, Shape::Number),
             ("kpi", "direction") => FieldDecl {
                 required: true,
                 ..e(&["min", "max"])
@@ -178,8 +190,7 @@ pub fn core_fields(record_type: &str) -> Option<BTreeMap<String, FieldDecl>> {
 }
 
 /// §12: why a core field's value with a shape of its own is refused: a
-/// check's `on` (triggers, comma-separated) and a kpi's `target` (a
-/// number).
+/// check's `on` (triggers, comma-separated).
 #[must_use]
 pub fn core_shape(record_type: &str, field: &str, value: &str) -> Option<String> {
     match (record_type, field) {
@@ -193,9 +204,6 @@ pub fn core_shape(record_type: &str, field: &str, value: &str) -> Option<String>
                      ci:<name>, schedule:<five-field cron>, or a dotted extension trigger"
                 )
             }),
-        ("kpi", "target") => {
-            (!is_number(value.trim())).then(|| format!("{value:?} is not a number"))
-        }
         _ => None,
     }
 }
@@ -214,15 +222,6 @@ fn is_trigger(t: &str) -> bool {
         return cron.split_whitespace().count() == 5;
     }
     is_dotted(t)
-}
-
-fn is_number(v: &str) -> bool {
-    let v = v.strip_prefix('-').unwrap_or(v);
-    let (int, frac) = v.split_once('.').unwrap_or((v, "0"));
-    !int.is_empty()
-        && !frac.is_empty()
-        && int.bytes().all(|b| b.is_ascii_digit())
-        && frac.bytes().all(|b| b.is_ascii_digit())
 }
 
 /// Appendix A `semver`: SemVer 2.0.0's `MAJOR.MINOR.PATCH`, then an
@@ -253,7 +252,15 @@ pub fn is_semver(v: &str) -> bool {
 }
 
 /// Appendix D: the registered extension prefixes.
-pub const REGISTERED_PREFIXES: [&str; 6] = ["kf", "katana", "liminal", "blut", "contractor", "x"];
+pub const REGISTERED_PREFIXES: [&str; 7] = [
+    "kf",
+    "katana",
+    "liminal",
+    "blut",
+    "contractor",
+    "legacy",
+    "x",
+];
 
 /// Appendix D, §7.1: whether a dotted name's prefix is registered or a
 /// reverse domain name. A name of three or more labels whose first is a
@@ -271,7 +278,7 @@ pub fn prefix_registered(name: &str) -> bool {
 /// §13.2: every rule id of Format 1.0, with what a finding of it does.
 /// A reader reports nothing under another id; the test below holds this
 /// list to the text of §13.2.
-pub const RULES: [(&str, Outcome); 46] = [
+pub const RULES: [(&str, Outcome); 47] = [
     ("format.encoding", Outcome::Refusal),
     ("format.frontmatter", Outcome::Refusal),
     ("format.key-unknown", Outcome::Refusal),
@@ -307,6 +314,7 @@ pub const RULES: [(&str, Outcome); 46] = [
     ("format.requires-unknown", Outcome::Unknown),
     ("format.profile-unknown", Outcome::Unknown),
     ("work.claim-remote-unreachable", Outcome::Unknown),
+    ("work.journal-newer", Outcome::Unknown),
     ("check.unknown", Outcome::Unknown),
     ("format.target-unknown", Outcome::Warning),
     ("format.refusal-missing", Outcome::Warning),
@@ -1195,6 +1203,10 @@ pub fn parse_with(bytes: &[u8], profiles: &Profiles, path: &str) -> Document {
     }
     // §7.5: a key the profile requires (and §4.5: `version` on SPEC.md).
     let root_spec = path == "SPEC.md" && is_profile(profile, "spec");
+    // §4.5: a part needs no `version`, and one it carries is ignored.
+    if is_profile(profile, "spec") && !path.is_empty() && !root_spec {
+        doc.fields.remove("version");
+    }
     let mut required_keys: Vec<&str> = profile
         .map(|p| p.frontmatter_required.iter().map(String::as_str).collect())
         .unwrap_or_default();
@@ -1444,7 +1456,7 @@ pub fn parse_with(bytes: &[u8], profiles: &Profiles, path: &str) -> Document {
             field_rules(&unit, declared, &mut faults);
         }
         if is_profile(profile, "spec") && record_type != "section" {
-            spec_warnings(&unit, &mut warnings);
+            spec_warnings(&unit, text, &mut warnings);
         }
         for (name, line) in &unit.field_lines {
             if is_dotted(name) && !prefix_registered(name) {
@@ -1458,6 +1470,24 @@ pub fn parse_with(bytes: &[u8], profiles: &Profiles, path: &str) -> Document {
         }
         if is_dotted(&record_type) && !prefix_registered(&record_type) {
             warnings.push(prefix_finding(&record_type, *n));
+        }
+        // §7.5: a closed set of record types.
+        if let Some(p) = profile
+            && p.records_closed
+            && record_type != "section"
+            && !is_dotted(&record_type)
+            && !CORE_TYPES.contains(&record_type.as_str())
+            && !p.record_types.contains(&record_type)
+        {
+            faults.push((
+                "format.key-unknown",
+                *n,
+                format!(
+                    "`{record_type}` is a record type profile `{}` does not declare, and its \
+                     types are closed; an extension type is dotted (`x.{record_type}`)",
+                    p.name
+                ),
+            ));
         }
         // §7.5: a closed set of sections.
         if record_type == "section"
@@ -1578,7 +1608,15 @@ fn declared_fields(
     let mut out = core.unwrap_or_default();
     for (name, d) in own.into_iter().flatten() {
         match out.get_mut(name) {
-            Some(c) => c.required |= d.required,
+            // A profile narrows a core field: it may make it REQUIRED, and
+            // give `text` a stricter shape, never loosen one.
+            Some(c) => {
+                c.required |= d.required;
+                if c.shape == Shape::Text {
+                    c.shape = d.shape;
+                    c.values.clone_from(&d.values);
+                }
+            }
             None => {
                 out.insert(name.clone(), d.clone());
             }
@@ -1639,14 +1677,14 @@ fn field_rules(
 /// The longest `statement` a specification's record SHOULD carry (§4.5).
 pub const STATEMENT_MAX: usize = 300;
 
-/// Whether `text` holds more than one sentence: a `.`, `!` or `?` followed
-/// by whitespace and more text.
+/// Whether `text` holds more than one sentence (§4.5): a `.`, `!` or `?`
+/// followed by a space before its end.
 fn sentences_over_one(text: &str) -> bool {
     let t = text.trim();
     let b = t.as_bytes();
     b.iter().enumerate().any(|(i, c)| {
         matches!(c, b'.' | b'!' | b'?')
-            && b.get(i + 1).is_some_and(u8::is_ascii_whitespace)
+            && b.get(i + 1) == Some(&b' ')
             && !t[i + 1..].trim().is_empty()
     })
 }
@@ -1655,13 +1693,10 @@ fn sentences_over_one(text: &str) -> bool {
 /// specification: a `statement` of one sentence and at most
 /// [`STATEMENT_MAX`] bytes (`context.statement-shape`), and no citation by
 /// `§` (`context.section-ref`).
-fn spec_warnings(unit: &Unit, warnings: &mut Vec<(&'static str, usize, String)>) {
+fn spec_warnings(unit: &Unit, text: &str, warnings: &mut Vec<(&'static str, usize, String)>) {
     if let Some(st) = unit.fields.get("statement").and_then(FieldValue::as_str) {
-        let line = unit
-            .field_lines
-            .get("statement")
-            .copied()
-            .unwrap_or(unit.line);
+        // §4.5: at the record's heading line.
+        let line = unit.line;
         if st.len() > STATEMENT_MAX || sentences_over_one(st) {
             warnings.push((
                 "context.statement-shape",
@@ -1680,18 +1715,15 @@ fn spec_warnings(unit: &Unit, warnings: &mut Vec<(&'static str, usize, String)>)
             ));
         }
     }
-    let cites = unit.title.contains('\u{a7}')
-        || unit.body.contains('\u{a7}')
-        || unit
-            .fields
-            .values()
-            .chain(unit.ext.values())
-            .flat_map(values_of)
-            .any(|v| v.contains('\u{a7}'));
-    if cites {
+    // §4.5: at the line the `§` is on.
+    let span = text.get(unit.start..unit.end).unwrap_or_default();
+    let cites = span
+        .find('\u{a7}')
+        .map(|at| unit.line + span[..at].matches('\n').count());
+    if let Some(line) = cites {
         warnings.push((
             "context.section-ref",
-            unit.line,
+            line,
             format!(
                 "{} cites by `\u{a7}`; a record of a specification is read alone, so it cites \
                  another by its id",
@@ -1708,8 +1740,8 @@ fn prefix_finding(name: &str, line: usize) -> (&'static str, usize, String) {
         "format.prefix-unregistered",
         line,
         format!(
-            "`{name}`: its prefix is not registered (kf, katana, liminal, blut, contractor, x; \
-             Appendix D) nor a reverse domain name"
+            "`{name}`: its prefix is not registered (kf, katana, liminal, blut, contractor, \
+             legacy, x; Appendix D) nor a reverse domain name"
         ),
     )
 }
@@ -1824,17 +1856,14 @@ fn attributes(
             i += 1;
             continue;
         }
-        // A relation line: `<kind> <target>[, <target>]…`. A line whose first
-        // word is a core or dotted kind is one whatever follows, so a target
-        // that does not parse is `format.relation-target`, not prose (§3.6).
+        // §3.5: otherwise a lowercase word or a dotted name, one space and
+        // text is a relation line, `<kind> <target>[, <target>]…`, whatever
+        // follows: its kind is checked (`format.relation-kind`), then each
+        // target (`format.relation-target`), so neither is read as prose.
         if let Some((kind, rest)) = line.split_once(' ')
             && is_name(kind)
-            && (is_dotted(kind)
-                || CoreKind::parse(kind).is_some()
-                || rest
-                    .trim_end_matches([' ', '\t'])
-                    .split(", ")
-                    .all(|t| !t.is_empty() && !t.contains(char::is_whitespace)))
+            && !rest.starts_with(' ')
+            && !rest.trim_end_matches([' ', '\t']).is_empty()
         {
             if !(is_dotted(kind) || CoreKind::parse(kind).is_some()) {
                 faults.push((
@@ -2143,7 +2172,7 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
                 5,
             ),
             (
-                "---\nformat: openwarrant/1.0\nprofile: p\n---\n## R-1 · note — t\nnot an attribute\n",
+                "---\nformat: openwarrant/1.0\nprofile: p\n---\n## R-1 · note — t\nNot an attribute\n",
                 "format.attribute",
                 6,
             ),
@@ -2589,17 +2618,30 @@ uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4e\nsummary: s\n---\n# T\n\n## Intent\n\
             "SPEC.md",
         );
         assert!(!w.refused(), "{:?}", rules(&w));
-        assert!(has(&w, "context.statement-shape", 17, Outcome::Warning));
-        assert!(has(&w, "context.statement-shape", 20, Outcome::Warning));
-        assert!(has(&w, "context.section-ref", 22, Outcome::Warning));
-        assert!(!has(&ok, "context.statement-shape", 17, Outcome::Warning));
+        // statement-shape at the heading line; section-ref at the `§`'s.
+        assert!(has(&w, "context.statement-shape", 16, Outcome::Warning));
+        assert!(has(&w, "context.statement-shape", 19, Outcome::Warning));
+        assert!(has(&w, "context.section-ref", 23, Outcome::Warning));
+        assert!(
+            !ok.findings
+                .iter()
+                .any(|f| f.rule == "context.statement-shape")
+        );
+        // A part's `version` is accepted and ignored.
+        let part_v = parse_with(
+            b"---\nformat: openwarrant/1.0\nprofile: spec\nversion: 9.9.9\npart_of: doc:SPEC.md\n---\n# P\n",
+            builtin_profiles(),
+            "docs/records/spec/p.md",
+        );
+        assert_eq!(rules(&part_v), vec![]);
+        assert!(!part_v.fields.contains_key("version"));
     }
 
     #[test]
     fn profile_data_is_enforced() {
         let files: Vec<(&str, &[u8])> = vec![(
             "profiles/runbook.toml",
-            b"schema = \"oh.war/profile/v1\"\nname = \"runbook\"\nform = \"document\"\n\
+            b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"runbook\"\nform = \"document\"\n\
 [frontmatter]\nrequired = [\"service\"]\noptional = [\"owner\"]\n\
 [sections]\nrequired = [\"Steps\"]\noptional = [\"Rollback\"]\nclosed = true\n\
 [fields.step]\ncommand = { required = true, shape = \"line\" }\ntimeout = { shape = \"int\" }\n",
@@ -2666,7 +2708,7 @@ uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4e\nsummary: s\n---\n# T\n\n## Intent\n\
         // A refused profile file: the same, never its built-in namesake.
         let bad = Profiles::load(vec![(
             "profiles/adr.toml",
-            b"schema = \"oh.war/profile/v1\"\nname = \"adr\"\nform = \"document\"\n[sections]\nrequired = [\"Context\"]\n".as_slice(),
+            b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"adr\"\nform = \"document\"\n[sections]\nrequired = [\"Context\"]\n".as_slice(),
         )]);
         let d = parse_with(
             b"---\nformat: openwarrant/1.0\nprofile: adr\n---\n",
@@ -2763,6 +2805,51 @@ uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4e\nsummary: s\n---\n# T\n\n## Intent\n\
         ] {
             assert!(RULES.iter().any(|(r, _)| *r == rule), "{rule}");
         }
+    }
+
+    #[test]
+    fn closed_record_types_and_relation_lines() {
+        let ps = Profiles::load(vec![(
+            "profiles/runbook.toml",
+            b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"runbook\"\nform = \"document\"\n\
+[records]\ntypes = [\"step\"]\nclosed = true\n"
+                .as_slice(),
+        )]);
+        let head = "---\nformat: openwarrant/1.0\nprofile: runbook\n---\n";
+        let ok = parse_with(
+            format!("{head}## S-1 \u{b7} step \u{2014} t\n\n## X-1 \u{b7} x.note \u{2014} t\n\n## C-1 \u{b7} check \u{2014} t\nrun: x\n").as_bytes(),
+            &ps,
+            "docs/records/ops/r.md",
+        );
+        assert_eq!(rules(&ok), vec![]);
+        let bad = parse_with(
+            format!("{head}## O-1 \u{b7} other \u{2014} t\n").as_bytes(),
+            &ps,
+            "docs/records/ops/r.md",
+        );
+        assert_eq!(rules(&bad), vec![("format.key-unknown", 5)]);
+        // Without `closed`, any type is admitted (prd declares none).
+        assert_eq!(
+            rules(&parse(
+                format!("{DOC}## O-1 \u{b7} other \u{2014} t\n").as_bytes()
+            )),
+            vec![]
+        );
+        // §3.5: a lowercase word, a space and text is a relation line whose
+        // kind is checked; anything else is format.attribute.
+        let kind = parse(format!("{DOC}## R-1 \u{b7} note \u{2014} t\nblocks REQ-1\n").as_bytes());
+        assert_eq!(rules(&kind), vec![("format.relation-kind", 6)]);
+        let prose = parse(
+            format!("{DOC}## R-1 \u{b7} note \u{2014} t\nblocks the rule above\n").as_bytes(),
+        );
+        assert_eq!(rules(&prose), vec![("format.relation-kind", 6)]);
+        let attr = parse(format!("{DOC}## R-1 \u{b7} note \u{2014} t\nBlocks REQ-1\n").as_bytes());
+        assert_eq!(rules(&attr), vec![("format.attribute", 6)]);
+        // `legacy` is a registered prefix.
+        let legacy = parse(
+            format!("{DOC}## R-1 \u{b7} note \u{2014} t\nlegacy.id: WAR-SAS-101.1\n").as_bytes(),
+        );
+        assert_eq!(rules(&legacy), vec![]);
     }
 
     #[test]

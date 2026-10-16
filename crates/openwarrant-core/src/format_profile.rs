@@ -9,11 +9,10 @@
 //! the contract and working forms of a Warrant profile, and the document
 //! types of OW-WAR-0148. Those files read exactly as before, and they never
 //! govern a Format 1.0 document. A file is a Format 1.0 profile
-//! ([`is_format_profile`]) when it declares `form = "work"`, or a key only
-//! section 7.5 defines (`[frontmatter]`, `[sections]`, `[[presets]]`, a
-//! `[fields.<type>]` table, `extends` on a document form, or the `checks`
-//! capability); the legacy registry skips such a file, and this module
-//! reads it with every key closed (`deny_unknown_fields`).
+//! ([`is_format_profile`]) when it declares `format` (7.5: `format =
+//! "openwarrant/1.0"`); the legacy registry skips such a file, and this
+//! module reads it with every key closed (`deny_unknown_fields`). A file
+//! without `format` is a legacy profile (section 14).
 //!
 //! # Built-ins
 //!
@@ -54,7 +53,8 @@ pub const CAPABILITIES: [&str; 10] = [
     "resolution",
 ];
 
-/// 7.6: a capability's prerequisites, `(capability, needs)`.
+/// 7.6: a capability's prerequisites, `(capability, needs)`, besides
+/// `structure`, which every other capability needs.
 pub const PREREQUISITES: [(&str, &str); 3] = [
     ("verification", "evidence"),
     ("resolution", "authorization"),
@@ -81,7 +81,10 @@ pub const FIXED_STATES: [&str; 13] = [
 /// 10.4: the built-in presets, which no profile may redefine.
 pub const BUILTIN_PRESETS: [&str; 5] = ["agent", "agent.min", "human", "review", "resume"];
 
-/// The built-in profiles of 7.6, as `(name, file bytes)`.
+/// The built-in profiles of 7.6, as `(name, file bytes)`. Copies of the
+/// normative files at `schemas/format/1.0/profiles/` (#295), with draft 3
+/// revision 1's `format = "openwarrant/1.0"` and a kpi `target` of shape
+/// `number`; once those files land, these point at them.
 const BUILTIN: [(&str, &str); 11] = [
     ("adr", include_str!("format_profiles/adr.toml")),
     (
@@ -129,6 +132,8 @@ pub enum Shape {
     Text,
     Line,
     Int,
+    Number,
+    Bool,
     Id,
     Ids,
     Gate,
@@ -142,6 +147,8 @@ impl Shape {
             "text" => Self::Text,
             "line" => Self::Line,
             "int" => Self::Int,
+            "number" => Self::Number,
+            "bool" => Self::Bool,
             "id" => Self::Id,
             "ids" => Self::Ids,
             "gate" => Self::Gate,
@@ -157,6 +164,8 @@ impl Shape {
             Self::Text => "text",
             Self::Line => "line",
             Self::Int => "int",
+            Self::Number => "number",
+            Self::Bool => "bool",
             Self::Id => "id",
             Self::Ids => "ids",
             Self::Gate => "gate",
@@ -183,11 +192,13 @@ impl FieldDecl {
             Shape::Text => true,
             Shape::Line => !value.contains('\n'),
             Shape::Int => is_int(value),
+            Shape::Number => is_number(value),
+            Shape::Bool => matches!(value, "true" | "false"),
             Shape::Id => crate::format::parse_target(value.trim()).is_some(),
             Shape::Ids => value
-                .split(',')
+                .split(", ")
                 .all(|t| crate::format::parse_target(t.trim()).is_some()),
-            Shape::Gate => value.split(',').all(|g| is_gate_uri(g.trim())),
+            Shape::Gate => value.split(", ").all(|g| is_gate_uri(g.trim())),
             Shape::Date => is_date(value),
             Shape::Enum => self.values.iter().any(|v| v == value),
         };
@@ -195,6 +206,8 @@ impl FieldDecl {
             Shape::Enum => format!("{value:?} is not one of {}", self.values.join(", ")),
             Shape::Line => "a `line` field holds one line".to_owned(),
             Shape::Int => format!("{value:?} is not an integer"),
+            Shape::Number => format!("{value:?} is not a number"),
+            Shape::Bool => format!("{value:?} is not `true` or `false`"),
             Shape::Id => format!("{value:?} is not an id (section 5)"),
             Shape::Ids => format!("{value:?} is not a comma-separated list of ids (section 5)"),
             Shape::Gate => format!("{value:?} is not `gate://<id>@<version>`, comma-separated"),
@@ -207,6 +220,15 @@ impl FieldDecl {
 fn is_int(v: &str) -> bool {
     let d = v.strip_prefix('-').unwrap_or(v);
     !d.is_empty() && d.bytes().all(|b| b.is_ascii_digit())
+}
+
+/// 7.5 `number`: an `int`, optionally followed by `.` and digits.
+#[must_use]
+pub fn is_number(v: &str) -> bool {
+    match v.split_once('.') {
+        None => is_int(v),
+        Some((i, f)) => is_int(i) && !f.is_empty() && f.bytes().all(|b| b.is_ascii_digit()),
+    }
 }
 
 /// Appendix A `date`: `YYYY-MM-DD`, digits only.
@@ -299,6 +321,9 @@ pub struct Profile {
     pub sections_optional: Vec<String>,
     pub sections_closed: bool,
     pub record_types: Vec<String>,
+    /// `[records] closed = true`: an undotted type neither the core nor
+    /// `record_types` names is refused (`format.key-unknown`).
+    pub records_closed: bool,
     /// Per record type, per field.
     pub fields: BTreeMap<String, BTreeMap<String, FieldDecl>>,
     pub relations_allow: Vec<String>,
@@ -336,6 +361,7 @@ impl Profile {
 #[serde(deny_unknown_fields)]
 struct File {
     schema: String,
+    format: String,
     name: String,
     #[serde(default)]
     extends: Option<String>,
@@ -388,6 +414,8 @@ struct SectionsFile {
 struct RecordsFile {
     #[serde(default)]
     types: Vec<String>,
+    #[serde(default)]
+    closed: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -471,26 +499,10 @@ pub const INVALID_RULE: &str = "profile.invalid";
 /// one: the legacy reader refuses it as it always did.
 #[must_use]
 pub fn is_format_profile(bytes: &[u8]) -> bool {
-    let Some(table) = std::str::from_utf8(bytes)
+    std::str::from_utf8(bytes)
         .ok()
         .and_then(|t| toml::from_str::<toml::Table>(t).ok())
-    else {
-        return false;
-    };
-    let form = table.get("form").and_then(toml::Value::as_str);
-    form == Some("work")
-        || ["frontmatter", "sections", "presets"]
-            .iter()
-            .any(|k| table.contains_key(*k))
-        || table
-            .get("fields")
-            .and_then(toml::Value::as_table)
-            .is_some_and(|f| f.values().any(toml::Value::is_table))
-        || (form == Some("document") && table.contains_key("extends"))
-        || table
-            .get("capabilities")
-            .and_then(toml::Value::as_array)
-            .is_some_and(|a| a.iter().any(|v| v.as_str() == Some("checks")))
+        .is_some_and(|t| t.contains_key("format"))
 }
 
 fn is_word(s: &str) -> bool {
@@ -519,6 +531,12 @@ pub fn parse(
     let text = std::str::from_utf8(bytes).map_err(|e| bad(format!("not UTF-8: {e}")))?;
     let raw: File =
         toml::from_str(text).map_err(|e: toml::de::Error| bad(e.message().to_owned()))?;
+    if crate::format::parse_version(&raw.format).is_none_or(|(major, _)| major != 1) {
+        return Err(bad(format!(
+            "format {:?}; a Format 1.0 profile declares `format = \"openwarrant/1.0\"`",
+            raw.format
+        )));
+    }
     if raw.schema != SCHEMA {
         return Err(bad(format!(
             "schema {:?}; a profile is {SCHEMA:?}",
@@ -585,6 +603,7 @@ pub fn parse(
         sections_optional: Vec::new(),
         sections_closed: false,
         record_types: Vec::new(),
+        records_closed: false,
         fields: BTreeMap::new(),
         relations_allow: Vec::new(),
         relations_require: Vec::new(),
@@ -614,7 +633,11 @@ pub fn parse(
         };
         caps.insert(known);
     }
-    for (c, needs) in PREREQUISITES {
+    let structure = caps
+        .iter()
+        .find(|c| **c != "structure")
+        .map(|c| (*c, "structure"));
+    for (c, needs) in PREREQUISITES.into_iter().chain(structure) {
         if caps.contains(c) && !caps.contains(needs) {
             return Err(bad(format!(
                 "capability `{c}` without `{needs}`, which it needs"
@@ -671,6 +694,7 @@ pub fn parse(
                 p.record_types.push(t.clone());
             }
         }
+        p.records_closed |= r.closed;
     }
     // [fields.<type>].
     for (ty, fields) in &raw.fields {
@@ -690,8 +714,8 @@ pub fn parse(
                 None => Shape::Text,
                 Some(s) => Shape::parse(s).ok_or_else(|| {
                     bad(format!(
-                        "[fields.{ty}] {name}: shape {s:?} is not text, line, int, id, ids, \
-                         gate, date or enum"
+                        "[fields.{ty}] {name}: shape {s:?} is not text, line, int, number, date, id, \
+                         ids, gate, enum or bool"
                     ))
                 })?,
             };
@@ -1020,6 +1044,7 @@ mod tests {
     #[test]
     fn a_full_profile_file_reads() {
         let text = br#"schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
 name = "runbook"
 form = "document"
 note = "How to operate a service."
@@ -1065,7 +1090,7 @@ reads_state = true
 
     #[test]
     fn each_refusal_is_profile_invalid() {
-        let head = "schema = \"oh.war/profile/v1\"\nname = \"x\"\nform = \"work\"\n";
+        let head = "schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"x\"\nform = \"work\"\n";
         let cases: &[(&str, &str)] = &[
             ("unknown key", "colour = \"red\"\n"),
             (
@@ -1092,6 +1117,13 @@ reads_state = true
             ),
             ("bad tick", "[ticks]\nitem = \"vibes\"\n"),
             ("unknown table key", "[sections]\nwanted = [\"A\"]\n"),
+            ("links without structure", "capabilities = [\"links\"]\n"),
+            ("extends nothing", "extends = \"nowhere\"\n"),
+            ("form other than the base's", "extends = \"adr\"\n"),
+            (
+                "closed records with a bad type",
+                "[records]\ntypes = [\"Bad Type\"]\nclosed = true\n",
+            ),
         ];
         for (what, tail) in cases {
             let text = format!("{head}{tail}");
@@ -1120,29 +1152,29 @@ reads_state = true
         let files: Vec<(&str, &[u8])> = vec![
             (
                 "profiles/bugfix.toml",
-                b"schema = \"oh.war/profile/v1\"\nname = \"bugfix\"\nextends = \"ticket\"\n\
+                b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"bugfix\"\nextends = \"ticket\"\n\
 [sections]\nrequired = [\"Reproduction\"]\n",
             ),
             (
                 "profiles/hotfix.toml",
-                b"schema = \"oh.war/profile/v1\"\nname = \"hotfix\"\nextends = \"bugfix\"\n\
+                b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"hotfix\"\nextends = \"bugfix\"\n\
 [frontmatter]\nrequired = [\"due\"]\n",
             ),
             // A same-named file without `extends` is refused, and the
             // built-in is not used in its place.
             (
                 "profiles/adr.toml",
-                b"schema = \"oh.war/profile/v1\"\nname = \"adr\"\nform = \"document\"\n\
+                b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"adr\"\nform = \"document\"\n\
 [sections]\nrequired = [\"Context\"]\n",
             ),
             // A cycle.
             (
                 "profiles/a.toml",
-                b"schema = \"oh.war/profile/v1\"\nname = \"a\"\nextends = \"b\"\n[sections]\n",
+                b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"a\"\nextends = \"b\"\n[sections]\n",
             ),
             (
                 "profiles/b.toml",
-                b"schema = \"oh.war/profile/v1\"\nname = \"b\"\nextends = \"a\"\n[sections]\n",
+                b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"b\"\nextends = \"a\"\n[sections]\n",
             ),
         ];
         let ps = Profiles::load(files);
@@ -1159,6 +1191,39 @@ reads_state = true
         assert!(matches!(ps.lookup("nothing"), Lookup::Missing));
         assert!(matches!(ps.lookup("delivery"), Lookup::Found(_)));
         assert_eq!(ps.invalid.len(), 3);
+    }
+
+    #[test]
+    fn the_format_key_is_the_discriminator() {
+        // 7.5: a file without `format` is legacy, whatever else it says.
+        assert!(!is_format_profile(
+            b"schema = \"oh.war/profile/v1\"\nname = \"x\"\nform = \"work\"\n[sections]\n"
+        ));
+        assert!(is_format_profile(
+            b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"x\"\n"
+        ));
+        // A `format` naming another major is refused, not ignored.
+        assert!(
+            parse(
+                "profiles/x.toml",
+                b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/2.0\"\nname = \"x\"\nform = \"work\"\n",
+                &none
+            )
+            .is_err()
+        );
+        for name in builtin_names() {
+            assert!(
+                is_format_profile(
+                    BUILTIN
+                        .iter()
+                        .find(|(n, _)| *n == name)
+                        .unwrap()
+                        .1
+                        .as_bytes()
+                ),
+                "{name}"
+            );
+        }
     }
 
     #[test]
@@ -1197,5 +1262,11 @@ reads_state = true
         assert!(d(Shape::Ids, &[]).refuse("REQ-1, the rule").is_some());
         assert!(d(Shape::Enum, &["a", "b"]).refuse("b").is_none());
         assert!(d(Shape::Enum, &["a", "b"]).refuse("c").is_some());
+        assert!(d(Shape::Number, &[]).refuse("120.5").is_none());
+        assert!(d(Shape::Number, &[]).refuse("-3").is_none());
+        assert!(d(Shape::Number, &[]).refuse("1.").is_some());
+        assert!(d(Shape::Number, &[]).refuse("high").is_some());
+        assert!(d(Shape::Bool, &[]).refuse("false").is_none());
+        assert!(d(Shape::Bool, &[]).refuse("yes").is_some());
     }
 }

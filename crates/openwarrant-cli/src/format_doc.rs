@@ -24,8 +24,8 @@
 //! a Format 1.0 profile file `profiles/<name>.toml`
 //! ([`openwarrant_core::format_profile`]). A refused file is reported
 //! (`profile.invalid`) and its documents read `format.profile-unknown`.
-//! The legacy profile files in `profiles/` are not Format 1.0 profiles and
-//! govern no document here.
+//! A file without `format = "openwarrant/1.0"` is a legacy profile, read by
+//! the legacy registry; it governs no document here.
 //!
 //! A file at a Warrant or ticket path whose name is an alias and whose
 //! frontmatter declares no `format:` is refused (`format.unrecognised`, §6);

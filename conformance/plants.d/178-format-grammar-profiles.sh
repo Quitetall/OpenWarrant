@@ -95,7 +95,7 @@ fi
 fg_clean
 
 # --- profile data: a profile file governs; a bad one is profile.invalid --------------------
-FG_PROFILE='schema = "oh.war/profile/v1"\nname = "runbook"\nform = "document"\n[sections]\nrequired = ["Steps"]\n'
+FG_PROFILE='schema = "oh.war/profile/v1"\nformat = "openwarrant/1.0"\nname = "runbook"\nform = "document"\n[sections]\nrequired = ["Steps"]\n'
 fg_write profiles/runbook.toml "$FG_PROFILE"
 fg_write docs/records/fg/r.md '---\nformat: openwarrant/1.0\nprofile: runbook\n---\n# Restart\n\n## Steps\nRestart it.\n'
 FG_PV_RC=$(fg_check pv); FG_PV=$(fg_py "$FG_RULES" "$FG_TMP/pv.json")
