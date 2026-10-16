@@ -1,0 +1,18 @@
+{
+  "scope": "actual known modification and input, not complete earlier authorship or authority",
+  "entry": {
+    "warrant": "OW-WAR-0148",
+    "deliverable": "D-015",
+    "target_ref": "crates/openwarrant-cli/src/lib.rs",
+    "source_change": "de410c25ba94380b6091d1d8020edbb46c034e8e",
+    "input_commit": "2eab11dacb4682fc109bd20e77397b1f8bed8390",
+    "input_digest": "sha256:d30eb8df0c378856af6605d64805c7a9a77010bad97eeb8365798c02352b7a27",
+    "current_digest": "sha256:bd1032f8727a42ba72d6f115ff64c94a0300e2203e8a9826df15507d18c96a45",
+    "producer": "agent://codex",
+    "producing_attempt": "unrecorded"
+  },
+  "all_other_entries_and_declarations_unchanged": true,
+  "content_addressed_status_records_actual_delivery": true,
+  "authorization_bytes_unchanged": true,
+  "no_resolution_or_acceptance": true
+}

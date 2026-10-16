@@ -81,7 +81,7 @@ class Controls(unittest.TestCase):
             server.server_close()
             thread.join()
 
-    def run_client(self, base, packets=True, cwd=None, packet_refs=None, view_refs=None):
+    def run_client(self, base, packets=True, cwd=None, packet_refs=None, view_refs=None, extra_args=()):
         env = dict(os.environ, HTTP_PROXY="http://192.0.2.1:9", HTTPS_PROXY="http://192.0.2.1:9")
         env.pop("OPENWARRANT_REVIEWED_PACKETS", None)
         env.pop("OPENWARRANT_REVIEWED_VIEWS", None)
@@ -91,7 +91,50 @@ class Controls(unittest.TestCase):
             env["OPENWARRANT_REVIEWED_VIEWS"] = json.dumps(view_refs)
         return subprocess.run([sys.executable, str(HERE / "local-verifier.py"), "--endpoint", base,
                                "--model", "fixture-model", "--log-root", str(self.root / "logs"),
-                               "--timeout", "3", str(self.path)], env=env, cwd=cwd, text=True, capture_output=True)
+                               "--timeout", "3", *extra_args, str(self.path)], env=env, cwd=cwd, text=True, capture_output=True, timeout=10)
+
+    def test_operator_can_disable_thinking_without_changing_review_input(self):
+        with self.server() as base:
+            result = self.run_client(base, extra_args=("--thinking", "off"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIs(self.received[0]["enable_thinking"], False)
+        self.assertEqual(json.loads(self.received[0]["messages"][1]["content"]), self.bundle)
+        logs = list((self.root / "logs").glob("local-review-*"))
+        run = json.loads((logs[0] / "run.json").read_text())
+        self.assertEqual(run["thinking_requested"], "off")
+
+    def test_operator_can_enable_thinking_and_invalid_mode_contacts_nobody(self):
+        with self.server() as base:
+            result = self.run_client(base, extra_args=("--thinking", "on"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIs(self.received[0]["enable_thinking"], True)
+        self.received.clear()
+        self.health_requests = 0
+        before = self.path.read_bytes()
+        existing_logs = set((self.root / "logs").iterdir())
+        with self.server() as base:
+            result = self.run_client(base, extra_args=("--thinking", "invalid"))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(self.health_requests, 0)
+        self.assertEqual(self.received, [])
+        self.assertEqual(set((self.root / "logs").iterdir()), existing_logs)
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_disabled_thinking_does_not_admit_a_truncated_answer(self):
+        self.response["choices"][0]["finish_reason"] = "length"
+        with self.server() as base:
+            result = self.run_client(base, extra_args=("--thinking", "off"))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("provider did not return one complete answer", result.stderr)
+        self.assertIs(self.received[0]["enable_thinking"], False)
+        logs = list((self.root / "logs").glob("local-review-*"))
+        run = json.loads((logs[0] / "run.json").read_text())
+        self.assertEqual(run["status"], "unavailable")
+        self.assertEqual(run["thinking_requested"], "off")
+        self.assertTrue((logs[0] / "provider-response.json").is_file())
+        self.assertFalse((logs[0] / "response.toml").exists())
 
     def compact_input(self):
         repo=self.root/'repo';folder=repo/'docs/warrants/fixture/verifications';views=folder/'responses/views'
@@ -172,6 +215,7 @@ class Controls(unittest.TestCase):
         self.assertEqual(response["reviewed_subject"]["contract_digest"], "exact-before")
         self.assertEqual(response["reviewed_packets"], [{"path": "packet.json", "digest": "packet-before"}])
         sent = self.received[0]
+        self.assertNotIn("enable_thinking", sent)
         self.assertEqual(len(sent["messages"]), 2)
         self.assertNotIn("tools", sent)
         self.assertEqual(json.loads(sent["messages"][1]["content"]), self.bundle)

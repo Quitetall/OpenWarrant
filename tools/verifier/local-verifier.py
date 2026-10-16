@@ -187,6 +187,8 @@ def main():
     parser.add_argument("--log-root", required=True)
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--max-tokens", type=int, default=4096)
+    parser.add_argument("--thinking", choices=("auto", "on", "off"), default="auto",
+                        help="LAMU thinking mode; auto leaves the provider default unchanged")
     parser.add_argument("bundle", type=Path)
     args = parser.parse_args()
     base = endpoint(args.endpoint)
@@ -233,6 +235,7 @@ def main():
            "bundle_sha256": hashlib.sha256(raw).hexdigest(), "started_at_unix": time.time(),
            "client_sha256": hashlib.sha256(client).hexdigest(),
            "max_tokens": args.max_tokens, "timeout_seconds": args.timeout,
+           "thinking_requested": args.thinking,
            "tools": [], "client_fallback": False, "qualification": "not inferred from transport"}
     run['model_input_schema']=input_schema
     if views is not None:
@@ -248,9 +251,12 @@ def main():
             run["health_before"] = health
             if health.get("service") != "lamu" or health.get("status") != "ok":
                 raise ValueError("endpoint does not report a healthy LAMU service")
-            response = read_json(opener, base + "/v1/chat/completions", args.timeout, {
+            payload = {
                 "model": args.model, "stream": False, "temperature": 0, "max_tokens": args.max_tokens,
-                "messages": [{"role": "system", "content": system}, {"role": "user", "content": raw.decode()}]})
+                "messages": [{"role": "system", "content": system}, {"role": "user", "content": raw.decode()}]}
+            if args.thinking != "auto":
+                payload["enable_thinking"] = args.thinking == "on"
+            response = read_json(opener, base + "/v1/chat/completions", args.timeout, payload)
             (log / "provider-response.json").write_text(json.dumps(response, ensure_ascii=True))
             if response.get("model") != args.model:
                 raise ValueError("provider returned a different model")

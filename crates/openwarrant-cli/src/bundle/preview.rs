@@ -97,6 +97,20 @@ fn project_archive_for(
             "Archived bytes omitted from this view have not been shown to the model.",
             "Excerpts cannot establish claims requiring observations outside their coverage."
         ]);
+        let prior_count = view["prior_verifications"]
+            .as_array()
+            .ok_or_else(|| {
+                RepoError::Message("verify.compact-prior: expected prior observation array".into())
+            })?
+            .len();
+        // Keep history losslessly in the archive, without giving a fresh
+        // blind reviewer earlier conclusions to repeat as current proof.
+        view["prior_verifications"] = json!([]);
+        view["prior_verifications_archive"] = json!({
+            "pointer": "/prior_verifications",
+            "count": prior_count,
+            "meaning": "Historical verifier judgments are retained in the archive, not shown as current evidence."
+        });
     }
     view["archive"] = json!({
         "path": format!("bundle-{}.json", short(digest)),

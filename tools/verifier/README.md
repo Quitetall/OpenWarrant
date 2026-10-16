@@ -63,6 +63,14 @@ over budget, or whose estimate exceeds the budget, before any backend call or
 review-log write. Exact required context stays intact. This checks the supplied
 compiler metadata; it does not substitute a new tokenizer.
 
+Pass `--thinking on` or `--thinking off` to request LAMU's supported
+`enable_thinking` setting. The default, `--thinking auto`, omits that field and
+keeps the provider default. The run log records `thinking_requested`; that is
+the requested mode, not proof that a model honored it. This option does not
+change the exact review context, system instructions, output limit or verdict
+checks. An incomplete answer remains unusable in every mode. No retry or mode
+switch happens automatically.
+
 ### Inspect an oversized packet offline
 
 The experimental preview command separates reading context from the lossless
@@ -117,6 +125,12 @@ to the retained subject. The model input is `oh.war/verification-view/v1`,
 distinct from a preview. Its required rules, fixtures and contracts stay exact;
 raw omitted evidence remains archived and does not count as evidence shown.
 Budget pressure retains an explicitly ineligible input instead of removing rules.
+
+New executable views withhold prior verifier conclusions from the blind input.
+They retain an empty `prior_verifications` list and an explicit archive pointer
+with the historical count. The lossless archive retains those judgments;
+emission does not rewrite them. Required atoms, rules and contracts remain exact.
+The legacy v2 transport and non-executable preview retain their existing form.
 
 The local adapter accepts this input only with exact compiler-produced
 `OPENWARRANT_REVIEWED_PACKETS` and `OPENWARRANT_REVIEWED_VIEWS` metadata. The

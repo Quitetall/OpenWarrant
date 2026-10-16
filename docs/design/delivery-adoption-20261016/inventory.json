@@ -1,0 +1,3495 @@
+{
+  "kind": "performer proposal inventory only; no active declaration or ownership grant",
+  "source_commit": "325a3bde46401ce24ab3958fdd580e76a7e30718",
+  "proposals": [
+    {
+      "warrant": "OW-WAR-0075",
+      "proposal_file": "OW-WAR-0075.toml",
+      "count": 31,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": "2b625fa01122a78f22bea11fb94a39426d5779c9574c111a6fae602f78890394",
+      "entries": [
+        {
+          "path": "conformance/sdk/document/README.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "81fd539fbf00884d9f4856b4fe7d8d418025fe502f238b56951c38908ab6b8ba",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/adr.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/cases.json",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/combined-depth.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/compact-deps.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/context-background.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/context-binding.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/crlf-unicode.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/duplicate-key.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "ce066f0e1afa617e94c46f63e103a188b8df693b61de6f3ae26903ff82e8b21a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/duplicate-unit.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "bb80f7c7004fd0fdf4418383d0b287e21e902b460df7ea393d31a3cee9a5f4f7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/fenced-markers.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/invalid-utf8.bin",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/malformed-footer.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "1bcc1b910c728dcdfab68e396c06216f5294451e3c2c0b22a81225ddc73866ab",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/minimal-rc2.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/minimal-rc3.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/missing-outcome.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/sas.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/trailing.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/unknown-optional.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/unknown-required.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/unresolved-required.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/wrapped.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/wrong-schema.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "a5027a6af8096425f2853875ce012bcd7501f10b58265515577af1975ed12e74",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/wrong-title.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/examples/sdk_probe.rs",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "18539e0cb6ed8545bf5d153a23ea957d51a0b616aa8329c0350ad96f87c58b79",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/src/document/metadata.rs",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "7bb600a7592568b8f7d35d204a750e00b72e5ff8ac3d484aa370bcabe4061f2d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/src/document/mod.rs",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "e2a460866db66e4a11b91f49ffce98ff040f70d00bf083ca8214fd6326b93eaa",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/src/document/references.rs",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "d24d7f77208544ec2257cb36d3e10e18b940d2e9f805889727eb3b466ed54cbc",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/src/document/scan.rs",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "1d0af9a0ecc6d5ed6ce30a556c1668ffd993dd6cf2503579b349d4c75f8d968f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/src/document/validate.rs",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "d4c69ba13bc686fe80b7016031d85050610d64c6d3205790c559f2ab793fd38e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md",
+          "basis": "retained scoped 2026-10-09 proposal",
+          "exists": true,
+          "sha256": "2ee0b5a0174fbbb2693e12e09d71c994f04b37b05a189200fb0e6d9e7970a2f2",
+          "obligations": [
+            "OBL-001",
+            "OBL-002"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0076",
+      "proposal_file": "OW-WAR-0076.toml",
+      "count": 18,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "crates/openwarrant-core/src/document/author.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "0cb660ab5ff841a3b8bb9027be559727b32b1cb5623af9b03bc055a92f8f0225",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/FOOTER08-title-conflict.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "d693212b9d7132b04ac1b7dfa60075bf8352e5efc3d3a806cff0875bd3d89f5c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/FOOTER08-title-crlf.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "b6410e5b365f078102e31dc49531aa2504d9070d250e8e51f95b9472fccc8e73",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/README.md",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "95db95e0a9b70c6eb64d732bc8f8492609b5bc77634cc4156cc1c0d682b4a451",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T54-minimum.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "747741bc50809bfc31e80b4f21dbd0504f287824d2348a2de4006a63fc7ab779",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T55-duplicate-field.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "d1aa8b184e3950bec33eb53e1252540382bf87ca408bdc649fba8756420dbd10",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T55-footer-injection.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "0f18ea7eb759640f50d15934325aca2ba89fcdc45eff23f3d849c7ac596821aa",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T55-unit-injection.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "86648b83aa8cf49af5f5e7d922636a60a85c2cb15ddd5c05eb93c13ad0664869",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T56-duplicate-edit.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "4f6787e9788b5f5669d9a15599af74569b7182d617d03cfe10a7f2b052ae2c2c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T56-false-assurance.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "7a315afcbcdc7718ee3ad5ac71d71ff58c38ff99757dd280cb83d9c7205a55da",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T56-revision.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "0b618cecd766375c5ad21ddda4f4f0b7e4b671e2a320ef07fdd2dd3322cfe55b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T56-unit-edit.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "ea6ecf8244d6045878ed643c2d64a6b812db6dfa09c1d1f83a24df683034251a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/body.md",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "102e1c385c8df8fd2bbe0c22560097c8542803cfe22bdb221afcba00a23a078e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "8beabe9c8ec076e9f7d47dea6fddd552103653b736851085762300ed2f085042",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/minimal.md",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "0a05ba08419341339d04209a6834d39617e0ebe47c2f79e7e1d91e63fdf06b9a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/revision.md",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "89e0569d496f782bc03bdb4c821292f3b636a549d50f284b48266d790e454e33",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/title-crlf.md",
+          "basis": "explicit work-order directory conformance/sdk/author/",
+          "exists": true,
+          "sha256": "5b60f59be9dd2208081bf9ff5267ae1dbc7712f5d560e79ff2dfc92cbd52d0a9",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0076/implementation/sdk-author-notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "1e61728f44aca18d6ce902624154d13e35c77508257bf75ce0f4a28017b0b393",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0077",
+      "proposal_file": "OW-WAR-0077.toml",
+      "count": 32,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "crates/openwarrant-core/src/document/source.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "9e57f766d83b41748efd7fa570d66da44330a8d8473d1d761cab5ebe69b9e3e8",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/.gitattributes",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "daf64dc9a49d094b2a59e68509c104c807ee65668fb7ed3544e6000f839232ba",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/README.md",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "6268f6f797d8dd98de1c46336e01d88b6e52782bb6390be1adb3417e05a4290b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/abc.bin",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/abc.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "7f0c359c8bfb47dbfb42d45595a81943fa02bce4991a9800def9df5fa89a5e28",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/abc.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "b120efa8c968c22d90690d10e4209e65084a84af2c5703f9a3e5b42af4a403df",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/architecture.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "91042df8be33889eb4a030900beed46b150f5852ac531c904de18c926829a9ad",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/architecture.md",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "cfcb93b588d15823ea5ae4662eb4acfe9560687736ec2efd267437d7b33fd4b9",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/changed.md",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "62ab883ca213985b4cf59dbd8db906e9dc047ef9aef8f76cf2e2e421eac2cf70",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/combined.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "110157d9545245c8fa978d7a136ee21286ec5d290b5a43a152f5625c72d877cf",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/conflicting.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "cfcceb9154d5b6d50341c9a50d7bb32ee1b1635a55c4dc101a27f31362bdf20d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/crlf-outcome.txt",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "1263482b83a529b4fe30c5ee4133c061126dff45f2b0cc57d626d3f48bbc798d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/crlf.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "692e2449f7e7406757c237eacb24056c59c66598942a9366b71d3d70842c36a5",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/crlf.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "064293f4c8299a7429e280b02f93a4a3b3378b58b9ff01b8bd060624d3337afc",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/crlf.md",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "0432a7936b897824f060aaaa63a4ccc94d6dffa1c88f9909d38c7c0d1f29c347",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/decision.txt",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "518ff9efb15b855f40e35dd722b99f1854740688784fae64f96d2c3c191fc99a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/false-authority.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "e0e65a8cdaffc1cc05a4781476e63ac7c2fd3debb0fbd505874dab5b14c7dddc",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/mixed.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "5152e1ff43c059fd09bc569196caf7bf046c4647ad14f28d3dc40a46c7880f08",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/outcome.txt",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "1d23cc5075768a28824ccd3bb6c641ae4ed38e136d89026f9ed7f42871fd40ae",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/renamed.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "3e08e6c0cfcfa191c9e8930ecb3a682e389aeb4ca65a393286bef3f4ef98ed14",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/renamed.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "f3dbe747f89ba040ff2bcf2fb183307be4d8954f5004c204d8a95a4ece43612c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/renamed.md",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "f58d0739716ac45c357af28aaf6babec8903f2a7a5461729d2554b5b2b584549",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/task.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "0e8ea4c25466a6e2580b8d3e5a96f387367decb94452054aac1d3cd1f6138a0a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/task.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "f75f460451b08ed612666748363eb08b31bed4299617b44491ae7b01c961fad8",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/task.md",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/unsafe-path.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "925afa63beded43dedf204526f3f24f97a176d682806b6f72e718ade16339d05",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/wrong-identity.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "e328834f72ec746930d06de39dffa0a70ed610eb4e7ef9b48cfb36a5f3618bad",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/wrong-length.json",
+          "basis": "explicit work-order directory conformance/sdk/source/",
+          "exists": true,
+          "sha256": "9dcce03bcb66c68b031a775408e4c22e0fdec38756c033c46717b5288614edc7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/source/README.md",
+          "basis": "explicit work-order directory conformance/integration/source/",
+          "exists": true,
+          "sha256": "65d25d3a3095a9e54764be54d5a5674a1a62675c9e009dd8fd4b3d5bd0ce880a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/source/run.py",
+          "basis": "explicit work-order directory conformance/integration/source/",
+          "exists": true,
+          "sha256": "09cfa554cadb051f68918cacf820b0a0a419a04e5cefd036266369a9b9331830",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0077/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "6e188a28df6a0c0cbc4360dc314fe3a92f61b77facc2dc60756122cff772d679",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0078",
+      "proposal_file": "OW-WAR-0078.toml",
+      "count": 13,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "crates/openwarrant-core/src/document/condition.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "522442c2b96374382603659454412ea865b5310487c556a189d0025af4048f25",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/README.md",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "44284511177bd8d33c3d411e88363c5ff0784ea42f6061b8fa7018ac33fbf288",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/all-fields.toml",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "71bdb3fbb290d4203c57b01b82c22055e376de6aa04eaf14cb00bb3e5e4bdc1b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "1501edad637d72699584629bb2f1ac6c1f6f342d2e75f5a466bafdf4a5611ce9",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/embedded-double-star.toml",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "b95aba627743e0d6c95e3e1bcd40cc3b390fea371def21c8b277b4732d6b452e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/empty-list.toml",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "3bfacb02ec066f20aa3ff5b3b9a80b3586bd0aa05a5a93c2bf9d4bfe57dae5dd",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/empty-table.toml",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/traversal.toml",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "a22c20e9c36856c4038174ff5855d6eebc245154aa6c30468b0c2b6a43f5ee0e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/unicode-path.toml",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "d0972da797ebdb70ce692066aa20d0f7a0d63eb9d37be051062737a8c0e4e19f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/unknown-operator.toml",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "28eeef1066df08f0f38126b03b8731a61a7dab7aac6cd57c105008d353bd307d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/wrong-type.toml",
+          "basis": "explicit work-order directory conformance/sdk/conditions/",
+          "exists": true,
+          "sha256": "008a7662191b7e9336de61f842d4c9c37d9cd8bb0915d65d2937237bb8978e30",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/conditions/run.py",
+          "basis": "explicit work-order directory conformance/integration/conditions/",
+          "exists": true,
+          "sha256": "60e282d41d860d0a9a890a18eaa3bfa867e7227235da3c593e162cdc26442b72",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0078/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "56a9ee510256e4bf8289173ac634de33e342c58c24b2e8dacb29867a997c0afb",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0079",
+      "proposal_file": "OW-WAR-0079.toml",
+      "count": 3,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "conformance/integration/selection/run.py",
+          "basis": "explicit work-order directory conformance/integration/selection/",
+          "exists": true,
+          "sha256": "d0a4b14e55344805de4cee844cf43eb4f63724b51e808712bf57cfa74c3e2e0f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/integrations/selection.md",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "7d86247ca0ce3789b9f8515f30151e69ef54c26c3d751a27da7cc66e430ab88f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0079/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "97ec953958c05ba26c8a035253f094e5bb0493f100a30600150295cea6c5b3bf",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0080",
+      "proposal_file": "OW-WAR-0080.toml",
+      "count": 3,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "conformance/integration/projections/run.py",
+          "basis": "explicit work-order directory conformance/integration/projections/",
+          "exists": true,
+          "sha256": "22775069a85effe70937a9464e2113c1e604b3b550a73be4d6998927d519b47c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/integrations/projections.md",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "704548d927b9a641e4995ba767f7beedac9b08d590a5320fbff3e16805e42ecb",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0080/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "33e699921ff3b3dcb7cfeeaba6f150d74987c724c8da7099f351eb1685f04b3c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0081",
+      "proposal_file": "OW-WAR-0081.toml",
+      "count": 11,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "crates/openwarrant-core/src/document/packet.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "3fe5b6108f2ea07b56f171736f1fe45e489cbe103e8b8ce6e70c92d5392283b8",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/packet/",
+          "exists": true,
+          "sha256": "8ec629656f192043e13b0967959f4bee7692755686a24bb4c72f25597c3f53ca",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/duplicate-field.json",
+          "basis": "explicit work-order directory conformance/sdk/packet/",
+          "exists": true,
+          "sha256": "5dad074ed20ef67b7344944c7156f1ebf46385a4ae6e1dc90ac77a05c2365f8c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/invalid-kind.json",
+          "basis": "explicit work-order directory conformance/sdk/packet/",
+          "exists": true,
+          "sha256": "5978fc8db286cb0803f6bed595f174e7376ca4e35d17414db167a8bdcc18e2e2",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/invalid-role.json",
+          "basis": "explicit work-order directory conformance/sdk/packet/",
+          "exists": true,
+          "sha256": "edd0d2371fab717877d6602ce4e0ad8f4cbe284bdf296b70c51a009a8b7af318",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/noncanonical.json",
+          "basis": "explicit work-order directory conformance/sdk/packet/",
+          "exists": true,
+          "sha256": "0326538f23976d653bb47afbcbf476c6fb83d0f905e558e518f627b9332b26cf",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/unknown-field.json",
+          "basis": "explicit work-order directory conformance/sdk/packet/",
+          "exists": true,
+          "sha256": "82ccf985c31af6ab9ad33e4d89fa35c0eebf002fb4b16a4c9247156a8e9f00a6",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/valid.json",
+          "basis": "explicit work-order directory conformance/sdk/packet/",
+          "exists": true,
+          "sha256": "a4b84db6dd27c46ade4a900c45b0466312b78087fbd29fdcab93dbe850ce9401",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/wrong-schema.json",
+          "basis": "explicit work-order directory conformance/sdk/packet/",
+          "exists": true,
+          "sha256": "674515e82c2a89ac5d46ff6a7b77cd166c51537895910f771f3205411ffea0f5",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/package/run.py",
+          "basis": "explicit work-order directory conformance/integration/package/",
+          "exists": true,
+          "sha256": "4a23fc6b1a4f3fbe5dc6f3d36027bcd6d03a86633a799d75bfa50b8670467797",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0081/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "0ddc8e0356ea749d8b1f1452f9a85513da4b2799e0410e233bb7576dda37f1ae",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0082",
+      "proposal_file": "OW-WAR-0082.toml",
+      "count": 3,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "conformance/integration/budgets/run.py",
+          "basis": "explicit work-order directory conformance/integration/budgets/",
+          "exists": true,
+          "sha256": "6bd895b013bcce79723cea050bdae931b48e3bb856cfc31f86331ed9fd8a4872",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/integrations/budgets.md",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "6ad6c51ed5fd6c75c5bf1101b48de1d25f2185a22ebf7fa8e15da0c4da5260b0",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0082/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "fb33c9bbd039f8e1d2972c3c77ea68ec8d8c824cc8aab49ea12f13f1b46f20b4",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0083",
+      "proposal_file": "OW-WAR-0083.toml",
+      "count": 20,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "crates/openwarrant-core/src/document/records.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "864da780831a698e6be24fcf3bc75876c39daff54689305c3582f875cd9b0bba",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/src/document/records/workflow.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "bc7d9d2a691d0da0662747da72929e1b3dad70757bf6b86d53f3f298e82c18f0",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/tests/document_records.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "a784ad6cca37302abcfea52f64c32c4409cb4227b0a168c361a98801562fe790",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/tests/document_workflow_records.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "21099603f02110ed3e6670866760e921363d49fd3092465663ba28c958931093",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/examples/sdk_probe/records.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "17e02a883c448223356ae3e15738b4c13468b06ca85e4abb5828d0eec9957cb4",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/examples/record_schemas.rs",
+          "basis": "Work-order shorthand resolved by introducing implementation commit cb0c93c213b9525b17abc83cf8e8a8bb610751f7 and existing schema export example",
+          "exists": true,
+          "sha256": "4526df92dc6713162360e055031d4c0ea9cfb502bcaded14c3f6f3beaf15434b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/agent-authorization-without-policy.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "94aceff6b9f96a73917215209c2a12a0fc7348df193e3180405ce83d41a98271",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/agent-human-spoof.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "a4878592f61527cbab4d82613c84bf80dc3e92bc00be2f3eefc898f56b6798ce",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "5c5b0572cb79a4b05ef972b700a0b0ad88d56edf9b05f43fc2a94c0c5f0c670e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/complete-unverified-view.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "255ebf4d37f32b51d7bb346b72c3770803b7f8ac266df2207a24ad4f119b2168",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/conflated-state.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "5ecb890dc3770dd80c725637eac49e46e5a85e4a16498e65ed790c088c9e6c3c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/contract.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "6738c7f200d4def8f42cbf3d948bb8d151764a1ceaf318fb33bdd001f0d64959",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/observation-untrusted.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "47055b911af26881413b0ae53f6e7380156a79e72774a6847738bd703b2edae4",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/schemas.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "18eda343fbdc9185ae12e01f38aa441f0b61898c2f6fb0033fbdf02a61699678",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/unavailable-pass.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "34787201095fe0b2b5779d693dedc7338ded37349b56ca75f20b811c04febe29",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/unknown-core-field.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "f05c4820fffb9d6462a086a0c7b1cfa24dfd237e32b65983475684db01e27718",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/unknown-observation.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "3584c7d105c41ea2b32986057ac27acdbdb36fba2089eba52be58f43902fbe9c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/unsigned-completion.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "8538632c2dee21fe93e4cc95c1e6ad2b6008134cef138b109b1d876929991d8b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/wrong-result.json",
+          "basis": "explicit work-order directory conformance/sdk/records/",
+          "exists": true,
+          "sha256": "649aa2bfd5e98bdf8f8d1178b91b3d91d91fb07f82a6675bef511b70ba5ca7b1",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0083/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "47f7b17ce80c102c70153934c76d08232cd5df483fb8e8be6a50b32be7729933",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0084",
+      "proposal_file": "OW-WAR-0084.toml",
+      "count": 16,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "crates/openwarrant-core/src/document/legacy.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "c9c0b96cfa48bbb7a7db799350bb6804357db7d3890bb5fcbf77987f9e3041f1",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/src/document/legacy/codec.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "2abfa138e14580fc5c252e33a3705212262c2b315bfa8f38db5987f5939f375a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/tests/document_legacy.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "50c4ac565f3632f8608fc510baa3c827488d5ea402f6f50931c0a80ef3fa9057",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/examples/sdk_probe/legacy.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "49f2aeb6a540f7ae88fb77ea1b805b6d8d1c9dea848d206cc8a1c2f195a7d256",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/README.md",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "f650946505de229aebe90f4830ceb475f91506a4dec4d5e42ee4427c2dd1f985",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "4c711c0495949518444f1f910291bead0d3337b79ee86f3fbda3f246d239720f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/corrupt.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "adac9d3fe48954350ac1ad620766c2b15d9e34dd201fcb708736963122dec15d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/current.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "222fdad4d0e180c3eabf5d9bac65ef59fdd4dd3ac187751d2e35f3b031327b9f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/escaping.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "7df8aa14d0f08904407c1a207d396d6d15c3fb18a4e1cfabc0aff7ad5b2fbff3",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/future.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "26a5be33ec72dc07ba8ef774e2ce98b2f2ea72561f6641fa84b9ec95deaf4038",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/missing.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "7af0a699e553976741f85f8b27173fd54ab64dd17c4b38254b2dd01e14db2700",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/rc2.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "5fc425014cd14ac3519c55a7294408c144888da92af0f20c170933a3933994cb",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/resolved.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "573ee908b9e9385acc3298f89cc97757c3f202c4d39c0b9d22c2c0b97f569cee",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/successor.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "c4c56f11799ef454f7078126437f4df8739abbc9bd5b17233b173e735e6a30e1",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/unsupported.json",
+          "basis": "explicit work-order directory conformance/sdk/legacy/",
+          "exists": true,
+          "sha256": "d5b40923f8c18c53f25ef115040eee09cb2b3f4d3564bae7f397dc082580f32d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0084/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "1fdae20779fb532444d347428ed7c3caa031c7a7cefa080dd5dd2a60dd225baa",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0085",
+      "proposal_file": "OW-WAR-0085.toml",
+      "count": 132,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "conformance/sdk/author/FOOTER08-title-conflict.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "d693212b9d7132b04ac1b7dfa60075bf8352e5efc3d3a806cff0875bd3d89f5c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/FOOTER08-title-crlf.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "b6410e5b365f078102e31dc49531aa2504d9070d250e8e51f95b9472fccc8e73",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/README.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "95db95e0a9b70c6eb64d732bc8f8492609b5bc77634cc4156cc1c0d682b4a451",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T54-minimum.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "747741bc50809bfc31e80b4f21dbd0504f287824d2348a2de4006a63fc7ab779",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T55-duplicate-field.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "d1aa8b184e3950bec33eb53e1252540382bf87ca408bdc649fba8756420dbd10",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T55-footer-injection.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "0f18ea7eb759640f50d15934325aca2ba89fcdc45eff23f3d849c7ac596821aa",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T55-unit-injection.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "86648b83aa8cf49af5f5e7d922636a60a85c2cb15ddd5c05eb93c13ad0664869",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T56-duplicate-edit.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "4f6787e9788b5f5669d9a15599af74569b7182d617d03cfe10a7f2b052ae2c2c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T56-false-assurance.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "7a315afcbcdc7718ee3ad5ac71d71ff58c38ff99757dd280cb83d9c7205a55da",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T56-revision.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "0b618cecd766375c5ad21ddda4f4f0b7e4b671e2a320ef07fdd2dd3322cfe55b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/T56-unit-edit.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "ea6ecf8244d6045878ed643c2d64a6b812db6dfa09c1d1f83a24df683034251a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/body.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "102e1c385c8df8fd2bbe0c22560097c8542803cfe22bdb221afcba00a23a078e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "8beabe9c8ec076e9f7d47dea6fddd552103653b736851085762300ed2f085042",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/minimal.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "0a05ba08419341339d04209a6834d39617e0ebe47c2f79e7e1d91e63fdf06b9a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/revision.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "89e0569d496f782bc03bdb4c821292f3b636a549d50f284b48266d790e454e33",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/author/title-crlf.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "5b60f59be9dd2208081bf9ff5267ae1dbc7712f5d560e79ff2dfc92cbd52d0a9",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/cli/README.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "f621b5c9be2b5c92f1f1e94ca1266d7c21038bf3a2da5eae89614651ac38da3a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/cli/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "05fd4471ada83dd5f8a31d91ec26b8031335e7397c2a559178c62eeb717d4670",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/README.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "44284511177bd8d33c3d411e88363c5ff0784ea42f6061b8fa7018ac33fbf288",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/all-fields.toml",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "71bdb3fbb290d4203c57b01b82c22055e376de6aa04eaf14cb00bb3e5e4bdc1b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "1501edad637d72699584629bb2f1ac6c1f6f342d2e75f5a466bafdf4a5611ce9",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/embedded-double-star.toml",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "b95aba627743e0d6c95e3e1bcd40cc3b390fea371def21c8b277b4732d6b452e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/empty-list.toml",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "3bfacb02ec066f20aa3ff5b3b9a80b3586bd0aa05a5a93c2bf9d4bfe57dae5dd",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/empty-table.toml",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/traversal.toml",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "a22c20e9c36856c4038174ff5855d6eebc245154aa6c30468b0c2b6a43f5ee0e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/unicode-path.toml",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "d0972da797ebdb70ce692066aa20d0f7a0d63eb9d37be051062737a8c0e4e19f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/unknown-operator.toml",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "28eeef1066df08f0f38126b03b8731a61a7dab7aac6cd57c105008d353bd307d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/conditions/wrong-type.toml",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "008a7662191b7e9336de61f842d4c9c37d9cd8bb0915d65d2937237bb8978e30",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/README.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "81fd539fbf00884d9f4856b4fe7d8d418025fe502f238b56951c38908ab6b8ba",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/adr.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/combined-depth.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/compact-deps.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/context-background.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/context-binding.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/crlf-unicode.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/duplicate-key.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "ce066f0e1afa617e94c46f63e103a188b8df693b61de6f3ae26903ff82e8b21a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/duplicate-unit.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "bb80f7c7004fd0fdf4418383d0b287e21e902b460df7ea393d31a3cee9a5f4f7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/fenced-markers.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/invalid-utf8.bin",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/malformed-footer.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "1bcc1b910c728dcdfab68e396c06216f5294451e3c2c0b22a81225ddc73866ab",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/minimal-rc2.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/minimal-rc3.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/missing-outcome.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/sas.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/trailing.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/unknown-optional.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/unknown-required.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/unresolved-required.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/wrapped.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/wrong-schema.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "a5027a6af8096425f2853875ce012bcd7501f10b58265515577af1975ed12e74",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/document/wrong-title.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/README.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "f650946505de229aebe90f4830ceb475f91506a4dec4d5e42ee4427c2dd1f985",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "4c711c0495949518444f1f910291bead0d3337b79ee86f3fbda3f246d239720f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/corrupt.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "adac9d3fe48954350ac1ad620766c2b15d9e34dd201fcb708736963122dec15d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/current.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "222fdad4d0e180c3eabf5d9bac65ef59fdd4dd3ac187751d2e35f3b031327b9f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/escaping.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "7df8aa14d0f08904407c1a207d396d6d15c3fb18a4e1cfabc0aff7ad5b2fbff3",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/future.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "26a5be33ec72dc07ba8ef774e2ce98b2f2ea72561f6641fa84b9ec95deaf4038",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/missing.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "7af0a699e553976741f85f8b27173fd54ab64dd17c4b38254b2dd01e14db2700",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/rc2.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "5fc425014cd14ac3519c55a7294408c144888da92af0f20c170933a3933994cb",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/resolved.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "573ee908b9e9385acc3298f89cc97757c3f202c4d39c0b9d22c2c0b97f569cee",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/successor.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "c4c56f11799ef454f7078126437f4df8739abbc9bd5b17233b173e735e6a30e1",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/legacy/unsupported.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "d5b40923f8c18c53f25ef115040eee09cb2b3f4d3564bae7f397dc082580f32d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "8ec629656f192043e13b0967959f4bee7692755686a24bb4c72f25597c3f53ca",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/duplicate-field.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "5dad074ed20ef67b7344944c7156f1ebf46385a4ae6e1dc90ac77a05c2365f8c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/invalid-kind.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "5978fc8db286cb0803f6bed595f174e7376ca4e35d17414db167a8bdcc18e2e2",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/invalid-role.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "edd0d2371fab717877d6602ce4e0ad8f4cbe284bdf296b70c51a009a8b7af318",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/noncanonical.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "0326538f23976d653bb47afbcbf476c6fb83d0f905e558e518f627b9332b26cf",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/unknown-field.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "82ccf985c31af6ab9ad33e4d89fa35c0eebf002fb4b16a4c9247156a8e9f00a6",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/valid.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "a4b84db6dd27c46ade4a900c45b0466312b78087fbd29fdcab93dbe850ce9401",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/packet/wrong-schema.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "674515e82c2a89ac5d46ff6a7b77cd166c51537895910f771f3205411ffea0f5",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/phase1.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "4a495b43f0d71e9f888eea80c6a723e29248dd0eecb7c4f35a3592f7b967b60a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/agent-authorization-without-policy.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "94aceff6b9f96a73917215209c2a12a0fc7348df193e3180405ce83d41a98271",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/agent-human-spoof.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "a4878592f61527cbab4d82613c84bf80dc3e92bc00be2f3eefc898f56b6798ce",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "5c5b0572cb79a4b05ef972b700a0b0ad88d56edf9b05f43fc2a94c0c5f0c670e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/complete-unverified-view.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "255ebf4d37f32b51d7bb346b72c3770803b7f8ac266df2207a24ad4f119b2168",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/conflated-state.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "5ecb890dc3770dd80c725637eac49e46e5a85e4a16498e65ed790c088c9e6c3c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/contract.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "6738c7f200d4def8f42cbf3d948bb8d151764a1ceaf318fb33bdd001f0d64959",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/observation-untrusted.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "47055b911af26881413b0ae53f6e7380156a79e72774a6847738bd703b2edae4",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/schemas.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "18eda343fbdc9185ae12e01f38aa441f0b61898c2f6fb0033fbdf02a61699678",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/unavailable-pass.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "34787201095fe0b2b5779d693dedc7338ded37349b56ca75f20b811c04febe29",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/unknown-core-field.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "f05c4820fffb9d6462a086a0c7b1cfa24dfd237e32b65983475684db01e27718",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/unknown-observation.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "3584c7d105c41ea2b32986057ac27acdbdb36fba2089eba52be58f43902fbe9c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/unsigned-completion.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "8538632c2dee21fe93e4cc95c1e6ad2b6008134cef138b109b1d876929991d8b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/records/wrong-result.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "649aa2bfd5e98bdf8f8d1178b91b3d91d91fb07f82a6675bef511b70ba5ca7b1",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/run_phase1.py",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "2df5cd9ece614a7b50706bb8c12721e70250095a31cbf8eaab59cd9176dc8bb6",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/skills/README.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "cb9551409924b755195e0d9bc8cefdd86e04a7ed82531cbb1b6ad211ed07e6ae",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/skills/artifacts.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "66380453914557f674b1c4b5b1d2ea710aaad351135f30853e81e2f45844e82e",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/skills/check_artifacts.py",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "b7acbd2eb7deb7a2b7b7f8649def30f628f0b2e0e1f95a09b1577d4fed7e77bd",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/skills/context_entry.py",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "6e5ec10d841f4040f86bf8f31f210209f8ce60173fb52136d1c6be3fb42e77cf",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/skills/stages.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "1467f3de14d16d67afb947ce2e79fc3eced506b89da845e538cb06f7d18dfd86",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/skills/test_context_entry.py",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "9ac50ad7097f4e319585a768fc28ef04e2fe420a84bddb98d229d54546ae6ed6",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/.gitattributes",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "daf64dc9a49d094b2a59e68509c104c807ee65668fb7ed3544e6000f839232ba",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/README.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "6268f6f797d8dd98de1c46336e01d88b6e52782bb6390be1adb3417e05a4290b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/abc.bin",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/abc.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "7f0c359c8bfb47dbfb42d45595a81943fa02bce4991a9800def9df5fa89a5e28",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/abc.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "b120efa8c968c22d90690d10e4209e65084a84af2c5703f9a3e5b42af4a403df",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/architecture.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "91042df8be33889eb4a030900beed46b150f5852ac531c904de18c926829a9ad",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/architecture.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/cases.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "cfcb93b588d15823ea5ae4662eb4acfe9560687736ec2efd267437d7b33fd4b9",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/changed.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "62ab883ca213985b4cf59dbd8db906e9dc047ef9aef8f76cf2e2e421eac2cf70",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/combined.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "110157d9545245c8fa978d7a136ee21286ec5d290b5a43a152f5625c72d877cf",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/conflicting.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "cfcceb9154d5b6d50341c9a50d7bb32ee1b1635a55c4dc101a27f31362bdf20d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/crlf-outcome.txt",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "1263482b83a529b4fe30c5ee4133c061126dff45f2b0cc57d626d3f48bbc798d",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/crlf.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "692e2449f7e7406757c237eacb24056c59c66598942a9366b71d3d70842c36a5",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/crlf.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "064293f4c8299a7429e280b02f93a4a3b3378b58b9ff01b8bd060624d3337afc",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/crlf.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "0432a7936b897824f060aaaa63a4ccc94d6dffa1c88f9909d38c7c0d1f29c347",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/decision.txt",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "518ff9efb15b855f40e35dd722b99f1854740688784fae64f96d2c3c191fc99a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/false-authority.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "e0e65a8cdaffc1cc05a4781476e63ac7c2fd3debb0fbd505874dab5b14c7dddc",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/mixed.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "5152e1ff43c059fd09bc569196caf7bf046c4647ad14f28d3dc40a46c7880f08",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/outcome.txt",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "1d23cc5075768a28824ccd3bb6c641ae4ed38e136d89026f9ed7f42871fd40ae",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/renamed.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "3e08e6c0cfcfa191c9e8930ecb3a682e389aeb4ca65a393286bef3f4ef98ed14",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/renamed.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "f3dbe747f89ba040ff2bcf2fb183307be4d8954f5004c204d8a95a4ece43612c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/renamed.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "f58d0739716ac45c357af28aaf6babec8903f2a7a5461729d2554b5b2b584549",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/task.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "0e8ea4c25466a6e2580b8d3e5a96f387367decb94452054aac1d3cd1f6138a0a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/task.lock.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "f75f460451b08ed612666748363eb08b31bed4299617b44491ae7b01c961fad8",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/task.md",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/unsafe-path.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "925afa63beded43dedf204526f3f24f97a176d682806b6f72e718ade16339d05",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/wrong-identity.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "e328834f72ec746930d06de39dffa0a70ed610eb4e7ef9b48cfb36a5f3618bad",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/source/wrong-length.json",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "9dcce03bcb66c68b031a775408e4c22e0fdec38756c033c46717b5288614edc7",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/sdk/test_inventory.py",
+          "basis": "explicit work-order directory conformance/sdk/",
+          "exists": true,
+          "sha256": "0d88d0c0a84ca3c6c2945b2ff0e1be05403eaebb9cfcb8b635e24a3172904e58",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/examples/sdk_probe.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "18539e0cb6ed8545bf5d153a23ea957d51a0b616aa8329c0350ad96f87c58b79",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/reviews/phase-1.md",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "53dccdc149902516d233cd3fea0afb2ff01dcb08115cf814b7faa9683451a7a4",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "crates/openwarrant-core/tests/skill_artifacts.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "57bdecd60e2b8a48a5363c73fb1f8a288f39b537adf125a3e532042939178a23",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0085/implementation/native-workflow.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "8072864c20a645b7c4855f4aaa88666f69c5b7915194f84fc37cc11390b69d53",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0085/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "0442edac829ca24ef97106fad114a2955ec5ac64c18826cd8e4d5c56407ddf50",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        },
+        {
+          "path": ".claude/skills/war/SKILL.md",
+          "basis": "OW85 skill pointer/reference scope; shared SDK-artifacts pointer and local adaptation/notice trail inspected",
+          "exists": true,
+          "sha256": "10f3fc7e3bd055f7a614026a86f5642eed5724722de93aa2f70e939cfc93c8de",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        },
+        {
+          "path": ".claude/skills/openwarrant/SKILL.md",
+          "basis": "OW85 skill pointer/reference scope; shared SDK-artifacts pointer and local adaptation/notice trail inspected",
+          "exists": true,
+          "sha256": "5dd69cd172a8a7f89183e6b1331e5fbf12729151c3140be48442308071ef9c32",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        },
+        {
+          "path": ".claude/skills/openwarrant/references/sdk-artifacts.md",
+          "basis": "OW85 skill pointer/reference scope; shared SDK-artifacts pointer and local adaptation/notice trail inspected",
+          "exists": true,
+          "sha256": "543b4971c955c1de9efda676ad846703b6ec008a6dc8a7e062d23d1934b8a4bb",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        },
+        {
+          "path": ".claude/skills/openwarrant/ADAPTATIONS.md",
+          "basis": "OW85 skill pointer/reference scope; shared SDK-artifacts pointer and local adaptation/notice trail inspected",
+          "exists": true,
+          "sha256": "55202253b4db97b3b784b3476d6e94f595b3f7be1661ed4f5a8de257007d28df",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        },
+        {
+          "path": ".claude/skills/openwarrant/LICENSE.mattpocock",
+          "basis": "OW85 skill pointer/reference scope; shared SDK-artifacts pointer and local adaptation/notice trail inspected",
+          "exists": true,
+          "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        },
+        {
+          "path": "docs/design/war-skills-audit.md",
+          "basis": "OW85 skill pointer/reference scope; shared SDK-artifacts pointer and local adaptation/notice trail inspected",
+          "exists": true,
+          "sha256": "27c72f581d01694a3c7118541bdf77bb7cef3c0f838ea0b99e47e6cc4c1665d2",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    },
+    {
+      "warrant": "OW-WAR-0086",
+      "proposal_file": "OW-WAR-0086.toml",
+      "count": 16,
+      "missing": [],
+      "unresolved_scope": [],
+      "authorization_revision": 1,
+      "original_authorization_owned_set": null,
+      "original_proposal_sha256": null,
+      "entries": [
+        {
+          "path": "crates/openwarrant-core/src/document/adapter.rs",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "3d25d62fc37cfbfeb42e3cd6d51470ddd4d63fdecf69899ef60e643fc62da84a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/adapter/exchange.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "4fdfe65ca91a9796c237d653e2d51d585eee7c83f9543e9b1dea8da57e49e928",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/adapter/run.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "7c7be736c793adef9c4b14edae67558ffaf36b16ebed6becdc47b3f823258e07",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/budgets/run.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "6bd895b013bcce79723cea050bdae931b48e3bb856cfc31f86331ed9fd8a4872",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/conditions/run.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "60e282d41d860d0a9a890a18eaa3bfa867e7227235da3c593e162cdc26442b72",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/interactive/README.md",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "1c1c387638cffea70d600ec01691cef25a3b94cd9b0b32f208fd77000e9bfb98",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/interactive/author.stdin",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "ef621bc6b3bcd6c8bf4268faf1257d8dcf8ffceed52c8e2cd43f5b0d44eb880f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/interactive/run.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "41d9b103374b1278a8ddc00b9b036bfc5ce93eaa4824960789c87cdc2f547d2f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/package/run.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "4a23fc6b1a4f3fbe5dc6f3d36027bcd6d03a86633a799d75bfa50b8670467797",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/projections/run.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "22775069a85effe70937a9464e2113c1e604b3b550a73be4d6998927d519b47c",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/selection/run.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "d0a4b14e55344805de4cee844cf43eb4f63724b51e808712bf57cfa74c3e2e0f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/source/README.md",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "65d25d3a3095a9e54764be54d5a5674a1a62675c9e009dd8fd4b3d5bd0ce880a",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/source/run.py",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "09cfa554cadb051f68918cacf820b0a0a419a04e5cefd036266369a9b9331830",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "conformance/integration/typescript/records.ts",
+          "basis": "explicit work-order directory conformance/integration/",
+          "exists": true,
+          "sha256": "baba182265514bdcbd0ae98530a94ec8a68b8f9c4ff193769a3f85844929d63b",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/integrations/sdk.md",
+          "basis": "explicit work-order file",
+          "exists": true,
+          "sha256": "5df49a40f5cd5aada38f95030c7bf0d1fdd6fc45b859d471271c7e0aa9f0c625",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-003"
+          ]
+        },
+        {
+          "path": "docs/warrants/OW-WAR-0086/implementation/notes.md",
+          "basis": "existing root implementation notes; no independent verdict inferred",
+          "exists": true,
+          "sha256": "7fe068b23be758d8aa4878b5af0b99de4ddfaa2f7c5f033d890dd3bc23dd163f",
+          "obligations": [
+            "OBL-001",
+            "OBL-002",
+            "OBL-004"
+          ]
+        }
+      ]
+    }
+  ],
+  "unchanged_original_source_hashes": {
+    "docs/warrants/OW-WAR-0075/manifest.toml": "da8375106c61f02c7953bf0bc96e80ca84cec6f6d748bca46ab11e84b99804b8",
+    "docs/warrants/OW-WAR-0075/authorization.toml": "5671aa413232f42a6529baa9484c6a6308c9d886bb8ce8de14702bec96cc9f5e",
+    "docs/warrants/OW-WAR-0075/atoms/10-intent.md": "8ca4901b3fa5704ff390dcf86e18a1f0b674b2b4f4bfd364b5d93263e2644d5c",
+    "docs/warrants/OW-WAR-0075/atoms/20-basis.md": "d042ee28f3ccedae0940f6390f81f763f9918b359eea284e4ebc9882eda13ac4",
+    "docs/warrants/OW-WAR-0075/atoms/40-work-order.md": "6174bb2123b0efd86b9c3cae3ad60809e5540942c5c93aa7e46b24fbe36e3ffe",
+    "docs/warrants/OW-WAR-0075/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0075/atoms/60-assurance.md": "05c91fe5a9fdf9ef44a04d327906f16149f047fa17dc5501224da1b306b32660",
+    "docs/warrants/OW-WAR-0076/manifest.toml": "2612ee1415e4b28385854e5e530bdb0e2203d095747aff4efccd89c026968f5a",
+    "docs/warrants/OW-WAR-0076/authorization.toml": "b9b02337dda29114b69511f2073e9558de3bf2124884baa5e91b5e777e0d88f5",
+    "docs/warrants/OW-WAR-0076/atoms/10-intent.md": "0c5657c77b315ac66fbeaeef454d72a0e9979c20f14409a4b966bb098a94367b",
+    "docs/warrants/OW-WAR-0076/atoms/20-basis.md": "72fd283732d0107a32c36f9178090e9748cacbc59d7496c2a76a7388cfd9485c",
+    "docs/warrants/OW-WAR-0076/atoms/40-work-order.md": "38f75d7d7ad443afc82cb535c9ce95b3c0889523633c953789167c54b6098815",
+    "docs/warrants/OW-WAR-0076/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0076/atoms/60-assurance.md": "6a541103d44f2d0d246f64b73705f1612e55a39d94b9f9fdc7b0cefc87cf7f7b",
+    "docs/warrants/OW-WAR-0077/manifest.toml": "efa7ed76a21b9f5157a0a96809a89200aa7481cf0c18ba1b7c4067379b8b95f4",
+    "docs/warrants/OW-WAR-0077/authorization.toml": "344eef7db5a07dab0dea1750d1e6648e7a5f568cac92673f286944c8612b4a03",
+    "docs/warrants/OW-WAR-0077/atoms/10-intent.md": "aa073351a4fd17cbb7a4b4e0030b92d2f5e70631aab55b479da6b73fe9868585",
+    "docs/warrants/OW-WAR-0077/atoms/20-basis.md": "25174b3c2177f400d9325b45c7c5092b6f1f7a0f4b85d5bb852b9ca903aac016",
+    "docs/warrants/OW-WAR-0077/atoms/40-work-order.md": "fbc54e3d4e8035455e602b0b5868a3a71e0f9e0228129a9b5f4ddf3c68cce698",
+    "docs/warrants/OW-WAR-0077/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0077/atoms/60-assurance.md": "4c361f7c1d700630c92a9a79e4ed6d46716973ca157879c95a01d46dc07adf32",
+    "docs/warrants/OW-WAR-0078/manifest.toml": "ae038091c9ca8e887fb6f71297a271087fe3de4cf7ec8220ba55cf7b1e218107",
+    "docs/warrants/OW-WAR-0078/authorization.toml": "c144b5c376b92c152615d34dc933822400be39b18c6f6f5b506483fe38dcb88e",
+    "docs/warrants/OW-WAR-0078/atoms/10-intent.md": "2c8e9615b61996486a8df26d76a75fe662b7517f27b87f8ed572b68ef50a88df",
+    "docs/warrants/OW-WAR-0078/atoms/20-basis.md": "2d85d57c6aaa37c637e94d165963d246872042ba3034b3c76637b1bc459592f8",
+    "docs/warrants/OW-WAR-0078/atoms/40-work-order.md": "3ebcce3867b4723bf6c522352953d1bd7899ef22b7a024a7d23aa694cffead47",
+    "docs/warrants/OW-WAR-0078/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0078/atoms/60-assurance.md": "0240b8ab98be155470eec4103f909203986a4fd0d25a1bd214cbbd85330e5579",
+    "docs/warrants/OW-WAR-0079/manifest.toml": "c5be252162e4fde5ea442eeb59f0a12fbcccee388df716b11aa38960671d44eb",
+    "docs/warrants/OW-WAR-0079/authorization.toml": "d671ac5a56efd27dd72688f3b9e6e831b6a02a2f99cd345f9f74fc4c443054d2",
+    "docs/warrants/OW-WAR-0079/atoms/10-intent.md": "2168bcc5b622e7447621d764b2a9d1c320cdbd5d2f5930773a1e544b98c78891",
+    "docs/warrants/OW-WAR-0079/atoms/20-basis.md": "b32af9c3f6f0c67b963c81e15003b3a6fc77e5d39e9635296019064755841e11",
+    "docs/warrants/OW-WAR-0079/atoms/40-work-order.md": "484bfcd5041e507996236bc96351583b065f60e7973e86bdaa83e3fb4f998279",
+    "docs/warrants/OW-WAR-0079/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0079/atoms/60-assurance.md": "776d5b99fb8990f7e336474654f69dfe7af69a733c4d1363f365a2a689121f6d",
+    "docs/warrants/OW-WAR-0080/manifest.toml": "942aee5c1d1cdbd7accc57785260936e152232a49deaf513d55cb8c411a0a99d",
+    "docs/warrants/OW-WAR-0080/authorization.toml": "e7facedc35c836c0e60bd39a54f565f27a3aec293ab133ef900dc04f90983e34",
+    "docs/warrants/OW-WAR-0080/atoms/10-intent.md": "d20d0afab606180a23055df60d36d5f258de95f737d597d981e3ae76659f2661",
+    "docs/warrants/OW-WAR-0080/atoms/20-basis.md": "ec4d89fa17e43134cf6a8fb06e5a1de75bea62bbddc429ea0b9c7525c1a7c79a",
+    "docs/warrants/OW-WAR-0080/atoms/40-work-order.md": "54aff541b105e90775bacc4c9caff46c89187e5e55b3bf6a06391bce854fe376",
+    "docs/warrants/OW-WAR-0080/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0080/atoms/60-assurance.md": "0753ec80a7d8a2384e51f9ae45bf3118f9a4d18630b07aad706034f4ec5d24da",
+    "docs/warrants/OW-WAR-0081/manifest.toml": "4847378073fb264f9838913ee0861d01d969348c6cb728628ca495bd472abd9a",
+    "docs/warrants/OW-WAR-0081/authorization.toml": "6b1b20daab0701e11f1f8041dd3f80b2dd189a598db940b4b57137634ff82942",
+    "docs/warrants/OW-WAR-0081/atoms/10-intent.md": "16eac99a54ed2fe7863d95552079b74e0beac9bf0f3c2e417fe2c181320f602e",
+    "docs/warrants/OW-WAR-0081/atoms/20-basis.md": "79579c12660ba5bd47c8044fc40fc75d3cf7290b49606fafd1f2d9d22afaf2dc",
+    "docs/warrants/OW-WAR-0081/atoms/40-work-order.md": "cd48dc61d4a815dc5cc882e956c4406637492d2b9a0a7a86396411cab8120829",
+    "docs/warrants/OW-WAR-0081/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0081/atoms/60-assurance.md": "f453f2910cc0abc02d3c0cde8b14b62b4d93f6f68ad6cb28f7c741c060158323",
+    "docs/warrants/OW-WAR-0082/manifest.toml": "8cfdfb668f63b66c63c608fbeb4392fa5726e69f2987950ae8c01edeaa4f28da",
+    "docs/warrants/OW-WAR-0082/authorization.toml": "369bc5eb2b05a12652db871dcf3ab82f0b1b00a375404e3d8743b5308650b50c",
+    "docs/warrants/OW-WAR-0082/atoms/10-intent.md": "aba86edfab8dc9e7ef9106b20efd483db6239133b89b622584c7d4e1c8c761d4",
+    "docs/warrants/OW-WAR-0082/atoms/20-basis.md": "d8637603c44b874e5a79fdb70ac4b52f9b7f41a98c6f8810371b347b0a420adb",
+    "docs/warrants/OW-WAR-0082/atoms/40-work-order.md": "df76da622ea4ac40cbd599c5250548ab9298dc2cc0ef7bda930be79302e0168f",
+    "docs/warrants/OW-WAR-0082/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0082/atoms/60-assurance.md": "cf7b3ec12c22e94e4a6be0935b38d367dc3a844803150a09ff28c4b3e89fbd77",
+    "docs/warrants/OW-WAR-0083/manifest.toml": "305547f52998f1bc04bf2527b563a7d6691935e930a88334c8362b52789da7a7",
+    "docs/warrants/OW-WAR-0083/authorization.toml": "33f305f289b5cbbf2455d49c0c16df650e1ed27af8141237b121edf99310286c",
+    "docs/warrants/OW-WAR-0083/atoms/10-intent.md": "8f5c5bc8c5efe0bd89d21efca8effaca62593b98c4ad9338ec3ed8e23e998768",
+    "docs/warrants/OW-WAR-0083/atoms/20-basis.md": "bb33debab622bd7fe49270f2d9064490e959b5197f65a858e91e4000c15195fc",
+    "docs/warrants/OW-WAR-0083/atoms/40-work-order.md": "4282ae4e9d2ba4f0e59dba3a8e9b95b10803761dad9c8c9f4f76c10a8778b7a1",
+    "docs/warrants/OW-WAR-0083/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0083/atoms/60-assurance.md": "7ed5df085720af2099aad0e92d84913cb168836364f4e59e8b3ad59aa771a1cf",
+    "docs/warrants/OW-WAR-0084/manifest.toml": "a2e407ecaf5eedb166d5c5d04dbe7f7084daa7c065735b8f7b7d06d1b3575968",
+    "docs/warrants/OW-WAR-0084/authorization.toml": "a83bb891126b512d94dcb6a280b9646a9e5754b8ef57268b36f4aa12552cc15f",
+    "docs/warrants/OW-WAR-0084/atoms/10-intent.md": "6a238969771920064bb851ac0879a7200e5b79f58734799751abb9cf3bb402eb",
+    "docs/warrants/OW-WAR-0084/atoms/20-basis.md": "7e08fabb478a600f8aa0e4788a94822113a0139dfece92f5a973c240ff645689",
+    "docs/warrants/OW-WAR-0084/atoms/40-work-order.md": "553b725cd056a5a685ad4ce40459edeab4b43594603d5d60d4dd59e673d5b7df",
+    "docs/warrants/OW-WAR-0084/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0084/atoms/60-assurance.md": "ca96e7124217c4dca35dcb6dbf3eabdc242d4bf4bc488071af5ad42f11c946a8",
+    "docs/warrants/OW-WAR-0085/manifest.toml": "10dbe1f40e336bb42dfac49f26bc0c74d17f8c492aedae42574fc9c7628c43a6",
+    "docs/warrants/OW-WAR-0085/authorization.toml": "2535a11e1cc6230f36943b81097c5bafddd4d489095f9e34a685613b434e020e",
+    "docs/warrants/OW-WAR-0085/atoms/10-intent.md": "a67ca6453bf94044c3ab3ad6260e6914eb964d7e3b425d04a74aaf5bec28c5ee",
+    "docs/warrants/OW-WAR-0085/atoms/20-basis.md": "b159ee72eaca36d1f25ad4f3c45b1b379d27b824a3dba174a7357d4168f2cad5",
+    "docs/warrants/OW-WAR-0085/atoms/40-work-order.md": "ac9e2a099934d126d346b41f00f01f31bf85f3d44a84f56b9c6673ecbc2460ea",
+    "docs/warrants/OW-WAR-0085/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0085/atoms/60-assurance.md": "0db44bf1cd74fae12f62269ac18575f91a65b61c5477c7ca352597052283ea3a",
+    "docs/warrants/OW-WAR-0086/manifest.toml": "978801b995826650239b9f599c8491d826d989d47a89f9ca9441542dd67415f2",
+    "docs/warrants/OW-WAR-0086/authorization.toml": "75686c7ab1b7b7a00b88f27f7dbb31980f9fb23dcccf34394e1be52a110c6f42",
+    "docs/warrants/OW-WAR-0086/atoms/10-intent.md": "f11290ed2d39223952a8caf768f752f60ef60bd413e7771f097bcd86de8ab2f7",
+    "docs/warrants/OW-WAR-0086/atoms/20-basis.md": "9d0a131706293490819703b8c439a2a1ea41e9eddb2372389e6fef3dbcfac862",
+    "docs/warrants/OW-WAR-0086/atoms/40-work-order.md": "d1ae041b4f26c9ba04f6b247c8ff92aaf35754f6b0136e9f82057bf296e37d85",
+    "docs/warrants/OW-WAR-0086/atoms/45-milestones.yaml": "5538831139d4fc29ab524a2648426aa659f36b9ea171faf79e3d0e5510bda8f0",
+    "docs/warrants/OW-WAR-0086/atoms/60-assurance.md": "8573d6c2bbdb6fe6d06d4b85e51f73dd2ee475828e55979e2fd0de2d48100de9"
+  },
+  "review_corrections": [
+    {
+      "warrant": "OW-WAR-0083",
+      "initial_interpretation": "crates/openwarrant-core/examples/sdk_probe/record_schemas.rs",
+      "resolved_path": "crates/openwarrant-core/examples/record_schemas.rs",
+      "basis": "Actual source and introducing commit, not a source-code change"
+    },
+    {
+      "warrant": "OW-WAR-0085",
+      "basis": "Read shared workflow, SDK-artifacts branch, adaptation provenance, MIT notice and audit pointer; proposed paths only; no model-quality or distribution qualification inferred"
+    }
+  ]
+}

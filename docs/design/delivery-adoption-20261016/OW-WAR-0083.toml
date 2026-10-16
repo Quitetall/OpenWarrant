@@ -1,0 +1,204 @@
+schema = "oh.war/deliverables/v1"
+
+# REVIEW PROPOSAL ONLY: not an active declaration, delivery or ownership grant.
+# No producing actor, attempt, input history or independent verdict is inferred.
+
+[[deliverable]]
+id = "D-001"
+title = "crates/openwarrant-core/src/document/records.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/records.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "crates/openwarrant-core/src/document/records/workflow.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/records/workflow.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-003"
+title = "crates/openwarrant-core/tests/document_records.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/document_records.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "crates/openwarrant-core/tests/document_workflow_records.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/document_workflow_records.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "crates/openwarrant-core/examples/sdk_probe/records.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/examples/sdk_probe/records.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "crates/openwarrant-core/examples/record_schemas.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/examples/record_schemas.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "conformance/sdk/records/agent-authorization-without-policy.json"
+kind = "file"
+target_ref = "conformance/sdk/records/agent-authorization-without-policy.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "conformance/sdk/records/agent-human-spoof.json"
+kind = "file"
+target_ref = "conformance/sdk/records/agent-human-spoof.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/records/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/records/cases.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/records/complete-unverified-view.json"
+kind = "file"
+target_ref = "conformance/sdk/records/complete-unverified-view.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-011"
+title = "conformance/sdk/records/conflated-state.json"
+kind = "file"
+target_ref = "conformance/sdk/records/conflated-state.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-012"
+title = "conformance/sdk/records/contract.json"
+kind = "file"
+target_ref = "conformance/sdk/records/contract.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "conformance/sdk/records/observation-untrusted.json"
+kind = "file"
+target_ref = "conformance/sdk/records/observation-untrusted.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-014"
+title = "conformance/sdk/records/schemas.json"
+kind = "file"
+target_ref = "conformance/sdk/records/schemas.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-015"
+title = "conformance/sdk/records/unavailable-pass.json"
+kind = "file"
+target_ref = "conformance/sdk/records/unavailable-pass.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-016"
+title = "conformance/sdk/records/unknown-core-field.json"
+kind = "file"
+target_ref = "conformance/sdk/records/unknown-core-field.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-017"
+title = "conformance/sdk/records/unknown-observation.json"
+kind = "file"
+target_ref = "conformance/sdk/records/unknown-observation.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-018"
+title = "conformance/sdk/records/unsigned-completion.json"
+kind = "file"
+target_ref = "conformance/sdk/records/unsigned-completion.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-019"
+title = "conformance/sdk/records/wrong-result.json"
+kind = "file"
+target_ref = "conformance/sdk/records/wrong-result.json"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-020"
+title = "docs/warrants/OW-WAR-0083/implementation/notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/notes.md"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-004"]
