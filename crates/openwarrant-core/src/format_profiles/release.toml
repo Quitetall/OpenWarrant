@@ -4,8 +4,7 @@
 # profile; where it and the prose disagree, the prose wins and this file is
 # the defect.
 #
-# Section 7.6 gives this profile "their files' sections" and names none, so
-# this file requires none.
+# Section 7.6: it requires nothing.
 schema = "oh.war/profile/v1"
 format = "openwarrant/1.0"
 name = "release"

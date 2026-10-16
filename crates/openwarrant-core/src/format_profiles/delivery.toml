@@ -14,8 +14,8 @@ capabilities = ["structure", "links", "claims", "checks", "stages", "acceptance"
 required = []
 optional = ["assurance_level"]
 
-# Section 4.1: delivery also requires at least one obligation, which profile
-# data has no key for; the core states it.
+# Section 4.1 and 7.6: delivery also requires at least one obligation, a
+# core rule that profile data cannot state.
 [sections]
 required = ["Intent", "Basis", "Work order", "Assurance"]
 optional = ["Milestones"]
@@ -41,13 +41,15 @@ context = { required = false, shape = "ids" }
 run = { required = true, shape = "line" }
 on = { required = false, shape = "line" }
 timeout = { required = false, shape = "int" }
-gating = { required = false, shape = "enum", values = ["true", "false"] }
+gating = { required = false, shape = "bool" }
+reopen = { required = false, shape = "bool" }
 
 [fields.kpi]
 run = { required = true, shape = "line" }
 on = { required = false, shape = "line" }
 timeout = { required = false, shape = "int" }
-gating = { required = false, shape = "enum", values = ["true", "false"] }
+gating = { required = false, shape = "bool" }
+reopen = { required = false, shape = "bool" }
 direction = { required = true, shape = "enum", values = ["min", "max"] }
 target = { required = false, shape = "number" }
 mode = { required = false, shape = "enum", values = ["threshold", "best", "optimise"] }

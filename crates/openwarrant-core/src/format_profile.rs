@@ -81,10 +81,9 @@ pub const FIXED_STATES: [&str; 13] = [
 /// 10.4: the built-in presets, which no profile may redefine.
 pub const BUILTIN_PRESETS: [&str; 5] = ["agent", "agent.min", "human", "review", "resume"];
 
-/// The built-in profiles of 7.6, as `(name, file bytes)`. Copies of the
-/// normative files at `schemas/format/1.0/profiles/` (#295), with draft 3
-/// revision 1's `format = "openwarrant/1.0"` and a kpi `target` of shape
-/// `number`; once those files land, these point at them.
+/// The built-in profiles of 7.6, as `(name, file bytes)`: byte-identical
+/// copies of the normative files at `schemas/format/1.0/profiles/` (#295).
+/// A unit test holds each copy to its file whenever the file is present.
 const BUILTIN: [(&str, &str); 11] = [
     ("adr", include_str!("format_profiles/adr.toml")),
     (
@@ -1191,6 +1190,26 @@ reads_state = true
         assert!(matches!(ps.lookup("nothing"), Lookup::Missing));
         assert!(matches!(ps.lookup("delivery"), Lookup::Found(_)));
         assert_eq!(ps.invalid.len(), 3);
+    }
+
+    #[test]
+    fn each_builtin_is_the_normative_file_when_it_is_present() {
+        // 7.6: the files at schemas/format/1.0/profiles/ are normative. The
+        // copies compiled in here are those bytes; once the files are in the
+        // repository, a copy that drifts fails here.
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../schemas/format/1.0/profiles");
+        for (name, text) in BUILTIN {
+            let path = dir.join(format!("{name}.toml"));
+            if let Ok(normative) = std::fs::read_to_string(&path) {
+                assert_eq!(
+                    text,
+                    normative,
+                    "{name}: the built-in differs from {}",
+                    path.display()
+                );
+            }
+        }
     }
 
     #[test]

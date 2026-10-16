@@ -33,13 +33,15 @@ criticality = { required = false, shape = "enum", values = ["required", "advisor
 run = { required = true, shape = "line" }
 on = { required = false, shape = "line" }
 timeout = { required = false, shape = "int" }
-gating = { required = false, shape = "enum", values = ["true", "false"] }
+gating = { required = false, shape = "bool" }
+reopen = { required = false, shape = "bool" }
 
 [fields.kpi]
 run = { required = true, shape = "line" }
 on = { required = false, shape = "line" }
 timeout = { required = false, shape = "int" }
-gating = { required = false, shape = "enum", values = ["true", "false"] }
+gating = { required = false, shape = "bool" }
+reopen = { required = false, shape = "bool" }
 direction = { required = true, shape = "enum", values = ["min", "max"] }
 target = { required = false, shape = "number" }
 mode = { required = false, shape = "enum", values = ["threshold", "best", "optimise"] }

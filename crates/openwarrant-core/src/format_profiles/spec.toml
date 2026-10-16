@@ -10,9 +10,9 @@ form = "document"
 note = "A repository's specification: SPEC.md and its parts spec/<area>.md (section 4.5)."
 capabilities = ["structure", "links", "acceptance"]
 
-# Section 4.5: `version` is REQUIRED on SPEC.md and parts carry none; Purpose
-# and Scope are required on SPEC.md and parts require none. One profile
-# serves both files, so those two rules are the core's (4.5), not this file's.
+# Section 4.5: `version` is REQUIRED on SPEC.md, and a part needs none;
+# Purpose and Scope are required on SPEC.md, and parts require none. One
+# profile governs the root and its parts, so those are core rules of 4.5.
 [frontmatter]
 required = []
 optional = ["version"]
