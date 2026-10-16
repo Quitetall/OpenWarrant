@@ -4,6 +4,7 @@
 # profile; where it and the prose disagree, the prose wins and this file is
 # the defect.
 schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
 name = "decision"
 form = "work"
 note = "Work whose outcome is a decision: intent and basis, without milestones or stages."
@@ -32,15 +33,17 @@ criticality = { required = false, shape = "enum", values = ["required", "advisor
 run = { required = true, shape = "line" }
 on = { required = false, shape = "line" }
 timeout = { required = false, shape = "int" }
-gating = { required = false, shape = "enum", values = ["true", "false"] }
+gating = { required = false, shape = "bool" }
+reopen = { required = false, shape = "bool" }
 
 [fields.kpi]
 run = { required = true, shape = "line" }
 on = { required = false, shape = "line" }
 timeout = { required = false, shape = "int" }
-gating = { required = false, shape = "enum", values = ["true", "false"] }
+gating = { required = false, shape = "bool" }
+reopen = { required = false, shape = "bool" }
 direction = { required = true, shape = "enum", values = ["min", "max"] }
-target = { required = false, shape = "line" }
+target = { required = false, shape = "number" }
 mode = { required = false, shape = "enum", values = ["threshold", "best", "optimise"] }
 
 [relations]

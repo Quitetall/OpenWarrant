@@ -1,0 +1,4 @@
+id = "443-next-title-only-document"
+kind = "accept"
+section = "11.1"
+says = """A work document with no items is workable as it is: it is `open` until it is claimed or done, and `claim` and `done` act on the document itself."""

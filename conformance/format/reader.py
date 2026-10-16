@@ -18,8 +18,7 @@ prints one JSON object on stdout:
     {"records": [...], "relations": [...], "findings": ["<rule> <path>:<line>", ...]}
 
 Where the specification leaves a choice open, the choice taken is named in a
-comment beginning `READING:`; conformance/format/README.md lists them, and
-docs/format/draft-3-questions.md asks the editor to settle them.
+comment beginning `READING:`; conformance/format/README.md lists them.
 """
 
 from __future__ import annotations
@@ -54,10 +53,8 @@ CORE_TYPES = {
 # The fields the core text defines per type: 3.7 (obligation), 4.1 (stage),
 # 12 (check, kpi). READING: 4.5's `requirement` and `constraint` fields are
 # read as the `spec` profile's (schemas/format/1.0/profiles/spec.toml), so a
-# requirement in another document declares none (draft-3-questions.md).
+# requirement in another document declares none.
 _CHECK_FIELDS = {"run", "on", "timeout", "gating",
-                 # READING: section 12's trigger table writes `reopen: true` on a
-                 # check; the field table does not list it. It is read as a field.
                  "reopen"}
 CORE_FIELDS = {
     "obligation": {"scope", "evidence", "refusal", "gate", "scope_kind", "criticality"},
@@ -66,7 +63,7 @@ CORE_FIELDS = {
     "kpi": _CHECK_FIELDS | {"direction", "target", "mode"},
 }
 # REQUIRED by the core text under any profile.
-CORE_REQUIRED = {"obligation": ["scope", "evidence"], "check": ["run"], "kpi": ["run"]}
+CORE_REQUIRED = {"obligation": ["scope", "evidence"], "check": ["run"], "kpi": ["run", "direction"]}
 AUTHORED_STATE = {"disposition", "verdict", "state", "status"}
 # Section 7.6 and 11.1.
 CAPABILITIES = {"structure", "links", "claims", "checks", "stages", "acceptance", "evidence",
@@ -74,9 +71,9 @@ CAPABILITIES = {"structure", "links", "claims", "checks", "stages", "acceptance"
 FIXED_STATES = {"draft", "open", "in_progress", "done", "blocked", "claimed", "superseded",
                 "failing", "accepted", "partially_accepted", "authorized", "verified", "resolved"}
 BUILTIN_PRESETS = {"agent", "agent.min", "human", "review", "resume"}
-SHAPES = {"text", "line", "int", "id", "ids", "gate", "date", "enum"}
+SHAPES = {"text", "line", "int", "number", "id", "ids", "gate", "date", "enum", "bool"}
 # Appendix D.
-REGISTERED_PREFIXES = {"kf", "katana", "liminal", "blut", "contractor", "x"}
+REGISTERED_PREFIXES = {"kf", "katana", "liminal", "blut", "contractor", "legacy", "x"}
 
 REFUSALS = {
     "format.encoding", "format.frontmatter", "format.key-unknown", "format.heading",
@@ -125,7 +122,8 @@ ITEM_RE = re.compile(
 DONE_RE = re.compile(DONE_SUFFIX)
 IMPLEMENTS_RE = re.compile(rf"\bimplements ({REF})")
 GATE_RE = re.compile(r"gate://[a-z0-9][a-z0-9_-]*(?:\.[a-z0-9][a-z0-9_-]*)*@\d+\.\d+\.\d+(?:-\S+)?")
-SECTION_REF_RE = re.compile(r"§|\b[Ss]ection \d+(?:\.\d+)*")
+SECTION_REF_RE = re.compile(r"§")
+SENTENCE_BREAK_RE = re.compile(r"[.!?] ")
 
 
 class Refused(Exception):
@@ -199,13 +197,10 @@ def slug(name: str) -> str:
 
 
 def prefix_registered(name: str) -> bool:
-    """7.1 and Appendix D: a registered prefix, or a reverse domain name.
-
-    READING: a reverse domain name is told apart by its labels: a dotted name
-    of three or more labels (`com.example.risk`) has a domain of at least two.
-    """
+    """7.1 and Appendix D: a registered prefix, or a reverse domain name: a
+    name of three or more labels whose first label is letters only."""
     labels = name.split(".")
-    return labels[0] in REGISTERED_PREFIXES or len(labels) >= 3
+    return labels[0] in REGISTERED_PREFIXES or (len(labels) >= 3 and labels[0].isalpha())
 
 
 # ------------------------------------------------------------- frontmatter --
@@ -264,7 +259,7 @@ def frontmatter(lines):
 
 # ---------------------------------------------------------------- profiles --
 
-PROFILE_KEYS = {"schema", "name", "extends", "form", "note", "capabilities", "frontmatter",
+PROFILE_KEYS = {"schema", "format", "name", "extends", "form", "note", "capabilities", "frontmatter",
                 "sections", "records", "fields", "relations", "states", "ticks", "presets"}
 PRESET_KEYS = {"name", "steps", "depth", "budget", "omit_types", "omit_fields", "editable",
                "reads_state"}
@@ -286,6 +281,7 @@ class Profile:
         self.sec_optional = list(sec.get("optional", []))
         self.sec_closed = bool(sec.get("closed", False))
         self.types = list(data.get("records", {}).get("types", []))
+        self.types_closed = bool(data.get("records", {}).get("closed", False))
         self.fields = data.get("fields", {})
         self.relations = data.get("relations", {})
         self.states = data.get("states", [])
@@ -306,6 +302,8 @@ def profile_problem(data: dict, stem: str) -> str | None:
         return f"unknown key {sorted(unknown)[0]}"
     if data.get("schema") != "oh.war/profile/v1":
         return "schema is not oh.war/profile/v1"
+    if data.get("format") != "openwarrant/1.0":
+        return "format is not openwarrant/1.0"
     if data.get("name") != stem:
         return "name is not the file stem"
     if data.get("form", "work") not in ("work", "document"):
@@ -313,9 +311,11 @@ def profile_problem(data: dict, stem: str) -> str | None:
     caps = data.get("capabilities", [])
     if not strings(caps) or set(caps) - CAPABILITIES:
         return "a capability outside 7.6"
+    if (data.get("extends") is None) and (problem := capability_problem(set(caps))):
+        return problem
     for table, keys in (("frontmatter", {"required", "optional"}),
                         ("sections", {"required", "optional", "closed"}),
-                        ("records", {"types"}), ("relations", {"allow", "require"}),
+                        ("records", {"types", "closed"}), ("relations", {"allow", "require"}),
                         ("ticks", {"item", "milestone", "types"})):
         t = data.get(table, {})
         if not isinstance(t, dict) or set(t) - keys:
@@ -349,12 +349,28 @@ def profile_problem(data: dict, stem: str) -> str | None:
     return None
 
 
-def merge_profile(base: dict, ext: dict) -> dict:
-    """7.5 `extends`: start from the base's declarations; add and narrow."""
+def capability_problem(caps: set) -> str | None:
+    """7.6: every other capability needs `structure`; `verification` needs
+    `evidence`; `resolution` needs `authorization`; `checks` needs `claims`."""
+    if caps and "structure" not in caps:
+        return "a capability without structure"
+    for c, need in (("verification", "evidence"), ("resolution", "authorization"), ("checks", "claims")):
+        if c in caps and need not in caps:
+            return f"{c} without {need}"
+    return None
+
+
+def merge_profile(base: dict, ext: dict, path=()) -> dict:
+    """7.5 `extends`: start from the base's declarations; add and narrow.
+    Capabilities are the union; a field either requires is required."""
     out = copy.deepcopy(base)
     for k, v in ext.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = merge_profile(out[k], v)
+        if path[:1] == ("fields",) and len(path) == 2 and isinstance(v, dict) and k in out:
+            merged = {**out[k], **v}
+            merged["required"] = bool(out[k].get("required")) or bool(v.get("required"))
+            out[k] = merged
+        elif isinstance(v, dict) and isinstance(out.get(k), dict):
+            out[k] = merge_profile(out[k], v, path + (k,))
         elif isinstance(v, list) and isinstance(out.get(k), list) and k not in ("require",):
             out[k] = out[k] + [x for x in v if x not in out[k]]
         else:
@@ -388,9 +404,12 @@ def load_profiles(root: str):
                 findings.append(("profile.invalid", path, 1))
                 local[stem] = None
                 continue
+            if "format" not in data:
+                # 7.5: a profile file without `format` is a legacy profile and
+                # never governs a Format 1.0 document.
+                continue
             problem = profile_problem(data, stem)
-            # READING: "a file of the same name replaces one only by `extends`":
-            # a repository file named like a built-in profile must extend it.
+            # 7.5: a file with a built-in's name replaces it only by naming it in `extends`.
             if problem is None and stem in builtin and data.get("extends") != stem:
                 problem = "a built-in profile's name without extends"
             if problem:
@@ -419,7 +438,17 @@ def load_profiles(root: str):
                     findings.append(("profile.invalid", f"profiles/{name}.toml", 1))
                     resolved[name] = None
                     return None
+                # 7.5: its `form` is the base's; its capabilities, after the
+                # union, must still meet the prerequisites of 7.6.
+                if data.get("form", base.get("form")) != base.get("form"):
+                    findings.append(("profile.invalid", f"profiles/{name}.toml", 1))
+                    resolved[name] = None
+                    return None
                 data = merge_profile(base, {k: v for k, v in data.items() if k != "extends"})
+                if capability_problem(set(data.get("capabilities", []))):
+                    findings.append(("profile.invalid", f"profiles/{name}.toml", 1))
+                    resolved[name] = None
+                    return None
         elif name in raw:
             data = raw[name]
         else:
@@ -434,14 +463,7 @@ def load_profiles(root: str):
 
 
 def shape_ok(value: str, spec: dict) -> bool:
-    """7.5 field shapes.
-
-    READING: the shapes are named and not defined; `line` is a value without
-    a continuation, `int` an optionally signed run of decimal digits, `id` one
-    target of 3.6, `ids` one or more joined by `, `, `gate` one or more
-    `gate://<id>@<version>` joined by `, ` (3.7: comma-separated), `date`
-    `YYYY-MM-DD`, `enum` one of `values`.
-    """
+    """7.5 **Shapes**."""
     shape = spec.get("shape", "text")
     if shape == "text":
         return True
@@ -449,6 +471,10 @@ def shape_ok(value: str, spec: dict) -> bool:
         return "\n" not in value
     if shape == "int":
         return re.fullmatch(r"-?[0-9]+", value) is not None
+    if shape == "number":
+        return re.fullmatch(r"-?[0-9]+(?:\.[0-9]+)?", value) is not None
+    if shape == "bool":
+        return value in ("true", "false")
     if shape == "id":
         return TARGET_RE.fullmatch(value) is not None
     if shape == "ids":
@@ -671,8 +697,8 @@ def parse(doc: Doc, data: bytes, work, profiles):
         own_type = "spec"
     else:
         own_type = "document"
-    # READING: the document record is no unit (3.4); its span is taken to be
-    # everything before the first unit, frontmatter and preamble, BOM excluded.
+    # 10.3: the document record's span is the frontmatter and the preamble,
+    # up to its first unit (BOM excluded).
     first_unit = units[0]["start"] if units else len(data)
     records.append({
         "id": own, "type": own_type,
@@ -715,6 +741,10 @@ def parse(doc: Doc, data: bytes, work, profiles):
                 raise Refused("format.title-missing", n)
             if "." in rtype and not prefix_registered(rtype):
                 warns.append(("format.prefix-unregistered", n))
+            if ("." not in rtype and prof is not None and prof.types_closed
+                    and rtype not in CORE_TYPES and rtype not in prof.types):
+                # 7.5: `[records] closed = true` refuses any other undotted type.
+                raise Refused("format.key-unknown", n)
             rec, rrels, rwarns = record_unit(doc, gid(rid), rtype, rtitle, u["lines"], n, prof,
                                              is_spec)
             rec["_span"] = (u["start"], u["end"])
@@ -734,9 +764,8 @@ def parse(doc: Doc, data: bytes, work, profiles):
             if prof is not None and prof.sec_closed:
                 listed = {slug(x) for x in prof.sec_required + prof.sec_optional}
                 if s not in listed:
-                    # READING: 7.5 says a closed set refuses an unlisted section
-                    # and names no rule; it is an undotted name the profile does
-                    # not define (7.2).
+                    # 7.5: a section outside a `closed = true` set is refused
+                    # as a field outside its table is.
                     raise Refused("format.key-unknown", n)
             # READING: a section's body skips one blank line after its heading,
             # as a record with no attribute block does (3.5).
@@ -763,9 +792,7 @@ def parse(doc: Doc, data: bytes, work, profiles):
             if not fenced and re.match(r"### OBL-", ln):
                 warns.append(("format.legacy-obligation", ln_n))
         if is_spec:
-            # 4.5: a record SHOULD NOT cite another by a section number or `§`.
-            # READING: applied to every unit of a specification document; a
-            # citation is `§` or `section <number>`, reported at its line.
+            # 4.5: a checker warns on a `§` in any record of a specification, at the line.
             if SECTION_REF_RE.search(head):
                 warns.append(("context.section-ref", n))
             for ln_n, ln, fenced, _, _ in u["lines"]:
@@ -843,10 +870,9 @@ def record_unit(doc, rid, rtype, title, lines, head_line, prof, is_spec):
             else:
                 if rtype == "obligation" and key in AUTHORED_STATE:
                     raise Refused("format.authored-state", n)
-                # READING: 7.5 refuses a field "neither the core nor the profile
-                # declares for that type"; a type for which neither declares any
-                # field (a milestone, a `policy`) is read as declaring none, so
-                # its fields are not refused.
+                # 7.5: once the core or the profile declares a field table for
+                # a type, a field outside it is refused; a type for which
+                # neither declares any field accepts any field.
                 if declared and key not in declared:
                     if doc.newer_minor:
                         doc.find("format.newer-minor", n)
@@ -878,12 +904,15 @@ def record_unit(doc, rid, rtype, title, lines, head_line, prof, is_spec):
             continue
         raise Refused("format.attribute", n)
     body = [ln[1] for ln in lines[i:]]
+    required = list(CORE_REQUIRED.get(rtype, [])) + [k for k, s in table.items() if s.get("required")]
+    # 3.5: an OPTIONAL field whose value is empty is absent.
+    for key in [k for k, v in fields.items() if v == "" and k not in required]:
+        del fields[key]
     # 7.5: a value that does not have its shape is refused at its line.
     for key, val in fields.items():
         spec = table.get(key)
         if spec is not None and not shape_ok(val, spec):
             raise Refused("format.field-shape", field_line[key])
-    required = list(CORE_REQUIRED.get(rtype, [])) + [k for k, s in table.items() if s.get("required")]
     for req in required:
         # An empty value is a missing one.
         if fields.get(req, "").strip() == "":
@@ -891,10 +920,10 @@ def record_unit(doc, rid, rtype, title, lines, head_line, prof, is_spec):
     if rtype == "obligation" and "refusal" not in fields:
         warns.append(("format.refusal-missing", head_line))
     if is_spec and rtype in ("requirement", "constraint") and "statement" in fields:
-        # 4.5: a statement SHOULD be one sentence of at most 300 bytes.
-        # READING: only the byte bound is checked; "one sentence" is not
-        # mechanically defined (draft-3-questions.md).
-        if len(fields["statement"].encode()) > 300:
+        # 4.5: warned at the heading when longer than 300 bytes, or when a
+        # `.`, `!` or `?` followed by a space occurs before its end.
+        st = fields["statement"]
+        if len(st.encode()) > 300 or SENTENCE_BREAK_RE.search(st):
             warns.append(("context.statement-shape", head_line))
     rec = {"id": rid, "type": rtype, "title": title, "fields": fields, "ext": ext,
            "body": "\n".join(body), "line": head_line, "_body_at": i}
@@ -1049,8 +1078,8 @@ def load_repository(root: str) -> Repository:
         d = read_document(source, data, place, profiles)
         manifest_check(root, source, d)
         docs.append(d)
-    # 4.5: at most one root specification. READING: any other file with
-    # profile `spec` that names no `part_of` is refused, reported at its line 1.
+    # 4.5: at most one root specification: any other file with profile `spec`
+    # that names no `part_of` is refused, whether or not SPEC.md exists.
     for d in docs:
         if d.profile_name == "spec" and d.source != "SPEC.md" and not (d.refused or d.unknown):
             if not any(r["kind"] == "part_of" and r["from"] == d.own_id for r in d.relations):

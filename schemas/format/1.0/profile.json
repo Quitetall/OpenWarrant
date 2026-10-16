@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openwarrant.dev/schemas/format/1.0/profile.json",
   "title": "oh.war/profile/v1",
-  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md sections 2 and 7.4 (a profile is data, `oh.war/profile/v1`, TOML) and for the profile files the reference reader admits (`profiles/*.toml`, the profiles of a type pack). Where this schema and the prose of FORMAT-1.0.md disagree, the prose wins and this schema is the defect. The prose names what a profile declares (record types, relations, sections, frontmatter keys) but gives no member names, so the members here are the reader's ($comment). Draft 3 (sections 7.5 and 7.6) adds a fourth form, Format 1.0 profile data (`form = \"work\"`, or `form = \"document\"` with the draft-3 tables): `extends`, `[frontmatter]`, `[sections]`, `[records]`, `[fields.<type>]` with shapes, `[relations]`, `[[states]]`, `[ticks]` and `[[presets]]`; the built-in profiles of 7.6 are such files (schemas/format/1.0/profiles/). The three earlier forms are those of the reference reader's own files: a contract form (the default, a Warrant profile: a core profile restating itself, or an extension of one), a working form (`form = \"working\"`, the ticket), and a document type (`form = \"document\"`). Not expressed here: that `name` equals the file stem; that a core file restates its core's roles and kind data exactly; that a namespaced role's ordinal is unused; that a projection names only types and kinds its profile declares; that projection names and encodings are unique across a program. Not expressed for the draft-3 form: that `extends` names a profile that exists, that a profile adds and narrows but never removes, and the capability prerequisites of 7.6 (`verification` needs `evidence`, `resolution` needs `authorization`, `checks` needs `claims`).",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md sections 2 and 7.4 (a profile is data, `oh.war/profile/v1`, TOML) and for the profile files the reference reader admits (`profiles/*.toml`, the profiles of a type pack). Where this schema and the prose of FORMAT-1.0.md disagree, the prose wins and this schema is the defect. The prose names what a profile declares (record types, relations, sections, frontmatter keys) but gives no member names, so the members here are the reader's ($comment). Draft 3 (sections 7.5 and 7.6) adds a fourth form, Format 1.0 profile data (`form = \"work\"`, or `form = \"document\"` with the draft-3 tables): `extends`, `[frontmatter]`, `[sections]`, `[records]`, `[fields.<type>]` with shapes, `[relations]`, `[[states]]`, `[ticks]` and `[[presets]]`; the built-in profiles of 7.6 are such files (schemas/format/1.0/profiles/). The three earlier forms are those of the reference reader's own files: a contract form (the default, a Warrant profile: a core profile restating itself, or an extension of one), a working form (`form = \"working\"`, the ticket), and a document type (`form = \"document\"`). Not expressed here: that `name` equals the file stem; that a core file restates its core's roles and kind data exactly; that a namespaced role's ordinal is unused; that a projection names only types and kinds its profile declares; that projection names and encodings are unique across a program. Not expressed for the draft-3 form: that `extends` names a profile that exists, that a profile adds and narrows but never removes, that its `form` is its base's, and the capability prerequisites of 7.6 (every other capability needs `structure`, `verification` needs `evidence`, `resolution` needs `authorization`, `checks` needs `claims`).",
   "$comment": "Contract and working form: crates/openwarrant-core/src/role.rs:742 `ProfileFile` (deny_unknown_fields) and role.rs:1338 `parse_definition`. Document form: crates/openwarrant-core/src/projection.rs:417 `DocumentFile` and its tables (deny_unknown_fields), projection.rs:560 `parse_document`. Closed sets: role.rs:115 `AtomRole::ALL`, role.rs:315 `Capability::ALL`, kernel_state.rs:83 `FixedState::ALL`, ticks.rs:98 tick levels, relation.rs `CoreKind`.",
   "x-oh-war-schema": "oh.war/profile/v1",
   "type": "object",
@@ -66,10 +66,11 @@
       ]
     },
     "records": {
-      "description": "`[records]`: the record types (the profile's nouns) its records may have.",
+      "description": "`[records]`: the record types (the profile's nouns) its records may have; in Format 1.0 profile data (7.5), `closed = true` refuses any other undotted type.",
       "type": "object",
       "properties": {
-        "types": { "type": "array", "items": { "$ref": "common.json#/$defs/word" } }
+        "types": { "type": "array", "items": { "$ref": "common.json#/$defs/word" } },
+        "closed": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -219,9 +220,13 @@
     "tickLevel": { "enum": ["claimed", "observed", "independent", "signed"] },
     "format10": {
       "description": "Format 1.0 profile data (FORMAT-1.0 section 7.5). A file with an unknown key, a capability outside 7.6, a `refines` naming no fixed state, or a preset named like a built-in is refused (`profile.invalid`).",
-      "required": ["schema", "name", "form"],
+      "required": ["schema", "format", "name", "form"],
       "properties": {
         "schema": true,
+        "format": {
+          "description": "Section 7.5: a profile file without it is a legacy profile and never governs a Format 1.0 document.",
+          "const": "openwarrant/1.0"
+        },
         "name": true,
         "note": { "type": "string" },
         "capabilities": true,
@@ -297,7 +302,7 @@
       "type": "object",
       "properties": {
         "required": { "type": "boolean" },
-        "shape": { "enum": ["text", "line", "int", "id", "ids", "gate", "date", "enum"] },
+        "shape": { "enum": ["text", "line", "int", "number", "id", "ids", "gate", "date", "enum", "bool"] },
         "values": { "type": "array", "minItems": 1, "items": { "type": "string" } }
       },
       "additionalProperties": false,

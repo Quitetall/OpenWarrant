@@ -14,6 +14,7 @@
         "name": "human",
         "depth": 1
       }
-    ]
+    ],
+    "format": "openwarrant/1.0"
   }
 }

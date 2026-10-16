@@ -4,6 +4,7 @@
 # profile; where it and the prose disagree, the prose wins and this file is
 # the defect.
 schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
 name = "roadmap"
 form = "document"
 note = "A roadmap: phases as `phase` records."

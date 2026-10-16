@@ -1,4 +1,5 @@
 schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
 name = "runbook"
 form = "document"
 note = "An operational runbook."

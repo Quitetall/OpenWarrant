@@ -11,7 +11,13 @@
     "run": "r-1",
     "verdict": "PASS",
     "revision": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "output_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    "output_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "subjects": [
+      [
+        "t-0d61d/i-9c01",
+        "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      ]
+    ]
   },
-  "idempotency_key": "04a4302dfe360b30d22dd9e8e1727a625b585af8babf2a5c2dc272ea9ee650f2"
+  "idempotency_key": "7bcd77f0530b1c0f6094f6019fd394711bb72ce65f25be040c525e38114318c3"
 }

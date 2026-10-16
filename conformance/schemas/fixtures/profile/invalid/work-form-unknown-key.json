@@ -9,6 +9,7 @@
       "structure",
       "links"
     ],
-    "colour": "red"
+    "colour": "red",
+    "format": "openwarrant/1.0"
   }
 }

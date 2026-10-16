@@ -15,6 +15,7 @@
           "shape": "enum"
         }
       }
-    }
+    },
+    "format": "openwarrant/1.0"
   }
 }

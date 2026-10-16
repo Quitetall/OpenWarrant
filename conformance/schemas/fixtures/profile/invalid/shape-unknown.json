@@ -15,6 +15,7 @@
           "shape": "url"
         }
       }
-    }
+    },
+    "format": "openwarrant/1.0"
   }
 }

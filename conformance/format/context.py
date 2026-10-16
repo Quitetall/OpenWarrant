@@ -13,7 +13,7 @@ prints one JSON object: {"output": "<the packet or index>", "findings": [...]}.
 A refusal (`context.target-unknown`, `context.over-budget`) emits no output.
 
 READING: choices the text leaves open are marked `READING:` and listed in
-conformance/format/README.md and docs/format/draft-3-questions.md.
+conformance/format/README.md.
 """
 
 from __future__ import annotations
@@ -36,8 +36,8 @@ CORE_STEPS = ["out:implements", "out:depends_on", "in:constrains", "out:selected
 TYPE_RANK = ["warrant/ticket", "section", "item", "requirement", "outcome", "constraint", "decision",
              "interface", "term", "option", "consequence", "obligation", "check", "kpi",
              "milestone", "stage", "instruction"]
-# 10.4: the built-in presets. READING: a preset with steps of its own walks a
-# walk named after it; `agent` and `human` walk `core`.
+# 10.4: the built-in presets. A preset that walks the core steps names its
+# walk `core`; one with steps of its own names its walk after itself.
 BUILTIN = {
     "agent": {"walk": "core", "steps": CORE_STEPS, "depth": 3, "budget": 16000},
     "agent.min": {"walk": "agent.min", "steps": ["out:implements", "in:constrains", "in:evaluates"],
@@ -45,12 +45,9 @@ BUILTIN = {
                   "omit_types": ["option", "consequence"]},
     "human": {"walk": "core", "steps": CORE_STEPS, "depth": 3, "budget": None, "editable": True,
               "own_first": True},
-    # READING: "the target, its obligations and what they evaluate" is the
-    # walk in:evaluates then out:evaluates.
     "review": {"walk": "review", "steps": ["in:evaluates", "out:evaluates"], "depth": 2,
                "budget": None, "reads_state": True},
-    # READING: resume starts from the work document's record and its items
-    # (not its other units), walks core to depth 1, and adds the three next.
+    # The target's record and items, the core walk to depth 1; rendered as 10.4 says.
     "resume": {"walk": "core", "steps": CORE_STEPS, "depth": 1, "budget": None,
                "reads_state": True, "resume": True},
 }
@@ -92,75 +89,18 @@ def show_title(rec: dict, repo) -> str:
 
 # ------------------------------------------------------------- states --
 
-class DocumentStates:
-    """The states of the documents alone, for presets that do not read state.
-
-    READING: without the journal, an item's box is taken as its checklist
-    state (`[x]` done); 11.1 backs `done` with the journal, which these
-    presets may not read (10.3's purity rule).
-    """
-
-    def __init__(self, repo):
-        self.repo = repo
-        self.phase, self.item = {}, {}
-        works = [d for d in repo.docs if d.is_work and not (d.refused or d.unknown)]
-        for d in works:
-            for r in d.records:
-                if r["type"] == "item":
-                    self.item[r["id"]] = r["_box"] == "x"
-        for d in works:
-            items = [r for r in d.records if r["type"] == "item"]
-            ms = any(r["type"] == "milestone" for r in d.records)
-            if not items and not ms:
-                p = "draft"
-            elif items and all(self.item[r["id"]] for r in items):
-                p = "done"
-            elif any(self.item[r["id"]] for r in items):
-                p = "in_progress"
-            else:
-                p = "open"
-            self.phase[d.alias] = p
-        self.blocked = set()
-        for d in works:
-            for r in d.records:
-                if r["type"] != "item" or self.item[r["id"]]:
-                    continue
-                for ref in r["_after"]:
-                    t = f"{d.alias}/{ref}" if re.fullmatch(reader.ITEM_ID, ref) else ref
-                    if t in self.item and not self.item[t]:
-                        self.blocked.add(r["id"])
-                    elif t in self.phase and self.phase[t] != "done":
-                        self.blocked.add(r["id"])
-        self.sup = set()
-        for r in repo.relations:
-            if r["kind"] == "supersedes":
-                t = reader.resolve_ref(repo, r["to"])
-                if t and t != r["from"]:
-                    self.sup.add(t)
-
-    def primary(self, rid):
-        rec = self.repo.by_id[rid]
-        if rid in self.sup:
-            return "superseded"
-        if rec["type"] in ("warrant", "ticket") and rid in self.phase:
-            return self.phase[rid]
-        if rec["type"] == "item":
-            if self.item[rid]:
-                return "done"
-            return "blocked" if rid in self.blocked else "open"
-        return "-"
+def DocumentStates(repo_root):
+    """The states of the documents alone (11.1), for presets that do not read
+    state: no journal and no claim store is read (10.3's purity rule)."""
+    return tracker.World(repo_root, None, read_state=False)
 
 
 # -------------------------------------------------------------- index --
 
 def build_index(root: str) -> str:
-    """10.2: `docs/generated/llms.txt`.
-
-    READING: the repository name is the root directory's name, and a blank
-    line separates one source's lines from the next source's heading.
-    """
-    repo = reader.load_repository(root)
-    states = DocumentStates(repo)
+    """10.2: `docs/generated/llms.txt`."""
+    states = DocumentStates(root)
+    repo = states.repo
     out = [f"# {os.path.basename(os.path.abspath(root))}", "",
            "> OpenWarrant index (openwarrant/1.0). Generated; do not edit. "
            "Read any line's record with `war context <id>`."]
@@ -318,8 +258,10 @@ def compile_packet(root, target, preset_name="agent", budget=None, depth=None, a
             raise SystemExit("a preset that reads state needs --at")
         world = tracker.World(root, at)
         states = world
+        repo = world.repo
     else:
-        states = DocumentStates(repo)
+        states = DocumentStates(root)
+        repo = states.repo
     diags = set()
     roots, zero, pair, wdoc = resolve_target(repo, root, target)
     if preset.get("resume"):
@@ -347,15 +289,21 @@ def compile_packet(root, target, preset_name="agent", budget=None, depth=None, a
             f"{budget_v if budget_v is not None else 'none'}{MIDDLE}depth {preset['depth']}"
             f"{MIDDLE}preset {preset_name} (walk {preset['walk']}){MIDDLE}selection {sel_digest}")
     if reads_state:
-        # READING: the journal digest is over every journal of the repository,
-        # concatenated in path order.
-        h = hashlib.sha256()
-        for d in sorted(world.work, key=lambda d: tracker.journal_path(d)):
-            p = os.path.join(root, tracker.journal_path(d))
+        # 10.4: the basis_digest rule over [path, sha256 of the file's bytes]
+        # for every journal and every claim file, sorted by path.
+        files = [tracker.journal_path(d) for d in world.work]
+        store = tracker.claim_store(root)
+        if os.path.isdir(store):
+            files += [os.path.relpath(os.path.join(store, n), root).replace(os.sep, "/")
+                      for n in os.listdir(store) if n.endswith(".lock")]
+        pairs = []
+        for rel in sorted(set(files), key=str.encode):
+            p = os.path.join(root, rel)
             if os.path.isfile(p):
                 with open(p, "rb") as f:
-                    h.update(f.read())
-        head += f"{MIDDLE}journal sha256:{h.hexdigest()[:12]}{MIDDLE}at {at}"
+                    pairs.append([rel, "sha256:" + hashlib.sha256(f.read()).hexdigest()])
+        jd = reader.basis_digest(pairs)
+        head += f"{MIDDLE}journal {jd[:19]}{MIDDLE}at {at}"
     head += " -->\n"
 
     def container(r):
@@ -381,7 +329,7 @@ def compile_packet(root, target, preset_name="agent", budget=None, depth=None, a
             until = tracker.rfc3339(dt.datetime.fromtimestamp(end, dt.timezone.utc))
             s += f"{MIDDLE}holder {c.get('actor')}{MIDDLE}lease {until}"
         done = r.get("_done")
-        if done and p == "done":
+        if done and p.split("/")[0] == "done":
             s += f"{MIDDLE}by {done['actor']}{MIDDLE}{done['date']}{MIDDLE}{world.backed_level.get(r['id'], 'claimed')}"
         return s + "\n"
 

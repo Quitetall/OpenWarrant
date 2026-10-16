@@ -44,12 +44,14 @@ REFUSALS = {
     "work.journal-malformed", "work.journal-torn", "work.idempotency-conflict",
 }
 UNKNOWNS = {"format.newer-major", "format.newer-minor", "format.requires-unknown",
-            "format.profile-unknown", "work.claim-remote-unreachable", "check.unknown"}
+            "format.profile-unknown", "work.claim-remote-unreachable", "work.journal-newer",
+            "check.unknown"}
 WARNINGS = {"format.target-unknown", "format.refusal-missing", "format.item-id-missing",
             "format.legacy-obligation", "context.summary-shape", "context.statement-shape",
             "context.section-ref", "work.tick-unbacked", "format.prefix-unregistered"}
-# Section 13.2 lists `context.span-unknown` among the warnings but no section
-# says when it is reported, so no case can expect it (draft-3-questions.md).
+# `context.span-unknown` (10.3) is reported for a legacy record whose span the
+# model does not give. The corpus's documents are Format 1.0 and the python
+# reader reads no legacy encoding, so no case expects it yet.
 UNCOVERABLE = {"context.span-unknown"}
 SPEC_RULES = REFUSALS | UNKNOWNS | WARNINGS
 

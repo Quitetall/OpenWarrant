@@ -1,8 +1,8 @@
 # Context: OW-WAR-0150
-<!-- oh.war/context/v1 · budget none · depth 2 · preset review (walk review) · selection sha256:5149cacf1e599d4f6e73a51c09645585fe9b2015a4a479aeb8ca139c973cc2e2 · journal sha256:e3b0c44298fc · at 2026-10-14T10:00:00Z -->
+<!-- oh.war/context/v1 · budget none · depth 2 · preset review (walk review) · selection sha256:5149cacf1e599d4f6e73a51c09645585fe9b2015a4a479aeb8ca139c973cc2e2 · journal sha256:4f53cda18c2b · at 2026-10-14T10:00:00Z -->
 
 ## Index
-[F] OW-WAR-0150 · warrant · draft · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
+[F] OW-WAR-0150 · warrant · open · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
 [F] OW-WAR-0150/S-intent · section · - · Intent · docs/warrants/OW-WAR-0150.md:10
 [F] OW-WAR-0150/S-basis · section · - · Basis · docs/warrants/OW-WAR-0150.md:13
 [F] OW-WAR-0150/S-work-order · section · - · Work order · docs/warrants/OW-WAR-0150.md:16

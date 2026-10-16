@@ -14,7 +14,7 @@ passing check makes (12) and a package given back (`apply`, 10.5).
     states                                   the model's states[]
     next [--actor A]                         the candidates of 11.5, in order
     claim <target> --actor A [--steal]       11.3
-    done <item> --actor A --base <revision>  11.3 compare-and-set, then the tick
+    done <item|alias> --actor A --base <rev> 11.3 compare-and-set, then the tick
     note <target> --actor A --note TEXT      11.2 exactly once
     evaluate --actor A                       12: what the recorded check runs tick
     apply <package> --actor A                10.5
@@ -23,7 +23,7 @@ prints one JSON object: {"findings": [...], "states": [...], "next": [...]}.
 A refusal writes nothing for the document it concerns.
 
 READING: choices the text leaves open are marked `READING:` and listed in
-conformance/format/README.md and docs/format/draft-3-questions.md.
+conformance/format/README.md.
 """
 
 from __future__ import annotations
@@ -35,7 +35,6 @@ import json
 import os
 import re
 import secrets
-import statistics
 import subprocess
 import sys
 import tomllib
@@ -47,7 +46,8 @@ from reader import ITEM_RE, Refused, jcs, sha256  # noqa: E402
 TRACK_REFUSALS = {"work.stale-revision", "work.claimed-by-other", "work.journal-rewritten",
                   "work.journal-malformed", "work.journal-torn", "work.idempotency-conflict",
                   "apply.stale", "apply.identity"}
-TRACK_UNKNOWNS = {"work.claim-remote-unreachable", "check.unknown"}
+TRACK_UNKNOWNS = {"work.claim-remote-unreachable", "work.journal-newer", "check.unknown"}
+NEWER = object()
 V2_MEMBERS = {"v", "id", "document_uuid", "type", "class", "actor_ref", "occurred_at", "payload",
               "idempotency_key"}
 V1_MEMBERS = (V2_MEMBERS - {"document_uuid"}) | {"warrant_uuid"}
@@ -130,9 +130,8 @@ def read_journal(root: str, doc) -> list[dict]:
     if data and not data.endswith(b"\n"):
         raise Stop("work.journal-torn", path, len(lines))
     lines = lines[:-1] if data else []
-    # Append-only: every committed line is still there, in order.
-    # READING: lines another branch appended between committed lines (a
-    # union merge) are neither changed nor removed ones.
+    # Append-only: every line of the version in HEAD is still there, unchanged
+    # and in order; lines a union merge added between them are no change.
     old = committed_bytes(root, path)
     if old:
         olines = old.split(b"\n")
@@ -146,6 +145,11 @@ def read_journal(root: str, doc) -> list[dict]:
         ev = parse_event(raw)
         if ev is None:
             raise Stop("work.journal-malformed", path, n)
+        if ev is NEWER:
+            # 11.2: `v` greater than 2 is UNKNOWN, not malformed.
+            events.append({"type": "_newer", "_line": n, "idempotency_key": None, "payload": {},
+                           "at": "1970-01-01T00:00:00Z", "id": "", "actor": ""})
+            continue
         ev["_line"] = n
         # Exactly once: a replayed key is one event.
         if ev["idempotency_key"] in seen:
@@ -160,7 +164,11 @@ def parse_event(raw: bytes) -> dict | None:
         ev = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError):
         return None
-    if not isinstance(ev, dict) or ev.get("v") not in (1, 2) or isinstance(ev.get("v"), bool):
+    if not isinstance(ev, dict) or isinstance(ev.get("v"), bool) or not isinstance(ev.get("v"), int):
+        return None
+    if ev["v"] > 2:
+        return NEWER
+    if ev["v"] not in (1, 2):
         return None
     need = V2_MEMBERS if ev["v"] == 2 else V1_MEMBERS
     if not need <= set(ev):
@@ -188,6 +196,13 @@ def parse_event(raw: bytes) -> dict | None:
             return None
         if not isinstance(payload, dict):
             return None
+    # 11.2: a line whose idempotency_key does not match its content is malformed.
+    # A line's bytes need not be RFC 8785: the key is over the parsed payload
+    # (v2), or over the payload text as written (v1).
+    uuid = ev.get("document_uuid", ev.get("warrant_uuid"))
+    body = jcs(payload) if ev["v"] == 2 else ev["payload"].encode()
+    if idempotency_key(uuid, ev["type"], body) != ev["idempotency_key"]:
+        return None
     etype = ev["type"]
     # Journals written before this format use `ticket.*` names.
     if etype.startswith("ticket."):
@@ -224,8 +239,7 @@ def config(root: str) -> dict:
 
 
 def claims_config(root: str) -> dict:
-    # READING: the claim settings 11.3 names are read from `[claims]`, the
-    # table 11.3 names for `remote`.
+    # 11.3: both settings live in `openwarrant.toml` under `[claims]`.
     c = config(root).get("claims", {})
     return {"lease": int(c.get("claim_lease_minutes", 30)), "ttl": int(c.get("claim_ttl_minutes", 120)),
             "remote": c.get("remote")}
@@ -294,7 +308,7 @@ class World:
         return [e for e in self.journals.get(alias, []) if etype is None or e["type"] == etype]
 
     def ev_target(self, doc, e) -> str | None:
-        """READING: an event's `target` is a global id (`<alias>/<item>`); its `item` is the item id."""
+        """11.2: `target` is the global id (`<alias>/<item>`, or an alias); `item` the local id."""
         p = e["payload"]
         t = p.get("target")
         if isinstance(t, str) and "/" in t:
@@ -312,11 +326,13 @@ class World:
 
     # -- the fixed states of 11.1
     def compute(self):
-        self.st: dict[str, list[tuple[str, str]]] = {}  # record -> [(kind, value)]
+        self.st: dict[str, list[dict]] = {}  # record -> [{kind, value, provenance}]
         self.declared: list[dict] = []
         self.item_done: dict[str, bool] = {}
         self.backed_level: dict[str, str] = {}
         self.children: dict[str, list] = {}
+        if any(e["type"] == "_newer" for evs in self.journals.values() for e in evs):
+            self.unknowns.add("work.journal-newer")
         for d in self.work:
             for r in d.relations:
                 if r["from"] == d.alias and r["kind"] == "part_of":
@@ -325,27 +341,17 @@ class World:
                         self.children.setdefault(parent, []).append(d)
         for d in self.work:
             for it in self.items(d):
-                self.item_done[it["id"]] = self.is_done(d, it)
+                # 11.1: an item whose box is [x] is done, whether a tool or a
+                # person ticked it; how is its tick level (11.4).
+                self.item_done[it["id"]] = it["_box"] == "x"
         self.phase: dict[str, str] = {}
+        self.phase_prov: dict[str, str] = {}
         for d in self.work:
             self.doc_phase(d)
         for d in self.work:
             for it in self.items(d):
-                rid = it["id"]
-                done = self.item_done[rid]
-                claimed = self.claim_on(rid) is not None or self.claim_on(d.alias) is not None
-                if done:
-                    self.add(rid, "done")
-                else:
-                    if self.is_blocked(d, it):
-                        self.add(rid, "blocked")
-                    if claimed:
-                        self.add(rid, "claimed")
-                    else:
-                        self.add(rid, "open")
-            self.add(d.alias, self.phase[d.alias])
-            if self.claim_on(d.alias):
-                self.add(d.alias, "claimed")
+                self.add(it["id"], "checklist", self.checklist(d, it))
+            self.add(d.alias, "phase", self.phase[d.alias], self.phase_prov[d.alias])
             self.tick_levels(d)
             self.check_states(d)
         self.superseded()
@@ -353,50 +359,61 @@ class World:
         if self.acts is not None:
             self.acceptance()
 
-    def add(self, record, value, kind="computed"):
-        self.st.setdefault(record, []).append((kind, value))
+    def add(self, record, kind, value, provenance="computed"):
+        self.st.setdefault(record, []).append({"kind": kind, "value": value, "provenance": provenance})
 
     def holds(self, record, value) -> bool:
-        return any(v == value for _, v in self.st.get(record, []))
+        return any(s["value"] == value for s in self.st.get(record, []))
 
-    def is_done(self, d, it) -> bool:
-        """11.1: its box is [x] and the journal backs it (11.4).
+    def of_kind(self, record, kind):
+        for s in self.st.get(record, []):
+            if s["kind"] == kind:
+                return s["value"]
+        return None
 
-        READING: a box is backed by a `work.item_done` for it that no later
-        `work.item_reopened` (by `occurred_at`) undoes.
-        """
-        if it["_box"] != "x":
-            return False
-        dones = [e["at"] for e in self.events(d.alias, "work.item_done") if self.ev_target(d, e) == it["id"]]
-        reopens = [e["at"] for e in self.events(d.alias, "work.item_reopened")
-                   if self.ev_target(d, e) == it["id"]]
-        if not dones:
-            return False
-        return not reopens or unix(max(dones)) >= unix(max(reopens))
+    def latest(self, d, target, types):
+        """11.2: of conflicting events about a target, the later `occurred_at` wins, then the greater `id`."""
+        evs = [e for e in self.journals.get(d.alias, []) if e["type"] in types
+               and self.ev_target(d, e) == target]
+        return max(evs, key=lambda e: (unix(e["at"]), e["id"])) if evs else None
+
+    def checklist(self, d, it) -> str:
+        """11.1: `done` (the box), `claimed` (a live claim), `blocked`, else `open`."""
+        rid = it["id"]
+        if self.item_done[rid]:
+            return "done"
+        if self.claim_on(rid) or self.claim_on(d.alias):
+            return "claimed"
+        if self.is_blocked(d, it):
+            return "blocked"
+        return "open"
 
     def doc_items(self, d) -> list[tuple[str, bool]]:
-        """(id, done) of a document's items; a work document part_of it counts as one (11.5)."""
+        """(id, done) of a document's items; a work document part_of it counts as one."""
         out = [(it["id"], self.item_done[it["id"]]) for it in self.items(d)]
         for c in self.children.get(d.alias, []):
             out.append((c.alias, self.doc_phase(c) == "done"))
         return out
 
     def doc_phase(self, d) -> str:
+        """11.1 `phase`: `done`, `in_progress` or `open` (`draft` belongs to Appendix C)."""
         if d.alias in self.phase:
             return self.phase[d.alias]
-        self.phase[d.alias] = "draft"  # cycle guard
+        self.phase[d.alias], self.phase_prov[d.alias] = "open", "computed"  # cycle guard
         items = self.doc_items(d)
-        milestones = any(r["type"] == "milestone" for r in d.records)
-        claimed_item = any(self.claim_on(i) for i, _ in items)
-        if not items and not milestones:
-            p = "draft"
-        elif items and all(done for _, done in items):
-            p = "done"
-        elif any(done for _, done in items) or claimed_item:
-            p = "in_progress"
+        prov = "computed"
+        if items:
+            done = all(x for _, x in items)
+            started = any(x for _, x in items) or any(self.claim_on(i) for i, _ in items)
         else:
-            p = "open"
-        self.phase[d.alias] = p
+            # With no items, a `work.item_done` naming the document makes it done.
+            last = self.latest(d, d.alias, ("work.item_done", "work.item_reopened"))
+            done = last is not None and last["type"] == "work.item_done"
+            prov = "recorded" if done else "computed"
+            started = False
+        started = started or self.claim_on(d.alias) is not None
+        p = "done" if done else ("in_progress" if started else "open")
+        self.phase[d.alias], self.phase_prov[d.alias] = p, prov
         return p
 
     def dep_done(self, d, ref) -> bool:
@@ -410,16 +427,20 @@ class World:
         # READING: a dependency on a record that is not tracked does not block.
         return True
 
+    def doc_deps(self, d) -> list[str]:
+        return [r["to"] for r in d.relations if r["from"] == d.alias and r["kind"] == "depends_on"]
+
     def is_blocked(self, d, it) -> bool:
-        return any(not self.dep_done(d, ref) for ref in it["_after"])
+        """11.1: an item or document it waits on (`after`, its document's `depends_on`) is not done."""
+        return any(not self.dep_done(d, ref) for ref in it["_after"] + self.doc_deps(d))
 
     def tick_levels(self, d):
-        """11.4: the suffix level is believed only as far as the journal backs it."""
+        """11.4: a level above `claimed` is believed only as far as the journal backs it."""
         runs = {e["payload"].get("run"): e for e in self.events(d.alias, "check.run")}
         for it in self.items(d):
-            done = it.get("_done")
-            if not done or it["_box"] != "x":
+            if it["_box"] != "x":
                 continue
+            done = it.get("_done") or {"level": "claimed"}
             backed = "claimed"
             for e in self.events(d.alias, "work.item_done"):
                 if self.ev_target(d, e) != it["id"]:
@@ -427,40 +448,44 @@ class World:
                 p = e["payload"]
                 rs = p.get("runs") or []
                 if p.get("level") == "observed" and rs and all(
-                        r in runs and str(runs[r]["payload"].get("verdict", "")).upper() == "PASS"
-                        for r in rs):
+                        r in runs and str(runs[r]["payload"].get("verdict", "")) == "PASS" for r in rs):
                     backed = "observed"
             for e in self.events(d.alias, "work.tick_raised"):
                 if self.ev_target(d, e) == it["id"] and e["payload"].get("to") == "observed":
                     backed = "observed"
             # `independent` and `signed` need an act of Appendix C, which this
             # core tracker does not read: they read down to what is backed.
-            self.backed_level[it["id"]] = backed
+            self.backed_level[it["id"]] = min(backed, done["level"], key=LEVEL_RANK.get)
             if LEVEL_RANK[done["level"]] > LEVEL_RANK[backed]:
                 self.warnings.add(f"work.tick-unbacked {d.source}:{it['line']}")
 
-    def check_runs(self, d, rec) -> list[dict]:
+    def check_runs(self, d, rec, current=True) -> list[dict]:
         local = rec["id"].split("/", 1)[-1]
         return [e for e in self.events(d.alias, "check.run")
-                if e["payload"].get("check") in (rec["id"], local)]
+                if e["payload"].get("check") in (rec["id"], local)
+                and (not current or e["payload"].get("revision") == rec["revision"])]
+
+    def last_run(self, d, rec):
+        """12: the last run on the check's current revision, by `occurred_at` then `id`."""
+        runs = self.check_runs(d, rec)
+        return max(runs, key=lambda e: (unix(e["at"]), e["id"])) if runs else None
 
     def check_states(self, d):
-        """12: `failing` when the last recorded run failed; UNKNOWN when it could not complete."""
+        """12: `failing` when the last run on its current revision failed; UNKNOWN when it could not complete."""
         for rec in d.records:
             if rec["type"] not in ("check", "kpi"):
                 continue
-            runs = self.check_runs(d, rec)
-            if not runs:
+            last = self.last_run(d, rec)
+            if last is None:
                 continue
-            last = max(runs, key=lambda e: (unix(e["at"]), e["_line"]))
-            verdict = str(last["payload"].get("verdict", "")).upper()
+            verdict = last["payload"].get("verdict")
             if verdict == "FAIL":
-                self.add(rec["id"], "failing")
+                self.add(rec["id"], "check", "failing", "recorded")
             elif verdict != "PASS":
                 self.unknowns.add("check.unknown")
 
     def superseded(self):
-        """11.1: another current record `supersedes` it."""
+        """11.1 `currency`: another current record `supersedes` it."""
         sup = {}
         for r in self.repo.relations:
             if r["kind"] == "supersedes":
@@ -475,10 +500,11 @@ class World:
 
         for t, froms in sup.items():
             if any(f != t and current(f, (t,)) for f in froms):
-                self.add(t, "superseded")
+                self.add(t, "currency", "superseded")
 
     def declared_states(self):
-        """11.1: a declared state holds while its parent holds; the later entry wins."""
+        """11.1: a declared state holds while its parent holds; the later entry wins.
+        Its kind is its parent's and its provenance `declared`."""
         for d in self.work:
             prof = d.profile
             declared = {s["name"]: s["refines"] for s in (prof.states if prof else [])}
@@ -490,12 +516,15 @@ class World:
                     continue
                 if "/" not in rec and rec != d.alias:
                     rec = f"{d.alias}/{rec}"
-                key = (unix(e["at"]), e["_line"])
+                key = (unix(e["at"]), e["id"])
                 if rec not in latest or key > latest[rec][0]:
                     latest[rec] = (key, name)
             for rec, (_, name) in sorted(latest.items()):
-                s = {"record": rec, "kind": "declared", "value": name, "refines": declared[name]}
-                if not self.holds(rec, declared[name]):
+                parent = declared[name]
+                kind = next((s["kind"] for s in self.st.get(rec, []) if s["value"] == parent),
+                            "phase" if rec == d.alias else "checklist")
+                s = {"record": rec, "kind": kind, "value": name, "provenance": "declared", "refines": parent}
+                if not self.holds(rec, parent):
                     s["lapsed"] = True
                 self.declared.append(s)
 
@@ -512,38 +541,37 @@ class World:
                 r = self.repo.by_id.get(rid)
                 if r and r["revision"] == rev and r["content_digest"] == cd:
                     accepted.add(rid)
-        # READING: a specification's records are every unit of SPEC.md and of
-        # its parts; the document records themselves are not among them.
+        # 4.5: every unit of SPEC.md and its parts, sections included; the
+        # documents' own `doc:` records are not counted.
         recs = [r for d in spec_docs for r in d.records if r["id"] != d.own_id]
         for r in recs:
             if r["id"] in accepted:
-                self.add(r["id"], "accepted", "recorded")
+                self.add(r["id"], "acceptance", "accepted", "recorded")
         n = sum(1 for r in recs if r["id"] in accepted)
         root = "doc:SPEC.md"
         if root in self.repo.by_id and recs:
             if n == len(recs):
-                self.add(root, "accepted")
+                self.add(root, "acceptance", "accepted")
             elif n:
-                self.add(root, "partially_accepted")
+                self.add(root, "acceptance", "partially_accepted")
 
     def states(self) -> list[dict]:
-        out = [{"record": r, "kind": k, "value": v} for r, vs in self.st.items() for k, v in vs]
+        out = [{"record": r, **s} for r, vs in self.st.items() for s in vs]
         out += self.declared
         return sorted(out, key=lambda s: (s["record"].encode(), s["kind"], s["value"]))
 
     def primary(self, rid: str) -> str:
-        """11.1: superseded; a work document's phase; an item's done, claimed, blocked or open; else -."""
-        rec = self.repo.by_id.get(rid)
-        if rec is None:
+        """11.1: the first that holds of superseded, phase, checklist, check,
+        disposition, acceptance; else `-`; a holding declared state after it."""
+        if rid not in self.repo.by_id:
             return "-"
         p = "-"
         if self.holds(rid, "superseded"):
             p = "superseded"
-        elif rec["type"] in ("warrant", "ticket") and rid in self.phase:
-            p = self.phase[rid]
-        elif rec["type"] == "item":
-            for v in ("done", "claimed", "blocked", "open"):
-                if self.holds(rid, v):
+        else:
+            for kind in ("phase", "checklist", "check", "disposition", "acceptance"):
+                v = self.of_kind(rid, kind)
+                if v is not None:
                     p = v
                     break
         for s in self.declared:
@@ -557,13 +585,9 @@ class World:
         for d in self.work:
             items = self.doc_items(d)
             for it in self.items(d):
-                rid = it["id"]
-                if self.item_done[rid] or self.is_blocked(d, it):
-                    continue
-                if self.claim_on(rid) or self.claim_on(d.alias):
-                    continue
-                cands.append((rid, d, it))
-            if not items and self.phase[d.alias] == "open" and not self.claim_on(d.alias):
+                if self.of_kind(it["id"], "checklist") == "open":
+                    cands.append((it["id"], d, it))
+            if not items and self.phase[d.alias] == "open":
                 cands.append((d.alias, d, None))
         # waits-on graph: waiter -> waitees
         waiters: dict[str, set] = {}
@@ -622,7 +646,7 @@ class World:
                 (0, dv) if dv else (1, ""),
                 -remaining(rid),
                 prio,
-                # READING: a document with no `created_at` sorts after those with one.
+                # 11.5: `created_at`, earliest first, none last.
                 (0, created) if isinstance(created, str) else (1, ""),
                 d.alias.encode(),
                 it["line"] if it else 0,
@@ -669,8 +693,8 @@ class World:
                          lambda s: True):
                 xs = [s[2] for s in samples if pick(s)]
                 if xs:
-                    # READING: the median of an even count is the mean of the middle two.
-                    return statistics.median(xs)
+                    # 11.5: in whole seconds; with an even count, the lower middle value.
+                    return int(sorted(xs)[(len(xs) - 1) // 2])
             return prior
         return est
 
@@ -727,6 +751,15 @@ class Writer:
         if note:
             s += f": {note}"
         return s
+
+    def raised_line(self, line: str, level: str) -> str:
+        """A done line with its level raised; one with no done suffix gets this writer's."""
+        m = ITEM_RE.fullmatch(line)
+        lead, _, text, iid, after, done, actor, date, _lv, note = m.groups()
+        if not done:
+            return self.done_line(line, level)
+        s = f"{lead}[x] {text} ({iid}{after}) — done by {actor}, {date} [{level}]"
+        return s + (f": {note}" if note else "")
 
     def open_line(self, line: str) -> str:
         m = ITEM_RE.fullmatch(line)
@@ -824,17 +857,24 @@ def op_claim(world: World, target: str, actor: str, steal: bool):
 
 
 def op_done(world: World, target: str, actor: str, base: str):
-    it = world.repo.by_id.get(target)
-    if it is None or it["type"] != "item":
-        raise SystemExit(f"done: no such item {target}")
+    """11.3: a done tick, compare-and-set against the item's line revision, or,
+    for a work document with no items, against the document's revision (11.1)."""
+    rec = world.repo.by_id.get(target)
+    if rec is None or rec["type"] not in ("item", "warrant", "ticket"):
+        raise SystemExit(f"done: no such item or work document {target}")
     doc = world.repo.doc_of[target]
+    if rec["type"] != "item" and world.items(doc):
+        raise SystemExit(f"done: {target} has items; tick them")
     w = Writer(world, actor)
     lock = w.lock(doc)
     try:
-        if it["revision"] != base:
-            raise Stop("work.stale-revision", doc.source, it["line"])
-        w.replace(doc, [w.line_edit(doc, it, w.done_line(w.line_text(it)))])
-        w.append(doc, "work.item_done", {"item": it["_iid"], "target": target, "on": world.at_text[:10]})
+        if rec["revision"] != base:
+            raise Stop("work.stale-revision", doc.source, rec["line"])
+        if rec["type"] == "item":
+            w.replace(doc, [w.line_edit(doc, rec, w.done_line(w.line_text(rec)))])
+            w.append(doc, "work.item_done", {"item": rec["_iid"], "target": target, "on": world.at_text[:10]})
+        else:
+            w.append(doc, "work.item_done", {"target": target, "on": world.at_text[:10]})
         for c in read_claims(world.root):
             if c["_target"] == target:
                 os.unlink(os.path.join(claim_store(world.root), c["_file"]))
@@ -849,39 +889,56 @@ def op_note(world: World, target: str, actor: str, note: str):
 
 
 def op_evaluate(world: World, actor: str):
-    """12: a pass on the check's current revision ticks every open item it evaluates `observed`."""
+    """12: what the last run on each check's current revision does.
+
+    A pass ticks every open item it evaluates `observed` and raises a done one
+    below `observed`; a fail with `reopen: true` reopens each done item it
+    evaluates; UNKNOWN ticks nothing. A run counts only for the subjects whose
+    revision it names as current.
+    """
     w = Writer(world, actor)
     for d in world.work:
         edits, events = [], []
         for rec in d.records:
             if rec["type"] not in ("check", "kpi"):
                 continue
-            runs = world.check_runs(d, rec)
-            if not runs:
+            last = world.last_run(d, rec)
+            if last is None:
                 continue
-            last = max(runs, key=lambda e: (unix(e["at"]), e["_line"]))
             p = last["payload"]
-            verdict = str(p.get("verdict", "")).upper()
-            if verdict not in ("PASS", "FAIL"):
-                continue  # UNKNOWN: ticks nothing (reported by the states)
-            if verdict != "PASS" or p.get("revision") != rec["revision"]:
-                continue  # a fail, or a pass on an older revision, ticks nothing
+            verdict = p.get("verdict")
+            subjects = {}
+            for pair in p.get("subjects") or []:
+                if isinstance(pair, list) and len(pair) == 2:
+                    sid = pair[0] if "/" in pair[0] or pair[0] in world.repo.by_id else f"{d.alias}/{pair[0]}"
+                    subjects[sid] = pair[1]
             for r in world.repo.relations:
                 if r["from"] != rec["id"] or r["kind"] != "evaluates":
                     continue
                 t = reader.resolve_ref(world.repo, r["to"])
                 it = world.repo.by_id.get(t) if t else None
-                if not it or it["type"] != "item" or it["_box"] == "x":
+                if not it or it["type"] != "item":
                     continue
-                edits.append(w.line_edit(d, it, w.done_line(w.line_text(it), "observed")))
-                events.append({"item": it["_iid"], "target": it["id"], "on": world.at_text[:10],
-                               "level": "observed", "runs": [p.get("run")]})
+                if verdict == "PASS" and subjects.get(it["id"]) == it["revision"]:
+                    line = w.line_text(it)
+                    if it["_box"] != "x":
+                        edits.append(w.line_edit(d, it, w.done_line(line, "observed")))
+                        events.append(("work.item_done", {"item": it["_iid"], "target": it["id"],
+                                       "on": world.at_text[:10], "level": "observed", "runs": [p.get("run")]}))
+                    elif LEVEL_RANK[world.backed_level.get(it["id"], "claimed")] < LEVEL_RANK["observed"]:
+                        edits.append(w.line_edit(d, it, w.raised_line(line, "observed")))
+                        events.append(("work.tick_raised", {"item": it["_iid"], "target": it["id"],
+                                       "from": world.backed_level.get(it["id"], "claimed"), "to": "observed"}))
+                elif verdict == "FAIL" and rec["fields"].get("reopen") == "true" and it["_box"] == "x":
+                    edits.append(w.line_edit(d, it, w.open_line(w.line_text(it))))
+                    events.append(("work.item_reopened", {"item": it["_iid"], "target": it["id"],
+                                   "reason": f"{rec['id']} failed (run {p.get('run')})"}))
         if edits:
             lock = w.lock(d)
             try:
                 w.replace(d, edits)
-                for e in events:
-                    w.append(d, "work.item_done", e)
+                for etype, e in events:
+                    w.append(d, etype, e)
             finally:
                 os.unlink(lock)
 

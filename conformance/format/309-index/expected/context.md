@@ -15,8 +15,8 @@
 
 ## docs/tickets/t-0d61d.md
 > Password reset by email.
-- t-0d61d · ticket · open · Password reset by email · docs/tickets/t-0d61d.md:1
+- t-0d61d · ticket · in_progress · Password reset by email · docs/tickets/t-0d61d.md:1
 
 ## docs/warrants/OW-WAR-0150.md
 > Reset links are single use.
-- OW-WAR-0150 · warrant · draft · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
+- OW-WAR-0150 · warrant · open · Reset links are single use · docs/warrants/OW-WAR-0150.md:1

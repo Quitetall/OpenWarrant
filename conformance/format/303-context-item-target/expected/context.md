@@ -3,7 +3,7 @@
 
 ## Index
 [F] t-0d61d/i-4d11 · item · open · Email template · docs/tickets/t-0d61d.md:16
-[F] t-0d61d · ticket · open · Password reset by email · docs/tickets/t-0d61d.md:1
+[F] t-0d61d · ticket · in_progress · Password reset by email · docs/tickets/t-0d61d.md:1
 [F] t-0d61d/S-intent · section · - · Intent · docs/tickets/t-0d61d.md:11
 [F] t-0d61d/CHK-reset · check · - · reset tests pass · docs/tickets/t-0d61d.md:20
 [F] REQ-reset-1 · requirement · - · a reset link works once · SPEC.md:16

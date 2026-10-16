@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openwarrant.dev/schemas/format/1.0/journal-event.json",
   "title": "OpenWarrant Format 1.0: a journal event (v1 and v2)",
-  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 11.2. Where this schema and the prose disagree, the prose wins and this schema is the defect. One line of a work document's `journal.jsonl`, as RFC 8785 JSON. A tracker writes `v: 2` events into the journal of a Format 1.0 work document; journals written before the format hold `v: 1` events, which name the document `warrant_uuid` and carry `payload` as RFC 8785 JSON text, a string. A reader reads both, forever, and one journal may hold both. `ticket.*` event types are read as the `work.*` type of the same suffix. Core payloads are described for the v2 form; a v1 payload is text and its members are checked after parsing it, which a schema cannot do. Not expressed here: that a line is RFC 8785 bytes; that `idempotency_key` is the sha256 of `<document_uuid> LF <type> LF <RFC 8785 payload>`; append-only (`work.journal-rewritten`), unterminated lines (`work.journal-torn`), exactly-once (`work.idempotency-conflict`), and that `occurred_at` is UTC.",
+  "description": "Hand-written and normative for docs/format/FORMAT-1.0.md section 11.2. Where this schema and the prose disagree, the prose wins and this schema is the defect. One line of a work document's `journal.jsonl`, as RFC 8785 JSON. A tracker writes `v: 2` events into the journal of a Format 1.0 work document; journals written before the format hold `v: 1` events, which name the document `warrant_uuid` and carry `payload` as RFC 8785 JSON text, a string. A reader reads both, forever, and one journal may hold both. `ticket.*` event types are read as the `work.*` type of the same suffix. A line with `v` greater than 2 is `UNKNOWN` (`work.journal-newer`) and is not described here. `target` is the global id of what an event is about (an item, or an alias for a whole document) and `item` the item's local id; a `work.item_done` that names a document with no items has no `item`. Core payloads are described for the v2 form; a v1 payload is text and its members are checked after parsing it, which a schema cannot do. Not expressed here: that `idempotency_key` is the sha256 of `<document_uuid> LF <type> LF <RFC 8785 payload>`; append-only (`work.journal-rewritten`), unterminated lines (`work.journal-torn`), exactly-once (`work.idempotency-conflict`), and that `occurred_at` is UTC.",
   "x-oh-war-schema": "openwarrant/1.0#journal-event",
   "oneOf": [{ "$ref": "#/$defs/v2" }, { "$ref": "#/$defs/v1" }],
   "$defs": {
@@ -72,7 +72,7 @@
         { "if": { "properties": { "type": { "enum": ["work.released", "ticket.released"] } } },
           "then": { "properties": { "payload": { "required": ["claim", "target"] } } } },
         { "if": { "properties": { "type": { "enum": ["work.item_done", "ticket.item_done"] } } },
-          "then": { "properties": { "payload": { "required": ["item", "target", "on"],
+          "then": { "properties": { "payload": { "required": ["target", "on"],
             "properties": { "level": { "$ref": "#/$defs/level" }, "runs": { "type": "array", "items": { "type": "string" } } } } } } },
         { "if": { "properties": { "type": { "enum": ["work.item_reopened", "ticket.item_reopened"] } } },
           "then": { "properties": { "payload": { "required": ["item", "target", "reason"] } } } },
@@ -85,8 +85,16 @@
           "then": { "properties": { "payload": { "required": ["item", "target", "from", "to"],
             "properties": { "from": { "$ref": "#/$defs/level" }, "to": { "$ref": "#/$defs/level" } } } } } },
         { "if": { "properties": { "type": { "const": "check.run" } } },
-          "then": { "properties": { "payload": { "required": ["check", "run", "verdict", "revision"],
-            "properties": { "revision": { "$ref": "common.json#/$defs/sha256" }, "output_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } } } } } },
+          "then": { "properties": { "payload": { "required": ["check", "run", "verdict", "revision", "subjects"],
+            "properties": {
+              "verdict": { "enum": ["PASS", "FAIL", "UNKNOWN"] },
+              "revision": { "$ref": "common.json#/$defs/sha256" },
+              "subjects": {
+                "description": "The `[id, revision]` of each record or item the check evaluates, at the run.",
+                "type": "array",
+                "items": { "type": "array", "prefixItems": [{ "type": "string", "minLength": 1 }, { "$ref": "common.json#/$defs/sha256" }], "minItems": 2, "maxItems": 2 }
+              },
+              "output_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } } } } } },
         { "if": { "properties": { "type": { "const": "trigger.fired" } } },
           "then": { "properties": { "payload": { "required": ["check", "trigger", "subject"] } } } },
         { "if": { "properties": { "type": { "const": "state.entered" } } },

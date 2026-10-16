@@ -15,7 +15,7 @@
     },
     "preset": { "description": "Section 10.4: the preset used; `agent` when none was given.", "$ref": "common.json#/$defs/name" },
     "journal": {
-      "description": "Section 10.4: for a preset that reads state, the journal digest's first 12 hex.",
+      "description": "Section 10.4: for a preset that reads state, `sha256:` and the first 12 hex of the basis_digest rule over `[path, sha256]` of every journal and every claim file, sorted by path.",
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{12}$"
     },

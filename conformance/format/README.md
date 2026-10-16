@@ -6,8 +6,7 @@ derived from a sentence of the specification. None was derived from a tool's
 output. Another implementation of the format can run these cases to show
 that it reads documents the way the specification says.
 
-The corpus follows draft 3 (`1.0.0-draft.3`). Questions the draft leaves
-open are in [`docs/format/draft-3-questions.md`](../../docs/format/draft-3-questions.md).
+The corpus follows draft 3, revision 1 (`1.0.0-draft.3`).
 
 Licence: the corpus, `reader.py`, `context.py`, `tracker.py` and `run.py`
 are Apache-2.0, the same as the schemas. The specification's text is
@@ -52,8 +51,8 @@ conformance/format/<NNN>-<slug>/
 - **`rule`** names the section 13.2 rule id the case expects.
 - **Coverage:** every rule id of section 13.2 is expected by at least one
   case. `run.py` fails if one is not. The exception is
-  `context.span-unknown`, which 13.2 lists but no section defines
-  (draft-3-questions.md Q1).
+  `context.span-unknown`: 10.3 reports it for a legacy record whose span the
+  model does not give, and the corpus has no legacy encoding yet.
 - **Pairs:** each rule new in draft 3 has a case that is accepted and one
   that is refused, `UNKNOWN` or warned. Every claim has a case that is
   refused.
@@ -96,7 +95,8 @@ conformance/format/<NNN>-<slug>/
     - `states`;
     - `next`;
     - `claim <target> --actor A [--steal]`;
-    - `done <item> --actor A --base <revision>`;
+    - `done <item or alias> --actor A --base <revision>` (an alias for a
+      work document with no items);
     - `note <target> --actor A --note TEXT`;
     - `evaluate --actor A`, which ticks what the recorded check runs pass
       (12).
@@ -110,9 +110,9 @@ conformance/format/<NNN>-<slug>/
   - `acts/*.json` are acceptance acts (Appendix C), each `{act: "accept",
     records: [[id, revision, content_digest]…]}`. They are taken as
     verified: the corpus carries no signature.
-  - `states.json` is `{states: [{record, kind, value, refines?, lapsed?}],
-    warnings}`. The states are sorted by `(record, kind, value)`.
-    `provenance` and `facet` are left out (draft-3-questions.md Q20).
+  - `states.json` is `{states: [{record, kind, value, provenance,
+    refines?, lapsed?}], warnings}`, `kind` being the family of 11.1. The
+    states are sorted by `(record, kind, value)`. `facet` is left out.
   - `next.json` is `{candidates: [<global id>…], warnings}`, in order.
   - A tracking refusal is `<rule id> <path>:<line>`:
     - for a journal, its repository path and the faulty line (the
@@ -196,25 +196,13 @@ FORMAT-1.0.md and are listed in the report that introduced this corpus:
   - A box line whose id group is not at the end has no id group.
 - **Records documents** (non-work documents) live at
   `docs/records/<area>/*.md`.
-- **Draft 3:** draft-3-questions.md asks each of these. In brief:
-  - Profile data may declare keys and sections (Q2).
-  - A repository file that replaces a built-in profile names it in
-    `extends` (Q3).
-  - A type for which no field is declared accepts any field (Q5).
-  - 4.5's requirement fields are the `spec` profile's (Q6).
-  - Undotted record types are not closed (Q7).
-  - The field shapes read as Q4 gives.
-  - `context.statement-shape` checks bytes only and is reported at the
-    heading (Q14).
-  - `context.section-ref` applies to specification documents (Q15).
-  - A reverse domain name has three or more labels (Q17).
-  - The walk follows containment `part_of` (Q21).
-  - The document record's span is its frontmatter and preamble (Q22).
-  - Every packet header names its preset (Q23).
-  - A preset with its own steps names its walk after itself, and `review`
-    walks `in:evaluates`, `out:evaluates` (Q24).
-  - The rendering of `resume` follows Q25.
-  - The journal digest covers every journal (Q26).
-  - Event `target` is a global id (Q33).
-  - A box is `done` only with a `work.item_done` (Q18).
-  - The verdicts are `PASS`, `FAIL` and `UNKNOWN` (Q42).
+- **Draft 3, revision 1** settled the draft's questions in its text. The
+  choices that remain are:
+  - 4.5's `requirement` and `constraint` fields are the `spec` profile's, so
+    a requirement in another document declares no field table.
+  - An `after` or `depends_on` naming a record that is not tracked (not an
+    item or work document) does not block.
+  - A v1 event's `idempotency_key` is checked over its payload text as
+    written, and over its type as written (`ticket.*`).
+  - Claim files outside the claim store are not read; the journal digest of
+    10.4 names a claim file by its path from the repository root.

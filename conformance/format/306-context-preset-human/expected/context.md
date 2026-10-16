@@ -1,11 +1,11 @@
 # Context: t-0d61d
-<!-- oh.war/context/v1 · budget none · depth 3 · preset human (walk core) · selection sha256:880b6cf501b11a4a54398a5ddb73c8c4ec6533219ceb0e2cc820be523edc3958 -->
+<!-- oh.war/context/v1 · budget none · depth 3 · preset human (walk core) · selection sha256:3dcb5b4521d503fac62c386a9274dbdf427d7753a282d5b7dcc4c76f2426aada -->
 
 ## Index
-[F] t-0d61d · ticket · open · Password reset by email · docs/tickets/t-0d61d.md:1
+[F] t-0d61d · ticket · in_progress · Password reset by email · docs/tickets/t-0d61d.md:1
 [F] t-0d61d/S-intent · section · - · Intent · docs/tickets/t-0d61d.md:11
 [F] t-0d61d/S-checklist · section · - · Checklist · docs/tickets/t-0d61d.md:14
-[F] t-0d61d/i-9c01 · item · open · Reset endpoint · docs/tickets/t-0d61d.md:15
+[F] t-0d61d/i-9c01 · item · done · Reset endpoint · docs/tickets/t-0d61d.md:15
 [F] t-0d61d/i-4d11 · item · open · Email template · docs/tickets/t-0d61d.md:16
 [F] t-0d61d/i-77be · item · blocked · Docs · docs/tickets/t-0d61d.md:17
 [F] t-0d61d/i-5e02 · item · open · Rate limit · docs/tickets/t-0d61d.md:18
@@ -14,7 +14,7 @@
 [F] CON-1 · constraint · - · no new datastore · SPEC.md:21
 [F] OW-WAR-0150/OBL-001 · obligation · - · a consumed link is refused · docs/warrants/OW-WAR-0150.md:20
 [F] doc:SPEC.md · spec · - · Account service · SPEC.md:1
-[F] OW-WAR-0150 · warrant · draft · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
+[F] OW-WAR-0150 · warrant · open · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
 [F] CSQ-1 · consequence · - · the token table needs a sweeper · SPEC.md:32
 
 ## Records
@@ -37,10 +37,10 @@ Users reset a password with a link sent by email.
 
 <!-- /rec -->
 
-> t-0d61d/S-checklist · section · docs/tickets/t-0d61d.md:14 · sha256:4d986c82be2d
-<!-- rec t-0d61d/S-checklist docs/tickets/t-0d61d.md:14 sha256:4d986c82be2d378127ff23ace01daedceb7100fe472370042df14d5c8894b540 -->
+> t-0d61d/S-checklist · section · docs/tickets/t-0d61d.md:14 · sha256:10692a465ead
+<!-- rec t-0d61d/S-checklist docs/tickets/t-0d61d.md:14 sha256:10692a465eadb703f79fa6f77b691bacda088573fcb7dcaeeb8a239b7c1cb511 -->
 ## Checklist
-- [ ] Reset endpoint (i-9c01)
+- [x] Reset endpoint (i-9c01) — done by claude, 2026-10-12
 - [ ] Email template (i-4d11)
 - [ ] Docs (i-77be, after i-4d11)
 - [ ] Rate limit (i-5e02)

@@ -1,0 +1,5 @@
+id = "067-statement-two-sentences-warns"
+kind = "accept"
+section = "4.5"
+rule = "context.statement-shape"
+says = """A checker warns (`context.statement-shape`, at the record's heading line) when it is longer, or when a `.`, `!` or `?` followed by a space occurs before its end."""

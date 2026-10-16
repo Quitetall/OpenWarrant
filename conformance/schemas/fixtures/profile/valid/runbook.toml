@@ -1,4 +1,5 @@
 schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
 name = "runbook"
 form = "document"
 note = "An operational runbook."
@@ -14,10 +15,13 @@ closed = true
 
 [records]
 types = ["step"]
+closed = true
 
 [fields.step]
 command = { required = true, shape = "line" }
 severity = { shape = "enum", values = ["low", "high"] }
+automatic = { shape = "bool" }
+duration = { shape = "number" }
 
 [[presets]]
 name = "oncall"

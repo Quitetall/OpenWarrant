@@ -1,0 +1,4 @@
+id = "442-hand-ticked-box-done"
+kind = "accept"
+section = "11.4"
+says = """A box ticked by hand, with no event, is done at `claimed`."""

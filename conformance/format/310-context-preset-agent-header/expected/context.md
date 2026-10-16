@@ -3,7 +3,7 @@
 
 ## Index
 [F] OW-WAR-0150/OBL-001 · obligation · - · a consumed link is refused · docs/warrants/OW-WAR-0150.md:20
-[F] OW-WAR-0150 · warrant · draft · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
+[F] OW-WAR-0150 · warrant · open · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
 
 ## Records
 > OW-WAR-0150/OBL-001 · obligation · docs/warrants/OW-WAR-0150.md:20 · sha256:fd56c1e72596
