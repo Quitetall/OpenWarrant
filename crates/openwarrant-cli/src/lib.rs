@@ -1796,6 +1796,17 @@ enum AdminCommand {
         /// `[project] performer`.
         #[arg(long)]
         producer: Option<String>,
+        /// The observed producing attempt for the bytes being recorded.
+        /// Omit to retain the existing value; this does not mint a receipt.
+        #[arg(long)]
+        producing_attempt: Option<String>,
+        /// Actual input digest, one per flag. Replaces the prior input list
+        /// when recording new bytes; omitted, the prior list is retained.
+        #[arg(long = "input-digest")]
+        input_digests: Vec<String>,
+        /// Record that this production had no inputs, replacing the old list.
+        #[arg(long, conflicts_with = "input_digests")]
+        clear_input_digests: bool,
         /// §37.2 `creation_method` (`authored`, `generated`, …). Defaults to
         /// the recorded one, then `authored`.
         #[arg(long)]
@@ -6705,6 +6716,9 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             alias,
             ids,
             producer,
+            producing_attempt,
+            input_digests,
+            clear_input_digests,
             method,
             dry_run,
         } => {
@@ -6715,6 +6729,12 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                 &deliver::Options {
                     ids: &ids,
                     producer: producer.as_deref(),
+                    producing_attempt: producing_attempt.as_deref(),
+                    input_digests: if clear_input_digests {
+                        Some(&[])
+                    } else {
+                        (!input_digests.is_empty()).then_some(input_digests.as_slice())
+                    },
                     method: method.as_deref(),
                     dry_run,
                 },
