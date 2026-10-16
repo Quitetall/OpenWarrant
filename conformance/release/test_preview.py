@@ -42,6 +42,22 @@ class PreviewTests(unittest.TestCase):
     def test_both_declared_native_receipts_and_sealed_archives(self):
         check(self.root, TAG, COMMIT)
 
+    def test_v2_source_capsules_use_the_same_sealed_preview_checks(self):
+        import gzip
+        for target in ['linux','macos']:
+            path=self.root/('candidate-'+target+'.json')
+            candidate=json.loads(path.read_text());manifest=candidate['manifest']
+            files=fixture();files.pop('MANIFEST.json')
+            files['sdk-source.tar.gz']=gzip.compress(files.pop('sdk-source.tar'),mtime=0)
+            manifest['schema']='oh.war/candidate-bundle/v2'
+            manifest['files']={p:{'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data),'executable':p=='bin/war'} for p,data in files.items()}
+            files['MANIFEST.json']=json.dumps(manifest).encode();data=archive(files)
+            (self.root/candidate['archive']).write_bytes(data)
+            candidate['sha256']=hashlib.sha256(data).hexdigest();self.write(path.name,candidate)
+            receipt_path=self.root/('install-'+target+'.json')
+            receipt=json.loads(receipt_path.read_text());receipt['manifest']=manifest;receipt['archive_sha256']=candidate['sha256'];self.write(receipt_path.name,receipt)
+        check(self.root,TAG,COMMIT)
+
     def test_stable_tag_and_wrong_source_refuse(self):
         for tag, commit in [('v1.0.0', COMMIT), (TAG, 'b' * 40)]:
             with self.assertRaises(ValueError): check(self.root, tag, commit)
