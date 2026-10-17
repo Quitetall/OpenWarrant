@@ -41,7 +41,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-14 | 365 | sync.receipt_attached 365 |
 | 2026-10-15 | 1 | sync.receipt_attached 1 |
 | 2026-10-16 | 49 | authorization.recorded 21, question.answered 9, sync.receipt_attached 7, verification.recorded 12 |
-| 2026-10-17 | 2 | question.asked 1, sync.receipt_attached 1 |
+| 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
 
 ## Roadmap revisions
 
