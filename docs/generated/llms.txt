@@ -1550,7 +1550,7 @@
 
 ## docs/tickets/t-45f8c/manifest.toml
 > Publish preview bootstrap installer and checksum automatically
-- t-45f8c · ticket · in_progress · Publish preview bootstrap installer and checksum automatically · docs/tickets/t-45f8c/manifest.toml:1
+- t-45f8c · ticket · done · Publish preview bootstrap installer and checksum automatically · docs/tickets/t-45f8c/manifest.toml:1
 
 ## docs/tickets/t-460f5/manifest.toml
 > Restore exact upstream notice provenance for rmcp 3.5.1 release packages
@@ -1642,7 +1642,7 @@
 
 ## docs/tickets/t-5ff5c/manifest.toml
 > Expose tick proof and unmet milestone minima in progress views
-- t-5ff5c · ticket · in_progress · Expose tick proof and unmet milestone minima in progress views · docs/tickets/t-5ff5c/manifest.toml:1
+- t-5ff5c · ticket · done · Expose tick proof and unmet milestone minima in progress views · docs/tickets/t-5ff5c/manifest.toml:1
 
 ## docs/tickets/t-62891/manifest.toml
 > Capture original Git inventory refusal; unchanged replay passes do not establish repair
@@ -1762,7 +1762,7 @@
 
 ## docs/tickets/t-95aa5/manifest.toml
 > Show working-form Warrants in overview and offline/live progress viewer
-- t-95aa5 · ticket · in_progress · Show working-form Warrants in overview and offline/live progress viewer · docs/tickets/t-95aa5/manifest.toml:1
+- t-95aa5 · ticket · done · Show working-form Warrants in overview and offline/live progress viewer · docs/tickets/t-95aa5/manifest.toml:1
 
 ## docs/tickets/t-9a4a9/manifest.toml
 > OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh)
@@ -1790,7 +1790,7 @@
 
 ## docs/tickets/t-a6ce4/manifest.toml
 > Reduce compatibility schema scanning CPU without weakening version refusals
-- t-a6ce4 · ticket · in_progress · Reduce compatibility schema scanning CPU without weakening version refusals · docs/tickets/t-a6ce4/manifest.toml:1
+- t-a6ce4 · ticket · done · Reduce compatibility schema scanning CPU without weakening version refusals · docs/tickets/t-a6ce4/manifest.toml:1
 
 ## docs/tickets/t-a92bb/manifest.toml
 > M12: a small surface
