@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "timeout",
+    "180",
+    "/mnt/4tb/build/cargo/dd/8a368b86b1c406/debug/deps/all-36e157a7715a9134",
+    "telemetry_integrity_cli::",
+    "--test-threads=1"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.3714454174041748,
+  "code_source": "9e4630f83d9993629f3d6e92fb0eb657e0011d66",
+  "record_source": "49443f42e7078a4023345b9864e9c6326961b19b",
+  "scope": "Targeted public telemetry CLI regression, not a full gate or independent review. Existing compiled integration binary; code files unchanged from its validated build."
+}

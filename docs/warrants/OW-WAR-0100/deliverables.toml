@@ -1,0 +1,221 @@
+schema = "oh.war/deliverables/v1"
+
+# Performer declarations for existing artifacts, not independent verification.
+# Provenance is recorded by war admin deliver using observed reuse inputs.
+
+[[deliverable]]
+id = "D-001"
+title = "Reused telemetry repair implementation"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/telemetry.rs"
+required = true
+content_addressed = false
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-002"
+title = "Public telemetry integrity regressions"
+kind = "file"
+target_ref = "crates/openwarrant-cli/tests/telemetry_integrity_cli.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "reused exact existing repository artifact; original authorship retained by Git"
+content_digest = "sha256:9ee5420ec30436468f38e4ac0058850aad430195c843b9d47ebc10650a7726e8"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:9ee5420ec30436468f38e4ac0058850aad430195c843b9d47ebc10650a7726e8"]
+
+[[deliverable]]
+id = "D-003"
+title = "Existing OW39 provenance retaining the prior digest"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0039/deliverables.toml"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "reused exact existing repository artifact; original authorship retained by Git"
+content_digest = "sha256:b7a6a627c9b58860fbfcb73cc833838747049ee081bba0948835d4eb24137e82"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:b7a6a627c9b58860fbfcb73cc833838747049ee081bba0948835d4eb24137e82"]
+
+[[deliverable]]
+id = "D-004"
+title = "Existing OW41 provenance and original baseline identity"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0041/deliverables.toml"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "reused exact existing repository artifact; original authorship retained by Git"
+content_digest = "sha256:ee3ea2345d95e531b79b085320e3edf3d291b330dee445462338adf40ccd5674"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:ee3ea2345d95e531b79b085320e3edf3d291b330dee445462338adf40ccd5674"]
+
+[[deliverable]]
+id = "D-005"
+title = "Retained observation trail with this follow-up link"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0041/implementation/notes.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "appended this follow-up link; previous observation text retained byte-for-byte"
+content_digest = "sha256:df5d349ab0d9e128fe9803a07562358c0c28dd9d897f951b133e0134904b25ed"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:05cf30970baca3e08d18b5ce07ea9885b80da8697e6979698468c2c9ca2027a7"]
+
+[[deliverable]]
+id = "D-006"
+title = "Original diagnostic invocation and output identities"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0041/implementation/observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "reused exact existing repository artifact; original authorship retained by Git"
+content_digest = "sha256:cfc97b66bbb7153597d480f94c2f70f662b605d81c1e0cb49f07c4a2fb15bb94"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:cfc97b66bbb7153597d480f94c2f70f662b605d81c1e0cb49f07c4a2fb15bb94"]
+
+[[deliverable]]
+id = "D-007"
+title = "Original diagnostic output, not a current accepted baseline"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0041/implementation/current-measurement.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "reused exact existing repository artifact; original authorship retained by Git"
+content_digest = "sha256:8ab1ae5473b3166d123d43ed31ab7efcb2cdeeda75e1c333311d465721cec147"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:8ab1ae5473b3166d123d43ed31ab7efcb2cdeeda75e1c333311d465721cec147"]
+
+[[deliverable]]
+id = "D-008"
+title = "Retained historical successful regression output"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0041/implementation/regression.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "reused exact existing repository artifact; original authorship retained by Git"
+content_digest = "sha256:0ea60f07ba57fe875f11798db72d5c08fd17d8e2d26841c09bda15faa2d7a2e1"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0ea60f07ba57fe875f11798db72d5c08fd17d8e2d26841c09bda15faa2d7a2e1"]
+
+[[deliverable]]
+id = "D-009"
+title = "Retained historical full-gate failure"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0041/implementation/initial-gate-failure.log.gz"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "reused exact existing repository artifact; original authorship retained by Git"
+content_digest = "sha256:54a2a11f4f3e37ba733316ebd57c485092b4688e7c984109ae0fb682cf46ffaf"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:54a2a11f4f3e37ba733316ebd57c485092b4688e7c984109ae0fb682cf46ffaf"]
+
+[[deliverable]]
+id = "D-010"
+title = "Retained historical shared-reference failure"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0041/implementation/shared-ref-gate-failure.log.gz"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0100/20261017-delivery-reconciliation"
+contract_digest = "b057a08a6af941e584b8838eaea56d9a4ee5ebaaf2f561e40fe3a2e5375545e0"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "reused exact existing repository artifact; original authorship retained by Git"
+content_digest = "sha256:6d71250cd39a31f785d49f28d8ba4d5d31081662cdaf89d530a4a77007711948"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:6d71250cd39a31f785d49f28d8ba4d5d31081662cdaf89d530a4a77007711948"]
