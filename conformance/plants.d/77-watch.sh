@@ -20,6 +20,11 @@ plant_cmd "a proposed revision appears in the pending set" "0.1.0-draft.9" "acce
 # fixed four seconds: on a corpus with forty pending acts the first snapshot
 # takes longer than that, the proposal landed inside it, and the loop — right
 # not to call an act "new" that was there when it looked — printed no `+`.
+#
+# A first snapshot with nothing pending prints nothing, and a resolved corpus
+# can have nothing pending: one throwaway revision is proposed before the loop
+# starts, so there is a first snapshot to wait for whatever the corpus holds.
+"$WAR" sas propose 0.1.0-draft.8 >/dev/null 2>&1
 WATCH_FILE=$(mktemp)
 "$WAR" watch --interval 200 --ticks 60 > "$WATCH_FILE" 2>/dev/null &
 WATCH_PID=$!

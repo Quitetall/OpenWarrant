@@ -1008,27 +1008,60 @@ pub mod source {
         tree: &str,
         ex: &Exclusions,
     ) -> Result<Vec<String>, String> {
+        // The filtered answer is remembered too: the evidence judges ask it
+        // once per receipt, and over a historical tree the paths to sort
+        // through are thousands. The exclusions are part of the question.
+        tree_read(format!("moved\0{root}\0{tree}\0{ex:?}"), || {
+            moved_since_read(root, tree, ex)
+        })
+    }
+
+    fn moved_since_read(
+        root: &Utf8Path,
+        tree: &str,
+        ex: &Exclusions,
+    ) -> Result<Vec<String>, String> {
         let mut moved = tree_read(format!("diff\0{root}\0{tree}"), || {
-            // A clean tracked tree needs one filesystem scan, not one per
-            // historical receipt. Compare the immutable trees after proving
-            // the checkout equals this exact tip. Untracked paths are still
-            // read below. A dirty or unavailable tip takes the original path.
-            // Mutating commands never use this process-local observation.
+            // The working tree is scanned once, not once per historical
+            // receipt: its changes against the tip are read once, and each
+            // tree is compared with the tip, which is immutable and touches
+            // no file. A path changed on one side only has moved; a path
+            // changed on both (the working copy may have been put back to the
+            // tree's bytes) is compared with the working tree directly, those
+            // paths alone. Untracked paths are read below. An unavailable tip
+            // takes the original path. Mutating commands never use this
+            // process-local observation.
             if tree_reads_remembered()
                 && let Ok(tips) = tree_read(format!("tip\0{root}"), || {
                     head_tree(root).map(|tip| vec![tip])
                 })
                 && let Some(tip) = tips.first()
-                && let Ok(changes) = tree_read(format!("working-tip\0{root}\0{tip}"), || {
+                && let Ok(working) = tree_read(format!("working-tip\0{root}\0{tip}"), || {
                     diff_paths(root, tip, None)
                 })
-                && changes.is_empty()
             {
-                return if tip == tree {
-                    Ok(Vec::new())
+                let committed = if tip == tree {
+                    Vec::new()
                 } else {
-                    diff_paths(root, tree, Some(tip))
+                    diff_paths(root, tree, Some(tip))?
                 };
+                if working.is_empty() {
+                    return Ok(committed);
+                }
+                let working: std::collections::BTreeSet<&String> = working.iter().collect();
+                let committed: std::collections::BTreeSet<&String> = committed.iter().collect();
+                let both: Vec<&str> = committed
+                    .intersection(&working)
+                    .map(|p| p.as_str())
+                    .collect();
+                let mut moved: Vec<String> = committed
+                    .symmetric_difference(&working)
+                    .map(|p| (*p).clone())
+                    .collect();
+                if !both.is_empty() {
+                    moved.extend(diff_paths_in(root, tree, &both)?);
+                }
+                return Ok(moved);
             }
             diff_paths(root, tree, None)
         })?;
@@ -1045,6 +1078,15 @@ pub mod source {
         moved.sort();
         moved.dedup();
         Ok(moved)
+    }
+
+    /// [`diff_paths`] from `from` to the working tree, over `paths` alone,
+    /// each named literally.
+    fn diff_paths_in(root: &Utf8Path, from: &str, paths: &[&str]) -> Result<Vec<String>, String> {
+        let literal: Vec<String> = paths.iter().map(|p| format!(":(literal){p}")).collect();
+        let mut args = vec!["diff", "--no-renames", "--name-only", "-z", from, "--"];
+        args.extend(literal.iter().map(String::as_str));
+        Ok(nul_paths(&git_observation(root, &args, true)?))
     }
 
     fn diff_paths(root: &Utf8Path, from: &str, to: Option<&str>) -> Result<Vec<String>, String> {

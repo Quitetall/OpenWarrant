@@ -454,7 +454,38 @@ pub fn load(warrant_dir: &Utf8Path) -> Result<Journal, RepoError> {
     if !crate::vfs::is_file(&path) {
         return Ok(Journal::default());
     }
-    let bytes = crate::vfs::read(&path).map_err(|source| RepoError::Io {
+    // One command reads a journal from several places (its status, its
+    // assessment, its frontier), and a journal's lines can carry large
+    // payloads. A parse of an unchanged file is remembered for the life of
+    // the process while its length and modification time stand. A hosted
+    // run (`war host`) has no modification times to key on; an error is
+    // never remembered.
+    type Seen =
+        std::collections::HashMap<camino::Utf8PathBuf, (u64, std::time::SystemTime, Journal)>;
+    static CACHE: std::sync::OnceLock<std::sync::Mutex<Seen>> = std::sync::OnceLock::new();
+    let stamp = (!crate::vfs::is_hosted())
+        .then(|| std::fs::metadata(&path).ok())
+        .flatten()
+        .and_then(|m| Some((m.len(), m.modified().ok()?)));
+    let cache = CACHE.get_or_init(Default::default);
+    if let Some(stamp) = stamp
+        && let Ok(seen) = cache.lock()
+        && let Some((len, modified, journal)) = seen.get(&path)
+        && (*len, *modified) == stamp
+    {
+        return Ok(journal.clone());
+    }
+    let journal = load_uncached(&path)?;
+    if let Some((len, modified)) = stamp
+        && let Ok(mut seen) = cache.lock()
+    {
+        seen.insert(path, (len, modified, journal.clone()));
+    }
+    Ok(journal)
+}
+
+fn load_uncached(path: &Utf8Path) -> Result<Journal, RepoError> {
+    let bytes = crate::vfs::read(path).map_err(|source| RepoError::Io {
         context: format!("could not read {path}"),
         source,
     })?;

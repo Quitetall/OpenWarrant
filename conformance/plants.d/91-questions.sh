@@ -82,21 +82,26 @@ plant_cmd "an empty question" "question.empty" "" 1 \
     "true" ask "$Q_ALIAS" STAGE-001 "   "
 q_cleanup
 
-# Positive: the committed questions are listed open, blocking first, each with
-# the command that answers it.
+# Positive: open questions are listed, blocking first, each with the command
+# that answers it. The corpus's own may all be answered, so one is asked here.
+Q_OPEN="\"$WAR\" ask $Q_ALIAS STAGE-001 'Planted: is this listed?' --blocking >/dev/null 2>&1 || { echo 'ask failed' >&2; exit 9; }"
 plant_cmd "open questions list blocking first" "BLOCKING" "war plan answer" 0 \
-    "true" questions --open
+    "$Q_OPEN" \
+    questions --open
+q_cleanup
 # And the watcher raises them beside the pending signatures.
 plant_cmd "watch raises a question" "question" "$Q_ALIAS" 0 \
-    "true" watch --once
+    "$Q_OPEN" \
+    watch --once
 q_cleanup
 
 # A record that does not parse hides nothing: it is named, and the rest of the
 # queue still lists (a corpus-wide queue that one typo empties is worse than
 # one that reports the typo).
+Q_LISTED=$("$WAR" ask "$Q_ALIAS" STAGE-001 "Planted: still listed?" 2>&1 | grep -o 'Q-[0-9]\{3\}' | head -1)
 printf 'not a question [[[\n' > "$Q_DIR/Q-900.toml"
 out=$("$WAR" questions --open 2>&1); status=$?
-if [[ $status -eq 2 ]] && grep -q 'question.malformed' <<< "$out" && grep -q 'Q-001' <<< "$out"; then
+if [[ $status -eq 2 ]] && grep -q 'question.malformed' <<< "$out" && [[ -n "$Q_LISTED" ]] && grep -q "$Q_LISTED" <<< "$out"; then
     printf 'ok    %-34s named, and the other questions still list\n' "a malformed question record"
     PASSED=$((PASSED + 1))
 else

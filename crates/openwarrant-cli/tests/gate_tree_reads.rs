@@ -254,6 +254,38 @@ fn historical_comparisons_share_a_clean_tree_scan_without_hiding_dirty_changes()
         shared,
         "source observation changed shared-index bytes"
     );
+    if mode == "dirty" {
+        // A dirty tree is scanned whole once; each historical tree is compared
+        // with the tip, and only paths changed on both sides are compared with
+        // the working tree, by name.
+        let trace = fs::read_to_string(std::env::var_os("GIT_TRACE2_EVENT").unwrap()).unwrap();
+        let whole = trace
+            .lines()
+            .filter(|line| {
+                let event: serde_json::Value = serde_json::from_str(line).unwrap();
+                if event["event"] != "start" {
+                    return false;
+                }
+                let args: Vec<&str> = event["argv"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .collect();
+                let (Some(z), Some(dashes)) = (
+                    args.iter().position(|a| *a == "-z"),
+                    args.iter().position(|a| *a == "--"),
+                ) else {
+                    return false;
+                };
+                args.contains(&"diff") && dashes == z + 2 && dashes + 1 == args.len()
+            })
+            .count();
+        assert_eq!(
+            whole, 1,
+            "two historical subjects must not each scan the same dirty working tree"
+        );
+    }
     if mode == "clean" {
         let trace = fs::read_to_string(std::env::var_os("GIT_TRACE2_EVENT").unwrap()).unwrap();
         let walks = trace

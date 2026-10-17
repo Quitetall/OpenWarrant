@@ -1119,12 +1119,8 @@ impl Repository {
         let mut failures = Vec::new();
         for path in paths {
             let relative = self.relative(&path);
-            let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
-                context: format!("could not read {path}"),
-                source,
-            })?;
-            match crate::verify::record::decode(&text) {
-                Ok(v) => records.push(v.verification),
+            match decoded_verification(&path)? {
+                Ok(v) => records.push(v),
                 Err(openwarrant_core::verification_record::VerificationRecordError::UnsupportedSchema { schema }) => {
                     return Err(RepoError::ObservationUnavailable {
                         rule: "verify.record-schema-unsupported",
@@ -1823,6 +1819,53 @@ static SAS_REVISIONS: std::sync::OnceLock<std::sync::Mutex<SasRevisionMemo>> =
 /// exact text each was parsed from (`Repository::load_authority_register`).
 type RegisterMemo = std::collections::HashMap<Utf8PathBuf, (String, AuthorityRegister)>;
 static REGISTERS: std::sync::OnceLock<std::sync::Mutex<RegisterMemo>> = std::sync::OnceLock::new();
+
+/// One verification record decoded, remembered for the life of the process
+/// while the file's length and modification time stand. One command assesses
+/// a Warrant more than once (`war status` reads its obligations and its
+/// assessment; `war next` both again), and the records are the largest files
+/// a Warrant holds; an unchanged file decodes the same each time.
+fn decoded_verification(
+    path: &Utf8Path,
+) -> Result<
+    Result<Verification, openwarrant_core::verification_record::VerificationRecordError>,
+    RepoError,
+> {
+    type Decoded =
+        Result<Verification, openwarrant_core::verification_record::VerificationRecordError>;
+    type Seen =
+        std::collections::HashMap<Utf8PathBuf, (u64, Option<std::time::SystemTime>, Decoded)>;
+    static CACHE: std::sync::OnceLock<std::sync::Mutex<Seen>> = std::sync::OnceLock::new();
+    let read = || {
+        fs::read_to_string(path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })
+    };
+    let decode = |text: &str| crate::verify::record::decode(text).map(|v| v.verification);
+    // A hosted run (`war host`) has no modification times to key on.
+    if fs::is_hosted() {
+        return Ok(decode(&read()?));
+    }
+    let stamp = std::fs::metadata(path)
+        .ok()
+        .map(|m| (m.len(), m.modified().ok()));
+    let cache = CACHE.get_or_init(Default::default);
+    if let Some(stamp) = stamp
+        && let Ok(seen) = cache.lock()
+        && let Some((len, modified, found)) = seen.get(path)
+        && (*len, *modified) == stamp
+    {
+        return Ok(found.clone());
+    }
+    let found = decode(&read()?);
+    if let Some((len, modified)) = stamp
+        && let Ok(mut seen) = cache.lock()
+    {
+        seen.insert(path.to_owned(), (len, modified, found.clone()));
+    }
+    Ok(found)
+}
 
 #[cfg(test)]
 mod tests {

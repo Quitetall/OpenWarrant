@@ -146,8 +146,9 @@ restore() {
     rm -f "$REPO_ROOT"/docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
     # `war plan --draft` without --apply leaves its scratch proposal behind.
     rm -f "$REPO_ROOT"/docs/warrants/generated/draft-proposal-*.json
-    # The agent-acceptance plant proposes a throwaway SAS revision.
-    rm -f "$REPO_ROOT"/docs/sas/revisions/0.1.0-draft.9.toml
+    # The agent-acceptance plant proposes a throwaway SAS revision, and the
+    # watch plant (77) one more so its first snapshot is never empty.
+    rm -f "$REPO_ROOT"/docs/sas/revisions/0.1.0-draft.9.toml "$REPO_ROOT"/docs/sas/revisions/0.1.0-draft.8.toml
     # The re-pin plants (88) fabricate a revision and an amendment each.
     rm -f "$REPO_ROOT"/docs/sas/revisions/9.9.9.toml "$REPO_ROOT"/docs/warrants/OW-WAR-0047/amendments/AM-901.yaml "$REPO_ROOT"/docs/warrants/OW-WAR-0062/amendments/AM-901.yaml
     rmdir "$REPO_ROOT"/docs/warrants/OW-WAR-0047/amendments "$REPO_ROOT"/docs/warrants/OW-WAR-0062/amendments 2>/dev/null || true
