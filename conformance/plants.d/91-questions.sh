@@ -82,26 +82,35 @@ plant_cmd "an empty question" "question.empty" "" 1 \
     "true" ask "$Q_ALIAS" STAGE-001 "   "
 q_cleanup
 
-# Positive: open questions are listed, blocking first, each with the command
-# that answers it. The corpus's own may all be answered, so one is asked here.
-Q_OPEN="\"$WAR\" ask $Q_ALIAS STAGE-001 'Planted: is this listed?' --blocking >/dev/null 2>&1 || { echo 'ask failed' >&2; exit 9; }"
+# Positive: bring an open question; committed ones may all be answered.
+# The listing still puts blocking questions first and gives an answer command.
 plant_cmd "open questions list blocking first" "BLOCKING" "war plan answer" 0 \
-    "$Q_OPEN" \
-    questions --open
+    "\"$WAR\" ask \"$Q_ALIAS\" STAGE-001 \"Planted: open listing?\" --blocking >/dev/null 2>&1 || exit 9" questions --open
 q_cleanup
 # And the watcher raises them beside the pending signatures.
 plant_cmd "watch raises a question" "question" "$Q_ALIAS" 0 \
-    "$Q_OPEN" \
-    watch --once
+    "\"$WAR\" ask \"$Q_ALIAS\" STAGE-001 \"Planted: watcher question?\" --blocking >/dev/null 2>&1 || exit 9" watch --once
 q_cleanup
 
 # A record that does not parse hides nothing: it is named, and the rest of the
 # queue still lists (a corpus-wide queue that one typo empties is worse than
 # one that reports the typo).
-Q_LISTED=$("$WAR" ask "$Q_ALIAS" STAGE-001 "Planted: still listed?" 2>&1 | grep -o 'Q-[0-9]\{3\}' | head -1)
-printf 'not a question [[[\n' > "$Q_DIR/Q-900.toml"
+# Allocate both fixture ids through the public command; never overwrite a
+# pre-existing record just because its number looks unlikely.
+Q_ASK=$("$WAR" ask "$Q_ALIAS" STAGE-001 "Planted: keep listing this question." --blocking 2>&1) || { echo "PLANT SETUP FAILED: visible question" >&2; exit 9; }
+Q_VISIBLE_ID=$(grep -o 'Q-[0-9]\{3\}' <<< "$Q_ASK" | head -1)
+Q_ASK=$("$WAR" ask "$Q_ALIAS" STAGE-001 "Planted: malformed record." 2>&1) || { echo "PLANT SETUP FAILED: malformed-question fixture" >&2; exit 9; }
+Q_BAD_ID=$(grep -o 'Q-[0-9]\{3\}' <<< "$Q_ASK" | head -1)
+if [[ -z "$Q_VISIBLE_ID" || -z "$Q_BAD_ID" || "$Q_VISIBLE_ID" == "$Q_BAD_ID" ]] \
+    || [[ ! -f "$Q_DIR/$Q_VISIBLE_ID.toml" || ! -f "$Q_DIR/$Q_BAD_ID.toml" ]] \
+    || grep -qxF "$Q_BAD_ID.toml" <<< "$Q_BEFORE" \
+    || grep -qxF "$Q_VISIBLE_ID.toml" <<< "$Q_BEFORE"; then
+    printf 'PLANT SETUP FAILED: cannot allocate two fresh question records\n' >&2
+    exit 9
+fi
+printf 'not a question [[[\n' > "$Q_DIR/$Q_BAD_ID.toml"
 out=$("$WAR" questions --open 2>&1); status=$?
-if [[ $status -eq 2 ]] && grep -q 'question.malformed' <<< "$out" && [[ -n "$Q_LISTED" ]] && grep -q "$Q_LISTED" <<< "$out"; then
+if [[ $status -eq 2 ]] && grep -q 'question.malformed' <<< "$out" && grep -Fq "$Q_VISIBLE_ID" <<< "$out"; then
     printf 'ok    %-34s named, and the other questions still list\n' "a malformed question record"
     PASSED=$((PASSED + 1))
 else

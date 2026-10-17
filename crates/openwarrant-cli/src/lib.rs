@@ -6390,11 +6390,12 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             // returned above without freezing their tree observations.
             gate_cmd::source::remember_tree_reads();
             ssh_verdicts::permit();
-            let view = overview::build(status::build(&repository)?, all);
+            let corpus = corpus::Corpus::new(&repository);
+            let view = overview::capture(&corpus, all)?;
             output::emit(
                 mode,
                 "overview",
-                &overview::render(&view),
+                &overview::render_unified(&view),
                 output::value(&view),
             );
             Ok(EXIT_OK)

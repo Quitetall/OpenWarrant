@@ -98,6 +98,24 @@
     },
     async progress(main) {
       const d = await api("progress");
+      const forms = d.working_forms;
+      if (forms) {
+        main.append(el("h2", { text: "Working-form Warrants" }),
+          el("p", { class: "muted", text: `${forms.completed} completed · ${forms.remaining} remaining · ${forms.total} readable records. Checklist state is unverified; it does not grant permission to execute.` }));
+        if (!forms.coverage_complete)
+          main.append(el("p", { class: "note", text: "Incomplete coverage: unreadable records are excluded from counts. " + (forms.diagnostics || []).map(d => `${d.file || d.rule}: ${d.message}`).join(" · ") }));
+        if (forms.total && forms.coverage_complete) {
+          main.append(el("progress", { max: forms.total, value: forms.completed, "aria-label": "Completed working-form Warrants; unverified" }));
+        }
+        if (forms.proof_incomplete)
+          main.append(el("p", { class: "note", text: `Proof assessment incomplete for ${forms.proof_incomplete} records; completion is a separate claim.` }));
+        if (forms.ticks_below_minimum)
+          main.append(el("p", { class: "note", text: `${forms.ticks_below_minimum} completed ticks are below their configured proof minimum. Completion and milestone proof are separate.` }));
+        main.append(table(["Warrant", "title", "state", "checklist", "proof", "details"], (forms.records || []).map(w => [
+          code(w.id), w.title, el("span", { class: "badge", text: w.state.replaceAll("_", " ") }),
+          `${w.done}/${w.total}`, el("span", {}, w.ticks?.unavailable ? el("span", { class: "badge warn", text: "proof UNKNOWN", title: w.ticks.unavailable }) : tickSummary(w.ticks?.counts), ...((w.proof_faults || []).map(f => el("p", { class: "note", text: `${f.rule}: ${f.message}` })))), code("war show " + w.id)
+        ])));
+      }
       const rm = d.roadmap || {};
       main.append(el("h2", { text: (rm.program || "Program") + " — roadmap" }),
         el("p", { class: "muted", text: rm.error ? rm.error

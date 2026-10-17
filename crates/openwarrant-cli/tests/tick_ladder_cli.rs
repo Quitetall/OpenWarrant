@@ -96,6 +96,52 @@ fn rules(v: &serde_json::Value) -> Vec<String> {
 }
 
 #[test]
+fn completion_and_required_milestone_proof_remain_separate_in_progress() {
+    let root = scratch("completion-minimum");
+    let created = json(&root, &["create", "Guarded result", "--item", "Deliver it"]);
+    let t = created["result"]["id"].as_str().unwrap();
+    let item = created["result"]["items"][0]["id"].as_str().unwrap();
+    let target = format!("{t}/{item}");
+    let configured = json(&root, &["add", &target, "--min", "observed"]);
+    assert_eq!(configured["exit_code"], 0, "{configured}");
+    let path = root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"));
+    // A planted file claim is not an observed check. Read it honestly, but
+    // do not let it satisfy the author's explicit minimum.
+    let contents = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(&path, contents.replace("- [ ]", "- [x]")).unwrap();
+    let shown = json(&root, &["show", t]);
+    assert_eq!(shown["result"]["items"][0]["tick"]["level"], "claimed");
+    assert_eq!(shown["result"]["items"][0]["tick"]["meets_minimum"], false);
+    // A handwritten tick is a valid completion claim (docs/TICKETS.md).
+    // Proof minima remain separate; they must stay visible in the overview.
+    assert_eq!(shown["result"]["ticket"]["state"], "done");
+    let read = || json(&root, &["overview", "--all"]);
+    let before = read();
+    let record = &before["result"]["working_forms"]["records"][0];
+    assert_eq!(record["state"], "done");
+    assert_eq!(record["ticks"]["counts"]["below_minimum"], 1);
+    assert_eq!(record["milestones"][0]["met"], false);
+    assert_eq!(
+        before["result"]["working_forms"]["qualification_assessed"],
+        false
+    );
+    json(&root, &["add", &target, "--test", "true"]);
+    let checked = json(&root, &["done", &target, "--check"]);
+    assert_eq!(checked["exit_code"], 0, "{checked}");
+    let after = read();
+    let record = &after["result"]["working_forms"]["records"][0];
+    assert_eq!(record["state"], "done");
+    assert_eq!(record["ticks"]["counts"]["observed"], 1);
+    assert_eq!(record["ticks"]["counts"]["below_minimum"], 0);
+    assert_eq!(record["milestones"][0]["met"], true);
+    assert_eq!(
+        after["result"]["working_forms"]["qualification_assessed"],
+        false
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn a_title_only_warrant_ticks_at_observed_only_when_its_test_passes() {
     let root = scratch("title");
     let created = json(&root, &["create", "Make the parser fast"]);
