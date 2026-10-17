@@ -182,15 +182,25 @@ fn cached_schemas(file: &Utf8Path) -> Vec<(String, u32)> {
     found
 }
 
-/// Declarations that may need a newer-version finding. A file that does not
-/// parse declares nothing here; its own reader reports it. Known TOML headers
-/// need no compatibility finding, so their bodies need not be materialized.
+/// The `(record, major)` each schema declaration in `file` names, for a
+/// file that could name a newer major than this `war` reads (none for any
+/// other). A file that does not parse declares nothing here; its own reader
+/// reports it.
 fn schemas_in(file: &Utf8Path) -> Vec<(String, u32)> {
     let ext = file.extension().unwrap_or_default();
     if !matches!(ext, "toml" | "json" | "jsonl" | "yaml" | "yml" | "md") {
         return vec![];
     }
-    let Ok(text) = crate::vfs::read_to_string(file) else {
+    let Ok(bytes) = crate::vfs::read(file) else {
+        return vec![];
+    };
+    // Only a newer major is ever reported, and parsing every record under a
+    // Warrant to learn its schema was most of what loading one cost. A file
+    // that cannot name a newer major declares nothing worth parsing for.
+    if !may_name_newer(&bytes, ext) {
+        return vec![];
+    }
+    let Ok(text) = String::from_utf8(bytes) else {
         return vec![];
     };
     let named = |s: &str| parse_schema(s).map(|(r, m)| (r.to_owned(), m));
@@ -234,6 +244,69 @@ fn schemas_in(file: &Utf8Path) -> Vec<(String, u32)> {
     }
 }
 
+/// Whether `text` could declare a record major newer than this `war` reads:
+/// a superset of what [`schemas_in`]'s parse would find, from the bytes
+/// alone. Every `oh.war/<record>/v<major>` spelled out, or for a journal
+/// every `"v": <major>`, is read; an escape that could spell either without
+/// its plain bytes (`\u`, `\U`, `\/`) sends the file to the parse. TOML
+/// also admits hex escapes and line-ending backslashes, which can split a
+/// family or major across physical lines.
+fn may_name_newer(text: &[u8], ext: &str) -> bool {
+    fn skip_ws(b: &[u8]) -> &[u8] {
+        &b[b.iter().take_while(|c| c.is_ascii_whitespace()).count()..]
+    }
+    if memchr::memchr_iter(b'\\', text).any(|at| {
+        text.get(at + 1).is_some_and(|next| {
+            matches!(*next, b'u' | b'U' | b'/')
+                || (ext == "toml" && (*next == b'x' || next.is_ascii_whitespace()))
+        })
+    }) {
+        return true;
+    }
+    let newer = |record: &[u8], major: &[u8]| {
+        let (Ok(record), Ok(major)) = (std::str::from_utf8(record), std::str::from_utf8(major))
+        else {
+            return false;
+        };
+        // A major too large for u32 is not read by the parse either.
+        major
+            .parse::<u32>()
+            .is_ok_and(|m| known_major(record).is_some_and(|k| m > k))
+    };
+    let digits = |b: &[u8]| b.iter().take_while(|c| c.is_ascii_digit()).count();
+    if ext == "jsonl" {
+        for at in memchr::memmem::find_iter(text, b"\"v\"") {
+            let Some(value) = skip_ws(&text[at + 3..]).strip_prefix(b":") else {
+                continue;
+            };
+            let value = skip_ws(value);
+            let n = digits(value);
+            if n > 0 && newer(b"journal-event", &value[..n]) {
+                return true;
+            }
+        }
+        return false;
+    }
+    for at in memchr::memmem::find_iter(text, b"oh.war/") {
+        let token = &text[at + b"oh.war/".len()..];
+        let end = token
+            .iter()
+            .position(|c| {
+                c.is_ascii_whitespace() || matches!(c, b'"' | b'\'' | b',' | b'}' | b']' | b'\\')
+            })
+            .unwrap_or(token.len());
+        // `parse_schema`: the record is what precedes the last `/v`.
+        let token = &token[..end];
+        if let Some(slash) = memchr::memmem::rfind(token, b"/v") {
+            let major = &token[slash + 2..];
+            if newer(&token[..slash], major) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// A complete first root assignment fixes TOML's schema: a later assignment
 /// to that key would make the document invalid, not replace it. Returning no
 /// finding for a known/irrelevant version is therefore the same for a valid
@@ -267,6 +340,101 @@ fn known_toml_header(text: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn performance_cache_preserves_toml_schema_escapes() {
+        let dir = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-compat-escaped-schema-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        for (name, text) in [
+            (
+                "joined-family",
+                "schema = \"\"\"oh.war/verifi\\\ncation/v4\"\"\"\n",
+            ),
+            (
+                "joined-major",
+                "schema = \"\"\"oh.war/verification/\\\nv4\"\"\"\n",
+            ),
+            (
+                "spaced-crlf",
+                "schema = \"\"\"oh.war/verifi\\ \t\r\ncation/v4\"\"\"\n",
+            ),
+            ("hex-prefix", "schema = \"\\x6fh.war/verification/v4\"\n"),
+            ("hex-major", "schema = \"oh.war/verification/v\\x34\"\n"),
+        ] {
+            let parsed: toml::Value = toml::from_str(text).unwrap();
+            assert_eq!(parsed["schema"].as_str(), Some("oh.war/verification/v4"));
+            let file = dir.join(format!("{name}.toml"));
+            std::fs::write(&file, text).unwrap();
+            let found = schemas_in(&file);
+            assert!(
+                found
+                    .iter()
+                    .any(|(family, major)| family == "verification" && *major == 4),
+                "{name}: future schema was lost: {found:?}"
+            );
+        }
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn only_a_file_that_could_name_a_newer_major_is_parsed() {
+        // A current or unknown record is never parsed for.
+        assert!(!may_name_newer(
+            b"schema = \"oh.war/verification/v3\"\n",
+            "toml"
+        ));
+        assert!(!may_name_newer(
+            b"{\"schema\": \"oh.war/verification-request/v7\"}",
+            "json"
+        ));
+        assert!(!may_name_newer(b"no schema here", "md"));
+        // A newer frozen major is, however it is quoted or placed.
+        assert!(may_name_newer(
+            b"schema = \"oh.war/verification/v9\"\n",
+            "toml"
+        ));
+        assert!(may_name_newer(b"schema = 'oh.war/atom/v2'\n", "toml"));
+        assert!(may_name_newer(b"---\nschema: oh.war/atom/v2\n---\n", "md"));
+        assert!(may_name_newer(b"{\"x\":[\"oh.war/report/v2\"]}", "json"));
+        // An escape that could spell one is parsed rather than guessed at.
+        assert!(may_name_newer(
+            b"{\"schema\": \"oh.war\\/atom\\/v2\"}",
+            "json"
+        ));
+        assert!(may_name_newer(b"schema = \"oh.w\\u0061r/atom/v2\"", "toml"));
+        // A journal: each line's `v`.
+        assert!(!may_name_newer(
+            b"{\"v\":1,\"type\":\"x\"}\n{\"v\": 1}\n",
+            "jsonl"
+        ));
+        assert!(may_name_newer(
+            b"{\"v\":1}\n{\"v\" : 2,\"type\":\"x\"}\n",
+            "jsonl"
+        ));
+        // What the parse would find, the prefilter lets through to it.
+        let dir = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .expect("utf-8")
+            .join(format!("war-compat-prefilter-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("mkdir");
+        for (name, body) in [
+            ("a.toml", "schema = \"oh.war/verification/v9\"\n"),
+            ("b.json", "{\"schema\":\"oh.war/atom/v2\"}"),
+            ("c.jsonl", "{\"v\":1}\n{\"v\":2}\n"),
+            ("d.md", "---\nschema: oh.war/atom/v5\n---\n"),
+        ] {
+            let file = dir.join(name);
+            std::fs::write(&file, body).expect("write");
+            assert!(
+                schemas_in(&file)
+                    .iter()
+                    .any(|(r, m)| known_major(r).is_some_and(|k| *m > k)),
+                "{name}"
+            );
+        }
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     fn config(req: Option<&str>) -> RepositoryConfig {
         let mut c = RepositoryConfig::new(

@@ -87,3 +87,8 @@ lto = "thin"
 # dependency without changing the algorithm or the workspace's debug checks.
 [profile.dev.package.sha2]
 opt-level = 3
+
+# Debug reads scan every record under each Warrant for a newer schema major
+# (compat.rs). Optimize the byte search the same way.
+[profile.dev.package.memchr]
+opt-level = 3

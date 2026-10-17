@@ -289,18 +289,6 @@ fn tool_version() -> String {
 }
 
 /// Everything awaiting a signature, in alias order, SAS revisions last.
-/// The index in `cell`, built from `repo` the first time it is asked for.
-fn ownership_of<'a>(
-    cell: &'a std::cell::OnceCell<crate::ownership::Ownership>,
-    repo: &Repository,
-) -> Result<&'a crate::ownership::Ownership, RepoError> {
-    if let Some(index) = cell.get() {
-        return Ok(index);
-    }
-    let index = crate::ownership::Ownership::index(repo)?;
-    Ok(cell.get_or_init(|| index))
-}
-
 pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
     pending_with(&crate::corpus::Corpus::new(repo))
 }
@@ -392,9 +380,6 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
         RepoError::Message(format!("docs/authority/roles.toml will not load; nothing can be signed or listed until it does: {e}"))
     })?;
     let mut out = Vec::new();
-    // The ownership index, built on the first correction request and shared
-    // by the rest (`correct::request_with`).
-    let ownership = std::cell::OnceCell::new();
     let mut entries: Vec<&crate::corpus::Entry> = corpus.entries()?.iter().collect();
     entries.sort_by(|a, b| a.dir.cmp(&b.dir));
     // The authorization half of each Warrant's row reads its own records
@@ -498,7 +483,7 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
                     {
                         continue;
                     }
-                    if let Ok(index) = ownership_of(&ownership, repo)
+                    if let Ok(index) = corpus.ownership()
                         && let Ok(request) =
                             crate::correct::request_with(repo, &alias, &deliverable_id, index)
                     {
@@ -522,7 +507,7 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
                 .iter()
                 .filter(|d| d.content_addressed && !supplied.contains(&d.id))
             {
-                if let Ok(index) = ownership_of(&ownership, repo)
+                if let Ok(index) = corpus.ownership()
                     && let Ok(request) = crate::correct::request_with(repo, &alias, &d.id, index)
                     && request.drift
                 {
