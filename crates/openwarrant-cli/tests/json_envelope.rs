@@ -38,6 +38,76 @@ const FROZEN_KEYS: [&str; 8] = [
 ];
 
 #[test]
+fn schema_discovery_keeps_toml_root_and_body_rules() {
+    let root = std::env::temp_dir().join(format!("war-schema-header-{}", std::process::id()));
+    std::fs::create_dir(&root).unwrap();
+    let invoke = |args: &[&str]| {
+        let output = Command::new(env!("CARGO_BIN_EXE_war"))
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("OPENWARRANT_NO_CACHE", "1")
+            .args(args)
+            .current_dir(&root)
+            .output()
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        (output.status, value)
+    };
+    let (status, value) = invoke(&[
+        "init",
+        "--namespace",
+        "SC",
+        "--program",
+        "Schema test",
+        "--json",
+    ]);
+    assert!(status.success(), "{value}");
+    let path = root.join("docs/warrants/SC-WAR-0001/extra.toml");
+    for (source, newer) in [
+        (
+            "schema = \"oh.war/verification/v3\"\nvalue = 'ordinary'\n",
+            false,
+        ),
+        (
+            "# comment\n\"schema\" = 'oh.war/verification/v3' # comment\nbody = '''\nschema = \"oh.war/verification/v99\"\n'''\n",
+            false,
+        ),
+        (
+            "schema = \"oh.war/verification/v3\"\nschema = \"oh.war/verification/v99\"\n",
+            false,
+        ),
+        (
+            "schema = \"oh.war/verification/v99\"\nvalue = 'future'\n",
+            true,
+        ),
+        ("schema = \"oh.war/verification/v99\"\nbroken = [\n", false),
+        (
+            "note = 'ordinary'\nschema = \"oh.war/verification/v99\"\n",
+            true,
+        ),
+        ("schema = '''\noh.war/verification/v99\n'''\n", true),
+        (
+            "schema = \"another.family/v99\"\nvalue = 'outside the frozen families'\n",
+            false,
+        ),
+    ] {
+        std::fs::write(&path, source).unwrap();
+        let (_, report) = invoke(&["check", "--json"]);
+        let findings: Vec<_> = report["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|d| d["rule"] == "compat.newer-record")
+            .collect();
+        assert_eq!(findings.len(), usize::from(newer), "{source}\n{report}");
+        if newer {
+            assert_eq!(findings[0]["severity"], "unknown");
+        }
+    }
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn init_emits_one_json_value_without_changing_the_created_configuration() {
     let root = std::env::temp_dir().join(format!(
         "ow-init-json-{}-{}",
