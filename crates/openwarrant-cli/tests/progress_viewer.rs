@@ -268,6 +268,95 @@ fn working_form_nonregular_source_is_reported_without_waiting_for_a_writer() {
     assert_eq!(value["result"]["working_forms"]["total"], 0);
     assert!(value["result"]["working_forms"]["diagnostics"][0]["message"].is_string());
 }
+#[test]
+fn format_ticket_snapshot_links_its_actual_document() {
+    let fixture = Fixture::new();
+    let source = "docs/tickets/t-0d61d.md";
+    std::fs::create_dir_all(fixture.0.join("docs/tickets")).unwrap();
+    std::fs::copy(
+        repo().join("conformance/format/055-done-suffix-tick-level/input/docs/tickets/t-0d61d.md"),
+        fixture.0.join(source),
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["progress", "--snapshot", "--json"])
+        .current_dir(&fixture.0)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let result = &value["result"];
+    let ticket = result["working_forms"]["records"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["id"] == "t-0d61d")
+        .unwrap();
+    assert_eq!(ticket["sources"], serde_json::json!([source]));
+    assert!(result["links"][source].is_string());
+    assert_eq!(result["working_forms"]["qualification_assessed"], false);
+}
+
+#[cfg(unix)]
+#[test]
+fn format_ticket_fifo_reports_incomplete_coverage_without_waiting() {
+    for relative in ["docs/tickets/t-0d61d.md", "docs/tickets/t-0d61d/ticket.md"] {
+        let fixture = Fixture::new();
+        let path = fixture.0.join(relative);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        assert!(
+            Command::new("mkfifo")
+                .arg(&path)
+                .status()
+                .unwrap()
+                .success()
+        );
+        let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(["overview", "--json"])
+            .current_dir(&fixture.0)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let start = Instant::now();
+        while child.try_wait().unwrap().is_none() {
+            if start.elapsed() > Duration::from_secs(4) {
+                child.kill().unwrap();
+                child.wait().unwrap();
+                panic!("Format ticket reader blocked on a FIFO: {relative}");
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        let output = child.wait_with_output().unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stdout)
+        );
+        let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(value["result"]["working_forms"]["coverage_complete"], false);
+        assert_eq!(value["result"]["working_forms"]["total"], 0);
+        let diagnostics = value["result"]["working_forms"]["diagnostics"]
+            .as_array()
+            .unwrap();
+        assert!(
+            diagnostics.iter().any(|d| {
+                d["rule"] == "ticket.atom-missing"
+                    && d["file"] == relative
+                    && d["message"]
+                        .as_str()
+                        .is_some_and(|m| m.contains("regular file"))
+            }),
+            "{relative}: {diagnostics:?}"
+        );
+    }
+}
+
 /// `war progress --serve`, which is `war ui` opened at Progress
 /// (OW-WAR-0116): every `/api/` call carries the session token.
 struct Server {

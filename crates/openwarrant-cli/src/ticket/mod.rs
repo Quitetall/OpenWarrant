@@ -714,7 +714,7 @@ impl Store {
         for (dir, one) in entries.iter().zip(loaded) {
             match one {
                 Some(Ok(t)) => tickets.push(t),
-                Some(Err(_)) if crate::vfs::is_file(dir.join(format::INNER)) => {
+                Some(Err(_)) if crate::vfs::exists(dir.join(format::INNER)) => {
                     look.insert(dir);
                 }
                 Some(Err(d)) => faults.push(d),
@@ -770,7 +770,7 @@ impl Store {
             let name = path.file_name().unwrap_or_default();
             let one = if let Some(alias) = format::single_file(name) {
                 Some(self.load_format(path, alias))
-            } else if crate::vfs::is_file(path.join(format::INNER)) {
+            } else if crate::vfs::exists(path.join(format::INNER)) {
                 Some(self.load_format(&path.join(format::INNER), name))
             } else if crate::vfs::is_file(path.join("manifest.toml")) {
                 Some(self.load_observed(path, &mut |_| {}))

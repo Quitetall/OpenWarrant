@@ -63,11 +63,15 @@ pub fn working_forms(
             state,
             done,
             total,
-            sources: [
-                ticket.dir.join("manifest.toml"),
-                ticket.intent_path.clone(),
-                ticket.checklist_path.clone(),
-            ]
+            sources: if ticket.format {
+                vec![ticket.intent_path.clone()]
+            } else {
+                vec![
+                    ticket.dir.join("manifest.toml"),
+                    ticket.intent_path.clone(),
+                    ticket.checklist_path.clone(),
+                ]
+            }
             .iter()
             .map(|path| corpus.repo().relative(path))
             .collect(),

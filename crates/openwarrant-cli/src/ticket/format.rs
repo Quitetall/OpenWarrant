@@ -64,12 +64,12 @@ pub fn is_document_path(place: &str) -> bool {
 #[must_use]
 pub fn document_of(dir: &Utf8Path) -> Option<Utf8PathBuf> {
     let inner = dir.join(INNER);
-    if crate::vfs::is_file(&inner) {
+    if crate::vfs::exists(&inner) {
         return Some(inner);
     }
     let name = dir.file_name()?;
     let single = dir.parent()?.join(format!("{name}.md"));
-    crate::vfs::is_file(&single).then_some(single)
+    crate::vfs::exists(&single).then_some(single)
 }
 
 fn one(fields: &std::collections::BTreeMap<String, FieldValue>, key: &str) -> Option<String> {
@@ -151,13 +151,14 @@ impl Store {
     /// or reads `UNKNOWN` as a whole, is never worked.
     pub(crate) fn load_format(&self, file: &Utf8Path, alias: &str) -> Result<Ticket, Diagnostic> {
         let rel = self.rel(file);
-        let bytes = crate::vfs::read(file).map_err(|e| {
-            Diagnostic::error(
-                "ticket.atom-missing",
-                rel.clone(),
-                format!("could not read it: {e}"),
-            )
-        })?;
+        let bytes =
+            crate::vfs::read_regular(self.root.as_std_path(), file.as_std_path()).map_err(|e| {
+                Diagnostic::error(
+                    "ticket.atom-missing",
+                    rel.clone(),
+                    format!("could not read it: {e}"),
+                )
+            })?;
         let doc = format::parse(&bytes);
         if let Some(f) = doc.findings.iter().find(|f| {
             f.outcome == format::Outcome::Refusal
@@ -271,7 +272,7 @@ impl Store {
                 found.push((alias.to_owned(), path.clone()));
             } else if ticket::is_ticket_id(name) && dirs_to_look_in(path) {
                 let inner = path.join(INNER);
-                if crate::vfs::is_file(&inner) {
+                if crate::vfs::exists(&inner) {
                     found.push((name.to_owned(), inner));
                 }
             }

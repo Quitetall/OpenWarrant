@@ -332,7 +332,7 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
         };
         let (alias, file) = if crate::vfs::is_dir(&path) {
             let inner = path.join(inner_name(place));
-            if !crate::vfs::is_file(&inner) {
+            if !crate::vfs::exists(&inner) {
                 continue;
             }
             (name, inner)
@@ -344,8 +344,18 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
         } else {
             continue;
         };
-        let Ok(bytes) = crate::vfs::read(&file) else {
-            continue;
+        let bytes = match crate::vfs::read_regular(repo.root.as_std_path(), file.as_std_path()) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                out.faults.push(Fault {
+                    outcome: Outcome::Refusal,
+                    rule: "format.document-unreadable",
+                    file: repo.relative(&file),
+                    line: 1,
+                    message: format!("could not read the work document: {e}"),
+                });
+                continue;
+            }
         };
         let source = repo.relative(&file);
         if let Some(first) = seen.get(&alias) {
@@ -390,8 +400,21 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
 /// §4.2: a manifest beside the document holds no atoms and restates no key.
 fn manifest_restates(repo: &Repository, dir: &Utf8Path, doc: &Document, out: &mut FormatDocs) {
     let path = dir.join("manifest.toml");
-    let Ok(text) = crate::vfs::read_to_string(&path) else {
-        return;
+    let text = match crate::vfs::read_regular_to_string(repo.root.as_std_path(), path.as_std_path())
+    {
+        Ok(text) => text,
+        Err(e) => {
+            if crate::vfs::exists(&path) {
+                out.faults.push(Fault {
+                    outcome: Outcome::Refusal,
+                    rule: "format.document-unreadable",
+                    file: repo.relative(&path),
+                    line: 1,
+                    message: format!("could not read the adjacent manifest: {e}"),
+                });
+            }
+            return;
+        }
     };
     let Ok(value) = toml::from_str::<toml::Table>(&text) else {
         out.faults.push(Fault {
