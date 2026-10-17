@@ -1,13 +1,13 @@
 schema = "oh.war/authorization/v1"
 warrant = "OW-WAR-0116"
 sas_revision = "1.1.0"
-deliverable_set_digest = "sha256:afb34c9ce6f39894e7127707884093a9eb60c01f8c36bf6a205b331e27dc6389"
+deliverable_set_digest = "sha256:e397bf35aac567a7e852304238f4135509eca956e5c37d5f3ba4840711e1cc18"
 
 [revision]
-revision = 3
+revision = 4
 state = "authorized"
-contract_digest = "47ce387b2b36596e0ddae343564fecbb67bf95a2d7be349f30cc008dacfd018e"
-predecessor_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+contract_digest = "d0c959f72c2e26dc72737c73f6dba2372efe8ba42d6aace2db74b9cc3efc9388"
+predecessor_digest = "47ce387b2b36596e0ddae343564fecbb67bf95a2d7be349f30cc008dacfd018e"
 proposer = "claude"
 
 [revision.coverage]
@@ -26,8 +26,8 @@ covered = [
 authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
-meaning = "Authorizing OW-WAR-0116 (war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
-effective_time = "2026-09-25T05:41:24Z"
+meaning = "Authorizing OW-WAR-0116 (war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.4` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-10-16T22:37:16Z"
 independence = "separate_role"
 
 [[owned]]
@@ -73,3 +73,7 @@ target_ref = "docs/THREAT_MODEL.md"
 [[owned]]
 id = "D-011"
 target_ref = "conformance/plants.d/63-webui.sh"
+
+[[owned]]
+id = "D-012"
+target_ref = "conformance/plants.d/63-webui-verified.sh"

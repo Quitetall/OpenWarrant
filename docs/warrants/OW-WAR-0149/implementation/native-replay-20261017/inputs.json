@@ -1,0 +1,34 @@
+{
+  "provider_manifest": {
+    "sdk_source_commit": "752598eebd15cf25efbc2f638302b37bc7641f77",
+    "katana_source_commit": "0fb33ad44f21b0dc960e1714658f412a5165e8b7",
+    "blut_source_commit": "eca4ec7",
+    "scope": "Prototype test evidence only; no authenticated collector, participant acceptance or assurance",
+    "binaries": {
+      "katana-producer.original": "b59e47659c20220680e123e4a64bb09b2a8bc0467412996c2cb8f78ce1e15aaa",
+      "katana-verifier.original": "55d85e3483d456cd9f03b1628570d0512892bb6425685288e6885a6fcb616f4f",
+      "blut-producer.original": "da37ed3484b1150aa5856d37410849208748bd6943208db73b9eaa14c2f47520",
+      "blut-verifier.original": "c47fa9e524d37b8e6d691b07b21aed1636037fa750164dc5d02455a72a318070"
+    }
+  },
+  "checked_binaries": [
+    {
+      "path": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/katana-sdk-roundtrip-20261010/katana-producer.original",
+      "sha256": "b59e47659c20220680e123e4a64bb09b2a8bc0467412996c2cb8f78ce1e15aaa"
+    },
+    {
+      "path": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/katana-sdk-roundtrip-20261010/katana-verifier.original",
+      "sha256": "55d85e3483d456cd9f03b1628570d0512892bb6425685288e6885a6fcb616f4f"
+    },
+    {
+      "path": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/katana-sdk-roundtrip-20261010/blut-producer.original",
+      "sha256": "da37ed3484b1150aa5856d37410849208748bd6943208db73b9eaa14c2f47520"
+    },
+    {
+      "path": "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/katana-sdk-roundtrip-20261010/blut-verifier.original",
+      "sha256": "c47fa9e524d37b8e6d691b07b21aed1636037fa750164dc5d02455a72a318070"
+    }
+  ],
+  "sdk_code": "9e4630f83d9993629f3d6e92fb0eb657e0011d66",
+  "scope": "Replay retained test builds against current SDK code. Prototype fixture observations only, no operator qualification or participant acceptance."
+}

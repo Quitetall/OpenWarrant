@@ -1,0 +1,69 @@
+{
+  "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+  "observed_at": "2026-10-17T03:09:20.098649+00:00",
+  "artifacts": [
+    {
+      "path": "crates/openwarrant-cli/src/telemetry.rs",
+      "input_digest": "sha256:fb04e8cadff9161afdbbc73009f278b8bb02b42ceb6e8f393c44d872add297c5",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    },
+    {
+      "path": "crates/openwarrant-cli/tests/telemetry_integrity_cli.rs",
+      "input_digest": "sha256:9ee5420ec30436468f38e4ac0058850aad430195c843b9d47ebc10650a7726e8",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0039/deliverables.toml",
+      "input_digest": "sha256:b7a6a627c9b58860fbfcb73cc833838747049ee081bba0948835d4eb24137e82",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0041/deliverables.toml",
+      "input_digest": "sha256:ee3ea2345d95e531b79b085320e3edf3d291b330dee445462338adf40ccd5674",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0041/implementation/notes.md",
+      "input_digest": "sha256:05cf30970baca3e08d18b5ce07ea9885b80da8697e6979698468c2c9ca2027a7",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "appended this follow-up link; previous observation text retained byte-for-byte"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0041/implementation/observation.json",
+      "input_digest": "sha256:cfc97b66bbb7153597d480f94c2f70f662b605d81c1e0cb49f07c4a2fb15bb94",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0041/implementation/current-measurement.json",
+      "input_digest": "sha256:8ab1ae5473b3166d123d43ed31ab7efcb2cdeeda75e1c333311d465721cec147",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0041/implementation/regression.log",
+      "input_digest": "sha256:0ea60f07ba57fe875f11798db72d5c08fd17d8e2d26841c09bda15faa2d7a2e1",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0041/implementation/initial-gate-failure.log.gz",
+      "input_digest": "sha256:54a2a11f4f3e37ba733316ebd57c485092b4688e7c984109ae0fb682cf46ffaf",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0041/implementation/shared-ref-gate-failure.log.gz",
+      "input_digest": "sha256:6d71250cd39a31f785d49f28d8ba4d5d31081662cdaf89d530a4a77007711948",
+      "source_commit": "49443f42e7078a4023345b9864e9c6326961b19b",
+      "method": "reused exact existing repository artifact; original authorship retained by Git"
+    }
+  ],
+  "original_baseline_sha256": "020600c49d437dc0fbd940256efa407ebc67e244c5dbf1ccabcbdffd54e49ef4",
+  "historical_telemetry_sha256": "baf6340b04f5955fb4bcb4ef5ba7b306544cf27c44e3d32a56031b85a6ad90af",
+  "current_telemetry_sha256": "fb04e8cadff9161afdbbc73009f278b8bb02b42ceb6e8f393c44d872add297c5"
+}

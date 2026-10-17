@@ -6,14 +6,14 @@ role: adr
 jurisdiction: bound
 order: 30
 classification: internal
-status: proposed
+status: accepted
 ---
 
 # ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale
 
 ## Status
 
-Proposed. Directed by the owner on 2026-10-11:
+Accepted by the owner on 2026-10-16. Directed by the owner on 2026-10-11:
 
 > "I want to make a durable document standard, not really the software
 > around it. The openwarrant style documents are what are read efficiently

@@ -290,6 +290,19 @@ title = "Real integration observations, independent findings and source/raw-evid
 kind = "file"
 target_ref = "docs/warrants/OW-WAR-0149/implementation/cross-project-qualification.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0149/native-replay-20261017"
+contract_digest = "6e694d1e59f63f16a8d998a28e3b53af56e5d466edcab9b5b9f1ff7c3d20a3e2"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "authored bounded prototype observation report; qualification explicitly not established"
+content_digest = "sha256:055b43d08619ae9439c44647702baec917501f0b1042a2ce52594b4fc30dce97"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:9a7127083cc23113f74503e25da54282ddedc487ca4d5a1ee8eb5e8dcd724e1a", "sha256:d951485deacf39527f2cece778fa7894df5464b9627730225e3bc42d9e81a8fc", "sha256:271ee27375fc08e7e1f8f3dfc50347b5291687f8569fa45f64b10920a53c00e9", "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "sha256:a24ef78303bf4ee66f025c9455354f91ced775d27417166739430d8e88aa9a32", "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]

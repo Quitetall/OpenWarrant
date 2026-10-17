@@ -1,6 +1,9 @@
 # oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
 # informs the work; it is never a disposition, a judgment, or an
-# authorization. `war questions --open` lists what awaits an answer.
+# authorization, and `answered_by` is an attribution, not a proof: a
+# signature binds an ACT, and an answer is not one. `war questions
+# --open` lists what awaits an answer. Regenerated when answered, so
+# a comment added below this header does not survive.
 
 schema = "oh.war/question/v1"
 id = "Q-001"
@@ -11,3 +14,8 @@ asked_at = "2026-09-12T07:49:07Z"
 question = "Where does the board live? The numbered approval list can be a terminal view (war board), a view in the Pages app beside the other projections, or both."
 blocking = true
 recommended = "Both, terminal first: war board renders the list and its exact war sign commands; the Pages board is the same data as a read-only view, since a browser cannot sign."
+
+[answer]
+answered_by = "person://Brian Lam"
+answered_at = "2026-10-16T22:32:53Z"
+answer = "Both, terminal first: war board renders the list and its exact war sign commands; the Pages board is the same data as a read-only view."

@@ -1,0 +1,26 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "schemas",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "schemas.current",
+      "file": null,
+      "message": "25 schema(s), TypeScript projections and pack.json match the types; pack openwarrant-schema-pack 0.2.0 transitive 3ece8f25eb1a"
+    }
+  ],
+  "notes": [
+    "verification/v2.json, verification/v3.json and verification-response/v3.json are candidate publications outside the active 0.2.0 pack; they do not adopt a format or change contract identity",
+    "schemas/native-draft is a separate experimental pack of canonical producer shapes, examples and structural TypeScript; validation grants no authority or assurance and does not change the active pack"
+  ],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only \u2014 Preflight is partial; `war check` does not establish execution readiness or run gates)",
+  "exit_code": 0
+}

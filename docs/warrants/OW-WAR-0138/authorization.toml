@@ -1,13 +1,13 @@
 schema = "oh.war/authorization/v1"
 warrant = "OW-WAR-0138"
 sas_revision = "1.1.0"
-deliverable_set_digest = "sha256:528cb466ab51f42b5b642af1df527fe4b346981953e747025a281c2a29feff60"
+deliverable_set_digest = "sha256:1730bba7a0deabafc6b424862ef80ef7c89d7175b23c2d3eb203a5953be26957"
 
 [revision]
-revision = 4
+revision = 5
 state = "authorized"
-contract_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
-predecessor_digest = "8eea74651b4271a6a5a07383ac4da2d69a1d3f65241677db6b1268b5dfa591da"
+contract_digest = "fd5fcadb2c0492499449495f330de0f8ca81edbf192ef435275001bae2a5776f"
+predecessor_digest = "4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835"
 proposer = "claude"
 
 [revision.coverage]
@@ -26,8 +26,8 @@ covered = [
 authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
-meaning = "Authorizing OW-WAR-0138 (Human and session authentication, and policy state protected from the performer) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
-effective_time = "2026-09-25T19:03:06Z"
+meaning = "Authorizing OW-WAR-0138 (Human and session authentication, and policy state protected from the performer) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.4` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-10-16T22:37:16Z"
 independence = "separate_role"
 
 [[owned]]
@@ -73,3 +73,27 @@ target_ref = "crates/openwarrant-core/src/lib.rs"
 [[owned]]
 id = "D-011"
 target_ref = "crates/openwarrant-cli/src/batch_cmd.rs"
+
+[[owned]]
+id = "D-012"
+target_ref = "crates/openwarrant-cli/src/authority_cmd.rs"
+
+[[owned]]
+id = "D-013"
+target_ref = "crates/openwarrant-cli/src/authority_cmd/store.rs"
+
+[[owned]]
+id = "D-014"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+
+[[owned]]
+id = "D-015"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+
+[[owned]]
+id = "D-016"
+target_ref = "crates/openwarrant-core/tests/authority_transition.rs"
+
+[[owned]]
+id = "D-017"
+target_ref = "docs/authority/roles.toml"

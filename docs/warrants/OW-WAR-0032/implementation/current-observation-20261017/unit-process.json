@@ -1,0 +1,24 @@
+[
+  {
+    "name": "typescript-tests",
+    "argv": [
+      "/mnt/4tb/build/cargo/dd/8a368b86b1c406/debug/deps/openwarrant_cli-87145f2f0742d542",
+      "schema_typescript::tests::",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.06403478200081736
+  },
+  {
+    "name": "schema-pack-tests",
+    "argv": [
+      "/mnt/4tb/build/cargo/dd/8a368b86b1c406/debug/deps/openwarrant_cli-87145f2f0742d542",
+      "schemas::tests::",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.06407974299509078
+  }
+]

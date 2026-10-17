@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows no named_paths and no terms, and no plants, deliverables, or gate output address the document boundary's response to malformed/incomplete/conflicting/over-limit/authority-confused inputs. The only captured gate (GR-software.repo.war-check@1.0.0) checks Warrant-record manifest structure (manifest.valid, journal.append-only, authority.signed, etc.), not parser/validator refusal behavior, and no refusal fixture output or stderr content is carried. Nothing in the bundle decides this either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
