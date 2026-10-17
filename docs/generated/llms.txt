@@ -1788,6 +1788,10 @@
 > Preserve source classification in legacy Dispatch selection and portable disclosure checks
 - t-a5c53 · ticket · done · Preserve source classification in legacy Dispatch selection and portable disclosure checks · docs/tickets/t-a5c53/manifest.toml:1
 
+## docs/tickets/t-a6ce4/manifest.toml
+> Reduce compatibility schema scanning CPU without weakening version refusals
+- t-a6ce4 · ticket · in_progress · Reduce compatibility schema scanning CPU without weakening version refusals · docs/tickets/t-a6ce4/manifest.toml:1
+
 ## docs/tickets/t-a92bb/manifest.toml
 > M12: a small surface
 - t-a92bb · ticket · done · M12: a small surface · docs/tickets/t-a92bb/manifest.toml:1
