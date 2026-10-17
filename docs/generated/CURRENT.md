@@ -38897,7 +38897,7 @@ stages:
 | D-026 | Public receipt and collector controls: collector_loading | `crates/openwarrant-cli/tests/collector_loading.rs` | not_content_addressed |
 | D-027 | Public receipt and collector controls: collector_signature | `crates/openwarrant-cli/tests/collector_signature.rs` | not_content_addressed |
 | D-028 | Exact provider implementations, shared revision and actual participant responses | `docs/warrants/OW-WAR-0149/implementation/provider-participant-references.md` | not_content_addressed |
-| D-029 | Real integration observations, independent findings and source/raw-evidence references | `docs/warrants/OW-WAR-0149/implementation/cross-project-qualification.md` | not_content_addressed |
+| D-029 | Real integration observations, independent findings and source/raw-evidence references | `docs/warrants/OW-WAR-0149/implementation/cross-project-qualification.md` | verified |
 
 ## Replaced
 
