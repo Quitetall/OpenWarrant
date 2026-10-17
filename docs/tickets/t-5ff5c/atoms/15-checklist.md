@@ -1,0 +1,5 @@
+# Checklist
+
+- [x] Reproduce hidden proof minima; distinguish completion claims from milestone qualification (i-74d3) — done by agent://codex, 2026-10-16: Reproduced missing overview proof fields. Source docs establish that checked boxes remain valid completion claims; an initial contrary test expectation was rejected before production changes. Corrected public regression passes: completed/unverified stays distinct from a milestone below observed, and real --check raises its proof without granting common assurance.
+- [x] Expose shared tick levels and unmet milestone minima in progress clients (i-0f1c) — done by agent://codex, 2026-10-16: Shared tick and milestone projection is implemented in overview, offline HTML and local Progress. 488 unit and 311 integration tests pass, four opt-in native/operator tests ignored. Claimed completion stays separate from configured proof; nonregular checks source is UNKNOWN without hanging. Visual browser inspection remains unavailable.
+- [ ] Verify ordinary prototype completion and protected minima; integrate the fix (i-b0cc)

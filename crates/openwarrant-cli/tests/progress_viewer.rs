@@ -87,6 +87,360 @@ impl Drop for Fixture {
         let _ = std::fs::remove_dir_all(&self.0);
     }
 }
+
+#[test]
+fn working_form_progress_follows_records_without_signing_or_hiding_directory_warrants() {
+    let fixture = Fixture::new();
+    fixture.war(&[
+        "create",
+        "A prototype outcome",
+        "--item",
+        "Deliver one result",
+    ]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let manifest: toml::Value =
+        toml::from_str(&std::fs::read_to_string(dir.join("manifest.toml")).unwrap()).unwrap();
+    let id = manifest["id"].as_str().unwrap();
+    let read = |args: &[&str]| {
+        let output = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(args)
+            .current_dir(&fixture.0)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stdout)
+        );
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap()["result"].clone()
+    };
+    let shown = read(&["show", id, "--json"]);
+    let target = format!("{id}/{}", shown["items"][0]["id"].as_str().unwrap());
+    let open = read(&["progress", "--snapshot", "--json"]);
+    assert_eq!(open["working_forms"]["records"][0]["id"], id);
+    assert_eq!(open["working_forms"]["records"][0]["state"], "open");
+    assert_eq!(open["working_forms"]["completed"], 0);
+    assert_eq!(open["working_forms"]["qualification_assessed"], false);
+    assert_eq!(open["legacy"]["warrants"][0]["alias"], "VIEW-WAR-0001");
+    fixture.war(&["claim", &target, "--as", "agent://fixture"]);
+    let active = read(&["progress", "--snapshot", "--json"]);
+    assert_eq!(
+        active["working_forms"]["records"][0]["state"],
+        "in_progress"
+    );
+    assert_ne!(active["record_digest"], open["record_digest"]);
+    fixture.war(&[
+        "done",
+        &target,
+        "--as",
+        "agent://fixture",
+        "--note",
+        "Fixture result delivered",
+    ]);
+    let done = read(&["progress", "--snapshot", "--json"]);
+    assert_eq!(done["working_forms"]["records"][0]["state"], "done");
+    assert_eq!(done["working_forms"]["completed"], 1);
+    assert_ne!(done["record_digest"], active["record_digest"]);
+    let overview = read(&["overview", "--all", "--json"]);
+    assert_eq!(overview["working_forms"], done["working_forms"]);
+    let remaining = read(&["overview", "--json"]);
+    assert!(
+        remaining["working_forms"]["records"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(remaining["working_forms"]["completed"], 1);
+    assert!(!dir.join("authorization.toml").exists());
+    assert!(!dir.join("resolution.toml").exists());
+}
+
+#[test]
+fn working_form_sources_refresh_and_unreadable_records_remain_visible() {
+    let fixture = Fixture::new();
+    fixture.war(&["create", "A prototype", "--item", "Deliver a result"]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let manifest_path = dir.join("manifest.toml");
+    let manifest: toml::Value =
+        toml::from_str(&std::fs::read_to_string(&manifest_path).unwrap()).unwrap();
+    let id = manifest["id"].as_str().unwrap();
+    let server = Server::start(&fixture);
+    let before = server.data();
+    let record = &before["snapshot"]["working_forms"]["records"][0];
+    assert_eq!(record["id"], id);
+    let sources = record["sources"].as_array().unwrap();
+    for source in sources {
+        let source = source.as_str().unwrap();
+        let link = before["snapshot"]["links"][source]
+            .as_str()
+            .unwrap()
+            .replacen("/source/", "/api/source/", 1);
+        let response = server.request("GET", &link, &server.host, "");
+        assert!(response.starts_with("HTTP/1.1 200"));
+        assert_eq!(
+            response.split_once("\r\n\r\n").unwrap().1.as_bytes(),
+            std::fs::read(fixture.0.join(source)).unwrap()
+        );
+    }
+    let intent = sources[1].as_str().unwrap();
+    let path = fixture.0.join(intent);
+    let mut contents = std::fs::read_to_string(&path).unwrap();
+    contents.push_str("\nA newly observed context note.\n");
+    std::fs::write(&path, contents).unwrap();
+    let refreshed =
+        server.until(|v| v["snapshot"]["record_digest"] != before["snapshot"]["record_digest"]);
+    assert_ne!(
+        refreshed["snapshot"]["working_forms"]["records"][0]["source_digest"],
+        record["source_digest"]
+    );
+    let page = server.request("GET", "/api/progress", &server.host, "");
+    let page: serde_json::Value =
+        serde_json::from_str(page.split_once("\r\n\r\n").unwrap().1).unwrap();
+    assert_eq!(
+        page["working_forms"],
+        refreshed["snapshot"]["working_forms"]
+    );
+    std::fs::write(&manifest_path, "not valid TOML = [").unwrap();
+    let broken = server.until(|v| v["snapshot"]["working_forms"]["coverage_complete"] == false);
+    assert!(
+        !broken["snapshot"]["working_forms"]["diagnostics"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(broken["snapshot"]["legacy"]["total"], 1);
+    assert_eq!(broken["snapshot"]["working_forms"]["total"], 0);
+}
+
+#[cfg(unix)]
+#[test]
+fn working_form_nonregular_source_is_reported_without_waiting_for_a_writer() {
+    let fixture = Fixture::new();
+    fixture.war(&["create", "A prototype", "--item", "Deliver a result"]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let intent = dir.join("atoms/10-intent.md");
+    std::fs::remove_file(&intent).unwrap();
+    assert!(
+        Command::new("mkfifo")
+            .arg(&intent)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["progress", "--snapshot", "--json"])
+        .current_dir(&fixture.0)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let start = Instant::now();
+    loop {
+        if child.try_wait().unwrap().is_some() {
+            break;
+        }
+        if start.elapsed() > Duration::from_secs(4) {
+            child.kill().unwrap();
+            child.wait().unwrap();
+            panic!("blocked on a FIFO");
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    let output = child.wait_with_output().unwrap();
+    assert!(output.status.success());
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(value["result"]["working_forms"]["coverage_complete"], false);
+    assert_eq!(value["result"]["working_forms"]["total"], 0);
+    assert!(value["result"]["working_forms"]["diagnostics"][0]["message"].is_string());
+}
+#[test]
+fn format_ticket_snapshot_links_its_actual_document() {
+    let fixture = Fixture::new();
+    let source = "docs/tickets/t-0d61d.md";
+    std::fs::create_dir_all(fixture.0.join("docs/tickets")).unwrap();
+    std::fs::copy(
+        repo().join("conformance/format/055-done-suffix-tick-level/input/docs/tickets/t-0d61d.md"),
+        fixture.0.join(source),
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["progress", "--snapshot", "--json"])
+        .current_dir(&fixture.0)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let result = &value["result"];
+    let ticket = result["working_forms"]["records"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["id"] == "t-0d61d")
+        .unwrap();
+    assert_eq!(ticket["sources"], serde_json::json!([source]));
+    assert!(result["links"][source].is_string());
+    assert_eq!(result["working_forms"]["qualification_assessed"], false);
+}
+
+#[cfg(unix)]
+#[test]
+fn format_ticket_fifo_reports_incomplete_coverage_without_waiting() {
+    for relative in ["docs/tickets/t-0d61d.md", "docs/tickets/t-0d61d/ticket.md"] {
+        let fixture = Fixture::new();
+        let path = fixture.0.join(relative);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        assert!(
+            Command::new("mkfifo")
+                .arg(&path)
+                .status()
+                .unwrap()
+                .success()
+        );
+        let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(["overview", "--json"])
+            .current_dir(&fixture.0)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let start = Instant::now();
+        while child.try_wait().unwrap().is_none() {
+            if start.elapsed() > Duration::from_secs(4) {
+                child.kill().unwrap();
+                child.wait().unwrap();
+                panic!("Format ticket reader blocked on a FIFO: {relative}");
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        let output = child.wait_with_output().unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stdout)
+        );
+        let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(value["result"]["working_forms"]["coverage_complete"], false);
+        assert_eq!(value["result"]["working_forms"]["total"], 0);
+        let diagnostics = value["result"]["working_forms"]["diagnostics"]
+            .as_array()
+            .unwrap();
+        assert!(
+            diagnostics.iter().any(|d| {
+                d["rule"] == "ticket.atom-missing"
+                    && d["file"] == relative
+                    && d["message"]
+                        .as_str()
+                        .is_some_and(|m| m.contains("regular file"))
+            }),
+            "{relative}: {diagnostics:?}"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn a_loaded_ticket_cannot_read_proof_through_a_replaced_directory() {
+    let fixture = Fixture::new();
+    let outside = Fixture::new();
+    fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let repo =
+        openwarrant_cli::repo::Repository::open(fixture.0.clone().try_into().unwrap()).unwrap();
+    let store = openwarrant_cli::ticket::Store::open(&repo, None).unwrap();
+    let loaded = store
+        .load(camino::Utf8Path::from_path(&dir).unwrap())
+        .unwrap();
+    std::fs::create_dir(outside.0.join("atoms")).unwrap();
+    std::fs::write(
+        outside.0.join("atoms/30-checks.md"),
+        "# Checks\n\n## Tests\n\n- outside: `echo outside-repository`\n",
+    )
+    .unwrap();
+    std::fs::rename(&dir, dir.with_extension("saved")).unwrap();
+    std::os::unix::fs::symlink(&outside.0, &dir).unwrap();
+    let report = openwarrant_cli::ticket::ladder::ticks_of(
+        &openwarrant_cli::ticket::ladder::Reader::new(&store),
+        &loaded,
+    );
+    assert!(report.unavailable.is_some(), "{report:?}");
+    assert!(report.checks.tests.is_empty());
+}
+
+#[cfg(unix)]
+#[test]
+fn nonregular_proof_atom_is_unknown_without_blocking_progress() {
+    let fixture = Fixture::new();
+    fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let checks = dir.join("atoms/30-checks.md");
+    assert!(
+        Command::new("mkfifo")
+            .arg(&checks)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["progress", "--snapshot", "--json"])
+        .current_dir(&fixture.0)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let start = Instant::now();
+    loop {
+        if child.try_wait().unwrap().is_some() {
+            break;
+        }
+        if start.elapsed() > Duration::from_secs(4) {
+            child.kill().unwrap();
+            child.wait().unwrap();
+            panic!("progress blocked on an optional proof atom");
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    let output = child.wait_with_output().unwrap();
+    assert!(output.status.success());
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let record = &value["result"]["working_forms"]["records"][0];
+    assert!(record["ticks"]["unavailable"].is_string(), "{record}");
+    assert_eq!(record["state"], "open");
+    assert_eq!(
+        value["result"]["working_forms"]["qualification_assessed"],
+        false
+    );
+}
+
 /// `war progress --serve`, which is `war ui` opened at Progress
 /// (OW-WAR-0116): every `/api/` call carries the session token.
 struct Server {

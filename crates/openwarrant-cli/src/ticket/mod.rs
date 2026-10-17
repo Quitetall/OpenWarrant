@@ -270,6 +270,9 @@ impl Outcome {
 /// One ticket as read from disk.
 #[derive(Debug, Clone)]
 pub struct Ticket {
+    /// The repository that supplied this reading, not a root reconstructed
+    /// from a directory that may have been replaced since the load.
+    pub(crate) repository_root: Utf8PathBuf,
     pub dir: Utf8PathBuf,
     pub manifest: TicketManifest,
     pub intent_path: Utf8PathBuf,
@@ -621,8 +624,11 @@ impl Store {
         let rel = self.rel(&manifest_path);
         let bad = |message: String| Diagnostic::error("ticket.manifest", rel.clone(), message);
         before_read(&manifest_path);
-        let text = crate::vfs::read_to_string(&manifest_path)
-            .map_err(|e| bad(format!("could not read it: {e}")))?;
+        let text = crate::vfs::read_regular_to_string(
+            self.root.as_std_path(),
+            manifest_path.as_std_path(),
+        )
+        .map_err(|e| bad(format!("could not read it: {e}")))?;
         let manifest: TicketManifest =
             toml::from_str(&text).map_err(|e| bad(format!("does not parse: {e}")))?;
         let revision = revision_of(text.as_bytes());
@@ -644,7 +650,7 @@ impl Store {
         let mut atom = |role: &str| -> Result<(Utf8PathBuf, String), Diagnostic> {
             let path = dir.join(manifest.atom_path(role).unwrap_or_default());
             before_read(&path);
-            crate::vfs::read_to_string(&path)
+            crate::vfs::read_regular_to_string(self.root.as_std_path(), path.as_std_path())
                 .map(|t| (path.clone(), t))
                 .map_err(|e| {
                     Diagnostic::error(
@@ -658,6 +664,7 @@ impl Store {
         let (checklist_path, checklist_text) = atom(CHECKLIST_ROLE)?;
         let checklist = ticket::parse(&checklist_text);
         Ok(Ticket {
+            repository_root: self.root.clone(),
             dir: dir.to_owned(),
             manifest,
             intent_path,
@@ -711,7 +718,7 @@ impl Store {
         for (dir, one) in entries.iter().zip(loaded) {
             match one {
                 Some(Ok(t)) => tickets.push(t),
-                Some(Err(_)) if crate::vfs::is_file(dir.join(format::INNER)) => {
+                Some(Err(_)) if crate::vfs::exists(dir.join(format::INNER)) => {
                     look.insert(dir);
                 }
                 Some(Err(d)) => faults.push(d),
@@ -767,7 +774,7 @@ impl Store {
             let name = path.file_name().unwrap_or_default();
             let one = if let Some(alias) = format::single_file(name) {
                 Some(self.load_format(path, alias))
-            } else if crate::vfs::is_file(path.join(format::INNER)) {
+            } else if crate::vfs::exists(path.join(format::INNER)) {
                 Some(self.load_format(&path.join(format::INNER), name))
             } else if crate::vfs::is_file(path.join("manifest.toml")) {
                 Some(self.load_observed(path, &mut |_| {}))

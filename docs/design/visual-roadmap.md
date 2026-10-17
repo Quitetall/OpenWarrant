@@ -89,10 +89,32 @@ Titles and outcomes are text, not HTML. Parent IDs describe grouping, not work
 prerequisites. Unknown fields and references are refused.
 
 Use `war progress --html /tmp/project-progress.html` for a self-contained snapshot,
-`war progress --serve --port 0` for a local read-only server, or
+`war progress --serve --port 0` for the local app's Progress page, or
 `war progress --snapshot --json` for the source-backed API envelope. Offline HTML
 embeds data and assets; its existing evidence links still require the original
 repository. The roadmap does not make an offline evidence archive.
+
+Working-form Warrants appear from their existing manifests, intents and
+checklists. Their state is derived by the ticket loop: open, in progress or
+done. Claims and checklist edits change the snapshot; intent edits also change
+its source digest. No implementation report or signature is required to display
+this state. Checklist completion does not award assurance or imply permission
+to execute. Directory Warrants retain their separate attributed reports and
+legacy assessments.
+
+The JSON overview adds `working_forms` beside the existing legacy fields. Its
+counts cover readable records; `coverage_complete: false` and `diagnostics`
+explain records that could not be read. `overview --all` includes completed
+working forms; the default omits them from `records` while retaining the total
+and completion counts. HTML snapshots include all readable working forms,
+checklist item counts and links to their source documents. Roadmap references
+may name these IDs as well as directory Warrant aliases. Missing source records
+cannot silently produce a complete roadmap.
+
+The local app uses the same summary on its Progress page. Its authenticated
+`GET /api/progress` response includes `working_forms`; `GET /api/snapshot`
+contains the full snapshot. The app retains its existing ticket actions and
+human signing controls. Neither a progress read nor a source link signs work.
 
 The tree links into existing detailed Warrant rows. The coverage list exposes
 records omitted by the authored map. Group counts deduplicate shared references.
@@ -105,3 +127,24 @@ The viewer validates each path and serves it through the same restricted source
 link mechanism as evidence. Parent traversal and files outside the repository
 are refused. The reference release node links to the current SAS candidate and
 phase plan; these links do not constitute SAS acceptance.
+
+## Completion and milestone proof
+
+A checked box is a completion claim. Its tick level records what backs that
+claim: claimed, observed, independent or signed. A configured milestone is met
+only when its tick reaches its minimum. Work can therefore be complete and
+unverified while a milestone still needs proof. The overview preserves both
+facts; it does not turn a proof minimum into a new universal execution gate.
+
+Each working-form row includes `ticks`, `milestones` and `proof_faults`. The
+summary's `ticks_below_minimum` counts known checked ticks below their configured
+minimum, including completed records omitted from the default list. Use `--all`
+to inspect them. `proof_incomplete` names the number of records whose proof
+configuration is unreadable or invalid; zero known below-minimum ticks does
+not establish that those unknown requirements were met.
+
+An absent checks atom is optional. An existing nonregular or unreadable checks
+atom produces `ticks.unavailable`, displayed as proof UNKNOWN. It does not block
+the viewer waiting for a pipe, discard the work record, or award qualification.
+The offline viewer and local app show proof separately from completion counts.
+Passing a configured milestone still does not award the common assurance mark.

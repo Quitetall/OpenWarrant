@@ -1548,6 +1548,10 @@
 > Reconnect retained provider captures in source-detached runtime archive queries
 - t-418bc · ticket · done · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/manifest.toml:1
 
+## docs/tickets/t-45f8c/manifest.toml
+> Publish preview bootstrap installer and checksum automatically
+- t-45f8c · ticket · in_progress · Publish preview bootstrap installer and checksum automatically · docs/tickets/t-45f8c/manifest.toml:1
+
 ## docs/tickets/t-460f5/manifest.toml
 > Restore exact upstream notice provenance for rmcp 3.5.1 release packages
 - t-460f5 · ticket · done · Restore exact upstream notice provenance for rmcp 3.5.1 release packages · docs/tickets/t-460f5/manifest.toml:1
@@ -1635,6 +1639,10 @@
 ## docs/tickets/t-5f49/manifest.toml
 > war ui answers 431 instead of 413 for an oversized body, under load
 - t-5f49 · ticket · done · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/manifest.toml:1
+
+## docs/tickets/t-5ff5c/manifest.toml
+> Expose tick proof and unmet milestone minima in progress views
+- t-5ff5c · ticket · in_progress · Expose tick proof and unmet milestone minima in progress views · docs/tickets/t-5ff5c/manifest.toml:1
 
 ## docs/tickets/t-62891/manifest.toml
 > Capture original Git inventory refusal; unchanged replay passes do not establish repair
@@ -1752,6 +1760,10 @@
 > Bind authorized Dispatch to exact signed current contract and immutable context holders
 - t-95254 · ticket · done · Bind authorized Dispatch to exact signed current contract and immutable context holders · docs/tickets/t-95254/manifest.toml:1
 
+## docs/tickets/t-95aa5/manifest.toml
+> Show working-form Warrants in overview and offline/live progress viewer
+- t-95aa5 · ticket · in_progress · Show working-form Warrants in overview and offline/live progress viewer · docs/tickets/t-95aa5/manifest.toml:1
+
 ## docs/tickets/t-9a4a9/manifest.toml
 > OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh)
 - t-9a4a9 · ticket · done · OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh) · docs/tickets/t-9a4a9/manifest.toml:1
@@ -1806,7 +1818,7 @@
 
 ## docs/tickets/t-b03a0/manifest.toml
 > Apply relation-derived currency without rewriting history; keep retired work out of default queues.
-- t-b03a0 · ticket · in_progress · Keep current work and retired history consistent in progress views · docs/tickets/t-b03a0/manifest.toml:1
+- t-b03a0 · ticket · done · Keep current work and retired history consistent in progress views · docs/tickets/t-b03a0/manifest.toml:1
 
 ## docs/tickets/t-b0708/manifest.toml
 > M2: a document's type chooses its capabilities, and new manifests pin their profile
