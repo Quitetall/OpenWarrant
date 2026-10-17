@@ -1,0 +1,11 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0126"
+contract_digest = "4bc6703686d63b4cd565b333cb2ece70c4d51b505c8f421e7dd1e12192c6c091"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0126 (Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T23:23:42Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"
+deliverable_set_digest = "sha256:6748e200a153ade32cb98e288d4917b7d29b7b0e38c91585ecd2b2125b97aec9"
