@@ -3272,7 +3272,7 @@ OW-WAR-0002 is where it stops being true.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Cargo workspace and crate split (§78) | `Cargo.toml` | verified |
+| D-001 | Cargo workspace and crate split (§78) | `Cargo.toml` | drift |
 | D-002 | Toolchain pinned exactly | `rust-toolchain.toml` | verified |
 | D-003 | Permissive-only licence gate | `deny.toml` | verified |
 | D-004 | Single aggregate CI gate | `.github/workflows/ci.yml` | drift |
@@ -9249,7 +9249,7 @@ the app shows a `human` remedy and stops.
 | D-025 | RESOLVING.md states the rule | `docs/RESOLVING.md` | verified |
 | D-026 | QUICKSTART.md: three questions, two signatures | `QUICKSTART.md` | verified |
 | D-027 | The init plants | `conformance/plants.d/99-init.sh` | verified |
-| D-028 | ratatui and crossterm, exact versions | `Cargo.toml` | verified |
+| D-028 | ratatui and crossterm, exact versions | `Cargo.toml` | drift |
 | D-029 | The lockfile | `Cargo.lock` | drift |
 | D-030 | The app | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
 | D-031 | The way in: no-args, tui.json, tui.no-tty | `crates/openwarrant-cli/src/lib.rs` | drift |
@@ -13126,7 +13126,7 @@ observer.
 | D-032 | Standing coverage from profile data | `crates/openwarrant-core/src/standing.rs` | not_content_addressed |
 | D-033 | war new pins the profile digest | `crates/openwarrant-cli/src/new.rs` | not_content_addressed |
 | D-034 | profile_digest read from the manifest | `crates/openwarrant-core/src/manifest.rs` | not_content_addressed |
-| D-035 | profile.pin-drift | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-035 | profile.pin-drift | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-036 | Record atoms, ids, per-record revisions | `crates/openwarrant-core/src/record.rs` | not_content_addressed |
 | D-037 | Core and namespaced relation kinds | `crates/openwarrant-core/src/relation.rs` | not_content_addressed |
 | D-038 | Modules record, relation, lifecycle | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
@@ -31027,7 +31027,7 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
+| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | drift |
 | D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | verified |
 | D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
