@@ -1640,6 +1640,10 @@
 > war ui answers 431 instead of 413 for an oversized body, under load
 - t-5f49 · ticket · done · war ui answers 431 instead of 413 for an oversized body, under load · docs/tickets/t-5f49/manifest.toml:1
 
+## docs/tickets/t-5ff5c/manifest.toml
+> Expose tick proof and unmet milestone minima in progress views
+- t-5ff5c · ticket · in_progress · Expose tick proof and unmet milestone minima in progress views · docs/tickets/t-5ff5c/manifest.toml:1
+
 ## docs/tickets/t-62891/manifest.toml
 > Capture original Git inventory refusal; unchanged replay passes do not establish repair
 - t-62891 · ticket · in_progress · Diagnose Git inventory refusal in full verifier conformance · docs/tickets/t-62891/manifest.toml:1

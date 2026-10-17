@@ -235,6 +235,7 @@ impl Store {
         }
         intent.push('\n');
         Ok(Ticket {
+            repository_root: self.root.clone(),
             dir: self.dir.join(alias),
             manifest,
             intent_path: file.to_owned(),

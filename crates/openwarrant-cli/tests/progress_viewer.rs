@@ -357,6 +357,90 @@ fn format_ticket_fifo_reports_incomplete_coverage_without_waiting() {
     }
 }
 
+#[cfg(unix)]
+#[test]
+fn a_loaded_ticket_cannot_read_proof_through_a_replaced_directory() {
+    let fixture = Fixture::new();
+    let outside = Fixture::new();
+    fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let repo =
+        openwarrant_cli::repo::Repository::open(fixture.0.clone().try_into().unwrap()).unwrap();
+    let store = openwarrant_cli::ticket::Store::open(&repo, None).unwrap();
+    let loaded = store
+        .load(camino::Utf8Path::from_path(&dir).unwrap())
+        .unwrap();
+    std::fs::create_dir(outside.0.join("atoms")).unwrap();
+    std::fs::write(
+        outside.0.join("atoms/30-checks.md"),
+        "# Checks\n\n## Tests\n\n- outside: `echo outside-repository`\n",
+    )
+    .unwrap();
+    std::fs::rename(&dir, dir.with_extension("saved")).unwrap();
+    std::os::unix::fs::symlink(&outside.0, &dir).unwrap();
+    let report = openwarrant_cli::ticket::ladder::ticks_of(
+        &openwarrant_cli::ticket::ladder::Reader::new(&store),
+        &loaded,
+    );
+    assert!(report.unavailable.is_some(), "{report:?}");
+    assert!(report.checks.tests.is_empty());
+}
+
+#[cfg(unix)]
+#[test]
+fn nonregular_proof_atom_is_unknown_without_blocking_progress() {
+    let fixture = Fixture::new();
+    fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);
+    let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let checks = dir.join("atoms/30-checks.md");
+    assert!(
+        Command::new("mkfifo")
+            .arg(&checks)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["progress", "--snapshot", "--json"])
+        .current_dir(&fixture.0)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let start = Instant::now();
+    loop {
+        if child.try_wait().unwrap().is_some() {
+            break;
+        }
+        if start.elapsed() > Duration::from_secs(4) {
+            child.kill().unwrap();
+            child.wait().unwrap();
+            panic!("progress blocked on an optional proof atom");
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    let output = child.wait_with_output().unwrap();
+    assert!(output.status.success());
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let record = &value["result"]["working_forms"]["records"][0];
+    assert!(record["ticks"]["unavailable"].is_string(), "{record}");
+    assert_eq!(record["state"], "open");
+    assert_eq!(
+        value["result"]["working_forms"]["qualification_assessed"],
+        false
+    );
+}
+
 /// `war progress --serve`, which is `war ui` opened at Progress
 /// (OW-WAR-0116): every `/api/` call carries the session token.
 struct Server {

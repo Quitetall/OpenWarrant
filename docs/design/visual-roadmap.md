@@ -127,3 +127,24 @@ The viewer validates each path and serves it through the same restricted source
 link mechanism as evidence. Parent traversal and files outside the repository
 are refused. The reference release node links to the current SAS candidate and
 phase plan; these links do not constitute SAS acceptance.
+
+## Completion and milestone proof
+
+A checked box is a completion claim. Its tick level records what backs that
+claim: claimed, observed, independent or signed. A configured milestone is met
+only when its tick reaches its minimum. Work can therefore be complete and
+unverified while a milestone still needs proof. The overview preserves both
+facts; it does not turn a proof minimum into a new universal execution gate.
+
+Each working-form row includes `ticks`, `milestones` and `proof_faults`. The
+summary's `ticks_below_minimum` counts known checked ticks below their configured
+minimum, including completed records omitted from the default list. Use `--all`
+to inspect them. `proof_incomplete` names the number of records whose proof
+configuration is unreadable or invalid; zero known below-minimum ticks does
+not establish that those unknown requirements were met.
+
+An absent checks atom is optional. An existing nonregular or unreadable checks
+atom produces `ticks.unavailable`, displayed as proof UNKNOWN. It does not block
+the viewer waiting for a pipe, discard the work record, or award qualification.
+The offline viewer and local app show proof separately from completion counts.
+Passing a configured milestone still does not award the common assurance mark.

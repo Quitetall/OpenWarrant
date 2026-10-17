@@ -9,6 +9,7 @@
 <section class="cards" aria-label="Progress totals"><div class="card"><label>Warrants in repository</label><span class="number" id="total">—</span></div><div class="card"><label>Completed · unverified</label><span class="number" id="completed">—</span><progress id="bar" aria-label="Completed among readable work states" max="1" value="0"></progress><small id="denominator"></small></div><div class="card"><label>In progress / blocked</label><span class="number" id="active">—</span></div><div class="card"><label>No recorded work state</label><span class="number" id="unknown">—</span></div></section>
 <div class="notice">Work state comes from working-form checklists and claims, or attributed implementation reports. Completion does not prove verification. Legacy resolution remains separate; this viewer awards no Verified mark.</div>
 <div id="coverage" class="notice hidden" role="status"></div>
+<div id="proof-status" class="notice hidden" role="status"></div>
 <div class="controls"><input id="search" type="search" placeholder="Find Warrant, title or outcome…" aria-label="Search Warrants"><select id="filter" aria-label="Filter work state"><option value="all">All work</option><option value="open">Open checklist</option><option value="reported">Has work report</option><option value="completed">Completed · unverified</option><option value="active">In progress / blocked</option><option value="blocked">Blocked</option><option value="unknown">No recorded work state</option></select><button id="refresh" type="button">Refresh now</button></div>
 <label for="roadmap-group">Roadmap phase or feature</label> <select id="roadmap-group"><option value="">All roadmap groups</option></select>
 <section id="roadmap" aria-label="Release roadmap"></section>
@@ -68,6 +69,9 @@ function render(updateRows=true){
  const diagnostics=snapshot.working_forms?.diagnostics||[];
  const coverage=$('coverage');coverage.classList.toggle('hidden',snapshot.working_forms?.coverage_complete!==false);
  coverage.textContent='Incomplete coverage: unreadable working-form records are excluded from totals. '+diagnostics.map(d=>`${d.file||d.rule}: ${d.message}`).join(' · ');
+ const pending=snapshot.working_forms?.ticks_below_minimum||0,proofFaults=snapshot.working_forms?.proof_incomplete||0;
+ const proof=$('proof-status');proof.classList.toggle('hidden',pending===0&&proofFaults===0);
+ proof.textContent=`${pending} completed ticks below their configured proof minimum · ${proofFaults} records with unreadable or invalid proof configuration. Completion and milestone proof are separate.`;
  if(!updateRows)return;
  renderRoadmap();
  const expanded=new Set([...$('rows').querySelectorAll('tr')].filter(tr=>tr.querySelector('details')?.open).map(tr=>tr.dataset.warrant));
@@ -79,7 +83,11 @@ function render(updateRows=true){
  const detail=document.createElement('details');detail.open=expanded.has(w.alias);detail.append(text('summary',w.form?'Checklist & source documents':r?'Report, evidence & next steps':'Legacy status & blockers'));const box=text('div','','detail');
  if(r){box.append(text('p',`Reported by ${r.reported_by} · reported revision ${r.revision}`));const links=text('div','','links');links.append(sourceLink(entry.source,'Work report'));if(r.notes)links.append(sourceLink(r.notes,'Implementation notes'));r.evidence.forEach((p,i)=>links.append(sourceLink(p,`Evidence ${i+1}`)));box.append(links);if(r.next_steps.length){box.append(text('strong','Next steps'));const ul=document.createElement('ul');r.next_steps.forEach(s=>ul.append(text('li',s)));box.append(ul);}}
  if(entry?.error)box.append(text('p',`Report unavailable: ${entry.error}`,'report-error'));
- if(w.form){box.append(text('p',`${w.form.done} / ${w.form.total} checklist items completed. Checklist completion is unverified and does not imply readiness to start or permission to execute.`));const links=text('div','','links');for(const name of w.form.sources)links.append(sourceLink(name,name.split('/').pop()));box.append(links);box.append(text('p','Observed source digest '+w.form.source_digest,'muted'));}
+ if(w.form){box.append(text('p',`${w.form.done} / ${w.form.total} checklist items completed. Checklist completion is unverified and does not imply readiness to start or permission to execute.`));const links=text('div','','links');for(const name of w.form.sources)links.append(sourceLink(name,name.split('/').pop()));box.append(links);box.append(text('p','Observed source digest '+w.form.source_digest,'muted'));
+ if(w.form.ticks?.unavailable)box.append(text('p','Proof UNKNOWN: '+w.form.ticks.unavailable,'report-error'));
+ const counts=w.form.ticks?.counts;if(counts&&!w.form.ticks?.unavailable)box.append(text('p',`${counts.claimed} claimed · ${counts.observed} observed · ${counts.independent} independent · ${counts.signed} signed ticks · ${counts.below_minimum} below their minimum`,'muted'));
+ for(const m of w.form.milestones||[])box.append(text('p',`${m.met?'☑':'☐'} ${m.text}: ${m.marker} · minimum ${m.minimum}`));
+ for(const fault of w.form.proof_faults||[])box.append(text('p',`${fault.rule}: ${fault.message}`,'report-error'));}
  const unmet=w.unmet||[],unknowns=w.blocking_unknowns||[];if(!w.form)box.append(text('p',`${unmet.length} unmet legacy requirements · ${unknowns.length} blocking unknowns. Legacy pending signatures are not universal prototype execution gates.`));if(unmet.length||unknowns.length){const ul=document.createElement('ul');[...unmet,...unknowns].forEach(s=>ul.append(text('li',s)));box.append(ul);}detail.append(box);body.append(detail);tr.append(body);const state=document.createElement('td');state.append(text('span',rowState(w)?label(rowState(w)):entry?.error?'Report invalid':'No report',`pill ${rowState(w)||''}`));tr.append(state,text('td',w.form?'Working form · unverified':w.assessment.replaceAll('_',' '),'muted'));frag.append(tr);}
  $('rows').replaceChildren(frag);$('empty').classList.toggle('hidden',rows.length!==0);
 }
