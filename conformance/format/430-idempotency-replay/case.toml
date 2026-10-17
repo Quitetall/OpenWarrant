@@ -1,0 +1,4 @@
+id = "430-idempotency-replay"
+kind = "accept"
+section = "11.2"
+says = """An event whose `idempotency_key` is already in the journal from the same actor is a replay and is not written"""

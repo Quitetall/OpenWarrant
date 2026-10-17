@@ -31,7 +31,9 @@
 
 pub mod acts;
 pub mod cache;
+pub mod checks;
 pub mod claim;
+pub mod format;
 pub mod ladder;
 pub mod merge;
 pub mod parts;
@@ -95,24 +97,37 @@ pub struct Bookkeeping {
     pub files: Vec<String>,
 }
 
-/// The journal event types a ticket records.
+/// The journal event types a ticket records, by their Format 1.0 names
+/// (FORMAT-1.0 §11.2). A legacy directory ticket's journal is appended in
+/// `v: 1` under the `ticket.*` name of each (`journal_cmd::legacy_type`),
+/// so that journal keeps one shape; a reader reads either as these.
 pub mod event {
-    pub const CREATED: &str = "ticket.created";
-    pub const ITEM_ADDED: &str = "ticket.item_added";
-    pub const CLAIMED: &str = "ticket.claimed";
-    pub const CLAIM_STOLEN: &str = "ticket.claim_stolen";
+    pub const CREATED: &str = "work.created";
+    pub const ITEM_ADDED: &str = "work.item_added";
+    pub const CLAIMED: &str = "work.claimed";
+    pub const CLAIM_STOLEN: &str = "work.claim_stolen";
     /// M11: a claim whose lease ran out, taken by a plain `war claim`; the
     /// payload names whom it was taken from and when their lease ended.
-    pub const CLAIM_RECLAIMED: &str = "ticket.claim_reclaimed";
-    pub const RELEASED: &str = "ticket.released";
-    pub const ITEM_DONE: &str = "ticket.item_done";
-    pub const NOTE_ADDED: &str = "ticket.note_added";
-    pub const PROMOTED: &str = "ticket.promoted";
+    pub const CLAIM_RECLAIMED: &str = "work.claim_reclaimed";
+    pub const RELEASED: &str = "work.released";
+    pub const ITEM_DONE: &str = "work.item_done";
+    /// FORMAT-1.0 §11.2: a done item's box opened again (`war admin
+    /// reopen`), `{item, target, reason}`.
+    pub const ITEM_REOPENED: &str = "work.item_reopened";
+    /// FORMAT-1.0 §12: a check's run, `{check, run, verdict, revision,
+    /// commit?, output_sha256?, value?}`. Read here (a check's `failing`
+    /// state); the checks runner that records it is a later step.
+    pub const CHECK_RUN: &str = "check.run";
+    /// FORMAT-1.0 §12: a trigger fired, `{check, trigger, subject}`. Read
+    /// and carried; recorded by the checks runner, a later step.
+    pub const TRIGGER_FIRED: &str = "trigger.fired";
+    pub const NOTE_ADDED: &str = "work.note_added";
+    pub const PROMOTED: &str = "work.promoted";
     /// OW-WAR-0148 M5: `war edit` changed the type, labels, epic or priority.
-    pub const EDITED: &str = "ticket.edited";
+    pub const EDITED: &str = "work.edited";
     /// OW-WAR-0148 M5: the linked issue was written back to (or could not
     /// be): `outcome` is `written` or `unknown`.
-    pub const ISSUE_WRITEBACK: &str = "ticket.issue_writeback";
+    pub const ISSUE_WRITEBACK: &str = "work.issue_writeback";
 }
 
 /// `[tickets]` in `openwarrant.toml`. Every key is optional.
@@ -219,6 +234,20 @@ impl Outcome {
         }
     }
 
+    /// What could not be established, said as `UNKNOWN` (Law 15): never
+    /// a granted act and never a plain refusal. It did not happen, so
+    /// [`Self::is_refused`] holds.
+    pub(crate) fn unknown(rule: &str, file: impl Into<String>, message: impl Into<String>) -> Self {
+        let message = message.into();
+        let mut report = Report::default();
+        report.push(Diagnostic::unknown(rule, file, message.clone()));
+        Self {
+            report,
+            human: message,
+            result: serde_json::Value::Null,
+        }
+    }
+
     pub(crate) fn from_diagnostic(d: Diagnostic) -> Self {
         let mut report = Report::default();
         let human = d.message.clone();
@@ -230,10 +259,11 @@ impl Outcome {
         }
     }
 
-    /// Whether the command was refused.
+    /// Whether the command was refused, or could not be established
+    /// (`UNKNOWN`): either way, it did not happen.
     #[must_use]
     pub fn is_refused(&self) -> bool {
-        self.report.count(Severity::Error) > 0
+        self.report.count(Severity::Error) > 0 || self.report.count(Severity::Unknown) > 0
     }
 }
 
@@ -255,6 +285,18 @@ pub struct Ticket {
     /// loading it; `None` (always, without the cache): read them from the
     /// journal when asked.
     pub(crate) blocked: Option<Vec<crate::go::BlockedNode>>,
+    /// A Format 1.0 ticket (FORMAT-1.0 §4.1): one document, `intent_path`
+    /// and `checklist_path` both naming it, its frontmatter standing for the
+    /// manifest, which is never written ([`format`]).
+    pub format: bool,
+    /// FORMAT-1.0 §11.1: a Format 1.0 ticket with no items is done when a
+    /// `work.item_done` names the document itself and no later
+    /// `work.item_reopened` does (§11.2's later-wins rule).
+    pub done_whole: bool,
+    /// FORMAT-1.0 §11.1: what the document itself `depends_on` (its
+    /// frontmatter relation), as far as it names tickets or their items:
+    /// each of its items, and the document, waits on these.
+    pub depends_on: Vec<Blocker>,
 }
 
 /// `sha256:<hex>` of `bytes`, as `war plan model` writes a revision.
@@ -289,6 +331,13 @@ impl Ticket {
     #[must_use]
     pub fn id(&self) -> &str {
         &self.manifest.id
+    }
+
+    /// Whether it is done (FORMAT-1.0 §11.1): it has items and every one is
+    /// done, or, with none, a `work.item_done` names the document itself.
+    #[must_use]
+    pub fn is_done(&self) -> bool {
+        self.checklist.is_done() || (self.checklist.items.is_empty() && self.done_whole)
     }
 
     /// The item with `id`, exactly.
@@ -361,9 +410,25 @@ pub struct Store {
 /// Now, in Unix seconds.
 #[must_use]
 pub fn now_secs() -> u64 {
+    if let Some(at) = AT.get() {
+        return *at;
+    }
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.as_secs())
+}
+
+/// The time a command answers or acts at (`--at`), when given.
+static AT: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
+
+/// Answer as of `secs` (Unix seconds) for the rest of this process: what
+/// `war next --at <rfc3339>` sets, so its answer is a pure function of the
+/// documents, journals, claim store and that time (FORMAT-1.0 §11.5). A
+/// write given `--at` (`claim`, `done`, `note`) acts then: what it records
+/// is dated then, for replaying a recorded history. The first setting
+/// stands.
+pub fn answer_at(secs: u64) {
+    let _ = AT.set(secs);
 }
 
 fn rfc3339(secs: u64) -> String {
@@ -412,8 +477,18 @@ impl Store {
             tree_claims_dir,
             layout,
             legacy_dirs: std::sync::OnceLock::new(),
-            ttl_secs: policy.claim_ttl_minutes.unwrap_or(DEFAULT_TTL_MINUTES) * 60,
-            lease_secs: lease_secs(policy.claim_lease_minutes),
+            // FORMAT-1.0 §11.3: `[claims]` holds both; `[tickets]`, where
+            // they were before, is read when `[claims]` says nothing.
+            ttl_secs: claims_policy
+                .claim_ttl_minutes
+                .or(policy.claim_ttl_minutes)
+                .unwrap_or(DEFAULT_TTL_MINUTES)
+                * 60,
+            lease_secs: lease_secs(
+                claims_policy
+                    .claim_lease_minutes
+                    .or(policy.claim_lease_minutes),
+            ),
             remote: claims_policy.remote.filter(|r| !r.trim().is_empty()),
             compact_days: policy.compact_after_days.unwrap_or(DEFAULT_COMPACT_DAYS),
             definition,
@@ -524,8 +599,13 @@ impl Store {
         Ok(out)
     }
 
-    /// Read one ticket. `Err` names what is wrong with it.
+    /// Read one ticket. `Err` names what is wrong with it. `dir` is a
+    /// directory ticket's directory or a Format 1.0 ticket's evidence
+    /// directory (`<tickets>/<alias>`, which need not exist).
     pub fn load(&self, dir: &Utf8Path) -> Result<Ticket, Diagnostic> {
+        if let Some(doc) = format::document_of(dir) {
+            return self.load_format(&doc, dir.file_name().unwrap_or_default());
+        }
         self.load_observed(dir, &mut |_| {})
     }
 
@@ -590,6 +670,9 @@ impl Store {
             checklist,
             revision,
             blocked: None,
+            format: false,
+            done_whole: false,
+            depends_on: Vec::new(),
         })
     }
 
@@ -613,20 +696,47 @@ impl Store {
         // order either way (`vfs::map_ordered`). Where this run may use the
         // ticket cache, it answers what is unchanged since it was read
         // (`cache`): the same tickets, faster.
-        let loaded = match cache::Cache::open(self).filter(|_| cached) {
+        let (entries, loaded) = match cache::Cache::open(self).filter(|_| cached) {
             Some(cache) => cache.load(self)?,
             None => {
                 let entries = self.entries()?;
-                crate::vfs::map_ordered(&entries, 256, |dir| {
-                    crate::vfs::is_file(dir.join("manifest.toml")).then(|| self.load(dir))
-                })
+                let loaded = crate::vfs::map_ordered(&entries, 256, |dir| {
+                    crate::vfs::is_file(dir.join("manifest.toml"))
+                        .then(|| self.load_observed(dir, &mut |_| {}))
+                });
+                (entries, loaded)
             }
         };
-        for one in loaded.into_iter().flatten() {
+        // A directory no directory ticket was read from may hold a Format
+        // 1.0 `ticket.md` (FORMAT-1.0 §4.1); a manifest beside one holds
+        // tool settings only (§4.2), so it is read as no directory ticket.
+        let mut look: BTreeSet<&Utf8Path> = BTreeSet::new();
+        for (dir, one) in entries.iter().zip(loaded) {
             match one {
-                Ok(t) => tickets.push(t),
+                Some(Ok(t)) => tickets.push(t),
+                Some(Err(_)) if crate::vfs::is_file(dir.join(format::INNER)) => {
+                    look.insert(dir);
+                }
+                Some(Err(d)) => faults.push(d),
+                None => {
+                    look.insert(dir);
+                }
+            }
+        }
+        let mut any_format = false;
+        for one in self.format_tickets(&entries, &|d| look.contains(d)) {
+            match one {
+                Ok(t) => {
+                    any_format = true;
+                    tickets.push(t);
+                }
                 Err(d) => faults.push(d),
             }
+        }
+        if any_format {
+            // One order for both encodings: the directory's, which is the
+            // ids'.
+            tickets.sort_by(|a, b| a.id().cmp(b.id()));
         }
         Ok((tickets, faults))
     }
@@ -648,15 +758,29 @@ impl Store {
             None => return self.load_all(),
         };
         let entries = self.entries()?;
-        let named = |dir: &Utf8PathBuf, name: &str| dir.file_name() == Some(name);
+        // A directory ticket's directory is its id; a single-file Format
+        // 1.0 ticket's file is `<id>.md`.
+        let named = |dir: &Utf8PathBuf, name: &str| {
+            dir.file_name()
+                .is_some_and(|n| n == name || format::single_file(n) == Some(name))
+        };
         let mut tickets: Vec<Ticket> = Vec::new();
         let mut faults = Vec::new();
-        let mut take = |dir: &Utf8PathBuf, tickets: &mut Vec<Ticket>| {
-            if crate::vfs::is_file(dir.join("manifest.toml")) {
-                match self.load(dir) {
-                    Ok(t) => tickets.push(t),
-                    Err(d) => faults.push(d),
-                }
+        let mut take = |path: &Utf8PathBuf, tickets: &mut Vec<Ticket>| {
+            let name = path.file_name().unwrap_or_default();
+            let one = if let Some(alias) = format::single_file(name) {
+                Some(self.load_format(path, alias))
+            } else if crate::vfs::is_file(path.join(format::INNER)) {
+                Some(self.load_format(&path.join(format::INNER), name))
+            } else if crate::vfs::is_file(path.join("manifest.toml")) {
+                Some(self.load_observed(path, &mut |_| {}))
+            } else {
+                None
+            };
+            match one {
+                Some(Ok(t)) => tickets.push(t),
+                Some(Err(d)) => faults.push(d),
+                None => {}
             }
         };
         for dir in entries
@@ -668,16 +792,17 @@ impl Store {
         let waited_on: BTreeSet<String> = tickets
             .iter()
             .flat_map(|t| {
-                t.checklist.items.iter().flat_map(move |i| {
-                    i.after
-                        .iter()
-                        .map(move |b| ticket::split_record_id(&b.record_id(t.id())).0.to_owned())
-                })
+                t.checklist
+                    .items
+                    .iter()
+                    .flat_map(|i| i.after.iter())
+                    .chain(&t.depends_on)
+                    .map(move |b| ticket::split_record_id(&b.record_id(t.id())).0.to_owned())
             })
             .filter(|id| !tickets.iter().any(|t| t.id() == id))
             .collect();
         for id in &waited_on {
-            if let Some(dir) = entries.iter().find(|d| named(d, id)) {
+            for dir in entries.iter().filter(|d| named(d, id)) {
                 take(dir, &mut tickets);
             }
         }
@@ -780,6 +905,18 @@ impl Store {
         event_type: &str,
         payload: &serde_json::Value,
     ) -> Result<(), RepoError> {
+        let mut payload = payload.clone();
+        // FORMAT-1.0 §11.2: so that a fact that really happens again (done,
+        // reopened, done again) is a new event, a Format 1.0 document's
+        // claim, done, reopen and release carry `episode`.
+        if t.format
+            && EPISODIC.contains(&event_type)
+            && payload.get("episode").is_none()
+            && let Some(target) = payload.get("target").and_then(|v| v.as_str())
+        {
+            let n = episode_of(&t.dir, event_type, target)?;
+            payload["episode"] = serde_json::json!(n);
+        }
         crate::journal_cmd::record(
             &t.dir,
             &t.manifest.uuid,
@@ -789,6 +926,43 @@ impl Store {
         )
         .map(|_| ())
     }
+}
+
+/// The event types whose payload carries `episode` (FORMAT-1.0 §11.2):
+/// `work.claimed` (and `work.claim_reclaimed`, `work.claim_stolen`, "as
+/// `work.claimed`"), `work.item_done`, `work.item_reopened`,
+/// `work.released`.
+pub const EPISODIC: [&str; 6] = [
+    event::CLAIMED,
+    event::CLAIM_RECLAIMED,
+    event::CLAIM_STOLEN,
+    event::ITEM_DONE,
+    event::ITEM_REOPENED,
+    event::RELEASED,
+];
+
+/// `episode` (FORMAT-1.0 §11.2): the number of events of `event_type` for
+/// `target` already in the journal in `dir`, its `ticket.*` spelling read as
+/// the `work.*` one.
+pub fn episode_of(dir: &Utf8Path, event_type: &str, target: &str) -> Result<u64, RepoError> {
+    let journal = crate::journal_cmd::load(dir)?;
+    let kind = crate::journal_cmd::work_type(event_type);
+    let n = journal
+        .events
+        .iter()
+        .filter(|e| crate::journal_cmd::work_type(&e.event_type) == kind)
+        .filter(|e| {
+            serde_json::from_str::<serde_json::Value>(&e.payload)
+                .ok()
+                .and_then(|p| {
+                    p.get("target")
+                        .and_then(|v| v.as_str())
+                        .map(|t| t == target)
+                })
+                .unwrap_or(false)
+        })
+        .count();
+    Ok(u64::try_from(n).unwrap_or(u64::MAX))
 }
 
 /// M11: renew the claims of the agent a command runs as when it names none
@@ -960,6 +1134,17 @@ pub(crate) fn claim_on<'a>(
         .map(|(k, v)| (k, v.as_ref()))
 }
 
+/// `work.claimed-by-other` (FORMAT-1.0 §11.3): a claim, or a write, on a
+/// target someone else holds, naming the holder.
+pub(crate) fn claimed_by_other(file: impl Into<String>, message: impl Into<String>) -> Outcome {
+    let rule = crate::work_rules::CLAIMED_BY_OTHER;
+    Outcome::refused(
+        rule,
+        file,
+        format!("{}{}", message.into(), crate::work_rules::formerly(rule)),
+    )
+}
+
 /// Who holds `name` (for a message), or `somebody` for a lock that names nobody.
 fn holder(c: Option<&claim::Claim>, now: u64) -> String {
     c.map_or_else(
@@ -995,7 +1180,31 @@ fn open_blockers_by<'a>(
     t: &Ticket,
     item: &Item,
 ) -> Vec<String> {
+    // FORMAT-1.0 §11.1: an item also waits on what its document
+    // `depends_on`.
     item.after
+        .iter()
+        .chain(&t.depends_on)
+        .filter_map(|b| match record_done(find, t, &b.record_id(t.id())) {
+            Some(true) => None,
+            Some(false) => Some(b.to_string()),
+            None => Some(format!("{b} (unknown)")),
+        })
+        .collect()
+}
+
+/// The blockers of `item` in `t` that are not done, by name, looked up in
+/// `tickets`: FORMAT-1.0 §11.1's `blocked`, read as `war claim` reads it.
+#[must_use]
+pub fn waiting_on(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
+    open_blockers(tickets, t, item)
+}
+
+/// What a work document itself waits on that is not done (its
+/// `depends_on`, FORMAT-1.0 §11.1): a document with no items is `blocked`
+/// by these as an item would be.
+fn document_blockers_by<'a>(find: &dyn Fn(&str) -> Option<&'a Ticket>, t: &Ticket) -> Vec<String> {
+    t.depends_on
         .iter()
         .filter_map(|b| match record_done(find, t, &b.record_id(t.id())) {
             Some(true) => None,
@@ -1026,7 +1235,7 @@ fn record_done<'a>(
     let owner: &Ticket = if tid == t.id() { t } else { find(tid)? };
     match iid {
         Some(i) => owner.item(i).map(|x| x.done),
-        None => Some(owner.checklist.is_done()),
+        None => Some(owner.is_done()),
     }
 }
 
@@ -1040,13 +1249,50 @@ pub(crate) fn children_of<'a>(tickets: &'a [Ticket], id: &str) -> Vec<&'a Ticket
 
 /// A ticket's state given the claims now held.
 pub(crate) fn state_of(t: &Ticket, claims: &BTreeMap<String, Option<claim::Claim>>) -> TicketState {
-    if t.checklist.is_done() {
+    if t.is_done() {
         return TicketState::Done;
     }
     let claimed = claims
         .keys()
         .any(|k| k == &claim::lock_name(t.id(), None) || k.starts_with(&format!("{}--", t.id())));
     if claimed || t.checklist.items.iter().any(|i| i.done) {
+        TicketState::InProgress
+    } else {
+        TicketState::Open
+    }
+}
+
+/// A work document's phase (FORMAT-1.0 §11.1) with the documents `part_of`
+/// it counted as its items, when `tickets` is given: done when it has items
+/// or children and every one is done; in progress when one is done or
+/// claimed (or it is claimed itself); else open. Without `tickets`, or with
+/// no child, [`state_of`].
+pub fn phase_of(t: &Ticket, tickets: Option<&[Ticket]>, claims: &Claims) -> TicketState {
+    phase_within(t, tickets, claims, 0)
+}
+
+fn phase_within(
+    t: &Ticket,
+    tickets: Option<&[Ticket]>,
+    claims: &Claims,
+    depth: usize,
+) -> TicketState {
+    let own = state_of(t, claims);
+    let Some(all) = tickets else { return own };
+    let children = children_of(all, t.id());
+    // A `part_of` cycle is refused (`ticket.part-of-cycle`); the depth only
+    // keeps a refused one from recursing for ever.
+    if children.is_empty() || depth > 64 {
+        return own;
+    }
+    let kids: Vec<TicketState> = children
+        .iter()
+        .map(|c| phase_within(c, tickets, claims, depth + 1))
+        .collect();
+    let own_items_done = t.checklist.items.iter().all(|i| i.done);
+    if own_items_done && kids.iter().all(|k| *k == TicketState::Done) {
+        TicketState::Done
+    } else if own != TicketState::Open || kids.iter().any(|k| *k != TicketState::Open) {
         TicketState::InProgress
     } else {
         TicketState::Open
@@ -1063,7 +1309,8 @@ fn same_revision(given: &str, current: &str) -> bool {
 }
 
 /// The refusal of a write whose `--if-rev` is not the record's revision now:
-/// `warrant.stale-revision`, naming both, and how to read the current one.
+/// `work.stale-revision` (FORMAT-1.0 §11.3), naming both, and how to read
+/// the current one.
 fn stale_revision(
     store: &Store,
     t: &Ticket,
@@ -1072,14 +1319,16 @@ fn stale_revision(
     given: &str,
     current: &str,
 ) -> Outcome {
+    let rule = crate::work_rules::STALE_REVISION;
     Outcome::refused(
-        "warrant.stale-revision",
+        rule,
         store.rel(file),
         format!(
             "{what} changed since you read it: you passed revision {given}, and it is now \
              {current}. Nothing was written. Read it again (`war show {} --json`) and retry \
-             with the revision it gives",
-            t.id()
+             with the revision it gives{}",
+            t.id(),
+            crate::work_rules::formerly(rule)
         ),
     )
 }
@@ -1097,12 +1346,19 @@ fn check_if_rev(
     if same_revision(given, &current) {
         return None;
     }
-    let file = if item.is_some() {
-        t.checklist_path.clone()
-    } else {
-        t.dir.join("manifest.toml")
+    // FORMAT-1.0 §13.1: a stale write is reported at the document and, for
+    // an item, the item's line.
+    let (file, line) = match item.and_then(|i| t.item(i)) {
+        Some(it) => (t.checklist_path.clone(), Some(it.line + 1)),
+        None => (record_file(t), None),
     };
-    Some(stale_revision(store, t, what, &file, given, &current))
+    let mut refusal = stale_revision(store, t, what, &file, given, &current);
+    if let Some(n) = line {
+        for d in &mut refusal.report.diagnostics {
+            d.file = d.file.take().map(|f| format!("{f}:{n}"));
+        }
+    }
+    Some(refusal)
 }
 
 // ---- writes ----------------------------------------------------------------
@@ -1207,6 +1463,61 @@ fn fresh_item_id(taken: &BTreeSet<String>) -> String {
 /// The checklist text with every unnamed item given an id.
 fn named(text: &str) -> (String, Vec<String>) {
     ticket::name_unnamed(text, &mut fresh_item_id)
+}
+
+/// [`named`] for `t`'s checklist file: for a Format 1.0 ticket, only the
+/// box lines that are items (§3.8) are named.
+fn named_in(t: &Ticket, text: &str) -> (String, Vec<String>) {
+    if t.format {
+        format::name_unnamed(text, &mut fresh_item_id)
+    } else {
+        named(text)
+    }
+}
+
+/// `t`'s checklist as `text` holds it now.
+fn checklist_in(t: &Ticket, text: &str) -> Checklist {
+    if t.format {
+        format::checklist_of(text)
+    } else {
+        ticket::parse(text)
+    }
+}
+
+/// `text` with the item `line` added where `t`'s next item goes.
+fn with_item(t: &Ticket, text: &str, c: &Checklist, line: &str) -> String {
+    if t.format {
+        format::append_item(text, line)
+    } else {
+        ticket::append_item(text, c, line)
+    }
+}
+
+/// The file a write to the whole of `t` is based on: its manifest, or a
+/// Format 1.0 ticket's document.
+fn record_file(t: &Ticket) -> Utf8PathBuf {
+    if t.format {
+        t.checklist_path.clone()
+    } else {
+        t.dir.join("manifest.toml")
+    }
+}
+
+/// The refusal of a command that writes what a Format 1.0 ticket does not
+/// have: a manifest, or an atom beside its document.
+pub(crate) fn format_unsupported(store: &Store, t: &Ticket, what: &str) -> Option<Outcome> {
+    t.format.then(|| {
+        Outcome::refused(
+            format::UNSUPPORTED,
+            store.rel(&t.checklist_path),
+            format!(
+                "{} is a Format 1.0 ticket: one document, no manifest and no atoms beside \
+                 it, so {what} is not written by war. Edit the document itself (its \
+                 frontmatter is plain `key: value` lines)",
+                t.id()
+            ),
+        )
+    })
 }
 
 // ---- create ----------------------------------------------------------------
@@ -1858,6 +2169,16 @@ pub struct ReadyRow {
     /// M11: a claim whose lease ran out: a plain `war claim` takes it.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expired_claim: Option<Box<claim::Claim>>,
+    /// FORMAT-1.0 §11.5: the earliest `due` of the row and of everything
+    /// that waits on it, by which it is ordered first.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub due: Option<String>,
+    /// FORMAT-1.0 §11.5: its estimate and the longest remaining path of
+    /// what waits on it, in seconds: the critical path is first. Absent
+    /// when there is one candidate, which needs no ranking (and no journal
+    /// is read for it).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remaining_secs: Option<u64>,
     #[serde(skip)]
     created_at: String,
     #[serde(skip)]
@@ -1875,8 +2196,10 @@ impl ReadyRow {
     }
 }
 
-/// The ready set: open, unclaimed (or stale), unblocked items, and tickets
-/// with no items that nobody holds. Most urgent, then oldest, first.
+/// The ready set, FORMAT-1.0 §11.5's candidates: open, unblocked items no
+/// live claim holds (a claim whose lease ran out holds nothing), and tickets
+/// with no items that nobody holds, in §11.5's order
+/// ([`crate::estimate::OrderKey`]).
 pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, RepoError> {
     ready_rows_with(store, tickets, store.claims()?)
 }
@@ -1912,14 +2235,26 @@ pub fn ready_rows_with(
     tickets: &[Ticket],
     claims: Claims,
 ) -> Result<Vec<ReadyRow>, RepoError> {
-    let now = now_secs();
-    // A claim leaves its item in the ready set when its lease ran out (a
-    // plain claim takes it) or it is past the TTL (`--steal` takes it).
+    ready_rows_at(store, tickets, claims, now_secs())
+}
+
+/// [`ready_rows`] over claims already read, as of `now`: a pure function of
+/// the tickets (documents and journals), the claims and the time
+/// (FORMAT-1.0 §11.5), so callers asking at one time get one answer.
+pub fn ready_rows_at(
+    store: &Store,
+    tickets: &[Ticket],
+    claims: Claims,
+    now: u64,
+) -> Result<Vec<ReadyRow>, RepoError> {
+    // A claim leaves its item in the ready set only when its lease ran out
+    // (a plain claim takes it): a live claim holds its item out (§11.5),
+    // however old (a claim past the TTL is taken with `war claim --steal`,
+    // which `war show` and the refusal name).
     type Takeable = (Option<claim::Claim>, Option<claim::Claim>);
     let stale = |c: Option<&claim::Claim>| -> Result<Takeable, ()> {
         match c {
             Some(c) if c.lease_expired(now) => Ok((None, Some(c.clone()))),
-            Some(c) if c.age(now) > store.ttl_secs => Ok((Some(c.clone()), None)),
             _ => Err(()),
         }
     };
@@ -1935,7 +2270,7 @@ pub fn ready_rows_with(
     // on the disk they are made across threads, kept in ticket order.
     let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
         let mut rows = Vec::new();
-        if t.checklist.is_done() {
+        if t.is_done() {
             return rows;
         }
         let whole = claim_on(&claims, t.id(), None);
@@ -1959,13 +2294,16 @@ pub fn ready_rows_with(
             line,
             stale_claim: stale_claim.map(Box::new),
             expired_claim: expired_claim.map(Box::new),
+            due: None,
+            remaining_secs: None,
             created_at: t.manifest.created_at.clone(),
             order,
         };
         if t.checklist.items.is_empty() {
             // An epic with tickets of its own and no items is worked through
-            // its tickets, never whole (OW-WAR-0148 M5).
-            if !parents.contains(t.id()) {
+            // its tickets, never whole (OW-WAR-0148 M5); a document whose
+            // `depends_on` is not done waits (FORMAT-1.0 §11.1).
+            if !parents.contains(t.id()) && document_blockers_by(&find, t).is_empty() {
                 rows.push(row(None, t.manifest.title.clone(), None, 0, whole_stale));
             }
             return rows;
@@ -1994,34 +2332,104 @@ pub fn ready_rows_with(
         }
         rows
     };
-    let rows: Vec<ReadyRow> = crate::vfs::map_ordered(tickets, 512, rows_of)
+    let mut rows: Vec<ReadyRow> = crate::vfs::map_ordered(tickets, 512, rows_of)
         .into_iter()
         .flatten()
         .collect();
-    // Most urgent, then oldest, first. The keys are sorted, not the rows,
-    // and each row then moves once. A row's index breaks every tie, so this
-    // unstable sort orders the rows exactly as a stable sort of the rows on
-    // the four keys alone.
-    let mut by: Vec<(u8, &str, &str, usize, usize)> = rows
+    rank_rows(store, tickets, &claims, now, &mut rows);
+    // FORMAT-1.0 §11.5's order. The keys are sorted, not the rows, and each
+    // row then moves once. A row's index breaks every tie, so this unstable
+    // sort orders the rows exactly as a stable sort of the rows on the keys
+    // alone.
+    let mut by: Vec<(crate::estimate::OrderKey<'_>, usize)> = rows
         .iter()
         .enumerate()
         .map(|(i, r)| {
             (
-                r.priority,
-                r.created_at.as_str(),
-                r.ticket.as_str(),
-                r.order,
+                crate::estimate::order_key_of(
+                    r.due.as_deref(),
+                    r.remaining_secs.unwrap_or(0),
+                    r.priority,
+                    r.created_at.as_str(),
+                    r.ticket.as_str(),
+                    r.order,
+                ),
                 i,
             )
         })
         .collect();
     by.sort_unstable();
-    let by: Vec<usize> = by.into_iter().map(|k| k.4).collect();
+    let by: Vec<usize> = by.into_iter().map(|k| k.1).collect();
     let mut slots: Vec<Option<ReadyRow>> = rows.into_iter().map(Some).collect();
     Ok(by
         .into_iter()
         .filter_map(|i| slots.get_mut(i).and_then(Option::take))
         .collect())
+}
+
+/// Each candidate's effective `due` and remaining path (FORMAT-1.0 §11.5),
+/// over the graph of the tickets ([`crate::graph::of_tickets`]) with the
+/// estimates their journals teach ([`crate::estimate::learn`]): the same
+/// computation `war evidence go` orders its nodes by. One candidate needs
+/// no ranking, and no journal is read for it.
+fn rank_rows(store: &Store, tickets: &[Ticket], claims: &Claims, now: u64, rows: &mut [ReadyRow]) {
+    if rows.is_empty() {
+        return;
+    }
+    let graph = crate::graph::of_tickets(tickets, claims, now);
+    // The due dates need no history; the remaining paths do, and only when
+    // there is more than one candidate to order. Only a ticket with
+    // something done can hold a sample, so only those journals are read.
+    let ranked = rows.len() > 1;
+    let prior = crate::estimate::prior_secs(&store.root, None);
+    let history = if ranked {
+        // An unreadable journal teaches nothing; the estimate falls back as
+        // §11.5 says, and `war plan estimate` names the journal.
+        crate::estimate::learn_from(
+            tickets
+                .iter()
+                .filter(|t| t.checklist.items.iter().any(|i| i.done)),
+            prior,
+            &mut Report::default(),
+        )
+    } else {
+        crate::estimate::History {
+            prior_secs: prior,
+            ..crate::estimate::History::default()
+        }
+    };
+    let ranks = crate::estimate::ranks(&graph, &history);
+    let by_id = first_by_id(tickets);
+    for r in rows.iter_mut() {
+        let node = match &r.item {
+            Some(i) => format!("{}/{i}", r.ticket),
+            None => r.ticket.clone(),
+        };
+        let (remaining, due) = if let Some(rem) = ranks.remaining.get(node.as_str()) {
+            (*rem, ranks.due.get(node.as_str()).cloned().flatten())
+        } else {
+            // An item with no id yet is no node: its own estimate, and what
+            // waits on its Warrant (which waits on it).
+            let t = by_id.get(r.ticket.as_str());
+            let own = history
+                .estimate(
+                    t.and_then(|t| t.manifest.kind.as_deref()),
+                    t.map_or(&[][..], |t| t.manifest.labels.as_slice()),
+                )
+                .seconds;
+            (
+                own + ranks.remaining.get(r.ticket.as_str()).copied().unwrap_or(0),
+                ranks
+                    .due
+                    .get(r.ticket.as_str())
+                    .cloned()
+                    .flatten()
+                    .or_else(|| t.and_then(|t| t.manifest.due.clone())),
+            )
+        };
+        r.due = due;
+        r.remaining_secs = ranked.then_some(remaining);
+    }
 }
 
 /// `war view ready`.
@@ -2043,7 +2451,7 @@ pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Out
     if human_too && rows.is_empty() {
         // M9: the same plain first line `war next` prints; ordinary work
         // goes on either way.
-        if tickets.iter().any(|t| !t.checklist.is_done()) {
+        if tickets.iter().any(|t| !t.is_done()) {
             human.push_str(
                 "nothing tracked is ready; work freely. Every open item is claimed or \
                  waiting (`war view warrants`)",
@@ -2138,7 +2546,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     let t = &tickets[index];
     let mut named_now = Vec::new();
     if t.checklist.items.iter().any(|i| i.id.is_none()) {
-        named_now = match rewrite(&t.checklist_path, |text| Ok(named(text)))? {
+        named_now = match rewrite(&t.checklist_path, |text| Ok(named_in(t, text)))? {
             Ok(n) => n,
             Err(refusal) => return Ok(*refusal),
         };
@@ -2184,12 +2592,12 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 ),
             ));
         }
-        // The whole ticket held by someone else holds this item too.
+        // The whole ticket held by someone else holds this item too, while
+        // its lease is live (an expired claim holds nothing, §11.3).
         if let Some((_, c)) = claim_on(&claims, t.id(), None)
-            && c.is_none_or(|c| c.actor != store.actor)
+            && c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
         {
-            return Ok(Outcome::refused(
-                "ticket.claimed-by-other",
+            return Ok(claimed_by_other(
                 store.rel(&store.lock_path(t.id(), None)),
                 format!(
                     "{what}: the whole Warrant {} is claimed by {}",
@@ -2199,30 +2607,54 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
             ));
         }
     } else {
-        if t.checklist.is_done() {
+        if t.is_done() {
             return Ok(Outcome::refused(
                 "ticket.already-done",
                 store.rel(&t.checklist_path),
                 format!("{what} is done: every item is ticked"),
             ));
         }
-        // An item of it held by someone else: the ticket is not free whole.
-        let others: Vec<String> = claims
+        let by_id = first_by_id(&tickets);
+        let waiting = document_blockers_by(&|id| by_id.get(id).copied(), t);
+        if !waiting.is_empty() {
+            return Ok(Outcome::refused(
+                "ticket.blocked",
+                store.rel(&t.checklist_path),
+                format!(
+                    "{what} waits on {}; `war next` lists what can start now",
+                    waiting.join(", ")
+                ),
+            ));
+        }
+        // An item of it held by someone else, under a live lease: the ticket
+        // is not free whole (§11.3). The refusal names the first holder's
+        // claim file.
+        let others: Vec<(&String, String)> = claims
             .iter()
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
-            .filter(|(_, c)| c.as_ref().is_none_or(|c| c.actor != store.actor))
-            .map(|(_, c)| {
-                c.as_ref().map_or_else(
+            .filter(|(_, c)| {
+                c.as_ref()
+                    .is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+            })
+            .map(|(k, c)| {
+                let who = c.as_ref().map_or_else(
                     || "an item (unreadable lock)".to_owned(),
                     |c| format!("{} by {}", c.target(), holder(Some(c), now)),
-                )
+                );
+                (k, who)
             })
             .collect();
-        if !others.is_empty() {
-            return Ok(Outcome::refused(
-                "ticket.claimed-by-other",
-                store.rel(&store.claims_dir),
-                format!("{what} cannot be claimed whole: {}", others.join("; ")),
+        if let Some((first, _)) = others.first() {
+            let file = store.lock_of(
+                t.id(),
+                first
+                    .strip_prefix(&format!("{}--", t.id()))
+                    .and_then(|i| i.strip_suffix(".lock")),
+            );
+            let who: Vec<&str> = others.iter().map(|(_, w)| w.as_str()).collect();
+            return Ok(claimed_by_other(
+                store.rel(&file),
+                format!("{what} cannot be claimed whole: {}", who.join("; ")),
             ));
         }
     }
@@ -2266,8 +2698,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                     None
                 }
                 claim::Stolen::Lost(other) => {
-                    return Ok(Outcome::refused(
-                        "ticket.claimed-by-other",
+                    return Ok(claimed_by_other(
                         store.rel(&held_at),
                         format!(
                             "{what} was taken first by {}; pick another (`war next`)",
@@ -2305,8 +2736,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                         )
                     })
                 };
-                return Ok(Outcome::refused(
-                    "ticket.claimed-by-other",
+                return Ok(claimed_by_other(
                     store.rel(&held_at),
                     format!("{what} is claimed by {}{hint}", holder(c.as_ref(), now)),
                 ));
@@ -2319,8 +2749,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
             {
                 claim::Stolen::Won { from } => Some(from),
                 claim::Stolen::Lost(other) => {
-                    return Ok(Outcome::refused(
-                        "ticket.claimed-by-other",
+                    return Ok(claimed_by_other(
                         store.rel(&path),
                         format!("{what} was taken first by {}", holder(other.as_ref(), now)),
                     ));
@@ -2333,18 +2762,20 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     let after = store.claims()?;
     let conflict = match &item {
         Some(_) => claim_on(&after, t.id(), None)
-            .filter(|(_, c)| c.is_none_or(|c| c.actor != store.actor))
+            .filter(|(_, c)| c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now)))
             .map(|(_, c)| holder(c, now)),
         None => after
             .iter()
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
-            .find(|(_, c)| c.as_ref().is_none_or(|c| c.actor != store.actor))
+            .find(|(_, c)| {
+                c.as_ref()
+                    .is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+            })
             .map(|(_, c)| holder(c.as_ref(), now)),
     };
     if let Some(other) = conflict {
         let _ = claim::release(&path, &store.actor);
-        return Ok(Outcome::refused(
-            "ticket.claimed-by-other",
+        return Ok(claimed_by_other(
             store.rel(&path),
             format!("{what}: {other} claimed it at the same moment; released, try another"),
         ));
@@ -2376,6 +2807,12 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
         "target": what,
         "since": mine.since,
     });
+    // FORMAT-1.0 §11.2: `work.claimed` carries the lease it was taken with.
+    if t.format
+        && let Some(until) = &mine.lease_until
+    {
+        payload["lease_until"] = serde_json::json!(until);
+    }
     if !named_now.is_empty() {
         payload["named"] = serde_json::json!(named_now);
     }
@@ -2504,8 +2941,7 @@ pub fn release(store: &Store, query: &str, if_rev: Option<&str>) -> Result<Outco
             }
             Ok(out)
         }
-        Some(c) => Ok(Outcome::refused(
-            "ticket.claimed-by-other",
+        Some(c) => Ok(claimed_by_other(
             store.rel(&path),
             format!(
                 "{what} is claimed by {}; only its holder releases it (a stale claim is taken \
@@ -2514,6 +2950,196 @@ pub fn release(store: &Store, query: &str, if_rev: Option<&str>) -> Result<Outco
             ),
         )),
     }
+}
+
+/// [`reopen`] of a Format 1.0 ticket with no items: no line changes; the
+/// journal's `work.item_reopened` names the document, and, being later
+/// than its `work.item_done`, makes it open again (§11.2).
+fn reopen_whole(store: &Store, t: &Ticket, reason: &str) -> Result<Outcome, RepoError> {
+    let what = t.id().to_owned();
+    let reason = ticket::one_line(reason);
+    if reason.is_empty() {
+        return Ok(Outcome::refused(
+            "ticket.reason-empty",
+            String::new(),
+            format!("{what}: a reopening says why (`--reason \"...\"`)"),
+        ));
+    }
+    if !t.is_done() {
+        return Ok(Outcome::refused(
+            "ticket.not-done",
+            store.rel(&t.checklist_path),
+            format!("{what} is open; nothing to reopen"),
+        ));
+    }
+    let now = now_secs();
+    let claims = store.claims()?;
+    if let Some((_, c)) = claim_on(&claims, t.id(), None)
+        && c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+    {
+        return Ok(claimed_by_other(
+            store.rel(&store.lock_of(t.id(), None)),
+            format!(
+                "{what} is claimed by {}; only its holder reopens it",
+                holder(c, now)
+            ),
+        ));
+    }
+    // The done it reopens, by event id: a second reopening of a later done
+    // is a new fact, not a replay of the first (§11.2's key has no time).
+    let journal = crate::journal_cmd::load(&t.dir)?;
+    let reopens = journal
+        .events
+        .iter()
+        .filter(|e| {
+            e.event_type == event::ITEM_DONE
+                && serde_json::from_str::<serde_json::Value>(&e.payload)
+                    .ok()
+                    .is_some_and(|p| p.get("target").and_then(|v| v.as_str()) == Some(&what))
+        })
+        .reduce(|a, b| crate::journal_cmd::later(a, b))
+        .map(|e| e.id.clone());
+    store.journal(
+        t,
+        event::ITEM_REOPENED,
+        &serde_json::json!({"item": what, "target": what, "reason": reason, "reopens": reopens}),
+    )?;
+    Ok(Outcome::ok(
+        format!("reopened {what}: {reason}"),
+        serde_json::json!({"schema": "oh.war/ticket-reopen/v1", "ticket": what, "item": what, "target": what, "reason": reason}),
+    ))
+}
+
+/// `war admin reopen <item> --reason`: untick a done item (FORMAT-1.0
+/// §11.2, `work.item_reopened`). Its box opens again and its done suffix
+/// goes; every other byte of the file stays. The write names the revision
+/// it read (`--if-rev`, §11.3): a stale one writes nothing. An item someone
+/// else holds a claim on is theirs to reopen.
+pub fn reopen(
+    store: &Store,
+    query: &str,
+    reason: &str,
+    if_rev: Option<&str>,
+) -> Result<Outcome, RepoError> {
+    let (tickets, _) = store.load_all()?;
+    let (index, id) = match resolve(&tickets, query) {
+        Ok(Target::Item(n, i)) => (n, i),
+        // FORMAT-1.0 §11.1: a Format 1.0 ticket with no items was done as
+        // the document itself, and is reopened so.
+        Ok(Target::Ticket(n)) if tickets[n].format && tickets[n].checklist.items.is_empty() => {
+            return reopen_whole(store, &tickets[n], reason);
+        }
+        Ok(Target::Ticket(_)) => {
+            return Ok(Outcome::refused(
+                "ticket.reopen-item",
+                String::new(),
+                format!(
+                    "`war admin reopen {query}` names a Warrant; reopen one of its items \
+                     (`<ticket>/<item>`)"
+                ),
+            ));
+        }
+        Err(d) => return Ok(Outcome::from_diagnostic(d)),
+    };
+    let t = &tickets[index];
+    let what = format!("{}/{id}", t.id());
+    let reason = ticket::one_line(reason);
+    if reason.is_empty() {
+        return Ok(Outcome::refused(
+            "ticket.reason-empty",
+            String::new(),
+            format!("{what}: a reopening says why (`--reason \"...\"`)"),
+        ));
+    }
+    if let Some(refusal) = check_if_rev(store, t, Some(&id), &what, if_rev) {
+        return Ok(refusal);
+    }
+    let Some(it) = t.item(&id) else {
+        return Ok(Outcome::from_diagnostic(Diagnostic::error(
+            "ticket.unknown",
+            String::new(),
+            format!("no item is {what}"),
+        )));
+    };
+    if !it.done {
+        return Ok(Outcome::refused(
+            "ticket.not-done",
+            store.rel(&t.checklist_path),
+            format!("{what} is open; nothing to reopen"),
+        ));
+    }
+    let now = now_secs();
+    let claims = store.claims()?;
+    for level in [Some(id.as_str()), None] {
+        if let Some((_, c)) = claim_on(&claims, t.id(), level)
+            && c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+        {
+            let whose = if level.is_some() {
+                "it"
+            } else {
+                "the whole Warrant"
+            };
+            return Ok(claimed_by_other(
+                store.rel(&store.lock_of(t.id(), level)),
+                format!(
+                    "{what}: {whose} is claimed by {}; only its holder reopens it",
+                    holder(c, now)
+                ),
+            ));
+        }
+    }
+    let written = rewrite(&t.checklist_path, |text| {
+        let c = checklist_in(t, text);
+        let Some(it) = c.item(&id) else {
+            return Err(Box::new(Outcome::refused(
+                "ticket.unknown",
+                String::new(),
+                format!(
+                    "{id} is no longer in the checklist (edited meanwhile); nothing was written"
+                ),
+            )));
+        };
+        if let Some(given) = if_rev {
+            let now = item_revision(text, it);
+            if !same_revision(given, &now) {
+                return Err(Box::new(stale_revision(
+                    store,
+                    t,
+                    &what,
+                    &t.checklist_path,
+                    given,
+                    &now,
+                )));
+            }
+        }
+        if !it.done {
+            return Err(Box::new(Outcome::refused(
+                "ticket.not-done",
+                store.rel(&t.checklist_path),
+                format!("{what} was reopened meanwhile; nothing was written"),
+            )));
+        }
+        let line = text
+            .split_inclusive('\n')
+            .nth(it.line)
+            .unwrap_or_default()
+            .trim_end_matches(['\n', '\r']);
+        let open = format::reopened_line(line);
+        Ok((ticket::replace_line(text, it.line, &open), open))
+    })?;
+    let line = match written {
+        Ok(line) => line,
+        Err(refusal) => return Ok(*refusal),
+    };
+    store.journal(
+        t,
+        event::ITEM_REOPENED,
+        &serde_json::json!({"item": id, "target": what, "reason": reason}),
+    )?;
+    Ok(Outcome::ok(
+        format!("reopened {what}: {reason}\n{line}"),
+        serde_json::json!({"schema": "oh.war/ticket-reopen/v1", "ticket": t.id(), "item": id, "target": what, "reason": reason}),
+    ))
 }
 
 // ---- claims across machines (M11) -------------------------------------------
@@ -2530,16 +3156,21 @@ enum Takeover {
 }
 
 /// The refusal when the claims remote cannot be read or written.
+/// The claims remote could not be reached: `UNKNOWN`
+/// (`work.claim-remote-unreachable`, FORMAT-1.0 §11.3), never a granted
+/// claim.
 fn remote_unreachable(store: &Store, remote: &str, what: &str, why: &str, doing: &str) -> Outcome {
-    Outcome::refused(
-        "ticket.claim-remote-unreachable",
+    let rule = crate::work_rules::CLAIM_REMOTE_UNREACHABLE;
+    Outcome::unknown(
+        rule,
         store.rel(&store.root.join(crate::init::CONFIG_FILE)),
         format!(
             "{what}: the claims remote `{remote}` could not be reached ({why}), so {doing}. \
              With [claims] remote set in {} a claim holds only once that remote has it; retry \
              when `git push {remote}` works, or remove [claims] remote to claim on this \
-             machine alone",
-            crate::init::CONFIG_FILE
+             machine alone{}",
+            crate::init::CONFIG_FILE,
+            crate::work_rules::formerly(rule)
         ),
     )
 }
@@ -2645,8 +3276,7 @@ impl Store {
                 c.actor
             )
         });
-        Err(Box::new(Outcome::refused(
-            "ticket.claimed-by-other",
+        Err(Box::new(claimed_by_other(
             format!("{remote_name}:{refname}"),
             format!(
                 "{what} is claimed on the remote `{remote_name}` by {}{hint}",
@@ -2684,8 +3314,7 @@ impl Store {
                 if published || c.as_ref().is_some_and(|c| c.actor == self.actor) {
                     Ok(Some(sha))
                 } else {
-                    Err(Box::new(Outcome::refused(
-                        "ticket.claimed-by-other",
+                    Err(Box::new(claimed_by_other(
                         format!("{remote_name}:{refname}"),
                         format!(
                             "{what} is claimed on the remote `{remote_name}` by {}: your lease \
@@ -2721,7 +3350,7 @@ impl Store {
             remote::Push::Won => None,
             remote::Push::Lost => None,
             remote::Push::Failed(e) => Some(Diagnostic::warn(
-                "ticket.claim-remote-unreachable",
+                crate::work_rules::CLAIM_REMOTE_UNREACHABLE,
                 format!("{remote_name}:{refname}"),
                 format!(
                     "the claim's ref on `{remote_name}` was not deleted ({e}); it reads expired \
@@ -2904,8 +3533,7 @@ pub fn heartbeat(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
                     ));
                 }
                 Some(c) if c.as_ref().is_none_or(|c| c.actor != store.actor) => {
-                    return Ok(Outcome::refused(
-                        "ticket.claimed-by-other",
+                    return Ok(claimed_by_other(
                         store.rel(&path),
                         format!(
                             "{what} is claimed by {}; only its holder renews the lease",
@@ -2983,8 +3611,7 @@ fn may_finish(
         return Ok(());
     }
     if let Some(c) = own {
-        return Err(Box::new(Outcome::refused(
-            "ticket.claimed-by-other",
+        return Err(Box::new(claimed_by_other(
             store.rel(&own_path),
             format!(
                 "{what} is claimed by {}; only its holder finishes it",
@@ -2993,8 +3620,7 @@ fn may_finish(
         )));
     }
     if let Some(c) = whole {
-        return Err(Box::new(Outcome::refused(
-            "ticket.claimed-by-other",
+        return Err(Box::new(claimed_by_other(
             store.rel(&whole_path),
             format!(
                 "{what}: the whole Warrant is claimed by {}",
@@ -3079,9 +3705,8 @@ fn finish(
     query: &str,
     note: Option<&str>,
     if_rev: Option<&str>,
-    how: How,
+    mut how: How,
 ) -> Result<Outcome, RepoError> {
-    let check = !matches!(how, How::Claimed);
     let (tickets, _) = store.load_all()?;
     let target = match resolve(&tickets, query) {
         Ok(t) => t,
@@ -3115,7 +3740,7 @@ fn finish(
                     .unwrap_or_else(|| format!("line {}", i.line + 1))
             })
             .collect();
-        if t.checklist.is_done() {
+        if t.is_done() {
             return Ok(Outcome::ok(
                 format!("{what} is already done"),
                 serde_json::json!({"schema": "oh.war/ticket-done/v1", "target": what, "already_done": true, "ticket_state": "done"}),
@@ -3159,8 +3784,11 @@ fn finish(
         }
     }
     // OW-WAR-0148 M14: under the vibe preset, a done on an item nobody
-    // holds claims it first (init, create, done). Anywhere else the
-    // refusal stands: two agents never finish one item.
+    // holds claims it first (init, create, done). So does a done that names
+    // the revision it was based on (`--if-rev`, FORMAT-1.0 §11.3's
+    // compare-and-set): of two finishing one item from one revision, the
+    // second's base is stale and it writes nothing, so two agents still never
+    // finish one item. Anywhere else the refusal stands.
     let mut auto_claim = false;
     if let Err(refusal) = may_finish(store, t, item_id.as_deref(), &what) {
         let unclaimed = refusal
@@ -3168,11 +3796,27 @@ fn finish(
             .diagnostics
             .iter()
             .any(|d| d.rule == "ticket.not-claimed");
-        if !(unclaimed && store.preset == Some(crate::preset::Preset::Vibe)) {
+        let based = if_rev.is_some() && matches!(how, How::Claimed);
+        if !(unclaimed && (store.preset == Some(crate::preset::Preset::Vibe) || based)) {
             return Ok(*refusal);
         }
         auto_claim = true;
     }
+    // FORMAT-1.0 §12: a Format 1.0 item a check evaluates with `on: done`
+    // (the default) is ticked only if the run passes, at `observed`; a fail
+    // or an UNKNOWN run ticks nothing. `--check` runs every check that
+    // evaluates it.
+    if t.format
+        && let Some(id) = &item_id
+        && matches!(how, How::Claimed | How::Check)
+    {
+        match checks::on_done(store, t, id, matches!(how, How::Check))? {
+            None => {}
+            Some(Ok(round)) => how = How::Ran(round),
+            Some(Err(refusal)) => return Ok(*refusal),
+        }
+    }
+    let check = !matches!(how, How::Claimed);
     // OW-WAR-0148 M13: the level this tick reaches, and the least it must.
     let checks = ladder::checks_of(t);
     let reach = if check {
@@ -3230,50 +3874,58 @@ fn finish(
     let actor = store.actor.clone();
     let title = t.manifest.title.clone();
     let wanted = item_id.clone();
-    let written = rewrite(&t.checklist_path, |text| {
-        let (text, named_now) = named(text);
-        let c = ticket::parse(&text);
-        match &wanted {
-            Some(id) => {
-                let Some(it) = c.item(id) else {
-                    return Err(Box::new(Outcome::refused(
-                        "ticket.unknown",
-                        String::new(),
-                        format!(
-                            "{id} is no longer in the checklist (edited meanwhile); nothing was written"
-                        ),
-                    )));
-                };
-                // The compare and the set are one write: the line judged is
-                // the line the rename replaces (`rewrite`'s prestate).
-                if let Some(given) = if_rev {
-                    let now = item_revision(&text, it);
-                    if !same_revision(given, &now) {
-                        return Err(Box::new(stale_revision(
-                            store,
-                            t,
-                            &what,
-                            &t.checklist_path,
-                            given,
-                            &now,
+    // FORMAT-1.0 §11.1: a Format 1.0 ticket with no items is done as the
+    // document itself: no line is added, and the journal's `work.item_done`
+    // names the document.
+    let whole_doc = t.format && item_id.is_none() && t.checklist.items.is_empty();
+    let written = if whole_doc {
+        Ok((t.id().to_owned(), Vec::new()))
+    } else {
+        rewrite(&t.checklist_path, |text| {
+            let (text, named_now) = named_in(t, text);
+            let c = checklist_in(t, &text);
+            match &wanted {
+                Some(id) => {
+                    let Some(it) = c.item(id) else {
+                        return Err(Box::new(Outcome::refused(
+                            "ticket.unknown",
+                            String::new(),
+                            format!(
+                                "{id} is no longer in the checklist (edited meanwhile); nothing was written"
+                            ),
                         )));
+                    };
+                    // The compare and the set are one write: the line judged is
+                    // the line the rename replaces (`rewrite`'s prestate).
+                    if let Some(given) = if_rev {
+                        let now = item_revision(&text, it);
+                        if !same_revision(given, &now) {
+                            return Err(Box::new(stale_revision(
+                                store,
+                                t,
+                                &what,
+                                &t.checklist_path,
+                                given,
+                                &now,
+                            )));
+                        }
                     }
+                    let line = it.ticked(&actor, &date, note.as_deref()).render();
+                    Ok((
+                        ticket::replace_line(&text, it.line, &line),
+                        (id.clone(), named_now),
+                    ))
                 }
-                let line = it.ticked(&actor, &date, note.as_deref()).render();
-                Ok((
-                    ticket::replace_line(&text, it.line, &line),
-                    (id.clone(), named_now),
-                ))
+                None => {
+                    let id = fresh_item_id(&c.ids());
+                    let line = Item::new(&id, &title, Vec::new())
+                        .ticked(&actor, &date, note.as_deref())
+                        .render();
+                    Ok((with_item(t, &text, &c, &line), (id, named_now)))
+                }
             }
-            None => {
-                let id = fresh_item_id(&c.ids());
-                let line = Item::new(&id, &title, Vec::new())
-                    .ticked(&actor, &date, note.as_deref())
-                    .render();
-                Ok((ticket::append_item(&text, &c, &line), (id, named_now)))
-            }
-        }
-    })?;
+        })?
+    };
     let (done_id, named_now) = match written {
         Ok(v) => v,
         Err(refusal) => return Ok(*refusal),
@@ -3283,6 +3935,12 @@ fn finish(
         .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))?;
     let on = date_of(now);
     let mut payload = serde_json::json!({"item": done_id, "target": what, "on": on});
+    // A whole document's done is its state (§11.1), so a done after a
+    // reopening must not read as a replay of the first: it names the claim
+    // it ends, a new one each time.
+    if whole_doc && let Ok(Some(Some(c))) = store.read_claim(&store.lock_of(t.id(), None)) {
+        payload["claim"] = serde_json::json!(c.claim);
+    }
     if let Some(n) = &note {
         payload["note"] = serde_json::json!(n);
     }
@@ -3298,6 +3956,13 @@ fn finish(
         payload["run"] = serde_json::json!(r.run);
     }
     store.journal(&t, event::ITEM_DONE, &payload)?;
+    let t = if whole_doc {
+        store
+            .load(&t.dir)
+            .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))?
+    } else {
+        t
+    };
     // The claim is spent: release the item's, and the ticket's once it is done.
     let mut remote_warnings = Vec::new();
     if let Some((remote_name, lock, commit)) = &remote_held {
@@ -3308,7 +3973,7 @@ fn finish(
         remote_warnings.extend(store.retire_published(&item_lock));
     }
     let _ = claim::release(&item_lock, &store.actor);
-    if t.checklist.is_done() {
+    if t.is_done() {
         let whole = store.lock_of(t.id(), None);
         if remote_held.as_ref().is_none_or(|(_, l, _)| *l != whole) {
             remote_warnings.extend(store.retire_published(&whole));
@@ -3318,7 +3983,11 @@ fn finish(
     let claims = store.claims()?;
     let state = state_of(&t, &claims);
     let (d, n) = t.checklist.progress();
-    let mut human = format!("done {}/{done_id}  ({d}/{n})", t.id());
+    let mut human = if whole_doc {
+        format!("done {}", t.id())
+    } else {
+        format!("done {}/{done_id}  ({d}/{n})", t.id())
+    };
     if auto_claimed.is_some() {
         human = format!(
             "claimed {what} first: under the vibe preset `war done` claims an item nobody \
@@ -3596,14 +4265,11 @@ pub fn add(
         blockers.push(blocker);
     }
     let written = rewrite(&t.checklist_path, |current| {
-        let (current, named_now) = named(current);
-        let c = ticket::parse(&current);
+        let (current, named_now) = named_in(t, current);
+        let c = checklist_in(t, &current);
         let id = fresh_item_id(&c.ids());
         let line = Item::new(&id, &text, blockers.clone()).render();
-        Ok((
-            ticket::append_item(&current, &c, &line),
-            (id, line, named_now),
-        ))
+        Ok((with_item(t, &current, &c, &line), (id, line, named_now)))
     })?;
     let (id, line, named_now) = match written {
         Ok(v) => v,
@@ -3639,7 +4305,7 @@ pub struct EditArgs {
     /// OW-WAR-0148 M15: `Some(None)` clears the due date.
     pub due: Option<Option<String>>,
     /// M11: the ticket revision the caller read (`--if-rev`); a stale one
-    /// is refused, `warrant.stale-revision`.
+    /// is refused, `work.stale-revision`.
     pub if_rev: Option<String>,
 }
 
@@ -3660,6 +4326,9 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
+    if let Some(refusal) = format_unsupported(store, t, "a change to its manifest") {
+        return Ok(refusal);
+    }
     if let Some(refusal) = check_if_rev(store, t, None, t.id(), args.if_rev.as_deref()) {
         return Ok(refusal);
     }
@@ -3874,6 +4543,14 @@ pub fn note(
     }
     let now = now_secs();
     let stamp = rfc3339(now);
+    // FORMAT-1.0 §11: the documents say what the work is and the journal what
+    // happened to it, so a Format 1.0 work document's note is a
+    // `work.note_added` event, `{target, note}` (§11.2), and the document is
+    // not touched. The time is not in the payload, so the same note by the
+    // same actor is a replay and by another a conflict (§11.2, exactly once).
+    if t.format {
+        return note_event(store, t, &what, item.as_deref(), body);
+    }
     let mut lines = body.lines();
     let mut entry = format!(
         "- **{} {} UTC, {}{}:** {}\n",
@@ -3891,6 +4568,9 @@ pub fn note(
         entry.push('\n');
     }
     let written = rewrite(&t.intent_path, |current| {
+        if t.format {
+            return Ok((format::append_note(current, &entry, NOTES_HEADING), ()));
+        }
         let mut next = current.to_owned();
         let has_heading = current.lines().any(|l| l.trim_end() == NOTES_HEADING);
         if !next.is_empty() && !next.ends_with('\n') {
@@ -3918,6 +4598,53 @@ pub fn note(
     ))
 }
 
+/// A Format 1.0 work document's note: one `work.note_added` event, written
+/// once (§11.2). The same note from the same actor replays and writes
+/// nothing; from another it is refused `work.idempotency-conflict`, at the
+/// line that already records it.
+fn note_event(
+    store: &Store,
+    t: &Ticket,
+    what: &str,
+    item: Option<&str>,
+    body: &str,
+) -> Result<Outcome, RepoError> {
+    let payload = serde_json::json!({"target": what, "note": body});
+    let text = payload.to_string();
+    let result = |replayed: bool| {
+        serde_json::json!({"schema": "oh.war/ticket-note/v1", "ticket": t.id(), "item": item,
+            "target": what, "note": body, "replayed": replayed})
+    };
+    match crate::journal_cmd::already_recorded(&t.dir, event::NOTE_ADDED, &text, &store.actor)? {
+        crate::journal_cmd::Prior::Equivalent { occurred_at } => Ok(Outcome::ok(
+            format!(
+                "{what}: this note is already recorded by {} ({occurred_at}); nothing written",
+                store.actor
+            ),
+            result(true),
+        )),
+        crate::journal_cmd::Prior::Conflict { recorded_by } => {
+            let journal = t.dir.join(crate::journal_cmd::FILE);
+            let rel = store.rel(&journal);
+            let file = crate::journal_cmd::recorded_line(&t.dir, event::NOTE_ADDED, &text)
+                .map_or_else(|| rel.clone(), |n| format!("{rel}:{n}"));
+            Ok(Outcome::from_diagnostic(crate::journal_cmd::conflict(
+                file,
+                event::NOTE_ADDED,
+                &recorded_by,
+                &store.actor,
+            )))
+        }
+        crate::journal_cmd::Prior::Fresh => {
+            store.journal(t, event::NOTE_ADDED, &payload)?;
+            Ok(Outcome::ok(
+                format!("noted on {what}: {body}"),
+                result(false),
+            ))
+        }
+    }
+}
+
 // ---- promote ---------------------------------------------------------------
 
 /// `war plan promote <ticket>`: draft a delivery Warrant from a ticket, for when
@@ -3931,6 +4658,9 @@ pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome,
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
+    if let Some(refusal) = format_unsupported(store, t, "`promoted_to` in a manifest") {
+        return Ok(refusal);
+    }
     if let Some(w) = &t.manifest.promoted_to {
         return Ok(Outcome::refused(
             "ticket.already-promoted",
@@ -4123,9 +4853,17 @@ pub fn check(store: &Store, only: Option<&str>, report: &mut Report) -> Result<(
             }
         },
     };
+    // A Format 1.0 ticket is checked as the document it is
+    // (`format_doc::check`): its faults are reported there, once.
+    let named = chosen.clone();
+    let chosen: Vec<&Ticket> = chosen.into_iter().filter(|t| !t.format).collect();
     if only.is_none() {
         for f in faults {
-            report.push(f);
+            if !f.rule.starts_with("format.")
+                && !f.file.as_deref().is_some_and(format::is_document_path)
+            {
+                report.push(f);
+            }
         }
     }
     let mut errors = 0;
@@ -4166,6 +4904,21 @@ pub fn check(store: &Store, only: Option<&str>, report: &mut Report) -> Result<(
         }
         // OW-WAR-0148 M13: the optional parts, when the ticket has any.
         errors += ladder::check_parts(store, t, report);
+    }
+    // FORMAT-1.0 §11.2: every worked ticket's journal is append-only and
+    // reads, a v1 line, a v2 line or both.
+    let dirs: Vec<(String, Utf8PathBuf)> = named
+        .iter()
+        .map(|t| (t.id().to_owned(), t.dir.clone()))
+        .collect();
+    crate::journal_cmd::check_work(&store.root, &dirs, report);
+    // FORMAT-1.0 §11.4: a tick level the journal does not back reads down,
+    // and says so (a warning), for every ticket, Format 1.0 ones too.
+    let reader = ladder::Reader::new(store);
+    for t in named {
+        for w in ladder::unbacked(store, t, &ladder::ticks_of(&reader, t)) {
+            report.push(w);
+        }
     }
     if !chosen.is_empty() && errors == 0 {
         let items: usize = chosen.iter().map(|t| t.checklist.items.len()).sum();

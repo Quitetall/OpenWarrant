@@ -1,0 +1,18 @@
+{
+  "why": "section 11.2: `work.item_done` carries `{item, target, on, level?, runs[]?, note?}`",
+  "expect": "'target' is a required property",
+  "instance": {
+    "v": 2,
+    "id": "01a0f001-0000-7000-8000-000000000001",
+    "document_uuid": "01a0e1c2-0b7d-7c11-8f2e-5d6c7b8a9e10",
+    "type": "work.item_done",
+    "class": "action_receipt",
+    "actor_ref": "claude",
+    "occurred_at": "2026-10-12T11:00:00Z",
+    "payload": {
+      "item": "i-9c01",
+      "on": "2026-10-12"
+    },
+    "idempotency_key": "0abb66c5fafd2011c15993cf5d26510c178f04827215981f2f16b87ce52cc2b3"
+  }
+}

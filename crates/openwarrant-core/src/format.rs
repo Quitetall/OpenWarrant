@@ -34,8 +34,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
 
+use crate::format_profile::{FieldDecl, Lookup, Profile, Profiles, Shape};
 use crate::record::{fence_closes, fence_open};
 use crate::relation::{CoreKind, Target, is_record_id};
+use crate::ticks::Level;
 
 /// The format this reader implements: `openwarrant/1.0`.
 pub const VERSION: &str = "openwarrant/1.0";
@@ -91,8 +93,8 @@ pub fn required_sections(profile: &str) -> &'static [&'static str] {
     }
 }
 
-/// The undotted fields a core type defines (§3.7, §4.1), or `None` for a
-/// type whose fields come from a profile that does not enumerate them.
+/// The undotted fields a core type defines (§3.7, §4.1, §12), or `None` for
+/// a type whose fields come from a profile that does not enumerate them.
 #[must_use]
 pub fn type_fields(record_type: &str) -> Option<&'static [&'static str]> {
     match record_type {
@@ -106,9 +108,225 @@ pub fn type_fields(record_type: &str) -> Option<&'static [&'static str]> {
         ]),
         "stage" => Some(&["executor", "tier", "budget_tokens", "context"]),
         "milestone" => Some(&[]),
+        "check" => Some(&["run", "on", "timeout", "gating", "reopen"]),
+        "kpi" => Some(&[
+            "run",
+            "on",
+            "timeout",
+            "gating",
+            "reopen",
+            "direction",
+            "target",
+            "mode",
+        ]),
         _ => None,
     }
 }
+
+/// The record types the core defines (§3.4, §3.7, §3.8, §4.1, §12).
+pub const CORE_TYPES: [&str; 7] = [
+    "section",
+    "item",
+    "obligation",
+    "milestone",
+    "stage",
+    "check",
+    "kpi",
+];
+
+/// §3.7: the scope kinds an obligation may name.
+pub const SCOPE_KINDS: [&str; 9] = [
+    "single_instance",
+    "enumerated_set",
+    "bounded_domain",
+    "bounded_corpus",
+    "sampled_population",
+    "temporal_window",
+    "existential",
+    "universal",
+    "formal_model",
+];
+
+/// §12: the triggers a check fires on, besides `paths:<glob>`,
+/// `ci:<name>`, `schedule:<cron>` and a dotted extension trigger.
+pub const TRIGGERS: [&str; 4] = ["manual", "done", "commit", "pr.merged"];
+
+/// The declaration of a core type's field (§3.7, §12): whether it is
+/// REQUIRED and its shape. A check's `on` has a shape no profile shape
+/// names; [`core_shape`] checks it.
+#[must_use]
+pub fn core_fields(record_type: &str) -> Option<BTreeMap<String, FieldDecl>> {
+    let names = type_fields(record_type)?;
+    let decl = |name: &str| -> FieldDecl {
+        let e = |values: &[&str]| FieldDecl {
+            required: false,
+            shape: Shape::Enum,
+            values: values.iter().map(|v| (*v).to_owned()).collect(),
+        };
+        let plain = |required, shape| FieldDecl {
+            required,
+            shape,
+            values: Vec::new(),
+        };
+        match (record_type, name) {
+            ("obligation", "scope" | "evidence") | ("check" | "kpi", "run") => {
+                plain(true, Shape::Text)
+            }
+            ("obligation", "gate") => plain(false, Shape::Gate),
+            ("obligation", "scope_kind") => e(&SCOPE_KINDS),
+            ("obligation", "criticality") => e(&["required", "advisory"]),
+            ("check" | "kpi", "timeout") => plain(false, Shape::Int),
+            ("check" | "kpi", "gating" | "reopen") => plain(false, Shape::Bool),
+            ("kpi", "target") => plain(false, Shape::Number),
+            ("kpi", "direction") => FieldDecl {
+                required: true,
+                ..e(&["min", "max"])
+            },
+            ("kpi", "mode") => e(&["threshold", "best", "optimise"]),
+            _ => plain(false, Shape::Text),
+        }
+    };
+    Some(names.iter().map(|n| ((*n).to_owned(), decl(n))).collect())
+}
+
+/// §12: why a core field's value with a shape of its own is refused: a
+/// check's `on` (triggers, comma-separated).
+#[must_use]
+pub fn core_shape(record_type: &str, field: &str, value: &str) -> Option<String> {
+    match (record_type, field) {
+        ("check" | "kpi", "on") => value
+            .split(',')
+            .map(str::trim)
+            .find(|t| !is_trigger(t))
+            .map(|t| {
+                format!(
+                    "{t:?} is no trigger: manual, done, commit, paths:<glob>, pr.merged, \
+                     ci:<name>, schedule:<five-field cron>, or a dotted extension trigger"
+                )
+            }),
+        _ => None,
+    }
+}
+
+fn is_trigger(t: &str) -> bool {
+    if TRIGGERS.contains(&t) {
+        return true;
+    }
+    if let Some(glob) = t.strip_prefix("paths:") {
+        return !glob.is_empty() && !glob.contains(char::is_whitespace);
+    }
+    if let Some(name) = t.strip_prefix("ci:") {
+        return !name.is_empty();
+    }
+    if let Some(cron) = t.strip_prefix("schedule:") {
+        return cron.split_whitespace().count() == 5;
+    }
+    is_dotted(t)
+}
+
+/// Appendix A `semver`: SemVer 2.0.0's `MAJOR.MINOR.PATCH`, then an
+/// optional `-<pre>` and `+<build>`.
+#[must_use]
+pub fn is_semver(v: &str) -> bool {
+    let (rest, build) = match v.split_once('+') {
+        Some((r, b)) => (r, Some(b)),
+        None => (v, None),
+    };
+    let (core, pre) = match rest.split_once('-') {
+        Some((c, p)) => (c, Some(p)),
+        None => (rest, None),
+    };
+    let num_ok = |n: &str| {
+        !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()) && (n == "0" || !n.starts_with('0'))
+    };
+    let ident_ok = |s: &str| {
+        !s.is_empty()
+            && s.split('.')
+                .all(|p| !p.is_empty() && p.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-'))
+    };
+    let nums: Vec<&str> = core.split('.').collect();
+    nums.len() == 3
+        && nums.iter().all(|n| num_ok(n))
+        && pre.is_none_or(ident_ok)
+        && build.is_none_or(ident_ok)
+}
+
+/// Appendix D: the registered extension prefixes.
+pub const REGISTERED_PREFIXES: [&str; 7] = [
+    "kf",
+    "katana",
+    "liminal",
+    "blut",
+    "contractor",
+    "legacy",
+    "x",
+];
+
+/// Appendix D, §7.1: whether a dotted name's prefix is registered or a
+/// reverse domain name. A name of three or more labels whose first is a
+/// run of letters (`com.example.risk`) is read as a reverse domain and its
+/// last label as the name; a name of two labels has the first as its
+/// prefix, which must be registered.
+#[must_use]
+pub fn prefix_registered(name: &str) -> bool {
+    let labels: Vec<&str> = name.split('.').collect();
+    let first = labels.first().copied().unwrap_or_default();
+    REGISTERED_PREFIXES.contains(&first)
+        || (labels.len() >= 3 && first.bytes().all(|b| b.is_ascii_lowercase()))
+}
+
+/// §13.2: every rule id of Format 1.0, with what a finding of it does.
+/// A reader reports nothing under another id; the test below holds this
+/// list to the text of §13.2.
+pub const RULES: [(&str, Outcome); 47] = [
+    ("format.encoding", Outcome::Refusal),
+    ("format.frontmatter", Outcome::Refusal),
+    ("format.key-unknown", Outcome::Refusal),
+    ("format.heading", Outcome::Refusal),
+    ("format.title-missing", Outcome::Refusal),
+    ("format.attribute", Outcome::Refusal),
+    ("format.field-duplicate", Outcome::Refusal),
+    ("format.field-missing", Outcome::Refusal),
+    ("format.authored-state", Outcome::Refusal),
+    ("format.relation-kind", Outcome::Refusal),
+    ("format.relation-target", Outcome::Refusal),
+    ("format.item", Outcome::Refusal),
+    ("format.id-duplicate", Outcome::Refusal),
+    ("format.fence-unclosed", Outcome::Refusal),
+    ("format.section-missing", Outcome::Refusal),
+    ("format.document-duplicate", Outcome::Refusal),
+    ("format.manifest-restates", Outcome::Refusal),
+    ("format.unrecognised", Outcome::Refusal),
+    ("format.field-shape", Outcome::Refusal),
+    ("profile.invalid", Outcome::Refusal),
+    ("context.target-unknown", Outcome::Refusal),
+    ("context.over-budget", Outcome::Refusal),
+    ("apply.stale", Outcome::Refusal),
+    ("apply.identity", Outcome::Refusal),
+    ("work.stale-revision", Outcome::Refusal),
+    ("work.claimed-by-other", Outcome::Refusal),
+    ("work.journal-rewritten", Outcome::Refusal),
+    ("work.journal-malformed", Outcome::Refusal),
+    ("work.journal-torn", Outcome::Refusal),
+    ("work.idempotency-conflict", Outcome::Refusal),
+    ("format.newer-major", Outcome::Unknown),
+    ("format.newer-minor", Outcome::Unknown),
+    ("format.requires-unknown", Outcome::Unknown),
+    ("format.profile-unknown", Outcome::Unknown),
+    ("work.claim-remote-unreachable", Outcome::Unknown),
+    ("work.journal-newer", Outcome::Unknown),
+    ("check.unknown", Outcome::Unknown),
+    ("format.target-unknown", Outcome::Warning),
+    ("format.refusal-missing", Outcome::Warning),
+    ("format.item-id-missing", Outcome::Warning),
+    ("format.legacy-obligation", Outcome::Warning),
+    ("context.summary-shape", Outcome::Warning),
+    ("context.statement-shape", Outcome::Warning),
+    ("context.section-ref", Outcome::Warning),
+    ("context.span-unknown", Outcome::Warning),
+    ("work.tick-unbacked", Outcome::Warning),
+    ("format.prefix-unregistered", Outcome::Warning),
+];
 
 /// Fields an obligation may never author (§3.7): state comes from records
 /// of acts, never from the document.
@@ -172,6 +390,15 @@ pub struct Item {
     pub done: bool,
     /// `after` references, as written.
     pub after: Vec<String>,
+    /// The done suffix (§3.8): who ticked it and on what date, as written.
+    pub done_by: Option<String>,
+    pub done_on: Option<String>,
+    /// The tick level written in the done suffix (` [observed]`,
+    /// ` [independent]`, ` [signed]`, §11.4); `None` is `claimed`. What the
+    /// file says, not what a journal backs.
+    pub level: Option<Level>,
+    /// The note after `: `.
+    pub note: Option<String>,
     /// `implements <id>` phrases in the text.
     pub implements: Vec<Target>,
     pub line: usize,
@@ -195,11 +422,16 @@ pub struct Unit {
     pub end: usize,
     pub fields: BTreeMap<String, FieldValue>,
     pub ext: BTreeMap<String, FieldValue>,
+    /// The 1-based line each field (or dotted field) was authored on.
+    pub field_lines: BTreeMap<String, usize>,
     pub relations: Vec<Relation>,
     pub body: String,
     pub items: Vec<Item>,
     /// The local id of the last section opened before this unit.
     pub section: Option<String>,
+    /// The heading is spelled with the ASCII separators ` | ` and ` -- `
+    /// (§3.4); a writer keeps the spelling it found.
+    pub ascii_heading: bool,
 }
 
 impl Unit {
@@ -580,56 +812,118 @@ fn is_blank(line: &str) -> bool {
 /// A unit heading read: `(id, type, title)`, or the refusal `(rule, why)`.
 type Heading = Result<(String, String, String), (&'static str, String)>;
 
+/// The two spellings of a record heading's separators (§3.4): the Unicode
+/// ` · ` and ` — `, and the ASCII ` | ` and ` -- ` a person can type on any
+/// keyboard. The spelling changes the unit's bytes and nothing else.
+const UNICODE_SEPARATORS: (&str, &str) = (" \u{b7} ", " \u{2014} ");
+const ASCII_SEPARATORS: (&str, &str) = (" | ", " -- ");
+
+/// Whether a record heading's text uses the ASCII separators: it begins
+/// `<id> | ` (§3.4). A `## Q&A | notes` heading does not (no record id).
+#[must_use]
+pub fn is_ascii_heading(rest: &str) -> bool {
+    rest.split_once(ASCII_SEPARATORS.0)
+        .is_some_and(|(id, _)| is_record_id(id))
+}
+
 /// A unit heading: `Ok((id, type, title))` for a record,
 /// `Ok((id, "section", name))` for a section, `Err` for a refused one.
 fn heading(rest: &str) -> Heading {
     let rest = rest.trim_end_matches([' ', '\t']);
-    if rest.contains(" \u{b7} ") {
-        let (id, tail) = rest.split_once(" \u{b7} ").unwrap_or_default();
-        let (ty, title) = match tail.split_once(" \u{2014} ") {
-            Some((ty, title)) => (ty, Some(title)),
-            None => (tail, None),
-        };
-        if !is_record_id(id) || !(is_word(ty) || is_dotted(ty)) {
+    // §3.4: `## <id> | ` opens an ASCII record heading whatever follows;
+    // otherwise a ` · ` anywhere opens a Unicode one.
+    let (spelling, other) = if is_ascii_heading(rest) {
+        (ASCII_SEPARATORS, UNICODE_SEPARATORS)
+    } else if rest.contains(UNICODE_SEPARATORS.0) {
+        (UNICODE_SEPARATORS, ASCII_SEPARATORS)
+    } else {
+        let s = slug(rest);
+        if s.is_empty() {
             return Err((
                 "format.heading",
-                format!(
-                    "`## {rest}` has ` · ` and is not a record heading `## <id> · <type> — \
-                     <title>`: the id like `REQ-pr1`, the type a lowercase word or a dotted \
-                     extension type"
-                ),
+                format!("`## {rest}` has an empty slug; a section name needs a letter or digit"),
             ));
         }
-        let Some(title) = title.map(str::trim).filter(|t| !t.is_empty()) else {
-            return Err((
-                "format.title-missing",
-                format!("record {id} has no title; a record heading is `## {id} · {ty} — <title>`"),
-            ));
-        };
-        if title.len() > 120 {
-            return Err((
-                "format.title-missing",
-                format!(
-                    "record {id}'s title is {} bytes; a title is one line of at most 120",
-                    title.len()
-                ),
-            ));
+        return Ok((format!("S-{s}"), "section".to_owned(), rest.to_owned()));
+    };
+    let (dot, dash) = spelling;
+    let (id, tail) = rest.split_once(dot).unwrap_or_default();
+    let is_type = |t: &str| is_word(t) || is_dotted(t);
+    let (ty, title) = match tail.split_once(dash) {
+        Some((ty, title)) if is_type(ty) => (ty, Some(title)),
+        _ => {
+            // A heading uses one spelling for both separators (§3.4).
+            if tail.split_once(other.1).is_some_and(|(ty, _)| is_type(ty)) {
+                return Err((
+                    "format.heading",
+                    format!(
+                        "`## {rest}` mixes the separators: `{}` with `{}`; a heading is \
+                         `## <id> · <type> — <title>` or `## <id> | <type> -- <title>`",
+                        dot.trim(),
+                        other.1.trim()
+                    ),
+                ));
+            }
+            match tail.split_once(dash) {
+                Some((ty, title)) => (ty, Some(title)),
+                None => (tail, None),
+            }
         }
-        return Ok((id.to_owned(), ty.to_owned(), title.to_owned()));
-    }
-    let s = slug(rest);
-    if s.is_empty() {
+    };
+    if !is_record_id(id) || !is_type(ty) {
         return Err((
             "format.heading",
-            format!("`## {rest}` has an empty slug; a section name needs a letter or digit"),
+            format!(
+                "`## {rest}` has `{}` and is not a record heading `## <id> · <type> — <title>` \
+                 (or `## <id> | <type> -- <title>`): the id like `REQ-pr1`, the type a \
+                 lowercase word or a dotted extension type",
+                dot.trim()
+            ),
         ));
     }
-    Ok((format!("S-{s}"), "section".to_owned(), rest.to_owned()))
+    let Some(title) = title.map(str::trim).filter(|t| !t.is_empty()) else {
+        return Err((
+            "format.title-missing",
+            format!(
+                "record {id} has no title; a record heading is `## {id}{dot}{ty}{dash}<title>`"
+            ),
+        ));
+    };
+    if title.len() > 120 {
+        return Err((
+            "format.title-missing",
+            format!(
+                "record {id}'s title is {} bytes; a title is one line of at most 120",
+                title.len()
+            ),
+        ));
+    }
+    Ok((id.to_owned(), ty.to_owned(), title.to_owned()))
 }
 
-/// Parse one Format 1.0 document.
+/// The built-in profiles of §7.6, read once.
+#[must_use]
+pub fn builtin_profiles() -> &'static Profiles {
+    static BUILTINS: std::sync::OnceLock<Profiles> = std::sync::OnceLock::new();
+    BUILTINS.get_or_init(Profiles::builtins)
+}
+
+/// Parse one Format 1.0 document under the built-in profiles alone, as if
+/// it were at no particular path.
 #[must_use]
 pub fn parse(bytes: &[u8]) -> Document {
+    parse_with(bytes, builtin_profiles(), "")
+}
+
+/// Whether `profile` is, or extends, the profile named `name`.
+fn is_profile(profile: Option<&Profile>, name: &str) -> bool {
+    profile.is_some_and(|p| p.name == name || p.ancestors.iter().any(|a| a == name))
+}
+
+/// Parse one Format 1.0 document at the repository-relative `path` (`""`
+/// when it has none), under `profiles`.
+#[must_use]
+pub fn parse_with(bytes: &[u8], profiles: &Profiles, path: &str) -> Document {
     let mut doc = Document::default();
     // §3.1: UTF-8, no NUL.
     let text = match std::str::from_utf8(bytes) {
@@ -785,23 +1079,63 @@ pub fn parse(bytes: &[u8]) -> Document {
         .and_then(|e| e.1.as_str())
         .unwrap_or_default()
         .to_owned();
-    if doc.profile.is_empty() {
+    // §7.4: the profile that governs it. One a reader cannot find leaves
+    // every profile rule over the document UNKNOWN, never PASS.
+    let profile: Option<&Profile> = if doc.profile.is_empty() {
         doc.push(
             Outcome::Refusal,
             "format.field-missing",
             1,
             "no `profile:`; every document names the profile that governs it".to_owned(),
         );
-    }
+        None
+    } else {
+        match profiles.lookup(&doc.profile) {
+            Lookup::Found(p) => Some(p),
+            found => {
+                doc.push(
+                    Outcome::Unknown,
+                    "format.profile-unknown",
+                    1,
+                    format!(
+                        "profile `{}` {}; the document is read under the core alone and every \
+                         rule of its profile is UNKNOWN",
+                        doc.profile,
+                        if matches!(found, Lookup::Invalid) {
+                            "is refused (`profile.invalid`)"
+                        } else {
+                            "is no built-in profile and no file `profiles/<name>.toml`"
+                        }
+                    ),
+                );
+                None
+            }
+        }
+    };
+    let profile_known = profile.is_some() || doc.profile.is_empty();
     doc.alias = get("alias").and_then(|e| e.1.as_str()).map(str::to_owned);
+    let own_type = if doc.alias.is_some() {
+        doc.record_type()
+    } else if is_profile(profile, "spec") {
+        "spec"
+    } else {
+        "document"
+    };
+    let own_fields = profile.and_then(|p| p.fields_of(own_type));
     let allowed: BTreeSet<&str> = CORE_KEYS
         .iter()
-        .chain(profile_keys(&doc.profile))
         .copied()
+        .chain(profile.into_iter().flat_map(Profile::frontmatter_keys))
+        .chain(
+            own_fields
+                .into_iter()
+                .flat_map(|f| f.keys().map(String::as_str)),
+        )
         .collect();
     for (key, value, line) in &entries {
         if is_dotted(key) {
             doc.ext.insert(key.clone(), value.clone());
+            prefix_warning(&mut doc, key, *line);
         } else if RELATION_KEYS.contains(&key.as_str()) {
             let targets: Vec<&str> = match value {
                 FieldValue::One(v) => v.split(", ").collect(),
@@ -826,6 +1160,19 @@ pub fn parse(bytes: &[u8]) -> Document {
             if key != "format" {
                 doc.fields.insert(key.clone(), value.clone());
             }
+            // §7.5: a declared value has its shape.
+            if let Some(decl) = own_fields.and_then(|f| f.get(key)) {
+                for v in values_of(value) {
+                    if let Some(why) = decl.refuse(v) {
+                        doc.push(
+                            Outcome::Refusal,
+                            "format.field-shape",
+                            *line,
+                            format!("`{key}`: {why}"),
+                        );
+                    }
+                }
+            }
         } else if newer_minor {
             doc.push(
                 Outcome::Unknown,
@@ -837,6 +1184,10 @@ pub fn parse(bytes: &[u8]) -> Document {
                     version.0, version.1
                 ),
             );
+        } else if !profile_known {
+            // The profile might declare it: UNKNOWN, reported once as
+            // `format.profile-unknown` above.
+            doc.fields.insert(key.clone(), value.clone());
         } else {
             doc.push(
                 Outcome::Refusal,
@@ -849,6 +1200,61 @@ pub fn parse(bytes: &[u8]) -> Document {
                 ),
             );
         }
+    }
+    // §7.5: a key the profile requires (and §4.5: `version` on SPEC.md).
+    let root_spec = path == "SPEC.md" && is_profile(profile, "spec");
+    // §4.5: a part needs no `version`, and one it carries is ignored.
+    if is_profile(profile, "spec") && !path.is_empty() && !root_spec {
+        doc.fields.remove("version");
+    }
+    let mut required_keys: Vec<&str> = profile
+        .map(|p| p.frontmatter_required.iter().map(String::as_str).collect())
+        .unwrap_or_default();
+    required_keys.extend(
+        own_fields
+            .into_iter()
+            .flatten()
+            .filter(|(_, d)| d.required)
+            .map(|(k, _)| k.as_str()),
+    );
+    if root_spec {
+        required_keys.push("version");
+    }
+    required_keys.sort_unstable();
+    required_keys.dedup();
+    for key in required_keys {
+        let missing = get(key).is_none_or(|e| match &e.1 {
+            FieldValue::One(v) => v.trim().is_empty(),
+            FieldValue::Many(v) => v.is_empty(),
+        });
+        if missing {
+            doc.push(
+                Outcome::Refusal,
+                "format.field-missing",
+                1,
+                format!(
+                    "profile `{}` requires the key `{key}:`{}",
+                    doc.profile,
+                    if root_spec && key == "version" {
+                        " on SPEC.md: a SemVer label for the specification as a whole"
+                    } else {
+                        ""
+                    }
+                ),
+            );
+        }
+    }
+    if root_spec
+        && let Some((_, FieldValue::One(v), line)) = get("version")
+        && !v.trim().is_empty()
+        && !is_semver(v)
+    {
+        doc.push(
+            Outcome::Refusal,
+            "format.field-shape",
+            *line,
+            format!("`version: {v}` is not a SemVer label (`0.3.0`)"),
+        );
     }
     if doc.is_work() {
         for key in ["uuid", "summary"] {
@@ -1000,6 +1406,7 @@ pub fn parse(bytes: &[u8]) -> Document {
             .filter(|l| l.1 >= *start && l.1 < end)
             .copied()
             .collect();
+        let head_line = span_lines.first().map_or("", |l| bare(l.2));
         let mut unit = Unit {
             id: id.clone(),
             record_type: record_type.clone(),
@@ -1009,11 +1416,18 @@ pub fn parse(bytes: &[u8]) -> Document {
             end,
             fields: BTreeMap::new(),
             ext: BTreeMap::new(),
+            field_lines: BTreeMap::new(),
             relations: Vec::new(),
             body: String::new(),
             items: Vec::new(),
             section: section.clone(),
+            ascii_heading: record_type != "section"
+                && head_line.strip_prefix("## ").is_some_and(is_ascii_heading),
         };
+        // §7.5: the fields declared for its type, by the core and the
+        // profile. `None`: neither enumerates them, so any undotted field
+        // is admitted (unless the profile is unknown, any is UNKNOWN).
+        let declared = declared_fields(&record_type, profile);
         let mut faults: Vec<(&'static str, usize, String)> = Vec::new();
         let mut warnings: Vec<(&'static str, usize, String)> = Vec::new();
         // The attribute block (§3.5), for a record; a section has none.
@@ -1024,7 +1438,13 @@ pub fn parse(bytes: &[u8]) -> Document {
             }
             section = Some(id.clone());
         } else {
-            attributes(&span_lines, &mut unit, &mut body_from, &mut faults);
+            attributes(
+                &span_lines,
+                &mut unit,
+                declared.as_ref(),
+                &mut body_from,
+                &mut faults,
+            );
         }
         let body_start = span_lines.get(body_from).map_or(end, |l| l.1);
         unit.body = text[body_start..end].to_owned();
@@ -1032,32 +1452,72 @@ pub fn parse(bytes: &[u8]) -> Document {
         let body_lines: Vec<(usize, usize, &str)> =
             span_lines.iter().skip(body_from).copied().collect();
         items(&body_lines, &mut unit, &mut faults, &mut warnings);
-        if record_type == "obligation" {
-            // An empty value is a missing one (§3.7).
-            for f in ["scope", "evidence"] {
-                if unit
-                    .fields
-                    .get(f)
-                    .and_then(FieldValue::as_str)
-                    .is_none_or(|v| v.trim().is_empty())
-                {
-                    faults.push((
-                        "format.field-missing",
-                        *n,
-                        format!("obligation {id} has no `{f}:`, or an empty one"),
-                    ));
-                }
+        if let Some(declared) = &declared {
+            field_rules(&unit, declared, &mut faults);
+        }
+        if is_profile(profile, "spec") && record_type != "section" {
+            spec_warnings(&unit, text, &mut warnings);
+        }
+        for (name, line) in &unit.field_lines {
+            if is_dotted(name) && !prefix_registered(name) {
+                warnings.push(prefix_finding(name, *line));
             }
-            if !unit.fields.contains_key("refusal") {
-                warnings.push((
-                    "format.refusal-missing",
-                    *n,
-                    format!(
-                        "obligation {id} names no `refusal:`: a claim nothing was seen to reject \
-                         is satisfiable by a control that accepts everything"
-                    ),
-                ));
+        }
+        for rel in &unit.relations {
+            if is_dotted(&rel.kind) && !prefix_registered(&rel.kind) {
+                warnings.push(prefix_finding(&rel.kind, rel.line));
             }
+        }
+        if is_dotted(&record_type) && !prefix_registered(&record_type) {
+            warnings.push(prefix_finding(&record_type, *n));
+        }
+        // §7.5: a closed set of record types.
+        if let Some(p) = profile
+            && p.records_closed
+            && record_type != "section"
+            && !is_dotted(&record_type)
+            && !CORE_TYPES.contains(&record_type.as_str())
+            && !p.record_types.contains(&record_type)
+        {
+            faults.push((
+                "format.key-unknown",
+                *n,
+                format!(
+                    "`{record_type}` is a record type profile `{}` does not declare, and its \
+                     types are closed; an extension type is dotted (`x.{record_type}`)",
+                    p.name
+                ),
+            ));
+        }
+        // §7.5: a closed set of sections.
+        if record_type == "section"
+            && let Some(p) = profile
+            && p.sections_closed
+            && !p
+                .sections_required
+                .iter()
+                .chain(&p.sections_optional)
+                .any(|s| format!("S-{}", slug(s)) == id)
+        {
+            faults.push((
+                "format.key-unknown",
+                *n,
+                format!(
+                    "`## {}` is a section profile `{}` does not list, and its sections are \
+                     closed",
+                    unit.title, p.name
+                ),
+            ));
+        }
+        if record_type == "obligation" && !unit.fields.contains_key("refusal") {
+            warnings.push((
+                "format.refusal-missing",
+                *n,
+                format!(
+                    "obligation {id} names no `refusal:`: a claim nothing was seen to reject is \
+                     satisfiable by a control that accepts everything"
+                ),
+            ));
         }
         for item in &unit.items {
             if let Some(iid) = &item.id {
@@ -1087,33 +1547,210 @@ pub fn parse(bytes: &[u8]) -> Document {
         }
     }
 
-    // §4.1: what the profile requires of a work document.
-    if doc.is_work() {
-        for s in required_sections(&doc.profile) {
-            if !authored.iter().any(|(id, _)| id == *s) {
-                doc.push(
-                    Outcome::Refusal,
-                    "format.section-missing",
-                    1,
-                    format!(
-                        "profile `{}` requires the section `## {}`",
-                        doc.profile,
-                        s.trim_start_matches("S-").replace('-', " ")
-                    ),
-                );
+    // §4.1, §4.5, §7.5: the sections the profile requires (and SPEC.md's
+    // Purpose and Scope).
+    let mut required: Vec<String> = profile
+        .map(|p| p.sections_required.clone())
+        .unwrap_or_default();
+    if root_spec {
+        for s in ["Purpose", "Scope"] {
+            if !required.iter().any(|r| r == s) {
+                required.push(s.to_owned());
             }
         }
-        if doc.profile == "delivery" && !authored.iter().any(|(_, t)| t == "obligation") {
+    }
+    for s in &required {
+        let sid = format!("S-{}", slug(s));
+        if !authored.iter().any(|(id, _)| *id == sid) {
             doc.push(
                 Outcome::Refusal,
                 "format.section-missing",
                 1,
-                "profile `delivery` requires at least one obligation record".to_owned(),
+                format!(
+                    "{} requires the section `## {s}`",
+                    if root_spec && (s == "Purpose" || s == "Scope") {
+                        "SPEC.md".to_owned()
+                    } else {
+                        format!("profile `{}`", doc.profile)
+                    }
+                ),
             );
         }
     }
+    if doc.is_work()
+        && doc.profile == "delivery"
+        && !authored.iter().any(|(_, t)| t == "obligation")
+    {
+        doc.push(
+            Outcome::Refusal,
+            "format.section-missing",
+            1,
+            "profile `delivery` requires at least one obligation record".to_owned(),
+        );
+    }
     doc.findings.sort();
     doc
+}
+
+/// The fields declared for records of `record_type`: the core's (§3.7,
+/// §12) and the profile's `[fields.<type>]` (§7.5). A profile adds fields
+/// and narrows (a field either requires is required); it never loosens a
+/// core shape. `None` when neither declares any.
+fn declared_fields(
+    record_type: &str,
+    profile: Option<&Profile>,
+) -> Option<BTreeMap<String, FieldDecl>> {
+    let core = core_fields(record_type);
+    let own = profile.and_then(|p| p.fields_of(record_type));
+    if core.is_none() && own.is_none() {
+        return None;
+    }
+    let mut out = core.unwrap_or_default();
+    for (name, d) in own.into_iter().flatten() {
+        match out.get_mut(name) {
+            // A profile narrows a core field: it may make it REQUIRED, and
+            // give `text` a stricter shape, never loosen one.
+            Some(c) => {
+                c.required |= d.required;
+                if c.shape == Shape::Text {
+                    c.shape = d.shape;
+                    c.values.clone_from(&d.values);
+                }
+            }
+            None => {
+                out.insert(name.clone(), d.clone());
+            }
+        }
+    }
+    Some(out)
+}
+
+/// A field's values: one, or each of a frontmatter list.
+fn values_of(value: &FieldValue) -> Vec<&str> {
+    match value {
+        FieldValue::One(v) => vec![v.as_str()],
+        FieldValue::Many(v) => v.iter().map(String::as_str).collect(),
+    }
+}
+
+/// §7.5, §3.7, §12: each declared field a record lacks is missing when
+/// REQUIRED (an empty value is a missing one), and each value it has has
+/// its shape. An optional field authored empty is read as absent.
+fn field_rules(
+    unit: &Unit,
+    declared: &BTreeMap<String, FieldDecl>,
+    faults: &mut Vec<(&'static str, usize, String)>,
+) {
+    for (name, decl) in declared {
+        let value = unit
+            .fields
+            .get(name)
+            .and_then(FieldValue::as_str)
+            .filter(|v| !v.trim().is_empty());
+        let Some(value) = value else {
+            if decl.required {
+                faults.push((
+                    "format.field-missing",
+                    unit.line,
+                    format!(
+                        "{} {} has no `{name}:`, or an empty one",
+                        unit.record_type, unit.id
+                    ),
+                ));
+            }
+            continue;
+        };
+        let line = unit.field_lines.get(name).copied().unwrap_or(unit.line);
+        let why = decl
+            .refuse(value)
+            .or_else(|| core_shape(&unit.record_type, name, value));
+        if let Some(why) = why {
+            faults.push((
+                "format.field-shape",
+                line,
+                format!("{} {}: `{name}`: {why}", unit.record_type, unit.id),
+            ));
+        }
+    }
+}
+
+/// The longest `statement` a specification's record SHOULD carry (§4.5).
+pub const STATEMENT_MAX: usize = 300;
+
+/// Whether `text` holds more than one sentence (§4.5): a `.`, `!` or `?`
+/// followed by a space before its end.
+fn sentences_over_one(text: &str) -> bool {
+    let t = text.trim();
+    let b = t.as_bytes();
+    b.iter().enumerate().any(|(i, c)| {
+        matches!(c, b'.' | b'!' | b'?')
+            && b.get(i + 1) == Some(&b' ')
+            && !t[i + 1..].trim().is_empty()
+    })
+}
+
+/// §4.5's context-engineering warnings over one record of a
+/// specification: a `statement` of one sentence and at most
+/// [`STATEMENT_MAX`] bytes (`context.statement-shape`), and no citation by
+/// `§` (`context.section-ref`).
+fn spec_warnings(unit: &Unit, text: &str, warnings: &mut Vec<(&'static str, usize, String)>) {
+    if let Some(st) = unit.fields.get("statement").and_then(FieldValue::as_str) {
+        // §4.5: at the record's heading line.
+        let line = unit.line;
+        if st.len() > STATEMENT_MAX || sentences_over_one(st) {
+            warnings.push((
+                "context.statement-shape",
+                line,
+                format!(
+                    "{}'s statement is {} bytes{}; a statement is one sentence of at most \
+                     {STATEMENT_MAX} bytes, and its reasons go in `rationale`",
+                    unit.id,
+                    st.len(),
+                    if sentences_over_one(st) {
+                        " and more than one sentence"
+                    } else {
+                        ""
+                    }
+                ),
+            ));
+        }
+    }
+    // §4.5: at the line the `§` is on.
+    let span = text.get(unit.start..unit.end).unwrap_or_default();
+    let cites = span
+        .find('\u{a7}')
+        .map(|at| unit.line + span[..at].matches('\n').count());
+    if let Some(line) = cites {
+        warnings.push((
+            "context.section-ref",
+            line,
+            format!(
+                "{} cites by `\u{a7}`; a record of a specification is read alone, so it cites \
+                 another by its id",
+                unit.id
+            ),
+        ));
+    }
+}
+
+/// Appendix D: a dotted name whose prefix is neither registered nor a
+/// reverse domain name (`format.prefix-unregistered`, a warning).
+fn prefix_finding(name: &str, line: usize) -> (&'static str, usize, String) {
+    (
+        "format.prefix-unregistered",
+        line,
+        format!(
+            "`{name}`: its prefix is not registered (kf, katana, liminal, blut, contractor, \
+             legacy, x; Appendix D) nor a reverse domain name"
+        ),
+    )
+}
+
+fn prefix_warning(doc: &mut Document, name: &str, line: usize) {
+    if !prefix_registered(name) {
+        let (rule, line, message) = prefix_finding(name, line);
+        doc.push(Outcome::Warning, rule, line, message);
+    }
 }
 
 /// A unit-level refusal; under a newer minor, `UNKNOWN` instead (§6).
@@ -1135,10 +1772,10 @@ fn unit_fault(doc: &mut Document, newer_minor: bool, rule: &'static str, line: u
 fn attributes(
     span: &[(usize, usize, &str)],
     unit: &mut Unit,
+    declared: Option<&BTreeMap<String, FieldDecl>>,
     body_from: &mut usize,
     faults: &mut Vec<(&'static str, usize, String)>,
 ) {
-    let typed = type_fields(&unit.record_type);
     // (name, dotted) of the field a continuation would extend.
     let mut last: Option<(String, bool)> = None;
     let mut i = 1;
@@ -1190,7 +1827,7 @@ fn attributes(
                          only from a recorded verdict"
                     ),
                 ));
-            } else if !dotted && typed.is_some_and(|t| !t.contains(&name)) {
+            } else if !dotted && declared.is_some_and(|d| !d.contains_key(name)) {
                 faults.push((
                     "format.key-unknown",
                     n,
@@ -1213,22 +1850,20 @@ fn attributes(
                     &mut unit.fields
                 };
                 map.insert(name.to_owned(), FieldValue::One(value));
+                unit.field_lines.insert(name.to_owned(), n);
                 last = Some((name.to_owned(), dotted));
             }
             i += 1;
             continue;
         }
-        // A relation line: `<kind> <target>[, <target>]…`. A line whose first
-        // word is a core or dotted kind is one whatever follows, so a target
-        // that does not parse is `format.relation-target`, not prose (§3.6).
+        // §3.5: otherwise a lowercase word or a dotted name, one space and
+        // text is a relation line, `<kind> <target>[, <target>]…`, whatever
+        // follows: its kind is checked (`format.relation-kind`), then each
+        // target (`format.relation-target`), so neither is read as prose.
         if let Some((kind, rest)) = line.split_once(' ')
             && is_name(kind)
-            && (is_dotted(kind)
-                || CoreKind::parse(kind).is_some()
-                || rest
-                    .trim_end_matches([' ', '\t'])
-                    .split(", ")
-                    .all(|t| !t.is_empty() && !t.contains(char::is_whitespace)))
+            && !rest.starts_with(' ')
+            && !rest.trim_end_matches([' ', '\t']).is_empty()
         {
             if !(is_dotted(kind) || CoreKind::parse(kind).is_some()) {
                 faults.push((
@@ -1327,10 +1962,39 @@ fn items(
                 ),
             ));
         }
+        // §3.8, §11.4: the done suffix's date, split from its tick level.
+        let (done_on, level) = match it.done_on.as_deref() {
+            Some(d) => {
+                let (date, level) = crate::ticks::split_level(d);
+                (Some(date.to_owned()), level)
+            }
+            None => (None, None),
+        };
+        // Appendix A: `level = "observed" | "independent" | "signed"`; a
+        // bracketed word after the date that is none of them (`[claimed]`,
+        // which writes none, or `[verified]`) is no level, and the item
+        // line is refused rather than read at a level it does not name.
+        if level.is_none()
+            && let Some(unknown) = done_on.as_deref().and_then(unknown_level)
+        {
+            faults.push((
+                "format.item",
+                n,
+                format!(
+                    "the done suffix's tick level `[{unknown}]` is not one of observed, \
+                     independent or signed (a `claimed` tick writes none, §11.4)"
+                ),
+            ));
+            continue;
+        }
         unit.items.push(Item {
             implements: crate::relation::implements_phrases(&it.text),
             id: it.id,
             after: it.after.iter().map(ToString::to_string).collect(),
+            done_by: it.done_by,
+            done_on,
+            level,
+            note: it.note,
             text: it.text,
             done: it.done,
             line: n,
@@ -1338,6 +2002,16 @@ fn items(
             end,
         });
     }
+}
+
+/// The bracketed word after a done suffix's date that is not a tick level
+/// (Appendix A), if the date part ends with one: `claimed` in
+/// `2026-10-12 [claimed]`.
+fn unknown_level(done_on: &str) -> Option<&str> {
+    let inner = done_on.trim_end().strip_suffix(']')?;
+    let open = inner.rfind(" [")?;
+    let word = &inner[open + 2..];
+    (!word.is_empty() && !word.contains(' ')).then_some(word)
 }
 
 // ---- content digest (§9) ---------------------------------------------------
@@ -1510,7 +2184,7 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
                 4,
             ),
             (
-                "---\nformat: openwarrant/1.0\nprofile: p\nsumary: typo\n---\n",
+                "---\nformat: openwarrant/1.0\nprofile: prd\nsumary: typo\n---\n",
                 "format.key-unknown",
                 4,
             ),
@@ -1525,7 +2199,7 @@ part_of M-1\nx.note: carried\n\n## M-1 · milestone — the bundle\n\n- [ ] writ
                 5,
             ),
             (
-                "---\nformat: openwarrant/1.0\nprofile: p\n---\n## R-1 · note — t\nnot an attribute\n",
+                "---\nformat: openwarrant/1.0\nprofile: p\n---\n## R-1 · note — t\nNot an attribute\n",
                 "format.attribute",
                 6,
             ),
@@ -1665,7 +2339,7 @@ uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4e\nsummary: s\n---\n# T\n\n## Intent\n\
         let major = parse(b"---\nformat: openwarrant/2.0\nwhatever: x\n---\n");
         assert!(major.unknown() && !major.refused());
         assert_eq!(rules(&major), vec![("format.newer-major", 2)]);
-        let minor = parse(b"---\nformat: openwarrant/1.1\nprofile: p\nnewkey: x\n---\n");
+        let minor = parse(b"---\nformat: openwarrant/1.1\nprofile: prd\nnewkey: x\n---\n");
         assert!(!minor.refused() && !minor.unknown());
         assert_eq!(rules(&minor), vec![("format.newer-minor", 4)]);
         let req = parse(
@@ -1688,6 +2362,521 @@ uuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4e\nsummary: s\n---\n# T\n\n## Intent\n\
         assert_ne!(a, content_digest("R-1", "note", "t", &f, &[], "a\nc\n"));
         assert_ne!(a, content_digest("R-1", "note", "T", &f, &[], "a\nb\n"));
         assert_ne!(a, content_digest("R-1", "note", "t", &f, &[], "\na\nb\n"));
+    }
+
+    fn has(d: &Document, rule: &str, line: usize, outcome: Outcome) -> bool {
+        d.findings
+            .iter()
+            .any(|f| f.rule == rule && f.line == line && f.outcome == outcome)
+    }
+
+    const DOC: &str = "---\nformat: openwarrant/1.0\nprofile: prd\n---\n";
+
+    #[test]
+    fn an_ascii_heading_is_the_same_record() {
+        let uni = parse(
+            format!(
+                "{DOC}## REQ-001 \u{b7} requirement \u{2014} a link works once\nverify: reuse it\n"
+            )
+            .as_bytes(),
+        );
+        let ascii = parse(
+            format!("{DOC}## REQ-001 | requirement -- a link works once\nverify: reuse it\n")
+                .as_bytes(),
+        );
+        assert_eq!(rules(&uni), vec![]);
+        assert_eq!(rules(&ascii), vec![]);
+        let (u, a) = (&uni.units[0], &ascii.units[0]);
+        assert_eq!(
+            (&u.id, &u.record_type, &u.title, &u.fields),
+            (&a.id, &a.record_type, &a.title, &a.fields)
+        );
+        assert!(a.ascii_heading && !u.ascii_heading);
+        // The meaning is one; the bytes (the revision) are not.
+        let digest =
+            |x: &Unit| content_digest(&x.id, &x.record_type, &x.title, &x.fields, &[], &x.body);
+        assert_eq!(digest(u), digest(a));
+        let bytes = |d: &str, x: &Unit| sha256(&d.as_bytes()[x.start..x.end]);
+        assert_ne!(
+            bytes(
+                &format!(
+                    "{DOC}## REQ-001 \u{b7} requirement \u{2014} a link works once\nverify: reuse it\n"
+                ),
+                u
+            ),
+            bytes(
+                &format!("{DOC}## REQ-001 | requirement -- a link works once\nverify: reuse it\n"),
+                a
+            )
+        );
+        // A title may hold the other spelling's characters.
+        let t = parse(format!("{DOC}## R-1 | note -- a \u{b7} b \u{2014} c\n").as_bytes());
+        assert_eq!(rules(&t), vec![]);
+        assert_eq!(t.units[0].title, "a \u{b7} b \u{2014} c");
+        // `## Q&A | notes` begins with no record id: a section.
+        let q = parse(format!("{DOC}## Q&A | notes\n").as_bytes());
+        assert_eq!(rules(&q), vec![]);
+        assert_eq!(q.units[0].id, "S-q-a-notes");
+    }
+
+    #[test]
+    fn a_heading_mixing_the_spellings_is_refused() {
+        for head in [
+            "## R-1 | note \u{2014} t",
+            "## R-1 \u{b7} note -- t",
+            "## R-1 | Bad Type -- t",
+            "## R-1 | -- t",
+        ] {
+            let d = parse(format!("{DOC}{head}\n").as_bytes());
+            assert!(
+                has(&d, "format.heading", 5, Outcome::Refusal),
+                "{head}: {:?}",
+                rules(&d)
+            );
+            assert!(d.units.is_empty(), "{head}");
+        }
+        let d = parse(format!("{DOC}## R-1 | note\n").as_bytes());
+        assert!(
+            has(&d, "format.title-missing", 5, Outcome::Refusal),
+            "{:?}",
+            rules(&d)
+        );
+    }
+
+    #[test]
+    fn a_tick_level_is_read_from_the_done_suffix() {
+        let d = parse(
+            "---\nformat: openwarrant/1.0\nprofile: ticket\nalias: t-0d61d\nuuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4f\nsummary: s\n---\n# T\n\n## Checklist\n\
+- [x] a (i-0a1) \u{2014} done by claude, 2026-10-12 [observed]: ran\n\
+- [x] b (i-0b2) \u{2014} done by ana, 2026-10-12 [independent]\n\
+- [x] c (i-0c3) -- done by bo, 2026-10-13 [signed]: ok\n\
+- [x] d (i-0d4) \u{2014} done by claude, 2026-10-12: claimed\n\
+- [ ] e (i-0e5)\n"
+                .as_bytes(),
+        );
+        assert_eq!(rules(&d), vec![]);
+        let items = &d.units[0].items;
+        type Row<'a> = (&'a str, Option<Level>, Option<&'a str>, Option<&'a str>);
+        let got: Vec<Row<'_>> = items
+            .iter()
+            .map(|i| {
+                (
+                    i.text.as_str(),
+                    i.level,
+                    i.done_on.as_deref(),
+                    i.note.as_deref(),
+                )
+            })
+            .collect();
+        assert_eq!(
+            got,
+            [
+                ("a", Some(Level::Observed), Some("2026-10-12"), Some("ran")),
+                ("b", Some(Level::Independent), Some("2026-10-12"), None),
+                ("c", Some(Level::Signed), Some("2026-10-13"), Some("ok")),
+                ("d", None, Some("2026-10-12"), Some("claimed")),
+                ("e", None, None, None),
+            ]
+        );
+        assert_eq!(items[1].done_by.as_deref(), Some("ana"));
+        // The legacy checklist reads the same line as it always did: the
+        // marker rides in its date.
+        let legacy = crate::ticket::parse(
+            "- [x] a (i-0a1) \u{2014} done by claude, 2026-10-12 [observed]: ran\n",
+        );
+        assert_eq!(
+            legacy.items[0].done_on.as_deref(),
+            Some("2026-10-12 [observed]")
+        );
+    }
+
+    const CHK: &str = "---\nformat: openwarrant/1.0\nprofile: ticket\nalias: t-0d61d\nuuid: 01a0d342-ee5e-7b71-9623-f2d8cd5acd4f\nsummary: s\n---\n# T\n\n## Checklist\n- [ ] a (i-0a1)\n\n";
+
+    #[test]
+    fn check_and_kpi_records_are_validated() {
+        let ok = parse(
+            format!(
+                "{CHK}## CHK-reset \u{b7} check \u{2014} reset tests pass\nrun: cargo test -p accounts reset::\non: done, pr.merged, paths:src/**, ci:build, schedule:0 3 * * 1, x.deploy\nevaluates i-0a1\ntimeout: 600\ngating: false\n\n\
+## KPI-p95 \u{b7} kpi \u{2014} p95 latency\nrun: ./bench.sh\ndirection: min\ntarget: 120.5\nmode: threshold\n"
+            )
+            .as_bytes(),
+        );
+        assert_eq!(rules(&ok), vec![]);
+        assert_eq!(ok.units[1].record_type, "check");
+        let cases: &[(&str, &str, usize)] = &[
+            (
+                "## C-1 \u{b7} check \u{2014} t\non: done\n",
+                "format.field-missing",
+                13,
+            ),
+            (
+                "## C-1 \u{b7} check \u{2014} t\nrun: x\ntimeout: ten\n",
+                "format.field-shape",
+                15,
+            ),
+            (
+                "## C-1 \u{b7} check \u{2014} t\nrun: x\ngating: maybe\n",
+                "format.field-shape",
+                15,
+            ),
+            (
+                "## C-1 \u{b7} check \u{2014} t\nrun: x\non: nightly\n",
+                "format.field-shape",
+                15,
+            ),
+            (
+                "## C-1 \u{b7} check \u{2014} t\nrun: x\non: schedule:daily\n",
+                "format.field-shape",
+                15,
+            ),
+            (
+                "## C-1 \u{b7} check \u{2014} t\nrun: x\nowner: me\n",
+                "format.key-unknown",
+                15,
+            ),
+            (
+                "## K-1 \u{b7} kpi \u{2014} t\nrun: x\n",
+                "format.field-missing",
+                13,
+            ),
+            (
+                "## K-1 \u{b7} kpi \u{2014} t\nrun: x\ndirection: up\n",
+                "format.field-shape",
+                15,
+            ),
+            (
+                "## K-1 \u{b7} kpi \u{2014} t\nrun: x\ndirection: max\ntarget: high\n",
+                "format.field-shape",
+                16,
+            ),
+            (
+                "## K-1 \u{b7} kpi \u{2014} t\nrun: x\ndirection: max\nmode: maximise\n",
+                "format.field-shape",
+                16,
+            ),
+        ];
+        for &(unit, rule, line) in cases {
+            let d = parse(format!("{CHK}{unit}").as_bytes());
+            assert!(
+                has(&d, rule, line, Outcome::Refusal),
+                "{unit:?}: {:?}",
+                rules(&d)
+            );
+        }
+    }
+
+    const SPEC: &str = "---\nformat: openwarrant/1.0\nprofile: spec\nuuid: 01a0e1c2-0b7d-7c11-8f2e-5d6c7b8a9e01\nversion: 0.3.0\nsummary: Password reset.\n---\n# Account service\n\n## Purpose\nUsers regain access.\n\n## Scope\nIn: email. Out: SMS.\n\n";
+
+    #[test]
+    fn a_specification_reads_and_its_refusals() {
+        let req = "## REQ-reset-1 \u{b7} requirement \u{2014} a reset link works once\nstatement: A reset link MUST be accepted at most once and only within 30\n  minutes of issue.\nrationale: a reused link is a takeover path.\nverify: reuse a consumed link; expect refusal.\npriority: must\n\n## CON-1 \u{b7} constraint \u{2014} no new datastore\nstatement: Reset state MUST live in the existing accounts database.\n\n## T-1 \u{b7} term \u{2014} reset link\n\nA one-time URL.\n";
+        let ok = parse_with(
+            format!("{SPEC}{req}").as_bytes(),
+            builtin_profiles(),
+            "SPEC.md",
+        );
+        assert_eq!(rules(&ok), vec![]);
+        assert_eq!(
+            ok.fields.get("version"),
+            Some(&FieldValue::One("0.3.0".to_owned()))
+        );
+        // A part needs neither `version` nor Purpose and Scope.
+        let part = parse_with(
+            format!("---\nformat: openwarrant/1.0\nprofile: spec\npart_of: doc:SPEC.md\n---\n# Reset\n\n{req}").as_bytes(),
+            builtin_profiles(),
+            "spec/reset.md",
+        );
+        assert_eq!(rules(&part), vec![]);
+        // SPEC.md without `version`, without Scope.
+        let bare = parse_with(
+            b"---\nformat: openwarrant/1.0\nprofile: spec\n---\n# S\n\n## Purpose\nx\n",
+            builtin_profiles(),
+            "SPEC.md",
+        );
+        assert_eq!(
+            rules(&bare),
+            vec![("format.field-missing", 1), ("format.section-missing", 1)]
+        );
+        let cases: &[(&str, &str, usize)] = &[
+            (
+                "## REQ-1 \u{b7} requirement \u{2014} t\nverify: v\n",
+                "format.field-missing",
+                16,
+            ),
+            (
+                "## REQ-1 \u{b7} requirement \u{2014} t\nstatement: s.\npriority: urgent\n",
+                "format.field-shape",
+                18,
+            ),
+            (
+                "## CON-1 \u{b7} constraint \u{2014} t\nstatement: s.\nowner: me\n",
+                "format.key-unknown",
+                18,
+            ),
+        ];
+        for &(unit, rule, line) in cases {
+            let d = parse_with(
+                format!("{SPEC}{unit}").as_bytes(),
+                builtin_profiles(),
+                "SPEC.md",
+            );
+            assert!(
+                has(&d, rule, line, Outcome::Refusal),
+                "{unit:?}: {:?}",
+                rules(&d)
+            );
+        }
+        let bad_version = parse_with(
+            SPEC.replace("0.3.0", "three").as_bytes(),
+            builtin_profiles(),
+            "SPEC.md",
+        );
+        assert!(has(&bad_version, "format.field-shape", 5, Outcome::Refusal));
+        // Warnings: a statement of two sentences, one over 300 bytes, a `§`.
+        let long = "x".repeat(301);
+        let w = parse_with(
+            format!(
+                "{SPEC}## REQ-1 \u{b7} requirement \u{2014} t\nstatement: It MUST work. It MUST be fast.\n\n\
+## REQ-2 \u{b7} requirement \u{2014} t\nstatement: {long}\n\n\
+## REQ-3 \u{b7} requirement \u{2014} t\nstatement: It MUST do what \u{a7}4.2 says.\n"
+            )
+            .as_bytes(),
+            builtin_profiles(),
+            "SPEC.md",
+        );
+        assert!(!w.refused(), "{:?}", rules(&w));
+        // statement-shape at the heading line; section-ref at the `§`'s.
+        assert!(has(&w, "context.statement-shape", 16, Outcome::Warning));
+        assert!(has(&w, "context.statement-shape", 19, Outcome::Warning));
+        assert!(has(&w, "context.section-ref", 23, Outcome::Warning));
+        assert!(
+            !ok.findings
+                .iter()
+                .any(|f| f.rule == "context.statement-shape")
+        );
+        // A part's `version` is accepted and ignored.
+        let part_v = parse_with(
+            b"---\nformat: openwarrant/1.0\nprofile: spec\nversion: 9.9.9\npart_of: doc:SPEC.md\n---\n# P\n",
+            builtin_profiles(),
+            "docs/records/spec/p.md",
+        );
+        assert_eq!(rules(&part_v), vec![]);
+        assert!(!part_v.fields.contains_key("version"));
+    }
+
+    #[test]
+    fn profile_data_is_enforced() {
+        let files: Vec<(&str, &[u8])> = vec![(
+            "profiles/runbook.toml",
+            b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"runbook\"\nform = \"document\"\n\
+[frontmatter]\nrequired = [\"service\"]\noptional = [\"owner\"]\n\
+[sections]\nrequired = [\"Steps\"]\noptional = [\"Rollback\"]\nclosed = true\n\
+[fields.step]\ncommand = { required = true, shape = \"line\" }\ntimeout = { shape = \"int\" }\n",
+        )];
+        let ps = Profiles::load(files);
+        let head = "---\nformat: openwarrant/1.0\nprofile: runbook\nservice: accounts\n---\n# R\n\n## Steps\n";
+        let ok = parse_with(
+            format!("{head}## ST-1 \u{b7} step \u{2014} restart\ncommand: systemctl restart a\ntimeout: 30\n").as_bytes(),
+            &ps,
+            "docs/records/ops/r.md",
+        );
+        assert_eq!(rules(&ok), vec![]);
+        let cases: &[(String, &str, usize)] = &[
+            (
+                head.replace("service: accounts\n", ""),
+                "format.field-missing",
+                1,
+            ),
+            (
+                head.replace("service: accounts\n", "service: a\ncolour: red\n"),
+                "format.key-unknown",
+                5,
+            ),
+            (
+                head.replace("## Steps\n", "## Notes\n"),
+                "format.section-missing",
+                1,
+            ),
+            (
+                head.replace("## Steps\n", "## Steps\n\n## Notes\n"),
+                "format.key-unknown",
+                10,
+            ),
+            (
+                format!("{head}## ST-1 \u{b7} step \u{2014} t\ntimeout: 30\n"),
+                "format.field-missing",
+                9,
+            ),
+            (
+                format!("{head}## ST-1 \u{b7} step \u{2014} t\ncommand: c\ntimeout: soon\n"),
+                "format.field-shape",
+                11,
+            ),
+            (
+                format!("{head}## ST-1 \u{b7} step \u{2014} t\ncommand: c\nowner: me\n"),
+                "format.key-unknown",
+                11,
+            ),
+        ];
+        for (text, rule, line) in cases {
+            let d = parse_with(text.as_bytes(), &ps, "docs/records/ops/r.md");
+            assert!(
+                has(&d, rule, *line, Outcome::Refusal),
+                "{text:?}: {:?}",
+                rules(&d)
+            );
+        }
+        // A profile nobody can find: read under the core alone, its rules
+        // UNKNOWN, never refused and never a pass.
+        let unknown = parse(b"---\nformat: openwarrant/1.0\nprofile: nowhere\ncolour: red\n---\n## R-1 \xc2\xb7 note \xe2\x80\x94 t\nowner: me\n");
+        assert_eq!(rules(&unknown), vec![("format.profile-unknown", 1)]);
+        assert!(!unknown.refused() && unknown.findings[0].outcome == Outcome::Unknown);
+        assert_eq!(unknown.units.len(), 1);
+        // A refused profile file: the same, never its built-in namesake.
+        let bad = Profiles::load(vec![(
+            "profiles/adr.toml",
+            b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"adr\"\nform = \"document\"\n[sections]\nrequired = [\"Context\"]\n".as_slice(),
+        )]);
+        let d = parse_with(
+            b"---\nformat: openwarrant/1.0\nprofile: adr\n---\n",
+            &bad,
+            "docs/records/a/x.md",
+        );
+        assert_eq!(rules(&d), vec![("format.profile-unknown", 1)]);
+        // The built-in adr requires its three sections.
+        let adr = parse(b"---\nformat: openwarrant/1.0\nprofile: adr\n---\n## Context\n");
+        assert_eq!(
+            rules(&adr),
+            vec![("format.section-missing", 1), ("format.section-missing", 1)]
+        );
+    }
+
+    #[test]
+    fn an_unregistered_prefix_is_a_warning() {
+        let d = parse(
+            "---\nformat: openwarrant/1.0\nprofile: prd\nacme.owner: me\nkf.enterprise_id: E-1\ncom.example.risk: high\n---\n\
+## R-1 \u{b7} acme.risk \u{2014} t\nx.note: fine\nacme.weight: 3\nacme.mentions R-2\n"
+            .as_bytes(),
+        );
+        assert!(!d.refused());
+        let lines: Vec<usize> = d
+            .findings
+            .iter()
+            .filter(|f| f.rule == "format.prefix-unregistered")
+            .map(|f| f.line)
+            .collect();
+        assert_eq!(lines, [4, 8, 10, 11]);
+        assert!(prefix_registered("x.note") && prefix_registered("com.example.risk"));
+        assert!(!prefix_registered("acme.note"));
+    }
+
+    #[test]
+    fn the_constant_profile_tables_agree_with_the_builtins() {
+        for name in crate::format_profile::builtin_names() {
+            let p = crate::format_profile::builtin(name).unwrap();
+            let keys: Vec<&str> = p.frontmatter_keys().collect();
+            let mut want: Vec<&str> = profile_keys(name).to_vec();
+            if name == "spec" {
+                want.push("version");
+            }
+            assert_eq!(keys, want, "{name}");
+            if p.form == crate::format_profile::Form::Work {
+                let sections: Vec<String> = p
+                    .sections_required
+                    .iter()
+                    .map(|s| format!("S-{}", slug(s)))
+                    .collect();
+                assert_eq!(sections, required_sections(name), "{name}");
+            }
+        }
+    }
+
+    #[test]
+    fn the_rule_registry_is_section_13_2() {
+        let text = include_str!("../../../docs/format/FORMAT-1.0.md");
+        let start = text.find("### 13.2 Rule ids").expect("13.2");
+        let end = start + text[start..].find("\n## ").expect("end of 13");
+        let part = &text[start..end];
+        let block = |from: &str, to: &str| -> BTreeSet<String> {
+            let a = part.find(from).expect(from) + from.len();
+            let b = if to.is_empty() {
+                part.len()
+            } else {
+                a + part[a..].find(to).expect(to)
+            };
+            part[a..b]
+                .split('`')
+                .skip(1)
+                .step_by(2)
+                .map(str::to_owned)
+                .collect()
+        };
+        let want = [
+            (Outcome::Refusal, block("Refusals:", "Unknown:")),
+            (Outcome::Unknown, block("Unknown:", "Warnings:")),
+            (Outcome::Warning, block("Warnings:", "\n\n")),
+        ];
+        for (outcome, names) in want {
+            let have: BTreeSet<String> = RULES
+                .iter()
+                .filter(|(_, o)| *o == outcome)
+                .map(|(r, _)| (*r).to_owned())
+                .collect();
+            assert_eq!(have, names, "{outcome:?}");
+        }
+        // Every rule this reader reports is registered.
+        for rule in [
+            "format.field-shape",
+            "format.profile-unknown",
+            "context.statement-shape",
+        ] {
+            assert!(RULES.iter().any(|(r, _)| *r == rule), "{rule}");
+        }
+    }
+
+    #[test]
+    fn closed_record_types_and_relation_lines() {
+        let ps = Profiles::load(vec![(
+            "profiles/runbook.toml",
+            b"schema = \"oh.war/profile/v1\"\nformat = \"openwarrant/1.0\"\nname = \"runbook\"\nform = \"document\"\n\
+[records]\ntypes = [\"step\"]\nclosed = true\n"
+                .as_slice(),
+        )]);
+        let head = "---\nformat: openwarrant/1.0\nprofile: runbook\n---\n";
+        let ok = parse_with(
+            format!("{head}## S-1 \u{b7} step \u{2014} t\n\n## X-1 \u{b7} x.note \u{2014} t\n\n## C-1 \u{b7} check \u{2014} t\nrun: x\n").as_bytes(),
+            &ps,
+            "docs/records/ops/r.md",
+        );
+        assert_eq!(rules(&ok), vec![]);
+        let bad = parse_with(
+            format!("{head}## O-1 \u{b7} other \u{2014} t\n").as_bytes(),
+            &ps,
+            "docs/records/ops/r.md",
+        );
+        assert_eq!(rules(&bad), vec![("format.key-unknown", 5)]);
+        // Without `closed`, any type is admitted (prd declares none).
+        assert_eq!(
+            rules(&parse(
+                format!("{DOC}## O-1 \u{b7} other \u{2014} t\n").as_bytes()
+            )),
+            vec![]
+        );
+        // §3.5: a lowercase word, a space and text is a relation line whose
+        // kind is checked; anything else is format.attribute.
+        let kind = parse(format!("{DOC}## R-1 \u{b7} note \u{2014} t\nblocks REQ-1\n").as_bytes());
+        assert_eq!(rules(&kind), vec![("format.relation-kind", 6)]);
+        let prose = parse(
+            format!("{DOC}## R-1 \u{b7} note \u{2014} t\nblocks the rule above\n").as_bytes(),
+        );
+        assert_eq!(rules(&prose), vec![("format.relation-kind", 6)]);
+        let attr = parse(format!("{DOC}## R-1 \u{b7} note \u{2014} t\nBlocks REQ-1\n").as_bytes());
+        assert_eq!(rules(&attr), vec![("format.attribute", 6)]);
+        // `legacy` is a registered prefix.
+        let legacy = parse(
+            format!("{DOC}## R-1 \u{b7} note \u{2014} t\nlegacy.id: WAR-SAS-101.1\n").as_bytes(),
+        );
+        assert_eq!(rules(&legacy), vec![]);
     }
 
     #[test]

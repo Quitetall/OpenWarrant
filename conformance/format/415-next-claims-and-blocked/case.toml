@@ -1,0 +1,4 @@
+id = "415-next-claims-and-blocked"
+kind = "accept"
+section = "11.5"
+says = """Its **candidates** are the items that are open, not blocked, and not under a live claim (an expired claim does not count)"""

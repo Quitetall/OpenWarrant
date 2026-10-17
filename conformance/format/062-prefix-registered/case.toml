@@ -1,0 +1,4 @@
+id = "062-prefix-registered"
+kind = "accept"
+section = "7.1"
+says = """Other prefixes MUST be a reverse domain name or a prefix in the registry (Appendix D)."""

@@ -1,0 +1,5 @@
+id = "165-done-suffix-level-unknown"
+kind = "refuse"
+section = "3.8"
+rule = "format.item"
+says = """level = "observed" | "independent" | "signed" ;  (Appendix A; `claimed` writes none, 11.4)"""

@@ -1,0 +1,5 @@
+id = "424-done-stale-revision"
+kind = "refuse"
+section = "11.3"
+rule = "work.stale-revision"
+says = """A write whose base is not the current revision is refused (`work.stale-revision`), naming the current one, and writes nothing."""

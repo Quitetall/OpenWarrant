@@ -22,7 +22,7 @@
 use std::collections::BTreeMap;
 
 use crate::corpus::Corpus;
-use crate::model::{FieldValue, Model, Record};
+use crate::model::{FieldValue, Model, Record, State};
 
 use super::{Edge, Finding, Graph, Unit, cut_title};
 
@@ -49,25 +49,22 @@ impl Files<'_> {
     }
 }
 
-/// The primary state of each record (section 10.2): `phase`, else
-/// `checklist`, else `disposition`.
-fn primary_states(model: &Model) -> BTreeMap<&str, String> {
-    let mut best: BTreeMap<&str, (usize, String)> = BTreeMap::new();
-    for s in &model.states {
-        let rank = match s.kind.as_str() {
-            "phase" => 0,
-            "checklist" => 1,
-            "disposition" => 2,
-            _ => continue,
-        };
-        let e = best
-            .entry(s.record.as_str())
-            .or_insert((rank, s.value.clone()));
-        if rank < e.0 {
-            *e = (rank, s.value.clone());
-        }
+/// The primary state of each record (FORMAT-1.0 section 11.1, as the index
+/// and packets show it): [`crate::states::primary_state`] over its states.
+/// A record whose primary state is `-` has no entry.
+fn primary_states(model: &Model, states: &[State]) -> BTreeMap<String, String> {
+    let mut of: BTreeMap<&str, Vec<&State>> = BTreeMap::new();
+    for s in states {
+        of.entry(s.record.as_str()).or_default().push(s);
     }
-    best.into_iter().map(|(k, (_, v))| (k, v)).collect()
+    model
+        .records
+        .iter()
+        .filter_map(|r| {
+            let p = crate::states::primary_state(&r.kind, of.get(r.id.as_str())?);
+            (p != "-").then(|| (r.id.clone(), p))
+        })
+        .collect()
 }
 
 fn one(r: &Record, key: &str) -> Option<String> {
@@ -102,15 +99,38 @@ fn body_title(r: &Record, relations: &[(&str, &str)]) -> Option<String> {
         .map(cut_title)
 }
 
-/// The graph of the corpus.
+/// The graph of the corpus, its states those of the documents alone
+/// ([`crate::states::document_states`]): what the index and every preset
+/// that does not read state are bound to (section 10.3's purity rule).
 #[must_use]
 pub fn graph(corpus: &Corpus, model: &Model) -> Graph {
+    let states = crate::states::document_states(corpus, &model.states);
+    graph_with(corpus, model, &states)
+}
+
+/// The graph of the corpus with every state of `model`, journals and
+/// claims included: what a preset that reads state shows (section 10.4).
+#[must_use]
+pub fn graph_reading_state(corpus: &Corpus, model: &Model) -> Graph {
+    graph_with(corpus, model, &model.states)
+}
+
+fn graph_with(corpus: &Corpus, model: &Model, states: &[State]) -> Graph {
     let repo = corpus.repo();
     let mut files = Files {
         root: &repo.root,
         cache: BTreeMap::new(),
     };
-    let states = primary_states(model);
+    let states = primary_states(model, states);
+    // Section 10.5: a unit of a Format 1.0 document is editable through a
+    // package; the document's own record (its frontmatter and preamble,
+    // span from byte 0) is not, nor is anything of a legacy encoding.
+    let format_sources: std::collections::BTreeSet<&str> = corpus
+        .format_docs()
+        .docs
+        .iter()
+        .map(|d| d.source.as_str())
+        .collect();
     let mut g = Graph {
         name: repo.config.project.name.clone(),
         ..Graph::default()
@@ -141,7 +161,12 @@ pub fn graph(corpus: &Corpus, model: &Model) -> Graph {
             id: r.id.clone(),
             kind: r.kind.clone(),
             title,
-            summary: work.then(|| one(r, "summary")).flatten(),
+            // A document's own record carries the document's `summary`
+            // (section 10.2's `> ` line): a work document's, and a
+            // `doc:<path>` record's.
+            summary: (work || r.id.starts_with("doc:"))
+                .then(|| one(r, "summary"))
+                .flatten(),
             work,
             document: r.document.clone(),
             section: r.section.clone(),
@@ -160,6 +185,10 @@ pub fn graph(corpus: &Corpus, model: &Model) -> Graph {
                 Vec::new()
             },
             uuid: work.then(|| one(r, "uuid")).flatten(),
+            editable: !work
+                && r.span[0] > 0
+                && r.span[0] < r.span[1]
+                && format_sources.contains(r.source.as_str()),
         };
         if u.text.is_none() {
             g.diagnostics.push(Finding {
@@ -194,6 +223,127 @@ pub fn graph(corpus: &Corpus, model: &Model) -> Graph {
     g.diagnostics.sort();
     g.diagnostics.dedup();
     g
+}
+
+/// What a preset that reads state reads besides the documents (section
+/// 10.4), at `now` (Unix seconds; `at` is its RFC 3339 text as the header
+/// shows it): the digest of every journal and claim file, each item's
+/// `resume` state line, and each work document's candidates of section
+/// 11.5. The claims and their leases are judged at `now`.
+#[must_use]
+pub fn tracking(corpus: &Corpus, graph: &Graph, at: &str, now: u64) -> super::Tracking {
+    let repo = corpus.repo();
+    let mut out = super::Tracking {
+        at: at.to_owned(),
+        ..super::Tracking::default()
+    };
+    // Every journal and every claim file, by repository path.
+    let mut files: std::collections::BTreeSet<String> = graph
+        .units
+        .values()
+        .filter(|u| u.work)
+        .filter_map(|u| evidence_journal(&u.id, &u.source))
+        .collect();
+    let store = crate::ticket::Store::open(repo, None).ok();
+    if let Some(store) = &store {
+        let dirs = std::iter::once(&store.claims_dir).chain(store.legacy_claims_dirs());
+        for dir in dirs {
+            for path in crate::ticket::claim::lock_files(dir) {
+                files.insert(relative_to(&repo.root, &path));
+            }
+        }
+    }
+    let pairs: Vec<(String, String)> = files
+        .into_iter()
+        .filter_map(|rel| {
+            let bytes = crate::vfs::read(repo.root.join(&rel)).ok()?;
+            Some((
+                rel,
+                format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)),
+            ))
+        })
+        .collect();
+    out.journal_digest =
+        super::selection_digest(pairs.iter().map(|(a, b)| (a.as_str(), b.as_str())));
+    let Some(store) = store else {
+        return out;
+    };
+    let Ok((tickets, _)) = store.load_all() else {
+        return out;
+    };
+    let claims = store.claims().unwrap_or_default();
+    let reader = crate::ticket::ladder::Reader::new(&store);
+    for t in &tickets {
+        let ticks = crate::ticket::ladder::ticks_of(&reader, t);
+        let whole = crate::ticket::claim_on(&claims, t.id(), None);
+        for item in &t.checklist.items {
+            let Some(iid) = &item.id else { continue };
+            let id = format!("{}/{iid}", t.id());
+            let Some(state) = graph.units.get(&id).and_then(|u| u.state.clone()) else {
+                continue;
+            };
+            let base = state.split('/').next().unwrap_or_default();
+            let mut line = format!("state {state}");
+            if base == "claimed"
+                && let Some((_, Some(c))) =
+                    crate::ticket::claim_on(&claims, t.id(), Some(iid)).or(whole)
+            {
+                let until = c.lease_until_unix.map_or_else(
+                    || "-".to_owned(),
+                    crate::gate_cmd::receipt::rfc3339_from_secs,
+                );
+                line.push_str(&format!(" · holder {} · lease {until}", c.actor));
+            }
+            if base == "done" {
+                let by = item.done_by.as_deref().unwrap_or("-");
+                let date = item
+                    .done_on
+                    .as_deref()
+                    .map_or("-", |d| openwarrant_core::ticks::split_level(d).0);
+                let level = ticks.items.get(iid).map_or("claimed", |v| v.level.as_str());
+                line.push_str(&format!(" · by {by} · {date} · {level}"));
+            }
+            out.state_lines.insert(id, line);
+        }
+    }
+    if let Ok(rows) = crate::ticket::ready_rows_at(&store, &tickets, claims, now) {
+        for row in rows {
+            out.next
+                .entry(row.ticket.clone())
+                .or_default()
+                .push(row.target());
+        }
+    }
+    out
+}
+
+/// A work document's journal (section 11.2): `journal.jsonl` in its
+/// evidence directory, `<dir>/<alias>/` beside a one-file document, the
+/// document's own directory otherwise.
+fn evidence_journal(alias: &str, source: &str) -> Option<String> {
+    let (dir, file) = source.rsplit_once('/').unwrap_or(("", source));
+    let join = |d: &str| {
+        if d.is_empty() {
+            format!("{alias}/journal.jsonl")
+        } else {
+            format!("{d}/{alias}/journal.jsonl")
+        }
+    };
+    if file == format!("{alias}.md") {
+        return Some(join(dir));
+    }
+    let parts: Vec<&str> = source.split('/').collect();
+    let at = parts.iter().position(|p| *p == alias)?;
+    Some(format!("{}/journal.jsonl", parts[..=at].join("/")))
+}
+
+/// `path` from the repository root, `/`-separated; a path outside it is
+/// kept as it is.
+fn relative_to(root: &camino::Utf8Path, path: &camino::Utf8Path) -> String {
+    path.strip_prefix(root).map_or_else(
+        |_| path.as_str().to_owned(),
+        |p| p.as_str().replace('\\', "/"),
+    )
 }
 
 #[cfg(test)]

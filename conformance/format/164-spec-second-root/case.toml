@@ -1,0 +1,5 @@
+id = "164-spec-second-root"
+kind = "refuse"
+section = "4.5"
+rule = "format.document-duplicate"
+says = """a second file with profile `spec` that is not `SPEC.md` and names no `part_of` is refused (`format.document-duplicate`)."""

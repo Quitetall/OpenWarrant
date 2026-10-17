@@ -1,0 +1,5 @@
+id = "168-profile-invalid-prerequisite"
+kind = "refuse"
+section = "7.6"
+rule = "profile.invalid"
+says = """A capability's prerequisites: every other capability needs `structure`; `verification` needs `evidence`; `resolution` needs `authorization`; `checks` needs `claims`."""

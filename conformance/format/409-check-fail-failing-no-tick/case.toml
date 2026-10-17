@@ -1,0 +1,4 @@
+id = "409-check-fail-failing-no-tick"
+kind = "accept"
+section = "12"
+says = """A **fail** ticks nothing and makes the check `failing`."""

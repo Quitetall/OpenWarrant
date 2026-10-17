@@ -1,0 +1,5 @@
+id = "063-prefix-unregistered-warns"
+kind = "accept"
+section = "Appendix D"
+rule = "format.prefix-unregistered"
+says = """A tool MAY refuse a dotted name whose prefix is neither registered nor a reverse domain name (`format.prefix-unregistered`, a warning)."""

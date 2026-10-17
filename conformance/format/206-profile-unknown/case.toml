@@ -1,0 +1,5 @@
+id = "206-profile-unknown"
+kind = "unknown"
+section = "7.4"
+rule = "format.profile-unknown"
+says = """A document whose profile a reader cannot find is read under the core alone and every profile rule over it is `UNKNOWN` (`format.profile-unknown`)."""

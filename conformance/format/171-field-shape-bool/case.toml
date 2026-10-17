@@ -1,0 +1,5 @@
+id = "171-field-shape-bool"
+kind = "refuse"
+section = "7.5"
+rule = "format.field-shape"
+says = """`bool`: `true` or `false`."""

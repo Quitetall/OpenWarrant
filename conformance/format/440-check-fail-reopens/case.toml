@@ -1,0 +1,4 @@
+id = "440-check-fail-reopens"
+kind = "accept"
+section = "12"
+says = """A **fail** ticks nothing and makes the check `failing`; with `reopen: true` it also reopens each done item it evaluates."""

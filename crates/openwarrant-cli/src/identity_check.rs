@@ -296,7 +296,7 @@ fn committed_blobs(repo: &Repository, specs: &[String]) -> Result<Vec<Option<Vec
 /// `journal.wrong-warrant` and the contract digest already catch this for a
 /// Warrant with a journal or an authorization. A draft with neither had no
 /// check at all, and the journal is itself a file the same edit can rewrite.
-/// The baseline is `HEAD`, as it is for `journal.rewritten`; a Warrant not in
+/// The baseline is `HEAD`, as it is for `work.journal-rewritten`; a Warrant not in
 /// `HEAD` is new and has nothing to compare, which is a pass. Where git
 /// cannot answer the question is UNKNOWN (Law 15) — never a pass.
 fn changed(repo: &Repository, checked: &[Loaded], report: &mut Report) {

@@ -7,7 +7,7 @@
 # common directory and the other worktree sees it; an item no one holds is
 # claimed from the second worktree; a claim from before M11, lying in a
 # worktree's own .openwarrant/state/claims/, is honoured from every worktree
-# and released by its holder. Refused, by name (ticket.claimed-by-other): the
+# and released by its holder. Refused, by name (work.claimed-by-other): the
 # 2026-10-06 reproduction, the same item claimed from the second worktree; a
 # second claim in the same worktree; and a claim on the item the pre-M11 lock
 # holds.
@@ -42,7 +42,7 @@ cc_war "$CC_ROOT" claim "$CC_T/$CC_I1" --as alice >/dev/null 2>&1; CC_S1=$?
 CC_ERR=$(cc_war "$CC_WT" claim "$CC_T/$CC_I1" --as bob 2>&1 >/dev/null); CC_S2=$?
 CC_LOCK="$CC_COMMON/openwarrant/claims/$CC_T--$CC_I1.lock"
 CC_HELD=0; [[ -f "$CC_LOCK" ]] && CC_HELD=1
-if [[ $CC_S1 -eq 0 && $CC_S2 -eq 2 && $CC_HELD -eq 1 ]] && grep -q 'ticket.claimed-by-other' <<<"$CC_ERR" \
+if [[ $CC_S1 -eq 0 && $CC_S2 -eq 2 && $CC_HELD -eq 1 ]] && grep -q 'work.claimed-by-other' <<<"$CC_ERR" \
     && grep -q "claimed by alice since" <<<"$CC_ERR" \
     && [[ ! -e "$CC_ROOT/.openwarrant/state/claims/$CC_T--$CC_I1.lock" ]]; then
     cc_ok "two worktrees, one claim" "bob in the second worktree refused by name; alice's lock under $(basename "$CC_COMMON")/openwarrant/claims"
@@ -52,7 +52,7 @@ fi
 
 # Still refused within one worktree.
 CC_ERR=$(cc_war "$CC_ROOT" claim "$CC_T/$CC_I1" --as carol 2>&1 >/dev/null); CC_S=$?
-if [[ $CC_S -eq 2 ]] && grep -q 'ticket.claimed-by-other' <<<"$CC_ERR" && grep -q 'claimed by alice' <<<"$CC_ERR"; then
+if [[ $CC_S -eq 2 ]] && grep -q 'work.claimed-by-other' <<<"$CC_ERR" && grep -q 'claimed by alice' <<<"$CC_ERR"; then
     cc_ok "one worktree, one claim" "carol refused by name in alice's worktree"
 else
     cc_fail "one worktree, one claim" "exit $CC_S: $CC_ERR"
@@ -88,7 +88,7 @@ fi
 # any war command the holder runs (`war check` here, as $OPENWARRANT_ACTOR),
 # renews it; an expired lease is offered by `war ready` and reclaimed by a
 # plain `war claim`, journalled with the previous holder. Refused: a claim on
-# a live lease (ticket.claimed-by-other, naming when it runs out); the old
+# a live lease (work.claimed-by-other, naming when it runs out); the old
 # holder's done after the reclaim; and the lapsed state itself, observed
 # before each renewal so the renewal is what kept the claim.
 echo "== concurrency: leases (M11) =="
@@ -174,7 +174,7 @@ git -C "$CC_ROOT" checkout -q -- openwarrant.toml
 # lands; done, note, add and release at the current revision go through, and
 # without --if-rev everything behaves as before (the same race, unguarded,
 # lets every write through and only the last survives: three lost updates).
-# Refused, warrant.stale-revision naming the current revision, nothing
+# Refused, work.stale-revision naming the current revision, nothing
 # written: the three race losers; done after the item's line moved; note,
 # add and release at a stale revision; and war_note over MCP with a stale
 # if_rev.
@@ -196,12 +196,12 @@ for pid in "${CC_PIDS[@]}"; do wait "$pid"; done
 CC_WON=""; CC_STALE=0
 for p in 0 1 3 4; do
     if [[ "$(cat "$CC_DIR/rc.$p")" == 0 ]]; then CC_WON="$CC_WON$p"; fi
-    if grep -q 'warrant.stale-revision' "$CC_DIR/err.$p" && grep -q 'and it is now sha256:' "$CC_DIR/err.$p"; then CC_STALE=$((CC_STALE + 1)); fi
+    if grep -q 'work.stale-revision' "$CC_DIR/err.$p" && grep -q 'and it is now sha256:' "$CC_DIR/err.$p"; then CC_STALE=$((CC_STALE + 1)); fi
 done
 CC_PRIO=$(cc_field "$(cc_json "$CC_ROOT" show "$CC_K")" 'v["result"]["ticket"]["priority"]')
 CC_EDITS=$(( $(grep -c '"ticket.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl") - CC_EDITS0 ))
 if [[ "$CC_SHOWN" == "$CC_MODEL" && ${#CC_WON} -eq 1 && $CC_STALE -eq 3 && "$CC_PRIO" == "$CC_WON" && $CC_EDITS -eq 1 ]]; then
-    cc_ok "--if-rev: one write of four lands" "show's revisions are war model's; racer-$CC_WON won; 3 refused warrant.stale-revision naming the current revision; one ticket.edited"
+    cc_ok "--if-rev: one write of four lands" "show's revisions are war model's; racer-$CC_WON won; 3 refused work.stale-revision naming the current revision; one ticket.edited"
 else
     cc_fail "--if-rev: one write of four lands" "show '$CC_SHOWN' model '$CC_MODEL' won '$CC_WON' stale $CC_STALE priority $CC_PRIO edits $CC_EDITS: $(cat "$CC_DIR"/err.* | head -2)"
 fi
@@ -237,7 +237,7 @@ cc_war "$CC_ROOT" note "$CC_K/$CC_KA" "current" --as lena --if-rev "$CC_IR2" >/d
 cc_war "$CC_ROOT" add "$CC_K" "on time" --as lena --if-rev "$CC_KR" >/dev/null 2>&1; CC_S6=$?
 cc_war "$CC_ROOT" done "$CC_K/$CC_KA" --as lena --if-rev "$CC_IR2" >/dev/null 2>&1; CC_S7=$?
 CC_ALL=0
-for e in "$CC_ERR" "$CC_ERR2" "$CC_ERR3" "$CC_ERR4"; do grep -q 'warrant.stale-revision' <<<"$e" && CC_ALL=$((CC_ALL + 1)); done
+for e in "$CC_ERR" "$CC_ERR2" "$CC_ERR3" "$CC_ERR4"; do grep -q 'work.stale-revision' <<<"$e" && CC_ALL=$((CC_ALL + 1)); done
 if [[ $CC_S -eq 2 && $CC_S2 -eq 2 && $CC_S3 -eq 2 && $CC_S4 -eq 2 && $CC_ALL -eq 4 && $CC_UNTICKED -eq 1 && $CC_HELD -eq 1 \
     && $CC_S5 -eq 0 && $CC_S6 -eq 0 && $CC_S7 -eq 0 ]] && grep -q "and it is now $CC_IR2" <<<"$CC_ERR"; then
     cc_ok "stale done/note/add/release" "the line moved: four refused by name (the new revision named), nothing ticked, the claim kept; at the current revision all three wrote"
@@ -254,7 +254,7 @@ CC_TX=$(mktemp -p "$CC_TMP")
     printf '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"war_note","arguments":{"target":"%s","text":"fresh","if_rev":"%s","actor":"mcp"}}}\n' "$CC_K" "$CC_KR"
 } > "$CC_TX"
 CC_MCP=$(cd "$CC_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$CC_WAR" "$CC_TX" 2>/dev/null)
-if grep -q '"id":2.*warrant.stale-revision' <<<"$CC_MCP" && grep -q '"id":3.*"exit_code":0' <<<"$CC_MCP" \
+if grep -q '"id":2.*work.stale-revision' <<<"$CC_MCP" && grep -q '"id":3.*"exit_code":0' <<<"$CC_MCP" \
     && grep -q 'mcp:\*\* fresh' "$CC_ROOT/docs/tickets/$CC_K/atoms/10-intent.md" \
     && ! grep -q 'mcp:\*\* stale' "$CC_ROOT/docs/tickets/$CC_K/atoms/10-intent.md"; then
     cc_ok "if_rev over MCP" "war_note: stale refused by name, current written"
@@ -268,10 +268,11 @@ fi
 # exactly one wins, its claim the remote's ref; done deletes the ref, and the
 # other clone then claims the item; a claim whose lease ran out on the other
 # machine is reclaimed across the remote, journalled from its holder.
-# Refused, by name: the seven losers (ticket.claimed-by-other; the clone that
+# Refused, by name: the seven losers (work.claimed-by-other; the clone that
 # won locally and lost at the remote names the remote's holder and keeps no
 # lock); and a claim when the remote cannot be reached
-# (ticket.claim-remote-unreachable), nothing claimed.
+# (work.claim-remote-unreachable, UNKNOWN: never a granted claim), nothing
+# claimed.
 echo "== concurrency: claims across machines (M11) =="
 CC_X="$CC_TMP/machines"; mkdir -p "$CC_X"
 git -C "$CC_ROOT" checkout -q -- openwarrant.toml
@@ -302,7 +303,7 @@ CC_WIN=""; CC_NAMED=0
 for f in "$CC_X"/rc.*; do
     a=${f##*/rc.}
     if [[ "$(cat "$f")" == 0 ]]; then CC_WIN="$CC_WIN $a"
-    elif grep -q 'ticket.claimed-by-other' "$CC_X/err.$a"; then CC_NAMED=$((CC_NAMED + 1)); fi
+    elif grep -q 'work.claimed-by-other' "$CC_X/err.$a"; then CC_NAMED=$((CC_NAMED + 1)); fi
 done
 CC_WIN=${CC_WIN# }
 CC_REF="refs/openwarrant/claims/$CC_M--$CC_MA"
@@ -350,10 +351,10 @@ git -C "$CC_X/$CC_LM" remote set-url origin "$CC_X/no-such-remote.git"
 CC_ERR=$(cc_war "$CC_X/$CC_LM" claim "$CC_M/$CC_MB" --as cut-off 2>&1 >/dev/null); CC_S=$?
 CC_LEFT=0; [[ -e "$CC_X/$CC_LM/.git/openwarrant/claims/$CC_M--$CC_MB.lock" ]] && CC_LEFT=1
 git -C "$CC_X/$CC_LM" remote set-url origin "$CC_X/bare.git"
-if [[ $CC_S -eq 2 && $CC_LEFT -eq 0 ]] && grep -q 'ticket.claim-remote-unreachable' <<<"$CC_ERR" && grep -q 'nothing was claimed' <<<"$CC_ERR"; then
-    cc_ok "an unreachable remote is refused" "ticket.claim-remote-unreachable; no lock left on this machine"
+if [[ $CC_S -eq 2 && $CC_LEFT -eq 0 ]] && grep -q '^UNKNOWN (work.claim-remote-unreachable)' <<<"$CC_ERR" && grep -q 'nothing was claimed' <<<"$CC_ERR"; then
+    cc_ok "an unreachable remote is UNKNOWN" "work.claim-remote-unreachable, never a granted claim; no lock left on this machine"
 else
-    cc_fail "an unreachable remote is refused" "exit $CC_S, lock left $CC_LEFT: $CC_ERR"
+    cc_fail "an unreachable remote is UNKNOWN" "exit $CC_S, lock left $CC_LEFT: $CC_ERR"
 fi
 
 # Alias safety across branches. A scratch program (AL) and a clone of it.
@@ -459,7 +460,7 @@ MG_TICKS=$(grep -c '^- \[x\]' "$MG_CL"); MG_ADDS=$(grep -c '^- \[ \] Added by' "
 MG_HEAD=$(grep -c '^## Notes$' "$MG_IN"); MG_NOTES=$(grep -c 'noted by' "$MG_IN")
 MG_JN=$(( $(wc -l <"$MG_J") - MG_J0 ))
 cc_war "$MG_ROOT" check "$MG_T" >/dev/null 2>&1; MG_C=$?
-MG_JC=$(cc_war "$MG_ROOT" check 2>&1 | grep -c 'journal.rewritten')
+MG_JC=$(cc_war "$MG_ROOT" check 2>&1 | grep -c 'work.journal-rewritten')
 if [[ $MG_ATTR -eq 1 && $MG_L -eq 0 && $MG_R -eq 0 && $MG_S -eq 0 && $MG_TICKS -eq 2 && $MG_ADDS -eq 2 && $MG_HEAD -eq 1 \
     && $MG_NOTES -eq 2 && $MG_JN -eq $((MG_JL + MG_JR)) && $MG_C -eq 0 && $MG_JC -eq 0 ]]; then
     cc_ok "two branches merge cleanly" "adjacent ticks, two adds, two notes (one heading), $MG_JL+$MG_JR journal lines kept; war check passes"

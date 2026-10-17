@@ -114,9 +114,9 @@ fn unknown_times_sort_last_and_other_events_do_not_reset_age() {
     let original = fs::read_to_string(&journal).unwrap();
     let mut event: serde_json::Value = serde_json::from_str(&original).unwrap();
     event["id"] = "01a0ac9b-3953-7511-86f6-7fb1f92a1526".into();
-    event["idempotency_key"] = "other-event".into();
     event["type"] = "dispatch.compiled".into();
     event["occurred_at"] = "2025-01-01T00:00:00Z".into();
+    event["idempotency_key"] = v1_key(&event).into();
     fs::write(
         &journal,
         format!("{original}{}\n", serde_json::to_string(&event).unwrap()),
@@ -227,4 +227,15 @@ fn damaged_repository_containers_refuse() {
         assert!(!war(&root, &["inbox"]).status.success(), "{name}");
         fs::remove_dir_all(root).unwrap();
     }
+}
+
+/// The FORMAT-1.0 §11.2 key of a v1 event: sha256 of `<uuid> LF <type> LF
+/// <payload text>`. A line whose key does not match is malformed.
+fn v1_key(event: &serde_json::Value) -> String {
+    use sha2::Digest;
+    let s = |k: &str| event[k].as_str().unwrap_or_default().to_owned();
+    let d = sha2::Sha256::digest(
+        format!("{}\n{}\n{}", s("warrant_uuid"), s("type"), s("payload")).as_bytes(),
+    );
+    d.iter().map(|b| format!("{b:02x}")).collect()
 }

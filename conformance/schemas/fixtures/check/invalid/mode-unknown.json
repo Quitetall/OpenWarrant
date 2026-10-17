@@ -1,0 +1,16 @@
+{
+  "why": "section 12: `mode` is `threshold`, `best` or `optimise`",
+  "expect": "@fields/mode enum",
+  "instance": {
+    "id": "CHK-reset",
+    "type": "kpi",
+    "title": "reset tests pass",
+    "fields": {
+      "run": "./bench",
+      "direction": "max",
+      "mode": "maximise"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

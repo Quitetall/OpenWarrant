@@ -1,0 +1,4 @@
+id = "310-context-preset-agent-header"
+kind = "accept"
+section = "10.4"
+says = """Without `--preset` the preset is `agent`. The packet header names the preset in place of `walk <name>`: `preset <name> (walk <walk>)`."""

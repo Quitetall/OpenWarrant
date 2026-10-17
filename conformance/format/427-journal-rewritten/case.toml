@@ -1,0 +1,5 @@
+id = "427-journal-rewritten"
+kind = "refuse"
+section = "11.2"
+rule = "work.journal-rewritten"
+says = """a tool MUST refuse a journal whose committed lines were changed or removed (`work.journal-rewritten`)"""

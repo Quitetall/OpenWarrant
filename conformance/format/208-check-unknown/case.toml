@@ -1,0 +1,5 @@
+id = "208-check-unknown"
+kind = "unknown"
+section = "12"
+rule = "check.unknown"
+says = """A run that could not complete (timeout, missing tool, no number from a kpi) is `UNKNOWN` (`check.unknown`): it ticks nothing and is never reported as a pass or a fail."""

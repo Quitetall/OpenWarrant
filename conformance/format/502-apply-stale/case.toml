@@ -1,0 +1,5 @@
+id = "502-apply-stale"
+kind = "refuse"
+section = "10.5"
+rule = "apply.stale"
+says = """otherwise refuses it (`apply.stale`) when the source span's current revision is not the marked one: someone changed it since the package was made"""

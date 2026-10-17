@@ -369,7 +369,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
             },
             authorizer,
         );
-        // FORMAT-1.0 §12: the manifest's identity as the document's fields,
+        // FORMAT-1.0 §14: the manifest's identity as the document's fields,
         // `enterprise_id` as the federation extension `kf.enterprise_id`
         // (omitted when empty). The revision above is unchanged.
         {
@@ -397,7 +397,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                 .map(|a| (repo.relative(&one.dir.join(&a.source)), digest(&a.bytes), a))
                 .collect()
         };
-        // FORMAT-1.0 §12: the intent, basis and work order atoms are the
+        // FORMAT-1.0 §14: the intent, basis and work order atoms are the
         // sections `S-intent`, `S-basis` and `S-work-order`, each with the
         // revision of its own atom's bytes.
         for (role, sid, name) in LEGACY_SECTIONS {
@@ -461,7 +461,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         for (source, rev, atom) in atoms_of("milestones") {
             let text = String::from_utf8_lossy(&atom.bytes);
             if let Ok(g) = openwarrant_core::milestones::parse(&text) {
-                // FORMAT-1.0 §4.1, §12: each milestone a record; a stage
+                // FORMAT-1.0 §4.1, §14: each milestone a record; a stage
                 // and an obligation `part_of` the milestone that names it.
                 for m in &g.milestones {
                     let id = format!("{alias}/{}", m.id);
@@ -519,7 +519,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     rev.clone(),
                     Some(governor),
                 );
-                // Not in FORMAT-1.0 §12's table: its `[[…]]` entry is its
+                // Not in FORMAT-1.0 §14's table: its `[[…]]` entry is its
                 // span, its `title` the title, its `target_ref` a field
                 // (what a work document's `paths` holds in Format 1.0).
                 let r = b.last();
@@ -868,7 +868,7 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
                     .unwrap_or_else(|| digest(a.body.as_bytes())),
                 None,
             );
-            // FORMAT-1.0 §12: one record, `adr_uuid` → `uuid`, `status` a
+            // FORMAT-1.0 §14: one record, `adr_uuid` → `uuid`, `status` a
             // field, its `# ` heading the title.
             {
                 let r = b.last();
@@ -1109,7 +1109,15 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
         );
     }
 
-    seal(b, repo)
+    let mut model = seal(b, repo)?;
+    // FORMAT-1.0 §4.5, Appendix C.3: a specification's acceptance, held per
+    // record, from the signed acts that cover each record's revision now.
+    model
+        .states
+        .extend(crate::spec_accept::model_states(corpus, &model));
+    model.states.sort();
+    model.states.dedup();
+    Ok(model)
 }
 
 /// The tickets' part of the model alone, and with `record_atoms` the record
@@ -1154,14 +1162,22 @@ fn lower_tickets(b: &mut Builder, corpus: &Corpus) {
     let repo = corpus.repo();
     match corpus.tickets() {
         Ok((tickets, faults)) => {
-            for f in faults {
+            // A Format 1.0 ticket is lowered as the document it is
+            // (`lower_document`), its faults reported by its reader.
+            for f in faults.iter().filter(|f| {
+                !f.rule.starts_with("format.")
+                    && !f
+                        .file
+                        .as_deref()
+                        .is_some_and(crate::ticket::format::is_document_path)
+            }) {
                 b.diagnose(
                     "model.ticket-unreadable",
                     f.file.as_deref().unwrap_or("tickets"),
                     f.message.clone(),
                 );
             }
-            for t in tickets {
+            for t in tickets.iter().filter(|t| !t.format) {
                 let tid = t.id().to_owned();
                 let manifest = t.dir.join("manifest.toml");
                 b.record(
@@ -1172,7 +1188,7 @@ fn lower_tickets(b: &mut Builder, corpus: &Corpus) {
                     None,
                 );
                 lower_ticket(b.last(), &t.manifest);
-                // FORMAT-1.0 §12: the intent atom `S-intent`; the checklist
+                // FORMAT-1.0 §14: the intent atom `S-intent`; the checklist
                 // `S-checklist`, its lines unchanged.
                 if let Some(path) = t.manifest.atom_path("intent") {
                     let path = t.dir.join(path);
@@ -1328,6 +1344,28 @@ fn spec_acceptor(corpus: &Corpus, revision: &str) -> Option<String> {
         .and_then(|r| r.acceptance.as_ref().map(|a| a.accepted_by.clone()))
 }
 
+/// The records of the Format 1.0 specification (FORMAT-1.0 §4.5): every
+/// unit and item of `SPEC.md` and its parts, and each document's own
+/// `doc:<path>` record, with the revision and `content_digest` the full
+/// model gives them. Read from the specification's documents alone, so a
+/// caller that needs only these (an acceptance, `war next`) does not pay
+/// for the whole model.
+#[must_use]
+pub fn spec_records(corpus: &Corpus) -> Vec<Record> {
+    let mut b = Builder::default();
+    for d in corpus
+        .format_docs()
+        .docs
+        .iter()
+        .filter(|d| d.admitted() && d.doc.profile == "spec")
+    {
+        lower_document(&mut b, d);
+    }
+    b.records.sort_by(|x, y| x.id.cmp(&y.id));
+    finish_content(&mut b, corpus.repo());
+    b.records
+}
+
 /// The specification's id while its bytes are an accepted revision's and
 /// the `spec` type selects `structure` and `acceptance`: the fixed state
 /// `accepted` (authenticated: it holds on the revision a human accepted).
@@ -1387,7 +1425,7 @@ fn fv(s: impl Into<String>) -> FieldValue {
     FieldValue::One(s.into())
 }
 
-/// The atoms a directory Warrant's sections come from (FORMAT-1.0 §12):
+/// The atoms a directory Warrant's sections come from (FORMAT-1.0 §14):
 /// (role, section id, default title).
 const LEGACY_SECTIONS: [(&str, &str, &str); 3] = [
     ("intent", "S-intent", "Intent"),
@@ -1423,7 +1461,7 @@ fn split_title(text: &str) -> (Option<String>, String) {
     }
 }
 
-/// A legacy atom as a section (FORMAT-1.0 §12): its `# ` heading the title
+/// A legacy atom as a section (FORMAT-1.0 §14): its `# ` heading the title
 /// (else `default`), the rest of its body the body, its frontmatter's dotted
 /// keys `ext` (DV-12). Its span is the whole atom, whose bytes its revision
 /// already is.
@@ -1487,7 +1525,7 @@ fn obligation_spans(text: &str) -> BTreeMap<String, (usize, usize, usize)> {
     out
 }
 
-/// A legacy obligation (FORMAT-1.0 §12): its statement the title, its
+/// A legacy obligation (FORMAT-1.0 §14): its statement the title, its
 /// `- **key:**` bullets fields. An authored `disposition` is state, not
 /// content (§3.7), and is no field.
 fn lower_obligation(
@@ -1618,7 +1656,7 @@ fn h1(text: &str) -> Option<String> {
     None
 }
 
-/// A legacy stage (FORMAT-1.0 §4.1, §12): `executor`, `tier`,
+/// A legacy stage (FORMAT-1.0 §4.1, §14): `executor`, `tier`,
 /// `budget_tokens` and `context` fields.
 fn lower_stage(
     r: &mut Record,
@@ -1658,7 +1696,7 @@ fn lower_stage(
     }
 }
 
-/// A legacy ticket (FORMAT-1.0 §12): its manifest keys as the document's
+/// A legacy ticket (FORMAT-1.0 §14): its manifest keys as the document's
 /// fields, its title the title.
 fn lower_ticket(r: &mut Record, m: &openwarrant_core::ticket::TicketManifest) {
     r.title = Some(m.title.clone());
@@ -1736,8 +1774,8 @@ fn lower_document(b: &mut Builder, d: &crate::format_doc::Loaded) {
     };
     let span = |s: usize, e: usize| sha256(d.bytes.get(s..e).unwrap_or_default());
     // The document's own record: a work document's is its alias; any other
-    // document's is `doc:<path>` of type `document` (§4, §5), and its
-    // records are `part_of` it.
+    // document's is `doc:<path>` of type `document` (§4, §5), or `spec`
+    // for a specification (§4.5), and its records are `part_of` it.
     let container = work
         .clone()
         .unwrap_or_else(|| format!("{}{}", crate::doc_index::ID_PREFIX, d.source));
@@ -1745,6 +1783,10 @@ fn lower_document(b: &mut Builder, d: &crate::format_doc::Loaded) {
         container.clone(),
         if work.is_some() {
             doc.record_type()
+        } else if d.place == crate::format_doc::Place::Spec || doc.profile == "spec" {
+            // §4.5: a specification's own record, `doc:SPEC.md` (or a
+            // part's `doc:<path>`), is of type `spec`.
+            "spec"
         } else {
             crate::doc_index::UNTYPED_TYPE
         },

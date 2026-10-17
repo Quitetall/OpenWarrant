@@ -1,0 +1,4 @@
+id = "056-check-record"
+kind = "accept"
+section = "12"
+says = """A **check** is a record saying what to run to establish something and when to run it"""

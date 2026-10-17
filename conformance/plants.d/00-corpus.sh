@@ -1173,7 +1173,7 @@ plant_cmd "a journal records the resolution" "resolution.recorded" "person://Bri
     "true" journal OW-WAR-0010
 
 # OBL-002. One committed line edited in place — the actor rewritten.
-plant "a journal line edited in place" "journal.rewritten" "extended, never edited" 2 \
+plant "a journal line edited in place" "work.journal-rewritten" "extended, never edited" 2 \
     "sed -i '1s|agent://claude|agent://someone-else|' docs/warrants/OW-WAR-0010/journal.jsonl; \
      assert_present 'someone-else' docs/warrants/OW-WAR-0010/journal.jsonl" \
     OW-WAR-0010
@@ -1185,7 +1185,7 @@ plant "a journal line edited in place" "journal.rewritten" "extended, never edit
 # signed and `resolution.signature_recorded` followed it — the type was then
 # still present after the delete, the no-op guard fired, and the whole battery
 # stopped. An id belongs to one line; a type does not.
-plant "a journal line deleted" "journal.rewritten" "extended, never edited" 2 \
+plant "a journal line deleted" "work.journal-rewritten" "extended, never edited" 2 \
     "LAST_ID=\$(grep -o '\"id\":\"[^\"]*\"' docs/warrants/OW-WAR-0010/journal.jsonl | tail -1); \
      sed -i '\$d' docs/warrants/OW-WAR-0010/journal.jsonl; \
      assert_gone \"\$LAST_ID\" docs/warrants/OW-WAR-0010/journal.jsonl" \
@@ -1193,7 +1193,7 @@ plant "a journal line deleted" "journal.rewritten" "extended, never edited" 2 \
 
 # An event appended for a different Warrant's uuid: append-only holds, identity does not.
 plant "a journal event for another warrant" "journal.wrong-warrant" "names warrant" 2 \
-    "printf '{\"v\":1,\"id\":\"01a00000-0000-7000-8000-000000000001\",\"warrant_uuid\":\"00000000-0000-7000-8000-000000000000\",\"type\":\"draft.revised\",\"class\":\"draft_history\",\"actor_ref\":\"agent://x\",\"occurred_at\":\"2026-09-02T00:00:00Z\",\"payload\":\"{}\",\"idempotency_key\":\"k\"}\n' >> docs/warrants/OW-WAR-0010/journal.jsonl" \
+    "printf '{\"v\":1,\"id\":\"01a00000-0000-7000-8000-000000000001\",\"warrant_uuid\":\"00000000-0000-7000-8000-000000000000\",\"type\":\"draft.revised\",\"class\":\"draft_history\",\"actor_ref\":\"agent://x\",\"occurred_at\":\"2026-09-02T00:00:00Z\",\"payload\":\"{}\",\"idempotency_key\":\"0c0bc12035dbb841239b267b460e46d01743022f37ce1ec0ead401e1befa016f\"}\n' >> docs/warrants/OW-WAR-0010/journal.jsonl" \
     OW-WAR-0010
 
 # OW-WAR-0016's amendment exposed two gaps in the authorize seam: a signature

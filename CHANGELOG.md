@@ -32,7 +32,102 @@ Notable changes to OpenWarrant. Format loosely follows
   `true` it is refused by name, `independence.single-actor-contradicted`,
   and the WARN stays. No preset writes it.
 
+- Checks and triggers under Format 1.0 draft 3 (FORMAT-1.0 §12). A Format
+  1.0 ticket's `check` and `kpi` records run through one runner: `war check
+  run [<alias>|<alias>/<CHK-id>]` (the `manual` trigger), `war done` (the
+  `done` trigger, each check's default: the item is ticked `observed` only
+  when its gating checks pass, and a fail or an UNKNOWN run ticks nothing),
+  `war check fire <trigger>` (`commit`, `paths:<glob>`, `pr.merged`,
+  `ci:<name>`, `schedule:<cron>`; what a hook and a CI step call), `war
+  check install-hook` (git's `post-commit`; a hook that is not
+  OpenWarrant's is refused, `check.hook-exists`), `war view watch --checks`
+  (fires `commit` as HEAD moves and `schedule:<cron>` in UTC) and the
+  action's `fire` input. Each firing records `trigger.fired` (the check
+  pinned at its revision, with the subject) and `check.run` (verdict, the
+  check's revision, each evaluated item's `[id, revision]`, the output's
+  sha256, the output kept in the evidence directory); a firing already
+  recorded runs nothing. `war check evaluate` applies recorded runs: a
+  pass on the check's current revision ticks each open item whose revision
+  it names at `observed` (`work.item_done` with `runs` and `episode`) and
+  raises a done one below it (`work.tick_raised`); a fail makes the check
+  `failing` (provenance `recorded`) and, with `reopen: true`, reopens each
+  done item it names (`work.item_reopened` with `episode`); an UNKNOWN run
+  is `check.unknown` and ticks nothing. A done's `runs` naming a passing
+  `check.run` back `observed`.
+
+- Work tracking under Format 1.0 draft 3 (FORMAT-1.0 §11). A Format 1.0
+  ticket (`docs/tickets/<id>.md` or `<id>/ticket.md`) is worked by `war
+  claim`, `done`, `add`, `note`, `admin release` and the new `war admin
+  reopen <item> --reason` (`work.item_reopened`), its journal written in
+  the `v: 2` envelope (`document_uuid`, an object payload, RFC 8785 lines,
+  `work.*` types). A directory ticket keeps writing `v: 1` and `ticket.*`;
+  a reader reads both, in one journal, and a `ticket.*` type as its
+  `work.*` name. `war check` now reads every ticket's journal
+  (`work.journal-torn`, `-malformed`, `-rewritten`) and warns of a tick
+  level the journal does not back (`work.tick-unbacked`). The kernel state
+  set gains `blocked`, `claimed`, `failing` (from a recorded `check.run`)
+  and `partially_accepted`, appended to `oh.war/model/v1`'s states.
+  `war next --at <RFC 3339>` answers as of a given time. Under draft 3
+  revision 1: a Format 1.0 ticket with no items is claimed and done as
+  itself (its done a `work.item_done` naming it, no line added); an item
+  is `blocked` while its document's `depends_on` is not done; a `part_of`
+  child counts as an item of its parent's phase; a journal line lacking a
+  member, with a `v` other than 1 or 2, or whose key does not match is
+  `work.journal-malformed`, a `v` above 2 UNKNOWN `work.journal-newer`,
+  and only a committed line missing, changed or reordered is
+  `work.journal-rewritten`; of two conflicting events the later
+  `occurred_at` (then the greater `id`) wins. `[claims]
+  claim_lease_minutes`/`claim_ttl_minutes` and `[next] prior_secs` are
+  read first, the old `[tickets]`/`[go]` keys after. The estimate median
+  of an even count is the lower middle value, and a missing `created_at`
+  sorts last.
+
+- `war plan states [--at <RFC 3339>]` (FORMAT-1.0 §11.1, draft 3 revision
+  1): each state of the work documents by its family (`phase`,
+  `checklist`, ...) and provenance (`computed`, `recorded`, `declared`),
+  one `checklist` state per item, with the journal findings it was read
+  under; every state of a document whose journal holds a line newer than
+  v2 is UNKNOWN and left out (`unknown`). `war claim`, `done` and `note`
+  take a hidden `--at` for replaying a recorded history (the conformance
+  corpus's tracking cases now run against war). A Format 1.0 document's
+  claim, done, reopen and release carry `episode` (§11.2).
+
 ### Changed
+
+- FORMAT-1.0 §11 as the conformance corpus reads it: a Format 1.0
+  document's `war note` is one `work.note_added` event `{target, note}`
+  and no longer edits the document (`war show` lists the journal's notes);
+  the same note from the same actor replays, from another it is refused
+  `work.idempotency-conflict` at the line that records it. An unterminated
+  last journal line is `work.journal-torn` even when it parses. Journal,
+  stale-revision and whole-document claim refusals name the faulty line
+  or the holder's claim file. `war done --if-rev` on an item nobody holds
+  claims it first (compare-and-set keeps two finishers apart); without a
+  base an unclaimed done is still refused. An expired claim no longer
+  blocks a claim on its document or item. A done suffix's unknown tick
+  level (`[claimed]`) is refused `format.item` (§3.8). A profile file in
+  7.5's shape without `format` governs nothing and no longer stops the
+  legacy registry: its documents read `format.profile-unknown`, with a
+  `profile.format-missing` warning. `observed` is backed by a done naming
+  passing `check.run`s by `run` id (§11.4).
+
+- `war next`, `war view ready` and `war evidence go` share FORMAT-1.0
+  §11.5's order: due (inherited from what waits on an item), then the
+  remaining path (critical path first), then priority, `created_at`, id and
+  the item's position. A claim past its TTL whose lease is still live no
+  longer leaves its item in the ready set: it is live, and `war claim
+  --steal` still takes it. `oh.war/ticket-ready/v1` rows carry `due` and
+  `remaining_secs`.
+- Rule ids renamed under `work.` (FORMAT-1.0 §13.2), each message naming
+  the old id for one release (`(formerly ...)`): `work.stale-revision`
+  (`warrant.stale-revision`), `work.claimed-by-other`
+  (`ticket.claimed-by-other`), `work.claim-remote-unreachable`
+  (`ticket.claim-remote-unreachable`, now UNKNOWN rather than an error),
+  `work.journal-rewritten` (`journal.rewritten`), `work.journal-malformed`
+  (`journal.malformed`), `work.journal-torn` (`journal.torn-tail`),
+  `work.idempotency-conflict` (`journal.idempotency-conflict`). The same
+  fact in a `v: 1` and a `v: 2` line is one fact: payloads are compared as
+  RFC 8785 bytes.
 
 - `war init` with no flags writes the `vibe` preset: no signatures, the PR
   gate reported but not required, and `war done` claims an unclaimed item

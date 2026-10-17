@@ -1,0 +1,5 @@
+id = "507-apply-block-does-not-parse"
+kind = "refuse"
+section = "10.5"
+rule = "format.attribute"
+says = """otherwise parses the block as a unit under section 3 and refuses it (the rule id of the fault) when it does not parse"""

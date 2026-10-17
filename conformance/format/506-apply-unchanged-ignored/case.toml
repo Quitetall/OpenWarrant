@@ -1,0 +1,4 @@
+id = "506-apply-unchanged-ignored"
+kind = "accept"
+section = "10.5"
+says = """ignores it when its text equals the source span at the marked revision"""

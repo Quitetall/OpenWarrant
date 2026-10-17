@@ -1,0 +1,4 @@
+id = "508-apply-box-reopen"
+kind = "accept"
+section = "10.5"
+says = """`[x]` to `[ ]` records `reopen`, as events of section 11 by the actor applying the package, and the writer then rewrites the line as 3.8 shows."""

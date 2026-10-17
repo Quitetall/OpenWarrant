@@ -1,0 +1,14 @@
+{
+  "why": "section 12: `run` is REQUIRED",
+  "expect": "'run' is a required property",
+  "instance": {
+    "id": "CHK-reset",
+    "type": "check",
+    "title": "reset tests pass",
+    "fields": {
+      "on": "done"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

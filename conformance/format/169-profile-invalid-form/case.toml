@@ -1,0 +1,5 @@
+id = "169-profile-invalid-form"
+kind = "refuse"
+section = "7.5"
+rule = "profile.invalid"
+says = """an `extends` naming no profile, or a `form` other than its base's."""

@@ -19,7 +19,8 @@
 //!   (`adr`), the roadmap record's atoms and the plans it retires
 //!   (`roadmap`), each only where that type selects `structure`;
 //! - it is a record atom under `docs/records/<area>/`, governed by the
-//!   profile its front matter names;
+//!   profile its front matter names, or a Format 1.0 specification
+//!   (`SPEC.md`, `spec/<area>.md`, FORMAT-1.0 §4.5);
 //! - it is an instruction file read as `instruction` records (M16);
 //! - it was **adopted**: `war plan type <file> <type>` recorded it in
 //!   [`TYPES_FILE`], mapping its path to a document type, and never touched
@@ -392,8 +393,11 @@ pub fn load(corpus: &Corpus) -> Index {
     // An adopted document is indexed wherever it is.
     paths.extend(adopted.keys().cloned());
     let stores = store_files(corpus);
+    // A Format 1.0 specification (`SPEC.md`, `spec/<area>.md`) is read as
+    // records, like a record atom: its own record is `doc:<path>` already.
     let records: BTreeSet<String> = crate::records::files(repo)
         .iter()
+        .chain(&crate::format_doc::spec_files(repo))
         .map(|p| repo.relative(p))
         .collect();
     let instructions: BTreeSet<String> = crate::instructions::files(repo)

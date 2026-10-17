@@ -1,0 +1,5 @@
+id = "161-spec-version-missing"
+kind = "refuse"
+section = "4.5"
+rule = "format.field-missing"
+says = """`version` is REQUIRED on `SPEC.md`"""

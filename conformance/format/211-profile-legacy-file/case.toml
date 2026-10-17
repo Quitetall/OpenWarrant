@@ -1,0 +1,5 @@
+id = "211-profile-legacy-file"
+kind = "unknown"
+section = "7.5"
+rule = "format.profile-unknown"
+says = """a profile file without that key is a legacy profile (section 14) and never governs a Format 1.0 document."""

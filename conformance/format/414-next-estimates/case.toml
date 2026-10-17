@@ -1,0 +1,4 @@
+id = "414-next-estimates"
+kind = "accept"
+section = "11.5"
+says = """An **estimate** is the median, over done items, of the time from an item's last `work.claimed` to its `work.item_done`, taken over items of the same `type` sharing a label, else sharing a label, else of the same `type`, else all"""

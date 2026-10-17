@@ -21,16 +21,26 @@ plant_cmd "a proposed revision appears in the pending set" "0.1.0-draft.9" "acce
 # takes longer than that, the proposal landed inside it, and the loop — right
 # not to call an act "new" that was there when it looked — printed no `+`.
 WATCH_FILE=$(mktemp)
-"$WAR" watch --interval 200 --ticks 60 > "$WATCH_FILE" 2>/dev/null &
+timeout 120 "$WAR" watch --interval 200 --ticks 60 > "$WATCH_FILE" 2>/dev/null &
 WATCH_PID=$!
-for _ in $(seq 1 200); do [[ -s "$WATCH_FILE" ]] && break; sleep 0.1; done
-"$WAR" sas propose 0.1.0-draft.9 >/dev/null 2>&1
+# Wait for actual readiness, bounded by the watcher process deadline. A slow
+# initial snapshot must not turn a post-snapshot mutation into initial state.
+WATCH_READY=0
+while kill -0 "$WATCH_PID" 2>/dev/null; do
+    if [[ -s "$WATCH_FILE" ]]; then WATCH_READY=1; break; fi
+    sleep 0.1
+done
+WATCH_PROPOSAL_STATUS=1
+if [[ $WATCH_READY -eq 1 ]]; then
+    timeout 60 "$WAR" sas propose 0.1.0-draft.9 >/dev/null 2>&1
+    WATCH_PROPOSAL_STATUS=$?
+fi
 wait "$WATCH_PID"
 WATCH_STATUS=$?
 WATCH_OUT=$(cat "$WATCH_FILE")
 command rm -f "$WATCH_FILE"
 restore
-if [[ $WATCH_STATUS -eq 0 ]] && grep -Fq -- '+ ' <<< "$WATCH_OUT" && grep -Fq -- '0.1.0-draft.9' <<< "$WATCH_OUT"; then
+if [[ $WATCH_READY -eq 1 && $WATCH_PROPOSAL_STATUS -eq 0 && $WATCH_STATUS -eq 0 ]] && grep -Fq -- '+ ' <<< "$WATCH_OUT" && grep -Fq -- '0.1.0-draft.9' <<< "$WATCH_OUT"; then
     printf 'ok    %-34s the loop printed the new act and exited\n' "watch prints what appeared"
     PASSED=$((PASSED + 1))
 else

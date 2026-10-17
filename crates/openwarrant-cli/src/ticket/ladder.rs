@@ -44,17 +44,17 @@ use crate::repo::{RepoError, Repository};
 /// The journal events the ladder records in a ticket's journal.
 pub mod event {
     /// `war add --test/--kpi/--milestone`.
-    pub const PART_ADDED: &str = "ticket.part_added";
+    pub const PART_ADDED: &str = "work.part_added";
     /// A `war done --check` that did not tick: what ran and why.
-    pub const CHECK_RUN: &str = "ticket.check_run";
+    pub const CHECK_RUN: &str = "work.check_run";
     /// One KPI measurement: value, verdict, commit.
-    pub const KPI_RUN: &str = "ticket.kpi_run";
+    pub const KPI_RUN: &str = "work.kpi_run";
     /// A done item's tick raised to a higher level.
-    pub const TICK_RAISED: &str = "ticket.tick_raised";
+    pub const TICK_RAISED: &str = "work.tick_raised";
     /// An independent verification ingested for an item.
-    pub const TICK_VERIFIED: &str = "ticket.tick_verified";
+    pub const TICK_VERIFIED: &str = "work.tick_verified";
     /// A human's signature over an item's tick, verified and recorded.
-    pub const TICK_SIGNED: &str = "ticket.tick_signed";
+    pub const TICK_SIGNED: &str = "work.tick_signed";
 }
 
 /// Where `war done --check` and `war evidence kpi run` leave each command's output,
@@ -158,20 +158,33 @@ pub fn backing(t: &Ticket) -> Backing {
     let Ok(text) = crate::vfs::read_to_string(t.dir.join(crate::journal_cmd::FILE)) else {
         return out;
     };
-    if !(text.contains("level") || text.contains("ticket.kpi_run") || text.contains("ticket.tick_"))
-    {
+    if !(text.contains("level") || text.contains(".kpi_run") || text.contains(".tick_")) {
         return out;
     }
     let Ok(journal) = crate::journal_cmd::parse(&text) else {
         return out;
     };
+    // FORMAT-1.0 §11.4, §12: a done's `runs` may name recorded `check.run`
+    // events by their `run`; those that passed back `observed`.
+    let passed: BTreeSet<String> = journal
+        .events
+        .iter()
+        .filter(|e| e.event_type == super::event::CHECK_RUN)
+        .filter_map(|e| serde_json::from_str::<crate::states::CheckRun>(&e.payload).ok())
+        .filter(|r| r.verdict.eq_ignore_ascii_case("pass"))
+        .map(|r| r.run)
+        .collect();
     for e in &journal.events {
         let Ok(p) = serde_json::from_str::<serde_json::Value>(&e.payload) else {
             continue;
         };
         let s = |k: &str| p.get(k).and_then(|v| v.as_str()).map(str::to_owned);
         match e.event_type.as_str() {
-            super::event::ITEM_DONE if s("level").as_deref() == Some("observed") => {
+            // FORMAT-1.0 §11.4: `observed` is backed by a done with that
+            // level and passing runs, or a raise to it.
+            super::event::ITEM_DONE
+                if s("level").as_deref() == Some("observed") && passing(p.get("runs"), &passed) =>
+            {
                 if let Some(i) = s("item") {
                     out.observed.insert(i);
                 }
@@ -233,6 +246,59 @@ pub fn backing(t: &Ticket) -> Backing {
         }
     }
     out
+}
+
+/// Whether a done's `runs` pass (FORMAT-1.0 §11.4): at least one run
+/// passed and none failed or could not decide. A KPI that only records
+/// (`recorded`) decides nothing either way.
+fn passing(runs: Option<&serde_json::Value>, passed: &BTreeSet<String>) -> bool {
+    let Some(runs) = runs.and_then(serde_json::Value::as_array) else {
+        return false;
+    };
+    // A run named by its id reads as the recorded `check.run` says; one
+    // that names no passing run is no pass.
+    let verdict = |r: &serde_json::Value| match r.as_str() {
+        Some(id) if passed.contains(id) => "pass".to_owned(),
+        Some(_) => "unknown".to_owned(),
+        None => r
+            .get("verdict")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_owned(),
+    };
+    runs.iter().any(|r| verdict(r) == "pass")
+        && runs
+            .iter()
+            .all(|r| matches!(verdict(r).as_str(), "pass" | "recorded"))
+}
+
+/// `work.tick-unbacked` (FORMAT-1.0 §11.4), a warning: each done item of
+/// `report` whose written level no record backs, read down to the highest
+/// one that is.
+#[must_use]
+pub fn unbacked(store: &Store, t: &Ticket, report: &TickReport) -> Vec<Diagnostic> {
+    let file = store.rel(&t.checklist_path);
+    t.checklist
+        .items
+        .iter()
+        .filter(|i| i.done)
+        .filter_map(|i| {
+            let v = report.items.get(&item_key(i))?;
+            let why = v.unbacked.as_ref()?;
+            let rule = crate::work_rules::TICK_UNBACKED;
+            Some(Diagnostic::warn(
+                rule,
+                format!("{file}:{}", i.line + 1),
+                format!(
+                    "{}/{}: its [{}] marker is not backed by the journal ({why}); it reads as {}",
+                    t.id(),
+                    item_key(i),
+                    v.written.map_or("?", Level::as_str),
+                    v.level.as_str()
+                ),
+            ))
+        })
+        .collect()
 }
 
 /// What the statement a sign-off binds digests to: the ticket, the item and

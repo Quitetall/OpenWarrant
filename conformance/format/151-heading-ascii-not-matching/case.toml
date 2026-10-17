@@ -1,0 +1,5 @@
+id = "151-heading-ascii-not-matching"
+kind = "refuse"
+section = "3.4"
+rule = "format.heading"
+says = """A `## ` line containing ` · `, or beginning `## <id> | `, that does not match MUST be refused (`format.heading`); it is never prose."""

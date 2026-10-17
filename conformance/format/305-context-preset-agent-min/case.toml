@@ -1,0 +1,4 @@
+id = "305-context-preset-agent-min"
+kind = "accept"
+section = "10.4"
+says = """depth 1 over `out:implements`, `in:constrains` and `in:evaluates`; leaves out `rationale` fields and `option` and `consequence` records; budget 4000"""

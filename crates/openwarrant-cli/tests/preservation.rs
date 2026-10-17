@@ -2230,10 +2230,10 @@ fn recover_original_verification_blob_requires_exact_existing_journal_reference(
     let mut event: serde_json::Value =
         serde_json::from_str(original.lines().next().unwrap()).unwrap();
     event["id"] = "fixture-recovered-verdict".into();
-    event["idempotency_key"] = "fixture-recovered-verdict".into();
     event["type"] = "verification.recorded".into();
     event["actor_ref"] = "agent://fixture-verifier".into();
     event["payload"] = serde_json::json!({"record_digest":digest,"obligation":"OBL-001","disposition":"not_established"}).to_string().into();
+    event["idempotency_key"] = v1_key(&event).into();
     let run = |hash: &str| {
         f.run(&[
             "archive",
@@ -2254,6 +2254,7 @@ fn recover_original_verification_blob_requires_exact_existing_journal_reference(
     for field in ["actor_ref", "warrant_uuid"] {
         let mut wrong = event.clone();
         wrong[field] = "unrelated-fixture".into();
+        wrong["idempotency_key"] = v1_key(&wrong).into();
         std::fs::write(&journal, format!("{original}{wrong}\n")).unwrap();
         refusal(run(&digest), "existing journal reference required");
     }
@@ -2263,6 +2264,7 @@ fn recover_original_verification_blob_requires_exact_existing_journal_reference(
             serde_json::from_str(wrong["payload"].as_str().unwrap()).unwrap();
         payload[field] = "unrelated-fixture".into();
         wrong["payload"] = payload.to_string().into();
+        wrong["idempotency_key"] = v1_key(&wrong).into();
         std::fs::write(&journal, format!("{original}{wrong}\n")).unwrap();
         refusal(run(&digest), "existing journal reference required");
     }
@@ -2294,4 +2296,15 @@ fn recover_original_verification_blob_requires_exact_existing_journal_reference(
     std::fs::write(&retained, b"conflicting occupant").unwrap();
     assert!(!run(&digest).status.success());
     assert_eq!(std::fs::read(&retained).unwrap(), b"conflicting occupant");
+}
+
+/// The FORMAT-1.0 §11.2 key of a v1 event: sha256 of `<uuid> LF <type> LF
+/// <payload text>`. A line whose key does not match is malformed.
+fn v1_key(event: &serde_json::Value) -> String {
+    use sha2::Digest;
+    let s = |k: &str| event[k].as_str().unwrap_or_default().to_owned();
+    let d = sha2::Sha256::digest(
+        format!("{}\n{}\n{}", s("warrant_uuid"), s("type"), s("payload")).as_bytes(),
+    );
+    d.iter().map(|b| format!("{b:02x}")).collect()
 }

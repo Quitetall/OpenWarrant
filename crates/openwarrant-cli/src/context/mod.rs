@@ -89,6 +89,10 @@ pub struct Unit {
     pub paths: Vec<String>,
     /// A work document's UUIDv7, so `war://<uuid>` resolves to it.
     pub uuid: Option<String>,
+    /// Whether an editable preset wraps its text in `rec` markers (section
+    /// 10.5): a unit of a Format 1.0 document that is not the document's
+    /// own record (its frontmatter and preamble).
+    pub editable: bool,
 }
 
 /// One relation, `{from, kind, to}`.
@@ -108,6 +112,27 @@ pub struct Graph {
     pub edges: Vec<Edge>,
     /// Findings the adapter made while reading (sorted, deduplicated on use).
     pub diagnostics: Vec<Finding>,
+    /// What a preset that reads state read besides the documents (section
+    /// 10.4); `None` for a graph of the documents alone.
+    pub tracking: Option<Tracking>,
+}
+
+/// The journals, claims and time a preset that reads state answers at
+/// (section 10.4). The adapter fills it; the compiler only renders it, so
+/// [`compile`] stays a function of its graph.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Tracking {
+    /// The time, as given (`--at`) or read from the clock, RFC 3339.
+    pub at: String,
+    /// The `basis_digest` rule over `[path, sha256 of the file's bytes]` for
+    /// every journal and every claim file, sorted by path: `sha256:<64 hex>`.
+    pub journal_digest: String,
+    /// An item's `resume` state line, without its newline: `state <primary>[
+    /// · holder <actor> · lease <until>][ · by <actor> · <date> · <level>]`.
+    pub state_lines: BTreeMap<String, String>,
+    /// A work document's candidates of section 11.5, in order: what `next`
+    /// would offer of it.
+    pub next: BTreeMap<String, Vec<String>>,
 }
 
 impl Graph {
@@ -128,27 +153,211 @@ pub struct Finding {
 
 // ---- Arguments, refusals, output -----------------------------------------
 
+/// The built-in presets (section 10.4), in the table's order.
+pub const PRESETS: [&str; 5] = ["agent", "agent.min", "human", "review", "resume"];
+/// The preset without `--preset`.
+pub const DEFAULT_PRESET: &str = "agent";
+
+/// The walk steps of section 10.3, in order: what the walk named `core` follows.
+pub const CORE_STEPS: [&str; 8] = [
+    "out:implements",
+    "out:depends_on",
+    "in:constrains",
+    "out:selected_over",
+    "in:evaluates",
+    "out:part_of",
+    "in:part_of",
+    "in:implements",
+];
+
+/// A preset (section 10.4): a named set of choices for the compiler.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Preset {
+    pub name: String,
+    /// `core` for one that walks the core steps; else its own name.
+    pub walk: String,
+    /// The steps it follows, in order, by name ([`CORE_STEPS`], and
+    /// `out:evaluates`).
+    pub steps: Vec<&'static str>,
+    pub depth: usize,
+    /// Bytes; `None` for a preset without a budget (every record `[F]`).
+    pub budget: Option<usize>,
+    /// Record types it leaves out.
+    pub omit_types: Vec<String>,
+    /// Field names it cuts from the text it gives (the line and its
+    /// continuations).
+    pub omit_fields: Vec<String>,
+    /// Its records are wrapped in `rec` markers (section 10.5).
+    pub editable: bool,
+    /// It reads the journals and claims of section 11, at a time.
+    pub reads_state: bool,
+    /// `human`: the work document's own units first, in document order.
+    pub own_first: bool,
+    /// `resume`: the target's record and items, a state line under each
+    /// item, and `## Next`.
+    pub resume: bool,
+}
+
+impl Preset {
+    /// A built-in preset by name.
+    #[must_use]
+    pub fn builtin(name: &str) -> Option<Self> {
+        let core = Self {
+            name: name.to_owned(),
+            walk: WALK.to_owned(),
+            steps: CORE_STEPS.to_vec(),
+            depth: DEFAULT_DEPTH,
+            budget: Some(DEFAULT_BUDGET),
+            omit_types: Vec::new(),
+            omit_fields: Vec::new(),
+            editable: false,
+            reads_state: false,
+            own_first: false,
+            resume: false,
+        };
+        Some(match name {
+            "agent" => core,
+            "agent.min" => Self {
+                walk: name.to_owned(),
+                steps: vec!["out:implements", "in:constrains", "in:evaluates"],
+                depth: 1,
+                budget: Some(4000),
+                omit_types: vec!["option".to_owned(), "consequence".to_owned()],
+                omit_fields: vec!["rationale".to_owned()],
+                ..core
+            },
+            "human" => Self {
+                budget: None,
+                editable: true,
+                own_first: true,
+                ..core
+            },
+            "review" => Self {
+                walk: name.to_owned(),
+                steps: vec!["in:evaluates", "out:evaluates"],
+                depth: 2,
+                budget: None,
+                reads_state: true,
+                ..core
+            },
+            "resume" => Self {
+                depth: 1,
+                budget: None,
+                reads_state: true,
+                resume: true,
+                ..core
+            },
+            _ => return None,
+        })
+    }
+
+    /// A preset a profile declares (`[[presets]]`, section 10.4), by name:
+    /// its steps (the core walk's when it names none), depth (3), budget
+    /// (16000, or `none`), what it leaves out, whether it is editable and
+    /// whether it reads state. It walks under its own name unless its
+    /// steps are the core ones. `Err` names a step no walk knows.
+    pub fn declared(
+        name: &str,
+        profiles: &openwarrant_core::format_profile::Profiles,
+    ) -> Option<Result<Self, String>> {
+        use openwarrant_core::format_profile::Budget;
+        let p = profiles
+            .found()
+            .flat_map(|p| p.presets.iter())
+            .find(|p| p.name == name)?;
+        let mut steps = Vec::new();
+        for s in &p.steps {
+            match step(s) {
+                Some(found) => steps.push(found.0),
+                None => {
+                    return Some(Err(format!(
+                        "preset `{name}` names the step `{s}`, which no walk follows (the steps \
+                         are {} and out:evaluates)",
+                        CORE_STEPS.join(", ")
+                    )));
+                }
+            }
+        }
+        if steps.is_empty() {
+            steps = CORE_STEPS.to_vec();
+        }
+        let walk = if steps == CORE_STEPS {
+            WALK.to_owned()
+        } else {
+            name.to_owned()
+        };
+        Some(Ok(Self {
+            name: name.to_owned(),
+            walk,
+            steps,
+            depth: p
+                .depth
+                .and_then(|d| usize::try_from(d).ok())
+                .unwrap_or(DEFAULT_DEPTH),
+            budget: match p.budget {
+                Some(Budget::None) => None,
+                Some(Budget::Bytes(b)) => Some(usize::try_from(b).unwrap_or(usize::MAX)),
+                None => Some(DEFAULT_BUDGET),
+            },
+            omit_types: p.omit_types.clone(),
+            omit_fields: p.omit_fields.clone(),
+            editable: p.editable,
+            reads_state: p.reads_state,
+            own_first: false,
+            resume: false,
+        }))
+    }
+}
+
 /// `war context` arguments.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Options {
-    /// Bytes (`--tokens n` is `4n`).
-    pub budget: usize,
+    /// Bytes (`--tokens n` is `4n`); `None` for no budget.
+    pub budget: Option<usize>,
     pub depth: usize,
     /// Refuse rather than give any record by summary only.
     pub strict: bool,
+    /// The preset; its budget and depth are the defaults of the two above.
+    pub preset: Preset,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Self {
-            budget: DEFAULT_BUDGET,
-            depth: DEFAULT_DEPTH,
-            strict: false,
-        }
+        Self::of(Preset::builtin(DEFAULT_PRESET).unwrap_or_else(|| unreachable!()))
     }
 }
 
 impl Options {
+    /// A preset's own choices.
+    #[must_use]
+    pub fn of(preset: Preset) -> Self {
+        Self {
+            budget: preset.budget,
+            depth: preset.depth,
+            strict: false,
+            preset,
+        }
+    }
+
+    /// `preset` with `--budget` / `--tokens` (section 10.3: `--tokens n`
+    /// means `--budget 4n`) and `--depth` in place of its own, where given.
+    #[must_use]
+    pub fn with(
+        preset: Preset,
+        budget: Option<usize>,
+        tokens: Option<usize>,
+        depth: Option<usize>,
+    ) -> Self {
+        let mut o = Self::of(preset);
+        if let Some(b) = budget.or_else(|| tokens.map(|t| t.saturating_mul(4))) {
+            o.budget = Some(b);
+        }
+        if let Some(d) = depth {
+            o.depth = d;
+        }
+        o
+    }
+
     /// The budget from `--budget` / `--tokens` (section 10.3: `--tokens n`
     /// means `--budget 4n`), the default when neither is given.
     #[must_use]
@@ -214,12 +423,22 @@ pub struct PacketRecord {
 pub struct Packet {
     pub schema: String,
     pub target: String,
-    pub budget: usize,
+    /// Bytes; `null` for a preset without a budget.
+    pub budget: Option<usize>,
     /// UTF-8 bytes of the Markdown rendering.
     pub bytes: usize,
     pub depth: usize,
+    /// The preset it was compiled under (section 10.4).
+    pub preset: String,
     pub walk: String,
     pub selection_digest: String,
+    /// A preset that reads state: the digest of the journals and claim
+    /// files it read (section 10.4).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub journal: Option<String>,
+    /// A preset that reads state: the time it answered at.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub at: Option<String>,
     pub records: Vec<PacketRecord>,
     pub diagnostics: Vec<Finding>,
     /// The Markdown rendering itself; not serialized (it is the default
@@ -259,7 +478,7 @@ pub fn slug(name: &str) -> String {
 /// Section 10.3's type rank.
 #[must_use]
 pub fn type_rank(kind: &str) -> usize {
-    const RANK: [&str; 15] = [
+    const RANK: [&str; 18] = [
         "warrant",
         "ticket",
         "section",
@@ -269,9 +488,12 @@ pub fn type_rank(kind: &str) -> usize {
         "constraint",
         "decision",
         "interface",
+        "term",
         "option",
         "consequence",
         "obligation",
+        "check",
+        "kpi",
         "milestone",
         "stage",
         "instruction",
@@ -513,8 +735,10 @@ pub fn resolve(graph: &Graph, target: &str) -> Result<Seeds, Refusal> {
 
 // ---- Walk ------------------------------------------------------------------
 
-/// Section 10.3's steps, in order: `(name, direction out?, kind, from-type)`.
-const STEPS: [(&str, bool, &str, Option<&str>); 8] = [
+/// Every step a preset may name: `(name, direction out?, kind, from-type)`.
+/// Section 10.3's eight are [`CORE_STEPS`]; `review` adds `out:evaluates`
+/// (section 10.4).
+const STEPS: [(&str, bool, &str, Option<&str>); 9] = [
     ("out:implements", true, "implements", None),
     ("out:depends_on", true, "depends_on", None),
     ("in:constrains", false, "constrains", None),
@@ -523,7 +747,12 @@ const STEPS: [(&str, bool, &str, Option<&str>); 8] = [
     ("out:part_of", true, "part_of", None),
     ("in:part_of", false, "part_of", Some("consequence")),
     ("in:implements", false, "implements", Some("interface")),
+    ("out:evaluates", true, "evaluates", None),
 ];
+
+fn step(name: &str) -> Option<(&'static str, bool, &'static str, Option<&'static str>)> {
+    STEPS.iter().find(|s| s.0 == name).copied()
+}
 
 /// The step that gives an item root its document's Intent (or the document
 /// itself) at distance 1, outside the walk's eight (section 10.3, step 1).
@@ -544,9 +773,24 @@ pub struct Reached {
     pub via: Option<Via>,
 }
 
-/// Step 2: breadth-first from the seeds, to `depth`.
+/// Step 2: breadth-first from the seeds, to `depth`, over the core steps.
 #[must_use]
 pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Finding>) {
+    walk_over(graph, seeds, depth, &CORE_STEPS, &[])
+}
+
+/// Step 2 over `steps`, in their order, never reaching a record of a type
+/// in `omit` (a preset that leaves it out, section 10.4).
+#[must_use]
+pub fn walk_over(
+    graph: &Graph,
+    seeds: &Seeds,
+    depth: usize,
+    steps: &[&str],
+    omit: &[String],
+) -> (Vec<Reached>, Vec<Finding>) {
+    let steps: Vec<_> = steps.iter().filter_map(|s| step(s)).collect();
+    let omitted = |id: &str| graph.units.get(id).is_some_and(|u| omit.contains(&u.kind));
     let mut out_edges: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
     let mut in_edges: BTreeMap<(&str, &str), Vec<&str>> = BTreeMap::new();
     for e in &graph.edges {
@@ -569,7 +813,7 @@ pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Fi
         // to → (step index, from): the first by step order, then from id.
         let mut found: BTreeMap<String, (usize, String)> = BTreeMap::new();
         for from in &frontier {
-            for (si, (_, out, kind, from_type)) in STEPS.iter().enumerate() {
+            for (si, (_, out, kind, from_type)) in steps.iter().enumerate() {
                 let next = if *out {
                     out_edges.get(&(from.as_str(), *kind))
                 } else {
@@ -591,7 +835,10 @@ pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Fi
                         });
                         continue;
                     };
-                    if from_type.is_some_and(|t| unit.kind != t) || reached.contains_key(to) {
+                    if from_type.is_some_and(|t| unit.kind != t)
+                        || reached.contains_key(to)
+                        || omitted(to)
+                    {
                         continue;
                     }
                     let cand = (si, from.clone());
@@ -613,7 +860,7 @@ pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Fi
                 (
                     level,
                     Some(Via {
-                        step: STEPS[si].0.to_owned(),
+                        step: steps[si].0.to_owned(),
                         from,
                     }),
                 ),
@@ -622,7 +869,7 @@ pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Fi
         }
         if level == 1 {
             for (id, from) in &seeds.one {
-                if !reached.contains_key(id) {
+                if !reached.contains_key(id) && !omitted(id) {
                     reached.insert(id.clone(), (1, Some(item_intent(from))));
                     next.insert(id.clone());
                 }
@@ -642,6 +889,7 @@ pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Fi
     }
     let list = reached
         .into_iter()
+        .filter(|(id, _)| !omitted(id))
         .map(|(id, (distance, via))| Reached { id, distance, via })
         .collect();
     (list, findings.into_iter().collect())
@@ -649,21 +897,115 @@ pub fn walk(graph: &Graph, seeds: &Seeds, depth: usize) -> (Vec<Reached>, Vec<Fi
 
 // ---- Compile ---------------------------------------------------------------
 
+/// The work document a target names: the document itself, or the one an
+/// item target sits in. `None` for any other target.
+fn target_document(graph: &Graph, seeds: &Seeds) -> Option<String> {
+    let [root] = seeds.roots.as_slice() else {
+        return None;
+    };
+    let u = graph.units.get(root)?;
+    if u.work {
+        Some(u.id.clone())
+    } else if u.kind == "item" {
+        u.document.clone().filter(|d| graph.units.contains_key(d))
+    } else {
+        None
+    }
+}
+
+/// Whether `u` is the work document `doc` or one of its units.
+fn of_document(u: &Unit, doc: &str) -> bool {
+    u.id == doc || u.document.as_deref() == Some(doc)
+}
+
+/// `agent.min`: `text` without the fields named in `omit`, each line and
+/// its continuations, from the record's attribute block (the lines after
+/// its heading up to the first blank one). A section and an item have no
+/// fields to cut.
+fn without_fields(u: &Unit, text: &str, omit: &[String]) -> String {
+    if omit.is_empty() || matches!(u.kind.as_str(), "section" | "item") {
+        return text.to_owned();
+    }
+    let mut out = String::with_capacity(text.len());
+    let mut lines = text.split_inclusive('\n');
+    if let Some(first) = lines.next() {
+        out.push_str(first);
+    }
+    let (mut attrs, mut skipping) = (true, false);
+    for raw in lines {
+        let line = raw.trim_end_matches(['\n', '\r']);
+        if attrs && line.trim().is_empty() {
+            attrs = false;
+        }
+        if attrs {
+            if skipping && line.starts_with("  ") {
+                continue;
+            }
+            skipping = false;
+            let name = line.split_once(':').map(|(n, _)| n);
+            if name.is_some_and(|n| is_field_name(n) && omit.iter().any(|o| o == n)) {
+                skipping = true;
+                continue;
+            }
+        }
+        out.push_str(raw);
+    }
+    out
+}
+
+/// A field name (section 3.6): a lowercase letter, then lowercase letters,
+/// digits and `_`.
+fn is_field_name(n: &str) -> bool {
+    let mut c = n.chars();
+    c.next().is_some_and(|f| f.is_ascii_lowercase())
+        && c.all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '_')
+}
+
 /// `war context <target>`: the packet, or a refusal with nothing emitted.
 pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Refusal> {
-    let seeds = resolve(graph, target)?;
-    let (mut reached, mut findings) = walk(graph, &seeds, opts.depth);
+    let preset = &opts.preset;
+    let mut seeds = resolve(graph, target)?;
+    let own = target_document(graph, &seeds);
+    if preset.resume {
+        // The target's record and items (section 10.4).
+        let Some(doc) = &own else {
+            return Err(Refusal {
+                rule: RULE_TARGET_UNKNOWN,
+                message: format!(
+                    "{target:?}: preset `resume` picks up a Warrant or ticket, or an item of one; this target is neither"
+                ),
+                needed: None,
+            });
+        };
+        seeds.zero = graph
+            .units
+            .values()
+            .filter(|u| u.id == *doc || (u.kind == "item" && u.document.as_deref() == Some(doc)))
+            .map(|u| u.id.clone())
+            .collect();
+    }
+    let (mut reached, mut findings) =
+        walk_over(graph, &seeds, opts.depth, &preset.steps, &preset.omit_types);
     // Step 3: distance, type rank, source, line (then id, so ties are fixed).
-    reached.sort_by(|a, b| {
-        let (ua, ub) = (&graph.units[&a.id], &graph.units[&b.id]);
-        (a.distance, type_rank(&ua.kind), &ua.source, ua.line, &ua.id).cmp(&(
-            b.distance,
-            type_rank(&ub.kind),
-            &ub.source,
-            ub.line,
-            &ub.id,
-        ))
-    });
+    // `human` gives the work document's own units first, in document order.
+    let key = |r: &Reached| {
+        let u = &graph.units[&r.id];
+        if preset.own_first
+            && let Some(doc) = &own
+            && of_document(u, doc)
+        {
+            return (0, 0, 0, "", u.line, u.id.as_str());
+        }
+        (
+            1,
+            r.distance,
+            type_rank(&u.kind),
+            u.source.as_str(),
+            u.line,
+            u.id.as_str(),
+        )
+    };
+    reached.sort_by(|a, b| key(a).cmp(&key(b)));
     let shown_target = if graph.units.contains_key(target.trim()) {
         target.trim().to_owned()
     } else {
@@ -674,10 +1016,26 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
             .iter()
             .map(|r| (r.id.as_str(), graph.units[&r.id].revision.as_str())),
     );
+    let tracking = preset
+        .reads_state
+        .then_some(graph.tracking.as_ref())
+        .flatten();
     let mut head = format!(
-        "# Context: {shown_target}\n<!-- {SCHEMA} · budget {} · depth {} · walk {WALK} · selection {digest} -->\n\n## Index\n",
-        opts.budget, opts.depth
+        "# Context: {shown_target}\n<!-- {SCHEMA} · budget {} · depth {} · preset {} (walk {}) · selection {digest}",
+        opts.budget
+            .map_or_else(|| "none".to_owned(), |b| b.to_string()),
+        opts.depth,
+        preset.name,
+        preset.walk,
     );
+    if let Some(t) = tracking {
+        head.push_str(&format!(
+            " · journal {} · at {}",
+            short_revision(&t.journal_digest),
+            t.at
+        ));
+    }
+    head.push_str(" -->\n\n## Index\n");
     let index_at = head.len();
     for r in &reached {
         head.push_str("[F] ");
@@ -685,18 +1043,36 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
         head.push('\n');
     }
     head.push_str("\n## Records\n");
+    let text_of = |u: &Unit| -> Option<String> {
+        let mut text = without_fields(u, u.text.as_deref()?, &preset.omit_fields);
+        if !text.ends_with('\n') {
+            text.push('\n');
+        }
+        Some(text)
+    };
     let block = |u: &Unit| -> Option<String> {
-        let text = u.text.as_deref()?;
+        let text = text_of(u)?;
         let mut b = format!(
-            "> {} · {} · {}:{} · {}\n{text}",
+            "> {} · {} · {}:{} · {}\n",
             u.id,
             u.kind,
             u.source,
             u.line,
             short_revision(&u.revision)
         );
-        if !text.ends_with('\n') {
+        if preset.resume
+            && let Some(line) = tracking.and_then(|t| t.state_lines.get(&u.id))
+        {
+            b.push_str(line);
             b.push('\n');
+        }
+        if preset.editable && u.editable {
+            b.push_str(&format!(
+                "<!-- rec {} {}:{} {} -->\n{text}<!-- /rec -->\n",
+                u.id, u.source, u.line, u.revision
+            ));
+        } else {
+            b.push_str(&text);
         }
         b.push('\n');
         Some(b)
@@ -709,13 +1085,14 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
         .filter_map(|r| block(&graph.units[&r.id]))
         .map(|b| b.len())
         .sum();
-    if base > opts.budget || base + roots_bytes > opts.budget {
+    if let Some(budget) = opts.budget
+        && (base > budget || base + roots_bytes > budget)
+    {
         let needed = base + roots_bytes;
         return Err(Refusal {
             rule: RULE_OVER_BUDGET,
             message: format!(
-                "{shown_target}: the header and index ({base} bytes) and the roots' full text ({roots_bytes} bytes) need {needed} bytes; the budget is {}. Raise --budget (or --tokens), or ask for a narrower target",
-                opts.budget
+                "{shown_target}: the header and index ({base} bytes) and the roots' full text ({roots_bytes} bytes) need {needed} bytes; the budget is {budget}. Raise --budget (or --tokens), or ask for a narrower target"
             ),
             needed: Some(needed),
         });
@@ -728,14 +1105,19 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
     for r in &reached {
         let u = &graph.units[&r.id];
         // An item whose section is already given in full is there, in its
-        // line: it is `[F]` and costs nothing more (section 10.3).
-        if inside_full(graph, u, &full) {
+        // line: it is `[F]` and costs nothing more (section 10.3). An item
+        // that is the target has its own entry.
+        if !roots.contains(r.id.as_str()) && inside_full(graph, u, &full) {
             full.insert(r.id.clone());
             continue;
         }
         let Some(b) = block(u) else { continue };
         all_bytes += b.len();
-        if !stopped && base + body.len() + b.len() <= opts.budget {
+        if !stopped
+            && opts
+                .budget
+                .is_none_or(|budget| base + body.len() + b.len() <= budget)
+        {
             body.push_str(&b);
             full.insert(r.id.clone());
         } else {
@@ -749,7 +1131,8 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
             message: format!(
                 "{shown_target}: --strict, and {summary_only} of {} record(s) would be given by summary only; every record in full needs {all_bytes} bytes against a budget of {}{}",
                 reached.len(),
-                opts.budget,
+                opts.budget
+                    .map_or_else(|| "none".to_owned(), |b| b.to_string()),
                 if reached.iter().any(|r| graph.units[&r.id].text.is_none()) {
                     " (a record whose span is not known is never given in full)"
                 } else {
@@ -770,6 +1153,25 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
     markdown.push_str("\n## Records\n");
     debug_assert_eq!(markdown.len(), base);
     markdown.push_str(&body);
+    if preset.resume
+        && let Some(doc) = &own
+    {
+        // Up to three of the target's candidates, in the order of 11.5.
+        markdown.push_str("## Next\n");
+        for id in tracking
+            .and_then(|t| t.next.get(doc))
+            .into_iter()
+            .flatten()
+            .take(3)
+        {
+            let title = graph
+                .units
+                .get(id)
+                .map_or_else(|| "-".to_owned(), shown_title);
+            markdown.push_str(&format!("- {id} · {title}\n"));
+        }
+        markdown.push('\n');
+    }
     findings.extend(
         graph
             .diagnostics
@@ -796,7 +1198,13 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
                 distance: r.distance,
                 via: r.via.clone(),
                 tier: if is_full { "full" } else { "summary" }.to_owned(),
-                text: if is_full { u.text.clone() } else { None },
+                text: if is_full {
+                    u.text
+                        .as_deref()
+                        .map(|t| without_fields(u, t, &preset.omit_fields))
+                } else {
+                    None
+                },
             }
         })
         .collect();
@@ -806,8 +1214,11 @@ pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Re
         budget: opts.budget,
         bytes: markdown.len(),
         depth: opts.depth,
-        walk: WALK.to_owned(),
+        preset: preset.name.clone(),
+        walk: preset.walk.clone(),
         selection_digest: digest,
+        journal: tracking.map(|t| t.journal_digest.clone()),
+        at: tracking.map(|t| t.at.clone()),
         records,
         diagnostics: findings,
         markdown,
@@ -867,6 +1278,15 @@ fn index_blocks(graph: &Graph) -> BTreeMap<String, String> {
                     .as_deref()
                     .or(u.title.as_deref())
                     .map_or_else(|| "-".to_owned(), one_line)
+            })
+            .or_else(|| {
+                // A non-work document's own record (`doc:<path>`) carries
+                // the document's `summary`.
+                units
+                    .iter()
+                    .find(|u| u.id.starts_with("doc:"))
+                    .and_then(|u| u.summary.as_deref())
+                    .map(one_line)
             })
             .unwrap_or_else(|| "-".to_owned());
         let mut out = format!("\n## {source}\n> {summary}\n");
@@ -997,6 +1417,7 @@ pub fn report_of(result: &Result<Packet, Refusal>) -> crate::diagnostic::Report 
                     p.records.len(),
                     p.bytes,
                     p.budget
+                        .map_or_else(|| "no budget".to_owned(), |b| b.to_string())
                 ),
             ));
         }
@@ -1009,14 +1430,27 @@ pub fn report_of(result: &Result<Packet, Refusal>) -> crate::diagnostic::Report 
 /// under `--json` the `oh.war/report/v1` envelope whose `result` is the
 /// `oh.war/context/v1` packet. A refusal prints nothing on stdout in
 /// Markdown mode, names its rule on stderr, and exits 2.
+///
+/// A preset that reads state reads the model with its journals and claims,
+/// at `at` (`(RFC 3339 text, Unix seconds)`; the caller has set the time
+/// claims are judged at), and the files of [`adapter::tracking`].
 pub fn answer(
     mode: crate::output::Mode,
     corpus: &crate::corpus::Corpus,
     target: &str,
     opts: &Options,
+    at: Option<(String, u64)>,
 ) -> Result<u8, crate::repo::RepoError> {
     use std::io::Write as _;
-    let graph = graph_of(corpus)?;
+    let graph = match (&at, opts.preset.reads_state) {
+        (Some((text, secs)), true) => {
+            let model = crate::model::build(corpus)?;
+            let mut g = adapter::graph_reading_state(corpus, &model);
+            g.tracking = Some(adapter::tracking(corpus, &g, text, *secs));
+            g
+        }
+        _ => graph_of(corpus)?,
+    };
     let result = compile(&graph, target, opts);
     match mode {
         crate::output::Mode::Human => match result {
@@ -1035,6 +1469,34 @@ pub fn answer(
             let report = report_of(&result);
             let value = result.ok().map(|p| crate::output::value(&p));
             Ok(crate::output::finish(mode, "context", &report, value))
+        }
+    }
+}
+
+/// `war context --index`: the index of section 10.2 on stdout, exactly the
+/// bytes `war admin compile` writes to [`INDEX_PATH`]; under `--json` the
+/// envelope whose `result` is `{path, text}`.
+pub fn answer_index(
+    mode: crate::output::Mode,
+    corpus: &crate::corpus::Corpus,
+) -> Result<u8, crate::repo::RepoError> {
+    use std::io::Write as _;
+    let text = index(&graph_of(corpus)?);
+    match mode {
+        crate::output::Mode::Human => {
+            let mut out = std::io::stdout().lock();
+            let _ = out.write_all(text.as_bytes());
+            let _ = out.flush();
+            Ok(crate::EXIT_OK)
+        }
+        crate::output::Mode::Json => {
+            let mut report = crate::diagnostic::Report::default();
+            report.push(crate::diagnostic::Diagnostic::pass(
+                "context.index",
+                format!("{INDEX_PATH}: {} bytes", text.len()),
+            ));
+            let value = serde_json::json!({"path": INDEX_PATH, "text": text});
+            Ok(crate::output::finish(mode, "context", &report, Some(value)))
         }
     }
 }
