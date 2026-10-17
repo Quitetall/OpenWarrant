@@ -30,8 +30,12 @@ TypeScript generator and KF import gaps it names have since been addressed.
 The scope map under OW-WAR-0110 remains useful for the other obligations:
 
 - **OBL-001 is incomplete:** the schema entry list still lacks the requested
-  gate family. Successful generation alone does not prove that all existing
-  corpus records validate against the specified families. The actual pin report
+  gate family. A separate read-only schema audit now validates all 145 tracked
+  legacy Warrant IR records, all 145 manifests, all 45 dispatches and all 45
+  submissions against their current generated JSON schemas. All 380 records
+  pass. Four in-memory controls remove one required field from a real record
+  in each family and are refused. The gate family remains untested because
+  its schema is absent. The actual pin report
   identifies `crates/openwarrant-core/src/gate.rs` as OW-WAR-0019/D-001,
   resolved and not historical. Adding schema derives there requires the
   applicable correction or successor route; no pinned bytes were changed.
@@ -56,3 +60,21 @@ these unit checks do not substitute for corpus validation or independent review.
 Adjacent JSON files retain source identities, artifact hashes, the schema
 check and hosted CI results. No independent disposition, human acceptance,
 provider qualification or Warrant completion is asserted.
+
+## Corpus audit method
+
+The retained `corpus-schema-audit.json.gz` records each selected path, its
+exact source hash, schema hash, errors and control outcome. Source is
+`0df0bfff` (full commit in the observation), using Python jsonschema 4.26.0
+and Draft 2020-12 validation. Selection uses Git-tracked paths under
+`docs/warrants/*`, including the historical replaced Warrant; it does not
+claim coverage of archives, native-draft records or other families. TOML
+date and date-time values become ISO strings for schema validation. Other
+record values are not repaired, filled in or rewritten.
+
+The audit script is retained at
+`/mnt/4tb/artifacts/OpenWarrant/keep/owner-acts-current-integration-20261017/remaining-evidence/corpus-schema-audit.py`.
+The four refusal plants modify independent in-memory copies only. No corpus
+bytes, generated schema, gate definition or authority record were edited.
+Passing these four families does not clear the missing gate-family scope or
+OBL-002's format-field discrepancy.
