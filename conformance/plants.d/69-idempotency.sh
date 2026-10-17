@@ -247,9 +247,9 @@ PY
     fi
     lines=$(wc -l < "$IA_J")
     out=$(PATH="$IP_TMP/bin:$PATH" ia "$@" </dev/null 2>&1); status=$?
-    if [[ $status -ne 0 ]] && grep -q 'journal.idempotency-conflict' <<<"$out" && grep -q 'Somebody Else' <<<"$out" \
+    if [[ $status -ne 0 ]] && grep -q 'work.idempotency-conflict' <<<"$out" && grep -q 'Somebody Else' <<<"$out" \
         && [[ $(wc -l < "$IA_J") -eq $lines ]]; then
-        ip_ok "$name" "journal.idempotency-conflict, $lines line(s) unchanged"
+        ip_ok "$name" "work.idempotency-conflict, $lines line(s) unchanged"
     else
         ip_fail "$name" "exit $status, lines $lines → $(wc -l < "$IA_J"): $(ip_errors "$out")"
     fi

@@ -55,7 +55,7 @@ TK2_I=$(tk_field "$TK_OUT" 'v["result"]["items"][0]["id"]')
 TK2_J=$(tk_field "$TK_OUT" 'v["result"]["items"][1]["id"]')
 tkw claim "$TK2/$TK2_I" --as alice >/dev/null 2>&1
 TK_ERR=$(tkw claim "$TK2/$TK2_I" --as bob 2>&1 >/dev/null); TK_S=$?
-if [[ $TK_S -eq 2 ]] && grep -q 'ticket.claimed-by-other' <<<"$TK_ERR" && grep -q 'claimed by alice since' <<<"$TK_ERR"; then
+if [[ $TK_S -eq 2 ]] && grep -q 'work.claimed-by-other' <<<"$TK_ERR" && grep -q 'claimed by alice since' <<<"$TK_ERR"; then
     tk_ok "a held item refuses a second claim" "bob refused, naming alice and since when"
 else
     tk_fail "a held item refuses a second claim" "exit $TK_S: $TK_ERR"

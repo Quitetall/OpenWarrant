@@ -1,0 +1,4 @@
+id = "504-apply-deleted-block-ignored"
+kind = "accept"
+section = "10.5"
+says = """A block missing from the package is not a deletion; it is left alone."""

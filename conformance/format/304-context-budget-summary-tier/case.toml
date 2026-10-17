@@ -1,0 +1,4 @@
+id = "304-context-budget-summary-tier"
+kind = "accept"
+section = "10.3"
+says = """Otherwise records are given in full in order until the next one would not fit; it and every later record are `[S]`."""

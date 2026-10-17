@@ -44,6 +44,15 @@ pub struct Policy {
     /// machine.
     #[serde(default)]
     pub remote: Option<String>,
+    /// FORMAT-1.0 §11.3: a claim's lease, in minutes (default 30). Read
+    /// before `[tickets] claim_lease_minutes`.
+    #[serde(default)]
+    pub claim_lease_minutes: Option<f64>,
+    /// FORMAT-1.0 §11.3: how long since a live claim was taken before
+    /// `--steal` may take it, in minutes (default 120). Read before
+    /// `[tickets] claim_ttl_minutes`.
+    #[serde(default)]
+    pub claim_ttl_minutes: Option<u64>,
 }
 
 /// The ref a lock is published as.

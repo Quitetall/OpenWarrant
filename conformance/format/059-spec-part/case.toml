@@ -1,0 +1,4 @@
+id = "059-spec-part"
+kind = "accept"
+section = "4.5"
+says = """MAY be split into parts: `spec/<area>.md`, each with profile `spec` and `part_of: doc:SPEC.md` in its frontmatter."""

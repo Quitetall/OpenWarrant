@@ -353,7 +353,7 @@ fn propose(
             p.nothing = Some(format!("already ticked at {}; nothing", level.as_str()));
             return Ok(p);
         }
-    } else if item.is_none() && t.checklist.is_done() {
+    } else if item.is_none() && t.is_done() {
         p.nothing = Some("already done; nothing".to_owned());
         return Ok(p);
     }

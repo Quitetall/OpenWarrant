@@ -1,0 +1,11 @@
+schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
+name = "ticket"
+extends = "ticket"
+form = "work"
+note = "Tickets that wait in review."
+
+[[states]]
+name = "in_review"
+refines = "in_progress"
+note = "done by the author, waiting for a reviewer"

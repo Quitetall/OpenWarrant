@@ -1,0 +1,4 @@
+id = "401-journal-v1-and-v2"
+kind = "accept"
+section = "11.2"
+says = """A reader MUST read both, forever, and MUST NOT rewrite a `v: 1` line; one journal may hold both."""

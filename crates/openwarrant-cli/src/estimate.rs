@@ -5,8 +5,10 @@
 //! # What is learned
 //!
 //! Every light Warrant's journal records when each item was claimed
-//! (`ticket.claimed`, `ticket.claim_reclaimed`, `ticket.claim_stolen`) and
-//! when it was ticked (`ticket.item_done`). One sample is the time from the
+//! (`work.claimed`, `work.claim_reclaimed`, `work.claim_stolen`; `ticket.*`
+//! in a journal written before Format 1.0) and when it was ticked
+//! (`work.item_done`). Only an item done now is a sample (FORMAT-1.0 §11.5:
+//! "over done items"); one reopened since is not. One sample is the time from the
 //! last claim on an item (or on its whole Warrant) to its tick, labelled with
 //! the Warrant's type and labels. A tick with no claim before it (an older
 //! journal, a hand edit) is no sample, and is counted as skipped rather than
@@ -115,6 +117,23 @@ pub struct Estimate {
     pub samples: usize,
 }
 
+/// `[next] prior_secs` in `openwarrant.toml` (FORMAT-1.0 §11.5), the
+/// estimate with no history; absent, the `[go] prior_secs` it was read
+/// from before; absent too, [`DEFAULT_PRIOR_SECS`]. `go` is the `[go]`
+/// table's value when the caller has read it.
+#[must_use]
+pub fn prior_secs(root: &camino::Utf8Path, go: Option<u64>) -> u64 {
+    let next = crate::vfs::read_to_string(root.join(crate::init::CONFIG_FILE))
+        .ok()
+        .and_then(|t| toml::from_str::<toml::Table>(&t).ok())
+        .and_then(|t| t.get("next")?.get("prior_secs")?.as_integer())
+        .and_then(|n| u64::try_from(n).ok())
+        .filter(|n| *n > 0);
+    next.or(go).unwrap_or_else(|| {
+        crate::go::policy::load(root).map_or(DEFAULT_PRIOR_SECS, |p| p.prior_secs)
+    })
+}
+
 fn parse_time(s: &str) -> Option<i64> {
     chrono::DateTime::parse_from_rfc3339(s.trim())
         .ok()
@@ -124,6 +143,17 @@ fn parse_time(s: &str) -> Option<i64> {
 /// Learn from every light Warrant's journal. An unreadable journal is
 /// reported and contributes nothing; it is never read as empty history.
 pub fn learn(tickets: &[Ticket], prior_secs: u64, report: &mut Report) -> History {
+    learn_from(tickets, prior_secs, report)
+}
+
+/// [`learn`] over the tickets `tickets` yields. A ticket with nothing done
+/// holds no sample, so a reader that wants only the samples may pass only
+/// the tickets with something done: the history is the same.
+pub fn learn_from<'a>(
+    tickets: impl IntoIterator<Item = &'a Ticket>,
+    prior_secs: u64,
+    report: &mut Report,
+) -> History {
     let mut history = History {
         prior_secs,
         ..History::default()
@@ -165,6 +195,12 @@ pub fn learn(tickets: &[Ticket], prior_secs: u64, report: &mut Report) -> Histor
                     }
                 }
                 crate::ticket::event::ITEM_DONE => {
+                    // §11.5: the samples are over done items; one reopened
+                    // since (`work.item_reopened`) is not done.
+                    let item = payload.get("item").and_then(serde_json::Value::as_str);
+                    if item.is_some_and(|i| t.item(i).is_none_or(|i| !i.done)) {
+                        continue;
+                    }
                     let since = claimed
                         .get(&target)
                         .or_else(|| claimed.get(t.id()))
@@ -194,11 +230,9 @@ fn median(mut v: Vec<u64>) -> u64 {
     if n == 0 {
         return 0;
     }
-    if n % 2 == 1 {
-        v[n / 2]
-    } else {
-        (v[n / 2 - 1] + v[n / 2]) / 2
-    }
+    // FORMAT-1.0 §11.5: whole seconds; with an even count, the lower of
+    // the two middle values.
+    if n % 2 == 1 { v[n / 2] } else { v[n / 2 - 1] }
 }
 
 impl History {
@@ -293,9 +327,21 @@ pub struct HistorySummary {
     pub prior_secs: u64,
 }
 
-/// Each node's estimate, remaining length and effective due date.
+/// Every node's estimate, remaining length (its estimate and the longest
+/// remaining length of what waits on it) and effective due date (the
+/// earliest of its own and of everything that waits on it): FORMAT-1.0
+/// §11.5's first two keys, for every node of `graph`.
+pub struct Ranks<'a> {
+    pub est: BTreeMap<&'a str, Estimate>,
+    pub remaining: BTreeMap<&'a str, u64>,
+    pub due: BTreeMap<&'a str, Option<String>>,
+    dependents: BTreeMap<&'a str, Vec<&'a str>>,
+    in_cycle: BTreeSet<&'a str>,
+}
+
+/// [`Ranks`] of `graph` under `history`.
 #[must_use]
-pub fn schedule(graph: &Graph, history: &History) -> Schedule {
+pub fn ranks<'a>(graph: &'a Graph, history: &History) -> Ranks<'a> {
     let est: BTreeMap<&str, Estimate> = graph
         .nodes
         .iter()
@@ -324,6 +370,63 @@ pub fn schedule(graph: &Graph, history: &History) -> Schedule {
             &mut due,
         );
     }
+    Ranks {
+        est,
+        remaining,
+        due,
+        dependents,
+        in_cycle,
+    }
+}
+
+/// FORMAT-1.0 §11.5's order of candidates, as one sortable key: an
+/// effective `due` first (earliest first, none last), then the longest
+/// remaining path (the critical path first), then `priority` (lowest
+/// first), then the Warrant's `created_at` (earliest first, none last), then
+/// its alias, then the item's
+/// position. `war next`, `war view ready` and `war evidence go` all sort by
+/// it, so ten agents asking at once get one order.
+pub type OrderKey<'a> = (
+    bool,
+    Option<&'a str>,
+    std::cmp::Reverse<u64>,
+    u8,
+    (bool, &'a str),
+    &'a str,
+    usize,
+);
+
+/// [`OrderKey`] of one candidate.
+#[must_use]
+pub fn order_key_of<'a>(
+    due: Option<&'a str>,
+    remaining: u64,
+    priority: u8,
+    created_at: &'a str,
+    alias: &'a str,
+    position: usize,
+) -> OrderKey<'a> {
+    (
+        due.is_none(),
+        due,
+        std::cmp::Reverse(remaining),
+        priority,
+        (created_at.is_empty(), created_at),
+        alias,
+        position,
+    )
+}
+
+/// Each node's estimate, remaining length and effective due date.
+#[must_use]
+pub fn schedule(graph: &Graph, history: &History) -> Schedule {
+    let Ranks {
+        est,
+        remaining,
+        due,
+        dependents,
+        in_cycle,
+    } = ranks(graph, history);
     let open: Vec<&Node> = graph
         .nodes
         .iter()
@@ -405,17 +508,24 @@ pub fn schedule(graph: &Graph, history: &History) -> Schedule {
     }
 }
 
-/// The order a scheduler takes ready nodes in: an effective due date first
-/// (earlier first), then the longest remaining length (the critical path),
-/// then the Warrant's priority, then the oldest, then the id.
+/// The order a scheduler takes ready nodes in: [`OrderKey`] (FORMAT-1.0
+/// §11.5), the node's Warrant as its alias, then its id for what the key
+/// leaves tied (two stages of one Warrant).
 fn order_key<'a>(r: &'a Row, graph: &'a Graph) -> impl Ord + 'a {
-    let created = graph.node(&r.id).map_or("", |n| n.created_at.as_str());
+    let node = graph.node(&r.id);
+    let created = node.map_or("", |n| n.created_at.as_str());
+    let alias = node
+        .and_then(|n| n.warrant.as_deref())
+        .unwrap_or(r.id.as_str());
     (
-        r.due.is_none(),
-        r.due.clone(),
-        std::cmp::Reverse(r.remaining_secs),
-        r.priority,
-        created,
+        order_key_of(
+            r.due.as_deref(),
+            r.remaining_secs,
+            r.priority,
+            created,
+            alias,
+            node.map_or(0, |n| n.position),
+        ),
         r.id.as_str(),
     )
 }
@@ -570,7 +680,7 @@ mod tests {
         let e = h.estimate(Some("bug"), &["ui".into()]);
         assert_eq!(
             (e.seconds, e.source, e.samples),
-            (900, Source::TypeLabel, 2)
+            (600, Source::TypeLabel, 2)
         );
         let e = h.estimate(Some("chore"), &["api".into()]);
         assert_eq!((e.seconds, e.source), (7200, Source::Label));
@@ -590,6 +700,30 @@ mod tests {
                 samples: 0
             }
         );
+    }
+
+    /// FORMAT-1.0 §11.5's keys, in order: a due date beats everything
+    /// after it (none sorts last), the longer remaining path beats priority,
+    /// priority beats age, and alias then position break the rest.
+    #[test]
+    fn the_order_key_is_due_then_path_then_priority_then_age() {
+        let k = order_key_of;
+        assert!(k(Some("2026-11-01"), 0, 9, "z", "t-z", 9) < k(None, 99_999, 0, "a", "t-a", 0));
+        assert!(k(Some("2026-10-01"), 0, 9, "", "", 0) < k(Some("2026-11-01"), 9, 0, "", "", 0));
+        assert!(k(None, 3600, 3, "", "", 0) < k(None, 1800, 0, "", "", 0));
+        assert!(k(None, 1800, 0, "b", "", 0) < k(None, 1800, 1, "a", "", 0));
+        assert!(k(None, 1800, 2, "a", "t-b", 9) < k(None, 1800, 2, "b", "t-a", 0));
+        assert!(k(None, 1800, 2, "a", "t-a", 1) < k(None, 1800, 2, "a", "t-a", 2));
+        // A `created_at` sorts before none.
+        assert!(k(None, 1800, 2, "2026-10-01", "t-z", 0) < k(None, 1800, 2, "", "t-a", 0));
+    }
+
+    /// §11.5: with an even count the median is the lower middle value.
+    #[test]
+    fn an_even_median_is_the_lower_middle() {
+        assert_eq!(median(vec![600, 1200]), 600);
+        assert_eq!(median(vec![3000, 600, 1200]), 1200);
+        assert_eq!(median(vec![1, 2, 3, 4]), 2);
     }
 
     #[test]

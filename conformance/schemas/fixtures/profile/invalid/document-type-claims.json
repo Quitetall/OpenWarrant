@@ -1,5 +1,5 @@
 {
-  "why": "projection.rs: a document type selects only structure and links (plus acceptance for a roadmap or SAS store)",
+  "why": "projection.rs: a document type of the reference reader's own form (one with `projections`) selects only structure and links (plus acceptance for a roadmap or SAS store). Draft 3's profile data (FORMAT-1.0 7.5, 7.6) admits `claims` on a document profile (`roadmap`), so the instance names a projection to stay in the older form.",
   "expect": "'claims' is not one of",
   "instance": {
     "schema": "oh.war/profile/v1",
@@ -8,6 +8,7 @@
     "capabilities": [
       "structure",
       "claims"
-    ]
+    ],
+    "projections": []
   }
 }

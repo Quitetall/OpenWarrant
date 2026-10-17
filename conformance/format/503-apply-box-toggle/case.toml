@@ -1,0 +1,4 @@
+id = "503-apply-box-toggle"
+kind = "accept"
+section = "10.5"
+says = """A changed item box is not a text edit: `[ ]` to `[x]` records `done`, ... and the writer then rewrites the line as 3.8 shows."""

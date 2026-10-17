@@ -1,0 +1,5 @@
+id = "209-claim-remote-unreachable"
+kind = "unknown"
+section = "11.3"
+rule = "work.claim-remote-unreachable"
+says = """A remote that cannot be reached is `UNKNOWN` (`work.claim-remote-unreachable`), never a granted claim."""

@@ -297,7 +297,8 @@ def read_record(unit):
 ITEM = re.compile(
     r"^\s*[-*] \[(?P<box>[^\]]*)\] (?P<text>.*?)"
     r"(?: \((?P<id>i-[0-9a-f]+)(?P<after>(?:, after [^,()\s]+)*)\))?"
-    r"(?P<done> — done by (?P<actor>[^,]+), (?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})(?:: (?P<note>.*))?)?$"
+    r"(?P<done> — done by (?P<actor>[^,]+), (?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})"
+    r"(?: \[(?P<level>[a-z]+)\])?(?:: (?P<note>.*))?)?$"
 )
 
 
@@ -318,6 +319,8 @@ def read_item(line):
     if m.group("done"):
         item["done_by"] = m.group("actor")
         item["done_on"] = m.group("date")
+        if m.group("level") is not None:
+            item["level"] = m.group("level")
         if m.group("note") is not None:
             item["note"] = m.group("note")
     return item
@@ -341,9 +344,9 @@ def spec_examples(spec_text):
             continue
         if RECORD_HEAD.match(block.split("\n", 1)[0]):
             record = read_record(block.rstrip("\n"))
-            key = "obligation" if record["type"] == "obligation" else "record"
+            key = {"obligation": "obligation", "check": "check", "kpi": "check"}.get(record["type"], "record")
             out.append((label + f" ({record['id']})", key, record))
-            if key == "obligation":
+            if key != "record":
                 out.append((label + f" ({record['id']} as a record)", "record", record))
             continue
         items = [read_item(line) for line in block.split("\n") if line.strip()]
@@ -580,8 +583,10 @@ def main():
             t.fail(f"amendment: reads {label}", str(err))
             continue
         expect_accept(t, counts, "amendment", validators["amendment"], label, doc)
+    # The built-in profiles of FORMAT-1.0 section 7.6 are files shipped with it.
     profiles = sorted((root / "profiles").glob("*.toml")) + sorted(
-        p for p in (root / "packs").glob("*/*.toml") if p.name != "pack.toml")
+        p for p in (root / "packs").glob("*/*.toml") if p.name != "pack.toml") + sorted(
+        (schemas_dir / "format/1.0/profiles").glob("*.toml"))
     for path in profiles:
         expect_accept(t, counts, "profile", validators["profile"],
                       path.relative_to(root).as_posix(), load_toml(path))
@@ -666,7 +671,7 @@ def main():
         t.fail("FORMAT-1.0.md examples read", str(err))
         examples = []
     seen = {key for _, key, _ in examples}
-    for key in ("frontmatter", "obligation", "record", "item"):
+    for key in ("frontmatter", "obligation", "record", "item", "check"):
         if key not in seen:
             t.fail(f"FORMAT-1.0.md has a {key} example", "none was found; the extraction drifted from the text")
     for label, key, instance in examples:
@@ -707,11 +712,11 @@ def fixture_instance(path):
     key = path.parent.parent.name
     if key in ("frontmatter", "ticket"):
         return read_frontmatter(text)[0]
-    if key in ("record", "obligation"):
+    if key in ("record", "obligation", "check"):
         return read_record(text.rstrip("\n"))
     if key == "item":
         return read_item(text.rstrip("\n"))
-    if key == "manifest":
+    if key in ("manifest", "profile"):
         return tomllib.loads(text)
     if key == "amendment":
         return read_structured(text)

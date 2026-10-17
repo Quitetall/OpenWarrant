@@ -1,0 +1,4 @@
+id = "404-declared-state"
+kind = "accept"
+section = "11.1"
+says = """A **declared state** (7.5) refines one fixed state: it is entered by a `state.entered` event naming it, holds only while its parent holds, and lapses when the parent stops holding"""

@@ -1,0 +1,1 @@
+- [x] Reset endpoint (i-9c01) — done by claude, 2026-10-12 [observed]: POST /reset

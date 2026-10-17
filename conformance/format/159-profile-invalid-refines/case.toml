@@ -1,0 +1,5 @@
+id = "159-profile-invalid-refines"
+kind = "refuse"
+section = "7.5"
+rule = "profile.invalid"
+says = """A profile file a `refines` naming no fixed state... is refused (`profile.invalid`), and its documents read as `format.profile-unknown`."""

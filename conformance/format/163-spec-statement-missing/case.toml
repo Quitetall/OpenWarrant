@@ -1,0 +1,5 @@
+id = "163-spec-statement-missing"
+kind = "refuse"
+section = "4.5"
+rule = "format.field-missing"
+says = """A `requirement` or `constraint` has a REQUIRED `statement`"""

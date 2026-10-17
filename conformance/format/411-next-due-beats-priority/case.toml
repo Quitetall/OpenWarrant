@@ -1,0 +1,4 @@
+id = "411-next-due-beats-priority"
+kind = "accept"
+section = "11.5"
+says = """`due`, earliest first; a candidate inherits the earliest `due` of everything that waits on it; none sorts last"""

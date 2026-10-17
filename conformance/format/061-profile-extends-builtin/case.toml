@@ -1,0 +1,4 @@
+id = "061-profile-extends-builtin"
+kind = "accept"
+section = "7.5"
+says = """The built-in profiles of 7.6 need no file; a file of the same name replaces one only by `extends` (below)."""

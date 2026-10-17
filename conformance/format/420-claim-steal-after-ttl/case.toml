@@ -1,0 +1,4 @@
+id = "420-claim-steal-after-ttl"
+kind = "accept"
+section = "11.3"
+says = """A live claim older than `claim_ttl_minutes` (default 120) may be taken only on request (`--steal`), recorded as `work.claim_stolen`."""

@@ -1,0 +1,4 @@
+id = "309-index"
+kind = "accept"
+section = "10.2"
+says = """A tool that serves agents MUST be able to generate an index, `docs/generated/llms.txt` by default, in the style of llms.txt"""

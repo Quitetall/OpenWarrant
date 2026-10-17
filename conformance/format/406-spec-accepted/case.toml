@@ -1,0 +1,4 @@
+id = "406-spec-accepted"
+kind = "accept"
+section = "4.5"
+says = """A specification is `accepted` when every record is"""

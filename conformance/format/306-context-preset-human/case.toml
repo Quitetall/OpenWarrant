@@ -1,0 +1,4 @@
+id = "306-context-preset-human"
+kind = "accept"
+section = "10.4"
+says = """the core walk, depth 3, no budget, every record `[F]`, editable; the work document's own units first in document order, then the rest in 10.3's order"""

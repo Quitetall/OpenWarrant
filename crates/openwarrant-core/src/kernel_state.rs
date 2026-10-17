@@ -5,7 +5,8 @@
 //! # The fixed set
 //!
 //! `draft, open, in_progress, done, accepted, superseded, authorized,
-//! verified, resolved, achieved`. Each is either **computed** from facts the
+//! verified, resolved, achieved`, and FORMAT-1.0 §11.1's `blocked, claimed,
+//! failing, partially_accepted`. Each is either **computed** from facts the
 //! kernel already reads (a checklist, a claim, a relation, an exit Warrant's
 //! resolution) or **authenticated**: it holds only on the record of a human
 //! act or an independent verifier's ingested response. No profile adds a
@@ -63,7 +64,14 @@ impl fmt::Display for StateKind {
     }
 }
 
-/// One of the ten kernel states.
+/// One of the fourteen kernel states.
+///
+/// FORMAT-1.0 §11.1 (draft 3) adds four to the ten OW-ADR-0031 named:
+/// `blocked` and `claimed` (an item waiting on one not done; an item or
+/// work document a live claim names), `failing` (a check whose last
+/// recorded run failed) and `partially_accepted` (a specification some of
+/// whose records are accepted). They are appended, so every state an older
+/// reader knew keeps its name, kind, capability and facet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum FixedState {
     Draft,
@@ -76,11 +84,15 @@ pub enum FixedState {
     Verified,
     Resolved,
     Achieved,
+    Blocked,
+    Claimed,
+    Failing,
+    PartiallyAccepted,
 }
 
 impl FixedState {
-    /// The closed set, in the order the plan names it.
-    pub const ALL: [Self; 10] = [
+    /// The closed set, in the order the plan names it, draft 3's four last.
+    pub const ALL: [Self; 14] = [
         Self::Draft,
         Self::Open,
         Self::InProgress,
@@ -91,6 +103,10 @@ impl FixedState {
         Self::Verified,
         Self::Resolved,
         Self::Achieved,
+        Self::Blocked,
+        Self::Claimed,
+        Self::Failing,
+        Self::PartiallyAccepted,
     ];
 
     #[must_use]
@@ -106,6 +122,10 @@ impl FixedState {
             Self::Verified => "verified",
             Self::Resolved => "resolved",
             Self::Achieved => "achieved",
+            Self::Blocked => "blocked",
+            Self::Claimed => "claimed",
+            Self::Failing => "failing",
+            Self::PartiallyAccepted => "partially_accepted",
         }
     }
 
@@ -119,15 +139,20 @@ impl FixedState {
     #[must_use]
     pub const fn kind(self) -> StateKind {
         match self {
-            Self::Accepted | Self::Authorized | Self::Verified | Self::Resolved => {
-                StateKind::Authenticated
-            }
+            Self::Accepted
+            | Self::PartiallyAccepted
+            | Self::Authorized
+            | Self::Verified
+            | Self::Resolved => StateKind::Authenticated,
             Self::Draft
             | Self::Open
             | Self::InProgress
             | Self::Done
             | Self::Superseded
-            | Self::Achieved => StateKind::Computed,
+            | Self::Achieved
+            | Self::Blocked
+            | Self::Claimed
+            | Self::Failing => StateKind::Computed,
         }
     }
 
@@ -137,8 +162,14 @@ impl FixedState {
     pub const fn capability(self) -> Capability {
         match self {
             Self::Draft => Capability::Structure,
-            Self::Open | Self::InProgress | Self::Done => Capability::Claims,
-            Self::Accepted => Capability::Acceptance,
+            Self::Open | Self::InProgress | Self::Done | Self::Blocked | Self::Claimed => {
+                Capability::Claims
+            }
+            Self::Accepted | Self::PartiallyAccepted => Capability::Acceptance,
+            // §11.1 names a `checks` capability; until the capability set
+            // has it, a check's runs are evidence: what produces `failing`
+            // is a recorded `check.run`.
+            Self::Failing => Capability::Evidence,
             Self::Superseded | Self::Achieved => Capability::Links,
             Self::Authorized => Capability::Authorization,
             Self::Verified => Capability::Verification,
@@ -146,9 +177,31 @@ impl FixedState {
         }
     }
 
+    /// FORMAT-1.0 §11.1's `kind` (draft 3, revision 1): the family the
+    /// state belongs to, which orders the primary state. `open`, `done`
+    /// and `in_progress` are a work document's `phase`; of an item, its
+    /// `checklist` state (`claimed` and `blocked` are only that).
+    #[must_use]
+    pub const fn family(self) -> &'static str {
+        match self {
+            Self::Draft
+            | Self::Open
+            | Self::InProgress
+            | Self::Done
+            | Self::Authorized
+            | Self::Resolved => "phase",
+            Self::Blocked | Self::Claimed => "checklist",
+            Self::Superseded => "currency",
+            Self::Failing => "check",
+            Self::Accepted | Self::PartiallyAccepted => "acceptance",
+            Self::Verified | Self::Achieved => "outcome",
+        }
+    }
+
     /// The SAS §24 / RQ-032 dimension it is a moment of: `phase`,
-    /// `outcome`, `currency` or `standing`. (`condition` — clear, blocked,
-    /// paused — has no kernel state: blocking is a relation, not a state.)
+    /// `outcome`, `currency`, `standing` or `condition` (FORMAT-1.0 §11.1:
+    /// `blocked`, and `claimed` — who holds it — are conditions of an item;
+    /// `failing` is an outcome of a check's last run).
     #[must_use]
     pub const fn facet(self) -> &'static str {
         match self {
@@ -158,9 +211,10 @@ impl FixedState {
             | Self::Done
             | Self::Authorized
             | Self::Resolved => "phase",
-            Self::Verified | Self::Achieved => "outcome",
+            Self::Verified | Self::Achieved | Self::Failing => "outcome",
             Self::Superseded => "currency",
-            Self::Accepted => "standing",
+            Self::Accepted | Self::PartiallyAccepted => "standing",
+            Self::Blocked | Self::Claimed => "condition",
         }
     }
 }
@@ -272,10 +326,66 @@ mod tests {
         for s in FixedState::ALL {
             assert_eq!(FixedState::parse(s.as_str()), Some(s));
             assert_ne!(s.kind(), StateKind::Declared);
-            assert!(["phase", "outcome", "currency", "standing"].contains(&s.facet()));
+            assert!(["phase", "outcome", "currency", "standing", "condition"].contains(&s.facet()));
         }
         assert_eq!(FixedState::Verified.kind(), StateKind::Authenticated);
         assert_eq!(FixedState::InProgress.kind(), StateKind::Computed);
+    }
+
+    /// FORMAT-1.0 §11.1's four, appended: each its own name, and the ten
+    /// before them as they were (an `oh.war/model/v1` reader keeps them).
+    #[test]
+    fn draft_three_adds_four_states_and_moves_none() {
+        assert_eq!(FixedState::ALL.len(), 14);
+        assert_eq!(
+            FixedState::ALL[..10]
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>(),
+            [
+                "draft",
+                "open",
+                "in_progress",
+                "done",
+                "accepted",
+                "superseded",
+                "authorized",
+                "verified",
+                "resolved",
+                "achieved"
+            ]
+        );
+        for (s, name, cap) in [
+            (FixedState::Blocked, "blocked", Capability::Claims),
+            (FixedState::Claimed, "claimed", Capability::Claims),
+            (FixedState::Failing, "failing", Capability::Evidence),
+            (
+                FixedState::PartiallyAccepted,
+                "partially_accepted",
+                Capability::Acceptance,
+            ),
+        ] {
+            assert_eq!(FixedState::parse(name), Some(s));
+            assert_eq!(s.capability(), cap);
+        }
+        assert_eq!(
+            FixedState::PartiallyAccepted.kind(),
+            StateKind::Authenticated
+        );
+        assert_eq!(FixedState::Blocked.kind(), StateKind::Computed);
+        // A profile can no longer declare a state by one of the new names...
+        let collides = declare(&decl(&[("blocked", "in_progress")]), Capabilities::ALL)
+            .unwrap_err()
+            .rule;
+        assert_eq!(collides, "profile.state-collides");
+        // ...and can refine one.
+        assert!(
+            declare(
+                &decl(&[("waiting_review", "claimed")]),
+                Capabilities::WORKING
+            )
+            .is_ok()
+        );
     }
 
     #[test]

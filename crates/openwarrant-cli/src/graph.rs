@@ -144,6 +144,10 @@ pub struct Node {
     /// clears it, not a submission).
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub holds: Vec<String>,
+    /// An item's position in its Warrant's checklist (0 for anything else):
+    /// the last key of the order work starts in (FORMAT-1.0 §11.5).
+    #[serde(skip)]
+    pub position: usize,
 }
 
 /// `from` waits on `to`.
@@ -344,6 +348,147 @@ impl Graph {
     }
 }
 
+/// Every light Warrant and its items as nodes, as the ticket store reads
+/// them, with the edges the tickets themselves say: a Warrant waits on its
+/// items and on the Warrants `part_of` it (FORMAT-1.0 §11.5: a work
+/// document `part_of` another counts as an item of it), and an item on what
+/// its `after` names. A claim whose lease ran out holds nothing (M11).
+pub fn ticket_nodes(
+    tickets: &[crate::ticket::Ticket],
+    claims: &crate::ticket::Claims,
+    now: u64,
+    nodes: &mut BTreeMap<String, Node>,
+    edges: &mut BTreeSet<Edge>,
+) {
+    let held = |ticket: &str, item: Option<&str>| -> Option<String> {
+        let (_, c) = crate::ticket::claim_on(claims, ticket, item)?;
+        match c {
+            // A lock nobody can read still holds (fail closed).
+            None => Some("somebody (the lock does not parse)".to_owned()),
+            Some(c) if c.lease_expired(now) => None,
+            Some(c) => Some(c.actor.clone()),
+        }
+    };
+    for t in tickets {
+        let tid = t.id().to_owned();
+        if let Some(parent) = &t.manifest.part_of {
+            edges.insert(Edge {
+                from: parent.clone(),
+                to: tid.clone(),
+                via: "item",
+            });
+        }
+        let base = |kind: Kind, id: String, text: String, runnable: bool| Node {
+            id,
+            kind,
+            warrant: Some(tid.clone()),
+            title: t.manifest.title.clone(),
+            text,
+            work_type: t.manifest.kind.clone(),
+            labels: t.manifest.labels.clone(),
+            priority: t.manifest.priority,
+            created_at: t.manifest.created_at.clone(),
+            due: t.manifest.due.clone(),
+            runnable,
+            state: State::Waiting,
+            waits_on: Vec::new(),
+            holder: None,
+            holds: Vec::new(),
+            position: 0,
+        };
+        // FORMAT-1.0 §11.1: the document, and so each item of it, waits on
+        // what it `depends_on`.
+        let doc_deps: Vec<String> = t.depends_on.iter().map(|b| b.record_id(&tid)).collect();
+        for d in &doc_deps {
+            edges.insert(Edge {
+                from: tid.clone(),
+                to: d.clone(),
+                via: "depends_on",
+            });
+        }
+        let whole_holder = held(&tid, None);
+        if t.checklist.items.is_empty() {
+            // The Warrant is its own work, unless it is an epic worked
+            // through its child Warrants (as `war view ready` reads it).
+            let children = crate::ticket::children_of(tickets, &tid);
+            let mut n = base(
+                Kind::Warrant,
+                tid.clone(),
+                String::new(),
+                children.is_empty(),
+            );
+            if t.is_done() {
+                n.state = State::Done;
+            } else if let Some(h) = whole_holder {
+                n.state = State::Running;
+                n.holder = Some(h);
+            }
+            nodes.insert(tid.clone(), n);
+            continue;
+        }
+        let mut whole = base(Kind::Warrant, tid.clone(), String::new(), false);
+        if t.is_done() {
+            whole.state = State::Done;
+        }
+        nodes.insert(tid.clone(), whole);
+        for (position, item) in t.checklist.items.iter().enumerate() {
+            // A line with no id yet is named by the next write; until then it
+            // cannot be addressed, so it is not a node.
+            let Some(iid) = &item.id else { continue };
+            let id = format!("{tid}/{iid}");
+            edges.insert(Edge {
+                from: tid.clone(),
+                to: id.clone(),
+                via: "item",
+            });
+            for to in item
+                .after
+                .iter()
+                .map(|b| b.record_id(&tid))
+                .chain(doc_deps.iter().cloned())
+            {
+                edges.insert(Edge {
+                    from: id.clone(),
+                    to,
+                    via: "depends_on",
+                });
+            }
+            let mut n = base(Kind::Item, id.clone(), item.text.clone(), true);
+            n.position = position;
+            if item.done {
+                n.state = State::Done;
+            } else if let Some(h) = held(&tid, Some(iid)).or_else(|| whole_holder.clone()) {
+                n.state = State::Running;
+                n.holder = Some(h);
+            }
+            nodes.insert(id, n);
+        }
+    }
+}
+
+/// The graph of the tickets alone (FORMAT-1.0 §11.5): what `war next` and
+/// `war view ready` order their candidates by, the ticket part of
+/// [`build`] exactly, so the order they give and the order `war evidence
+/// go` starts work in agree.
+#[must_use]
+pub fn of_tickets(
+    tickets: &[crate::ticket::Ticket],
+    claims: &crate::ticket::Claims,
+    now: u64,
+) -> Graph {
+    let mut nodes = BTreeMap::new();
+    let mut edges = BTreeSet::new();
+    ticket_nodes(tickets, claims, now, &mut nodes, &mut edges);
+    let mut graph = Graph {
+        schema: SCHEMA,
+        nodes: nodes.into_values().collect(),
+        edges: edges.into_iter().filter(|e| e.from != e.to).collect(),
+        cycles: Vec::new(),
+    };
+    graph.cycles = cycles(&graph);
+    graph
+}
+
 /// What to build the graph from, besides the corpus: the claims now held,
 /// read through the ticket store (M11's shared lock set).
 pub fn build(corpus: &Corpus, store: &Store) -> Result<(Report, Graph), RepoError> {
@@ -378,79 +523,7 @@ pub fn build_from(
     let mut edges: BTreeSet<Edge> = BTreeSet::new();
 
     // ---- light Warrants and their items, as the ticket store reads them.
-    let held = |ticket: &str, item: Option<&str>| -> Option<String> {
-        let (_, c) = crate::ticket::claim_on(&claims, ticket, item)?;
-        match c {
-            // A lock nobody can read still holds (fail closed).
-            None => Some("somebody (the lock does not parse)".to_owned()),
-            Some(c) if c.lease_expired(now) => None,
-            Some(c) => Some(c.actor.clone()),
-        }
-    };
-    for t in tickets {
-        let tid = t.id().to_owned();
-        let base = |kind: Kind, id: String, text: String, runnable: bool| Node {
-            id,
-            kind,
-            warrant: Some(tid.clone()),
-            title: t.manifest.title.clone(),
-            text,
-            work_type: t.manifest.kind.clone(),
-            labels: t.manifest.labels.clone(),
-            priority: t.manifest.priority,
-            created_at: t.manifest.created_at.clone(),
-            due: t.manifest.due.clone(),
-            runnable,
-            state: State::Waiting,
-            waits_on: Vec::new(),
-            holder: None,
-            holds: Vec::new(),
-        };
-        let whole_holder = held(&tid, None);
-        if t.checklist.items.is_empty() {
-            // The Warrant is its own work, unless it is an epic worked
-            // through its child Warrants (as `war view ready` reads it).
-            let children = crate::ticket::children_of(tickets, &tid);
-            let mut n = base(
-                Kind::Warrant,
-                tid.clone(),
-                String::new(),
-                children.is_empty(),
-            );
-            if t.checklist.is_done() {
-                n.state = State::Done;
-            } else if let Some(h) = whole_holder {
-                n.state = State::Running;
-                n.holder = Some(h);
-            }
-            nodes.insert(tid.clone(), n);
-            continue;
-        }
-        let mut whole = base(Kind::Warrant, tid.clone(), String::new(), false);
-        if t.checklist.is_done() {
-            whole.state = State::Done;
-        }
-        nodes.insert(tid.clone(), whole);
-        for item in &t.checklist.items {
-            // A line with no id yet is named by the next write; until then it
-            // cannot be addressed, so it is not a node.
-            let Some(iid) = &item.id else { continue };
-            let id = format!("{tid}/{iid}");
-            edges.insert(Edge {
-                from: tid.clone(),
-                to: id.clone(),
-                via: "item",
-            });
-            let mut n = base(Kind::Item, id.clone(), item.text.clone(), true);
-            if item.done {
-                n.state = State::Done;
-            } else if let Some(h) = held(&tid, Some(iid)).or_else(|| whole_holder.clone()) {
-                n.state = State::Running;
-                n.holder = Some(h);
-            }
-            nodes.insert(id, n);
-        }
-    }
+    ticket_nodes(tickets, &claims, now, &mut nodes, &mut edges);
 
     // ---- stages, as the frontier reads them.
     let (frontier_report, frontier) = corpus.frontier()?;
@@ -521,6 +594,7 @@ pub fn build_from(
                 waits_on,
                 holder,
                 holds,
+                position: 0,
             },
         );
     }
@@ -658,6 +732,7 @@ pub fn build_from(
                 waits_on: Vec::new(),
                 holder: None,
                 holds: Vec::new(),
+                position: 0,
             },
         );
     }
@@ -847,6 +922,7 @@ mod tests {
             waits_on: Vec::new(),
             holder: None,
             holds: Vec::new(),
+            position: 0,
         }
     }
 

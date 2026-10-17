@@ -19,7 +19,7 @@
 # - M14: under vibe (plain `war init`), the first done is three daily verbs, and the
 #   journal holds `ticket.claimed` then `ticket.item_done`. Refused even
 #   there, by name: a done of an item another agent holds
-#   (`ticket.claimed-by-other`) and of an item that waits on another
+#   (`work.claimed-by-other`) and of an item that waits on another
 #   (`ticket.blocked`); neither is claimed or ticked.
 
 echo "== the small surface: first done (M12) =="
@@ -106,9 +106,9 @@ FD_VBLOCKED=$(fdv done "$FD_VT/$FD_VI3" 2>&1); FD_VBLOCKED_RC=$?
 FD_VCL=$(cat "$FD_VROOT/docs/tickets/$FD_VT/atoms/15-checklist.md" 2>/dev/null)
 FD_VCLAIMS=$(grep -c 'ticket.claimed' "$FD_VROOT/docs/tickets/$FD_VT/journal.jsonl")
 if [[ $FD_VHELD_RC -eq 2 && $FD_VBLOCKED_RC -eq 2 && "$FD_VCLAIMS" == "1" ]] \
-    && grep -qF 'ticket.claimed-by-other' <<<"$FD_VHELD" && grep -qF 'ticket.blocked' <<<"$FD_VBLOCKED" \
+    && grep -qF 'work.claimed-by-other' <<<"$FD_VHELD" && grep -qF 'ticket.blocked' <<<"$FD_VBLOCKED" \
     && ! grep -q '\[x\]' <<<"$FD_VCL"; then
-    fd_ok "vibe still refuses held, blocked" "ticket.claimed-by-other, ticket.blocked; nothing claimed or ticked"
+    fd_ok "vibe still refuses held, blocked" "work.claimed-by-other, ticket.blocked; nothing claimed or ticked"
 else
     fd_fail "vibe still refuses held, blocked" "held exit $FD_VHELD_RC, blocked exit $FD_VBLOCKED_RC, claims $FD_VCLAIMS: $FD_VHELD | $FD_VBLOCKED"
 fi

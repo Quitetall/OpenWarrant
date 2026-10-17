@@ -25,11 +25,14 @@ The rest of `schemas/` is generated, never edited by hand:
 | `1.0/manifest.json` | the optional `manifest.toml` beside `warrant.md` (section 4.2) | `openwarrant/1.0#manifest` |
 | `1.0/record.json` | a record's heading, attribute block and body (sections 3.4 to 3.6) | `openwarrant/1.0#record` |
 | `1.0/obligation.json` | an obligation record (section 3.7) | `openwarrant/1.0#obligation` |
-| `1.0/item.json` | a checklist item line (section 3.8) | `openwarrant/1.0#item` |
-| `1.0/profile.json` | a profile file, `profiles/*.toml` and a pack's profiles | `oh.war/profile/v1` |
+| `1.0/item.json` | a checklist item line, with draft 3's tick level (sections 3.8, 11.4) | `openwarrant/1.0#item` |
+| `1.0/check.json` | a `check` or `kpi` record (section 12) | `openwarrant/1.0#check` |
+| `1.0/journal-event.json` | one journal line, `v: 2` or `v: 1`, with the core payloads (section 11.2) | `openwarrant/1.0#journal-event` |
+| `1.0/profile.json` | a profile file, `profiles/*.toml` and a pack's profiles; draft 3's profile data (sections 7.5, 7.6) | `oh.war/profile/v1` |
+| `1.0/profiles/*.toml` | the built-in profiles of section 7.6, as profile data. They are normative, not schemas, and are checked against `profile.json` | (instances of `oh.war/profile/v1`) |
 | `1.0/type-pack.json` | a type pack's `pack.toml` | `oh.war/pack/v1` |
 | `1.0/model.json` | the canonical JSON model (section 8) | `oh.war/model/v1` |
-| `1.0/context.json` | `war context --json` (section 10.3) | `oh.war/context/v1` |
+| `1.0/context.json` | `war context --json`, with draft 3's presets (sections 10.3, 10.4) | `oh.war/context/v1` |
 | `records/sas-revision.v1.json` | a SAS revision, `docs/sas/revisions/*.toml` | `oh.war/sas-revision/v1` |
 | `records/amendment.v1.json` | a section 31 amendment, `docs/warrants/*/amendments/*.yaml` | `oh.war/amendment/v1` |
 

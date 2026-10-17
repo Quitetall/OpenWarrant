@@ -1,0 +1,4 @@
+id = "412-next-critical-path"
+kind = "accept"
+section = "11.5"
+says = """remaining path, longest first: the candidate's estimate plus the longest remaining path of what waits on it (the critical path first)"""

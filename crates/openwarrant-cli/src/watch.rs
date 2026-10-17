@@ -152,13 +152,141 @@ fn notify_send(title: &str, body: &str) {
         .status();
 }
 
-/// Watch until interrupted. `max_ticks` bounds the loop for tests.
+/// `--checks`: the watcher as a FORMAT-1.0 §12 evaluator. Each poll fires
+/// `commit` for every commit HEAD moved through since the last one it saw
+/// (the first poll: HEAD itself), and `schedule:<cron>` once in each minute
+/// a declared cron names. Each firing is the one runner's
+/// ([`crate::ticket::checks::fire`]), so a firing another evaluator already
+/// recorded runs nothing again.
+#[derive(Debug, Default)]
+pub struct Evaluator {
+    head: Option<String>,
+    minute: Option<u64>,
+}
+
+impl Evaluator {
+    /// One poll: what it fired, one line each.
+    pub fn poll(&mut self, repo: &Repository) -> Result<Vec<String>, RepoError> {
+        use crate::ticket::checks;
+        let store = crate::ticket::Store::open(repo, None)?;
+        let mut lines = Vec::new();
+        fn say(
+            lines: &mut Vec<String>,
+            trigger: &str,
+            subject: &str,
+            f: &checks::Firing,
+            r: &crate::diagnostic::Report,
+        ) {
+            for run in f.runs.iter().filter(|x| x.recorded) {
+                lines.push(format!(
+                    "{trigger} {subject}: {} {} ({})",
+                    run.check, run.verdict, run.run
+                ));
+            }
+            for e in &f.evaluation.effects {
+                lines.push(format!(
+                    "{trigger} {subject}: {} {} by {}",
+                    e.target, e.effect, e.check
+                ));
+            }
+            for d in &r.diagnostics {
+                lines.push(format!("{trigger} {subject}: {} ({})", d.message, d.rule));
+            }
+        }
+        let head = crate::ticket::ladder::head_commit(&repo.root);
+        if let Some(h) = head.as_ref().filter(|h| self.head.as_ref() != Some(*h)) {
+            let commits = match &self.head {
+                Some(old) => rev_list(&repo.root, old, h),
+                None => vec![h.clone()],
+            };
+            for sha in commits {
+                let Some(changed) = checks::changed_paths(&repo.root, &sha) else {
+                    lines.push(format!(
+                        "commit {sha}: UNKNOWN, git could not say what it changed"
+                    ));
+                    continue;
+                };
+                let sel = checks::Select {
+                    trigger: "commit",
+                    subject: &sha,
+                    changed: Some(changed),
+                    work: Vec::new(),
+                    check: None,
+                };
+                let (f, r) = checks::fire(&store, &sel)?;
+                say(&mut lines, "commit", &sha, &f, &r);
+            }
+            self.head = head;
+        }
+        let now = crate::ticket::now_secs();
+        let minute = now / 60;
+        if self.minute != Some(minute) {
+            self.minute = Some(minute);
+            let subject = crate::gate_cmd::receipt::rfc3339_from_secs(minute * 60);
+            for trigger in checks::due_schedules(&store, minute * 60)? {
+                let sel = checks::Select {
+                    trigger: &trigger,
+                    subject: &subject,
+                    changed: None,
+                    work: Vec::new(),
+                    check: None,
+                };
+                let (f, r) = checks::fire(&store, &sel)?;
+                say(&mut lines, &trigger, &subject, &f, &r);
+            }
+        }
+        Ok(lines)
+    }
+}
+
+/// The commits after `old` up to `new`, oldest first; `[new]` when git
+/// cannot list them (a rewritten history).
+fn rev_list(root: &Utf8Path, old: &str, new: &str) -> Vec<String> {
+    let out = std::process::Command::new("git")
+        .args(["rev-list", "--reverse", &format!("{old}..{new}")])
+        .current_dir(root)
+        .stderr(std::process::Stdio::null())
+        .output();
+    match out {
+        Ok(o) if o.status.success() => {
+            let list: Vec<String> = String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .map(str::to_owned)
+                .collect();
+            if list.is_empty() {
+                vec![new.to_owned()]
+            } else {
+                list
+            }
+        }
+        _ => vec![new.to_owned()],
+    }
+}
+
+/// Watch until interrupted. `max_ticks` bounds the loop for tests. With
+/// `checks`, each poll is also an [`Evaluator`] poll.
 pub fn run(
     repo: &Repository,
     interval_ms: u64,
     desktop: bool,
     max_ticks: Option<u64>,
+    checks: bool,
 ) -> Result<(), RepoError> {
+    let mut evaluator = checks.then(Evaluator::default);
+    let evaluate = |e: &mut Option<Evaluator>| -> Result<(), RepoError> {
+        if let Some(ev) = e.as_mut() {
+            match ev.poll(repo) {
+                Ok(lines) => {
+                    for l in lines {
+                        println!("check  {l}");
+                    }
+                    flush()?;
+                }
+                Err(err) => eprintln!("watch: checks: {err}"),
+            }
+        }
+        Ok(())
+    };
     let dirs = watched_dirs(repo);
     // Fingerprint BEFORE the snapshot: computing the pending set builds every
     // request and takes a moment, and a change that lands meanwhile must be
@@ -170,6 +298,7 @@ pub fn run(
     if desktop && !last.pending.is_empty() {
         notify_send("OpenWarrant", &render(&last));
     }
+    evaluate(&mut evaluator)?;
     let interval = Duration::from_millis(interval_ms.max(50));
     let mut ticks = 0u64;
     loop {
@@ -178,6 +307,7 @@ pub fn run(
         if max_ticks.is_some_and(|m| ticks >= m) {
             return Ok(());
         }
+        evaluate(&mut evaluator)?;
         let now_fp = fingerprint(&dirs);
         if now_fp == fp {
             continue;

@@ -1,0 +1,5 @@
+id = "160-profile-invalid-builtin-preset"
+kind = "refuse"
+section = "7.5"
+rule = "profile.invalid"
+says = """A profile file a preset named like a built-in... is refused (`profile.invalid`), and its documents read as `format.profile-unknown`."""
