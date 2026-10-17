@@ -24810,6 +24810,21 @@ stages:
 No independent dispositions are asserted. This is implementation evidence only.
 <!-- atom docs/warrants/OW-WAR-0100/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | Reused telemetry repair implementation | `crates/openwarrant-cli/src/telemetry.rs` | not_content_addressed |
+| D-002 | Public telemetry integrity regressions | `crates/openwarrant-cli/tests/telemetry_integrity_cli.rs` | verified |
+| D-003 | Existing OW39 provenance retaining the prior digest | `docs/warrants/OW-WAR-0039/deliverables.toml` | verified |
+| D-004 | Existing OW41 provenance and original baseline identity | `docs/warrants/OW-WAR-0041/deliverables.toml` | verified |
+| D-005 | Retained observation trail with this follow-up link | `docs/warrants/OW-WAR-0041/implementation/notes.md` | verified |
+| D-006 | Original diagnostic invocation and output identities | `docs/warrants/OW-WAR-0041/implementation/observation.json` | verified |
+| D-007 | Original diagnostic output, not a current accepted baseline | `docs/warrants/OW-WAR-0041/implementation/current-measurement.json` | verified |
+| D-008 | Retained historical successful regression output | `docs/warrants/OW-WAR-0041/implementation/regression.log` | verified |
+| D-009 | Retained historical full-gate failure | `docs/warrants/OW-WAR-0041/implementation/initial-gate-failure.log.gz` | verified |
+| D-010 | Retained historical shared-reference failure | `docs/warrants/OW-WAR-0041/implementation/shared-ref-gate-failure.log.gz` | verified |
+
 ### OW-WAR-0101 — Constrain local drafting responses before semantic validation
 
 [manifest](../../docs/warrants/OW-WAR-0101/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0101/authorization.toml) · profile `delivery` · rung `draft` · currency `current`

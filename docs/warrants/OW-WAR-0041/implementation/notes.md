@@ -50,3 +50,7 @@ Second gate: 308/308 battery controls passed; Bonsai qualification test failed
 because concurrent fetch changed shared `origin/main` during its worktree test.
 Transcript retained in `shared-ref-gate-failure.log.gz`. Subsequent full gate
 runs use a standalone clone to isolate Git refs from integration worktrees.
+
+## OW-WAR-0100 delivery reconciliation
+
+[Current reconciliation and fresh targeted checks](../../OW-WAR-0100/implementation/RECONCILIATION.md) retain this trail and the original baseline. This link does not qualify OW41 or replace its observations.
