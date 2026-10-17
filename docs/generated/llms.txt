@@ -1606,7 +1606,7 @@
 
 ## docs/tickets/t-5501f/manifest.toml
 > Prepare alpha.4 preview with current integration fixes
-- t-5501f · ticket · in_progress · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
+- t-5501f · ticket · done · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
 
 ## docs/tickets/t-5504f/manifest.toml
 > Retain current phase evidence and audit remaining Warrant completion scope
