@@ -1,0 +1,11 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0145"
+contract_digest = "3e6680715edd0ac5580678bad85c00da7f06f2e6c96f1a4c506f3c1de6d49933"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0145 (The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-24T18:34:49Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"
+deliverable_set_digest = "sha256:186c0a6dfe5193a92b55f0420911d7e1c40cc1693a0d6e7aac85578054d68368"

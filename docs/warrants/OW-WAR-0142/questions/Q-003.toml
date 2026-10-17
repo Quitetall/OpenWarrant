@@ -14,3 +14,8 @@ asked_at = "2026-09-24T08:38:02Z"
 question = "Under A, may a covered (routine) Warrant take ownership of a path whose current owner is an authorized but unresolved Warrant? OW-ADR-0021 would let the later authorization own it. Answer 'refuse' or 'allow'."
 blocking = true
 recommended = "refuse. Routine work should not silently take a file from work in flight. The in-flight Warrant resolves first, or you sign the routine change individually."
+
+[answer]
+answered_by = "person://Brian Lam"
+answered_at = "2026-10-16T22:32:34Z"
+answer = "refuse"
