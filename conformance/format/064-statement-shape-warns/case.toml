@@ -1,0 +1,5 @@
+id = "064-statement-shape-warns"
+kind = "accept"
+section = "4.5"
+rule = "context.statement-shape"
+says = """A `statement` SHOULD be one sentence of at most 300 bytes (`context.statement-shape`)"""

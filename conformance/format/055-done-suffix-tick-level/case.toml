@@ -1,0 +1,4 @@
+id = "055-done-suffix-tick-level"
+kind = "accept"
+section = "3.8"
+says = """on a done item, optionally ` — done by <actor>, <YYYY-MM-DD>`, a tick level ` [observed]`, ` [independent]` or ` [signed]` (11.4), and `: <note>`."""

@@ -4,5 +4,5 @@
 # A case leaves this list when war changes or when the specification is
 # amended and the case with it; never by editing an expected file to match war.
 
-# None: every divergence the corpus found is settled (016 and 044, by the
-# amendment of FORMAT-1.0 sections 5 and 9 and war's reader).
+# Draft 3, revision 1 (docs/format/FORMAT-1.0.md 1.0.0-draft.3): war implements draft 2.
+# Every kind of case (model, context, tracking, apply) has a war adapter in run.py.

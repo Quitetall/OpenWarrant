@@ -508,10 +508,12 @@ impl Cache {
     /// [`Store::load_all`]'s per-directory answers, in listing order: exactly
     /// what reading the files gives, with the cache rewritten where it
     /// gained an entry. The shards are read while the store is listed.
+    #[allow(clippy::type_complexity)]
     pub(crate) fn load(
         &self,
         store: &Store,
-    ) -> Result<Vec<Option<Result<Ticket, Diagnostic>>>, crate::repo::RepoError> {
+    ) -> Result<(Vec<Utf8PathBuf>, Vec<Option<Result<Ticket, Diagnostic>>>), crate::repo::RepoError>
+    {
         let ids: Vec<usize> = (0..SHARDS).collect();
         let read = || crate::vfs::map_ordered(&ids, 1, |&i| self.read_shard(i));
         let (entries, shards) = std::thread::scope(|scope| {
@@ -553,7 +555,7 @@ impl Cache {
                 if listed { "cache" } else { "directory" }
             );
         }
-        Ok(got.into_iter().map(|g| g.ticket).collect())
+        Ok((entries, got.into_iter().map(|g| g.ticket).collect()))
     }
 
     /// Shard `i` again: every entry of it this run can vouch for, in
@@ -596,7 +598,10 @@ impl Cache {
         let shard = shard_of(name);
         let old = &shards[shard];
         if let Some((_, tr, jr)) = old.get(name)
-            && let Some(mut t) = old.bytes.get(tr.clone()).and_then(|b| hit(dir, stamp, b))
+            && let Some(mut t) = old
+                .bytes
+                .get(tr.clone())
+                .and_then(|b| hit(&store.root, dir, stamp, b))
         {
             let old_journal = jr
                 .as_ref()
@@ -655,7 +660,7 @@ impl Cache {
     /// journal stats as it did, else [`crate::go::blocked_of`] over the
     /// files, stat'ed first. A done ticket has none to cache.
     fn journal(&self, t: &mut Ticket, old: Option<(Range<usize>, &[u8])>) -> Part {
-        if t.checklist.is_done() {
+        if t.is_done() {
             return Part::None;
         }
         let now = seen(&t.dir.join(crate::journal_cmd::FILE));
@@ -680,7 +685,7 @@ impl Cache {
 /// The ticket an entry holds, when its three files stat as they did: the
 /// manifest (`stamp`, already taken) and both atoms, at the paths the
 /// manifest names. Exactly what [`Store::load`] builds from the same files.
-fn hit(dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ticket> {
+fn hit(root: &Utf8Path, dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ticket> {
     let mut r = Reader::new(bytes);
     if r.stamp()? != stamp {
         return None;
@@ -703,6 +708,8 @@ fn hit(dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ticket> {
     }
     let checklist = ticket::parse(&checklist_text);
     Some(Ticket {
+        // Derived from this reader's store; never trusted from cache bytes.
+        repository_root: root.to_owned(),
         dir: dir.to_owned(),
         manifest,
         intent_path,
@@ -712,6 +719,9 @@ fn hit(dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ticket> {
         checklist,
         revision,
         blocked: None,
+        format: false,
+        done_whole: false,
+        depends_on: Vec::new(),
     })
 }
 

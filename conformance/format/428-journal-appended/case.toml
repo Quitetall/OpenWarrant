@@ -1,0 +1,4 @@
+id = "428-journal-appended"
+kind = "accept"
+section = "11.2"
+says = """**Append-only.** A journal only grows"""

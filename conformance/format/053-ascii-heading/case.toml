@@ -1,0 +1,4 @@
+id = "053-ascii-heading"
+kind = "accept"
+section = "3.4"
+says = """` | ` MAY stand for ` · ` and ` -- ` for ` — `: `## REQ-001 | requirement -- Title` is the same record."""

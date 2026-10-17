@@ -12,6 +12,7 @@ use openwarrant_core::Profile;
 pub mod acceptance;
 pub mod alias;
 pub mod amendment_id;
+pub mod apply_cmd;
 pub mod attest;
 pub mod authority_check;
 pub mod authority_cmd;
@@ -110,6 +111,8 @@ pub mod sign;
 pub mod signing_probe;
 pub mod skew;
 mod source_workspace;
+pub mod spec_accept;
+pub mod spec_migrate;
 pub mod ssh_verdicts;
 pub mod standing_cmd;
 #[path = "state_cmd.rs"]
@@ -125,6 +128,7 @@ pub mod vfs;
 pub mod warrants;
 pub mod watch;
 pub mod webui;
+pub mod work_rules;
 
 #[derive(clap::Subcommand, Debug)]
 enum KfCommand {
@@ -518,8 +522,10 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "promote",
             "render",
             "impact",
+            "spec",
             "model",
             "state",
+            "states",
             "roadmap",
             "types",
             "type",
@@ -577,6 +583,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "commit",
             "heartbeat",
             "release",
+            "reopen",
             "renumber",
             "agents-md",
             "import",
@@ -741,7 +748,18 @@ enum DailyCommand {
     /// then an agent's acts, then the acts a person signs. With nothing
     /// tracked it says "nothing tracked; work freely": ordinary work needs
     /// no Warrant. A signing step is always a person's.
-    Next,
+    ///
+    /// The ready items are FORMAT-1.0 §11.5's order: due first (inherited
+    /// from what waits on an item), then the critical path, then priority,
+    /// then age, alias and position. It is a function of the documents,
+    /// journals, claims and the time, so agents asking at once get one
+    /// order.
+    Next {
+        /// Answer as of this time (RFC 3339, e.g. `2026-10-15T12:00:00Z`)
+        /// instead of now: which claims' leases have run out is judged then.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+    },
     /// Start a Warrant's work in a worktree of its own, with its settings.
     ///
     /// Claims the item (or a Warrant with no items, or an agent stage
@@ -775,6 +793,12 @@ enum DailyCommand {
         steal: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+        /// Act as of this time (RFC 3339) instead of now: the claim's
+        /// `since`, a done date and the journal's `occurred_at` are this
+        /// time, and leases are judged then. For replaying a recorded
+        /// history, such as the conformance corpus (conformance/format/).
+        #[arg(long, value_name = "RFC3339", hide = true)]
+        at: Option<String>,
     },
     /// Tick an item done in its Warrant's checklist and release the claim.
     ///
@@ -787,7 +811,7 @@ enum DailyCommand {
         #[arg(long)]
         note: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
@@ -800,6 +824,12 @@ enum DailyCommand {
         check: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+        /// Act as of this time (RFC 3339) instead of now: the claim's
+        /// `since`, a done date and the journal's `occurred_at` are this
+        /// time, and leases are judged then. For replaying a recorded
+        /// history, such as the conformance corpus (conformance/format/).
+        #[arg(long, value_name = "RFC3339", hide = true)]
+        at: Option<String>,
     },
     /// Add an item to a Warrant, or a test, KPI or milestone.
     ///
@@ -856,12 +886,35 @@ enum DailyCommand {
         #[arg(long, value_name = "LEVEL")]
         min: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+    },
+    /// Read an edited package back into its documents (Format 1.0 §10.5).
+    ///
+    /// The package is what `war context <target> --preset human` printed,
+    /// edited between its `<!-- rec … -->` markers. Each changed block
+    /// replaces its record's text; a block whose record changed since the
+    /// package was made is refused (`apply.stale`), and one that no longer
+    /// parses, or names another record, is refused by its rule. A box
+    /// ticked by hand is done (at `claimed`) and one unticked is reopened,
+    /// journalled by the actor applying it; the line is rewritten with its
+    /// done suffix. Blocks of one document are applied together or not at
+    /// all. A block left out is left alone; text outside markers is never
+    /// written back.
+    Apply {
+        /// The edited package (Markdown).
+        #[arg(value_name = "PACKAGE")]
+        package: Utf8PathBuf,
+        /// Who applies it: the done suffix and the journal name them.
+        #[arg(long = "as", visible_alias = "actor", value_name = "ACTOR")]
+        actor: Option<String>,
+        /// Date a ticked box as of this time (RFC 3339) instead of now.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
     },
     /// Append a dated note to a Warrant: context for whoever comes next.
     ///
@@ -872,12 +925,18 @@ enum DailyCommand {
         /// The note; Markdown, may span lines.
         text: String,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+        /// Act as of this time (RFC 3339) instead of now: the claim's
+        /// `since`, a done date and the journal's `occurred_at` are this
+        /// time, and leases are judged then. For replaying a recorded
+        /// history, such as the conformance corpus (conformance/format/).
+        #[arg(long, value_name = "RFC3339", hide = true)]
+        at: Option<String>,
     },
     /// Change a Warrant's type, labels, epic or priority.
     ///
@@ -905,7 +964,7 @@ enum DailyCommand {
         #[arg(long, value_name = "DATE")]
         due: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
@@ -948,7 +1007,12 @@ enum DailyCommand {
     /// Check the records deterministically, without any agent.
     ///
     /// §71.7. A Warrant's id checks that one; alone, the whole corpus.
+    /// `war check run|evaluate|fire|install-hook` are FORMAT-1.0 §12's
+    /// checks and triggers.
+    #[command(args_conflicts_with_subcommands = true)]
     Check {
+        #[command(subcommand)]
+        action: Option<CheckAction>,
         /// A single Warrant's local alias. Defaults to the whole corpus.
         alias: Option<String>,
         /// Also compare committed generated views against a fresh compilation.
@@ -977,6 +1041,55 @@ enum DailyCommand {
         #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr"])]
         floor: Option<String>,
     },
+}
+
+/// `war check run|evaluate|fire|install-hook` (FORMAT-1.0 §12): a Format
+/// 1.0 document's `check` and `kpi` records, run, recorded in its journal
+/// (`trigger.fired`, `check.run`) and applied: a pass ticks what it
+/// evaluates at `observed`, a fail makes the check `failing` (and reopens
+/// with `reopen: true`), an UNKNOWN run ticks nothing.
+#[derive(Subcommand)]
+enum CheckAction {
+    /// Run checks now (the `manual` trigger), then apply what they found.
+    Run {
+        /// `<alias>`, `<alias>/<CHK-id>` or `<CHK-id>`. Omit for every check.
+        target: Option<String>,
+        /// Act as this actor (a name for the journal; it authorizes nothing).
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Apply the recorded runs, running nothing: each check's last run on
+    /// its current revision ticks, raises or reopens what it evaluates.
+    Evaluate {
+        /// One work document's alias. Omit for every one.
+        target: Option<String>,
+        /// Act as this actor.
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+        /// The time the ticks are dated (RFC 3339), for a reproducible run.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+    },
+    /// Fire a trigger (what a git hook, a CI step and `war view watch
+    /// --checks` call): `commit`, `pr.merged`, `ci:<name>`,
+    /// `schedule:<cron>` or `manual`. Each check declaring it runs once per
+    /// revision and subject.
+    Fire {
+        trigger: String,
+        /// The commit (default HEAD) or time the firing is about.
+        #[arg(long)]
+        subject: Option<String>,
+        /// Only these work documents (aliases). For `pr.merged` without
+        /// one, the aliases the subject commit's message names.
+        #[arg(long = "work", value_name = "ALIAS")]
+        work: Vec<String>,
+        /// Act as this actor.
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Install the `commit` trigger as git's `post-commit` hook. A hook
+    /// that is not OpenWarrant's is never overwritten.
+    InstallHook,
 }
 
 /// `war plan …`: shaping the work. Also flattened, hidden, into the top level.
@@ -1047,11 +1160,31 @@ enum PlanCommand {
         /// `t-3f2a/i-9c01`).
         record: String,
     },
+    /// The specification (FORMAT-1.0 §4.5): its acceptance, record by
+    /// record; the request a person signs to accept it; and the migration
+    /// of a legacy SAS into `SPEC.md` and `spec/<area>.md`.
+    Spec {
+        #[command(subcommand)]
+        command: SpecCommand,
+    },
     /// The compiled corpus as one document, `oh.war/model/v1` (OW-WAR-0148):
     /// every record with its revision and governor, every relation, the
     /// states the builders derive, and a diagnostic per relation whose target
     /// is not a record. Read-only; the same tree gives the same bytes.
     Model,
+    /// The states of FORMAT-1.0 §11.1 (draft 3, revision 1) over the work
+    /// documents a tracker works: each with its family (`phase`,
+    /// `checklist`, ...), its provenance (`computed`, `recorded`,
+    /// `declared`) and, for a declared state, what it refines and whether it
+    /// lapsed; and the findings of reading them (journal refusals, a line
+    /// newer than v2 as UNKNOWN, unbacked tick levels). Read-only: a pure
+    /// function of the documents, journals, claim store and a time.
+    States {
+        /// Answer as of this time (RFC 3339) instead of now: which claims'
+        /// leases have run out is judged then.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+    },
     // ---- OW-WAR-0148 M4: declared states ---------------------------------
     /// Enter a declared state on a record (OW-WAR-0148 M4): a refinement of
     /// a fixed kernel state that the record's profile declares in
@@ -1276,6 +1409,41 @@ enum SignCommand {
     Authority {
         #[command(subcommand)]
         command: authority_cmd::Command,
+    },
+}
+
+/// `war spec …` (FORMAT-1.0 §4.5, §14, Appendix C.3).
+#[derive(Subcommand)]
+enum SpecCommand {
+    /// Each record's acceptance, and the work and obligations citing each
+    /// record that is not accepted. Read-only.
+    Status,
+    /// The acceptance request: the records not accepted now (an edited
+    /// record's acceptance lapses for it alone), with the subject digest a
+    /// person signs. Writes nothing; `war sign spec` is the person's act.
+    /// With `--response`, judge a signed response and say whether it is
+    /// the act it claims to be.
+    Accept {
+        /// Every record, not only the unaccepted.
+        #[arg(long)]
+        all: bool,
+        /// A signed response to judge, instead of emitting the request.
+        #[arg(long, conflicts_with = "all")]
+        response: Option<Utf8PathBuf>,
+    },
+    /// Write a legacy SAS (`[paths] sas`) as `SPEC.md` and one
+    /// `spec/<area>.md` per top-level section (§14). A dry run unless
+    /// `--write`; the SAS is not touched and keeps its acceptance.
+    Migrate {
+        /// The SAS document, instead of the repository's.
+        #[arg(long)]
+        sas: Option<Utf8PathBuf>,
+        /// `version` for `SPEC.md` when no SAS revision names the document.
+        #[arg(long)]
+        version: Option<String>,
+        /// Write the files (refused when one exists or the reader refuses one).
+        #[arg(long)]
+        write: bool,
     },
 }
 
@@ -1604,6 +1772,11 @@ enum ViewCommand {
         /// Stop after this many polls (for tests).
         #[arg(long, hide = true)]
         ticks: Option<u64>,
+        /// Also be a FORMAT-1.0 §12 evaluator: fire `commit` as HEAD moves
+        /// and `schedule:<cron>` as its minutes come, running the checks
+        /// that declare them and applying what they find.
+        #[arg(long)]
+        checks: bool,
     },
     /// List remaining Warrant records and status, read-only, from live sources.
     /// `progress` is an alias. Legacy resolution is not implementation completion.
@@ -1682,21 +1855,43 @@ enum ViewCommand {
     /// not fit is listed by its summary and marked [S], to load the same
     /// way. The same arguments over the same files print the same bytes
     /// (Format 1.0, section 10.3).
+    ///
+    /// `--preset` picks what is selected and how (section 10.4): `agent`
+    /// (the default), `agent.min` (a tight window), `human` (everything,
+    /// editable: give it back with `war apply`), `review` (the obligations
+    /// and checks of the target and what they evaluate) and `resume` (the
+    /// target's items with their state, and what is next). `review` and
+    /// `resume` read the journals and claims as of `--at` (default now).
+    /// `--index` prints the index of section 10.2 instead
+    /// (docs/generated/llms.txt, as `war admin compile` writes it).
     Context {
         /// Alias, `war://<uuid>`, item, record id, or repository path.
-        target: String,
-        /// The budget in bytes of the Markdown output (default 16000).
+        #[arg(required_unless_present = "index")]
+        target: Option<String>,
+        /// The budget in bytes of the Markdown output (the preset's: 16000
+        /// for `agent`).
         #[arg(long, value_name = "BYTES", conflicts_with = "tokens")]
         budget: Option<usize>,
         /// The budget in tokens, counted as 4 bytes each.
         #[arg(long, value_name = "N")]
         tokens: Option<usize>,
-        /// How many relation steps to follow from the target (default 3).
-        #[arg(long, value_name = "D", default_value_t = context::DEFAULT_DEPTH)]
-        depth: usize,
+        /// How many relation steps to follow from the target (the preset's:
+        /// 3 for `agent`).
+        #[arg(long, value_name = "D")]
+        depth: Option<usize>,
         /// Refuse instead of listing any record by its summary only.
         #[arg(long)]
         strict: bool,
+        /// The preset: agent, agent.min, human, review or resume.
+        #[arg(long, value_name = "NAME", default_value = context::DEFAULT_PRESET)]
+        preset: String,
+        /// For a preset that reads state: answer as of this time (RFC 3339,
+        /// e.g. `2026-10-14T10:00:00Z`) instead of now.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+        /// Print the index (section 10.2) instead of a packet.
+        #[arg(long, conflicts_with_all = ["target", "budget", "tokens", "depth", "strict", "at"])]
+        index: bool,
     },
 }
 
@@ -1873,8 +2068,23 @@ enum AdminCommand {
     Release {
         target: String,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `warrant.stale-revision`
+        /// one `war show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Untick a done item: its box opens again, its done suffix goes, and
+    /// the journal records why (`work.item_reopened`, FORMAT-1.0 §11.2).
+    Reopen {
+        /// The done item (`t-x/i-y`, or `i-y`).
+        target: String,
+        /// Why it is open again; journalled with the reopening.
+        #[arg(long)]
+        reason: String,
+        /// Write only if the item is still at this revision, the one `war
+        /// show --json` gave; refused `work.stale-revision` otherwise.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
@@ -2731,6 +2941,22 @@ fn refresh_index_after(
 
 /// Print a ticket command's answer and return its exit code: the rendering
 /// (or the refusal, on stderr) for a person, the envelope under `--json`.
+/// `--at <RFC 3339>`: answer (or act) as of that time for the rest of this
+/// process ([`ticket::answer_at`]). Nothing when `None`.
+fn answer_at(at: Option<&str>) -> Result<(), repo::RepoError> {
+    let Some(at) = at else { return Ok(()) };
+    let secs = chrono::DateTime::parse_from_rfc3339(at.trim())
+        .ok()
+        .and_then(|d| u64::try_from(d.timestamp()).ok())
+        .ok_or_else(|| {
+            repo::RepoError::Message(format!(
+                "cli.at: `--at {at}` is not an RFC 3339 time (e.g. 2026-10-15T12:00:00Z)"
+            ))
+        })?;
+    ticket::answer_at(secs);
+    Ok(())
+}
+
 fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -> u8 {
     match mode {
         output::Mode::Human => {
@@ -2746,7 +2972,12 @@ fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -
                     _ => {}
                 }
             }
-            if !outcome.is_refused() {
+            // An UNKNOWN about part of the input (one unreadable task of
+            // several) leaves the rest of the outcome to say; an outcome
+            // that is only UNKNOWN has nothing more than its stderr line.
+            let happened =
+                outcome.report.count(diagnostic::Severity::Error) == 0 && !outcome.result.is_null();
+            if !outcome.is_refused() || happened {
                 println!("{}", outcome.human);
             }
         }
@@ -2926,6 +3157,193 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     }
 }
 
+/// `war check run|evaluate|fire|install-hook` (FORMAT-1.0 §12): each a thin
+/// call into the one runner, `ticket::checks`.
+fn check_action(
+    ctx: &Ctx,
+    mode: output::Mode,
+    action: CheckAction,
+) -> Result<u8, Box<dyn std::error::Error>> {
+    use ticket::checks;
+    let firing = |f: &checks::Firing, report: diagnostic::Report, what: &str| {
+        let ran = f.runs.iter().filter(|r| r.recorded).count();
+        let mut lines = vec![format!(
+            "{what}: {ran} run(s) recorded, {} already recorded for this revision and subject",
+            f.runs.len() - ran
+        )];
+        for r in &f.runs {
+            lines.push(format!(
+                "  {} {} ({}){}",
+                r.check,
+                if r.recorded {
+                    r.verdict.as_str()
+                } else {
+                    "already recorded"
+                },
+                r.run,
+                r.reason
+                    .as_ref()
+                    .map(|x| format!(": {x}"))
+                    .unwrap_or_default()
+            ));
+        }
+        for e in &f.evaluation.effects {
+            lines.push(format!(
+                "  {} {} by {} ({})",
+                e.target, e.effect, e.check, e.run
+            ));
+        }
+        ticket::Outcome {
+            report,
+            human: lines.join("\n"),
+            result: serde_json::json!({"schema": "oh.war/check-fire/v1", "firing": f}),
+        }
+    };
+    let now = checks::moment;
+    match action {
+        CheckAction::Run { target, actor } => {
+            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (work, check) = match target.as_deref() {
+                None => (Vec::new(), None),
+                Some(t) if t.contains('/') => (
+                    vec![t.split('/').next().unwrap_or(t).to_owned()],
+                    Some(t.to_owned()),
+                ),
+                Some(t) if ticket::is_ticket_ref(t) => (vec![t.to_owned()], None),
+                Some(t) => (Vec::new(), Some(t.to_owned())),
+            };
+            let subject = now();
+            let sel = checks::Select {
+                trigger: "manual",
+                subject: &subject,
+                changed: None,
+                work,
+                check,
+            };
+            let (f, report) = checks::fire(&store, &sel)?;
+            if f.runs.is_empty() {
+                let o = ticket::Outcome::refused(
+                    checks::NOTHING_RULE,
+                    String::new(),
+                    format!(
+                        "no check or kpi record matches `{}` in a Format 1.0 work document",
+                        target.as_deref().unwrap_or("*")
+                    ),
+                );
+                return Ok(ticket_answer(mode, "check.run", &o));
+            }
+            Ok(ticket_answer(
+                mode,
+                "check.run",
+                &firing(&f, report, "manual"),
+            ))
+        }
+        CheckAction::Evaluate { target, actor, at } => {
+            if let Some(at) = at {
+                let secs = chrono::DateTime::parse_from_rfc3339(at.trim())
+                    .ok()
+                    .and_then(|d| u64::try_from(d.timestamp()).ok())
+                    .ok_or_else(|| {
+                        repo::RepoError::Message(format!(
+                            "check.at: `--at {at}` is not an RFC 3339 time (e.g. \
+                             2026-10-15T12:00:00Z)"
+                        ))
+                    })?;
+                ticket::answer_at(secs);
+            }
+            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (e, report) = checks::evaluate(&store, target.as_deref())?;
+            let mut lines: Vec<String> = e
+                .effects
+                .iter()
+                .map(|x| format!("{} {} by {} ({})", x.target, x.effect, x.check, x.run))
+                .collect();
+            for c in &e.failing {
+                lines.push(format!("{c} is failing"));
+            }
+            if lines.is_empty() {
+                lines.push(
+                    "nothing to apply: no recorded run ticks, raises or reopens anything"
+                        .to_owned(),
+                );
+            }
+            let o = ticket::Outcome {
+                report,
+                human: lines.join("\n"),
+                result: serde_json::json!({"schema": "oh.war/check-evaluate/v1", "evaluation": e}),
+            };
+            Ok(ticket_answer(mode, "check.evaluate", &o))
+        }
+        CheckAction::Fire {
+            trigger,
+            subject,
+            work,
+            actor,
+        } => {
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let head = || ticket::ladder::head_commit(&repository.root);
+            let subject = match trigger.as_str() {
+                "manual" => subject.unwrap_or_else(now),
+                t if t.starts_with("schedule:") => subject.unwrap_or_else(now),
+                _ => match subject.or_else(head) {
+                    Some(s) => s,
+                    None => {
+                        let o = ticket::Outcome::unknown(
+                            checks::UNKNOWN_RULE,
+                            String::new(),
+                            format!(
+                                "`{trigger}` names a commit, and there is no HEAD to name; nothing ran"
+                            ),
+                        );
+                        return Ok(ticket_answer(mode, "check.fire", &o));
+                    }
+                },
+            };
+            let changed = match trigger.as_str() {
+                "commit" => match checks::changed_paths(&repository.root, &subject) {
+                    Some(c) => Some(c),
+                    None => {
+                        let o = ticket::Outcome::unknown(
+                            checks::UNKNOWN_RULE,
+                            String::new(),
+                            format!("git could not say what {subject} changed; nothing ran"),
+                        );
+                        return Ok(ticket_answer(mode, "check.fire", &o));
+                    }
+                },
+                _ => None,
+            };
+            let work = if work.is_empty() && trigger == "pr.merged" {
+                checks::cited_work(&repository.root, &subject)
+            } else {
+                work
+            };
+            let sel = checks::Select {
+                trigger: &trigger,
+                subject: &subject,
+                changed,
+                work,
+                check: None,
+            };
+            let (f, report) = checks::fire(&store, &sel)?;
+            Ok(ticket_answer(
+                mode,
+                "check.fire",
+                &firing(&f, report, &trigger),
+            ))
+        }
+        CheckAction::InstallHook => {
+            let repository = ctx.open_repo()?;
+            let war = std::env::current_exe()
+                .ok()
+                .and_then(|p| p.to_str().map(str::to_owned))
+                .unwrap_or_else(|| "war".to_owned());
+            let o = checks::install_hook(&repository.root, &war)?;
+            Ok(ticket_answer(mode, "check.install-hook", &o))
+        }
+    }
+}
+
 fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
@@ -3018,7 +3436,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             target,
             steal,
             actor,
+            at,
         } => {
+            answer_at(at.as_deref())?;
             ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             Ok(ticket_answer(
@@ -3033,7 +3453,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             check,
             actor,
+            at,
         } => {
+            answer_at(at.as_deref())?;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let mut outcome =
                 ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?;
@@ -3107,12 +3529,53 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "add", &outcome))
         }
+        DailyCommand::Apply { package, actor, at } => {
+            let secs = match &at {
+                Some(at) => chrono::DateTime::parse_from_rfc3339(at.trim())
+                    .ok()
+                    .and_then(|d| u64::try_from(d.timestamp()).ok())
+                    .ok_or_else(|| {
+                        repo::RepoError::Message(format!(
+                            "apply.at: `--at {at}` is not an RFC 3339 time (e.g. \
+                             2026-10-14T10:00:00Z)"
+                        ))
+                    })?,
+                None => ticket::now_secs(),
+            };
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let text = vfs::read_to_string(&package).map_err(|source| repo::RepoError::Io {
+                context: format!("could not read {package}"),
+                source,
+            })?;
+            let opts = apply_cmd::Options {
+                actor: store.actor.clone(),
+                date: gate_cmd::receipt::rfc3339_from_secs(secs)[..10].to_owned(),
+            };
+            let outcome = apply_cmd::apply(&repository, &text, &opts)?;
+            let report = apply_cmd::report_of(&outcome);
+            if !outcome.applied.is_empty()
+                && let Err(e) = context::refresh_index(&repository, false)
+            {
+                eprintln!(
+                    "warning (context-index.refresh): {e}; `war admin compile` rewrites {}",
+                    context::INDEX_PATH
+                );
+            }
+            Ok(output::finish(
+                mode,
+                "apply",
+                &report,
+                Some(output::value(&outcome)),
+            ))
+        }
         DailyCommand::Note {
             target,
             text,
             if_rev,
             actor,
+            at,
         } => {
+            answer_at(at.as_deref())?;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::note(&store, &target, &text, if_rev.as_deref())?;
             refresh_index_after(&repository, &outcome, false);
@@ -3520,7 +3983,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let (report, result, human) = go::start::run(&repository, &id, &opts)?;
             Ok(go_answer(mode, "start", &report, result, &human))
         }
-        DailyCommand::Next => {
+        DailyCommand::Next { at } => {
+            answer_at(at.as_deref())?;
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
@@ -3544,6 +4008,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             }
             Ok(EXIT_OK)
         }
+        DailyCommand::Check {
+            action: Some(action),
+            ..
+        } => check_action(ctx, mode, action),
         DailyCommand::Check {
             pr: Some(pr),
             repo,
@@ -4070,6 +4538,109 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                 )),
             }
         }
+        PlanCommand::Spec { command } => {
+            let repository = ctx.open_repo()?;
+            match command {
+                SpecCommand::Status => {
+                    let corpus = corpus::Corpus::new(&repository);
+                    let (report, status) = spec_accept::status(&corpus)?;
+                    if mode == output::Mode::Human
+                        && let Some(st) = &status
+                    {
+                        println!(
+                            "specification: {} ({} of {} record(s) accepted)",
+                            st.document, st.accepted, st.records
+                        );
+                        for u in &st.unaccepted {
+                            println!(
+                                "  {}  {}{}{}",
+                                u.record,
+                                if u.lapsed {
+                                    "edited since accepted"
+                                } else {
+                                    "not accepted"
+                                },
+                                if u.cited_by.is_empty() {
+                                    ""
+                                } else {
+                                    "; cited by "
+                                },
+                                u.cited_by.join(", ")
+                            );
+                        }
+                    }
+                    Ok(output::finish(
+                        mode,
+                        "spec.status",
+                        &report,
+                        status.as_ref().map(output::value),
+                    ))
+                }
+                SpecCommand::Accept {
+                    response: Some(path),
+                    ..
+                } => Ok(output::finish(
+                    mode,
+                    "spec.accept",
+                    &spec_accept::ingest_with(&repository, &path, sign::IngestMode::Record)?,
+                    None,
+                )),
+                SpecCommand::Accept {
+                    all,
+                    response: None,
+                } => {
+                    let corpus = corpus::Corpus::new(&repository);
+                    match spec_accept::request(&corpus, all)? {
+                        Some(request) => {
+                            output::emit(
+                                mode,
+                                "spec.accept.request",
+                                &toml::to_string_pretty(&request).map_err(|e| {
+                                    repo::RepoError::Message(format!(
+                                        "could not render the request: {e}"
+                                    ))
+                                })?,
+                                output::value(&request),
+                            );
+                            eprintln!(
+                                "# {}: {} of {} record(s), {} edited since accepted, {} new. A \
+                                 person accepts it: `war sign spec --ssh-sign`",
+                                request.subject,
+                                request.records.len(),
+                                request.record_count,
+                                request.changed.len(),
+                                request.new.len()
+                            );
+                            Ok(0)
+                        }
+                        None => {
+                            let mut report = diagnostic::Report::default();
+                            report.push(diagnostic::Diagnostic::pass(
+                                "spec.nothing-to-accept",
+                                "no Format 1.0 specification, or every record is accepted"
+                                    .to_owned(),
+                            ));
+                            Ok(output::finish(mode, "spec.accept", &report, None))
+                        }
+                    }
+                }
+                SpecCommand::Migrate {
+                    sas,
+                    version,
+                    write,
+                } => {
+                    let (report, _) = spec_migrate::run(
+                        &repository,
+                        &spec_migrate::Options {
+                            sas,
+                            version,
+                            write,
+                        },
+                    )?;
+                    Ok(output::finish(mode, "spec.migrate", &report, None))
+                }
+            }
+        }
         // ---- OW-WAR-0148 M4: declared states -----------------------------
         PlanCommand::State {
             record,
@@ -4140,6 +4711,44 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     "model",
                     &report,
                     Some(output::value(&model)),
+                )),
+            }
+        }
+        PlanCommand::States { at } => {
+            answer_at(at.as_deref())?;
+            let repository = ctx.open_repo()?;
+            gate_cmd::source::remember_tree_reads();
+            ticket::cache::permit_with_journals();
+            let (report, states) = states::format_states(&repository)?;
+            match mode {
+                output::Mode::Human => {
+                    for s in &states.states {
+                        let refines = s
+                            .refines
+                            .as_ref()
+                            .map(|r| {
+                                format!(" (refines {r}{})", if s.lapsed { ", lapsed" } else { "" })
+                            })
+                            .unwrap_or_default();
+                        println!(
+                            "{}  {}  {}  {}{refines}",
+                            s.record, s.kind, s.value, s.provenance
+                        );
+                    }
+                    for d in report
+                        .diagnostics
+                        .iter()
+                        .filter(|d| d.severity != diagnostic::Severity::Pass)
+                    {
+                        eprintln!("{d}");
+                    }
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "states",
+                    &report,
+                    Some(output::value(&states)),
                 )),
             }
         }
@@ -4327,7 +4936,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let corpus = corpus::Corpus::new(&repository);
             let store = ticket::Store::open(&repository, None)?;
             let prior = match go::policy::load(&repository.root) {
-                Ok(p) => p.prior_secs,
+                Ok(p) => estimate::prior_secs(&repository.root, Some(p.prior_secs)),
                 Err(d) => {
                     let mut report = diagnostic::Report::default();
                     report.push(d);
@@ -5541,16 +6150,61 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             tokens,
             depth,
             strict,
+            preset,
+            at,
+            index,
         } => {
             let repository = ctx.open_repo()?;
-            let corpus = corpus::Corpus::new(&repository);
-            let opts = context::Options {
-                budget: context::Options::budget_of(budget, tokens),
-                depth,
-                strict,
+            // A built-in preset, else one a profile declares (section 10.4).
+            let preset = match context::Preset::builtin(&preset)
+                .map(Ok)
+                .or_else(|| context::Preset::declared(&preset, &format_doc::profiles(&repository)))
+            {
+                Some(Ok(p)) => p,
+                Some(Err(why)) => {
+                    return Err(repo::RepoError::Message(format!("context.preset: {why}")).into());
+                }
+                None => {
+                    return Err(repo::RepoError::Message(format!(
+                        "context.preset-unknown: `--preset {preset}` names no preset; the \
+                         built-in ones are {}, and no profile declares one of that name",
+                        context::PRESETS.join(", ")
+                    ))
+                    .into());
+                }
             };
-            let target = context::relative_target(&repository, &target);
-            Ok(context::answer(mode, &corpus, &target, &opts)?)
+            // A preset that reads state answers at one time (section 10.4):
+            // the claims' leases are judged then.
+            let at = if preset.reads_state {
+                let secs = match &at {
+                    Some(at) => chrono::DateTime::parse_from_rfc3339(at.trim())
+                        .ok()
+                        .and_then(|d| u64::try_from(d.timestamp()).ok())
+                        .ok_or_else(|| {
+                            repo::RepoError::Message(format!(
+                                "context.at: `--at {at}` is not an RFC 3339 time (e.g. \
+                                 2026-10-14T10:00:00Z)"
+                            ))
+                        })?,
+                    None => ticket::now_secs(),
+                };
+                ticket::answer_at(secs);
+                let text = at.map_or_else(
+                    || gate_cmd::receipt::rfc3339_from_secs(secs),
+                    |a| a.trim().to_owned(),
+                );
+                Some((text, secs))
+            } else {
+                None
+            };
+            let corpus = corpus::Corpus::new(&repository);
+            if index {
+                return Ok(context::answer_index(mode, &corpus)?);
+            }
+            let mut opts = context::Options::with(preset, budget, tokens, depth);
+            opts.strict = strict;
+            let target = context::relative_target(&repository, &target.unwrap_or_default());
+            Ok(context::answer(mode, &corpus, &target, &opts, at)?)
         }
         ViewCommand::Tickets {
             kind,
@@ -5670,9 +6324,19 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             interval,
             notify_send,
             ticks,
+            checks,
         } => {
             let repository = ctx.open_repo()?;
             if once {
+                if checks {
+                    for l in watch::Evaluator::default().poll(&repository)? {
+                        if mode == output::Mode::Human {
+                            println!("check  {l}");
+                        } else {
+                            eprintln!("check  {l}");
+                        }
+                    }
+                }
                 let snap = watch::snapshot(&repository)?;
                 output::emit(
                     mode,
@@ -5682,7 +6346,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 );
                 return Ok(EXIT_OK);
             }
-            watch::run(&repository, interval, notify_send, ticks)?;
+            watch::run(&repository, interval, notify_send, ticks, checks)?;
             Ok(EXIT_OK)
         }
         ViewCommand::Overview {
@@ -5726,11 +6390,12 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             // returned above without freezing their tree observations.
             gate_cmd::source::remember_tree_reads();
             ssh_verdicts::permit();
-            let view = overview::build(status::build(&repository)?, all);
+            let corpus = corpus::Corpus::new(&repository);
+            let view = overview::capture(&corpus, all)?;
             output::emit(
                 mode,
                 "overview",
-                &overview::render(&view),
+                &overview::render_unified(&view),
                 output::value(&view),
             );
             Ok(EXIT_OK)
@@ -6003,6 +6668,19 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                 mode,
                 "release",
                 &ticket::release(&store, &target, if_rev.as_deref())?,
+            ))
+        }
+        AdminCommand::Reopen {
+            target,
+            reason,
+            if_rev,
+            actor,
+        } => {
+            let (_, store) = ctx.tickets(actor.as_deref())?;
+            Ok(ticket_answer(
+                mode,
+                "reopen",
+                &ticket::reopen(&store, &target, &reason, if_rev.as_deref())?,
             ))
         }
         AdminCommand::MergeTicket {

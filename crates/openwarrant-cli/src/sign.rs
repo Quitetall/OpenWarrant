@@ -157,6 +157,12 @@ pub enum Pending {
         gate: String,
         request: crate::invalidation::InvalidationRequest,
     },
+    /// FORMAT-1.0 Appendix C.3 — records of the specification await a
+    /// person's `accept`: those never accepted, and those edited since the
+    /// act that accepted them.
+    AcceptSpec {
+        request: crate::spec_accept::AcceptRequest,
+    },
 }
 
 /// The outcome an existing resolution recorded, so a signature supplied for it
@@ -283,18 +289,6 @@ fn tool_version() -> String {
 }
 
 /// Everything awaiting a signature, in alias order, SAS revisions last.
-/// The index in `cell`, built from `repo` the first time it is asked for.
-fn ownership_of<'a>(
-    cell: &'a std::cell::OnceCell<crate::ownership::Ownership>,
-    repo: &Repository,
-) -> Result<&'a crate::ownership::Ownership, RepoError> {
-    if let Some(index) = cell.get() {
-        return Ok(index);
-    }
-    let index = crate::ownership::Ownership::index(repo)?;
-    Ok(cell.get_or_init(|| index))
-}
-
 pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
     pending_with(&crate::corpus::Corpus::new(repo))
 }
@@ -386,9 +380,6 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
         RepoError::Message(format!("docs/authority/roles.toml will not load; nothing can be signed or listed until it does: {e}"))
     })?;
     let mut out = Vec::new();
-    // The ownership index, built on the first correction request and shared
-    // by the rest (`correct::request_with`).
-    let ownership = std::cell::OnceCell::new();
     let mut entries: Vec<&crate::corpus::Entry> = corpus.entries()?.iter().collect();
     entries.sort_by(|a, b| a.dir.cmp(&b.dir));
     // The authorization half of each Warrant's row reads its own records
@@ -492,7 +483,7 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
                     {
                         continue;
                     }
-                    if let Ok(index) = ownership_of(&ownership, repo)
+                    if let Ok(index) = corpus.ownership()
                         && let Ok(request) =
                             crate::correct::request_with(repo, &alias, &deliverable_id, index)
                     {
@@ -516,7 +507,7 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
                 .iter()
                 .filter(|d| d.content_addressed && !supplied.contains(&d.id))
             {
-                if let Ok(index) = ownership_of(&ownership, repo)
+                if let Ok(index) = corpus.ownership()
                     && let Ok(request) = crate::correct::request_with(repo, &alias, &d.id, index)
                     && request.drift
                 {
@@ -582,6 +573,9 @@ pub fn pending_with(corpus: &crate::corpus::Corpus) -> Result<Vec<Pending>, Repo
     }
     for request in crate::standing_cmd::pending_acceptances(repo)? {
         out.push(Pending::AcceptStanding { request });
+    }
+    if let Some(request) = crate::spec_accept::pending_request(corpus)? {
+        out.push(Pending::AcceptSpec { request });
     }
     Ok(out)
 }
@@ -824,6 +818,7 @@ pub fn list_json(list: &[Pending], actor: Option<&str>) -> serde_json::Value {
                     deliverable_id,
                     ..
                 } => (format!("{alias}/{deliverable_id}"), "correct"),
+                Pending::AcceptSpec { request } => (request.subject.clone(), "accept_spec"),
                 Pending::Invalidate { gate, .. } => (gate.clone(), "invalidate"),
             };
             let (assigned, blocked_by) = match p {
@@ -998,6 +993,14 @@ fn line_of(p: &Pending) -> String {
         } => format!(
             "{alias}/{deliverable_id}  correct  {} drifted (correction {})  {}",
             request.target_ref, request.next_sequence, request.title
+        ),
+        Pending::AcceptSpec { request } => format!(
+            "{}  accept  {} of {} specification record(s): {} edited since accepted, {} new",
+            request.subject,
+            request.records.len(),
+            request.record_count,
+            request.changed.len(),
+            request.new.len()
         ),
         Pending::Invalidate { gate, request } => format!(
             "{gate}  invalidate  would dispute {} resolution(s)",
@@ -1254,6 +1257,29 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
             s.push_str(
                 "│ the pin in deliverables.toml is not edited; the superseded digest stays on record\n",
             );
+        }
+        Pending::AcceptSpec { request } => {
+            s.push_str(&format!(
+                "┌ specification · accept · {}\n│ {} of {} record(s) · subject {}\n",
+                request.subject,
+                request.records.len(),
+                request.record_count,
+                &request.subject_digest[..request.subject_digest.len().min(23)]
+            ));
+            for c in &request.records {
+                let why = if request.changed.contains(&c.0) {
+                    "edited since accepted"
+                } else if request.new.contains(&c.0) {
+                    "new"
+                } else {
+                    "accepted, again"
+                };
+                s.push_str(&format!(
+                    "│   {}  {}  ({why})\n",
+                    c.0,
+                    &c.1[..c.1.len().min(19)]
+                ));
+            }
         }
         Pending::Invalidate { gate, request } => {
             s.push_str(&format!(
@@ -1663,6 +1689,27 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 signed_via: Some(opts.channel().to_owned()),
             }))
         }
+        Pending::AcceptSpec { request } => {
+            Ok(Drafted::AcceptSpec(crate::spec_accept::AcceptResponse {
+                schema: crate::spec_accept::RESPONSE_SCHEMA.to_owned(),
+                subject: request.subject.clone(),
+                subject_digest: request.subject_digest.clone(),
+                records: request.records.clone(),
+                accepted_by: actor.to_owned(),
+                acting_role: "authorizer".to_owned(),
+                meaning: format!(
+                    "Accepting these {} record(s) of the specification at these revisions means \
+                     the signer adopts each as what the system is and must do ({} edited since \
+                     an earlier acceptance, {} new). An edit to any of them lapses that \
+                     record's acceptance alone.{extra} {}",
+                    request.records.len(),
+                    request.changed.len(),
+                    request.new.len(),
+                    provenance()
+                ),
+                effective_time: now.to_owned(),
+            }))
+        }
         Pending::Invalidate { gate, request } => {
             // The grounds are the signer's words, never drafted: they are the
             // whole of what an invalidation says, and every dispute repeats them.
@@ -1706,6 +1753,7 @@ pub enum Drafted {
     Invalidate(crate::invalidation::InvalidationResponse),
     AcceptStanding(crate::standing_cmd::AcceptResponse),
     RevokeStanding(crate::standing_cmd::RevokeResponse),
+    AcceptSpec(crate::spec_accept::AcceptResponse),
 }
 
 impl Drafted {
@@ -1719,6 +1767,7 @@ impl Drafted {
             Self::Invalidate(r) => toml::to_string_pretty(r),
             Self::AcceptStanding(r) => toml::to_string_pretty(r),
             Self::RevokeStanding(r) => toml::to_string_pretty(r),
+            Self::AcceptSpec(r) => toml::to_string_pretty(r),
         };
         r.map_err(|e| RepoError::Message(format!("could not render the response: {e}")))
     }
@@ -1757,6 +1806,10 @@ impl Drafted {
                 crate::authority_check::Act::RevokeStanding,
                 &crate::standing_cmd::subject(&r.id, r.revision),
             ),
+            Self::AcceptSpec(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::AcceptSpec,
+                &r.subject,
+            ),
         }
     }
 
@@ -1772,6 +1825,7 @@ impl Drafted {
             Self::Invalidate(r) => &r.definition_digest,
             Self::AcceptStanding(r) => &r.sha256,
             Self::RevokeStanding(r) => &r.sha256,
+            Self::AcceptSpec(r) => &r.subject_digest,
         }
     }
 }
@@ -1820,6 +1874,7 @@ pub(crate) fn eligible(p: &Pending) -> &[String] {
         Pending::Accept { request, .. } => &request.eligible_acceptors,
         Pending::AcceptRoadmap { request, .. } => &request.eligible_acceptors,
         Pending::Correct { request, .. } => &request.eligible_correctors,
+        Pending::AcceptSpec { request } => &request.eligible_acceptors,
         Pending::Invalidate { request, .. } => &request.eligible_invalidators,
         Pending::AcceptStanding { request } => &request.eligible_acceptors,
         Pending::RevokeStanding { request } => &request.eligible_acceptors,
@@ -1833,6 +1888,7 @@ pub(crate) fn role(p: &Pending) -> &'static str {
         | Pending::AcceptRoadmap { .. }
         | Pending::AcceptStanding { .. }
         | Pending::RevokeStanding { .. }
+        | Pending::AcceptSpec { .. }
         | Pending::Correct { .. } => "authorizer",
         Pending::Resolve { .. } | Pending::Invalidate { .. } => "resolver",
     }
@@ -1853,6 +1909,10 @@ pub(crate) fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}") == target,
+        // `spec`, or the act's own subject `SPEC-<12 hex>`.
+        Pending::AcceptSpec { request } => {
+            target == "spec" || target == "SPEC" || target == request.subject
+        }
         Pending::Invalidate { gate, .. } => gate == target,
         // `standing:<id>@<rev>`, or `standing:<id>` for its only pending
         // revision.
@@ -1881,6 +1941,7 @@ pub(crate) const fn act_name(p: &Pending) -> &'static str {
         Pending::AcceptStanding { .. } => "accept-standing",
         Pending::RevokeStanding { .. } => "revoke-standing",
         Pending::Correct { .. } => "correct",
+        Pending::AcceptSpec { .. } => "accept-spec",
         Pending::Invalidate { .. } => "invalidate",
     }
 }
@@ -1897,6 +1958,7 @@ pub(crate) fn target_of(p: &Pending) -> String {
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}"),
+        Pending::AcceptSpec { .. } => "spec".to_owned(),
         Pending::Invalidate { gate, .. } => gate.clone(),
         Pending::AcceptStanding { request } => {
             crate::standing_cmd::target(&request.id, request.revision)
@@ -2061,6 +2123,9 @@ fn dry_run(
             }
             Pending::AcceptRoadmap { revision, .. } => {
                 crate::roadmap_cmd::accept_ingest_with(repo, *revision, &path, IngestMode::DryRun)
+            }
+            Pending::AcceptSpec { .. } => {
+                crate::spec_accept::ingest_with(repo, &path, IngestMode::DryRun)
             }
             Pending::Invalidate { gate, .. } => {
                 crate::invalidation::ingest_with(repo, gate, &path, IngestMode::DryRun)
@@ -2605,6 +2670,7 @@ pub(crate) const fn act_of(p: &Pending) -> crate::authority_check::Act {
         Pending::Accept { .. } => Act::Accept,
         Pending::Correct { .. } => Act::Correct,
         Pending::AcceptRoadmap { .. } => Act::AcceptRoadmap,
+        Pending::AcceptSpec { .. } => Act::AcceptSpec,
         Pending::Invalidate { .. } => Act::Invalidate,
         Pending::AcceptStanding { .. } => Act::AcceptStanding,
         Pending::RevokeStanding { .. } => Act::RevokeStanding,
@@ -2705,6 +2771,12 @@ pub(crate) fn record_of(repo: &Repository, p: &Pending) -> Result<Utf8PathBuf, S
                 .ok_or("no roadmap record")?;
             crate::roadmap_cmd::revision_path(&loaded, *revision)
         }
+        // The signed response is the act's own record (Appendix C.2).
+        Pending::AcceptSpec { request } => crate::authority_check::response_path(
+            repo,
+            crate::authority_check::Act::AcceptSpec,
+            &request.subject,
+        ),
         Pending::Invalidate { gate, .. } => crate::invalidation::record_path(repo, gate),
         // The class file is the record: the signed response binds its bytes.
         Pending::AcceptStanding { request } => {
@@ -2791,6 +2863,15 @@ fn attest_after(
                 .join(&repo.config.paths.sas)
                 .join("revisions")
                 .join(format!("{version}.toml")),
+        ),
+        Pending::AcceptSpec { request } => (
+            "spec-accept",
+            request.subject.clone(),
+            crate::authority_check::response_path(
+                repo,
+                crate::authority_check::Act::AcceptSpec,
+                &request.subject,
+            ),
         ),
         Pending::Invalidate { gate, .. } => (
             "invalidate",
@@ -3301,6 +3382,9 @@ fn run_acts(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<R
                 },
                 _,
             ) => crate::correct::ingest(repo, alias, deliverable_id, &path),
+            (Pending::AcceptSpec { .. }, _) => {
+                crate::spec_accept::ingest_with(repo, &path, IngestMode::Record)
+            }
             (Pending::Invalidate { gate, .. }, _) => crate::invalidation::ingest(repo, gate, &path),
         };
         let ingested = match ingested {

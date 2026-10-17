@@ -610,15 +610,16 @@ pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report,
                 return Ok(report);
             }
             report.push(Diagnostic::error(
-                "journal.idempotency-conflict",
+                crate::work_rules::IDEMPOTENCY_CONFLICT,
                 journal,
                 format!(
                     "{alias}: `{SUBMISSION_RECORDED}` for dispatch {} is already journalled with \
                      this key, and {} no longer holds the bytes this submission would write. A \
                      different record under the same key is a conflicting reuse (§67.4), not a \
-                     retry; nothing was written",
+                     retry; nothing was written{}",
                     submission.dispatch_id,
-                    repo.relative(&path)
+                    repo.relative(&path),
+                    crate::work_rules::formerly(crate::work_rules::IDEMPOTENCY_CONFLICT)
                 ),
             ));
             return Ok(report);

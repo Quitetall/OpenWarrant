@@ -331,6 +331,36 @@ pub fn read_to_string<P: AsRef<Path>>(p: P) -> io::Result<String> {
     Ok(text)
 }
 
+/// A repository document must be a regular file, not a symlink or a FIFO.
+/// Keep hosted and recording semantics, while using the descriptor-relative
+/// reader on disk. This does not introduce a new document byte-size limit.
+pub fn read_regular(root: &Path, path: &Path) -> io::Result<Vec<u8>> {
+    if is_hosted() {
+        return read(path);
+    }
+    let bytes = read_regular_disk(root, path)?;
+    note(path);
+    Ok(bytes)
+}
+
+fn read_regular_disk(root: &Path, path: &Path) -> io::Result<Vec<u8>> {
+    let relative = path.strip_prefix(root).map_err(io::Error::other)?;
+    crate::progress_viewer::source::read(&root.canonicalize()?, relative, usize::MAX - 1)
+        .map_err(io::Error::other)
+}
+
+/// The UTF-8 form, retaining the same observation behavior as `read_to_string`.
+pub fn read_regular_to_string(root: &Path, path: &Path) -> io::Result<String> {
+    if is_hosted() {
+        return read_to_string(path);
+    }
+    let bytes = read_regular_disk(root, path)?;
+    let text =
+        String::from_utf8(bytes).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    note(path);
+    Ok(text)
+}
+
 /// A file's kind, as `std::fs::FileType` answers it.
 #[derive(Debug, Clone, Copy)]
 pub struct FileType {

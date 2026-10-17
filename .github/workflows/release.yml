@@ -292,7 +292,10 @@ jobs:
           # build whose defining change was that it had a security hole.
           NOTES="docs/releases/$(sed -E 's/^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.([0-9]+)$/alpha\1/' <<<"$PREVIEW_TAG").md"
           [[ -f "$NOTES" ]] || { echo "no release notes at $NOTES for $PREVIEW_TAG" >&2; exit 1; }
-          gh release upload "$PREVIEW_TAG" dist/*
+          # The tag-pinned bootstrap URL is part of the usable preview.
+          # Publish the installer from this exact checkout, with its digest.
+          sha256sum install.sh > install.sh.sha256
+          gh release upload "$PREVIEW_TAG" dist/* install.sh install.sh.sha256
           gh release edit "$PREVIEW_TAG" --target "$GITHUB_SHA" --draft=false --prerelease --latest=false --notes-file "$NOTES"
 
   # The Homebrew formula for the release just published, attached to it as an

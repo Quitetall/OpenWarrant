@@ -285,7 +285,8 @@ out on another machine is reclaimed across the remote, and journalled from
 its holder. Local renewals are a file touch; the remote's copy of a lease is
 renewed by `war admin heartbeat`, and by any ticket command once less than half of
 it is left. When the remote cannot be reached the claim is refused
-(`ticket.claim-remote-unreachable`) and nothing is claimed. `war view ready`
+(`work.claim-remote-unreachable`, UNKNOWN: whether the claim would have
+held is not something `war` can know) and nothing is claimed. `war view ready`
 reads this machine's claims only; a claim held elsewhere is refused at
 `war claim`. Nothing is signed: the commit is written with `--no-gpg-sign`
 under a fixed `war` identity, and pushes skip hooks.
@@ -313,10 +314,112 @@ merges these files as text, as before.
 reports: `revision` for the ticket (its manifest's sha256; `edit` changes it)
 and `items[].revision` for each item (its checklist line's; ticking or
 rewording the item changes it). Pass the item's for an item, the ticket's for
-the ticket. A stale one is refused, `warrant.stale-revision`, naming the
+the ticket. A stale one is refused, `work.stale-revision`, naming the
 revision now, and nothing is written; read again and retry. On `done` and
 `edit` the compare and the write are one step. Without `--if-rev` every
 command behaves as it always has.
+
+### What `war next` offers first
+
+`war next` and `war view ready` give one order, and `war evidence go`
+starts work in the same one (FORMAT-1.0 §11.5). The candidates are the
+open items nothing they wait on holds back and no live claim holds (a claim
+whose lease ran out holds nothing), and each Warrant with no items that
+nobody holds; a Warrant `part_of` another counts as an item of it. They are
+ordered by:
+
+1. `due`, earliest first; an item inherits the earliest `due` of everything
+   that waits on it, so the work a deadline depends on goes first. None
+   sorts last.
+2. the remaining path, longest first: the item's estimate plus the longest
+   remaining path of what waits on it (the critical path). Estimates are
+   learned from the journals (`war plan estimate`): the median claim-to-done
+   time in whole seconds (the lower middle value of an even count), and
+   `[next] prior_secs` (default 1800) with no history.
+3. `priority`, lowest number first (default 2);
+4. the Warrant's `created_at` (none last), then its id, then the item's
+   position. An item has its Warrant's due, priority, created_at and labels.
+
+The answer is a function of the files, the journals, the claims and the
+time, so ten agents asking at once get the same list and each claims the
+first it can; the claim lock makes exactly one win. `war next --at
+<RFC 3339>` answers as of a given time (which leases have run out is judged
+then). With `--json`, each row carries its effective `due` and, when there
+is more than one row to order, its `remaining_secs`.
+
+### Reopening an item
+
+`war admin reopen <item> --reason "..."` unticks a done item: its box opens
+and its done suffix goes, every other byte stays, and the journal records
+why (`ticket.item_reopened`; `work.item_reopened` in a Format 1.0 ticket's
+journal). It takes `--if-rev` like every write, an item someone else holds
+is theirs to reopen (`work.claimed-by-other`), and an open item is refused
+(`ticket.not-done`).
+
+### Format 1.0 tickets
+
+A ticket can also be one Format 1.0 document (FORMAT-1.0 §4.1):
+`docs/tickets/<id>.md` or `docs/tickets/<id>/ticket.md`, its frontmatter
+holding `alias`, `uuid`, `summary` and the ticket keys (`priority`, `type`,
+`labels`, `due`, `part_of`, ...), its items the box lines of its units.
+`war claim`, `war done`, `war add`, `war note`, `war admin release`, `war
+admin reopen`, `war next` and `war view ready` work it exactly as they work
+a directory ticket: the same claims, the same `--if-rev`, the same order.
+A Format 1.0 ticket with no items is worked as itself: it is a `war next`
+candidate, `war claim t-x` and `war done t-x` act on the document, no line
+is added, and its done is a `work.item_done` naming the document (`war
+admin reopen t-x` undoes it the same way). An item waits on what its
+document `depends_on` as well as on its own `after`. Each item's revision is the sha256 of its line; the ticket's is the sha256
+of its frontmatter and preamble, the revisions `war plan model` gives. Its
+journal lies in `docs/tickets/<id>/journal.jsonl` and is written in the
+Format 1.0 envelope (below). A command that writes what such a ticket does
+not have — `war edit` (a manifest), `war plan promote`, `war add --test` (a
+checks atom) — is refused by name (`ticket.format-document`): edit the
+document itself.
+
+### The journal's two envelopes
+
+A Format 1.0 work document's journal holds `v: 2` events (FORMAT-1.0
+§11.2): `{v, id, document_uuid, type, class, actor_ref, occurred_at,
+payload, idempotency_key}`, each line RFC 8785 JSON, the payload an object,
+the type a `work.*` name (`work.claimed`, `work.item_done`, ...), and the
+key the sha256 of `<document_uuid> LF <type> LF <RFC 8785 payload>`. A
+directory ticket's journal keeps the `v: 1` envelope and the `ticket.*`
+names it always had, so each journal has one shape. A reader reads both, in
+one journal if need be, and never rewrites a `v: 1` line; a `ticket.*` type
+reads as the `work.*` event of the same suffix. One fact is recorded once
+whichever envelope holds it: an event with the type and payload (compared
+as RFC 8785 bytes) the journal already has is a replay from the same actor
+and `work.idempotency-conflict` from another.
+
+`war check` reads every ticket's journal: an unterminated last line is
+`work.journal-torn`; a line that does not parse, lacks a member, has a `v`
+other than 1 or 2 or a key that does not match it is
+`work.journal-malformed`; a line with `v` above 2 is UNKNOWN,
+`work.journal-newer`; and a committed line (in `HEAD`) missing, changed or
+out of order is `work.journal-rewritten` (lines a union merge inserted
+between them are fine). Of two events about one target that disagree (a
+done and a reopening), the later `occurred_at` wins, the greater `id` on a
+tie. A tick
+whose level marker the journal does not back (an `[observed]` with no
+passing run recorded) reads as the level that is backed, and `war check`
+and `war show` say so with a warning, `work.tick-unbacked`.
+
+### Rule ids renamed
+
+Format 1.0 draft 3 names the tracker's refusals under `work.`. For one
+release every message also names the id it had before, `(formerly ...)`,
+so a script matching the old id still finds it:
+
+| now | formerly |
+|---|---|
+| `work.stale-revision` | `warrant.stale-revision` |
+| `work.claimed-by-other` | `ticket.claimed-by-other` |
+| `work.claim-remote-unreachable` (now UNKNOWN, not an error) | `ticket.claim-remote-unreachable` |
+| `work.journal-rewritten` | `journal.rewritten` |
+| `work.journal-malformed` | `journal.malformed` |
+| `work.journal-torn` | `journal.torn-tail` |
+| `work.idempotency-conflict` | `journal.idempotency-conflict` |
 
 A claim is a name for coordination. It proves nothing about who someone is and
 authorizes nothing. Who is acting comes from `--as <name>`, else the
@@ -373,10 +476,19 @@ All optional, in `openwarrant.toml`:
 [tickets]
 dir = "docs/tickets"                        # where tickets live
 claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
-claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands
-claim_ttl_minutes = 120                     # after this a claim with a live lease may be stolen
 compact_after_days = 7                      # done tickets older than this are one line in `war view prime`
+
+[claims]
+claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands
+claim_ttl_minutes = 120                     # after this long since it was taken, a live claim may be stolen
+
+[next]
+prior_secs = 1800                           # an estimate with no history (`[go] prior_secs` is read when absent)
 ```
+
+`claim_lease_minutes` and `claim_ttl_minutes` under `[tickets]`, where they
+were before Format 1.0 draft 3, are still read when `[claims]` does not set
+them.
 
 ```toml
 [warrants]

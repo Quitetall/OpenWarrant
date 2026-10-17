@@ -79,6 +79,7 @@ fn ingest(
         Pending::RevokeStanding { request } => {
             crate::standing_cmd::revoke_ingest_with(repo, &request.id, request.revision, path, mode)
         }
+        Pending::AcceptSpec { .. } => crate::spec_accept::ingest_with(repo, path, mode),
         Pending::Accept { .. } => Err(RepoError::Message(
             "a SAS acceptance is not batched; sign it alone".to_owned(),
         )),
@@ -414,7 +415,9 @@ pub fn run(
             Pending::Authorize { alias, .. }
             | Pending::Resolve { alias, .. }
             | Pending::Correct { alias, .. } => repo.warrant_dir(alias)?,
-            Pending::Accept { .. } | Pending::Invalidate { .. } => continue,
+            Pending::Accept { .. } | Pending::Invalidate { .. } | Pending::AcceptSpec { .. } => {
+                continue;
+            }
         };
         if !dirs.contains(&own) {
             dirs.push(own);

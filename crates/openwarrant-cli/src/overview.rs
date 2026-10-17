@@ -3,6 +3,196 @@
 use openwarrant_core::status::{CorpusStatus, WarrantRung};
 use serde::Serialize;
 
+/// Checklist completion is a work record, never an assurance assessment.
+#[derive(Debug, Serialize)]
+pub struct WorkingForm {
+    pub id: String,
+    pub title: String,
+    pub state: crate::ticket::TicketState,
+    pub done: usize,
+    pub total: usize,
+    pub sources: Vec<String>,
+    pub source_digest: String,
+    pub ticks: crate::ticket::ladder::TickReport,
+    pub milestones: Vec<crate::ticket::ladder::MilestoneView>,
+    pub proof_faults: Vec<openwarrant_core::ticket::Fault>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct WorkingFormDiagnostic {
+    severity: String,
+    rule: String,
+    file: Option<String>,
+    message: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct WorkingForms {
+    pub total: usize,
+    pub completed: usize,
+    pub ticks_below_minimum: usize,
+    pub proof_incomplete: usize,
+    pub remaining: usize,
+    pub includes_completed: bool,
+    pub qualification_assessed: bool,
+    pub coverage_complete: bool,
+    pub diagnostics: Vec<WorkingFormDiagnostic>,
+    pub records: Vec<WorkingForm>,
+}
+
+/// Use the same cached documents and state derivation as the ticket commands.
+pub fn working_forms(
+    corpus: &crate::corpus::Corpus,
+    all: bool,
+) -> Result<WorkingForms, crate::repo::RepoError> {
+    let (tickets, diagnostics) = corpus.tickets()?;
+    let store = crate::ticket::Store::open(corpus.repo(), None)?;
+    let claims = store.claims()?;
+    let reader = crate::ticket::ladder::Reader::new(&store);
+    let mut records = Vec::new();
+    let mut completed = 0;
+    let mut ticks_below_minimum = 0;
+    let mut proof_incomplete = 0;
+    for ticket in tickets {
+        let state = crate::ticket::state_of(ticket, &claims);
+        let ticks = crate::ticket::ladder::ticks_of(&reader, ticket);
+        ticks_below_minimum += ticks.counts.below_minimum;
+        if ticks.unavailable.is_some() || !ticks.checks.faults.is_empty() {
+            proof_incomplete += 1;
+        }
+        if state == crate::ticket::TicketState::Done {
+            completed += 1;
+            if !all {
+                continue;
+            }
+        }
+        let (done, total) = ticket.checklist.progress();
+        // Include observed document contents, not just the manifest revision:
+        // an intent or checklist edit must invalidate a viewer snapshot too.
+        let bytes = serde_json::to_vec(&(&ticket.revision, &ticket.intent, &ticket.checklist_text))
+            .map_err(|e| crate::repo::RepoError::Message(e.to_string()))?;
+        records.push(WorkingForm {
+            id: ticket.id().into(),
+            title: ticket.manifest.title.clone(),
+            state,
+            done,
+            total,
+            sources: if ticket.format {
+                vec![ticket.intent_path.clone()]
+            } else {
+                vec![
+                    ticket.dir.join("manifest.toml"),
+                    ticket.intent_path.clone(),
+                    ticket.checklist_path.clone(),
+                ]
+            }
+            .iter()
+            .map(|path| corpus.repo().relative(path))
+            .collect(),
+            source_digest: openwarrant_compiler::sha256_hex(&bytes),
+            milestones: crate::ticket::ladder::milestones_of(&reader, ticket, &ticks),
+            proof_faults: ticks.checks.faults.clone(),
+            ticks,
+        });
+    }
+    records.sort_by(|a, b| a.id.cmp(&b.id));
+    Ok(WorkingForms {
+        total: tickets.len(),
+        completed,
+        ticks_below_minimum,
+        proof_incomplete,
+        remaining: tickets.len() - completed,
+        includes_completed: all,
+        qualification_assessed: false,
+        coverage_complete: diagnostics.is_empty(),
+        diagnostics: diagnostics
+            .iter()
+            .map(|d| WorkingFormDiagnostic {
+                severity: d.severity.to_string(),
+                rule: d.rule.clone(),
+                file: d.file.clone(),
+                message: d.message.clone(),
+            })
+            .collect(),
+        records,
+    })
+}
+
+#[derive(Debug, Serialize)]
+pub struct UnifiedOverview {
+    #[serde(flatten)]
+    legacy: Overview,
+    working_forms: WorkingForms,
+}
+
+pub fn capture(
+    corpus: &crate::corpus::Corpus,
+    all: bool,
+) -> Result<UnifiedOverview, crate::repo::RepoError> {
+    Ok(UnifiedOverview {
+        legacy: build(corpus.status()?.clone(), all),
+        working_forms: working_forms(corpus, all)?,
+    })
+}
+
+pub fn render_unified(view: &UnifiedOverview) -> String {
+    let mut text = render(&view.legacy);
+    let forms = &view.working_forms;
+    text.push_str(&format!(
+        "\n## Working-form Warrants\n\n{} remaining | {} completed | {} readable records. Completion is unverified; no execution permission is inferred.\n\n",
+        forms.remaining, forms.completed, forms.total
+    ));
+    if !forms.coverage_complete {
+        text.push_str(
+            "Coverage is incomplete; unreadable records are excluded from these counts.\n",
+        );
+    }
+    if forms.ticks_below_minimum > 0 {
+        text.push_str(&format!(
+            "{} completed tick(s) below their configured proof minimum. Completion remains unverified.\n",
+            forms.ticks_below_minimum
+        ));
+    }
+    if forms.proof_incomplete > 0 {
+        text.push_str(&format!(
+            "Proof assessment incomplete for {} record(s); use --all for details.\n",
+            forms.proof_incomplete
+        ));
+    }
+    for d in &forms.diagnostics {
+        text.push_str(&format!("- {}: {}\n", cell(&d.rule), cell(&d.message)));
+    }
+    for row in &forms.records {
+        text.push_str(&format!(
+            "- {} — {}: {} ({}/{})\n",
+            cell(&row.id),
+            cell(&row.title),
+            row.state.as_str(),
+            row.done,
+            row.total
+        ));
+        if let Some(reason) = &row.ticks.unavailable {
+            text.push_str(&format!("  - Proof UNKNOWN: {}\n", cell(reason)));
+        }
+        for m in &row.milestones {
+            text.push_str(&format!(
+                "  - {}: {} · minimum {}\n",
+                cell(&m.target),
+                cell(&m.marker),
+                m.minimum.as_str()
+            ));
+        }
+        for fault in &row.proof_faults {
+            text.push_str(&format!(
+                "  - {}: {}\n",
+                cell(fault.rule),
+                cell(&fault.message)
+            ));
+        }
+    }
+    text
+}
+
 #[derive(Debug, Serialize)]
 pub struct Row {
     alias: String,

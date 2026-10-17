@@ -1,0 +1,5 @@
+id = "422-claim-without-steal-after-ttl"
+kind = "refuse"
+section = "11.3"
+rule = "work.claimed-by-other"
+says = """A live claim older than `claim_ttl_minutes` (default 120) may be taken only on request (`--steal`)"""

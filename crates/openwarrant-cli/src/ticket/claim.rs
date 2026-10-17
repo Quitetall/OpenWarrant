@@ -211,11 +211,9 @@ pub fn renew(path: &Utf8Path, actor: &str, lease: u64) -> std::io::Result<Option
     let Some(claim) = claim.filter(|c| c.actor == actor) else {
         return Ok(None);
     };
-    let now = std::time::SystemTime::now();
-    f.set_modified(now)?;
-    let secs = now
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(0, |d| d.as_secs());
+    // Now, or the time a command acts at (`--at`).
+    let secs = super::now_secs();
+    f.set_modified(std::time::UNIX_EPOCH + std::time::Duration::from_secs(secs))?;
     Ok(Some(claim.with_lease(lease, Some(secs))))
 }
 
@@ -248,6 +246,10 @@ pub fn take(path: &Utf8Path, claim: &Claim) -> std::io::Result<Taken> {
         f.write_all(&bytes)?;
         f.write_all(b"\n")?;
         f.sync_all()?;
+        // The lock's modification time is its last renewal (§11.3), and a
+        // new claim was last renewed when it was taken: `since_unix`, which
+        // is now unless the command acts at another time (`--at`).
+        f.set_modified(std::time::UNIX_EPOCH + std::time::Duration::from_secs(claim.since_unix))?;
     }
     let linked = std::fs::hard_link(&temp, path);
     let _ = std::fs::remove_file(&temp);

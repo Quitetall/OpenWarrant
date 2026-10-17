@@ -79,6 +79,49 @@ pub fn notes(intent: &str) -> Vec<String> {
     out
 }
 
+/// A Format 1.0 work document's notes: its journal's `work.note_added`
+/// events (FORMAT-1.0 §11.2), oldest first (`occurred_at`, then `id`), each
+/// as `**<date> <time> UTC, <actor>[, on <item>]:** <note>`, the shape the
+/// notes of a legacy ticket's intent have.
+#[must_use]
+pub fn journal_notes(t: &Ticket) -> Vec<String> {
+    let Ok(journal) = crate::journal_cmd::load(&t.dir) else {
+        return Vec::new();
+    };
+    let mut events: Vec<_> = journal
+        .events
+        .iter()
+        .filter(|e| e.event_type == super::event::NOTE_ADDED)
+        .collect();
+    events.sort_by(|a, b| (&a.occurred_at, &a.id).cmp(&(&b.occurred_at, &b.id)));
+    events
+        .into_iter()
+        .filter_map(|e| {
+            let p: serde_json::Value = serde_json::from_str(&e.payload).ok()?;
+            let note = p.get("note")?.as_str()?;
+            let on = p
+                .get("target")
+                .and_then(|v| v.as_str())
+                .and_then(|t| t.split_once('/'))
+                .map(|(_, i)| format!(", on {i}"))
+                .unwrap_or_default();
+            let at = &e.occurred_at;
+            let (date, time) = (at.get(..10)?, at.get(11..16)?);
+            let mut lines = note.lines();
+            let mut out = format!(
+                "**{date} {time} UTC, {}{on}:** {}",
+                e.actor_ref,
+                lines.next().unwrap_or_default().trim()
+            );
+            for more in lines {
+                out.push_str("\n  ");
+                out.push_str(more.trim_end());
+            }
+            Some(out)
+        })
+        .collect()
+}
+
 /// The date the ticket's last item was ticked, from the checklist itself.
 fn done_on(t: &Ticket) -> Option<chrono::NaiveDate> {
     t.checklist
@@ -286,7 +329,7 @@ fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
             .filter_map(|(_, c)| c.clone())
             .collect(),
         dir: store.rel(&t.dir),
-        declared_states: crate::states::ticket_declared(store, t, claims),
+        declared_states: crate::states::ticket_declared(store, t, None, claims),
         kind: t.manifest.kind.clone(),
         labels: t.manifest.labels.clone(),
         part_of: t.manifest.part_of.clone(),
@@ -924,7 +967,10 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             children.push(kr);
         }
     }
-    let all = notes(&t.intent);
+    let mut all = notes(&t.intent);
+    if t.format {
+        all.extend(journal_notes(t));
+    }
     if !all.is_empty() {
         md.push_str("\n## Notes\n\n");
         for n in &all {
@@ -994,7 +1040,11 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     if !children.is_empty() {
         result["tickets"] = serde_json::to_value(&children).unwrap_or_default();
     }
-    Ok(Outcome::ok(md.trim_end().to_owned(), result))
+    let mut out = Outcome::ok(md.trim_end().to_owned(), result);
+    for w in super::ladder::unbacked(store, t, &report) {
+        out.report.push(w);
+    }
+    Ok(out)
 }
 
 /// `## Checks` in `war show`: each test, each KPI with its latest, best and

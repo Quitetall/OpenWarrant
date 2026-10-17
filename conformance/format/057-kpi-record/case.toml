@@ -1,0 +1,4 @@
+id = "057-kpi-record"
+kind = "accept"
+section = "12"
+says = """A **kpi** is a check that measures: its command prints a number, and it has `direction` (`min` or `max`), an OPTIONAL `target`, and `mode`"""

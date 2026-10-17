@@ -1,0 +1,4 @@
+id = "068-section-word-not-a-ref"
+kind = "accept"
+section = "4.5"
+says = """a checker warns (`context.section-ref`, at the line) on a `§` in any record of a specification."""

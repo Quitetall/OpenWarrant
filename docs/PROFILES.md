@@ -220,6 +220,38 @@ digest and its checks.
 | `profile.reference` | PASS (resolved) or UNKNOWN (cannot be answered here), per reference |
 | `profile.reference-missing` | a reference role cites nothing. WARN on a draft, ERROR once authorized |
 
+## Format 1.0 profiles (FORMAT-1.0 §7.5)
+
+A Format 1.0 document names a profile too (`profile:`), read from the same
+directory but by a different reader (`crates/openwarrant-core/src/format_profile.rs`).
+A file is a Format 1.0 profile when it declares `format =
+"openwarrant/1.0"`; a file without that key is a legacy profile. The
+registry above skips a Format 1.0 file, and every file above reads exactly
+as it did; none of them governs a Format 1.0 document.
+
+The built-in profiles of §7.6 (`ticket`, `delivery`, `decision`, `spec`,
+`adr`, `roadmap`, `release`, `incident`, `prd`, `architecture`,
+`test-plan`) need no file. A file of a built-in's name replaces it only by
+`extends`. Every key is closed: a file with an unknown key, a capability
+outside the closed set or without its prerequisite (every capability but
+`structure` needs `structure`, `verification` needs `evidence`,
+`resolution` needs `authorization`, `checks` needs `claims`), a `name`
+that is not its file stem, a `refines` naming no fixed state, a preset
+named like a built-in one, an unknown shape or an `enum` without `values`,
+or an `extends` naming no profile or a `form` other than its base's is
+refused (`profile.invalid`), and a document naming it reads
+`format.profile-unknown`, UNKNOWN, never PASS.
+
+What a profile declares is enforced on its documents: a REQUIRED key or
+field missing is `format.field-missing`, a value without its `shape` is
+`format.field-shape` (shapes `text`, `line`, `int`, `number`, `date`,
+`id`, `ids`, `gate`, `enum`, `bool`), an undeclared undotted key, field (of
+a type whose field table the core or the profile declares), section (when
+`[sections] closed = true`) or record type (when `[records] closed = true`)
+is `format.key-unknown`, and a required section absent is
+`format.section-missing`. `conformance/plants.d/178-format-grammar-profiles.sh`
+is the plant.
+
 ## Open
 
 - **U-003: pinning in the IR.** A new manifest pins its profile file

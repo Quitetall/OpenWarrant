@@ -1,0 +1,15 @@
+{
+  "why": "section 12: `timeout` is seconds",
+  "expect": "@fields/timeout pattern",
+  "instance": {
+    "id": "CHK-reset",
+    "type": "check",
+    "title": "reset tests pass",
+    "fields": {
+      "run": "make test",
+      "timeout": "soon"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

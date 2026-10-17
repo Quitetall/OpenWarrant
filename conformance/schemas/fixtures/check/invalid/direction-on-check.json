@@ -1,0 +1,15 @@
+{
+  "why": "section 12: `direction` belongs to a kpi",
+  "expect": "False schema does not allow 'min'",
+  "instance": {
+    "id": "CHK-reset",
+    "type": "check",
+    "title": "reset tests pass",
+    "fields": {
+      "run": "make test",
+      "direction": "min"
+    },
+    "relations": [],
+    "body": ""
+  }
+}

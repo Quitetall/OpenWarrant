@@ -107,7 +107,9 @@ value of the `--json` envelope, the same under either spelling.
 | `war plan promote` | `war promote` | `promote` |
 | `war plan render` | `war render` | `render` |
 | `war plan impact` | `war impact` | `impact` |
+| `war plan spec status`, `accept`, `migrate` (FORMAT-1.0 §4.5, §14, new) | `war spec` | `spec.status`, `spec.accept`, `spec.accept.request`, `spec.migrate` |
 | `war plan model` | `war model` | `model` |
+| `war plan states` (FORMAT-1.0 §11.1, new) | none | `states` |
 | `war plan state` | `war state` | `state` |
 | `war plan roadmap` | `war roadmap` | `roadmap` |
 | `war plan types`, `war plan types add` (M18, new) | `war types` (hidden, as every group member) | `types`, `types.add` |
@@ -214,6 +216,7 @@ value of the `--json` envelope, the same under either spelling.
 | Spelling | Why |
 |---|---|
 | `war __release-check` | started detached by the release notice; never typed |
+| `war apply <package>` | FORMAT-1.0 §10.5: reads an edited `war view context --preset human` package back; the other half of that command, so it spends no thirteenth daily verb |
 | `war` alone | the terminal app, as `war view tui` |
 
 ## Choices, and why
@@ -258,7 +261,9 @@ value of the `--json` envelope, the same under either spelling.
   drafts a directory one, and a declared state is part of the type's
   workflow model, beside `model` and `impact`.
 - **`release` is under `admin`, beside `heartbeat`**: both manage claim
-  leases rather than the work itself.
+  leases rather than the work itself. **`reopen`** (FORMAT-1.0 §11.2's
+  `work.item_reopened`) sits beside them: unticking an item is rare, and a
+  thirteenth daily verb is not spent on it.
 - **`diff` and `commit` are under `admin`**, beside `compile`: both read the
   compiled projections.
 - **`dispatch` and `dispatch-bundle` stay under `admin`**, as planned: the
@@ -282,6 +287,12 @@ value of the `--json` envelope, the same under either spelling.
   release (`war admin release`), and a new command needs no earlier one.
   The PR gate is a flag of a daily verb, `war check --pr <number>`
   (envelope `check.pr`); without `--pr`, `war check` reads no network.
+- **FORMAT-1.0 §12's checks are subcommands of the daily `war check`**:
+  `war check run [<target>]`, `evaluate`, `fire <trigger>` and
+  `install-hook` (envelopes `check.run`, `check.evaluate`, `check.fire`,
+  `check.install-hook`). They run a document's `check` records rather than
+  check the records, so they need no thirteenth verb; `war view watch
+  --checks` is the same runner as a poller.
 - **`types` and `type` are new under `plan`** (OW-WAR-0148 M18): a type is
   how a document is planned, beside `model`, `render` and `roadmap`.
   `war plan types` lists the types, `war plan types add <pack>` installs a

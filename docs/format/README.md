@@ -52,4 +52,4 @@ That header is part of the accepted 1.3.0 bytes, and it stays.
 - For a change, open a pull request that edits `FORMAT-1.0.md` and adds a
   proposed ADR atom under `docs/adr/atoms/`. See [GOVERNANCE.md](GOVERNANCE.md).
 - Before merge, a normative change adds or changes a case under
-  `conformance/format/` (FORMAT-1.0 §11).
+  `conformance/format/` (FORMAT-1.0 §13).

@@ -25,7 +25,7 @@ plant "one byte moved in CORPUS_PENDING.json is drift" "corpus-pending.drift" "C
 # A journal event added to a Warrant changes the timeline: the committed
 # projection is then behind the records, which is drift, not silence.
 plant "a new journal event makes the timeline stale" "corpus-timeline.drift" "CORPUS_TIMELINE.json" 2 \
-    "printf '{\"v\":1,\"id\":\"01a00000-0000-7000-8000-00000000d2d2\",\"warrant_uuid\":\"%s\",\"type\":\"draft.revised\",\"class\":\"draft_history\",\"actor_ref\":\"agent://plant\",\"occurred_at\":\"2026-09-12T00:00:00Z\",\"payload\":\"{}\",\"idempotency_key\":\"plant-d2\"}\n' \"\$(grep '^uuid' docs/warrants/$W1/manifest.toml | cut -d'\"' -f2)\" >> docs/warrants/$W1/journal.jsonl; assert_present 'plant-d2' docs/warrants/$W1/journal.jsonl" \
+    "U=\$(grep '^uuid' docs/warrants/$W1/manifest.toml | cut -d'\"' -f2); K=\$(printf '%s\ndraft.revised\n{}' \"\$U\" | sha256sum | cut -c1-64); printf '{\"v\":1,\"id\":\"01a00000-0000-7000-8000-00000000d2d2\",\"warrant_uuid\":\"%s\",\"type\":\"draft.revised\",\"class\":\"draft_history\",\"actor_ref\":\"agent://plant\",\"occurred_at\":\"2026-09-12T00:00:00Z\",\"payload\":\"{}\",\"idempotency_key\":\"%s\"}\n' \"\$U\" \"\$K\" >> docs/warrants/$W1/journal.jsonl; assert_present '00000000d2d2' docs/warrants/$W1/journal.jsonl" \
     --generated
 
 # Determinism: two compilations of one tree are byte-identical.

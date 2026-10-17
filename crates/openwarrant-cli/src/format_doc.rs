@@ -12,6 +12,21 @@
 //!   legacy Warrant (or ticket), whatever else it holds.
 //! - A record document is a `docs/records/<area>/*.md` whose frontmatter
 //!   declares `format:`; the `oh.war/records/v1` reader skips it.
+//! - The specification (§4.5) is `SPEC.md` at the root and its parts,
+//!   `spec/<area>.md` or any indexed document of profile `spec` (see
+//!   [`spec_files`]), each when its frontmatter declares `format:`. Its
+//!   records are global; its own record is `doc:<path>`, type `spec`. A
+//!   file of profile `spec` that is not `SPEC.md` and names no `part_of` is
+//!   a second root and is refused (`format.document-duplicate`).
+//!
+//! # Profiles
+//!
+//! Each document is read under its profile (§7.4): a built-in of §7.6, or
+//! a Format 1.0 profile file `profiles/<name>.toml`
+//! ([`openwarrant_core::format_profile`]). A refused file is reported
+//! (`profile.invalid`) and its documents read `format.profile-unknown`.
+//! A file without `format = "openwarrant/1.0"` is a legacy profile, read by
+//! the legacy registry; it governs no document here.
 //!
 //! A file at a Warrant or ticket path whose name is an alias and whose
 //! frontmatter declares no `format:` is refused (`format.unrecognised`, §6);
@@ -36,6 +51,7 @@ use std::collections::BTreeSet;
 use camino::{Utf8Path, Utf8PathBuf};
 
 use openwarrant_core::format::{self, Document, Outcome};
+use openwarrant_core::format_profile::{self, Lookup, Profiles};
 
 use crate::corpus::Corpus;
 use crate::diagnostic::{Diagnostic, Report};
@@ -47,6 +63,8 @@ pub enum Place {
     Warrant,
     Ticket,
     Records,
+    /// `SPEC.md` or `spec/<area>.md` (§4.5).
+    Spec,
 }
 
 /// One document read.
@@ -84,6 +102,8 @@ pub struct Fault {
 pub struct FormatDocs {
     pub docs: Vec<Loaded>,
     pub faults: Vec<Fault>,
+    /// The profiles the documents were read under.
+    pub profiles: Profiles,
 }
 
 impl FormatDocs {
@@ -131,30 +151,176 @@ fn sorted_entries(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
     out
 }
 
+/// The repository's profiles (§7.5): every `profiles/*.toml` that is a
+/// Format 1.0 profile, over the built-ins of §7.6.
+#[must_use]
+pub fn profiles(repo: &Repository) -> Profiles {
+    let files: Vec<(String, Vec<u8>)> = sorted_entries(&repo.root.join("profiles"))
+        .into_iter()
+        .filter(|p| p.extension() == Some("toml") && crate::vfs::is_file(p))
+        .filter_map(|p| Some((repo.relative(&p), crate::vfs::read(&p).ok()?)))
+        .collect();
+    Profiles::load(files.iter().map(|(f, b)| (f.as_str(), b.as_slice())))
+}
+
+/// `SPEC.md`, `spec/<area>.md`, and every other part, each when it
+/// declares `format:` (§4.5).
+///
+/// A part SHOULD live at `spec/<area>.md` and MAY live elsewhere: any
+/// document the development-document index reaches (`[documents] index`,
+/// by default `docs/**/*.md` and the root's `*.md`) whose frontmatter
+/// names profile `spec` is one. Record documents (`docs/records/<area>/`)
+/// are read in their own place, under their own profile, so they are not
+/// listed again here. One that names no `part_of` is a second root and is
+/// refused by [`load`], wherever it is.
+#[must_use]
+pub fn spec_files(repo: &Repository) -> Vec<Utf8PathBuf> {
+    let declares = |p: &Utf8Path| {
+        crate::vfs::read(p).is_ok_and(|b| format::declares_format(&String::from_utf8_lossy(&b)))
+    };
+    let root = repo.root.join("SPEC.md");
+    let mut out: Vec<Utf8PathBuf> = std::iter::once(root)
+        .chain(
+            sorted_entries(&repo.root.join("spec"))
+                .into_iter()
+                .filter(|p| p.extension() == Some("md")),
+        )
+        .filter(|p| crate::vfs::is_file(p) && declares(p))
+        .collect();
+    let records: BTreeSet<Utf8PathBuf> = crate::records::files(repo).into_iter().collect();
+    let (globs, _) = crate::doc_index::globs(repo);
+    for rel in crate::doc_index::walk(repo, &globs) {
+        let p = repo.root.join(&rel);
+        if !rel.ends_with(".md") || out.contains(&p) || records.contains(&p) {
+            continue;
+        }
+        let Ok(bytes) = crate::vfs::read(&p) else {
+            continue;
+        };
+        let text = String::from_utf8_lossy(&bytes);
+        if format::declares_format(&text) && frontmatter_profile(&text) == Some("spec") {
+            out.push(p);
+        }
+    }
+    out
+}
+
+/// The `profile:` a document's frontmatter names, read without parsing the
+/// document: the first such line between the opening `---` and the next.
+fn frontmatter_profile(text: &str) -> Option<&str> {
+    let mut lines = text.trim_start_matches('\u{feff}').lines();
+    if lines.next()?.trim_end() != "---" {
+        return None;
+    }
+    for line in lines {
+        let line = line.trim_end();
+        if line == "---" {
+            return None;
+        }
+        if let Some(v) = line.strip_prefix("profile:") {
+            return Some(v.trim().trim_matches(['"', '\'']));
+        }
+    }
+    None
+}
+
 /// Read every Format 1.0 document of `repo`.
 #[must_use]
 pub fn load(repo: &Repository) -> FormatDocs {
-    let mut out = FormatDocs::default();
+    let mut out = FormatDocs {
+        profiles: profiles(repo),
+        ..FormatDocs::default()
+    };
+    for bad in &out.profiles.invalid {
+        out.faults.push(Fault {
+            outcome: Outcome::Refusal,
+            rule: format_profile::INVALID_RULE,
+            file: bad.file.clone(),
+            line: 1,
+            message: format!(
+                "{}; a document naming this profile reads `format.profile-unknown`",
+                bad.detail
+            ),
+        });
+    }
+    // §7.5: a profile file written in 7.5's shape without `format` is a
+    // legacy profile and never governs a Format 1.0 document: said once,
+    // as a warning, beside its documents' `format.profile-unknown`.
+    for p in sorted_entries(&repo.root.join("profiles")) {
+        if p.extension() == Some("toml")
+            && crate::vfs::read(&p).is_ok_and(|b| format_profile::is_format_shaped_legacy(&b))
+        {
+            out.faults.push(Fault {
+                outcome: Outcome::Warning,
+                rule: "profile.format-missing",
+                file: repo.relative(&p),
+                line: 1,
+                message: format!(
+                    "{} has a Format 1.0 profile's keys and no `format = \"openwarrant/1.0\"`: \
+                     without it the file is a legacy profile (FORMAT-1.0 §7.5) and governs no \
+                     Format 1.0 document, so a document naming it reads \
+                     `format.profile-unknown`. Add the key if it is meant to govern them",
+                    repo.relative(&p)
+                ),
+            });
+        }
+    }
     for (place, dir) in [
         (Place::Warrant, repo.warrants_dir()),
         (Place::Ticket, tickets_dir(repo)),
     ] {
         work_documents(repo, place, &dir, &mut out);
     }
-    for path in crate::records::files(repo) {
+    let others = spec_files(repo)
+        .into_iter()
+        .map(|p| (p, Place::Spec))
+        .chain(
+            crate::records::files(repo)
+                .into_iter()
+                .map(|p| (p, Place::Records)),
+        );
+    for (path, place) in others {
         let Ok(bytes) = crate::vfs::read(&path) else {
             continue;
         };
         if format::declares_format(&String::from_utf8_lossy(&bytes)) {
-            let doc = format::parse(&bytes);
+            let source = repo.relative(&path);
+            let doc = format::parse_with(&bytes, &out.profiles, &source);
             out.docs.push(Loaded {
-                source: repo.relative(&path),
-                place: Place::Records,
+                source,
+                place,
                 doc,
                 bytes,
             });
         }
     }
+    // §4.5: one root specification. A file of profile `spec` that is not
+    // `SPEC.md` and names no `part_of` is a second one.
+    for d in &out.docs {
+        if d.doc.profile == "spec"
+            && d.source != "SPEC.md"
+            && !d.doc.relations.iter().any(|r| r.kind == "part_of")
+        {
+            out.faults.push(Fault {
+                outcome: Outcome::Refusal,
+                rule: "format.document-duplicate",
+                file: d.source.clone(),
+                line: 1,
+                message: format!(
+                    "{} has profile `spec`, is not SPEC.md and names no `part_of`: a second \
+                     root specification. A part says `part_of: doc:SPEC.md`",
+                    d.source
+                ),
+            });
+        }
+    }
+    let second: BTreeSet<String> = out
+        .faults
+        .iter()
+        .filter(|f| f.rule == "format.document-duplicate")
+        .map(|f| f.file.clone())
+        .collect();
+    out.docs.retain(|d| !second.contains(&d.source));
     out
 }
 
@@ -166,7 +332,7 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
         };
         let (alias, file) = if crate::vfs::is_dir(&path) {
             let inner = path.join(inner_name(place));
-            if !crate::vfs::is_file(&inner) {
+            if !crate::vfs::exists(&inner) {
                 continue;
             }
             (name, inner)
@@ -178,8 +344,18 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
         } else {
             continue;
         };
-        let Ok(bytes) = crate::vfs::read(&file) else {
-            continue;
+        let bytes = match crate::vfs::read_regular(repo.root.as_std_path(), file.as_std_path()) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                out.faults.push(Fault {
+                    outcome: Outcome::Refusal,
+                    rule: "format.document-unreadable",
+                    file: repo.relative(&file),
+                    line: 1,
+                    message: format!("could not read the work document: {e}"),
+                });
+                continue;
+            }
         };
         let source = repo.relative(&file);
         if let Some(first) = seen.get(&alias) {
@@ -198,7 +374,7 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
             continue;
         }
         seen.insert(alias.clone(), source.clone());
-        let mut doc = format::parse(&bytes);
+        let mut doc = format::parse_with(&bytes, &out.profiles, &source);
         // §3.3: a document at a work-document path is a work document, so
         // it declares `alias:`.
         if !doc.refused() && !doc.unknown() && doc.alias.is_none() {
@@ -224,8 +400,21 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
 /// §4.2: a manifest beside the document holds no atoms and restates no key.
 fn manifest_restates(repo: &Repository, dir: &Utf8Path, doc: &Document, out: &mut FormatDocs) {
     let path = dir.join("manifest.toml");
-    let Ok(text) = crate::vfs::read_to_string(&path) else {
-        return;
+    let text = match crate::vfs::read_regular_to_string(repo.root.as_std_path(), path.as_std_path())
+    {
+        Ok(text) => text,
+        Err(e) => {
+            if crate::vfs::exists(&path) {
+                out.faults.push(Fault {
+                    outcome: Outcome::Refusal,
+                    rule: "format.document-unreadable",
+                    file: repo.relative(&path),
+                    line: 1,
+                    message: format!("could not read the adjacent manifest: {e}"),
+                });
+            }
+            return;
+        }
     };
     let Ok(value) = toml::from_str::<toml::Table>(&text) else {
         out.faults.push(Fault {
@@ -237,10 +426,14 @@ fn manifest_restates(repo: &Repository, dir: &Utf8Path, doc: &Document, out: &mu
         });
         return;
     };
+    let declared: Vec<&str> = match out.profiles.lookup(&doc.profile) {
+        Lookup::Found(p) => p.frontmatter_keys().collect(),
+        _ => format::profile_keys(&doc.profile).to_vec(),
+    };
     let defined: BTreeSet<&str> = format::CORE_KEYS
         .iter()
-        .chain(format::profile_keys(&doc.profile))
         .copied()
+        .chain(declared)
         .chain(["atoms", "local_alias", "title", "schema"])
         .collect();
     for key in value.keys() {

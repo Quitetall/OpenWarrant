@@ -1,0 +1,5 @@
+id = "210-journal-newer"
+kind = "unknown"
+section = "11.2"
+rule = "work.journal-newer"
+says = """A line with `v` greater than 2 is `UNKNOWN` (`work.journal-newer`), not malformed, and every state that depends on it is `UNKNOWN`."""

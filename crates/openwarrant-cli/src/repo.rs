@@ -1119,12 +1119,8 @@ impl Repository {
         let mut failures = Vec::new();
         for path in paths {
             let relative = self.relative(&path);
-            let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
-                context: format!("could not read {path}"),
-                source,
-            })?;
-            match crate::verify::record::decode(&text) {
-                Ok(v) => records.push(v.verification),
+            match decoded_verification(&path)? {
+                Ok(v) => records.push(v),
                 Err(openwarrant_core::verification_record::VerificationRecordError::UnsupportedSchema { schema }) => {
                     return Err(RepoError::ObservationUnavailable {
                         rule: "verify.record-schema-unsupported",
@@ -1824,6 +1820,54 @@ static SAS_REVISIONS: std::sync::OnceLock<std::sync::Mutex<SasRevisionMemo>> =
 type RegisterMemo = std::collections::HashMap<Utf8PathBuf, (String, AuthorityRegister)>;
 static REGISTERS: std::sync::OnceLock<std::sync::Mutex<RegisterMemo>> = std::sync::OnceLock::new();
 
+/// One verification record decoded, remembered for the life of the process
+/// while the file's length and modification time stand. One command assesses
+/// a Warrant more than once (`war status` reads its obligations and its
+/// assessment; `war next` both again), and the records are the largest files
+/// a Warrant holds; an unchanged file decodes the same each time.
+fn decoded_verification(
+    path: &Utf8Path,
+) -> Result<
+    Result<Verification, openwarrant_core::verification_record::VerificationRecordError>,
+    RepoError,
+> {
+    type Decoded =
+        Result<Verification, openwarrant_core::verification_record::VerificationRecordError>;
+    type Seen =
+        std::collections::HashMap<Utf8PathBuf, (u64, Option<std::time::SystemTime>, Decoded)>;
+    static CACHE: std::sync::OnceLock<std::sync::Mutex<Seen>> = std::sync::OnceLock::new();
+    let read = || {
+        fs::read_to_string(path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })
+    };
+    let decode = |text: &str| crate::verify::record::decode(text).map(|v| v.verification);
+    // Hosted inputs have no disk timestamps; a recording run must observe
+    // the actual source read even when a previous disk read warmed the cache.
+    if !fs::is_disk() {
+        return Ok(decode(&read()?));
+    }
+    let stamp = std::fs::metadata(path)
+        .ok()
+        .map(|m| (m.len(), m.modified().ok()));
+    let cache = CACHE.get_or_init(Default::default);
+    if let Some(stamp) = stamp
+        && let Ok(seen) = cache.lock()
+        && let Some((len, modified, found)) = seen.get(path)
+        && (*len, *modified) == stamp
+    {
+        return Ok(found.clone());
+    }
+    let found = decode(&read()?);
+    if let Some((len, modified)) = stamp
+        && let Ok(mut seen) = cache.lock()
+    {
+        seen.insert(path.to_owned(), (len, modified, found.clone()));
+    }
+    Ok(found)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1850,6 +1894,39 @@ mod tests {
             .join("../..")
             .canonicalize_utf8()
             .unwrap()
+    }
+
+    #[test]
+    fn performance_cache_preserves_recording_verification_reads() {
+        use std::{cell::RefCell, rc::Rc};
+        let (dir, _) = scratch_repo("verification-recording");
+        let file = dir.join("verification.toml");
+        let record = Verification {
+            obligation: "OBL-FIXTURE".into(),
+            verifier: openwarrant_core::verification::Verifier {
+                actor: "fixture-verifier".into(),
+                kind: openwarrant_core::verification::ActorKind::Agent,
+                model: None,
+                independence: Default::default(),
+            },
+            disposition: openwarrant_core::obligation::Disposition::NotEstablished,
+            evidence: "Synthetic source-recording fixture; no assurance claimed".into(),
+            performer: "fixture-performer".into(),
+        };
+        fs::write(&file, toml::to_string(&record).unwrap()).unwrap();
+        assert_eq!(decoded_verification(&file).unwrap().unwrap(), record);
+        let recorder = Rc::new(RefCell::new(crate::vfs::Recorder {
+            root: dir.clone(),
+            ..Default::default()
+        }));
+        crate::vfs::recording(Rc::clone(&recorder), || {
+            assert_eq!(decoded_verification(&file).unwrap().unwrap(), record);
+        });
+        assert!(
+            recorder.borrow().files.contains("verification.toml"),
+            "a warm parse must not omit the source from a recorded context"
+        );
+        fs::remove_dir_all(dir).unwrap();
     }
 
     /// t-280c: the parsed SAS revisions are shared within a process, but a

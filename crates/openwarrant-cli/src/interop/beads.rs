@@ -659,7 +659,7 @@ pub fn export(store: &Store) -> Result<(String, Vec<Diagnostic>), RepoError> {
         let done = if one {
             first.is_some_and(|i| i.done)
         } else {
-            t.checklist.is_done()
+            t.is_done()
         };
         let closed_at = if one {
             first.filter(|i| i.done).and_then(closed_on)

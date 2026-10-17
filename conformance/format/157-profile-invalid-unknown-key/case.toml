@@ -1,0 +1,5 @@
+id = "157-profile-invalid-unknown-key"
+kind = "refuse"
+section = "7.5"
+rule = "profile.invalid"
+says = """A profile file with an unknown key... is refused (`profile.invalid`), and its documents read as `format.profile-unknown`."""

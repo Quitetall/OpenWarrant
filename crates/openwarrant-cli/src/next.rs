@@ -252,6 +252,22 @@ pub fn derive(
                 format!("{alias}/{deliverable_id}"),
                 format!("{} drifted after resolution", request.target_ref),
             ),
+            // FORMAT-1.0 Appendix C.3: until an accept names the changed
+            // records, `next` lists that acceptance as an act waiting on a
+            // person.
+            Pending::AcceptSpec { request } => (
+                "specification".to_owned(),
+                "accept",
+                "spec".to_owned(),
+                format!(
+                    "{} of {} specification record(s) await acceptance ({} edited since \
+                     accepted, {} new)",
+                    request.records.len(),
+                    request.record_count,
+                    request.changed.len(),
+                    request.new.len()
+                ),
+            ),
             Pending::Invalidate { gate, request } => (
                 gate.clone(),
                 "invalidate",
@@ -580,9 +596,9 @@ fn judged(
         // M9: an empty list is said as what it means for ordinary work. A
         // ticket store that could not be read counts as tracked: "nothing
         // tracked" is a claim, and the finding above already says UNKNOWN.
-        let open_ticket = corpus.tickets().map_or(true, |(tickets, _)| {
-            tickets.iter().any(|t| !t.checklist.is_done())
-        });
+        let open_ticket = corpus
+            .tickets()
+            .map_or(true, |(tickets, _)| tickets.iter().any(|t| !t.is_done()));
         let open_warrant = status.warrants.iter().any(|w| {
             !crate::status::is_retired(w)
                 && w.rung != openwarrant_core::status::WarrantRung::Resolved
@@ -744,9 +760,9 @@ fn target_of(p: &Pending) -> String {
             ..
         } => format!("{alias}/{deliverable_id}"),
         Pending::Invalidate { gate, .. } => gate.clone(),
-        Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => {
-            crate::sign::target_of(p)
-        }
+        Pending::AcceptStanding { .. }
+        | Pending::RevokeStanding { .. }
+        | Pending::AcceptSpec { .. } => crate::sign::target_of(p),
     }
 }
 

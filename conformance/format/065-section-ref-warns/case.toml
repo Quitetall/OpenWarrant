@@ -1,0 +1,5 @@
+id = "065-section-ref-warns"
+kind = "accept"
+section = "4.5"
+rule = "context.section-ref"
+says = """A record SHOULD NOT cite another by a section number or `§` (`context.section-ref`); it cites the id."""

@@ -116,7 +116,7 @@ pub struct DoneParams {
     pub note: Option<String>,
     /// Write only if the target is still at this revision (from `war_show`'s
     /// `revision`, or an item's); a stale one is refused
-    /// `warrant.stale-revision`, naming the current one.
+    /// `work.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
     /// Run the item's tests and KPIs first and tick at `observed` only when
@@ -139,7 +139,7 @@ pub struct AddParams {
     pub after: Vec<String>,
     /// Write only if the target is still at this revision (from `war_show`'s
     /// `revision`, or an item's); a stale one is refused
-    /// `warrant.stale-revision`, naming the current one.
+    /// `work.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
@@ -155,7 +155,7 @@ pub struct NoteParams {
     pub text: String,
     /// Write only if the target is still at this revision (from `war_show`'s
     /// `revision`, or an item's); a stale one is refused
-    /// `warrant.stale-revision`, naming the current one.
+    /// `work.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
     /// Who is acting; defaults to the repository's configured performer.
@@ -1114,11 +1114,14 @@ impl WarServer {
     )]
     fn war_context(&self, Parameters(p): Parameters<ContextParams>) -> ToolResult {
         let corpus = crate::corpus::held(&self.repo);
-        let opts = crate::context::Options {
-            budget: crate::context::Options::budget_of(p.budget, p.tokens),
-            depth: p.depth.unwrap_or(crate::context::DEFAULT_DEPTH),
-            strict: p.strict,
-        };
+        let mut opts = crate::context::Options::with(
+            crate::context::Preset::builtin(crate::context::DEFAULT_PRESET)
+                .unwrap_or_else(|| unreachable!("the default preset is built in")),
+            p.budget,
+            p.tokens,
+            p.depth,
+        );
+        opts.strict = p.strict;
         let graph = match crate::context::graph_of(&corpus) {
             Ok(g) => g,
             Err(e) => return refused("context", &e),

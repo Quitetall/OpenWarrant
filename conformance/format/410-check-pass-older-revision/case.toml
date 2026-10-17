@@ -1,0 +1,4 @@
+id = "410-check-pass-older-revision"
+kind = "accept"
+section = "12"
+says = """a pass whose check `revision`, or whose `subjects` revision for an item or record, is not the current one ticks nothing for it."""

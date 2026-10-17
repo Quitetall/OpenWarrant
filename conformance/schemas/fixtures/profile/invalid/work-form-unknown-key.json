@@ -1,0 +1,15 @@
+{
+  "why": "section 7.5: a profile file with an unknown key is refused (`profile.invalid`)",
+  "expect": "('colour' was unexpected)",
+  "instance": {
+    "schema": "oh.war/profile/v1",
+    "name": "runbook",
+    "form": "work",
+    "capabilities": [
+      "structure",
+      "links"
+    ],
+    "colour": "red",
+    "format": "openwarrant/1.0"
+  }
+}

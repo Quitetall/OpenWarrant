@@ -1,0 +1,4 @@
+id = "423-done-compare-and-set"
+kind = "accept"
+section = "11.3"
+says = """Every write to a work document names the revision it was based on: the item's line revision for a box"""

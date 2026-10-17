@@ -6,12 +6,14 @@
 :root{color-scheme:dark;--bg:#101619;--panel:#182125;--line:#304047;--muted:#a2b3bb;--ink:#f0f5f3;--mint:#9be2bc;--amber:#f5d38b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}main{max-width:1280px;margin:auto;padding:36px 28px 72px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.brand{font:700 12px monospace;letter-spacing:.15em;color:var(--mint)}h1{font-size:38px;letter-spacing:-.04em;margin:12px 0 4px}p{margin:6px 0}.muted,small{color:var(--muted)}#connection{padding:10px 16px;border:1px solid var(--line);border-radius:30px;font-size:13px}.stale{color:var(--amber)!important;border-color:var(--amber)!important}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:30px 0 20px}.card{padding:22px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.number{display:block;font-size:34px;letter-spacing:-.04em}.card label{color:var(--muted);font-size:13px}.notice{border-left:3px solid var(--mint);padding:12px 18px;background:var(--panel);margin-bottom:26px;font-size:14px}.controls{display:flex;gap:12px;margin:18px 0}input,select,button{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:11px 14px;border-radius:7px;font:inherit}input{flex:1;min-width:120px}button{cursor:pointer}button:hover,a:hover{color:var(--mint)}a{color:var(--mint)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{border-collapse:collapse;width:100%;text-align:left}th{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--panel);padding:14px}td{padding:17px 14px;border-top:1px solid var(--line);vertical-align:top}td:first-child{white-space:nowrap;font:12px/1.8 monospace}.title{font-weight:600;font-size:15px}.pill{display:inline-block;border-radius:5px;font-size:12px;padding:3px 8px;background:#2a383f;white-space:nowrap}.completed{background:#264a39;color:var(--mint)}.blocked,.failed{background:#50382d;color:#ffd6a1}details{margin-top:8px}summary{cursor:pointer;color:var(--muted);font-size:13px}.detail{max-width:600px;font-size:13px;margin-top:12px;overflow-wrap:anywhere}.links{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}footer{font-size:12px;margin-top:24px;overflow-wrap:anywhere}#empty{padding:30px;text-align:center}.hidden{display:none}progress{width:100%;accent-color:var(--mint);height:6px}.report-error{color:var(--amber)}:focus-visible{outline:2px solid var(--mint);outline-offset:3px}@media(max-width:760px){main{padding:24px 16px}.cards{grid-template-columns:1fr 1fr}.controls{flex-wrap:wrap}h1{font-size:32px}th,td{padding:12px}.card{padding:16px}}
 </style></head><body><main>
 <header><div><div class="brand">OPENWARRANT / PROJECT STATE</div><h1>Progress, with evidence.</h1><p class="muted">Work completed. Decisions pending. Sources one click away.</p></div><div id="connection" role="status" aria-live="polite">Loading snapshot…</div></header>
-<section class="cards" aria-label="Progress totals"><div class="card"><label>Warrants in repository</label><span class="number" id="total">—</span></div><div class="card"><label>Reported completed · unverified</label><span class="number" id="completed">—</span><progress id="bar" aria-label="Completed among explicit work reports" max="1" value="0"></progress><small id="denominator"></small></div><div class="card"><label>Reported active / blocked</label><span class="number" id="active">—</span></div><div class="card"><label>No valid work report</label><span class="number" id="unknown">—</span></div></section>
-<div class="notice">Work state comes from attributed implementation reports. Reports do not prove verification. Legacy resolution remains separate; this viewer awards no Verified mark.</div>
-<div class="controls"><input id="search" type="search" placeholder="Find Warrant, title or outcome…" aria-label="Search Warrants"><select id="filter" aria-label="Filter work state"><option value="all">All work</option><option value="reported">Has work report</option><option value="completed">Completed · unverified</option><option value="active">In progress / blocked</option><option value="blocked">Blocked</option><option value="unknown">No valid work report</option></select><button id="refresh" type="button">Refresh now</button></div>
+<section class="cards" aria-label="Progress totals"><div class="card"><label>Warrants in repository</label><span class="number" id="total">—</span></div><div class="card"><label>Completed · unverified</label><span class="number" id="completed">—</span><progress id="bar" aria-label="Completed among readable work states" max="1" value="0"></progress><small id="denominator"></small></div><div class="card"><label>In progress / blocked</label><span class="number" id="active">—</span></div><div class="card"><label>No recorded work state</label><span class="number" id="unknown">—</span></div></section>
+<div class="notice">Work state comes from working-form checklists and claims, or attributed implementation reports. Completion does not prove verification. Legacy resolution remains separate; this viewer awards no Verified mark.</div>
+<div id="coverage" class="notice hidden" role="status"></div>
+<div id="proof-status" class="notice hidden" role="status"></div>
+<div class="controls"><input id="search" type="search" placeholder="Find Warrant, title or outcome…" aria-label="Search Warrants"><select id="filter" aria-label="Filter work state"><option value="all">All work</option><option value="open">Open checklist</option><option value="reported">Has work report</option><option value="completed">Completed · unverified</option><option value="active">In progress / blocked</option><option value="blocked">Blocked</option><option value="unknown">No recorded work state</option></select><button id="refresh" type="button">Refresh now</button></div>
 <label for="roadmap-group">Roadmap phase or feature</label> <select id="roadmap-group"><option value="">All roadmap groups</option></select>
 <section id="roadmap" aria-label="Release roadmap"></section>
-<div class="table-wrap"><table><thead><tr><th>Warrant</th><th>Outcome &amp; evidence</th><th>Implementation</th><th>Legacy record</th></tr></thead><tbody id="rows"></tbody></table><p id="empty" class="hidden">No matching Warrants.</p></div>
+<div class="table-wrap"><table><thead><tr><th>Warrant</th><th>Outcome &amp; evidence</th><th>Implementation</th><th>Record / assurance</th></tr></thead><tbody id="rows"></tbody></table><p id="empty" class="hidden">No matching Warrants.</p></div>
 <footer class="muted"><p id="asof"></p><p id="basis"></p><p id="mode"></p></footer>
 <noscript>This viewer requires JavaScript to render its embedded snapshot. It does not require network access in offline mode.</noscript>
 </main><script id="progress-data" type="application/json">__SNAPSHOT__</script>
@@ -21,8 +23,11 @@ __ROADMAP_MODEL__
 const live=__LIVE__, interval=__INTERVAL__;
 let snapshot=JSON.parse(document.getElementById('progress-data').textContent),busy=false,timer;
 const $=id=>document.getElementById(id),text=(tag,value,cls)=>{const e=document.createElement(tag);e.textContent=value;if(cls)e.className=cls;return e;};
-const label=s=>({'in-progress':'In progress',completed:'Completed · unverified',blocked:'Blocked',failed:'Failed',cancelled:'Cancelled',unknown:'Unknown'}[s]||'No report');
+const label=s=>({open:'Open','in-progress':'In progress',completed:'Completed · unverified',blocked:'Blocked',failed:'Failed',cancelled:'Cancelled',unknown:'Unknown'}[s]||'No report');
 function sourceLink(name,title){const a=text('a',title);const url=snapshot.links[name];if(!url)return text('span',title+' unavailable','muted');a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
+function workingForms(){return snapshot.working_forms?.records||[];}
+function allRows(){return [...snapshot.legacy.warrants,...workingForms().map(form=>({alias:form.id,title:form.title,form}))];}
+function rowState(row){return row.form?workingFormState(row.form):snapshot.reports[row.alias]?.report?.work_state;}
 const roadmapExpansion=new Map();
 function renderRoadmap(){
  const host=$('roadmap');host.replaceChildren();const map=snapshot.roadmap;if(!map)return;
@@ -31,23 +36,23 @@ function renderRoadmap(){
  for(const node of map.nodes){const option=text('option',node.title);option.value=node.id;picker.append(option);}picker.value=map.nodes.some(n=>n.id===selected)?selected:'';
  host.append(text('h2',map.title));
  const mapped=new Set(map.nodes.flatMap(n=>n.warrants));
- const unmapped=snapshot.legacy.warrants.filter(w=>!mapped.has(w.alias));
- host.append(text('p',`${mapped.size} of ${snapshot.legacy.warrants.length} repository Warrants mapped. Counts below cover configured scope only.`,'muted'));
+ const unmapped=allRows().filter(w=>!mapped.has(w.alias));
+ host.append(text('p',`${mapped.size} of ${allRows().length} readable repository Warrants mapped. Counts below cover configured scope only.`,'muted'));
  if(unmapped.length){const outside=document.createElement('details');outside.append(text('summary',`${unmapped.length} Warrants outside configured roadmap`));for(const w of unmapped){const b=text('button',w.alias+' — '+w.title);b.type='button';b.addEventListener('click',()=>{$('search').value=w.alias;$('filter').value='all';render();$('rows').scrollIntoView({block:'start'});});outside.append(b);}host.append(outside);}
  if(snapshot.stage_frontier_error)host.append(text('p','Stage information unavailable: '+snapshot.stage_frontier_error,'report-error'));
 
  const q=$('search').value.toLowerCase(),filter=$('filter').value;
  const children=id=>map.nodes.filter(n=>(n.parent||null)===id);
  function branch(n){
-  const stats=roadmapStats(map.nodes,n.id,snapshot.reports);
-  const {aliases,completed:done,unscoped,percent}=stats;
+  const stats=roadmapStats(map.nodes,n.id,snapshot.reports,workingForms());
+  const {aliases,completed:done,unscoped}=stats;const percent=snapshot.working_forms?.coverage_complete===false?null:stats.percent;
   if(!roadmapMatches(stats,q,filter))return null;
   const box=document.createElement('details');box.open=roadmapExpansion.get(n.id)??true;box.className='card';box.addEventListener('toggle',()=>roadmapExpansion.set(n.id,box.open));
   box.append(text('summary',n.title));box.append(text('p',n.outcome));
   for(const name of n.documents||[])box.append(sourceLink(name,name.split('/').pop()));
-  box.append(text('p',`${done} / ${aliases.length} distinct Warrants reported complete${percent===null?'':' · '+percent+'%'} · ${unscoped} unscoped features`,'muted'));
-  if(aliases.length&&!unscoped){const bar=document.createElement('progress');bar.max=aliases.length;bar.value=done;bar.setAttribute('aria-label',n.title+' reported implementation progress');box.append(bar);}else{box.append(text('p','Completion percentage unavailable: '+(unscoped?'unscoped features remain.':'no Warrants assigned.'),'muted'));}
-  for(const alias of n.warrants){const r=snapshot.reports[alias]?.report;const button=text('button',alias+' · '+(r?label(r.work_state):'No valid report'));button.type='button';button.addEventListener('click',()=>{$('search').value=alias;$('filter').value='all';render();$('rows').scrollIntoView({block:'start'});});box.append(button);}
+  box.append(text('p',`${done} / ${aliases.length} distinct Warrants completed · unverified${percent===null?'':' · '+percent+'%'} · ${unscoped} unscoped features`,'muted'));
+  if(percent!==null){const bar=document.createElement('progress');bar.max=aliases.length;bar.value=done;bar.setAttribute('aria-label',n.title+' reported implementation progress');box.append(bar);}else{box.append(text('p','Completion percentage unavailable: '+(snapshot.working_forms?.coverage_complete===false?'unreadable records remain.':unscoped?'unscoped features remain.':'no Warrants assigned.'),'muted'));}
+  for(const alias of n.warrants){const row=allRows().find(w=>w.alias===alias),state=row&&rowState(row);const button=text('button',alias+' · '+(state?label(state):'No recorded work state'));button.type='button';button.addEventListener('click',()=>{$('search').value=alias;$('filter').value='all';render();$('rows').scrollIntoView({block:'start'});});box.append(button);}
   const stages=(snapshot.stage_frontier?.rows||[]).filter(s=>n.warrants.includes(s.warrant));
   if(stages.length){const detail=document.createElement('details');detail.append(text('summary','Stage dependencies (legacy evaluator; not permission to execute)'));const list=document.createElement('ul');for(const stage of stages){list.append(text('li',`${stage.warrant} / ${stage.stage}: ${stage.state}${stage.waiting_on?.length?' · waiting on '+stage.waiting_on.join(', '):''}`));}detail.append(list);box.append(detail);}
   for(const child of children(n.id)){const b=branch(child);if(b)box.append(b);}return box;
@@ -55,24 +60,35 @@ function renderRoadmap(){
  for(const n of picker.value?map.nodes.filter(n=>n.id===picker.value):children(null)){const b=branch(n);if(b)host.append(b);}
 }
 function render(updateRows=true){
- const all=snapshot.legacy.warrants,reports=snapshot.reports;
- const known=all.filter(w=>reports[w.alias]?.report),completed=known.filter(w=>reports[w.alias].report.work_state==='completed').length;
- $('total').textContent=all.length;$('completed').textContent=completed;$('active').textContent=known.filter(w=>['in-progress','blocked'].includes(reports[w.alias].report.work_state)).length;$('unknown').textContent=all.length-known.length;
- $('bar').max=known.length||1;$('bar').value=completed;$('denominator').textContent=`${completed} of ${known.length} explicit reports`;
+ const all=allRows(),reports=snapshot.reports;
+ const known=all.filter(w=>rowState(w)),completed=known.filter(w=>rowState(w)==='completed').length;
+ $('total').textContent=all.length;$('completed').textContent=completed;$('active').textContent=known.filter(w=>['in-progress','blocked'].includes(rowState(w))).length;$('unknown').textContent=all.length-known.length;
+ $('bar').max=known.length||1;$('bar').value=completed;$('denominator').textContent=`${completed} of ${known.length} readable work states`;
  $('asof').textContent=`Snapshot captured ${new Date(Number(snapshot.as_of_unix_ms)).toLocaleString()} · revision ${snapshot.source_revision}`;
  $('basis').textContent=`Record digest ${snapshot.record_digest} · legacy resolutions ${snapshot.legacy.recorded_resolutions}. Revision names checkout HEAD; digest identifies observed record content, including uncommitted records.`;
+ const diagnostics=snapshot.working_forms?.diagnostics||[];
+ const coverage=$('coverage');coverage.classList.toggle('hidden',snapshot.working_forms?.coverage_complete!==false);
+ coverage.textContent='Incomplete coverage: unreadable working-form records are excluded from totals. '+diagnostics.map(d=>`${d.file||d.rule}: ${d.message}`).join(' · ');
+ const pending=snapshot.working_forms?.ticks_below_minimum||0,proofFaults=snapshot.working_forms?.proof_incomplete||0;
+ const proof=$('proof-status');proof.classList.toggle('hidden',pending===0&&proofFaults===0);
+ proof.textContent=`${pending} completed ticks below their configured proof minimum · ${proofFaults} records with unreadable or invalid proof configuration. Completion and milestone proof are separate.`;
  if(!updateRows)return;
  renderRoadmap();
  const expanded=new Set([...$('rows').querySelectorAll('tr')].filter(tr=>tr.querySelector('details')?.open).map(tr=>tr.dataset.warrant));
  const q=$('search').value.toLowerCase(),filter=$('filter').value;
- const rows=all.filter(w=>{const r=reports[w.alias]?.report;return (w.alias+' '+w.title+' '+(r?.summary||'')).toLowerCase().includes(q)&&(filter==='all'||filter==='reported'&&r||filter==='completed'&&r?.work_state==='completed'||filter==='active'&&['in-progress','blocked'].includes(r?.work_state)||filter==='blocked'&&r?.work_state==='blocked'||filter==='unknown'&&!r);});
- rows.sort((a,b)=>Number(!!reports[b.alias]?.report)-Number(!!reports[a.alias]?.report)||b.alias.localeCompare(a.alias));
+ const rows=all.filter(w=>{const r=reports[w.alias]?.report,state=rowState(w);return (w.alias+' '+w.title+' '+(r?.summary||'')).toLowerCase().includes(q)&&(filter==='all'||filter==='reported'&&r||filter==='open'&&state==='open'||filter==='completed'&&state==='completed'||filter==='active'&&['in-progress','blocked'].includes(state)||filter==='blocked'&&state==='blocked'||filter==='unknown'&&!state);});
+ rows.sort((a,b)=>Number(!!rowState(b))-Number(!!rowState(a))||b.alias.localeCompare(a.alias));
  const frag=document.createDocumentFragment();
  for(const w of rows){const entry=reports[w.alias],r=entry?.report,tr=document.createElement('tr');tr.dataset.warrant=w.alias;tr.append(text('td',w.alias));const body=document.createElement('td');body.append(text('div',w.title,'title'));if(r)body.append(text('p',r.summary,'muted'));
- const detail=document.createElement('details');detail.open=expanded.has(w.alias);detail.append(text('summary',r?'Report, evidence & next steps':'Legacy status & blockers'));const box=text('div','','detail');
+ const detail=document.createElement('details');detail.open=expanded.has(w.alias);detail.append(text('summary',w.form?'Checklist & source documents':r?'Report, evidence & next steps':'Legacy status & blockers'));const box=text('div','','detail');
  if(r){box.append(text('p',`Reported by ${r.reported_by} · reported revision ${r.revision}`));const links=text('div','','links');links.append(sourceLink(entry.source,'Work report'));if(r.notes)links.append(sourceLink(r.notes,'Implementation notes'));r.evidence.forEach((p,i)=>links.append(sourceLink(p,`Evidence ${i+1}`)));box.append(links);if(r.next_steps.length){box.append(text('strong','Next steps'));const ul=document.createElement('ul');r.next_steps.forEach(s=>ul.append(text('li',s)));box.append(ul);}}
  if(entry?.error)box.append(text('p',`Report unavailable: ${entry.error}`,'report-error'));
- const unmet=w.unmet||[],unknowns=w.blocking_unknowns||[];box.append(text('p',`${unmet.length} unmet legacy requirements · ${unknowns.length} blocking unknowns. Legacy pending signatures are not universal prototype execution gates.`));if(unmet.length||unknowns.length){const ul=document.createElement('ul');[...unmet,...unknowns].forEach(s=>ul.append(text('li',s)));box.append(ul);}detail.append(box);body.append(detail);tr.append(body);const state=document.createElement('td');state.append(text('span',r?label(r.work_state):entry?.error?'Report invalid':'No report',`pill ${r?.work_state||''}`));tr.append(state,text('td',w.assessment.replaceAll('_',' '),'muted'));frag.append(tr);}
+ if(w.form){box.append(text('p',`${w.form.done} / ${w.form.total} checklist items completed. Checklist completion is unverified and does not imply readiness to start or permission to execute.`));const links=text('div','','links');for(const name of w.form.sources)links.append(sourceLink(name,name.split('/').pop()));box.append(links);box.append(text('p','Observed source digest '+w.form.source_digest,'muted'));
+ if(w.form.ticks?.unavailable)box.append(text('p','Proof UNKNOWN: '+w.form.ticks.unavailable,'report-error'));
+ const counts=w.form.ticks?.counts;if(counts&&!w.form.ticks?.unavailable)box.append(text('p',`${counts.claimed} claimed · ${counts.observed} observed · ${counts.independent} independent · ${counts.signed} signed ticks · ${counts.below_minimum} below their minimum`,'muted'));
+ for(const m of w.form.milestones||[])box.append(text('p',`${m.met?'☑':'☐'} ${m.text}: ${m.marker} · minimum ${m.minimum}`));
+ for(const fault of w.form.proof_faults||[])box.append(text('p',`${fault.rule}: ${fault.message}`,'report-error'));}
+ const unmet=w.unmet||[],unknowns=w.blocking_unknowns||[];if(!w.form)box.append(text('p',`${unmet.length} unmet legacy requirements · ${unknowns.length} blocking unknowns. Legacy pending signatures are not universal prototype execution gates.`));if(unmet.length||unknowns.length){const ul=document.createElement('ul');[...unmet,...unknowns].forEach(s=>ul.append(text('li',s)));box.append(ul);}detail.append(box);body.append(detail);tr.append(body);const state=document.createElement('td');state.append(text('span',rowState(w)?label(rowState(w)):entry?.error?'Report invalid':'No report',`pill ${rowState(w)||''}`));tr.append(state,text('td',w.form?'Working form · unverified':w.assessment.replaceAll('_',' '),'muted'));frag.append(tr);}
  $('rows').replaceChildren(frag);$('empty').classList.toggle('hidden',rows.length!==0);
 }
 function connection(message,stale=false){$('connection').textContent=message;$('connection').classList.toggle('stale',stale);}

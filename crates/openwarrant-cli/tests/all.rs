@@ -14,6 +14,10 @@
 mod authority_transition_cli;
 #[path = "board_cli.rs"]
 mod board_cli;
+#[path = "checks_cli.rs"]
+mod checks_cli;
+#[path = "context_apply_cli.rs"]
+mod context_apply_cli;
 #[path = "context_cli.rs"]
 mod context_cli;
 #[path = "delivery_provenance_cli.rs"]
@@ -72,6 +76,8 @@ mod runtime_capture;
 mod sdk_cli;
 #[path = "single_actor_cli.rs"]
 mod single_actor_cli;
+#[path = "spec_acceptance_cli.rs"]
+mod spec_acceptance_cli;
 #[path = "ssh_verdicts.rs"]
 mod ssh_verdicts;
 #[path = "submission_binding_cli.rs"]
@@ -88,6 +94,10 @@ mod ticket_cache_cli;
 mod tickets_cli;
 #[path = "verification_subject_cli.rs"]
 mod verification_subject_cli;
+#[path = "work_states_cli.rs"]
+mod work_states_cli;
+#[path = "work_tracking_cli.rs"]
+mod work_tracking_cli;
 
 /// A file under tests/ that is not a module here would never run. This test
 /// fails until it is added.

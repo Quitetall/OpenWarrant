@@ -1,0 +1,5 @@
+id = "156-key-unknown-profile-file"
+kind = "refuse"
+section = "7.5"
+rule = "format.key-unknown"
+says = """A field neither the core nor the profile declares for that type is refused (`format.key-unknown`)"""

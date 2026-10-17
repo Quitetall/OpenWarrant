@@ -113,9 +113,15 @@
       "required": ["record", "kind", "value", "provenance"],
       "properties": {
         "record": { "$ref": "common.json#/$defs/modelId" },
-        "kind": { "type": "string", "minLength": 1 },
+        "kind": {
+          "description": "Section 11.1: the family the state belongs to; a declared state's is its parent's.",
+          "enum": ["phase", "checklist", "currency", "check", "disposition", "acceptance", "outcome"]
+        },
         "value": { "type": "string" },
-        "provenance": { "type": "string", "minLength": 1 },
+        "provenance": {
+          "description": "Section 11.1: `computed` (from documents and the claim store), `recorded` (from a journal event or an act of Appendix C) or `declared`.",
+          "enum": ["computed", "recorded", "declared"]
+        },
         "facet": { "type": "string" },
         "refines": { "type": "string" },
         "lapsed": { "type": "boolean" }
