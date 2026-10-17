@@ -8003,6 +8003,44 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0075/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | conformance/sdk/document/README.md | `conformance/sdk/document/README.md` | verified |
+| D-002 | conformance/sdk/document/adr.md | `conformance/sdk/document/adr.md` | verified |
+| D-003 | conformance/sdk/document/cases.json | `conformance/sdk/document/cases.json` | verified |
+| D-004 | conformance/sdk/document/combined-depth.md | `conformance/sdk/document/combined-depth.md` | verified |
+| D-005 | conformance/sdk/document/compact-deps.md | `conformance/sdk/document/compact-deps.md` | verified |
+| D-006 | conformance/sdk/document/context-background.md | `conformance/sdk/document/context-background.md` | verified |
+| D-007 | conformance/sdk/document/context-binding.md | `conformance/sdk/document/context-binding.md` | verified |
+| D-008 | conformance/sdk/document/crlf-unicode.md | `conformance/sdk/document/crlf-unicode.md` | verified |
+| D-009 | conformance/sdk/document/duplicate-key.md | `conformance/sdk/document/duplicate-key.md` | verified |
+| D-010 | conformance/sdk/document/duplicate-unit.md | `conformance/sdk/document/duplicate-unit.md` | verified |
+| D-011 | conformance/sdk/document/fenced-markers.md | `conformance/sdk/document/fenced-markers.md` | verified |
+| D-012 | conformance/sdk/document/invalid-utf8.bin | `conformance/sdk/document/invalid-utf8.bin` | verified |
+| D-013 | conformance/sdk/document/malformed-footer.md | `conformance/sdk/document/malformed-footer.md` | verified |
+| D-014 | conformance/sdk/document/minimal-rc2.md | `conformance/sdk/document/minimal-rc2.md` | verified |
+| D-015 | conformance/sdk/document/minimal-rc3.md | `conformance/sdk/document/minimal-rc3.md` | verified |
+| D-016 | conformance/sdk/document/missing-outcome.md | `conformance/sdk/document/missing-outcome.md` | verified |
+| D-017 | conformance/sdk/document/sas.md | `conformance/sdk/document/sas.md` | verified |
+| D-018 | conformance/sdk/document/trailing.md | `conformance/sdk/document/trailing.md` | verified |
+| D-019 | conformance/sdk/document/unknown-optional.md | `conformance/sdk/document/unknown-optional.md` | verified |
+| D-020 | conformance/sdk/document/unknown-required.md | `conformance/sdk/document/unknown-required.md` | verified |
+| D-021 | conformance/sdk/document/unresolved-required.md | `conformance/sdk/document/unresolved-required.md` | verified |
+| D-022 | conformance/sdk/document/wrapped.md | `conformance/sdk/document/wrapped.md` | verified |
+| D-023 | conformance/sdk/document/wrong-schema.md | `conformance/sdk/document/wrong-schema.md` | verified |
+| D-024 | conformance/sdk/document/wrong-title.md | `conformance/sdk/document/wrong-title.md` | verified |
+| D-025 | crates/openwarrant-core/examples/sdk_probe.rs | `crates/openwarrant-core/examples/sdk_probe.rs` | verified |
+| D-026 | crates/openwarrant-core/src/document/metadata.rs | `crates/openwarrant-core/src/document/metadata.rs` | verified |
+| D-027 | crates/openwarrant-core/src/document/mod.rs | `crates/openwarrant-core/src/document/mod.rs` | verified |
+| D-028 | crates/openwarrant-core/src/document/references.rs | `crates/openwarrant-core/src/document/references.rs` | verified |
+| D-029 | crates/openwarrant-core/src/document/scan.rs | `crates/openwarrant-core/src/document/scan.rs` | verified |
+| D-030 | crates/openwarrant-core/src/document/validate.rs | `crates/openwarrant-core/src/document/validate.rs` | verified |
+| D-031 | docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md | `docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md` | verified |
+| D-032 | Current delivery reconciliation report | `docs/warrants/OW-WAR-0075/implementation/delivery-reconciliation-20261017/README.md` | verified |
+| D-033 | Actual public probe, dynamic refusal and reuse observations | `docs/warrants/OW-WAR-0075/implementation/delivery-reconciliation-20261017/observations.json` | verified |
+
 #### OW-WAR-0076 — Author and edit human-first OpenWarrant documents
 
 [manifest](../../docs/warrants/OW-WAR-0076/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0076/authorization.toml) · profile `delivery` · rung `draft` · currency `current`

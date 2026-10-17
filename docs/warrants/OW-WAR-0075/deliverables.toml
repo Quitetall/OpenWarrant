@@ -1,0 +1,764 @@
+schema = "oh.war/deliverables/v1"
+
+# Performer declarations for observed reuse of existing in-scope artifacts.
+# No authorization ownership set is granted or rewritten by this file.
+# Original proposal and implementation authorship remain in retained history.
+
+[[deliverable]]
+id = "D-001"
+title = "conformance/sdk/document/README.md"
+kind = "file"
+target_ref = "conformance/sdk/document/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:81fd539fbf00884d9f4856b4fe7d8d418025fe502f238b56951c38908ab6b8ba"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:81fd539fbf00884d9f4856b4fe7d8d418025fe502f238b56951c38908ab6b8ba"]
+
+[[deliverable]]
+id = "D-002"
+title = "conformance/sdk/document/adr.md"
+kind = "file"
+target_ref = "conformance/sdk/document/adr.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa"]
+
+[[deliverable]]
+id = "D-003"
+title = "conformance/sdk/document/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/document/cases.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7"]
+
+[[deliverable]]
+id = "D-004"
+title = "conformance/sdk/document/combined-depth.md"
+kind = "file"
+target_ref = "conformance/sdk/document/combined-depth.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10"]
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/sdk/document/compact-deps.md"
+kind = "file"
+target_ref = "conformance/sdk/document/compact-deps.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776"]
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/sdk/document/context-background.md"
+kind = "file"
+target_ref = "conformance/sdk/document/context-background.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac"]
+
+[[deliverable]]
+id = "D-007"
+title = "conformance/sdk/document/context-binding.md"
+kind = "file"
+target_ref = "conformance/sdk/document/context-binding.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64"]
+
+[[deliverable]]
+id = "D-008"
+title = "conformance/sdk/document/crlf-unicode.md"
+kind = "file"
+target_ref = "conformance/sdk/document/crlf-unicode.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf"]
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/document/duplicate-key.md"
+kind = "file"
+target_ref = "conformance/sdk/document/duplicate-key.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:ce066f0e1afa617e94c46f63e103a188b8df693b61de6f3ae26903ff82e8b21a"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:ce066f0e1afa617e94c46f63e103a188b8df693b61de6f3ae26903ff82e8b21a"]
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/document/duplicate-unit.md"
+kind = "file"
+target_ref = "conformance/sdk/document/duplicate-unit.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:bb80f7c7004fd0fdf4418383d0b287e21e902b460df7ea393d31a3cee9a5f4f7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:bb80f7c7004fd0fdf4418383d0b287e21e902b460df7ea393d31a3cee9a5f4f7"]
+
+[[deliverable]]
+id = "D-011"
+title = "conformance/sdk/document/fenced-markers.md"
+kind = "file"
+target_ref = "conformance/sdk/document/fenced-markers.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6"]
+
+[[deliverable]]
+id = "D-012"
+title = "conformance/sdk/document/invalid-utf8.bin"
+kind = "file"
+target_ref = "conformance/sdk/document/invalid-utf8.bin"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209"]
+
+[[deliverable]]
+id = "D-013"
+title = "conformance/sdk/document/malformed-footer.md"
+kind = "file"
+target_ref = "conformance/sdk/document/malformed-footer.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:1bcc1b910c728dcdfab68e396c06216f5294451e3c2c0b22a81225ddc73866ab"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:1bcc1b910c728dcdfab68e396c06216f5294451e3c2c0b22a81225ddc73866ab"]
+
+[[deliverable]]
+id = "D-014"
+title = "conformance/sdk/document/minimal-rc2.md"
+kind = "file"
+target_ref = "conformance/sdk/document/minimal-rc2.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1"]
+
+[[deliverable]]
+id = "D-015"
+title = "conformance/sdk/document/minimal-rc3.md"
+kind = "file"
+target_ref = "conformance/sdk/document/minimal-rc3.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"]
+
+[[deliverable]]
+id = "D-016"
+title = "conformance/sdk/document/missing-outcome.md"
+kind = "file"
+target_ref = "conformance/sdk/document/missing-outcome.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7"]
+
+[[deliverable]]
+id = "D-017"
+title = "conformance/sdk/document/sas.md"
+kind = "file"
+target_ref = "conformance/sdk/document/sas.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d"]
+
+[[deliverable]]
+id = "D-018"
+title = "conformance/sdk/document/trailing.md"
+kind = "file"
+target_ref = "conformance/sdk/document/trailing.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c"]
+
+[[deliverable]]
+id = "D-019"
+title = "conformance/sdk/document/unknown-optional.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unknown-optional.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec"]
+
+[[deliverable]]
+id = "D-020"
+title = "conformance/sdk/document/unknown-required.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unknown-required.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7"]
+
+[[deliverable]]
+id = "D-021"
+title = "conformance/sdk/document/unresolved-required.md"
+kind = "file"
+target_ref = "conformance/sdk/document/unresolved-required.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e"]
+
+[[deliverable]]
+id = "D-022"
+title = "conformance/sdk/document/wrapped.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrapped.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7"]
+
+[[deliverable]]
+id = "D-023"
+title = "conformance/sdk/document/wrong-schema.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrong-schema.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:a5027a6af8096425f2853875ce012bcd7501f10b58265515577af1975ed12e74"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:a5027a6af8096425f2853875ce012bcd7501f10b58265515577af1975ed12e74"]
+
+[[deliverable]]
+id = "D-024"
+title = "conformance/sdk/document/wrong-title.md"
+kind = "file"
+target_ref = "conformance/sdk/document/wrong-title.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718"]
+
+[[deliverable]]
+id = "D-025"
+title = "crates/openwarrant-core/examples/sdk_probe.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/examples/sdk_probe.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:18539e0cb6ed8545bf5d153a23ea957d51a0b616aa8329c0350ad96f87c58b79"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:18539e0cb6ed8545bf5d153a23ea957d51a0b616aa8329c0350ad96f87c58b79"]
+
+[[deliverable]]
+id = "D-026"
+title = "crates/openwarrant-core/src/document/metadata.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/metadata.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:7bb600a7592568b8f7d35d204a750e00b72e5ff8ac3d484aa370bcabe4061f2d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:7bb600a7592568b8f7d35d204a750e00b72e5ff8ac3d484aa370bcabe4061f2d"]
+
+[[deliverable]]
+id = "D-027"
+title = "crates/openwarrant-core/src/document/mod.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/mod.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:e2a460866db66e4a11b91f49ffce98ff040f70d00bf083ca8214fd6326b93eaa"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e2a460866db66e4a11b91f49ffce98ff040f70d00bf083ca8214fd6326b93eaa"]
+
+[[deliverable]]
+id = "D-028"
+title = "crates/openwarrant-core/src/document/references.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/references.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:d24d7f77208544ec2257cb36d3e10e18b940d2e9f805889727eb3b466ed54cbc"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:d24d7f77208544ec2257cb36d3e10e18b940d2e9f805889727eb3b466ed54cbc"]
+
+[[deliverable]]
+id = "D-029"
+title = "crates/openwarrant-core/src/document/scan.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/scan.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:1d0af9a0ecc6d5ed6ce30a556c1668ffd993dd6cf2503579b349d4c75f8d968f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:1d0af9a0ecc6d5ed6ce30a556c1668ffd993dd6cf2503579b349d4c75f8d968f"]
+
+[[deliverable]]
+id = "D-030"
+title = "crates/openwarrant-core/src/document/validate.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/validate.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:d4c69ba13bc686fe80b7016031d85050610d64c6d3205790c559f2ab793fd38e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:d4c69ba13bc686fe80b7016031d85050610d64c6d3205790c559f2ab793fd38e"]
+
+[[deliverable]]
+id = "D-031"
+title = "docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+content_digest = "sha256:2ee0b5a0174fbbb2693e12e09d71c994f04b37b05a189200fb0e6d9e7970a2f2"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:2ee0b5a0174fbbb2693e12e09d71c994f04b37b05a189200fb0e6d9e7970a2f2"]
+
+[[deliverable]]
+id = "D-032"
+title = "Current delivery reconciliation report"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/delivery-reconciliation-20261017/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "authored current reconciliation notes from actual retained observations"
+content_digest = "sha256:366a9518db27e69d91a22edf44b503112fec4ed0c8000f624622458d730e571b"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:2c5e3b8b8fe942e3bac7d24d66c6c51929fb841bdec2b057bdf0475933a01c1f"]
+
+[[deliverable]]
+id = "D-033"
+title = "Actual public probe, dynamic refusal and reuse observations"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/delivery-reconciliation-20261017/observations.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
+creation_method = "serialized exact current public probe and dynamic refusal observations; retained actual reuse input and delivery process records"
+content_digest = "sha256:2c5e3b8b8fe942e3bac7d24d66c6c51929fb841bdec2b057bdf0475933a01c1f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:db6ac5b12c23e6ba62128087169225f94cb00ee8d9cc970e61c0a0c1f29d3a19", "sha256:b2f2cdc891b172bfc8568a6f79f81722cb5006a80373a9de3480e6572c374de9", "sha256:f842153d852ee5c86fead6c6a59ab4629df76513deed4718211c1237433477e8", "sha256:720822f864152dbbb45a67944209384c00a9298483d0046105022ea0e4e535f5", "sha256:93f94d2ddf4460ea57ed66eed4efcc18b1e3dcc48c986431ad98738bf486e805", "sha256:117918fc33a7cc51121291c6e1db10748ee6d7682efc1eec58dedf16bdd06c70"]

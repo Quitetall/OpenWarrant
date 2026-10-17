@@ -1,0 +1,894 @@
+{
+  "probe": {
+    "args": [
+      "cargo",
+      "run",
+      "--locked",
+      "-j",
+      "1",
+      "-p",
+      "openwarrant-core",
+      "--example",
+      "sdk_probe",
+      "--",
+      "--scope",
+      "75",
+      "--fixtures",
+      "conformance/sdk"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 24.560946787009016,
+    "record_source": "d2131e2ecb8011ec07ef6151677eb88eff2375e1",
+    "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "stdout": "PASS T01-minimal-rc3\nPASS T01-legacy-explicit\nPASS T02-duplicate-key\nPASS T03-fenced-markers\nPASS T04-duplicate-unit\nPASS T05-crlf-unicode\nPASS T06-invalid-utf8\nPASS T07-missing-outcome\nPASS T08-unknown-optional\nPASS T08-unknown-required\nPASS T09-adr\nPASS T09-sas\nPASS T10-unresolved-required\nPASS FOOTER01-wrapped\nPASS FOOTER02-compact\nPASS FOOTER04-malformed\nPASS FOOTER05-trailing\nPASS FOOTER06-title\nPASS FOOTER07-schema\nPASS T09-context-binding\nPASS T09-context-background-refusal\nPASS T06-combined-depth-refusal\n22 document cases passed; context/readiness not evaluated\n",
+    "stderr": "   Compiling serde_core v1.0.229\n   Compiling syn v3.0.3\n   Compiling serde v1.0.229\n   Compiling serde_derive v1.0.229\n   Compiling hashbrown v0.17.1\n   Compiling indexmap v2.14.0\n   Compiling libc v0.2.189\n   Compiling toml_datetime v0.6.11\n   Compiling serde_spanned v0.6.9\n   Compiling toml_edit v0.22.27\n   Compiling serde_json v1.0.154\n   Compiling getrandom v0.4.3\n   Compiling thiserror-impl v2.0.21\n   Compiling serde_spanned v1.1.2\n   Compiling toml_datetime v1.1.2+spec-1.1.0\n   Compiling serde_jcs v0.2.0\n   Compiling toml v1.1.8+spec-1.1.0\n   Compiling thiserror v2.0.21\n   Compiling uuid v1.28.0\n   Compiling toml v0.8.23\n   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-compact-reader-20261016/crates/openwarrant-core)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 24.50s\n     Running `target/debug/examples/sdk_probe --scope 75 --fixtures conformance/sdk`\n"
+  },
+  "dynamic": {
+    "binary_sha256": "d9c8e3279d77d9ccadfc48cdb77bab7e8645a85acaab4d29ee6563644383c63d",
+    "record_source": "d2131e2ecb8011ec07ef6151677eb88eff2375e1",
+    "observations": [
+      {
+        "case": "valid",
+        "argv": [
+          "/mnt/4tb/tmp/openwarrant-compact-reader-20261016/target/debug/examples/sdk_probe",
+          "--scope",
+          "75",
+          "--fixtures",
+          "/mnt/4tb/tmp/openwarrant-ow75-dynamic-gti1dqqf"
+        ],
+        "exit_code": 0,
+        "expected_exit_code": 0,
+        "source_sha256": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"
+      },
+      {
+        "case": "invalid",
+        "argv": [
+          "/mnt/4tb/tmp/openwarrant-compact-reader-20261016/target/debug/examples/sdk_probe",
+          "--scope",
+          "75",
+          "--fixtures",
+          "/mnt/4tb/tmp/openwarrant-ow75-dynamic-gti1dqqf"
+        ],
+        "exit_code": 1,
+        "expected_exit_code": 1,
+        "source_sha256": "4b36ecbcd8c1a777a0975789c1e5054c4627d8913ecde001d3940b760965a3fb"
+      }
+    ],
+    "fixture_directory_removed": true,
+    "tracked_fixtures_changed": false,
+    "independent_verification": false
+  },
+  "dynamic_outputs": {
+    "valid": {
+      "stdout": "PASS T01-minimal-rc3\nPASS T01-legacy-explicit\nPASS T02-duplicate-key\nPASS T03-fenced-markers\nPASS T04-duplicate-unit\nPASS T05-crlf-unicode\nPASS T06-invalid-utf8\nPASS T07-missing-outcome\nPASS T08-unknown-optional\nPASS T08-unknown-required\nPASS T09-adr\nPASS T09-sas\nPASS T10-unresolved-required\nPASS FOOTER01-wrapped\nPASS FOOTER02-compact\nPASS FOOTER04-malformed\nPASS FOOTER05-trailing\nPASS FOOTER06-title\nPASS FOOTER07-schema\nPASS T09-context-binding\nPASS T09-context-background-refusal\nPASS T06-combined-depth-refusal\nPASS PROBE-DYNAMIC-20261017\n23 document cases passed; context/readiness not evaluated\n",
+      "stderr": ""
+    },
+    "invalid": {
+      "stdout": "PASS T01-minimal-rc3\nPASS T01-legacy-explicit\nPASS T02-duplicate-key\nPASS T03-fenced-markers\nPASS T04-duplicate-unit\nPASS T05-crlf-unicode\nPASS T06-invalid-utf8\nPASS T07-missing-outcome\nPASS T08-unknown-optional\nPASS T08-unknown-required\nPASS T09-adr\nPASS T09-sas\nPASS T10-unresolved-required\nPASS FOOTER01-wrapped\nPASS FOOTER02-compact\nPASS FOOTER04-malformed\nPASS FOOTER05-trailing\nPASS FOOTER06-title\nPASS FOOTER07-schema\nPASS T09-context-binding\nPASS T09-context-background-refusal\nPASS T06-combined-depth-refusal\nFAIL PROBE-DYNAMIC-20261017\n",
+      "stderr": "1 failed: PROBE-DYNAMIC-20261017\n"
+    }
+  },
+  "reuse_inputs": {
+    "source": "d2131e2ecb8011ec07ef6151677eb88eff2375e1",
+    "method": "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git",
+    "files": [
+      {
+        "id": "D-001",
+        "target_ref": "conformance/sdk/document/README.md",
+        "sha256": "81fd539fbf00884d9f4856b4fe7d8d418025fe502f238b56951c38908ab6b8ba"
+      },
+      {
+        "id": "D-002",
+        "target_ref": "conformance/sdk/document/adr.md",
+        "sha256": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa"
+      },
+      {
+        "id": "D-003",
+        "target_ref": "conformance/sdk/document/cases.json",
+        "sha256": "8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7"
+      },
+      {
+        "id": "D-004",
+        "target_ref": "conformance/sdk/document/combined-depth.md",
+        "sha256": "ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10"
+      },
+      {
+        "id": "D-005",
+        "target_ref": "conformance/sdk/document/compact-deps.md",
+        "sha256": "321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776"
+      },
+      {
+        "id": "D-006",
+        "target_ref": "conformance/sdk/document/context-background.md",
+        "sha256": "e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac"
+      },
+      {
+        "id": "D-007",
+        "target_ref": "conformance/sdk/document/context-binding.md",
+        "sha256": "370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64"
+      },
+      {
+        "id": "D-008",
+        "target_ref": "conformance/sdk/document/crlf-unicode.md",
+        "sha256": "4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf"
+      },
+      {
+        "id": "D-009",
+        "target_ref": "conformance/sdk/document/duplicate-key.md",
+        "sha256": "ce066f0e1afa617e94c46f63e103a188b8df693b61de6f3ae26903ff82e8b21a"
+      },
+      {
+        "id": "D-010",
+        "target_ref": "conformance/sdk/document/duplicate-unit.md",
+        "sha256": "bb80f7c7004fd0fdf4418383d0b287e21e902b460df7ea393d31a3cee9a5f4f7"
+      },
+      {
+        "id": "D-011",
+        "target_ref": "conformance/sdk/document/fenced-markers.md",
+        "sha256": "601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6"
+      },
+      {
+        "id": "D-012",
+        "target_ref": "conformance/sdk/document/invalid-utf8.bin",
+        "sha256": "b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209"
+      },
+      {
+        "id": "D-013",
+        "target_ref": "conformance/sdk/document/malformed-footer.md",
+        "sha256": "1bcc1b910c728dcdfab68e396c06216f5294451e3c2c0b22a81225ddc73866ab"
+      },
+      {
+        "id": "D-014",
+        "target_ref": "conformance/sdk/document/minimal-rc2.md",
+        "sha256": "f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1"
+      },
+      {
+        "id": "D-015",
+        "target_ref": "conformance/sdk/document/minimal-rc3.md",
+        "sha256": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"
+      },
+      {
+        "id": "D-016",
+        "target_ref": "conformance/sdk/document/missing-outcome.md",
+        "sha256": "f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7"
+      },
+      {
+        "id": "D-017",
+        "target_ref": "conformance/sdk/document/sas.md",
+        "sha256": "20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d"
+      },
+      {
+        "id": "D-018",
+        "target_ref": "conformance/sdk/document/trailing.md",
+        "sha256": "429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c"
+      },
+      {
+        "id": "D-019",
+        "target_ref": "conformance/sdk/document/unknown-optional.md",
+        "sha256": "33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec"
+      },
+      {
+        "id": "D-020",
+        "target_ref": "conformance/sdk/document/unknown-required.md",
+        "sha256": "5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7"
+      },
+      {
+        "id": "D-021",
+        "target_ref": "conformance/sdk/document/unresolved-required.md",
+        "sha256": "9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e"
+      },
+      {
+        "id": "D-022",
+        "target_ref": "conformance/sdk/document/wrapped.md",
+        "sha256": "39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7"
+      },
+      {
+        "id": "D-023",
+        "target_ref": "conformance/sdk/document/wrong-schema.md",
+        "sha256": "a5027a6af8096425f2853875ce012bcd7501f10b58265515577af1975ed12e74"
+      },
+      {
+        "id": "D-024",
+        "target_ref": "conformance/sdk/document/wrong-title.md",
+        "sha256": "bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718"
+      },
+      {
+        "id": "D-025",
+        "target_ref": "crates/openwarrant-core/examples/sdk_probe.rs",
+        "sha256": "18539e0cb6ed8545bf5d153a23ea957d51a0b616aa8329c0350ad96f87c58b79"
+      },
+      {
+        "id": "D-026",
+        "target_ref": "crates/openwarrant-core/src/document/metadata.rs",
+        "sha256": "7bb600a7592568b8f7d35d204a750e00b72e5ff8ac3d484aa370bcabe4061f2d"
+      },
+      {
+        "id": "D-027",
+        "target_ref": "crates/openwarrant-core/src/document/mod.rs",
+        "sha256": "e2a460866db66e4a11b91f49ffce98ff040f70d00bf083ca8214fd6326b93eaa"
+      },
+      {
+        "id": "D-028",
+        "target_ref": "crates/openwarrant-core/src/document/references.rs",
+        "sha256": "d24d7f77208544ec2257cb36d3e10e18b940d2e9f805889727eb3b466ed54cbc"
+      },
+      {
+        "id": "D-029",
+        "target_ref": "crates/openwarrant-core/src/document/scan.rs",
+        "sha256": "1d0af9a0ecc6d5ed6ce30a556c1668ffd993dd6cf2503579b349d4c75f8d968f"
+      },
+      {
+        "id": "D-030",
+        "target_ref": "crates/openwarrant-core/src/document/validate.rs",
+        "sha256": "d4c69ba13bc686fe80b7016031d85050610d64c6d3205790c559f2ab793fd38e"
+      },
+      {
+        "id": "D-031",
+        "target_ref": "docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md",
+        "sha256": "2ee0b5a0174fbbb2693e12e09d71c994f04b37b05a189200fb0e6d9e7970a2f2"
+      }
+    ]
+  },
+  "delivery_processes": [
+    {
+      "id": "D-001",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-001",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:81fd539fbf00884d9f4856b4fe7d8d418025fe502f238b56951c38908ab6b8ba",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.469362844945863
+    },
+    {
+      "id": "D-002",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-002",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.5650303090224043
+    },
+    {
+      "id": "D-003",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-003",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.5648339580511674
+    },
+    {
+      "id": "D-004",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-004",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.5145581919932738
+    },
+    {
+      "id": "D-005",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-005",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.41437785304151475
+    },
+    {
+      "id": "D-006",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-006",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3644988019950688
+    },
+    {
+      "id": "D-007",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-007",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3643593500601128
+    },
+    {
+      "id": "D-008",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-008",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.364396451972425
+    },
+    {
+      "id": "D-009",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-009",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:ce066f0e1afa617e94c46f63e103a188b8df693b61de6f3ae26903ff82e8b21a",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3642604020424187
+    },
+    {
+      "id": "D-010",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-010",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:bb80f7c7004fd0fdf4418383d0b287e21e902b460df7ea393d31a3cee9a5f4f7",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.7151032270630822
+    },
+    {
+      "id": "D-011",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-011",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3643545840168372
+    },
+    {
+      "id": "D-012",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-012",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3643045659409836
+    },
+    {
+      "id": "D-013",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-013",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:1bcc1b910c728dcdfab68e396c06216f5294451e3c2c0b22a81225ddc73866ab",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36445106100291014
+    },
+    {
+      "id": "D-014",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-014",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.5646394620416686
+    },
+    {
+      "id": "D-015",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-015",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3644599989056587
+    },
+    {
+      "id": "D-016",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-016",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36449358495883644
+    },
+    {
+      "id": "D-017",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-017",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3644925830885768
+    },
+    {
+      "id": "D-018",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-018",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4645770969800651
+    },
+    {
+      "id": "D-019",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-019",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36422676406800747
+    },
+    {
+      "id": "D-020",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-020",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36447528190910816
+    },
+    {
+      "id": "D-021",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-021",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36440870503429323
+    },
+    {
+      "id": "D-022",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-022",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3643628179561347
+    },
+    {
+      "id": "D-023",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-023",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:a5027a6af8096425f2853875ce012bcd7501f10b58265515577af1975ed12e74",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36433444102294743
+    },
+    {
+      "id": "D-024",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-024",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36429804598446935
+    },
+    {
+      "id": "D-025",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-025",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:18539e0cb6ed8545bf5d153a23ea957d51a0b616aa8329c0350ad96f87c58b79",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36438152694609016
+    },
+    {
+      "id": "D-026",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-026",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:7bb600a7592568b8f7d35d204a750e00b72e5ff8ac3d484aa370bcabe4061f2d",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3642867000307888
+    },
+    {
+      "id": "D-027",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-027",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:e2a460866db66e4a11b91f49ffce98ff040f70d00bf083ca8214fd6326b93eaa",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.4146091779693961
+    },
+    {
+      "id": "D-028",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-028",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:d24d7f77208544ec2257cb36d3e10e18b940d2e9f805889727eb3b466ed54cbc",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36447326303459704
+    },
+    {
+      "id": "D-029",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-029",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:1d0af9a0ecc6d5ed6ce30a556c1668ffd993dd6cf2503579b349d4c75f8d968f",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.46442768396809697
+    },
+    {
+      "id": "D-030",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-030",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:d4c69ba13bc686fe80b7016031d85050610d64c6d3205790c559f2ab793fd38e",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.36428701307158917
+    },
+    {
+      "id": "D-031",
+      "argv": [
+        "./target/debug/war",
+        "--json",
+        "admin",
+        "deliver",
+        "OW-WAR-0075",
+        "D-031",
+        "--producer",
+        "agent://codex",
+        "--producing-attempt",
+        "OW-WAR-0075/20261017-observed-reuse",
+        "--input-digest",
+        "sha256:2ee0b5a0174fbbb2693e12e09d71c994f04b37b05a189200fb0e6d9e7970a2f2",
+        "--method",
+        "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.3643824540777132
+    }
+  ],
+  "protected_sources_unchanged": {
+    "docs/warrants/OW-WAR-0075/authorization.toml": "5671aa413232f42a6529baa9484c6a6308c9d886bb8ce8de14702bec96cc9f5e",
+    "docs/warrants/OW-WAR-0075/implementation/preparation-20261009/proposed-deliverables.toml": "2b625fa01122a78f22bea11fb94a39426d5779c9574c111a6fae602f78890394"
+  },
+  "limits": [
+    "Performer observations, not independent verification or secure human acceptance.",
+    "Legacy authorization has no ownership set; declarations do not grant path ownership.",
+    "No model call, signature or assurance disposition created."
+  ]
+}
