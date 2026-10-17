@@ -182,8 +182,9 @@ fn cached_schemas(file: &Utf8Path) -> Vec<(String, u32)> {
     found
 }
 
-/// The `(record, major)` each schema declaration in `file` names. A file
-/// that does not parse declares nothing here; its own reader reports it.
+/// Declarations that may need a newer-version finding. A file that does not
+/// parse declares nothing here; its own reader reports it. Known TOML headers
+/// need no compatibility finding, so their bodies need not be materialized.
 fn schemas_in(file: &Utf8Path) -> Vec<(String, u32)> {
     let ext = file.extension().unwrap_or_default();
     if !matches!(ext, "toml" | "json" | "jsonl" | "yaml" | "yml" | "md") {
@@ -194,6 +195,7 @@ fn schemas_in(file: &Utf8Path) -> Vec<(String, u32)> {
     };
     let named = |s: &str| parse_schema(s).map(|(r, m)| (r.to_owned(), m));
     match ext {
+        "toml" if known_toml_header(&text) => vec![],
         "toml" => toml::from_str::<toml::Value>(&text)
             .ok()
             .and_then(|v| v.get("schema")?.as_str().and_then(named))
@@ -230,6 +232,36 @@ fn schemas_in(file: &Utf8Path) -> Vec<(String, u32)> {
                 .collect()
         }
     }
+}
+
+/// A complete first root assignment fixes TOML's schema: a later assignment
+/// to that key would make the document invalid, not replace it. Returning no
+/// finding for a known/irrelevant version is therefore the same for a valid
+/// or malformed body. Newer frozen versions still take the full parser below,
+/// preserving its handling of malformed documents. Tables, multiline strings
+/// and unusual headers also fall back; this is an optimization, not a grammar.
+fn known_toml_header(text: &str) -> bool {
+    let Some(line) = text
+        .lines()
+        .map(str::trim)
+        .find(|l| !l.is_empty() && !l.starts_with('#'))
+    else {
+        return false;
+    };
+    if line.len() > 1024 {
+        return false;
+    }
+    let Ok(table) = toml::from_str::<toml::Table>(line) else {
+        return false;
+    };
+    if table.len() != 1 {
+        return false;
+    }
+    let Some(schema) = table.get("schema").and_then(toml::Value::as_str) else {
+        return false;
+    };
+    !parse_schema(schema)
+        .is_some_and(|(record, major)| known_major(record).is_some_and(|known| major > known))
 }
 
 #[cfg(test)]
