@@ -1843,8 +1843,9 @@ fn decoded_verification(
         })
     };
     let decode = |text: &str| crate::verify::record::decode(text).map(|v| v.verification);
-    // A hosted run (`war host`) has no modification times to key on.
-    if fs::is_hosted() {
+    // Hosted inputs have no disk timestamps; a recording run must observe
+    // the actual source read even when a previous disk read warmed the cache.
+    if !fs::is_disk() {
         return Ok(decode(&read()?));
     }
     let stamp = std::fs::metadata(path)
@@ -1893,6 +1894,39 @@ mod tests {
             .join("../..")
             .canonicalize_utf8()
             .unwrap()
+    }
+
+    #[test]
+    fn performance_cache_preserves_recording_verification_reads() {
+        use std::{cell::RefCell, rc::Rc};
+        let (dir, _) = scratch_repo("verification-recording");
+        let file = dir.join("verification.toml");
+        let record = Verification {
+            obligation: "OBL-FIXTURE".into(),
+            verifier: openwarrant_core::verification::Verifier {
+                actor: "fixture-verifier".into(),
+                kind: openwarrant_core::verification::ActorKind::Agent,
+                model: None,
+                independence: Default::default(),
+            },
+            disposition: openwarrant_core::obligation::Disposition::NotEstablished,
+            evidence: "Synthetic source-recording fixture; no assurance claimed".into(),
+            performer: "fixture-performer".into(),
+        };
+        fs::write(&file, toml::to_string(&record).unwrap()).unwrap();
+        assert_eq!(decoded_verification(&file).unwrap().unwrap(), record);
+        let recorder = Rc::new(RefCell::new(crate::vfs::Recorder {
+            root: dir.clone(),
+            ..Default::default()
+        }));
+        crate::vfs::recording(Rc::clone(&recorder), || {
+            assert_eq!(decoded_verification(&file).unwrap().unwrap(), record);
+        });
+        assert!(
+            recorder.borrow().files.contains("verification.toml"),
+            "a warm parse must not omit the source from a recorded context"
+        );
+        fs::remove_dir_all(dir).unwrap();
     }
 
     /// t-280c: the parsed SAS revisions are shared within a process, but a

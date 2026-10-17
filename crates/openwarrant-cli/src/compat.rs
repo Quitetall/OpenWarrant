@@ -247,14 +247,19 @@ fn schemas_in(file: &Utf8Path) -> Vec<(String, u32)> {
 /// a superset of what [`schemas_in`]'s parse would find, from the bytes
 /// alone. Every `oh.war/<record>/v<major>` spelled out, or for a journal
 /// every `"v": <major>`, is read; an escape that could spell either without
-/// its plain bytes (`\u`, `\U`, `\/`) sends the file to the parse.
+/// its plain bytes (`\u`, `\U`, `\/`) sends the file to the parse. TOML
+/// also admits hex escapes and line-ending backslashes, which can split a
+/// family or major across physical lines.
 fn may_name_newer(text: &[u8], ext: &str) -> bool {
     fn skip_ws(b: &[u8]) -> &[u8] {
         &b[b.iter().take_while(|c| c.is_ascii_whitespace()).count()..]
     }
-    if memchr::memchr_iter(b'\\', text)
-        .any(|at| matches!(text.get(at + 1), Some(b'u' | b'U' | b'/')))
-    {
+    if memchr::memchr_iter(b'\\', text).any(|at| {
+        text.get(at + 1).is_some_and(|next| {
+            matches!(*next, b'u' | b'U' | b'/')
+                || (ext == "toml" && (*next == b'x' || next.is_ascii_whitespace()))
+        })
+    }) {
         return true;
     }
     let newer = |record: &[u8], major: &[u8]| {
@@ -304,6 +309,43 @@ fn may_name_newer(text: &[u8], ext: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn performance_cache_preserves_toml_schema_escapes() {
+        let dir = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-compat-escaped-schema-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        for (name, text) in [
+            (
+                "joined-family",
+                "schema = \"\"\"oh.war/verifi\\\ncation/v4\"\"\"\n",
+            ),
+            (
+                "joined-major",
+                "schema = \"\"\"oh.war/verification/\\\nv4\"\"\"\n",
+            ),
+            (
+                "spaced-crlf",
+                "schema = \"\"\"oh.war/verifi\\ \t\r\ncation/v4\"\"\"\n",
+            ),
+            ("hex-prefix", "schema = \"\\x6fh.war/verification/v4\"\n"),
+            ("hex-major", "schema = \"oh.war/verification/v\\x34\"\n"),
+        ] {
+            let parsed: toml::Value = toml::from_str(text).unwrap();
+            assert_eq!(parsed["schema"].as_str(), Some("oh.war/verification/v4"));
+            let file = dir.join(format!("{name}.toml"));
+            std::fs::write(&file, text).unwrap();
+            let found = schemas_in(&file);
+            assert!(
+                found
+                    .iter()
+                    .any(|(family, major)| family == "verification" && *major == 4),
+                "{name}: future schema was lost: {found:?}"
+            );
+        }
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 
     #[test]
     fn only_a_file_that_could_name_a_newer_major_is_parsed() {

@@ -458,12 +458,13 @@ pub fn load(warrant_dir: &Utf8Path) -> Result<Journal, RepoError> {
     // assessment, its frontier), and a journal's lines can carry large
     // payloads. A parse of an unchanged file is remembered for the life of
     // the process while its length and modification time stand. A hosted
-    // run (`war host`) has no modification times to key on; an error is
-    // never remembered.
+    // run (`war host`) has no modification times to key on. Recording also
+    // bypasses the cache so its source footprint remains complete. An error
+    // is never remembered.
     type Seen =
         std::collections::HashMap<camino::Utf8PathBuf, (u64, std::time::SystemTime, Journal)>;
     static CACHE: std::sync::OnceLock<std::sync::Mutex<Seen>> = std::sync::OnceLock::new();
-    let stamp = (!crate::vfs::is_hosted())
+    let stamp = crate::vfs::is_disk()
         .then(|| std::fs::metadata(&path).ok())
         .flatten()
         .and_then(|m| Some((m.len(), m.modified().ok()?)));
@@ -1270,6 +1271,36 @@ mod tests {
         let _ = std::fs::remove_dir_all(&root);
         std::fs::create_dir_all(&root).expect("scratch dir");
         (Scratch(root.clone()), root)
+    }
+
+    #[test]
+    fn performance_cache_preserves_recording_journal_reads() {
+        use std::{cell::RefCell, rc::Rc};
+        let (_guard, root) = scratch("recording-cache");
+        let entry = event(
+            "fixture",
+            DRAFT_CREATED,
+            "agent://fixture",
+            "2026-10-17T00:00:00Z",
+            "{}",
+        );
+        std::fs::write(
+            root.join(FILE),
+            format!("{}\n", serde_json::to_string(&entry).unwrap()),
+        )
+        .unwrap();
+        assert_eq!(load(&root).unwrap().events.len(), 1);
+        let recorder = Rc::new(RefCell::new(crate::vfs::Recorder {
+            root: root.clone(),
+            ..Default::default()
+        }));
+        crate::vfs::recording(Rc::clone(&recorder), || {
+            assert_eq!(load(&root).unwrap().events.len(), 1);
+        });
+        assert!(
+            recorder.borrow().files.contains(FILE),
+            "a warm journal must not omit its source from a recorded context"
+        );
     }
 
     fn v2(event_type: &str, actor: &str, payload: &str) -> JournalEvent {
