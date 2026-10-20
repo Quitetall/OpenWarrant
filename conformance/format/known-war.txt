@@ -4,5 +4,5 @@
 # A case leaves this list when war changes or when the specification is
 # amended and the case with it; never by editing an expected file to match war.
 
-# Draft 3, revision 1 (docs/format/FORMAT-1.0.md 1.0.0-draft.3): war implements draft 2.
+# Draft 3, revision 2 (docs/format/FORMAT-1.0.md 1.0.0-draft.3): war implements it; no case is listed.
 # Every kind of case (model, context, tracking, apply) has a war adapter in run.py.

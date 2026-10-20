@@ -1,0 +1,5 @@
+id = "212-target-unknown-without-warrants"
+kind = "accept"
+section = "3.6"
+bare = true
+says = """With no Warrant in the repository, its documents are still checked: a target that names no record is a warning (`format.target-unknown`), as in a program (018)."""
