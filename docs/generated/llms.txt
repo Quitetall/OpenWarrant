@@ -1548,6 +1548,10 @@
 > Observe declared Linux storage crash and refusal controls
 - t-3f3e9 · ticket · done · Observe declared Linux storage crash and refusal controls · docs/tickets/t-3f3e9/manifest.toml:1
 
+## docs/tickets/t-40a06/manifest.toml
+> Keep complete review records when model budget permits
+- t-40a06 · ticket · done · Keep complete review records when model budget permits · docs/tickets/t-40a06/manifest.toml:1
+
 ## docs/tickets/t-418bc/manifest.toml
 > Reconnect retained provider captures in source-detached runtime archive queries
 - t-418bc · ticket · done · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/manifest.toml:1
