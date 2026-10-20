@@ -6,58 +6,20 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
-### Changed
-
-- `war view prime` is a briefing however much a repository has written: a
-  description's first paragraph and a note are cut to one line of at most 280
-  characters, only each open ticket's latest note is shown (with how many came
-  before and `war view prime <ticket>` for them), and of the tickets done
-  before the recent window only the ten latest are named, then
-  `and N more: war view tickets --state done`. The JSON keeps every id. On
-  this repository: 34 KB to 12 KB.
-- AGENTS.md sends an agent to `war view prime` first and `war context <id>`
-  for a task's records; `docs/generated/CURRENT.md` (1.88 MB) stays the
-  whole-corpus reference to search, not the first read. OW-WAR-0113 AM-004
-  amends OBL-002 to say so (awaiting authorization); plant 69 holds the three
-  documents for people to CURRENT.md first and AGENTS.md to prime first.
-
-### Fixed
-
-- A repository with no Warrant (`war init` alone, as ordinary work keeps
-  one) is checked and compiled for what it does hold. `war check` reads its
-  Format 1.0 documents, records, declared documents and type index, where it
-  used to stop at `corpus.empty`: a misspelled frontmatter key checked clean.
-  `war admin compile` writes the agent index (`docs/generated/llms.txt`,
-  FORMAT-1.0 §10.2) and declared documents, and `war check --generated`
-  compares the index. Format corpus case 212 (`bare = true`, run where `war
-  init` alone ran) fails before this and passes after.
-
-## [1.0.0-alpha.4] — 2026-10-16
+## [1.0.0-alpha.5] — 2026-10-20
 
 ### Added
 
-- **OpenWarrant Format 1.0, draft 2** (`docs/format/FORMAT-1.0.md`, OW-ADR-0032
-  proposed): a single-file Warrant with an optional manifest, a model that
-  carries content and a `content_digest` over meaning (RFC 8785), dotted
-  extension names carried in `ext`, JSON schemas under `schemas/format/1.0/`,
-  and a conformance corpus with an independent Python reader
-  (`conformance/format/`). Spec text CC-BY-4.0; schemas and corpus Apache-2.0.
-- `war context <target>`: a deterministic, budgeted context packet for an
-  agent, and `docs/generated/llms.txt`, an index of every record with its
-  state that ticket commands keep current incrementally.
-- One-line installs: cargo-binstall metadata, a rendered Homebrew formula
-  attached to each release, and pinned GitHub Action references.
-- Native runtime receipts, verifier packets and acceptance schemas
-  (experimental, beside the unchanged v1 schemas).
-- `[independence] single_actor = true` (issue #132): a repository where one
-  person holds every role declares it once. It is the same as nine `false`
-  dimensions and claims nothing: `war check` replaces the per-run
-  `independence.insufficient` WARN with one NOT CHECKED note, `war status`
-  reports `independence: single actor (declared)` (`"independence"` under
-  `--json`), and the compliance score does not move. Beside a dimension set
-  `true` it is refused by name, `independence.single-actor-contradicted`,
-  and the WARN stays. No preset writes it.
-
+- **OpenWarrant Format 1.0, draft 3 (revision 2)** (`docs/format/FORMAT-1.0.md`):
+  checks and KPIs, tick levels, specifications, profile data and ASCII
+  headings. The conformance corpus has 206 cases; `war` and the independent
+  Python reader pass every one. OW-ADR-0032, Format 1.0 as the standard, is
+  accepted; the edition itself is not frozen.
+- Working-form Warrants appear in `war view overview`, the JSON snapshot, the
+  offline HTML and the local progress app, from the same corpus state as
+  `war next`. Tick evidence and milestone minima show beside completion, not
+  as it: a checked item whose proof is below a configured minimum stays
+  checked and the unmet minimum is shown.
 - Checks and triggers under Format 1.0 draft 3 (FORMAT-1.0 §12). A Format
   1.0 ticket's `check` and `kpi` records run through one runner: `war check
   run [<alias>|<alias>/<CHK-id>]` (the `manual` trigger), `war done` (the
@@ -120,6 +82,26 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Changed
 
+- `war view prime` is a briefing however much a repository has written: a
+  description's first paragraph and a note are cut to one line of at most 280
+  characters, only each open ticket's latest note is shown (with how many came
+  before and `war view prime <ticket>` for them), and of the tickets done
+  before the recent window only the ten latest are named, then
+  `and N more: war view tickets --state done`. The JSON keeps every id. On
+  this repository: 34 KB to 12 KB.
+- AGENTS.md sends an agent to `war view prime` first and `war context <id>`
+  for a task's records; `docs/generated/CURRENT.md` (1.88 MB) stays the
+  whole-corpus reference to search, not the first read. OW-WAR-0113 AM-004
+  amends OBL-002 to say so, authorized as revision 5; plant 69 holds the three
+  documents for people to CURRENT.md first and AGENTS.md to prime first.
+- `war status` and `war next` do about half the work (debug build, this
+  repository: `next` 6.1 to 3.6 CPU seconds, `status` 5.9 to 3.3). Schema
+  scans skip files that cannot name a newer major, and verification records
+  and journals are decoded once per process while the file is unchanged.
+  Hosted and recording runs still read their actual inputs.
+- The release bundle carries the full committed source as `sdk-source.tar.gz`
+  inside a `candidate-bundle/v2` capsule; the installer still reads v1 and
+  bounds the source before extracting it.
 - FORMAT-1.0 §11 as the conformance corpus reads it: a Format 1.0
   document's `war note` is one `work.note_added` event `{target, note}`
   and no longer edits the document (`war show` lists the journal's notes);
@@ -144,6 +126,7 @@ Notable changes to OpenWarrant. Format loosely follows
   longer leaves its item in the ready set: it is live, and `war claim
   --steal` still takes it. `oh.war/ticket-ready/v1` rows carry `due` and
   `remaining_secs`.
+
 - Rule ids renamed under `work.` (FORMAT-1.0 §13.2), each message naming
   the old id for one release (`(formerly ...)`): `work.stale-revision`
   (`warrant.stale-revision`), `work.claimed-by-other`
@@ -154,6 +137,48 @@ Notable changes to OpenWarrant. Format loosely follows
   `work.idempotency-conflict` (`journal.idempotency-conflict`). The same
   fact in a `v: 1` and a `v: 2` line is one fact: payloads are compared as
   RFC 8785 bytes.
+
+### Fixed
+
+- A repository with no Warrant (`war init` alone, as ordinary work keeps
+  one) is checked and compiled for what it does hold. `war check` reads its
+  Format 1.0 documents, records, declared documents and type index, where it
+  used to stop at `corpus.empty`: a misspelled frontmatter key checked clean.
+  `war admin compile` writes the agent index (`docs/generated/llms.txt`,
+  FORMAT-1.0 §10.2) and declared documents, and `war check --generated`
+  compares the index. Format corpus case 212 (`bare = true`, run where `war
+  init` alone ran) fails before this and passes after.
+- A replaced Warrant is no longer shown as current in corpus status or
+  offered again by `war next`. Default views leave retired records out;
+  `war view overview --all` keeps them, with their currency shown.
+
+## [1.0.0-alpha.4] — 2026-10-16
+
+### Added
+
+- **OpenWarrant Format 1.0, draft 2** (`docs/format/FORMAT-1.0.md`, OW-ADR-0032
+  proposed): a single-file Warrant with an optional manifest, a model that
+  carries content and a `content_digest` over meaning (RFC 8785), dotted
+  extension names carried in `ext`, JSON schemas under `schemas/format/1.0/`,
+  and a conformance corpus with an independent Python reader
+  (`conformance/format/`). Spec text CC-BY-4.0; schemas and corpus Apache-2.0.
+- `war context <target>`: a deterministic, budgeted context packet for an
+  agent, and `docs/generated/llms.txt`, an index of every record with its
+  state that ticket commands keep current incrementally.
+- One-line installs: cargo-binstall metadata, a rendered Homebrew formula
+  attached to each release, and pinned GitHub Action references.
+- Native runtime receipts, verifier packets and acceptance schemas
+  (experimental, beside the unchanged v1 schemas).
+- `[independence] single_actor = true` (issue #132): a repository where one
+  person holds every role declares it once. It is the same as nine `false`
+  dimensions and claims nothing: `war check` replaces the per-run
+  `independence.insufficient` WARN with one NOT CHECKED note, `war status`
+  reports `independence: single actor (declared)` (`"independence"` under
+  `--json`), and the compliance score does not move. Beside a dimension set
+  `true` it is refused by name, `independence.single-actor-contradicted`,
+  and the WARN stays. No preset writes it.
+
+### Changed
 
 - `war init` with no flags writes the `vibe` preset: no signatures, the PR
   gate reported but not required, and `war done` claims an unclaimed item
