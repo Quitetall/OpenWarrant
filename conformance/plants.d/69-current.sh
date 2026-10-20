@@ -262,8 +262,10 @@ else
     cu_fail "this corpus's CURRENT.md is fresh" "no generated.drift pass for CURRENT.md"
 fi
 
-# The four pointing documents name CURRENT.md as the first thing to read;
+# The three documents for people name CURRENT.md as the first thing to read;
 # CONTRIBUTING.md, which was not asked to, does not — the test can fail.
+# AGENTS.md sends an agent to `war view prime` first and does not name
+# CURRENT.md first (AM-004: 1.88 MB is no first read for an agent).
 points_first() { python3 - "$1" <<'PY'
 import sys
 lines = open(sys.argv[1]).read().splitlines()
@@ -275,13 +277,26 @@ sys.exit(1)
 PY
 }
 CU_MISSING=""
-for doc in README.md QUICKSTART.md AGENTS.md docs/TUI.md; do
+for doc in README.md QUICKSTART.md docs/TUI.md; do
     points_first "$doc" || CU_MISSING="$CU_MISSING $doc"
 done
 if [[ -z "$CU_MISSING" ]] && ! points_first CONTRIBUTING.md; then
-    cu_ok "four documents point at CURRENT.md" "README, QUICKSTART, AGENTS, TUI: read it first"
+    cu_ok "three documents point at CURRENT.md" "README, QUICKSTART, TUI: read it first"
 else
-    cu_fail "four documents point at CURRENT.md" "missing:$CU_MISSING"
+    cu_fail "three documents point at CURRENT.md" "missing:$CU_MISSING"
+fi
+# The agent's first step: `war view prime`, named first, and CURRENT.md not.
+agents_prime_first() { python3 - "$1" <<'PY'
+import sys
+lines = open(sys.argv[1]).read().splitlines()
+first = [i for i, l in enumerate(lines) if "first" in l.lower()]
+sys.exit(0 if first and "war view prime" in " ".join(lines[first[0]:first[0] + 2]) else 1)
+PY
+}
+if agents_prime_first AGENTS.md && ! points_first AGENTS.md && ! agents_prime_first README.md; then
+    cu_ok "AGENTS.md starts an agent at prime" "war view prime first; CURRENT.md not first"
+else
+    cu_fail "AGENTS.md starts an agent at prime" "AGENTS.md names something else first, or CURRENT.md first"
 fi
 TUI_SRC=crates/openwarrant-cli/src/tui/mod.rs
 if [[ $(grep -n 'current::CURRENT_PATH' "$TUI_SRC" | head -1 | cut -d: -f1) -lt $(grep -n 'for name in \["AGENTS.md"' "$TUI_SRC" | cut -d: -f1) ]]; then

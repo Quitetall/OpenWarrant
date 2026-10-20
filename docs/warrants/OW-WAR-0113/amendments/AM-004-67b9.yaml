@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-004-67b9"
+band: "manual_revision"
+reason: "OBL-002 requires AGENTS.md, with README.md, QUICKSTART.md and docs/TUI.md, to name docs/generated/CURRENT.md as the first thing to read. For a person that holds; for an agent it does not: CURRENT.md is now 1.88 MB, about 470k tokens, and the owner's direction (2026-10-11) is a standard whose documents agents read efficiently. The maturity audit of 2026-10-20, whose plan the owner approved, found this the first step of the agent path contradicting that direction, and the owner chose this amendment on 2026-10-20 over keeping it or a superseding ADR. AGENTS.md now sends an agent to `war view prime` first (bounded to a briefing in the same change) and `war context <id>` for a task's records, and keeps CURRENT.md as the whole-corpus reference to search, not to read first. The three documents for people are unchanged. OW-ADR-0022 names only README.md and QUICKSTART.md, so it is not contradicted. Wording drafted by the performer `claude`, for the owner's authorization."
+governing_adr_or_policy: "OW-ADR-0022"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. AGENTS.md (D-036) and conformance/plants.d/69-current.sh (D-038) change with this amendment; the plant now holds README.md, QUICKSTART.md and docs/TUI.md to CURRENT.md first and AGENTS.md to `war view prime` first, with CONTRIBUTING.md still the document that must not pass. The assurance atom's OBL-002 evidence says so, the contract digest moves, and the next revision is authorized against it."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-10-20"
+
+semantic_diff:
+  - element: "obligations"
+    before: "OBL-002: README.md, QUICKSTART.md, AGENTS.md and docs/TUI.md each name docs/generated/CURRENT.md as the first thing to read."
+    after: "OBL-002: README.md, QUICKSTART.md and docs/TUI.md each name docs/generated/CURRENT.md as the first thing to read; AGENTS.md names `war view prime` as the first thing an agent runs and does not name CURRENT.md first."
+
+affected_stages: []
+affected_milestones: []

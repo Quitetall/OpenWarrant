@@ -6,6 +6,32 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- `war view prime` is a briefing however much a repository has written: a
+  description's first paragraph and a note are cut to one line of at most 280
+  characters, only each open ticket's latest note is shown (with how many came
+  before and `war view prime <ticket>` for them), and of the tickets done
+  before the recent window only the ten latest are named, then
+  `and N more: war view tickets --state done`. The JSON keeps every id. On
+  this repository: 34 KB to 12 KB.
+- AGENTS.md sends an agent to `war view prime` first and `war context <id>`
+  for a task's records; `docs/generated/CURRENT.md` (1.88 MB) stays the
+  whole-corpus reference to search, not the first read. OW-WAR-0113 AM-004
+  amends OBL-002 to say so (awaiting authorization); plant 69 holds the three
+  documents for people to CURRENT.md first and AGENTS.md to prime first.
+
+### Fixed
+
+- A repository with no Warrant (`war init` alone, as ordinary work keeps
+  one) is checked and compiled for what it does hold. `war check` reads its
+  Format 1.0 documents, records, declared documents and type index, where it
+  used to stop at `corpus.empty`: a misspelled frontmatter key checked clean.
+  `war admin compile` writes the agent index (`docs/generated/llms.txt`,
+  FORMAT-1.0 §10.2) and declared documents, and `war check --generated`
+  compares the index. Format corpus case 212 (`bare = true`, run where `war
+  init` alone ran) fails before this and passes after.
+
 ## [1.0.0-alpha.4] — 2026-10-16
 
 ### Added

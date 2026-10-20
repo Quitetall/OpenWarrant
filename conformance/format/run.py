@@ -207,6 +207,16 @@ class War:
         # no case uses, and nothing it writes is compared (only the case's files are).
         self._run([self.war, "init", "--program", "Format corpus", "--namespace", "ZQ",
                    "--root", "."], self.template)
+        # A case marked `bare = true` runs where `war init` alone was run: no
+        # program and no Warrant, as ordinary work keeps documents.
+        self.bare = os.path.join(work, "bare")
+        os.makedirs(self.bare)
+        self._run(["git", "init", "-q", "."], self.bare)
+        self._run([self.war, "init", "--root", "."], self.bare)
+
+    def template_for(self, case):
+        with open(os.path.join(case, "case.toml"), "rb") as f:
+            return self.bare if tomllib.load(f).get("bare") else self.template
 
     @staticmethod
     def _run(argv, cwd):
@@ -365,9 +375,10 @@ class War:
                 raise RuntimeError(f"no war adapter for {kind} operation {op!r}")
             return handler(case, work)
         tree = os.path.join(work, "repo")
-        shutil.copytree(self.template, tree, symlinks=True)
+        template = self.template_for(case)
+        shutil.copytree(template, tree, symlinks=True)
         shutil.copytree(os.path.join(case, "input"), tree, dirs_exist_ok=True)
-        project_name_over_template(case, self.template, tree)
+        project_name_over_template(case, template, tree)
         files = input_files(case)
         argv_file = os.path.join(case, "args")
         if os.path.isfile(argv_file):
