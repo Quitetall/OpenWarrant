@@ -386,6 +386,104 @@ fn compile_writes_the_index_check_passes_it_and_refuses_a_hand_edit() {
     assert_eq!(rules(&check(&root)), ["error:context-index.drift"]);
 }
 
+/// `war view prime` is what an arriving agent reads first, so it stays a
+/// briefing however much a repository has written: a description and a note
+/// are cut to one line of at most 280 characters, only the latest note is
+/// shown (with how many came before and the command that shows them), and
+/// of the tickets done before the recent window only the ten latest are
+/// named. Nothing is lost: `war view prime <ticket>` and the JSON carry it.
+#[test]
+fn prime_stays_a_briefing_however_much_has_been_written() {
+    let root = tmp("prime");
+    git(&root, &["init", "-q", "."]);
+    ok(&war(&root, &["init"]));
+    let long = "word ".repeat(200);
+    let open = war(
+        &root,
+        &[
+            "--json",
+            "create",
+            "Open job",
+            "--summary",
+            "A job with a long history of notes.",
+            "--item",
+            "Do it",
+        ],
+    );
+    let id = serde_json::from_slice::<serde_json::Value>(&open.stdout).unwrap()["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    for n in 1..=3 {
+        ok(&war(&root, &["note", &id, &format!("note {n}: {long}")]));
+    }
+    let mut done = Vec::new();
+    for n in 0..12 {
+        let out = war(
+            &root,
+            &[
+                "--json",
+                "create",
+                &format!("Old job {n}"),
+                "--item",
+                "Old work",
+            ],
+        );
+        let t = serde_json::from_slice::<serde_json::Value>(&out.stdout).unwrap()["result"]["id"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        let list = root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"));
+        let text = std::fs::read_to_string(&list).unwrap();
+        let day = format!("2020-01-{:02}", n + 1);
+        let ticked = text
+            .lines()
+            .map(|l| match l.strip_prefix("- [ ] Old work ") {
+                Some(rest) => format!("- [x] Old work {rest} — done by alice, {day}"),
+                None => l.to_owned(),
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        std::fs::write(&list, ticked + "\n").unwrap();
+        done.push(t);
+    }
+    let md = ok(&war(&root, &["view", "prime"]));
+    assert!(!md.contains(&long.trim().to_owned()), "a long note is cut");
+    assert!(
+        md.contains("note 3: word word") && md.contains("word…"),
+        "{md}"
+    );
+    assert!(md.contains("note 3: word word"), "the latest note");
+    assert!(!md.contains("note 1:") && !md.contains("note 2:"), "{md}");
+    assert!(
+        md.contains(&format!("- (2 earlier: `war view prime {id}`)")),
+        "{md}"
+    );
+    assert!(
+        md.lines().all(|l| l.chars().count() <= 400),
+        "every line is bounded"
+    );
+    let earlier = md.split("## Done earlier").nth(1).unwrap();
+    assert_eq!(
+        earlier.lines().filter(|l| l.starts_with("- t-")).count(),
+        10
+    );
+    assert!(
+        earlier.contains("(done 2020-01-12, 1 item(s))"),
+        "latest first"
+    );
+    assert!(!earlier.contains("(done 2020-01-02,"), "{earlier}");
+    assert!(earlier.contains("- and 2 more: `war view tickets --state done`"));
+    // The refusal beside it: nothing is dropped from what a program reads.
+    let json: serde_json::Value =
+        serde_json::from_slice(&war(&root, &["--json", "view", "prime"]).stdout).unwrap();
+    let compacted = json["result"]["done_compacted"].as_array().unwrap();
+    assert_eq!(compacted.len(), 12);
+    let one = ok(&war(&root, &["view", "prime", &id]));
+    assert!(one.contains("note 1:") && one.contains("note 2:"), "{one}");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 /// t-ca38: each ticket act rewrites only its tickets' blocks of the index,
 /// and after every one the file is byte for byte what a full compile writes.
 /// The refusal beside it: an index that does not split into its blocks is
