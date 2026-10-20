@@ -826,7 +826,30 @@ pub fn run(
         if human {
             println!("no Warrants found in {}", repo.config.paths.warrants);
         }
-        let written = if only.is_none() { m17(repo, human)? } else { 0 };
+        let mut written = 0;
+        if only.is_none() {
+            // What is not a Warrant still compiles: declared documents, and
+            // the Format 1.0 index (section 10.2) a repository of tickets and
+            // documents alone is checked against.
+            // As below: the documents are written before the index is
+            // derived, from a corpus of its own that reads what they wrote.
+            let documents = crate::render_cmd::compiled(&crate::corpus::Corpus::new(repo))?
+                .into_iter()
+                .map(|(path, bytes)| bytes.map(|b| (path, b)))
+                .collect::<Result<Vec<_>, _>>()?;
+            for (path, contents) in documents {
+                written += usize::from(write_view(&path, &contents)?);
+                if human {
+                    println!("compiled {}", repo.relative(&path));
+                }
+            }
+            let (path, contents) = crate::context::index_file(&crate::corpus::Corpus::new(repo))?;
+            written += usize::from(write_view(&path, &contents)?);
+            if human {
+                println!("compiled {}", repo.relative(&path));
+            }
+            written += m17(repo, human)?;
+        }
         return Ok(CompileSummary {
             written,
             skipped: Vec::new(),
@@ -928,17 +951,7 @@ pub fn run(
             .map(|(path, bytes)| bytes.map(|b| (path, b)))
             .collect::<Result<Vec<_>, _>>()?;
         for (path, contents) in documents {
-            if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent).map_err(|source| RepoError::Io {
-                    context: format!("could not create {parent}"),
-                    source,
-                })?;
-            }
-            let before = atomic::prestate(&path)?;
-            if before != atomic::Prestate::of(contents.as_bytes()) {
-                atomic::write_if(&path, &contents, &before)?;
-                written += 1;
-            }
+            written += usize::from(write_view(&path, &contents)?);
             if human {
                 println!("compiled {}", repo.relative(&path));
             }
@@ -965,17 +978,7 @@ pub fn run(
         // queue it carries is judged by the dry run (OW-ADR-0022).
         projections.extend(master_documents_with(&shared)?);
         for (path, contents) in projections {
-            if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent).map_err(|source| RepoError::Io {
-                    context: format!("could not create {parent}"),
-                    source,
-                })?;
-            }
-            let before = atomic::prestate(&path)?;
-            if before != atomic::Prestate::of(contents.as_bytes()) {
-                atomic::write_if(&path, &contents, &before)?;
-                written += 1;
-            }
+            written += usize::from(write_view(&path, &contents)?);
             if human {
                 println!("compiled {}", path.file_name().unwrap_or("overview"));
             }
@@ -994,6 +997,26 @@ pub fn run(
         );
     }
     Ok(CompileSummary { written, skipped })
+}
+
+/// Write one corpus-wide view when its bytes change, creating its directory.
+/// Unchanged bytes are not rewritten, so recompiling a clean tree does not
+/// churn mtimes; the bytes read to decide that are the prestate the write
+/// checks, so a view changed meanwhile is refused rather than overwritten
+/// (§86). Whether it wrote.
+fn write_view(path: &camino::Utf8Path, contents: &str) -> Result<bool, RepoError> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|source| RepoError::Io {
+            context: format!("could not create {parent}"),
+            source,
+        })?;
+    }
+    let before = atomic::prestate(path)?;
+    if before == atomic::Prestate::of(contents.as_bytes()) {
+        return Ok(false);
+    }
+    atomic::write_if(path, contents, &before)?;
+    Ok(true)
 }
 
 /// OW-WAR-0148 M17: the gitignored outputs a full compile regenerates — the

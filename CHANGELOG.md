@@ -6,6 +6,17 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Fixed
+
+- A repository with no Warrant (`war init` alone, as ordinary work keeps
+  one) is checked and compiled for what it does hold. `war check` reads its
+  Format 1.0 documents, records, declared documents and type index, where it
+  used to stop at `corpus.empty`: a misspelled frontmatter key checked clean.
+  `war admin compile` writes the agent index (`docs/generated/llms.txt`,
+  FORMAT-1.0 §10.2) and declared documents, and `war check --generated`
+  compares the index. Format corpus case 212 (`bare = true`, run where `war
+  init` alone ran) fails before this and passes after.
+
 ## [1.0.0-alpha.4] — 2026-10-16
 
 ### Added
