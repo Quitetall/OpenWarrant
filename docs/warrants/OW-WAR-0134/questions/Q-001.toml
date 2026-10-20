@@ -1,0 +1,16 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization, and `answered_by` is an attribution, not a proof: a
+# signature binds an ACT, and an answer is not one. `war questions
+# --open` lists what awaits an answer. Regenerated when answered, so
+# a comment added below this header does not survive.
+
+schema = "oh.war/question/v1"
+id = "Q-001"
+warrant = "OW-WAR-0134"
+stage = "STAGE-002"
+asked_by = "agent://claude"
+asked_at = "2026-10-17T01:50:31Z"
+question = "Q-001 policy decision for candidate changes: may independent re-verification clear an ordinary in-scope change finding, while a changed pinned delivery requires its human-signed correction chain? This does not give the new result a Verified mark. The owner must record the choice and address the AM-003 timing requirement; an answer recorded now must not be described as preceding the existing authorization."
+blocking = true
+recommended = "Use the split: independent re-verification for ordinary in-scope changes; human-signed correction for changed pinned deliveries; fresh result assurance remains separate."

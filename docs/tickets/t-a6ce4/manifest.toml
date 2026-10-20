@@ -1,0 +1,20 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-a6ce4` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-a6ce4"
+uuid = "01a14723-5da1-73ac-87d7-324c355843bc"
+title = "Reduce compatibility schema scanning CPU without weakening version refusals"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-16T23:54:22Z"
+created_by = "agent://codex"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"

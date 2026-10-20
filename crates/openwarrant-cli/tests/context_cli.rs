@@ -386,6 +386,169 @@ fn compile_writes_the_index_check_passes_it_and_refuses_a_hand_edit() {
     assert_eq!(rules(&check(&root)), ["error:context-index.drift"]);
 }
 
+/// `war view prime` is what an arriving agent reads first, so it stays a
+/// briefing however much a repository has written: a description and a note
+/// are cut to one line of at most 280 characters, only the latest note is
+/// shown (with how many came before and the command that shows them), and
+/// of the tickets done before the recent window only the ten latest are
+/// named. Nothing is lost: `war view prime <ticket>` and the JSON carry it.
+#[test]
+fn prime_stays_a_briefing_however_much_has_been_written() {
+    let root = tmp("prime");
+    git(&root, &["init", "-q", "."]);
+    ok(&war(&root, &["init"]));
+    let long = "word ".repeat(200);
+    let open = war(
+        &root,
+        &[
+            "--json",
+            "create",
+            "Open job",
+            "--summary",
+            "A job with a long history of notes.",
+            "--item",
+            "Do it",
+        ],
+    );
+    let id = serde_json::from_slice::<serde_json::Value>(&open.stdout).unwrap()["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    for n in 1..=3 {
+        ok(&war(&root, &["note", &id, &format!("note {n}: {long}")]));
+    }
+    let mut done = Vec::new();
+    for n in 0..12 {
+        let out = war(
+            &root,
+            &[
+                "--json",
+                "create",
+                &format!("Old job {n}"),
+                "--item",
+                "Old work",
+            ],
+        );
+        let t = serde_json::from_slice::<serde_json::Value>(&out.stdout).unwrap()["result"]["id"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        let list = root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"));
+        let text = std::fs::read_to_string(&list).unwrap();
+        let day = format!("2020-01-{:02}", n + 1);
+        let ticked = text
+            .lines()
+            .map(|l| match l.strip_prefix("- [ ] Old work ") {
+                Some(rest) => format!("- [x] Old work {rest} — done by alice, {day}"),
+                None => l.to_owned(),
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        std::fs::write(&list, ticked + "\n").unwrap();
+        done.push(t);
+    }
+    let md = ok(&war(&root, &["view", "prime"]));
+    assert!(!md.contains(&long.trim().to_owned()), "a long note is cut");
+    assert!(
+        md.contains("note 3: word word") && md.contains("word…"),
+        "{md}"
+    );
+    assert!(md.contains("note 3: word word"), "the latest note");
+    assert!(!md.contains("note 1:") && !md.contains("note 2:"), "{md}");
+    assert!(
+        md.contains(&format!("- (2 earlier: `war view prime {id}`)")),
+        "{md}"
+    );
+    assert!(
+        md.lines().all(|l| l.chars().count() <= 400),
+        "every line is bounded"
+    );
+    let earlier = md.split("## Done earlier").nth(1).unwrap();
+    assert_eq!(
+        earlier.lines().filter(|l| l.starts_with("- t-")).count(),
+        10
+    );
+    assert!(
+        earlier.contains("(done 2020-01-12, 1 item(s))"),
+        "latest first"
+    );
+    assert!(!earlier.contains("(done 2020-01-02,"), "{earlier}");
+    assert!(earlier.contains("- and 2 more: `war view tickets --state done`"));
+    // The refusal beside it: nothing is dropped from what a program reads.
+    let json: serde_json::Value =
+        serde_json::from_slice(&war(&root, &["--json", "view", "prime"]).stdout).unwrap();
+    let compacted = json["result"]["done_compacted"].as_array().unwrap();
+    assert_eq!(compacted.len(), 12);
+    let one = ok(&war(&root, &["view", "prime", &id]));
+    assert!(one.contains("note 1:") && one.contains("note 2:"), "{one}");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// A repository with no Warrant, as ordinary work keeps one (`war init`
+/// alone): `war admin compile` still writes the index, `war check
+/// --generated` passes it and refuses a hand-edit, and `war check` reads its
+/// Format 1.0 documents. Before this, both stopped at "no Warrants found":
+/// no index was written, and a document with a misspelled key checked clean.
+#[test]
+fn without_a_warrant_the_index_is_compiled_and_documents_are_checked() {
+    let root = tmp("bare");
+    git(&root, &["init", "-q", "."]);
+    ok(&war(&root, &["init"]));
+    let ticket = root.join("docs/tickets/t-0e2e1.md");
+    std::fs::create_dir_all(ticket.parent().unwrap()).unwrap();
+    let body = "---\nformat: openwarrant/1.0\nprofile: ticket\nalias: t-0e2e1\n\
+                uuid: 01a0e1c2-0b7d-7c11-8f2e-5d6c7b8a9e11\n\
+                summary: Write the quarterly report.\n---\n\
+                # Write the quarterly report\n\n## Checklist\n- [ ] Report written (i-0a01)\n";
+    std::fs::write(&ticket, body).unwrap();
+    ok(&war(&root, &["compile"]));
+    let idx = root.join("docs/generated/llms.txt");
+    let text = std::fs::read_to_string(&idx).unwrap();
+    assert!(text.contains("\n> Write the quarterly report.\n"), "{text}");
+    let rules = |args: &[&str]| -> (Option<i32>, Vec<String>) {
+        let out = war(&root, args);
+        let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+        let rules = v["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|d| d["severity"] != "pass" || d["rule"] == "context-index.drift")
+            .map(|d| {
+                format!(
+                    "{}:{}",
+                    d["severity"].as_str().unwrap(),
+                    d["rule"].as_str().unwrap()
+                )
+            })
+            .collect();
+        (out.status.code(), rules)
+    };
+    assert_eq!(
+        rules(&["--json", "check", "--generated"]),
+        (
+            Some(0),
+            vec![
+                "warn:corpus.empty".to_owned(),
+                "pass:context-index.drift".to_owned()
+            ]
+        )
+    );
+    std::fs::write(&idx, format!("{text}- HAND-1 · edited\n")).unwrap();
+    assert!(
+        rules(&["--json", "check", "--generated"])
+            .1
+            .contains(&"error:context-index.drift".to_owned())
+    );
+    std::fs::write(&ticket, body.replace("summary:", "summmary:")).unwrap();
+    let (code, found) = rules(&["--json", "check"]);
+    assert_eq!(code, Some(2), "{found:?}");
+    assert!(
+        found.contains(&"error:format.key-unknown".to_owned()),
+        "{found:?}"
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 /// t-ca38: each ticket act rewrites only its tickets' blocks of the index,
 /// and after every one the file is byte for byte what a full compile writes.
 /// The refusal beside it: an index that does not split into its blocks is

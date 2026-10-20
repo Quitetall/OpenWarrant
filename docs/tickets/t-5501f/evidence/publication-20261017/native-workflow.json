@@ -1,0 +1,499 @@
+{
+  "conclusion": "success",
+  "headSha": "6d5d2935ef1ed1c91af296770f4e0e4be6e6f332",
+  "jobs": [
+    {
+      "completedAt": "2026-10-16T20:26:27Z",
+      "conclusion": "success",
+      "databaseId": 117162162475,
+      "name": "gate",
+      "startedAt": "2026-10-16T19:43:09Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-16T19:43:12Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-16T19:43:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T19:43:22Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-16T19:43:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T19:43:41Z",
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 3,
+          "startedAt": "2026-10-16T19:43:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T19:43:42Z",
+          "conclusion": "success",
+          "name": "Install cargo-deny",
+          "number": 4,
+          "startedAt": "2026-10-16T19:43:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T19:43:45Z",
+          "conclusion": "success",
+          "name": "Install schema-validation dependency",
+          "number": 5,
+          "startedAt": "2026-10-16T19:43:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T19:43:45Z",
+          "conclusion": "success",
+          "name": "Run python3 conformance/release/test_preview.py",
+          "number": 6,
+          "startedAt": "2026-10-16T19:43:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:26:16Z",
+          "conclusion": "success",
+          "name": "Run cargo xtask gate",
+          "number": 7,
+          "startedAt": "2026-10-16T19:43:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:26:24Z",
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 13,
+          "startedAt": "2026-10-16T20:26:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:26:25Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-16T20:26:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:26:25Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-16T20:26:25Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38956967591/job/117162162475"
+    },
+    {
+      "completedAt": "2026-10-16T20:35:31Z",
+      "conclusion": "success",
+      "databaseId": 117179945083,
+      "name": "build aarch64-apple-darwin",
+      "startedAt": "2026-10-16T20:26:37Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-16T20:26:39Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-16T20:26:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:26:54Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-16T20:26:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:27:08Z",
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 3,
+          "startedAt": "2026-10-16T20:26:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:34:34Z",
+          "conclusion": "success",
+          "name": "Build",
+          "number": 4,
+          "startedAt": "2026-10-16T20:27:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:34:46Z",
+          "conclusion": "success",
+          "name": "IR parity list",
+          "number": 5,
+          "startedAt": "2026-10-16T20:34:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:34:48Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 6,
+          "startedAt": "2026-10-16T20:34:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:02Z",
+          "conclusion": "success",
+          "name": "Package",
+          "number": 7,
+          "startedAt": "2026-10-16T20:34:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:06Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 8,
+          "startedAt": "2026-10-16T20:35:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:22Z",
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 15,
+          "startedAt": "2026-10-16T20:35:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:24Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 16,
+          "startedAt": "2026-10-16T20:35:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:28Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-10-16T20:35:24Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38956967591/job/117179945083"
+    },
+    {
+      "completedAt": "2026-10-16T20:31:06Z",
+      "conclusion": "success",
+      "databaseId": 117179945087,
+      "name": "build x86_64-unknown-linux-gnu",
+      "startedAt": "2026-10-16T20:26:29Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-16T20:26:31Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-16T20:26:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:26:42Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-16T20:26:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:26:56Z",
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 3,
+          "startedAt": "2026-10-16T20:26:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:30:38Z",
+          "conclusion": "success",
+          "name": "Build",
+          "number": 4,
+          "startedAt": "2026-10-16T20:26:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:30:41Z",
+          "conclusion": "success",
+          "name": "IR parity list",
+          "number": 5,
+          "startedAt": "2026-10-16T20:30:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:30:43Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 6,
+          "startedAt": "2026-10-16T20:30:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:30:54Z",
+          "conclusion": "success",
+          "name": "Package",
+          "number": 7,
+          "startedAt": "2026-10-16T20:30:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:30:57Z",
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 8,
+          "startedAt": "2026-10-16T20:30:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:31:04Z",
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 15,
+          "startedAt": "2026-10-16T20:30:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:31:04Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 16,
+          "startedAt": "2026-10-16T20:31:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:31:04Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 17,
+          "startedAt": "2026-10-16T20:31:04Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38956967591/job/117179945087"
+    },
+    {
+      "completedAt": "2026-10-16T20:35:44Z",
+      "conclusion": "success",
+      "databaseId": 117183629627,
+      "name": "publish",
+      "startedAt": "2026-10-16T20:35:33Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-16T20:35:34Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-16T20:35:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:40Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-16T20:35:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:41Z",
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+          "number": 3,
+          "startedAt": "2026-10-16T20:35:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:41Z",
+          "conclusion": "success",
+          "name": "IR parity across hosts",
+          "number": 4,
+          "startedAt": "2026-10-16T20:35:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:43Z",
+          "conclusion": "success",
+          "name": "Verify the artifact round trip",
+          "number": 5,
+          "startedAt": "2026-10-16T20:35:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:43Z",
+          "conclusion": "skipped",
+          "name": "Refuse publication until release qualification exists",
+          "number": 6,
+          "startedAt": "2026-10-16T20:35:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:43Z",
+          "conclusion": "skipped",
+          "name": "Create release",
+          "number": 7,
+          "startedAt": "2026-10-16T20:35:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:43Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "startedAt": "2026-10-16T20:35:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:43Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 15,
+          "startedAt": "2026-10-16T20:35:43Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38956967591/job/117183629627"
+    },
+    {
+      "completedAt": "2026-10-16T20:36:02Z",
+      "conclusion": "success",
+      "databaseId": 117183718536,
+      "name": "publish alpha preview",
+      "startedAt": "2026-10-16T20:35:46Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-16T20:35:48Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-16T20:35:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:53Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-16T20:35:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:35:55Z",
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+          "number": 3,
+          "startedAt": "2026-10-16T20:35:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:36:01Z",
+          "conclusion": "success",
+          "name": "Publish only the checked alpha preview",
+          "number": 4,
+          "startedAt": "2026-10-16T20:35:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:36:01Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 8,
+          "startedAt": "2026-10-16T20:36:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:36:01Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 9,
+          "startedAt": "2026-10-16T20:36:01Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38956967591/job/117183718536"
+    },
+    {
+      "completedAt": "2026-10-16T20:35:44Z",
+      "conclusion": "skipped",
+      "databaseId": 117183720863,
+      "name": "publish crates",
+      "startedAt": "2026-10-16T20:35:45Z",
+      "status": "completed",
+      "steps": [],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38956967591/job/117183720863"
+    },
+    {
+      "completedAt": "2026-10-16T20:36:20Z",
+      "conclusion": "success",
+      "databaseId": 117183838976,
+      "name": "render Homebrew formula",
+      "startedAt": "2026-10-16T20:36:05Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-16T20:36:06Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-16T20:36:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:36:13Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-10-16T20:36:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:36:18Z",
+          "conclusion": "success",
+          "name": "Render and attach openwarrant.rb",
+          "number": 3,
+          "startedAt": "2026-10-16T20:36:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:36:18Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 6,
+          "startedAt": "2026-10-16T20:36:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-16T20:36:18Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 7,
+          "startedAt": "2026-10-16T20:36:18Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/38956967591/job/117183838976"
+    }
+  ],
+  "status": "completed"
+}

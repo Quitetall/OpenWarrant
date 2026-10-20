@@ -26,18 +26,24 @@ signature a step of the ticket loop.
 
 ## Read the context needed for this task
 
-- **First, always:** read [`docs/generated/CURRENT.md`](docs/generated/CURRENT.md),
-  the master document `war admin compile` writes (OW-ADR-0022): every current Warrant
-  expanded, the SAS in force, accepted decisions, who governs each path, who may
-  sign and the queue already judged by the dry run. A replaced Warrant is one
-  line of lineage there; its text is in `docs/generated/HISTORY.md`.
+- **First, always:** run `war view prime`: open work, who holds what, the
+  latest note on each, and the commands that load the rest (a few thousand
+  tokens). Then load only what the task needs, below.
 - **One task's records:** `war context <alias|item|record id|path>` prints them
   whole, inside a byte budget, in a fixed order; records that do not fit are
   listed by summary (`[S]`) to load the same way. Prefer it to reading atoms by
   hand. [`docs/generated/llms.txt`](docs/generated/llms.txt) lists every id it takes.
-- **The document standard:** [Format 1.0](docs/format/FORMAT-1.0.md) (proposed,
-  OW-ADR-0032): one-file Warrants, records, extension keys and what a reader
-  refuses. Where it and the RC.3 draft differ on format, it is the proposal.
+- **The whole corpus, when a task truly spans it:**
+  [`docs/generated/CURRENT.md`](docs/generated/CURRENT.md), the master document
+  `war admin compile` writes (OW-ADR-0022): every current Warrant expanded, the
+  SAS in force, accepted decisions, who governs each path, who may sign and the
+  queue already judged by the dry run. It is large (megabytes); search it rather
+  than read it whole. A replaced Warrant is one line of lineage there; its text
+  is in `docs/generated/HISTORY.md`.
+- **The document standard:** read [Format 1.0](docs/format/FORMAT-1.0.md) for
+  document rules and [format status](docs/format/README.md#status) for the
+  edition and adoption record. An accepted direction and an accepted edition
+  are separate; retain the recorded status of each.
 - **Product or SDK design:** read the [current SAS draft](docs/sas/drafts/1.0.0-rc.3/README.md),
   then the linked companion for the feature. RC.3 is an unaccepted candidate;
   the draft does not establish implemented behavior or rewrite signed history.

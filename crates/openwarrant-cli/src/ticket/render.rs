@@ -1123,6 +1123,25 @@ fn sorted_refs<'a>(mut tickets: Vec<&'a Ticket>, claims: &Claims) -> Vec<&'a Tic
     tickets
 }
 
+/// A prime line's longest text, in characters: a description's first
+/// paragraph, a note. What is cut is one `war view prime <ticket>` away.
+const PRIME_TEXT: usize = 280;
+
+/// How many tickets done before the recent window `prime` names one by one.
+const PRIME_DONE_EARLIER: usize = 10;
+
+/// `text` on one line, cut at a word to at most `max` characters with an
+/// ellipsis when anything was cut.
+fn clip(text: &str, max: usize) -> String {
+    let one: String = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    if one.chars().count() <= max {
+        return one;
+    }
+    let cut: String = one.chars().take(max).collect();
+    let at = cut.rfind(' ').filter(|&i| i > max / 2).unwrap_or(cut.len());
+    format!("{}…", cut[..at].trim_end())
+}
+
 /// `war view prime [<ticket>]`: what an arriving agent (or person) reads first.
 /// Open tickets with only their remaining items, who holds which claim, recent
 /// notes, and done tickets compacted: a done ticket older than
@@ -1234,7 +1253,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
         let body = description(&t.intent);
         if let Some(first) = body.split("\n\n").next().filter(|p| !p.trim().is_empty()) {
             md.push('\n');
-            md.push_str(first.trim());
+            md.push_str(&clip(first.trim(), PRIME_TEXT));
             md.push('\n');
         }
         let checks = super::ladder::checks_of(t);
@@ -1252,10 +1271,15 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
             md.push_str(&remaining.concat());
         }
         let ns = notes(&t.intent);
-        if !ns.is_empty() {
+        if let Some(last) = ns.last() {
             md.push_str("\nRecent notes:\n\n");
-            for n in ns.iter().rev().take(3).rev() {
-                md.push_str(&format!("- {n}\n"));
+            md.push_str(&format!("- {}\n", clip(last, PRIME_TEXT)));
+            if ns.len() > 1 {
+                md.push_str(&format!(
+                    "- ({} earlier: `war view prime {}`)\n",
+                    ns.len() - 1,
+                    t.id()
+                ));
             }
         }
     }
@@ -1274,20 +1298,31 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
                 done_on(t).map(|d| d.to_string()).unwrap_or_default()
             ));
             if let Some(last) = notes(&t.intent).last() {
-                md.push_str(&format!("\n  last note: {}", last.replace('\n', " ")));
+                md.push_str(&format!("\n  last note: {}", clip(last, PRIME_TEXT)));
             }
             md.push('\n');
         }
     }
     if !old.is_empty() {
         md.push_str("\n## Done earlier\n\n");
-        for t in &old {
+        // The most recently done first, then only how many more: the whole
+        // list is `war view tickets --state done`.
+        let mut shown = old.clone();
+        shown.sort_by_key(|t| std::cmp::Reverse(done_on(t)));
+        let more = shown.len().saturating_sub(PRIME_DONE_EARLIER);
+        shown.truncate(PRIME_DONE_EARLIER);
+        for t in &shown {
             let (_, n) = t.checklist.progress();
             md.push_str(&format!(
                 "- {} — {} ({}, {n} item(s))\n",
                 t.id(),
                 t.manifest.title,
                 done_on(t).map_or_else(|| "done".to_owned(), |d| format!("done {d}"))
+            ));
+        }
+        if more > 0 {
+            md.push_str(&format!(
+                "- and {more} more: `war view tickets --state done`\n"
             ));
         }
     }

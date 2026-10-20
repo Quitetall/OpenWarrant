@@ -145,8 +145,23 @@ pub fn run_with(
         report.push(Diagnostic::warn(
             "corpus.empty",
             repo.config.paths.warrants.clone(),
-            "no Warrants found; nothing to check (ordinary work needs none)",
+            "no Warrants found; the Warrant checks have nothing to check (ordinary work needs none)",
         ));
+        // Tickets, records, Format 1.0 documents and declared documents are
+        // not Warrants: a repository that holds only those is checked for
+        // them all the same, and its agent index for drift.
+        if only.is_none() {
+            document_checks(shared_corpus, &mut report);
+            if check_generated && repo.config.generated.verify_drift {
+                drift_check(
+                    repo,
+                    crate::context::index_file(shared_corpus),
+                    "context-index",
+                    &mut report,
+                );
+                crate::render_cmd::check_generated(shared_corpus, &mut report);
+            }
+        }
         return Ok(report);
     }
 
@@ -417,15 +432,7 @@ pub fn run_with(
     // OW-WAR-0148 M3: record atoms and the relations documents author.
     // Silent where there are none, so such a program checks as it did.
     if only.is_none() {
-        crate::records::check(shared_corpus, &mut report);
-        // FORMAT-1.0 (OW-ADR-0032): Format 1.0 documents. Silent where
-        // there are none.
-        crate::format_doc::check(shared_corpus, &mut report);
-        // OW-WAR-0148 M6: declared documents. Silent where there are none.
-        crate::render_cmd::check(shared_corpus, &mut report);
-        // OW-WAR-0148 M18: docs/types.toml and the document index. Silent
-        // for a program with neither a types file nor a bad [documents].
-        crate::types::check(shared_corpus, &mut report);
+        document_checks(shared_corpus, &mut report);
     }
 
     // Accepting a SAS revision is the act that makes a specification normative
@@ -624,6 +631,17 @@ pub fn run_with(
     }
 
     Ok(report)
+}
+
+/// The checks of what is not a Warrant: record atoms and the relations
+/// documents author (OW-WAR-0148 M3), Format 1.0 documents (FORMAT-1.0,
+/// OW-ADR-0032), declared documents (M6), and `docs/types.toml` with the
+/// document index (M18). Each is silent where there is nothing of its kind.
+fn document_checks(shared_corpus: &crate::corpus::Corpus, report: &mut Report) {
+    crate::records::check(shared_corpus, report);
+    crate::format_doc::check(shared_corpus, report);
+    crate::render_cmd::check(shared_corpus, report);
+    crate::types::check(shared_corpus, report);
 }
 
 /// `storage.stray-temp` (warning) for each file `atomic::stray` finds under

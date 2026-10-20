@@ -1,0 +1,7 @@
+
+running 1 test
+test runtime_capture::actual_blut_cpu_receipt_roundtrips_through_capture_and_current_resolution ... PASS actual CPU/native seal/capture/current resolution; tampered signature/output and wrong catalog refused; missing job UNKNOWN; no assurance
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 357 filtered out; finished in 0.65s
+

@@ -6,10 +6,10 @@
 > -
 - md:AGENTS.md#tickets-the-default-work-loop · instruction · - · Tickets: the default work loop · AGENTS.md:11
 - md:AGENTS.md#read-the-context-needed-for-this-task · instruction · - · Read the context needed for this task · AGENTS.md:27
-- md:AGENTS.md#fit-the-hosts-context-documents · instruction · - · Fit the host's context documents · AGENTS.md:63
-- md:AGENTS.md#apply-the-right-work-and-assurance-model · instruction · - · Apply the right work and assurance model · AGENTS.md:84
-- md:AGENTS.md#preserve-truthful-records · instruction · - · Preserve truthful records · AGENTS.md:97
-- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:109
+- md:AGENTS.md#fit-the-hosts-context-documents · instruction · - · Fit the host's context documents · AGENTS.md:69
+- md:AGENTS.md#apply-the-right-work-and-assurance-model · instruction · - · Apply the right work and assurance model · AGENTS.md:90
+- md:AGENTS.md#preserve-truthful-records · instruction · - · Preserve truthful records · AGENTS.md:103
+- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:115
 
 ## CHANGELOG.md
 > -
@@ -1550,7 +1550,7 @@
 
 ## docs/tickets/t-45f8c/manifest.toml
 > Publish preview bootstrap installer and checksum automatically
-- t-45f8c · ticket · in_progress · Publish preview bootstrap installer and checksum automatically · docs/tickets/t-45f8c/manifest.toml:1
+- t-45f8c · ticket · done · Publish preview bootstrap installer and checksum automatically · docs/tickets/t-45f8c/manifest.toml:1
 
 ## docs/tickets/t-460f5/manifest.toml
 > Restore exact upstream notice provenance for rmcp 3.5.1 release packages
@@ -1606,7 +1606,7 @@
 
 ## docs/tickets/t-5501f/manifest.toml
 > Prepare alpha.4 preview with current integration fixes
-- t-5501f · ticket · in_progress · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
+- t-5501f · ticket · done · Prepare alpha.4 preview with current integration fixes · docs/tickets/t-5501f/manifest.toml:1
 
 ## docs/tickets/t-5504f/manifest.toml
 > Retain current phase evidence and audit remaining Warrant completion scope
@@ -1642,7 +1642,7 @@
 
 ## docs/tickets/t-5ff5c/manifest.toml
 > Expose tick proof and unmet milestone minima in progress views
-- t-5ff5c · ticket · in_progress · Expose tick proof and unmet milestone minima in progress views · docs/tickets/t-5ff5c/manifest.toml:1
+- t-5ff5c · ticket · done · Expose tick proof and unmet milestone minima in progress views · docs/tickets/t-5ff5c/manifest.toml:1
 
 ## docs/tickets/t-62891/manifest.toml
 > Capture original Git inventory refusal; unchanged replay passes do not establish repair
@@ -1762,7 +1762,7 @@
 
 ## docs/tickets/t-95aa5/manifest.toml
 > Show working-form Warrants in overview and offline/live progress viewer
-- t-95aa5 · ticket · in_progress · Show working-form Warrants in overview and offline/live progress viewer · docs/tickets/t-95aa5/manifest.toml:1
+- t-95aa5 · ticket · done · Show working-form Warrants in overview and offline/live progress viewer · docs/tickets/t-95aa5/manifest.toml:1
 
 ## docs/tickets/t-9a4a9/manifest.toml
 > OW-WAR-0127: build D-001 (OW-ADR-0026) and D-009 (61-native-authority.sh)
@@ -1787,6 +1787,10 @@
 ## docs/tickets/t-a5c53/manifest.toml
 > Preserve source classification in legacy Dispatch selection and portable disclosure checks
 - t-a5c53 · ticket · done · Preserve source classification in legacy Dispatch selection and portable disclosure checks · docs/tickets/t-a5c53/manifest.toml:1
+
+## docs/tickets/t-a6ce4/manifest.toml
+> Reduce compatibility schema scanning CPU without weakening version refusals
+- t-a6ce4 · ticket · done · Reduce compatibility schema scanning CPU without weakening version refusals · docs/tickets/t-a6ce4/manifest.toml:1
 
 ## docs/tickets/t-a92bb/manifest.toml
 > M12: a small surface

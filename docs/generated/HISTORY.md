@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-16.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-20.
 
 ## Lineage
 
@@ -40,7 +40,9 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-03 | 3 | attestation.recorded 1, authorization.recorded 1, question.answered 1 |
 | 2026-10-14 | 365 | sync.receipt_attached 365 |
 | 2026-10-15 | 1 | sync.receipt_attached 1 |
-| 2026-10-16 | 42 | authorization.recorded 21, question.answered 9, sync.receipt_attached 6, verification.recorded 6 |
+| 2026-10-16 | 49 | authorization.recorded 21, question.answered 9, sync.receipt_attached 7, verification.recorded 12 |
+| 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
+| 2026-10-20 | 2 | attestation.recorded 1, authorization.recorded 1 |
 
 ## Roadmap revisions
 
@@ -17922,7 +17924,7 @@ no-op.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | traceability.unknown-requirement — implements refs held to §106 | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-001 | traceability.unknown-requirement — implements refs held to §106 | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-002 | ADR supersession relations read in both directions | `crates/openwarrant-core/src/adr.rs` | verified |
 | D-003 | The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift | `conformance/plants.d/00-corpus.sh` | drift |
 | D-004 | Tests: banner before title, no division, every WAR.json carries the SAS pin | `crates/openwarrant-compiler/src/corpus_status.rs` | verified |
@@ -20436,6 +20438,44 @@ requires its own observed refusal and exact evidence.
 The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0075/atoms/60-assurance.md ends -->
+
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | conformance/sdk/document/README.md | `conformance/sdk/document/README.md` | verified |
+| D-002 | conformance/sdk/document/adr.md | `conformance/sdk/document/adr.md` | verified |
+| D-003 | conformance/sdk/document/cases.json | `conformance/sdk/document/cases.json` | verified |
+| D-004 | conformance/sdk/document/combined-depth.md | `conformance/sdk/document/combined-depth.md` | verified |
+| D-005 | conformance/sdk/document/compact-deps.md | `conformance/sdk/document/compact-deps.md` | verified |
+| D-006 | conformance/sdk/document/context-background.md | `conformance/sdk/document/context-background.md` | verified |
+| D-007 | conformance/sdk/document/context-binding.md | `conformance/sdk/document/context-binding.md` | verified |
+| D-008 | conformance/sdk/document/crlf-unicode.md | `conformance/sdk/document/crlf-unicode.md` | verified |
+| D-009 | conformance/sdk/document/duplicate-key.md | `conformance/sdk/document/duplicate-key.md` | verified |
+| D-010 | conformance/sdk/document/duplicate-unit.md | `conformance/sdk/document/duplicate-unit.md` | verified |
+| D-011 | conformance/sdk/document/fenced-markers.md | `conformance/sdk/document/fenced-markers.md` | verified |
+| D-012 | conformance/sdk/document/invalid-utf8.bin | `conformance/sdk/document/invalid-utf8.bin` | verified |
+| D-013 | conformance/sdk/document/malformed-footer.md | `conformance/sdk/document/malformed-footer.md` | verified |
+| D-014 | conformance/sdk/document/minimal-rc2.md | `conformance/sdk/document/minimal-rc2.md` | verified |
+| D-015 | conformance/sdk/document/minimal-rc3.md | `conformance/sdk/document/minimal-rc3.md` | verified |
+| D-016 | conformance/sdk/document/missing-outcome.md | `conformance/sdk/document/missing-outcome.md` | verified |
+| D-017 | conformance/sdk/document/sas.md | `conformance/sdk/document/sas.md` | verified |
+| D-018 | conformance/sdk/document/trailing.md | `conformance/sdk/document/trailing.md` | verified |
+| D-019 | conformance/sdk/document/unknown-optional.md | `conformance/sdk/document/unknown-optional.md` | verified |
+| D-020 | conformance/sdk/document/unknown-required.md | `conformance/sdk/document/unknown-required.md` | verified |
+| D-021 | conformance/sdk/document/unresolved-required.md | `conformance/sdk/document/unresolved-required.md` | verified |
+| D-022 | conformance/sdk/document/wrapped.md | `conformance/sdk/document/wrapped.md` | verified |
+| D-023 | conformance/sdk/document/wrong-schema.md | `conformance/sdk/document/wrong-schema.md` | verified |
+| D-024 | conformance/sdk/document/wrong-title.md | `conformance/sdk/document/wrong-title.md` | verified |
+| D-025 | crates/openwarrant-core/examples/sdk_probe.rs | `crates/openwarrant-core/examples/sdk_probe.rs` | verified |
+| D-026 | crates/openwarrant-core/src/document/metadata.rs | `crates/openwarrant-core/src/document/metadata.rs` | verified |
+| D-027 | crates/openwarrant-core/src/document/mod.rs | `crates/openwarrant-core/src/document/mod.rs` | verified |
+| D-028 | crates/openwarrant-core/src/document/references.rs | `crates/openwarrant-core/src/document/references.rs` | verified |
+| D-029 | crates/openwarrant-core/src/document/scan.rs | `crates/openwarrant-core/src/document/scan.rs` | verified |
+| D-030 | crates/openwarrant-core/src/document/validate.rs | `crates/openwarrant-core/src/document/validate.rs` | verified |
+| D-031 | docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md | `docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md` | verified |
+| D-032 | Current delivery reconciliation report | `docs/warrants/OW-WAR-0075/implementation/delivery-reconciliation-20261017/README.md` | verified |
+| D-033 | Actual public probe, dynamic refusal and reuse observations | `docs/warrants/OW-WAR-0075/implementation/delivery-reconciliation-20261017/observations.json` | verified |
 
 ### OW-WAR-0076 — Author and edit human-first OpenWarrant documents
 
@@ -24809,6 +24849,21 @@ stages:
 No independent dispositions are asserted. This is implementation evidence only.
 <!-- atom docs/warrants/OW-WAR-0100/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | Reused telemetry repair implementation | `crates/openwarrant-cli/src/telemetry.rs` | not_content_addressed |
+| D-002 | Public telemetry integrity regressions | `crates/openwarrant-cli/tests/telemetry_integrity_cli.rs` | verified |
+| D-003 | Existing OW39 provenance retaining the prior digest | `docs/warrants/OW-WAR-0039/deliverables.toml` | verified |
+| D-004 | Existing OW41 provenance and original baseline identity | `docs/warrants/OW-WAR-0041/deliverables.toml` | verified |
+| D-005 | Retained observation trail with this follow-up link | `docs/warrants/OW-WAR-0041/implementation/notes.md` | verified |
+| D-006 | Original diagnostic invocation and output identities | `docs/warrants/OW-WAR-0041/implementation/observation.json` | verified |
+| D-007 | Original diagnostic output, not a current accepted baseline | `docs/warrants/OW-WAR-0041/implementation/current-measurement.json` | verified |
+| D-008 | Retained historical successful regression output | `docs/warrants/OW-WAR-0041/implementation/regression.log` | verified |
+| D-009 | Retained historical full-gate failure | `docs/warrants/OW-WAR-0041/implementation/initial-gate-failure.log.gz` | verified |
+| D-010 | Retained historical shared-reference failure | `docs/warrants/OW-WAR-0041/implementation/shared-ref-gate-failure.log.gz` | verified |
+
 ### OW-WAR-0101 — Constrain local drafting responses before semantic validation
 
 [manifest](../../docs/warrants/OW-WAR-0101/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0101/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
@@ -26602,7 +26657,7 @@ the app shows a `human` remedy and stops.
 | D-008 | A correction against a historical pin is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
 | D-009 | The resolution locator | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | verified |
-| D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | verified |
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
@@ -26628,7 +26683,7 @@ the app shows a `human` remedy and stops.
 | D-034 | The app plants | `conformance/plants.d/97-tui.sh` | verified |
 | D-035 | docs/TUI.md: every pane, every key, the rendering rule | `docs/TUI.md` | verified |
 | D-036 | README: one line | `README.md` | verified |
-| D-037 | AGENTS.md: agents call war status and war next, never bare war | `AGENTS.md` | verified |
+| D-037 | AGENTS.md: agents call war status and war next, never bare war | `AGENTS.md` | drift |
 | D-038 | OW-ADR-0020 accepted, governs this Warrant | `docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md` | verified |
 | D-039 | The re-pin act | `crates/openwarrant-cli/src/sas_repin.rs` | verified |
 | D-040 | The re-pin plants | `conformance/plants.d/88-sas-repin.sh` | verified |
@@ -26641,7 +26696,7 @@ the app shows a `human` remedy and stops.
 
 [manifest](../../docs/warrants/OW-WAR-0113/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0113/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 4 (`de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9`), Basis SAS 1.1.0.
+Contract revision 5 (`9c65bbb9f05ee484d08ea1c6441f4e4b80b6ecb041bd5bee0923dfc871165177`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0113/atoms/10-intent.md](../../docs/warrants/OW-WAR-0113/atoms/10-intent.md)
 
@@ -27112,9 +27167,9 @@ stages:
 - **evidence:** on a scratch program, a Warrant that another authorized Warrant `supersedes` reads `relations.currency` PASS with no field in its manifest; a manifest carrying `currency = "superseded"` is refused `relations.currency-authored`; a `supersedes` cycle is refused `relations.currency-cycle`; on this corpus, `war sign --all --dry-run` reports no `authorize.no-amendment` for OW-WAR-0073 and `war authorize OW-WAR-0073` prints contract digest `691f51ce…`.
 
 ### OBL-002 — the master document is current by construction and the history holds the rest
-- **scope:** `current.rs`, `history.rs`, `compile.rs`, `docs/generated/CURRENT.md`, `docs/generated/HISTORY.md`, the four pointing documents.
+- **scope:** `current.rs`, `history.rs`, `compile.rs`, `docs/generated/CURRENT.md`, `docs/generated/HISTORY.md`, the four pointing documents (`AGENTS.md` pointing an agent at `war view prime`).
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** on this corpus, `CURRENT.md` names OW-WAR-0073 exactly once, as `OW-WAR-0073 → OW-WAR-0112` under *Replaced*, and contains none of 0073's atom text; `HISTORY.md` contains 0073's intent verbatim; every atom of every current Warrant appears verbatim in `CURRENT.md` (a plant hashes each atom's body and finds it); a hand edit to `CURRENT.md` fails `war check --generated` with `generated.drift`; `[generated] history = false` on a scratch program produces no `HISTORY.md` and no drift error; `README.md`, `QUICKSTART.md`, `AGENTS.md` and `docs/TUI.md` each name `docs/generated/CURRENT.md` as the first thing to read.
+- **evidence:** on this corpus, `CURRENT.md` names OW-WAR-0073 exactly once, as `OW-WAR-0073 → OW-WAR-0112` under *Replaced*, and contains none of 0073's atom text; `HISTORY.md` contains 0073's intent verbatim; every atom of every current Warrant appears verbatim in `CURRENT.md` (a plant hashes each atom's body and finds it); a hand edit to `CURRENT.md` fails `war check --generated` with `generated.drift`; `[generated] history = false` on a scratch program produces no `HISTORY.md` and no drift error; `README.md`, `QUICKSTART.md` and `docs/TUI.md` each name `docs/generated/CURRENT.md` as the first thing to read, and `AGENTS.md` names `war view prime` as the first thing an agent runs and does not name `CURRENT.md` first (AM-004).
 
 ### OBL-003 — no signing command is handed to a human unjudged
 - **scope:** `next.rs`, the app's Help pane.
@@ -27158,7 +27213,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-011 | docs/generated/HISTORY.md | `docs/generated/HISTORY.md` | not_content_addressed |
 | D-012 | the [generated] history key | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
 | D-013 | openwarrant.toml: history = true here | `openwarrant.toml` | drift |
-| D-014 | check.rs: atom.role-unprojected, atom.preset-unanswered | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-014 | check.rs: atom.role-unprojected, atom.preset-unanswered | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-015 | next.rs: judged actions | `crates/openwarrant-cli/src/next.rs` | drift |
 | D-016 | the app's Help pane shows the verdict | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
 | D-017 | preset: feature, intent | `crates/openwarrant-cli/templates/presets/feature/10-intent.md` | verified |
@@ -27180,9 +27235,9 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-033 | CONTEXT.md: the terms | `CONTEXT.md` | verified |
 | D-034 | README.md points at CURRENT.md | `README.md` | verified |
 | D-035 | QUICKSTART.md points at CURRENT.md | `QUICKSTART.md` | verified |
-| D-036 | AGENTS.md: read CURRENT.md first | `AGENTS.md` | verified |
+| D-036 | AGENTS.md: read CURRENT.md first | `AGENTS.md` | drift |
 | D-037 | docs/TUI.md: Help lists CURRENT.md first | `docs/TUI.md` | verified |
-| D-038 | the plants | `conformance/plants.d/69-current.sh` | verified |
+| D-038 | the plants | `conformance/plants.d/69-current.sh` | drift |
 | D-039 | §91.5 test 33 under OW-ADR-0022: a supersession derives currency (AM-002) | `conformance/plants/33-supersession-without-currency.py` | verified |
 | D-040 | The corpus plant that runs test 33, re-aimed at the derived rule (AM-002) | `conformance/plants.d/00-corpus.sh` | not_content_addressed |
 
@@ -27883,7 +27938,7 @@ assert it with.
 | D-010 | cli: the loader | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-011 | cli: war roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | verified |
 | D-012 | cli: the edit machine | `crates/openwarrant-cli/src/roadmap_edit.rs` | verified |
-| D-013 | cli: the four checks | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-013 | cli: the four checks | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-014 | cli: Objectives from the record | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
 | D-015 | cli: the acceptance act | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-016 | cli: the command and module list | `crates/openwarrant-cli/src/lib.rs` | drift |
@@ -29383,7 +29438,7 @@ journal event ambiguous, and today nothing refuses it.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The corpus identity rules | `crates/openwarrant-cli/src/identity_check.rs` | drift |
-| D-002 | war check runs the identity rules | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-002 | war check runs the identity rules | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-003 | war blut names the stage by UUID | `crates/openwarrant-cli/src/blut.rs` | verified |
 | D-004 | The identity plants | `conformance/plants.d/51-identity.sh` | verified |
 
@@ -30085,7 +30140,7 @@ truncates nothing.
 | D-006 | No partial generated parent: views and projections written atomically | `crates/openwarrant-cli/src/compile.rs` | drift |
 | D-007 | Response drafts written atomically before their rename | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-008 | Durable journal appends and journal.torn-tail | `crates/openwarrant-cli/src/journal_cmd.rs` | drift |
-| D-009 | storage.stray-temp in war check | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-009 | storage.stray-temp in war check | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-010 | The storage protocol, crash points, and the retained-artifact rule | `docs/STORAGE.md` | drift |
 | D-011 | The storage plants | `conformance/plants.d/53-storage.sh` | drift |
 
@@ -30764,7 +30819,7 @@ that by forcing every child to follow its parent's latest revision.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The parent citation check: revision exists, number and digest agree, moved parent, unknown history | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-001 | The parent citation check: revision exists, number and digest agree, moved parent, unknown history | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-002 | war new --parent: the exact citation, written from the parent's authorization | `crates/openwarrant-cli/src/new.rs` | verified |
 | D-003 | The --parent flag on war new | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The parent revision plants | `conformance/plants.d/58-parent-revision.sh` | verified |
@@ -31539,7 +31594,7 @@ anything.
 | D-004 | SECTIONS.json and SECTIONS.md written by war compile | `crates/openwarrant-cli/src/compile.rs` | drift |
 | D-005 | The generated section index | `docs/sas/generated/SECTIONS.json` | not_content_addressed |
 | D-006 | The generated section index, for reading | `docs/sas/generated/SECTIONS.md` | not_content_addressed |
-| D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | verified |
 | D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | verified |
 | D-010 | The CI gate job fetches full history, so section currency is answered there (AM-002) | `.github/workflows/ci.yml` | drift |
@@ -32183,7 +32238,7 @@ joined path is what shows no reader does.
 | D-001 | The native reference form, decided: OW-ADR-0026 | `docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md` | verified |
 | D-002 | Classify a target_ref; refuse a native reference without a non-Git holder | `crates/openwarrant-core/src/deliverable.rs` | verified |
 | D-003 | §56.1 requirements 2 and 3 never read a native reference from disk | `crates/openwarrant-cli/src/resolve.rs` | verified |
-| D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-005 | pins and pins --refresh leave a native reference alone | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-006 | A correction of a native reference is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
 | D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | drift |
@@ -35483,7 +35538,7 @@ this level requires. The author does not record them.
 | D-011 | war next names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/next.rs` | drift |
 | D-012 | The console names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/console.rs` | drift |
 | D-013 | The batch refuses an invalidation: it is signed alone (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
-| D-014 | The human acts, gate invalidation among them (AM-003; Q-001 a or b only) | `AGENTS.md` | verified |
+| D-014 | The human acts, gate invalidation among them (AM-003; Q-001 a or b only) | `AGENTS.md` | drift |
 | D-015 | Signing an invalidation (AM-003; Q-001 a or b only) | `docs/SIGNING.md` | verified |
 | D-016 | The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
 | D-017 | The human acts an adopter meets (AM-003; Q-001 a or b only) | `docs/ADOPTING.md` | verified |
@@ -35878,7 +35933,7 @@ resolver is refused by kind whatever the file says.
 | D-007 | THREAT_MODEL row: assignment and verdict attribution | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-008 | the plants | `conformance/plants.d/57-teams.sh` | verified |
 | D-009 | `war sign --list --as`, `war inbox --as`, `sign --list --json`, the review record after `war show` (AM-003) | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-010 | `war check` names a moved or malformed assignment (AM-003) | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-010 | `war check` names a moved or malformed assignment (AM-003) | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-011 | each Warrant's review record in `war status --json` (AM-003) | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
 | D-012 | the review record's type in the corpus status (AM-003) | `crates/openwarrant-core/src/status.rs` | verified |
 | D-013 | a resolution from an unassigned resolver is refused (AM-003) | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
@@ -36306,7 +36361,7 @@ test mode is labeled in every record it produces.
 | D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | drift |
 | D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | verified |
 | D-013 | store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004) | `crates/openwarrant-cli/src/authority_cmd/store.rs` | verified |
-| D-014 | check.rs emits authority.unprotected and policy.unprotected-divergence (AM-004) | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-014 | check.rs emits authority.unprotected and policy.unprotected-divergence (AM-004) | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-015 | repo.rs applies the store's protected policy keys on open (AM-004) | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-016 | 0096's transition tests name the v2 fields (AM-004) | `crates/openwarrant-core/tests/authority_transition.rs` | verified |
 | D-017 | roles.toml: the actor_kind comment spells policyservice (AM-004; comments only) | `docs/authority/roles.toml` | verified |
@@ -38531,7 +38586,7 @@ once, at acceptance, after the blind verifier.
 | D-006 | schema pack | `schemas/pack.json` | verified |
 | D-007 | cli: war standing propose, show, apply | `crates/openwarrant-cli/src/standing_cmd.rs` | verified |
 | D-008 | cli: the command and module list | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-009 | cli: the standing.* check rules, re-derived | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-009 | cli: the standing.* check rules, re-derived | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-010 | cli: AcceptStanding and RevokeStanding, human-only | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-011 | cli: the batch act carries class acts | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 | D-012 | cli: no covered path taken from work in flight | `crates/openwarrant-cli/src/ownership.rs` | verified |
@@ -40225,7 +40280,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | drift |
 | D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
 | D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | drift |
-| D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | verified |
+| D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | drift |
 | D-017 | The loop in five commands | `docs/TICKETS.md` | drift |
 | D-018 | Three steps to start | `README.md` | verified |
 | D-019 | Three steps to start | `QUICKSTART.md` | verified |
@@ -41086,5 +41141,5 @@ stages:
 | D-026 | Public receipt and collector controls: collector_loading | `crates/openwarrant-cli/tests/collector_loading.rs` | not_content_addressed |
 | D-027 | Public receipt and collector controls: collector_signature | `crates/openwarrant-cli/tests/collector_signature.rs` | not_content_addressed |
 | D-028 | Exact provider implementations, shared revision and actual participant responses | `docs/warrants/OW-WAR-0149/implementation/provider-participant-references.md` | not_content_addressed |
-| D-029 | Real integration observations, independent findings and source/raw-evidence references | `docs/warrants/OW-WAR-0149/implementation/cross-project-qualification.md` | not_content_addressed |
+| D-029 | Real integration observations, independent findings and source/raw-evidence references | `docs/warrants/OW-WAR-0149/implementation/cross-project-qualification.md` | verified |
 
