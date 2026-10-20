@@ -1,0 +1,117 @@
+{
+  "observed_at": "2026-10-17T03:31:12.443862+00:00",
+  "openwarrant_record_source": "c0385cdbd4f3de38f62730fe1343dbf01ed6ded4",
+  "sdk_code_source": "9e4630f83d9993629f3d6e92fb0eb657e0011d66",
+  "kf_source": "dabd1065392db8c55630000c71c984ad098f75ae",
+  "kf_pinned_openwarrant_source": "8d8b81ce6704eff8bbcc9e5dd36cd689021f64b7",
+  "pinned_artifact_equality": [
+    "atom.ts",
+    "authorization.ts",
+    "bonsai-evidence.ts",
+    "correction.ts",
+    "deliverables.ts",
+    "journal-event.ts",
+    "judgments.ts",
+    "manifest.ts",
+    "milestones.ts",
+    "report.ts",
+    "resolution.ts",
+    "stage-dispatch.ts",
+    "stage-submission.ts",
+    "verification.ts",
+    "war.ts"
+  ],
+  "artifacts": [
+    {
+      "path": "packages/warrants/src/generated/openwarrant/atom.ts",
+      "sha256": "9eac3f957caa6a3f6cdec16b20a2d4a7999b24403e5e5fe23e0c1bb566d4b484"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/authorization.ts",
+      "sha256": "61aa410abd32c0cd00859b7408b280cc296f9f917464c28498a82e316c0ab685"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/bonsai-evidence.ts",
+      "sha256": "2188a8f83cd5d0359b9367399178bb9613ac4de8288741360778635a435f1c55"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/correction.ts",
+      "sha256": "e4462ed4d58f48c755a53c25c538101fcd6a5b36c9332f62e2fed6bff1d961ea"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/deliverables.ts",
+      "sha256": "b669454537ebdbaa56e68cbfbcff22fc2bc244be2c9802ac6c9135750e024d59"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/journal-event.ts",
+      "sha256": "864a8e4f99ea4f1ceff9b997193c391237edb67df940d583448c00ba81bcc958"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/judgments.ts",
+      "sha256": "aa22d0bb2524ce7a4c70932d8e07b010ebcc1eca900e2d5a9d4d0b49f4cda8e6"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/manifest.ts",
+      "sha256": "aead6f35f6f9d9e9b779817a2abadf39388a773fcb52423a709e17a43ccdd1c3"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/milestones.ts",
+      "sha256": "39a2a71f71d6d731b75791da59db1d9af7f4bc1286f518992edd936193a690bb"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/report.ts",
+      "sha256": "72557aed2e2023b8f82febcfb1be2ae33a6aa887a623415cbfbf2492b76387e1"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/resolution.ts",
+      "sha256": "d32728d5156ff928df0cc54e986164aedb2e656063e9cda1dcc5a0ef0bd58aa6"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/stage-dispatch.ts",
+      "sha256": "d6ab4d1a7122e3f91cf1bfa5633c13f7955ad7d4d85d3407ba51e194f21d188c"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/stage-submission.ts",
+      "sha256": "65b61d886a58806831c2f1545125bfa88f164293365899afc21c1f2349fbe70d"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/verification.ts",
+      "sha256": "1b2a4de1e5bac2349ba9f99f203f2e0b0011a973a6ca9da3bc56c842211d9a8a"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/war.ts",
+      "sha256": "10b3654532f1c4e6fe84a53cce7b57034da705e80b6efd084be5ca88e6d7e097"
+    }
+  ],
+  "boundary_sources": [
+    {
+      "path": "packages/warrants/tsconfig.json",
+      "sha256": "d62e012a24dd7afe4f03a07ad704689ab73ef8a109a2a4fc9867263d6b77c8a2"
+    },
+    {
+      "path": "packages/warrants/src/submission-contract.ts",
+      "sha256": "8bf4dfea22e402b68b820b5dcd7ad91b5a1f54ec055abe22c2b47551022dd240"
+    },
+    {
+      "path": "packages/warrants/src/projections.ts",
+      "sha256": "fd05677f422170d33cf5790b6550e4d54d854f7d6445ca7fd2b3770ffd19767b"
+    },
+    {
+      "path": "packages/warrants/src/index.ts",
+      "sha256": "e93f18f861fc577b7110277bfd4ed39c1118cc606f5fdf10c2773a428a662b92"
+    },
+    {
+      "path": "packages/warrants/src/generated-contract.test.ts",
+      "sha256": "8b7d430b2fb121754775156e0e3fdddfb3319b014c6c448db83b5802635bcfcc"
+    },
+    {
+      "path": "packages/warrants/src/generated/openwarrant/source.json",
+      "sha256": "444d92446eb6479968e84bc5d12e84bc03070a047ab01e561a2e859800894fb1"
+    }
+  ],
+  "limits": [
+    "Read-only source and existing hosted CI observation; no new KF build or runtime session executed.",
+    "Historical OBL-001 gate schema/corpus validation and OBL-002 FormatBasis.digest requirements are not established.",
+    "No independent verdict, human act, provider qualification or Warrant resolution."
+  ]
+}

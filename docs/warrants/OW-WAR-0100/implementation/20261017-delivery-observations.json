@@ -1,0 +1,122 @@
+[
+  {
+    "id": "D-001",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.governed",
+        "file": null,
+        "message": "OW-WAR-0100: D-001 \u2192 crates/openwarrant-cli/src/telemetry.rs is governed by OW-WAR-0124/D-006 (authorized 2026-10-16T22:37:16Z), later than OW-WAR-0100 (authorized 2026-09-19T02:38:19Z); not recorded here \u2014 its bytes are that Warrant's to record, and this pin is historical (OW-ADR-0021). `war admin pins` shows who governs what"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-002",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-002 \u2192 crates/openwarrant-cli/tests/telemetry_integrity_cli.rs delivered at sha256:9ee5420ec304"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-003",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-003 \u2192 docs/warrants/OW-WAR-0039/deliverables.toml delivered at sha256:b7a6a627c9b5"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-004",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-004 \u2192 docs/warrants/OW-WAR-0041/deliverables.toml delivered at sha256:ee3ea2345d95"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-005",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-005 \u2192 docs/warrants/OW-WAR-0041/implementation/notes.md delivered at sha256:df5d349ab0d9"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-006",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-006 \u2192 docs/warrants/OW-WAR-0041/implementation/observation.json delivered at sha256:cfc97b66bbb7"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-007",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-007 \u2192 docs/warrants/OW-WAR-0041/implementation/current-measurement.json delivered at sha256:8ab1ae5473b3"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-008",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-008 \u2192 docs/warrants/OW-WAR-0041/implementation/regression.log delivered at sha256:0ea60f07ba57"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-009",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-009 \u2192 docs/warrants/OW-WAR-0041/implementation/initial-gate-failure.log.gz delivered at sha256:54a2a11f4f3e"
+      }
+    ],
+    "exit_code": 0
+  },
+  {
+    "id": "D-010",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "deliver.recorded",
+        "file": null,
+        "message": "OW-WAR-0100: D-010 \u2192 docs/warrants/OW-WAR-0041/implementation/shared-ref-gate-failure.log.gz delivered at sha256:6d71250cd39a"
+      }
+    ],
+    "exit_code": 0
+  }
+]

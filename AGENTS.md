@@ -40,9 +40,10 @@ signature a step of the ticket loop.
   queue already judged by the dry run. It is large (megabytes); search it rather
   than read it whole. A replaced Warrant is one line of lineage there; its text
   is in `docs/generated/HISTORY.md`.
-- **The document standard:** [Format 1.0](docs/format/FORMAT-1.0.md) (proposed,
-  OW-ADR-0032): one-file Warrants, records, extension keys and what a reader
-  refuses. Where it and the RC.3 draft differ on format, it is the proposal.
+- **The document standard:** read [Format 1.0](docs/format/FORMAT-1.0.md) for
+  document rules and [format status](docs/format/README.md#status) for the
+  edition and adoption record. An accepted direction and an accepted edition
+  are separate; retain the recorded status of each.
 - **Product or SDK design:** read the [current SAS draft](docs/sas/drafts/1.0.0-rc.3/README.md),
   then the linked companion for the feature. RC.3 is an unaccepted candidate;
   the draft does not establish implemented behavior or rewrite signed history.
