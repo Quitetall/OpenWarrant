@@ -1,0 +1,1 @@
+{"case":"T06-invalid-utf8","file":"invalid-utf8.bin","dialect":"rc3","source":{"bytes":2,"sha256":"b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209"},"passed":true,"observed":{"parse":"refused","diagnostic":{"code":"source-invalid","severity":"error","message":"Invalid UTF-8","span":[0,1]}},"source_ref":"conformance/sdk/document/invalid-utf8.bin"}

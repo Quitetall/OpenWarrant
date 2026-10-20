@@ -6,7 +6,21 @@ It is executable input, not a filename-to-verdict lookup. Run from repository ro
 ```sh
 cargo run -p openwarrant-core --example sdk_probe -- --scope 75 --fixtures conformance/sdk
 cargo test -p openwarrant-core --test document
+python3 conformance/sdk/document/check_observations.py
 ```
+
+Append `--observations` to the scope-75 probe command to print one JSON
+observation per case, then a summary. The output includes actual parse and
+validation diagnostics, source SHA-256, exact unit text and byte spans, and
+whether the original bytes were preserved. An unexpected result still exits
+nonzero and appears as a failing case. Context, readiness and qualification
+remain unevaluated. This is diagnostic test output, not a Warrant or a verifier
+response. The default pass/fail output is unchanged.
+
+The observation check builds and locates the actual probe using Cargo's artifact
+report; an explicit executable path can be supplied to test a prebuilt probe.
+It also tests changed content under a new filename and a trailing-byte refusal.
+The Phase 1 runner includes this check on Linux and macOS.
 
 `cases.json` records expected outcomes over actual bytes. The driver exits nonzero
 when the observed parser/validator outcome differs. Integration tests additionally

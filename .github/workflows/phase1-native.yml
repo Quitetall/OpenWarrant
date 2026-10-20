@@ -5,8 +5,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/phase1-native.yml'
-      - 'conformance/sdk/run_phase1.py'
-      - 'conformance/sdk/phase1.json'
+      - 'conformance/sdk/**'
+      - 'crates/openwarrant-core/**'
 
 permissions:
   contents: read

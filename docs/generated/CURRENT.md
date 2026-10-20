@@ -8040,6 +8040,32 @@ on the pinned toolchain; authoritative new gate registration remains separate.
 | D-031 | docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md | `docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md` | verified |
 | D-032 | Current delivery reconciliation report | `docs/warrants/OW-WAR-0075/implementation/delivery-reconciliation-20261017/README.md` | verified |
 | D-033 | Actual public probe, dynamic refusal and reuse observations | `docs/warrants/OW-WAR-0075/implementation/delivery-reconciliation-20261017/observations.json` | verified |
+| D-034 | Actual document case observations | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/observed-cases.jsonl` | verified |
+| D-035 | Actual probe execution identity and inputs | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/execution.json` | verified |
+| D-036 | Public probe observation regression control | `conformance/sdk/document/check_observations.py` | verified |
+| D-037 | Probe observation repair report | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/README.md` | verified |
+| D-038 | Actual probe case T01-minimal-rc3 | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-27aa2b47a5aee7677aec68146181795d63b4f8a14e49e4a8f12def35eeb6b60c.json` | verified |
+| D-039 | Actual probe case T01-legacy-explicit | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-c53e2a03b24e6316a3417621f479ef762d8dd65eee9f3b0fdca8b736b33a48cb.json` | verified |
+| D-040 | Actual probe case T02-duplicate-key | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-2338ebc602438efe5ee3d1b5699d7c4918d82b8643867ed03e01dc94c7f376c9.json` | verified |
+| D-041 | Actual probe case T03-fenced-markers | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-dc133e7b47bc31f8c080ec7f9a8519ee2a7cfa917e57f6fb77fb7df5b60e2ec1.json` | verified |
+| D-042 | Actual probe case T04-duplicate-unit | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-8bb73fec183fe635ff8c864551bbf51e92670168de11dd1a8eb82b76be59522a.json` | verified |
+| D-043 | Actual probe case T05-crlf-unicode | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-209e5d3587c722162c5a31a844d6b35b483c8e75b8c78c6e58442ddaf6086aeb.json` | verified |
+| D-044 | Actual probe case T06-invalid-utf8 | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-ae25069604f1a3cc46a8174057d72e1a7830357befdab27402e19bc70287d28f.json` | verified |
+| D-045 | Actual probe case T07-missing-outcome | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-5247e9a6064bd7b7b7da8b3256d14d0ef03b3cd162787c4b63afee63dac3449d.json` | verified |
+| D-046 | Actual probe case T08-unknown-optional | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-1bead1740708042ad5ad6221bf974a20e1ddddbae56d09b77078db04db0813f4.json` | verified |
+| D-047 | Actual probe case T08-unknown-required | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-6f4a034db77341401ae2a927708becc1c3f92c6203773971f562dc72434cf95d.json` | verified |
+| D-048 | Actual probe case T09-adr | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-33c53682a057ead2af67bca89c35eb922574fe09ab84c82db71852db5e93ff60.json` | verified |
+| D-049 | Actual probe case T09-sas | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-57b1eb7b2aaf1167517ad1cfc0db96fdf7868ea231871f657e4606829a1a99fc.json` | verified |
+| D-050 | Actual probe case T10-unresolved-required | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-94fbb1a7799d3d1758402bc83953ef472d086d8ffed9ee02841720fdfd137dd4.json` | verified |
+| D-051 | Actual probe case FOOTER01-wrapped | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-a5e9ba2d54e15bf29271b88bdb7233cf214a375889c1779f2eae1f707a449547.json` | verified |
+| D-052 | Actual probe case FOOTER02-compact | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-5458e014a0eca4dcaae3d7a143e5c1885e80164db93937ecde0651da2d377b19.json` | verified |
+| D-053 | Actual probe case FOOTER04-malformed | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-c6f1109445b7ef1d98e2c2df1a7e3a0011d288afd171e6aa446c766945bb1594.json` | verified |
+| D-054 | Actual probe case FOOTER05-trailing | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-2e7d2c3a57d75ffac1488b5ca8c7b7558f1718d4d6b4624196f0d83b8f91913b.json` | verified |
+| D-055 | Actual probe case FOOTER06-title | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-141a44e0db2d24eea81a9b755304f6b95a54e96eb978522c595698cb8f9ff375.json` | verified |
+| D-056 | Actual probe case FOOTER07-schema | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-792fdefb03a8749a2e4fcd999830b57dde3cee798025ca57aae23aa3dd6ccec2.json` | verified |
+| D-057 | Actual probe case T09-context-binding | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-651b9a2fc04bad1413a38496bde0f06b449ff593cc7d6844c86942d59406245b.json` | verified |
+| D-058 | Actual probe case T09-context-background-refusal | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-50a87ab0e7ec320e4ab0f6bcf4f0e7aed3a1f0d49ca5e060abb21d52f382bf5a.json` | verified |
+| D-059 | Actual probe case T06-combined-depth-refusal | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-344f94c57812883296b7a97ad817536546eb2b29d9a9e5b9fabf345c880bc8d0.json` | verified |
 
 #### OW-WAR-0076 — Author and edit human-first OpenWarrant documents
 

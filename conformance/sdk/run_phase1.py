@@ -80,6 +80,7 @@ def main():
     commands={
         'build':['cargo','build','--locked','-p','openwarrant-cli','--bin','war','--message-format=json'],
         'fixtures':['cargo','run','--locked','-p','openwarrant-core','--example','sdk_probe','--','--scope','85','--fixtures','conformance/sdk'],
+        'probe_observations':[sys.executable,'conformance/sdk/document/check_observations.py'],
         'core':['cargo','test','--locked','-p','openwarrant-core','--tests'],
         'cli':['cargo','test','--locked','-p','openwarrant-cli','--test','all','sdk_cli::'],
         'skills':[sys.executable,'conformance/sdk/skills/check_artifacts.py','--war','<built executable>'],

@@ -1,0 +1,1 @@
+{"case":"FOOTER05-trailing","file":"trailing.md","dialect":"rc3","source":{"bytes":653,"sha256":"429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c"},"passed":true,"observed":{"parse":"refused","diagnostic":{"code":"source-invalid","severity":"error","message":"Content after metadata footer","span":[648,653]}},"source_ref":"conformance/sdk/document/trailing.md"}

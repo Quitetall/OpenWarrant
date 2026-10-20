@@ -5,7 +5,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ]
     },
     "S02": {
@@ -232,7 +233,8 @@
       "checks": [
         "fixtures",
         "core",
-        "cli"
+        "cli",
+        "probe_observations"
       ]
     },
     "FOOTER-02": {
@@ -240,7 +242,8 @@
       "checks": [
         "fixtures",
         "core",
-        "cli"
+        "cli",
+        "probe_observations"
       ]
     },
     "FOOTER-03": {
@@ -248,7 +251,8 @@
       "checks": [
         "fixtures",
         "core",
-        "cli"
+        "cli",
+        "probe_observations"
       ]
     },
     "FOOTER-04": {
@@ -256,7 +260,8 @@
       "checks": [
         "fixtures",
         "core",
-        "cli"
+        "cli",
+        "probe_observations"
       ]
     },
     "FOOTER-05": {
@@ -264,7 +269,8 @@
       "checks": [
         "fixtures",
         "core",
-        "cli"
+        "cli",
+        "probe_observations"
       ]
     },
     "FOOTER-06": {
@@ -272,7 +278,8 @@
       "checks": [
         "fixtures",
         "core",
-        "cli"
+        "cli",
+        "probe_observations"
       ]
     },
     "FOOTER-07": {
@@ -280,7 +287,8 @@
       "checks": [
         "fixtures",
         "core",
-        "cli"
+        "cli",
+        "probe_observations"
       ]
     },
     "FOOTER-08": {
@@ -295,7 +303,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -303,7 +312,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -311,7 +321,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -319,7 +330,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -327,7 +339,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -335,7 +348,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -343,7 +357,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -351,7 +366,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -359,7 +375,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
@@ -367,7 +384,8 @@
       "phase": 1,
       "checks": [
         "fixtures",
-        "core"
+        "core",
+        "probe_observations"
       ],
       "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
     },
