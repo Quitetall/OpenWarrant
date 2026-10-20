@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-16.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-20.
 
 ## Lineage
 
@@ -41,6 +41,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-14 | 365 | sync.receipt_attached 365 |
 | 2026-10-15 | 1 | sync.receipt_attached 1 |
 | 2026-10-16 | 12 | sync.receipt_attached 6, verification.recorded 6 |
+| 2026-10-20 | 2 | attestation.recorded 1, authorization.recorded 1 |
 
 ## Roadmap revisions
 
@@ -26628,7 +26629,7 @@ the app shows a `human` remedy and stops.
 | D-034 | The app plants | `conformance/plants.d/97-tui.sh` | verified |
 | D-035 | docs/TUI.md: every pane, every key, the rendering rule | `docs/TUI.md` | verified |
 | D-036 | README: one line | `README.md` | verified |
-| D-037 | AGENTS.md: agents call war status and war next, never bare war | `AGENTS.md` | verified |
+| D-037 | AGENTS.md: agents call war status and war next, never bare war | `AGENTS.md` | drift |
 | D-038 | OW-ADR-0020 accepted, governs this Warrant | `docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md` | verified |
 | D-039 | The re-pin act | `crates/openwarrant-cli/src/sas_repin.rs` | verified |
 | D-040 | The re-pin plants | `conformance/plants.d/88-sas-repin.sh` | verified |
@@ -26641,7 +26642,7 @@ the app shows a `human` remedy and stops.
 
 [manifest](../../docs/warrants/OW-WAR-0113/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0113/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 4 (`de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9`), Basis SAS 1.1.0.
+Contract revision 5 (`9c65bbb9f05ee484d08ea1c6441f4e4b80b6ecb041bd5bee0923dfc871165177`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0113/atoms/10-intent.md](../../docs/warrants/OW-WAR-0113/atoms/10-intent.md)
 
@@ -27112,9 +27113,9 @@ stages:
 - **evidence:** on a scratch program, a Warrant that another authorized Warrant `supersedes` reads `relations.currency` PASS with no field in its manifest; a manifest carrying `currency = "superseded"` is refused `relations.currency-authored`; a `supersedes` cycle is refused `relations.currency-cycle`; on this corpus, `war sign --all --dry-run` reports no `authorize.no-amendment` for OW-WAR-0073 and `war authorize OW-WAR-0073` prints contract digest `691f51ce…`.
 
 ### OBL-002 — the master document is current by construction and the history holds the rest
-- **scope:** `current.rs`, `history.rs`, `compile.rs`, `docs/generated/CURRENT.md`, `docs/generated/HISTORY.md`, the four pointing documents.
+- **scope:** `current.rs`, `history.rs`, `compile.rs`, `docs/generated/CURRENT.md`, `docs/generated/HISTORY.md`, the four pointing documents (`AGENTS.md` pointing an agent at `war view prime`).
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** on this corpus, `CURRENT.md` names OW-WAR-0073 exactly once, as `OW-WAR-0073 → OW-WAR-0112` under *Replaced*, and contains none of 0073's atom text; `HISTORY.md` contains 0073's intent verbatim; every atom of every current Warrant appears verbatim in `CURRENT.md` (a plant hashes each atom's body and finds it); a hand edit to `CURRENT.md` fails `war check --generated` with `generated.drift`; `[generated] history = false` on a scratch program produces no `HISTORY.md` and no drift error; `README.md`, `QUICKSTART.md`, `AGENTS.md` and `docs/TUI.md` each name `docs/generated/CURRENT.md` as the first thing to read.
+- **evidence:** on this corpus, `CURRENT.md` names OW-WAR-0073 exactly once, as `OW-WAR-0073 → OW-WAR-0112` under *Replaced*, and contains none of 0073's atom text; `HISTORY.md` contains 0073's intent verbatim; every atom of every current Warrant appears verbatim in `CURRENT.md` (a plant hashes each atom's body and finds it); a hand edit to `CURRENT.md` fails `war check --generated` with `generated.drift`; `[generated] history = false` on a scratch program produces no `HISTORY.md` and no drift error; `README.md`, `QUICKSTART.md` and `docs/TUI.md` each name `docs/generated/CURRENT.md` as the first thing to read, and `AGENTS.md` names `war view prime` as the first thing an agent runs and does not name `CURRENT.md` first (AM-004).
 
 ### OBL-003 — no signing command is handed to a human unjudged
 - **scope:** `next.rs`, the app's Help pane.
@@ -27180,9 +27181,9 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-033 | CONTEXT.md: the terms | `CONTEXT.md` | verified |
 | D-034 | README.md points at CURRENT.md | `README.md` | verified |
 | D-035 | QUICKSTART.md points at CURRENT.md | `QUICKSTART.md` | verified |
-| D-036 | AGENTS.md: read CURRENT.md first | `AGENTS.md` | verified |
+| D-036 | AGENTS.md: read CURRENT.md first | `AGENTS.md` | drift |
 | D-037 | docs/TUI.md: Help lists CURRENT.md first | `docs/TUI.md` | verified |
-| D-038 | the plants | `conformance/plants.d/69-current.sh` | verified |
+| D-038 | the plants | `conformance/plants.d/69-current.sh` | drift |
 | D-039 | §91.5 test 33 under OW-ADR-0022: a supersession derives currency (AM-002) | `conformance/plants/33-supersession-without-currency.py` | verified |
 | D-040 | The corpus plant that runs test 33, re-aimed at the derived rule (AM-002) | `conformance/plants.d/00-corpus.sh` | not_content_addressed |
 
@@ -35483,7 +35484,7 @@ this level requires. The author does not record them.
 | D-011 | war next names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/next.rs` | drift |
 | D-012 | The console names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/console.rs` | drift |
 | D-013 | The batch refuses an invalidation: it is signed alone (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
-| D-014 | The human acts, gate invalidation among them (AM-003; Q-001 a or b only) | `AGENTS.md` | verified |
+| D-014 | The human acts, gate invalidation among them (AM-003; Q-001 a or b only) | `AGENTS.md` | drift |
 | D-015 | Signing an invalidation (AM-003; Q-001 a or b only) | `docs/SIGNING.md` | verified |
 | D-016 | The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
 | D-017 | The human acts an adopter meets (AM-003; Q-001 a or b only) | `docs/ADOPTING.md` | verified |
@@ -40225,7 +40226,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | drift |
 | D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
 | D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | drift |
-| D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | verified |
+| D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | drift |
 | D-017 | The loop in five commands | `docs/TICKETS.md` | drift |
 | D-018 | Three steps to start | `README.md` | verified |
 | D-019 | Three steps to start | `QUICKSTART.md` | verified |
