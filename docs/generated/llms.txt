@@ -616,6 +616,10 @@
 > -
 - doc:docs/releases/alpha4.md · document · - · OpenWarrant 1.0.0-alpha.4 — integration and conformance preview · docs/releases/alpha4.md:1
 
+## docs/releases/alpha5.md
+> -
+- doc:docs/releases/alpha5.md · document · - · OpenWarrant 1.0.0-alpha.5 — Format 1.0 draft 3 and a short first read for agents · docs/releases/alpha5.md:1
+
 ## docs/releases/candidate-rehearsal.md
 > -
 - doc:docs/releases/candidate-rehearsal.md · document · - · Candidate packaging and installation rehearsal · docs/releases/candidate-rehearsal.md:1

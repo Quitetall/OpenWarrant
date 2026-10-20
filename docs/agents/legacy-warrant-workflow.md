@@ -176,5 +176,5 @@ Ordinary coding needs no Warrant and no ticket: work here as in any repository.
 OpenWarrant tracks optional plans and checklists in this repository; run
 `war view prime` to see what is tracked (open work, who holds what, recent notes).
 `war context <id>` loads what a task needs: a Warrant, item, record id or file, cited by id.
-<!-- openwarrant agents-md: written by war 1.0.0-alpha.4 -->
+<!-- openwarrant agents-md: written by war 1.0.0-alpha.5 -->
 <!-- openwarrant:end -->
